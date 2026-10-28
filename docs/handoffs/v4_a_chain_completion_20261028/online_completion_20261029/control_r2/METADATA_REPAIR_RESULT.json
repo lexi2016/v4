@@ -1,0 +1,25 @@
+{
+  "status": "METADATA_REPAIR_TARGETED_PASS_INCREMENTAL_REVIEW_PENDING",
+  "scope": "Only installer metadata preservation and metadata plan/preflight pins; original41freeze/productsources/finalcandidates unchanged",
+  "base_failure_receipt": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/REVIEW_FINAL_20261029_R1.json",
+    "sha256": "7cbf6c22e1a7c020137960536d11c963e79650783e56d68a407814591c320473"
+  },
+  "actual_feasibility": "3/3 actual frozen plist metadata snapshots copied exactly to owned temp FDs and read back; actual source metadata/bytes unchanged; com.apple.provenance11bytes directly tested, not inferred from marker",
+  "private_regression": "1passed in0.02s: forward/inverse atomicCAS preserve actual provenance+uid/gid/mode/allattrs and private marker; metadata drift refuses inverse before replacement",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest control_r2/test_plist_metadata_repair.py -q -p no:cacheprovider --basetemp control_r2/tmp/metadata",
+  "initial_fixture_issue": "First regression fixture omitted EnvironmentVariables:{} that the unchanged existing operator normalizes; corrected synthetic fixture only, product installer unchanged after first repair.",
+  "old_checks_reused": "9API+2Stage+native11/11+1340/452/984inventoryPASS+4controls unchanged evidence reused; not rerun",
+  "helpers": {
+    "plist_metadata_sha256": "0c486cb4a52294f155e99a00465c9db38fbba0b6b282223f6f92f6061f204c98",
+    "source_helper_unmodified": true
+  },
+  "plan_sha256": "f8dd5f9af59558b40429b0db2f0e719a4ec4aa6be56732cb1f685405644ca4b8",
+  "controller_sha256": "c953c81133a5f425f12d84693a28ad7d71d932d45773530ad26d4f2cd3bc881e",
+  "operator_sha256": "74edabd6a0bc1cf0ed1c38af07ae535b494d456f7a6a5ce184e44573ef7d0ae2",
+  "active_plist_writes": 0,
+  "active_attr_setters": 0,
+  "service_actions": 0,
+  "privilege_escalation": false,
+  "temporary_files_removed": true
+}

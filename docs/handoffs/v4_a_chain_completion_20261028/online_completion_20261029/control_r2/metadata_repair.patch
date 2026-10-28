@@ -1,0 +1,201 @@
+--- control/publication_operator.py
++++ control_r2/publication_operator.py
+@@ -20,6 +20,25 @@
+ CASE=Path(__file__).resolve().parent.parent
+ def sha(raw): return hashlib.sha256(raw).hexdigest()
+ def load(path): return json.loads(Path(path).read_bytes())
++
++# Frozen current metadata only, applied exclusively to our owned CAS temp FD.
++# No universal attribute requirement and no setters on active plist inodes.
++_METADATA_HELPER_SHA256 = '0c486cb4a52294f155e99a00465c9db38fbba0b6b282223f6f92f6061f204c98'
++import types
++_metadata_path = Path(__file__).resolve().with_name('plist_metadata.py')
++_metadata_raw = _metadata_path.read_bytes()
++if sha(_metadata_raw) != _METADATA_HELPER_SHA256:
++    raise ValueError('PLIST_METADATA_HELPER_DRIFT')
++metadata = types.ModuleType('scoped_plist_metadata')
++exec(compile(_metadata_raw, str(_metadata_path), 'exec'), metadata.__dict__)
++
++def metadata_pin(row):
++    expected = row['plist_metadata']
++    if metadata.digest(expected) != row['plist_metadata_sha256']:
++        raise ValueError('FROZEN_PLIST_METADATA_DIGEST_MISMATCH')
++    metadata.require(row['plist'], expected)
++    return expected
++
+ def op(plan, component): return next(row for row in plan['operations'] if row['component']==component)
+ 
+ 
+@@ -99,6 +118,7 @@
+         raise ValueError('CONTROLLER_MUST_FIRST_QUIESCE_AND_UNLOAD_WITHOUT_KILL:'+row['label'])
+     path=Path(row['plist'])
+     if path.is_symlink() or path.resolve()!=path:raise ValueError('PLIST_PATH_UNSAFE')
++    preserved_metadata=metadata_pin(row)
+     raw=path.read_bytes();expected=row['after_sha256'] if rollback else row['before_sha256']
+     if sha(raw)==(row['before_sha256'] if rollback else row['after_sha256']):return 'ALREADY_APPLIED'
+     if sha(raw)!=expected:raise ValueError('PLIST_CAS_MISMATCH')
+@@ -114,10 +134,23 @@
+         if sha(backup.read_bytes())!=row['before_sha256']:raise ValueError('BACKUP_DRIFT')
+         new=proposed_bytes(row,raw)
+     tmp=path.with_name('.'+path.name+'.graph-repair-'+str(os.getpid()))
+-    with tmp.open('xb') as stream:stream.write(new);stream.flush();os.fsync(stream.fileno())
+-    tmp.chmod(0o600)
+-    if sha(path.read_bytes())!=expected:raise ValueError('PLIST_CAS_CHANGED_BEFORE_REPLACE')
+-    os.replace(tmp,path)
++    fd=os.open(tmp,os.O_RDWR|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,preserved_metadata['mode'])
++    try:
++        with os.fdopen(fd,'w+b') as stream:
++            stream.write(new);stream.flush();os.fsync(stream.fileno())
++            metadata.apply_fd(stream.fileno(),preserved_metadata)
++            if metadata.snapshot_fd(stream.fileno())!=preserved_metadata:
++                raise ValueError('TEMP_PLIST_METADATA_NOT_PRESERVED')
++        if sha(tmp.read_bytes())!=sha(new):raise ValueError('TEMP_PLIST_BYTES_DRIFT')
++        metadata.require(tmp,preserved_metadata)
++        if sha(path.read_bytes())!=expected:raise ValueError('PLIST_CAS_CHANGED_BEFORE_REPLACE')
++        metadata_pin(row)
++        os.replace(tmp,path)
++        if sha(path.read_bytes())!=sha(new):raise ValueError('COMMITTED_PLIST_BYTES_DRIFT')
++        metadata_pin(row)
++    finally:
++        try:tmp.unlink()
++        except FileNotFoundError:pass
+     return 'ROLLED_BACK' if rollback else 'INSTALLED_UNLOADED'
+ 
+ 
+--- control/api_profile_control.py
++++ control_r2/api_profile_control.py
+@@ -8,7 +8,7 @@
+ HERE=Path(__file__).resolve().parent
+ PLIST=Path('/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist')
+ LABEL='com.lexi.v4.api'
+-OP_SHA='6e55505f01ffb6f3c91491b54f6200e2910e803eb4827459c964ddbfaded3050'
++OP_SHA='74edabd6a0bc1cf0ed1c38af07ae535b494d456f7a6a5ce184e44573ef7d0ae2'
+ def sh(raw):return sha256(raw).hexdigest()
+ def require(ok,reason):
+  if not ok:raise RuntimeError(reason)
+@@ -65,6 +65,7 @@
+  roots=(plan['stage_base_app']+'/',str(Path(plan['stage_candidate_root'])/'app')+'/')
+  require(not any(any(root in line for root in roots) for line in result.stdout.splitlines()),'STAGE_PROCESS_OR_DESCENDANT_MUST_COMPLETE')
+ def stage_definition(row,op,after):
++ op.metadata_pin(row)
+  expected=row['after_sha256'] if after else row['before_sha256'];pin(row['plist'],expected)
+  require(op.label_state(row['label'])==0,'STAGE_MUST_BE_LOADED_WITHOUT_PID')
+  loaded=op.run(['print',f'gui/{os.getuid()}/'+row['label']])
+@@ -124,6 +125,7 @@
+ 
+ def check(plan,integ,op):
+  require(plan['label']==LABEL and plan['operation']['plist']==str(PLIST),'API_ONLY_SCOPE')
++ op.metadata_pin(plan['operation'])
+  pin(PLIST,plan['operation']['before_sha256']);pin(plan['owner_handoff']['path'],plan['owner_handoff']['sha256'])
+  pin(plan['workbench_config']['path'],plan['workbench_config']['sha256'])
+  cfg=json.loads(Path(plan['workbench_config']['path']).read_bytes());require(str(Path(cfg['state_root'])/'manager_workbench')==plan['announcement_workbench_root'],'WORKBENCH_CONFIG_ROOT')
+@@ -142,6 +144,7 @@
+  r=runtime();require(r.get('release_id')==active['release_id'] and r.get('manifest_sha256')==plan['base_manifest_sha256'] and r.get('status')=='MANIFEST_EXECUTION_FILES_VERIFIED','RUNTIME_IDENTITY_DRIFT')
+  idle(pid);window(plan);return {'status':'BEFORE_PASS','process':process(pid),'runtime':r,'inventory_count':len(active['inventory'])}
+ def service(op,args):
++ # Metadata is checked in preflight/installer/loaded readback; no active setters.
+  require(args in (['bootout',f'gui/{os.getuid()}/'+LABEL],['bootstrap',f'gui/{os.getuid()}',str(PLIST)]),'SERVICE_SCOPE')
+  require(op.run(args).returncode==0,'LAUNCHCTL_UNCONFIRMED')
+ def exit_wait(identity):
+@@ -152,6 +155,7 @@
+  raise RuntimeError('EXIT_UNCONFIRMED_NO_KILL')
+ def verify_running(plan,integ,op,candidate):
+  root=Path(plan['candidate_root']) if candidate else Path(plan['base_app']).parent;digest=plan['candidate_manifest_sha256'] if candidate else plan['base_manifest_sha256']
++ op.metadata_pin(plan['operation'])
+  expected=plan['operation']['after_sha256'] if candidate else plan['operation']['before_sha256'];pin(PLIST,expected)
+  for _ in range(100):
+   pid=op.label_state(LABEL)
+@@ -166,6 +170,7 @@
+  raise RuntimeError('RUNTIME_READBACK_UNCONFIRMED')
+ def rollback(plan,integ,op):
+  stage_rollback(plan,op)
++ op.metadata_pin(plan['operation'])
+  current=sh(PLIST.read_bytes());require(current in (plan['operation']['before_sha256'],plan['operation']['after_sha256']),'ROLLBACK_UNKNOWN_PLIST')
+  pid=op.label_state(LABEL)
+  if pid is not None:
+--- control/API_PROFILE_PUBLISH_PLAN.json
++++ control_r2/API_PROFILE_PUBLISH_PLAN.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": "V4_API_ONLY_R19_PROFILE_PUBLISH_V1",
+   "label": "com.lexi.v4.api",
+-  "controller_sha256": "89ec3ec78a967b21f2a7529e88e60224ed2b0399d0e8d01022d6cca73f7bf0e5",
++  "controller_sha256": "c953c81133a5f425f12d84693a28ad7d71d932d45773530ad26d4f2cd3bc881e",
+   "base_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/daily-r19-profile-20261029-r1-api/app",
+   "base_manifest_sha256": "92520b28f242e03595bebf2d10dd864b7d65db0dafd09a2d18e546ff321e93ae",
+   "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-completion-20261029-r1-api",
+@@ -24,7 +24,20 @@
+     "new_prefix": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-completion-20261029-r1-api/app",
+     "env_set": {},
+     "set": {},
+-    "remove": []
++    "remove": [],
++    "plist_metadata": {
++      "uid": 501,
++      "gid": 20,
++      "mode": 384,
++      "xattrs": {
++        "com.apple.provenance": {
++          "base64": "AQIAtWm/aqZ1ZGw=",
++          "sha256": "eddc780ce6a804875e1c13ef4bfe285226d8e4839090ecbbdf3f0523dc936df7",
++          "bytes": 11
++        }
++      }
++    },
++    "plist_metadata_sha256": "4d00cbe4697079b63571ab485538b5fd7e4096efc4ac1cdbea43d7c087fe8b7f"
+   },
+   "before_process": {
+     "pid": 15637,
+@@ -78,7 +91,20 @@
+       "new_prefix": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-completion-20261029-r2-stage/app",
+       "env_set": {},
+       "set": {},
+-      "remove": []
++      "remove": [],
++      "plist_metadata": {
++        "uid": 501,
++        "gid": 20,
++        "mode": 384,
++        "xattrs": {
++          "com.apple.provenance": {
++            "base64": "AQIAtWm/aqZ1ZGw=",
++            "sha256": "eddc780ce6a804875e1c13ef4bfe285226d8e4839090ecbbdf3f0523dc936df7",
++            "bytes": 11
++          }
++        }
++      },
++      "plist_metadata_sha256": "4d00cbe4697079b63571ab485538b5fd7e4096efc4ac1cdbea43d7c087fe8b7f"
+     },
+     {
+       "component": "stage",
+@@ -92,7 +118,20 @@
+       "new_prefix": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-completion-20261029-r2-stage/app",
+       "env_set": {},
+       "set": {},
+-      "remove": []
++      "remove": [],
++      "plist_metadata": {
++        "uid": 501,
++        "gid": 20,
++        "mode": 384,
++        "xattrs": {
++          "com.apple.provenance": {
++            "base64": "AQIAtWm/aqZ1ZGw=",
++            "sha256": "eddc780ce6a804875e1c13ef4bfe285226d8e4839090ecbbdf3f0523dc936df7",
++            "bytes": 11
++          }
++        }
++      },
++      "plist_metadata_sha256": "4d00cbe4697079b63571ab485538b5fd7e4096efc4ac1cdbea43d7c087fe8b7f"
+     }
+   ],
+   "stage_base_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-retirement-20261028-stage/app",
+@@ -113,5 +152,7 @@
+   "protection_before": {
+     "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/PROTECTION_BEFORE.json",
+     "sha256": "490ebb79d422c9155cda44646f79c26ad767c466f64b26da979bcd62ad081815"
+-  }
++  },
++  "metadata_helper_sha256": "0c486cb4a52294f155e99a00465c9db38fbba0b6b282223f6f92f6061f204c98",
++  "metadata_repair_scope": "Only current three-plist uid/gid/mode/existing xattrs; actual com.apple.provenance copies passed; no attribute setters on active plist inodes."
+ }

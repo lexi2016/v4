@@ -1,0 +1,70 @@
+{
+  "scope": "source and reviewed release controls only; live/natural evidence separate",
+  "business_source_changes": [
+    {
+      "owner": "api",
+      "path": "apps/api/v4_api/app.py",
+      "before_sha256": "e49fefadcc31f92594fcf96b652886e801d018dba95ee6c4be9dabf0e5dc2721",
+      "after_sha256": "ea6a33731e70f2023a2abff24e2b77b663a602d1cd458c9515c4c74d3ce6fa5c"
+    },
+    {
+      "owner": "api",
+      "path": "apps/api/v4_api/review_router.py",
+      "before_sha256": "abe3ca6b33704343b7809c0ccbe1120ebb32919e6c19a5c2582f42e44a167d40",
+      "after_sha256": "15171322dd0e1ef60984720d72379b9811870a6b935d6d0b0f2c712a11ee1f6b"
+    },
+    {
+      "owner": "stage",
+      "path": "infrastructure/stage_quote_provider.py",
+      "before_sha256": "da81e8b5ce0e9ffa27cc1d85eaaa48387bf96f05a82af39253eca26e6cd50141",
+      "after_sha256": "152d803f1f4f462a22643f3f022528b2d985e9ad5c951137f6c8824b6220f471"
+    },
+    {
+      "owner": "stage",
+      "path": "stage_center_tick_config.json",
+      "before_sha256": "351e0ee2f5b59eb3a07d1ba65deba4351e04443e4e507116f8155e980fdc2a2c",
+      "after_sha256": "8a2a83e4a169d59e9a90fceaea1fff1c7a8f47f2d747d097dca10f392b7bb150"
+    }
+  ],
+  "api_candidate_manifest": "a645e19dcd906bae6e87dd6c0fb8700d49542a859cb0da5664e516aaed3de92f",
+  "stage_candidate_manifest": "00c6f0bbec5efde613573c8232dfed93927500972feeaa2379f5eaefd9afdf7f",
+  "api_non_delta_preserved": 1338,
+  "research_panel_assets_preserved": 452,
+  "stage_files": 984,
+  "focused_validation": {
+    "status": "TARGETED_CHECKS_PASS_INDEPENDENT_REVIEW_PENDING",
+    "api": "9 passed,1 benign anyio assertion-rewrite warning,in0.54s",
+    "native_owning_dependency_smoke": "2 passed,8 deselected,in0.16s",
+    "native_previous_independent_scope": "11/11PASS reused; transferred AST exactly equal, all other current V4 AST unchanged",
+    "control_fake_operators": "4 passed in0.02s",
+    "main_recovery": "Existing two hunks AST/set equivalent; no Main writes",
+    "initial_harness_issue": "First API check had9setup errors because owned tmp parent absent; harness fixed only, then9passed. No additional product edits.",
+    "actual_close": "Unchanged original native28close verified read-only through candidate in-process router; canonicalSHAe3d7d549... and cannot_confirm retained; notactiveAPIreadback",
+    "source_collection_calls": 0,
+    "active_plist_writes": 0,
+    "service_actions": 0,
+    "shared_business_state_writes": 0,
+    "git_actions": 0
+  },
+  "independent_review": {
+    "verdict": "PASS",
+    "deployment_plan_sha256": "f8dd5f9af59558b40429b0db2f0e719a4ec4aa6be56732cb1f685405644ca4b8",
+    "source_candidates_previous_pass_reused": true,
+    "metadata_repair": "actual three plist metadata copy plus forward/inverse and drift refusal PASS; no privilege change"
+  },
+  "source_export_exclusions": [
+    "raw API responses",
+    "stock and panel data",
+    "private active plists or deployment plans",
+    "admission records",
+    "credentials",
+    "runtime release directories",
+    "logs/backups"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "live_deployment_claimed": false,
+  "natural_verified": false
+}

@@ -1,0 +1,15 @@
+{
+  "status": "TARGETED_CHECKS_PASS_INDEPENDENT_REVIEW_PENDING",
+  "api": "9 passed,1 benign anyio assertion-rewrite warning,in0.54s",
+  "native_owning_dependency_smoke": "2 passed,8 deselected,in0.16s",
+  "native_previous_independent_scope": "11/11PASS reused; transferred AST exactly equal, all other current V4 AST unchanged",
+  "control_fake_operators": "4 passed in0.02s",
+  "main_recovery": "Existing two hunks AST/set equivalent; no Main writes",
+  "initial_harness_issue": "First API check had9setup errors because owned tmp parent absent; harness fixed only, then9passed. No additional product edits.",
+  "actual_close": "Unchanged original native28close verified read-only through candidate in-process router; canonicalSHAe3d7d549... and cannot_confirm retained; notactiveAPIreadback",
+  "source_collection_calls": 0,
+  "active_plist_writes": 0,
+  "service_actions": 0,
+  "shared_business_state_writes": 0,
+  "git_actions": 0
+}

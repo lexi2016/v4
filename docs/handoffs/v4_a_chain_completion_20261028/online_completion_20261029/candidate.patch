@@ -1,0 +1,244 @@
+--- api/before/apps/api/v4_api/app.py
++++ api/after/apps/api/v4_api/app.py
+@@ -6194,6 +6194,7 @@
+     app.include_router(create_review_router(
+         store.root,
+         hk_close_root=os.environ.get("V4_REVIEW_CORE_CLOSE_ROOT") or None,
++        a_close_root=os.environ.get("V4_REVIEW_CORE_CLOSE_ROOT") or None,
+         review_root=os.environ.get("V4_DAILY_REVIEW_ROOT"),
+         generation_bindings_path=os.environ.get("V4_REVIEW_GENERATION_BINDINGS_PATH"),
+         generation_bindings_sha256=os.environ.get("V4_REVIEW_GENERATION_BINDINGS_SHA256"),
+--- api/before/apps/api/v4_api/review_router.py
++++ api/after/apps/api/v4_api/review_router.py
+@@ -851,6 +851,7 @@
+     review_root: Path | str | None = None,
+     *,
+     hk_close_root: Path | str | None = None,
++    a_close_root: Path | str | None = None,
+     generation_bindings_path: Path | str | None = None,
+     generation_bindings_sha256: str | None = None,
+     intraday_root: Path | str | None = None,
+@@ -860,6 +861,9 @@
+     router = APIRouter(prefix="/api/v4", tags=["review"])
+     resolved_hk_close_root = (
+         Path(hk_close_root).expanduser() if hk_close_root is not None else Path(data_root)
++    )
++    resolved_a_close_root = (
++        Path(a_close_root).expanduser() if a_close_root is not None else Path(data_root)
+     )
+ 
+     @router.post("/review/generate")
+@@ -930,7 +934,7 @@
+                 a_payload = None
+                 bundle_error = f"REVIEW_CORE_BUNDLE_INVALID: {type(error).__name__}: {error}"
+         else:
+-            a_share_reviews = AShareReviewStore(data_root)
++            a_share_reviews = AShareReviewStore(resolved_a_close_root)
+             try:
+                 a_payload = a_share_reviews.read_review(date)
+             except ValueError:
+--- stage/before/infrastructure/stage_quote_provider.py
++++ stage/after/infrastructure/stage_quote_provider.py
+@@ -45,58 +45,120 @@
+     """Original quote RPC fallback; no transaction/history RPC or saved bars."""
+     def __init__(self, *, now=_opening_now):
+         self.now = now
+-
+-    def snapshot(self, symbols, *, trade_date, stage_id, cutoff_at):
++        self._api = None
++        self._host = ""
++        self._prepared_day = ""
++        self._connection_errors = []
++
++    def prepare(self):
++        """Connect in the existing09:24 prephase, without any quote RPC.
++
++        Use the same maintained80-host registry as the existing minute lane.
++        A monotonic45-second admission budget and the real09:25 edge bound
++        setup; a connection finishing after either deadline is discarded.
++        The native quote window uses only an already-connected socket.
++        """
++        import time
+         from pytdx.config.hosts import hq_hosts
+         from pytdx.hq import TdxHq_API
++        wall = _opening_clock(self.now())
++        if self._api is not None and self._prepared_day == wall.strftime("%Y%m%d"):
++            return
++        self.close()
++        edge = wall.replace(hour=9, minute=25, second=0, microsecond=0)
++        budget = 45.0
++        if wall.hour == 9 and wall.minute in (24, 25):
++            budget = min(budget, max(0.0, (edge - wall).total_seconds()))
++        deadline = time.monotonic() + budget
++        self._connection_errors = []
++        for name, host, port in hq_hosts[:80]:
++            remaining = deadline - time.monotonic()
++            if wall.hour == 9 and wall.minute in (24, 25):
++                remaining = min(remaining, (edge - _opening_clock(self.now())).total_seconds())
++            if remaining <= 0:
++                break
++            api = TdxHq_API(heartbeat=False)
++            retained = False
++            try:
++                if not api.connect(host, port, time_out=min(0.5, remaining)):
++                    self._connection_errors.append(f"{name}@{host}:{port}:connect returned false")
++                    continue
++                if time.monotonic() > deadline or (
++                    wall.hour == 9 and wall.minute in (24, 25)
++                    and _opening_clock(self.now()) >= edge
++                ):
++                    self._connection_errors.append(f"{name}@{host}:{port}:preparation deadline exceeded")
++                    break
++                self._api, self._host = api, f"{host}:{port}"
++                self._prepared_day = wall.strftime("%Y%m%d")
++                retained = True
++                return
++            except Exception as error:
++                self._connection_errors.append(f"{name}@{host}:{port}:{type(error).__name__}:{error}")
++            finally:
++                if not retained:
++                    try:
++                        api.disconnect()
++                    except Exception:
++                        pass
++        raise ConnectionError("TDX_NATIVE_PREPARE_UNAVAILABLE:" + ";".join(self._connection_errors))
++
++    def close(self):
++        api, self._api = self._api, None
++        self._prepared_day = ""
++        if api is not None:
++            try:
++                api.disconnect()
++            except Exception:
++                pass
++
++    def snapshot(self, symbols, *, trade_date, stage_id, cutoff_at):
+         from infrastructure.tdx_minute_replay_provider import _market_and_code
+         cutoff = _opening_clock(cutoff_at)
+-        errors = []
+-        # The same maintained registry is bounded by both8 hosts and the real
+-        # stage cutoff; no exhaustive transaction endpoint scan is introduced.
+-        for name, host, port in hq_hosts[:8]:
+-            if _opening_clock(self.now()) > cutoff:
+-                break
+-            api = TdxHq_API(heartbeat=False)
+-            rows, raw = [], []
+-            started = _opening_clock(self.now())
+-            try:
+-                if not api.connect(host, port, time_out=0.5):
+-                    continue
+-                for offset in range(0, len(symbols), 80):
+-                    if _opening_clock(self.now()) > cutoff:
+-                        break
+-                    query_started = _opening_clock(self.now())
+-                    batch = api.get_security_quotes([_market_and_code(s) for s in symbols[offset:offset+80]]) or []
+-                    captured = _opening_clock(self.now())
+-                    raw.extend(batch)
+-                    for row in batch:
+-                        stamp = str(row.get("servertime") or "")
+-                        if ":" not in stamp and stamp.replace(".", "", 1).isdigit():
+-                            stamp = stamp.split(".")[0].zfill(6)
+-                            stamp = f"{stamp[:2]}:{stamp[2:4]}:{stamp[4:6]}"
+-                        rows.append({"symbol": "A."+str(row.get("code", "")),
+-                            "source_update_time": f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]} {stamp}",
+-                            "last_price": row.get("price"), "open_price": row.get("open"),
+-                            "prev_close_price": row.get("last_close"), "high_price": row.get("high"),
+-                            "low_price": row.get("low"), "turnover": row.get("amount"), "volume": row.get("vol"),
+-                            "bid_price1": row.get("bid1"), "ask_price1": row.get("ask1"),
+-                            "bid_vol1": row.get("bid_vol1"), "ask_vol1": row.get("ask_vol1"),
+-                            "captured_at": captured.isoformat(), "capture_started_at": query_started.isoformat(),
+-                            "query_started_at": query_started.isoformat(), "returned_at": captured.isoformat()})
+-                if rows:
+-                    return {"rows": rows, "raw_rows": raw, "source": "PYTDX_HQ_READ_ONLY_QUOTES",
+-                        "source_method": "get_security_quotes", "host": f"{host}:{port}",
+-                        "capture_started_at": started.isoformat(), "captured_at": _opening_clock(self.now()).isoformat(),
+-                        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+-            except Exception as error:
+-                errors.append(f"{name}@{host}:{port}:{type(error).__name__}:{error}")
+-            finally:
+-                try:
+-                    api.disconnect()
+-                except Exception:
+-                    pass
+-        raise ValueError("TDX_NATIVE_QUOTES_UNAVAILABLE:" + ";".join(errors))
++        edge = cutoff.replace(second=0, microsecond=0)
++        started = _opening_clock(self.now())
++        if (stage_id != "STAGE_0925" or cutoff.strftime("%Y%m%d%H%M%S") != trade_date+"092505"
++                or cutoff.microsecond or started.strftime("%Y%m%d") != trade_date
++                or not edge <= started <= cutoff):
++            raise ValueError("TDX native quote outside exact real09:25 window")
++        if self._api is None or self._prepared_day != trade_date:
++            raise ValueError("TDX_NATIVE_CONNECTION_NOT_PREPARED")
++        rows, raw = [], []
++        try:
++            for offset in range(0, len(symbols), 80):
++                query_started = _opening_clock(self.now())
++                if not edge <= query_started <= cutoff:
++                    break
++                batch = self._api.get_security_quotes([_market_and_code(s) for s in symbols[offset:offset+80]]) or []
++                captured = _opening_clock(self.now())
++                raw.extend(batch)
++                for row in batch:
++                    stamp = str(row.get("servertime") or "")
++                    if ":" not in stamp and stamp.replace(".", "", 1).isdigit():
++                        stamp = stamp.split(".")[0].zfill(6)
++                        stamp = f"{stamp[:2]}:{stamp[2:4]}:{stamp[4:6]}"
++                    rows.append({"symbol": "A."+str(row.get("code", "")),
++                        "source_update_time": f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]} {stamp}",
++                        "last_price": row.get("price"), "open_price": row.get("open"),
++                        "prev_close_price": row.get("last_close"), "high_price": row.get("high"),
++                        "low_price": row.get("low"), "turnover": row.get("amount"), "volume": row.get("vol"),
++                        "bid_price1": row.get("bid1"), "ask_price1": row.get("ask1"),
++                        "bid_vol1": row.get("bid_vol1"), "ask_vol1": row.get("ask_vol1"),
++                        "captured_at": captured.isoformat(), "capture_started_at": query_started.isoformat(),
++                        "query_started_at": query_started.isoformat(), "returned_at": captured.isoformat()})
++            if not rows:
++                raise ValueError("TDX_NATIVE_QUOTES_UNAVAILABLE:EMPTY_QUOTE_RPC:" + self._host)
++            return {"rows": rows, "raw_rows": raw, "source": "PYTDX_HQ_READ_ONLY_QUOTES",
++                "source_method": "get_security_quotes", "host": self._host,
++                "connection_prepared_before_capture": True,
++                "connection_preparation_errors": tuple(self._connection_errors),
++                "capture_started_at": started.isoformat(), "captured_at": _opening_clock(self.now()).isoformat(),
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++        except Exception:
++            # A failed prepared socket is not reconnected inside the five-second
++            # quote window. The owning prephase always closes both providers.
++            self.close()
++            raise
+ 
+ 
+ class NativeAOpeningSnapshotProvider:
+@@ -115,14 +177,14 @@
+                 self.primary.prepare()
+         except Exception as error:
+             self._primary_prepare_error = f"FUTU_PREPARE:{type(error).__name__}:{error}"
+-            # A failed OpenD initialization must not consume the native slot.
+-            # Do not retry that known failure; prepare the existing quote
+-            # fallback if it has a preparation phase, then capture at the edge.
+-            try:
+-                if hasattr(self.fallback, "prepare"):
+-                    self.fallback.prepare()
+-            except Exception as fallback_error:
+-                self._fallback_prepare_error = f"TDX_PREPARE:{type(fallback_error).__name__}:{fallback_error}"
++        # OpenD can initialize successfully yet return future/invalid source
++        # clocks at09:25. Prepare the existing fallback before the edge even
++        # when the primary context is ready; preparation never requests quotes.
++        try:
++            if hasattr(self.fallback, "prepare"):
++                self.fallback.prepare()
++        except Exception as fallback_error:
++            self._fallback_prepare_error = f"TDX_PREPARE:{type(fallback_error).__name__}:{fallback_error}"
+ 
+     def close(self):
+         try:
+--- stage/before/stage_center_tick_config.json
++++ stage/after/stage_center_tick_config.json
+@@ -24,7 +24,7 @@
+   "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+   "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+   "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+-  "release_id": "hk-ready-status-20261021-r1",
++  "release_id": "a-chain-completion-20261029-r2-stage",
+   "research_mode": "LIVE_EXACT_DATE_READ_ONLY",
+   "safety": {
+     "buy_gate_updated": false,
