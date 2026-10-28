@@ -6281,6 +6281,11 @@ def create_app(
             ordinary_hk_display=True,
         )
 
+    # Candidate research adapter: read existing verified artifacts only. Register
+    # before the static catch-all; existing selection/preselection routes stay intact.
+    from apps.api.v35_api.research_panel_mount import register_opening_research
+    register_opening_research(app, module_role=module_role, selection_root=configured_selection_root)
+
     app.include_router(
         create_runtime_router(
             store.root,
