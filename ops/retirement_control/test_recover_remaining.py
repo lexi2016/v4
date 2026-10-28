@@ -21,11 +21,13 @@ def sample(tmp_path):
  for role in r.REMAINING:
   path=tmp_path/('owned-'+role+'.checkpoint.json');c.save(path,{'schema':'v4.retirement.role.v1','phase':'WAITING_ROOT_ACK','operation_id':l['operation_id'],'plan_sha256':l['plan_sha256'],'original_identity':l['identities'][role],'children':{}});l['checkpoint_sha256'][role]=c.sha(c.read(path))
  l['prearmed_collector']={'guard':{'pid':12,'ps_sha256':c.sha(b'/bin/sleep 604800'),'ps_text':'/bin/sleep 604800'},'original_checkpoint_sha256':l['checkpoint_sha256']['collector']}
+ proof=tmp_path/'original-proof.json';proof.write_text(json.dumps({'helper':{'path':'/fixed/original-helper.sh','sha256':'a'*64},'request':{'path':'/fixed/original-request.json','sha256':'b'*64},'handoff':{'path':'/fixed/original-handoff.json','sha256':'c'*64},'root_files':{name:'d'*64 for name in ['plan_sha256','COMPLETE',*[role+'.rc' for role in c.ROLES]]}}));l['original_arm_proof']={'path':str(proof),'sha256':c.sha(proof.read_bytes())}
  return p,l
 
 def test_preflight_main_is_completed_only_and_six_originals_one_explicit_guard(tmp_path,monkeypatch):
  p,l=sample(tmp_path);events=[]
  monkeypatch.setattr(r,'collector_guard',lambda *args:events.append(('prearmed','collector',l['prearmed_collector']['guard'])))
+ monkeypatch.setattr(r,'pending_guard',lambda c,p,o,role:events.append(('pending',role,None)))
  o=SimpleNamespace(completed=lambda role,i:events.append(('completed',role,i)),original=lambda role,i:events.append(('original',role,i)))
  before=(tmp_path/'owned-main.checkpoint.json').read_bytes();ss,paths=r.states(c,p,l,o,tmp_path)
  assert tuple(ss)==r.REMAINING and tuple(paths)==r.REMAINING
@@ -39,6 +41,7 @@ def test_preflight_main_is_completed_only_and_six_originals_one_explicit_guard(t
 def test_validate_truthful_main_new_identity_without_replacing_checkpoint(tmp_path,monkeypatch):
  p,l=sample(tmp_path);observed=[]
  monkeypatch.setattr(c,'handoff',lambda p,h,reverse:observed.append(h))
+ monkeypatch.setattr(r,'original_arm_proof',lambda *args:None)
  h=r.validate(c,p,l)
  assert observed[0]['identities']['main']==l['main']['new_identity']
  assert observed[0]['role_observations']['main']['disposition']=='COMPLETED'
@@ -47,14 +50,15 @@ def test_validate_truthful_main_new_identity_without_replacing_checkpoint(tmp_pa
  l['identities']['main']=l['main']['new_identity']
  with pytest.raises(c.Stop,match='EXACT_REMAINING_SEVEN'):r.validate(c,p,l)
 
-def test_new_helper_six_original_arms_one_api_rollback_and_no_collector_rearm(tmp_path):
+def test_new_helper_watch_only_with_one_api_rollback_and_zero_original_rearms(tmp_path):
  p,l=sample(tmp_path);script=r.helper(c,p,l,{'pid':123,'ps_sha256':'f'*64},tmp_path/'request.json','1'*64,tmp_path/'finish.json')
- assert script.count('/bin/launchctl debug ')==7
+ assert script.count('/bin/launchctl debug ')==1
  assert c.OLD['main'] not in script and c.NEW['main'] not in script
- for role in r.REMAINING:
-  if role!='collector':assert '/bin/launchctl debug gui/501/'+c.OLD[role]+' --program /bin/sleep -- 604800' in script
+ for role in r.REMAINING:assert '/bin/launchctl debug gui/501/'+c.OLD[role]+' --program /bin/sleep -- 604800' not in script
  assert '/bin/launchctl debug gui/501/'+c.OLD['collector'] not in script
  assert 'PREARMED_GUARD_VERIFIED_NO_ARM' in script and '/collector.rc' not in script.split('umask 022')[1]
+ assert 'ORIGINAL8_ACK_AND_CURRENT_PENDING_GUARDS_VERIFIED' in script
+ for role in r.REMAINING:assert '/'+role+'.rc' not in script.split('umask 022')[1]
  assert '/v4-retirement-nextspawn-'+l['operation_id']+'/collector.rc' in script
  assert '/bin/launchctl debug gui/501/'+c.NEW['api']+' --program /bin/sleep -- 604800' in script
  assert l['nonce'] in script and 'heartbeat' in script and 'helper_ps_sha256' in script
@@ -138,3 +142,35 @@ def test_exact_guard_identity_and_cwd_required_before_reconciliation(tmp_path,mo
  observed=l['prearmed_collector']['guard'];actual={**observed,'pid':13} if changed=='guard' else observed
  o=SimpleNamespace(disabled=lambda label:False,service_label=lambda label:{'loaded':False},guard=lambda role,old:actual,cmd=lambda *args:SimpleNamespace(stdout='p12\nfcwd\nn/wrong/cwd\n'))
  with pytest.raises(c.Stop,match='COLLECTOR_PREARMED_GUARD_DRIFT' if changed=='guard' else 'COLLECTOR_GUARD_CWD'):r.collector_guard(c,p,l,o)
+
+def pending_fixture(tmp_path):
+ import plistlib
+ file=tmp_path/'old.plist';definition={'ProgramArguments':['/usr/bin/env','PYTHONNOUSERSITE=1','/fixed/python','-m','old.api'],'WorkingDirectory':'/fixed/old/app','EnvironmentVariables':{'OWNER':'original'}};file.write_bytes(plistlib.dumps(definition))
+ p={'operations':[{'role':'api','plist':str(file),'before_file':str(file),'before_sha256':c.sha(file.read_bytes()),'plist_metadata':c.metadata.snapshot(file)}]}
+ text='\tpath = '+str(file)+'\n\tprogram = /usr/bin/env\n\t\t+ /bin/sleep\n\targuments = {\n'+''.join('\t\t'+v+'\n' for v in definition['ProgramArguments'])+'\t}\n\tcontroller-supplied arguments = {\n\t\t/bin/sleep\n\t\t604800\n\t}\n\tworking directory = /fixed/old/app\n\tenvironment = {\n\t\tOWNER => original\n\t}\n'
+ return p,text
+
+def test_actual_host_pending_print_requires_exact_program_arguments_and_binding(tmp_path):
+ p,text=pending_fixture(tmp_path)
+ r.pending_guard(c,p,SimpleNamespace(service=lambda role:{'text':text}),'api')
+
+@pytest.mark.parametrize('old,new',[
+ ('\t\t+ /bin/sleep\n',''),
+ ('\t\t+ /bin/sleep\n','\t\t+ /bin/sh\n'),
+ ('\tprogram = /usr/bin/env','\tprogram = /wrong/program'),
+ ('\t\t604800\n','\t\t5\n'),
+ ('\t\t/fixed/python\n','\t\t/wrong/python\n'),
+ ('OWNER => original','OWNER => changed'),
+ ('working directory = /fixed/old/app','working directory = /wrong/cwd'),
+])
+def test_missing_extra_or_different_pending_print_fails_closed(tmp_path,old,new):
+ p,text=pending_fixture(tmp_path)
+ with pytest.raises(c.Stop):r.pending_guard(c,p,SimpleNamespace(service=lambda role:{'text':text.replace(old,new)}),'api')
+
+def test_error37_does_not_prove_pending_arm(tmp_path):
+ p,_=pending_fixture(tmp_path)
+ with pytest.raises(c.Stop,match='ORIGINAL_PENDING_PROGRAM_NOT_VERIFIED'):r.pending_guard(c,p,SimpleNamespace(service=lambda role:{'text':'Configuration failed: 37: Operation already in progress'}),'api')
+
+def test_original_arm_proof_requires_exact_private_capsule_and_sha(tmp_path):
+ p,l=sample(tmp_path)
+ with pytest.raises(c.Stop,match='ORIGINAL_ARM_PROOF_SCOPE'):r.original_arm_proof(c,p,l)

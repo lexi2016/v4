@@ -4,7 +4,7 @@ No default actions. Imports the fixed reviewed recipe; never dispatches Main.
 Private plans, identities and per-run nonces are supplied separately.
 """
 from __future__ import annotations
-import argparse, fcntl, hashlib, importlib.util, json, os, re, shlex, stat, sys, time
+import argparse, fcntl, hashlib, importlib.util, json, os, plistlib, re, shlex, stat, sys, time
 from pathlib import Path
 
 CONTROL_SHA='a1a73b71b065702fb4cd201d95fc4be2710a3231627482c3216265ea92276e58'
@@ -33,7 +33,47 @@ def validate(c,p,l):
  h={**l,'identities':{'main':l['main']['new_identity'],**l['identities']},'role_observations':{'main':{'phase':'DONE','current_identity':l['main']['new_identity'],'disposition':'COMPLETED'},**{r:{'phase':'WAITING_ROOT_ACK','current_identity':l['identities'][r],'disposition':'ORIGINAL_UNTOUCHED'} for r in REMAINING}},'root_ack_dir':'/private/var/tmp/v4-retirement-nextspawn-'+l['operation_id'],'reverse':False}
  h['role_observations']['collector']={'phase':'WAITING_ROOT_ACK','current_identity':guard,'disposition':'IN_PROGRESS'}
  c.handoff(p,h,False)
+ original_arm_proof(c,p,l)
  return {**h,'recovery_root_ack_dir':l['root_ack_dir']}
+
+def original_arm_proof(c,p,l):
+ ref=l.get('original_arm_proof',{})
+ if ref.get('path')!=str(HERE/'ORIGINAL_ARM_PROOF.private.json'):raise c.Stop('ORIGINAL_ARM_PROOF_SCOPE')
+ proof=json.loads(c.pin(ref['path'],ref.get('sha256')))
+ op=l['operation_id'];root='/private/var/tmp/v4-retirement-nextspawn-'+op
+ if proof.get('schema')!='v4.retirement.original_arms_proof.r1' or proof.get('operation_id')!=op or proof.get('plan_sha256')!=c.sha(c.canonical(p)) or proof.get('root_ack_dir')!=root:raise c.Stop('ORIGINAL_ARM_PROOF_IDENTITY')
+ for key,name in [('helper','owned-admin-'+op+'.sh'),('request','owned-request-'+op+'.json')]:
+  if proof[key]['path']!=str(c.HERE/name):raise c.Stop('ORIGINAL_ARM_SOURCE_SCOPE')
+  c.pin(proof[key]['path'],proof[key]['sha256'])
+ request=json.loads(c.read(proof['request']['path']))
+ expected_handoff=c.HERE.parents[1]/'controller'/('LIVE_HANDOFF_'+op+'.json')
+ if proof['handoff']['path']!=str(expected_handoff) or request.get('handoff_sha256')!=proof['handoff']['sha256'] or request.get('operation_id')!=op or request.get('plan_sha256')!=proof['plan_sha256']:raise c.Stop('ORIGINAL_REQUEST_HANDOFF_IDENTITY')
+ old=json.loads(c.pin(proof['handoff']['path'],proof['handoff']['sha256']))
+ if old.get('operation_id')!=op or old.get('plan_sha256')!=proof['plan_sha256'] or any(old['identities'][role]!=l['identities'][role] for role in REMAINING):raise c.Stop('ORIGINAL_HANDOFF_REMAINING_IDENTITIES')
+ if c.sha(c.root_helper(p,old,request['coordinator'],proof['request']['sha256']).encode())!=proof['helper']['sha256']:raise c.Stop('ORIGINAL_REVIEWED_HELPER_RECONSTRUCTION')
+ expected={'plan_sha256','COMPLETE',*[role+'.rc' for role in c.ROLES]}
+ if set(proof['root_files'])!=expected:raise c.Stop('ORIGINAL_ARM_ACK_SET')
+ for name,want in proof['root_files'].items():c.pin(Path(root)/name,want)
+ c.Live(p).ack({'root_ack_dir':root})
+ return proof
+
+def pending_guard(c,p,o,role):
+ """Strict host-specific print readback; unknown format fails closed, not portable."""
+ if role not in REMAINING or role=='collector':raise c.Stop('PENDING_ARM_ROLE_SCOPE')
+ row=c.row(p,role);c.pin(row['plist'],row['before_sha256']);c.metadata.require(row['plist'],row['plist_metadata'])
+ before=plistlib.loads(c.pin(row['before_file'],row['before_sha256']))
+ text=o.service(role).get('text','')
+ programs=re.findall(r'^\tprogram = (.*)\n\t\t[+] /bin/sleep\n',text,re.M)
+ if programs!=[before['ProgramArguments'][0]] or len(re.findall(r'^\s*[+] ',text,re.M))!=1:raise c.Stop('ORIGINAL_PENDING_PROGRAM_NOT_VERIFIED:'+role)
+ for field,want in [('path',row['plist']),('working directory',before['WorkingDirectory'])]:
+  if re.findall(r'^\t'+re.escape(field)+r' = (.*)$',text,re.M)!=[want]:raise c.Stop('ORIGINAL_LOADED_BINDING_NOT_VERIFIED:'+role)
+ arguments=re.findall(r'^\targuments = \{\n(.*?)^\t\}',text,re.M|re.S)
+ if len(arguments)!=1 or [v.strip() for v in arguments[0].splitlines() if v.strip()]!=before['ProgramArguments']:raise c.Stop('ORIGINAL_LOADED_ARGV_NOT_VERIFIED:'+role)
+ environments=re.findall(r'^\tenvironment = \{\n(.*?)^\t\}',text,re.M|re.S)
+ env=dict(re.findall(r'^\s*([^\s]+) => (.*)$',environments[0],re.M)) if len(environments)==1 else {}
+ if any(env.get(k)!=str(v) for k,v in before['EnvironmentVariables'].items()):raise c.Stop('ORIGINAL_LOADED_ENV_NOT_VERIFIED:'+role)
+ blocks=re.findall(r'^\tcontroller-supplied arguments = \{\n(.*?)^\t\}',text,re.M|re.S)
+ if len(blocks)!=1 or [v.strip() for v in blocks[0].splitlines() if v.strip()]!=['/bin/sleep','604800']:raise c.Stop('ORIGINAL_PENDING_ARGUMENTS_NOT_VERIFIED:'+role)
 
 def collector_guard(c,p,l,o):
  """Only the consumed original collector nextspawn; immutable identity stays None."""
@@ -54,12 +94,12 @@ def states(c,p,l,o,run):
   path=run/('owned-'+role+'.checkpoint.json');s=json.loads(c.pin(path,l['checkpoint_sha256'][role]))
   if s.get('schema')!='v4.retirement.role.v1' or s.get('phase')!='WAITING_ROOT_ACK' or s.get('operation_id')!=l['operation_id'] or s.get('plan_sha256')!=c.sha(c.canonical(p)) or s.get('original_identity')!=l['identities'][role] or s.get('term_sent') or s.get('children')!={}:raise c.Stop('UNTOUCHED_CHECKPOINT_REQUIRED')
   if role=='collector':collector_guard(c,p,l,o)
-  else:o.original(role,s['original_identity'])
+  else:o.original(role,s['original_identity']);pending_guard(c,p,o,role)
   out[role]=s;paths[role]=path
  return out,paths
 
 def helper(c,p,l,coordinator,request,request_sha,finish):
- """Exactly six nextspawn arms, one existing collector guard and API rollback."""
+ """Reuses verified original arms. Only one fixed new-API rollback arm exists."""
  q=shlex.quote;target=l['root_ack_dir'];expiry=int(l['expires_epoch']);op=l['operation_id']
  alive=f'[ "$(/bin/ps -ww -p {coordinator["pid"]} -o lstart=,command= | /usr/bin/shasum -a 256 | /usr/bin/awk \'{{print $1}}\')" = {coordinator["ps_sha256"]} ]'
  lines=['#!/bin/sh','set -eu','PATH=/usr/bin:/bin:/usr/sbin:/sbin','export PATH LC_ALL=C','[ "$#" -eq 0 ] && [ "$(/usr/bin/id -u)" = 0 ] || exit 2',f'[ "$(/bin/date +%s)" -le {expiry} ] || exit 2',alive+' || exit 2',f'[ "$(/usr/bin/shasum -a 256 {q(str(request))} | /usr/bin/awk \'{{print $1}}\')" = {request_sha} ] || exit 2',f'[ "$(/usr/bin/shasum -a 256 /bin/sleep | /usr/bin/awk \'{{print $1}}\')" = {p["guard_program_sha256"]} ] || exit 2',"/usr/bin/codesign -v -R='anchor apple' /bin/sleep"]
@@ -68,19 +108,19 @@ def helper(c,p,l,coordinator,request,request_sha,finish):
   lines += [f'[ "$(/usr/bin/shasum -a 256 {q(r["plist"])} | /usr/bin/awk \'{{print $1}}\')" = {r["before_sha256"]} ] || exit 2']
   if i:lines += [f'[ "$(/bin/ps -ww -p {i["pid"]} -o lstart=,command= | /usr/bin/shasum -a 256 | /usr/bin/awk \'{{print $1}}\')" = {i["ps_sha256"]} ] || exit 2',f'[ "$(/bin/launchctl print gui/501/{label} | /usr/bin/awk \'$1 == "pid" && $2 == "=" {{print $3}}\')" = {i["pid"]} ] || exit 2']
   else:lines += [f'[ -z "$(/bin/launchctl print gui/501/{label} | /usr/bin/awk \'$1 == "pid" && $2 == "=" {{print $3}}\')" ] || exit 2']
+  if role!='collector':
+   lines += [f'pending=$(/bin/launchctl print gui/501/{label})',"printf '%s\\n' \"$pending\" | /usr/bin/grep -Eq '^[[:space:]]*[+] /bin/sleep[[:space:]]*$' || exit 2",'''[ "$(printf '%s\\n' "$pending" | /usr/bin/awk '/controller-supplied arguments = [{]/{on=1;next} on && /^[[:space:]]*[}]/{exit} on{gsub(/^[[:space:]]+|[[:space:]]+$/,"");print}')" = "$(printf '%s\\n' /bin/sleep 604800)" ] || exit 2''']
+ proof=json.loads(c.pin(l['original_arm_proof']['path'],l['original_arm_proof']['sha256']))
+ for item in [proof['helper'],proof['request'],proof['handoff']]:lines += [f'[ "$(/usr/bin/shasum -a 256 {q(item["path"])} | /usr/bin/awk \'{{print $1}}\')" = {item["sha256"]} ] || exit 2']
  old_ack='/private/var/tmp/v4-retirement-nextspawn-'+op
  lines += [f'[ "$(/usr/bin/stat -f %u {old_ack})" = 0 ] || exit 2']
  for name,want in [('plan_sha256',c.sha(c.canonical(p))),('COMPLETE','COMPLETE'),*[(role+'.rc','0') for role in c.ROLES]]:
   lines += [f'[ "$(/usr/bin/stat -f %u {old_ack}/{name})" = 0 ] || exit 2',f'[ "$(/bin/cat {old_ack}/{name})" = {q(want)} ] || exit 2']
+  lines += [f'[ "$(/usr/bin/shasum -a 256 {old_ack}/{name} | /usr/bin/awk \'{{print $1}}\')" = {proof["root_files"][name]} ] || exit 2']
  lines += ['umask 022',f'/bin/mkdir -m 755 {target} || exit 2']
  for name,value in [('operation_id',op),('nonce',l['nonce']),('plan_sha256',c.sha(c.canonical(p))),('request_sha256',request_sha)]:lines += [f"printf '%s\\n' {q(value)} > {target}/{name}"]
  lines += [f'printf \'%s\\n\' "$$" > {target}/helper_pid',f'/bin/ps -ww -p $$ -o lstart=,command= | /usr/bin/shasum -a 256 | /usr/bin/awk \'{{print $1}}\' > {target}/helper_ps_sha256']
- for role in REMAINING:
-  if role=='collector':
-   lines += [f"printf '%s\\n' PREARMED_GUARD_VERIFIED_NO_ARM > {target}/collector.observation",f"printf '%s\\n' {l['prearmed_collector']['guard']['ps_sha256']} > {target}/collector.guard_sha256"]
-   continue
-  label=c.OLD[role]
-  lines += [f"printf '%s\\n' INTENT > {target}/{role}.intent",'set +e',f'/bin/launchctl debug gui/501/{label} --program /bin/sleep -- 604800 > {target}/{role}.stdout 2> {target}/{role}.stderr','result=$?','set -e',f'printf \'%s\\n\' "$result" > {target}/{role}.rc','[ "$result" -eq 0 ] || exit "$result"']
+ lines += [f"printf '%s\\n' PREARMED_GUARD_VERIFIED_NO_ARM > {target}/collector.observation",f"printf '%s\\n' {l['prearmed_collector']['guard']['ps_sha256']} > {target}/collector.guard_sha256",f"printf '%s\\n' ORIGINAL8_ACK_AND_CURRENT_PENDING_GUARDS_VERIFIED > {target}/original-arm-reuse",f"printf '%s\\n' {l['original_arm_proof']['sha256']} > {target}/original_arm_proof_sha256"]
  lines += [f"printf '%s\\n' COMPLETE > {target}/COMPLETE"]
  rollback=c.HERE/('owned-api-rollback-'+op+'.json');r=c.row(p,'api');label=c.NEW['api']
  lines += [f'while [ "$(/bin/date +%s)" -le {expiry} ]; do',alive+' || exit 2',f' [ ! -e {q(str(finish))} ] || exit 0',f' /bin/date +%s > {target}/.heartbeat',f' /bin/mv -f {target}/.heartbeat {target}/heartbeat',f' if [ -f {q(str(rollback))} ] && [ ! -L {q(str(rollback))} ]; then',f' [ "$(/usr/bin/stat -f %u {q(str(rollback))})" = 501 ] || exit 2',f' [ "$(/usr/bin/plutil -extract operation_id raw {q(str(rollback))})" = {op} ] || exit 2',f' [ "$(/usr/bin/plutil -extract plan_sha256 raw {q(str(rollback))})" = {c.sha(c.canonical(p))} ] || exit 2',f' pid=$(/usr/bin/plutil -extract pid raw {q(str(rollback))})',f' identity=$(/usr/bin/plutil -extract ps_sha256 raw {q(str(rollback))})',' case "$pid" in *[!0-9]*|"") exit 2;; esac',' if [ "$pid" -eq 0 ]; then',' [ "$identity" = NONE ] || exit 2',f' [ -z "$(/bin/launchctl print gui/501/{label} | /usr/bin/awk \'$1 == "pid" && $2 == "=" {{print $3}}\')" ] || exit 2',f' /bin/launchctl print gui/501/{label} > /dev/null',' else',' case "$identity" in *[!0-9a-f]*|"") exit 2;; esac',' [ "${#identity}" = 64 ] || exit 2',f' [ "$(/bin/launchctl print gui/501/{label} | /usr/bin/awk \'$1 == "pid" && $2 == "=" {{print $3}}\')" = "$pid" ] || exit 2',' [ "$(/bin/ps -ww -p "$pid" -o lstart=,command= | /usr/bin/shasum -a 256 | /usr/bin/awk \'{print $1}\')" = "$identity" ] || exit 2',' fi',f' [ "$(/usr/bin/shasum -a 256 {q(r["new_plist"])} | /usr/bin/awk \'{{print $1}}\')" = {r["after_sha256"]} ] || exit 2',f' /bin/mkdir -m 755 {target}/rollback-api || exit 2',' set +e',f' /bin/launchctl debug gui/501/{label} --program /bin/sleep -- 604800 > {target}/rollback-api/stdout 2> {target}/rollback-api/stderr',' result=$?',' set -e',f' printf \'%s\\n\' "$result" > {target}/rollback-api/rc',' [ "$result" -eq 0 ] || exit "$result"',f" printf '%s\\n' {op} > {target}/rollback-api/COMPLETE",' exit 0',' fi',' /bin/sleep 1','done','exit 0']
@@ -93,7 +133,7 @@ def lease_ack(c,p,l,o,request_sha):
   f=root/name;s=f.lstat()
   if s.st_uid!=0 or not stat.S_ISREG(s.st_mode) or s.st_mode&0o022:raise c.Stop('LEASE_ROOT_FILE')
   return c.read(f).decode().strip()
- for name,want in [('operation_id',l['operation_id']),('nonce',l['nonce']),('plan_sha256',c.sha(c.canonical(p))),('request_sha256',request_sha),('COMPLETE','COMPLETE'),('collector.observation','PREARMED_GUARD_VERIFIED_NO_ARM'),('collector.guard_sha256',l['prearmed_collector']['guard']['ps_sha256']),*[(r+'.rc','0') for r in REMAINING if r!='collector']]:
+ for name,want in [('operation_id',l['operation_id']),('nonce',l['nonce']),('plan_sha256',c.sha(c.canonical(p))),('request_sha256',request_sha),('COMPLETE','COMPLETE'),('collector.observation','PREARMED_GUARD_VERIFIED_NO_ARM'),('collector.guard_sha256',l['prearmed_collector']['guard']['ps_sha256']),('original-arm-reuse','ORIGINAL8_ACK_AND_CURRENT_PENDING_GUARDS_VERIFIED'),('original_arm_proof_sha256',l['original_arm_proof']['sha256'])]:
   if value(name)!=want:raise c.Stop('LEASE_ACK_DRIFT')
  lease_alive(c,l,o,value)
 
@@ -155,6 +195,8 @@ def cli():
    def protection(self,hh):
     super().protection(hh)
     c.pin(run/'owned-main.checkpoint.json',l['main']['checkpoint_sha256']);self.completed('main',l['main']['new_identity'])
+    for role in REMAINING:
+     if role!='collector' and ss[role]['phase'] in ('WAITING_ROOT_ACK','ARMED'):pending_guard(c,p,self,role)
     # The finite helper exits after successfully arming the failed API. Its
     # root-owned consumed acknowledgement replaces its heartbeat for that wait.
     if ss['api']['phase']=='HEALTH_FAILED' and (Path(l['root_ack_dir'])/'rollback-api/COMPLETE').exists():c.rollback_ack(p,{**hh,'root_ack_dir':l['root_ack_dir']})

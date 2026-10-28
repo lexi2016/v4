@@ -226,7 +226,7 @@ class Live(r7.Live):
    def get(url):
     remaining=deadline-time.time()
     if remaining<=0:raise ValueError('API_HEALTH_DEADLINE')
-    with urllib.request.urlopen(url,timeout=min(2,remaining)) as response:return json.load(response)
+    with urllib.request.urlopen(url,timeout=remaining) as response:return json.load(response)
    health=get('http://127.0.0.1:8873/healthz')
    d=get('http://127.0.0.1:8873/api/v1/runs/date-list')
    frontend=get('http://127.0.0.1:8873/api/'+('v3' if self.reverse else 'v4')+'/runtime-graph/frontend-build')

@@ -264,3 +264,47 @@ def test_disabled_intent_main_resume_uses_actual_parser_without_replaying_prior_
  assert r.s['phase']=='DONE' and r.s['original_identity']==original and r.s['term_sent'] is True
  assert o.events.count('BOOTSTRAP')==1
  assert not set(o.events)&{'TERM','DISABLE_UNLOADED','CAS_NO_OVERWRITE','BOOTOUT_SLEEP','KICK_NO_K'}
+
+
+@pytest.mark.parametrize('reverse',[False,True])
+def test_health_slow_catalog_above_2_9_seconds_uses_shared_budget(monkeypatch,reverse):
+ import io,urllib.request
+ now=[100.0];seen=[]
+ monkeypatch.setattr(c.time,'time',lambda:now[0])
+ identity={'status':'MANIFEST_EXECUTION_FILES_VERIFIED','release_id':'new-api'}
+ frontend={'status':'VERIFIED','api_release_id':'new-api'}
+ if reverse:identity={'application':'V4','status':'CANNOT_CONFIRM','release_id':'','process_status':'CANNOT_CONFIRM'};frontend={'status':'CANNOT_CONFIRM','reason':'API_RELEASE_IDENTITY_UNBOUND'}
+ values=[{'status':'ok'},{'runtime_identity':identity},frontend]
+ def get(url,timeout):
+  delay=2.95 if 'date-list' in url else .01
+  seen.append((url,timeout,now[0]))
+  if timeout<delay:now[0]+=timeout;raise TimeoutError('legitimate2.95secondcatalog')
+  now[0]+=delay;return io.BytesIO(json.dumps(values.pop(0)).encode())
+ monkeypatch.setattr(urllib.request,'urlopen',get)
+ p={'operations':[{'role':'api','new_release_id':'new-api'}],'api_inverse_baseline':{'health':{'status':'ok'},'runtime_identity':identity,'frontend_build':frontend}}
+ assert c.Live(p,reverse).health(130) is True
+ assert len(seen)==3 and now[0]<130
+ assert all(0<timeout<=130-start for _,timeout,start in seen)
+
+
+def test_health_cannot_extend_remaining_global_deadline(monkeypatch):
+ import io,urllib.request
+ now=[129.5];seen=[];monkeypatch.setattr(c.time,'time',lambda:now[0])
+ def get(url,timeout):
+  seen.append(timeout);now[0]+=timeout;raise TimeoutError('deadline exhausted')
+ monkeypatch.setattr(urllib.request,'urlopen',get)
+ assert c.Live({'operations':[{'role':'api','new_release_id':'new'}]}).health(130) is False
+ assert seen==[.5] and now[0]==130
+
+
+@pytest.mark.parametrize('field',['identity','frontend','health'])
+def test_health_slow_catalog_does_not_relax_body_identity_or_status(monkeypatch,field):
+ import io,urllib.request
+ now=[100.0];monkeypatch.setattr(c.time,'time',lambda:now[0])
+ values=[{'status':'ok'},{'runtime_identity':{'status':'MANIFEST_EXECUTION_FILES_VERIFIED','release_id':'new-api'}},{'status':'VERIFIED','api_release_id':'new-api'}]
+ if field=='identity':values[1]['runtime_identity']['release_id']='wrong'
+ elif field=='frontend':values[2]['status']='CANNOT_CONFIRM'
+ else:values[0]['status']='unhealthy'
+ def get(url,timeout):now[0]+=2.95 if 'date-list' in url else .01;return io.BytesIO(json.dumps(values.pop(0)).encode())
+ monkeypatch.setattr(urllib.request,'urlopen',get)
+ assert c.Live({'operations':[{'role':'api','new_release_id':'new-api'}]}).health(130) is False
