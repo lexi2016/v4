@@ -224,3 +224,43 @@ def test_api_health_failure_with_no_pid_uses_guard_kick_without_signal(tmp_path,
  assert 'TERM' not in bo.events and bo.events.count('KICK_NO_K')==1 and bo.events.count('BOOTOUT_SLEEP')==1
  request=json.loads((tmp_path/('owned-api-rollback-'+'d'*32+'.json')).read_text())
  assert request['pid']==0 and request['ps_sha256']=='NONE'
+
+
+@pytest.mark.parametrize('token,want',[('disabled',True),('enabled',False),('true',True),('false',False)])
+def test_disabled_readback_actual_macos_tokens(token,want):
+ from types import SimpleNamespace
+ o=c.Live({})
+ o.cmd=lambda *a:SimpleNamespace(stdout='\n\tdisabled services = {\n\t\t"com.lexi.v35.scheduler" => '+token+'\n\t}\n')
+ assert o.disabled(c.OLD['main']) is want
+
+@pytest.mark.parametrize('text',[
+ 'disabled services = {\n"com.lexi.v35.scheduler" => UNKNOWN\n}',
+ 'disabled services = {\n"com.lexi.v35.scheduler" => disabled\n"com.lexi.v35.scheduler" => enabled\n}',
+ 'not a disabled services map',
+ 'disabled services = {\n"com.lexi.v35.scheduler" => disabled',
+])
+def test_disabled_readback_unknown_fails_closed(text):
+ from types import SimpleNamespace
+ o=c.Live({});o.cmd=lambda *a:SimpleNamespace(stdout=text)
+ with pytest.raises(c.Stop):o.disabled(c.OLD['main'])
+
+
+def test_disabled_absent_valid_map_is_default_enabled():
+ from types import SimpleNamespace
+ o=c.Live({});o.cmd=lambda *a:SimpleNamespace(stdout='disabled services = {\n"other" => disabled\n}\n')
+ assert o.disabled(c.NEW['main']) is False
+
+
+def test_disabled_intent_main_resume_uses_actual_parser_without_replaying_prior_mutations(tmp_path,monkeypatch):
+ from types import SimpleNamespace
+ r,o=setup(tmp_path,monkeypatch)
+ r.s.update(phase='OLD_DISABLE_INTENT',term_sent=True,guard=o.guard_i)
+ original=r.s['original_identity'].copy()
+ o.current=None;o.loaded=False;o.disabled_values[c.OLD['main']]=True
+ live=c.Live({})
+ live.cmd=lambda *a:SimpleNamespace(stdout='disabled services = {\n"com.lexi.v35.scheduler" => disabled\n}\n')
+ o.disabled=live.disabled
+ finish(r,'main')
+ assert r.s['phase']=='DONE' and r.s['original_identity']==original and r.s['term_sent'] is True
+ assert o.events.count('BOOTSTRAP')==1
+ assert not set(o.events)&{'TERM','DISABLE_UNLOADED','CAS_NO_OVERWRITE','BOOTOUT_SLEEP','KICK_NO_K'}

@@ -106,9 +106,17 @@ class Live(r7.Live):
  def service(self,role):return self.service_label(labels(role,self.reverse)[0])
  def disabled(self,label):
   out=self.cmd(['/bin/launchctl','print-disabled','gui/501']).stdout
-  matches=re.findall(r'^\s*"'+re.escape(label)+r'"\s*=>\s*(true|false)\s*$',out,re.M)
+  body=re.fullmatch(r'\s*disabled services = \{\s*\n(.*?)\n\s*\}\s*',out,re.S)
+  if body is None:raise Stop('DISABLED_STATE_UNKNOWN')
+  entries=[]
+  for line in body[1].splitlines():
+   if not line.strip():continue
+   entry=re.fullmatch(r'\s*"([^"\n]+)"\s*=>\s*(disabled|enabled|true|false)\s*',line)
+   if entry is None:raise Stop('DISABLED_STATE_UNKNOWN')
+   entries.append((entry[1],entry[2]))
+  matches=[value for key,value in entries if key==label]
   if len(matches)>1:raise Stop('AMBIGUOUS_DISABLED')
-  return bool(matches and matches[0]=='true')
+  return bool(matches and matches[0] in ('disabled','true'))
  def set_disabled(self,label,want):
   if self.service_label(label)['loaded']:raise Stop('DISABLE_ONLY_AFTER_UNLOAD')
   self.cmd(['/bin/launchctl','disable' if want else 'enable','gui/501/'+label])
