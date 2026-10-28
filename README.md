@@ -1,51 +1,17 @@
-# V4 量化研究与复盘系统
+# V4 research application
 
-> 私有源码审查仓库。**目前是部分源码导入，不是完整项目，也不是已部署版本。**
+V4 is the research-only application served on the existing loopback entry at port 8873. API source is `apps/api/v4_api`; frontend source calls `/api/v4`. The 42 original `/api/v3` paths and one separately approved read-only opening-observation compatibility path are in-process aliases to the same route owners and inherited dependency/response contexts. The combined API remains the deployment target; the pending 8874/8875 split is not activated by this work.
 
-## 直接查看
+The 2026-10-28 retirement candidate takes ownership of the existing OCR helpers, A-share formula helpers, HK updater and ZSXQ analysis libraries without upgrading their versions. Historical schemas, artifact filenames, logical workload IDs, shared data roots, dispatcher claims and queue locks retain their contracts. Stage can verify the prior r7 Main publication as explicitly pinned read-only provenance without executing that historical code. A/HK remain separate. `RESEARCH_ONLY=true`; production, BUY gate updates and orders remain disabled.
 
-- **[查看已提交的代码分支](https://github.com/lexi2016/v4/tree/codex/bootstrap-v4-20260916)**
-- **[草稿 PR #1：工程配置与 API／阶段合同／存储源码](https://github.com/lexi2016/v4/pull/1)**
-- [代码结构与阅读入口](https://github.com/lexi2016/v4/blob/codex/bootstrap-v4-20260916/docs/CODE_MAP.md)
-- [准确导入状态](https://github.com/lexi2016/v4/blob/codex/bootstrap-v4-20260916/docs/IMPORT_STATUS.md)
-- [全量导入接续工单](https://github.com/lexi2016/v4/blob/codex/bootstrap-v4-20260916/docs/FULL_IMPORT_NEXT_ACTION.md)
+Implementation and local checks are separate from installation. The targeted retirement checks passed 11 namespace/behavior tests, one launcher environment test and 13 durable queue handover tests. An actual main-candidate pulse also preserved original queued slots with fake children only. Additional targeted nested-prefix checks cover every original alias and WeChat list/detail/artifact parity. Per-owner candidates were derived from each current active release rather than deploying the dirty canonical checkout. Initial independent review found a mixed scheduler source closure, drifted owner snapshots and one symlink-manifest defect. The bounded repair restores real ledger/lane interfaces while preserving API identity validation, rebases affected owners onto their accepted r7 sources and records symlink text separately from its target. The source export includes the accepted r7 Main hourly bodies plus missing dependency interfaces while retaining API-specific methods; the frozen AST mapping is in `contracts/v4_accepted_main_source_closure.json`. The A-close repair classifies only missing selector files as `INPUT_MISSING` and fingerprints the existing selector pointer for bounded retry. The new read-only opening route and finite research-panel mount use reviewed owner modules; the existing serving bundle receives only one navigation anchor. The 450 panel assets stay local and are excluded from source publication. Interpreter installation, incremental independent review, integration, deployment, API/UI readback and natural-run acceptance are controller-owned and are **not established by this source tree**. Private runtime data, logs, credentials, full release trees and original archived research inputs are not part of the public source export.
 
-**当前 main 只保存本说明；请点击代码分支或PR查看实际文件。没有把未经完整验收的源码合并到main。**
+Use the project's explicitly configured `PANEL_PYTHON`. Offline regression command:
 
-## 已完成与未完成
+```sh
+"$PANEL_PYTHON" -B -m pytest tests/test_v4_legacy_retirement.py tests/test_v4_queue_handover.py --basetemp=/absolute/task-owned/test-temp -q
+```
 
-| 项目 | 实际状态 |
-|---|---|
-| GitHub连接及写入 | 已成功，仓库保持private |
-| 审查分支 | `codex/bootstrap-v4-20260916` |
-| 源码分支HEAD | `3e147289db9806174d756d2395f5b5f6826ade8b` |
-| 分支文件数 | 29个，包括24个与原包字节一致的原路径文件、1个迁移到模板位置的CI文件、4份初始化及状态文档 |
-| 完整来源包 | 745个文件；其余721个原路径尚未按原位置导入 |
-| PR | #1，草稿，未合并 |
-| main分支保护 | 读取为未启用；JSON仅为目标配置 |
-| GitHub Actions | CI只放在templates中，未启用、未运行 |
-| Mac构建与部署 | 本次未执行 |
+The source work branch is `codex/v4-legacy-retirement-20261028`, based on local `55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054`. The accepted runtime-source baseline is local commit `19d0576a635dc76b9beaf218dde2d7869bc50144`. Publication uses a content-only allowlist on the existing `lexi2016/v4` remote history; local and remote histories differ. The controller records the resulting local-to-remote commit mapping and file-hash readback. This document does not claim a remote commit, deployment or natural-run PASS.
 
-## 当前可阅读的代码
-
-API启动入口与白毛只读路由；预选池三件套存储、哈希核验与中断恢复；阶段输出、输入来源、冻结日历合同；前端runtime、selection、review请求模块。已提交的工程文件包括CODEOWNERS、PR/Issue模板、Dependabot、依赖声明及目标保护规则。
-
-**App.vue、完整API应用、阶段runner/selection、其余业务模块、依赖锁、测试和完整来源清单仍未上传。此分支不能作为可安装的完整系统。**
-
-## 完整来源包身份
-
-`V4_GITHUB_PROJECT_20260916.zip`，3,247,749字节。
-
-SHA256：`2ce0b590240e80f6fc5009f91ac64435e0cc6f5d08c7a2f97d5d108630568a5f`。
-
-来源包已在隔离环境按清单核验。本次只对上传字节做核验，不把来源包历史测试报告冒充本PR的CI结果。源码分支树SHA为 `fcd9061fd504d92bbc15e24b873c4aeae0753204`。
-
-## 仍需关闭的发布门
-
-`pyproject.toml`的data extra与uv.lock同步；缺失原经理proof模块；旧Mac绝对路径；原生Python3.14、Vue类型检查/构建与浏览器验收；API、scheduler、Stage现役根和源码绑定。配置模板不等于服务端设置已启用。
-
-## 安全边界
-
-不自动合并、发布Release、部署、训练或访问账户/订单。不上传正式数据、凭证、登录状态、历史大数据和旧dist。保持原Vibe8910，8872不重启，Stage8 HK-only以及较新runner、模型/评分/BUY边界不变。
-
-授权已接通，不需要反复重连；剩余是完整文件传输和服务端配置。旧建库脚本为新仓库设计，不能对本已存在仓库盲目重复执行。
+See [the retirement boundary](docs/v4_retirement.md) for verification limits and [component identities](components/TAKEOVER_MANIFEST.json) for unchanged helper hashes.

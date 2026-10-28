@@ -1,0 +1,22 @@
+# Fixed V4 owner cutover control
+
+This machine-bound adapter reuses the pinned reviewed R7 coordinator and Darwin FD metadata helper. The only service roles are Main, API, collector, Stage, precapture, HK deadline, Review Core daily and US digest. Main/API/collector labels change from v35 to v4. Other labels, schedules, inboxes, claims, lane FDs and data roots retain their identity.
+
+Default invocation validates the private `PLAN.json` and candidate inventories without acting. Execution requires installed inventories, an independent PASS bound to `FROZEN_CONTROL.json`, uid501, the existing original-owner guard inode and a fresh controller handoff. The handoff freezes the current processes, completed manual/daily jobs, absence of active API/PDF work, source/data pins and stats, and queue continuity. Stage calendar margins are300 seconds; Review/US margins are30 seconds. Do not infer idle or manufacture a completed checkpoint. Current API ownership is explicitly released in the stable accepted handoff.
+
+```sh
+"$PANEL_PYTHON" -B retirement_control.py --plan /absolute/private/PLAN.json
+"$PANEL_PYTHON" -B retirement_control.py --plan /absolute/private/PLAN.json --execute-reviewed --handoff /absolute/private/fresh-handoff.json --handoff-sha256 SHA --review /absolute/private/review.json --review-sha256 SHA
+```
+
+The live coordinator emits a unique finite helper path/hash. Only then the controller provides the user terminal command `sudo /bin/sh /absolute/owned-admin-NONCE.sh`. The helper checks its coordinator, request, expiry, original plist/process pins, Apple sleep code and fixed labels. It can only arm next-spawn `/bin/sleep 604800`; it cannot replace plists, start/stop a service, signal, run Python or invoke a producer as root. The one finite helper also admits a fixed new-API rollback guard request after a30 second forward health failure.
+
+Main/API receive one graceful TERM and their healthy descendants drain. Collector and calendar jobs finish naturally; no-k kickstart starts an already armed harmless guard, without killing a raced existing job. Only a verified guard is booted out. Renamed original plists remain byte-identical; destination publication uses no-overwrite hard-link CAS and exact uid/gid/mode/xattrs. Original labels are persistently disabled only after unload. Their original disabled values are retained for inverse restore. All actions have durable intent boundaries; unknown TERM/bootstrap/kick/helper outcomes stop without retry or forced kill.
+
+Forward API health requires the new manifest-bound runtime identity and VERIFIED frontend, plus loaded argv/env and actual PID/cwd. It waits up to30 seconds. Failed replacement API rollback uses the same guarded drain, supports a loaded no-PID replacement through a harmless no-k guard start, and restores the exact old plist/disabled binding. The inverse health contract is the observed old baseline: health ok, runtime CANNOT_CONFIRM, frontend CANNOT_CONFIRM/API_RELEASE_IDENTITY_UNBOUND. This preserves the actual prior state rather than inventing VERIFIED.
+
+`--reverse` is the guarded full inverse after all eight roles completed; it needs a new fresh handoff and an empty scheduler queue. `--resume` keeps the same operation/immutable original identities and requires exact per-role phase/current-identity observations; completed roles are not signalled again. API health rollback stops the batch with Main already completed and later roles untouched. That mixed state and all unknown outcomes require controller reconciliation before a new operation; the script never guesses that they are untouched. A controller must check whether new publications require keeping the Stage provenance bridge before any inverse of Stage. Successful new artifacts are never rewritten or deleted.
+
+Main/Stage retain their accepted runtime-graph manifest schema; API retains candidate/gateway schema. Stage's explicit historical-owner pin verifies original20:00 bytes and completion through all existing signatures and cutoff gates, without importing/executing historical code. Retain the old r7 Main release while that evidence is needed.
+
+No runtime install, lifecycle action, quarantine, data migration or natural acceptance was performed by the Writer. Independent review and fresh controller observations remain required. Raw market/panel assets, private plans/plists and runtime trees are excluded from the public source export.

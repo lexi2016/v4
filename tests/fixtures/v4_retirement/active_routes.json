@@ -1,0 +1,194 @@
+{
+  "/healthz": [
+    "get"
+  ],
+  "/readyz": [
+    "get"
+  ],
+  "/api/v3/meta/stages": [
+    "get"
+  ],
+  "/api/v1/runs/date-list": [
+    "get"
+  ],
+  "/api/v3/preselection-pools": [
+    "get"
+  ],
+  "/api/v3/workbench/stage": [
+    "get"
+  ],
+  "/api/v3/workbench/stage/ensure": [
+    "post"
+  ],
+  "/api/v3/stage-center/selection": [
+    "get"
+  ],
+  "/api/v3/manager/stage-selection": [
+    "get"
+  ],
+  "/api/v3/stage-center/selection/ensure": [
+    "post"
+  ],
+  "/api/v3/tasks/status": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/frontend-build": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/authorities": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/snapshot": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/status": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/events": [
+    "get"
+  ],
+  "/api/v3/runtime-graph/repair": [
+    "post"
+  ],
+  "/api/v3/manual-collection": [
+    "post"
+  ],
+  "/api/v3/manual-collection/{job_id}": [
+    "get"
+  ],
+  "/api/v3/review/generate": [
+    "post"
+  ],
+  "/api/v3/review": [
+    "get"
+  ],
+  "/api/v3/research/a-share/history": [
+    "get"
+  ],
+  "/api/v3/research/wechat/materials": [
+    "get"
+  ],
+  "/api/v3/research/wechat/materials/mentions": [
+    "get"
+  ],
+  "/api/v3/research/wechat/materials/{record_id}": [
+    "get"
+  ],
+  "/api/v3/research/wechat/materials/{record_id}/mentions": [
+    "get"
+  ],
+  "/api/v3/research/wechat/materials/{record_id}/artifacts/{artifact_id}": [
+    "get"
+  ],
+  "/api/v3/research/articles/latest": [
+    "get"
+  ],
+  "/api/v3/research/day": [
+    "get"
+  ],
+  "/api/v3/research/zero-to-history-high-position": [
+    "get"
+  ],
+  "/api/v3/research/single-stock-repair-sop": [
+    "get"
+  ],
+  "/api/v3/research/selection": [
+    "get"
+  ],
+  "/api/v3/research/selection/manager-decision": [
+    "get"
+  ],
+  "/api/v3/research/articles": [
+    "get"
+  ],
+  "/api/v3/research/hourly": [
+    "get"
+  ],
+  "/api/v3/research/hourly/latest": [
+    "get"
+  ],
+  "/api/v3/research/authoritative": [
+    "get"
+  ],
+  "/api/v3/baimao/x/latest": [
+    "get"
+  ],
+  "/api/v3/baimao/observations": [
+    "get"
+  ],
+  "/api/v3/research/lane": [
+    "get"
+  ],
+  "/api/v3/research/pdf-documents/{document_id}": [
+    "get"
+  ],
+  "/api/v3/research/dates": [
+    "get"
+  ],
+  "/api/v3/research/us-market": [
+    "get"
+  ],
+  "/api/v3/research/latest-event": [
+    "get"
+  ],
+  "/api/v3/research/events": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/announcement-flash": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/announcement-flash/update": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/announcement-flash/recover-cached-product": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/announcement-flash/{job_id}/execute-preprocessed": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/announcement-flash/{job_id}/stop": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/announcement-flash/resume": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/mapping-catalog": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/hk-history": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/days/{date}": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/days/{date}/recommendations/{lane}": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/stocks/{symbol}": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/history": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/reviews/{date}": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/runs": [
+    "post"
+  ],
+  "/api/v4/manager-workbench/runs/{id}": [
+    "get"
+  ],
+  "/api/v4/manager-workbench/runs/{id}/retry": [
+    "post"
+  ],
+  "/api/v4/manager/research/announcements": [
+    "get"
+  ],
+  "/api/v4/manager/research/announcements/refresh": [
+    "post"
+  ],
+  "/api/v4/manager/research/announcements/body": [
+    "get"
+  ]
+}

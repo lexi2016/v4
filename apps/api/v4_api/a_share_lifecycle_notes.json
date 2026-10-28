@@ -1,0 +1,926 @@
+{
+  "accepted_facts_ref": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/SERIAL_19_EFFECTIVE_SUMMARY_R5.json",
+    "sha256": "98b7d2bd1e65e8e86913c34d4f361cfe19320e7048cb5bcce1cf29d3632c5d14"
+  },
+  "additional_primary_fact_set_ref": {
+    "bytes": 3973,
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+    "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+  },
+  "additional_prior_accepted_facts_ref": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/000004.SZ_20261023/RESULT_R1.json",
+    "sha256": "a41499ddd1c0d65d7cac269503a8e370f8e0d7f51653949df2283d573cd663af"
+  },
+  "additional_two_accepted_fact_ref": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/mac_panel_update_20261026_r2/lifecycle_two_brokers/LIFECYCLE_NOTES_21_NOT_INSTALLED.json",
+    "sha256": "fd8a703ef8c00cff1507d5ea5c9aba5973d4906044e086531e67c4d4d058df26"
+  },
+  "buy_gate_updated": false,
+  "effective_date_semantics": "FIRST_OFFICIAL_DELISTED_DATE; explanation only when requestedstart>=date",
+  "excluded_unverified": [
+    {
+      "known_status": "OFFICIAL_TERMINATION_DECISION_EXISTS; ACTUAL_DELIST_DATE_BODY_NOT_CONFIRMED",
+      "result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600193.SH_20261023/RESULT_FINAL_NOTICE_R3.json",
+        "sha256": "77e05d79caa504e2b313fd390308e4f81be6e142cbf4b494571cfd74750cff0a"
+      },
+      "status": "CANNOT_CONFIRM_OFFICIAL_EFFECTIVE_DELISTING_DATE",
+      "ts_code": "600193.SH"
+    }
+  ],
+  "excluded_unverified_semantics": "Historical unresolved entries retained unchanged; see resolved_prior_exclusions for current candidate resolution",
+  "historical_PIT": "CANNOT_CONFIRM",
+  "historical_source_error_semantics": "Preserved historical ERROR is not evidence of a new current provider failure; unknown capture time/cause remainsunknown",
+  "orders_sent": false,
+  "pending_trading_status": [
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "end_date": null,
+      "expiry_semantics": "After20261027 source is stale: remain CANNOT_CONFIRM and require exact official resumption/termination rebinding; no permanent suspension claim",
+      "historical_PIT": false,
+      "knowledge_status": "SUSPENSION_PENDING_RESUMPTION_VERIFICATION",
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:50:57+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/688496_cninfo_issuer_pdf.pdf",
+          "sha256": "b27bf1830394c1441fc98974d6af40d782fc36dec7f6b8a0688c5adbdef7c2d2",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-09-11/1225558617.PDF"
+        }
+      ],
+      "resumption_effective_date": null,
+      "resumption_verified": false,
+      "status_verification_asof_date": "20261027",
+      "supporting_issuer_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:56:52+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/688496_issuer_cnstock.html",
+          "sha256": "ba364bfca013929cc126cbc59e1096ebc7db8599b27dbae6ac1b202c24448815",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://paper.cnstock.com/html/2026-10/15/content_2277253.htm"
+        }
+      ],
+      "suspension_start_date": "20260911",
+      "termination_verified": false,
+      "ts_code": "688496.SH",
+      "verified_current_suspension": false,
+      "verified_suspension_start": true
+    }
+  ],
+  "production_allowed": false,
+  "program_recurrence_prevention": "CONSUMER_GUARD_CANDIDATE_NOT_INSTALLED; ORIGINAL_DATA_AND_GATE_PRESERVED",
+  "research_only": true,
+  "resolved_prior_exclusions": [
+    {
+      "current_delisting_effective_date": "20260706",
+      "fact_set_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "source_quality": "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT",
+      "ts_code": "600193.SH"
+    }
+  ],
+  "schema_version": "a_share_lifecycle_notes.v1",
+  "supersedes_fact_asset": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/ACCEPTED_LIFECYCLE_NOTES_R1.json",
+    "sha256": "222d0e9373c1c11f9cf1a59d50e696e686af986981f995069b48ff4a0716e2fb"
+  },
+  "usage_boundary": "EXPLANATORY_NOTES_ONLY; NO_BAR_SYNTHESIS_OR_ERROR_TO_EMPTY_OR_SOURCE_ADMISSION",
+  "verified_case_count": 29,
+  "verified_delistings": [
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/000004.SZ_20261023/RESULT_R1.json",
+        "sha256": "a41499ddd1c0d65d7cac269503a8e370f8e0d7f51653949df2283d573cd663af"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_DELISTED_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/000004.SZ_20261023/RESULT_R1.json",
+        "sha256": "a41499ddd1c0d65d7cac269503a8e370f8e0d7f51653949df2283d573cd663af"
+      },
+      "delisting_effective_date": "20260714",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-07-14/7ac00e87-c015-4085-b165-23f2a5a1ca42.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "000004.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/000638.SZ_20261023/RESULT_R1.json",
+        "sha256": "32cda96e0889e1ab1c07759404edb85b6d2957ee3c8d97ae96b6082672f94278"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/000638.SZ_20261023/RESULT_R1.json",
+        "sha256": "32cda96e0889e1ab1c07759404edb85b6d2957ee3c8d97ae96b6082672f94278"
+      },
+      "delisting_effective_date": "20260603",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-03/1225347133.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "000638.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002231.SZ_20261023/RESULT_R1.json",
+        "sha256": "9046104b9fd3cba4288a66e25314075eeaa9f0b4fdcb1e768d86e491abfda4a3"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002231.SZ_20261023/RESULT_R1.json",
+        "sha256": "9046104b9fd3cba4288a66e25314075eeaa9f0b4fdcb1e768d86e491abfda4a3"
+      },
+      "delisting_effective_date": "20260327",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-03-27/de5df416-055e-41ad-aad1-72830c73ddc2.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "002231.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002808.SZ_20261023/RESULT_R1.json",
+        "sha256": "3532f10c457b8a95ef0d52d7c60c84d9ddfc4e176bad8ed620ecd65eb548363e"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002808.SZ_20261023/RESULT_R1.json",
+        "sha256": "3532f10c457b8a95ef0d52d7c60c84d9ddfc4e176bad8ed620ecd65eb548363e"
+      },
+      "delisting_effective_date": "20260714",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-07-14/473d1b6c-2f3d-40dc-b335-eb7ed542457a.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "002808.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002898.SZ_20261023/RESULT_FINAL_NOTICE_R3.json",
+        "sha256": "b2a7f1a2d367d51c8805668bdedf6d420fdc8ecf446bc19603c86c15c30774e5"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002898.SZ_20261023/official_final_capture_r1/INDEPENDENT_FINAL_NOTICE_PASS_R1.json",
+        "sha256": "f6b8c1391a7ca00269f46e0f50988cc6beac6c7d22d446652f0f142aadac97ed"
+      },
+      "delisting_effective_date": "20260717",
+      "official_source_refs": [
+        {
+          "captured_file_ref": {
+            "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/002898.SZ_20261023/official_final_capture_r1/RUN_01/CNINFO_002898_FINAL_20260717/source.pdf",
+            "sha256": "794d45236b4b41d4bcaac68a08bb20e2b0c2130f68855ef79168fa61cea0c049"
+          },
+          "sha256": "794d45236b4b41d4bcaac68a08bb20e2b0c2130f68855ef79168fa61cea0c049",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-07-17/1225428193.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "002898.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300029.SZ_20261023/RESULT_R1.json",
+        "sha256": "9709c4f7b659675e3e46ee9e03798002b37372bb1d270ee7575c76011c1bd846"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300029.SZ_20261023/RESULT_R1.json",
+        "sha256": "9709c4f7b659675e3e46ee9e03798002b37372bb1d270ee7575c76011c1bd846"
+      },
+      "delisting_effective_date": "20260710",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-07-10/4fbba685-0443-44d0-9e1a-561bb696277a.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "300029.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300344.SZ_20261023/RESULT_R1.json",
+        "sha256": "a95326fdc8a92796f858e2c37ba3619110ce6332833f36eeced05626410f64fd"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300344.SZ_20261023/RESULT_R1.json",
+        "sha256": "a95326fdc8a92796f858e2c37ba3619110ce6332833f36eeced05626410f64fd"
+      },
+      "delisting_effective_date": "20260422",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-04-22/1225137724.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "300344.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300379.SZ_20261023/RESULT_R1.json",
+        "sha256": "cf0839c3a00a3427e15aa0df8ba02c97f8cab9eff56fe7c14bfa63e82e66d5dd"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300379.SZ_20261023/RESULT_R1.json",
+        "sha256": "cf0839c3a00a3427e15aa0df8ba02c97f8cab9eff56fe7c14bfa63e82e66d5dd"
+      },
+      "delisting_effective_date": "20260122",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-01-22/1224943647.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "300379.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300391.SZ_20261023/RESULT_R1.json",
+        "sha256": "48a4bb9a723f50a09dcdd549ad7b3582359447e965bf7142d044c0e79b4c0e0b"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/300391.SZ_20261023/RESULT_R1.json",
+        "sha256": "48a4bb9a723f50a09dcdd549ad7b3582359447e965bf7142d044c0e79b4c0e0b"
+      },
+      "delisting_effective_date": "20260413",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-04-13/1225092621.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "300391.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600200.SH_20261023/RESULT_R1.json",
+        "sha256": "984c989ae1183d146658ae7bb342754dfca94329a64029136f5be2a8d7e23336"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION_AFTER_QUERY_FIX",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600200.SH_20261023/RESULT_R1.json",
+        "sha256": "984c989ae1183d146658ae7bb342754dfca94329a64029136f5be2a8d7e23336"
+      },
+      "delisting_effective_date": "20251231",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2025-12-30/1224904836.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600200.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600355.SH_20261023/RESULT_R1.json",
+        "sha256": "618707b6cfc7b948e9b378698e48e21c15cc049f1e688f358a581e7aa4c02687"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600355.SH_20261023/RESULT_R1.json",
+        "sha256": "618707b6cfc7b948e9b378698e48e21c15cc049f1e688f358a581e7aa4c02687"
+      },
+      "delisting_effective_date": "20260427",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-04-21/1225127344.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600355.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600421.SH_20261023/RESULT_R1.json",
+        "sha256": "85e5e5b71e9175a6d8a0d5bdaac8c551842f86cafb7eecd2c1593ef5ad52e27f"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600421.SH_20261023/RESULT_R1.json",
+        "sha256": "85e5e5b71e9175a6d8a0d5bdaac8c551842f86cafb7eecd2c1593ef5ad52e27f"
+      },
+      "delisting_effective_date": "20260626",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-23/1225380878.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600421.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600599.SH_20261023/RESULT_R1.json",
+        "sha256": "9a3ecb197ad238c10b83b3fbc3c9208e486f67cbbaa77ba3af518f9a720aef0f"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600599.SH_20261023/RESULT_R1.json",
+        "sha256": "9a3ecb197ad238c10b83b3fbc3c9208e486f67cbbaa77ba3af518f9a720aef0f"
+      },
+      "delisting_effective_date": "20260626",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-23/1225381698.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600599.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600608.SH_20261023/RESULT_R1.json",
+        "sha256": "84f716c8bf39d70e6ada97ee7e98dac110ed38c1f63a7302138f058b3b8a3829"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600608.SH_20261023/RESULT_R1.json",
+        "sha256": "84f716c8bf39d70e6ada97ee7e98dac110ed38c1f63a7302138f058b3b8a3829"
+      },
+      "delisting_effective_date": "20260703",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-30/1225396843.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600608.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600636.SH_20261023/RESULT_R1.json",
+        "sha256": "a9a6accb540302b62a61b6fb5418442e36d511e1fc3afab829fcce0f8a20c481"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600636.SH_20261023/RESULT_R1.json",
+        "sha256": "a9a6accb540302b62a61b6fb5418442e36d511e1fc3afab829fcce0f8a20c481"
+      },
+      "delisting_effective_date": "20260629",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-23/1225381763.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600636.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600696.SH_20261023/RESULT_R1.json",
+        "sha256": "9832c7141c60dcdc3aa2b81ed023bc801a4b8cb2bd304d0d7c40ef85fd532df2"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/600696.SH_20261023/RESULT_R1.json",
+        "sha256": "9832c7141c60dcdc3aa2b81ed023bc801a4b8cb2bd304d0d7c40ef85fd532df2"
+      },
+      "delisting_effective_date": "20260629",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-06-23/1225381658.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "600696.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/603056.SH_20261023/RESULT_R1.json",
+        "sha256": "7061f68c70e18cfbeba35e57ea7de0453dead0f3543b5dda1b765b5b893d3534"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/603056.SH_20261023/RESULT_R1.json",
+        "sha256": "7061f68c70e18cfbeba35e57ea7de0453dead0f3543b5dda1b765b5b893d3534"
+      },
+      "delisting_effective_date": "20260331",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-03-26/1225030503.PDF"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "603056.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/603388.SH_20261023/RESULT_R1.json",
+        "sha256": "d1383cc6da6748d3a81eacc5024c98ef3632971646f5d202ac109bcb590a9ca3"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/603388.SH_20261023/RESULT_R1.json",
+        "sha256": "d1383cc6da6748d3a81eacc5024c98ef3632971646f5d202ac109bcb590a9ca3"
+      },
+      "delisting_effective_date": "20251205",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/listedinfo/announcement/c/new/2025-11-29/603388_20251129_7S1C.pdf"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "603388.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/605081.SH_20261023/RESULT_FINAL_NOTICE_R3.json",
+        "sha256": "4ab66e1ce51ea98c483177ab6942778751553ee9880b6559072baf47ea09c695"
+      },
+      "accepted_review_literal": "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
+      "accepted_review_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/single_stock_cases/605081.SH_20261023/INDEPENDENT_FINAL_NOTICE_PASS_R2.json",
+        "sha256": "4b7d50ec2c66c7a35a98905e552f1d844a589cb211a91e2e995dd647738d0aa4"
+      },
+      "delisting_effective_date": "20260703",
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "OFFICIAL_ORIGINAL_TEXT_READ_BY_INDEPENDENT_AUDITOR; NO_BOUND_LOCAL_RAW_BYTES; DO_NOT_INVENT",
+          "url": "https://www.sse.com.cn/disclosure/announcement/listing/stock/c/c_20260629_10823832.shtml"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261023"
+      ],
+      "ts_code": "605081.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/mac_panel_update_20261026_r2/lifecycle_two_brokers/RESULT.json",
+        "sha256": "ef8f665560db18168cd9c0f093394fc06f10503bf73260899d1b8eee7cf9cb47"
+      },
+      "accepted_review_literal": "EXISTING_ROOT_ACCEPTED_OFFICIAL_DELISTING_FACT_NO_REAUTHOR",
+      "delisting_effective_date": "20261019",
+      "official_source_refs": [
+        {
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/mac_panel_update_20261026_r2/lifecycle_two_brokers/601198.SH_sse_termination_original.html",
+          "sha256": "36409215a84898b97f3cff34f990aa47bfe7277ff60de3957e15faad5751524c",
+          "url": "https://big5.sse.com.cn/site/cht/www.sse.com.cn/disclosure/announcement/listing/stock/c/c_20261012_10834560.shtml"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261026"
+      ],
+      "ts_code": "601198.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/mac_panel_update_20261026_r2/lifecycle_two_brokers/RESULT.json",
+        "sha256": "ef8f665560db18168cd9c0f093394fc06f10503bf73260899d1b8eee7cf9cb47"
+      },
+      "accepted_review_literal": "EXISTING_ROOT_ACCEPTED_OFFICIAL_DELISTING_FACT_NO_REAUTHOR",
+      "delisting_effective_date": "20261019",
+      "official_source_refs": [
+        {
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/mac_panel_update_20261026_r2/lifecycle_two_brokers/601059.SH_sse_termination_original.html",
+          "sha256": "942b034a21abf0d18c8585949ecf33442d8172cc5a413122aafad1c558a9917c",
+          "url": "https://www.sse.com.cn/disclosure/announcement/listing/stock/c/c_20261012_10834561.shtml"
+        }
+      ],
+      "requires_recent_listed_A_share_bars": false,
+      "target_window": [
+        "20261019",
+        "20261026"
+      ],
+      "ts_code": "601059.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20220426",
+      "event_type": "MARKET_TRANSFER_TERMINATION",
+      "historical_PIT": false,
+      "later_cross_market_identity_annotation": {
+        "ts_code": "688287.SH",
+        "usage": "Identity context only; not same-market alias or price-chain admission"
+      },
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:52:09+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/832317_cninfo_issuer_pdf.pdf",
+          "sha256": "cec68ad17e985c99e0005c45f8217e7bb3ff7c9da56ffb408e9bc7fc802bfedb",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://static.cninfo.com.cn/finalpage/2022-04-25/1213098305.PDF"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+      "target_window": [
+        "20220426",
+        "20261027"
+      ],
+      "ts_code": "832317.BJ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20260610",
+      "event_type": "DELISTING",
+      "historical_PIT": false,
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:50:57+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/688287_sse_delisting.html",
+          "sha256": "5bc2c4799b54253cd2dfbcdbea4e70bbf3ce551a4c63ebc3e157d5ce905b13a1",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://www.sse.com.cn/disclosure/announcement/listing/stock/c/c_20260608_10821090.shtml"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+      "target_window": [
+        "20260610",
+        "20261027"
+      ],
+      "ts_code": "688287.SH",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20220718",
+      "event_type": "MARKET_TRANSFER_TERMINATION",
+      "historical_PIT": false,
+      "later_cross_market_identity_annotation": {
+        "ts_code": "301192.SZ",
+        "usage": "Identity context only; not same-market alias or price-chain admission"
+      },
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:54:36+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/833874_cninfo_notice_pdf.pdf",
+          "sha256": "35df1bdcc1ebab1574b3adaed75cd8d3f1f0d6618d185f75ee1d89530e954eb0",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://static.cninfo.com.cn/finalpage/2022-07-15/1214055199.PDF"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+      "target_window": [
+        "20220718",
+        "20261027"
+      ],
+      "ts_code": "833874.BJ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20220725",
+      "event_type": "MARKET_TRANSFER_TERMINATION",
+      "historical_PIT": false,
+      "later_cross_market_identity_annotation": {
+        "ts_code": "301321.SZ",
+        "usage": "Identity context only; not same-market alias or price-chain admission"
+      },
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:54:36+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/833994_cninfo_notice_pdf.pdf",
+          "sha256": "03c8e87d0b97ab7f7b309712ca9bbe89255d4180c5e3d4a93325f1b591d31a7f",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://static.cninfo.com.cn/finalpage/2022-07-22/1214121818.PDF"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+      "target_window": [
+        "20220725",
+        "20261027"
+      ],
+      "ts_code": "833994.BJ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20261023",
+      "event_type": "DELISTING",
+      "historical_PIT": false,
+      "official_source_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:56:52+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/000016_cninfo_delisting_pdf.pdf",
+          "sha256": "63d22af39ae73ee789d4492c4643f5a4b4ea02edfe51992d8752028b12dc320d",
+          "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+          "url": "https://static.cninfo.com.cn/finalpage/2026-10-23/1225615607.PDF"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "PRIMARY_SOURCE_BYTES_CAPTURED",
+      "target_window": [
+        "20261023",
+        "20261027"
+      ],
+      "ts_code": "000016.SZ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20260105",
+      "event_type": "DELISTING",
+      "historical_PIT": false,
+      "issuer_or_broker_mirror_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:54:36+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/920680_issuer_mirror_pdf.pdf",
+          "sha256": "8c5adf88d17af8e9fdf1c4a99a07ddacacf7ae1ed8b778baa43678f4a3e9a95c",
+          "source_quality": "issuer_mirror__original_exchange_bytes_unverified",
+          "url": "https://file.finance.sina.com.cn/211.154.219.97%3A9494/MRGG/CNSEBJ_STOCK/2025/2025-12/2025-12-31/11894718.PDF"
+        }
+      ],
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "Original BSE host redirect loop; archived bytes are issuer mirror only",
+          "url": "https://www.bse.cn/disclosure/2025/2025-12-31/8690dbac1d5c42db98e9c7388e562129.pdf"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "issuer_mirror__original_exchange_bytes_unverified",
+      "target_window": [
+        "20260105",
+        "20261027"
+      ],
+      "ts_code": "920680.BJ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20260730",
+      "event_type": "DELISTING",
+      "historical_PIT": false,
+      "issuer_or_broker_mirror_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:54:36+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/920305_issuer_mirror.html",
+          "sha256": "3429f5d8ed369e1ce418f256f3fcdbe568e802e4050fe19f3af9f2ee34d6406c",
+          "source_quality": "issuer_mirror__original_exchange_bytes_unverified",
+          "url": "https://stock.stockstar.com/notice/SN2026072900034355.shtml"
+        }
+      ],
+      "official_source_refs": [
+        {
+          "sha256": null,
+          "sha256_reason": "Original BSE host redirect loop; archived bytes are issuer mirror only",
+          "url": "https://www.bse.cn/disclosure/2026/2026-07-29/8a64d7d9ca1641609307b4f2aa5fecaf.pdf"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_quality": "issuer_mirror__original_exchange_bytes_unverified",
+      "target_window": [
+        "20260730",
+        "20261027"
+      ],
+      "ts_code": "920305.BJ",
+      "verified": true
+    },
+    {
+      "accepted_case_result_ref": {
+        "bytes": 3973,
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/lifecycle_primary_delta_20261027_r1/CONTROLLER_APPROVED_FACT_SET.json",
+        "sha256": "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
+      },
+      "accepted_review_literal": "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING",
+      "delisting_effective_date": "20260706",
+      "event_type": "DELISTING",
+      "historical_PIT": false,
+      "issuer_or_broker_mirror_refs": [
+        {
+          "captured_at_utc": "2026-10-27T14:52:09+00:00",
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/600193_broker_notice_mirror_pdf.pdf",
+          "sha256": "6a1f8b9d134a5d93bd3caf25b471f9fb5c3f69664be6db4b774919d755be87a2",
+          "source_quality": "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT",
+          "url": "https://pdf.dfcfw.com/pdf/H2_AN202607131826929256_1.pdf"
+        }
+      ],
+      "official_source_refs": [
+        {
+          "failed_capture": {
+            "artifact": "/Users/lexi/Desktop/学习/因子工厂/research/panel_lifecycle_new_primary_20261027_r1/600193_sse_issuer_pdf.invalid.bin",
+            "at": "2026-10-27T14:50:57+00:00",
+            "bytes": 3872,
+            "content_type": "text/html; charset=utf-8",
+            "final_url": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-06-30/600193_20260630_WIIS.pdf",
+            "http_status": 200,
+            "max_bytes": 16000000,
+            "sha256": "761074799dfeb02cd2fbe2f6c8024438d3df3b2a0d4227c3f2b916e71f9bf0d6",
+            "source": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-06-30/600193_20260630_WIIS.pdf",
+            "status": "INVALID_RESPONSE_NOT_SOURCE_DOCUMENT"
+          },
+          "sha256": null,
+          "sha256_reason": "Official SSE endpoint returned challenge HTML; NEEQ403; official original PDF bytes NOT verified",
+          "url": "https://static.sse.com.cn/disclosure/listedinfo/announcement/c/new/2026-06-30/600193_20260630_WIIS.pdf"
+        }
+      ],
+      "old_market_only": true,
+      "price_chain_admitted": false,
+      "requires_recent_listed_A_share_bars": false,
+      "source_caveat": "Broker share-confirmation notice p1 supplied as third-party mirror, corroborated by official index and broker website in independent lineage audit; no claim official PDF bytes were read",
+      "source_quality": "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT",
+      "target_window": [
+        "20260706",
+        "20261027"
+      ],
+      "ts_code": "600193.SH",
+      "verified": true
+    }
+  ]
+}

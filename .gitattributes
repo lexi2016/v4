@@ -1,0 +1,16 @@
+# Normalize line endings to LF for text files; keep binaries untouched.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.gz binary
+*.zip binary
+
+# Retirement takeover helpers and vendored PDF sources have immutable byte pins.
+components/** -text
+v4/manager_workbench/inputs/_vendor/** -text
