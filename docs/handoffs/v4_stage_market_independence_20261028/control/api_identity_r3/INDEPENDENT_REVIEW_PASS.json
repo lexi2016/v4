@@ -1,0 +1,24 @@
+{
+  "verdict": "PASS",
+  "status": "REVIEWED/PASS",
+  "reviewer": "/root/cutover_review_r7",
+  "frozen_control_sha256": "c595452aabd07762d3e636e446f127d92a7c3a7aedf5c6150a83ceeefe4f509c",
+  "controller_sha256": "82ef0963d6344545af8c2842e7f7f2d12248743c606d881dd04c89de09aa89ac",
+  "plan_sha256": "028103200ffa1e1bc613c29e0303e1dc42b6427cf737de56a0e78f9e561eb11b",
+  "scope": "API-only release identity metadata, effective environment and bounded lifecycle control",
+  "findings": [],
+  "independent_evidence": {
+    "frozen_files": "18/18 hashes match",
+    "source_inventory": "Both candidate and unactivated installed successor match all 1329 unchanged source files",
+    "effective_environment": "Original configuration reproduces API_RELEASE_IDENTITY_UNBOUND; successor actual frontend function VERIFIED",
+    "focused_checks": "Three API-only control tests plus independent read-only effective-environment verification PASS",
+    "capability": "One fixed API root-debug command; Main lifecycle and other API PID signals rejected"
+  },
+  "CANNOT_CONFIRM": [
+    "Live activation and HTTP acceptance",
+    "Protected state after activation",
+    "Research semantic or PIT acceptance"
+  ],
+  "live_actions": 0,
+  "source_edits": 0
+}

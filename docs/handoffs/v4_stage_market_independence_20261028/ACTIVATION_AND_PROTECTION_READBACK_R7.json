@@ -1,0 +1,50 @@
+{
+  "main": {
+    "activated_at": "2026-10-28T19:21:01+08:00",
+    "pid": 66933,
+    "release": "stage-market-independence-20261028-r7-main",
+    "manifest_sha256": "3cd89e00fa37a829389e3140a929d47e4748bd3d056c7a7a605793bc72a7e623"
+  },
+  "stage": {
+    "activated_at": "2026-10-28T19:27:14+08:00",
+    "release": "stage-market-independence-20261028-r7-stage",
+    "manifest_sha256": "ac98a7d53be7d5a7ff61ed10a46e4be29350c5218d396184016ca53b0bd67a6b",
+    "scheduler_plist_sha256": "4be58bf99a2f9496721dfff05de2856a320ae5b0f3bfac3e886611f2f99563c1",
+    "precapture_plist_sha256": "7d7d016934e094b5064f6cb295bdcea7f74fcb4651f85f3e62ae24a5714553ae",
+    "actual_check": "CHECK_OK; imports resolve from R7Stage",
+    "imports_receipt_sha256": "f408cb0ca6a1cbc783b3b80d67d59fb1d086775ecd5427a22ec2a3ab686f30e3"
+  },
+  "api": {
+    "label": "com.lexi.v35.api-only",
+    "identity": {
+      "pid": 67002,
+      "ps_sha256": "35e1f328d10db74ec34074443993a5d6e9069658e749b931ca88e910ee7526e0",
+      "ps_text": "Wed Oct 28 19:21:08 2026     /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection\n"
+    },
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/app",
+    "release_id_declared_in_plist_environment": "stage-market-independence-20261028-r7-api",
+    "effective_inline_release_id": "mac-panel-r5-rebound-20261028-r1-api",
+    "manifest_sha256": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+    "plist_sha256": "7820f02d0726c4f0dc00d0b163c3a1e1b660f633793eecdf623616b895da32e6",
+    "frontend_build_status": "CANNOT_CONFIRM",
+    "frontend_reason": "API_RELEASE_IDENTITY_UNBOUND",
+    "app_file_count": 1329,
+    "business_source_validation_fix_present": true
+  },
+  "data_protection": {
+    "post_daily_generation": "31d40c5900ced1b2ff637cfbeaa73688ad921d713e3ea748f83ccbca84463c29",
+    "daily_status": "PARTIAL; A_SYNC_AUTHORITY_REBUILD_REQUIRED; original owner published before R7 activation",
+    "pins_5_and_stats_2": "UNCHANGED",
+    "old_20261027_parquet_stats_2": "UNCHANGED",
+    "large_payloads_rehashed": false,
+    "raw_5073_or_backup_rewrites_by_this_task": 0,
+    "other_data_job_interrupted": false
+  },
+  "api_identity_successor": "REVIEWED/PASS_NOT_ACTIVATED; merged into single V4 naming cutover; current actual frontend CANNOT_CONFIRM",
+  "financial_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

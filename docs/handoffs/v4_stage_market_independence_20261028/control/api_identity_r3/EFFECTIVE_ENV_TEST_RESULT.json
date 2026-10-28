@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "before": {
+    "effective_id": "mac-panel-r5-rebound-20261028-r1-api",
+    "effective_sha": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+    "frontend": {
+      "status": "CANNOT_CONFIRM",
+      "reason": "API_RELEASE_IDENTITY_UNBOUND"
+    }
+  },
+  "after": {
+    "effective_id": "stage-market-independence-20261028-r7-api-identity-r3",
+    "effective_sha": "94850a059b20787f1ea436254fa32de4d1416a1fb46ad76a448c3b87b2901763",
+    "frontend": {
+      "status": "VERIFIED",
+      "script_path": "/assets/main-B6FzqOPN.js",
+      "bundle_sha256": "8d189f73b483b60c5768324076825c099d8a24f178b66ae4d820a0319f2fe2be",
+      "index_sha256": "35747eeb38ba56528cfee1592bd5d191d532baab2119a1183509b2fe3e76eef4",
+      "api_release_id": "stage-market-independence-20261028-r7-api-identity-r3",
+      "api_manifest_sha256": "94850a059b20787f1ea436254fa32de4d1416a1fb46ad76a448c3b87b2901763"
+    }
+  },
+  "scope": "Actual/usr/bin/env inlineprecedence and installed frontend identity function; isolated process only, no APIserver/lifecycle/datawrites"
+}

@@ -1,0 +1,55 @@
+{
+  "status": "ONE_TOKEN_FIX_NECESSARY_BUT_INSUFFICIENT",
+  "subprocess_results": [
+    {
+      "version": "before",
+      "release_id": "mac-panel-r5-rebound-20261028-r1-api",
+      "manifest_sha256": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+      "frontend_build": {
+        "status": "CANNOT_CONFIRM",
+        "reason": "API_RELEASE_IDENTITY_UNBOUND"
+      }
+    },
+    {
+      "version": "after",
+      "release_id": "stage-market-independence-20261028-r7-api",
+      "manifest_sha256": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+      "frontend_build": {
+        "status": "CANNOT_CONFIRM",
+        "reason": "API_RELEASE_IDENTITY_UNBOUND"
+      }
+    }
+  ],
+  "actual_manifest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/release-manifest.json",
+    "sha256": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+    "schema_version": "v4.runtime_graph_repair_release.v1",
+    "candidate": {
+      "release_id": "stage-market-independence-20261028-r7-api",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/app"
+    }
+  },
+  "frontend_required_identity_contract": {
+    "schema_version": "v4.release_candidate.v1",
+    "candidate.root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api",
+    "candidate.app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/app",
+    "candidate.release_id": "stage-market-independence-20261028-r7-api"
+  },
+  "source_evidence": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/app/apps/api/v35_api/runtime_graph_router.py",
+    "sha256": "b7645e7b6c783784f3422d7deacea32dd4a50f5b6396ca7081e742f854031eb3",
+    "lines": "611–619"
+  },
+  "actual_index_entry": {
+    "script_path": "/assets/main-B6FzqOPN.js",
+    "index_sha256": "35747eeb38ba56528cfee1592bd5d191d532baab2119a1183509b2fe3e76eef4",
+    "bundle_sha256": "8d189f73b483b60c5768324076825c099d8a24f178b66ae4d820a0319f2fe2be"
+  },
+  "scope_blocker": "Assigned scope forbids manifest/source changes, but actual endpoint needs manifest schema and candidate.root repair in addition to inline release ID. No frontend VERIFIED outcome possible under one-token-only change.",
+  "unchanged": "Live plist, API/Main/Stage sources, release manifests, baseR7controller, services/data/locks/Git unchanged by Writer",
+  "live_actions": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

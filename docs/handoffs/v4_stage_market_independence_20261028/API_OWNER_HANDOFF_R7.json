@@ -1,0 +1,67 @@
+{
+  "schema_version": "v4.api_owner_handoff.v1",
+  "observed_at": "2026-10-28T20:05:17.307094+08:00",
+  "status": "CURRENT_OWNER_STABLE_API_IDENTITY_FIX_REVIEWED_NOT_ACTIVATED",
+  "api_lifecycle_ownership": "RELEASED_FOR_SINGLE_COORDINATED_V4_NAMING_CUTOVER",
+  "receiving_human_authorized_task": {
+    "thread_id": "01a181a9-9588-78f2-b16c-7d23c7bd8afe",
+    "title": "查清 V4 对 3.5 和 3 的依赖",
+    "authorization": "User approved unified naming/owned runtime/API controlled cutover plan; read from actual user turn 01a181ec-82b0-7b70-814e-ae7317301a11"
+  },
+  "this_task_further_api_lifecycle_actions_planned": false,
+  "this_task_active_coordinator": null,
+  "this_task_owner_guard_held": false,
+  "expired_operation": {
+    "operation_id": "b77996f455bf41d8a4a473d6c3175464",
+    "coordinator_pid71668_gone": true,
+    "root_ack_directory_absent": true,
+    "phase": "WAITING_ROOT_ACK",
+    "exit": "REQUEST_EXPIRED_NO_TERM",
+    "term_sent": false,
+    "helper_expired": true,
+    "receipt": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/api_identity_r3/EXPIRED_OPERATION_NO_ACTION_READBACK.json",
+    "user_terminal_result": "EXPIRED",
+    "user_result_confirmed": true
+  },
+  "active_api": {
+    "label": "com.lexi.v35.api-only",
+    "identity": {
+      "pid": 67002,
+      "ps_sha256": "35e1f328d10db74ec34074443993a5d6e9069658e749b931ca88e910ee7526e0",
+      "ps_text": "Wed Oct 28 19:21:08 2026     /Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection\n"
+    },
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api/app",
+    "release_id_declared_in_plist_environment": "stage-market-independence-20261028-r7-api",
+    "effective_inline_release_id": "mac-panel-r5-rebound-20261028-r1-api",
+    "manifest_sha256": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+    "plist_sha256": "7820f02d0726c4f0dc00d0b163c3a1e1b660f633793eecdf623616b895da32e6",
+    "frontend_build_status": "CANNOT_CONFIRM",
+    "frontend_reason": "API_RELEASE_IDENTITY_UNBOUND",
+    "app_file_count": 1329,
+    "business_source_validation_fix_present": true
+  },
+  "reviewed_unactivated_identity_successor": {
+    "role": "api",
+    "release_id": "stage-market-independence-20261028-r7-api-identity-r3",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api-identity-r3/app",
+    "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-market-independence-20261028-r7-api-identity-r3/release-manifest.json",
+    "manifest_sha256": "94850a059b20787f1ea436254fa32de4d1416a1fb46ad76a448c3b87b2901763",
+    "candidate_app": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/api_identity_r3/candidate/stage-market-independence-20261028-r7-api-identity-r3/app",
+    "candidate_manifest": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/api_identity_r3/candidate/stage-market-independence-20261028-r7-api-identity-r3/release-manifest.json",
+    "plist_after_file": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/api_identity_r3/api.after.plist",
+    "plist_after_sha256": "5c055e818ef26061319a0c8e568fdec7acb560e28445a27e118ff127b5522fbc",
+    "source_files_unchanged": 1329,
+    "review_receipt": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/api_identity_r3/INDEPENDENT_REVIEW_PASS.json",
+    "frozen_control_sha256": "c595452aabd07762d3e636e446f127d92a7c3a7aedf5c6150a83ceeefe4f509c",
+    "do_not_activate_old_expired_controller": "Fresh unified naming control must bind actual current API; no expired helper/checkpoint reuse",
+    "metadata_requirement": "Canonical manifest schema v4.release_candidate.v1 and candidate root/app_root/release_id/module_role gateway; effective inline env must match intended identity; actual frontend-build VERIFIED and runtime pid/cwd required"
+  },
+  "historical_a_result": "20261028 intraday A remains0/CANNOT_CONFIRM; do not backfill with20:00 or equate420context with selected picks",
+  "data_payloads_rehashed": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
