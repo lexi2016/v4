@@ -1,6 +1,6 @@
 # V4 A/HK stage selection continuation — 2026-10-28
 
-This is a source-and-evidence handoff, not an installed release. It preserves the two-market research-only boundary: `production_allowed=false`, `buy_gate_updated=false`, `orders_sent=false`.
+This handoff records reviewed source and the actual Stage-only local deployment. Main hourly/name and API name updates remain pending. It preserves the two-market research-only boundary: `production_allowed=false`, `buy_gate_updated=false`, `orders_sent=false`.
 
 ## Recorded problem
 
@@ -10,9 +10,9 @@ This is a source-and-evidence handoff, not an installed release. It preserves th
 
 ## Reviewed Stage source
 
-`stage_source/` is the exact two-file overlay independently reviewed against the installed Stage baseline; `tests/` contains its frozen tests. The isolated reviewer ran 8 integration tests successfully and reproduced both market directions and HK input OSError isolation. A shared bundle-write failure can still leave both markets unconfirmed. This is not a deployment or natural-run acceptance.
+`stage_source/` is the exact two-file overlay independently reviewed against the installed Stage baseline; `tests/` contains its frozen tests. The isolated reviewer ran 8 integration tests successfully and reproduced both market directions and HK input OSError isolation. A shared bundle-write failure can still leave both markets unconfirmed. See `LIVE_STATUS_20261028.json` for the later local deployment and manual late-replay readback. The source test itself is not natural-run acceptance.
 
-A separate control-readiness review was FAIL: the archived Stage-only proposal is not executable, and a point-in-time idle PID does not close the admission race before launchd bootout. Do not run the old multi-service controller or its review-only plan.
+The initial control-readiness FAIL is retained. The later R4/R6 control reviews passed for exactly two known calendar-only Stage labels in a finite trigger-empty window, with the original owner guard, source/plist/metadata CAS and protected data/service checks. R4 activated at16:22 and R6 corrected the legacy launcher PYTHONPATH at17:15:44. `control/` is frozen control source, not a reusable live plan. Never run old or expired plans.
 
 ## Name coverage
 
@@ -22,4 +22,4 @@ R6/R7 source candidates, frozen tests and independent reviews already exist on t
 
 `hourly_candidate/shared/` contains source needed by both Main and Stage; `hourly_candidate/main/` and `hourly_candidate/stage/` contain role-specific files. The R3 writer and independent reviewer tested the original executor through materializer, source-only refresh, scheduler ledger and cross-release Stage in isolated copies. Independent review passed after two R2 findings were repaired. This does not authorize publication or establish live acceptance. The local scheduler ledger is a consistency chain, not an externally signed timestamp. Missing historical completion evidence remains unverified.
 
-No runtime release, config, user data, service or trading action is performed by this handoff.
+The Stage release and two Stage labels were activated locally; Main/API/collector were unchanged at this snapshot. Six failed intraday slots were replayed using preserved raw inputs. These are late recoveries, not natural/PIT proof. API readback verifies10 HK rows in all8 slots; A inputs remain unconfirmed. Original receipts and raw data are preserved. No trading gate or orders changed.

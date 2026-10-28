@@ -1,0 +1,62 @@
+{
+  "receipt_schema": "runtime_acceptance_review_r6.v1",
+  "reviewer": "/root/stage_review",
+  "verdict": "REVIEWED/PASS",
+  "behavior_verified": {
+    "status": "LIMITED_PASS",
+    "scope": "R6 activation plus manual target replay, recovery, compact API readback, UI readback, and mechanical data identity only.",
+    "target_trade_date": "20261028",
+    "target_stage": "STAGE_1445_1500",
+    "run_mode": "MANUAL_CURRENT_TIME_LATE_REPLAY"
+  },
+  "user_goal": "Independently check the R6 activation and recorded manual Stage results, recovery, API/UI readbacks, and data-identity/cache-preservation evidence, while retaining research-only and timing/eligibility limits.",
+  "bindings": {
+    "plan_sha256": "97e606bf0e29930828da50dcad2da644782aa054aa2e17dfc363f2df5b86aa69",
+    "controller_sha256": "c8c4858e9aa1b76afe5fdf9bcb61214ca5d786d124b981ba3ad5ace13be25214",
+    "release_manifest_sha256": "4128cd3b3901915d4004581344ef17170a21d9bd1171a2f53ef3c6eace2bd527",
+    "receipts": {
+      "STAGE_SWITCH_COMMAND_RESULT_R6.json": "aede9b81bedeeb6a31e70d4caa2ed5205966f251f8300527c57e1bab752330d8",
+      "STAGE_ACTIVATION_RECEIPT_R6.json": "6e723f9b36a1b7d2069a656fe88a05bd6b86389ac74c2b4944fe99b609f94afa",
+      "ACTUAL_REPLAY_RESULT_R6.json": "1b1758fa34e18850b765b2925fa0dc26cc4d42511073dfb2285dbe9092335a6e",
+      "BATCH_RECOVERY_RESULT_R6.json": "5bf76b08984e671c4834c2fd0b1fa0f2bc51049e70d4114b5d26a09a8281cc6f",
+      "BATCH_RAW_VERIFIED_R6.private.json": "6e818931e1448a4c1dd97a64f0bcbfabdfdb93a8bc30e074fed74b616773a7cc",
+      "API_STAGE_MATRIX_AFTER_R6.json": "9e634f3ef740ce0f3e1045f5dcc018e8183113e7a22eebb5491887943803dcc2",
+      "UI_AFTER_REPLAY_R6.ax.txt": "fc411c28428434df302985dc382c82ff481ef872cc6957998c90975987cec08d",
+      "UI_AFTER_REPLAY_R6.png": "075131fa55a00cb30d43be27910e7e653f8527f01b37bca81a2e5431d3b05a3d",
+      "FRESH_PREFLIGHT_R6.json": "778d75f45896ee8d16d79cd2376730f5760bf442ed10dce2b1eaf8586c07fbbe",
+      "FRESH_PREFLIGHT_R6_EARLY.json": "6e2e47695b947c98044c4c4e0e55667f338edf97febaf69821a220a5daaf739c",
+      "CACHE_PRESERVATION_R6.json": "594645e6f9e90da2bb31d87552d55e56d67cfbf9840f12257d813edf73510ca4",
+      "UNMANIFESTED_CACHE_INVENTORY.json": "d6dd4ec67b7d45551da335c9be7c13334ec83abd90fbcf3863a307aeac7c5add",
+      "FRESH_PREFLIGHT_R4.json": "7c41c49a474c37184272724dd92b64760c4995089df02a57177d3c7515bbbb0e",
+      "RELEASE_COPY_RECEIPT_R4.json": "71c90d5e6a55ded76b91595f4eb30e10760c807355cc61339e4f500885b8c3ac"
+    }
+  },
+  "review_steps": [
+    "Matched the switch and preflight plan/controller pins to the reviewed R6 hashes; activation receipt reports both exact after-plist hashes, preserved metadata, loaded idle definitions, protected dependency/owner PASS, and R4 legacy import PASS.",
+    "Matched actual replay stdout/stderr checksums to ACTUAL_REPLAY_RESULT_R6; filtered import trace shows 56 Stage module code-object lines from the R4 app and zero from the old HK20 app.",
+    "Confirmed manual replay receipt and stdout bind trade_date 20261028 / STAGE_1445_1500 / LATE_CATCHUP_REPLAY. A selection is CANNOT_CONFIRM with 0 selected; HK_CONNECT is PARTIAL_WITH_ROWS with 10; production_allowed, buy_gate_updated, and orders_sent are false.",
+    "Mechanically summarized five recovered slots: all returned 0 and PARTIAL_WITH_ROWS; each has A selection CANNOT_CONFIRM/0; HK has 10 rows (four READY, 13:00 PARTIAL_WITH_ROWS). The recovery receipt records 0925 and 1545–1555 skipped, 30 raw trio files unchanged, raw-latest SHA unchanged, and protected data pins/stats/PIDs PASS.",
+    "Compared the five-slot raw latest/verified identity tuples without exposing symbols: 10 market records match on owner/date/stage/market/role/run_id, artifact/manifest/receipt paths and hashes, and row_count; all 20 latest/verified trade_date values are 20261028.",
+    "API matrix has 8 unique slots, 10 HK display rows each (80 total), A selected rows 0, each HK selection trio verified, writes false, and all safety flags false. UI AX shows date 2026-10-28, selected 14:45–15:00, PARTIAL_WITH_ROWS, 10 HK observation rows, and explicit unverified reasons. The screenshot confirms the V4 page/date/stage selector; its first viewport does not show the result table.",
+    "Cache preservation receipt and inventory show 117 .pyc files / 2,363,455 bytes. Rehashed the quarantine tree: 117/117 present, no extras/missing/hash-or-size mismatches; mtime range is 16:36–16:39 +08, after the 16:21 R4 980-file release copy/preflight. Early R6 preflight retained INVENTORY_SET failure; post-preservation preflight reports exact 980 entries/two reviewed deltas PASS."
+  ],
+  "acceptance_scope": "Manual R6 runtime binding and research-only Stage output; not natural scheduling, stock/eligibility semantics, PIT validity, or production certification.",
+  "findings": [],
+  "risk_severity": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "limitations": [
+    "Activation receipt says natural_run NOT_YET_VERIFIED; actual execution was manual late-catchup replay.",
+    "Target HK rows remain explicitly unverified: HK capture was not before stage cutoff, formal eligibility is false, and selection status is PARTIAL_WITH_ROWS. No per-stock semantic or PIT certification follows from the 10 display rows or trio hashes.",
+    "A selection remains CANNOT_CONFIRM; zero selected rows does not establish zero source data.",
+    "The compact API matrix scope declares date/stage/count/trio binding but its per-slot rows omit an explicit trade_date field. The target replay stdout and UI explicitly bind 20261028; all five recovered slots latest/verified raw records also match that date. API per-row date fields for the two skipped slots are CANNOT_CONFIRM from this matrix alone.",
+    "Cache receipt marks origin/generator CANNOT_CONFIRM. Preservation outcome and post-move byte integrity were checked; I did not independently prove the exact filesystem syscall or guard acquisition from a detailed operation trace."
+  ],
+  "unexecuted_checks": [
+    "No live lifecycle/preflight rerun, new tick, API request, test rerun, or natural-run wait.",
+    "No semantic review of individual stock rows or PIT/eligibility certification.",
+    "No Main/API/hourly/name acceptance, per the frozen Stage-only boundary."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "snapshot_at": "2026-10-28T17:22:03+08:00",
+  "stage_deployed": true,
+  "release_manifest_sha256": "4128cd3b3901915d4004581344ef17170a21d9bd1171a2f53ef3c6eace2bd527",
+  "source_deltas": 2,
+  "launchagent_delta": "twoStage labels; R6 only corrects PYTHONPATH; uid/gid/mode/allxattrs preserved",
+  "actual_legacy_import": "R4 verified via real script -B -v --check and actual tick",
+  "late_replay": {
+    "failed_slots_recovered": 6,
+    "hk_rows_per_slot": 10,
+    "A_rows": 0,
+    "not_natural": true,
+    "original_failed_receipts_preserved": true,
+    "successful_slots_not_rerun": [
+      "STAGE_0925",
+      "STAGE_1545_1555"
+    ]
+  },
+  "api_all8_slots_hk_rows": 80,
+  "raw_preservation": {
+    "batch_raw_trio_files_unchanged": 30,
+    "raw_latest_unchanged": true,
+    "raw_recollection": false
+  },
+  "protected": {
+    "Main_pid": 93640,
+    "API_pid": 93643,
+    "services_restarted": false,
+    "data_pointer_sha_and_two_parquet_identity_size_mtime": "UNCHANGED",
+    "full_5073_content_recognition": "NOT_REPERFORMED"
+  },
+  "remaining": {
+    "A_native_0925": "CANNOT_CONFIRM; historical futurequotes rejected",
+    "A_hourly_context": "still missing for historical slots",
+    "Main_hourly_and_names": "REVIEWED_SOURCE_NOT_DEPLOYED",
+    "next_natural_stage": "NOT_OBSERVED"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "stage_runtime_independent_review": "REVIEWED/PASS limited manual runtime/API/UI/data identity",
+  "UI_all8_slots_hk_rows": 80,
+  "date_binding_addendum": "API_DATE_BINDING_ADDENDUM_R6.json"
+}
