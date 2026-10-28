@@ -104,12 +104,23 @@ def _emit(payload: Mapping[str, Any]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collect one V4 runtime graph snapshot")
-    parser.add_argument("--date", required=True)
+    parser.add_argument("--date")
+    parser.add_argument("--events", action="store_true")
+    parser.add_argument("--initialize", action="store_true")
+    parser.add_argument("--config", type=Path)
     parser.add_argument("--data-root", required=True, type=Path)
     parser.add_argument("--api-base", default=DEFAULT_API_BASE)
     parser.add_argument("--now")
     try:
         args = parser.parse_args(argv)
+        if args.events:
+            from infrastructure.runtime_graph.current import load_config
+            from infrastructure.runtime_graph.event_collector import collect_events
+            result = collect_events(load_config(args.config), make_http_get(args.api_base), initialize=args.initialize, business_date=args.date)
+            _emit(result)
+            return 1 if result["status"] == "FAILED" else 0
+        if not args.date:
+            raise ValueError("DATE_REQUIRED_FOR_LEGACY_COLLECT")
         result = collect_once(
             business_date=args.date,
             data_root=args.data_root,

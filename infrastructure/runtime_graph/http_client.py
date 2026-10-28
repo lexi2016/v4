@@ -10,9 +10,9 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 
-# The preselection-pools DTO is currently 1,161,614 bytes.  Keep a finite
-# fail-closed ceiling while allowing that complete, non-truncated response.
-MAX_BODY_BYTES = 2 * 1024 * 1024
+# The 2026-10-26 frozen-reader preselection DTO is 2,652,719 bytes.
+# Keep a finite fail-closed ceiling for that complete, non-truncated response.
+MAX_BODY_BYTES = 4 * 1024 * 1024
 REQUEST_TIMEOUT_SECONDS = 3.0
 API_PORT = 8873
 
