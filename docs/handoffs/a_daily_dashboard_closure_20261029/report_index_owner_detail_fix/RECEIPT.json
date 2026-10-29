@@ -1,0 +1,40 @@
+{
+  "status": "WRITER_TESTED_INDEPENDENT_REVIEW_PENDING",
+  "goal": "Adapt existing verified owner detail without weakening PDF/source/page integrity",
+  "baseline": "9a1067823583d685d01ad6c75c529b0157ccd03c",
+  "changed_source": [
+    "infrastructure/zsxq_pdf_search_index.py"
+  ],
+  "added_tests": [
+    "tests/test_pdf_search_index.py"
+  ],
+  "preimage_sha256": "46d9bf4560178df6637175e5dc7ddf50c2df189a4bd36c51c44a7bc97fa5ad7a",
+  "postimage_sha256": "5e7bdff17419ef688ab74cb66b1451c39cb201e3a64cfb9fca96db1cc5600f9a",
+  "test_sha256": "1eff573a520415dd2b820686a462a4b31c3a116563e640f1fde3eb7c7dc3113f",
+  "root_cause": "Verified original owner detail returns receipt path/SHA/integrity and page-count metadata, not receipt.verified_pdf_sha256 or processing.verified_pdf_size/verified_pages_size. Adapter incorrectly required those absent fields.",
+  "repair": "Retain original owner _verified_document_detail(...verify_pdf=True). Read pdf_sha256/pdf_size from that same verified latest engine artifact; secure-read its pages_path and verify pages_file_sha256 before taking exact len(pages_raw).",
+  "test_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_pdf_search_index.py --basetemp=docs/handoffs/a_daily_dashboard_closure_20261029/report_index_owner_detail_fix/pytest_tmp --tb=short",
+  "test_result": "3 passed in 0.06s",
+  "negative_scope": [
+    "Original owner PDF integrity mismatch retained CANNOT_CONFIRM",
+    "Original owner page integrity mismatch retained CANNOT_CONFIRM",
+    "Original owner source input SHA mismatch retained CANNOT_CONFIRM",
+    "Page byte SHA drift after owner verification yields SEARCH_OWNER_PAGES_SHA_DRIFT",
+    "Unverified owner detail never publishes bloom"
+  ],
+  "positive_scope": "Original owner response shape indexes existing verified artifact PDF metadata and exact page byte length into temporary fixture only",
+  "prior_checks": "Previous 3P2 PASS reused unchanged",
+  "initial_reproduction": "Positive fixture failed before source change. Initial default pytest tmp cleanup also hit unrelated preexisting protected garbage; no cleanup attempted there. Dedicated local basetemp avoided it.",
+  "real_owner_reads": "Exactly frozen 3 document details, verify_pdf=True, read-only; REAL_OWNER_SHAPES.json",
+  "shared_index_calls_by_writer": 0,
+  "raw_source_writes": 0,
+  "ocr_calls": 0,
+  "download_calls": 0,
+  "independent_review": "PENDING",
+  "root_real_canary": "NOT_RUN_BY_WRITER",
+  "full_608_batch": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
