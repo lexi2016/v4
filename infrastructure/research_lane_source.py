@@ -22,7 +22,6 @@ from infrastructure.data_store import _sha256
 from infrastructure.market_time import shanghai_now
 from infrastructure.owned_path import resolve_owned_path
 from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
-from infrastructure.scheduling.execution_ledger import ExecutionLedger
 
 
 _EVENT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9:._-]{0,255}")
@@ -32,6 +31,13 @@ _OFFSET_TIMESTAMP = re.compile(
 _STATUS_TIMELINE_SLOTS = tuple(f"{hour:02d}00" for hour in range(7, 24))
 _STATUS_RECEIPT_GLOB = "*.dispatch-receipt.json"
 _SHANGHAI = ZoneInfo("Asia/Shanghai")
+
+
+def _execution_ledger_type():
+    """Load scheduling support only for endpoints that actually read it."""
+    from infrastructure.scheduling.execution_ledger import ExecutionLedger
+
+    return ExecutionLedger
 
 
 class ResearchLaneSource:
@@ -160,7 +166,7 @@ class ResearchLaneSource:
         # Use the existing ledger's date/mode ordering and integrity check.
         # Random run filenames are not execution chronology. Unverified JSON
         # cannot be projected as a successful hourly run.
-        ledger = ExecutionLedger(self.ledger_root)
+        ledger = _execution_ledger_type()(self.ledger_root)
         try:
             rows = ledger.list_receipts(research_date, mode="LIVE")
             valid, _ = ledger.verify_receipt_chain(research_date, mode="LIVE")
@@ -436,7 +442,7 @@ class ResearchLaneSource:
             "message": "已到计划窗口，但无可核验的同日执行回执；上游或执行状态未确认，不等于已执行失败。",
         }
         try:
-            ledger = ExecutionLedger(self.ledger_root)
+            ledger = _execution_ledger_type()(self.ledger_root)
             receipts = ledger.list_receipts(research_date, mode="LIVE")
             receipts = tuple(row for row in receipts
                 if row.get("scheduled_date") == research_date and row.get("target_date") == research_date
@@ -908,6 +914,14 @@ class ResearchLaneSource:
 
     def _a_product_reference(self, reference):
         root = self._a_product_root()
+        if (
+            not isinstance(reference, Mapping)
+            or not isinstance(reference.get("path"), str)
+            or not reference.get("path")
+            or not isinstance(reference.get("sha256"), str)
+            or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])
+        ):
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_INVALID")
         path = Path(reference["path"])
         if root is None or not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path or not path.is_relative_to(root):
             raise ValueError("A_DAILY_PRODUCT_REFERENCE_OUTSIDE_BOUND_ROOT")
@@ -915,9 +929,63 @@ class ResearchLaneSource:
         if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
             raise ValueError("A_DAILY_PRODUCT_REFERENCE_SHA_DRIFT")
         value = json.loads(raw)
+        if not isinstance(value, Mapping):
+            raise ValueError("A_DAILY_PRODUCT_OBJECT_INVALID")
         if value.get("RESEARCH_ONLY") is not True or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent")):
             raise ValueError("A_DAILY_PRODUCT_SAFETY_UNBOUND")
         return value
+
+    def _a_daily_checkpoint_binding(self, row, product, symbol, date):
+        """Bind the whole stored row, including price statistics, to this product."""
+        identity = product["source_identity"]
+        qualification = row.get("qualification")
+        statistics = row.get("statistics")
+        asof = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+        if (not isinstance(qualification, Mapping)
+                or qualification.get("source_generation") != product["source_generation"]
+                or qualification.get("symbol") != symbol or qualification.get("target_date") != date
+                or not isinstance(statistics, Mapping) or statistics.get("asof") != asof
+                or not isinstance(statistics.get("groups"), list) or not statistics["groups"]):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+        snapshot = identity.get("snapshot")
+        if snapshot is not None and (not isinstance(snapshot, Mapping)
+                or not snapshot.get("path") or not snapshot.get("sha256")
+                or qualification.get("snapshot_path") != snapshot["path"]
+                or qualification.get("snapshot_sha256") != snapshot["sha256"]):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+        config_ref = product.get("source_config")
+        if (not isinstance(config_ref, Mapping) or not isinstance(config_ref.get("path"), str)
+                or not config_ref["path"] or not isinstance(config_ref.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", config_ref["sha256"])):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        # The producer's explicitly hash-bound config can live outside the
+        # product directory. Read only that exact file; never infer a config.
+        config_path = Path(config_ref["path"])
+        if (not config_path.is_absolute() or config_path.is_symlink()
+                or config_path.resolve(strict=True) != config_path):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        config_raw = config_path.read_bytes()
+        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_CONFIG_SHA_DRIFT")
+        config = json.loads(config_raw)
+        formula = config.get("formula") if isinstance(config, Mapping) else None
+        if (not isinstance(formula, Mapping) or not isinstance(formula.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", formula["sha256"])):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        basis = identity.get("basis")
+        expected = {"generation": product["source_generation"], "input": identity["input_sha256"],
+                    "asof": asof, "market": symbol[-2:], "formula": formula["sha256"],
+                    "basis": basis.get("price_basis") if isinstance(basis, Mapping) else "QFQ_ASOF"}
+        for group in statistics["groups"]:
+            binding = group.get("source_identity") if isinstance(group, Mapping) else None
+            if (not isinstance(binding, Mapping) or group.get("identity_status") != "BOUND"
+                    or any(binding.get(key) != value for key, value in expected.items())
+                    or not isinstance(binding.get("formula"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", binding["formula"])
+                    or not isinstance(group.get("rule_sha256"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", group["rule_sha256"])
+                    or binding.get("rule_sha256") != group["rule_sha256"]):
+                raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
 
     def read_a_daily_product(self, date=None, symbol=None):
         root = self._a_product_root()
@@ -928,24 +996,48 @@ class ResearchLaneSource:
         if root is None or not (root / "index.json").is_file():
             return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":date, "rows":[], "available_dates":[]}
         index = json.loads((root / "index.json").read_text())
+        if not isinstance(index, Mapping) or not isinstance(index.get("dates"), Mapping):
+            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
         chosen = date or index.get("latest_date")
+        if not isinstance(chosen, str) or not re.fullmatch(r"\d{8}", chosen):
+            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
         reference = index.get("dates", {}).get(chosen)
         if reference is None:
             return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":chosen, "rows":[], "available_dates":sorted(index.get("dates", {}))}
         manifest = self._a_product_reference(reference)
         product = self._a_product_reference(manifest["artifact"])
+        identity = product.get("source_identity")
+        if (not isinstance(identity, Mapping)
+                or not isinstance(product.get("source_generation"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", product["source_generation"])
+                or identity.get("generation") != product["source_generation"]
+                or str(identity.get("asof")) != chosen
+                or not isinstance(identity.get("input_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", identity["input_sha256"])):
+            raise ValueError("A_DAILY_PRODUCT_SOURCE_IDENTITY_INVALID")
         if (manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1" or product.get("schema_version") != "v4.a_share.daily_product.v1"
                 or manifest.get("data_date") != chosen or product.get("data_date") != chosen
                 or manifest.get("source_generation") != product.get("source_generation")
-                or manifest.get("input_sha256") != product.get("source_identity", {}).get("input_sha256")
+                or manifest.get("input_sha256") != identity["input_sha256"]
                 or manifest.get("sample_only") is not False or product.get("sample_only") is not False
                 or manifest.get("processed_count") != product.get("processed_count")):
             raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
         if symbol is not None:
-            row_ref = product.get("row_refs", {}).get(symbol)
+            row_refs = product.get("row_refs")
+            if not isinstance(row_refs, Mapping):
+                raise ValueError("A_DAILY_PRODUCT_ROW_REFERENCES_INVALID")
+            row_ref = row_refs.get(symbol)
             match = self._a_product_reference(row_ref) if row_ref else None
             if match is not None and (match.get("symbol") != symbol or match.get("data_date") != chosen):
                 raise ValueError("A_DAILY_SYMBOL_DETAIL_IDENTITY_CONFLICT")
+            if match is not None:
+                self._a_daily_checkpoint_binding(match, product, symbol, chosen)
+            if match is None:
+                rows = product.get("rows")
+                if not isinstance(rows, list):
+                    raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
+                if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
+                    raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
             return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
         return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]}
 
@@ -954,9 +1046,14 @@ class ResearchLaneSource:
         if root is None or not (root / "events/latest.json").is_file():
             return None
         event = json.loads((root / "events/latest.json").read_text())
+        if not isinstance(event, Mapping):
+            raise ValueError("A_DAILY_EVENT_OBJECT_INVALID")
         if event.get("schema_version") != "v4.a_share.daily_completion.v1" or event.get("RESEARCH_ONLY") is not True or any(event.get(k) is not False for k in ("production_allowed","buy_gate_updated","orders_sent")):
             raise ValueError("A_DAILY_EVENT_SCHEMA_OR_SAFETY_INVALID")
-        manifest = self._a_product_reference(event["manifest"])
+        event_manifest = event.get("manifest")
+        if not isinstance(event_manifest, Mapping):
+            raise ValueError("A_DAILY_EVENT_MANIFEST_REFERENCE_INVALID")
+        manifest = self._a_product_reference(event_manifest)
         if (event.get("artifact") != manifest.get("artifact") or any(event.get(k) != manifest.get(k) for k in ("data_date","source_generation","input_sha256","processed_count","source_universe_count","status"))):
             raise ValueError("A_DAILY_EVENT_MANIFEST_IDENTITY_CONFLICT")
         return event

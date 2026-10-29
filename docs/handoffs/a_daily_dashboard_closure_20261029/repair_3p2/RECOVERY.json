@@ -1,0 +1,39 @@
+{
+  "writer": "dashboard_repair_sol",
+  "scope": [
+    "source_identity type",
+    "checkpoint identity binding",
+    "missing derived index early return"
+  ],
+  "baseline": "d7487de9cb55853874b4ccb3205df3ac3b4bb129",
+  "preimage_sha256": {
+    "infrastructure/research_lane_source.py": "8f73b5ad0a3c031e80a9e13f468b717471fa5c6bfb0f3c29ba172233d1007508",
+    "infrastructure/zsxq_pdf_search_index.py": "6183612b07bfd295004633d4c098e6893339319b1036ccf8ca9d9419dea34429",
+    "tests/test_daily_completion_sse.py": "7d13b214451ee2d52cccda0abbc9a575a5b254860a2ded71719519d291c0c5dc",
+    "tests/test_related_pdf_reports.py": "7b49c60e1c2fa1ad0287ac04916393598efc093ab1297a8c2ba44dcbe009712d",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/HANDOFF.md": "e0646e7dbb5e8b3ef53e04c4d77c32f157712c22361be6eb958dc5d33b4b96c5"
+  },
+  "status": "WRITER_TESTED_REVIEW_PENDING",
+  "no_runtime_or_data_mutation": true,
+  "postimage_sha256": {
+    "infrastructure/research_lane_source.py": "41d125eaa663197e14398e249ade1047146aa2038e9d13cab84cc2da19f2980f",
+    "infrastructure/zsxq_pdf_search_index.py": "46d9bf4560178df6637175e5dc7ddf50c2df189a4bd36c51c44a7bc97fa5ad7a",
+    "tests/test_daily_completion_sse.py": "37660b0d183e3cbb2df29979012b2ea7980e5eb1112f5f3b07db9ffe0869c4b1",
+    "tests/test_related_pdf_reports.py": "58efbbd2c73edc256fca98a905543003f11ee7f5727f6499386f3dc8e0c36251",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/HANDOFF.md": "c7c755848a096f22dcd371b78e47de6628b5c53fb5d055e87ed767cb8e478562"
+  },
+  "verification": {
+    "pytest": "12 passed, 10 subtests passed",
+    "js": "PASS",
+    "real_d29_api_sse": "PASS",
+    "independent_review": "PENDING",
+    "deployed": false,
+    "browser": "NOT_RUN"
+  },
+  "commands": [
+    "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_daily_completion_sse.py::CompletionSSETests::test_non_mapping_source_identity_returns_typed_cannot_confirm tests/test_daily_completion_sse.py::CompletionSSETests::test_stale_or_unbound_checkpoint_never_exposes_statistics tests/test_related_pdf_reports.py::ExistingReportIndexOnlyTests::test_real_missing_derived_index_returns_before_owner_inventory_read",
+    "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_daily_completion_sse.py tests/test_related_pdf_reports.py --tb=short",
+    "node tests/test_dated_daily_panel.js",
+    "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' docs/handoffs/a_daily_dashboard_closure_20261029/repair_3p2/verify_real_d29.py"
+  ]
+}

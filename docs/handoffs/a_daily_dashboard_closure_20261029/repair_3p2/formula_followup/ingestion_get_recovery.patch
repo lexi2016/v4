@@ -1,0 +1,68 @@
+--- a/infrastructure/zsxq_pdf_ingestion.py
++++ b/infrastructure/zsxq_pdf_ingestion.py
+@@ -3553,6 +3553,65 @@
+     if partial or failed or cannot:
+         return "PARTIAL" if any((done, partial)) else "FAILED" if failed else "CANNOT_CONFIRM"
+     return "READY" if done else "READY_EMPTY"
++
++
++def query_pdf_search_index(data_root: Path, terms: Mapping[str, list[str]]) -> dict[str, Any]:
++    """Read derived search candidates; callers must reverify each original."""
++    from infrastructure.zsxq_pdf_search_index import query
++    return query(data_root, terms)
++
++
++
++def read_pdf_index_scope(data_root: Path) -> dict[str, Any]:
++    """List candidate dates and recheck each indexed source enumeration.
++
++    This is only the ingestion index's scope; it is not a claim about all
++    historical research, all ZSXQ attachments, or any unindexed sources.
++    """
++    try:
++        root = Path(data_root).expanduser()
++        if not root.is_dir() or root.is_symlink():
++            raise ZsxqPdfError("DATA_ROOT_INVALID")
++        if not _safe_artifact_path(root, STATE_RELATIVE).is_file():
++            raise ZsxqPdfError("PDF_INGESTION_NOT_MATERIALIZED")
++        store = NativeDataStore(root)
++        index = _read_index(store)
++        dates: set[str] = set()
++        gaps: list[dict[str, str]] = []
++        bindings: dict[str, Any] = {}
++        def scope_day(value: Any) -> str:
++            text = str(value or "")
++            if not re.fullmatch(r"[0-9]{8}", text):
++                raise ZsxqPdfError("TRADE_DATE_INVALID")
++            return _date(text)
++        for source_run_id, source in index["sources"].items():
++            try:
++                if not isinstance(source, Mapping):
++                    raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
++                day = scope_day(source.get("trade_date"))
++                dates.add(day)
++                _verified_source_enumeration(store, index, str(source_run_id), source)
++                bindings[str(source_run_id)] = {"status": "VERIFIED", "source_signature": source.get("source_signature"),
++                                                "input_sha256": source.get("input_sha256")}
++            except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++                reason = _error_code(error)
++                gaps.append({"source_run_id": str(source_run_id), "reason": reason})
++                bindings[str(source_run_id)] = {"status": "CANNOT_CONFIRM", "reason": reason}
++        for document_id, row in index["documents"].items():
++            try:
++                if not isinstance(row, Mapping) or not isinstance(row.get("source"), Mapping):
++                    raise ZsxqPdfError("DOCUMENT_SOURCE_INVALID")
++                source = row["source"]
++                day = scope_day(source.get("trade_date"))
++                dates.add(day)
++                if str(source.get("source_run_id") or "") not in index["sources"]:
++                    raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
++            except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++                gaps.append({"document_id": str(document_id), "reason": _error_code(error)})
++        return {"dates": sorted(dates), "gaps": gaps, "source_bindings": bindings, "scope": "INGESTION_INDEX_ONLY"}
++    except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++        return {"dates": [], "gaps": [{"reason": _error_code(error)}], "source_bindings": {}, "scope": "INGESTION_INDEX_ONLY"}
++
+ 
+ 
+ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[str, Any]:

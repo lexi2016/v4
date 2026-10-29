@@ -1,0 +1,20 @@
+{
+  "purpose": "SOURCE_ONLY_RECOVERY_PATCH",
+  "base_commit": "d7487de9cb55853874b4ccb3205df3ac3b4bb129",
+  "base_file_sha256": "8a16a457edbd6a7a95c3b3c7af5335d8243946b0e5f2b2f2eb48f5fc3e7c9f9b",
+  "recovered_file_sha256": "37072f0af57195698320bc270430fa1edddb78f4d2539ef0b4b3011be8f53fc2",
+  "patch_sha256": "96fc30e15e2607e248d26bda83415a57119e6b6a4117ef680da9cf008c1483f2",
+  "functions_added": [
+    "query_pdf_search_index",
+    "read_pdf_index_scope"
+  ],
+  "imports_added": [],
+  "checks": [
+    "recovered source AST parse PASS",
+    "base helper/import presence PASS",
+    "no removal lines PASS"
+  ],
+  "original_dirty_file_changed": false,
+  "review_status": "Reviewer notified; independent recovery application not run",
+  "runtime_or_git_mutation": false
+}
