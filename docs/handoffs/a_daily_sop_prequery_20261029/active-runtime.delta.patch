@@ -1,0 +1,213 @@
+--- a/ops/research_panel_factor_cache.py
++++ b/ops/research_panel_factor_cache.py
+@@ -112,12 +112,123 @@
+     return events
+ 
+ 
++# Accepted original lifecycle projection; changing it requires a new source contract.
++_LIFECYCLE_ASSET_SHA = "7403a9954d9ae915dcb99cbba03a5dd19d6b85152396c5ff0634e286cdd9357b"
++_LIFECYCLE_REASON = "VERIFIED_DELISTED_NO_CURRENT_BARS"
++
++
++def _sync_prequery_rows(ref: dict | None, target: int) -> dict[str, dict]:
++    if ref is None:
++        return {}
++    summary = json.loads(_source(ref, owner="original sync prequery authority").read_text())
++    if (str(summary.get("target_date")) != str(target) or not summary.get("target_keys")
++            or summary.get("RESEARCH_ONLY") is not True
++            or any(summary.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
++        raise QfqGateError("SOP_PREQUERY_SYNC_TARGET_OR_SAFETY_INVALID")
++    markets = {0: "SZ", 1: "SH", 2: "BJ"}
++    def identity(row):
++        suffix = markets.get(row.get("market")) if type(row.get("market")) is int else None
++        symbol = str(row.get("symbol", ""))
++        return symbol.zfill(6) + "." + suffix if suffix and symbol.isdigit() and len(symbol) <= 6 else None
++    keys = {identity(row) for row in summary["target_keys"] if isinstance(row, dict)}
++    result = {}
++    for row in summary.get("symbol_reconciliation", []):
++        if not isinstance(row, dict):
++            continue
++        code = identity(row)
++        if code in keys and code is not None:
++            if code in result:
++                raise QfqGateError("SOP_PREQUERY_DUPLICATE_IDENTITY")
++            result[code] = row
++    return result
++
++
++def _verified_sop_skip(code: str, row: dict | None, target: int, sync_ref: dict | None) -> dict | None:
++    if not row or (row.get("classification"), row.get("quarantine"), row.get("target_date_ready"),
++                   row.get("lifecycle_skip"), row.get("reason_code")) != (
++                       "QUARANTINED", True, False, True, _LIFECYCLE_REASON):
++        return None
++    fact = row.get("lifecycle_fact")
++    if (not isinstance(fact, dict) or fact.get("ts_code") != code or fact.get("verified") is not True
++            or fact.get("requires_recent_listed_A_share_bars") is not False
++            or row.get("lifecycle_asset_sha256") != _LIFECYCLE_ASSET_SHA
++            or fact.get("accepted_review_literal") != "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION"
++            or row.get("records_written") != 0):
++        return None
++    try:
++        effective = fact["delisting_effective_date"]
++        datetime.strptime(effective, "%Y%m%d")
++        if int(effective) > target:
++            return None
++        raw = dict(path=row["path"], sha256=row["source_sha256_after"])
++        _source(raw, owner="original lifecycle raw identity")
++        for name in ("accepted_review_ref", "accepted_case_result_ref"):
++            _source(fact[name], owner="accepted original lifecycle SOP")
++    except (KeyError, TypeError, ValueError, OSError, QfqGateError):
++        return None
++    return dict(status="SOP_SKIPPED", reason=_LIFECYCLE_REASON, asof_date=target,
++                queried_at=None, capture_date=None, provider_invoked=False,
++                source_sync=sync_ref, original_sync_row=row,
++                lifecycle_effective_date=effective, classification="QUARANTINED")
++
++
++def _prior_bj_capabilities(cache_root: Path, target: int) -> tuple[dict, dict | None]:
++    # Exactly one prior checkpoint, loaded once. Never audit every past day.
++    candidates = [p / "checkpoint.json" for p in cache_root.iterdir()
++                  if p.is_dir() and len(p.name) == 8 and p.name.isdigit()
++                  and int(p.name) < target and (p / "checkpoint.json").is_file()] if cache_root.exists() else []
++    if not candidates:
++        return {}, None
++    path = max(candidates, key=lambda p: p.parent.name)
++    try:
++        raw = path.read_bytes()
++        state = json.loads(raw)
++        if state.get("asof_date") != int(path.parent.name) or not isinstance(state.get("symbols"), dict):
++            return {}, None
++        return state["symbols"], dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
++    except (OSError, ValueError, TypeError):
++        return {}, None
++
++
++def _known_prior_bj_route(code: str, prior: dict, checkpoint_ref: dict | None, target: int) -> dict | None:
++    if (not code.endswith(".BJ") or not checkpoint_ref or prior.get("status") != "UNSUPPORTED_MARKET"):
++        return None
++    try:
++        evidence = prior.get("capability_evidence")
++        original = evidence.get("original") if isinstance(evidence, dict) else prior
++        if not isinstance(original, dict):
++            return None
++        if isinstance(evidence, dict):
++            protocol = dict(provider="Futu OpenD get_rehab", code_format="BJ.SIX_DIGITS",
++                            return_code=-1, error_class="BJ_CODE_FORMAT_IS_WRONG")
++            if evidence.get("protocol") != protocol or evidence.get("protocol_sha256") != canonical_sha(protocol):
++                return None
++        response_ref = original["response"]
++        response = json.loads(_source(response_ref, owner="known prior BJ capability").read_text())
++        error = response.get("error")
++        if (response.get("source") != "Futu OpenD get_rehab" or response.get("code") != "BJ." + code[:6]
++                or response.get("return_code") != -1 or not isinstance(error, str)
++                or "format of code BJ." not in error or "is wrong" not in error
++                or original.get("error") != error):
++            return None
++    except (KeyError, OSError, ValueError, TypeError, QfqGateError):
++        return None
++    original = {k: original.get(k) for k in ("queried_at", "capture_date", "asof_date", "response", "error")}
++    protocol = dict(provider="Futu OpenD get_rehab", code_format="BJ.SIX_DIGITS",
++                    return_code=-1, error_class="BJ_CODE_FORMAT_IS_WRONG")
++    return dict(status="UNSUPPORTED_MARKET", reason="KNOWN_PRIOR_CAPABILITY_ROUTE_TO_EXISTING_TDX_FALLBACK",
++                asof_date=target, queried_at=None, capture_date=None, provider_invoked=False,
++                capability_evidence=dict(checkpoint=checkpoint_ref, original=original,
++                                         protocol=protocol, protocol_sha256=canonical_sha(protocol)))
++
++
+ def _collect_metadata_owned(codes: list[str], *, cache_root: Path, target: int,
+                      client_factory: Callable[[], Any] | None = None,
+                      min_interval: float = 0.2, retries: int = 2,
+                      sleep: Callable[[float], None] = time.sleep,
+                      monotonic: Callable[[], float] = time.monotonic,
+-                     force_refresh: bool = False, max_age_seconds: float = 86400) -> dict:
++                     force_refresh: bool = False, max_age_seconds: float = 86400,
++                     prequery_sync_ref: dict | None = None) -> dict:
+     """Bounded serial metadata I/O; compute stage can independently use workers.
+ 
+     The default cadence is conservative and configurable. Error details and
+@@ -126,13 +237,17 @@
+     """
+     if min_interval < 0 or retries not in (0, 1, 2) or not 0 < max_age_seconds <= 86400:
+         raise QfqGateError("FACTOR_RATE_OR_RETRY_CONFIG_INVALID")
++    sync_rows = _sync_prequery_rows(prequery_sync_ref, target)
++    prior_bj, prior_bj_ref = (_prior_bj_capabilities(cache_root, target)
++                              if any(code.endswith(".BJ") and code in sync_rows for code in codes) else ({}, None))
+     root = cache_root / str(target)
+     root.mkdir(parents=True, exist_ok=True)
+     checkpoint = root / "checkpoint.json"
+     state = json.loads(checkpoint.read_text()) if checkpoint.is_file() else dict(asof_date=target, symbols={})
+     if state.get("asof_date") != target:
+         raise QfqGateError("FACTOR_CHECKPOINT_ASOF_MISMATCH")
+-    state.update(status="RUNNING", started_at=_now())
++    state.update(status="RUNNING", started_at=_now(), provider_call_count=0, provider_identity_count=0,
++                 sop_skipped_count=0, known_prior_capability_count=0)
+     for field in ("completed_at", "finished_at", "counts"):
+         state.pop(field, None)
+     _json(checkpoint, state)
+@@ -144,6 +259,25 @@
+     try:
+         for code in sorted(set(codes)):
+             prior = state["symbols"].get(code, {})
++            decision = _verified_sop_skip(code, sync_rows.get(code), target, prequery_sync_ref)
++            if decision is not None:
++                state["symbols"][code] = decision
++                state["sop_skipped_count"] += 1
++                _json(checkpoint, state)
++                continue
++            if code.endswith(".BJ") and code in sync_rows:
++                try:
++                    row = sync_rows[code]
++                    _source(dict(path=row["path"], sha256=row["source_sha256_after"]), owner="original BJ raw identity")
++                    bj_raw_valid = True
++                except (KeyError, TypeError, ValueError, OSError, QfqGateError):
++                    bj_raw_valid = False
++                decision = _known_prior_bj_route(code, prior_bj.get(code, {}), prior_bj_ref, target) if bj_raw_valid else None
++                if decision is not None:
++                    state["symbols"][code] = decision
++                    state["known_prior_capability_count"] += 1
++                    _json(checkpoint, state)
++                    continue
+             if not force_refresh and prior.get("status") in ("OK", "EMPTY") and _fresh(prior, target, max_age_seconds):
+                 _source(prior["response"], owner=code)
+                 continue
+@@ -162,6 +296,7 @@
+                     _json(checkpoint, state)
+                     raise
+             futu_code = exchange + "." + code.split(".", 1)[0]
++            state["provider_identity_count"] += 1
+             for attempt in range(retries + 1):
+                 if last_query is not None:
+                     pause = min_interval - (monotonic() - last_query)
+@@ -173,6 +308,7 @@
+                 state["symbols"][code] = dict(status="QUERYING", attempt=attempt + 1, **common)
+                 _json(checkpoint, state)
+                 try:
++                    state["provider_call_count"] += 1
+                     ret, data = client.get_rehab(futu_code)
+                     if int(ret) != 0:
+                         error_response = dict(source="Futu OpenD get_rehab", code=futu_code, return_code=int(ret), error=str(data))
+@@ -206,11 +342,11 @@
+                         sleep(min(30.0, 2.0 ** attempt))
+             _json(checkpoint, state)
+         counts = {name: sum(state["symbols"].get(code, {}).get("status") == name for code in set(codes))
+-                  for name in ("OK", "EMPTY", "UNSUPPORTED_MARKET", "ERROR", "QUERYING")}
++                  for name in ("OK", "EMPTY", "UNSUPPORTED_MARKET", "SOP_SKIPPED", "ERROR", "QUERYING")}
+         state["counts"] = counts
+         state["requested_count"] = len(set(codes))
+         state["requested_codes_sha256"] = canonical_sha(sorted(set(codes)))
+-        state["status"] = "FAILED" if counts["ERROR"] or counts["QUERYING"] else ("PARTIAL_EXPECTED_UNSUPPORTED" if counts["UNSUPPORTED_MARKET"] else "READY")
++        state["status"] = "FAILED" if counts["ERROR"] or counts["QUERYING"] else ("PARTIAL_EXPECTED_EXCLUSIONS" if counts["SOP_SKIPPED"] else ("PARTIAL_EXPECTED_UNSUPPORTED" if counts["UNSUPPORTED_MARKET"] else "READY"))
+         state["finished_at"] = _now()
+         state.pop("completed_at", None)
+         if state["status"] == "READY":
+--- a/ops/research_panel_adjustment_inputs.py
++++ b/ops/research_panel_adjustment_inputs.py
+@@ -376,7 +376,7 @@
+     query_options["min_interval"] = max(.65, float(query_options.get("min_interval", .65)))
+     if history_extension is None:
+         metadata = collect_metadata(list(bindings), cache_root=factor_cache_root, target=target,
+-                                    client_factory=client_factory, force_refresh=force_refresh, **query_options)
++                                    client_factory=client_factory, force_refresh=force_refresh, prequery_sync_ref=sync_ref, **query_options)
+     else:
+         if client_factory is not None or force_refresh:
+             raise QfqGateError("HISTORY_EXTENSION_IS_OFFLINE_ONLY")
