@@ -52,8 +52,10 @@ three. Root's requested research-review queue priority is002003.SZ,601088.SH,
 603444.SH, followed by the remaining frozen candidates. `PLANNED_ORDER.json`
 records this only as queue order, not new membership, ranking or stock PASS.
 
-Stop here for one independent delta review and Root's explicit execution gate.
-No244 batch, native-panel certification, new producer, source/price/calendar/
-formula/pool/service change, historical labels/returns bootstrap, installation,
-deployment or push occurred. Existing native-TDX/PIT and dense-label limits
-remain. The new canary's screenshot is a readback, not stock-level approval.
+The delta subsequently received independent PASS and Root's explicit execution
+gate, both preserved in this folder. The remaining243 export and actual PNGs
+are now complete: see `BATCH_COMPLETION.md` and `COMPLETION_SUMMARY.json` for the
+247-symbol mechanical PASS. No native-panel certification, new producer,
+source/price/calendar/formula/pool/service change, historical labels/returns
+bootstrap, installation, deployment or push occurred. Existing native-TDX/PIT
+and dense-label limits remain. Mechanical chart output is not stock approval.

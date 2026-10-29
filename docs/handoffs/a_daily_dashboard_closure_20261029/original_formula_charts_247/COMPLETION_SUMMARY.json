@@ -1,0 +1,65 @@
+{
+  "status": "MECHANICAL_247_DELIVERY_PASS",
+  "expected": 247,
+  "verified": 247,
+  "missing": [],
+  "extra": [],
+  "errors": [],
+  "verification_wall_seconds": 3.353630624944344,
+  "batch_execution": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "failed_new": 0,
+    "headless_exit_code": 0,
+    "max_job_RSS_conservative_bytes": 16519856128,
+    "min_available_reclaimable_estimate_bytes": 70830735360,
+    "missing_new": [],
+    "orders_sent": false,
+    "pending_limit": 28,
+    "production_allowed": false,
+    "ready_new": 243,
+    "resource_samples": 176,
+    "reused": [
+      "600025.SH",
+      "000410.SZ",
+      "920454.BJ",
+      "600814.SH"
+    ],
+    "status": "COMPUTE_COMPLETE",
+    "wall_seconds": 36.94492358295247,
+    "workers": 14
+  },
+  "renderer_concurrency_changes": [
+    {
+      "at_seconds": 17.564,
+      "pages": 4,
+      "resources": {
+        "available_reclaimable_estimate_bytes": 85016313856,
+        "job_CPU_percent_process_lifetime_average": 99.8,
+        "job_RSS_conservative_bytes": 1902198784
+      }
+    }
+  ],
+  "source_independent_PASS_reused": true,
+  "old3_and_new_canary_not_recomputed_or_rerendered": true,
+  "stock_semantic_review": "NOT_PART_OF_MECHANICAL_EXPORT; ROOT_FINAL_DELIVERY_CHECK_PENDING",
+  "storage_bytes": {
+    "projection": 265941471,
+    "html": 344402724,
+    "PNG": 78772985
+  },
+  "next_delivery_gate": "ROOT_FINAL_SINGLE_DELIVERY_VERIFICATION_PENDING",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "full_receipt": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/original_formula_charts_247/COMPLETION_RECEIPT_247.json",
+    "sha256": "c413357bed81e2d14050d81d8ac642f2c028956231bea444da935a9d7211cd21"
+  },
+  "source_baselines": [
+    "75d611995",
+    "d4ac2f40b"
+  ],
+  "pushed_by_writer": false
+}
