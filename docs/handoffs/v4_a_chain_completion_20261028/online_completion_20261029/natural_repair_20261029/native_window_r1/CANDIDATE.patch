@@ -1,0 +1,50 @@
+--- /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-stage/app/infrastructure/stage_quote_provider.py
++++ native_window_r1/sources/infrastructure/stage_quote_provider.py
+@@ -163,9 +163,11 @@
+ 
+ class NativeAOpeningSnapshotProvider:
+     """Futu-first current quotes with true clocks, used only by the A prephase."""
+-    def __init__(self, *, primary=None, fallback=None, now=_opening_now):
++    def __init__(self, *, primary=None, fallback=None, now=_opening_now, sleep=None):
++        import time
+         from infrastructure.futu_quote_provider import FutuQuoteProvider
+         self.now = now
++        self._sleep = time.sleep if sleep is None else sleep
+         self.primary = primary if primary is not None else FutuQuoteProvider(now=now)
+         self.fallback = fallback if fallback is not None else TdxOpeningQuoteProvider(now=now)
+         self._primary_prepare_error = None
+@@ -266,6 +268,34 @@
+                     accept({**row, "source": payload.get("source"), "source_method": "get_security_quotes"})
+             except Exception as error:
+                 errors.append(f"TDX_QUOTES:{type(error).__name__}:{error}")
++        # A first future/empty response at the edge is not proof that the
++        # same authorized snapshot cannot update during the remaining window.
++        # At most three extra calls, only for still-missing supported SH/SZ;
++        # the original fallback is never queried again. True clocks and accept()
++        # remain authoritative, including rejection of late SDK returns.
++        for retry in range(3):
++            missing = tuple(s for s in quote_codes if s not in seen)
++            if not missing or capability_only or self._primary_prepare_error is not None:
++                break
++            wall = _opening_clock(self.now())
++            if not edge <= wall < cutoff or (cutoff-wall).total_seconds() <= 0.5:
++                break
++            self._sleep(0.5)
++            if not edge <= _opening_clock(self.now()) < cutoff:
++                break
++            batch = list(missing[:80])
++            try:
++                payload = self.primary.snapshot(batch, trade_date=trade_date, stage_id=stage_id, cutoff_at=cutoff.isoformat())
++                if (payload.get("trade_date") != trade_date or payload.get("stage_id") != stage_id
++                        or any(payload.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
++                    raise ValueError("native primary identity/safety conflict")
++                payload = {**payload, "source_method": "get_market_snapshot"}
++                batches.append(payload)
++                for row in payload.get("rows", []):
++                    accept({**row, "source": payload.get("source"), "source_method": "get_market_snapshot",
++                        "capture_started_at": payload["capture_started_at"], "captured_at": payload["captured_at"]})
++            except Exception as error:
++                errors.append(f"FUTU_RETRY_{retry+1}:{type(error).__name__}:{error}")
+         finished = _opening_clock(self.now())
+         return _opening_json({"schema_version": NATIVE_A_SCHEMA, "trade_date": trade_date, "stage_id": stage_id,
+             "capture_started_at": started.isoformat(), "captured_at": finished.isoformat(), "market_cutoff_at": cutoff.isoformat(),

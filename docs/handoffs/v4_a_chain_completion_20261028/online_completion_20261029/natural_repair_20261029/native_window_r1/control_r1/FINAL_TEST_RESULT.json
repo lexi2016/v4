@@ -1,0 +1,51 @@
+{
+  "schema": "v4.native.final_control_result.v1",
+  "status": "FOUR_TARGETED_FINAL_CASES_PASS_NO_DEPLOYMENT",
+  "runs": [
+    {
+      "run": "final parameters/helper/Main protections",
+      "passed": 3,
+      "failed": 1,
+      "seconds": 0.05,
+      "failure": "CALENDAR_FIXTURE_FAILURE.json: inclusive13:15+300s correctly rejected; runtime guard unchanged"
+    },
+    {
+      "run": "affected calendar fixture only after expected-success moved13:21",
+      "passed": 1,
+      "seconds": 0.03
+    }
+  ],
+  "unique_final_cases_passed": 4,
+  "checks": [
+    "Stage2 delta + APIgraph-only + graph nonStage preservation and exact oldstage evidenceonly",
+    "fixed22 table/helper excludesMain; CLI timeout/signal body byte-identical to R4",
+    "readonlyMain drift stops before command; Main Recipe rejected",
+    "Main+Stage calendar margins and new handoff Mainreadonly identity required"
+  ],
+  "mechanical_first_final_parameter_validation": "PASS PLAN_VALID_NO_ACTION,984 Stage sealed files, exact final4 plists/schema/inventory/graph",
+  "compiler": "clang -O2 -Wall -Wextra -Werror PASS; no real execution",
+  "review_example_sh_n": "PASS",
+  "reused_without_rerun": {
+    "native_source": 8,
+    "preparation": 3,
+    "business": [
+      6,
+      22
+    ],
+    "control_prior": [
+      11,
+      15,
+      3
+    ],
+    "R4_contract": 6
+  },
+  "old_R4_all_frozen_SHA_match": true,
+  "real_actions": {
+    "locks": 0,
+    "launchctl": 0,
+    "installed": 0,
+    "data": 0,
+    "network": 0
+  },
+  "natural_execution_verified": false
+}

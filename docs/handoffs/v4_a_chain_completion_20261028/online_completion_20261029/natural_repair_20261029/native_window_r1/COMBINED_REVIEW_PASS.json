@@ -1,0 +1,47 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "80e27546f768e324f1ad6371f7676207434a29843a20bb348fce07b01ddeb8d9",
+  "frozen_source_sha256": "7e787049c630d7604b25c87c7261dff8180cf76ff314129dc1cd24b8e64b8880",
+  "scope": "一次 combined 独审：native 有界补读源码、必要四角色控制及版本绑定。",
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "independent_checks": [
+    "capsule、两份 freeze、全部声明文件、源码 preimage/candidate SHA 均匹配。",
+    "AST 确认源码仅改变 NativeAOpeningSnapshotProvider.__init__ 和 snapshot；原 accept、TDX、发布、PIT 路径保持不变。",
+    "补读最多三次，仅请求仍缺的支持代码；每次等待0.5秒并重新检查真实截止时间；晚返沿用原 accept 判据拒绝，不改写时间。",
+    "22个固定 CLI argv 表项逐项匹配四角色冻结定义，无 Main 调用；C supervisor 主体与已审 R4 完全一致。",
+    "Main 仅校验身份、manifest、plist、loaded PID；角色入口拒绝 Main，guardian discharge 前再次核对 Main。",
+    "Stage manifest 的984项路径集合保持一致，仅 native 源码和 config release_id 两项变化；候选源码匹配冻结 SHA。",
+    "graph 实际仅改变三个 Stage entry_sources.module_file 和 stage_catalog_source.module_file；API plist 仅改变 graph 环境指针，collector 仅改变 config 参数。",
+    "当前 UI API manifest 73bacffcb0ee2d11b63c7661ae51f0130573d717bae88de5362385f457b0ed78 与 immutable 外部合同路径/SHA 匹配。",
+    "检查 native8、最终 control4 的测试源码与结果及保留失败证据；13:20 inclusive 被正确拒绝，修正成功样本为13:21。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "independent_static_scope_hash_table_and_binding_checks": "PASS",
+    "native8_and_control4": "冻结源码及结果证据支持 PASS；Reviewer 未重跑",
+    "fresh_owner_idle_calendar_and_real_guardian_execution": "CANNOT_CONFIRM",
+    "deployment_API_UI_and_next_0925_native_outcome": "CANNOT_CONFIRM"
+  },
+  "limitations": [
+    "同步 SDK 晚返仍可能发生；本修复拒绝迟到结果，不承诺硬取消。",
+    "历史 Stage caller 关联仅为审计证据，不授权新消费者或证明自然成功。"
+  ],
+  "unexecuted": [
+    "旧 PASS 测试重跑",
+    "真实锁、launchctl、安装或服务操作",
+    "网络、行情及 stockdata 操作",
+    "部署后读回和下一09:25自然验收"
+  ],
+  "reviewer_file_edits": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

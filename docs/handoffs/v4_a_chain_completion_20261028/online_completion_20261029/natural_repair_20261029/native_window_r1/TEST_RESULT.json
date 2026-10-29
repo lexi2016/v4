@@ -1,0 +1,22 @@
+{
+  "schema": "v4.native.window.targeted_result.r1",
+  "status": "OFFLINE_EIGHT_CHECKS_PASS_NATURAL_PENDING",
+  "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q -p no:cacheprovider '/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/native_window_r1/tests/test_native_window.py'",
+  "passed": 8,
+  "seconds": 0.02,
+  "four_behavior_classes": {
+    "first_future_then_timely_valid": "PASS; only missing SZ reread; prior SH retained; BJ rejected; first future raw time retained",
+    "persistent_future_zero_conflict": "3 PASS; max4 primary calls total, fallback1, three0.5 sleeps; no invalid accepted rows",
+    "deadline_and_budget": "3 PASS; remaining<=0.5 no sleep/request; oversleep no request; late SDK return true clocks retained/rejected/temporal false",
+    "first_round_complete": "PASS; no retry, no sleep, no fallback"
+  },
+  "preserved_by_AST": [
+    "all module classes/functions except NativeAOpeningSnapshotProvider.__init__ and snapshot",
+    "all other native methods including prewarm/fallback/publication/read/PIT/cutoff unchanged"
+  ],
+  "no_original_data_or_service_writes": true,
+  "network_requests": 0,
+  "no_old_PASS_rerun": true,
+  "real_future_native_window": "CANNOT_CONFIRM; no natural success implied",
+  "RPC_timeout_boundary": "Existing synchronous SDK can return late; code rejects that return and never rewrites time. No new timeout/cancel/interface introduced."
+}

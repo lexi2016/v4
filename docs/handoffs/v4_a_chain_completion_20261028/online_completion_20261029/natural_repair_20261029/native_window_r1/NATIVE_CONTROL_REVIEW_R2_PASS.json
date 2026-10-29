@@ -1,0 +1,41 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "f7eccb5b33f138b5bb855c9739d64335ba3fed943209682cb55e1e3f64f1c681",
+  "retained_combined_control_sha256": "80e27546f768e324f1ad6371f7676207434a29843a20bb348fce07b01ddeb8d9",
+  "scope": "仅 Main readonly 身份的 locale 参数修正及控制包本地路径更新。",
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "independent_checks": [
+    "R2 capsule、freeze 和全部冻结文件 SHA 匹配。",
+    "controller、guardian、recovery、R7、metadata、22CLI 源码/二进制及八份 plist 与 R1 字节一致。",
+    "PLAN 实际差异仅为 Main ps_text/ps_sha256、八个定义文件路径及两个 recovery 路径；PID保持73799。",
+    "新 ps_text 的 SHA 精确匹配 d82528a3def85cc30d941ce3dea2105fd5126ad2bfb18df4e461584bdeaf1e95。",
+    "捕获 helper 直接调用原 Live.identity；原 Live.cmd 明确设置 LC_ALL=C，完整身份比较未放宽。",
+    "检查真实 mismatch 记录及唯一新增 fixture：同 locale 身份通过，真实文本漂移仍在 loaded 查询前拒绝。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "independent_parameter_scope_hash_and_policy_checks": "PASS",
+    "new_locale_fixture": "冻结源码及1 PASS结果支持；Reviewer未重跑",
+    "actual_main_readonly_check": "已检查Writer真实PASS记录；Reviewer未执行live检查",
+    "fresh_owner_idle_switching_and_natural_outcome": "CANNOT_CONFIRM"
+  },
+  "reused": "native8、combined control4、22CLI及此前匹配PASS；未重跑。",
+  "unexecuted": [
+    "真实锁、服务、helper或生命周期动作",
+    "重新安装或staging",
+    "网络、行情或stockdata操作",
+    "fresh handoff、新nonce及部署后自然验收"
+  ],
+  "reviewer_file_edits": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

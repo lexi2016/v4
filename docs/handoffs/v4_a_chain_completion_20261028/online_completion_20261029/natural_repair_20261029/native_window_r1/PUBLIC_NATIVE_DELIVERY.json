@@ -1,0 +1,36 @@
+{
+  "schema": "v4.native_window.delivery.v1",
+  "status": "REVIEWED_STAGED_NOT_ACTIVE_ADMIN_AUTH_REQUIRED",
+  "change": "After original primary/fallback attempt, re-read only missing supported codes up to3 times with0.5s spacing inside original real09:25 deadline. Original identity/source-time/PIT acceptance unchanged; late replies rejected; no additionalTDX queries.",
+  "source_sha256": "1e8166771b2194629574d0073f058d4a138909f9553519e7843a536b0f82289c",
+  "Stage_manifest_sha256": "fe7250448b863ecb421e0055a997eeef635506d1f0823b80db7827c413e2d863",
+  "graph_config_sha256": "478c0b1ee55ffc8610af54d1ff3e867578582412205464cf69e6b2d633f902a5",
+  "checks": {
+    "native_targeted": 8,
+    "control_targeted": 4,
+    "locale_parameter_targeted": 1
+  },
+  "reviews": "Combined source/control independentlyPASS; locale-only frozen Main identity parameter correction independentlyPASS; old matchingPASS reused without rerun.",
+  "control_scope": "Exactly API/collector/Stage/precapture; Main read-only and excluded from root fixed table, TERM,bootout,CAS.22 fixed CLI calls use previously reviewed bounded supervisor.",
+  "locale_fix": "Use original Live.identity LC_ALL=C capture, preserve strict full identity equality. Same Main PID/start/version; no control/source/plist semantic change.",
+  "immutable_stage_install": "Completed once, no lifecycle action. Installed roots reused after locale-only R2.",
+  "activation": "Not performed: system authentication expired before any arm. Original Main/Stage/API bindings retained and own expired auth client cancelled. New fresh handoff+nonce and system authentication required; never replay old helper.",
+  "actual_Main_1300": "New Main original scheduled run SUCCEEDED; input/publication/original completion witness matched.",
+  "actual_Stage_1315": {
+    "A_raw_rows": 58,
+    "A_observation_rows": 10,
+    "run_id": "run-3b5bcb7f550faadacc151e6e",
+    "raw_sha256": "4d5bef081701ee67017942431039aba842cfe04a423b8d7034168790d51e45e2",
+    "selection_sha256": "12c792eeb8fbdf283ad694831a72e7530822b1ca342dcedc81954380f9f17fd7",
+    "integrity": "raw3/3 and selection5/5 hashes matched; original owner START/RETURN and manifest/caller matched; one original launchd xpc spawn event matched",
+    "status": "PARTIAL_WITH_ROWS; research-quality/PIT/business gaps retained; API natural/execution flags unchanged",
+    "causality": "Uses deployed Main528a and Stage0d15 before native patch activation; no claim native09:25 succeeded."
+  },
+  "data_protection": "No original5073-stock panel/Parquet/pointer/backup writes; no full-market collection or duplicate producer; original protection pins/stats matched.",
+  "natural_full_seven": "Pending next actual window and remaining stages; no historical regeneration/backfill.",
+  "private_omissions": "No active plan/plists, admin helpers/nonces/auth files, compiled binaries, installed trees, raw market responses, logs, backup or dependencies exported. Not a portable executable deployment package.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
