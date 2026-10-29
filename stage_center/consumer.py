@@ -1123,6 +1123,19 @@ class StageSelectionConsumer:
             self.execution_receipt_root, trade_date, stage_id, response["markets"],
             selection_store=self.store, selection_stores=selection_stores,
         )
+        # Current observations are a separate delivery lane; original formal
+        # selected counts, execution/PIT status and failed receipts stay exact.
+        from stage_center.snapshot_recovery import read_for_api
+        a_formal = response.get("markets", {}).get("A_SHARE", {})
+        if a_formal.get("selection_manifest_receipt_verified") is True or a_formal.get("rows"):
+            response["snapshot_recovery"] = {"mode": "SNAPSHOT_RECOVERY_OBSERVATION", "status": "FORMAL_RESULT_AVAILABLE", "markets": {}}
+        else:
+            response["snapshot_recovery"] = read_for_api(self.store.root, trade_date, stage_id)
+        from stage_center.snapshot_selection import read_for_api as read_supplementary_selection
+        if a_formal.get("selection_manifest_receipt_verified") is True or a_formal.get("rows"):
+            response["snapshot_reselection"] = {"mode": "AFTERFACT_SNAPSHOT_RESELECTION", "status": "FORMAL_RESULT_AVAILABLE", "markets": {}}
+        else:
+            response["snapshot_reselection"] = read_supplementary_selection(self.store.root, trade_date, stage_id)
         return response
 
     def ensure(
