@@ -232,7 +232,7 @@ describe('Manager workspace evidence-state API contract', () => {
         matches: [], gaps: ['DAILY_MAPPING_NOT_MATERIALIZED'], source_identity: null,
       },
       reviewed_research: null,
-    } as unknown as ManagerWorkspace['us_mapping_research'];
+    } as unknown as UsMappingResearch;
     targetWorkspace.us_mapping_research = mapping;
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => targetWorkspace } as Response)));
 

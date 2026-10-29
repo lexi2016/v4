@@ -1,9 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
-// @ts-expect-error The app tsconfig intentionally excludes Node globals; Vitest runs this native read-only test helper in Node.
 import { readFileSync } from "node:fs";
-// @ts-expect-error The app tsconfig intentionally excludes Node globals; Vitest runs this native read-only test helper in Node.
 import { resolve } from "node:path";
 
 import ManagerSelectionView from "./ManagerSelectionView.vue";
