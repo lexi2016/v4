@@ -1000,6 +1000,8 @@ def _verified_document_detail(
         "processing": {
             "page_count": page_count,
             "processed_page_count": len(pages),
+            "verified_pdf_size": pdf_size if verify_pdf else None,
+            "verified_pages_size": len(pages_raw),
             "downloaded_at": artifact.get("downloaded_at"),
             "ocr_started_at": artifact.get("ocr_started_at"),
             "ocr_completed_at": artifact.get("ocr_completed_at"),
@@ -1026,6 +1028,7 @@ def _verified_document_detail(
         "receipt": {
             "path": receipt_path,
             "sha256": _sha256(receipt_raw),
+            "verified_pdf_sha256": artifact["pdf_sha256"] if verify_pdf else None,
             "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED" if verify_pdf else "SOURCE_AND_PAGE_HASHES_VERIFIED",
         },
         **SAFETY,

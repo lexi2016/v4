@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "scope": "ONE_SELECTED_EXISTING_CANDIDATE_REAL_PUBLIC_OWNER_DETAIL",
+  "document_id": "ffd9fdfa04632c4d8ee530d00cbc5870190b31f8ab6d8f8bab8753ae06025073",
+  "research_date": "20261027",
+  "derived_day_sha256": "c4375d8dc94e7a5a370be96cad2a98de7ba9f21eb3ccea380b0baadea90efe5a",
+  "owner_status": "READY",
+  "owner_receipt": {
+    "path": "external_sources/zsxq_hourly/pdfproc_20261027_100000_100000361296_12a3148a5339_d41b1247ee2b/receipts/ffd9fdfa04632c4d8ee530d00cbc5870190b31f8ab6d8f8bab8753ae06025073_d41b1247ee2bd2a7.json",
+    "sha256": "449438ebc11e0eeccdcdbf240984eccd2726fc5b537c940eb1511c3e1294ad33",
+    "verified_pdf_sha256": "204c1a4e602a7b45e48aa474c415f1ddf8fb0fa5a1e388fbaa344c448a895ae8",
+    "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+  },
+  "verified_pdf_size": 7273266,
+  "verified_pages_size": 45535,
+  "relation_result": {
+    "schema_version": "v4.related_pdf_reports.candidate.v1",
+    "status": "PARTIAL",
+    "search_mode": "FULLTEXT_INDEX",
+    "identity_date": "20261029",
+    "time_semantics": "CURRENT_KNOWLEDGE_NON_PIT",
+    "coverage": {
+      "indexed_documents": 1,
+      "gaps": [],
+      "candidate_documents": 1,
+      "detail_attempts": 1,
+      "verified_documents": 1,
+      "page_offset": 0,
+      "indexed_content_time": "VERIFIED_AT_LAST_INDEX_UPDATE",
+      "limits": {
+        "documents": 1,
+        "current_page_artifact_bytes": 100663296,
+        "prior_documents": 32,
+        "prior_artifact_bytes": 100663296,
+        "cursor_ttl_seconds": 300
+      },
+      "legacy_max_dates_ignored": true,
+      "prior_revalidated": 0,
+      "pagination_incomplete": false,
+      "pagination_required": false
+    },
+    "next_cursor": null,
+    "stocks": [
+      {
+        "symbol": "A.600025",
+        "identity": {
+          "status": "CANNOT_CONFIRM",
+          "name": null,
+          "witnesses": [],
+          "reason": "EXACT_DATE_IDENTITY_NOT_AVAILABLE"
+        },
+        "search_hint": {
+          "status": "CALLER_PROVIDED_UNVERIFIED",
+          "name": "华能水电"
+        },
+        "reports": [],
+        "result_status": "NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE"
+      },
+      {
+        "symbol": "A.000410",
+        "identity": {
+          "status": "CANNOT_CONFIRM",
+          "name": null,
+          "witnesses": [],
+          "reason": "EXACT_DATE_IDENTITY_NOT_AVAILABLE"
+        },
+        "search_hint": {
+          "status": "CALLER_PROVIDED_UNVERIFIED",
+          "name": "沈阳机床"
+        },
+        "reports": [],
+        "result_status": "NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE"
+      },
+      {
+        "symbol": "A.920454",
+        "identity": {
+          "status": "CANNOT_CONFIRM",
+          "name": null,
+          "witnesses": [],
+          "reason": "EXACT_DATE_IDENTITY_NOT_AVAILABLE"
+        },
+        "search_hint": {
+          "status": "CALLER_PROVIDED_UNVERIFIED",
+          "name": "同心传动"
+        },
+        "reports": [],
+        "result_status": "NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE"
+      }
+    ],
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "source_index_sha256": "4dc321d62d33f098d4ef06ed60166496ca8021b76bedd22bef5e6438a9c8190a",
+  "cache_writes": 0,
+  "services_started": 0,
+  "full_three_stock_api_verdict": "ROOT_PENDING"
+}
