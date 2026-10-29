@@ -633,7 +633,10 @@ async function loadCloseReview(
   taskStatusActive.value = false;
   researchActive.value = false;
   const tradingDate = resolveTradingDate();
-  if (syncUrl) bindSelectedDate(tradingDate);
+  if (syncUrl) {
+    const view = focus === "A" ? "a-review" : focus === "research" ? "research-review" : "review";
+    bindSelectedDate(tradingDate, { view, stage: null });
+  }
   else if (tradingDate) selectedDate.value = tradingDate;
   if (!selectedDate.value) return;
   sopActive.value = false;
