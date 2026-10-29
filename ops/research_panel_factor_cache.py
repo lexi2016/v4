@@ -303,6 +303,8 @@ def _collect_metadata_owned(codes: list[str], *, cache_root: Path, target: int,
         for code in sorted(set(codes)):
             prior = state["symbols"].get(code, {})
             decision = _verified_sop_skip(code, sync_rows.get(code), target, prequery_sync_ref)
+            if sync_rows.get(code, {}).get("lifecycle_skip") is True and decision is None:
+                raise QfqGateError("SOP_REBIND_REQUIRED:" + code)
             if decision is not None:
                 state["symbols"][code] = decision
                 state["sop_skipped_count"] += 1
@@ -481,6 +483,8 @@ def research_cache_plan(codes: list[str], *, target: int, config_ref: dict) -> d
     plans = {}
     for code in sorted(set(codes)):
         decision = _verified_sop_skip(code, sync_rows.get(code), target, sync_ref)
+        if sync_rows.get(code, {}).get("lifecycle_skip") is True and decision is None:
+            raise QfqGateError("SOP_REBIND_REQUIRED:" + code)
         prior = previous.get("symbols", {}).get(code, {})
         if decision is None and code.endswith(".BJ") and code in sync_rows:
             row = sync_rows[code]
