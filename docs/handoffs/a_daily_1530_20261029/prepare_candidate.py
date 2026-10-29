@@ -48,6 +48,7 @@ def main():
         if isinstance(v,dict):return {k:replace(x) for k,x in v.items()}
         return v
     staged=replace(plist)
+    staged["EnvironmentVariables"]["V4_RELEASE_MANIFEST_SHA256"]=sha(CANDIDATE/"release-manifest.json")
     (EVIDENCE/'candidate_main.plist').write_bytes(plistlib.dumps(staged))
     # These immutable preimages are the rollback and activation CAS identities.
     receipt={'status':'PREPARED_NOT_ACTIVATED','candidate_root':str(CANDIDATE),'source_root':str(SOURCE),

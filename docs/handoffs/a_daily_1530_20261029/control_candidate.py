@@ -57,6 +57,12 @@ def main():
         row = plan['operation']
         if not sha(Path(row['template_path'])) == row['template_sha256']:
             raise ValueError('TEMPLATE_DRIFT')
+        template = plistlib.loads(Path(row['template_path']).read_bytes())
+        env = template['EnvironmentVariables']
+        if env.get('V4_RELEASE_MANIFEST_SHA256') != sha(manifest):
+            raise ValueError('FINAL_PLIST_MANIFEST_SHA_BINDING_MISMATCH')
+        if env.get('V4_RELEASE_MANIFEST_PATH') != str(target / 'release-manifest.json'):
+            raise ValueError('FINAL_PLIST_MANIFEST_PATH_BINDING_MISMATCH')
         if a.action == 'stage':
             if not sha(Path(row['plist'])) == row['before_sha256']:
                 raise ValueError('ACTIVE_PLIST_CAS_DRIFT')
