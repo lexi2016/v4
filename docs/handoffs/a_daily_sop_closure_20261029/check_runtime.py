@@ -1,12 +1,55 @@
 """Read-only final SOP check against Root's exact activation receipt, no controls."""
 from pathlib import Path
-import argparse,hashlib,json,plistlib,subprocess,urllib.parse,urllib.request
+import argparse,hashlib,json,os,plistlib,re,subprocess,urllib.parse,urllib.request
+from datetime import datetime,timezone
 
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def pin(ref):
  p=Path(ref['path'])
  if sha(p)!=ref['sha256']:raise ValueError('ACTIVATION_PIN_DRIFT:'+str(p))
  return p
+def loopback_json(url):
+ if urllib.parse.urlsplit(url).hostname!='127.0.0.1':raise ValueError('PROOF_NOT_LOOPBACK')
+ with urllib.request.urlopen(url,timeout=30) as response:return json.load(response)
+def loaded_observation(spec):
+ """Capture only argv/PID/cwd, never process environments."""
+ result=subprocess.run(['/bin/launchctl','print',f'gui/{os.getuid()}/'+spec['label']],capture_output=True,text=True,check=True)
+ text=result.stdout;match=re.search(r'(?m)^\s*arguments = \{\s*(.*?)^\s*\}',text,re.S)
+ args=[x.strip() for x in match.group(1).splitlines() if x.strip()] if match else []
+ cwd=re.search(r'(?m)^\s*working directory = (.+)$',text);pid=re.search(r'(?m)^\s*pid = (\d+)\s*$',text)
+ value=dict(loaded_argv=args,loaded_cwd=cwd.group(1).strip() if cwd else None,pid=int(pid.group(1)) if pid else None)
+ if value['pid']:
+  actual=subprocess.run(['/usr/sbin/lsof','-a','-p',str(value['pid']),'-d','cwd','-Fn'],capture_output=True,text=True,check=True)
+  paths=[x[1:] for x in actual.stdout.splitlines() if x.startswith('n')]
+  command=subprocess.run(['/bin/ps','-p',str(value['pid']),'-o','command='],capture_output=True,text=True,check=True).stdout.strip()
+  value.update(cwd=paths[0] if len(paths)==1 else None,command=command)
+ return value
+def verify_loaded(e,observations,proof):
+ for role,spec in e['loaded'].items():
+  actual=observations[role]
+  if actual['loaded_argv']!=spec['argv'] or actual['loaded_cwd']!=spec['cwd']:raise ValueError('LOADED_CONFIG_DRIFT:'+role)
+  pid=actual['pid']
+  if pid is None and role=='graph':continue
+  if type(pid) is not int or pid<=0 or pid in e['forbidden_pre_control_pids']:raise ValueError('LOADED_PID_INVALID_OR_OLD:'+role)
+  if actual.get('cwd')!=spec['cwd'] or not actual.get('command','').startswith(spec['process_executable']+' '):raise ValueError('ACTUAL_PROCESS_ROOT_OR_EXECUTABLE_DRIFT:'+role)
+  if any(text not in actual['command'] for text in spec['command_required']):raise ValueError('ACTUAL_PROCESS_ARGUMENT_DRIFT:'+role)
+ runtime=proof.get('runtime_binding',{});api=proof.get('proof_runtime',{})
+ if (proof.get('schema_version')!='v4.runtime_graph_authority.v1' or proof.get('config_sha256')!=e['graph_config']['sha256']
+     or proof.get('authority_identity')!=e['expected_graph_main'] or proof.get('business_date')!=e['target_date']
+     or runtime.get('status')!='VERIFIED' or runtime.get('current_runtime_verified') is not True
+     or runtime.get('pid')!=observations['main']['pid'] or runtime.get('launcher')!=e['main_launcher']
+     or api.get('pid')!=observations['api']['pid'] or api.get('module_file')!=e['api_proof_module']['path']
+     or api.get('module_sha256')!=e['api_proof_module']['sha256']):raise ValueError('ACTUAL_API_MAIN_GRAPH_PROOF_DRIFT')
+ age=(datetime.now(timezone.utc)-datetime.fromisoformat(proof['observed_at'])).total_seconds()
+ if not -5<=age<=30:raise ValueError('ACTUAL_RUNTIME_PROOF_STALE')
+ return {role:{'pid':v['pid'],'cwd':v.get('cwd',v['loaded_cwd']),'loaded_argv':v['loaded_argv']} for role,v in observations.items()}
+def verify_getter(payload,expected):
+ if payload.get('status')!='READY' or not payload.get('rows'):raise ValueError('API_GETTER_NOT_READY')
+ if any(payload.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent')):raise ValueError('API_SAFETY_FLAGS')
+ identity=payload.get('identity',{})
+ if any(identity.get(k)!=v for k,v in expected.items()):raise ValueError('API_GETTER_IDENTITY_DRIFT')
+ if not {'generation_id','input_sha256','artifact_sha256','asof_date','verification_basis','historical_PIT'}.issubset(expected):raise ValueError('GETTER_EXPECTED_IDENTITY_INCOMPLETE')
+ return identity
 def main():
  a=argparse.ArgumentParser();a.add_argument('--expected',type=Path,required=True);a.add_argument('--output',type=Path,required=True);args=a.parse_args();e=json.loads(args.expected.read_text());checks={};errors=[]
  try:
@@ -38,15 +81,16 @@ def main():
   code="import os,sys; sys.path.insert(0,sys.argv[1]); from pathlib import Path; from ops.research_panel_qfq import pointer_ready,input_path; p=Path(sys.argv[2]); print(pointer_ready(p,int(sys.argv[3]),input_path(p.parent.parent)))"
   child=subprocess.run([e['python'],'-I','-B','-c',code,e['main_app_root'],env['V4_RESEARCH_PANEL_A_SELECTOR_POINTER'],e['target_date']],capture_output=True,text=True,env=__import__('os').environ|env,check=True)
   if child.stdout.strip()!='True':raise ValueError('ACTUAL_CURRENT_GENERATION_NOT_READY')
+  observations={role:loaded_observation(spec) for role,spec in e['loaded'].items()}
+  proof=loopback_json(e['runtime_proof_url']);actual_runtime=verify_loaded(e,observations,proof)
   responses=[]
   for url in e['api_getters']:
    parsed=urllib.parse.urlsplit(url)
    if parsed.scheme!='http' or parsed.hostname!='127.0.0.1':raise ValueError('GETTER_NOT_LOOPBACK')
-   with urllib.request.urlopen(url,timeout=30) as r:payload=json.load(r)
-   if payload.get('status')!='READY' or not payload.get('rows'):raise ValueError('API_GETTER_NOT_READY')
-   if any(payload.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent')):raise ValueError('API_SAFETY_FLAGS')
-   responses.append({'url':url,'rows':len(payload['rows']),'identity':payload.get('identity')})
-  checks=dict(main_inventory=True,api_inventory=True,static_assets_unchanged=455,A_slot='1610',exact_graph_binding=True,two_tuple_acceptance=True,current_generation_ready=True,api_getters=responses)
+   payload=loopback_json(url);code=urllib.parse.parse_qs(parsed.query)['ts_code'][0]
+   identity=verify_getter(payload,e['getter_expected_identity'][code])
+   responses.append({'url':url,'rows':len(payload['rows']),'identity':identity})
+  checks=dict(main_inventory=True,api_inventory=True,static_assets_unchanged=455,A_slot='1610',exact_graph_binding=True,two_tuple_acceptance=True,current_generation_ready=True,actual_runtime=actual_runtime,api_getters=responses)
  except Exception as exc:errors.append(str(exc))
  result={'status':'PASS_ACTIVATED' if not errors else 'FAIL','checks':checks,'errors':errors,'natural_1610_verified':False,'natural_note':'This readback cannot establish a new natural scheduled run; Root must bind the next dated receipt separately.','RESEARCH_ONLY':True,'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}
  args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps({'status':result['status'],'errors':errors}));raise SystemExit(0 if not errors else 2)
