@@ -1,0 +1,53 @@
+{
+  "status": "DESKTOP_NAVIGATION_DEPLOYED_FORMAL_UI_PASS",
+  "goal": "Desktop A-share review remains selected after reloading from the research view",
+  "scope": "Five production lines in the existing navigation helper; no new panel, service, dependency or CSS change",
+  "source_baseline": "f68429eaff791d4c005f8d61cc925e73cf9d6ec9",
+  "source_commit": "d95b27baa319ff7e1856378b370a65a32926a8c5",
+  "baseline_provenance": "Four existing live web source files were aligned with the current API release before this patch; these are not new feature changes",
+  "current_parent_release": "a-daily-sop-closure-20261029-r1-api",
+  "source_before_sha256": "dec6ca245deb6253251a32594ed1e5afa5dd891a8128ff51247288249d3ce923",
+  "source_after_sha256": "67bc3a67e80cae329b2efeb72f85c9b4447948230ad927e9fc295ecc26cafe0f",
+  "source_independent_review": "PASS",
+  "checks": {
+    "baseline_reproduction": "FAIL as expected: visible A-share review retained view=research in the URL",
+    "navigation_regression": "3/3 PASS",
+    "vite_build": "PASS",
+    "typecheck": "FAIL: same 26 diagnostics reproduced with exact baseline navigation source; no new changed-file diagnostic"
+  },
+  "release_preparation": "Independent scoped review PASS; literal fixed-SHA entry used after stale command text was excluded",
+  "deployed": true,
+  "formal_8873_ui_verified": true,
+  "natural_verified": false,
+  "mobile_and_narrow_screen": "CANCELLED_BY_USER",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "deployed_release": "v4-desktop-navigation-20261029-r1-api",
+  "release_manifest_sha256": "6c69d2152d3e0623a2c333972eb252bdfdd3d56140165fd2f84459b0c61355e4",
+  "deployed_at_local": "2026-10-30 00:05 +08:00",
+  "formal_ui": {
+    "selected_date": "20261029",
+    "actions": [
+      "research to A-share review",
+      "reload remains A-share review",
+      "back returns research",
+      "forward returns A-share review"
+    ],
+    "url_view": "a-review",
+    "date_preserved": true,
+    "actual_port": 8873,
+    "scope": "Desktop navigation only; existing partial business state preserved"
+  },
+  "temporary_control": {
+    "new_permanent_service_or_dependency": false,
+    "root_debug_count": 1,
+    "caller_and_root_peer_exited": true,
+    "socket_removed": true,
+    "own_build_and_dependency_symlink_removed": true,
+    "closed_control_evidence": "Archived with every entry SHA readback verified; not installed in product runtime"
+  },
+  "remaining_stage_business": "NOT_ACCEPTED_BY_THIS_PATCH",
+  "publication_failure_boundary": "Stale command text file was excluded; its unexpected writer remains CANNOT_CONFIRM; no business activation occurred in those rejected attempts"
+}
