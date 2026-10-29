@@ -1,0 +1,40 @@
+{
+  "GOAL": "Advance only A daily scheduled start 1700 to1530 with original date/quality gates and lane isolation",
+  "WRITER": "advance_a_daily_schedule Sol Medium",
+  "REVIEWER": "independent Luna Max by root",
+  "ONE_VARIABLE": "A daily scheduling",
+  "BASELINE_COMMIT": "2d19365185fb8e5841ec055ff8fd1c6569b468a0",
+  "ACTIVE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app",
+  "ALLOWED_PATHS": [
+    "contracts/runtime_workloads.json",
+    "ops/run_v4_macos_scheduler_daemon.py",
+    "infrastructure/scheduling/execution_ledger.py",
+    "ops/macos_research_panel_daily_gate.py",
+    "tests/test_a_daily_1530_schedule.py",
+    "docs/handoffs/a_daily_1530_20261029/"
+  ],
+  "FORBIDDEN_PATHS": [
+    "live releases",
+    "live plists",
+    "data",
+    "API",
+    "BUY",
+    "formula",
+    "quality thresholds"
+  ],
+  "PASS_SIGNAL": "focused boundary/calendar/catchup/lane-lock/no-double/HK tests pass then independent reviewer PASS",
+  "STOP_RULE": "Any changed unrelated workload, stale active binding, unexpected source/credential or quality change stops preparation; no activation by writer",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "baseline_sha256": {
+    "contracts/runtime_workloads.json": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
+    "ops/run_v4_macos_scheduler_daemon.py": "d7714977160fbe50a6bbb2a8fa12fa850435d2ff74b3524a8af298e5e3c121e5",
+    "infrastructure/scheduling/execution_ledger.py": "7599de7983c0aeb2f2d56c80a7d9827c75535c593e19765e7b5a2a64466084c8",
+    "ops/macos_research_panel_daily_gate.py": "868c3bd4ec97daa3b45cb95a034436a4e153af7207a7ee510880a2a2d0ac75be"
+  },
+  "source_availability": "CANNOT_CONFIRM earliest provider availability;1530 conservative postclose start, no completion SLA"
+}

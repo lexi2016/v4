@@ -1,0 +1,94 @@
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1010,7 +1010,7 @@
+       "session_requirement": "POST_CLOSE",
+       "signal_date_role": "BUSINESS_DATE",
+       "slots": [
+-        "1700"
++        "1530"
+       ],
+       "target_date_role": "BUSINESS_DATE",
+       "workload_id": "research_panel_daily_a"
+@@ -1251,8 +1251,8 @@
+         "ops.build_close_review",
+         "--data-root",
+         "{data_root}",
+-      "--date",
+-      "{business_date}"
++        "--date",
++        "{business_date}"
+       ],
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+--- a/ops/run_v4_macos_scheduler_daemon.py
++++ b/ops/run_v4_macos_scheduler_daemon.py
+@@ -870,7 +870,7 @@
+ class SlotProcessLanes:
+     """Bounded execution adapter around the original one-shot scheduler.
+ 
+-    The full 1700 slot owns A_LONG; every other fixed slot keeps one serial
++    The full 1530 slot owns A_LONG; every other fixed slot keeps one serial
+     DEFAULT lane. Claims are created by the original child dispatcher and use
+     that child's PID. Observations never reserve or release business claims.
+     """
+@@ -900,7 +900,7 @@
+ 
+     @staticmethod
+     def lane(slot):
+-        return "A_LONG" if slot == "1700" else "DEFAULT"
++        return "A_LONG" if slot == "1530" else "DEFAULT"
+ 
+     @staticmethod
+     def _log(payload):
+--- a/infrastructure/scheduling/execution_ledger.py
++++ b/infrastructure/scheduling/execution_ledger.py
+@@ -452,7 +452,7 @@
+         raw_fd = os.environ.get("V4_SCHEDULER_LANE_FD")
+         if raw_fd is None:
+             return  # legacy/direct canary calls retain their original contract
+-        lane = "A_LONG" if slot == "1700" else "DEFAULT"
++        lane = "A_LONG" if slot == "1530" else "DEFAULT"
+         if (os.environ.get("V4_SCHEDULER_LANE_NAME") != lane
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_DATE") != business_date
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_SLOT") != slot):
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -166,7 +166,7 @@
+     lane: str | None = None,
+     now: _datetime.datetime | None = None,
+ ) -> dict[str, Any]:
+-    """Idempotently ensure the daily panel after 17:00.
++    """Idempotently ensure A after 15:30 and other lanes after 17:00.
+ 
+     StartInterval can invoke this function repeatedly.  Explicit lane callers
+     use only their exact dated receipt as a fast path: A requires selector and
+@@ -208,8 +208,9 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
+-    if moment.hour < 17:
+-        return restore_context({**common, "status": "BEFORE_1700", "runner_called": False, "idempotent": True})
++    earliest_slot = "1530" if requested_lane == "A" else "1700"
++    if moment.strftime("%H%M") < earliest_slot:
++        return restore_context({**common, "status": f"BEFORE_{earliest_slot}", "runner_called": False, "idempotent": True})
+     selector_ready = selector_pointer_is_ready(selector_pointer, target)
+     common["selector_pointer_ready"] = selector_ready
+     a_ready, backtest_ready = _a_lane_receipt_ready(
+@@ -318,7 +319,7 @@
+     status = str(result.get("status") or "")
+     if "lane_ready" in result:
+         lane_ready = result.get("lane_ready") is True
+-        if status == "BEFORE_1700":
++        if status in {"BEFORE_1530", "BEFORE_1700"}:
+             return 0
+         if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
+             return 0
+@@ -335,7 +336,7 @@
+                     backtest_pointer = formula.get("backtest_pointer_ready")
+     if backtest_pointer is False:
+         pointer_ready = False
+-    if status == "BEFORE_1700":
++    if status in {"BEFORE_1530", "BEFORE_1700"}:
+         return 0
+     if status == "ALREADY_READY" and pointer_ready:
+         return 0
