@@ -1,0 +1,48 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "2b2f63f1dd86cffdb362adb010d655966d156eff28fb952689c147a7014d9237",
+  "retained_R2_frozen_control_sha256": "a9530cab3e454e4fe1f10da39f20a530bc5e1824ca1a28d7275ba08b3687867f",
+  "scope": "仅 R3 固定 launchctl 调用超时增量及其直接恢复影响；复用此前未变范围的审查证据。",
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "resolved_P1": {
+    "evidence": [
+      "bounded_launchctl.c:72-85 将调用预算限制为 min(3秒, 阶段剩余期限)，使用本进程 monotonic 时钟。",
+      "bounded_launchctl.c:92-102 在超时信号前持久化 UNKNOWN；迟到 exit 0 不会成为成功。",
+      "信号目标仅来自 fork 返回的直接、尚未回收 CLI 子进程；不接受外部 PID，不向 service 或进程组发信号。",
+      "recovery_support.py 对超时角色跳过自动恢复；不重放超时 debug。"
+    ],
+    "remaining_boundary": "终止 CLI 不证明撤销 launchd 服务端请求。内核、launchd、文件系统不可中断或 helper 死亡保留 UNKNOWN/STOP，不能宣称恢复成功。"
+  },
+  "independent_checks": [
+    "R3 capsule、freeze 及全部冻结文件 SHA 匹配；R2 freeze 保留。",
+    "27 个固定 argv 表项逐项匹配冻结 label、sleep 参数及 before/after ProgramArguments。",
+    "全部 root print/debug 模板均经过 wrapper；guardian 字节与 R2 一致。",
+    "clang -fsyntax-only -Wall -Wextra -Werror 通过。",
+    "ROOT_HELPER_REVIEW_EXAMPLE.sh 的 sh -n 通过。",
+    "检查三个新增 mock 的源码及冻结结果：arm_block 2.858秒、cleanup_print_block 1.838秒、restore_debug_block 1.847秒；UNKNOWN 保留、无后续布防或盲重放。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "independent_static_binding_and_syntax_checks": "PASS",
+    "three_blocked_call_cases": "冻结 mock 证据支持 PASS；Reviewer 未重跑",
+    "live_control_and_deployment": "CANNOT_CONFIRM"
+  },
+  "unexecuted": [
+    "未重跑旧 15/6/22/11 套检查",
+    "未重测 ABI",
+    "未执行真实 owner/idle 检查、五 label 操作、安装或部署",
+    "未执行 API/UI/runtime 或未来自然时段验收"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
+

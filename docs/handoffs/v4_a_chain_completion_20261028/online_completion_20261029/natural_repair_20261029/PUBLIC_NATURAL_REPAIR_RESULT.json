@@ -1,0 +1,33 @@
+{
+  "schema": "v4.a_chain.public_repair_result.v1",
+  "date": "20261029",
+  "problem": "Same-date EXPECTED_MISSING research placeholder collided with materialization; retry regenerated sealed input identity.",
+  "change": "Reuse existing strict CAS placeholder recovery and validate identical same-code sealed source reuse; original cutoff/identity guards preserved.",
+  "source_hashes": {
+    "refresh_research_preselection.py": "91ad5a032579ca61da1ea87ed1fde87cbd2590068e3e3c6e404e99aca0b24643",
+    "collect_hourly_research_input.py": "c45d6814de5fb33ac0734dcc179ada5481c964c75ce3654aaf3a5af2f5179a6c"
+  },
+  "checks": {
+    "source_placeholder": 6,
+    "source_retry": 22,
+    "control_original_reused": 11,
+    "recovery_reused": 15,
+    "bounded_CLI_reused": 3,
+    "original_authoritative_lock_contract": 6
+  },
+  "reviews": "Source and final control independently PASS; unchanged checks reused.",
+  "deployment": "Five original labels safely rebound; all DONE; all temporary guards discharged; Main actual runtime verified; API manifest/frontend and representative UI readback verified.",
+  "deployed_Main_manifest_sha256": "528a7413168931473a2f418f394efaa0ad640356a3c9d6f68ef455b238e71176",
+  "deployed_Stage_manifest_sha256": "0d15b4dcac160c6194f2e5a150e9eacfb173fb1dd044751e1ccb26c5255bd314",
+  "graph_config_sha256": "94589680ca0522470b3e08e67fe827290c586f19f374c554565b61ac0ad1d835",
+  "API_code_and_frontend": "Unchanged a645 manifest / 64217373 bundle; only graph environment binding updated.",
+  "protection": "61/61 original pins/stat/index/backup checks unchanged; no 5073-stock data, Parquet, pointer or backup writes; no full panel rehash.",
+  "actual1030": "10 A WATCH_ONLY rows and original provenance remain readable. Produced before repair deployment; not repair success evidence.",
+  "natural_acceptance": "PENDING: future original13:15/15:00 plus next full seven-stage natural window. Original morning failures preserved.",
+  "native0925": "CANNOT_CONFIRM: future Futu timestamps rejected, direct BJ mapping gap, original TDX connected-but-empty response. No late backfill or source-time weakening.",
+  "private_execution_inputs_omitted": "No active plan/plists, admin helper or authentication/nonce, runtime binaries, installed apps, raw market payloads, logs, backups or dependencies exported. Controls require private pinned inputs and are not a portable deployment package.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

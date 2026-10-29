@@ -1,0 +1,48 @@
+{
+  "schema": "v4.natural_repair.source_review.v1",
+  "reviewer": "/root/natural_chain_review",
+  "writer": "/root/natural_chain_writer",
+  "user_goal": "Independently review the two frozen, isolated Main source candidates for the authorized retry repairs without changing files or expanding scope.",
+  "acceptance_scope": {
+    "R1": "Only the exact same-date research graph EXPECTED_MISSING placeholder may use the existing strict CAS/revision recovery path.",
+    "R2": "A timely sealed source may be reused after a same-candidate-code retry only when attestation, source evidence, code and policy identities, cutoff, version, and full business content match; preserve original bytes and capture provenance. Cross-version identity mismatch remains a refusal.",
+    "excluded": "Historical 0900 cross-version recovery, deployment/control review, native quote availability, and future natural acceptance."
+  },
+  "review_steps": [
+    "Read the frozen review capsule, diagnosis, R1/R2 scopes, and existing test results.",
+    "Matched candidate, preimage, patch, test, and result SHA-256 values to the frozen records.",
+    "Compared both candidate source files against the installed Main preimages.",
+    "Inspected the existing CAS/revision implementation and attestation reader used by the candidates.",
+    "Reviewed the targeted tests and their coverage against the frozen acceptance criteria."
+  ],
+  "findings": [],
+  "evidence": {
+    "R1_candidate_sha256": "91ad5a032579ca61da1ea87ed1fde87cbd2590068e3e3c6e404e99aca0b24643",
+    "R2_candidate_sha256": "c45d6814de5fb33ac0734dcc179ada5481c964c75ce3654aaf3a5af2f5179a6c",
+    "R1_test_sha256": "c80e1ab7c18a51b9f503d5a623507e184ed3a3711b92c35357fc9cd30fc0dd80",
+    "R2_test_sha256": "4dbb7177aa88b98388372045ec53b198011c3d5ccf36293b97b55e5c776499b3",
+    "R1_existing_result": "6 passed; matching result hash 1719a3b63a4c54c88c7ed1e00dd5513a6b849e5cc997c791d02373a2ef230703",
+    "R2_existing_result": "22 passed; matching result hash 91b8f55b96c22fc06e08c2c76c2a8d0f5e5a4b8d57499452a96aff4611f4dcea"
+  },
+  "BEHAVIOR_VERIFIED": {
+    "isolated_candidate_cases": "PASS based on reviewed candidate code, matching test hashes, and the existing R1/R2 PASS results",
+    "deployment_or_natural_acceptance": "CANNOT_CONFIRM"
+  },
+  "unexecuted_checks": [
+    "Tests were not rerun, per the frozen repetition policy.",
+    "Final Main/Stage deployment controls and manifest binding were not provided or reviewed.",
+    "Deployment, service/runtime behavior, and the future natural slot were not exercised."
+  ],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "review_status": "REVIEWED/PASS",
+  "overall_batch_status": "PENDING_CONTROL",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
+

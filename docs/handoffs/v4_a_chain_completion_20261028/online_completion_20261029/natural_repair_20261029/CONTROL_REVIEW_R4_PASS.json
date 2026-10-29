@@ -1,0 +1,44 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "7abb4b4cd2a698294a059d632b178deec450be1db4ac8682d690d60a46d55c14",
+  "scope": "仅 R4 权威 API 外部合同绑定、原锁复用及 fail-closed 行为。",
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "independent_checks": [
+    "R4 capsule、freeze 和全部冻结文件 SHA 匹配；R3 全部冻结文件保留未变。",
+    "实际 controller 差异与冻结 patch 完全一致；PLAN 仅新增合同引用及更新控制目录路径。",
+    "真实失败日志确认原默认合同路径缺失；失败发生在 guardian ready 和 root helper 生成之前。",
+    "当前 API manifest SHA a645e19dcd906bae6e87dd6c0fb8700d49542a859cb0da5664e516aaed3de92f 明确绑定该外部合同。",
+    "独立只读加载验证合同 SHA a785856ccacb0fb238d780a1bc0f1ceacfaf9b477f7661d86c7d5d4e3898e048、原 parser 兼容及精确锁路径 /Users/lexi/Library/LaunchAgents/.com.lexi.v4.api.release.lock。",
+    "原锁函数实现保留；每次合同调用拒绝路径、SHA 或内容漂移。",
+    "检查六项新增 fixture 源码和 6 PASS 结果；未重跑已通过测试。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "readonly_authority_binding_parser_and_lock_path": "PASS",
+    "six_new_fixture_cases": "冻结源码及结果证据支持 PASS；Reviewer 未重跑",
+    "real_guardian_lock_acquisition": "CANNOT_CONFIRM",
+    "switching_API_UI_and_natural_acceptance": "CANNOT_CONFIRM"
+  },
+  "reused": "R3 超时控制 PASS；业务 6/22、控制 11、恢复 15、阻塞 3 项结果。",
+  "unexecuted": [
+    "真实锁获取",
+    "root helper 和服务生命周期操作",
+    "部署及 API/UI/runtime 验收",
+    "未来自然时段验收"
+  ],
+  "reviewer_file_edits": 0,
+  "reviewer_real_lock_acquisitions": 0,
+  "reviewer_service_actions": 0,
+  "reviewer_network_or_data_collection": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
