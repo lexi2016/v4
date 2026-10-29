@@ -1,8 +1,8 @@
-"""Read-only V3.5-owned research lane source over verified research archives.
+"""Read-only V4-owned research lane source over verified research archives.
 
 The research decision-desk lane is served exclusively from the explicitly
 bound ``data_root`` through exact archives and hourly artifacts plus an
-optional V3.5-owned validated event artifact. Nothing reads the V3 research
+optional V4-owned validated event artifact. Nothing reads the V3 research
 module, assistant run logs, or legacy finance/ai sources; no event is ever
 synthesized and no sibling root is searched. The bound root is disclosed only
 as read-only provenance so a deployment can be audited.
@@ -43,8 +43,9 @@ class ResearchLaneSource:
     ``ResearchArchiveStore.read_exact`` / ``read_latest`` and only projects.
     """
 
-    def __init__(self, data_root: Path, *, ledger_root: Path | None = None) -> None:
+    def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None) -> None:
         self.data_root = Path(data_root)
+        self.a_share_daily_root = Path(a_share_daily_root).resolve() if a_share_daily_root is not None else None
         self.ledger_root = Path(ledger_root) if ledger_root is not None else self.data_root.parent / "dispatcher"
         self.store = ResearchArchiveStore(self.data_root)
         self.hourly_store = HourlyResearchStore(self.data_root)
@@ -60,7 +61,7 @@ class ResearchLaneSource:
         server data root; there is no sibling-root search here.
         """
         return {
-            "source_id": "V35_RESEARCH_DATA_ROOT",
+            "source_id": "V4_RESEARCH_DATA_ROOT",
             "source_root": str(self.data_root),
             "ledger_root": str(self.ledger_root),
             "binding_policy": "EXPLICIT_RESEARCH_DATA_ROOT_OR_SERVER_DATA_ROOT",
@@ -899,6 +900,66 @@ class ResearchLaneSource:
             slots = self.hourly_store.list_slots(archive_date, mode="LIVE")
             return self._project_bound_source(payload, slot=slot), slot, len(slots)
         return self.store.read_exact(archive_date), "", 0
+
+    def _a_product_root(self):
+        if self.a_share_daily_root is None:
+            return None
+        return self.a_share_daily_root / "daily_products/a_share"
+
+    def _a_product_reference(self, reference):
+        root = self._a_product_root()
+        path = Path(reference["path"])
+        if root is None or not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path or not path.is_relative_to(root):
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_OUTSIDE_BOUND_ROOT")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_SHA_DRIFT")
+        value = json.loads(raw)
+        if value.get("RESEARCH_ONLY") is not True or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent")):
+            raise ValueError("A_DAILY_PRODUCT_SAFETY_UNBOUND")
+        return value
+
+    def read_a_daily_product(self, date=None, symbol=None):
+        root = self._a_product_root()
+        if date is not None and not re.fullmatch(r"\d{8}", date):
+            raise ValueError("A_DAILY_DATE_INVALID")
+        if symbol is not None and not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol):
+            raise ValueError("A_DAILY_SYMBOL_INVALID")
+        if root is None or not (root / "index.json").is_file():
+            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":date, "rows":[], "available_dates":[]}
+        index = json.loads((root / "index.json").read_text())
+        chosen = date or index.get("latest_date")
+        reference = index.get("dates", {}).get(chosen)
+        if reference is None:
+            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":chosen, "rows":[], "available_dates":sorted(index.get("dates", {}))}
+        manifest = self._a_product_reference(reference)
+        product = self._a_product_reference(manifest["artifact"])
+        if (manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1" or product.get("schema_version") != "v4.a_share.daily_product.v1"
+                or manifest.get("data_date") != chosen or product.get("data_date") != chosen
+                or manifest.get("source_generation") != product.get("source_generation")
+                or manifest.get("input_sha256") != product.get("source_identity", {}).get("input_sha256")
+                or manifest.get("sample_only") is not False or product.get("sample_only") is not False
+                or manifest.get("processed_count") != product.get("processed_count")):
+            raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
+        if symbol is not None:
+            row_ref = product.get("row_refs", {}).get(symbol)
+            match = self._a_product_reference(row_ref) if row_ref else None
+            if match is not None and (match.get("symbol") != symbol or match.get("data_date") != chosen):
+                raise ValueError("A_DAILY_SYMBOL_DETAIL_IDENTITY_CONFLICT")
+            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]}
+
+    def read_a_daily_latest_event(self):
+        root = self._a_product_root()
+        if root is None or not (root / "events/latest.json").is_file():
+            return None
+        event = json.loads((root / "events/latest.json").read_text())
+        if event.get("schema_version") != "v4.a_share.daily_completion.v1" or event.get("RESEARCH_ONLY") is not True or any(event.get(k) is not False for k in ("production_allowed","buy_gate_updated","orders_sent")):
+            raise ValueError("A_DAILY_EVENT_SCHEMA_OR_SAFETY_INVALID")
+        manifest = self._a_product_reference(event["manifest"])
+        if (event.get("artifact") != manifest.get("artifact") or any(event.get(k) != manifest.get(k) for k in ("data_date","source_generation","input_sha256","processed_count","source_universe_count","status"))):
+            raise ValueError("A_DAILY_EVENT_MANIFEST_IDENTITY_CONFLICT")
+        return event
 
     def read_latest_event(self) -> dict[str, Any] | None:
         relative = (
