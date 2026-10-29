@@ -566,25 +566,39 @@ def read_stage_hourly_attestation(*, stage_app: Path, data_root: Path, date: str
         raise PublicationError('HOURLY_PROVENANCE_REQUEST_INVALID')
     config = json.loads(SafeRoot(stage_app).read_bytes('stage_center_tick_config.json'))
     historical = config.get('research_historical_owner_bindings', [])
-    if not isinstance(historical, list) or len(historical) > 1:
+    if not isinstance(historical, list) or len(historical) > 2:
         raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
+    owners = [(current, evidence)]
+    seen = {current}
+    for binding in historical:
+        if (not isinstance(binding, dict) or set(binding) != {'app_root', 'release_id', 'manifest_sha256'}
+            or not isinstance(binding.get('release_id'), str) or not binding['release_id']):
+            raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
+        previous = _absolute_release_app(binding['app_root'])
+        if previous in seen:
+            raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
+        seen.add(previous)
+        _release_manifest(previous, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES)
+        owners.append((previous, (*evidence, f"v4_research_historical_owner_release_id={binding['release_id']}",
+            f"v4_research_historical_owner_manifest_sha256={binding['manifest_sha256']}",
+            'v4_research_historical_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')))
     record = json.loads(SafeRoot(data_root).read_bytes(f'research/hourly/publication/live/{date}/{slot}.json'))
     materializer_sha = record.get('materializer_sha256') if isinstance(record, dict) else None
-    selected = current
-    if materializer_sha != digest(SafeRoot(current).read_bytes('ops/run_hourly_research.py')):
-        selected = None
-        for binding in historical:
-            if not isinstance(binding, dict) or set(binding) != {'app_root', 'release_id', 'manifest_sha256'}:
-                raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
-            previous = _absolute_release_app(binding['app_root'])
-            _release_manifest(previous, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES)
-            if materializer_sha == digest(SafeRoot(previous).read_bytes('ops/run_hourly_research.py')):
-                selected = previous
-                evidence = (*evidence, f"v4_research_historical_owner_release_id={binding['release_id']}",
-                            f"v4_research_historical_owner_manifest_sha256={binding['manifest_sha256']}",
-                            'v4_research_historical_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')
-        if selected is None:
-            raise PublicationError('HOURLY_PROVENANCE_OWNER_NOT_ALLOWLISTED')
-    publication = read_hourly_attestation(data_root=data_root, owner_root=selected,
-        date=date, slot=slot, mode=mode, as_of=as_of, scheduler_ledger_root=ledger)
-    return publication, evidence
+    missing_witness = None
+    for selected, selected_evidence in owners:
+        if materializer_sha != digest(SafeRoot(selected).read_bytes('ops/run_hourly_research.py')):
+            continue
+        # Equal code bytes do not identify a release. Only the original full
+        # publication + successful dispatch witness may select a pinned owner.
+        try:
+            publication = read_hourly_attestation(data_root=data_root, owner_root=selected,
+                date=date, slot=slot, mode=mode, as_of=as_of, scheduler_ledger_root=ledger)
+        except PublicationError as exc:
+            if str(exc) != 'HOURLY_COMPLETION_WITNESS_MISSING':
+                raise  # Never hide source/signature, ledger, clock or cutoff failures.
+            missing_witness = exc
+            continue
+        return publication, selected_evidence
+    if missing_witness is not None:
+        raise missing_witness
+    raise PublicationError('HOURLY_PROVENANCE_OWNER_NOT_ALLOWLISTED')
