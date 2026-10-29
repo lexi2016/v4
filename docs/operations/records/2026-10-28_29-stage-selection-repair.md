@@ -1,6 +1,6 @@
 # 2026-10-28—29 V4 阶段选股修复记录
 
-记录截止：2026-10-29 17:15，上海时间；后续追加实际结果。此处是事实账本，不能作为未来动作的现役 CAS/PID/期限。
+记录截止：2026-10-29 17:58，上海时间；后续追加实际结果。此处是事实账本，不能作为未来动作的现役 CAS/PID/期限。
 
 ## 用户目标与后来明确的处理规则
 
@@ -135,3 +135,16 @@
 - 已定位现役原入口 production_selection_builders → select_a_live_stage → live_stage_quality_score / stage_row_sort_key → 原Top10上限；不改算法、权重、配额或BUY。
 - 封存15:19快照的56有效行具备原引擎必要行情字段；17:12隔离运行已按原引擎真正选出10行。研究源分值仍null、原引擎中性默认行为如实记录；1400有效见证与1500失败分别保留。隔离结果不是已上线补选。
 - 当前继续补齐补选产物、原Stage/API/UI接入和实际验收；原5阶段失败、10:30/13:15已有A10、HK、他任务图表和5073底板保持。
+
+
+## 17:58：真正补选整包已独审、安装，等待原日更结束后切换
+
+- 7个业务源接入快照→原select_a_live_stage→原评分/排序/Top10→独立snapshot_reselection产物→原Stage/API/App；没有另造引擎、producer或面板。
+- 五个空缺阶段的真实封存56输入各选10；原SDK补抓0次。研究缺失字段null、原neutral内部默认明示；1400合法last-known-good与1500拒绝并列，确无合法上下文则明确NO_VERIFIED_RESEARCH_CONTEXT继续原行情补选。原正式A10/READY_EMPTY/HK/FAIL不替换。
+- 同一独立Reviewer PASS，零P0/P1/P2；只读复算09:25/09:35/15:00与封存排名/分数完全一致。9个针对性场景及Vite构建通过；旧PASS复用。新Stage986/API1295保留完整kind和Chart455资源。
+- 不可变安装成功，实际原trusted reader无overlay验证13/14通过、旧09拒绝。新Stage清单cb390fa6aa0d5d2863fb2809835134d0269197e6698f120c0766205d0688b46c；新API清单049603267a7f34a04f16d48c629f0425f2d832ce563331d601f7f15a9b384fb9。尚未激活，不声称线上补选完成。
+- 尝试减少认证的直接证据：现役API原lifespan会等待已接任务，但普通bootout有launchd超时KILL风险；submission scope含任意合法日期等，无法枚举封闭。自有纯sleep canary证实disable仍会自动拉起loaded KeepAlive，测试失败已保留且自有标签/plist完全清理。没有把此方案用于真实服务，没有新权限/信号技巧。
+- 原17:00股票日更在Main73799→96690→96767健康执行。原guard要求它自然结束；Main、5073底板和旧component/app/argv/checkpoint均保留。只有真实安全窗口、freshowner/原guard和全部前置完成后才发最终系统认证；不假填idle，不复用过期nonce，不因合法日更推进而回旧指针。
+- 16:36只交观察名单是本次实现遗漏；这正是现在仍需完整补选发布的原因，不是每天自动快照选股都需要认证。SOP以真正selected补选验收，不能再以56观察完成收尾。
+
+机器证据：snapshot_selection_r1/COMBINED_REVIEW_PASS.json、IMMUTABLE_INSTALL_RESULT.json、INSTALLED_CANDIDATE_READER_RESULT.json；下一动作以CONTINUATION_STATE.json为准。

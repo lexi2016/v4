@@ -1,0 +1,107 @@
+{
+  "schema": "v4.current_snapshot_supplementary_selection.review.r1",
+  "writer": "/root/natural_chain_writer",
+  "reviewer": "/root/control_final_review",
+  "goal": "Original-engine current snapshot supplementary Top10, verifiable isolated artifacts and existing Stage/API/App path; no original formal/NATURAL/PIT promotion",
+  "scope": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/SCOPE.json",
+    "sha256": "d4858f3c6b5dbcf7407f62e96b1f6bd4aa9dbfa60f14c912d4625ee1e82a8947"
+  },
+  "source_frozen": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/FROZEN_SOURCE.json",
+    "sha256": "0c86cfde7550a8c2dfcead94ceab5a2b5cb0c133a9a07b368979b5c155127748"
+  },
+  "frozen_control": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/control_r1/FROZEN_CONTROL.json",
+    "sha256": "dc00610d6f603483e9a2275997b45cde0629a30ecc797e4d54d59d75439c915b"
+  },
+  "source_diff": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/SOURCE.diff",
+    "sha256": "27ce02a171a2c0244287ed9cbb9e701f3208b6f072952ce0887b8cbe6a373405"
+  },
+  "diagnosis": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/DIAGNOSIS.json",
+    "sha256": "b9ed286d9d2ef919cdaf64b013e8380cba0e04f822280142a6052a8a57bc71c8"
+  },
+  "tests": {
+    "summary": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/TEST_RESULT.json",
+    "sha256": "a1a58d61ac670d37cc6580b9b663045342feb07a5638a3f8ccdbe41eb4763f08",
+    "files": {
+      "tests/test_control_parameters.py": "661f3b6de041f5f54f19b7662c3ebc22b4c66045a9acd2253d7179c550564d5f",
+      "tests/test_current_reselection.py": "c5ed5ee210dc2d77c4bc1770f92a9dc4cae79d6ee88bf23b299f8facc52ee999"
+    }
+  },
+  "real_five_selections": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/evidence/FIVE_STAGE_RESULT.json",
+    "sha256": "925c5889aa4aa9fea3f4158f4fb15cb8004717f1df16115539b9972e803d5249"
+  },
+  "five_API_targets": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/evidence/FIVE_API_TARGETS.json",
+    "sha256": "3866efd4e41bddfbed64ca070f654317650689579cec11dbc6ea9978070689cb"
+  },
+  "frontend": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/FRONTEND_RESULT.json",
+    "sha256": "bf89b2026d975984f47c7ce44d8bfe30d50e228adea5056ef19731201c7406d1"
+  },
+  "root_decision_lock": [
+    "原引擎neutral内部计算允许，外部news/research/pool源分数null，不新增完整研究覆盖门",
+    "1400 verified last-known-good与1500拒绝分列，不把14:59验证reference_as_of伪称15:19 latest",
+    "scored_at17:xx与capture15:19/source15:00分列，原阶段date/stage另列",
+    "0925为原live公式当前快照补选，不是原auction重演",
+    "已有观察无补选继续选股，不能observe skip直接return；无合法context也用原neutral缺口明确补选",
+    "原正式10:30/13:15 A10及READY_EMPTY/HK优先保持，原FAIL/原指针不改"
+  ],
+  "releases": [
+    {
+      "role": "stage",
+      "release_id": "a-snapshot-selection-20261029-r1-stage",
+      "manifest_sha256": "cb390fa6aa0d5d2863fb2809835134d0269197e6698f120c0766205d0688b46c",
+      "file_count": 986
+    },
+    {
+      "role": "api",
+      "release_id": "a-snapshot-selection-20261029-r1-api",
+      "manifest_sha256": "049603267a7f34a04f16d48c629f0425f2d832ce563331d601f7f15a9b384fb9",
+      "file_count": 1295
+    }
+  ],
+  "current_research_assets_unchanged": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-chart-20261029-r3-api/research-panel",
+    "asset_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-chart-20261029-r3-api/research-panel-assets.json",
+    "asset_manifest_sha256": "d633147486797bb63c797e2a8aef12c3ca12c25971ad45118320caa6df16b499",
+    "asset_count": 455,
+    "base_asset_manifest_sha256": "83ca13ccd0f19b90b01ab32e9dba389e39c2da92302bdd445af522306c382825",
+    "non_delta_asset_count": 452,
+    "non_delta_bytes_preserved": true,
+    "numeric283_data_date": "20261028",
+    "numeric283_observation_date": "20261029",
+    "numeric283_source_generation": "31d40c5900ced1b2ff637cfbeaa73688ad921d713e3ea748f83ccbca84463c29",
+    "numeric283_scope_count": 283
+  },
+  "review_scope": "One source/build/contract/control batch; prior unchanged Main/native/source/control/recovery PASS reused, no split approval chains",
+  "same_uid_canary": "FAIL preserved/cleaned; no new permission/signal tricks",
+  "Main_daily": "WAIT_CURRENT_HEALTHY_CHAIN_NATURAL_END_UNDER_UNCHANGED_GUARD; staging/probe can proceed first",
+  "live_acceptance_pending": [
+    "immutable install",
+    "real original reader NOT_ACTIVATED",
+    "freshowner/idle/guard/systemauth last",
+    "4role loaded readback",
+    "root existing5 observations→supplementary10 CLI",
+    "7 stage HTTP and sampledUI0925/0935/1500",
+    "future naturaldefault"
+  ],
+  "pass_signal": "True original scorer/sort/quota Top10 on sealed56, source/context/actual times bound; supplemental store SHA readback and current API/UI target path; original FAIL/formal10/HK preserved",
+  "stop_rule": "New permission/producer/model or original-data/gate change =>STOP; original neutral optional defaults are permitted and absent source values staynull",
+  "actual_actions": {
+    "production_role_lifecycle": 0,
+    "real_locks": 0,
+    "installed_releases": 0,
+    "quotes": 0,
+    "stockdata": 0,
+    "own_sleep_canary": "executed and fully cleaned; actualFAIL retained"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,45 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "dc00610d6f603483e9a2275997b45cde0629a30ecc797e4d54d59d75439c915b",
+  "frozen_source_sha256": "0c86cfde7550a8c2dfcead94ceab5a2b5cb0c133a9a07b368979b5c155127748",
+  "scope": "真实快照经原引擎补选Top10、独立产物、原Stage/API/UI接入及必要四角色发布参数。",
+  "findings": [],
+  "risk_review": {"P0": [], "P1": [], "P2": []},
+  "independent_checks": [
+    "capsule、两份freeze、全部声明文件、测试源码及五阶段证据SHA匹配。",
+    "原选择引擎及_selection_parts字节不变；独立只读复算0925、0935、1500三个代表，56输入到10结果的代码、排名及总分与封存结果完全一致。",
+    "原neutral默认计算保留；缺失news/research/pool源分值保持null，无合法context时显式降级。",
+    "1400验证时点14:59:59、真实采集15:19及计算17:41分别记录；1500上下文拒绝单列，0925明确不是竞价重演。",
+    "补选采用独立snapshot_reselection路径；已有观察继续评分且不重抓；正式A10及READY_EMPTY优先。",
+    "Stage986/API1295完整kind、继承metadata、实际文件SHA/size及路径集合匹配；Chart455资源绑定保留。",
+    "22固定CLI表匹配四角色定义，无Main动作；原supervisor、guardian、recovery、三锁及FD CAS字节复用。",
+    "检查6源场景、1DOM场景、2参数/health场景及Vite结果；未重跑旧套。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "independent_original_engine_recalculation": "PASS，样本为0925/0935/1500",
+    "five_stage_56_to_10_and_API_consumer": "五阶段隔离证据已核；不是live HTTP",
+    "candidate_packaging_and_control_bindings": "PASS",
+    "actual_install_deployment_API_UI_and_future_natural": "CANNOT_CONFIRM"
+  },
+  "execution_boundary": {
+    "Main_1700": "不得假填idle或结束状态；等待健康链自然完成并重新取得实际证明。",
+    "permission": "复用已审root-nextspawn方案；普通bootout/disable替代路径不获本PASS。",
+    "authentication": "仅在真实安全窗口及全部前置验收完成后执行最后认证。"
+  },
+  "mandatory_remaining": [
+    "不可变安装及激活前原trusted reader真实验证",
+    "fresh owner/idle、日历margin和新nonce",
+    "四角色loaded/env及API版本读回",
+    "现有五段观察实际生成补选10，并确认原正式结果、FAIL、HK及保护数据未改",
+    "真实HTTP、浏览器UI和后续自然默认补选验收"
+  ],
+  "reviewer_file_edits": 0,
+  "reviewer_service_lock_network_or_collection_actions": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "mode": "IMMUTABLE_INSTALLED_CANDIDATE_NOT_ACTIVATED",
+  "actual_exit_code": 0,
+  "actual_exec_chunk_id": "9496e2",
+  "observed_at": "2026-10-29T09:56:35.439197+00:00",
+  "manifest_sha256": "cb390fa6aa0d5d2863fb2809835134d0269197e6698f120c0766205d0688b46c",
+  "probe_code_sha256": "e1f7fdedf2d6b277c70f22e761a6424bb65bff1ed189646f115029d4b470a7e8",
+  "results": {
+    "1300": {
+      "status": "VERIFIED",
+      "run_id": "f5ba7ecdfd004e258faf93f65598da11",
+      "receipt_sha256": "e204c278e79a7e489d770ff7ba44ca1b25e4f6bb659afd0bff97390080de6e91"
+    },
+    "1400": {
+      "status": "VERIFIED",
+      "run_id": "ed222a36edd24da0837bc82b3f325f78",
+      "receipt_sha256": "10062806efd457b63417271bf72e8b6ee3e89a36a97f55b013399a02d02ec9d1"
+    },
+    "0900": {
+      "status": "REJECTED",
+      "error": "PublicationError:CATALYST_OWNER_CODE_IDENTITY_MISMATCH"
+    }
+  },
+  "writes": 0,
+  "service_actions": 0,
+  "no_overlay": true,
+  "test_repeated_for_recording": false
+}

@@ -1,0 +1,24 @@
+{
+  "current_api": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-chart-20261029-r3-api/app",
+  "code_pins": {
+    "v4/manager_workbench/binding.py": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+    "v4/manager_workbench/service.py": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+    "v4/manager_workbench/jobs.py": "4d723721869082e2c8a241d64aadbe531e37960eb572078f842ae2be67b183c6",
+    "v4/manager_workbench/store.py": "df636867611e53e96d2366e91ad6b680c913468d18d93d81e7def7f28dd616e6"
+  },
+  "findings": [
+    "publisher shared API release lock is not read by JobCoordinator.submit",
+    "submission locks use dynamically generated target_date/phase/lanes/stage hash/canary/capture scope; existingattempt locks do not close unknown scopes",
+    "actual assembled binding lifespan finally calls service.stop; original jobs.pool.shutdown(wait=True) waits accepted healthy work",
+    "plain bootout starts launchd system-defined TERM→KILL timeout, therefore not safe if a new accepted job races",
+    "actual sameUID own KeepAlive sleep canary: disable failed to prevent respawn; test fully cleaned",
+    "use original reviewed root-nextspawn only: SIGTERM exactoriginalAPI initiates normal shutdown, no forcekill/bootout until original PID and descendants gone; accepted jobs finish naturally; fixedsleep guard prevents replacement producer"
+  ],
+  "same_uid_no_auth_execution": "NOT_SAFE_DO_NOT_USE",
+  "canary_result": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_selection_r1/disable_canary/ACTUAL_RESULT.json",
+    "sha256": "cab1b4b7b92ddd838a0e9ad5208f3e7f93965e365ea06bdba5b0abab9333d162"
+  },
+  "root_authentication": "ONLY_LAST_STEP_AFTER_REVIEW_IMMUTABLE_INSTALL_CONSUMER_PROBE_FRESH_OWNER_AND_REAL_IDLE",
+  "Main_coexistence": "No exception added. Fixed initial_main_idle rejects live descendants; keep healthy1700 chain running and wait. Immutable staging/reader check can proceed without lifecycle/real locks."
+}
