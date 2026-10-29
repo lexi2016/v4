@@ -1,0 +1,16 @@
+{
+  "schema_version": "today_selection_resource_execution.v1",
+  "workers": 14,
+  "max_pending": 28,
+  "memory_guard_bytes": 68719476736,
+  "reserve_available_bytes": 25769803776,
+  "available_basis": "macOS memory_pressure free percentage times hw.memsize; estimate, not physical free-page count",
+  "math_changes": false,
+  "history_dates": [],
+  "data_date": "20261029",
+  "observation_group": "1030",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
