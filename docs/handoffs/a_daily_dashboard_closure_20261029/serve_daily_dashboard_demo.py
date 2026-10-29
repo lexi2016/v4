@@ -8,6 +8,7 @@ retain project assets and an empty temporary report root. No index is built.
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 import socket
 import sys
@@ -27,12 +28,20 @@ from apps.api.v4_api.research_router import create_research_router
 
 
 def create_demo_app(source_root: Path, runtime_root: Path, *, panel_root: Path | None = None,
-                    report_data_root: Path | None = None) -> FastAPI:
+                    report_data_root: Path | None = None, original_chart_manifest: Path | None = None) -> FastAPI:
+    chart_options = {}
+    if original_chart_manifest is not None:
+        manifest = original_chart_manifest.expanduser().resolve(strict=True)
+        receipt = manifest.parent / "COMPLETION_RECEIPT_247.json"
+        ref = lambda path: {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        chart_options["original_chart_binding"] = {"artifact_root": str(manifest.parent.parent),
+                                                   "manifest": ref(manifest), "receipt": ref(receipt)}
     app = FastAPI(title="Isolated D29 dashboard demo", docs_url=None, redoc_url=None)
     app.include_router(
         create_research_router(
             runtime_root / "consumer",
             shared_data_root=source_root,
+            **chart_options,
         )
     )
     app.include_router(
@@ -69,6 +78,7 @@ def main() -> None:
     parser.add_argument("--daily-product-root", required=True, type=Path)
     parser.add_argument("--panel-root", type=_existing_directory, help="Read-only static asset directory")
     parser.add_argument("--report-data-root", type=_existing_directory, help="Read-only existing report data directory")
+    parser.add_argument("--original-chart-manifest", type=Path, help="Bind completed chart artifacts only for this isolated instance")
     parser.add_argument("--port", type=int, default=0)
     args = parser.parse_args()
 
@@ -83,7 +93,8 @@ def main() -> None:
         port = reservation.getsockname()[1]
 
     with tempfile.TemporaryDirectory(prefix="v4-d29-dashboard-demo-") as temporary:
-        app = create_demo_app(source_root, Path(temporary), panel_root=args.panel_root, report_data_root=args.report_data_root)
+        chart_options = {"original_chart_manifest": args.original_chart_manifest} if args.original_chart_manifest else {}
+        app = create_demo_app(source_root, Path(temporary), panel_root=args.panel_root, report_data_root=args.report_data_root, **chart_options)
         print("Loopback-only isolated demo: http://127.0.0.1:" + str(port) + "/dashboard-demo", flush=True)
         print("Read-only panel root: " + str(args.panel_root or PROJECT_ROOT / "research-panel"), flush=True)
         print("Read-only report data root: " + str(args.report_data_root or Path(temporary) / "lane"), flush=True)

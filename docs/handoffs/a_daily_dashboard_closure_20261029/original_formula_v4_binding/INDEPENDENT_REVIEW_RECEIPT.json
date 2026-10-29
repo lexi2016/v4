@@ -1,0 +1,38 @@
+{
+  "status": "REVIEWED_PASS_EXISTING_V4_READONLY_ORIGINAL_PLOT_BINDING",
+  "reviewer": "/root/original_chart_delta_review",
+  "received_at": "2026-10-30T06:12:31.256362+08:00",
+  "scope": "SCOPE.json+SCOPE_ADDENDUM.json",
+  "verdict_source": "collaborationFINAL_ANSWER",
+  "writer_receipt_sha256": "6aa982df33aebc8614c96758f26b1db6bd2b35916d9cdf42d58c3dc18d56e933",
+  "patch_sha256": "23fe02e85dd6cc46038605fa44347b21e7288b0cf8719f2b859c174d559ad91c",
+  "checks": [
+    "actualsource/patch/receiptsmatch",
+    "daily.htmlunchanged",
+    "3current247samples2150/7188/1201+9assetsSHA",
+    "date/symbol/gen/input/formula/enginebound",
+    "wrongasset/gen/input/pathescape/symlinkreject",
+    "typedCANNOT_CONFIRM",
+    "actual3PNGview andmatchingheadlessreceipt",
+    "12targetedPASSreusednotrerun",
+    "GETnocompute/render/index/network",
+    "existingSSE/token/abort retained",
+    "tempportclosed"
+  ],
+  "findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "maximum_claim": "BEHAVIOR_VERIFIED_ISOLATED_ONLY",
+  "not_done": [
+    "deployment",
+    "naturalupstreamdailycompletion",
+    "historysameeventreturns",
+    "nativeTDX/PITcertification"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

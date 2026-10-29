@@ -1,0 +1,15 @@
+# Original formula V4 existing-page binding
+
+Frozen scope: `B/original_formula_v4_binding/SCOPE.json` plus `SCOPE_ADDENDUM.json`; baseline `6d928a8c00d9977dee5d7edbe92052499f4013e5`. Sole Writer `/root/dashboard_repair_sol`; independent Reviewer dispatched by Root.
+
+The existing research router now reads only explicitly configured completed chart artifacts. SafeRoot confines all artifact reads to a fixed canonical root; references and actual bytes must match pinned manifest/completion receipt, current product/date/symbol/generation/input/config/formula/engine/row-ref and projection lineage. GET does not import or execute the engine or launch rendering, indexing, OCR, network, or processes. HTML, PNG and projection are SHA checked before any response. Invalid metadata is typed CANNOT_CONFIRM; invalid assets return typed 409. No arbitrary path query is accepted.
+
+The existing numeric283 chart area consumes verified HTML through a same-origin iframe. The existing request abort/token, product replacement and SSE listener are retained. Every selection clears old content; current product changes invalidate it. Frame readiness uses MutationObserver, with no result polling. The legacy fixed 283 branch remains available; dated products use original d35c artifacts. No static daily.html edits. The real existing demo helper accepts `--original-chart-manifest` for the isolated instance; defaults remain unbound. No parallel ops wrapper was created.
+
+Validation: 12 targeted tests passed in 0.22s, covering actual reader/router byte responses, date/symbol/generation/input/formula/engine mismatch, changed SHA, root escape, symlink, missing asset, and client identity/URL guards. Initial default pytest session cleanup touched unrelated old garbage and failed after all assertions passed; rerun used an owned dedicated basetemp with exit0. That unrelated directory was left untouched.
+
+Actual isolated demo: 600025.SH, 000410.SZ and 920454.BJ each returned READY and exact HTML/PNG/projection SHA; the nested existing daily page loaded actual original canvases and 51/22 tables. A local negative response cleared the previous frame. See B/ACTUAL_ISOLATED_RECEIPT.json, `*.actual-canvas.png`, `*.bound.png`, CLEANUP_RECEIPT.json. Browser closed; temporary loopback port closed; user GUI was never controlled.
+
+Review `PATCH.diff` and `WRITER_RECEIPT.json`; originals are in `preimages/`. Commands: absolute PANEL_PYTHON `-m pytest -q tests/test_original_formula_chart_binding.py tests/test_original_formula_chart_view.py --basetemp=<owned B temp>`; absolute PANEL_PYTHON `docs/handoffs/a_daily_dashboard_closure_20261029/original_formula_v4_binding/run_isolated.py`. The latter reuses recovered static assets, current candidate JS, existing demo, bundled Node/Playwright and installed Chrome only.
+
+Not deployed. No producer, numeric pool, formula, price, calendar, history statistics, service, pin or CURRENT changes. Natural daily output retention/rendering remains a separate unstarted scope. Research only; no complete stock PASS, native TDX/PIT, trading or production claim. Root owns independent review and final acceptance.

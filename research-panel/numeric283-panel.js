@@ -15,6 +15,7 @@
   const CHART_PROFILE = "V4_DAILY_NUMERIC283_CHART_20261029_R1";
   const CHART_NAMESPACE = "ACTIVE_MA_USER_20261021_V1";
   const D29_NUMERIC_FORMULA_SHA256 = "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac";
+  const ORIGINAL_ENGINE_SHA256 = "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c";
 
   const GROUP_LABELS = Object.freeze({
     original: "原始公式",
@@ -390,6 +391,27 @@
     return answer;
   }
 
+  function validateOriginalChart(answer, symbol, product) {
+    const sameRef = (a, b) => a?.path === b?.path && a?.sha256 === b?.sha256;
+    if (answer?.status !== "READY") throw new Error((answer?.cannot_confirm || [answer?.status || "原式图未绑定"]).join(" · "));
+    if (answer.schema_version !== "v4.a_share.original_chart.v1" || answer.symbol !== symbol || answer.data_date !== product.data_date
+        || answer.source_generation !== product.source_generation || answer.input_sha256 !== product.source_identity?.input_sha256
+        || answer.formula_sha256 !== D29_NUMERIC_FORMULA_SHA256 || answer.engine_sha256 !== ORIGINAL_ENGINE_SHA256
+        || !sameRef(answer.product_manifest, product.manifest) || !sameRef(answer.product_artifact, product.artifact)
+        || answer.research_only !== true || answer.production_allowed !== false || answer.buy_gate_updated !== false || answer.orders_sent !== false
+        || !Number.isInteger(answer.rows) || answer.rows < 1 || answer.values_per_row !== 51 || answer.drawings_per_row !== 22) {
+      throw new Error("原式图与当前代码、日期、来源或公式身份不匹配");
+    }
+    const asset = answer.assets?.html;
+    if (!/^[0-9a-f]{64}$/.test(asset?.sha256 || "") || !asset.url?.startsWith("/api/v4/research/a-share/original-chart/html?")) throw new Error("原式图地址未绑定");
+    const url = new URL(asset.url, "http://bound.invalid");
+    for (const [key, value] of Object.entries({date: product.data_date, symbol, generation: product.source_generation,
+      input_sha256: product.source_identity.input_sha256, sha256: asset.sha256})) {
+      if (url.searchParams.get(key) !== value) throw new Error("原式图地址身份冲突");
+    }
+    return answer;
+  }
+
   function mount(document, windowObject) {
     const panel = document.getElementById("dailyNumeric283Panel");
     if (!panel) return;
@@ -407,6 +429,69 @@
     let payloadMetadata = null;
     let currentRows = [];
     let productRequest = 0;
+    let originalFrame = null;
+    let originalObserver = null;
+
+    function clearOriginalChart() {
+      originalObserver?.disconnect(); originalObserver = null;
+      originalFrame?.remove(); originalFrame = null;
+    }
+
+    function originalMode(active) {
+      const legacy = document.getElementById("numeric283chart85Panel"); if (legacy) legacy.hidden = active;
+      const unknown = document.getElementById("numeric283chart85Unknown"); if (active && unknown) unknown.hidden = true;
+      for (const line of chartPanel.querySelectorAll("p")) {
+        if (line.textContent.includes("历史图 API 使用指标命名空间")) line.hidden = active;
+      }
+    }
+
+    function loadOriginalChart(symbol, token) {
+      const product = payloadMetadata;
+      const query = new URLSearchParams({date: product.data_date, symbol, generation: product.source_generation,
+        input_sha256: product.source_identity.input_sha256});
+      windowObject.fetch(`/api/v4/research/a-share/original-chart?${query}`, {signal: chartController.signal, cache: "no-store"})
+        .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
+        .then(answer => {
+          if (token !== chartRequest || product !== payloadMetadata) return;
+          validateOriginalChart(answer, symbol, product);
+          const frame = document.createElement("iframe");
+          originalFrame = frame; frame.id = "dailyOriginalFormulaFrame";
+          frame.title = `${symbol} · D${answer.data_date} · 原式51变量/22绘图`;
+          frame.style.cssText = "width:100%;height:1650px;border:0;display:block";
+          frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+          const fail = error => {
+            if (token !== chartRequest) return;
+            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
+          };
+          frame.onload = () => {
+            if (token !== chartRequest || product !== payloadMetadata) { frame.remove(); return; }
+            try {
+              const child = frame.contentDocument;
+              if (!child || child.contentType !== "text/html" || !child.getElementById("chart")) throw new Error("原式图文件未通过只读接口校验");
+              const ready = () => {
+                if (token !== chartRequest || product !== payloadMetadata) { clearOriginalChart(); return; }
+                if (child.getElementById("status")?.classList.contains("error")) { fail(new Error("原式图内部身份未确认")); return; }
+                if (!child.documentElement.dataset.loaded) return;
+                const state = frame.contentWindow.RESEARCH_PANEL_STATE;
+                if (state?.symbol !== symbol || state.rows?.at(-1)?.trade_date !== Number(product.data_date) || state.rows.length !== answer.rows) {
+                  fail(new Error("原式图实际代码或日期不符")); return;
+                }
+                originalObserver?.disconnect(); originalObserver = null;
+                chartStatus.textContent = `${symbol} · D${answer.data_date} · 原式 d35c · ${answer.rows}行 · 51数值/22绘图；同源只读产物，非股票完整PASS或原生/PIT认证。`;
+              };
+              originalObserver = new windowObject.MutationObserver(ready);
+              originalObserver.observe(child.documentElement, {attributes: true, subtree: true, childList: true, characterData: true});
+              ready();
+            } catch (error) { fail(error); }
+          };
+          frame.src = answer.assets.html.url;
+          chartPanel.appendChild(frame);
+        }).catch(error => {
+          if (token === chartRequest && error.name !== "AbortError") {
+            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
+          }
+        });
+    }
 
     function setChartControlsDisabled(disabled) {
       const previousWindow = document.getElementById("numeric283prevWindow");
@@ -431,6 +516,7 @@
       const token = ++chartRequest;
       chartController?.abort();
       chartController = new AbortController();
+      clearOriginalChart();
       setChartControlsDisabled(true);
       windowObject.Numeric283Chart?.clear();
       chartPanel.hidden = false;
@@ -444,6 +530,9 @@
       const reports = document.getElementById("relatedReports");
       if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name); }
       showStatistics(symbol, token);
+      const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
+      originalMode(datedOriginal);
+      if (datedOriginal) { loadOriginalChart(symbol, token); return; }
       if (!windowObject.Numeric283Chart) {
         chartStatus.textContent = "图表渲染器不可用；旧图已清空。";
         return;
@@ -532,7 +621,9 @@
     }
     function commitPayload(payload) {
       const rows = payload.schema_version === EXPECTED.schema_version ? validateData(payload) : validateDatedData(payload);
-      if (payloadMetadata?.source_generation !== payload.source_generation) {
+      if (payloadMetadata?.source_generation !== payload.source_generation || payloadMetadata?.data_date !== payload.data_date
+          || payloadMetadata?.artifact?.sha256 !== payload.artifact?.sha256) {
+        clearOriginalChart();
         ++chartRequest; chartController?.abort(); windowObject.Numeric283Chart?.clear(); setChartControlsDisabled(true); windowObject.RelatedReports?.clear();
         const stats = document.getElementById("dailyEventStatistics"); if(stats) stats.textContent = "新日期名单已更新；请选择当前名单股票读取统计。";
         chartStatus.textContent = "名单已更新；请主动选择当前名单股票。";
@@ -564,6 +655,7 @@
       events.addEventListener("a_share_daily_completed", event => { try { const body=validateDailyCompletionEvent(JSON.parse(event.data)); if (event.lastEventId && event.lastEventId !== body.event_id) throw new Error("SSE id 与事件 ID 不匹配"); loadDated(body).catch(e=>{status.textContent=`新日期产品未确认，保留已核验名单：${e.message}`;}); } catch(e) { status.textContent=`完成事件身份未确认，保留已验证名单：${e.message}`; } });
       windowObject.addEventListener("pagehide",()=>events.close(),{once:true});
     }
+    windowObject.addEventListener("pagehide", clearOriginalChart, {once:true});
 
   }
 
@@ -580,6 +672,8 @@
     completionMatchesProduct,
     statisticsPresentation,
     D29_NUMERIC_FORMULA_SHA256,
+    ORIGINAL_ENGINE_SHA256,
+    validateOriginalChart,
     filterRows,
     displayGroups,
     displayPendingGroups,

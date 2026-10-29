@@ -1,0 +1,578 @@
+--- a/infrastructure/research_lane_source.py
++++ b/infrastructure/research_lane_source.py
+@@ -12,6 +12,8 @@
+ import json
+ import re
+ import hashlib
++import gzip
++import io
+ from datetime import datetime
+ from pathlib import Path
+ from typing import Any, Mapping
+@@ -21,6 +23,7 @@
+ from infrastructure.data_store import _sha256
+ from infrastructure.market_time import shanghai_now
+ from infrastructure.owned_path import resolve_owned_path
++from infrastructure.owned_io import SafeRoot
+ from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
+ 
+ 
+@@ -49,9 +52,11 @@
+     ``ResearchArchiveStore.read_exact`` / ``read_latest`` and only projects.
+     """
+ 
+-    def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None) -> None:
++    def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None,
++                 original_chart_binding: Mapping[str, Any] | None = None) -> None:
+         self.data_root = Path(data_root)
+         self.a_share_daily_root = Path(a_share_daily_root).resolve() if a_share_daily_root is not None else None
++        self.original_chart_binding = original_chart_binding
+         self.ledger_root = Path(ledger_root) if ledger_root is not None else self.data_root.parent / "dispatcher"
+         self.store = ResearchArchiveStore(self.data_root)
+         self.hourly_store = HourlyResearchStore(self.data_root)
+@@ -912,6 +917,114 @@
+             return None
+         return self.a_share_daily_root / "daily_products/a_share"
+ 
++    def _original_chart_bytes(self, reference):
++        binding = self.original_chart_binding
++        if (not isinstance(binding, Mapping) or not isinstance(reference, Mapping)
++                or not isinstance(reference.get("path"), str) or not isinstance(reference.get("sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])):
++            raise ValueError("ORIGINAL_CHART_REFERENCE_INVALID")
++        root = Path(binding["artifact_root"])
++        path = Path(reference["path"])
++        if (not root.is_absolute() or root.resolve(strict=True) != root
++                or not path.is_absolute() or not path.is_relative_to(root)
++                or path.resolve(strict=True) != path or path.is_symlink()):
++            raise ValueError("ORIGINAL_CHART_REFERENCE_OUTSIDE_BOUND_ROOT")
++        raw = SafeRoot(root).read_bytes(str(path.relative_to(root)), max_bytes=64 * 1024 * 1024)
++        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
++            raise ValueError("ORIGINAL_CHART_REFERENCE_SHA_DRIFT")
++        return raw
++
++    def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
++        """Read only the explicitly bound, completed original-chart artifacts."""
++        binding = self.original_chart_binding
++        if not isinstance(binding, Mapping):
++            raise ValueError("ORIGINAL_CHART_BINDING_NOT_CONFIGURED")
++        product = self.read_a_daily_product(date)
++        identity = product.get("source_identity") or {}
++        if (product.get("status") not in ("READY", "PARTIAL_WITH_ROWS")
++                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
++                or generation is not None and generation != product.get("source_generation")
++                or input_sha256 is not None and input_sha256 != identity.get("input_sha256")):
++            raise ValueError("ORIGINAL_CHART_PRODUCT_IDENTITY_CONFLICT")
++        config_ref = product["source_config"]
++        config_path = Path(config_ref["path"])
++        if not config_path.is_absolute() or config_path.resolve(strict=True) != config_path:
++            raise ValueError("ORIGINAL_CHART_CONFIG_PATH_INVALID")
++        config_raw = SafeRoot(config_path.parent).read_bytes(config_path.name, max_bytes=2 * 1024 * 1024)
++        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
++            raise ValueError("ORIGINAL_CHART_CONFIG_SHA_DRIFT")
++        config = json.loads(config_raw)
++        if (config["formula"]["sha256"] != "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
++                or config["engine"]["sha256"] != "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"):
++            raise ValueError("ORIGINAL_CHART_FORMULA_OR_ENGINE_CONFLICT")
++        manifest = json.loads(self._original_chart_bytes(binding["manifest"]))
++        receipt = json.loads(self._original_chart_bytes(binding["receipt"]))
++        candidates = {row["symbol"] for row in product["rows"]}
++        records = receipt.get("records")
++        if (not isinstance(records, list) or receipt.get("status") != "MECHANICAL_247_DELIVERY_PASS"
++                or receipt.get("expected") != receipt.get("verified") or receipt.get("verified") != len(candidates)
++                or any(receipt.get(key) != [] for key in ("errors", "missing", "extra"))
++                or len(records) != len(candidates) or {row.get("symbol") for row in records} != candidates
++                or not isinstance(manifest.get("samples"), Mapping) or set(manifest["samples"]) != candidates
++                or any(manifest.get(key) is not value or receipt.get(key) is not value
++                       for key, value in {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())):
++            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
++        source_binding = receipt["source_binding"]
++        expected = {"product": product["artifact"], "manifest": product["manifest"], "config": config_ref,
++                    "formula": config["formula"], "engine": config["engine"]}
++        if any(source_binding.get(key) != value for key, value in expected.items()):
++            raise ValueError("ORIGINAL_CHART_COMPLETION_SOURCE_CONFLICT")
++        item = manifest["samples"][symbol]
++        record = next(row for row in records if row["symbol"] == symbol)
++        if (record.get("data_date") != date or record.get("source_generation") != product["source_generation"]
++                or record.get("source_input_sha256") != identity["input_sha256"]
++                or record.get("formula_sha256") != config["formula"]["sha256"]):
++            raise ValueError("ORIGINAL_CHART_RECORD_IDENTITY_CONFLICT")
++        refs = {"html": item["html"], "png": item["PNG"], "projection": item["projection"]}
++        for kind, key in (("html", "html"), ("png", "PNG"), ("projection", "projection")):
++            if any(refs[kind].get(part) != record[key].get(part) for part in ("path", "sha256")):
++                raise ValueError("ORIGINAL_CHART_OUTPUT_REFERENCE_CONFLICT")
++        raw = {kind: self._original_chart_bytes(ref) for kind, ref in refs.items()}
++        if refs["projection"]["path"].endswith(".gz"):
++            with gzip.GzipFile(fileobj=io.BytesIO(raw["projection"])) as compressed:
++                projection_raw = compressed.read(64 * 1024 * 1024 + 1)
++        else:
++            projection_raw = raw["projection"]
++        if len(projection_raw) > 64 * 1024 * 1024:
++            raise ValueError("ORIGINAL_CHART_PROJECTION_SIZE_LIMIT")
++        projection = json.loads(projection_raw)
++        formula = projection["formula_result"]
++        source = projection["source"]
++        if (projection.get("symbol") != symbol or projection.get("data_date") != date
++                or any(projection.get(key) is not value for key, value in
++                       {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())
++                or source.get("generation_id") != product["source_generation"]
++                or source.get("source_input_sha256") != identity["input_sha256"]
++                or source.get("price_basis") != identity["basis"]["price_basis"]
++                or source.get("volume_basis") != identity["basis"]["volume_basis"]
++                or projection.get("source_cache") != record.get("source_cache")
++                or record.get("product_row_ref") != product["row_refs"].get(symbol)
++                or projection.get("product_row_ref") != product["row_refs"].get(symbol)
++                or any(projection["lineage"].get(key) != value for key, value in expected.items())
++                or formula.get("formula_sha256") != config["formula"]["sha256"] or formula.get("mode") != "prefix"
++                or formula.get("field_count") != 51 or formula.get("drawing_count") != 22
++                or len(formula.get("rows", [])) != item.get("rows") or not formula.get("rows")
++                or formula["rows"][-1].get("trade_date") != int(date)
++                or projection.get("unsupported_drawings") != []):
++            raise ValueError("ORIGINAL_CHART_PROJECTION_IDENTITY_CONFLICT")
++        answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "READY", "symbol": symbol,
++            "data_date": date, "source_generation": product["source_generation"], "input_sha256": identity["input_sha256"],
++            "formula_sha256": config["formula"]["sha256"], "engine_sha256": config["engine"]["sha256"],
++            "product_manifest": product["manifest"], "product_artifact": product["artifact"],
++            "chart_manifest": binding["manifest"], "completion_receipt": binding["receipt"],
++            "rows": item["rows"], "values_per_row": 51, "drawings_per_row": 22, "assets": refs,
++            "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++        if asset is not None:
++            if asset not in refs or asset_sha256 != refs[asset]["sha256"]:
++                raise ValueError("ORIGINAL_CHART_ASSET_SHA_CONFLICT")
++            answer["_asset_bytes"] = raw[asset]
++        return answer
++
+     def _a_product_reference(self, reference):
+         root = self._a_product_root()
+         if (
+--- a/apps/api/v4_api/research_router.py
++++ b/apps/api/v4_api/research_router.py
+@@ -6,8 +6,9 @@
+ import re
+ from pathlib import Path
+ from typing import Any, Mapping
+-
+-from fastapi import APIRouter, HTTPException, Query, Response
++from urllib.parse import urlencode
++
++from fastapi import APIRouter, HTTPException, Query, Request, Response
+ 
+ try:
+     from apps.api.v4_api.wechat_research_router import create_wechat_research_router
+@@ -441,6 +442,7 @@
+     research_read_root: Path | None = None,
+     wechat_archive_root: Path | str | None = None,
+     shared_data_root: Path | str | None = None,
++    original_chart_binding: Mapping[str, Any] | None = None,
+ ) -> APIRouter:
+     """Build the legacy research API with an explicit read-only source root.
+ 
+@@ -457,7 +459,8 @@
+     position25_provider = position25_provider or (Position25Provider() if Position25Provider else None)
+ 
+     from infrastructure.research_lane_source import ResearchLaneSource
+-    a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=shared_data_root)
++    a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=shared_data_root,
++                                       original_chart_binding=original_chart_binding)
+ 
+     @router.get("/a-share/daily-product")
+     def exact_a_share_daily_product(date: str | None = None, symbol: str | None = None) -> dict:
+@@ -465,6 +468,40 @@
+             return a_daily_source.read_a_daily_product(date, symbol)
+         except (ValueError, OSError, KeyError) as error:
+             return {"schema_version":"v4.a_share.daily_product.v1", "status":"CANNOT_CONFIRM", "data_date":date, "rows":[], "cannot_confirm":[str(error)], "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++
++    def original_chart_answer(request, date, symbol, generation, input_sha256, asset=None, sha256=None):
++        try:
++            if set(request.query_params) - {"date", "symbol", "generation", "input_sha256", "sha256"}:
++                raise ValueError("ORIGINAL_CHART_QUERY_NOT_ALLOWED")
++            answer = a_daily_source.read_original_chart(date, symbol, generation=generation,
++                input_sha256=input_sha256, asset=asset, asset_sha256=sha256)
++            if asset is not None:
++                media = {"html": "text/html", "png": "image/png", "projection": "application/octet-stream"}[asset]
++                headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Original-Chart-SHA256": sha256}
++                if asset == "html":
++                    headers["Content-Security-Policy"] = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
++                return Response(content=answer.pop("_asset_bytes"), media_type=media, headers=headers)
++            query = {"date": date, "symbol": symbol, "generation": answer["source_generation"], "input_sha256": answer["input_sha256"]}
++            answer["assets"] = {kind: {**ref, "url": "/api/v4/research/a-share/original-chart/" + kind + "?" + urlencode({**query, "sha256": ref["sha256"]})}
++                                for kind, ref in answer["assets"].items()}
++            return answer
++        except (ValueError, OSError, KeyError, TypeError, AttributeError, EOFError) as error:
++            answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "CANNOT_CONFIRM", "data_date": date,
++                "symbol": symbol, "cannot_confirm": [str(error)], "research_only": True,
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++            if asset is not None:
++                return Response(content=json.dumps(answer), status_code=409, media_type="application/json", headers={"Cache-Control": "no-store"})
++            return answer
++
++    @router.get("/a-share/original-chart")
++    def exact_original_chart(request: Request, date: str, symbol: str, generation: str | None = None,
++                             input_sha256: str | None = None):
++        return original_chart_answer(request, date, symbol, generation, input_sha256)
++
++    @router.get("/a-share/original-chart/{asset}")
++    def exact_original_chart_asset(asset: str, request: Request, date: str, symbol: str,
++                                   generation: str | None = None, input_sha256: str | None = None, sha256: str | None = None):
++        return original_chart_answer(request, date, symbol, generation, input_sha256, asset, sha256)
+ 
+     @router.get("/a-share/history")
+     def exact_a_share_history(ts_code: str, start_date: str, end_date: str, formula_version: str) -> dict:
+--- a/research-panel/numeric283-panel.js
++++ b/research-panel/numeric283-panel.js
+@@ -15,6 +15,7 @@
+   const CHART_PROFILE = "V4_DAILY_NUMERIC283_CHART_20261029_R1";
+   const CHART_NAMESPACE = "ACTIVE_MA_USER_20261021_V1";
+   const D29_NUMERIC_FORMULA_SHA256 = "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac";
++  const ORIGINAL_ENGINE_SHA256 = "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c";
+ 
+   const GROUP_LABELS = Object.freeze({
+     original: "原始公式",
+@@ -390,6 +391,27 @@
+     return answer;
+   }
+ 
++  function validateOriginalChart(answer, symbol, product) {
++    const sameRef = (a, b) => a?.path === b?.path && a?.sha256 === b?.sha256;
++    if (answer?.status !== "READY") throw new Error((answer?.cannot_confirm || [answer?.status || "原式图未绑定"]).join(" · "));
++    if (answer.schema_version !== "v4.a_share.original_chart.v1" || answer.symbol !== symbol || answer.data_date !== product.data_date
++        || answer.source_generation !== product.source_generation || answer.input_sha256 !== product.source_identity?.input_sha256
++        || answer.formula_sha256 !== D29_NUMERIC_FORMULA_SHA256 || answer.engine_sha256 !== ORIGINAL_ENGINE_SHA256
++        || !sameRef(answer.product_manifest, product.manifest) || !sameRef(answer.product_artifact, product.artifact)
++        || answer.research_only !== true || answer.production_allowed !== false || answer.buy_gate_updated !== false || answer.orders_sent !== false
++        || !Number.isInteger(answer.rows) || answer.rows < 1 || answer.values_per_row !== 51 || answer.drawings_per_row !== 22) {
++      throw new Error("原式图与当前代码、日期、来源或公式身份不匹配");
++    }
++    const asset = answer.assets?.html;
++    if (!/^[0-9a-f]{64}$/.test(asset?.sha256 || "") || !asset.url?.startsWith("/api/v4/research/a-share/original-chart/html?")) throw new Error("原式图地址未绑定");
++    const url = new URL(asset.url, "http://bound.invalid");
++    for (const [key, value] of Object.entries({date: product.data_date, symbol, generation: product.source_generation,
++      input_sha256: product.source_identity.input_sha256, sha256: asset.sha256})) {
++      if (url.searchParams.get(key) !== value) throw new Error("原式图地址身份冲突");
++    }
++    return answer;
++  }
++
+   function mount(document, windowObject) {
+     const panel = document.getElementById("dailyNumeric283Panel");
+     if (!panel) return;
+@@ -407,6 +429,69 @@
+     let payloadMetadata = null;
+     let currentRows = [];
+     let productRequest = 0;
++    let originalFrame = null;
++    let originalObserver = null;
++
++    function clearOriginalChart() {
++      originalObserver?.disconnect(); originalObserver = null;
++      originalFrame?.remove(); originalFrame = null;
++    }
++
++    function originalMode(active) {
++      const legacy = document.getElementById("numeric283chart85Panel"); if (legacy) legacy.hidden = active;
++      const unknown = document.getElementById("numeric283chart85Unknown"); if (active && unknown) unknown.hidden = true;
++      for (const line of chartPanel.querySelectorAll("p")) {
++        if (line.textContent.includes("历史图 API 使用指标命名空间")) line.hidden = active;
++      }
++    }
++
++    function loadOriginalChart(symbol, token) {
++      const product = payloadMetadata;
++      const query = new URLSearchParams({date: product.data_date, symbol, generation: product.source_generation,
++        input_sha256: product.source_identity.input_sha256});
++      windowObject.fetch(`/api/v4/research/a-share/original-chart?${query}`, {signal: chartController.signal, cache: "no-store"})
++        .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
++        .then(answer => {
++          if (token !== chartRequest || product !== payloadMetadata) return;
++          validateOriginalChart(answer, symbol, product);
++          const frame = document.createElement("iframe");
++          originalFrame = frame; frame.id = "dailyOriginalFormulaFrame";
++          frame.title = `${symbol} · D${answer.data_date} · 原式51变量/22绘图`;
++          frame.style.cssText = "width:100%;height:1650px;border:0;display:block";
++          frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
++          const fail = error => {
++            if (token !== chartRequest) return;
++            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
++          };
++          frame.onload = () => {
++            if (token !== chartRequest || product !== payloadMetadata) { frame.remove(); return; }
++            try {
++              const child = frame.contentDocument;
++              if (!child || child.contentType !== "text/html" || !child.getElementById("chart")) throw new Error("原式图文件未通过只读接口校验");
++              const ready = () => {
++                if (token !== chartRequest || product !== payloadMetadata) { clearOriginalChart(); return; }
++                if (child.getElementById("status")?.classList.contains("error")) { fail(new Error("原式图内部身份未确认")); return; }
++                if (!child.documentElement.dataset.loaded) return;
++                const state = frame.contentWindow.RESEARCH_PANEL_STATE;
++                if (state?.symbol !== symbol || state.rows?.at(-1)?.trade_date !== Number(product.data_date) || state.rows.length !== answer.rows) {
++                  fail(new Error("原式图实际代码或日期不符")); return;
++                }
++                originalObserver?.disconnect(); originalObserver = null;
++                chartStatus.textContent = `${symbol} · D${answer.data_date} · 原式 d35c · ${answer.rows}行 · 51数值/22绘图；同源只读产物，非股票完整PASS或原生/PIT认证。`;
++              };
++              originalObserver = new windowObject.MutationObserver(ready);
++              originalObserver.observe(child.documentElement, {attributes: true, subtree: true, childList: true, characterData: true});
++              ready();
++            } catch (error) { fail(error); }
++          };
++          frame.src = answer.assets.html.url;
++          chartPanel.appendChild(frame);
++        }).catch(error => {
++          if (token === chartRequest && error.name !== "AbortError") {
++            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
++          }
++        });
++    }
+ 
+     function setChartControlsDisabled(disabled) {
+       const previousWindow = document.getElementById("numeric283prevWindow");
+@@ -431,6 +516,7 @@
+       const token = ++chartRequest;
+       chartController?.abort();
+       chartController = new AbortController();
++      clearOriginalChart();
+       setChartControlsDisabled(true);
+       windowObject.Numeric283Chart?.clear();
+       chartPanel.hidden = false;
+@@ -444,6 +530,9 @@
+       const reports = document.getElementById("relatedReports");
+       if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name); }
+       showStatistics(symbol, token);
++      const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
++      originalMode(datedOriginal);
++      if (datedOriginal) { loadOriginalChart(symbol, token); return; }
+       if (!windowObject.Numeric283Chart) {
+         chartStatus.textContent = "图表渲染器不可用；旧图已清空。";
+         return;
+@@ -532,7 +621,9 @@
+     }
+     function commitPayload(payload) {
+       const rows = payload.schema_version === EXPECTED.schema_version ? validateData(payload) : validateDatedData(payload);
+-      if (payloadMetadata?.source_generation !== payload.source_generation) {
++      if (payloadMetadata?.source_generation !== payload.source_generation || payloadMetadata?.data_date !== payload.data_date
++          || payloadMetadata?.artifact?.sha256 !== payload.artifact?.sha256) {
++        clearOriginalChart();
+         ++chartRequest; chartController?.abort(); windowObject.Numeric283Chart?.clear(); setChartControlsDisabled(true); windowObject.RelatedReports?.clear();
+         const stats = document.getElementById("dailyEventStatistics"); if(stats) stats.textContent = "新日期名单已更新；请选择当前名单股票读取统计。";
+         chartStatus.textContent = "名单已更新；请主动选择当前名单股票。";
+@@ -564,6 +655,7 @@
+       events.addEventListener("a_share_daily_completed", event => { try { const body=validateDailyCompletionEvent(JSON.parse(event.data)); if (event.lastEventId && event.lastEventId !== body.event_id) throw new Error("SSE id 与事件 ID 不匹配"); loadDated(body).catch(e=>{status.textContent=`新日期产品未确认，保留已核验名单：${e.message}`;}); } catch(e) { status.textContent=`完成事件身份未确认，保留已验证名单：${e.message}`; } });
+       windowObject.addEventListener("pagehide",()=>events.close(),{once:true});
+     }
++    windowObject.addEventListener("pagehide", clearOriginalChart, {once:true});
+ 
+   }
+ 
+@@ -580,6 +672,8 @@
+     completionMatchesProduct,
+     statisticsPresentation,
+     D29_NUMERIC_FORMULA_SHA256,
++    ORIGINAL_ENGINE_SHA256,
++    validateOriginalChart,
+     filterRows,
+     displayGroups,
+     displayPendingGroups,
+--- a/docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py
++++ b/docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py
+@@ -8,6 +8,7 @@
+ from __future__ import annotations
+ 
+ import argparse
++import hashlib
+ from pathlib import Path
+ import socket
+ import sys
+@@ -27,12 +28,20 @@
+ 
+ 
+ def create_demo_app(source_root: Path, runtime_root: Path, *, panel_root: Path | None = None,
+-                    report_data_root: Path | None = None) -> FastAPI:
++                    report_data_root: Path | None = None, original_chart_manifest: Path | None = None) -> FastAPI:
++    chart_options = {}
++    if original_chart_manifest is not None:
++        manifest = original_chart_manifest.expanduser().resolve(strict=True)
++        receipt = manifest.parent / "COMPLETION_RECEIPT_247.json"
++        ref = lambda path: {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
++        chart_options["original_chart_binding"] = {"artifact_root": str(manifest.parent.parent),
++                                                   "manifest": ref(manifest), "receipt": ref(receipt)}
+     app = FastAPI(title="Isolated D29 dashboard demo", docs_url=None, redoc_url=None)
+     app.include_router(
+         create_research_router(
+             runtime_root / "consumer",
+             shared_data_root=source_root,
++            **chart_options,
+         )
+     )
+     app.include_router(
+@@ -69,6 +78,7 @@
+     parser.add_argument("--daily-product-root", required=True, type=Path)
+     parser.add_argument("--panel-root", type=_existing_directory, help="Read-only static asset directory")
+     parser.add_argument("--report-data-root", type=_existing_directory, help="Read-only existing report data directory")
++    parser.add_argument("--original-chart-manifest", type=Path, help="Bind completed chart artifacts only for this isolated instance")
+     parser.add_argument("--port", type=int, default=0)
+     args = parser.parse_args()
+ 
+@@ -83,7 +93,8 @@
+         port = reservation.getsockname()[1]
+ 
+     with tempfile.TemporaryDirectory(prefix="v4-d29-dashboard-demo-") as temporary:
+-        app = create_demo_app(source_root, Path(temporary), panel_root=args.panel_root, report_data_root=args.report_data_root)
++        chart_options = {"original_chart_manifest": args.original_chart_manifest} if args.original_chart_manifest else {}
++        app = create_demo_app(source_root, Path(temporary), panel_root=args.panel_root, report_data_root=args.report_data_root, **chart_options)
+         print("Loopback-only isolated demo: http://127.0.0.1:" + str(port) + "/dashboard-demo", flush=True)
+         print("Read-only panel root: " + str(args.panel_root or PROJECT_ROOT / "research-panel"), flush=True)
+         print("Read-only report data root: " + str(args.report_data_root or Path(temporary) / "lane"), flush=True)
+--- /dev/null
++++ b/tests/test_original_formula_chart_binding.py
+@@ -0,0 +1,117 @@
++import gzip
++import json
++from pathlib import Path
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++from apps.api.v4_api.research_router import create_research_router
++from infrastructure.research_lane_source import ResearchLaneSource
++from test_daily_completion_sse import _fixture_product_tree, _ref, _rebind_product
++
++FLAGS = {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++FORMULA = "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
++ENGINE = "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"
++
++
++def fixture(tmp_path):
++    source_root = (tmp_path / "source").resolve()
++    _, event, product = _fixture_product_tree(source_root)
++    config_path = Path(product["source_config"]["path"])
++    config = {"formula": {"path": "/not-read/formula.txt", "sha256": FORMULA},
++              "engine": {"path": "/not-executed/engine.py", "sha256": ENGINE}}
++    config_path.write_text(json.dumps(config))
++    product["source_config"] = _ref(config_path)
++    product["source_identity"]["basis"] = {"price_basis": "QFQ_ASOF", "volume_basis": "QFQ_EVENT_VOLUME"}
++    Path(event["artifact"]["path"]).write_text(json.dumps(product))
++    _rebind_product(source_root, event)
++    product = ResearchLaneSource(source_root, a_share_daily_root=source_root).read_a_daily_product("20261029")
++    root = (tmp_path / "artifacts").resolve()
++    folder = root / "completed"
++    folder.mkdir(parents=True)
++    source_binding = {"product": product["artifact"], "manifest": product["manifest"], "config": product["source_config"], **config}
++    cache = {"path": "/not-read/bound-cache.json", "sha256": "e" * 64, "bars_sha256": "f" * 64}
++    projection = {"symbol": "600025.SH", "data_date": "20261029", **FLAGS,
++        "source": {"generation_id": product["source_generation"], "source_input_sha256": product["source_identity"]["input_sha256"],
++                   "price_basis": "QFQ_ASOF", "volume_basis": "QFQ_EVENT_VOLUME"},
++        "source_cache": cache, "product_row_ref": product["row_refs"]["600025.SH"], "lineage": source_binding,
++        "formula_result": {"formula_sha256": FORMULA, "mode": "prefix", "field_count": 51, "drawing_count": 22,
++                           "rows": [{"trade_date": 20261029}]}, "unsupported_drawings": []}
++    paths = {"projection": folder / "600025.projection.json.gz", "html": folder / "600025.html", "PNG": folder / "600025.png"}
++    paths["projection"].write_bytes(gzip.compress(json.dumps(projection).encode()))
++    paths["html"].write_bytes(b"<!doctype html><html>stored-original-chart</html>")
++    paths["PNG"].write_bytes(b"\x89PNG\r\n\x1a\nstored-fixture")
++    refs = {kind: _ref(path) for kind, path in paths.items()}
++    manifest = {"samples": {"600025.SH": {"rows": 1, **refs}}, **FLAGS}
++    receipt = {"status": "MECHANICAL_247_DELIVERY_PASS", "expected": 1, "verified": 1,
++               "missing": [], "extra": [], "errors": [], "source_binding": source_binding, **FLAGS,
++               "records": [{"symbol": "600025.SH", "data_date": "20261029", "source_generation": product["source_generation"],
++                            "source_input_sha256": product["source_identity"]["input_sha256"], "formula_sha256": FORMULA,
++                            "source_cache": cache, "product_row_ref": product["row_refs"]["600025.SH"], **refs}]}
++    manifest_path, receipt_path = folder / "MANIFEST.json", folder / "COMPLETION_RECEIPT_247.json"
++    binding = {"artifact_root": str(root)}
++
++    def rebind():
++        manifest_path.write_text(json.dumps(manifest))
++        receipt_path.write_text(json.dumps(receipt))
++        binding.update(manifest=_ref(manifest_path), receipt=_ref(receipt_path))
++
++    def client():
++        app = FastAPI()
++        app.include_router(create_research_router(tmp_path / "consumer", shared_data_root=source_root,
++                                                  original_chart_binding=binding))
++        return TestClient(app, raise_server_exceptions=False)
++
++    rebind()
++    return client, binding, manifest, receipt, projection, paths, rebind
++
++
++def test_exact_get_serves_same_verified_bytes_and_cannot_execute_engine(tmp_path):
++    create, _, _, _, _, paths, _ = fixture(tmp_path)
++    client = create()
++    answer = client.get("/api/v4/research/a-share/original-chart", params={"date": "20261029", "symbol": "600025.SH"}).json()
++    assert answer["status"] == "READY"
++    for kind, source in (("html", "html"), ("png", "PNG"), ("projection", "projection")):
++        response = client.get(answer["assets"][kind]["url"])
++        assert response.status_code == 200
++        assert response.content == paths[source].read_bytes()
++        assert response.headers["x-original-chart-sha256"] == answer["assets"][kind]["sha256"]
++    assert client.get(answer["assets"]["html"]["url"] + "&path=/etc/passwd").status_code == 409
++
++
++@pytest.mark.parametrize("case", ["date", "symbol", "generation", "input", "sha", "formula", "engine", "outside", "symlink", "missing"])
++def test_stale_tampered_or_escaped_artifacts_are_typed_cannot_confirm(tmp_path, case):
++    create, binding, manifest, receipt, projection, paths, rebind = fixture(tmp_path)
++    params = {"date": "20261029", "symbol": "600025.SH"}
++    if case in ("date", "symbol", "generation", "input"):
++        params.update({"date": {"date": "20261028"}, "symbol": {"symbol": "000001.SZ"},
++                       "generation": {"generation": "0" * 64}, "input": {"input_sha256": "0" * 64}}[case])
++    elif case == "sha":
++        paths["html"].write_bytes(b"changed")
++    elif case in ("formula", "engine"):
++        if case == "formula":
++            projection["formula_result"]["formula_sha256"] = "0" * 64
++        else:
++            projection["lineage"]["engine"] = {"path": "/not-executed/engine.py", "sha256": "0" * 64}
++        paths["projection"].write_bytes(gzip.compress(json.dumps(projection).encode()))
++        manifest["samples"]["600025.SH"]["projection"] = _ref(paths["projection"])
++        receipt["records"][0]["projection"] = _ref(paths["projection"])
++        rebind()
++    elif case in ("outside", "symlink"):
++        outside = tmp_path / "outside.html"
++        outside.write_bytes(paths["html"].read_bytes())
++        if case == "symlink":
++            link = paths["html"].parent / "link.html"
++            link.symlink_to(outside)
++            outside = link
++        ref = _ref(outside)
++        manifest["samples"]["600025.SH"]["html"] = ref
++        receipt["records"][0]["html"] = ref
++        rebind()
++    else:
++        paths["PNG"].unlink()
++    response = create().get("/api/v4/research/a-share/original-chart", params=params)
++    assert response.status_code == 200
++    assert response.json()["status"] == "CANNOT_CONFIRM"
++    assert "assets" not in response.json()
+--- /dev/null
++++ b/tests/test_original_formula_chart_view.py
+@@ -0,0 +1,31 @@
++import json
++from pathlib import Path
++import subprocess
++
++
++def test_original_chart_client_identity_and_url_guards():
++    root = Path(__file__).resolve().parents[1]
++    script = r"""
++const assert = require('node:assert/strict');
++const api = require(process.argv[1]);
++const product = {data_date:'20261029', source_generation:'g', source_identity:{input_sha256:'i'},
++ manifest:{path:'/manifest',sha256:'m'},artifact:{path:'/product',sha256:'p'}};
++const symbol = '600025.SH', sha = 'a'.repeat(64);
++const answer = {schema_version:'v4.a_share.original_chart.v1',status:'READY',symbol,data_date:product.data_date,
++ source_generation:'g',input_sha256:'i',formula_sha256:api.D29_NUMERIC_FORMULA_SHA256,engine_sha256:api.ORIGINAL_ENGINE_SHA256,
++ product_manifest:product.manifest,product_artifact:product.artifact,research_only:true,production_allowed:false,
++ buy_gate_updated:false,orders_sent:false,rows:1,values_per_row:51,drawings_per_row:22,
++ assets:{html:{sha256:sha,url:'/api/v4/research/a-share/original-chart/html?'+new URLSearchParams({date:product.data_date,symbol,generation:'g',input_sha256:'i',sha256:sha})}}};
++assert.equal(api.validateOriginalChart(answer,symbol,product), answer);
++for (const key of ['data_date','symbol','source_generation','input_sha256','formula_sha256','engine_sha256']) {
++ const bad=structuredClone(answer); bad[key]='wrong'; assert.throws(()=>api.validateOriginalChart(bad,symbol,product));
++}
++for(const url of ['https://other.invalid/chart','/api/v4/research/a-share/original-chart/html?date=20261028']) {
++ const bad=structuredClone(answer);bad.assets.html.url=url;assert.throws(()=>api.validateOriginalChart(bad,symbol,product));
++}
++const missing=structuredClone(answer);missing.status='CANNOT_CONFIRM';assert.throws(()=>api.validateOriginalChart(missing,symbol,product));
++"""
++    result = subprocess.run([
++        "/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
++        "-e", script, str(root / "research-panel/numeric283-panel.js")], capture_output=True, text=True)
++    assert result.returncode == 0, result.stderr
