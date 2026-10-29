@@ -466,8 +466,8 @@ def research_cache_plan(codes: list[str], *, target: int, config_ref: dict) -> d
     if (identities[0].get("asof_date") != start or identities[1].get("asof_date") != target
             or not all(isinstance(i.get("symbols"), dict) for i in identities)):
         raise QfqGateError("CACHE_IDENTITY_MANIFEST_DATE_UNBOUND")
-    before = load_event_detector(config["prior_detector"], start)
-    after = load_event_detector(config["current_detector"], target)
+    before = load_event_detector(config["prior_detector"], start, wanted_codes=tuple(codes))
+    after = load_event_detector(config["current_detector"], target, wanted_codes=tuple(codes))
     if previous.get("schema") == RESEARCH_CARRY_SCHEMA and previous.get("detector_binding") != before["binding"]:
         raise QfqGateError("CACHE_PARENT_DETECTOR_CONFLICT")
     exceptional = set()
