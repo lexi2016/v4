@@ -27,6 +27,21 @@ assert.throws(() => api.validateDatedData({...product, processed_count: 1}));
 assert.throws(() => api.validateDatedData({...product, group_counts: {...product.group_counts, nav_smallk: 283}}));
 assert.throws(() => api.validateDatedData({...product, sample_only: true}));
 
+function renderedDate(metadata) {
+  const document = {createElement() {
+    return {ownerDocument: document, children: [], setAttribute() {}, appendChild(child) { this.children.push(child); }};
+  }};
+  const tbody = document.createElement('tbody');
+  api.renderRows(tbody, [product.rows[0]], metadata);
+  return tbody.children[0].children[5].textContent;
+}
+for (const observation_date of [undefined, null, '', 'invalid']) {
+  assert.equal(renderedDate({...product, observation_date}), 'D20261029 / 观察未指定',
+    'a dated product cannot inherit the frozen snapshot observation date');
+}
+assert.equal(renderedDate({...product, observation_date: '20261102'}), 'D20261029 / 观察20261102');
+assert.equal(renderedDate(api.EXPECTED), 'D20261028 / 观察20261029', 'the original fixed snapshot retains its declared date');
+
 const event = {
   schema_version: 'v4.a_share.daily_completion.v1', event_id: 'a3771f43d3b38c1bdcafe71d7a87275092a26d9e39b9c3228c19a4f96ddb097f',
   data_date: product.data_date, source_generation: generation, input_sha256: inputSha,
