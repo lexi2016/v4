@@ -41,7 +41,7 @@ Rebind main.app_root/catalog_sha256/registry_sha256 and only MAIN,
 MANAGER_WORKBENCH, ZSXQ_PDF entry file paths/hashes. Rebind API's fixed
 V4_RUNTIME_GRAPH_CONFIG and graphcollector's --config in their scoped plists.
 Both load config per invocation/request; neither follows a mutable current-config
-pointer. Graphcollector uses its existing timer, not a new monitor.
+pointer. Graphcollector retains its existing QueueDirectories inbox, RunAtLoad and60-second throttle; it is not a timer or a new monitor.
 
 Machine readback: check_runtime.py --expected ROOT_ACTIVATION_BINDING.json
 --output SOP_ACTIVATION_READBACK.json. Root freezes exact final plist, graph,
@@ -58,3 +58,14 @@ refreshes, and three unique stocks repeated four times per backend for throughpu
 Twelve tasks do not mean twelve stock samples. There are no provider/default writes.
 
 RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
+
+Acceptance finalization is deterministic: change only the unique new entry status
+from PENDING_INDEPENDENT_REVIEW to PASS, set its actual independent reviewer_id,
+and add independent_review path/SHA. Preserve every old primary field/evidence,
+new eight-key tuple and equivalence receipt. Root computes final afterSHA after
+review in the activation binding/CAS receipt; it is not circularly embedded in
+the reviewed control plan. Main SIGTERM only sets the stop event and waits lane
+children, but hook.stop can terminate active hook children; Root must observe no
+active lane/PDF/announcement child first. Uvicorn gracefully drains connections;
+there is no claimed API in-flight-zero endpoint. Graph one-shot must have no PID
+before unload, preserving its existing inbox trigger and atomic receipts.
