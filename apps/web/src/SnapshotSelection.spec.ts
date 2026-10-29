@@ -4,7 +4,14 @@ import App from "./App.vue";
 import { stageMarketStateText } from "./app_shell/formatters";
 import type { StageWorkbench } from "./app_shell/types";
 
-const fixture = vi.hoisted(() => ({ formalEmpty: false }));
+const fixture = vi.hoisted(() => ({ formalEmpty: false, lineage: false }));
+vi.mock("./components/research/GlobalIndustryMap.vue", async () => {
+  const { defineComponent, h } = await import("vue");
+  return { default: defineComponent({
+    props: { targetDate: String },
+    setup(props) { return () => h("div", { "data-testid": "industry-map", "data-date": props.targetDate }); },
+  }) };
+});
 vi.mock("./api/review", () => ({ loadReview: vi.fn() }));
 vi.mock("./api/runtime", () => ({
   loadTaskStatus: vi.fn(async (date: string) => ({ business_date: date, timeline_nodes: [] })),
@@ -31,7 +38,19 @@ function makeWorkbench(date = "20261029", stage = "STAGE_0930_0935") {
         display_mode: "OBSERVATION_UNVERIFIED", observation_count: 1 },
     },
     unified_rows: [{ market: "HK", code: "HK.00001", name: "合成HK样本", action_level: "NO_BUY" }],
-    execution_evidence: { natural_verified: false, execution_verified: false, cannot_confirm: ["ORIGINAL_INPUT_MISSING"] },
+    execution_evidence: { natural_verified: false, execution_verified: false, cannot_confirm: ["ORIGINAL_INPUT_MISSING"], observed_sha256: "e".repeat(64) },
+    stage_lineage: fixture.lineage ? {
+      natural: { label: "ORIGINAL_NATURAL_RUN", status: "FAILED", receipt_sha256: "d".repeat(64), write_performed: false },
+      recovery: { label: "CONTROLLED_RECOVERY", status: "CANNOT_CONFIRM" }, cannot_confirm: ["ORIGINAL_RECEIPT_GAP"],
+    } : undefined,
+    snapshot_recovery: fixture.formalEmpty ? undefined : { markets: { A_SHARE: {
+      mode: "SNAPSHOT_RECOVERY_OBSERVATION", captured_at: "2026-10-29T15:19:00+08:00",
+      original_stage_cutoff_at: "2026-10-29T09:35:00+08:00", after_original_cutoff: true,
+      observed_rows: 56, requested_rows: 56, missing_symbols: [], gaps: ["SNAPSHOT_AFTER_CUTOFF"],
+      rows: Array.from({ length: 56 }, (_, index) => ({ code: `A.${String(index + 1).padStart(6, "0")}`,
+        name: `报价样本${index + 1}`, last_price: 10, source_update_time: index === 55 ? null : "2026-10-29 15:00:00",
+        captured_at: "2026-10-29T15:19:00+08:00" })),
+    } } },
     snapshot_reselection: fixture.formalEmpty
       ? { status: "FORMAL_RESULT_AVAILABLE", markets: {} }
       : { status: "SELECTED_WATCH_ONLY", markets: { A_SHARE: {
@@ -48,11 +67,12 @@ function makeWorkbench(date = "20261029", stage = "STAGE_0930_0935") {
 
 beforeEach(() => {
   fixture.formalEmpty = false;
+  fixture.lineage = false;
   window.history.replaceState({}, "", "/?date=20261029&stage=STAGE_0930_0935");
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     const body = url.includes("/api/v1/runs/date-list")
-      ? { default_date: "20261029", navigation_date: "20261029", dates: ["20261029"], stage_dates: ["20261029"], future_target_dates: [] }
+      ? { default_date: "20261029", navigation_date: "20261029", dates: ["20261028", "20261029"], stage_dates: ["20261028", "20261029"], future_target_dates: [] }
       : url.includes("/api/v4/operations/sop")
         ? { id: "overview", title: "合成SOP", content: "SOP既有内容", sha256: "c".repeat(64), updated_at: "2026-10-29", relative_path: "docs/SOP.md" }
         : {};
@@ -78,6 +98,61 @@ describe("current stage supplementary selection integration", () => {
     await fireEvent.click(screen.getByRole("button", { name: "SOP" }));
     await waitFor(() => expect(document.querySelector("[data-sop-view]")?.textContent).toContain("SOP既有内容"));
     expect(new URLSearchParams(window.location.search).get("view")).toBe("sop");
+  });
+
+  it("mounts the industry map only while expanded and follows the selected date", async () => {
+    render(App);
+    await screen.findByText("A股选股结果待确认");
+    const summary = screen.getByText("全球行业参考地图");
+    const details = summary.closest("details")!;
+    expect(details.open).toBe(false);
+    expect(screen.queryByTestId("industry-map")).toBeNull();
+    await fireEvent.click(summary);
+    await waitFor(() => expect(screen.getByTestId("industry-map").getAttribute("data-date")).toBe("20261029"));
+    await fireEvent.change(screen.getByLabelText("交易日（日历选择）"), { target: { value: "2026-10-28" } });
+    await waitFor(() => expect(screen.getByTestId("industry-map").getAttribute("data-date")).toBe("20261028"));
+    await fireEvent.click(summary);
+    await waitFor(() => expect(screen.queryByTestId("industry-map")).toBeNull());
+  });
+
+  it("keeps failure, clocks and Top10 visible while detailed lineage and quotes are closed", async () => {
+    fixture.lineage = true;
+    render(App);
+    const selection = await screen.findByRole("generic", { name: "事后快照补选Top10" });
+    const lineage = screen.getByRole("region", { name: "阶段运行血缘" });
+    const lineageDetails = within(lineage).getByText("展开运行血缘详情").closest("details")!;
+    expect(lineageDetails.open).toBe(false);
+    expect(lineage.textContent).toContain("ORIGINAL_NATURAL_RUN · status=FAILED");
+    expect(lineage.textContent).toContain("ORIGINAL_RECEIPT_GAP");
+    expect(lineageDetails.textContent).toContain("d".repeat(64));
+    const observation = screen.getByRole("generic", { name: "当前快照降级观察" });
+    const quoteDetails = within(observation).getByText("展开原始报价观察表").closest("details")!;
+    expect(quoteDetails.open).toBe(false);
+    expect(observation.textContent).toContain("报价源更新时间：2026-10-29 15:00:00、部分源时点缺失");
+    expect(observation.textContent).toContain("真实采集：2026-10-29T15:19:00+08:00");
+    expect(observation.textContent).toContain("晚于原截止：是");
+    expect(selection.closest("details")).toBeNull();
+    expect(within(selection).getAllByRole("row")).toHaveLength(11);
+    expect(selection.textContent).toContain("WATCH_ONLY");
+    expect(selection.textContent).toContain("2026-10-29T17:41:00+08:00");
+    await fireEvent.click(within(lineage).getByText("展开运行血缘详情"));
+    await fireEvent.click(within(observation).getByText("展开原始报价观察表"));
+    expect(lineageDetails.open).toBe(true);
+    expect(quoteDetails.open).toBe(true);
+    expect(within(quoteDetails).getAllByRole("row")).toHaveLength(57);
+    expect(within(quoteDetails).getByText("报价样本56")).toBeTruthy();
+  });
+
+  it("shows missing original execution evidence even with lineage details closed", async () => {
+    render(App);
+    await screen.findByRole("generic", { name: "事后快照补选Top10" });
+    const lineage = screen.getByRole("region", { name: "阶段运行血缘" });
+    const details = within(lineage).getByText("展开运行血缘详情").closest("details")!;
+    expect(details.open).toBe(false);
+    expect(Array.from(lineage.children).some((element) => element !== details && element.textContent?.includes("ORIGINAL_INPUT_MISSING"))).toBe(true);
+    await fireEvent.click(within(lineage).getByText("展开运行血缘详情"));
+    expect(details.open).toBe(true);
+    expect(details.textContent).toContain("e".repeat(64));
   });
 
   it("leaves verified original zero-result precedence intact", async () => {
