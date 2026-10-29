@@ -1,0 +1,28 @@
+{
+  "status": "SOURCE_ONLY_REVIEWED_NOT_DEPLOYED",
+  "scope": "Two separate main-scheduler ledger fixes: complete initial publication; recoverable reclaim mutex",
+  "source_baseline": "95d28c8caa33e57e171b25f91ad3865293a81cd7",
+  "patches": [
+    {"commit": "3f2fa9b3b6b72d0d4056e25b0b3854581f264062", "mechanism": "initial claim publication", "independent_review": "PASS", "targeted_checks": "15 passed; existing eight dispatcher identity failures retained and reproduced before claim"},
+    {"commit": "1dcf892af4cc1f969f2120fec13dac95e8faa310", "mechanism": "reclaim kernel mutex", "independent_review": "PASS", "targeted_checks": "9 passed including one affected prior-publication recovery regression"}
+  ],
+  "original_live_ledger_sha256": "7599de7983c0aeb2f2d56c80a7d9827c75535c593e19765e7b5a2a64466084c8",
+  "current_live_release": "a-daily-sop-closure-20261029-r1-main",
+  "current_live_ledger_sha256": "b777dc21d0884c2f7e6e7aa16444acea9bfb17c105378a96a10df1d646ba69d8",
+  "current_target_methods_and_four_dependencies_match_original": true,
+  "whole_file_retarget_required_before_deployment": true,
+  "deployment_rule": "Preserve the current SOP release changes outside the accepted methods; never overlay this older whole ledger file blindly",
+  "activation_rule": "All old O_EXCL reclaimers must exit before the kernel-lock version runs; mixed-version mutual exclusion is unsupported",
+  "rollback_rule": "Legacy O_EXCL rollback must account for newly persistent mutex markers only after all kernel-lock users are quiescent; never unlink a live kernel mutex",
+  "deferred": ["per-workload completion", "business grandchild ownership", "malformed receipt scan/chain integrity"],
+  "deployed": false,
+  "api_verified": false,
+  "formal_8873_clicked_for_candidate": false,
+  "natural_verified": false,
+  "PIT": "CANNOT_CONFIRM",
+  "hardware_power_loss_durability": "CANNOT_CONFIRM",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

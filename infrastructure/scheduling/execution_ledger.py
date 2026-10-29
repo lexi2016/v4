@@ -17,6 +17,7 @@ from uuid import uuid4
 
 from contracts.runtime_tasks import DispatchRequest, WorkloadDefinition
 from infrastructure.interprocess_lock import _pid_is_alive as _owned_pid_is_alive
+from infrastructure.owned_io import LockAcquireTimeout, SafeRoot
 from infrastructure.owned_path import resolve_owned_path
 
 
@@ -161,7 +162,7 @@ class ExecutionLedger:
             return True
         if any(
             str(receipt.get(field) or "") != str(claim.get(field) or "")
-            for field in ("run_id", "scheduled_date", "business_date", "target_date", "slot", "mode")
+            for field in ("run_id", "business_date", "slot", "mode")
         ):
             return True
         if any(
@@ -170,28 +171,6 @@ class ExecutionLedger:
         ):
             return True
         status = str(receipt.get("status") or "")
-        workload_id = str(claim.get("workload_id") or "")
-        if workload_id:
-            results = receipt.get("workload_results")
-            selected = receipt.get("selected_workload_ids")
-            started = receipt.get("started_workload_ids")
-            if (
-                not isinstance(results, list)
-                or not isinstance(selected, list)
-                or not isinstance(started, list)
-                or workload_id not in selected
-                or workload_id not in started
-            ):
-                return False
-            matching = [
-                item
-                for item in results
-                if isinstance(item, Mapping)
-                and str(item.get("workload_id") or "") == workload_id
-            ]
-            if len(matching) != 1:
-                return False
-            return str(matching[0].get("status") or "") in {"SUCCEEDED", "ALREADY_EXISTS"}
         return status != "FAILED"
 
     def _replace_dead_claim(
@@ -203,47 +182,38 @@ class ExecutionLedger:
     ) -> bool:
         recovery_lock = destination.with_name(f".{destination.name}.reclaim.lock")
         try:
-            lock_handle = os.open(
-                recovery_lock,
-                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-            )
-        except FileExistsError:
+            # Keep this inode stable. Legacy O_EXCL recovery consumers must be
+            # quiescent before activating this kernel-lock implementation.
+            with SafeRoot(destination.parent).kernel_lock(recovery_lock.name, timeout=0):
+                current = _read_existing_claim(destination)
+                if current != dict(observed):
+                    return False
+                if self._has_completed_receipt(current) or _pid_is_alive(current.get("pid")):
+                    return False
+                handle, temporary = tempfile.mkstemp(
+                    prefix=f".{destination.name}.",
+                    suffix=".tmp",
+                    dir=destination.parent,
+                )
+                try:
+                    with os.fdopen(handle, "wb") as output:
+                        output.write(encoded)
+                        output.flush()
+                        os.fsync(output.fileno())
+                    os.replace(temporary, destination)
+                finally:
+                    if os.path.exists(temporary):
+                        os.unlink(temporary)
+                return True
+        except LockAcquireTimeout:
             return False
-        try:
-            os.close(lock_handle)
-            current = _read_existing_claim(destination)
-            if current != dict(observed):
-                return False
-            if self._has_completed_receipt(current) or _pid_is_alive(current.get("pid")):
-                return False
-            handle, temporary = tempfile.mkstemp(
-                prefix=f".{destination.name}.",
-                suffix=".tmp",
-                dir=destination.parent,
-            )
-            try:
-                with os.fdopen(handle, "wb") as output:
-                    output.write(encoded)
-                    output.flush()
-                    os.fsync(output.fileno())
-                os.replace(temporary, destination)
-            finally:
-                if os.path.exists(temporary):
-                    os.unlink(temporary)
-            return True
-        finally:
-            try:
-                recovery_lock.unlink()
-            except FileNotFoundError:
-                pass
 
     def _claim(self, relative: str, payload: Mapping[str, Any]) -> ClaimResult:
         destination = self._path(relative)
-        destination.parent.mkdir(parents=True, exist_ok=True)
         run_id = str(payload["run_id"])
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
         try:
-            handle = os.open(destination, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            SafeRoot(self.root).write_bytes(relative, encoded, require_absent=True)
         except FileExistsError:
             existing = _read_existing_claim(destination)
             run_id = str(existing.get("run_id") or "")
@@ -260,11 +230,6 @@ class ExecutionLedger:
             ):
                 return ClaimResult(True, str(payload["run_id"]), relative)
             return ClaimResult(False, run_id, relative)
-        try:
-            os.write(handle, encoded)
-            os.fsync(handle)
-        finally:
-            os.close(handle)
         return ClaimResult(True, run_id, relative)
 
     def try_claim_dispatch(self, request: DispatchRequest) -> ClaimResult:
