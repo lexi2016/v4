@@ -1,0 +1,27 @@
+{
+  "status": "SOURCE_REVIEWED_RELEASE_PENDING",
+  "goal": "Desktop A-share review remains selected after reloading from the research view",
+  "scope": "Five production lines in the existing navigation helper; no new panel, service, dependency or CSS change",
+  "source_baseline": "f68429eaff791d4c005f8d61cc925e73cf9d6ec9",
+  "source_commit": "d95b27baa319ff7e1856378b370a65a32926a8c5",
+  "baseline_provenance": "Four existing live web source files were aligned with the current API release before this patch; these are not new feature changes",
+  "current_parent_release": "a-daily-sop-closure-20261029-r1-api",
+  "source_before_sha256": "dec6ca245deb6253251a32594ed1e5afa5dd891a8128ff51247288249d3ce923",
+  "source_after_sha256": "67bc3a67e80cae329b2efeb72f85c9b4447948230ad927e9fc295ecc26cafe0f",
+  "source_independent_review": "PASS",
+  "checks": {
+    "baseline_reproduction": "FAIL as expected: visible A-share review retained view=research in the URL",
+    "navigation_regression": "3/3 PASS",
+    "vite_build": "PASS",
+    "typecheck": "FAIL: same 26 diagnostics reproduced with exact baseline navigation source; no new changed-file diagnostic"
+  },
+  "release_preparation": "Pending recovery-race correction and scoped independent review",
+  "deployed": false,
+  "formal_8873_ui_verified": false,
+  "natural_verified": false,
+  "mobile_and_narrow_screen": "CANCELLED_BY_USER",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
