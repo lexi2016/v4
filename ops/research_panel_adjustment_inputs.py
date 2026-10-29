@@ -336,6 +336,7 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                      client_factory: Callable[[], Any] | None = None, force_refresh: bool = False,
                      required_start: dict[str, int] | None = None,
                      history_extension: dict | None = None, retained_history: dict | None = None,
+                     research_cache_config_ref: dict | None = None,
                      **query_options) -> dict:
     root = input_path(data_root).parent
     sync_ref, eligible, floor = original_sync_contract(tdx_root, target)
@@ -374,7 +375,13 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     # Real Stage-A quota evidence: 0.2s exceeded 60 requests/30s. Preserve the
     # reviewed cache component and enforce the safer cadence at this caller.
     query_options["min_interval"] = max(.65, float(query_options.get("min_interval", .65)))
-    if history_extension is None:
+    if research_cache_config_ref is not None:
+        if history_extension is not None or force_refresh:
+            raise QfqGateError("RESEARCH_CACHE_WITH_HISTORY_OR_FORCE_CONFLICT")
+        from ops.research_panel_factor_cache import collect_research_metadata
+        metadata, research_plan = collect_research_metadata(list(bindings), cache_root=factor_cache_root, target=target,
+                    config_ref=research_cache_config_ref, with_plan=True, client_factory=client_factory, **query_options)
+    elif history_extension is None:
         metadata = collect_metadata(list(bindings), cache_root=factor_cache_root, target=target,
                                     client_factory=client_factory, force_refresh=force_refresh, prequery_sync_ref=sync_ref, **query_options)
     else:
@@ -416,7 +423,16 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
         if code in quarantine:
             continue
         response_scope = None
-        if receipt["status"] in ("OK", "EMPTY"):
+        if receipt["status"] == "RESEARCH_CACHE_CARRY_FORWARD":
+            if research_cache_config_ref is None:
+                raise QfqGateError("RESEARCH_CACHE_REQUIRES_EXPLICIT_BUILDER_OPT_IN")
+            from ops.research_panel_factor_cache import research_carry_events
+            events, response_scope = research_carry_events(receipt, code, target, binding["compute_start_date"], plan=research_plan)
+            ref = receipt["original_provider_response"]
+            sources[ref["path"]] = ref
+            sources[research_cache_config_ref["path"]] = research_cache_config_ref
+            method = "RESEARCH_CACHE_CARRY_FORWARD"
+        elif receipt["status"] in ("OK", "EMPTY"):
             ref = receipt["response"]
             events, response_scope = _full_provider_response_events(receipt, code, target, binding["compute_start_date"], metadata)
             sources[ref["path"]] = ref
@@ -464,6 +480,12 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                     volume_adjustment="INDEPENDENT_PROVIDER_BACKWARD_A_NOT_RECIPROCAL_FORWARD_A",
                     amount_basis="RAW_TURNOVER", convention="FUTU_AFFINE_WITH_EXPLICIT_TDX_UNSUPPORTED_FALLBACK_V1",
                     historical_PIT=False, source_files=sorted(sources.values(), key=lambda x: x["path"]), symbols=symbols)
+    if research_cache_config_ref is not None:
+        snapshot.update(schema="a_share_qfq_adjustment_input_research_cache_v1",
+                        label="RESEARCH_CACHE_CARRY_FORWARD", provider_revision_coverage="CANNOT_CONFIRM",
+                        research_cache_configuration=research_cache_config_ref,
+                        research_factor_receipts=metadata,
+                        RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
     if legacy_ref:
         snapshot["source_files"].append(legacy_ref)
         snapshot["legacy_preservation_policy"] = legacy_ref

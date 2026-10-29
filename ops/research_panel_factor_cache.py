@@ -419,3 +419,193 @@ def collect_metadata(codes: list[str], *, cache_root: Path, target: int, **optio
         finally:
             fcntl.flock(handle, fcntl.LOCK_UN)
 
+
+
+RESEARCH_CARRY_SCHEMA = "research_factor_cache_carry_forward.v1"
+RESEARCH_CARRY_LABEL = "RESEARCH_CACHE_CARRY_FORWARD"
+
+
+def _provider_original(item: dict, code: str) -> dict:
+    """Validate original whole response without changing its observation dates."""
+    if item.get("status") not in ("OK", "EMPTY"):
+        raise QfqGateError("CACHE_ORIGINAL_STATUS_INVALID:" + code)
+    for key in ("capture_date", "asof_date"):
+        if type(item.get(key)) is not int:
+            raise QfqGateError("CACHE_ORIGINAL_DATE_UNBOUND:" + code)
+        datetime.strptime(str(item[key]), "%Y%m%d")
+    observed = datetime.fromisoformat(item["queried_at"])
+    if observed.tzinfo is None or int(observed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")) != item["capture_date"]:
+        raise QfqGateError("CACHE_ORIGINAL_CAPTURE_CONFLICT:" + code)
+    response = json.loads(_source(item["response"], owner="original cache " + code).read_text())
+    rows = response.get("rows")
+    if (response.get("source") != "Futu OpenD get_rehab" or response.get("return_code") != 0
+            or response.get("code") != code[-2:] + "." + code[:6] or not isinstance(rows, list)
+            or item.get("row_count") != len(rows) or item["status"] != ("OK" if rows else "EMPTY")):
+        raise QfqGateError("CACHE_ORIGINAL_RESPONSE_IDENTITY_CONFLICT:" + code)
+    _event_rows(rows, 99991231, 19000101)
+    return item
+
+
+def research_cache_plan(codes: list[str], *, target: int, config_ref: dict) -> dict:
+    """Bound explicit research-only opt-in. No provider/default writes or I/O."""
+    from ops.research_panel_tdx_adjustment_inputs import load_event_detector, event_invalidation
+    config = json.loads(_source(config_ref, owner="research carry configuration").read_text())
+    if config.get("schema") != "research_factor_cache_plan.v1" or config.get("target_date") != target:
+        raise QfqGateError("CACHE_PLAN_SCHEMA_OR_TARGET_CONFLICT")
+    exceptions = config.get("observed_provider_only_exceptions")
+    if not isinstance(exceptions, list) or not config.get("provider_only_exception_scope"):
+        raise QfqGateError("CACHE_OBSERVED_EXCEPTION_SCOPE_UNBOUND")
+    for ref in config.get("source_comparison_refs", []):
+        _source(ref, owner="observed provider comparison")
+    previous_ref = config["previous_metadata"]
+    previous = json.loads(_source(previous_ref, owner="prior cache metadata").read_text())
+    start = previous["asof_date"]
+    if type(start) is not int or start >= target:
+        raise QfqGateError("CACHE_PREVIOUS_TARGET_CONFLICT")
+    identities = [json.loads(_source(config[k], owner=k).read_text()) for k in ("previous_identities", "current_identities")]
+    if (identities[0].get("asof_date") != start or identities[1].get("asof_date") != target
+            or not all(isinstance(i.get("symbols"), dict) for i in identities)):
+        raise QfqGateError("CACHE_IDENTITY_MANIFEST_DATE_UNBOUND")
+    before = load_event_detector(config["prior_detector"], start)
+    after = load_event_detector(config["current_detector"], target)
+    if previous.get("schema") == RESEARCH_CARRY_SCHEMA and previous.get("detector_binding") != before["binding"]:
+        raise QfqGateError("CACHE_PARENT_DETECTOR_CONFLICT")
+    exceptional = set()
+    for exception in exceptions:
+        _source(exception["evidence"], owner="observed provider-only exception")
+        exceptional.add(exception["ts_code"])
+    sync_ref = config.get("prequery_sync_ref")
+    sync_rows = _sync_prequery_rows(sync_ref, target)
+    # A prior research snapshot retains the immutable original capability
+    # evidence, so this remains one bound checkpoint rather than a day scan.
+    plans = {}
+    for code in sorted(set(codes)):
+        decision = _verified_sop_skip(code, sync_rows.get(code), target, sync_ref)
+        prior = previous.get("symbols", {}).get(code, {})
+        if decision is None and code.endswith(".BJ") and code in sync_rows:
+            row = sync_rows[code]
+            try:
+                _source(dict(path=row["path"], sha256=row["source_sha256_after"]), owner="BJ raw identity")
+                decision = _known_prior_bj_route(code, prior, previous_ref, target)
+            except (KeyError, OSError, QfqGateError):
+                pass
+        if decision is not None:
+            plans[code] = dict(route="PREQUERY_EXCLUSION", receipt=decision)
+            continue
+        reasons = event_invalidation(before, after, code, start, target)
+        identity = identities[1]["symbols"].get(code)
+        if not identity or identity != identities[0]["symbols"].get(code):
+            reasons.append("IDENTITY_CHANGED_OR_MISSING")
+        if code in exceptional:
+            reasons.append("OBSERVED_PROVIDER_ONLY_REVISION")
+        original = prior
+        if prior.get("status") == RESEARCH_CARRY_LABEL:
+            # Carry-of-carry may use only a completed, bound prior proof. Its
+            # original observation remains untouched; parent is independently
+            # pinned in today's receipt/config.
+            if (previous.get("status") != "READY_RESEARCH_CACHE" or prior.get("schema") != RESEARCH_CARRY_SCHEMA
+                    or prior.get("target_date") != start or prior.get("identity_binding") != identity
+                    or prior.get("provider_revision_coverage") != "CANNOT_CONFIRM"
+                    or prior.get("verification", {}).get("current_detector_binding") != before["binding"]
+                    or prior.get("provider_queried_for_this_record") is not False
+                    or prior.get("original_provider_response") != prior.get("original_provider_receipt", {}).get("response")
+                    or any(prior.get("original_" + k) != prior.get("original_provider_receipt", {}).get(k)
+                           for k in ("capture_date", "asof_date", "queried_at"))
+                    or prior.get("historical_PIT") is not False):
+                reasons.append("PRIOR_CARRY_PROOF_INVALID")
+            original = prior.get("original_provider_receipt", {})
+        try:
+            _provider_original(original, code)
+            if original["asof_date"] > start or original["capture_date"] > start:
+                raise QfqGateError("CACHE_ORIGINAL_AFTER_PRIOR_TARGET")
+            response = json.loads(Path(original["response"]["path"]).read_text())
+            if any(start < int(''.join(c for c in str(r["ex_div_date"]) if c.isdigit())[:8]) <= target for r in response["rows"]):
+                reasons.append("CACHED_PROVIDER_EVENT_EFFECTIVE_WINDOW")
+        except (KeyError, ValueError, TypeError, OSError, QfqGateError):
+            reasons.append("CACHE_MISSING_OR_INVALID")
+        if reasons:
+            plans[code] = dict(route="REFRESH_REQUIRED", reasons=sorted(set(reasons)))
+            continue
+        receipt = dict(schema=RESEARCH_CARRY_SCHEMA, status=RESEARCH_CARRY_LABEL, label=RESEARCH_CARRY_LABEL,
+            ts_code=code, target_date=target, original_provider_receipt=original,
+            original_capture_date=original["capture_date"], original_asof_date=original["asof_date"],
+            original_queried_at=original["queried_at"], original_provider_response=original["response"],
+            prior_valid_through=start, parent_metadata=previous_ref, identity_binding=identity,
+            configuration=config_ref, verification=dict(target_date=target,
+                prior_detector_binding=before["binding"], current_detector_binding=after["binding"],
+                source_coverage_end_date=after["coverage_end_date"],
+                source_capture=config["current_detector"]["capture"],
+                full_row_fingerprint=after["index"].get(code, {}).get("fingerprint", canonical_sha([])),
+                changed_rows=False, effective_events_in_window=False,
+                decision_basis="OFFICIAL_EVENT_AND_OBSERVED_CACHE_SCOPE"),
+            provider_queried_for_this_record=False, provider_revision_coverage="CANNOT_CONFIRM",
+            provider_revision_scope_limit=config["provider_only_exception_scope"], historical_PIT=False,
+            RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+        plans[code] = dict(route=RESEARCH_CARRY_LABEL, receipt=receipt)
+    return dict(symbols=plans, detector_binding=after["binding"], configuration=config_ref)
+
+
+def collect_research_metadata(codes: list[str], *, cache_root: Path, target: int,
+                              config_ref: dict, with_plan: bool = False, **options):
+    """Separate research output; original collector sees only refresh identities.
+
+    Uses the existing owner lock. Default collect_metadata and _fresh are
+    unchanged. An invalid full detector stops before any provider dispatch.
+    """
+    cache_root.mkdir(parents=True, exist_ok=True)
+    with (cache_root / ".futu_rehab_owner.lock").open("a+b") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise QfqGateError("FACTOR_METADATA_OWNER_ALREADY_ACTIVE") from exc
+        try:
+            plan = research_cache_plan(codes, target=target, config_ref=config_ref)
+            destination = cache_root / "research_carry" / str(target) / (canonical_sha(config_ref) + ".json")
+            plan_sha = canonical_sha(plan)
+            if destination.is_file():
+                existing = json.loads(destination.read_text())
+                if existing.get("plan_sha256") != plan_sha or existing.get("requested_codes") != sorted(set(codes)):
+                    raise QfqGateError("CACHE_RESTART_PLAN_CONFLICT")
+                if existing.get("status") == "READY_RESEARCH_CACHE":
+                    for code, row in existing["symbols"].items():
+                        if row.get("status") in ("OK", "EMPTY"):
+                            _provider_original(row, code)
+                        elif plan["symbols"][code].get("receipt") != {k: v for k, v in row.items() if k != "checked_at"}:
+                            raise QfqGateError("CACHE_RESTART_PROOF_CONFLICT:" + code)
+                    result = dict(existing, reused_completed_proof=True, invocation_provider_call_count=0,
+                                  invocation_provider_identity_count=0)
+                    return (result, plan) if with_plan else result
+            refresh = [c for c, p in plan["symbols"].items() if p["route"] == "REFRESH_REQUIRED"]
+            # No detector error is caught here and no full-list fallback exists.
+            actual = _collect_metadata_owned(refresh, cache_root=cache_root, target=target, **options) if refresh else {}
+            symbols = {}
+            for code, item in plan["symbols"].items():
+                symbols[code] = dict(actual["symbols"][code]) if item["route"] == "REFRESH_REQUIRED" else dict(item["receipt"], checked_at=_now())
+            counts = {s: sum(r["status"] == s for r in symbols.values()) for s in sorted({r["status"] for r in symbols.values()})}
+            ready = all(r["status"] in ("OK", "EMPTY", RESEARCH_CARRY_LABEL, "SOP_SKIPPED", "UNSUPPORTED_MARKET") for r in symbols.values())
+            output = dict(schema=RESEARCH_CARRY_SCHEMA, asof_date=target, symbols=symbols,
+                status="READY_RESEARCH_CACHE" if ready else "FAILED", requested_codes=sorted(set(codes)),
+                requested_count=len(set(codes)), counts=counts, refresh_required_codes=refresh,
+                plan_sha256=plan_sha, configuration=config_ref, detector_binding=plan["detector_binding"],
+                provider_call_count=actual.get("provider_call_count", 0), provider_identity_count=actual.get("provider_identity_count", 0),
+                invocation_provider_call_count=actual.get("provider_call_count", 0),
+                invocation_provider_identity_count=actual.get("provider_identity_count", 0),
+                provider_revision_coverage="CANNOT_CONFIRM",
+                provider_revision_scope_limit=json.loads(_source(config_ref, owner="cache scope").read_text())["provider_only_exception_scope"],
+                finished_at=_now(), historical_PIT=False,
+                RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+            _json(destination, output)
+            return (output, plan) if with_plan else output
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def research_carry_events(receipt: dict, code: str, target: int, start: int, *, plan: dict) -> tuple[list[dict], str]:
+    """Explicit builder seam, revalidated against the bound read-only plan."""
+    expected = plan["symbols"].get(code, {}).get("receipt")
+    if (expected is None or {k: v for k, v in receipt.items() if k != "checked_at"} != expected
+            or receipt.get("status") != RESEARCH_CARRY_LABEL or receipt.get("target_date") != target):
+        raise QfqGateError("CACHE_BUILDER_CARRY_PROOF_CONFLICT:" + code)
+    original = _provider_original(receipt["original_provider_receipt"], code)
+    response = json.loads(Path(original["response"]["path"]).read_text())
+    return _event_rows(response["rows"], target, start), RESEARCH_CARRY_LABEL + "; provider_revision_coverage=CANNOT_CONFIRM; historical_PIT=false"
