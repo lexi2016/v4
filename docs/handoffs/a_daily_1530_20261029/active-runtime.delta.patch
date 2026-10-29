@@ -92,3 +92,41 @@
          return 0
      if status == "ALREADY_READY" and pointer_ready:
          return 0
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -723,6 +723,35 @@
+         previous_workload_id = self._active_workload_id
+         self._active_workload_id = "research_panel_daily_a"
+         try:
++            # A slot migration must not re-acquire an already completed date.
++            # Preserve the strict receipt status; this is dated artifact reuse,
++            # never evidence that the new 15:30 provider run occurred.
++            if request.mode.value == "LIVE" and request.slot == "1530":
++                root = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
++                selector = os.environ.get("V4_RESEARCH_PANEL_A_SELECTOR_POINTER")
++                backtest = os.environ.get("V4_RESEARCH_PANEL_A_BACKTEST_POINTER")
++                if root and selector and backtest:
++                    receipt, _ = _read_exact_dated_receipt(
++                        "ops.macos_research_panel_daily",
++                        ["--date", request.business_date, "--lane", "A", "--receipt-root", root],
++                    )
++                    from ops.macos_research_panel_daily_receipts import validate_a_receipt
++                    status = validate_a_receipt(receipt, request.business_date,
++                                               selector_pointer=selector, backtest_pointer=backtest)
++                    if status in {"READY", "PARTIAL_WITH_ROWS"}:
++                        path = Path(root) / f"a-{request.business_date}.json"
++                        return {"status": "SUCCEEDED", "lane": "A", "lane_status": status,
++                                "target_date": request.business_date, "modules": [], "exit_code": 0,
++                                "migration_reuse": True, "provider_invoked": False,
++                                "natural_1530_verified": False, "source_receipt": str(path),
++                                "source_receipt_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
++                                "row_count": receipt.get("row_count"),
++                                "coverage_rate": receipt.get("coverage_rate"),
++                                "accepted_count": receipt.get("accepted_count"),
++                                "quarantine_count": receipt.get("quarantine_count"),
++                                "target_count": receipt.get("target_count"),
++                                "reason": "EXACT_DATED_A_RECEIPT_REUSED_WITH_PAIRED_ARTIFACT_BINDING",
++                                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+             return self._research_panel_daily(request, lane="A")
+         finally:
+             self._active_workload_id = previous_workload_id

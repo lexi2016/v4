@@ -1,5 +1,5 @@
 {
-  "status": "IMPLEMENTED_FOCUSED_CHECKS_PASS_REVIEW_PENDING",
+  "status": "R2_IMPLEMENTED_AFFECTED_CHECKS_PASS_REVIEW_PENDING",
   "focused_test": "24 passed in 0.07s",
   "command": "A_DAILY_BASELINE='<active Main app>' '<PANEL_PYTHON>' -m pytest -p no:cacheprovider -q --basetemp='<evidence>/pytest_tmp_retry' tests/test_a_daily_1530_schedule.py",
   "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
@@ -8,7 +8,8 @@
     "contracts/runtime_workloads.json",
     "ops/run_v4_macos_scheduler_daemon.py",
     "infrastructure/scheduling/execution_ledger.py",
-    "ops/macos_research_panel_daily_gate.py"
+    "ops/macos_research_panel_daily_gate.py",
+    "infrastructure/scheduling/executor_registry.py"
   ],
   "review": "PENDING",
   "deployed": false,
@@ -16,5 +17,9 @@
   "earliest_source_availability": "CANNOT_CONFIRM",
   "completion_sla": "NOT_ASSERTED",
   "git_baseline": "2d19365185fb8e5841ec055ff8fd1c6569b468a0",
-  "source_baseline_note": "Canonical lacks deployed Main modules. Four selected source files retain actual deployed baseline; active-runtime.delta.patch is sole behavior delta. Candidate is exact active clone plus four source changes and focused test. No blanket canonical restoration."
+  "source_baseline_note": "Canonical lacks deployed Main modules. Four selected source files retain actual deployed baseline; active-runtime.delta.patch is sole behavior delta. Candidate is exact active clone plus four source changes and focused test. No blanket canonical restoration.",
+  "control_tests": "6 PASS including python -O",
+  "migration_tests": "7 PASS",
+  "today_migration_readonly": "VALIDATED_PARTIAL_WITH_ROWS_REUSE_NO_PROVIDER_5538_ACCEPTED_270_QUARANTINED",
+  "remote_sync": "R1 eleven files synced43aab099; R2 held pending incremental review"
 }

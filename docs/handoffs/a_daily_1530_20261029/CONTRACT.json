@@ -11,7 +11,10 @@
     "infrastructure/scheduling/execution_ledger.py",
     "ops/macos_research_panel_daily_gate.py",
     "tests/test_a_daily_1530_schedule.py",
-    "docs/handoffs/a_daily_1530_20261029/"
+    "docs/handoffs/a_daily_1530_20261029/",
+    "infrastructure/scheduling/executor_registry.py",
+    "tests/test_a_daily_1530_migration.py",
+    "tests/test_a_daily_control.py"
   ],
   "FORBIDDEN_PATHS": [
     "live releases",
@@ -34,7 +37,9 @@
     "contracts/runtime_workloads.json": "7389cae30de08cf68c31e5b0bb6f5b17fead403366946496b7a4de148229d0ef",
     "ops/run_v4_macos_scheduler_daemon.py": "d7714977160fbe50a6bbb2a8fa12fa850435d2ff74b3524a8af298e5e3c121e5",
     "infrastructure/scheduling/execution_ledger.py": "7599de7983c0aeb2f2d56c80a7d9827c75535c593e19765e7b5a2a64466084c8",
-    "ops/macos_research_panel_daily_gate.py": "868c3bd4ec97daa3b45cb95a034436a4e153af7207a7ee510880a2a2d0ac75be"
+    "ops/macos_research_panel_daily_gate.py": "868c3bd4ec97daa3b45cb95a034436a4e153af7207a7ee510880a2a2d0ac75be",
+    "infrastructure/scheduling/executor_registry.py": "aefe21cc0a2fd929347e38fe48291729526527a25b4349b3872b8f925e68c8e6"
   },
-  "source_availability": "CANNOT_CONFIRM earliest provider availability;1530 conservative postclose start, no completion SLA"
+  "source_availability": "CANNOT_CONFIRM earliest provider availability;1530 conservative postclose start, no completion SLA",
+  "SCOPE_INCREMENT": "Reviewer control FAIL2: explicit safety gates/full inventory; prevent migration re-acquisition for existing exact dated validated A receipt and paired pointer SHA binding."
 }

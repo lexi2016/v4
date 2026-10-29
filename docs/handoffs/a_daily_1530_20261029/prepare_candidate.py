@@ -8,7 +8,7 @@ BASE=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-
 CANDIDATE=EVIDENCE/'candidate/a-daily-1530-20261029-r1-main'
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def main():
-    contract=json.loads((EVIDENCE/'CONTRACT.json').read_text())
+    contract=json.loads((EVIDENCE/'CONTRACT_R2.json').read_text())
     raw=PLIST.read_bytes(); plist=plistlib.loads(raw)
     assert plist['WorkingDirectory']==str(BASE),'ACTIVE_ROOT_DRIFT'
     assert raw==(EVIDENCE/'active_main_plist.preimage').read_bytes(),'ACTIVE_PLIST_DRIFT'
@@ -22,7 +22,8 @@ def main():
     for p,h in contract['baseline_sha256'].items():
         shutil.copy2(SOURCE/p,CANDIDATE/'app'/p)
         overlay.append({'path':p,'before_sha256':h,'after_sha256':sha(SOURCE/p)})
-    shutil.copy2(SOURCE/'tests/test_a_daily_1530_schedule.py',CANDIDATE/'app/tests/test_a_daily_1530_schedule.py')
+    for test in ('test_a_daily_1530_schedule.py','test_a_daily_1530_migration.py'):
+        shutil.copy2(SOURCE/'tests'/test,CANDIDATE/'app/tests'/test)
     manifest=json.loads((BASE.parent/'release-manifest.json').read_text())
     manifest.update(release_id=CANDIDATE.name,source_root=str(SOURCE),parent_release_root=str(BASE.parent),
                     activation_status='NOT_ACTIVATED',schedule_delta=overlay)
