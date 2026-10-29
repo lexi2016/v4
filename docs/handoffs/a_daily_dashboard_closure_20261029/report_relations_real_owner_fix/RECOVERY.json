@@ -1,0 +1,41 @@
+{
+  "status": "WRITER_TESTED_INCREMENTAL_REVIEW_PENDING",
+  "preimage_sha256": {
+    "infrastructure/zsxq_pdf_ingestion.py": "4ecccf562d24a99d6dd5bae40e0e6f7b5bacb086fc1a6bc32b65cc51fb16b07f",
+    "tests/test_related_pdf_reports.py": "58efbbd2c73edc256fca98a905543003f11ee7f5727f6499386f3dc8e0c36251"
+  },
+  "owner_hunk_proposal": "Return actual verified pdf_size, len(pages_raw), and verified pdf SHA only after original verifier completes",
+  "exact_owner_hunk_authorized_by": "RELATED_API_REPAIR_SCOPE.json scope_amendment",
+  "postimage_sha256": {
+    "infrastructure/zsxq_pdf_ingestion.py": "75a366f9b50b05a94dd588ff551adff992bc2ed2e03801d061afafd226de44df",
+    "tests/test_related_pdf_reports.py": "0678f415cdf7c8745385c1aaf811f8fd9d746140e8c2ba7e7ff17e69b7a4caa8"
+  },
+  "owner_patch_sha256": "c1dc929e3859f6b50d7a5722bc174bd6b4a690260a6dbf691e539c1b47bf406b",
+  "owner_patch_replay": "PASS exact byte equality to final owner from mirrored dirty preimage; actual dirty source never reset",
+  "owner_changed_lines": 3,
+  "tests": [
+    {
+      "command": "PANEL_PYTHON -m pytest -q tests/test_related_pdf_reports.py::ActualOwnerMetadataContractTests --tb=short",
+      "result": "4 passed, 6 subtests passed before adding new metadata/receipt subcases"
+    },
+    {
+      "command": "PANEL_PYTHON -m pytest -q tests/test_related_pdf_reports.py::ActualOwnerMetadataContractTests::test_mismatched_index_metadata_never_emits_reports tests/test_related_pdf_reports.py::ActualOwnerMetadataContractTests::test_cursor_rejects_prior_artifact_or_source_drift --tb=short",
+      "result": "2 passed, 7 subtests passed; only new/affected tests rerun"
+    }
+  ],
+  "test_interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "real_one_detail": "ONE_REAL_DETAIL_RESULT.json PASS, 1 verified document and honest no match for all 3 requested symbols",
+  "unchanged_pass_reused": [
+    "3P2",
+    "index owner adapter 3doc"
+  ],
+  "source_or_shared_index_writes": 0,
+  "full_reindex": false,
+  "services_started": 0,
+  "GUI": "NOT_RUN",
+  "independent_review": "PENDING",
+  "root_three_stock_actual_api": "PENDING",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
