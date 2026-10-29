@@ -215,18 +215,31 @@ def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=Non
 EVENT_INDEX_POLICY = "GBBQ_FULL_ROWS_ALL_CATEGORIES_MULTIPLICITY_V1"
 
 
-def full_row_event_index(rows: list[dict]) -> dict:
+def full_row_event_index(rows: list[dict], *, wanted_codes: tuple[str, ...] = ()) -> dict:
     """Fingerprint every original field; row order is immaterial, duplicates aren't."""
     result = {}
+    wanted_symbols = {code.split(".", 1)[0] for code in wanted_codes}
     required = {"market", "code", "datetime", "category", "hongli_panqianliutong",
                 "peigujia_qianzongguben", "songgu_qianzongguben", "peigu_houzongguben"}
     for row in rows:
         if set(row) != required:
             raise QfqGateError("GBBQ_EVENT_INDEX_SCHEMA_UNBOUND")
-        market = {0: "SZ", 1: "SH", 2: "BJ"}.get(row["market"])
+        market_id = row["market"]
         symbol = str(row["code"])
-        if not market or len(symbol) > 6 or not symbol.isdigit():
+        if (type(market_id) is not int or len(symbol) > 6 or not symbol.isascii()
+                or not symbol.isdigit()):
             raise QfqGateError("GBBQ_EVENT_INDEX_IDENTITY_UNBOUND")
+        market = {0: "SZ", 1: "SH", 2: "BJ"}.get(market_id)
+        if market is None:
+            # Both pinned original captures contain market 99 rows. Retain
+            # these in their raw namespace; no exchange meaning is inferred.
+            # A numerical collision with any requested identity is ambiguous
+            # and blocks the plan, even when that identity has no mapped rows.
+            if market_id != 99:
+                raise QfqGateError("GBBQ_EVENT_INDEX_IDENTITY_UNBOUND")
+            if symbol.zfill(6) in wanted_symbols:
+                raise QfqGateError("GBBQ_EVENT_INDEX_UNKNOWN_MARKET_WANTED_COLLISION:" + symbol.zfill(6))
+            market = "GBBQ_MARKET_99"
         code = symbol.zfill(6) + "." + market
         date = int(row["datetime"])
         datetime.strptime(str(date), "%Y%m%d")
@@ -241,7 +254,7 @@ def full_row_event_index(rows: list[dict]) -> dict:
             for code, items in result.items()}
 
 
-def load_event_detector(descriptor: dict, target: int) -> dict:
+def load_event_detector(descriptor: dict, target: int, *, wanted_codes: tuple[str, ...] = ()) -> dict:
     """Read a bound existing official capture; never fetch or write metadata."""
     captured = json.loads(_source(descriptor["capture"], owner="cache event capture").read_text())
     if (captured.get("source_url") != OFFICIAL_URL or captured.get("parser") != descriptor["parser"]
@@ -265,7 +278,7 @@ def load_event_detector(descriptor: dict, target: int) -> dict:
     frame = pd.read_parquet(derived)
     if len(raw) < 4 or len(raw) != 4 + struct.unpack("<I", raw[:4])[0] * 29 or len(frame) != struct.unpack("<I", raw[:4])[0]:
         raise QfqGateError("CACHE_EVENT_PARSED_COUNT_CONFLICT")
-    return dict(index=full_row_event_index(frame.to_dict(orient="records")),
+    return dict(index=full_row_event_index(frame.to_dict(orient="records"), wanted_codes=wanted_codes),
                 coverage_end_date=_capture_coverage_end(captured), descriptor=descriptor,
                 binding=canonical_sha(descriptor), policy=EVENT_INDEX_POLICY,
                 schema=sorted(frame.columns))
