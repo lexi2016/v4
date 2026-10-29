@@ -215,13 +215,20 @@ def _refresh_locked(store: NativeDataStore, index: Mapping[str, Any], day: str, 
         try:
             detail = _owner()._verified_document_detail(store, index, doc_id, verify_pdf=True)
             receipt = detail['receipt']
-            pdf_sha = receipt.get('verified_pdf_sha256')
-            pdf_size = detail.get('processing', {}).get('verified_pdf_size')
-            pages_size = detail.get('processing', {}).get('verified_pages_size')
+            # The original owner verifies this same engine artifact but returns
+            # only a receipt reference, not duplicated PDF hashes/file lengths.
+            artifact = latest[1]
+            pdf_sha = artifact.get('pdf_sha256')
+            pdf_size = artifact.get('pdf_size')
             if (detail.get('status') != 'READY' or receipt.get('integrity') != 'SOURCE_PDF_AND_PAGE_HASHES_VERIFIED'
                     or not isinstance(pdf_sha, str) or not re.fullmatch(r'[0-9a-f]{64}', pdf_sha)
-                    or type(pdf_size) is not int or not 1 <= pdf_size <= MAX_PDF_BYTES
-                    or type(pages_size) is not int or not 1 <= pages_size <= 32 * 1024 * 1024):
+                    or type(pdf_size) is not int or not 1 <= pdf_size <= MAX_PDF_BYTES):
+                raise SearchIndexError('SEARCH_OWNER_DETAIL_INVALID')
+            pages_raw = _owner()._store_io(store).read_bytes(artifact['pages_path'], max_bytes=32 * 1024 * 1024)
+            if _sha(pages_raw) != artifact.get('pages_file_sha256'):
+                raise SearchIndexError('SEARCH_OWNER_PAGES_SHA_DRIFT')
+            pages_size = len(pages_raw)
+            if not 1 <= pages_size <= 32 * 1024 * 1024:
                 raise SearchIndexError('SEARCH_OWNER_DETAIL_INVALID')
             source = detail['source']
             pages = detail['pages']

@@ -1,0 +1,233 @@
+{
+  "source_index": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/zsxq_pdf_ingestion_index.json",
+    "sha256": "4dc321d62d33f098d4ef06ed60166496ca8021b76bedd22bef5e6438a9c8190a",
+    "stat": {
+      "st_size": 23390474,
+      "st_mtime_ns": 1793135741316187439,
+      "st_ino": 61102460
+    }
+  },
+  "preimage_sha256": "46d9bf4560178df6637175e5dc7ddf50c2df189a4bd36c51c44a7bc97fa5ad7a",
+  "results": [
+    {
+      "document_id": "060991c0aeec8b59eadba44312d9c22b2feddbe9bdc5da8c67003cac3012c0c9",
+      "owner_module": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/infrastructure/zsxq_pdf_ingestion.py",
+      "status": "READY",
+      "top_keys": [
+        "status",
+        "document_id",
+        "research_date",
+        "source",
+        "processing",
+        "excerpt",
+        "last_page_excerpt",
+        "pages",
+        "receipt",
+        "research_only",
+        "production_allowed",
+        "buy_gate_updated",
+        "orders_sent"
+      ],
+      "receipt": {
+        "path": "external_sources/zsxq_hourly/pdfproc_20261015_230000_230000300408_6961e99798c2_d41b1247ee2b/receipts/060991c0aeec8b59eadba44312d9c22b2feddbe9bdc5da8c67003cac3012c0c9_d41b1247ee2bd2a7.json",
+        "sha256": "c1e2998bedc311a3f1126e2481b99feb0f8f9339353d87a877150b881f70a248",
+        "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+      },
+      "processing": {
+        "page_count": 6,
+        "processed_page_count": 6,
+        "downloaded_at": "2026-10-16T08:30:15+08:00",
+        "ocr_started_at": "2026-10-16T08:30:15+08:00",
+        "ocr_completed_at": "2026-10-16T10:03:30+08:00",
+        "completed_at": "2026-10-16T10:03:30+08:00",
+        "available_at": "2026-10-16T10:03:30+08:00",
+        "engine_identity": "d41b1247ee2bd2a7e98187d97245d8bd6ad38cf35ebe7569ddf0c8687eecfaa8",
+        "engine": {
+          "render_scale_to": 2600,
+          "renderer": "pdftoppm",
+          "renderer_path": "/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override/pdftoppm",
+          "renderer_version": "26.05.0",
+          "vision_config_sha256": "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814",
+          "vision_engine": "macOS Vision Swift executable; one process per image/slice",
+          "vision_source_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d"
+        },
+        "late_processing": true,
+        "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT"
+      },
+      "source_keys": [
+        "trade_date",
+        "source_run_id",
+        "group_id",
+        "group_name",
+        "topic_id",
+        "topic_title",
+        "source_topic_published_at",
+        "source_fetched_at",
+        "file_id",
+        "original_filename",
+        "expected_size",
+        "pdf_published_at",
+        "pit_status",
+        "data_role",
+        "late_processing"
+      ],
+      "page_keys": [
+        "page_number",
+        "status",
+        "method",
+        "text",
+        "text_sha256",
+        "observed_at"
+      ],
+      "pages_count": 6
+    },
+    {
+      "document_id": "0092229341bfb77e8cb4ebf600b7b491b86fe3d63fbfbee74b5e7252ebcd9de6",
+      "owner_module": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/infrastructure/zsxq_pdf_ingestion.py",
+      "status": "READY",
+      "top_keys": [
+        "status",
+        "document_id",
+        "research_date",
+        "source",
+        "processing",
+        "excerpt",
+        "last_page_excerpt",
+        "pages",
+        "receipt",
+        "research_only",
+        "production_allowed",
+        "buy_gate_updated",
+        "orders_sent"
+      ],
+      "receipt": {
+        "path": "external_sources/zsxq_hourly/pdfproc_20261016_083000_083000192658_ad6ba79a55d6_d41b1247ee2b/receipts/0092229341bfb77e8cb4ebf600b7b491b86fe3d63fbfbee74b5e7252ebcd9de6_d41b1247ee2bd2a7.json",
+        "sha256": "a8fa0a39112b55a46a119444c16423d8c6b64019cdf900d09d314c55cdf15e32",
+        "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+      },
+      "processing": {
+        "page_count": 4,
+        "processed_page_count": 4,
+        "downloaded_at": "2026-10-16T11:20:49+08:00",
+        "ocr_started_at": "2026-10-16T11:20:50+08:00",
+        "ocr_completed_at": "2026-10-16T11:20:58+08:00",
+        "completed_at": "2026-10-16T11:20:58+08:00",
+        "available_at": "2026-10-16T11:20:58+08:00",
+        "engine_identity": "d41b1247ee2bd2a7e98187d97245d8bd6ad38cf35ebe7569ddf0c8687eecfaa8",
+        "engine": {
+          "render_scale_to": 2600,
+          "renderer": "pdftoppm",
+          "renderer_path": "/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override/pdftoppm",
+          "renderer_version": "26.05.0",
+          "vision_config_sha256": "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814",
+          "vision_engine": "macOS Vision Swift executable; one process per image/slice",
+          "vision_source_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d"
+        },
+        "late_processing": true,
+        "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT"
+      },
+      "source_keys": [
+        "trade_date",
+        "source_run_id",
+        "group_id",
+        "group_name",
+        "topic_id",
+        "topic_title",
+        "source_topic_published_at",
+        "source_fetched_at",
+        "file_id",
+        "original_filename",
+        "expected_size",
+        "pdf_published_at",
+        "pit_status",
+        "data_role",
+        "late_processing"
+      ],
+      "page_keys": [
+        "page_number",
+        "status",
+        "method",
+        "text",
+        "text_sha256",
+        "observed_at"
+      ],
+      "pages_count": 4
+    },
+    {
+      "document_id": "00c4c53199fb8264dace5e027b3800529bb59bcd1e121ac2c8636fa539b021e6",
+      "owner_module": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/infrastructure/zsxq_pdf_ingestion.py",
+      "status": "READY",
+      "top_keys": [
+        "status",
+        "document_id",
+        "research_date",
+        "source",
+        "processing",
+        "excerpt",
+        "last_page_excerpt",
+        "pages",
+        "receipt",
+        "research_only",
+        "production_allowed",
+        "buy_gate_updated",
+        "orders_sent"
+      ],
+      "receipt": {
+        "path": "external_sources/zsxq_hourly/pdfproc_20261017_083000_083000240026_4862b1bea735_d41b1247ee2b/receipts/00c4c53199fb8264dace5e027b3800529bb59bcd1e121ac2c8636fa539b021e6_d41b1247ee2bd2a7.json",
+        "sha256": "408aed08dacff5cac22c1c89d3cabdf775dc39d3c6c07e4c31cca7b5602e1314",
+        "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+      },
+      "processing": {
+        "page_count": 13,
+        "processed_page_count": 13,
+        "downloaded_at": "2026-10-17T08:30:14+08:00",
+        "ocr_started_at": null,
+        "ocr_completed_at": "2026-10-16T10:53:21+08:00",
+        "completed_at": "2026-10-17T08:30:14+08:00",
+        "available_at": "2026-10-17T08:30:14+08:00",
+        "engine_identity": "d41b1247ee2bd2a7e98187d97245d8bd6ad38cf35ebe7569ddf0c8687eecfaa8",
+        "engine": {
+          "render_scale_to": 2600,
+          "renderer": "pdftoppm",
+          "renderer_path": "/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override/pdftoppm",
+          "renderer_version": "26.05.0",
+          "vision_config_sha256": "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814",
+          "vision_engine": "macOS Vision Swift executable; one process per image/slice",
+          "vision_source_sha256": "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d"
+        },
+        "late_processing": true,
+        "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT"
+      },
+      "source_keys": [
+        "trade_date",
+        "source_run_id",
+        "group_id",
+        "group_name",
+        "topic_id",
+        "topic_title",
+        "source_topic_published_at",
+        "source_fetched_at",
+        "file_id",
+        "original_filename",
+        "expected_size",
+        "pdf_published_at",
+        "pit_status",
+        "data_role",
+        "late_processing"
+      ],
+      "page_keys": [
+        "page_number",
+        "status",
+        "method",
+        "text",
+        "text_sha256",
+        "observed_at"
+      ],
+      "pages_count": 13
+    }
+  ],
+  "source_writes": 0,
+  "ocr_calls": 0,
+  "download_calls": 0
+}
