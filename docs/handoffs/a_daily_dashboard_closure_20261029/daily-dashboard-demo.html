@@ -33,14 +33,14 @@
   </section>
   <section class="card">
     <h2>相关研报 API 状态</h2>
-    <p class="muted">隔离服务使用临时研报索引根，避免读取或构建现役索引；NOT_MATERIALIZED 只说明本次验收环境未绑定既有索引，不代表现役研报覆盖。</p>
+    <p class="muted">研报根由隔离启动参数显式绑定；未指定时使用临时空根。下方按接口显示既有索引的真实状态，不构建索引；NOT_MATERIALIZED 不代表现役研报覆盖。</p>
     <p id="reportsState" role="status" aria-live="polite">选择候选后查询 V4 相关研报接口。</p>
     <pre id="reportsOutput"></pre>
   </section>
   <section class="card">
-    <h2>现有研究面板</h2>
-    <p class="muted">下方直接加载本项目的 daily.html 和 numeric283-panel.js；本页的隔离 API 服务不会修改现役 8873。</p>
-    <iframe title="本项目现有每日研究面板" src="/research-panel/daily.html?date=2026-10-27"></iframe>
+    <h2>原面板壳 · D27 历史参照与独立日更模块</h2>
+    <p class="muted">下方归档区域是 2026-10-27 历史参照；其中日更数值模块按 API 日期独立显示，与上方 D29 当前产品分别标注日期。隔离页沿用 daily.html 和 numeric283-panel.js，不修改现役 8873。</p>
+    <iframe title="2026-10-27 历史归档参照（数值模块独立按 API 日期）" src="/research-panel/daily.html?date=2026-10-27"></iframe>
   </section>
   <script>
     'use strict';

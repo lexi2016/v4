@@ -264,6 +264,8 @@
 
   function renderRows(tbody, rows, metadata, onChartClick) {
     const source = metadata || EXPECTED;
+    const observationDate = typeof source.observation_date === "string" && /^\d{8}$/.test(source.observation_date)
+      ? source.observation_date : "未指定";
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
     for (const row of rows) {
       const tr = tbody.ownerDocument.createElement("tr");
@@ -303,7 +305,7 @@
       tr.appendChild(anchorCell);
 
       const dateCell = document.createElement("td");
-      dateCell.textContent = `D${source.data_date || EXPECTED.data_date} / 观察${source.observation_date || EXPECTED.observation_date}`;
+      dateCell.textContent = `D${source.data_date || EXPECTED.data_date} / 观察${observationDate}`;
       tr.appendChild(dateCell);
 
       const sourceCell = document.createElement("td");

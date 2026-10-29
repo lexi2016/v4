@@ -1,0 +1,49 @@
+{
+  "status": "WRITER_TESTED_INCREMENTAL_REVIEW_PENDING",
+  "scope": "Explicit demo roots, missing observation date display, D27 historical caption only",
+  "preimage_sha256": {
+    "docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py": "77a1550f94aae624d41c8f73b6b482abaa46e4b14655c683b4016b5a49d6e765",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/daily-dashboard-demo.html": "447c8415e01dc5c4628339d46f88daac5cd9948c7af75a201749c543991d18d9",
+    "research-panel/numeric283-panel.js": "808e76ccbbde99bb319be48b91293ad2ba862edcb04e493ca0d021693ff88723",
+    "tests/test_dated_daily_panel.js": "96caf1b929e295cf076f2532fb092f6b073c109fbe3636d2a7ba318cc6d5936e"
+  },
+  "changed_files": [
+    "docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/daily-dashboard-demo.html",
+    "research-panel/numeric283-panel.js",
+    "tests/test_dated_daily_panel.js"
+  ],
+  "added_tests": [
+    "tests/test_daily_dashboard_demo.py"
+  ],
+  "postimage_sha256": {
+    "docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py": "aef898aa956bf7db86b0bde15c929712ceb6ca65057687d89591815915fafad0",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/daily-dashboard-demo.html": "43e6e6c5486ee03d94c80d94d0d01b7b50baa760f09125d082761c1c2a8bf0e5",
+    "research-panel/numeric283-panel.js": "9cad551e333ba313af1700bc193524f870f56f74acbf4cb64994dd2e5bca9478",
+    "tests/test_dated_daily_panel.js": "17aa5410ab3686e40b26bb2bb1fe34bd65a6d6e51487ab7ae518b63e8da659f5",
+    "tests/test_daily_dashboard_demo.py": "cc76926c160e59317cd3236244d584ee291169102297b4d2a9797d89eed4bc9c"
+  },
+  "tests": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_daily_dashboard_demo.py --tb=short",
+      "result": "3 passed in 0.07s"
+    },
+    {
+      "command": "node tests/test_dated_daily_panel.js",
+      "result": "PASS; missing/null/empty/invalid dated observation displays 未指定; explicit and original snapshot dates preserved"
+    }
+  ],
+  "reproduction": [
+    "Node assertion reproduced D20261029 wrongly rendered observation20261029 instead of 未指定",
+    "Helper explicit root tests reproduced unsupported CLI flags and create_demo_app keywords; separate default route test adjusted for FastAPI IncludedRouter shape"
+  ],
+  "report_data_mutations": 0,
+  "static_assets_recovered_by_writer": 0,
+  "services_started_by_writer": 0,
+  "browser_or_GUI": "NOT_RUN_BY_WRITER",
+  "root_actual_headless": "PENDING",
+  "independent_review": "PENDING",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
