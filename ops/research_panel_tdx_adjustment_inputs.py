@@ -119,11 +119,16 @@ def official_snapshot(root: Path, config: dict, *, fetch=None, target: int | Non
 
 
 def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=None, parser_factory=None,
-                   refresh_stale_capture: bool = False) -> dict:
+                   refresh_stale_capture: bool = False, capture_ref: dict | None = None) -> dict:
     config_path = root / "qfq_tdx_official_source.json"
     if not config_path.is_file():
         raise QfqGateError(f"OFFICIAL_TDX_FALLBACK_CONFIG_MISSING:{config_path}")
     config = json.loads(config_path.read_text())
+    if capture_ref is not None:
+        # Explicit typed daily source binding reuses the original owner capture;
+        # no config rewrite or second same-target GBBQ download is necessary.
+        _source(capture_ref, owner="daily bound official metadata capture")
+        config = dict(config, cached_capture=capture_ref)
     policy_ref = config.get("category_policy_receipt")
     if not policy_ref:
         raise QfqGateError("TDX_CATEGORY_POLICY_UNCONFIRMED")

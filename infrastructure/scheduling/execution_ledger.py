@@ -1,7 +1,9 @@
-"""Atomic, V3.5-owned dispatch claims and aggregate receipts."""
+"""Atomic, V4-owned dispatch claims and aggregate receipts."""
 from __future__ import annotations
 
 import hashlib
+import fcntl
+import stat
 import json
 import os
 import re
@@ -95,6 +97,10 @@ def _pid_is_alive(pid: Any) -> bool:
     return _owned_pid_is_alive(value)
 
 
+class SchedulerLaneExpired(ValueError):
+    """The actual child has crossed its original natural start cutoff."""
+
+
 class ExecutionLedger:
     def __init__(self, root: Path) -> None:
         self.root = Path(root)
@@ -131,6 +137,7 @@ class ExecutionLedger:
         except (OSError, ValueError, UnicodeError):
             return True
 
+
     def _has_completed_receipt(self, claim: Mapping[str, Any]) -> bool:
         run_id = str(claim.get("run_id") or "")
         mode = str(claim.get("mode") or "").lower()
@@ -154,7 +161,7 @@ class ExecutionLedger:
             return True
         if any(
             str(receipt.get(field) or "") != str(claim.get(field) or "")
-            for field in ("run_id", "scheduled_date", "business_date", "target_date", "slot", "mode")
+            for field in ("run_id", "business_date", "slot", "mode")
         ):
             return True
         if any(
@@ -163,28 +170,6 @@ class ExecutionLedger:
         ):
             return True
         status = str(receipt.get("status") or "")
-        workload_id = str(claim.get("workload_id") or "")
-        if workload_id:
-            results = receipt.get("workload_results")
-            selected = receipt.get("selected_workload_ids")
-            started = receipt.get("started_workload_ids")
-            if (
-                not isinstance(results, list)
-                or not isinstance(selected, list)
-                or not isinstance(started, list)
-                or workload_id not in selected
-                or workload_id not in started
-            ):
-                return False
-            matching = [
-                item
-                for item in results
-                if isinstance(item, Mapping)
-                and str(item.get("workload_id") or "") == workload_id
-            ]
-            if len(matching) != 1:
-                return False
-            return str(matching[0].get("status") or "") in {"SUCCEEDED", "ALREADY_EXISTS"}
         return status != "FAILED"
 
     def _replace_dead_claim(
@@ -438,6 +423,67 @@ class ExecutionLedger:
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)
+
+    def _scheduler_lane_path(self, lane: str) -> Path:
+        if lane not in {"A_LONG", "DEFAULT"}:
+            raise ValueError("SCHEDULER_LANE_INVALID")
+        return self._path(f"scheduler_lane_owners/{lane}.lock")
+
+    def try_acquire_scheduler_lane(self, lane: str) -> int | None:
+        """A stable inode and inherited open FD survive parent restart.
+
+        Never unlink/unlock this file. Parent closes only its descriptor after
+        Popen; the inherited descriptor keeps the kernel lock until child exit.
+        """
+        path = self._scheduler_lane_path(lane)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return fd
+        except BlockingIOError:
+            os.close(fd)
+            return None
+        except BaseException:
+            os.close(fd)
+            raise
+
+    def validate_scheduler_lane(self, business_date: str, slot: str, *, now=None) -> None:
+        raw_fd = os.environ.get("V4_SCHEDULER_LANE_FD")
+        if raw_fd is None:
+            return  # legacy/direct canary calls retain their original contract
+        lane = "A_LONG" if slot == "1610" else "DEFAULT"
+        if (os.environ.get("V4_SCHEDULER_LANE_NAME") != lane
+                or os.environ.get("V4_SCHEDULER_RESOLVED_DATE") != business_date
+                or os.environ.get("V4_SCHEDULER_RESOLVED_SLOT") != slot):
+            raise ValueError("SCHEDULER_LANE_IDENTITY_INVALID")
+        try:
+            fd = int(raw_fd)
+            if fd < 3: raise ValueError
+            info = os.fstat(fd)
+            path = self._scheduler_lane_path(lane)
+            current = path.lstat()
+            if (not stat.S_ISREG(info.st_mode) or not stat.S_ISREG(current.st_mode)
+                    or (info.st_dev, info.st_ino) != (current.st_dev, current.st_ino)):
+                raise ValueError
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (ValueError, OSError) as error:
+            raise ValueError("SCHEDULER_LANE_FD_INVALID") from error
+        from ops.run_v4_macos_scheduler_due import _slot_retry_deadline, SHANGHAI
+        moment = (now or datetime.now(UTC)).astimezone(SHANGHAI)
+        if moment.strftime("%Y%m%d") != business_date or moment > _slot_retry_deadline(business_date, slot):
+            raise SchedulerLaneExpired("SCHEDULER_SLOT_EXPIRED")
+
+    def write_scheduler_observation(self, business_date: str, slot: str,
+                                    payload: Mapping[str, Any]) -> str:
+        """Record queue/process facts separately from business receipts/claims."""
+        relative = (f"scheduler_observations/live/{_segment(business_date)}/{_segment(slot)}/"
+                    f"{uuid4().hex}.observation.json")
+        body = {**dict(payload), "schema_version": "v4.scheduler_observation.v1",
+                "business_date": business_date, "slot": slot,
+                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        self.write_receipt(relative, body)
+        return relative
 
     def _previous_receipt_sha(self, relative: str) -> str:
         """Return the hash of the most recently written sibling receipt.

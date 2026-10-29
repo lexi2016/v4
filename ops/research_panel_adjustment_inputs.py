@@ -398,7 +398,9 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                    if code in bindings and not bindings[code].get("raw_binding_error") and row.get("status") == "UNSUPPORTED_MARKET"}
     if unsupported and history_extension is None:
         from ops.research_panel_tdx_adjustment_inputs import build_fallback
-        fallback = build_fallback(root, unsupported, target, refresh_stale_capture=True)
+        captured = (json.loads(_source(research_cache_config_ref, owner="daily cache metadata source").read_text())["current_detector"]["capture"]
+                    if research_cache_config_ref is not None else None)
+        fallback = build_fallback(root, unsupported, target, refresh_stale_capture=True, capture_ref=captured)
     else:
         fallback = json.loads(fallback_file.read_text()) if fallback_file.is_file() else {}
     sources, symbols, missing = {sync_ref["path"]: sync_ref}, {}, []

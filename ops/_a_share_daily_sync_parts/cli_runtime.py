@@ -94,6 +94,10 @@ def _run_body(_v4_scope, /, args):
     target_date = _v4_global(_v4_scope, 'getattr')(args, "target_date", None)
     if not target_date:
         raise _v4_global(_v4_scope, 'ValueError')("tdx daily sync requires an exact target_date")
+    package_path = _v4_global(_v4_scope, 'getattr')(args, 'official_daily_input', None)
+    package_sha = _v4_global(_v4_scope, 'getattr')(args, 'official_daily_input_sha256', None)
+    if bool(package_path) != bool(package_sha):
+        raise ValueError('official daily input path and SHA must be supplied together')
     result = _v4_global(_v4_scope, 'run_sync')(
         targets,
         target_date=_v4_global(_v4_scope, 'str')(target_date),
@@ -107,6 +111,9 @@ def _run_body(_v4_scope, /, args):
         run_budget_seconds=_v4_global(_v4_scope, 'getattr')(args, "run_budget_seconds", _v4_global(_v4_scope, 'DEFAULT_RUN_BUDGET_SECONDS')),
         progress_path=_v4_global(_v4_scope, 'getattr')(args, "progress_path", None),
         trusted_cas_inputs=_v4_global(_v4_scope, 'getattr')(args, "trusted_cas_inputs", None),
+        seed_adjustment_inputs=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs", None),
+        official_daily_input={"path":str(package_path.resolve()),"sha256":package_sha} if package_path else None,
+        seed_adjustment_inputs_sha256=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs_sha256", None),
     )
     result.update(
         {
@@ -127,6 +134,8 @@ def _run_body(_v4_scope, /, args):
 def _parse_args_body(_v4_scope, /, argv):
     parser = _v4_global(_v4_scope, 'argparse').ArgumentParser(description="Sync latest SH/SZ/BJ daily bars from pytdx into local TDX vipdoc .day files.")
     parser.add_argument("--tdx-root", type=_v4_global(_v4_scope, 'Path'), default=_v4_global(_v4_scope, 'TDX_ROOT'))
+    parser.add_argument("--official-daily-input", type=_v4_global(_v4_scope, 'Path'), default=None)
+    parser.add_argument("--official-daily-input-sha256", default=None)
     parser.add_argument("--target-date", required=True, help="Exact YYYYMMDD target required for a truthful sync.")
     parser.add_argument("--markets", default="a,bj", help="Comma separated: a,bj. HK extended market is intentionally not supported here.")
     parser.add_argument("--count", type=_v4_global(_v4_scope, 'int'), default=20, help="Latest bars to request per symbol.")
@@ -165,5 +174,16 @@ def _parse_args_body(_v4_scope, /, argv):
         type=_v4_global(_v4_scope, 'Path'),
         default=None,
         help="Optional receipt-bound reviewed CAS references; exact target-date only.",
+    )
+    parser.add_argument(
+        "--seed-adjustment-inputs",
+        type=_v4_global(_v4_scope, 'Path'),
+        default=None,
+        help="Optional SHA-bound accepted event/source evidence for historical seed pairs only.",
+    )
+    parser.add_argument(
+        "--seed-adjustment-inputs-sha256",
+        default=None,
+        help="Expected descriptor digest from separately approved release configuration; never from the descriptor.",
     )
     return parser.parse_args(_v4_global(_v4_scope, 'list')(argv) if argv is not None else None)

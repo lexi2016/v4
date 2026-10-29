@@ -42,8 +42,12 @@ def test_unproven_classification_never_acquires_sop_skip(tmp_path,failure):
     if failure=='wrong_target':
         with pytest.raises(cache.QfqGateError,match='TARGET_OR_SAFETY'):run(tmp_path/'cache',ref,client,['000001.SZ'])
         assert client.calls==[]
-    else:
+    elif failure == 'generic_error':
         r=run(tmp_path/'cache',ref,client,['000001.SZ']);assert client.calls==['SZ.000001'];assert r['symbols']['000001.SZ']['status']=='EMPTY'
+    else:
+        with pytest.raises(cache.QfqGateError,match='SOP_REBIND_REQUIRED'):
+            run(tmp_path/'cache',ref,client,['000001.SZ'])
+        assert client.calls==[]
 
 def prior_bj(root,code='920001.BJ',target=20261028):
     error=f'The format of code BJ.{code[:6]} is wrong'
@@ -100,8 +104,12 @@ def test_controller_quarantine_fact_preserves_pending_and_caveat(tmp_path,monkey
     if bad=='mirror_drift':mirror.write_bytes(b'drift')
     if bad=='factset_sha':fact['accepted_case_result_ref']['sha256']='0'*64
     if bad=='effective_date':fact['delisting_effective_date']='20260707'
-    ref=save(Path(ref['path']),s);client=Client();r=run(tmp_path/'cache',ref,client,[code])
-    row=r['symbols'][code]
+    ref=save(Path(ref['path']),s);client=Client()
+    if bad != 'none':
+        with pytest.raises(cache.QfqGateError,match='SOP_REBIND_REQUIRED'):run(tmp_path/'cache',ref,client,[code])
+        assert not client.calls
+        return
+    r=run(tmp_path/'cache',ref,client,[code]);row=r['symbols'][code]
     if bad=='none':
         assert not client.calls and row['status']=='SOP_SKIPPED'
         assert row['original_sync_row']==s['symbol_reconciliation'][0]

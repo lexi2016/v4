@@ -12,6 +12,7 @@ import argparse
 import contextlib
 import csv
 import hashlib
+import io
 import json
 import math
 import os
@@ -22,7 +23,7 @@ import tempfile
 import threading
 import time
 import zlib
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from numbers import Real
 from pathlib import Path
@@ -94,6 +95,162 @@ TRUSTED_CAS_RULE_ID = "A-SYNC-CAS-LOCAL-REUSE-001"
 TRUSTED_CAS_RULE_VERSION = "1"
 TRUSTED_CAS_TARGET_DATE = "20260907"
 TRUSTED_CAS_INPUTS_ENV = "V35_A_SYNC_TRUSTED_CAS_INPUTS"
+SEED_ADJUSTMENT_INPUTS_ENV = "V35_A_SYNC_SEED_ADJUSTMENT_INPUTS"
+SEED_ADJUSTMENT_INPUTS_SHA256_ENV = "V35_A_SYNC_SEED_ADJUSTMENT_INPUTS_SHA256"
+LIFECYCLE_NOTES_SHA256 = "7403a9954d9ae915dcb99cbba03a5dd19d6b85152396c5ff0634e286cdd9357b"
+LIFECYCLE_SKIP_REASON = "VERIFIED_DELISTED_NO_CURRENT_BARS"
+PENDING_STATUS_CODE = "688496.SH"
+PENDING_STATUS_START = "20260911"
+BSE_ALIAS_ASSET_SHA256 = "d784dc18e6b24607c56166ff178d85d9a61d31fbc452d36fecc656d5a988253f"
+BSE_ALIAS_REVIEW_SHA256 = "35622075458a82878581a175266cd95409be1e21305ce70aa8c86fef7c96b855"
+BSE_ALIAS_SKIP_REASON = "VERIFIED_BSE_OLD_CODE_REPLACED"
+
+
+def _load_verified_bse_alias_facts():
+    """Reuse the exact reviewed crosswalk bytes; this is not a security master."""
+    raw = Path(__file__).with_name("a_share_bse_old_new_code_crosswalk.csv").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != BSE_ALIAS_ASSET_SHA256:
+        raise RuntimeError("BSE_ALIAS_ASSET_SHA_CONFLICT")
+    rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8-sig"))))
+    if len(rows) != 248:
+        raise RuntimeError("BSE_ALIAS_ASSET_ROW_COUNT_CONFLICT")
+    indexed, new_codes = {}, set()
+    for row in rows:
+        old, new = row.get("old_ts_code"), row.get("new_ts_code")
+        if old in indexed or new in new_codes:
+            raise RuntimeError("BSE_ALIAS_ASSET_IDENTITY_AMBIGUOUS")
+        indexed[old] = row
+        new_codes.add(new)
+    return indexed
+
+
+def _bse_alias_fact_for_target(facts, symbol, market, target, targets):
+    """Skip only a known old BJ identity, after its captured fact is available.
+
+    Target dates do not carry an intraday cutoff. Same-day capture availability
+    is therefore unknown: require a strictly later Asia/Shanghai target day.
+    This operational skip never certifies historical PIT or the new code's bars.
+    """
+    if market != 2:
+        return None
+    row = facts.get(f"{symbol}.BJ")
+    if not isinstance(row, dict):
+        return None
+    old, new = row.get("old_code"), row.get("new_code")
+    if (row.get("exchange") != "BJ" or old != symbol or not isinstance(new, str)
+            or len(new) != 6 or not new.isascii() or not new.isdigit() or new == old
+            or row.get("old_ts_code") != f"{old}.BJ" or row.get("new_ts_code") != f"{new}.BJ"
+            or row.get("source_row_binding") != "DIRECT_BSE_OLD_NEW_TABLE_ROW"
+            or row.get("mapping_source_sha256") != "95d43bba3b5ca2d6e5a2654755ea732ef52fa8d2c39fe667b5d4eab533a3b877"):
+        return None
+    # These are the two independently accepted effective-date mechanisms.
+    proofs = {
+        "DIRECT_PILOT_NOTICE_2025_05_06": ("2025-05-06", "pilot_effective_date_source_sha256", "01856bf1a2049714253f469fe6c11efad00a62006bac6f5821b99264e89932b7"),
+        "GROUP_RULE_APPLIED_TO_PRE_CUTOVER_CROSSWALK_ROW": ("2025-10-09", "remaining_effective_date_source_sha256", "a027a70eb499d3e8d31ede2b5045ecf3aee3ba02f221743f996fed261a6cc125"),
+    }
+    proof = proofs.get(row.get("code_change_effective_date_status"))
+    if not proof or row.get("code_change_effective_date") != proof[0] or row.get(proof[1]) != proof[2]:
+        return None
+    try:
+        target_day = datetime.strptime(str(target), "%Y%m%d").date()
+        effective_day = datetime.strptime(proof[0], "%Y-%m-%d").date()
+        capture = datetime.fromisoformat(row["captured_at_utc"])
+        if capture.tzinfo is None or capture.utcoffset() != timedelta(0):
+            return None
+        capture_day = capture.astimezone(timezone(timedelta(hours=8))).date()
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return None
+    if target_day < effective_day or target_day <= capture_day:
+        return None
+    # Both mapping directions must be unique. A missing replacement target is
+    # reported without adding it or retrying the obsolete old identity.
+    if sum(item.get("new_ts_code") == row["new_ts_code"] for item in facts.values() if isinstance(item, dict)) != 1:
+        return None
+    replacements = [item for item in targets if str(item.code) == new]
+    if len(replacements) > 1 or any(int(item.market) != 2 for item in replacements):
+        return None
+    return row
+
+
+def _load_pending_trading_status_facts():
+    raw = Path(__file__).with_name("a_share_lifecycle_notes.json").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != LIFECYCLE_NOTES_SHA256:
+        raise RuntimeError("PENDING_STATUS_ASSET_SHA_CONFLICT")
+    rows = json.loads(raw).get("pending_trading_status", [])
+    if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+        raise RuntimeError("PENDING_STATUS_ASSET_ROWS_CONFLICT")
+    keys = [row.get("ts_code") for row in rows]
+    if len(keys) != len(set(keys)):
+        raise RuntimeError("PENDING_STATUS_ASSET_DUPLICATE")
+    return {row["ts_code"]: row for row in rows}
+
+
+def _pending_trading_status_for_target(facts, symbol, market, target):
+    """Uncertainty quarantine, never a declaration of permanent suspension."""
+    if market != 1 or f"{symbol}.SH" != PENDING_STATUS_CODE or int(target) < int(PENDING_STATUS_START):
+        return None
+    row = facts.get(PENDING_STATUS_CODE)
+    unavailable = dict(reason_code="SUSPENSION_EVIDENCE_BINDING_UNAVAILABLE", fact=row,
+                       evidence_expired=False, current_suspension_verified=False)
+    if (not isinstance(row, dict) or row.get("verified_suspension_start") is not True
+            or row.get("suspension_start_date") != PENDING_STATUS_START or not row.get("official_source_refs")):
+        return unavailable
+    resumption = row.get("resumption_effective_date")
+    if row.get("resumption_verified") is True and row.get("resumption_source_refs"):
+        try:
+            datetime.strptime(resumption, "%Y%m%d")
+            if resumption >= PENDING_STATUS_START and int(target) >= int(resumption):
+                return None
+        except (ValueError, TypeError):
+            return unavailable
+    try:
+        asof = row["status_verification_asof_date"]
+        datetime.strptime(asof, "%Y%m%d")
+    except (KeyError, ValueError, TypeError):
+        return unavailable
+    expired = int(target) > int(asof)
+    return dict(reason_code="SUSPENSION_SOURCE_STALE_REVERIFY_REQUIRED" if expired else "SUSPENSION_PENDING_RESUMPTION_VERIFICATION",
+                fact=row, evidence_expired=expired, current_suspension_verified=False)
+
+
+def _load_verified_lifecycle_facts():
+    """Load only the pinned, already accepted fact projection; never fetch."""
+    raw = Path(__file__).with_name("a_share_lifecycle_notes.json").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != LIFECYCLE_NOTES_SHA256:
+        raise RuntimeError("LIFECYCLE_FACT_ASSET_SHA_CONFLICT")
+    asset = json.loads(raw)
+    if (asset.get("schema_version") != "a_share_lifecycle_notes.v1"
+            or asset.get("research_only") is not True
+            or any(asset.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise RuntimeError("LIFECYCLE_FACT_ASSET_CONTRACT_CONFLICT")
+    rows = asset.get("verified_delistings")
+    if not isinstance(rows, list):
+        raise RuntimeError("LIFECYCLE_FACT_ASSET_ROWS_MISSING")
+    indexed = {}
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("ts_code"), str):
+            raise RuntimeError("LIFECYCLE_FACT_ASSET_ROW_INVALID")
+        code = row["ts_code"]
+        if code in indexed:
+            raise RuntimeError("LIFECYCLE_FACT_ASSET_DUPLICATE_CODE")
+        indexed[code] = row
+    return indexed
+
+
+def _lifecycle_fact_for_target(facts, symbol, market, target):
+    suffix = {0: "SZ", 1: "SH", 2: "BJ"}.get(market)
+    row = facts.get(f"{symbol}.{suffix}") if suffix else None
+    if (not isinstance(row, dict) or row.get("verified") is not True
+            or row.get("requires_recent_listed_A_share_bars") is not False):
+        return None
+    day = row.get("delisting_effective_date")
+    if not isinstance(day, str) or len(day) != 8 or not day.isdigit():
+        return None
+    try:
+        datetime.strptime(day, "%Y%m%d")
+    except ValueError:
+        return None
+    return row if int(target) >= int(day) else None
 
 _COMPAT_FAILURE_TYPES = {
     EMPTY_RESPONSE: "empty_response",
@@ -388,7 +545,7 @@ def _bars_equivalent(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
     return _v4_impl(globals(), left, right)
 
 
-def _local_history_status(path: Path, target_date: int) -> tuple[list[dict[str, Any]], str | None]:
+def _local_history_status(path: Path, target_date: int, *, seed_evidence=None, symbol: str | None = None) -> tuple[list[dict[str, Any]], str | None]:
     """Validate existing source bytes before an accepted-only handoff.
 
     The formula reader currently keeps the last duplicate key.  This gate
@@ -396,7 +553,7 @@ def _local_history_status(path: Path, target_date: int) -> tuple[list[dict[str, 
     is quarantined instead of being silently repaired by a downstream reader.
     """
     from ops._a_share_daily_sync_parts.progress import __local_history_status_body as _v4_impl
-    return _v4_impl(globals(), path, target_date)
+    return _v4_impl(globals(), path, target_date, seed_evidence=seed_evidence, symbol=symbol)
 
 
 def _new_progress(target_int: int, targets: list[DailyTarget], *, dry_run: bool) -> dict[str, Any]:
@@ -492,6 +649,7 @@ def _fetch_valid_target_bars(
     field_violations: list[dict[str, Any]] | None = None,
     run_id: str = "",
     recorded_at: str = "",
+    source_rows: Any = None,
 ) -> tuple[list[dict[str, Any]], str]:
     """Fetch one symbol and validate the provider response in wire order.
 
@@ -502,7 +660,7 @@ def _fetch_valid_target_bars(
     silently dropped.
     """
     from ops._a_share_daily_sync_parts.network_session import __fetch_valid_target_bars_body as _v4_impl
-    return _v4_impl(globals(), api, target, target_date, previous_close, count, after_date, capture_response=capture_response, field_violations=field_violations, run_id=run_id, recorded_at=recorded_at)
+    return _v4_impl(globals(), api, target, target_date, previous_close, count, after_date, capture_response=capture_response, field_violations=field_violations, run_id=run_id, recorded_at=recorded_at, source_rows=source_rows)
 
 
 def _reason_code(failure_type: str) -> str:
@@ -561,6 +719,9 @@ def run_sync(
     run_budget_seconds: float = DEFAULT_RUN_BUDGET_SECONDS,
     progress_path: Path | str | None = None,
     trusted_cas_inputs: Path | str | None = None,
+    seed_adjustment_inputs: Path | str | None = None,
+    seed_adjustment_inputs_sha256: str | None = None,
+    official_daily_input: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Synchronize A daily files with bounded host failover and resume.
 
@@ -577,7 +738,7 @@ def run_sync(
     gates pass; uncovered or changed files continue through the owner route.
     """
     from ops._a_share_daily_sync_parts.sync_workflow import _run_sync_body as _v4_impl
-    return _v4_impl(globals(), targets, target_date=target_date, api_factory=api_factory, host_candidates=host_candidates, count=count, timeout=timeout, dry_run=dry_run, request_deadline_seconds=request_deadline_seconds, symbol_budget_seconds=symbol_budget_seconds, run_budget_seconds=run_budget_seconds, progress_path=progress_path, trusted_cas_inputs=trusted_cas_inputs)
+    return _v4_impl(globals(), targets, target_date=target_date, api_factory=api_factory, host_candidates=host_candidates, count=count, timeout=timeout, dry_run=dry_run, request_deadline_seconds=request_deadline_seconds, symbol_budget_seconds=symbol_budget_seconds, run_budget_seconds=run_budget_seconds, progress_path=progress_path, trusted_cas_inputs=trusted_cas_inputs, seed_adjustment_inputs=seed_adjustment_inputs, seed_adjustment_inputs_sha256=seed_adjustment_inputs_sha256, official_daily_input=official_daily_input)
 
 
 def ensure_dir(path: Path) -> None:

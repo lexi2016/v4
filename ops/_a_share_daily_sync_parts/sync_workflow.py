@@ -3,7 +3,7 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_candidates, count, timeout, dry_run, request_deadline_seconds, symbol_budget_seconds, run_budget_seconds, progress_path, trusted_cas_inputs):
+def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_candidates, count, timeout, dry_run, request_deadline_seconds, symbol_budget_seconds, run_budget_seconds, progress_path, trusted_cas_inputs, seed_adjustment_inputs, seed_adjustment_inputs_sha256, official_daily_input=None):
     """Synchronize A daily files with bounded host failover and resume.
 
     A malformed response invalidates only the symbol currently being fetched.
@@ -27,17 +27,26 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
     except _v4_global(_v4_scope, 'ValueError') as error:
         raise _v4_global(_v4_scope, 'ValueError')(f"invalid target date: {target_date!r}") from error
     target_int = _v4_global(_v4_scope, 'int')(target_text)
+    lifecycle_facts = _v4_global(_v4_scope, '_load_verified_lifecycle_facts')()
+    bse_alias_facts = _v4_global(_v4_scope, '_load_verified_bse_alias_facts')()
+    pending_status_facts = _v4_global(_v4_scope, '_load_pending_trading_status_facts')()
     target_list = _v4_global(_v4_scope, 'list')(targets)
     _v4_global(_v4_scope, '_validate_target_scope')(target_list)
+    package = None
+    if official_daily_input is not None:
+        from .official_daily_package import OfficialDailyPackage
+        package = OfficialDailyPackage(official_daily_input, target_int)
+    def source_label(*host):
+        return 'TDX_OFFICIAL_G4DAY' if package is not None else _v4_global(_v4_scope, '_host_label')(*host)
     hosts = [(_v4_global(_v4_scope, 'str')(host), _v4_global(_v4_scope, 'int')(port)) for host, port in host_candidates]
-    if not hosts:
+    if not hosts and package is None:
         raise _v4_global(_v4_scope, 'ValueError')("TDX host candidates are empty")
     request_deadline = _v4_global(_v4_scope, '_positive_budget')(request_deadline_seconds, "request_deadline_seconds")
     symbol_budget = _v4_global(_v4_scope, '_positive_budget')(symbol_budget_seconds, "symbol_budget_seconds")
     run_budget = _v4_global(_v4_scope, '_positive_budget')(run_budget_seconds, "run_budget_seconds")
     target_fingerprint = _v4_global(_v4_scope, '_target_scope_fingerprint')(target_list)
     if progress_path is None:
-        progress_file = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'RUN_DIR')) / "progress" / f"{target_int}-{target_fingerprint}.json"
+        progress_file = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'RUN_DIR')) / "progress" / f"{target_int}-{target_fingerprint}{'-' + package.package_ref['sha256'][:16] if package else ''}.json"
     else:
         progress_file = _v4_global(_v4_scope, 'Path')(progress_path)
     trusted_cas_path = trusted_cas_inputs
@@ -48,7 +57,19 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         target_int,
         expected_target_fingerprint=target_fingerprint,
     )
+    seed_adjustment_path = seed_adjustment_inputs
+    if seed_adjustment_path in (None, ""):
+        seed_adjustment_path = _v4_global(_v4_scope, 'os').environ.get(_v4_global(_v4_scope, 'SEED_ADJUSTMENT_INPUTS_ENV'))
+    seed_adjustment_sha256 = seed_adjustment_inputs_sha256
+    if seed_adjustment_sha256 in (None, ""):
+        seed_adjustment_sha256 = _v4_global(_v4_scope, 'os').environ.get(_v4_global(_v4_scope, 'SEED_ADJUSTMENT_INPUTS_SHA256_ENV'))
+    seed_evidence = {"path": seed_adjustment_path, "expected_sha256": seed_adjustment_sha256, "records": []} if seed_adjustment_path not in (None, "") else None
     progress = _v4_global(_v4_scope, '_load_progress')(progress_file, target_int, target_list, dry_run=dry_run)
+    if package is not None:
+        identity = dict(source_kind='TDX_OFFICIAL_G4DAY', package=package.package_ref, input_ref=package.input_ref)
+        if progress.get('official_daily_source') not in (None, identity) or (progress.get('completed_symbols') and progress.get('official_daily_source') is None):
+            raise ValueError('G4DAY_PROGRESS_SOURCE_IDENTITY_CONFLICT')
+        progress['official_daily_source'] = identity
     run_id = f"{target_int}-{target_fingerprint[:16]}-{_v4_global(_v4_scope, 'time').time_ns()}"
     prior_completed_symbols = {
         _v4_global(_v4_scope, 'str')(value)
@@ -233,7 +254,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         while host_position + 1 < _v4_global(_v4_scope, 'len')(hosts):
             host_position += 1
             candidate = hosts[host_position]
-            candidate_label = _v4_global(_v4_scope, '_host_label')(*candidate)
+            candidate_label = source_label(*candidate)
             if candidate_label in failed_hosts:
                 continue
             last_host_attempted = candidate
@@ -285,7 +306,92 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         processed_symbols.add(symbol)
         recorded_at = _v4_global(_v4_scope, '_observed_at')()
         source_sha_before = _v4_global(_v4_scope, '_file_sha256')(_v4_global(_v4_scope, 'Path')(item.path))
-        history, history_failure = _v4_global(_v4_scope, '_local_history_status')(_v4_global(_v4_scope, 'Path')(item.path), target_int)
+        lifecycle_fact = _v4_global(_v4_scope, '_lifecycle_fact_for_target')(
+            lifecycle_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int)
+        if lifecycle_fact is not None:
+            # Reuse the strict non-admission tuple understood by the original
+            # authority caller. A lifecycle fact is not a current bar, a source
+            # failure, an accepted symbol, or permission to change the pool.
+            last_date = _v4_global(_v4_scope, 'read_last_date')(item.path) if source_sha_before else None
+            row = dict(symbol=symbol, market=_v4_global(_v4_scope, 'int')(item.market),
+                status="CANNOT_CONFIRM", fetch_status="REBUILD_REQUIRED", classification="QUARANTINED",
+                reason_code=_v4_global(_v4_scope, 'LIFECYCLE_SKIP_REASON'), quarantine=True,
+                path=_v4_global(_v4_scope, 'str')(item.path), target_date_ready=False,
+                last_date_before=last_date, last_date_after=last_date, host="not_attempted_lifecycle",
+                records_written=0, attempt_ordinal=0, raw_response_snapshots=[],
+                source_sha256_before=source_sha_before, source_sha256_after=source_sha_before,
+                lifecycle_skip=True, lifecycle_fact=lifecycle_fact,
+                lifecycle_asset_sha256=_v4_global(_v4_scope, 'LIFECYCLE_NOTES_SHA256'),
+                original_symbol_progress_preserved=True, run_id=run_id,
+                rule_id=_v4_global(_v4_scope, 'RULE_ID'), rule_version=_v4_global(_v4_scope, 'RULE_VERSION'),
+                field_rule_id=_v4_global(_v4_scope, 'FIELD_RULE_ID'), field_rule_version=_v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
+                recorded_at=recorded_at)
+            by_symbol[symbol] = row
+            reconciliation_rows.append(_v4_global(_v4_scope, 'dict')(row))
+            # Keep the old symbol failure/accepted evidence unchanged. The new
+            # observation lives in a separate field, not over its old record.
+            progress.setdefault("lifecycle_skips", {})[symbol] = row
+            _v4_global(_v4_scope, '_persist_progress')(progress_file, progress)
+            continue
+        pending_status = _v4_global(_v4_scope, '_pending_trading_status_for_target')(
+            pending_status_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int)
+        if pending_status is not None:
+            last_date = _v4_global(_v4_scope, 'read_last_date')(item.path) if source_sha_before else None
+            row = dict(symbol=symbol, market=_v4_global(_v4_scope, 'int')(item.market), status="CANNOT_CONFIRM",
+                fetch_status="REBUILD_REQUIRED", classification="QUARANTINED", quarantine=True,
+                reason_code=pending_status["reason_code"], target_date_ready=False,
+                path=_v4_global(_v4_scope, 'str')(item.path), last_date_before=last_date, last_date_after=last_date,
+                host="not_attempted_pending_status_verification", records_written=0, attempt_ordinal=0,
+                raw_response_snapshots=[], source_sha256_before=source_sha_before, source_sha256_after=source_sha_before,
+                status_verification_skip=True, status_verification=pending_status, historical_PIT=False,
+                current_suspension_verified=False, original_symbol_progress_preserved=True,
+                lifecycle_asset_sha256=_v4_global(_v4_scope, 'LIFECYCLE_NOTES_SHA256'), run_id=run_id,
+                rule_id=_v4_global(_v4_scope, 'RULE_ID'), rule_version=_v4_global(_v4_scope, 'RULE_VERSION'),
+                field_rule_id=_v4_global(_v4_scope, 'FIELD_RULE_ID'), field_rule_version=_v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
+                recorded_at=recorded_at)
+            by_symbol[symbol] = row
+            reconciliation_rows.append(_v4_global(_v4_scope, 'dict')(row))
+            progress.setdefault("status_verification_skips", {})[symbol] = row
+            _v4_global(_v4_scope, '_persist_progress')(progress_file, progress)
+            continue
+        alias_fact = _v4_global(_v4_scope, '_bse_alias_fact_for_target')(
+            bse_alias_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int, target_list)
+        if alias_fact is not None:
+            last_date = _v4_global(_v4_scope, 'read_last_date')(item.path) if source_sha_before else None
+            row = dict(symbol=symbol, market=2, status="CANNOT_CONFIRM", fetch_status="REBUILD_REQUIRED",
+                classification="QUARANTINED", reason_code=_v4_global(_v4_scope, 'BSE_ALIAS_SKIP_REASON'),
+                quarantine=True, target_date_ready=False, path=_v4_global(_v4_scope, 'str')(item.path),
+                last_date_before=last_date, last_date_after=last_date, host="not_attempted_bse_alias",
+                records_written=0, attempt_ordinal=0, raw_response_snapshots=[],
+                source_sha256_before=source_sha_before, source_sha256_after=source_sha_before,
+                alias_skip=True, alias_fact=alias_fact, replacement_ts_code=alias_fact["new_ts_code"],
+                replacement_target_in_scope=_v4_global(_v4_scope, 'any')(_v4_global(_v4_scope, 'str')(target.code) == alias_fact["new_code"]
+                    and _v4_global(_v4_scope, 'int')(target.market) == 2 for target in target_list),
+                replacement_target_date_ready="NOT_ASSERTED_BY_ALIAS_GUARD",
+                replacement_missing_does_not_add_target=True,
+                alias_asset_sha256=_v4_global(_v4_scope, 'BSE_ALIAS_ASSET_SHA256'),
+                alias_review_sha256=_v4_global(_v4_scope, 'BSE_ALIAS_REVIEW_SHA256'), historical_PIT=False,
+                original_symbol_progress_preserved=True, run_id=run_id,
+                rule_id=_v4_global(_v4_scope, 'RULE_ID'), rule_version=_v4_global(_v4_scope, 'RULE_VERSION'),
+                field_rule_id=_v4_global(_v4_scope, 'FIELD_RULE_ID'), field_rule_version=_v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
+                recorded_at=recorded_at)
+            by_symbol[symbol] = row
+            reconciliation_rows.append(_v4_global(_v4_scope, 'dict')(row))
+            progress.setdefault("alias_skips", {})[symbol] = row
+            _v4_global(_v4_scope, '_persist_progress')(progress_file, progress)
+            continue
+        if seed_evidence is None:
+            history, history_failure = _v4_global(_v4_scope, '_local_history_status')(_v4_global(_v4_scope, 'Path')(item.path), target_int)
+        else:
+            market_suffix = {0: "SZ", 1: "SH", 2: "BJ"}.get(_v4_global(_v4_scope, 'int')(item.market))
+            evidence_symbol = f"{symbol}.{market_suffix}" if market_suffix else ""
+            first_record = _v4_global(_v4_scope, 'len')(seed_evidence["records"])
+            history, history_failure = _v4_global(_v4_scope, '_local_history_status')(
+                _v4_global(_v4_scope, 'Path')(item.path), target_int,
+                seed_evidence=seed_evidence, symbol=evidence_symbol,
+            )
+            progress.setdefault("seed_ratio_explanations", {})[symbol] = seed_evidence["records"][first_record:]
+
         field_violations = _v4_global(_v4_scope, '_local_field_signature_violations')(
             _v4_global(_v4_scope, 'Path')(item.path),
             symbol=symbol,
@@ -326,6 +432,12 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
             history_failure,
             field_violations,
         )
+        if package is not None and trusted_cas_entry is not None:
+            candidate_rows, candidate_status = package.lookup(int(item.market), symbol, last_date)
+            native_equal = (candidate_status == 'OK' and history and
+                            _v4_global(_v4_scope, 'pack_hq_bar')(history[-1]) == _v4_global(_v4_scope, 'pack_hq_bar')(candidate_rows[-1]))
+            if not native_equal:
+                trusted_cas_entry = None
         if trusted_cas_entry is not None:
             # The reviewed-CAS path is a local, receipt-bound acceptance.  It
             # deliberately happens before source_identity_changed and before
@@ -366,6 +478,9 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                 "field_rule_version": _v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
                 "recorded_at": recorded_at,
             }
+            if package is not None:
+                trusted_accepted['source_kind'] = 'TDX_OFFICIAL_G4DAY'
+                trusted_accepted['source_lineage'] = package.lineage(int(item.market), symbol)
             by_symbol[symbol] = trusted_accepted
             reconciliation_rows.append(_v4_global(_v4_scope, 'dict')(trusted_accepted))
             mark_completed(symbol, trusted_accepted)
@@ -437,6 +552,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
             and history
             and _v4_global(_v4_scope, 'valid_hq_bar')(history[-1])[0]
             and not source_identity_changed
+            and package is None
         ):
             accepted = {
                 "symbol": symbol,
@@ -483,7 +599,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
             if remaining <= 0:
                 final_failure = {
                     "symbol": symbol,
-                    "host": _v4_global(_v4_scope, '_host_label')(*(last_host_attempted or host_info))
+                    "host": source_label(*(last_host_attempted or host_info))
                     if (last_host_attempted or host_info)
                     else "not_attempted",
                     "failure_type": "A_SYNC_TIMEOUT:RUN" if remaining_run() <= 0 else "A_SYNC_TIMEOUT:SYMBOL",
@@ -492,7 +608,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                     run_timeout = True
                     timeout_scope = "RUN"
                 break
-            if api is None:
+            if api is None and package is None:
                 try:
                     api, host_info = open_next_host(symbol, symbol_deadline)
                 except _v4_global(_v4_scope, 'SyncTimeoutError') as error:
@@ -516,7 +632,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         )
                     final_failure = {
                         "symbol": symbol,
-                        "host": _v4_global(_v4_scope, '_host_label')(*(last_host_attempted or host_info))
+                        "host": source_label(*(last_host_attempted or host_info))
                         if (last_host_attempted or host_info)
                         else "unavailable",
                         "failure_type": timeout_failure_type,
@@ -534,33 +650,34 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                 except _v4_global(_v4_scope, 'Exception') as error:
                     final_failure = {
                         "symbol": symbol,
-                        "host": _v4_global(_v4_scope, '_host_label')(*(last_host_attempted or host_info))
+                        "host": source_label(*(last_host_attempted or host_info))
                         if (last_host_attempted or host_info)
                         else "unavailable",
                         "failure_type": "host_unavailable",
                         "error": _v4_global(_v4_scope, 'repr')(error),
                     }
                     break
+            if package is not None:
+                host_info = ('TDX_OFFICIAL_G4DAY', 0)  # internal label only; no host session
             assert host_info is not None
             attempt_ordinal = _v4_global(_v4_scope, 'len')(symbol_snapshots) + 1
             attempt_snapshots: list[dict[str, Any]] = []
             attempt_field_violations: list[dict[str, Any]] = []
-            host_label = _v4_global(_v4_scope, '_host_label')(*host_info)
+            host_label = source_label(*host_info)
+
+            def source_request():
+                if package is not None:
+                    return package.lineage(int(item.market), symbol)
+                return {'code':symbol, 'count':max(1,int(count)), 'kline':9,
+                        'market':int(item.market), 'start':0, 'target_date':str(target_int)}
 
             def capture_response(rows: Any) -> None:
                 attempt_snapshots.append(
                     _v4_global(_v4_scope, '_write_raw_response_snapshot')(
                         target_date=target_int,
                         target=item,
-                        request={
-                            "code": symbol,
-                            "count": _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)),
-                            "kline": 9,
-                            "market": _v4_global(_v4_scope, 'int')(item.market),
-                            "start": 0,
-                            "target_date": _v4_global(_v4_scope, 'str')(target_int),
-                        },
-                        host=_v4_global(_v4_scope, '_host_label')(*host_info),
+                        request=source_request(),
+                        host=source_label(*host_info),
                         host_ordinal=host_position + 1,
                         attempt_ordinal=attempt_ordinal,
                         response_rows=rows,
@@ -576,18 +693,21 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                 if remaining <= 0:
                     raise _v4_global(_v4_scope, 'SyncTimeoutError')("RUN" if remaining_run() <= 0 else "SYMBOL", symbol_budget, symbol_budget)
                 with _v4_global(_v4_scope, '_deadline_guard')(_v4_global(_v4_scope, 'min')(request_deadline, remaining), scope="REQUEST"):
-                    bars, failure_type = _v4_global(_v4_scope, '_fetch_valid_target_bars')(
-                        api,
-                        item,
-                        target_int,
-                        previous_close,
-                        count,
-                        after_date=last_date,
-                        capture_response=capture_response,
-                        field_violations=attempt_field_violations,
-                        run_id=run_id,
-                        recorded_at=recorded_at,
-                    )
+                    source_rows = None
+                    package_failure = 'OK'
+                    if package is not None:
+                        source_rows, package_failure = package.lookup(int(item.market), symbol, last_date)
+                    if package_failure != 'OK':
+                        capture_response(source_rows)
+                        bars, failure_type = [], package_failure
+                    else:
+                        validation_options = dict(capture_response=capture_response,
+                            field_violations=attempt_field_violations, run_id=run_id, recorded_at=recorded_at)
+                        if package is not None:
+                            validation_options['source_rows'] = source_rows
+                        bars, failure_type = _v4_global(_v4_scope, '_fetch_valid_target_bars')(
+                            api, item, target_int, previous_close, count, after_date=last_date,
+                            **validation_options)
                 symbol_snapshots.extend(attempt_snapshots)
                 if attempt_field_violations and attempt_snapshots:
                     for violation in attempt_field_violations:
@@ -598,7 +718,10 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         )
                 if failure_type in {"OK", "ok"}:
                     if last_date == target_int:
-                        if not history or not _v4_global(_v4_scope, '_bars_equivalent')(history[-1], bars[-1]):
+                        equivalent = (bool(history) and (
+                            _v4_global(_v4_scope, 'pack_hq_bar')(history[-1]) == _v4_global(_v4_scope, 'pack_hq_bar')(bars[-1])
+                            if package is not None else _v4_global(_v4_scope, '_bars_equivalent')(history[-1], bars[-1])))
+                        if not equivalent:
                             final_failure = {
                                 "symbol": symbol,
                                 "host": host_label,
@@ -674,7 +797,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         "target_date_ready": last_after == target_int,
                         "last_date_before": last_date,
                         "last_date_after": last_after,
-                        "host": _v4_global(_v4_scope, '_host_label')(*host_info),
+                        "host": source_label(*host_info),
                         "records_written": _v4_global(_v4_scope, 'len')(bars_to_write),
                         "attempt_ordinal": attempt_ordinal,
                         "raw_response_snapshots": prior_raw_response_snapshots + _v4_global(_v4_scope, 'list')(symbol_snapshots),
@@ -687,6 +810,9 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         "field_rule_version": _v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
                         "recorded_at": recorded_at,
                     }
+                    if package is not None:
+                        accepted['source_kind'] = 'TDX_OFFICIAL_G4DAY'
+                        accepted['source_lineage'] = package.lineage(int(item.market), symbol)
                     by_symbol[symbol] = accepted
                     reconciliation_rows.append(_v4_global(_v4_scope, 'dict')(accepted))
                     mark_completed(symbol, accepted)
@@ -718,14 +844,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         _v4_global(_v4_scope, '_write_raw_response_snapshot')(
                             target_date=target_int,
                             target=item,
-                            request={
-                                "code": symbol,
-                                "count": _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)),
-                                "kline": 9,
-                                "market": _v4_global(_v4_scope, 'int')(item.market),
-                                "start": 0,
-                                "target_date": _v4_global(_v4_scope, 'str')(target_int),
-                            },
+                            request=source_request(),
                             host=host_label,
                             host_ordinal=host_position + 1,
                             attempt_ordinal=attempt_ordinal,
@@ -785,14 +904,7 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         _v4_global(_v4_scope, '_write_raw_response_snapshot')(
                             target_date=target_int,
                             target=item,
-                            request={
-                                "code": symbol,
-                                "count": _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)),
-                                "kline": 9,
-                                "market": _v4_global(_v4_scope, 'int')(item.market),
-                                "start": 0,
-                                "target_date": _v4_global(_v4_scope, 'str')(target_int),
-                            },
+                            request=source_request(),
                             host=host_label,
                             host_ordinal=host_position + 1,
                             attempt_ordinal=attempt_ordinal,
@@ -824,15 +936,8 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         _v4_global(_v4_scope, '_write_raw_response_snapshot')(
                             target_date=target_int,
                             target=item,
-                            request={
-                                "code": symbol,
-                                "count": _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)),
-                                "kline": 9,
-                                "market": _v4_global(_v4_scope, 'int')(item.market),
-                                "start": 0,
-                                "target_date": _v4_global(_v4_scope, 'str')(target_int),
-                            },
-                            host=_v4_global(_v4_scope, '_host_label')(*host_info),
+                            request=source_request(),
+                            host=source_label(*host_info),
                             host_ordinal=host_position + 1,
                             attempt_ordinal=attempt_ordinal,
                             response_error=_v4_global(_v4_scope, 'repr')(error),
@@ -872,6 +977,8 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
             # next host while terminal content failures remain symbol-final.
             _v4_global(_v4_scope, '_disconnect_session')(api)
             api = None
+            if package is not None:
+                break
             if run_timeout or interrupted or symbol_deadline - _v4_global(_v4_scope, 'time').monotonic() <= 0:
                 break
             if terminal_content_failure:
@@ -944,10 +1051,14 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
 
     _v4_global(_v4_scope, '_disconnect_session')(api)
     completed_count = _v4_global(_v4_scope, 'sum')(row.get("classification") == "ACCEPTED" for row in reconciliation_rows)
-    status = "INTERRUPTED" if interrupted else "TIMEOUT" if run_timeout else "PASS" if not failures else "FAILED"
+    lifecycle_skipped_count = _v4_global(_v4_scope, 'sum')(_v4_global(_v4_scope, 'bool')(row.get("lifecycle_skip")) for row in reconciliation_rows)
+    alias_skipped_count = _v4_global(_v4_scope, 'sum')(_v4_global(_v4_scope, 'bool')(row.get("alias_skip")) for row in reconciliation_rows)
+    status_verification_skipped_count = _v4_global(_v4_scope, 'sum')(_v4_global(_v4_scope, 'bool')(row.get("status_verification_skip")) for row in reconciliation_rows)
     accepted_count = _v4_global(_v4_scope, 'sum')(row.get("classification") == "ACCEPTED" for row in reconciliation_rows)
     quarantine_count = _v4_global(_v4_scope, 'sum')(row.get("classification") == "QUARANTINED" for row in reconciliation_rows)
     target_count = _v4_global(_v4_scope, 'len')(target_list)
+    all_targets_ready = not failures and not quarantine_count and not pending_rows and accepted_count == target_count
+    status = "INTERRUPTED" if interrupted else "TIMEOUT" if run_timeout else "PASS" if all_targets_ready else "FAILED"
     progress["failed_hosts"] = _v4_global(_v4_scope, 'sorted')(failed_hosts)
     current_accepted_symbols = {
         symbol
@@ -979,10 +1090,17 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         "target_count": target_count,
         "accepted_count": accepted_count,
         "quarantine_count": quarantine_count,
+        "lifecycle_skipped_count": lifecycle_skipped_count,
+        "alias_skipped_count": alias_skipped_count,
+        "status_verification_skipped_count": status_verification_skipped_count,
+        "technical_failure_count": _v4_global(_v4_scope, 'len')(failures),
         "pending_count": _v4_global(_v4_scope, 'len')(pending_rows),
         "symbols": reconciliation_rows,
     }
     return {
+        **({'official_daily_source': {**package.summary, 'source_kind':'TDX_OFFICIAL_G4DAY',
+                                     'package':package.package_ref, 'input_ref':package.input_ref,
+                                     'previous_session':package.previous}} if package is not None else {}),
         "task_name": _v4_global(_v4_scope, 'TASK_NAME'),
         "run_id": run_id,
         "rule_id": _v4_global(_v4_scope, 'RULE_ID'),
@@ -998,6 +1116,10 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         "updated_count": _v4_global(_v4_scope, 'sum')(item.get("status") == "UPDATED" for item in by_symbol.values()),
         "accepted_count": accepted_count,
         "quarantine_count": quarantine_count,
+        "lifecycle_skipped_count": lifecycle_skipped_count,
+        "alias_skipped_count": alias_skipped_count,
+        "status_verification_skipped_count": status_verification_skipped_count,
+        "technical_failure_count": _v4_global(_v4_scope, 'len')(failures),
         "completed_count": completed_count,
         "pending_count": _v4_global(_v4_scope, 'len')(pending_rows),
         "timeout": _v4_global(_v4_scope, 'bool')(run_timeout),
@@ -1013,13 +1135,17 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
         },
         "accepted_target_date_file_count": accepted_count,
         "coverage_rate": (accepted_count / target_count) if target_count else None,
-        "authority_status": "CANNOT_CONFIRM" if run_timeout else "PASS" if not failures else "REBUILD_REQUIRED" if accepted_count else "FAILED",
+        "authority_status": "CANNOT_CONFIRM" if run_timeout else "PASS" if all_targets_ready else "REBUILD_REQUIRED" if accepted_count else "FAILED",
         "reconciliation": reconciliation,
         "symbol_reconciliation": reconciliation_rows,
         "raw_response_snapshots": raw_response_snapshots,
         "failures": failures,
         "by_symbol": by_symbol,
-        "host": _v4_global(_v4_scope, '_host_label')(*host_info) if host_info else None,
+        "host": source_label(*host_info) if host_info else None,
+        "seed_adjustment_evidence": {
+            "configured": seed_evidence is not None,
+            "records": seed_evidence["records"] if seed_evidence else [],
+        },
         "trusted_cas": {
             "configured": trusted_cas_path not in (None, ""),
             "loaded": trusted_cas_index is not None,
