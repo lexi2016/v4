@@ -1,0 +1,39 @@
+{
+  "status": "REVIEWED_PASS_BEHAVIOR_VERIFIED_3SAMPLES_ONLY",
+  "reviewer": "/root/dashboard_resume_review",
+  "received_at": "2026-10-30T05:23:23.475611+08:00",
+  "verdict_source": "collaboration FINAL_ANSWER receivedthisturn",
+  "samples": {
+    "600025.SH": 2150,
+    "000410.SZ": 7188,
+    "920454.BJ": 1201
+  },
+  "source_hashes": {
+    "ops/render_original_formula_projection.py": "7fbdab88ae9a98e7d2d34d53f8f1e2a8187de4527d9c2c54b5ab1cf02ddeedca",
+    "tests/test_original_formula_projection.py": "af2667579f7e97f1d7477420f2d804596b4b806ee6f1a591ca8bc688590d6369"
+  },
+  "checks": [
+    "pinnedformula/engine/source/cache/product/generation match",
+    "perrow51values22drawings lossless exact",
+    "false/null/decimalstrings distinct",
+    "R19choose/paint byteidentical",
+    "embeddedrows equal projections",
+    "revieweractual3PNGview+headlessDOM/noerrors",
+    "browserclosed+temporaryprofileremoved"
+  ],
+  "targeted_tests": "Reused4matchingPASS;notrerun",
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "limits": [
+    "nativeTDX equivalenceNOT_CERTIFIED",
+    "PIT/listinglifetimeNOT_CERTIFIED",
+    "all247NOT_RUN",
+    "historicalreturnsNOT_RUN",
+    "denseoriginaltextoverlapdocumented"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

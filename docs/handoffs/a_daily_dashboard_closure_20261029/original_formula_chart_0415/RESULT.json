@@ -1,0 +1,41 @@
+{
+  "status": "THREE_SAMPLE_PROJECTION_AND_ACTUAL_RENDER_PREPARED",
+  "independent_review": "PENDING",
+  "source_changes": [
+    "ops/render_original_formula_projection.py",
+    "tests/test_original_formula_projection.py"
+  ],
+  "baseline_local_commit": "310a8812af3962c5e1c0e0e2f91d147bdde40b5d",
+  "test_results": [
+    "3 passed; last test setup failed because its new basetemp parent was absent",
+    "Created owned handoff directory, ran only affected SHA/scope test:1 passed"
+  ],
+  "tests_effective": "4 targeted methods passed; no already-passed tests repeated",
+  "resource_snapshot": {
+    "cpu_cores": 18,
+    "memory_bytes": 137438953472,
+    "memory_pressure_free_percent": 93,
+    "available_disk_gib": 352,
+    "execution": "sequential canary then remaining2; no worker pool"
+  },
+  "readback": {
+    "browser_closed": true,
+    "temporary_profile_removed": true,
+    "GUI_access": false
+  },
+  "limitations": [
+    "R19 renderer palette and icon triangles reused unchanged; native TDX visual equivalence not certified",
+    "Default image window is last120 rows; all available prefix rows remain in lossless JSON and selectable full-history view",
+    "Dense original text annotations overlap in last120 view; no labels/types were silently dropped",
+    "Full condition historical returns/bootstrap not run",
+    "Native panel/PIT/listing-history certification not performed"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "source_sha256": {
+    "ops/render_original_formula_projection.py": "7fbdab88ae9a98e7d2d34d53f8f1e2a8187de4527d9c2c54b5ab1cf02ddeedca",
+    "tests/test_original_formula_projection.py": "af2667579f7e97f1d7477420f2d804596b4b806ee6f1a591ca8bc688590d6369"
+  }
+}
