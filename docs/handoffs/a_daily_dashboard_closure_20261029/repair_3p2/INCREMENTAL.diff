@@ -1,0 +1,252 @@
+--- pre-3p2/infrastructure/research_lane_source.py
++++ post-3p2/infrastructure/research_lane_source.py
+@@ -935,6 +935,39 @@
+             raise ValueError("A_DAILY_PRODUCT_SAFETY_UNBOUND")
+         return value
+ 
++    def _a_daily_checkpoint_binding(self, row, product, symbol, date):
++        """Bind the whole stored row, including price statistics, to this product."""
++        identity = product["source_identity"]
++        qualification = row.get("qualification")
++        statistics = row.get("statistics")
++        asof = f"{date[:4]}-{date[4:6]}-{date[6:]}"
++        if (not isinstance(qualification, Mapping)
++                or qualification.get("source_generation") != product["source_generation"]
++                or qualification.get("symbol") != symbol or qualification.get("target_date") != date
++                or not isinstance(statistics, Mapping) or statistics.get("asof") != asof
++                or not isinstance(statistics.get("groups"), list) or not statistics["groups"]):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++        snapshot = identity.get("snapshot")
++        if snapshot is not None and (not isinstance(snapshot, Mapping)
++                or not snapshot.get("path") or not snapshot.get("sha256")
++                or qualification.get("snapshot_path") != snapshot["path"]
++                or qualification.get("snapshot_sha256") != snapshot["sha256"]):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++        basis = identity.get("basis")
++        expected = {"generation": product["source_generation"], "input": identity["input_sha256"],
++                    "asof": asof, "market": symbol[-2:],
++                    "basis": basis.get("price_basis") if isinstance(basis, Mapping) else "QFQ_ASOF"}
++        for group in statistics["groups"]:
++            binding = group.get("source_identity") if isinstance(group, Mapping) else None
++            if (not isinstance(binding, Mapping) or group.get("identity_status") != "BOUND"
++                    or any(binding.get(key) != value for key, value in expected.items())
++                    or not isinstance(binding.get("formula"), str)
++                    or not re.fullmatch(r"[0-9a-f]{64}", binding["formula"])
++                    or not isinstance(group.get("rule_sha256"), str)
++                    or not re.fullmatch(r"[0-9a-f]{64}", group["rule_sha256"])
++                    or binding.get("rule_sha256") != group["rule_sha256"]):
++                raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++
+     def read_a_daily_product(self, date=None, symbol=None):
+         root = self._a_product_root()
+         if date is not None and not re.fullmatch(r"\d{8}", date):
+@@ -954,10 +987,19 @@
+             return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":chosen, "rows":[], "available_dates":sorted(index.get("dates", {}))}
+         manifest = self._a_product_reference(reference)
+         product = self._a_product_reference(manifest["artifact"])
++        identity = product.get("source_identity")
++        if (not isinstance(identity, Mapping)
++                or not isinstance(product.get("source_generation"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", product["source_generation"])
++                or identity.get("generation") != product["source_generation"]
++                or str(identity.get("asof")) != chosen
++                or not isinstance(identity.get("input_sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", identity["input_sha256"])):
++            raise ValueError("A_DAILY_PRODUCT_SOURCE_IDENTITY_INVALID")
+         if (manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1" or product.get("schema_version") != "v4.a_share.daily_product.v1"
+                 or manifest.get("data_date") != chosen or product.get("data_date") != chosen
+                 or manifest.get("source_generation") != product.get("source_generation")
+-                or manifest.get("input_sha256") != product.get("source_identity", {}).get("input_sha256")
++                or manifest.get("input_sha256") != identity["input_sha256"]
+                 or manifest.get("sample_only") is not False or product.get("sample_only") is not False
+                 or manifest.get("processed_count") != product.get("processed_count")):
+             raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
+@@ -969,6 +1011,8 @@
+             match = self._a_product_reference(row_ref) if row_ref else None
+             if match is not None and (match.get("symbol") != symbol or match.get("data_date") != chosen):
+                 raise ValueError("A_DAILY_SYMBOL_DETAIL_IDENTITY_CONFLICT")
++            if match is not None:
++                self._a_daily_checkpoint_binding(match, product, symbol, chosen)
+             if match is None:
+                 rows = product.get("rows")
+                 if not isinstance(rows, list):
+--- pre-3p2/infrastructure/zsxq_pdf_search_index.py
++++ post-3p2/infrastructure/zsxq_pdf_search_index.py
+@@ -315,6 +315,30 @@
+         raise SearchIndexError('DATA_ROOT_INVALID')
+     store = NativeDataStore(root)
+     owner = _owner()
++    cache_days: set[str] = set()
++    discovery_gaps: list[dict[str, Any]] = []
++    try:
++        for filename in owner._store_io(store).files(f'{INDEX_ROOT}/days', suffix='.json'):
++            candidate_day = filename[:-5]
++            try:
++                _path(candidate_day)
++                cache_days.add(candidate_day)
++            except SearchIndexError:
++                discovery_gaps.append({'reason': 'SEARCH_INDEX_DAY_NAME_INVALID'})
++    except (OSError, ValueError):
++        discovery_gaps.append({'reason': 'SEARCH_INDEX_DIRECTORY_UNREADABLE'})
++    # No materialized shard can produce a hit. Do not load/fingerprint the much
++    # larger ingestion inventory merely to report that the derived index is absent.
++    if not cache_days:
++        return {'status': 'NOT_MATERIALIZED', 'candidates': [], 'checkpoint_sha256': None,
++                'day_sha256': {}, 'inventory_sha256': None, 'source_bindings_sha256': None,
++                'coverage': {'scope': 'INGESTION_INDEX_ONLY', 'indexed_dates_seen': None,
++                             'cache_dates_seen': 0, 'dates_considered': [], 'dates_scanned': [],
++                             'owner_documents': None, 'indexed_documents': 0,
++                             'gaps': [*discovery_gaps, {'reason': 'SEARCH_INDEX_NOT_MATERIALIZED'}],
++                             'index_updates': {},
++                             'search_method': 'ALL_INDEXED_PAGE_BIGRAM_BLOOM_CANDIDATES_REVERIFY_PDF',
++                             'historical_sources_complete': False}, **SAFETY}
+     index = owner._read_index(store)
+     inventory: dict[str, tuple[str, str, str]] = {}
+     malformed = 0
+@@ -328,18 +352,6 @@
+         except (ValueError, TypeError, KeyError):
+             malformed += 1
+     inventory_days = {value[1] for value in inventory.values()}
+-    cache_days: set[str] = set()
+-    discovery_gaps: list[dict[str, Any]] = []
+-    try:
+-        for filename in owner._store_io(store).files(f'{INDEX_ROOT}/days', suffix='.json'):
+-            candidate_day = filename[:-5]
+-            try:
+-                _path(candidate_day)
+-                cache_days.add(candidate_day)
+-            except SearchIndexError:
+-                discovery_gaps.append({'reason': 'SEARCH_INDEX_DAY_NAME_INVALID'})
+-    except (OSError, ValueError):
+-        discovery_gaps.append({'reason': 'SEARCH_INDEX_DIRECTORY_UNREADABLE'})
+     days = sorted(inventory_days | cache_days)
+     masks = {symbol: [_term_positions(term) for term in values] for symbol, values in terms.items()}
+     ledgers: dict[str, dict[str, Any]] = {}
+--- pre-3p2/tests/test_daily_completion_sse.py
++++ post-3p2/tests/test_daily_completion_sse.py
+@@ -14,6 +14,17 @@
+ 
+ def _ref(path: Path) -> dict:
+     return {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
++
++
++def _rebind_product(root: Path, event: dict) -> None:
++    manifest_path = Path(event["manifest"]["path"])
++    manifest = json.loads(manifest_path.read_text())
++    manifest["artifact"] = _ref(Path(event["artifact"]["path"]))
++    manifest_path.write_text(json.dumps(manifest))
++    index_path = root / "daily_products" / "a_share" / "index.json"
++    index = json.loads(index_path.read_text())
++    index["dates"][event["data_date"]] = _ref(manifest_path)
++    index_path.write_text(json.dumps(index))
+ 
+ 
+ def _fixture_product_tree(root: Path) -> tuple[ResearchLaneSource, dict, dict]:
+@@ -32,6 +43,7 @@
+         "schema_version": "v4.a_share.daily_product_row.v1",
+         "symbol": symbol,
+         "data_date": data_date,
++        "qualification": {"source_generation": generation, "symbol": symbol, "target_date": data_date},
+         "RESEARCH_ONLY": True,
+         "production_allowed": False,
+         "buy_gate_updated": False,
+@@ -192,6 +204,64 @@
+         self.assertEqual(response.json()["status"], "CANNOT_CONFIRM")
+         self.assertIn("A_DAILY_PRODUCT_INDEX_INVALID", response.json()["cannot_confirm"][0])
+ 
++    def test_non_mapping_source_identity_returns_typed_cannot_confirm(self):
++        for identity in ([], None, "invalid"):
++            with self.subTest(identity=identity), tempfile.TemporaryDirectory() as td:
++                source_root = Path(td) / "source"
++                _, event, _ = _fixture_product_tree(source_root)
++                product_path = Path(event["artifact"]["path"])
++                product = json.loads(product_path.read_text())
++                product["source_identity"] = identity
++                product_path.write_text(json.dumps(product))
++                _rebind_product(source_root, event)
++                app = FastAPI()
++                app.include_router(create_research_router(Path(td) / "consumer", shared_data_root=source_root))
++                response = TestClient(app, raise_server_exceptions=False).get(
++                    "/api/v4/research/a-share/daily-product", params={"date": "20261029"})
++                self.assertEqual(response.status_code, 200)
++                self.assertEqual(response.json()["status"], "CANNOT_CONFIRM")
++                self.assertIn("A_DAILY_PRODUCT_SOURCE_IDENTITY_INVALID", response.json()["cannot_confirm"][0])
++
++    def test_stale_or_unbound_checkpoint_never_exposes_statistics(self):
++        def stale_checkpoint(row):
++            row["qualification"]["source_generation"] = "0" * 64
++            for group in row["statistics"]["groups"]:
++                group["source_identity"]["generation"] = "0" * 64
++
++        def stale_statistics(row):
++            row["statistics"]["groups"][0]["source_identity"]["generation"] = "0" * 64
++
++        def wrong_input(row):
++            row["statistics"]["groups"][0]["source_identity"]["input"] = "0" * 64
++
++        def missing_qualification(row):
++            row.pop("qualification")
++
++        def missing_statistics_identity(row):
++            row["statistics"]["groups"][0].pop("source_identity")
++
++        for mutate in (stale_checkpoint, stale_statistics, wrong_input, missing_qualification, missing_statistics_identity):
++            with self.subTest(case=mutate.__name__), tempfile.TemporaryDirectory() as td:
++                source_root = Path(td) / "source"
++                _, event, product = _fixture_product_tree(source_root)
++                product_path = Path(event["artifact"]["path"])
++                checkpoint_path = Path(product["row_refs"]["600025.SH"]["path"])
++                checkpoint = json.loads(checkpoint_path.read_text())
++                mutate(checkpoint)
++                checkpoint_path.write_text(json.dumps(checkpoint))
++                product["row_refs"]["600025.SH"] = _ref(checkpoint_path)
++                product_path.write_text(json.dumps(product))
++                _rebind_product(source_root, event)
++                app = FastAPI()
++                app.include_router(create_research_router(Path(td) / "consumer", shared_data_root=source_root))
++                response = TestClient(app, raise_server_exceptions=False).get(
++                    "/api/v4/research/a-share/daily-product", params={"date": "20261029", "symbol": "600025.SH"})
++                self.assertEqual(response.status_code, 200)
++                self.assertEqual(response.json()["status"], "CANNOT_CONFIRM")
++                self.assertIn("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT", response.json()["cannot_confirm"][0])
++                self.assertNotIn("row", response.json())
++                self.assertNotIn("statistics", response.json())
++
+     def test_missing_candidate_checkpoint_reference_returns_specific_cannot_confirm(self):
+         with tempfile.TemporaryDirectory() as td:
+             source_root = Path(td) / "source"
+--- pre-3p2/tests/test_related_pdf_reports.py
++++ post-3p2/tests/test_related_pdf_reports.py
+@@ -1,6 +1,7 @@
+ from pathlib import Path
+ import tempfile
+ import unittest
++from unittest.mock import patch
+ 
+ from fastapi import FastAPI
+ from fastapi.testclient import TestClient
+@@ -9,6 +10,24 @@
+ 
+ 
+ class ExistingReportIndexOnlyTests(unittest.TestCase):
++    def test_real_missing_derived_index_returns_before_owner_inventory_read(self):
++        from infrastructure import zsxq_pdf_ingestion as owner
++        from infrastructure import zsxq_pdf_search_index as search
++
++        with tempfile.TemporaryDirectory() as td:
++            for empty_directory in (False, True):
++                with self.subTest(empty_directory=empty_directory):
++                    if empty_directory:
++                        (Path(td) / search.INDEX_ROOT / "days").mkdir(parents=True)
++                    with patch.object(owner, "_read_index", side_effect=AssertionError("must not load owner inventory")), \
++                         patch.object(search, "_fingerprint", side_effect=AssertionError("must not fingerprint inventory")), \
++                         patch.object(owner, "read_pdf_index_scope", side_effect=AssertionError("must not enumerate owner scope")):
++                        result = search.query(td, {"A.600025": ["600025"]})
++                    self.assertEqual(result["status"], "NOT_MATERIALIZED")
++                    self.assertEqual(result["candidates"], [])
++                    self.assertEqual(result["coverage"]["dates_scanned"], [])
++                    self.assertIn({"reason": "SEARCH_INDEX_NOT_MATERIALIZED"}, result["coverage"]["gaps"])
++
+     def test_missing_search_index_does_not_scan_ingestion_index_or_open_ocr(self):
+         class Reader:
+             ZsxqPdfError = RuntimeError

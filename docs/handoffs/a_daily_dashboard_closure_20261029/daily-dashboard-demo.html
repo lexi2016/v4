@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>D29 日更面板隔离验收页</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.55 system-ui, sans-serif; background: #0b1220; color: #e8edf6; }
+    body { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    .card { border: 1px solid #466179; border-radius: 10px; padding: 16px; margin: 16px 0; background: #122131; }
+    .muted { color: #aab9ca; }
+    label { display: inline-flex; gap: 8px; align-items: center; }
+    select, button { padding: 8px 10px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 480px; overflow: auto; }
+    iframe { display: block; width: 100%; height: 1100px; border: 1px solid #466179; border-radius: 8px; background: white; }
+  </style>
+</head>
+<body>
+  <h1>D2026-10-29 日更面板 · 隔离验收</h1>
+  <p class="muted">本页只读调用同一 V4 路由和原面板代码。历史分位/事件只显示已存 API 字段；缺口保持原样，不触发历史回算、全文索引构建或任何写入。</p>
+  <section class="card">
+    <h2>日期产品身份</h2>
+    <p id="productState" role="status" aria-live="polite">正在读取精确日期产品…</p>
+    <pre id="productIdentity"></pre>
+  </section>
+  <section class="card">
+    <h2>单股已存分位与历史覆盖</h2>
+    <label for="symbol">当前 247 只候选
+      <select id="symbol" disabled></select>
+    </label>
+    <p id="detailState" role="status" aria-live="polite">等待日期产品身份…</p>
+    <pre id="detailOutput"></pre>
+  </section>
+  <section class="card">
+    <h2>相关研报 API 状态</h2>
+    <p class="muted">隔离服务使用临时研报索引根，避免读取或构建现役索引；NOT_MATERIALIZED 只说明本次验收环境未绑定既有索引，不代表现役研报覆盖。</p>
+    <p id="reportsState" role="status" aria-live="polite">选择候选后查询 V4 相关研报接口。</p>
+    <pre id="reportsOutput"></pre>
+  </section>
+  <section class="card">
+    <h2>现有研究面板</h2>
+    <p class="muted">下方直接加载本项目的 daily.html 和 numeric283-panel.js；本页的隔离 API 服务不会修改现役 8873。</p>
+    <iframe title="本项目现有每日研究面板" src="/research-panel/daily.html?date=2026-10-27"></iframe>
+  </section>
+  <script>
+    'use strict';
+    const DATE = '20261029';
+    const DEFAULT_SYMBOL = '600025.SH';
+    const SAFE = value => value?.RESEARCH_ONLY === true && value.production_allowed === false &&
+      value.buy_gate_updated === false && value.orders_sent === false;
+    const $ = id => document.getElementById(id);
+    let product = null;
+    async function readJson(url) {
+      const response = await fetch(url, {cache: 'no-store', credentials: 'same-origin'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    }
+    function showProduct(payload) {
+      if (payload?.schema_version !== 'v4.a_share.daily_product.v1' ||
+          payload.data_date !== DATE || !['READY', 'PARTIAL_WITH_ROWS'].includes(payload.status) ||
+          payload.unique_count !== 247 || payload.processed_count !== 5808 || !SAFE(payload) ||
+          !Array.isArray(payload.rows) || !/^[a-f0-9]{64}$/.test(payload.source_generation || '') ||
+          !/^[a-f0-9]{64}$/.test(payload.manifest?.sha256 || '') ||
+          !/^[a-f0-9]{64}$/.test(payload.artifact?.sha256 || '')) {
+        throw new Error('日期、候选数量、完整处理范围、哈希或安全身份未确认');
+      }
+      product = payload;
+      $('productState').textContent = payload.data_date + ' · ' + payload.status + ' · ' +
+        payload.unique_count + ' 只候选 · 已处理 ' + payload.processed_count + '/' + payload.source_universe_count;
+      $('productIdentity').textContent = JSON.stringify({
+        source_generation: payload.source_generation,
+        input_sha256: payload.source_identity?.input_sha256,
+        group_counts: payload.group_counts,
+        manifest: payload.manifest,
+        artifact: payload.artifact,
+        history_status: payload.history_status,
+        unknown_count: payload.unknown_count,
+      }, null, 2);
+      const selector = $('symbol');
+      const candidates = payload.rows.filter(row => typeof row.symbol === 'string');
+      selector.replaceChildren(...candidates.map(row => {
+        const option = document.createElement('option');
+        option.value = row.symbol;
+        option.textContent = row.symbol + ' · ' + (row.display_name || '名称未知');
+        return option;
+      }));
+      if (!candidates.length) throw new Error('当前日期产品没有可选候选');
+      selector.value = candidates.some(row => row.symbol === DEFAULT_SYMBOL) ? DEFAULT_SYMBOL : candidates[0].symbol;
+      selector.disabled = false;
+      selector.addEventListener('change', () => loadSelected().catch(showDetailError));
+      return loadSelected();
+    }
+    async function loadSelected() {
+      if (!product) return;
+      const symbol = $('symbol').value;
+      if (!product.rows.some(row => row.symbol === symbol)) throw new Error('股票不在当前 D29 候选名单中');
+      $('detailState').textContent = '正在读取 ' + symbol + ' 的 D' + DATE + ' row_refs 详情…';
+      $('reportsState').textContent = '正在读取 ' + symbol + ' 的 D' + DATE + ' 关联索引状态…';
+      const pair = await Promise.all([
+        readJson('/api/v4/research/a-share/daily-product?date=' + DATE + '&symbol=' + encodeURIComponent(symbol)),
+        readJson('/api/v4/research/pdf-relations?' + new URLSearchParams({
+          identity_date: DATE, symbols: symbol, max_dates: '1', max_documents: '5',
+        })),
+      ]);
+      const detail = pair[0], reports = pair[1];
+      if (detail.status !== 'READY' || detail.data_date !== DATE ||
+          detail.source_generation !== product.source_generation ||
+          detail.source_identity?.input_sha256 !== product.source_identity?.input_sha256 ||
+          detail.row?.symbol !== symbol || detail.row?.data_date !== DATE || !SAFE(detail.row)) {
+        throw new Error('单股详情与日期产品身份不匹配');
+      }
+      const stats = detail.row.statistics || {};
+      $('detailState').textContent = symbol + ' · D' + DATE + ' · 同代 row_refs 已绑定；历史覆盖与价格分位按 API 原样显示。';
+      $('detailOutput').textContent = JSON.stringify({
+        status: stats.status,
+        asof: stats.asof,
+        price_distribution: stats.price_distribution,
+        historical_coverage: detail.row.historical_coverage,
+        stored_event_groups: stats.groups,
+        note: '此页不推导缺失值；收益、分位或完整历史未提供时保留 API 状态。',
+      }, null, 2);
+      $('reportsState').textContent = '相关研报接口：' + (reports.status || '状态未提供') +
+        ' · 检索模式 ' + (reports.search_mode || '未知') + '；非历史 PIT。';
+      $('reportsOutput').textContent = JSON.stringify({
+        status: reports.status,
+        search_mode: reports.search_mode,
+        coverage: reports.coverage,
+        stock: reports.stocks?.[0],
+      }, null, 2);
+    }
+    function showDetailError(error) {
+      $('detailState').textContent = '单股详情未确认：' + (error?.message || '读取失败');
+      $('reportsState').textContent = '研报关联状态未确认；不会据此判断没有研报。';
+    }
+    readJson('/api/v4/research/a-share/daily-product?date=' + DATE)
+      .then(showProduct)
+      .catch(error => { $('productState').textContent = '日期产品未确认：' + error.message; });
+  </script>
+</body>
+</html>
+

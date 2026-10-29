@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "scope": "REAL_D29_SYMBOL_API_TESTCLIENT_NO_SERVICE",
+  "symbol": "600025.SH",
+  "api_status": "READY",
+  "formula_sha256": "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac",
+  "group_bindings": 4,
+  "price_distribution": {
+    "all_history": {
+      "end_date": "2026-10-29",
+      "n": 2150,
+      "percentile_le": 0.9790697674418605,
+      "start_date": "2017-12-15"
+    },
+    "asof": "2026-10-29",
+    "comparison": "count(close <= current_asof_close) / n; includes asof and equals",
+    "current_close": 10.71,
+    "near_250": {
+      "end_date": "2026-10-29",
+      "insufficient": false,
+      "n": 250,
+      "percentile_le": 1.0,
+      "requested_n": 250,
+      "start_date": "2025-10-20"
+    },
+    "status": "VALID"
+  },
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,26 @@
+{
+  "scope": "remaining group formula to hash-bound product.source_config.formula.sha256",
+  "preimage_sha256": {
+    "infrastructure/research_lane_source.py": "41d125eaa663197e14398e249ade1047146aa2038e9d13cab84cc2da19f2980f",
+    "tests/test_daily_completion_sse.py": "37660b0d183e3cbb2df29979012b2ea7980e5eb1112f5f3b07db9ffe0869c4b1",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/HANDOFF.md": "c7c755848a096f22dcd371b78e47de6628b5c53fb5d055e87ed767cb8e478562"
+  },
+  "status": "WRITER_TESTED_FORMULA_REVIEW_PENDING",
+  "postimage_sha256": {
+    "infrastructure/research_lane_source.py": "34826b1a55adf23089b4b6c16d6f08cb5de324c1362345765582d309ca1f93aa",
+    "tests/test_daily_completion_sse.py": "1a1100d03a8ca7a4f018698bbb8eaf40f78ddf6dc0536aea833ec32a5e606fd3",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/HANDOFF.md": "90e1de31203965cba9a7753506ff26383b5d0f706e5720c2937431ba5b1301e7"
+  },
+  "test_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_daily_completion_sse.py::CompletionSSETests::test_formula_identity_requires_hash_bound_source_config tests/test_daily_completion_sse.py::CompletionSSETests::test_exact_symbol_read_returns_hash_bound_checkpoint_statistics tests/test_daily_completion_sse.py::CompletionSSETests::test_public_product_api_returns_exact_row_ref_bound_statistics --tb=short",
+  "pre_fix": {
+    "reported_foreign_formula_case": "READY instead of CANNOT_CONFIRM",
+    "regression": "10 failing subtests, 2 already protected subtests"
+  },
+  "post_fix": {
+    "pytest": "3 passed, 12 subtests passed",
+    "real_d29_symbol": "PASS",
+    "server_started": false,
+    "all_prior_unaffected_checks": "REUSED",
+    "independent_formula_review": "PENDING"
+  }
+}

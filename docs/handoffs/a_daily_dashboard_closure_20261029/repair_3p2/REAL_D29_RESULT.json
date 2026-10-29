@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "scope": "ISOLATED_LOOPBACK_API_AND_SSE",
+  "port": 54062,
+  "result_sha256": "58c8016a0dd814c434bd66b344153a5ed99abe69f557884a7b07f66a413131ac",
+  "data_date": "20261029",
+  "unique_count": 247,
+  "processed_count": 5808,
+  "group_counts": {
+    "nav_breakout": 29,
+    "nav_pullback": 114,
+    "nav_smallk": 118,
+    "original": 36
+  },
+  "artifact": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/versions/20261029/4787511e6c3125fa043fca9dafd2fdd3fa9496970220a3f0792cfe9732ce1a09/e79bafbc835b510337e21f96a25137e4da06cca78e13b055486b1cb5d00e563e/product.json",
+    "sha256": "ac8f35f0014d3120ef0e8bac5b76f19ce9c2887b338078721753c98ac91afc16"
+  },
+  "symbol": "600025.SH",
+  "symbol_status": "READY",
+  "price_distribution": {
+    "all_history": {
+      "end_date": "2026-10-29",
+      "n": 2150,
+      "percentile_le": 0.9790697674418605,
+      "start_date": "2017-12-15"
+    },
+    "asof": "2026-10-29",
+    "comparison": "count(close <= current_asof_close) / n; includes asof and equals",
+    "current_close": 10.71,
+    "near_250": {
+      "end_date": "2026-10-29",
+      "insufficient": false,
+      "n": 250,
+      "percentile_le": 1.0,
+      "requested_n": 250,
+      "start_date": "2025-10-20"
+    },
+    "status": "VALID"
+  },
+  "historical_coverage": {
+    "available_prefix_dates": 2150,
+    "evaluated_count": 1,
+    "evaluated_dates": [
+      20261029
+    ],
+    "historical_PIT": false,
+    "historical_qualification_basis": "CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION",
+    "known_full_history": false,
+    "maximum_claim": "DIRECTION_ONLY",
+    "missing": [
+      "HISTORICAL_FULL_CONDITION_BOOTSTRAP"
+    ],
+    "requested_end": 20261029,
+    "requested_start": 20171215,
+    "unknown_by_group": {
+      "nav_breakout": 0,
+      "nav_pullback": 0,
+      "nav_smallk": 0,
+      "original": 0
+    }
+  },
+  "sse_event_id": "a3771f43d3b38c1bdcafe71d7a87275092a26d9e39b9c3228c19a4f96ddb097f",
+  "sse_exact_refs_match": true,
+  "report_status": "NOT_MATERIALIZED",
+  "report_detail_attempts": 0,
+  "frozen_sha256": {
+    "domains/research_daily_product.py": "48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3",
+    "domains/research_daily_statistics.py": "120bffdc50e29e8becec30cc6f21362c3a2641e191ecd495ed61b37947bbb0f5",
+    "ops/research_panel_daily_product.py": "af62edfed062ccb1f5a7c4b7b9e06497e19365258d80dc556ced6cee35044fde"
+  },
+  "UI": "NOT_RUN",
+  "DEPLOYED": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "isolated_server_stopped": true,
+  "temporary_root_removed": true
+}

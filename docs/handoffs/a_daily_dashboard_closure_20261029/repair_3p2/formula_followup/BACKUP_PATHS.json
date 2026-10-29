@@ -1,0 +1,60 @@
+{
+  "current_repair_source_and_tests": [
+    "infrastructure/research_lane_source.py",
+    "infrastructure/zsxq_pdf_search_index.py",
+    "tests/test_daily_completion_sse.py",
+    "tests/test_related_pdf_reports.py"
+  ],
+  "demo_required_untracked_source": [
+    "apps/api/v4_api/research_router.py",
+    "apps/api/v4_api/research_lane_router.py",
+    "domains/related_pdf_reports.py",
+    "domains/related_pdf_cursor.py",
+    "infrastructure/zsxq_pdf_search_index.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/serve_daily_dashboard_demo.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/daily-dashboard-demo.html"
+  ],
+  "current_panel_changed_entries": [
+    "research-panel/daily.html",
+    "research-panel/daily.js",
+    "research-panel/numeric283-panel.js",
+    "research-panel/related-reports.js"
+  ],
+  "existing_panel_direct_static_dependencies": [
+    "research-panel/research-days.css",
+    "research-panel/opening-observation.css",
+    "research-panel/calendar.js",
+    "research-panel/research28-daily.js",
+    "research-panel/opening-observation.js",
+    "research-panel/r19-chart.js",
+    "research-panel/r19-results.js",
+    "research-panel/numeric283-chart.js"
+  ],
+  "dirty_dependency_requires_minimal_hunk_extraction": {
+    "infrastructure/zsxq_pdf_ingestion.py": [
+      "query_pdf_search_index",
+      "read_pdf_index_scope"
+    ]
+  },
+  "dirty_dependency_warning": "Do not sync the entire ingestion diff. HEAD already contains _store_io and the other internal owner helpers used by the search query. The two added GET functions above are required by the tested report path; refresh_pdf_search_index is not required for GET/demo. Minimal-hunk integration has not been performed or reviewed by this Writer.",
+  "not_required_to_run_isolated_demo": [
+    "apps/api/v4_api/app.py",
+    "apps/api/v4_api/runtime_router.py",
+    "ops/macos_research_panel_daily.py",
+    "ops/macos_research_panel_daily_gate.py",
+    "ops/macos_research_panel_daily_receipts.py"
+  ],
+  "undeployed_dependencies": [
+    "Explicit a_share_daily_root/shared_data_root binding (demo command supplies --daily-product-root); live binding not changed",
+    "Read access to existing hash-bound product manifests/checkpoints/source_config and source formula metadata; raw input is not part of source backup",
+    "Existing static archive/index/chart data referenced by daily.html; no raw archive was created or selected for Git upload",
+    "Actual producer completion receipt integration remains a separate undeployed dependency; no ops dirty file extraction was performed",
+    "Full app.py/runtime_router.py integration is not exercised by create_demo_app and must not be inferred from isolated demo PASS"
+  ],
+  "git_actions": "NONE - Root owns selecting reviewed necessary bytes and syncing the existing task branch",
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
