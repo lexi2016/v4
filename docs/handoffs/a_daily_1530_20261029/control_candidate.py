@@ -2,11 +2,25 @@
 from pathlib import Path
 import argparse, fcntl, hashlib, importlib.util, json, os, plistlib, shutil, subprocess, sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from ops.api_release_integration import inventory_tree
 E = Path('/Users/lexi/Desktop/学习/因子工厂/research/a_daily_1530_20261029_r1')
 
 def sha(p):
     return hashlib.sha256(p.read_bytes()).hexdigest()
+
+def inventory_tree(root):
+    # Execute only the bytes bound by the reviewed control plan. Read and hash
+    # before execution so an import cache or a second file read cannot bypass it.
+    binding = json.loads((E / 'CONTROL_PLAN.json').read_text())['inventory_module']
+    path = Path(binding['path'])
+    if path.is_symlink() or path.resolve(strict=True) != path:
+        raise ValueError('INVENTORY_MODULE_PATH_INVALID')
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != binding['sha256']:
+        raise ValueError('INVENTORY_MODULE_DRIFT')
+    spec = importlib.util.spec_from_file_location('pinned_inventory_module', path)
+    module = importlib.util.module_from_spec(spec)
+    exec(compile(raw, str(path), 'exec'), module.__dict__)
+    return module.inventory_tree(root)
 
 def verify_inventory(root, expected, label):
     if inventory_tree(root) != expected:
