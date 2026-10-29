@@ -1,0 +1,79 @@
+--- a/ops/research_panel_factor_cache.py
++++ b/ops/research_panel_factor_cache.py
+@@ -115,6 +115,44 @@
+ # Accepted original lifecycle projection; changing it requires a new source contract.
+ _LIFECYCLE_ASSET_SHA = "7403a9954d9ae915dcb99cbba03a5dd19d6b85152396c5ff0634e286cdd9357b"
+ _LIFECYCLE_REASON = "VERIFIED_DELISTED_NO_CURRENT_BARS"
++_ACCEPTED_SOP_LITERALS = frozenset({
++    "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION",
++    "PASS_SINGLE_STOCK_TARGET_WINDOW_DELISTED_CLASSIFICATION",
++    "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION_AFTER_QUERY_FIX",
++})
++_CONTROLLER_FACT_SET_SHA = "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
++_CONTROLLER_PENDING_LITERAL = "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING"
++_MIRROR_CAVEAT = "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT"
++
++
++def _controller_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
++    # Consume the original controller-approved non-admission fact as-is. This
++    # does not turn its mirror source or pending consumer review into PASS.
++    if (code != "600193.SH" or fact.get("old_market_only") is not True
++            or fact.get("price_chain_admitted") is not False or fact.get("event_type") != "DELISTING"
++            or fact.get("historical_PIT") is not False
++            or fact.get("accepted_review_literal") != _CONTROLLER_PENDING_LITERAL
++            or fact.get("source_quality") != _MIRROR_CAVEAT or not fact.get("source_caveat")):
++        return False
++    ref = fact.get("accepted_case_result_ref")
++    if not isinstance(ref, dict) or ref.get("sha256") != _CONTROLLER_FACT_SET_SHA:
++        return False
++    approved = json.loads(_source(ref, owner="original controller-approved lifecycle fact set").read_text())
++    if (approved.get("schema") != "controller_relayed_lineage_fact_set.v1"
++            or approved.get("delisting_facts", {}).get(code) != effective
++            or approved.get("quality_caveats", {}).get(code) != _MIRROR_CAVEAT
++            or approved.get("consumer_independent_review") != "PENDING"):
++        return False
++    bound = approved.get("bound_primary_artifacts", {}).get("600193_broker_notice_mirror_pdf")
++    mirrors = fact.get("issuer_or_broker_mirror_refs")
++    if not isinstance(bound, dict) or not isinstance(mirrors, list) or len(mirrors) != 1:
++        return False
++    mirror = mirrors[0]
++    if (not isinstance(mirror, dict) or mirror.get("source_quality") != _MIRROR_CAVEAT
++            or any(mirror.get(k) != bound.get(k) for k in ("path", "sha256"))):
++        return False
++    _source(mirror, owner="original accepted broker mirror bytes")
++    return True
+ 
+ 
+ def _sync_prequery_rows(ref: dict | None, target: int) -> dict[str, dict]:
+@@ -152,7 +190,6 @@
+     if (not isinstance(fact, dict) or fact.get("ts_code") != code or fact.get("verified") is not True
+             or fact.get("requires_recent_listed_A_share_bars") is not False
+             or row.get("lifecycle_asset_sha256") != _LIFECYCLE_ASSET_SHA
+-            or fact.get("accepted_review_literal") != "PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION"
+             or row.get("records_written") != 0):
+         return None
+     try:
+@@ -162,14 +199,20 @@
+             return None
+         raw = dict(path=row["path"], sha256=row["source_sha256_after"])
+         _source(raw, owner="original lifecycle raw identity")
+-        for name in ("accepted_review_ref", "accepted_case_result_ref"):
+-            _source(fact[name], owner="accepted original lifecycle SOP")
++        if fact.get("accepted_review_literal") in _ACCEPTED_SOP_LITERALS:
++            for name in ("accepted_review_ref", "accepted_case_result_ref"):
++                _source(fact[name], owner="accepted original lifecycle SOP")
++            proof_route = "ORIGINAL_FIXED_ASSET_SOP_VARIANT"
++        elif _controller_quarantine_fact(code, fact, effective):
++            proof_route = "ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_MIRROR_CAVEAT"
++        else:
++            return None
+     except (KeyError, TypeError, ValueError, OSError, QfqGateError):
+         return None
+     return dict(status="SOP_SKIPPED", reason=_LIFECYCLE_REASON, asof_date=target,
+                 queried_at=None, capture_date=None, provider_invoked=False,
+                 source_sync=sync_ref, original_sync_row=row,
+-                lifecycle_effective_date=effective, classification="QUARANTINED")
++                lifecycle_effective_date=effective, classification="QUARANTINED", proof_route=proof_route)
+ 
+ 
+ def _prior_bj_capabilities(cache_root: Path, target: int) -> tuple[dict, dict | None]:

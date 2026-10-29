@@ -1,0 +1,35 @@
+{
+  "status": "IMPLEMENTED_SYNTHETIC_AND_OFFLINE_CANARY_PASS_REVIEW_PENDING",
+  "synthetic_tests": "26 PASS",
+  "offline_requested_identities": 5802,
+  "routing_counts": {
+    "NORMAL_QUERY_REQUIRED_NOT_RUN": 5217,
+    "UNSUPPORTED_MARKET": 565,
+    "SOP_SKIPPED": 20
+  },
+  "known_routed_subset": 585,
+  "actual_provider_calls": 0,
+  "default_writes": 0,
+  "expected_identity_coverage": "EXACT_20_SOP_PLUS565_BJ",
+  "original_r1": "Preserved17SOP+565BJ result andoriginalsourcepaths; localcommit8c0be8e5b",
+  "code": {
+    "ops/research_panel_factor_cache.py": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-sop-prequery-r2-20261029/ops/research_panel_factor_cache.py",
+      "sha256": "ccd3818407e7a8e68c698353ce77f5a15bdd4b2e017089d3957de9f91ccdac66"
+    },
+    "ops/research_panel_adjustment_inputs.py": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-sop-prequery-r2-20261029/ops/research_panel_adjustment_inputs.py",
+      "sha256": "0a4bd37eab561cefd14258a74455911c497ce7b0dd0f794828413791bb5d026a"
+    }
+  },
+  "canary_binding_sha256": "ef4ea3ec65b912e97a14ee1a39ff0f502496d0798882c660b3c4c5a01efe3ef6",
+  "canary_result_sha256": "e15fe13ee39675718e334311682451a790a5eb1e6123088daa471a6850092d5f",
+  "independent_review": "PENDING",
+  "deployed": false,
+  "api_module_binding": "NOT_RUN; generation_identity/pointer_ready pins factor_cache and adjustment_inputs; Root must coordinate Main/API, noD29rebuild",
+  "raw_history_or_pool_changes": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

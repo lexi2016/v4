@@ -77,3 +77,35 @@ def test_mixed_requested_identities_and_actual_provider_calls_reconcile(tmp_path
     assert r['requested_count']==3 and sum(r['counts'].values())==3
     assert r['provider_call_count']==1 and r['provider_identity_count']==1 and client.calls==['SH.600001']
     assert r['sop_skipped_count']==1 and r['known_prior_capability_count']==1
+@pytest.mark.parametrize('literal',["PASS_SINGLE_STOCK_TARGET_WINDOW_DELISTED_CLASSIFICATION","PASS_SINGLE_STOCK_TARGET_WINDOW_LIFECYCLE_CLASSIFICATION_AFTER_QUERY_FIX"])
+def test_existing_fixed_asset_sop_literal_variants_keep_original_proof(tmp_path,literal):
+    ref,s=sync(tmp_path/'input',sop=True);s['symbol_reconciliation'][0]['lifecycle_fact']['accepted_review_literal']=literal;ref=save(Path(ref['path']),s)
+    client=Client();r=run(tmp_path/'cache',ref,client,['000001.SZ'])
+    assert client.calls==[] and r['counts']['SOP_SKIPPED']==1
+    assert r['symbols']['000001.SZ']['original_sync_row']==s['symbol_reconciliation'][0]
+
+@pytest.mark.parametrize('bad',['none','price_admission','market_scope','event_type','quality','literal','missing_mirror','mirror_drift','factset_sha','effective_date'])
+def test_controller_quarantine_fact_preserves_pending_and_caveat(tmp_path,monkeypatch,bad):
+    code='600193.SH';ref,s=sync(tmp_path/'input',code=code,sop=True);fact=s['symbol_reconciliation'][0]['lifecycle_fact']
+    mirror=tmp_path/'mirror.pdf';mirror.write_bytes(b'original broker mirror bytes');mirror_ref={'path':str(mirror),'sha256':hashlib.sha256(mirror.read_bytes()).hexdigest(),'source_quality':cache._MIRROR_CAVEAT}
+    approved={'schema':'controller_relayed_lineage_fact_set.v1','delisting_facts':{code:'20260706'},'quality_caveats':{code:cache._MIRROR_CAVEAT},'consumer_independent_review':'PENDING','bound_primary_artifacts':{'600193_broker_notice_mirror_pdf':{'path':str(mirror),'sha256':mirror_ref['sha256']}}}
+    case=save(tmp_path/'controller.json',approved);monkeypatch.setattr(cache,'_CONTROLLER_FACT_SET_SHA',case['sha256'])
+    fact.update(delisting_effective_date='20260706',accepted_case_result_ref=case,accepted_review_literal=cache._CONTROLLER_PENDING_LITERAL,old_market_only=True,price_chain_admitted=False,event_type='DELISTING',historical_PIT=False,source_quality=cache._MIRROR_CAVEAT,source_caveat='original mirror provenance caveat',issuer_or_broker_mirror_refs=[mirror_ref]);fact.pop('accepted_review_ref')
+    if bad=='price_admission':fact['price_chain_admitted']=True
+    if bad=='market_scope':fact['old_market_only']=False
+    if bad=='event_type':fact['event_type']='SUSPENSION'
+    if bad=='quality':fact['source_quality']='PRIMARY_SOURCE_VERIFIED'
+    if bad=='literal':fact['accepted_review_literal']='PASS'
+    if bad=='missing_mirror':fact['issuer_or_broker_mirror_refs']=[]
+    if bad=='mirror_drift':mirror.write_bytes(b'drift')
+    if bad=='factset_sha':fact['accepted_case_result_ref']['sha256']='0'*64
+    if bad=='effective_date':fact['delisting_effective_date']='20260707'
+    ref=save(Path(ref['path']),s);client=Client();r=run(tmp_path/'cache',ref,client,[code])
+    row=r['symbols'][code]
+    if bad=='none':
+        assert not client.calls and row['status']=='SOP_SKIPPED'
+        assert row['original_sync_row']==s['symbol_reconciliation'][0]
+        retained=row['original_sync_row']['lifecycle_fact']
+        assert retained['accepted_review_literal']==cache._CONTROLLER_PENDING_LITERAL
+        assert retained['source_quality']==cache._MIRROR_CAVEAT and retained['price_chain_admitted'] is False
+    else:assert client.calls==['SH.600193'] and row['status']=='EMPTY'
