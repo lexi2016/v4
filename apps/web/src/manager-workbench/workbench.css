@@ -123,6 +123,12 @@ input, select { border: 1px solid #b9c6d6; border-radius: 7px; background: #fff;
   .mwb-main-reason { min-width: 0; }
   .mwb-filters label { flex: 1 1 130px; }
   .mwb-date, .mwb-selectors { align-items: flex-start; }
+  .mwb-selectors { min-width: 0; max-width: 100%; }
+  .mwb-selectors select { min-width: 0; max-width: 100%; }
+  .mwb-detail-grid article { overflow-wrap: anywhere; }
+  .mwb-evidence { min-width: 0; overflow-wrap: anywhere; }
+  .mwb-evidence pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .mwb-us-diagnostics { min-width: 0; overflow-wrap: anywhere; }
 }
 
 .mwb-research-record + .mwb-research-record { border-top: 1px solid #d8e2ee; margin-top: 16px; padding-top: 12px; }

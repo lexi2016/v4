@@ -63,6 +63,7 @@ const stageSnapshots = ref<Record<string, StageTimelineSnapshot>>({});
 const stageRunStatus = ref("");
 const navigationStatus = ref("");
 const taskStatusActive = ref(false);
+const sopActive = ref(false);
 const researchActive = ref(false);
 const researchArchiveEntry = ref(false);
 const closeReviewActive = ref(false);
@@ -358,6 +359,7 @@ function writeNavigationUrl(date: string, state?: NavigationUrlState) {
   const url = new URL(window.location.href);
   url.searchParams.set("date", date);
   if (state && Object.prototype.hasOwnProperty.call(state, "view")) {
+    if (state.view !== "sop") sopActive.value = false;
     if (state.view) url.searchParams.set("view", state.view);
     else url.searchParams.delete("view");
   }
@@ -379,7 +381,16 @@ function bindSelectedDate(date: string, state?: NavigationUrlState) {
   if (state) writeNavigationUrl(date, state);
   else writeSelectedDateToUrl(date);
 }
+function openSop() {
+  sopActive.value = true;
+  taskStatusActive.value = false;
+  researchActive.value = false;
+  closeReviewActive.value = false;
+  navigationStatus.value = "";
+  bindSelectedDate(resolveTradingDate(), { view: "sop", stage: null });
+}
 function openTaskStatus() {
+  sopActive.value = false;
   taskStatusActive.value = true;
   researchActive.value = false;
   researchArchiveEntry.value = false;
@@ -625,6 +636,7 @@ async function loadCloseReview(
   if (syncUrl) bindSelectedDate(tradingDate);
   else if (tradingDate) selectedDate.value = tradingDate;
   if (!selectedDate.value) return;
+  sopActive.value = false;
   closeReviewActive.value = true;
   // Both views read the same exact envelope, but focus different preserved
   // sections. Switching labels is not a second fetch/generation operation.
@@ -696,6 +708,8 @@ async function applyNavigationFromUrl() {
   const requestedDate = params.get("date") || "";
   const requestedView = params.get("view") || "";
   const requestedStage = params.get("stage") || "";
+  if (requestedView === "sop") { openSop(); return; }
+  sopActive.value = false;
   const previousDate = selectedDate.value;
   const previousStage = selectedStage.value;
   const previousMode = researchActive.value
@@ -810,7 +824,10 @@ onMounted(async () => {
     if (!userSelectedStage && requestedStage && stageDefinitions.some((stage) => stage.id === requestedStage)) {
       selectedStage.value = requestedStage;
     }
-    if (requestedView === "research") {
+    if (requestedView === "sop") {
+      selectedDate.value = userSelectedDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      openSop();
+    } else if (requestedView === "research") {
       const explicitResearchDate = requestedDate
         && /^\d{8}$/.test(requestedDate)
         && (researchDateOptions.value.includes(requestedDate) || researchDateOptions.value.length === 0)
@@ -907,6 +924,8 @@ onBeforeUnmount(() => {
     stageRunStatus,
     navigationStatus,
     taskStatusActive,
+    sopActive,
+    openSop,
     researchActive,
     researchArchiveEntry,
     closeReviewActive,
