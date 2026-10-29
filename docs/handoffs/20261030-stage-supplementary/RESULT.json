@@ -1,5 +1,5 @@
 {
-  "status": "SOURCE_IMPLEMENTED_TESTED_NOT_DEPLOYED",
+  "status": "FIVE_MANUAL_SUPPLEMENTS_DELIVERED_API_NOT_ACTIVATED",
   "goal": "Existing saved snapshots continue through the original selection engine to actual supplementary Top10",
   "scope": "Six exact upstream source files; two portable integration tests; existing App/API/Stage only",
   "base_commit": "420ac310856f637778362e84dbc6cd5f3f155da6",
@@ -18,12 +18,21 @@
     "App_DOM": "2 PASS",
     "Vite_build": "PASS",
     "typecheck": "Same 26 baseline diagnostics; no new diagnostic",
-    "original_engine_and_five_stage_recalculation": "Matching upstream independent PASS reused; not rerun"
+    "original_engine_and_five_stage_recalculation": "Existing exact engine executed on saved inputs once; five real readers accepted 10 selected rows each; no recapture"
   },
-  "integration_review": "PENDING",
-  "activation": "NOT_RUN",
-  "actual_supplementary_artifact_publication": "NOT_RUN",
-  "formal_8873_after_change": "NOT_RUN",
+  "integration_review": "Independent Sol High SPEC_COMPLIANCE PASS / QUALITY PASS, no findings",
+  "activation": "NOT_RUN_AUTHENTICATION_WAIT_EXPIRED_NO_ACTION",
+  "actual_supplementary_artifact_publication": {
+    "status": "ACTUAL_READER_PASS",
+    "stages": 5,
+    "input_rows_per_stage": 56,
+    "selected_rows_per_stage": 10,
+    "wall_seconds": 1.6036285,
+    "peak_RSS_bytes": 330170368,
+    "network_denied": true,
+    "original_protection_files_unchanged": 126
+  },
+  "formal_8873_after_change": "Supplementary-result UI NOT_RUN; API not activated",
   "runtime_rule": "Integrate bounded delta into current immutable role releases; never package the older untouched source-tree dependencies wholesale",
   "original_formal_results_HK_failures_SOP_navigation": "Preserved",
   "requested_stage_capture_source_and_scoring_times": "Separate; actual capture 15:19 and quote source 15:00 are not the requested historical stage time",
@@ -34,5 +43,18 @@
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "daily_SOP": {
+    "status": "UPDATED",
+    "section": "docs/operations/STAGE_SELECTION_SOP.md#11-已有快照的快捷补选每轮必走",
+    "existing_8873_actual_clicks": "SOP -> 阶段运行规程 PASS",
+    "default_Stage_automatic_activation": "NOT_RUN",
+    "natural_acceptance": "NOT_RUN"
+  },
+  "handoff": {
+    "overlapping_business_source_and_publication_ownership": "Released to CC after safe caller timeout; no new Codex switch",
+    "old_nonce": "ENDED_DO_NOT_REPLAY",
+    "baseline_API_preserved": true
+  },
+  "recorded_at": "2026-10-29T17:40:58.610896+00:00"
 }
