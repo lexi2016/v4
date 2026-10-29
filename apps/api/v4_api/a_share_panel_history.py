@@ -11,6 +11,7 @@ from functools import lru_cache
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 
@@ -39,6 +40,14 @@ DIRECT_ADMISSION = "futu_direct_qfq76_admission.json"
 SINGLE_QFQ_KIND = "FUTU_SDK_DIRECT_QFQ_SINGLE_SYMBOL"
 SINGLE_QFQ_SCHEMA = "futu_direct_qfq_single_symbol_candidate.v1"
 SINGLE_QFQ_META = b"futu_direct_qfq_single_symbol_v1"
+NUMERIC283_CHART_PROFILE = "V4_DAILY_NUMERIC283_CHART_20261029_R1"
+NUMERIC283_START_DATE = "20260101"
+NUMERIC283_END_DATE = "20261028"
+NUMERIC283_SOURCE_GENERATION = "31d40c5900ced1b2ff637cfbeaa73688ad921d713e3ea748f83ccbca84463c29"
+NUMERIC283_SOURCE_ARTIFACT_SHA256 = "28e577a67e5b5b00a04ac181632d7e1e4e6cc0e4f34e1283f69d28896ec893fb"
+NUMERIC283_LIST_SHA256 = "6c8f5ed6f46db818c3943deda02b78d3e04441c9f5630d290f56bb62e1c58dea"
+NUMERIC283_SOURCE_CSV_SHA256 = "55a65b75d3a03fd767a44d61da8d3d909cbe6c37450fe9796d82980a99a4fefe"
+NUMERIC283_SIGNAL_NAMESPACE = "ACTIVE_MA_USER_20261021_V1"
 
 
 def _unique_json_object(pairs):
@@ -279,6 +288,13 @@ def _admitted_direct_qfq(root, cache, code, start, end):
     return _direct_qfq_rows(root, candidate, code, start, end)
 
 
+def _profile_direct_qfq(root, cache, code, start, end, *, numeric283_chart):
+    """The numeric283 chart uses the frozen selector only; other profiles keep the overlay."""
+    if numeric283_chart:
+        return None
+    return _admitted_direct_qfq(root, cache, code, start, end)
+
+
 def _with_pending_status_note(response):
     # Exact exception only. Zero turnover is never a general suspension rule.
     if response.get("ts_code") != "688496.SH" or response.get("end_date", "") < "20260911":
@@ -410,6 +426,82 @@ class Unconfirmed(RuntimeError):
     pass
 
 
+def _numeric283_duplicate_key_object(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise Unconfirmed("NUMERIC283_SCOPE_DUPLICATE_JSON_KEY:" + key)
+        value[key] = item
+    return value
+
+
+def _numeric283_scope_symbols():
+    configured_root = os.environ.get("V4_RESEARCH_PANEL_ROOT")
+    if not configured_root:
+        raise Unconfirmed("NUMERIC283_STATIC_ROOT_NOT_CONFIGURED")
+    root = Path(configured_root).expanduser()
+    if not root.is_absolute() or ".." in root.parts or root.is_symlink():
+        raise Unconfirmed("NUMERIC283_STATIC_ROOT_UNSAFE")
+    path = root / "numeric283-candidates.json"
+    if path.is_symlink() or not path.is_file():
+        raise Unconfirmed("NUMERIC283_SCOPE_ARTIFACT_MISSING")
+    raw = path.read_bytes()
+    if len(raw) > 2_000_000 or _sha_bytes(raw) != NUMERIC283_LIST_SHA256:
+        raise Unconfirmed("NUMERIC283_SCOPE_ARTIFACT_SHA_CONFLICT")
+    payload = json.loads(raw, object_pairs_hook=_numeric283_duplicate_key_object)
+    if not isinstance(payload, dict):
+        raise Unconfirmed("NUMERIC283_SCOPE_ARTIFACT_IDENTITY_CONFLICT")
+    rows = payload.get("rows")
+    if (payload.get("schema_version") != "v4.numeric283.daily.v1"
+            or payload.get("data_date") != NUMERIC283_END_DATE
+            or payload.get("observation_date") != "20261029"
+            or payload.get("source_generation") != NUMERIC283_SOURCE_GENERATION
+            or payload.get("source_csv_sha256") != NUMERIC283_SOURCE_CSV_SHA256
+            or payload.get("unique_count") != 283 or not isinstance(rows, list) or len(rows) != 283):
+        raise Unconfirmed("NUMERIC283_SCOPE_ARTIFACT_IDENTITY_CONFLICT")
+    symbols = []
+    for row in rows:
+        symbol = row.get("symbol") if isinstance(row, dict) else None
+        if not isinstance(symbol, str) or not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol):
+            raise Unconfirmed("NUMERIC283_SCOPE_SYMBOL_INVALID")
+        symbols.append(symbol)
+    if len(set(symbols)) != 283:
+        raise Unconfirmed("NUMERIC283_SCOPE_MEMBERSHIP_NOT_UNIQUE")
+    return frozenset(symbols)
+
+
+def _numeric283_response(code, start, end):
+    return dict(schema_version="v4.a_share_numeric283_chart.v1", ts_code=code,
+        start_date=start, end_date=end, formula_version=NUMERIC283_CHART_PROFILE,
+        profile_id=NUMERIC283_CHART_PROFILE, signal_namespace=NUMERIC283_SIGNAL_NAMESPACE,
+        status="CANNOT_CONFIRM", rows=[], cannot_confirm=[], research_only=True,
+        production_allowed=False, buy_gate_updated=False, orders_sent=False)
+
+
+def _numeric283_finalize(response, code):
+    if response.get("status") == "EMPTY_EXACT_RANGE":
+        return {**response, "status": "CANNOT_CONFIRM", "rows": [],
+            "cannot_confirm": [*response.get("cannot_confirm", []), "NUMERIC283_TARGET_D28_ROW_MISSING"]}
+    if response.get("status") != "READY":
+        return response
+    identity = response.get("identity")
+    rows = response.get("rows")
+    if (not isinstance(identity, dict)
+            or identity.get("generation_id") != NUMERIC283_SOURCE_GENERATION
+            or identity.get("artifact_sha256") != NUMERIC283_SOURCE_ARTIFACT_SHA256
+            or identity.get("asof_date") != 20261028
+            or not isinstance(rows, list) or not rows
+            or any(not isinstance(row, dict) for row in rows)
+            or rows[-1].get("trade_date") != NUMERIC283_END_DATE
+            or any(row.get("ts_code") != code or not NUMERIC283_START_DATE <= row.get("trade_date", "") <= NUMERIC283_END_DATE for row in rows)):
+        return {**response, "status": "CANNOT_CONFIRM", "rows": [],
+            "cannot_confirm": [*response.get("cannot_confirm", []), "NUMERIC283_SOURCE_BINDING_OR_D28_RANGE_CONFLICT"]}
+    return {**response, "signal_namespace": NUMERIC283_SIGNAL_NAMESPACE,
+        "identity": {**identity, "profile_namespace": NUMERIC283_SIGNAL_NAMESPACE,
+            "numeric283_scope_count": 283, "numeric283_source_generation": NUMERIC283_SOURCE_GENERATION,
+            "numeric283_source_artifact_sha256": NUMERIC283_SOURCE_ARTIFACT_SHA256}}
+
+
 def _sha_bytes(value):
     return hashlib.sha256(value).hexdigest()
 
@@ -504,11 +596,24 @@ def read_history(shared_data_root, code, start, end, version):
             start_date=start, end_date=end, formula_version=version, profile_id=version,
             status="CANNOT_CONFIRM", rows=[], cannot_confirm=[])
         return read_profile(shared_data_root, code, start, end, response)
-    _request(code, start, end, version)
-    response = dict(schema_version="v4.a_share_original_formula_history.v1", ts_code=code,
-                    start_date=start, end_date=end, formula_version=version, profile_id=version,
-                    status="CANNOT_CONFIRM", rows=[], cannot_confirm=[], research_only=True,
-                    production_allowed=False, buy_gate_updated=False, orders_sent=False)
+    numeric283_chart = version == NUMERIC283_CHART_PROFILE
+    if numeric283_chart:
+        _request(code, start, end, VERSION)
+        response = _numeric283_response(code, start, end)
+        if start != NUMERIC283_START_DATE or end != NUMERIC283_END_DATE:
+            return {**response, "cannot_confirm": ["NUMERIC283_EXACT_20260101_20261028_RANGE_REQUIRED"]}
+        try:
+            scope = _numeric283_scope_symbols()
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError) as error:
+            return {**response, "cannot_confirm": [str(error) or type(error).__name__]}
+        if code not in scope:
+            return {**response, "cannot_confirm": ["NUMERIC283_SYMBOL_OUTSIDE_PINNED_SCOPE"]}
+    else:
+        _request(code, start, end, version)
+        response = dict(schema_version="v4.a_share_original_formula_history.v1", ts_code=code,
+                        start_date=start, end_date=end, formula_version=version, profile_id=version,
+                        status="CANNOT_CONFIRM", rows=[], cannot_confirm=[], research_only=True,
+                        production_allowed=False, buy_gate_updated=False, orders_sent=False)
     if shared_data_root is None:
         return _with_lifecycle_note({**response, "cannot_confirm": ["SHARED_DATA_ROOT_NOT_CONFIGURED"]})
     root = Path(shared_data_root)
@@ -518,7 +623,7 @@ def read_history(shared_data_root, code, start, end, version):
         import pyarrow as pa
         import pyarrow.parquet as pq
         with _read_lock(cache):
-            direct = _admitted_direct_qfq(root, cache, code, start, end)
+            direct = _profile_direct_qfq(root, cache, code, start, end, numeric283_chart=numeric283_chart)
             if direct is not None:
                 return {**response, **direct}
             pointer_bytes = pointer.read_bytes()
@@ -588,12 +693,13 @@ def read_history(shared_data_root, code, start, end, version):
                         raise Unconfirmed("EXCLUDED_LEGACY_IDENTITY_OR_BASIS_UNCONFIRMED")
             for row in rows:
                 row["trade_date"] = str(row["trade_date"])
-            return _with_lifecycle_note({**response, "status": "READY" if rows else "EMPTY_EXACT_RANGE", "rows": rows,
+            result = _with_lifecycle_note({**response, "status": "READY" if rows else "EMPTY_EXACT_RANGE", "rows": rows,
                 "columns": list(COLUMNS), "identity": dict(generation_id=meta["generation_id"],
                     input_sha256=meta["input_sha256"], manifest_sha256=manifest_sha,
                     artifact_sha256=bound["target_sha256"], formula_source_sha256=FORMULA_SHA,
                     user_formula_contract=formula, verification_basis=verification, artifact_stat=observed,
                     asof_date=meta["asof_date"], historical_PIT=False, maximum_claim="DIRECTION_ONLY",
                     reader_source_sha256=_sha_bytes(reader_path.read_bytes()))})
+            return _numeric283_finalize(result, code) if numeric283_chart else result
     except (OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError) as error:
         return _with_lifecycle_note({**response, "cannot_confirm": [str(error) or type(error).__name__]})

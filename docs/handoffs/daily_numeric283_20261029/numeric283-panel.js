@@ -7,9 +7,13 @@
     observation_date: "20261029",
     source_generation: "31d40c5900ced1b2ff637cfbeaa73688ad921d713e3ea748f83ccbca84463c29",
     source_csv_sha256: "55a65b75d3a03fd767a44d61da8d3d909cbe6c37450fe9796d82980a99a4fefe",
+    source_artifact_sha256: "28e577a67e5b5b00a04ac181632d7e1e4e6cc0e4f34e1283f69d28896ec893fb",
     unique_count: 283,
     group_counts: Object.freeze({ original: 37, nav_smallk: 163, nav_pullback: 130, nav_breakout: 31 }),
   });
+
+  const CHART_PROFILE = "V4_DAILY_NUMERIC283_CHART_20261029_R1";
+  const CHART_NAMESPACE = "ACTIVE_MA_USER_20261021_V1";
 
   const GROUP_LABELS = Object.freeze({
     original: "原始公式",
@@ -109,18 +113,35 @@
     parent.appendChild(line);
   }
 
-  function renderRows(tbody, rows, metadata) {
+  function renderRows(tbody, rows, metadata, onChartClick) {
     const source = metadata || EXPECTED;
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
     for (const row of rows) {
       const tr = tbody.ownerDocument.createElement("tr");
       const document = tbody.ownerDocument;
-      const basicValues = [row.symbol, row.display_name || "名称待核", displayGroups(row.groups)];
-      for (const value of basicValues) {
-        const td = tbody.ownerDocument.createElement("td");
-        td.textContent = value;
-        tr.appendChild(td);
-      }
+      const codeCell = document.createElement("td");
+      const codeButton = document.createElement("button");
+      codeButton.type = "button";
+      codeButton.className = "numeric283-chart-trigger";
+      codeButton.textContent = row.symbol;
+      codeButton.setAttribute("aria-label", `显示 ${row.symbol} ${row.display_name || "名称待核"} 历史图`);
+      codeButton.onclick = () => onChartClick?.(row.symbol, row.display_name || "名称待核");
+      codeCell.appendChild(codeButton);
+      tr.appendChild(codeCell);
+
+      const nameCell = document.createElement("td");
+      const nameButton = document.createElement("button");
+      nameButton.type = "button";
+      nameButton.className = "numeric283-chart-trigger";
+      nameButton.textContent = row.display_name || "名称待核";
+      nameButton.setAttribute("aria-label", `显示 ${row.symbol} ${row.display_name || "名称待核"} 历史图`);
+      nameButton.onclick = () => onChartClick?.(row.symbol, row.display_name || "名称待核");
+      nameCell.appendChild(nameButton);
+      tr.appendChild(nameCell);
+
+      const groupsCell = document.createElement("td");
+      groupsCell.textContent = displayGroups(row.groups);
+      tr.appendChild(groupsCell);
 
       const pendingCell = document.createElement("td");
       appendTextLine(pendingCell, document, `其他待核组：${displayPendingGroups(row.pending_groups)}`);
@@ -174,6 +195,50 @@
     return `\uFEFF${lines.join("\r\n")}\r\n`;
   }
 
+  function validateChart(answer, symbol) {
+    if (!answer || typeof answer !== "object" || Array.isArray(answer)) throw new Error("响应格式不正确");
+    if (answer.schema_version !== "v4.a_share_numeric283_chart.v1"
+        || answer.ts_code !== symbol || answer.start_date !== "20260101" || answer.end_date !== EXPECTED.data_date
+        || answer.formula_version !== CHART_PROFILE || answer.profile_id !== CHART_PROFILE
+        || answer.signal_namespace !== CHART_NAMESPACE) {
+      throw new Error("响应schema、代码、日期或图表profile不匹配");
+    }
+    if (answer.research_only !== true || answer.production_allowed !== false
+        || answer.buy_gate_updated !== false || answer.orders_sent !== false) {
+      throw new Error("研究安全标志不匹配");
+    }
+    if (answer.status !== "READY") return answer;
+    const identity = answer.identity;
+    const rows = answer.rows;
+    if (!identity || identity.generation_id !== EXPECTED.source_generation
+        || identity.artifact_sha256 !== EXPECTED.source_artifact_sha256
+        || identity.asof_date !== 20261028 || identity.profile_namespace !== CHART_NAMESPACE
+        || identity.numeric283_scope_count !== EXPECTED.unique_count
+        || identity.numeric283_source_generation !== EXPECTED.source_generation
+        || identity.numeric283_source_artifact_sha256 !== EXPECTED.source_artifact_sha256
+        || !Array.isArray(rows) || rows.length === 0) {
+      throw new Error("图表代次或来源工件不匹配");
+    }
+    const seen = new Set();
+    let previousDate = "";
+    for (const row of rows) {
+      if (!row || row.ts_code !== symbol || typeof row.trade_date !== "string"
+          || !/^\d{8}$/.test(row.trade_date) || row.trade_date < "20260101"
+          || row.trade_date > EXPECTED.data_date || row.trade_date <= previousDate || seen.has(row.trade_date)) {
+        throw new Error("历史行代码、日期或顺序不匹配");
+      }
+      for (const field of ["open", "high", "low", "close", "volume"]) {
+        if (row[field] === null || row[field] === undefined || !Number.isFinite(Number(row[field]))) {
+          throw new Error(`历史行缺少${field}数据`);
+        }
+      }
+      seen.add(row.trade_date);
+      previousDate = row.trade_date;
+    }
+    if (rows.at(-1).trade_date !== EXPECTED.data_date) throw new Error("历史图未到达D20261028");
+    return answer;
+  }
+
   function mount(document, windowObject) {
     const panel = document.getElementById("dailyNumeric283Panel");
     if (!panel) return;
@@ -183,20 +248,106 @@
     const search = document.getElementById("dailyNumeric283Search");
     const tbody = document.getElementById("dailyNumeric283Rows");
     const download = document.getElementById("dailyNumeric283Download");
+    const chartPanel = document.getElementById("dailyNumeric283ChartPanel");
+    const chartTitle = document.getElementById("dailyNumeric283ChartTitle");
+    const chartStatus = document.getElementById("dailyNumeric283ChartStatus");
+    let chartRequest = 0;
+    let chartController;
     let payloadMetadata = EXPECTED;
     const scriptUrl = document.currentScript && document.currentScript.src
       ? document.currentScript.src
       : windowObject.location.href;
     const dataUrl = new URL("numeric283-candidates.json", scriptUrl);
 
+    function setChartControlsDisabled(disabled) {
+      const previousWindow = document.getElementById("numeric283prevWindow");
+      const nextWindow = document.getElementById("numeric283nextWindow");
+      [
+        ...document.querySelectorAll("[data-numeric283-window]"),
+        previousWindow,
+        nextWindow,
+        document.getElementById("numeric283dateSelect"),
+        document.getElementById("numeric283panRange"),
+      ].filter(Boolean).forEach((control) => {
+        // setStock sets these two controls' boundary state; retain it after loading succeeds.
+        if (!disabled && (control === previousWindow || control === nextWindow)) return;
+        control.disabled = disabled;
+      });
+    }
+
+    setChartControlsDisabled(true);
+
+    function loadChart(symbol, name) {
+      const token = ++chartRequest;
+      chartController?.abort();
+      chartController = new AbortController();
+      setChartControlsDisabled(true);
+      windowObject.Numeric283Chart?.clear();
+      chartPanel.hidden = false;
+      chartTitle.textContent = `${symbol} · ${name}`;
+      chartStatus.textContent = `正在读取 ${symbol} 的 D20261028 历史；旧图已清空。`;
+      chartPanel.scrollIntoView?.({ behavior: "smooth", block: "start" });
+      if (!payloadMetadata.rows?.some((row) => row.symbol === symbol)) {
+        chartStatus.textContent = "代码不在已载入的固定283只名单中，未请求历史。";
+        return;
+      }
+      if (!windowObject.Numeric283Chart) {
+        chartStatus.textContent = "图表渲染器不可用；旧图已清空。";
+        return;
+      }
+      const query = new URLSearchParams({
+        ts_code: symbol,
+        start_date: "20260101",
+        end_date: EXPECTED.data_date,
+        formula_version: CHART_PROFILE,
+      });
+      windowObject.fetch(`/api/v4/research/a-share/history?${query}`, {
+        signal: chartController.signal,
+        cache: "no-store",
+      }).then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }).then((answer) => {
+        const validated = validateChart(answer, symbol);
+        if (token !== chartRequest) return;
+        if (validated.status !== "READY") {
+          chartStatus.textContent = [validated.status, ...(validated.cannot_confirm || [])].filter(Boolean).join(" · ") || "历史未确认；旧图已清空。";
+          return;
+        }
+        const chartRows = validated.rows.map((row) => ({
+          date: row.trade_date,
+          open: row.open,
+          high: row.high,
+          low: row.low,
+          close: row.close,
+          volume: row.volume,
+          values: {
+            "白线": row.zge_white_line,
+            "黄线": row.zge_yellow_line,
+            BBI: row.BBI,
+            J: row.J,
+          },
+        }));
+        windowObject.Numeric283Chart.setStock({ symbol, name, chartRows });
+        setChartControlsDisabled(false);
+        chartStatus.textContent = `${symbol} · 截至 D20261028 · ${chartRows.length} 根已存日K。参考线命名空间：${CHART_NAMESPACE}。`;
+      }).catch((error) => {
+        if (token === chartRequest && error.name !== "AbortError") {
+          setChartControlsDisabled(true);
+          windowObject.Numeric283Chart.clear();
+          chartStatus.textContent = `读取未确认，旧图已清空：${error.message}`;
+        }
+      });
+    }
+
     function refresh(rows) {
       const filtered = filterRows(rows, groupSelect.value, search.value);
-      renderRows(tbody, filtered, payloadMetadata);
+      renderRows(tbody, filtered, payloadMetadata, loadChart);
       count.textContent = `${filtered.length}只 / ${rows.length}只；组别可重叠。`;
       status.textContent = "固定日期名单已载入。研究用途；尚未进行本卡图形复核。";
     }
 
-    fetch(dataUrl.href, { cache: "force-cache" })
+    windowObject.fetch(dataUrl.href, { cache: "force-cache" })
       .then((response) => {
         if (!response.ok) throw new Error("static data unavailable");
         return response.json();
@@ -229,6 +380,8 @@
     EXPECTED,
     GROUP_LABELS,
     CSV_FIELDS,
+    CHART_PROFILE,
+    CHART_NAMESPACE,
     validateData,
     filterRows,
     displayGroups,
@@ -236,6 +389,7 @@
     displayAnchor,
     renderRows,
     toCsv,
+    validateChart,
     mount,
   });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
