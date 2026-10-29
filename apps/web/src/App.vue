@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 
+import { computed } from "vue";
 import TaskStatusView from "./views/TaskStatusView.vue";
 import ManualCollectionControls from "./components/ManualCollectionControls.vue";
 import ReviewView from "./views/ReviewView.vue";
@@ -136,6 +137,28 @@ const {
   ensureStage,
   onDateInputChange,
 } = useAppShell();
+
+const aEmptyResultVerified = computed(() => {
+  const lane = aSummary.value;
+  return lane.status === "READY"
+    && lane.source_status === "READY"
+    && lane.selection_status === "READY"
+    && [lane.requested_rows, lane.source_rows, lane.selected_rows].every(
+      (value) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0,
+    )
+    && lane.selected_rows === 0
+    && lane.selection_manifest_receipt_verified === true
+    && /^[a-f0-9]{64}$/i.test(lane.selection_artifact_sha256 || "");
+});
+const aEmptyStateDetails = computed(() => {
+  const lane = aSummary.value;
+  return [
+    aEmptyResultVerified.value ? "READY · 已确认入选 0 条" : "CANNOT_CONFIRM · 缺少有效输入或产物",
+    `A股状态 ${lane.status || "CANNOT_CONFIRM"} / 来源 ${lane.source_status || "CANNOT_CONFIRM"} / 选股 ${lane.selection_status || "CANNOT_CONFIRM"}`,
+    ...(lane.display_reasons ?? []),
+    ...(lane.cannot_confirm ?? []),
+  ].join(" · ");
+});
 </script>
 
 <template>
@@ -353,10 +376,10 @@ const {
             <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
           </details>
           <div v-if="!aRows.length" class="empty-card">
-            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : "A股无主表候选" }}</strong>
+            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : aEmptyResultVerified ? "A股本阶段无入选" : "A股选股结果待确认" }}</strong>
             <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
-            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
-            <p>{{ stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V4。" }}</p>
+            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }}</span>
+            <p>{{ hasMissingStageReceipt ? missingStageReceiptMessage : aEmptyStateDetails }}</p>
           </div>
           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">
             <div class="candidate-head"><div><strong>{{ rowName(row) }}</strong><span>{{ rowCode(row) }} · 排名 {{ rowRank(row) }}</span></div><b>{{ row.stage_display_decision || "观察" }}</b></div>
