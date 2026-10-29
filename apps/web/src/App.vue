@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 
+import { computed, ref, watch } from "vue";
 import TaskStatusView from "./views/TaskStatusView.vue";
 import ManualCollectionControls from "./components/ManualCollectionControls.vue";
 import ReviewView from "./views/ReviewView.vue";
@@ -28,6 +29,16 @@ function hasFourLaneFormalGap(workbench: unknown): boolean {
     const row = value as Record<string, unknown>;
     return row.market === "HK" && row.source_mode === "HK_CONNECT_FOUR_LANE" && row.formal_eligible === false;
   });
+}
+type SnapshotObservation = {
+  mode?: string; captured_at?: string; original_stage_cutoff_at?: string;
+  after_original_cutoff?: boolean; observed_rows?: number; requested_rows?: number;
+  missing_symbols?: string[]; gaps?: string[]; rows: Record<string, unknown>[];
+};
+function snapshotObservation(workbench: unknown): SnapshotObservation | null {
+  const recovery = (workbench as { snapshot_recovery?: { markets?: { A_SHARE?: SnapshotObservation } } } | null)?.snapshot_recovery;
+  const value = recovery?.markets?.A_SHARE;
+  return value?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && Array.isArray(value.rows) ? value : null;
 }
 const {
   stageDefinitions,
@@ -79,6 +90,8 @@ const {
   stageRunStatus,
   navigationStatus,
   taskStatusActive,
+  sopActive,
+  openSop,
   researchActive,
   researchArchiveEntry,
   closeReviewActive,
@@ -136,6 +149,52 @@ const {
   ensureStage,
   onDateInputChange,
 } = useAppShell();
+type SopDocument = { id: string; title: string; content: string; sha256: string; updated_at: string; relative_path: string };
+const sopChoices = [
+  { id: "overview", title: "SOP 总览" },
+  { id: "stage-selection", title: "阶段运行规程" },
+  { id: "repair-20261028-29", title: "完整修复记录" },
+];
+const sopDocument = ref<SopDocument | null>(null);
+const sopLoading = ref(false);
+const sopError = ref("");
+let sopVersion = 0;
+async function loadSop(id = "overview") {
+  if (!sopChoices.some((item) => item.id === id)) return;
+  const version = ++sopVersion;
+  sopLoading.value = true; sopError.value = "";
+  try {
+    const response = await fetch(`/api/v4/operations/sop?doc=${encodeURIComponent(id)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error("SOP 文档暂不可读，请稍后刷新。");
+    const value = await response.json() as SopDocument;
+    if (value.id !== id || typeof value.content !== "string" || !/^[a-f0-9]{64}$/.test(value.sha256)) throw new Error("SOP 文档身份未确认。");
+    if (version === sopVersion) sopDocument.value = value;
+  } catch (error) { if (version === sopVersion) sopError.value = error instanceof Error ? error.message : "SOP 读取失败"; }
+  finally { if (version === sopVersion) sopLoading.value = false; }
+}
+watch(sopActive, (active) => { if (active) void loadSop(sopDocument.value?.id || "overview"); });
+
+const aEmptyResultVerified = computed(() => {
+  const lane = aSummary.value;
+  return lane.status === "READY"
+    && lane.source_status === "READY"
+    && lane.selection_status === "READY"
+    && [lane.requested_rows, lane.source_rows, lane.selected_rows].every(
+      (value) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0,
+    )
+    && lane.selected_rows === 0
+    && lane.selection_manifest_receipt_verified === true
+    && /^[a-f0-9]{64}$/i.test(lane.selection_artifact_sha256 || "");
+});
+const aEmptyStateDetails = computed(() => {
+  const lane = aSummary.value;
+  return [
+    aEmptyResultVerified.value ? "READY · 已确认入选 0 条" : "CANNOT_CONFIRM · 缺少有效输入或产物",
+    `A股状态 ${lane.status || "CANNOT_CONFIRM"} / 来源 ${lane.source_status || "CANNOT_CONFIRM"} / 选股 ${lane.selection_status || "CANNOT_CONFIRM"}`,
+    ...(lane.display_reasons ?? []),
+    ...(lane.cannot_confirm ?? []),
+  ].join(" · ");
+});
 </script>
 
 <template>
@@ -187,11 +246,12 @@ const {
     </p>
 
     <nav class="entry-nav" aria-label="功能入口">
-      <button :class="{ active: !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
+      <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
       <button type="button" @click="scrollToPool()">D-1 预选池</button>
       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
       <a class="entry-nav-link research-panel-entry" href="/research-panel/daily.html?date=2026-10-28">研究看板</a>
       <button type="button" @click="openManagerSelection()">经理选股工作台</button>
+      <button :class="{ active: sopActive }" type="button" @click="openSop()">SOP</button>
       <button :class="{ active: taskStatusActive }" type="button" @click="openTaskStatus()">任务状态</button>
       <button :class="{ active: closeReviewActive && reviewFocus === 'A' }" :aria-pressed="closeReviewActive && reviewFocus === 'A'" type="button" @click="loadCloseReview('A')">A股复盘</button>
       <button class="entry-nav-link" :class="{ active: closeReviewActive && reviewFocus === 'research' }" :aria-pressed="closeReviewActive && reviewFocus === 'research'" type="button" @click="loadCloseReview('research')">研究复盘</button>
@@ -199,8 +259,14 @@ const {
     </nav>
     <p v-if="navigationStatus" class="navigation-status" role="status">{{ navigationStatus }}</p>
 
+    <section v-if="sopActive" class="panel" aria-label="SOP 运行规程" data-sop-view>
+      <h2>SOP · 运行规程与修复记录</h2>
+      <nav aria-label="SOP 文档"><button v-for="item in sopChoices" :key="item.id" type="button" @click="loadSop(item.id)">{{ item.title }}</button><button type="button" @click="loadSop(sopDocument?.id || 'overview')">刷新文档</button></nav>
+      <p v-if="sopLoading" role="status">正在读取规程。</p><p v-if="sopError" role="alert">{{ sopError }}</p>
+      <article v-if="sopDocument"><h3>{{ sopDocument.title }}</h3><p>文件更新时间：{{ sopDocument.updated_at }} · {{ sopDocument.relative_path }}</p><p>SHA256 <code>{{ sopDocument.sha256 }}</code></p><pre style="white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; line-height: 1.7" v-text="sopDocument.content"></pre></article>
+    </section>
     <TaskStatusView
-      v-if="taskStatusActive"
+      v-else-if="taskStatusActive"
       :date="selectedDate"
       :stage-summary="stageSummary"
       :current-stage-id="selectedStage"
@@ -335,6 +401,19 @@ const {
       </p>
       <p v-else-if="stageWorkbench" class="stage-display-status">{{ stageWorkbench.stage.display_status }}</p>
 
+      <div v-if="snapshotObservation(stageWorkbench)" class="market-column" data-snapshot-recovery aria-label="当前快照降级观察">
+        <h3>当前快照观察 · WATCH_ONLY</h3>
+        <p>本阶段正式结果仍按原回执保留。以下为当前行情观察，不是原阶段选股、原 Top10 或自然时点结果；评分与研究上下文未补造。</p>
+        <p>真实采集：{{ snapshotObservation(stageWorkbench)?.captured_at }} · 原截止：{{ snapshotObservation(stageWorkbench)?.original_stage_cutoff_at }} · 晚于原截止：{{ snapshotObservation(stageWorkbench)?.after_original_cutoff ? "是" : "否" }}</p>
+        <p>观察 {{ snapshotObservation(stageWorkbench)?.observed_rows }} / 请求 {{ snapshotObservation(stageWorkbench)?.requested_rows }}；正式入选计数不增加。隔离/缺失：{{ snapshotObservation(stageWorkbench)?.missing_symbols?.join("、") || "无" }}</p>
+        <p class="evidence-gap">{{ snapshotObservation(stageWorkbench)?.gaps?.join("、") }}</p>
+        <table>
+          <thead><tr><th>代码</th><th>名称</th><th>快照价格</th><th>源更新时间</th><th>实际采集</th><th>评分/研究</th><th>用途</th></tr></thead>
+          <tbody><tr v-for="row in snapshotObservation(stageWorkbench)?.rows" :key="String(row.code)">
+            <td>{{ row.code }}</td><td>{{ row.name || "—" }}</td><td>{{ row.last_price }}</td><td>{{ row.source_update_time }}</td><td>{{ row.captured_at }}</td><td>缺失（null）</td><td>WATCH_ONLY</td>
+          </tr></tbody>
+        </table>
+      </div>
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">
           <div class="market-title"><h3>A股</h3><span>{{ aMarketStateText }}</span></div>
@@ -353,10 +432,10 @@ const {
             <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
           </details>
           <div v-if="!aRows.length" class="empty-card">
-            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : "A股无主表候选" }}</strong>
+            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : aEmptyResultVerified ? "A股本阶段无入选" : "A股选股结果待确认" }}</strong>
             <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
-            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
-            <p>{{ stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V4。" }}</p>
+            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }}</span>
+            <p>{{ hasMissingStageReceipt ? missingStageReceiptMessage : aEmptyStateDetails }}</p>
           </div>
           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">
             <div class="candidate-head"><div><strong>{{ rowName(row) }}</strong><span>{{ rowCode(row) }} · 排名 {{ rowRank(row) }}</span></div><b>{{ row.stage_display_decision || "观察" }}</b></div>

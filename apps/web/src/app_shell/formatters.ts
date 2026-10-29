@@ -165,6 +165,14 @@ export function stageMarketStateText(workbench: StageWorkbench | null | undefine
   const due = workbench.execution_evidence?.due_status;
   if (["NOT_DUE", "PENDING_NOT_DUE"].includes(due || "") || workbench.status === "PENDING_NOT_DUE") return "未到期/等待执行";
   const selected = market === "A" ? workbench.selected_a_rows : workbench.selected_hk_rows;
+  const recovery = (workbench as unknown as { snapshot_recovery?: { status?: string; markets?: { A_SHARE?: { mode?: string; observed_rows?: number; captured_at?: string } } } }).snapshot_recovery;
+  const observation = recovery?.markets?.A_SHARE;
+  if (market === "A" && !(typeof selected === "number" && selected > 0)
+      && summary?.selection_manifest_receipt_verified !== true && recovery?.status === "OBSERVATIONS_AVAILABLE"
+      && observation?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && (observation.observed_rows || 0) > 0) {
+    const time = observation.captured_at?.match(/T(\d{2}:\d{2})/)?.[1] || "时刻待确认";
+    return `快照补采${observation.observed_rows}条 · ${time}获取 · 非原时点`;
+  }
   const sourceStatus = summary?.source_status || "";
   if (["FAILED", "ERROR", "DATA_BLOCKED_EMPTY"].includes(sourceStatus)
       || (typeof summary?.requested_rows === "number" && summary.requested_rows > 0 && summary.source_rows === 0)) return "采集失败/来源未就绪";
