@@ -1,0 +1,43 @@
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -207,6 +207,10 @@
+    chart_descriptor=finalize_owner_charts(context,parts,product,manifest_ref,artifact,gaps=chart_gaps,png_renderer=chart_png_renderer)
+   except Exception as error:
+    chart_descriptor=dict(status='CANNOT_CONFIRM',numeric_manifest=manifest_ref,reason='CHART_FINALIZATION_FAILED:'+str(error))
++ try:context.unchanged()
++ except Exception as error:
++  save(parts/'publication_error.json',dict(status='CANNOT_CONFIRM',reason='SOURCE_CHANGED_BEFORE_PUBLICATION:'+str(error),manifest=manifest_ref,artifact=artifact,original_charts=chart_descriptor,**FLAGS))
++  raise
+  if symbols is None:
+   indexfile=root/'index.json';index=json.loads(indexfile.read_text()) if indexfile.is_file() else dict(schema_version='v4.a_share.daily_product_index.v1',dates={})
+   index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']]
+--- a/tests/test_daily_original_chart_owner.py
++++ b/tests/test_daily_original_chart_owner.py
+@@ -113,3 +113,27 @@
+     source=ResearchLaneSource(tmp_path,a_share_daily_root=tmp_path)
+     with pytest.raises(ValueError,match='OWNER_TYPED_GAP:OWNER_DRAWING_UNSUPPORTED'):
+         source.read_original_chart('20261029','600025.SH')
++
++
++def test_source_change_during_finalizer_preserves_artifacts_without_publication(tmp_path):
++    context,calls,evaluate,png=owner_fixture(tmp_path)
++    changed=False
++    def unchanged():
++        if changed:raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
++    def changed_while_rendering(items):
++        nonlocal changed
++        result=png(items)
++        changed=True
++        return result
++    context.unchanged=unchanged
++    with pytest.raises(ValueError,match='DAILY_GENERATION_CHANGED_DURING_PROJECTION'):
++        run_owner(context,evaluate,changed_while_rendering)
++    assert not (context.root/'index.json').exists()
++    assert not (context.root/'events/latest.json').exists()
++    errors=list((context.root/'checkpoints').rglob('publication_error.json'))
++    assert len(errors)==1
++    error=json.loads(errors[0].read_text())
++    assert error['status']=='CANNOT_CONFIRM' and 'SOURCE_CHANGED_BEFORE_PUBLICATION' in error['reason']
++    assert Path(error['manifest']['path']).is_file() and Path(error['artifact']['path']).is_file()
++    assert list((context.root/'versions').rglob('600025.SH.png'))
++    assert list((context.root/'versions').rglob('COMPLETION_RECEIPT.json'))

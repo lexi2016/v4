@@ -1,0 +1,12 @@
+{
+  "reviewer_failure": "Source pointer/panel change during finalizer could publish completed sidecar index/event; reproduced by independent reviewer with in-memory replacement",
+  "change": "Final context.unchanged after finalizer and before index/event; on failure persist publication_error.json and raise, retaining immutable numeric/chart artifacts",
+  "incremental_patch_sha256": "a7971651eeeea9c64621d990b048c68d0d9242118318a7ad41f86c7370f459c7",
+  "checks": "3 publication/error path cases passed in 0.10s; previous nine tests/real canary/247/UI evidence reused, not repeated",
+  "no_success_index_or_event_on_source_change": true,
+  "pre_repair_source_reconstructed_minus_exact_new_hunks_verified_against_previous_receipt": true,
+  "source_sha256": "1f1bf48f950bab0806101b077bdb8d2d5117d373e0dfde5388050ac2f49568de",
+  "test_sha256": "40deadc58535504006dd71355ebfb61724f8a516a568d8ab0484d6486fa7b531",
+  "targeted_command": "PANEL_PYTHON -m pytest -q tests/test_daily_original_chart_owner.py::test_source_change_during_finalizer_preserves_artifacts_without_publication tests/test_daily_original_chart_owner.py::test_numeric_bytes_parity_single_compute_and_final_completion_order tests/test_daily_original_chart_owner.py::test_render_failure_preserves_numeric_success_and_typed_gap --basetemp=B/natural_owner_chart_handoff/pytest_publication_fix",
+  "test_result": "3 passed in 0.10s"
+}

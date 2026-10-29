@@ -1,0 +1,25 @@
+{
+  "status": "REVIEWED_PASS_SOURCE_ONLY_OWNER_CHART_HANDOFF",
+  "reviewer": "/root/original_chart_delta_review",
+  "received_at": "2026-10-30T06:43:21.903877+08:00",
+  "scope": "SCOPE.json",
+  "initial_verdict": "FAIL_P2_SOURCE_CHANGED_DURING_FINALIZE_STILL_PUBLISHED",
+  "minimal_fix": "recheckcontext.unchangedafterfinalizerbeforeindex/event;errorrefspreservedno successpublish",
+  "final_verdict": "PASS_P2_RESOLVED_NO_REMAINING_BLOCKERS",
+  "independent_reproduction": "sourcechanged=>0indexwrites/0eventwrites,CANNOT_CONFIRM+artifactrefsretainedandraised;stable/partialchartnumericpathsnormal",
+  "targeted_evidence": "9baselinePASSreused;3affectedregressionsPASSafterfix;real600025engine1/2150/51/22+numericrowbyteparity reused",
+  "writer_receipt_sha256": "43d42847db78332de494af447e75b31d7343b9e76b345d699417eabf226dbe87",
+  "incremental_fix_sha256": "a7971651eeeea9c64621d990b048c68d0d9242118318a7ad41f86c7370f459c7",
+  "maximum_claim": "BEHAVIOR_VERIFIED_SOURCE_HANDOFF_NOT_DEPLOYMENT_OR_NATURAL",
+  "not_done": [
+    "runtimeinstallation",
+    "15:40runtimeswitch",
+    "naturalD30fulldaily",
+    "historysameeventreturns",
+    "PIT/nativeTDXcertification"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -917,8 +917,8 @@ class ResearchLaneSource:
             return None
         return self.a_share_daily_root / "daily_products/a_share"
 
-    def _original_chart_bytes(self, reference):
-        binding = self.original_chart_binding
+    def _original_chart_bytes(self, reference, *, binding=None):
+        binding = self.original_chart_binding if binding is None else binding
         if (not isinstance(binding, Mapping) or not isinstance(reference, Mapping)
                 or not isinstance(reference.get("path"), str) or not isinstance(reference.get("sha256"), str)
                 or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])):
@@ -936,10 +936,18 @@ class ResearchLaneSource:
 
     def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
         """Read only the explicitly bound, completed original-chart artifacts."""
+        product = self.read_a_daily_product(date)
         binding = self.original_chart_binding
+        if binding is None:
+            root = self._a_product_root()
+            descriptor = product.get("original_charts")
+            if (root is None or not isinstance(descriptor, Mapping)
+                    or descriptor.get("numeric_manifest") != product.get("manifest")):
+                raise ValueError("ORIGINAL_CHART_OWNER_BINDING_NOT_CONFIGURED")
+            binding = {"artifact_root": str(root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
         if not isinstance(binding, Mapping):
             raise ValueError("ORIGINAL_CHART_BINDING_NOT_CONFIGURED")
-        product = self.read_a_daily_product(date)
+        read = lambda ref: self._original_chart_bytes(ref, binding=binding)
         identity = product.get("source_identity") or {}
         if (product.get("status") not in ("READY", "PARTIAL_WITH_ROWS")
                 or symbol not in {row.get("symbol") for row in product.get("rows", [])}
@@ -957,15 +965,22 @@ class ResearchLaneSource:
         if (config["formula"]["sha256"] != "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
                 or config["engine"]["sha256"] != "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"):
             raise ValueError("ORIGINAL_CHART_FORMULA_OR_ENGINE_CONFLICT")
-        manifest = json.loads(self._original_chart_bytes(binding["manifest"]))
-        receipt = json.loads(self._original_chart_bytes(binding["receipt"]))
+        manifest = json.loads(read(binding["manifest"]))
+        receipt = json.loads(read(binding["receipt"]))
         candidates = {row["symbol"] for row in product["rows"]}
         records = receipt.get("records")
-        if (not isinstance(records, list) or receipt.get("status") != "MECHANICAL_247_DELIVERY_PASS"
-                or receipt.get("expected") != receipt.get("verified") or receipt.get("verified") != len(candidates)
-                or any(receipt.get(key) != [] for key in ("errors", "missing", "extra"))
-                or len(records) != len(candidates) or {row.get("symbol") for row in records} != candidates
-                or not isinstance(manifest.get("samples"), Mapping) or set(manifest["samples"]) != candidates
+        owner = receipt.get("owner_sidecar") is True
+        errors = receipt.get("errors")
+        if not isinstance(errors, list) or not isinstance(records, list):
+            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
+        failed = {row["symbol"] for row in errors} if owner else set()
+        ready = candidates - failed
+        if ((receipt.get("status") not in ("OWNER_CHARTS_COMPLETED", "OWNER_CHARTS_PARTIAL") if owner else receipt.get("status") != "MECHANICAL_247_DELIVERY_PASS")
+                or receipt.get("expected") != len(candidates) or receipt.get("verified") != len(ready)
+                or not failed <= candidates or len(failed) != len(errors) or (not owner and errors)
+                or any(receipt.get(key) != [] for key in ("missing", "extra"))
+                or len(records) != len(ready) or {row.get("symbol") for row in records} != ready
+                or not isinstance(manifest.get("samples"), Mapping) or set(manifest["samples"]) != ready
                 or any(manifest.get(key) is not value or receipt.get(key) is not value
                        for key, value in {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())):
             raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
@@ -974,6 +989,8 @@ class ResearchLaneSource:
                     "formula": config["formula"], "engine": config["engine"]}
         if any(source_binding.get(key) != value for key, value in expected.items()):
             raise ValueError("ORIGINAL_CHART_COMPLETION_SOURCE_CONFLICT")
+        if symbol in failed:
+            raise ValueError("ORIGINAL_CHART_OWNER_TYPED_GAP:" + next(row.get("reason", "UNKNOWN") for row in errors if row["symbol"] == symbol))
         item = manifest["samples"][symbol]
         record = next(row for row in records if row["symbol"] == symbol)
         if (record.get("data_date") != date or record.get("source_generation") != product["source_generation"]
@@ -984,7 +1001,7 @@ class ResearchLaneSource:
         for kind, key in (("html", "html"), ("png", "PNG"), ("projection", "projection")):
             if any(refs[kind].get(part) != record[key].get(part) for part in ("path", "sha256")):
                 raise ValueError("ORIGINAL_CHART_OUTPUT_REFERENCE_CONFLICT")
-        raw = {kind: self._original_chart_bytes(ref) for kind, ref in refs.items()}
+        raw = {kind: read(ref) for kind, ref in refs.items()}
         if refs["projection"]["path"].endswith(".gz"):
             with gzip.GzipFile(fileobj=io.BytesIO(raw["projection"])) as compressed:
                 projection_raw = compressed.read(64 * 1024 * 1024 + 1)
@@ -995,6 +1012,21 @@ class ResearchLaneSource:
         projection = json.loads(projection_raw)
         formula = projection["formula_result"]
         source = projection["source"]
+        if owner:
+            retained_bytes = read(projection["source_cache"])
+            with gzip.GzipFile(fileobj=io.BytesIO(retained_bytes)) as compressed:
+                retained_raw = compressed.read(64 * 1024 * 1024 + 1)
+            if len(retained_raw) > 64 * 1024 * 1024:
+                raise ValueError("ORIGINAL_CHART_RETAINED_SIZE_LIMIT")
+            retained = json.loads(retained_raw)
+            calendar_raw = json.dumps(retained["calendar"], ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+            if (retained.get("symbol") != symbol or retained.get("data_date") != date
+                    or retained.get("identity") != identity or retained.get("config") != config_ref
+                    or retained.get("bars_sha256") != projection["source_cache"].get("bars_sha256")
+                    or hashlib.sha256(calendar_raw).hexdigest() != projection["source_cache"].get("calendar_sha256")
+                    or retained.get("formula_result") != formula
+                    or retained.get("bar_dates") != [row.get("trade_date") for row in formula.get("rows", [])]):
+                raise ValueError("ORIGINAL_CHART_RETAINED_BINDING_CONFLICT")
         if (projection.get("symbol") != symbol or projection.get("data_date") != date
                 or any(projection.get(key) is not value for key, value in
                        {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())
@@ -1152,7 +1184,9 @@ class ResearchLaneSource:
                 if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
                     raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
             return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
-        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]}
+        chart_index = index.get("original_charts")
+        descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
+        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
 
     def read_a_daily_latest_event(self):
         root = self._a_product_root()
@@ -1169,6 +1203,10 @@ class ResearchLaneSource:
         manifest = self._a_product_reference(event_manifest)
         if (event.get("artifact") != manifest.get("artifact") or any(event.get(k) != manifest.get(k) for k in ("data_date","source_generation","input_sha256","processed_count","source_universe_count","status"))):
             raise ValueError("A_DAILY_EVENT_MANIFEST_IDENTITY_CONFLICT")
+        if "original_charts" in event:
+            product = self.read_a_daily_product(event["data_date"])
+            if event["original_charts"] != product.get("original_charts"):
+                raise ValueError("A_DAILY_EVENT_CHART_DESCRIPTOR_CONFLICT")
         return event
 
     def read_latest_event(self) -> dict[str, Any] | None:

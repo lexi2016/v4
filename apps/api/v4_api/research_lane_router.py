@@ -120,6 +120,8 @@ def _daily_completion_matches_current_product(
             and _SHA256.fullmatch(left["sha256"]) is not None
         )
 
+    if event.get("original_charts") != product.get("original_charts"):
+        return False
     return same_reference(event.get("manifest"), product.get("manifest")) and same_reference(
         event.get("artifact"), product.get("artifact")
     )

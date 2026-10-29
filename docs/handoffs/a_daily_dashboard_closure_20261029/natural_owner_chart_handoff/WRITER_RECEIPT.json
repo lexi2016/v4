@@ -1,0 +1,58 @@
+{
+  "status": "WRITER_PUBLICATION_P2_FIXED_PENDING_DELTA_REVIEW",
+  "baseline": "6bfb1ce7e829bf521e9a9c12bbd37b2fc5d1277f",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029",
+  "files": {
+    "ops/research_panel_daily_product.py": "1f1bf48f950bab0806101b077bdb8d2d5117d373e0dfde5388050ac2f49568de",
+    "ops/render_original_formula_projection.py": "9358899dbb165503bbca4f3c6bee12b736ef7999acd4edc9df008c8914e716d4",
+    "infrastructure/research_lane_source.py": "d113bc03b22caba577605cfdba74af4f98ebf54711901ef7c6fa14a0c8288e12",
+    "apps/api/v4_api/research_lane_router.py": "0c8894a2e8ebe571cc7e37be38c4e0f33a75eb742d517c479530ce47b64d0960",
+    "tests/test_daily_original_chart_owner.py": "40deadc58535504006dd71355ebfb61724f8a516a568d8ab0484d6486fa7b531",
+    "tests/test_daily_original_chart_no_recompute.py": "e6890f3248d9d295a463eb497d26e9ef307a16f38b64795c8c0dbd5c0a4cedf7"
+  },
+  "patch_sha256": "876111462ee9f48737a6a47a1e98bb5b016021881a06a5b75525986a20abd13a",
+  "source_change_summary": "existing numeric owner retains current candidate result; chart helper consumes it without compute; final numeric manifest→chart sidecar→same owner index/event; reader discovers only that bound index",
+  "targeted": {
+    "command": "PANEL_PYTHON -m pytest -q tests/test_daily_original_chart_owner.py tests/test_daily_original_chart_no_recompute.py --basetemp=B/natural_owner_chart_handoff/pytest_tmp_close",
+    "result": "9 passed in 0.16s",
+    "no_old_tests_or_247_artifacts_repeated": true
+  },
+  "actual_canary": {
+    "receipt": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/natural_owner_chart_handoff/SINGLE_CANARY_RECEIPT.json",
+    "sha256": "d9cd7daa0ccf9b47b0821350416c16c873536ea5eb4900df8b57073195a7029d",
+    "compute_calls": 1,
+    "rows": 2150,
+    "seconds": 6.586590125225484,
+    "sample_only": true,
+    "no_index_or_event_published": true,
+    "same_numeric_row_sha256": "fdd1c2d832e38b4623c6c04f6a8c6f153de1a2e7082488f1763b3a0948721e71",
+    "same_numeric_bytes": true,
+    "new_asset_bytes": {
+      "projection": 618622,
+      "html": 838368,
+      "PNG": 310771
+    }
+  },
+  "actual_command": "PANEL_PYTHON docs/handoffs/a_daily_dashboard_closure_20261029/natural_owner_chart_handoff/run_single_canary.py",
+  "binding_evidence": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/natural_owner_chart_handoff/OWNER_FLAG_CHAIN.json",
+  "unchanged_dirty_preimage_gate": true,
+  "not_done": [
+    "independent review pending",
+    "deployment/15:40 runtime/natural D30 NOT_RUN",
+    "no 5808 batch or history bootstrap",
+    "real single canary remains sample_only and is intentionally not exposed as full-universe READY API",
+    "stock semantic/native TDX/PIT acceptance not claimed"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "publication_fix": {
+    "reviewer_failure": "Source pointer/panel change during finalizer could publish completed sidecar index/event; reproduced by independent reviewer with in-memory replacement",
+    "change": "Final context.unchanged after finalizer and before index/event; on failure persist publication_error.json and raise, retaining immutable numeric/chart artifacts",
+    "incremental_patch_sha256": "a7971651eeeea9c64621d990b048c68d0d9242118318a7ad41f86c7370f459c7",
+    "checks": "3 publication/error path cases passed in 0.10s; previous nine tests/real canary/247/UI evidence reused, not repeated",
+    "no_success_index_or_event_on_source_change": true,
+    "pre_repair_source_reconstructed_minus_exact_new_hunks_verified_against_previous_receipt": true
+  }
+}

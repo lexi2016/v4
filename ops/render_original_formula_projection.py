@@ -176,7 +176,8 @@ def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
     require(not projection["unsupported_drawings"], "RENDERER_DRAWING_TYPE_UNSUPPORTED")
     source = projection["source"]
     rows = projection["formula_result"]["rows"]
-    payload = {"status": "READY", "symbol": projection["symbol"], "target_date": DATE,
+    date = projection["data_date"]
+    payload = {"status": "READY", "symbol": projection["symbol"], "target_date": date,
         "rows": rows, "first_date": rows[0]["trade_date"], "last_date": rows[-1]["trade_date"],
         "total_rows": len(rows), "source_vendor": "EXISTING_BOUND_QFQ_CACHE",
         "source_kind": source["adjustment_convention"], "full_history_recomputed": True,
@@ -196,9 +197,10 @@ def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
         "if(u.pathname==='/v1/research'&&u.searchParams.get('symbol')===projected.payload.symbol&&u.searchParams.get('date')===projected.payload.target_date)return new Response(JSON.stringify(projected.payload));" + \
         "return new Response(JSON.stringify({status:'UNKNOWN',reason:'OUTSIDE_FROZEN_PROJECTION'}),{status:404});};</script>"
     html = renderer_raw.decode()
-    html = re.sub(r"<title>.*?</title>", "<title>原式 d35c · D29 候选派生投影</title>", html, count=1)
-    html = re.sub(r"<header>.*?</header>", '<header><div><h1>原式 d35c · D29 候选派生投影</h1><div class="muted">51变量与22绘图原样保留；仅渲染投影，独审及原生等价未确认。</div></div><span class="badge">RESEARCH_ONLY</span></header>', html, count=1)
-    html = html.replace("2026-10-27", "2026-10-29").replace('id="draw-text" type="checkbox"', 'id="draw-text" type="checkbox" checked')
+    label = "D29" if date == DATE else "D" + date
+    html = re.sub(r"<title>.*?</title>", f"<title>原式 d35c · {label} 候选派生投影</title>", html, count=1)
+    html = re.sub(r"<header>.*?</header>", f'<header><div><h1>原式 d35c · {label} 候选派生投影</h1><div class="muted">51变量与22绘图原样保留；仅渲染投影，独审及原生等价未确认。</div></div><span class="badge">RESEARCH_ONLY</span></header>', html, count=1)
+    html = html.replace("2026-10-27", f"{date[:4]}-{date[4:6]}-{date[6:]}").replace('id="draw-text" type="checkbox"', 'id="draw-text" type="checkbox" checked')
     html = html.replace("function sourceLabel(body){", "function sourceLabel(body){if(body.projection_source_label)return body.projection_source_label;")
     html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示候选原式派生投影，尚不构成独审或原生等价认证。")
     html = html.replace("已登记", "样例派生").replace("完整重算行数", "原式投影行数")
@@ -209,6 +211,144 @@ def write_json(path, value):
     temporary = path.with_name("." + path.name + ".pending")
     temporary.write_bytes(canonical(value) + b"\n")
     temporary.replace(path)
+
+
+OWNER_RENDERER = {"path": "/Users/lexi/Desktop/学习/因子工厂/research/tdx_panel_parity_20261028_r1/r19_copy/OUTSIDE151_R19/outside151/r19_work/research_reader/index.html", "sha256": RENDERER_SHA}
+
+
+def retain_owner_result(context, parts, symbol, bars, result):
+    """Keep the candidate's existing computation, never invoke compute here."""
+    require(context.config["formula"]["sha256"] == FORMULA_SHA and context.config["engine"]["sha256"] == ENGINE_SHA,
+            "OWNER_FORMULA_ENGINE_CONFLICT")
+    if not hasattr(context, "_original_chart_inventory"):
+        context._original_chart_inventory = context.engine().inventory()
+    payload = {"symbol": symbol, "data_date": str(context.target), "identity": context.identity,
+        "config": context.config_ref, "bars_sha256": sha(canonical(bars)), "bar_dates": [b["trade_date"] for b in bars],
+        "calendar": context.calendars[symbol[-2:]], "inventory": context._original_chart_inventory,
+        "formula_result": context.engine().json_ready(result), **FLAGS}
+    path = Path(parts) / "original_retained" / (symbol + ".json.gz")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name("." + path.name + ".pending")
+    temporary.write_bytes(gzip.compress(json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode(), mtime=0)); temporary.replace(path)
+
+
+def owner_pngs(items):
+    """Same R19 headless canvas checks, one private browser for this owner run."""
+    import subprocess
+    script = r"""
+const fs=require('fs'),{pathToFileURL}=require('url');
+const {chromium}=require('/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{let browser;const errors={};try{
+browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:['--no-first-run','--no-default-browser-check','--disable-extensions','--disable-background-networking']});
+const context=await browser.newContext({viewport:{width:1600,height:1200}});
+await context.route('**/*',r=>r.request().url().startsWith('file://')&&['GET','HEAD'].includes(r.request().method())?r.continue():r.abort());
+for(const item of JSON.parse(fs.readFileSync(0,'utf8'))){let page;try{
+page=await context.newPage();const faults=[];page.on('pageerror',e=>faults.push(String(e)));
+await page.goto(pathToFileURL(item.html).href,{waitUntil:'load'});await page.waitForFunction(s=>document.documentElement.dataset.loaded===s,item.symbol);
+const ok=await page.evaluate(item=>{const state=window.RESEARCH_PANEL_STATE,canvas=document.querySelector('#chart'),pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let visible=false;for(let i=3;i<pixels.length;i+=4)if(pixels[i]){visible=true;break;}return state.symbol===item.symbol&&state.rows.at(-1).trade_date===Number(item.date)&&state.rows.length===item.rows&&document.querySelectorAll('#values tr').length===51&&document.querySelectorAll('#drawings tr').length===22&&document.querySelector('#draw-text').checked&&visible;},item);
+if(!ok||faults.length)throw Error('OWNER_ACTUAL_RENDER_CONTRACT:'+faults.join(';'));await page.screenshot({path:item.png,fullPage:true});
+}catch(e){errors[item.symbol]=String(e);}finally{if(page)await page.close();}}
+}finally{if(browser)await browser.close();}process.stdout.write(JSON.stringify(errors));})().catch(e=>{console.error(String(e));process.exitCode=1;});
+"""
+    run = subprocess.run(["/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "-e", script],
+        input=json.dumps(items), capture_output=True, text=True)
+    require(run.returncode == 0, "OWNER_HEADLESS_UNAVAILABLE:" + run.stderr[-1000:])
+    return json.loads(run.stdout)
+
+
+def finalize_owner_charts(context, parts, product, manifest_ref, artifact, *, gaps, png_renderer=None):
+    """Numeric hashes are final first; sidecars point to them, never vice versa."""
+    renderer_raw = pinned(OWNER_RENDERER)
+    lineage = {"product": artifact, "manifest": manifest_ref, "config": context.config_ref,
+        "engine": context.config["engine"], "formula": context.config["formula"], "renderer": OWNER_RENDERER}
+    output = Path(manifest_ref["path"]).parent / "original_charts"
+    output.mkdir(parents=True, exist_ok=True)
+    samples, records, errors, pending = {}, {}, {}, []
+    for row in product["rows"]:
+        symbol = row["symbol"]
+        try:
+            require(re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol), "OWNER_SYMBOL_INVALID")
+            checkpoint = output / (symbol + ".ready.json")
+            if checkpoint.is_file():
+                prior = json.loads(checkpoint.read_text())
+                require(prior["source_binding"] == lineage and prior["product_row_ref"] == product["row_refs"][symbol]
+                        and prior["symbol"] == symbol and prior["data_date"] == str(context.target)
+                        and prior["source_generation"] == context.generation
+                        and prior["source_input_sha256"] == context.identity["input_sha256"]
+                        and prior["formula_sha256"] == FORMULA_SHA
+                        and prior["source_cache"]["path"] == str(Path(parts) / "original_retained" / (symbol + ".json.gz"))
+                        and prior["source_cache"]["calendar_sha256"] == sha(canonical(context.calendars[symbol[-2:]])), "OWNER_CHART_CACHE_IDENTITY_CONFLICT")
+                pinned(prior["source_cache"])
+                for kind in ("html", "PNG", "projection"):
+                    require(Path(prior[kind]["path"]).is_relative_to(output), "OWNER_CHART_CACHE_PATH_CONFLICT")
+                    pinned(prior[kind])
+                samples[symbol] = prior; records[symbol] = prior
+                continue
+            retained_path = Path(parts) / "original_retained" / (symbol + ".json.gz")
+            require(retained_path.is_file(), gaps.get(symbol, "RETAINED_FULL_RESULT_MISSING_LEGACY_NUMERIC_CACHE_NO_RECOMPUTE"))
+            retained_ref = reference(retained_path)
+            with gzip.open(retained_path, "rb") as stream:
+                raw = stream.read(64 * 1024 * 1024 + 1)
+            require(len(raw) <= 64 * 1024 * 1024, "OWNER_RETAINED_SIZE_LIMIT")
+            retained = json.loads(raw)
+            require(safe(retained) and retained["symbol"] == symbol and retained["data_date"] == str(context.target)
+                    and retained["identity"] == context.identity and retained["config"] == context.config_ref
+                    and retained["calendar"] == context.calendars[symbol[-2:]], "OWNER_RETAINED_BINDING_CONFLICT")
+            result, inventory = retained["formula_result"], retained["inventory"]
+            names = [entry["name"] for entry in inventory["assignments"]]
+            definitions = inventory["drawings"]
+            require(result["formula_sha256"] == FORMULA_SHA and result["mode"] == "prefix"
+                    and result["field_count"] == len(names) == 51 and result["drawing_count"] == len(definitions) == 22
+                    and [r["trade_date"] for r in result["rows"]] == retained["bar_dates"]
+                    and retained["bar_dates"][-1] == context.target, "OWNER_RESULT_SHAPE_CONFLICT")
+            for value in result["rows"]:
+                require(list(value["values"]) == names and len(value["drawings"]) == 22, "OWNER_RESULT_LOSSLESS_CONFLICT")
+                for drawing, definition in zip(value["drawings"], definitions):
+                    require(all(drawing[k] == definition[k] for k in ("id", "kind", "styles"))
+                            and drawing["kind"] in ("DRAWTEXT", "DRAWICON")
+                            and (drawing["kind"] != "DRAWICON" or drawing["payload"] in ("1", "2")), "OWNER_DRAWING_UNSUPPORTED")
+            source = {"generation_id": context.generation, "source_input_sha256": context.identity["input_sha256"],
+                "price_basis": context.identity["basis"]["price_basis"], "volume_basis": context.identity["basis"]["volume_basis"],
+                "adjustment_convention": context.identity["basis"].get("adjustment_convention", "BOUND_ORIGINAL_OWNER_QFQ")}
+            cache = {**retained_ref, "bars_sha256": retained["bars_sha256"], "rows": len(result["rows"]),
+                "calendar_sha256": sha(canonical(retained["calendar"]))}
+            projection = {"schema": "v4.d35c.bound_candidate_projection.v1", "symbol": symbol, "data_date": str(context.target),
+                "authority": "DERIVED_RENDERING_ONLY", "historical_PIT": False, "source": source, "source_cache": cache,
+                "product_row_ref": product["row_refs"][symbol], "inventory": inventory, "formula_result": result,
+                "unsupported_drawings": [], "lineage": lineage, **FLAGS}
+            projection_path, html_path, png_path = (output / (symbol + suffix) for suffix in (".projection.json.gz", ".html", ".png"))
+            projection_path.write_bytes(gzip.compress(canonical(projection), mtime=0))
+            html_path.write_text(chart_html(renderer_raw, projection, lineage, compress_payload=True))
+            item = {"symbol": symbol, "data_date": str(context.target), "source_generation": context.generation,
+                "source_input_sha256": context.identity["input_sha256"], "formula_sha256": FORMULA_SHA,
+                "source_binding": lineage, "source_cache": cache, "product_row_ref": product["row_refs"][symbol],
+                "rows": len(result["rows"]), "projection": reference(projection_path), "html": reference(html_path)}
+            records[symbol] = item
+            pending.append({"symbol": symbol, "date": str(context.target), "rows": item["rows"], "html": str(html_path), "png": str(png_path)})
+        except Exception as error:
+            errors[symbol] = str(error)
+    if pending:
+        try:
+            render_errors = (png_renderer or owner_pngs)(pending)
+        except Exception as error:
+            render_errors = {item["symbol"]: str(error) for item in pending}
+        for item in pending:
+            symbol = item["symbol"]
+            try:
+                require(symbol not in render_errors, render_errors.get(symbol))
+                record = records[symbol]; record["PNG"] = reference(item["png"])
+                write_json(output / (symbol + ".ready.json"), record)
+                samples[symbol] = record
+            except Exception as error:
+                errors[symbol] = str(error)
+    status = "OWNER_CHARTS_PARTIAL" if errors else "OWNER_CHARTS_COMPLETED"
+    manifest = {"schema": "v4.a_share.owner_original_charts.v1", "samples": samples, **FLAGS}
+    receipt = {"status": status, "owner_sidecar": True, "expected": len(product["rows"]), "verified": len(samples),
+        "missing": [], "extra": [], "errors": [{"symbol": s, "reason": r} for s, r in sorted(errors.items())],
+        "records": [samples[s] for s in sorted(samples)], "source_binding": lineage, **FLAGS}
+    write_json(output / "MANIFEST.json", manifest); write_json(output / "COMPLETION_RECEIPT.json", receipt)
+    return {"status": status, "numeric_manifest": manifest_ref, "manifest": reference(output / "MANIFEST.json"),
+        "receipt": reference(output / "COMPLETION_RECEIPT.json")}
 
 
 def reuse_reviewed_three(manifest_path, bound):
