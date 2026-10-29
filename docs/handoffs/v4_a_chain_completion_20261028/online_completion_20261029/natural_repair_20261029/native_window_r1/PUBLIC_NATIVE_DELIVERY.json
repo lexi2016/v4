@@ -1,6 +1,6 @@
 {
   "schema": "v4.native_window.delivery.v1",
-  "status": "REVIEWED_STAGED_NOT_ACTIVE_ADMIN_AUTH_REQUIRED",
+  "status": "DEPLOYED_TARGET_API_AND_PROTECTION_VERIFIED_NATURAL_PENDING",
   "change": "After original primary/fallback attempt, re-read only missing supported codes up to3 times with0.5s spacing inside original real09:25 deadline. Original identity/source-time/PIT acceptance unchanged; late replies rejected; no additionalTDX queries.",
   "source_sha256": "1e8166771b2194629574d0073f058d4a138909f9553519e7843a536b0f82289c",
   "Stage_manifest_sha256": "fe7250448b863ecb421e0055a997eeef635506d1f0823b80db7827c413e2d863",
@@ -13,8 +13,8 @@
   "reviews": "Combined source/control independentlyPASS; locale-only frozen Main identity parameter correction independentlyPASS; old matchingPASS reused without rerun.",
   "control_scope": "Exactly API/collector/Stage/precapture; Main read-only and excluded from root fixed table, TERM,bootout,CAS.22 fixed CLI calls use previously reviewed bounded supervisor.",
   "locale_fix": "Use original Live.identity LC_ALL=C capture, preserve strict full identity equality. Same Main PID/start/version; no control/source/plist semantic change.",
-  "immutable_stage_install": "Completed once, no lifecycle action. Installed roots reused after locale-only R2.",
-  "activation": "Not performed: system authentication expired before any arm. Original Main/Stage/API bindings retained and own expired auth client cancelled. New fresh handoff+nonce and system authentication required; never replay old helper.",
+  "immutable_stage_install": "Installed once; reviewed4-role cutover completed; original Main retained",
+  "activation": "Completed2026-10-29 14:23 Shanghai with one fresh local admin authentication; all4 roles DONE, guardian discharged; loaded definitions, new Stage source/manifest, graph and unchanged API/UI build verified; Main PID unchanged. Original expired attempt preserved, never replayed.",
   "actual_Main_1300": "New Main original scheduled run SUCCEEDED; input/publication/original completion witness matched.",
   "actual_Stage_1315": {
     "A_raw_rows": 58,
@@ -26,11 +26,20 @@
     "status": "PARTIAL_WITH_ROWS; research-quality/PIT/business gaps retained; API natural/execution flags unchanged",
     "causality": "Uses deployed Main528a and Stage0d15 before native patch activation; no claim native09:25 succeeded."
   },
-  "data_protection": "No original5073-stock panel/Parquet/pointer/backup writes; no full-market collection or duplicate producer; original protection pins/stats matched.",
-  "natural_full_seven": "Pending next actual window and remaining stages; no historical regeneration/backfill.",
+  "data_protection": "61/61 original protection pins, large-file metadata, oldHK entries and backup existence matched after activation; no original5073 panel/Parquet/pointer/backup writes or full rehash.",
+  "natural_full_seven": "Pending remaining actual stages and next native09:25 window; original morning failures preserved. User requested missing-morning recovery; existing sealed-input recovery path under bounded assessment.",
   "private_omissions": "No active plan/plists, admin helpers/nonces/auth files, compiled binaries, installed trees, raw market responses, logs, backup or dependencies exported. Not a portable executable deployment package.",
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "browser_ui_readback": "New browser binding unavailable; do not claim fresh UI verification for this activation. API frontend manifest verified.",
+  "activation_readback": {
+    "Main_manifest_sha256": "528a7413168931473a2f418f394efaa0ad640356a3c9d6f68ef455b238e71176",
+    "Stage_manifest_sha256": "fe7250448b863ecb421e0055a997eeef635506d1f0823b80db7827c413e2d863",
+    "graph_config_sha256": "478c0b1ee55ffc8610af54d1ff3e867578582412205464cf69e6b2d633f902a5",
+    "API_manifest_sha256": "73bacffcb0ee2d11b63c7661ae51f0130573d717bae88de5362385f457b0ed78",
+    "protected_checks": "61/61",
+    "native0925_natural_verified": false
+  }
 }
