@@ -291,3 +291,32 @@ def test_second_carry_day_rechecks_identity_coverage_and_original(case, monkeypa
         p = plan(case)["symbols"]
         assert p[CODES[0]]["route"] == "REFRESH_REQUIRED"
         assert all(p[c]["route"] == fc.RESEARCH_CARRY_LABEL for c in CODES[1:])
+
+
+def test_original_market99_namespace_preserves_all_fields_and_multiplicity():
+    unknown = dict(row(code="000003.SZ", category=11), market=99)
+    indexed = td.full_row_event_index([row(), unknown], wanted_codes=tuple(CODES))
+    raw_key = "000003.GBBQ_MARKET_99"
+    assert raw_key in indexed
+    assert indexed[raw_key]["rows"][0]["row_sha256"] == fc.canonical_sha(unknown)
+    assert td.full_row_event_index([unknown, row()]) == indexed
+    assert td.full_row_event_index([row(), unknown, unknown])[raw_key] != indexed[raw_key]
+    revised = dict(unknown, songgu_qianzongguben=1.0193934440612793)
+    assert td.full_row_event_index([revised])[raw_key] != indexed[raw_key]
+
+
+@pytest.mark.parametrize("market,code", [(99, "000001"), (99, "600001"), (98, "161506"), (True, "161506"), (99., "161506"), (99, "16150X")])
+def test_unknown_or_ambiguous_identity_fails_closed(market, code):
+    with pytest.raises(fc.QfqGateError, match="GBBQ_EVENT_INDEX_"):
+        td.full_row_event_index([dict(row(), market=market, code=code)], wanted_codes=tuple(CODES))
+
+
+def test_planner_retains_nonrequested_market99_and_blocks_requested_collision(case, monkeypatch):
+    root, cfg = case
+    unknown = dict(row(code="000003.SZ", category=11), market=99)
+    cfg["prior_detector"] = detector(root / "old99", 20261028, [row(), unknown], monkeypatch)
+    cfg["current_detector"] = detector(root / "new99", 20261029, [row(), unknown], monkeypatch)
+    assert all(x["route"] == fc.RESEARCH_CARRY_LABEL for x in plan(case)["symbols"].values())
+    cfg["current_detector"] = detector(root / "collision99", 20261029, [row(), dict(unknown, code="000001")], monkeypatch)
+    with pytest.raises(fc.QfqGateError, match="UNKNOWN_MARKET_WANTED_COLLISION"):
+        plan(case)
