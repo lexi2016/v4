@@ -1,0 +1,35 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "2d68d1b45d8a7d8284a52ef91e00409207a97c08e8f6364c9a645d6025baa6a8",
+  "reused_R1_frozen_control_sha256": "6dc35a3da08f8ef9c560d84fbf30718d61a5ebf7e2f810bd8fd9c8017e18008a",
+  "scope": "仅六个自有文件路径及截止时间参数增量。",
+  "findings": [],
+  "independent_checks": [
+    "capsule、freeze、全部冻结文件及 canonical PLAN SHA匹配。",
+    "PLAN实际仅改变六个before/after路径及latest_expiry_exclusive。",
+    "新截止时间精确为2026-10-29T15:25:00+08:00，等于或晚于截止的expiry仍拒绝。",
+    "control、probe、be16候选、fe725原字节及四份plist与R1完全一致。",
+    "原全日历300秒检查、90秒TTL上限、idle与三锁门禁保持不变。",
+    "R1 freeze未变；已读取WINDOW_CLOSED_NO_EXECUTION记录。"
+  ],
+  "BEHAVIOR_VERIFIED": {
+    "parameter_delta_and_byte_identity": "PASS",
+    "candidate_and_control_behavior": "复用R1组合PASS；未重跑测试",
+    "fresh_idle_execution_and_actual_reader": "CANNOT_CONFIRM"
+  },
+  "execution_conditions": [
+    "15:00任务自然结束且实际严格晚于15:05",
+    "重新取得fresh owner/idle证明和新nonce",
+    "使用60至90秒TTL，expiry严格早于15:25",
+    "事务后验证无overlay原reader、13/14 witness、旧09拒绝及原保护项未改"
+  ],
+  "reviewer_live_actions": 0,
+  "reviewer_file_edits": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

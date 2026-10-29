@@ -1,0 +1,17 @@
+{
+  "status": "METADATA_CORRECTION_DEPLOYED_ACTUAL_CONSUMER_VERIFIED",
+  "failed_manifest_preimage": "fe7250448b863ecb421e0055a997eeef635506d1f0823b80db7827c413e2d863",
+  "corrected_manifest": "be16a5a75f7bcaf578af4e0e3506d7be2f628eeae1508470ab1ae05ff9e1d902",
+  "change": "984kindfields+aggregate/app_files; twoexisting idlecalendar plist SHA only; app/code/config/release_id unchanged",
+  "checks": "984size/SHA preserved, candidateoverlay labeledoffline,2targetedtests,R1 combinedreviewPASS,R2 path/deadlineincrementalPASS",
+  "actual_reader": "Original installed trustedreader1300/1400witness VERIFIED,0900REJECTED; no overlay",
+  "data_protection": "61/61 original stock data/pointers/HK entries/backup matched; no full panel rehash or stockdatawrites",
+  "service_scope": "Two idle calendar owners only, Main/API/collector/graph retained; no root auth or service signals",
+  "current_API_sha256_retained": "1d8028771bbab4e92dafe2917a6fc936df705c2259485fe478f2d34689466240",
+  "new_snapshot_mode": "IMPLEMENTATION_PENDING",
+  "private_inputs_omitted": "No PLAN/plist/activeh/auth/nonce/rawmarket/large inventory/runtime/deps exported",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

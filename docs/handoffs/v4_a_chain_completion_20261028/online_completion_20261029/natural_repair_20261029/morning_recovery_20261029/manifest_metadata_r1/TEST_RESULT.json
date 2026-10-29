@@ -1,0 +1,33 @@
+{
+  "status": "CANDIDATE_METADATA_AND_ORIGINAL_READER_CHECKS_PASS_NOT_DEPLOYED",
+  "mechanical_metadata": "984rows, exactly missing inheritedkind=file; actual984sourcebytes SHA/size match; same app/config/release identity",
+  "controller_default": "VALIDATED_NO_ACTION",
+  "candidate_reader_probe": {
+    "status": "PASS",
+    "mode": "CANDIDATE_MANIFEST_OVERLAY_NOT_DEPLOYED",
+    "candidate_sha256": "be16a5a75f7bcaf578af4e0e3506d7be2f628eeae1508470ab1ae05ff9e1d902",
+    "original_code_unmodified": true,
+    "actual_1300_witness_run": "f5ba7ecdfd004e258faf93f65598da11",
+    "actual_1400_witness_run": "ed222a36edd24da0837bc82b3f325f78",
+    "0900": "REJECTED:CATALYST_OWNER_CODE_IDENTITY_MISMATCH"
+  },
+  "new_control_fixtures": {
+    "passed": 2,
+    "seconds": 0.05,
+    "oracles": [
+      "reused original FD CAS forward/inverse on local3files preserves exact bytes+metadata",
+      "Main/API/collector action rejection and strict14:54 expiry boundary"
+    ]
+  },
+  "old8_4_tests": "NOT_RERUN",
+  "Writer_real_actions": {
+    "locks": 0,
+    "bootout": 0,
+    "bootstrap": 0,
+    "CAS_installed": 0,
+    "debug": 0,
+    "signal": 0,
+    "system_auth": 0
+  },
+  "post_root_required": "actual installed probe_reader.py with no candidate overlay, trusted owner+1300/1400 witness pass and0900reject"
+}
