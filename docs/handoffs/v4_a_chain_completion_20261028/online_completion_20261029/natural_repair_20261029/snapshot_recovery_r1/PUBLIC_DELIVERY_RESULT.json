@@ -1,0 +1,29 @@
+{
+  "schema": "v4.snapshot_observation_sop.delivery.public.v1",
+  "observed_at": "2026-10-29T09:17:05.669767+00:00",
+  "scope": "Snapshot observation/SOP foundation only; actual post-capture selection still required",
+  "source_freeze_sha256": "540f1eff941a0520b5ab35c8d88d4f87c9dbca6c037081f4312560f279eef300",
+  "combined_review_sha256": "4d301b9291bdecc32dcca8bd252e81df1524d823b7cadc034bc4ba25717aa348",
+  "deployed_at": "2026-10-29T16:36:16.913629+08:00",
+  "Main_untouched": true,
+  "four_roles_done": true,
+  "guardian_discharged": true,
+  "protected_original_checks": "61/61 matched at16:52; does not forbid lawful scheduled daily updates",
+  "snapshot_source_time": "2026-10-29T15:00:00+08:00",
+  "actual_capture_time": "2026-10-29T15:19:00.106096+08:00",
+  "original_pool58_valid56_unsupported2": true,
+  "observation_stages": 5,
+  "actual_supplementary_selection_complete": false,
+  "original_A10_stages_preserved": [
+    "STAGE_0945_1030",
+    "STAGE_1300_1315"
+  ],
+  "API_get_stage7": "PASS observations and preserved original counts only",
+  "UI_actual": "CANNOT_CONFIRM",
+  "natural_default": "NOT_YET_OBSERVED",
+  "user_correction": "Capture must continue into actual original-engine Top10 selection;56 unranked quotes are not goal completion",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

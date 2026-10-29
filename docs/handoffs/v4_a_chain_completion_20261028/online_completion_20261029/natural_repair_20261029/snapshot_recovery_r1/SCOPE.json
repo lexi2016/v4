@@ -1,0 +1,116 @@
+{
+  "schema": "v4.snapshot_recovery.scope.r1",
+  "decision_lock": [
+    "没有回执你就用快照",
+    "重新去抓快照",
+    "以后都这样处理",
+    "功能入口新增SOP，显示固定3文档和更新时间/SHA；Root写内容，Writer仅接入"
+  ],
+  "goal": "Existing Stage owner current-snapshot degraded observations on missing original A selection evidence, visible in V4 with true times; formal result and observation counted separately",
+  "writer": "/root/natural_chain_writer",
+  "reviewer": "same independent Reviewer once source+contract+UI scope frozen",
+  "worktree": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app",
+  "branch": "codex/v4-a-chain-completion-20261028",
+  "head": "56cbaaae6632908dfedede8d2d19bf5c80b13fc5",
+  "allowed_paths": [
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources",
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/tests",
+    "scope/design/results/capsule files directly inside /Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1",
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/control_r1",
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/web_build"
+  ],
+  "source_allowlist": [
+    {
+      "role": "stage",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-native-window-20261029-r1-stage/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "relative": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "preimage_sha256": "3f6227a0d29ded74eb40dfc82ea7c293036dee30e08f3a90a8d0245ff35eb6da",
+      "preimage_mode": "0644"
+    },
+    {
+      "role": "api",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-20261029-r2-api/app/stage_center/consumer.py",
+      "relative": "stage_center/consumer.py",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/stage_center/consumer.py",
+      "preimage_sha256": "1d344e523b0e28955ced8d1285261a9cffe0f734094787c8a3d9d23702f89de7",
+      "preimage_mode": "0644"
+    },
+    {
+      "role": "api",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-20261029-r2-api/app/apps/web/src/App.vue",
+      "relative": "apps/web/src/App.vue",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/apps/web/src/App.vue",
+      "preimage_sha256": "1a073e766228367666022e99026c31ec66eeab6a72ee28949612da216b80be6e",
+      "preimage_mode": "0644"
+    },
+    {
+      "role": "api",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-20261029-r2-api/app/apps/api/v4_api/app.py",
+      "relative": "apps/api/v4_api/app.py",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/apps/api/v4_api/app.py",
+      "preimage_sha256": "ea6a33731e70f2023a2abff24e2b77b663a602d1cd458c9515c4c74d3ce6fa5c",
+      "preimage_mode": "0444"
+    },
+    {
+      "role": "api",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-20261029-r2-api/app/apps/web/src/app_shell/useAppShell.ts",
+      "relative": "apps/web/src/app_shell/useAppShell.ts",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/apps/web/src/app_shell/useAppShell.ts",
+      "preimage_sha256": "4a1350e6160a0c6340b2065f337a071bf1ca57975063257957d342066d716a5f",
+      "preimage_mode": "0644"
+    },
+    {
+      "role": "api",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-numeric283-20261029-r2-api/app/apps/web/src/app_shell/formatters.ts",
+      "relative": "apps/web/src/app_shell/formatters.ts",
+      "candidate": "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/apps/web/src/app_shell/formatters.ts",
+      "preimage_sha256": "81820655e953f11e89f407cd12492d1e2eaa9b5671a3a87c4553df2c76e73149",
+      "preimage_mode": "0644"
+    }
+  ],
+  "new_files": [
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/stage/stage_center/snapshot_recovery.py",
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/stage_center/snapshot_recovery.py",
+    "/Users/lexi/.codex/worktrees/v4-stage-sync-20261028/v4_app/docs/handoffs/v4_a_chain_completion_20261028/online_completion_20261029/natural_repair_20261029/snapshot_recovery_r1/sources/api/infrastructure/operations_sop_reader.py"
+  ],
+  "forbidden": [
+    "all installed releases/services/locks",
+    "primary5073/raw/Parquet/current pointers/manifests/originalFAIL",
+    "current_capture root-owned bytes",
+    "other tasks source/SOP",
+    "newproducer/timer/polling/panel",
+    "BUY/modelweights/formal score changes"
+  ],
+  "reuse": {
+    "provider": "infrastructure.futu_quote_provider.FutuQuoteProvider.get_market_snapshot",
+    "candidate": "stage_center.candidate_input.read_candidate_input exact-date SHA-bound original A acquisition universe",
+    "owner": "existingops.run_stage_center_nodes; later natural stage tick may batch missing earlierstages",
+    "isolation": "same selection_root owned snapshot_recovery namespace, no formal selection/raw pointer change",
+    "manual_capture_sha256": "cd38accd9ed26d499e667d3bf2d4dec592de7ec67cd790f1a175ff8bfdbf2d31"
+  },
+  "default_scope": "A missing originalhourly/native receipt; HK originalproducer/selector unchanged and market-isolated; newstore keyed market with strict A-only capture",
+  "pass_signal": "sealedmanual56 verified without network and visible through existingV4 observation projection; automaticlaternatural tick reuses one snapshot perbatch and preserves originalfail; future/invalid/badmarket quarantined; no formal/NATURAL/PIT/selected count promotion; score/context null+gaps; candidate source immutable/trio/index verified",
+  "stop_rule": "newmarket source/permission/otherowner conflict or requirement to falsifyPIT/witness =>STOP; no install/deploy inWriter",
+  "tests_needed": [
+    "manualcapture56+BJs isolated and correctlate original4stage metadata",
+    "future/nonfinite/priceidentity and mixedmarket rejection per-row",
+    "immutableobservation trios and pointer-onlynamespace; originalFAIL/raw/selection hashes unchanged",
+    "automaticlaterstage tick oncecapture for missing earlierstages; noextra producer/poll/capture ifalreadycomplete",
+    "APIreadSHA/projection preservesformalcounts and originalexecutionfalse; UIdisplaysactualcapture/sourcetime/cutoff/late/gaps",
+    "SOP只允许3固定ID，无任意路径/符号链接/大文件；GET实时返回canonical原文/mtime/SHA，无HTML执行",
+    "SOP同App view=sop导航与原阶段/收盘/R19入口保留",
+    "阶段卡片显示A快照56及15:19非原时点，正式selected仍0；已有A10优先"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "sop_whitelist": [
+    "docs/SOP.md",
+    "docs/operations/STAGE_SELECTION_SOP.md",
+    "docs/operations/records/2026-10-28_29-stage-selection-repair.md"
+  ],
+  "build_control_goal": "One combined immutable Stage/API frontend+SOP+snapshot package; exact4 roles only, Main readonly; root executes after single independent review",
+  "additional_boundary": "Existing legal A pool >220 is partitioned through same provider <=220; each batch raw clock retained; no universe scan, no truncation"
+}

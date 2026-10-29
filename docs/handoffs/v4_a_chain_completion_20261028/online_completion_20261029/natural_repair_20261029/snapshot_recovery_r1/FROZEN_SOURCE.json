@@ -1,0 +1,30 @@
+{
+  "schema": "v4.snapshot.source.freeze.v1",
+  "files": {
+    "sources/stage/stage_center/snapshot_recovery.py": "6e994c62612b9a34a874bc8249d446b77ccc68d9242e3e29ec94e8e82e3ea6b5",
+    "sources/stage/ops/_run_stage_center_nodes_parts/node_entry.py": "487c40604a6d97eff35f246f98c22a4d37edf56e5c5880f060bbaf4d57af563c",
+    "sources/api/infrastructure/operations_sop_reader.py": "1938a0adb61e6880014caf49552e90f7e5c7d93bd5677070f6eea6452ece9827",
+    "sources/api/stage_center/snapshot_recovery.py": "6e994c62612b9a34a874bc8249d446b77ccc68d9242e3e29ec94e8e82e3ea6b5",
+    "sources/api/stage_center/consumer.py": "e3aca33c78c197443088642ca07b1961583abbb19c85df06f3cd9499e4836fd7",
+    "sources/api/apps/api/v4_api/app.py": "57dece85e3e447945447a7cc3c31bd4b10a502ff032c430b8cabd0b689942c64",
+    "sources/api/apps/web/src/App.vue": "9391d907452fa219da6fa17617f794b4b1ffeef26a8cbe3ff97c4898ec946e0b",
+    "sources/api/apps/web/src/app_shell/useAppShell.ts": "dec6ca245deb6253251a32594ed1e5afa5dd891a8128ff51247288249d3ce923",
+    "sources/api/apps/web/src/app_shell/formatters.ts": "529b9865401f7ecb6b8de98ac05498253f3ff75fcfe506cfccf912c73b6232c8"
+  },
+  "scope_sha256": "e008cdef591e507be5834938c75a5c1e135e0ee508857752c477705f02ff7626",
+  "manual_capture_sha256": "cd38accd9ed26d499e667d3bf2d4dec592de7ec67cd790f1a175ff8bfdbf2d31",
+  "native_original_unchanged_sha256": "1e8166771b2194629574d0073f058d4a138909f9553519e7843a536b0f82289c",
+  "status": "PREPARED_TESTED_NOT_DEPLOYED",
+  "quantity_isolation_p2": {
+    "prior_source_freeze_sha256": "db5b201746720716dcd7848da665d000cb4aa068fbffd0d22e6fcd3fbcf170b2",
+    "fields": [
+      "volume",
+      "turnover",
+      "bid_vol1",
+      "ask_vol1"
+    ],
+    "only_provided_non_null": true,
+    "finite_nonnegative": true,
+    "defaults_added": false
+  }
+}

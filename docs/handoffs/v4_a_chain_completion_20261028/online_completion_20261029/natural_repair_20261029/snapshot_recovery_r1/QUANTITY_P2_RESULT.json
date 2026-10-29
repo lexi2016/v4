@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "red": "QUANTITY_P2_RED.txt",
+  "green": "QUANTITY_P2_GREEN.txt",
+  "incremental_cases": 1,
+  "bad_volume": "NaN row rejected before encoding",
+  "good_row": "preserved unfilled volume and successfully encoded/store roundtrip",
+  "plan_validation": "{\"status\": \"PLAN_VALID_NO_ACTION\", \"roles\": [\"api\", \"collector\", \"stage\", \"precapture\"]}",
+  "mirror_sha256": "6e994c62612b9a34a874bc8249d446b77ccc68d9242e3e29ec94e8e82e3ea6b5",
+  "prior_source8_control_and_frontend_PASS": "REUSED_NOT_RERUN",
+  "unchanged_prior_frozen_control_files": {
+    "four_role_control.py": "fbca9b1ec5a67ecffca35ddcdfce86614db1503a0e71d440a333961f67ed7220",
+    "reviewed_r7.py": "44c65823ed11d6819939b3ac10388a74c3c879379a5b615249b170f81239c80e",
+    "plist_metadata.py": "0c486cb4a52294f155e99a00465c9db38fbba0b6b282223f6f92f6061f204c98",
+    "recovery_support.py": "d5704e73f0f9f1736cf5df18e7473701c54583d3f385a770e598b2fd564e3971",
+    "abort_guardian.py": "2941f4a4a7c500d590e107ac2d67f9c2678076946ba094d6919de5bda19abfaf",
+    "bounded_launchctl.c": "6972532ff00791b9b00d75dc4b7bb23928831e4743870eab5dd37f2222095912",
+    "bounded_launchctl": "cf9e677e63a7e7bdf482605080d8ab6be67f68ec4b23efb6932291234006ddf9",
+    "observe_main_identity.py": "ba80f7e998524a6cfbf3c6f5a8b98e71506f7edfe23892bb1259f13f93ddcb8f",
+    "probe_trusted_reader.py": "e1f7fdedf2d6b277c70f22e761a6424bb65bff1ed189646f115029d4b470a7e8",
+    "CURRENT_BASELINE.json": "a240ebe17a7b6020a481fcc6be3806bdac227d2cb3f93d16c48c979683e2a2cf",
+    "ROOT_CAPABILITY.json": "e124fb75f15b784f0cb072943b641319ae125a664d54fc67b99b3299d775c93e",
+    "COMMANDS.json": "f44c420a403bcd7b110a88cb22aec214b6aff3261b941ca6f8a1cdc2fd2ad1db",
+    "HANDOFF.md": "2dffc143988cead459ea23f2ee4a7414ba657ddaab51a7c0a03c9146ae58a9eb",
+    "CONTROL.diff": "f997d82f79353653636a05c74bb59630d29626f9fba15615984a3794ebbadd5b",
+    "graph_binding/runtime-graph-config.json": "308a530a1602e4745bf0f0d66f9cac03735aae9fc461ecf63d5f7c5be4a40cdc",
+    "api.before.plist": "fe56fa3a45d091ffc39fa773491e28c5d8ec556f0f2d4c45648a03512d132ea8",
+    "collector.before.plist": "44aa6b8b1d027921fca780ac08182c404c324ebf2f30bcc06bf7ea813317e5c6",
+    "collector.after.plist": "01207692d14ed6a65efbb6c379af696593335ea56385562b00924b6fed9701d2",
+    "stage.before.plist": "0088a95c7d5ea37195410a115d74ab1e0094331f9be49145ed604a9d8a26306d",
+    "precapture.before.plist": "8a5f3067b7ce6e43a43dda532ab5ec34fad2ea58191c53d1982480c4bf97acdd",
+    "candidates/api/api_module_contracts.current-v4.json": "a785856ccacb0fb238d780a1bc0f1ceacfaf9b477f7661d86c7d5d4e3898e048"
+  },
+  "changed_derived_control_files": [
+    "PLAN.json",
+    "PREPARATION_RESULT.json",
+    "graph_binding/binding-manifest.json",
+    "api.after.plist",
+    "stage.after.plist",
+    "precapture.after.plist",
+    "candidates/stage/release-manifest.json",
+    "candidates/api/release-manifest.json"
+  ],
+  "actual_actions": {
+    "install": 0,
+    "nonce": 0,
+    "locks": 0,
+    "services": 0,
+    "market_network": 0,
+    "stockdata": 0
+  }
+}

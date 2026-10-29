@@ -1,0 +1,21 @@
+{
+  "verdict": "FAIL",
+  "review_status": "REVIEWED/FAIL",
+  "reviewer": "/root/control_final_review",
+  "frozen_control_sha256": "5fa106042e7df4550d1dea7b17ef0c729ee1afb9a8adf3c12a1c20fd89843c3e",
+  "frozen_source_sha256": "db5b201746720716dcd7848da665d000cb4aa068fbffd0d22e6fcd3fbcf170b2",
+  "findings": [
+    {
+      "priority": "P2",
+      "file": "sources/stage/stage_center/snapshot_recovery.py",
+      "lines": "44-59,177,20",
+      "trigger": "原Futu._normalize原样提供quantity字段；2行有效quote中仅首行volume=NaN",
+      "error": "build_observation accepted=2,rejected=0；encoded(artifact) ValueError:Out of range float values are not JSON compliant:nan",
+      "impact": "单条非法数量字段使整批观察无法序列化/发布，违反逐行隔离契约",
+      "independent_reproduction": "纯内存：cd38 capture前2行、首行volume=NaN、原symbol/price/time不改；无网络/数据/服务写入"
+    }
+  ],
+  "reviewed_unaffected": "SOP白名单/纯文本、正式结果隔离、985/1294完整kind metadata与实际文件hash、3个HTML入口资产、22CLI、原supervisor/guardian/recovery/三锁、graph/Main/454资源绑定、API逆向health",
+  "live_actions": 0,
+  "UI_LIVE_VERIFIED": false
+}

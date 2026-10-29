@@ -1,0 +1,56 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "reviewer": "/root/control_final_review",
+  "writer": "/root/natural_chain_writer",
+  "frozen_control_sha256": "5e2cdcee06feb42eaba108d555b987b8331ce70d4140f6bd5dd61fb419bf2871",
+  "frozen_source_sha256": "540f1eff941a0520b5ab35c8d88d4f87c9dbca6c037081f4312560f279eef300",
+  "scope": "snapshot降级观察、独立API/UI展示、原入口SOP及必要四角色发布控制；包含P2窄返修。",
+  "findings": [],
+  "risk_review": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "resolved_P2": {
+    "prior_frozen_control_sha256": "5fa106042e7df4550d1dea7b17ef0c729ee1afb9a8adf3c12a1c20fd89843c3e",
+    "fix": "四个provided数量字段增加finite/nonnegative校验，非法行进入原rejected路径。",
+    "independent_reproduction": "同一纯内存NaN场景现为accepted=1、rejected=1，artifact编码成功；无网络或写入。",
+    "fixture": "新增1项encode及store/read roundtrip PASS；原FAIL保留。"
+  },
+  "independent_checks": [
+    "新freeze及全部声明SHA匹配；Stage/API helper一致，增量仅三行校验及衍生pins。",
+    "原15:19 capture保持cd38原SHA、源时间15:00；观察与正式selected/markets、NATURAL/PIT及评分隔离。",
+    "Stage985/API1294实际文件SHA、size、完整kind及继承metadata匹配。",
+    "SOP固定三个文档ID，拒绝路径/符号链接/超限文件；前端纯文本展示。",
+    "三个HTML入口资产存在，无保留文件引用已移除dist资产；454研究资源原绑定保留。",
+    "22固定CLI表匹配四角色定义；Main无生命周期动作，原supervisor、guardian、三锁及FD CAS复用。",
+    "graph仅改变必要Stage/API caller绑定；API逆向health匹配原版本。",
+    "P2后仅manifest、三个after-plist、PLAN及binding审计SHA传播；其余已审部分复用。"
+  ],
+  "five_stage_input": {
+    "status": "SUPPORTED_BY_EXISTING_MANUAL_CONTRACT",
+    "basis": "实际15:00失败receipt满足原target过滤；15:19晚于原截止。",
+    "requirements": "派生receipt保留cd38、真实时钟和原receipt SHA，并绑定same-pool证明及明示授权；不修改原receipt。",
+    "actual_five_stage_delivery": "CANNOT_CONFIRM，待root机械核验",
+    "formal_A10": "原10:30/13:15正式结果优先保留"
+  },
+  "BEHAVIOR_VERIFIED": {
+    "candidate_static_checks_and_P2_memory_reproduction": "PASS",
+    "recorded_targeted_tests_and_frontend_build": "PASS证据已审；未重跑旧套",
+    "installed_trusted_reader_API_and_natural_tick": "CANNOT_CONFIRM",
+    "actual_browser_UI": "CANNOT_CONFIRM；不以API代替"
+  },
+  "mandatory_remaining": [
+    "不可变安装后、激活前，无overlay原trusted reader验证13/14通过及旧09拒绝",
+    "fresh owner/idle、日历margin、新nonce和真实切换读回",
+    "导入已授权capture后核验五段观察56及原正式A10、原失败记录和保护数据未改",
+    "实际API、浏览器UI及后续自然tick分层验收"
+  ],
+  "reviewer_file_edits": 0,
+  "reviewer_live_actions": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

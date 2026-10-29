@@ -1,0 +1,35 @@
+{
+  "status": "TARGETED_PASS",
+  "source_original8": "PASS_REUSED_WITH_SINGLE_BATCH_SEMANTICS_PRESERVED",
+  "incremental": {
+    "api_consumer_parallel56_formal_precedence": 1,
+    "sop_fixed_doc_reader": 1,
+    "complete221_pool_220_plus1_batch_clocks": 1,
+    "strict4role_metadata_main_readonly_cli_and_api_reversehealth": 2,
+    "frontend_SOP_navigation_fixedGET_plaintext": 1,
+    "frontend_snapshot56_table_card_null_score": 1
+  },
+  "frontend_build": "PASS",
+  "typecheck": "EXISTING_BASELINE_DIAGNOSTICS_IDENTICAL_NO_NEW_ERROR",
+  "original_source_tests": "tests/test_snapshot_recovery.py",
+  "commands": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -B -m pytest -q -p no:cacheprovider <selected cases in tests/>",
+    "node web_build/node_modules/vitest/vitest.mjs run src/SnapshotRecoverySop.spec.ts",
+    "node web_build/node_modules/vite/bin/vite.js build",
+    "clang -O2 -Wall -Wextra -Werror control_r1/bounded_launchctl.c -o control_r1/bounded_launchctl",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -B control_r1/four_role_control.py --plan control_r1/PLAN.json"
+  ],
+  "fixture_failures_retained": "API import ordering/incorrect STAGE_1315 fixture and frontend file-URL/text expectation corrected; no business gates changed",
+  "actual_installed_candidate_reader": "NOT_RUN_WRITER_CANNOT_INSTALL; root must use probe_trusted_reader.py after immutable staging before activation",
+  "API_LIVE_VERIFIED": false,
+  "UI_LIVE_VERIFIED": false,
+  "NATURAL_VERIFIED": false,
+  "services_or_data_actions": 0,
+  "quantity_isolation_p2": {
+    "incremental_pass": 1,
+    "fixture": "tests/test_snapshot_quantity_isolation.py",
+    "sha256": "9ed63b558ea364e5f858185f2264a380c4df9eeac9d1dc8390271f28abf052de",
+    "result": "QUANTITY_P2_RESULT.json",
+    "old_scopes_reused_not_rerun": true
+  }
+}
