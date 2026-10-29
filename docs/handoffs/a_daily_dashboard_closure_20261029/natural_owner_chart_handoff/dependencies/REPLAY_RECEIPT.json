@@ -1,0 +1,40 @@
+{
+  "status": "DEPENDENCY_PATCH_EXACT_REPLAY_PASS_SOURCE_ONLY",
+  "dependency_status": "PREEXISTING_DIRTY_NATURAL_OWNER_ENTRY_NOT_NEW_C4_IMPLEMENTATION_NOT_FULL_GATE_CERTIFICATION",
+  "search": {
+    "root": "docs/handoffs/a_daily_dashboard_closure_20261029",
+    "patterns": [
+      "*.diff",
+      "*.patch"
+    ],
+    "needle": "gate file unified diff header",
+    "reusable_existing_gate_patch_found": false
+  },
+  "base_commit": "e6df789828ef064a9114e27962f99d2575711e7f",
+  "base_git_blob": "af1e97ccad03f7d0cfe51301eebe513304947242",
+  "base_preimage_sha256": "35f0d140d0aaba9fad685e5c3334c8e2b31e91f0b1b76c0489b7ea23cdf0e418",
+  "target_file": "ops/macos_research_panel_daily_gate.py",
+  "existing_dirty_preimage_sha256": "42bd22ee9c53adf896d062c5307948299eba7cbdda263d82d106a482d0ef9a6d",
+  "existing_dirty_preimage_equals_C4_start_snapshot": true,
+  "restored_git_blob": "9e43cc6dd86245d034f49dc673971627c302d677",
+  "patch_path": "gate_materialize_daily_product.patch",
+  "patch_sha256": "77fa06f4f800491cdca29eeaf18530f4f3bc1e55c615aa63dbe50a26c6b8ae4c",
+  "patch_hunks": 1,
+  "callsite_path": "CALLSITE.txt",
+  "callsite_start_line": 584,
+  "callsite_lines": 8,
+  "callsite_sha256": "b2c5e5cd5fca2a175ce8d41eaf141f2b77d8172093fa67baa8fbd1897c31495c",
+  "replay": {
+    "git_apply_check_exit": 0,
+    "git_apply_exit": 0,
+    "restored_full_file_bytes_equal_current_real_gate": true,
+    "temporary_full_preimage_removed": true
+  },
+  "source_gate_modified": false,
+  "tests_or_business_canary_run": false,
+  "live_service_or_pin_changes": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

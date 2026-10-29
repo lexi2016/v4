@@ -1,0 +1,8 @@
+        from ops.research_panel_daily_product import materialize_daily_product
+        try:
+            daily_product = materialize_daily_product(data_root=authority_paths["--a-data-root"], target=int(target), formula_result=formula)
+        except Exception as error:
+            daily_product = {"status":"CANNOT_CONFIRM", "data_date":target, "reason":str(error)}
+        outcome = builder(sync, formula, target, bootstrap)
+        outcome["daily_product"] = daily_product
+        return outcome

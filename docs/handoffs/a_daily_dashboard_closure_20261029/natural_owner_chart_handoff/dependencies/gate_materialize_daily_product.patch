@@ -1,0 +1,20 @@
+diff --git a/ops/macos_research_panel_daily_gate.py b/ops/macos_research_panel_daily_gate.py
+index af1e97cca..9e43cc6dd 100644
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -581,7 +581,14 @@ def main() -> int:
+             ),
+             "build_a_lane_outcome",
+         )
+-        return builder(sync, formula, target, bootstrap)
++        from ops.research_panel_daily_product import materialize_daily_product
++        try:
++            daily_product = materialize_daily_product(data_root=authority_paths["--a-data-root"], target=int(target), formula_result=formula)
++        except Exception as error:
++            daily_product = {"status":"CANNOT_CONFIRM", "data_date":target, "reason":str(error)}
++        outcome = builder(sync, formula, target, bootstrap)
++        outcome["daily_product"] = daily_product
++        return outcome
+ 
+     def run_hk(target: str) -> dict[str, Any]:
+         # Every collector invocation gets a fresh manifest identity.  The
