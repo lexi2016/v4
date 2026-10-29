@@ -40,6 +40,17 @@ function snapshotObservation(workbench: unknown): SnapshotObservation | null {
   const value = recovery?.markets?.A_SHARE;
   return value?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && Array.isArray(value.rows) ? value : null;
 }
+type SnapshotReselection = {
+  mode?: string; selected_rows?: number; scored_rows?: number; captured_at?: string;
+  scoring_evaluated_at?: string; context_status?: string; context_slot?: string | null; context_reader_as_of?: string | null;
+  context_fallback_used?: boolean; context_rejections?: { rejected_slot?: string; error?: string }[];
+  algorithm_sha256?: string; rows: Record<string, unknown>[];
+};
+function snapshotReselection(workbench: unknown): SnapshotReselection | null {
+  const value = (workbench as { snapshot_reselection?: { status?: string; markets?: { A_SHARE?: SnapshotReselection } } } | null)?.snapshot_reselection;
+  const selected = value?.markets?.A_SHARE;
+  return value?.status === "SELECTED_WATCH_ONLY" && selected?.mode === "AFTERFACT_SNAPSHOT_RESELECTION" && Array.isArray(selected.rows) ? selected : null;
+}
 const {
   stageDefinitions,
   closingTimeline,
@@ -401,6 +412,17 @@ const aEmptyStateDetails = computed(() => {
       </p>
       <p v-else-if="stageWorkbench" class="stage-display-status">{{ stageWorkbench.stage.display_status }}</p>
 
+      <div v-if="snapshotReselection(stageWorkbench)" class="market-column" data-snapshot-reselection aria-label="事后快照补选Top10">
+        <h3>事后快照补选 Top10 · WATCH_ONLY</h3>
+        <p>原算法对 {{ snapshotReselection(stageWorkbench)?.scored_rows }} 条有效报价真实评分排序，补选 {{ snapshotReselection(stageWorkbench)?.selected_rows }} 条。非原阶段自然选股、非竞价重演；原正式计数与失败回执保留。</p>
+        <p>快照实际采集 {{ snapshotReselection(stageWorkbench)?.captured_at }} · 本次计算 {{ snapshotReselection(stageWorkbench)?.scoring_evaluated_at }}</p>
+        <p>{{ snapshotReselection(stageWorkbench)?.context_status }} · 采用研究上下文 {{ snapshotReselection(stageWorkbench)?.context_slot || "缺失" }} · 原 reader 验证时点 {{ snapshotReselection(stageWorkbench)?.context_reader_as_of || "无有效上下文" }} · {{ snapshotReselection(stageWorkbench)?.context_fallback_used ? "last-known-good 回退，非采集时点 latest 声明" : "原 reader 已验证" }}</p>
+        <p v-for="(item, index) in snapshotReselection(stageWorkbench)?.context_rejections" :key="index" class="evidence-gap">上下文拒绝 {{ item.rejected_slot }}：{{ item.error }}</p>
+        <p>新闻／研究缺失源分值保留 null；总分沿原引擎既有 neutral 默认计算，未补造实测研究分。</p>
+        <table><thead><tr><th>补选排名</th><th>代码</th><th>名称</th><th>原算法总分</th><th>报价源时刻</th><th>新闻／研究源分</th><th>用途</th></tr></thead>
+        <tbody><tr v-for="row in snapshotReselection(stageWorkbench)?.rows" :key="String(row.code)"><td>{{ row.rank }}</td><td>{{ row.code }}</td><td>{{ row.name || row.stock_name }}</td><td>{{ row.score }}</td><td>{{ row.source_last_bar_time }}</td><td>{{ row.news_quality_score ?? "null" }} ／ {{ row.research_quality_score ?? "null" }}</td><td>WATCH_ONLY</td></tr></tbody></table>
+        <details><summary>算法身份</summary><code>{{ snapshotReselection(stageWorkbench)?.algorithm_sha256 }}</code></details>
+      </div>
       <div v-if="snapshotObservation(stageWorkbench)" class="market-column" data-snapshot-recovery aria-label="当前快照降级观察">
         <h3>当前快照观察 · WATCH_ONLY</h3>
         <p>本阶段正式结果仍按原回执保留。以下为当前行情观察，不是原阶段选股、原 Top10 或自然时点结果；评分与研究上下文未补造。</p>

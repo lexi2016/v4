@@ -165,6 +165,13 @@ export function stageMarketStateText(workbench: StageWorkbench | null | undefine
   const due = workbench.execution_evidence?.due_status;
   if (["NOT_DUE", "PENDING_NOT_DUE"].includes(due || "") || workbench.status === "PENDING_NOT_DUE") return "未到期/等待执行";
   const selected = market === "A" ? workbench.selected_a_rows : workbench.selected_hk_rows;
+  const supplementary = (workbench as unknown as { snapshot_reselection?: { status?: string; markets?: { A_SHARE?: { mode?: string; selected_rows?: number; captured_at?: string } } } }).snapshot_reselection;
+  const picked = supplementary?.markets?.A_SHARE;
+  if (market === "A" && !(typeof selected === "number" && selected > 0) && summary?.selection_manifest_receipt_verified !== true
+      && supplementary?.status === "SELECTED_WATCH_ONLY" && picked?.mode === "AFTERFACT_SNAPSHOT_RESELECTION" && (picked.selected_rows || 0) > 0) {
+    const time = picked.captured_at?.match(/T(\d{2}:\d{2})/)?.[1] || "时刻待确认";
+    return `事后补选${picked.selected_rows}条 · 快照${time} · 非原时点`;
+  }
   const recovery = (workbench as unknown as { snapshot_recovery?: { status?: string; markets?: { A_SHARE?: { mode?: string; observed_rows?: number; captured_at?: string } } } }).snapshot_recovery;
   const observation = recovery?.markets?.A_SHARE;
   if (market === "A" && !(typeof selected === "number" && selected > 0)

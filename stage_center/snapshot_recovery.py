@@ -240,7 +240,9 @@ def recover(config,date,*,stages=None,input_path=None,receipt_path=None,provider
 
 def after_natural_nodes(config,date,nodes,**kwargs):
     if not any(n.get('stage_id') in specs() and n.get('node_id')==n.get('stage_id') for n in nodes):return {'status':'SKIPPED_NON_STAGE_TICK','observations':[],'provider_invocations':0,**FLAGS}
-    try:return recover(config,date,**kwargs)
+    try:
+        from stage_center.snapshot_selection import recover_and_select
+        return recover_and_select(config,date,**kwargs)
     except Exception as error:return {'status':'CANNOT_CONFIRM','reason':str(error),'observations':[],**FLAGS} # Optional observation failure cannot change the original stage receipt.
 
 def read_for_api(root,date,stage):

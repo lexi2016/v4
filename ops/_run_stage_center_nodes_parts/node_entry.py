@@ -650,6 +650,7 @@ def __exit_code_body(_v4_scope, /, status):
     return 0 if status in {
         "CHECK_OK",
         "SNAPSHOT_RECOVERY_OBSERVATIONS_AVAILABLE",
+        "SNAPSHOT_RESELECTION_READY",
         "NO_MISSING_OBSERVATION_TARGET",
         "NODES_COMPLETE",
         "NODES_SKIPPED",
@@ -746,7 +747,8 @@ def _main_body(_v4_scope, /, argv):
                         stage_id,
                     )
         elif args.snapshot_recovery:
-            from stage_center.snapshot_recovery import recover, specs
+            from stage_center.snapshot_recovery import specs
+            from stage_center.snapshot_selection import recover_and_select as recover
             if args.node and args.node not in specs():
                 raise ValueError("snapshot recovery requires an A stage, never a prep/HK node")
             if bool(args.snapshot_recovery_input) != bool(args.snapshot_recovery_receipt):
