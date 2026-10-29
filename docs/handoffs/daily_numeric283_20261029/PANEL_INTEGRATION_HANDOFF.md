@@ -1,0 +1,7 @@
+# Daily numeric candidate card (2026-10-29)
+
+Adds a read-only 283-stock snapshot to the original research-panel/daily.html. D=20261028, observation=20261029. Overlapping groups: 37 original, 163 small-K, 130 pullback,31 breakout. Exact283 membership and all-row availability verified; three SH/SZ/BJ UI samples checked. Existing R19 and previous static assets retained. Six focused JS tests and independent scope review passed.
+
+Live release: v4-daily-numeric283-20261029-r2-api; manifest SHA256 1d8028771bbab4e92dafe2917a6fc936df705c2259485fe478f2d34689466240. All1342 previous app entries are unchanged; the one new app entry is the actual static builder. Source worktree base bf2ed07463dc7ce68e9b723c13aba5dadd4695f9; remote source-package base8810e0324a2c708c0cb65644b253da7c473efe64. Prepared runtime used configured PANEL_PYTHON(v3.5-mac) in isolated mode; actual v4 runtime consumer and liveHTTP checks passed. Source inputs and runtime control files are intentionally not committed.
+
+This is a FIXED SNAPSHOT, not daily automation or a complete283-stock Kline interface. Next work should wire the existing dated daily/formula producer to the same page and per-stock consumers; do not add a second producer/panel or hand-edit each day's list. Ticker+market is the identity key; preserve lifecycle/renaming/archive/unknown rules. Do not run this dated nonactive preparer against a new active release without fresh binding. Wait for actual launchd label removal before bootstrap. Live cutover preserves Main/Stage and all research safety flags.
