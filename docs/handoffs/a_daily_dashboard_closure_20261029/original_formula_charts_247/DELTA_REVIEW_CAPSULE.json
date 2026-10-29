@@ -1,0 +1,123 @@
+{
+  "status": "DELTA_CANARY_READY_FOR_ONE_INDEPENDENT_REVIEW",
+  "baseline_pass_commit": "75d611995",
+  "pushed": false,
+  "source_sha256": {
+    "ops/render_original_formula_projection.py": "acd9a7159ed0dcdf4418248c57f3e514a0ce130e8591e5dc06d7ca1cc4975deb",
+    "tests/test_original_formula_projection.py": "b8fd89124c129b9d7d07b2eed489b80fa88714a54053dd0b7b2e246602229482"
+  },
+  "changed_scope": [
+    "Explicit 247 current product/coverage allowlist; CLI never defaults to all",
+    "Legacy3 samples cache and per-stock sample cache; exact source_refs/bar/SHA bindings",
+    "Existing3 independent PASS artifacts referenced unchanged without engine/renderer rerun",
+    "Lossless deterministic gzip projection; HTML embedded gzip decoded by built-in DecompressionStream; same choose/paint",
+    "Per-symbol checkpoint reuse and errors kept as CANNOT_CONFIRM; Root owns batch scheduling/resource monitoring"
+  ],
+  "canary": {
+    "binding_sha256": "9376ba876464c2af35e6e19300f9b89a9edb86311f082e0156227bb6c1d56322",
+    "drawings_per_row": 22,
+    "format": "LOSSLESS_GZIP_V1;HTML_GZIP_BASE64_PAYLOAD",
+    "html": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/original_formula_charts_247/600814_SH.html",
+      "sha256": "6aa04c66950153fb72526a7b3131c0f2f433d9f5f1bcb562fed774c41a083aca"
+    },
+    "html_bytes": 3288380,
+    "independent_review": "PENDING",
+    "projection": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/original_formula_charts_247/600814_SH.projection.json.gz",
+      "sha256": "d0d10e663a57b118fe04d817befe9c79e563218f07d6d26df08ff88ad9588982"
+    },
+    "projection_gzip_bytes": 2468984,
+    "projection_uncompressed_bytes": 27954497,
+    "rows": 7781,
+    "seconds": 1.986833083210513,
+    "status": "READY",
+    "unsupported_drawings": 0,
+    "values_per_row": 51,
+    "visual_readback": "NOT_RUN",
+    "worker_peak_rss_bytes": 429948928
+  },
+  "actual_readback": {
+    "scope": "ONE_NEW_BOUND_D29_CACHE_CANARY",
+    "samples": [
+      {
+        "symbol": "600814.SH",
+        "last_date": 20261029,
+        "total_rows": 7781,
+        "visible_rows": 120,
+        "markers": 240,
+        "variable_table_rows": 51,
+        "drawing_table_rows": 22,
+        "text_enabled": true,
+        "canvas_pixels": [
+          1268,
+          490
+        ],
+        "canvas_nonempty": true,
+        "caption": "展示 120 / 7781 行 · 240 处真实触发绘图 · 鼠标移到图上查看当天全部变量。",
+        "status": "ACTUAL_RENDER_READBACK_PASS",
+        "screenshot": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/original_formula_charts_247/600814_SH.actual.png",
+        "errors": []
+      }
+    ],
+    "headless": true,
+    "own_temporary_profile": true,
+    "user_GUI_or_profile_access": false,
+    "network_writes_blocked": true,
+    "browser_closed": true,
+    "temporary_profile_removed": true,
+    "status": "PASS_ACTUAL_NEW_CACHE_CANARY_READBACK"
+  },
+  "mechanical_checks": [
+    "All7781rows51/22 PASS",
+    "gzip and embedded HTML rows exactly equal projection PASS",
+    "Original R19 choose/paint byte equality PASS",
+    "Old3 projection/HTML SHA unchanged PASS"
+  ],
+  "new244_estimate": {
+    "symbols_including_completed_canary": 244,
+    "total_prefix_rows": 714130,
+    "basis": "Single 600814 canary linear scaling by stored row counts only; not SLA or certified upper bound",
+    "serialized_seconds": 182.3489409732841,
+    "ideal14_worker_seconds_excluding_overhead": 13.024924355234578,
+    "projection_gzip_bytes": 226600121,
+    "html_bytes": 301803214,
+    "remaining_after_canary": 243
+  },
+  "current_resources": {
+    "cpu_cores": 18,
+    "memory_gib": 128,
+    "memory_pressure_free_percent": 93,
+    "free_disk_gib": 352,
+    "canary_peak_rss_bytes": 429948928,
+    "14_worker_peak_RSS_linear_estimate_bytes": 6019284992,
+    "scope_job_memory_cap_gib": 64,
+    "scope_reserve_gib": 24,
+    "suggested_after_gate_workers": 14,
+    "max_pending_after_gate": 28,
+    "enforcement": "Controller must monitor actual memory pressure/RSS and stop new submissions, drain, checkpoint; helper itself is a one-symbol primitive"
+  },
+  "delta_tests": {
+    "command": "PANEL_PYTHON -m pytest -q tests/test_original_formula_projection.py::test_explicit_247_allowlist_rejects_extra_duplicate_and_unrequested_scope tests/test_original_formula_projection.py::test_single_stock_cache_binding_and_legacy_sample_shape tests/test_original_formula_projection.py::test_gzip_projection_and_embedded_payload_are_lossless_and_checkpoint_reuses --basetemp=docs/handoffs/a_daily_dashboard_closure_20261029/original_formula_charts_247/pytest_tmp --tb=short",
+    "result": "3 passed in0.02s",
+    "old4_tests": "REUSED_NOT_RERUN",
+    "PANEL_PYTHON": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python"
+  },
+  "limitations": [
+    "Native TDX visual/PIT equivalence remains uncertified",
+    "Dense original text overlap remains",
+    "Only one NEW per-stock cache actually computed/rendered; batch not run",
+    "Browser DecompressionStream is now needed for NEW compressed HTML; real local Chrome verified",
+    "No historical labels/returns bootstrap; no source producer, formulas, pools, prices, calendars or services changed"
+  ],
+  "batch_stage": "NOT_STARTED_WAIT_DELTA_PASS_AND_ROOT_GATE",
+  "priority_next": [
+    "002003.SZ",
+    "601088.SH",
+    "603444.SH"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

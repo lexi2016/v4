@@ -1,4 +1,4 @@
-"""Three-sample, lossless d35c rendering projection over existing bound caches.
+"""Explicit frozen-candidate d35c rendering projection over bound caches.
 
 Not an authoritative producer: no acquisition, pool decisions, history labels,
 shared state, or service changes. The pinned original interpreter is unchanged.
@@ -6,11 +6,14 @@ shared state, or service changes. The pinned original interpreter is unchanged.
 from __future__ import annotations
 
 import argparse
+import base64
+import gzip
 import hashlib
 import importlib.util
 import json
 from pathlib import Path
 import re
+import resource
 import time
 
 SAMPLES = ("600025.SH", "000410.SZ", "920454.BJ")
@@ -49,10 +52,46 @@ def pinned(ref):
 
 
 def safe(value):
-    return all(value.get(key) is flag for key, flag in FLAGS.items())
+    return isinstance(value, dict) and all(value.get(key) is flag for key, flag in FLAGS.items())
 
 
-def load_bound_inputs(config_path, coverage_path, index_path):
+def candidate_allowlist(coverage, product, requested):
+    rows = coverage["items"]
+    symbols = [row["symbol"] for row in rows]
+    candidates = [row["symbol"] for row in product["rows"]]
+    require(len(symbols) == len(set(symbols)) == len(candidates) == len(set(candidates)) == product["unique_count"] == 247,
+            "CANDIDATE_ALLOWLIST_COUNT_OR_DUPLICATE")
+    require(set(symbols) == set(candidates), "CANDIDATE_ALLOWLIST_PRODUCT_CONFLICT")
+    require(requested and set(requested) <= set(symbols), "SYMBOL_OUTSIDE_BOUND_COVERAGE")
+    return tuple(sorted(symbols))
+
+
+def cache_sample(cache, item, symbol, expected, identity, coverage_identity, manifest_ref, product_ref):
+    require(safe(cache) and all(cache["source"].get(k) == v for k, v in expected.items()), "CACHE_IDENTITY_CONFLICT")
+    require(cache["source"]["selector_artifact_sha256"] == identity["selector_artifact_sha256"], "SELECTOR_ARTIFACT_CONFLICT")
+    require(cache["source"]["adjustment_convention"] == item["adjustment_convention"] == coverage_identity["adjustment_convention"], "ADJUSTMENT_CONFLICT")
+    require(("samples" in cache) != ("sample" in cache), "CACHE_SAMPLE_SHAPE_AMBIGUOUS")
+    if "sample" in cache:
+        samples = [cache["sample"]]
+        require(cache.get("bars_sha256") == item["source_cache"]["bars_sha256"], "CACHE_BARS_SHA_OR_COUNT_CONFLICT")
+        refs = cache["source_refs"]
+        require(refs.get("product_manifest_path") == manifest_ref["path"] and refs.get("product_manifest_sha256") == manifest_ref["sha256"]
+                and refs.get("product_path") == product_ref["path"] and refs.get("product_sha256") == product_ref["sha256"]
+                and refs.get("product_row_ref_path") == item["product_row_ref"]["path"]
+                and refs.get("product_row_ref_sha256") == item["product_row_ref"]["sha256"], "CACHE_PRODUCT_REFERENCE_CONFLICT")
+    else:
+        samples = cache["samples"]
+    matches = [sample for sample in samples if sample.get("symbol") == symbol]
+    require(len(matches) == 1, "CACHE_SYMBOL_AMBIGUOUS")
+    sample = matches[0]
+    bars = sample["bars"]
+    require(len(bars) == item["source_cache"]["rows"] and sha(canonical(bars)) == item["source_cache"]["bars_sha256"], "CACHE_BARS_SHA_OR_COUNT_CONFLICT")
+    require(bars and bars[-1]["date"] == DATE and sample["prefix"]["end_date"] == DATE, "CACHE_DATE_CONFLICT")
+    require(len({bar["date"] for bar in bars}) == len(bars) and all(bar["date"] <= DATE for bar in bars), "CACHE_DATE_COVERAGE_CONFLICT")
+    return sample
+
+
+def load_bound_inputs(config_path, coverage_path, index_path, symbols=SAMPLES):
     index_ref = reference(index_path)
     index = json.loads(pinned(index_ref))
     manifest_ref = index["dates"][DATE]
@@ -78,11 +117,13 @@ def load_bound_inputs(config_path, coverage_path, index_path):
     require(identity["generation"] == product["source_generation"] and manifest["source_generation"] == product["source_generation"], "PRODUCT_GENERATION_CONFLICT")
     require(manifest["input_sha256"] == identity["input_sha256"], "PRODUCT_INPUT_CONFLICT")
     require(all(coverage["source_identity"].get(k) == v for k, v in expected.items()), "COVERAGE_IDENTITY_CONFLICT")
-    items = {row["symbol"]: row for row in coverage["items"] if row["symbol"] in SAMPLES}
-    require(set(items) == set(SAMPLES), "THREE_SAMPLES_NOT_COVERED")
+    allowed = candidate_allowlist(coverage, product, symbols)
+    items = {row["symbol"]: row for row in coverage["items"] if row["symbol"] in symbols}
     caches = {}
     bound = {}
-    for symbol in SAMPLES:
+    failures = {}
+    for symbol in dict.fromkeys(symbols):
+      try:
         item = items[symbol]
         require(all(item.get(k) == v for k, v in expected.items()), "SAMPLE_IDENTITY_CONFLICT")
         require(item["product_row_ref"] == product["row_refs"].get(symbol), "PRODUCT_ROW_REFERENCE_CONFLICT")
@@ -93,25 +134,18 @@ def load_bound_inputs(config_path, coverage_path, index_path):
         if key not in caches:
             caches[key] = json.loads(pinned(cache_ref))
         cache = caches[key]
-        require(safe(cache) and all(cache["source"].get(k) == v for k, v in expected.items()), "CACHE_IDENTITY_CONFLICT")
-        require(cache["source"]["selector_artifact_sha256"] == identity["selector_artifact_sha256"], "SELECTOR_ARTIFACT_CONFLICT")
-        require(cache["source"]["adjustment_convention"] == item["adjustment_convention"] == coverage["source_identity"]["adjustment_convention"], "ADJUSTMENT_CONFLICT")
-        matches = [sample for sample in cache["samples"] if sample.get("symbol") == symbol]
-        require(len(matches) == 1, "CACHE_SYMBOL_AMBIGUOUS")
-        sample = matches[0]
-        bars = sample["bars"]
-        require(len(bars) == item["source_cache"]["rows"] and sha(canonical(bars)) == item["source_cache"]["bars_sha256"], "CACHE_BARS_SHA_OR_COUNT_CONFLICT")
-        require(bars and bars[-1]["date"] == DATE and sample["prefix"]["end_date"] == DATE, "CACHE_DATE_CONFLICT")
-        require(len({bar["date"] for bar in bars}) == len(bars) and all(bar["date"] <= DATE for bar in bars), "CACHE_DATE_COVERAGE_CONFLICT")
-        bound[symbol] = {"sample": sample, "source": cache["source"], "item": item}
+        sample = cache_sample(cache, item, symbol, expected, identity, coverage["source_identity"], manifest_ref, manifest["artifact"])
+        bound[symbol] = {"sample": sample, "source": cache["source"], "item": item, "allowed_symbols": allowed}
+      except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
+        failures[symbol] = str(error)
     return engine, inventory, bound, {"product_index": index_ref, "manifest": manifest_ref,
         "product": manifest["artifact"], "config": config_ref, "engine": config["engine"],
         "formula": config["formula"], "coverage": coverage_ref, "source_identity": identity,
-        "formula_text_bytes": len(formula_raw)}
+        "formula_text_bytes": len(formula_raw), "scope_symbols": allowed, "input_failures": failures}
 
 
 def project(engine, inventory, bound, symbol):
-    require(symbol in SAMPLES, "SYMBOL_OUTSIDE_THREE_SAMPLES")
+    require(symbol in bound.get("allowed_symbols", ()) and bound["sample"].get("symbol") == symbol, "SYMBOL_OUTSIDE_BOUND_COVERAGE")
     sample = bound["sample"]
     bars = [{"trade_date": int(row["date"]), "open": row["open"], "high": row["high"],
              "low": row["low"], "close": row["close"], "vol": row["volume"]} for row in sample["bars"]]
@@ -129,7 +163,7 @@ def project(engine, inventory, bound, symbol):
             require(all(drawing[key] == definition[key] for key in ("id", "kind", "styles")), "DRAWING_DEFINITION_CONFLICT")
             if drawing["kind"] not in ("DRAWTEXT", "DRAWICON") or (drawing["kind"] == "DRAWICON" and drawing["payload"] not in ("1", "2")):
                 unsupported.append({"trade_date": row["trade_date"], "drawing": drawing})
-    return {"schema": "v4.d35c.three_sample_derivative_projection.v1", "symbol": symbol,
+    return {"schema": "v4.d35c.bound_candidate_projection.v1", "symbol": symbol,
         "data_date": DATE, "authority": "DERIVED_RENDERING_ONLY", "historical_PIT": False,
         "source": bound["source"], "source_cache": bound["item"]["source_cache"],
         "product_row_ref": bound["item"]["product_row_ref"], "inventory": inventory,
@@ -137,7 +171,7 @@ def project(engine, inventory, bound, symbol):
         "renderer_semantics": "UNCHANGED_R19_DISPLAY; NOT_NATIVE_TDX_ICON_OR_COLOR_EQUIVALENCE_CERTIFICATION", **FLAGS}
 
 
-def chart_html(renderer_raw, projection, lineage):
+def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
     """Reuse the R19 canvas/table implementation; replace only transport and labels."""
     require(not projection["unsupported_drawings"], "RENDERER_DRAWING_TYPE_UNSUPPORTED")
     source = projection["source"]
@@ -151,53 +185,132 @@ def chart_html(renderer_raw, projection, lineage):
     registry = {"entry_count": 1, "available_count": 1, "no_target_bar_count": 0, "pending_count": 0,
         "entries": [{"symbol": projection["symbol"], "rows": len(rows), "source_vendor": "BOUND_CACHE_DERIVATIVE"}]}
     embedded = json.dumps({"payload": payload, "registry": registry}, ensure_ascii=False, separators=(",", ":"), allow_nan=False).replace("<", "\\u003c")
-    adapter = "<script>const projected=" + embedded + ";window.fetch=async function(url){const u=new URL(url,location.href);" + \
+    if compress_payload:
+        encoded = base64.b64encode(gzip.compress(embedded.encode(), mtime=0)).decode()
+        loader = "const projectionGzip='" + encoded + "';const projectedReady=(async()=>{const bytes=Uint8Array.from(atob(projectionGzip),c=>c.charCodeAt(0));" + \
+            "const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(stream).text());})();"
+    else:
+        loader = "const projectedReady=Promise.resolve(" + embedded + ");"
+    adapter = "<script>" + loader + "window.fetch=async function(url){const projected=await projectedReady;const u=new URL(url,location.href);" + \
         "if(u.pathname==='/v1/registry')return new Response(JSON.stringify(projected.registry));" + \
         "if(u.pathname==='/v1/research'&&u.searchParams.get('symbol')===projected.payload.symbol&&u.searchParams.get('date')===projected.payload.target_date)return new Response(JSON.stringify(projected.payload));" + \
         "return new Response(JSON.stringify({status:'UNKNOWN',reason:'OUTSIDE_FROZEN_PROJECTION'}),{status:404});};</script>"
     html = renderer_raw.decode()
-    html = re.sub(r"<title>.*?</title>", "<title>原式 d35c · D29 三样例派生投影</title>", html, count=1)
-    html = re.sub(r"<header>.*?</header>", '<header><div><h1>原式 d35c · D29 三样例派生投影</h1><div class="muted">51变量与22绘图原样保留；仅渲染投影，独审及原生等价未确认。</div></div><span class="badge">RESEARCH_ONLY</span></header>', html, count=1)
+    html = re.sub(r"<title>.*?</title>", "<title>原式 d35c · D29 候选派生投影</title>", html, count=1)
+    html = re.sub(r"<header>.*?</header>", '<header><div><h1>原式 d35c · D29 候选派生投影</h1><div class="muted">51变量与22绘图原样保留；仅渲染投影，独审及原生等价未确认。</div></div><span class="badge">RESEARCH_ONLY</span></header>', html, count=1)
     html = html.replace("2026-10-27", "2026-10-29").replace('id="draw-text" type="checkbox"', 'id="draw-text" type="checkbox" checked')
     html = html.replace("function sourceLabel(body){", "function sourceLabel(body){if(body.projection_source_label)return body.projection_source_label;")
-    html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示三样例原式派生投影，尚不构成独审或原生等价认证。")
+    html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示候选原式派生投影，尚不构成独审或原生等价认证。")
     html = html.replace("已登记", "样例派生").replace("完整重算行数", "原式投影行数")
     return html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1)
 
 
 def write_json(path, value):
-    path.write_bytes(canonical(value) + b"\n")
+    temporary = path.with_name("." + path.name + ".pending")
+    temporary.write_bytes(canonical(value) + b"\n")
+    temporary.replace(path)
+
+
+def reuse_reviewed_three(manifest_path, bound):
+    manifest_ref = reference(manifest_path)
+    old = json.loads(pinned(manifest_ref))
+    review_ref = reference(Path(manifest_path).parent / "INDEPENDENT_REVIEW_RECEIPT.json")
+    review = json.loads(pinned(review_ref))
+    require(safe(old) and safe(review) and review["status"] == "REVIEWED_PASS_BEHAVIOR_VERIFIED_3SAMPLES_ONLY", "OLD_THREE_PASS_UNBOUND")
+    require(set(old["samples"]) == set(review["samples"]) == set(SAMPLES), "OLD_THREE_SCOPE_CONFLICT")
+    reused = {}
+    for symbol in SAMPLES:
+        item = old["samples"][symbol]
+        projection = json.loads(pinned(item["projection"]))
+        pinned(item["html"])
+        require(projection["symbol"] == symbol and projection["data_date"] == DATE and safe(projection), "OLD_THREE_IDENTITY_CONFLICT")
+        require(projection["source_cache"] == bound[symbol]["item"]["source_cache"]
+                and projection["product_row_ref"] == bound[symbol]["item"]["product_row_ref"]
+                and projection["formula_result"]["formula_sha256"] == FORMULA_SHA
+                and projection["lineage"]["projection_code"]["sha256"] == review["source_hashes"]["ops/render_original_formula_projection.py"], "OLD_THREE_BINDING_CONFLICT")
+        reused[symbol] = {**item, "status": "REUSED_INDEPENDENT_PASS", "review_receipt": review_ref, "reused_manifest": manifest_ref}
+    return reused
+
+
+def export_one(engine, inventory, bound, symbol, lineage, renderer_raw, output):
+    """One independent checkpoint; a controller may schedule these after review."""
+    started = time.perf_counter()
+    stem = symbol.replace(".", "_")
+    checkpoints = output / "checkpoints"
+    checkpoints.mkdir(parents=True, exist_ok=True)
+    checkpoint = checkpoints / (stem + ".json")
+    binding = sha(canonical({"symbol": symbol, "product": lineage["product"], "cache": bound["item"]["source_cache"],
+                             "code": lineage["projection_code"], "renderer": lineage["renderer"], "format": "LOSSLESS_GZIP_V1"}))
+    if checkpoint.exists():
+        prior = json.loads(checkpoint.read_text())
+        if prior.get("status") == "READY" and prior.get("binding_sha256") == binding:
+            pinned(prior["projection"])
+            pinned(prior["html"])
+            return prior
+    try:
+        projection = project(engine, inventory, bound, symbol)
+        projection["lineage"] = lineage
+        raw = canonical(projection) + b"\n"
+        packed = gzip.compress(raw, mtime=0)
+        require(gzip.decompress(packed) == raw, "PROJECTION_GZIP_PARITY_CONFLICT")
+        projection_path = output / (stem + ".projection.json.gz")
+        projection_path.write_bytes(packed)
+        html_path = output / (stem + ".html")
+        html_path.write_text(chart_html(renderer_raw, projection, lineage, compress_payload=True))
+        record = {"status": "READY", "binding_sha256": binding, "projection": reference(projection_path),
+            "html": reference(html_path), "rows": len(projection["formula_result"]["rows"]),
+            "values_per_row": 51, "drawings_per_row": 22, "unsupported_drawings": len(projection["unsupported_drawings"]),
+            "format": "LOSSLESS_GZIP_V1;HTML_GZIP_BASE64_PAYLOAD", "projection_uncompressed_bytes": len(raw),
+            "projection_gzip_bytes": len(packed), "html_bytes": html_path.stat().st_size,
+            "seconds": time.perf_counter() - started, "worker_peak_rss_bytes": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+            "visual_readback": "NOT_RUN", "independent_review": "PENDING"}
+    except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
+        record = {"status": "CANNOT_CONFIRM", "reason": str(error), "binding_sha256": binding,
+                  "seconds": time.perf_counter() - started}
+    write_json(checkpoint, record)
+    return record
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("config", "coverage", "product-index", "renderer", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
-    parser.add_argument("--symbol", choices=SAMPLES, action="append")
+    parser.add_argument("--symbol", action="append", required=True, help="Explicit current-coverage symbol; never defaults to all247")
+    parser.add_argument("--reuse-manifest", type=Path, help="Reference the independently passed three outputs without recomputation")
     args = parser.parse_args()
     renderer_ref = reference(args.renderer)
     require(renderer_ref["sha256"] == RENDERER_SHA, "R19_RENDERER_PIN_CONFLICT")
     renderer_raw = pinned(renderer_ref)
-    engine, inventory, bound, lineage = load_bound_inputs(args.config, args.coverage, args.product_index)
+    requested = tuple(dict.fromkeys(args.symbol))
+    require(args.reuse_manifest is not None or not set(requested) & set(SAMPLES), "OLD_THREE_REQUIRE_REVIEWED_REUSE_MANIFEST")
+    inputs = tuple(dict.fromkeys(requested + (SAMPLES if args.reuse_manifest else ())))
+    engine, inventory, bound, lineage = load_bound_inputs(args.config, args.coverage, args.product_index, inputs)
     lineage.update(renderer=renderer_ref, projection_code=reference(Path(__file__)))
     args.output.mkdir(parents=True, exist_ok=True)
+    binding_path = args.output / "INPUT_BINDING.json"
+    input_binding = {key: lineage[key] for key in ("product", "manifest", "config", "engine", "formula", "coverage", "renderer", "scope_symbols")}
+    if binding_path.exists():
+        require(json.loads(binding_path.read_text()) == json.loads(canonical(input_binding)), "FROZEN_EXPORT_INPUT_DRIFT")
+    else:
+        write_json(binding_path, input_binding)
     manifest_path = args.output / "MANIFEST.json"
-    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"schema": "d35c.three_sample_projection_manifest.v1", "samples": {}, **FLAGS}
-    for symbol in dict.fromkeys(args.symbol or SAMPLES):
-        started = time.perf_counter()
-        stem = symbol.replace(".", "_")
-        projection = project(engine, inventory, bound[symbol], symbol)
-        projection["lineage"] = lineage
-        output = args.output / (stem + ".projection.json")
-        write_json(output, projection)
-        html_path = args.output / (stem + ".html")
-        html_path.write_text(chart_html(renderer_raw, projection, lineage))
-        manifest["samples"][symbol] = {"projection": reference(output), "html": reference(html_path),
-            "rows": len(projection["formula_result"]["rows"]), "values_per_row": 51, "drawings_per_row": 22,
-            "unsupported_drawings": len(projection["unsupported_drawings"]), "seconds": time.perf_counter() - started,
-            "visual_readback": "NOT_RUN", "independent_review": "PENDING"}
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"schema": "d35c.bound_candidate_projection_manifest.v1", "samples": {}, **FLAGS}
+    if args.reuse_manifest:
+        require(not set(SAMPLES) & set(lineage["input_failures"]), "OLD_THREE_CURRENT_BINDING_INVALID")
+        manifest["samples"].update(reuse_reviewed_three(args.reuse_manifest, bound))
+    for symbol in requested:
+        if symbol in manifest["samples"] and manifest["samples"][symbol].get("status") == "REUSED_INDEPENDENT_PASS":
+            continue
+        if symbol in lineage["input_failures"]:
+            record = {"status": "CANNOT_CONFIRM", "reason": lineage["input_failures"][symbol]}
+        else:
+            record = export_one(engine, inventory, bound[symbol], symbol, lineage, renderer_raw, args.output)
+        manifest["samples"][symbol] = record
         write_json(manifest_path, manifest)
-        print(json.dumps({"symbol": symbol, **manifest["samples"][symbol]}, ensure_ascii=False), flush=True)
+        print(json.dumps({"symbol": symbol, **record}, ensure_ascii=False), flush=True)
+    write_json(manifest_path, manifest)
+    if any(manifest["samples"][symbol].get("status") == "CANNOT_CONFIRM" for symbol in requested):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

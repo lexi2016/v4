@@ -1,0 +1,33 @@
+{
+  "status": "REVIEWED_PASS_BEHAVIOR_VERIFIED_DELTA",
+  "reviewer": "/root/original_chart_delta_review",
+  "received_at": "2026-10-30T05:38:25.269315+08:00",
+  "verdict_source": "collaborationFINAL_ANSWER",
+  "scope_ref": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/original_formula_charts_247/SCOPE.json",
+  "code_sha256": "acd9a7159ed0dcdf4418248c57f3e514a0ce130e8591e5dc06d7ca1cc4975deb",
+  "checks": [
+    "actualdiffmatchesINCREMENTAL.diff",
+    "6008147781rowsall51/22 losslessgzip/HTMLstrictparity",
+    "source/formula/generation/input/cache/barbinding",
+    "R19choose/paintbyteunchanged",
+    "old3SHAunchanged",
+    "unknownsymbol/unsupportedtypesreject;missingcacheCANNOT_CONFIRM",
+    "3targetedPASSreusedmatchingSHA",
+    "actualPNGview+Chromereceiptsread"
+  ],
+  "findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "limits": [
+    "remaining243NOT_RUN",
+    "PIT/nativeTDXNOT_CERTIFIED",
+    "historyreturnsNOT_RUN",
+    "deploymentNOT_RUN"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
