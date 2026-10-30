@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal
 from pathlib import Path
+from contextlib import nullcontext
 
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
@@ -239,7 +240,8 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
  store=os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE');cached_groups=None;reuse=None
  if store:
   if not Path(store).is_absolute() or not Path(store).is_file():raise ValueError('EXISTING_DAILY_EVENT_CACHE_REQUIRED')
-  statistics,cached_groups,reuse=cached_daily_statistics(context,symbol,bars,calendar,groups,Path(store))
+  with getattr(context,'_event_case_cache_lock',None) or nullcontext():
+   statistics,cached_groups,reuse=cached_daily_statistics(context,symbol,bars,calendar,groups,Path(store))
  else:statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
  row=dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q)
  if cached_groups is not None:row['_daily_cached_groups']=cached_groups;row['_daily_cache_reuse']=reuse
@@ -262,6 +264,9 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    from ops.render_original_formula_projection import retain_owner_result
    retain_owner_result(context,parts,symbol,bars,result)
   except Exception as error:chart_gaps[symbol]='RETAINED_RESULT_UNAVAILABLE:'+str(error)
+ if symbols is None and not history_dates and evaluate is None:
+  from ops.research_daily_product_parallel import prefill_missing
+  chart_gaps.update(prefill_missing(context,parts,selected,original_charts=original_charts)['chart_gaps'])
  for i,symbol in enumerate(selected):
   checkpoint=parts/(symbol+'.json')
   if checkpoint.is_file():row=json.loads(checkpoint.read_text())
