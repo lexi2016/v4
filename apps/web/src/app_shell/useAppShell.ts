@@ -512,6 +512,7 @@ async function loadStageTimeline(date: string, currentStage: string, currentPayl
   stageSnapshots.value = initialSnapshots;
 
   await Promise.all(stageDefinitions.map(async (stage) => {
+    if (stage.id === currentStage && currentPayloadMatches) return;
     try {
       const payload = await loadStageSnapshot(date, stage.id, controller.signal);
       if (version === stageTimelineRequestVersion && date === selectedDate.value) {

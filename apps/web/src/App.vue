@@ -160,6 +160,16 @@ const {
   ensureStage,
   onDateInputChange,
 } = useAppShell();
+const globalIndustryMapOpen = ref(false);
+const snapshotSourceTimes = computed(() => {
+  const rows = snapshotObservation(stageWorkbench.value)?.rows ?? [];
+  const times = [...new Set(rows.map((row) => row.source_update_time).filter((value): value is string => typeof value === "string" && value.trim().length > 0))];
+  const missing = rows.some((row) => typeof row.source_update_time !== "string" || !row.source_update_time.trim());
+  return [...times, ...(missing ? ["部分源时点缺失"] : [])].join("、") || "CANNOT_CONFIRM";
+});
+function onGlobalIndustryMapToggle(event: Event) {
+  globalIndustryMapOpen.value = (event.currentTarget as HTMLDetailsElement).open;
+}
 type SopDocument = { id: string; title: string; content: string; sha256: string; updated_at: string; relative_path: string };
 const sopChoices = [
   { id: "overview", title: "SOP 总览" },
@@ -289,7 +299,10 @@ const aEmptyStateDetails = computed(() => {
     />
     <template v-else>
 
-    <GlobalIndustryMap v-if="!closeReviewActive" :target-date="selectedDate" />
+    <details v-if="!closeReviewActive" class="panel" :open="globalIndustryMapOpen" @toggle="onGlobalIndustryMapToggle">
+      <summary>全球行业参考地图</summary>
+      <GlobalIndustryMap v-if="globalIndustryMapOpen" :target-date="selectedDate" />
+    </details>
 
     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="阶段上下文">
       <div class="section-heading">
@@ -333,6 +346,15 @@ const aEmptyStateDetails = computed(() => {
       </div>
       <section class="stage-lineage-panel" aria-label="阶段运行血缘">
         <strong>阶段运行血缘</strong>
+        <p v-if="stageWorkbench?.stage_lineage?.natural" class="evidence-gap">{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }} · status={{ stageWorkbench.stage_lineage.natural.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="stageWorkbench?.stage_lineage?.recovery" class="evidence-gap">{{ stageWorkbench.stage_lineage.recovery.label || "CONTROLLED_RECOVERY" }} · status={{ stageWorkbench.stage_lineage.recovery.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence?.cannot_confirm?.length" class="evidence-gap">{{ stageWorkbench.execution_evidence.cannot_confirm.join("、") }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && !stageWorkbench?.execution_evidence" class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence && hasFourLaneFormalGap(stageWorkbench)" class="evidence-gap">
+          四路策略输出属于研究观察；formal_eligible=false 表示正式资格未授予，不代表行情采集失败。
+        </p>
+        <details>
+        <summary>展开运行血缘详情</summary>
         <div v-if="stageWorkbench?.stage_lineage" class="stage-lineage-grid">
           <article v-if="stageWorkbench.stage_lineage.natural" class="stage-lineage-card">
             <b>{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }}</b>
@@ -391,6 +413,7 @@ const aEmptyStateDetails = computed(() => {
           </p>
         </div>
         <p v-else class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        </details>
         <p v-if="stageWorkbench?.stage_lineage?.cannot_confirm?.length" class="evidence-gap">
           {{ stageWorkbench.stage_lineage.cannot_confirm.join("、") }}
         </p>
@@ -429,12 +452,16 @@ const aEmptyStateDetails = computed(() => {
         <p>真实采集：{{ snapshotObservation(stageWorkbench)?.captured_at }} · 原截止：{{ snapshotObservation(stageWorkbench)?.original_stage_cutoff_at }} · 晚于原截止：{{ snapshotObservation(stageWorkbench)?.after_original_cutoff ? "是" : "否" }}</p>
         <p>观察 {{ snapshotObservation(stageWorkbench)?.observed_rows }} / 请求 {{ snapshotObservation(stageWorkbench)?.requested_rows }}；正式入选计数不增加。隔离/缺失：{{ snapshotObservation(stageWorkbench)?.missing_symbols?.join("、") || "无" }}</p>
         <p class="evidence-gap">{{ snapshotObservation(stageWorkbench)?.gaps?.join("、") }}</p>
+        <p>报价源更新时间：{{ snapshotSourceTimes }}</p>
+        <details>
+        <summary>展开原始报价观察表</summary>
         <table>
           <thead><tr><th>代码</th><th>名称</th><th>快照价格</th><th>源更新时间</th><th>实际采集</th><th>评分/研究</th><th>用途</th></tr></thead>
           <tbody><tr v-for="row in snapshotObservation(stageWorkbench)?.rows" :key="String(row.code)">
             <td>{{ row.code }}</td><td>{{ row.name || "—" }}</td><td>{{ row.last_price }}</td><td>{{ row.source_update_time }}</td><td>{{ row.captured_at }}</td><td>缺失（null）</td><td>WATCH_ONLY</td>
           </tr></tbody>
         </table>
+        </details>
       </div>
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">

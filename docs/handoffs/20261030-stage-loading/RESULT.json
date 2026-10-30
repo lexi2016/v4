@@ -1,0 +1,82 @@
+{
+  "scope": "Reuse results already verified in the same request; no selection, data or safety-policy changes",
+  "source_branch": "claude/v4-stage-loading-20261030",
+  "baseline_commit": "d95b27baa319ff7e1856378b370a65a32926a8c5",
+  "production_diff": {"insertions": 4, "deletions": 15, "net_lines": -11},
+  "source_sha256": {
+    "apps/web/src/app_shell/useAppShell.ts": "966f053e4daa51feb65e5d7e931702b3e9ff1fc724e1858d919a5a1bbe145b20",
+    "domains/_preselection_parts/date_catalog.py": "e0e3ca01873c8f8727ac7a3aeffd9d1f824bc10553170cf836bbca5ed25e5068"
+  },
+  "targeted_tests": {"frontend": "9 passed", "python": "3 passed", "vite_build": "PASS"},
+  "typecheck": {"exit_code": 2, "diagnostics": 26, "baseline_comparison": "Byte-identical to existing P7 baseline; not a typecheck PASS"},
+  "independent_review": {"verdict": "PASS", "scope": "Two result-reuse mechanisms and necessary four-file source/test delta"},
+  "behavior": {
+    "matching_current_payload": "1 initial detail plus 7 timeline reads; invalid or mismatched payload still reads all 8 timeline stages",
+    "date_catalog": "Each known-stage entry is verified once; partial, blocked, missing-market and original evidence semantics retained"
+  },
+  "desktop_baseline": {
+    "method": "Actual isolated installed Chrome at the formal 8873 origin; no OS-native input or browser dependency install",
+    "sample_date": "20261029",
+    "stages": ["STAGE_1300_1315", "STAGE_0925", "STAGE_1445_1500"],
+    "stage_detail_requests_per_action": 9,
+    "date_directory_duration_ms": 3278,
+    "first_current_stage_duration_ms": 1440.2,
+    "browser_exited_and_own_profile_removed": true,
+    "scope_limit": "Baseline only; no daytime p95 or after-fix timing claim"
+  },
+  "integration": {
+    "p29_base": "2fe9a825f66466ca4fd639c239a0d33eb678bb43",
+    "result_reuse_commit": "ee4a0ff63d59db0bb2c656f0d30a83f479081909",
+    "ui_commit": "e0a6cac25f0eb406fa6848b32e5a9591dcaf709c",
+    "candidate_release": "v4-stage-performance-supplementary-20261030-r2-api",
+    "candidate_manifest_sha256": "3d61dac217dec804042ae9b03eb446be5d2e6f075ec46528708a2bfb8ba7e637",
+    "helper_verification": "PASS; 1289 non-delta entries and 455 research-panel asset SHA preserved; not activated"
+  },
+  "measured_date_directory": {
+    "sample": "Three alternating real GET pairs, same real roots; nine directory projections equal",
+    "active_median_ms": 2754.64,
+    "r1_candidate_median_ms": 2261.82,
+    "reduction_percent": 17.89,
+    "limits": "R1 measurement; same date_catalog bytes retained in R2. Not p95 or identical complete production workload. Response still about 2.38MB."
+  },
+  "desktop_ui_followup": {
+    "source_sha256": "bfec6d347cd5c754073421fc1ebbe670885c9cef98266786ca67513f01d12067",
+    "scope": "Native details and on-demand industry-map mount; original failures, WATCH_ONLY Top10 and real source/capture/scoring clocks retained",
+    "tests": "14 targeted frontend PASS, Vite build PASS; independent UI review PASS; typecheck same 26 baseline diagnostics, no additions",
+    "actual_browser": "R2, isolated installed Chrome, 1440x913; screenshots visually inspected",
+    "sample_stages": ["STAGE_1300_1315", "STAGE_0925", "STAGE_0930_0935", "STAGE_1445_1500"],
+    "detail_requests_per_action": 8,
+    "original_A_rows_at_1315": 10,
+    "supplementary_rows_each_at_0925_0935_1500": 10,
+    "real_quote_rows_expandable": 56,
+    "map": "Zero US-market requests before expansion; real existing market endpoint loaded after expansion; unmounted on collapse",
+    "cleanup": "Owned Chrome exited/profile removed; owned18874 API stopped and port verified closed; test launch configuration restored empty"
+  },
+  "stage_owner_followup": {
+    "scope": "Existing read_stage_hourly_attestation only; explicit current plus at most two historical pins; full original dispatch/source/time validation retained",
+    "reader_sha256": "4ff4bfc257d45698d313e610ba0c80052c69b734ecc4e44657b45b9fdccfe4a2",
+    "tests": "26 targeted Python tests PASS; independent read-only review PASS",
+    "real_readonly_samples": {
+      "20261029_1300": "Old r3 owner remains accepted with same original completion witness",
+      "20261029_2300": "Original Stage rejected; isolated candidate accepts verified current Main completion witness",
+      "20261029_0900": "Original CATALYST_OWNER_CODE_IDENTITY_MISMATCH remains rejected; completion path not reached, not claimed fixed"
+    },
+    "isolated_candidate_manifest_sha256": "a91a231bea454b18b0d0b1dfdbe6607bb39e1af1100af6b44518492e0424b772",
+    "preservation": "Reader/config only two delta entries; 984 non-delta entries retained; 66 protected and 23 sample-related files unchanged",
+    "activation": "NOT_RUN; process-area isolated candidate is not a replayable formal deployment plan"
+  },
+  "research_panel_sync": {
+    "status": "NOT_IMPLEMENTED_NOT_DEPLOYED",
+    "confirmed": "Published D29 price generation does not update the fixed D28 numeric283 consumer. Existing descriptors/assembler freeze D28 and original157; not a daily producer.",
+    "admission_gap": "Same-day original-formula/descriptors and base membership, rolling exchange calendar/PRIOR10, raw reference previous close; QFQ pre_close/user_v1 fields are not certified substitutes",
+    "safety": "Preserve UNKNOWN and D28 history; no new data producer, scheduler, fabricated D29 labels or automatic visual admission"
+  },
+  "deployment": "NOT_RUN; no fresh administrator cutover approval obtained, no previous nonce/caller reused",
+  "after_fix_api_and_ui": "PASS_ISOLATED_R2_CANDIDATE; NOT_FORMAL_8873_VERIFIED",
+  "natural_scheduled_operation": "NOT_RUN; one-time read-only checks scheduled for 2026-10-30 morning/evening, not business producers",
+  "github_sync": "NOT_SYNCED",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

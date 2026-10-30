@@ -154,6 +154,7 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
     if not _v4_global(_v4_scope, 'isinstance')(entries, _v4_global(_v4_scope, 'Mapping')):
         return {}
     by_date: dict[str, dict[str, Any]] = {}
+    verified_by_date: dict[str, dict[str, set[str]]] = {}
     store = _v4_global(_v4_scope, 'SelectionStore')(root)
     for key, entry in entries.items():
         if not _v4_global(_v4_scope, 'isinstance')(key, _v4_global(_v4_scope, 'str')) or not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
@@ -190,6 +191,7 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
             item["cannot_confirm"].append(f"STAGE_ARTIFACT_INVALID:{stage_id}:{market}:{_v4_global(_v4_scope, 'type')(error).__name__}")
             continue
         item["verified_entries"] += 1
+        verified_by_date.setdefault(trade_date, {}).setdefault(stage_id, _v4_global(_v4_scope, 'set')()).add(market)
         item["verified_markets"].append(market)
         item["receipt_paths"].append(
             f"selection_runs/{trade_date}/{market}_SELECTION_{stage_id}/{entry.get('run_id', '')}/receipt.json"
@@ -201,21 +203,7 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
         if selection_status in {"CANNOT_CONFIRM", "PARTIAL_WITH_ROWS"}:
             item["cannot_confirm"].extend(_v4_global(_v4_scope, 'str')(reason) for reason in envelope.get("cannot_confirm") or [])
     for item in by_date.values():
-        verified_by_stage: dict[str, set[str]] = {}
-        for key, entry in entries.items():
-            if not _v4_global(_v4_scope, 'isinstance')(key, _v4_global(_v4_scope, 'str')) or not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
-                continue
-            parts = key.split("/")
-            if _v4_global(_v4_scope, 'len')(parts) != 3 or parts[0] != item["trade_date"]:
-                continue
-            stage_id, market = parts[1], parts[2]
-            if stage_id not in _v4_global(_v4_scope, 'STAGE_BY_ID'):
-                continue
-            try:
-                store.read_verified(item["trade_date"], stage_id, market)
-            except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError')):
-                continue
-            verified_by_stage.setdefault(stage_id, _v4_global(_v4_scope, 'set')()).add(market)
+        verified_by_stage = verified_by_date.get(item["trade_date"], {})
         for stage_id in item["stage_ids"]:
             expected = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'STAGE_BY_ID')[stage_id].markets) if stage_id in _v4_global(_v4_scope, 'STAGE_BY_ID') else ()
             item["expected_markets"][stage_id] = _v4_global(_v4_scope, 'list')(expected)

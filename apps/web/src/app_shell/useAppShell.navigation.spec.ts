@@ -1,6 +1,7 @@
 import { createApp, h, nextTick, type App } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppShell } from "./useAppShell";
+import { loadStageSnapshot } from "../api/pool_stage";
 
 vi.mock("../api/review", () => ({
   loadReview: vi.fn(async (date: string) => ({ trade_date: date })),
@@ -110,6 +111,75 @@ afterEach(() => {
   while (mounted.length) dispose(mounted[0]);
   document.body.replaceChildren();
   vi.unstubAllGlobals();
+});
+
+describe("stage timeline request reuse", () => {
+  const currentStage = "STAGE_1300_1315";
+  const mockedLoad = vi.mocked(loadStageSnapshot);
+
+  beforeEach(() => {
+    window.history.replaceState({}, "", `/?date=${TARGET_DATE}&stage=${currentStage}`);
+    mockedLoad.mockReset();
+    mockedLoad.mockImplementation(async (date, stage) => ({
+      trade_date: date,
+      stage: { stage_id: stage, status: "READY" },
+      unified_rows: [],
+    }) as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>);
+  });
+
+  it("reuses the current detail and refreshes the seven other stages", async () => {
+    const current = mountShell();
+    await vi.waitFor(() => expect(current.shell.timelineStageStatus("STAGE_1545_1555")).toBe("READY"));
+    expect(mockedLoad).toHaveBeenCalledTimes(8);
+    expect(mockedLoad.mock.calls.filter(([, stage]) => stage === currentStage)).toHaveLength(1);
+    expect(current.shell.timelineStageStatus(currentStage)).toBe("READY");
+    expect(current.shell.stageWorkbench.value?.stage.stage_id).toBe(currentStage);
+  });
+
+  it.each([
+    ["a newer request", TARGET_DATE],
+    ["a different date", SECOND_DATE],
+  ])("aborts and ignores stale timeline responses after %s", async (_label, nextDate) => {
+    const current = mountShell();
+    const lastStage = "STAGE_1545_1555";
+    await vi.waitFor(() => expect(current.shell.timelineStageStatus(lastStage)).toBe("READY"));
+    mockedLoad.mockClear();
+
+    let releaseStale: ((value: Awaited<ReturnType<typeof loadStageSnapshot>>) => void) | undefined;
+    let staleSignal: AbortSignal | undefined;
+    let shouldDelay = true;
+    mockedLoad.mockImplementation(async (date, stage, signal) => {
+      if (stage === lastStage && shouldDelay) {
+        shouldDelay = false;
+        staleSignal = signal;
+        return new Promise((resolve) => { releaseStale = resolve; });
+      }
+      return { trade_date: date, stage: { stage_id: stage, status: "READY" }, unified_rows: [] } as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>;
+    });
+    await current.shell.loadStage(currentStage);
+    expect(staleSignal?.aborted).toBe(false);
+    current.shell.selectedDate.value = nextDate;
+    await current.shell.loadStage("STAGE_0930_0935");
+    await vi.waitFor(() => expect(current.shell.timelineStageStatus(lastStage)).toBe("READY"));
+    expect(staleSignal?.aborted).toBe(true);
+    releaseStale!({ trade_date: TARGET_DATE, stage: { stage_id: lastStage, status: "STALE" } } as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>);
+    await nextTick();
+    expect(current.shell.timelineStageStatus(lastStage)).toBe("READY");
+    expect(current.shell.stageWorkbench.value?.stage.stage_id).toBe("STAGE_0930_0935");
+  });
+
+  it.each([
+    ["wrong date", { trade_date: SECOND_DATE, stage: { stage_id: currentStage } }],
+    ["wrong stage", { trade_date: TARGET_DATE, stage: { stage_id: "STAGE_0930_0935" } }],
+    ["invalid payload", null],
+  ])("fetches all eight timeline stages for %s", async (_label, payload) => {
+    mockedLoad.mockResolvedValueOnce(payload as Awaited<ReturnType<typeof loadStageSnapshot>>);
+    const current = mountShell();
+    await vi.waitFor(() => expect(current.shell.timelineStageStatus("STAGE_1545_1555")).toBe("READY"));
+    expect(mockedLoad).toHaveBeenCalledTimes(9);
+    expect(mockedLoad.mock.calls.filter(([, stage]) => stage === currentStage)).toHaveLength(2);
+    expect(current.shell.timelineStageStatus(currentStage)).toBe("READY");
+  });
 });
 
 describe("desktop navigation URL state", () => {
