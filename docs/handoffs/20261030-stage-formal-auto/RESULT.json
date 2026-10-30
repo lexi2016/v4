@@ -1,0 +1,179 @@
+{
+  "status": "CORE_FORMAL_AND_DEFAULT_AUTO_DELIVERED_UI_CARD_FIX_REVIEWED_NOT_DEPLOYED_OS_READ_DENIED",
+  "recorded_at": "2026-10-30T03:33:37.595296+00:00",
+  "scope": "D29 five supplementary selections on formal8873, existing default automatic supplementary hook, desktop clarity repair; no complete original/PIT trading-day certification",
+  "current_services": {
+    "com.lexi.v4.api": {
+      "release_id": "a-daily-name-zoom-20261030-r1-api",
+      "manifest_sha256": "077091c5d12d30f612a448df9ff08a2c0b19fc23ccf90508f9650a0c0e6d77e7",
+      "plist_sha256": "6b8f3fd5521b50ba20fedb771260fc681ce78562676c08829de75447b24fd61a"
+    },
+    "com.lexi.v4.scheduler": {
+      "release_id": "a-daily-name-zoom-20261030-r1-main",
+      "manifest_sha256": "814499810d0a978810858b18053c24fa2a67bf7b965f3b152190f9d93878d679",
+      "plist_sha256": "32f13560d526df64b77d8060cbae0d316438842ef0093df34b60505162f1a409"
+    },
+    "com.lexi.stage-center.scheduler": {
+      "release_id": "a-stage-owner-compatibility-20261030-r2-stage",
+      "manifest_sha256": "9ef8f0bdebca08a7ac5cc04f42ef4a323d186d2d894ee29a8062908802361d35",
+      "plist_sha256": "80d58cc8270c85f9894d59b7c2cabdc9d907347db36ec6364a377687eb5fe528"
+    }
+  },
+  "D29": {
+    "supplement_stages": 5,
+    "selected_rows_each": 10,
+    "all7_original_A_HK_core_SHA_preserved": true,
+    "five_pointer_SHA_preserved": true,
+    "actual_desktop_samples": [
+      "09:25",
+      "09:35",
+      "15:00"
+    ],
+    "WATCH_ONLY": true,
+    "original_failures_preserved": true
+  },
+  "D30_default_automatic": {
+    "status": "ACTUALLY_OBSERVED_EXISTING_DEFAULT_10:29_RUN",
+    "new_timer_or_producer": false,
+    "manual_CLI_SDK_scorer_trigger": false,
+    "samples": [
+      {
+        "stage": "STAGE_0925",
+        "observed_rows": 522,
+        "scored_rows": 522,
+        "selected_rows": 10,
+        "captured_at": "2026-10-30T09:34:07.021281+08:00",
+        "scoring_evaluated_at": "2026-10-30T10:29:12.595134+08:00",
+        "context_slot": "0900",
+        "context_status": "VERIFIED_LAST_KNOWN_GOOD"
+      },
+      {
+        "stage": "STAGE_0930_0935",
+        "observed_rows": 522,
+        "scored_rows": 522,
+        "selected_rows": 10,
+        "captured_at": "2026-10-30T09:37:58.479577+08:00",
+        "scoring_evaluated_at": "2026-10-30T10:29:14.686799+08:00",
+        "context_slot": "0900",
+        "context_status": "VERIFIED_LAST_KNOWN_GOOD"
+      },
+      {
+        "stage": "STAGE_0935_0940",
+        "observed_rows": 522,
+        "scored_rows": 522,
+        "selected_rows": 10,
+        "captured_at": "2026-10-30T09:42:57.201737+08:00",
+        "scoring_evaluated_at": "2026-10-30T10:29:16.683808+08:00",
+        "context_slot": "0900",
+        "context_status": "VERIFIED_LAST_KNOWN_GOOD"
+      },
+      {
+        "stage": "STAGE_0940_0945",
+        "observed_rows": 522,
+        "scored_rows": 522,
+        "selected_rows": 10,
+        "captured_at": "2026-10-30T09:47:59.290833+08:00",
+        "scoring_evaluated_at": "2026-10-30T10:29:18.771778+08:00",
+        "context_slot": "0900",
+        "context_status": "VERIFIED_LAST_KNOWN_GOOD"
+      }
+    ],
+    "algorithm_sha256": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "Stage_and_current_API_saved_readers": "PASS_ALL4_EXACT_BINDINGS",
+    "formal_HTTP_sample": "PASS_0925_EXACT_SAVED_BINDINGS",
+    "actual_desktop_samples": [
+      "STAGE_0925",
+      "STAGE_0930_0935",
+      "STAGE_0940_0945"
+    ],
+    "hook_attribution": "CONTROL_FLOW_INFERENCE from frozen normal entry, actual scheduled runs and immutable output clocks; no function-entry trace",
+    "natural_execution_verified": false,
+    "original_stage_cutoff_safe": false
+  },
+  "remaining_original_native_failure": {
+    "natural_10:30": "A10/HK10 PARTIAL_WITH_ROWS; RETRY_EXHAUSTED/exit3 retained",
+    "mismatch": "release_id actual a-snapshot-recovery-20261029-r1-stage; expected materializer a-stage-owner-compatibility-20261030-r2-stage",
+    "fixed": false
+  },
+  "P32_card_fix": {
+    "source_commit": "a59af2db7e45318ce322bd34be08539334cc2414",
+    "source_files": [
+      "apps/web/src/App.vue",
+      "apps/web/src/SnapshotSelection.spec.ts"
+    ],
+    "trigger": "Valid nonempty supplementary Top10 while original A rows empty",
+    "behavior": "Existing A empty card states supplementary count/WATCH_ONLY/real clock, native anchor to existing unique Top10, original failure explicitly in expandable details; no invalid/empty upgrade or original A-row change",
+    "tests": "8/8 focused PASS; Vite build PASS; diffcheck PASS",
+    "independent_review": "Sol High SPEC/QUALITY PASS; exact guard matched frozen control",
+    "candidate_release": "v4-stage-supplement-card-20261030-p32-api",
+    "candidate_manifest_sha256": "9f76040b1f655e1936248bbcc00ee90dd47e4619255de2293dab5b790b6d8d6e",
+    "candidate_app_delta_count": 4,
+    "non_delta_entries_preserved": 1299,
+    "NameZoom_research_assets_preserved": 455,
+    "actual_build_inputs": "99 actual checkout inputs:98 same, App only delta; initial nine GitLF/CRLF false mismatch retained, no nine-source import/emptycommit",
+    "deployment_status": "STOPPED_NATIVE_PRIVILEGE_HELPER_READ_DENIED_API_UNCHANGED",
+    "native_auth_calls": 1,
+    "error": "PermissionError EPERM reading Desktop root helper before helper exec; precise policy cause CANNOT_CONFIRM",
+    "service_actions": 0,
+    "root_ARM_or_debug": 0,
+    "caller_socket_lease": "CLOSED_AND_REMOVED; API/Main/Stage unchanged",
+    "new_formal_UI_click_acceptance": "NOT_RUN_NOT_DEPLOYED; existing card text still active",
+    "native_permission_diagnosis": "User can read exact SHA; mode0644,no read-denyACL,flags0; narrow tccd search0events. TCC vs host/MAC sandbox CANNOT_CONFIRM; no permission change or relocation bypass."
+  },
+  "source_integration": {
+    "Claude_commit": "f5bc8cee8c876fe42adef6d93f167b1e4360d251",
+    "exact_nine_file_import_commit": "09365d5581fac1356354f90b80fcf1b107d5dd60",
+    "P31_review": "Sol High SPEC/QUALITY PASS",
+    "full_typecheck_all_green": false,
+    "prior_typecheck_baseline_diagnostics": 26,
+    "full_typecheck_rerun_for_P32": false
+  },
+  "other_task": {
+    "title": "核实研究面板更新能否自动同步看板",
+    "paused_by_user": true,
+    "messaged_or_resumed": false,
+    "NameZoom_name_chart_daily_changes_preserved": true,
+    "daily_chain_not_recertified": true
+  },
+  "cleanup": {
+    "prior_closed_files_moved": 67,
+    "prior_unused_directories_moved": 3,
+    "destination": "/Users/lexi/Desktop/待删除/V4_过期候选与控制脚本_20261030T092543",
+    "permanent_delete": false,
+    "P32_dependency_symlink": "REMOVED_AFTER_CANDIDATE_SEALED",
+    "P32_controls_and_candidate": "Closed controls archived and moved; immutable reviewed candidate retained inactive; never replay closed nonce",
+    "original_data_active_provenance_rollback_releases": "PRESERVED",
+    "P32_closed_control_files_moved": 8,
+    "P32_redundant_dist_directory_moved": 1,
+    "total_closed_files_moved": 75,
+    "total_directories_moved": 4
+  },
+  "CANNOT_CONFIRM": [
+    "Exact OS or host policy causing privileged Desktop EPERM",
+    "Original early formal/PIT success and complete natural trading-day certification",
+    "15:00 and next-day behavior unobserved by this batch",
+    "Provider count absent from truncated stdout"
+  ],
+  "local_evidence_SHA256": {
+    "p31-review.json": "d41ab45bfd0ceb5ea25462bc262d99566e2c859b46597b5e894c6001eb63459e",
+    "p31-stage-deployment.json": "5997c59a04749ff13fd37421961d222ab4ab9912cbe5689ab19a2fb460a534d2",
+    "p31-natural-final.json": "a8b08b2358c8f9e1c0352460f379231317048fd95820aff2bf2df0c9caa70f28",
+    "p31-auto-formal-ui.json": "6f5a672bafa21cb0a9ac979c973a61ce53f011ee770b57644b4196e983997164",
+    "p31-final-preservation.json": "4bba689370684d5c7bd82a0dc04220a49c77b63799c1be9d2c6121a043b57f1c",
+    "p32-writer.json": "3cd1455972aa9eef31c5e4b4ed06213dbb9cf4446c5f8a88e7c80fd15cf53eef",
+    "p32-review.json": "78c36db6012b0c4d3a113ad49d21b42573de0c61e9d4dc81904d117b66fb12f9",
+    "p32-deployment.json": "885fdb06ae4dc9adf89e0b905379893fe9781772587dd04af95db8008c4e6f86",
+    "p32-native-diagnostic.json": "623eff0b76e5ea12be134b835df8242a0ae05babc79a30e70318866901f3f72b",
+    "p32-cleanup.json": "3071b3fbdc906857425fedf3b9e13dfcce0d3a3d9ae579b61adc9ba69ba4c808",
+    "p32-browser-handback.json": "b97ec2612281aec896855225f2c57ea43e244b658aed895b9457d9e8747b8c25"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "GUI_handback": {
+    "browser_user_tab_preserved": true,
+    "browser_input_not_sent": true,
+    "native_capture_failure": "ScreenCaptureKit -3811; no native input sent, native current control state CANNOT_CONFIRM"
+  }
+}

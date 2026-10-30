@@ -207,6 +207,11 @@ const aEmptyResultVerified = computed(() => {
     && lane.selection_manifest_receipt_verified === true
     && /^[a-f0-9]{64}$/i.test(lane.selection_artifact_sha256 || "");
 });
+const aEmptySnapshotReselection = computed(() => {
+  if (aRows.value.length) return null;
+  const selection = snapshotReselection(stageWorkbench.value);
+  return selection?.rows.length ? selection : null;
+});
 const aEmptyStateDetails = computed(() => {
   const lane = aSummary.value;
   return [
@@ -442,7 +447,7 @@ const aEmptyStateDetails = computed(() => {
         <p>{{ snapshotReselection(stageWorkbench)?.context_status }} · 采用研究上下文 {{ snapshotReselection(stageWorkbench)?.context_slot || "缺失" }} · 原 reader 验证时点 {{ snapshotReselection(stageWorkbench)?.context_reader_as_of || "无有效上下文" }} · {{ snapshotReselection(stageWorkbench)?.context_fallback_used ? "last-known-good 回退，非采集时点 latest 声明" : "原 reader 已验证" }}</p>
         <p v-for="(item, index) in snapshotReselection(stageWorkbench)?.context_rejections" :key="index" class="evidence-gap">上下文拒绝 {{ item.rejected_slot }}：{{ item.error }}</p>
         <p>新闻／研究缺失源分值保留 null；总分沿原引擎既有 neutral 默认计算，未补造实测研究分。</p>
-        <table><thead><tr><th>补选排名</th><th>代码</th><th>名称</th><th>原算法总分</th><th>报价源时刻</th><th>新闻／研究源分</th><th>用途</th></tr></thead>
+        <table id="snapshot-reselection-top10"><thead><tr><th>补选排名</th><th>代码</th><th>名称</th><th>原算法总分</th><th>报价源时刻</th><th>新闻／研究源分</th><th>用途</th></tr></thead>
         <tbody><tr v-for="row in snapshotReselection(stageWorkbench)?.rows" :key="String(row.code)"><td>{{ row.rank }}</td><td>{{ row.code }}</td><td>{{ row.name || row.stock_name }}</td><td>{{ row.score }}</td><td>{{ row.source_last_bar_time }}</td><td>{{ row.news_quality_score ?? "null" }} ／ {{ row.research_quality_score ?? "null" }}</td><td>WATCH_ONLY</td></tr></tbody></table>
         <details><summary>算法身份</summary><code>{{ snapshotReselection(stageWorkbench)?.algorithm_sha256 }}</code></details>
       </div>
@@ -481,10 +486,24 @@ const aEmptyStateDetails = computed(() => {
             <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
           </details>
           <div v-if="!aRows.length" class="empty-card">
-            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : aEmptyResultVerified ? "A股本阶段无入选" : "A股选股结果待确认" }}</strong>
-            <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
-            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }}</span>
-            <p>{{ hasMissingStageReceipt ? missingStageReceiptMessage : aEmptyStateDetails }}</p>
+            <template v-if="aEmptySnapshotReselection">
+              <strong>本阶段已完成事后补选 {{ aEmptySnapshotReselection.selected_rows ?? aEmptySnapshotReselection.rows.length }} 条</strong>
+              <span>WATCH_ONLY · 快照实际采集 {{ aEmptySnapshotReselection.captured_at }} · 非原阶段自然选股</span>
+              <p>该补选不替代原阶段正式选股结果。</p>
+              <a href="#snapshot-reselection-top10">定位到事后补选 Top10</a>
+              <details class="preview-note">
+                <summary>{{ hasMissingStageReceipt ? "原阶段执行回执缺失详情" : aEmptyResultVerified ? "原阶段结果：已验证零结果" : "原阶段结果缺失/失败详情" }}</summary>
+                <span>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }} / candidates {{ stageCountText(aSummary.candidate_count) }} / selected rows {{ stageCountText(aSummary.selected_rows) }} / formal selected {{ stageCountText(stageWorkbench?.selected_a_rows) }}</span>
+                <p>{{ aEmptyStateDetails }}</p>
+                <p v-if="hasMissingStageReceipt">{{ missingStageReceiptMessage }}</p>
+              </details>
+            </template>
+            <template v-else>
+              <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : aEmptyResultVerified ? "A股本阶段无入选" : "A股选股结果待确认" }}</strong>
+              <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
+              <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }}</span>
+              <p>{{ hasMissingStageReceipt ? missingStageReceiptMessage : aEmptyStateDetails }}</p>
+            </template>
           </div>
           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">
             <div class="candidate-head"><div><strong>{{ rowName(row) }}</strong><span>{{ rowCode(row) }} · 排名 {{ rowRank(row) }}</span></div><b>{{ row.stage_display_decision || "观察" }}</b></div>
