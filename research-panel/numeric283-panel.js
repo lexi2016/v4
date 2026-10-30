@@ -464,7 +464,7 @@
     }
     function renderStatistics(symbol){const host=document.getElementById('dailyEventStatistics');if(!currentStatistics)return;const p=currentStatistics.presentation,selected=p.groups.find(g=>g.id===activeGroup)||p.groups[0];host.replaceChildren();
       const metric=add(host,'div',undefined,'reader-win-metrics');
-      for(const h of selected.horizons){const card=add(metric,'div',undefined,'reader-win-card');const title=add(card,'p',`${h.label} 历史总体成功率`,'metric-label');title.title=`${selected.label}；正收益/有效样本，平收益保留分母`;const line=add(card,'div',undefined,'reader-win-line');const total=add(line,'button',h.rate,'reader-rate');total.type='button';total.dataset.horizon=h.key;total.dataset.subset='all';total.onclick=()=>showEventCases(symbol,selected.id,h.key);const summary=add(line,'div');add(summary,'div',h.summary);add(summary,'p',`平均收益 ${h.mean}`);const conditional=currentStatistics.conditional?.[h.key];const sub=add(card,'button',undefined,'reader-conditional');sub.type='button';sub.dataset.subset='conditional';sub.dataset.horizon=h.key;sub.disabled=!conditional;sub.textContent=conditional?`同分位成功率 ${conditional.bucket_label}：${conditional.valid>0?(conditional.positive/conditional.valid*100).toFixed(2)+'%':'样本不足'} · ${conditional.positive??'—'}胜/${conditional.valid??'—'}次`:'同分位成功率：统计未物化';sub.onclick=()=>showEventCases(symbol,selected.id,h.key,'conditional');}
+      for(const h of selected.horizons){const card=add(metric,'div',undefined,'reader-win-card');const title=add(card,'p',`${selected.label} · ${h.label} 历史总体成功率`,'metric-label');title.title=`${selected.label}；正收益/有效样本，平收益保留分母`;const line=add(card,'div',undefined,'reader-win-line');const total=add(line,'button',h.rate,'reader-rate');total.type='button';total.dataset.horizon=h.key;total.dataset.subset='all';total.onclick=()=>showEventCases(symbol,selected.id,h.key);const summary=add(line,'div');add(summary,'div',h.summary);add(summary,'p',`平均收益 ${h.mean}`);const conditional=currentStatistics.conditional?.[h.key];const sub=add(card,'button',undefined,'reader-conditional');sub.type='button';sub.dataset.subset='conditional';sub.dataset.horizon=h.key;sub.disabled=!conditional;sub.textContent=conditional?`同分位成功率 ${conditional.bucket_label}：${conditional.valid>0?(conditional.positive/conditional.valid*100).toFixed(2)+'%':'样本不足'} · ${conditional.positive??'—'}胜/${conditional.valid??'—'}次`:'同分位成功率：统计未物化';sub.onclick=()=>showEventCases(symbol,selected.id,h.key,'conditional');}
       const price=add(metric,'div',undefined,'reader-price-card');add(price,'p','价格分位','metric-label');for(const q of p.priceLines){const line=add(price,'p');add(line,'span',q.label+' ');add(line,'strong',q.value);}add(price,'small','价格位置，独立于历史胜率');
       add(host,'p','以事件日收盘至D+2/D+5同源交易日收盘计；未成熟/缺价不计胜率，平收益计入有效样本。历史描述，非未来预测。','reader-note');
       const diagnostics=document.getElementById('dailyReaderDiagnostics')||host;let groupHost=document.getElementById('dailyGroupStatistics');if(!groupHost){groupHost=add(diagnostics,'section');groupHost.id='dailyGroupStatistics';}groupHost.replaceChildren();add(groupHost,'h3','四组当前状态与历史样本');const table=add(groupHost,'table'),tr=add(table,'tr');for(const t of ['组别','今日命中','已知历史样本','D+2','D+5','条件未知日'])add(tr,'th',t);
@@ -566,7 +566,7 @@
     download.disabled = true;
 
     function loadChart(symbol, name) {
-      selectedSymbol=symbol;activeGroup=groupTokens(currentRows.find(row=>row.symbol===symbol)?.groups)[0]||"original";currentStatistics=null;refreshReaderList(filterRows(currentRows,groupSelect.value,search.value));
+      selectedSymbol=symbol;const ownGroups=groupTokens(currentRows.find(row=>row.symbol===symbol)?.groups);activeGroup=ownGroups.includes(groupSelect.value)?groupSelect.value:ownGroups[0]||"original";currentStatistics=null;refreshReaderList(filterRows(currentRows,groupSelect.value,search.value));
       const token = ++chartRequest;
       chartController?.abort();
       chartController = new AbortController();
@@ -648,12 +648,14 @@
     function showStatistics(symbol, token) {
       const host=document.getElementById("dailyEventStatistics");if(!host)return;host.textContent="正在读取已算同条件胜率…";
       windowObject.fetch(`/api/v4/research/a-share/daily-product?date=${payloadMetadata.data_date}&symbol=${encodeURIComponent(symbol)}`,{cache:"no-store",signal:chartController.signal})
-        .then(r=>r.json()).then(answer=>{if(token!==chartRequest)return;const row=answer.row;if(answer.status!=="READY"||row?.symbol!==symbol||answer.source_generation!==payloadMetadata.source_generation||answer.data_date!==payloadMetadata.data_date)throw new Error("同股统计身份不符");
+        .then(r=>r.json()).then(answer=>{if(token!==chartRequest)return;const row=answer.row;if(answer.status!=="READY"||row?.symbol!==symbol||answer.source_generation!==payloadMetadata.source_generation||answer.data_date!==payloadMetadata.data_date||!sameRef(answer.manifest,payloadMetadata.manifest)||answer.source_identity?.input_sha256!==payloadMetadata.source_identity?.input_sha256)throw new Error("同股统计身份不符");
+          if(answer.history_sync?.status==="IN_PROGRESS"){currentStatistics=null;host.textContent=`历史统计补齐中 · 已发布历史覆盖 ${row.historical_coverage?.evaluated_count??"未知"}/${row.historical_coverage?.available_prefix_dates??"未知"} 个交易日；完成后自动更新，当前不展示未补齐的胜率。`;return;}
           currentStatistics={row,presentation:statisticsPresentation(row,symbol,payloadMetadata),conditional:{}};renderStatistics(symbol);loadConditionalSummaries(symbol,activeGroup,token);
         }).catch(e=>{if(token===chartRequest)host.textContent=`统计未确认：${e.message}`;});
     }
     function commitPayload(payload) {
       const rows = payload.schema_version === EXPECTED.schema_version ? validateData(payload) : validateDatedData(payload);
+      const resumeSymbol=payloadMetadata?.data_date===payload.data_date&&payloadMetadata?.source_generation===payload.source_generation?selectedSymbol:null;
       payload = keepCurrentProductBinding(payloadMetadata, payload);
       if (payloadMetadata?.source_generation !== payload.source_generation || payloadMetadata?.data_date !== payload.data_date
           || payloadMetadata?.artifact?.sha256 !== payload.artifact?.sha256) {
@@ -668,7 +670,7 @@
       for(const option of groupSelect.options) option.textContent = option.value === "all" ? `全部（${rows.length}）` : `${GROUP_LABELS[option.value]}（${payload.group_counts[option.value]}）`;
       refresh(rows);
       status.textContent = `D${payload.data_date} · ${payload.status || "日期产品"} · 已处理 ${payload.processed_count ?? rows.length}/${payload.source_universe_count ?? rows.length} · 未知股票 ${payload.unknown_count ?? "未知"}；组别可重叠。`;
-      if(document.getElementById("dailyReaderMain")&&!selectedSymbol){const first=rows.find(r=>r.symbol==="002003.SZ")||rows[0];if(first)loadChart(first.symbol,first.display_name||"名称未提供");}
+      if(document.getElementById("dailyReaderMain")&&!selectedSymbol){const first=rows.find(r=>r.symbol===resumeSymbol)||rows.find(r=>r.symbol==="002003.SZ")||rows[0];if(first)loadChart(first.symbol,first.display_name||"名称未提供");}
     }
     async function loadDated(expectedEvent) {
       const token = ++productRequest;

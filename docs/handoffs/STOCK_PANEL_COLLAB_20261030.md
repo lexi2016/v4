@@ -2,6 +2,11 @@
 
 更新时间：2026-10-30。用途：通过GitHub开发分支向乐熹交接**已完成的个股模块**；不是主分支合并或V4发布指令。
 
+本轮个股完整历史补齐入口及集成边界见
+[`stock_history_catchup_20261030/INTEGRATION.md`](stock_history_catchup_20261030/INTEGRATION.md)。
+它直接消费已有247份原式历史及研究面板来源缓存；原公式、名单、原图和现役服务不变。
+离线补齐、独立验收、代码同步及页面接入分别记录，不把离线结果当成已上线。
+
 ## 1. 分工与唯一Writer边界
 
 **本聊天负责个股**：原式个股K线/成交量、缩放/拖动/恢复、指标/历史信号与事件定位、历史总体和同价格分位成功率、基本面、股东变化、研报等逐股内容。
@@ -76,3 +81,19 @@
 5. 公共分支只含必要源码/测试/精简证据；大行情、Chat回包、研报PDF、运行缓存及认证信息不随代码上传。
 
 协作保持 `RESEARCH_ONLY=true`、`production_allowed=false`、`buy_gate_updated=false`、`orders_sent=false`。本说明供乐熹通过唯一标识 `STOCK_PANEL_COLLAB_20261030` 查找并对齐，不假称已直接发消息给尚未暴露发送入口的Dot。
+
+## 8. 2026-10-30 中断恢复与增量事件缓存交接
+
+R2原合同从已有journal续跑，保留原5个完成结果；retained supervisor PID88464、runner PID88465于13:14:29启动。状态以B10 `RESUME_LIFECYCLE.json`、`BATCH_PROGRESS.json`及`RESOURCE_GUARD_LATEST.json`为准；资源guard只观测/报告，未实现自动停止新增提交。冻结R2 runner SHA保持不变，未改变原式/逐前缀规则。
+
+新增 `domains/research_event_case_cache.py`、`ops/reuse_stock_event_cases.py`及对应测试，提供持久逐事件收益/自身历史分位与真实R2分片导入。代次、合同和asof不单独作废已成熟收益；只对新事件、新成熟、补价和受影响修订调用原收益评价器。确切依赖、可执行命令、完成后机械检查和既有owner增量hook见上述 `INTEGRATION.md`。14项helper测试、真实已完成分片精确parity及零收益调用重复读取通过；全247仍RUNNING，不称全量完成或自动安装。
+
+个股源码另修复已证实组别错配：001328同时属于小K/回踩时，从回踩名单点入会保持回踩统计，卡片标题明确显示组别；全部/不可用组别回落首个自身组。`research-panel/numeric283-panel.js`仅改这一绑定和标题；`tests/test_stock_event_group_binding.py`两项定向检查与JS语法通过。现役页面/API未因此更新，旧异步stale防护保留。冻结范围独立Reviewer已给REVIEWED/PASS：14项缓存、2项组别绑定及JS语法通过；真实8股/32组/2038条horizon cases精确一致，重复收益/分位计算0次。主控按逐项allowlist同步开发分支；现役安装、API/UI及247终态仍待对应证据。
+
+## 9. 网站自动同步已现场闭环；框架接口另行交接
+
+现役个股API已更新为`a-stock-history-auto-sync-20261030-r1-api`，manifest SHA256 `790e1e067123510a0a7da8ed2017fcfd3ebaf0849073eef5017855e5705d3df1`。Retained kqueue消费者只监听既有R2逐股RESULT完成，复用原owner保存与Main既有A_LONG锁；每股完成即绑定新的dated product/事件明细/资料索引并发出原completion，未轮询重算。原图、资料原件、公式、Main/Stage保持。
+
+Root真实Chrome验收：002527在13:50:05仍pending1/3687，页面保持打开且不reload；13:52:03真实完成后，同一选股自动显示回踩D2 54/111、D5 52/109及对应分位统计。000554泰山石油已完成7887/7887日期，图/资料/明细可读；小K只有1个尚未成熟事件、有效样本0，正确保留“数据不足”，不借其他组胜率。B11 `ROOT_LIVE_UI_ACCEPTANCE.json`留存真实回执。此PASS限当前R2批次的自动网站传播，不冒称247终态或未来研究日Main增量hook已安装。
+
+按用户指定框架分支/固定commit新增own namespace `research/stock_panel_collab_20261030`：严格日期/证券/generation/input/manifest/SHA同源GET适配，复用frozen51/22验证器和原renderer的`OriginalFullChart`方法，保留公司null/报告期/单位/来源；独立observation_date不推断。13项接口测试及001328真实861行/265177-byte gzip/单次projection GET兼容验证通过。框架46文件未改；sanitized shell仍缺显式host context交接、实际endpoint配置与外部公司validator，未部署该框架。精确接法与缺口见own README/COMPATIBILITY，按开发分支增量交付，不覆盖框架源码。
