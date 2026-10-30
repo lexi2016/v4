@@ -450,4 +450,83 @@ def build_daily_event_statistics(
     }
 
 
-__all__ = ["build_daily_event_statistics"]
+def stratify_event_cases_by_prefix_percentile(
+    *, close_rows: Sequence[Mapping[str, Any]], event_cases: Mapping[str, Sequence[Mapping[str, Any]]],
+    asof: str, lookback: int = 250,
+    bucket_edges: Sequence[float] = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0),
+) -> dict[str, Any]:
+    """Annotate accepted events and describe the current fixed percentile bucket.
+
+    No event selection or return evaluation happens here. Each event's rank
+    uses only its own last250 valid positive closes, including that date.
+    Supplied overall cases remain present and their classifications unchanged.
+    """
+    asof, _ = _iso_date(asof, field="asof")
+    edges = tuple(bucket_edges)
+    if lookback != 250 or edges != (0.0, 0.2, 0.4, 0.6, 0.8, 1.0):
+        raise ValueError("only the frozen250-close/five20-point-bucket configuration is supported")
+    if set(event_cases) != {"d2", "d5"}:
+        raise ValueError("both accepted d2/d5 case sets are required")
+    event_dates = set()
+    prior_dates = None
+    for horizon, cases in event_cases.items():
+        dates = []
+        for item in _sequence(cases, field=horizon):
+            event_day, _ = _iso_date(item["event_date"], field="event_date")
+            if event_day > asof or event_day in dates:
+                raise ValueError("event date is duplicated or after asof")
+            if item.get("status") in {"positive", "negative", "flat"}:
+                if not isinstance(item.get("return_pct"), (int, float)) or isinstance(item["return_pct"], bool) or not math.isfinite(item["return_pct"]):
+                    raise ValueError("a classified valid event must retain its finite accepted return")
+            dates.append(event_day)
+        if prior_dates is not None and set(dates) != prior_dates:
+            raise ValueError("d2/d5 must describe the same accepted event set")
+        prior_dates = set(dates)
+        event_dates.update(dates)
+    wanted = event_dates | {asof}
+    valid_prefix: list[float] = []
+    ranks: dict[str, tuple[float | None, int | None, int]] = {}
+    previous = None
+    for row in _sequence(close_rows, field="close_rows"):
+        day, _ = _iso_date(row["date"], field="close_rows.date")
+        if previous is not None and day <= previous:
+            raise ValueError("close rows must have unique increasing dates")
+        previous = day
+        if day > asof:
+            continue
+        status, price = _classify_price(row.get("close"), field=f"close[{day}]")
+        if status == "valid":
+            assert price is not None
+            valid_prefix.append(price)
+            if len(valid_prefix) > lookback:
+                del valid_prefix[0]
+        if day in wanted:
+            percentile = sum(value <= price for value in valid_prefix) / lookback if status == "valid" and len(valid_prefix) == lookback else None
+            bucket = next((i for i in range(5) if percentile is not None and edges[i] <= percentile and (percentile < edges[i+1] or i == 4 and percentile <= 1.0)), None)
+            ranks[day] = (percentile, bucket, len(valid_prefix))
+    current_percentile, current_bucket, current_n = ranks.get(asof, (None, None, 0))
+    label = f"{int(edges[current_bucket]*100)}–{int(edges[current_bucket+1]*100)}%" if current_bucket is not None else "UNKNOWN"
+    horizons = {}
+    for horizon, cases in event_cases.items():
+        annotated = []
+        for item in cases:
+            percentile, bucket, n = ranks.get(item["event_date"], (None, None, 0))
+            annotated.append({**copy.deepcopy(dict(item)), "price_percentile": percentile,
+                              "percentile_bucket": bucket, "percentile_valid_closes": n,
+                              "percentile_status": "KNOWN" if percentile is not None else "UNKNOWN_INSUFFICIENT_OR_INVALID_PRICE"})
+        members = [item for item in annotated if current_bucket is not None and item["percentile_bucket"] == current_bucket]
+        counts = {key: sum(item.get("status") == key for item in members) for key in ("positive", "negative", "flat", "not_matured")}
+        valid = counts["positive"] + counts["negative"] + counts["flat"]
+        conditional = {"bucket":current_bucket, "bucket_label":label, "current_price_percentile":current_percentile,
+                       "lookback":lookback, "member_count":len(members), **counts, "valid":valid,
+                       "positive_fraction":counts["positive"]/valid if valid else None,
+                       "unknown_percentile_events":sum(item["price_percentile"] is None for item in annotated),
+                       "missing_or_invalid_return":sum(item.get("status") not in {"positive","negative","flat","not_matured"} for item in members),
+                       "status":"AVAILABLE" if valid else "INSUFFICIENT_SAMPLE"}
+        horizons[horizon] = {"cases":annotated, "conditional":conditional}
+    return {"asof":asof, "lookback":lookback, "bucket_edges":list(edges),
+            "current_price_percentile":current_percentile, "current_percentile_valid_closes":current_n,
+            "horizons":horizons, "qualification":"DESCRIPTIVE_SAME_STOCK_EVENT_SUBSET_NONPIT_NOT_FORECAST"}
+
+
+__all__ = ["build_daily_event_statistics", "stratify_event_cases_by_prefix_percentile"]

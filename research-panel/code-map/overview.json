@@ -1,0 +1,234 @@
+{
+  "cards": [
+    {
+      "dot": "cyan",
+      "items": [
+        "生成时C8 Main源码 / C9 API候选分别绑定SHA",
+        "静态图不证明自然15:40、数据认证或运行成功"
+      ],
+      "title": "源与运行角色分开"
+    },
+    {
+      "dot": "emerald",
+      "items": [
+        "下方节点映射关联源码角色、文件与行号",
+        "下方证据图可搜索符号、GET、SHA与未解析依赖"
+      ],
+      "title": "定位到精确代码"
+    }
+  ],
+  "components": [
+    {
+      "id": "daily_slot",
+      "label": "日更调度",
+      "pos": [
+        35,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "15:40主尝试 / 失败补件",
+      "tag": "Main源码",
+      "type": "backend"
+    },
+    {
+      "id": "paired_inputs",
+      "label": "同代来源与资格",
+      "pos": [
+        255,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "双panel / generation / SHA",
+      "tag": "既有来源边界",
+      "type": "security"
+    },
+    {
+      "id": "original_owner",
+      "label": "原日更owner",
+      "pos": [
+        475,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "原式51/22 · 单股一次计算",
+      "tag": "Main源码",
+      "type": "backend"
+    },
+    {
+      "id": "dated_cache",
+      "label": "日期化产品与缓存",
+      "pos": [
+        695,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "numeric manifest / history",
+      "tag": "原owner落盘",
+      "type": "database"
+    },
+    {
+      "id": "read_only_get",
+      "label": "V4只读GET",
+      "pos": [
+        915,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "身份校验 / typed缺口",
+      "tag": "API候选",
+      "type": "backend"
+    },
+    {
+      "id": "reader_canvas",
+      "label": "固定看板与Canvas",
+      "pos": [
+        1135,
+        300
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "图 / 双成功率 / 事件定位",
+      "tag": "C9候选",
+      "type": "frontend"
+    },
+    {
+      "id": "retained_chart",
+      "label": "保留结果派生原图",
+      "pos": [
+        695,
+        70
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "HTML / projection / PNG",
+      "tag": "原51/22不重算",
+      "type": "database"
+    },
+    {
+      "id": "display_projection",
+      "label": "资料与事件展示投影",
+      "pos": [
+        915,
+        70
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "TRUE / 原图 / 原回包",
+      "tag": "只读派生",
+      "type": "backend"
+    },
+    {
+      "id": "completion_sse",
+      "label": "完成事件与SSE",
+      "pos": [
+        915,
+        530
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "index后event / 浏览器刷新",
+      "tag": "同一完成链",
+      "type": "messagebus"
+    },
+    {
+      "id": "release_boundary",
+      "label": "部署与排错边界",
+      "pos": [
+        1135,
+        70
+      ],
+      "size": [
+        172,
+        72
+      ],
+      "sublabel": "候选SHA / CAS / 恢复",
+      "tag": "Root控制",
+      "type": "cloud"
+    }
+  ],
+  "connections": [
+    {
+      "from": "daily_slot",
+      "to": "paired_inputs"
+    },
+    {
+      "from": "paired_inputs",
+      "to": "original_owner"
+    },
+    {
+      "from": "original_owner",
+      "to": "dated_cache"
+    },
+    {
+      "from": "dated_cache",
+      "to": "read_only_get"
+    },
+    {
+      "from": "read_only_get",
+      "to": "reader_canvas"
+    },
+    {
+      "from": "dated_cache",
+      "to": "retained_chart"
+    },
+    {
+      "from": "retained_chart",
+      "fromSide": "bottom",
+      "to": "read_only_get",
+      "toSide": "top"
+    },
+    {
+      "from": "retained_chart",
+      "to": "display_projection",
+      "variant": "dashed"
+    },
+    {
+      "from": "display_projection",
+      "to": "read_only_get"
+    },
+    {
+      "from": "dated_cache",
+      "to": "completion_sse"
+    },
+    {
+      "from": "completion_sse",
+      "to": "reader_canvas",
+      "variant": "dashed"
+    },
+    {
+      "from": "release_boundary",
+      "to": "read_only_get",
+      "variant": "dashed"
+    }
+  ],
+  "diagram_type": "architecture",
+  "meta": {
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "title": "V4看板 · 数据到页面"
+  },
+  "schema_version": 1
+}

@@ -1223,6 +1223,78 @@ class ResearchLaneSource:
         descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
         return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
 
+    def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None):
+        """Read one previously received field-whitelisted shard, never its large source pack."""
+        product = self.read_a_daily_product(date, include_display_names=False)
+        if (not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(symbol))
+                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
+                or generation is not None and generation != product.get("source_generation")
+                or input_sha256 is not None and input_sha256 != product.get("source_identity", {}).get("input_sha256")):
+            raise ValueError("COMPANY_MATERIALS_PRODUCT_IDENTITY_CONFLICT")
+        index = json.loads((self._a_product_root() / "index.json").read_text())
+        binding = index.get("company_materials", {}).get(date)
+        if binding is None:
+            return {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date, "research_only":True,
+                    "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+        manifest = self._a_product_reference(binding)
+        if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
+                or manifest.get("numeric_manifest") != product["manifest"]
+                or manifest.get("source_generation") != product["source_generation"]
+                or manifest.get("input_sha256") != product["source_identity"]["input_sha256"]
+                or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)
+                or set(manifest["items"]) != {row["symbol"] for row in product["rows"]}):
+            raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
+        shard = self._a_product_reference(manifest["items"][symbol])
+        if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
+                or shard.get("symbol") != symbol or shard.get("data_date") != date
+                or shard.get("numeric_manifest") != product["manifest"]
+                or shard.get("source_generation") != product["source_generation"]
+                or shard.get("input_sha256") != product["source_identity"]["input_sha256"]
+                or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
+            raise ValueError("COMPANY_MATERIALS_SHARD_IDENTITY_CONFLICT")
+        return {"status":"PARTIAL_RECEIVED", "symbol":symbol, "data_date":date,
+                "source_generation":product["source_generation"], "input_sha256":product["source_identity"]["input_sha256"],
+                "numeric_manifest":product["manifest"], "materials_manifest":binding,
+                "material_ref":manifest["items"][symbol], "materials":shard,
+                "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+
+    def read_a_daily_event_cases(self, date, symbol, *, group="original", horizon="d2"):
+        if group not in {"original","nav_smallk","nav_pullback","nav_breakout"} or horizon not in {"d2","d5"}:
+            raise ValueError("EVENT_CASE_SELECTION_INVALID")
+        detail = self.read_a_daily_product(date, symbol)
+        if detail.get("status") != "READY":
+            raise ValueError("EVENT_CASE_SYMBOL_UNBOUND")
+        index = json.loads((self._a_product_root() / "index.json").read_text())
+        binding = index.get("event_cases", {}).get(date)
+        if binding is None:
+            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        manifest = self._a_product_reference(binding)
+        if (manifest.get("schema_version") != "v4.a_share.event_cases_index.v1"
+                or manifest.get("numeric_manifest") != detail["manifest"]
+                or manifest.get("source_generation") != detail["source_generation"]
+                or manifest.get("input_sha256") != detail["source_identity"]["input_sha256"]
+                or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)):
+            raise ValueError("EVENT_CASE_MANIFEST_CONFLICT")
+        row_ref = manifest["items"].get(symbol)
+        if row_ref is None:
+            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        shard = self._a_product_reference(row_ref)
+        stats_raw = json.dumps(detail["row"]["statistics"],ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+        if (shard.get("schema_version") != "v4.a_share.event_cases.v1" or shard.get("symbol") != symbol
+                or shard.get("data_date") != date or shard.get("numeric_manifest") != detail["manifest"]
+                or shard.get("statistics_sha256") != hashlib.sha256(stats_raw).hexdigest()):
+            raise ValueError("EVENT_CASE_SHARD_CONFLICT")
+        selected = shard.get("groups", {}).get(group, {}).get(horizon)
+        if not isinstance(selected, Mapping) or not isinstance(selected.get("cases"), list):
+            raise ValueError("EVENT_CASE_GROUP_UNAVAILABLE")
+        return {"status":"READY", "symbol":symbol, "data_date":date, "group":group, "horizon":horizon,
+                "numeric_manifest":detail["manifest"], "source_generation":detail["source_generation"],
+                "source_identity":detail["source_identity"], "projection":shard["projection"],
+                "case_ref":row_ref, **selected,
+                "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+
     def read_a_daily_latest_event(self):
         root = self._a_product_root()
         if root is None or not (root / "events/latest.json").is_file():

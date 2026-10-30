@@ -1,0 +1,637 @@
+--- a/apps/api/v4_api/research_router.py
++++ b/apps/api/v4_api/research_router.py
+@@ -471,6 +471,22 @@
+         except (ValueError, OSError, KeyError) as error:
+             return {"schema_version":"v4.a_share.daily_product.v1", "status":"CANNOT_CONFIRM", "data_date":date, "rows":[], "cannot_confirm":[str(error)], "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+ 
++    @router.get("/a-share/company-materials")
++    def a_share_company_materials(date: str, symbol: str, generation: str | None = None, input_sha256: str | None = None) -> dict:
++        try:
++            return a_daily_source.read_a_daily_company_materials(date, symbol, generation=generation, input_sha256=input_sha256)
++        except (ValueError, OSError, KeyError, TypeError) as error:
++            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cannot_confirm":[str(error)],
++                    "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
++
++    @router.get("/a-share/event-cases")
++    def a_share_event_cases(date: str, symbol: str, group: str = "original", horizon: str = "d2") -> dict:
++        try:
++            return a_daily_source.read_a_daily_event_cases(date, symbol, group=group, horizon=horizon)
++        except (ValueError, OSError, KeyError, TypeError) as error:
++            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cases":[], "cannot_confirm":[str(error)],
++                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++
+     def original_chart_answer(request, date, symbol, generation, input_sha256, asset=None, sha256=None):
+         try:
+             if set(request.query_params) - {"date", "symbol", "generation", "input_sha256", "sha256"}:
+--- a/infrastructure/research_lane_source.py
++++ b/infrastructure/research_lane_source.py
+@@ -1250,6 +1250,78 @@
+         descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
+         return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
+ 
++    def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None):
++        """Read one previously received field-whitelisted shard, never its large source pack."""
++        product = self.read_a_daily_product(date, include_display_names=False)
++        if (not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(symbol))
++                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
++                or generation is not None and generation != product.get("source_generation")
++                or input_sha256 is not None and input_sha256 != product.get("source_identity", {}).get("input_sha256")):
++            raise ValueError("COMPANY_MATERIALS_PRODUCT_IDENTITY_CONFLICT")
++        index = json.loads((self._a_product_root() / "index.json").read_text())
++        binding = index.get("company_materials", {}).get(date)
++        if binding is None:
++            return {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date, "research_only":True,
++                    "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
++        manifest = self._a_product_reference(binding)
++        if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
++                or manifest.get("numeric_manifest") != product["manifest"]
++                or manifest.get("source_generation") != product["source_generation"]
++                or manifest.get("input_sha256") != product["source_identity"]["input_sha256"]
++                or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)
++                or set(manifest["items"]) != {row["symbol"] for row in product["rows"]}):
++            raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
++        shard = self._a_product_reference(manifest["items"][symbol])
++        if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
++                or shard.get("symbol") != symbol or shard.get("data_date") != date
++                or shard.get("numeric_manifest") != product["manifest"]
++                or shard.get("source_generation") != product["source_generation"]
++                or shard.get("input_sha256") != product["source_identity"]["input_sha256"]
++                or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
++            raise ValueError("COMPANY_MATERIALS_SHARD_IDENTITY_CONFLICT")
++        return {"status":"PARTIAL_RECEIVED", "symbol":symbol, "data_date":date,
++                "source_generation":product["source_generation"], "input_sha256":product["source_identity"]["input_sha256"],
++                "numeric_manifest":product["manifest"], "materials_manifest":binding,
++                "material_ref":manifest["items"][symbol], "materials":shard,
++                "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
++
++    def read_a_daily_event_cases(self, date, symbol, *, group="original", horizon="d2"):
++        if group not in {"original","nav_smallk","nav_pullback","nav_breakout"} or horizon not in {"d2","d5"}:
++            raise ValueError("EVENT_CASE_SELECTION_INVALID")
++        detail = self.read_a_daily_product(date, symbol)
++        if detail.get("status") != "READY":
++            raise ValueError("EVENT_CASE_SYMBOL_UNBOUND")
++        index = json.loads((self._a_product_root() / "index.json").read_text())
++        binding = index.get("event_cases", {}).get(date)
++        if binding is None:
++            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
++                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++        manifest = self._a_product_reference(binding)
++        if (manifest.get("schema_version") != "v4.a_share.event_cases_index.v1"
++                or manifest.get("numeric_manifest") != detail["manifest"]
++                or manifest.get("source_generation") != detail["source_generation"]
++                or manifest.get("input_sha256") != detail["source_identity"]["input_sha256"]
++                or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)):
++            raise ValueError("EVENT_CASE_MANIFEST_CONFLICT")
++        row_ref = manifest["items"].get(symbol)
++        if row_ref is None:
++            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
++                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++        shard = self._a_product_reference(row_ref)
++        stats_raw = json.dumps(detail["row"]["statistics"],ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
++        if (shard.get("schema_version") != "v4.a_share.event_cases.v1" or shard.get("symbol") != symbol
++                or shard.get("data_date") != date or shard.get("numeric_manifest") != detail["manifest"]
++                or shard.get("statistics_sha256") != hashlib.sha256(stats_raw).hexdigest()):
++            raise ValueError("EVENT_CASE_SHARD_CONFLICT")
++        selected = shard.get("groups", {}).get(group, {}).get(horizon)
++        if not isinstance(selected, Mapping) or not isinstance(selected.get("cases"), list):
++            raise ValueError("EVENT_CASE_GROUP_UNAVAILABLE")
++        return {"status":"READY", "symbol":symbol, "data_date":date, "group":group, "horizon":horizon,
++                "numeric_manifest":detail["manifest"], "source_generation":detail["source_generation"],
++                "source_identity":detail["source_identity"], "projection":shard["projection"],
++                "case_ref":row_ref, **selected,
++                "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++
+     def read_a_daily_latest_event(self):
+         root = self._a_product_root()
+         if root is None or not (root / "events/latest.json").is_file():
+--- a/research-panel/daily.html
++++ b/research-panel/daily.html
+@@ -1,4 +1,27 @@
+-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日研究归档</title><link rel="stylesheet" href="research-days.css?v=e25aac91c3c7"><link rel="stylesheet" href="opening-observation.css"></head><body><header><nav class="page-nav" aria-label="研究与历史入口"><a href="daily.html?date=2026-10-28">10/28观察计划</a><a href="perfect10.html">十张完美图 · 原图</a><a href="perfect10-cloud.html">十图 · 原站交互学习</a><a href="archive/2026-10-27/index.html">85结构观察 · 10/27历史</a><a href="archive/2026-10-27/breakout41.html">41突破观察 · 10/27历史</a><a href="daily.html?date=2026-10-27&amp;revision=r3&amp;group=monitor242">242原买点监控 · 10/27历史名单</a></nav><div class="date-picker" id="datePicker"><button id="dateToggle" type="button" aria-expanded="false" aria-controls="datePopover">2026-10-27 ▾</button><div id="datePopover" class="date-popover" hidden><label for="month">选择研究日期</label><input id="month" type="month" value="2026-10"><p id="monthStatus" class="muted"></p><div id="calendar" class="calendar" aria-label="研究日期"></div><p class="muted picker-note">10月27日历史；10月28日观察计划（数据至27日）；未归档不表示零研究。</p></div></div><h1 id="title">每日研究</h1><section class="study-reminder" aria-label="研究与择时提醒"><div><strong>形态研究</strong> 对照「十张完美图形」，逐股观察量价、整理与支撑。</div><div><strong>择时关注</strong> 指南针活跃市值（0AMV） <span class="timing-status">未接入 · 待核</span></div><details><summary>查看依据与状态</summary><p>十图是历史形态参照，相似不等于精确 B 信号。用户提供的知乎 PDF 是作者整理的 B1 文章；不同图稿的部分日期有差异。<a href="https://www.noteol.com/xuexi/ZG_wanmeituxing.html" target="_blank" rel="noopener">十图参考</a> · <a href="https://zhuanlan.zhihu.com/p/1948030376405636130" target="_blank" rel="noopener">B1 文章来源</a></p><p>0AMV 又称活筹指数。尚无可核验数据，数值、单位、时点、覆盖及是否过期待核。<a href="https://www.compass.cn/shownews.php?nid=1976015" target="_blank" rel="noopener">指南针说明</a></p></details><details class="ten-chart-details"><summary>展开十张图形：逐例观察与核实重点</summary><p class="ten-chart-note">以下按<a href="https://www.noteol.com/xuexi/ZG_wanmeituxing.html" target="_blank" rel="noopener">十图转载原图</a>和已存逐图卡整理；PNG日期是光标日期，不等于启动日。阳线量大、阴线量小按开收与成交量观察，不以K线实体大小代替。右侧后续走势是事后信息；图上复权、指标与用户原式的一致性尚未复算。</p><p class="ten-chart-note">用户提供的知乎 B1 PDF 是另一份文章图稿，第5、6、7例的标注日期与PNG不同，不能合并成同一根K。</p><ol class="ten-chart-list"><li data-case="1"><h3>01 · 华纳药厂 <small>PNG光标 2025-05-12</small></h3><p><b>结构与量价：</b>前段放量上行后回落，量柱总体收缩，价格靠近白黄线；图中光标附近有下影。</p><p><b>核实与反证：</b>逐根核实候选K自身量能。PDF中此前低量B1与之后长下影SB1是两根K，不能合并。</p></li><li data-case="2"><h3>02 · 宁波韵升 <small>PNG光标 2025-08-06</small></h3><p><b>结构与量价：</b>上行结构中短回调，前几根K逐渐靠近白线，量柱总体减少。</p><p><b>核实与反证：</b>核对首根较大阴量和相对前段阳量的变化；图中后续高位回落是事后反证。</p></li><li data-case="3"><h3>03 · 微芯生物 <small>PNG光标 2025-06-20</small></h3><p><b>结构与量价：</b>低位放量上台阶后整理回踩白线，回调量相对前段量峰减少。</p><p><b>核实与反证：</b>明确量峰及比较区间；截图J值未经复算，不能单独确认B1。</p></li><li data-case="4"><h3>04 · 方正科技 <small>PNG光标 2025-07-23</small></h3><p><b>结构与量价：</b>前段抬升，量峰后量能回落；光标附近数根K靠近白线整理。</p><p><b>核实与反证：</b>图中有不止一段整理，先锁定候选K和参照段，不将后段走势倒灌。</p></li><li data-case="5"><h3>05 · 澄天伟业 <small>PNG光标 2025-07-18</small></h3><p><b>结构与量价：</b>前段放量急升后较长时间整理，小K与量能总体收敛，靠近黄线。</p><p><b>核实与反证：</b>转载PNG光标为07-18，PDF图注为07-15（p8）；不能当作同一根K，也不能认定次日启动。</p></li><li data-case="6"><h3>06 · 国轩高科 <small>PNG光标 2025-08-01</small></h3><p><b>结构与量价：</b>放量抬升后长时间整理，夹杂反弹与回落，白线趋平、黄线缓升。</p><p><b>核实与反证：</b>转载PNG光标为08-01，PDF图注为08-04（p9）；需核整理时长和中间异动，不假设立即启动。</p></li><li data-case="7"><h3>07 · 野马电池 <small>PNG光标 2025-07-31</small></h3><p><b>结构与量价：</b>放量上冲后回落，长平台内小K横向推进，光标前一段量柱较低。</p><p><b>核实与反证：</b>转载PNG光标为07-31，PDF图注为08-01（p10）；PNG显示J=13.72，未复算，不能推断精确B1。</p></li><li data-case="8"><h3>08 · 光电股份 <small>PNG光标 2025-07-10</small></h3><p><b>结构与量价：</b>前段放量抬升，随后K线缩小回落，量柱自前峰下降并形成短平台。</p><p><b>核实与反证：</b>核对平台持续时间与候选K的相对量；图中后续走势属于事后信息。</p></li><li data-case="9"><h3>09 · 新瀚新材 <small>PNG光标 2025-08-01</small></h3><p><b>结构与量价：</b>前段放量上台阶后，在白黄线之上小幅横盘，光标附近波动和量柱较小。</p><p><b>核实与反证：</b>先锁定抬升后的横盘段，逐根按开收与成交量比较，不能仅凭图形断言资金身份。</p></li><li data-case="10"><h3>10 · 昂利康 <small>PNG光标 2025-07-11</small></h3><p><b>结构与量价：</b>持续上行后有一小段回调靠近白线，量柱相对此前量峰降低。</p><p><b>核实与反证：</b>核对回踩位置及相对量；图中后续高位回落须保留为事后反证。</p></li></ol></details></section><p id="status" class="muted"></p><div id="revisions" class="muted"></div><p id="error" role="alert"></p></header><style>
++<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>每日研究归档</title><link rel="stylesheet" href="research-days.css?v=e25aac91c3c7"><link rel="stylesheet" href="opening-observation.css"><style id="daily-reader-styles">
++body.daily-reader-mode{margin:0;background:#07111c;color:#e8eff5;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",sans-serif;font-size:14px;line-height:1.5}
++body.daily-reader-mode> :not(#dailyNumeric283Panel):not(script){display:none!important}
++body.daily-reader-mode #dailyNumeric283Panel{display:block;margin:0;padding:0;border:0;border-radius:0;max-width:none;background:transparent;min-height:100vh}
++body.daily-reader-mode #dailyNumeric283Panel>:not(#dailyReaderSidebar):not(#dailyReaderMain){display:none!important}
++body.daily-reader-mode button,body.daily-reader-mode select,body.daily-reader-mode input{font:inherit;color:#dbe7f2;background:#0c1b2a;border:1px solid #254055;border-radius:5px}
++body.daily-reader-mode button{cursor:pointer;padding:7px 11px}body.daily-reader-mode button:disabled{opacity:.45;cursor:default}body.daily-reader-mode button:focus-visible,body.daily-reader-mode a:focus-visible{outline:2px solid #40dfd3;outline-offset:3px}
++body.daily-reader-mode a{color:#9ecbfa;text-decoration:none}body.daily-reader-mode small,.reader-note{color:#99afc5;font-size:12px;line-height:1.6}body.daily-reader-mode p{margin:8px 0}body.daily-reader-mode h3{font-size:17px;margin:0 0 12px}body.daily-reader-mode pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:420px;overflow:auto}
++.daily-reader-sidebar{position:fixed;left:0;top:0;bottom:0;width:208px;padding:24px 14px 16px;border-right:1px solid #284356;background:#08131e;box-sizing:border-box;display:flex;flex-direction:column;z-index:5}
++.daily-reader-sidebar h1{font-size:24px;line-height:1.3;margin:0 0 20px;font-weight:700;letter-spacing:.2px}.daily-reader-sidebar label{display:block;font-size:11px;color:#8ca5ba}.daily-reader-sidebar input{box-sizing:border-box;width:100%;padding:9px 8px;margin:6px 0 15px}
++#dailyReaderGroups{display:grid;gap:4px;border-bottom:1px solid #22384c;padding:0 0 16px;margin-bottom:12px}#dailyReaderGroups button{display:flex;justify-content:space-between;align-items:center;background:transparent;border:1px solid transparent;font-size:15px;padding:10px 12px;border-radius:4px}#dailyReaderGroups button.active{border-color:#39798a;background:#102a37;box-shadow:inset 2px 0 #31ddd2}
++#dailyReaderStockList{overflow:auto;min-height:0;flex:1}.reader-stock{display:flex;width:100%;text-align:left;flex-direction:column;gap:1px;background:transparent!important;border-color:transparent!important;padding:11px 12px!important;margin-bottom:4px;border-radius:4px!important}.reader-stock strong{font-weight:600;font-size:14px}.reader-stock span{font-size:14px}.reader-stock.active{border-color:#256878!important;background:#102c36!important;box-shadow:inset 2px 0 #38dacc}
++.reader-sidebar-footer{padding-top:10px;display:grid;gap:10px;font-size:12px}.reader-sidebar-footer button{font-size:12px;background:transparent}
++.daily-reader-main{margin-left:208px;padding:26px 20px 14px;min-width:0}#dailyNumeric283ChartPanel{border:0;padding:0;background:none;margin:0;min-width:0}
++.reader-stock-header{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:72px;margin-bottom:18px}.reader-stock-header h3{font-size:28px;font-weight:700;line-height:1.3;margin:0}.reader-stock-header p{font-size:13px;color:#acc1d6;margin:8px 0 0}.reader-chart-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.reader-chart-controls button,.reader-chart-controls select{font-size:12px;padding:8px 10px}.reader-chart-controls label{display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.reader-chart-controls .active{background:#244d9b;border-color:#4975c3}
++#dailyOriginalChartHost{border:1px solid #173247;border-radius:8px;overflow:hidden;background:#07131e;min-height:460px}#dailyOriginalFormulaFrame{display:block!important;max-width:100%}
++#dailyEventStatistics{margin-top:12px}.reader-win-metrics{display:grid;grid-template-columns:1fr 1fr .9fr;border:1px solid #1c374d;border-radius:7px;padding:16px 0;background:#0a1825;min-height:112px;box-sizing:border-box}.reader-win-card,.reader-price-card{padding:0 24px;min-width:0}.reader-win-card{border-right:1px solid #29445a}.metric-label{margin:0 0 5px!important;font-size:14px;color:#e4eef6}.reader-win-line{display:flex;align-items:center;justify-content:space-between;gap:14px}.reader-rate{border:0!important;background:transparent!important;color:#35e2cc!important;font-size:32px!important;line-height:1.2;font-weight:700;padding:0!important;white-space:nowrap}.reader-win-line div{font-size:13px;line-height:1.6}.reader-win-line div p{margin:3px 0!important;color:#49d8c9}.reader-conditional{display:block;background:none!important;border:0!important;color:#a8c7da!important;font-size:12px!important;padding:7px 0 0!important;text-align:left}.reader-price-card strong{font-size:23px;white-space:nowrap;color:#f1f5fa}.reader-price-card p{margin:4px 0!important}.reader-price-card span{font-size:12px;color:#b4c8db}.reader-price-card small{font-size:10px}.reader-win-card button:not(:disabled):hover{text-decoration:underline}.reader-event-focus{background:#102d35;border-left:2px solid #e5b565;padding:10px;display:flex;gap:12px;justify-content:space-between;align-items:center;font-size:12px}
++.reader-material-grid{border-top:1px solid #294257;display:grid;grid-template-columns:1.05fr 1fr 1.08fr;gap:24px;margin-top:18px;padding-top:16px}.reader-material-card{position:relative;min-width:0;padding:0 0 4px 20px;border-left:1px solid #2f5969}.reader-material-card h3{position:relative;font-size:17px;margin-bottom:12px}.reader-material-card h3 button{float:right;border:0;background:none;padding:0;color:#91c1ed;font-size:12px;font-weight:400}.reader-business{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;min-height:44px;margin-bottom:10px!important}.reader-finance{display:grid;grid-template-columns:1fr 1fr;gap:14px}.reader-finance>div+div{border-left:1px solid #28465b;padding-left:16px}.reader-finance small{display:block;font-size:12px}.reader-finance strong{display:block;font-size:26px;font-weight:650;color:#f0f5fa;white-space:nowrap}.reader-material-card>a{font-size:11px}.reader-holder-count{display:block;font-size:32px;line-height:1.3;margin:28px 0 16px}.reader-holder-change{font-size:18px;color:#36dcc6;margin-bottom:32px!important}.reader-material-card>small:last-child{display:block;font-size:10px;margin-top:8px}.reader-report-count{float:right;font-size:11px;border:1px solid #286969;color:#3bdfcf;background:#0c2b30;border-radius:4px;padding:2px 8px;margin-top:-33px}.reader-report-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:16px;line-height:1.5;min-height:48px;margin:26px 0 8px!important}.reader-material-card>button{margin-top:5px;font-size:12px}
++#dailyReaderDiagnostics,#dailyReceivedReports,#dailyEventCases{margin-top:14px;border:1px solid #244156;border-radius:5px;padding:8px 12px;overflow-wrap:anywhere}#dailyReaderDiagnostics>summary,#dailyReceivedReports>summary,#dailyEventCases>summary{cursor:pointer;font-size:13px;color:#d9e9f4}#dailyReaderDiagnostics details{margin-top:12px}#dailyReaderDiagnostics table,#dailyEventCases table{width:100%;border-collapse:collapse;font-size:12px}#dailyReaderDiagnostics th,#dailyReaderDiagnostics td,#dailyEventCases th,#dailyEventCases td{padding:8px 7px;text-align:left;border-bottom:1px solid #243b4f}.reader-case-table{max-height:330px;overflow:auto}#dailyReceivedReports article{padding:14px 4px;border-bottom:1px solid #244054}#dailyReceivedReports article a{display:inline-block;margin-right:14px;font-size:12px}#dailyReceivedReports article h4{margin:0}#relatedReports{margin-top:16px!important;padding:14px!important;border:1px solid #233f52!important;background:transparent!important;border-radius:6px!important}#relatedReports h2{font-size:17px;margin:0}#relatedReports p,#relatedReportsState{font-size:12px}#relatedReportsOutput>details{margin:10px 0}#relatedReportsOutput article{border-top:1px solid #233f52;padding:12px 0}.reader-sidebar-collapsed .daily-reader-sidebar{width:64px;padding:20px 6px}.reader-sidebar-collapsed .daily-reader-sidebar>:not(.reader-sidebar-footer){display:none}.reader-sidebar-collapsed .reader-sidebar-footer a{display:none}.reader-sidebar-collapsed .daily-reader-main{margin-left:64px}
++@media(min-width:1300px){.reader-stock-header{min-height:72px}.reader-stock-header h3{font-size:30px}.daily-reader-main{padding-top:28px}.reader-stock-header{margin-bottom:18px}}
++@media(max-width:1050px){.reader-stock-header{align-items:flex-start;flex-wrap:wrap}.reader-chart-controls{justify-content:flex-start}.reader-win-card,.reader-price-card{padding:0 12px}.reader-rate{font-size:26px!important}.reader-win-line{display:block}.reader-finance strong{font-size:23px}.reader-material-grid{gap:14px}.reader-material-card{padding-left:10px}}
++@media(max-width:760px){.daily-reader-sidebar{width:132px;padding:18px 8px}.daily-reader-sidebar h1{font-size:20px}.daily-reader-sidebar label{font-size:10px}#dailyReaderGroups button{font-size:12px;padding:9px 7px}.reader-stock{padding:9px 6px!important}.reader-stock strong,.reader-stock span{font-size:12px}.daily-reader-main{margin-left:132px;padding:18px 12px}.reader-stock-header{gap:10px;min-height:unset;margin-bottom:12px}.reader-stock-header h3{font-size:23px}.reader-chart-controls{gap:5px}.reader-chart-controls button,.reader-chart-controls select{font-size:11px;padding:6px}.reader-chart-controls label{font-size:11px}.reader-win-metrics{grid-template-columns:1fr 1fr;gap:14px;padding:14px 0}.reader-win-card:nth-child(2){border-right:0}.reader-price-card{grid-column:1/-1;border-top:1px solid #28465b;padding-top:10px}.reader-price-card p{display:inline-block;margin-right:16px!important}.reader-price-card small{display:block}.reader-material-grid{grid-template-columns:1fr}.reader-material-card{border-bottom:1px solid #244156;padding:0 0 16px 14px}.reader-holder-count{margin-top:12px}.reader-holder-change{margin-bottom:16px!important}.reader-report-title{margin-top:12px!important}.reader-event-focus{display:block}#dailyReaderDiagnostics{overflow:auto}}
++</style>
++</head><body><header><nav class="page-nav" aria-label="研究与历史入口"><a href="daily.html?date=2026-10-28">10/28观察计划</a><a href="perfect10.html">十张完美图 · 原图</a><a href="perfect10-cloud.html">十图 · 原站交互学习</a><a href="archive/2026-10-27/index.html">85结构观察 · 10/27历史</a><a href="archive/2026-10-27/breakout41.html">41突破观察 · 10/27历史</a><a href="daily.html?date=2026-10-27&amp;revision=r3&amp;group=monitor242">242原买点监控 · 10/27历史名单</a></nav><div class="date-picker" id="datePicker"><button id="dateToggle" type="button" aria-expanded="false" aria-controls="datePopover">2026-10-27 ▾</button><div id="datePopover" class="date-popover" hidden><label for="month">选择研究日期</label><input id="month" type="month" value="2026-10"><p id="monthStatus" class="muted"></p><div id="calendar" class="calendar" aria-label="研究日期"></div><p class="muted picker-note">10月27日历史；10月28日观察计划（数据至27日）；未归档不表示零研究。</p></div></div><h1 id="title">每日研究</h1><section class="study-reminder" aria-label="研究与择时提醒"><div><strong>形态研究</strong> 对照「十张完美图形」，逐股观察量价、整理与支撑。</div><div><strong>择时关注</strong> 指南针活跃市值（0AMV） <span class="timing-status">未接入 · 待核</span></div><details><summary>查看依据与状态</summary><p>十图是历史形态参照，相似不等于精确 B 信号。用户提供的知乎 PDF 是作者整理的 B1 文章；不同图稿的部分日期有差异。<a href="https://www.noteol.com/xuexi/ZG_wanmeituxing.html" target="_blank" rel="noopener">十图参考</a> · <a href="https://zhuanlan.zhihu.com/p/1948030376405636130" target="_blank" rel="noopener">B1 文章来源</a></p><p>0AMV 又称活筹指数。尚无可核验数据，数值、单位、时点、覆盖及是否过期待核。<a href="https://www.compass.cn/shownews.php?nid=1976015" target="_blank" rel="noopener">指南针说明</a></p></details><details class="ten-chart-details"><summary>展开十张图形：逐例观察与核实重点</summary><p class="ten-chart-note">以下按<a href="https://www.noteol.com/xuexi/ZG_wanmeituxing.html" target="_blank" rel="noopener">十图转载原图</a>和已存逐图卡整理；PNG日期是光标日期，不等于启动日。阳线量大、阴线量小按开收与成交量观察，不以K线实体大小代替。右侧后续走势是事后信息；图上复权、指标与用户原式的一致性尚未复算。</p><p class="ten-chart-note">用户提供的知乎 B1 PDF 是另一份文章图稿，第5、6、7例的标注日期与PNG不同，不能合并成同一根K。</p><ol class="ten-chart-list"><li data-case="1"><h3>01 · 华纳药厂 <small>PNG光标 2025-05-12</small></h3><p><b>结构与量价：</b>前段放量上行后回落，量柱总体收缩，价格靠近白黄线；图中光标附近有下影。</p><p><b>核实与反证：</b>逐根核实候选K自身量能。PDF中此前低量B1与之后长下影SB1是两根K，不能合并。</p></li><li data-case="2"><h3>02 · 宁波韵升 <small>PNG光标 2025-08-06</small></h3><p><b>结构与量价：</b>上行结构中短回调，前几根K逐渐靠近白线，量柱总体减少。</p><p><b>核实与反证：</b>核对首根较大阴量和相对前段阳量的变化；图中后续高位回落是事后反证。</p></li><li data-case="3"><h3>03 · 微芯生物 <small>PNG光标 2025-06-20</small></h3><p><b>结构与量价：</b>低位放量上台阶后整理回踩白线，回调量相对前段量峰减少。</p><p><b>核实与反证：</b>明确量峰及比较区间；截图J值未经复算，不能单独确认B1。</p></li><li data-case="4"><h3>04 · 方正科技 <small>PNG光标 2025-07-23</small></h3><p><b>结构与量价：</b>前段抬升，量峰后量能回落；光标附近数根K靠近白线整理。</p><p><b>核实与反证：</b>图中有不止一段整理，先锁定候选K和参照段，不将后段走势倒灌。</p></li><li data-case="5"><h3>05 · 澄天伟业 <small>PNG光标 2025-07-18</small></h3><p><b>结构与量价：</b>前段放量急升后较长时间整理，小K与量能总体收敛，靠近黄线。</p><p><b>核实与反证：</b>转载PNG光标为07-18，PDF图注为07-15（p8）；不能当作同一根K，也不能认定次日启动。</p></li><li data-case="6"><h3>06 · 国轩高科 <small>PNG光标 2025-08-01</small></h3><p><b>结构与量价：</b>放量抬升后长时间整理，夹杂反弹与回落，白线趋平、黄线缓升。</p><p><b>核实与反证：</b>转载PNG光标为08-01，PDF图注为08-04（p9）；需核整理时长和中间异动，不假设立即启动。</p></li><li data-case="7"><h3>07 · 野马电池 <small>PNG光标 2025-07-31</small></h3><p><b>结构与量价：</b>放量上冲后回落，长平台内小K横向推进，光标前一段量柱较低。</p><p><b>核实与反证：</b>转载PNG光标为07-31，PDF图注为08-01（p10）；PNG显示J=13.72，未复算，不能推断精确B1。</p></li><li data-case="8"><h3>08 · 光电股份 <small>PNG光标 2025-07-10</small></h3><p><b>结构与量价：</b>前段放量抬升，随后K线缩小回落，量柱自前峰下降并形成短平台。</p><p><b>核实与反证：</b>核对平台持续时间与候选K的相对量；图中后续走势属于事后信息。</p></li><li data-case="9"><h3>09 · 新瀚新材 <small>PNG光标 2025-08-01</small></h3><p><b>结构与量价：</b>前段放量上台阶后，在白黄线之上小幅横盘，光标附近波动和量柱较小。</p><p><b>核实与反证：</b>先锁定抬升后的横盘段，逐根按开收与成交量比较，不能仅凭图形断言资金身份。</p></li><li data-case="10"><h3>10 · 昂利康 <small>PNG光标 2025-07-11</small></h3><p><b>结构与量价：</b>持续上行后有一小段回调靠近白线，量柱相对此前量峰降低。</p><p><b>核实与反证：</b>核对回踩位置及相对量；图中后续高位回落须保留为事后反证。</p></li></ol></details></section><p id="status" class="muted"></p><div id="revisions" class="muted"></div><p id="error" role="alert"></p></header><style>
+ .r19-results{margin:18px 0;padding:18px;border:2px solid #69c7bf;border-radius:12px;background:#122131;color:#e8edf6}.r19-results summary{font-size:1.2rem;font-weight:700;cursor:pointer}.r19-results label{display:inline-flex;gap:8px;margin:8px;align-items:center}.r19-results select,.r19-results input,.r19-results button{padding:7px;max-width:100%}.r19-results pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}.r19-results canvas{width:100%;height:440px;touch-action:none}.r19-tables{overflow:auto;max-height:420px}.r19-results table{width:100%;border-collapse:collapse}.r19-results th,.r19-results td{padding:7px;text-align:left;border-bottom:1px solid #34475b;overflow-wrap:anywhere}.r19-results [hidden]{display:none!important}
+ </style><style>
+ .daily-numeric283-card{margin:18px 0;padding:18px;border:2px solid #69c7bf;border-radius:12px;background:#122131;color:#e8edf6}
+@@ -52,4 +75,4 @@
+ <p id="r19Status" role="status" aria-live="polite"></p><div id="r19Result" hidden><details><summary>来源、日期、价格口径及研究资格</summary><pre id="r19Identity"></pre></details>
+ <h3>历史行情及实际API投影</h3><p>图中仅画实际返回的OHLC、成交量、白线、黄线、BBI和J；未提供K/D不补算。成交量单位未认证，成交额不在原reader响应中。完整目标日51变量、22绘图记录见下表，不把未触发的绘图当成信号。</p>
+ <div id="r19chart85Panel"><div><button id="r19prevWindow" type="button">前移</button><button id="r19nextWindow" type="button">后移</button><button data-r19-window="60" type="button">60行</button><button data-r19-window="180" type="button">180行</button><label>历史光标 <select id="r19dateSelect"></select></label><input id="r19panRange" type="range" min="0" value="0"><label hidden><input id="r19showSignals" type="checkbox">信号</label><select id="r19signalFilter" hidden><option value="all">all</option></select></div><canvas id="r19chart" aria-label="R19实际行情及指标图"></canvas><p id="r19chartReadout"></p></div><p id="r19chart85Unknown" hidden></p>
+-<h3>反包翻倍 · 已有跨日对照</h3><pre id="r19Comparison"></pre><details><summary>目标日原51变量</summary><div id="r19Values" class="r19-tables"></div></details><details><summary>目标日原22绘图记录：条件、内容与坐标</summary><div id="r19Drawings" class="r19-tables"></div></details></div></details><main id="content" hidden><div class="notice">图源日 2026-10-26；研究日 2026-10-27；报价有午盘、13:08、13:32及收盘后冻结批次，不能混称同一时点。集合重叠，不相加当研究股票总数。</div><section id="balanceObservation" class="balance-observation card" hidden aria-labelledby="balanceObservationTitle"><h2 id="balanceObservationTitle">末端关键点：±2%缩量平衡观察</h2><p class="balance-core">观察日 10/28 · 源日 10/27收盘；候选关键K当日相对昨收涨跌约±2%（非振幅/非距关键K百分比），相对前段缩量、支撑待核，不自动命中。</p><div class="balance-links"><a class="button-link" href="daily.html?date=2026-10-28&amp;revision=r3&amp;group=research18">查看18只图审样本（逐股复核范围不同）</a><a class="button-link" href="archive/2026-10-27/index.html">查看85结构观察 · 10/27历史</a><a href="perfect10.html">十张原图</a></div><details class="balance-method"><summary>展开±2观察口径、逐图检查项与证据边界</summary><p>这里的约 ±2% 指候选关键K当天相对昨收的涨跌幅，不是日内振幅，也不是价格距关键K的百分比；“左右”是观察范围，不作硬阈值。</p><ul class="balance-checklist"><li>比较候选关键K量能与前段抬升/量峰，确认是否缩量；使用同源日线和明确比较区间。</li><li>记录关键K支撑是否守住、回踩承接及反证，不用未核验标签替代量柱或价格证据。</li><li>本地 r3 尚未对全体逐股核验这组形态；已有图审状态与结论按原证据展示，不自动筛选或标记命中。</li></ul></details></section><details id="scopeDisclosure" open><summary>批次范围、状态与统计（展开查看）</summary><p id="batchNoticeDetail" hidden></p><section id="scopes" class="scope"></section></details><div id="groups" class="groups"></div><div class="research-layout"><aside><label for="search">代码 / 名称</label><input id="search" type="search" placeholder="搜索当前分组；切到全部可全量查找"><label><input id="withCharts" type="checkbox" checked> 仅看有交互详情</label><p id="counts"></p><div id="stockList" class="list"></div><button id="more">再显示100只</button></aside><section><div id="selection" class="card">从左侧选择股票；沿用固定个股判断模板，不另造图。</div><section id="openingObservation" class="card opening-observation" aria-label="当日开盘只读观察"></section><section id="relatedReports" class="card" data-identity-date="" aria-label="相关研报候选" hidden><h2>相关研报候选</h2><p id="relatedReportsIdentity">名单身份时点待核；关联检索为当前知识，非历史PIT。</p><button id="relatedReportsRefresh" type="button">重新查询</button><p id="relatedReportsState" aria-live="polite">等待选择股票；身份时点待核。</p><div id="relatedReportsOutput"></div></section><div id="frameHost"></div></section></div></main><script src="calendar.js"></script><script src="related-reports.js"></script><script src="research28-daily.js?v=opening-v1"></script><script src="opening-observation.js"></script><script src="daily.js?v=opening-v1"></script><script src="r19-chart.js"></script><script src="r19-results.js"></script><script src="numeric283-chart.js"></script><script src="numeric283-panel.js"></script></body></html>
++<h3>反包翻倍 · 已有跨日对照</h3><pre id="r19Comparison"></pre><details><summary>目标日原51变量</summary><div id="r19Values" class="r19-tables"></div></details><details><summary>目标日原22绘图记录：条件、内容与坐标</summary><div id="r19Drawings" class="r19-tables"></div></details></div></details><main id="content" hidden><div class="notice">图源日 2026-10-26；研究日 2026-10-27；报价有午盘、13:08、13:32及收盘后冻结批次，不能混称同一时点。集合重叠，不相加当研究股票总数。</div><section id="balanceObservation" class="balance-observation card" hidden aria-labelledby="balanceObservationTitle"><h2 id="balanceObservationTitle">末端关键点：±2%缩量平衡观察</h2><p class="balance-core">观察日 10/28 · 源日 10/27收盘；候选关键K当日相对昨收涨跌约±2%（非振幅/非距关键K百分比），相对前段缩量、支撑待核，不自动命中。</p><div class="balance-links"><a class="button-link" href="daily.html?date=2026-10-28&amp;revision=r3&amp;group=research18">查看18只图审样本（逐股复核范围不同）</a><a class="button-link" href="archive/2026-10-27/index.html">查看85结构观察 · 10/27历史</a><a href="perfect10.html">十张原图</a></div><details class="balance-method"><summary>展开±2观察口径、逐图检查项与证据边界</summary><p>这里的约 ±2% 指候选关键K当天相对昨收的涨跌幅，不是日内振幅，也不是价格距关键K的百分比；“左右”是观察范围，不作硬阈值。</p><ul class="balance-checklist"><li>比较候选关键K量能与前段抬升/量峰，确认是否缩量；使用同源日线和明确比较区间。</li><li>记录关键K支撑是否守住、回踩承接及反证，不用未核验标签替代量柱或价格证据。</li><li>本地 r3 尚未对全体逐股核验这组形态；已有图审状态与结论按原证据展示，不自动筛选或标记命中。</li></ul></details></section><details id="scopeDisclosure" open><summary>批次范围、状态与统计（展开查看）</summary><p id="batchNoticeDetail" hidden></p><section id="scopes" class="scope"></section></details><div id="groups" class="groups"></div><div class="research-layout"><aside><label for="search">代码 / 名称</label><input id="search" type="search" placeholder="搜索当前分组；切到全部可全量查找"><label><input id="withCharts" type="checkbox" checked> 仅看有交互详情</label><p id="counts"></p><div id="stockList" class="list"></div><button id="more">再显示100只</button></aside><section><div id="selection" class="card">从左侧选择股票；沿用固定个股判断模板，不另造图。</div><section id="openingObservation" class="card opening-observation" aria-label="当日开盘只读观察"></section><section id="relatedReports" class="card" data-identity-date="" aria-label="相关研报候选" hidden><h2>相关研报候选</h2><p id="relatedReportsIdentity">名单身份时点待核；关联检索为当前知识，非历史PIT。</p><button id="relatedReportsRefresh" type="button">重新查询</button><p id="relatedReportsState" aria-live="polite">等待选择股票；身份时点待核。</p><div id="relatedReportsOutput"></div></section><div id="frameHost"></div></section></div></main><script src="calendar.js"></script><script src="related-reports.js?v=422ee2e95f7e5a15"></script><script src="research28-daily.js?v=opening-v1"></script><script src="opening-observation.js"></script><script src="daily.js?v=opening-v1"></script><script src="r19-chart.js"></script><script src="r19-results.js"></script><script src="numeric283-chart.js"></script><script src="numeric283-panel.js?v=9a985626cfeacc70"></script></body></html>
+--- a/research-panel/numeric283-panel.js
++++ b/research-panel/numeric283-panel.js
+@@ -110,6 +110,16 @@
+ 
+   function validSha256(value) { return typeof value === "string" && /^[a-f0-9]{64}$/.test(value); }
+ 
++  function keepCurrentProductBinding(previous, incoming) {
++    const same = (a,b) => a?.path===b?.path && validSha256(a?.sha256) && a.sha256===b?.sha256;
++    // The initial SSE can re-read the exact product while its chart is loading.
++    // Preserve that request's object binding; new versions still get a new token.
++    return previous && previous.data_date===incoming.data_date && previous.source_generation===incoming.source_generation
++      && previous.source_identity?.input_sha256===incoming.source_identity?.input_sha256
++      && same(previous.manifest,incoming.manifest) && same(previous.artifact,incoming.artifact)
++      ? Object.assign(previous,incoming) : incoming;
++  }
++
+   function validReference(value) {
+     return value && typeof value.path === "string" && value.path.length > 0 && validSha256(value.sha256);
+   }
+@@ -153,76 +163,37 @@
+   }
+ 
+   function statisticsPresentation(row, symbol, metadata) {
+-    const coverage = row?.historical_coverage || {};
+-    const evaluatedDates = Array.isArray(coverage.evaluated_dates) ? coverage.evaluated_dates : [];
+-    const evaluatedCount = Number.isSafeInteger(coverage.evaluated_count) ? coverage.evaluated_count : evaluatedDates.length;
+-    const missing = Array.isArray(coverage.missing) ? coverage.missing.filter(value => typeof value === "string") : [];
+-    const historyState = coverage.known_full_history === true ? "全历史事件标签完整" : "全历史事件标签覆盖不完整";
+-    const dateSummary = evaluatedDates.length
+-      ? (evaluatedDates.length > 8
+-        ? `${displayDay(evaluatedDates[0])} 至 ${displayDay(evaluatedDates[evaluatedDates.length - 1])}，共 ${evaluatedDates.length} 个日期`
+-        : evaluatedDates.map(displayDay).join("、"))
+-      : "日期未提供";
+-    const coverageSummary = coverage.evaluated_count === undefined && !evaluatedDates.length
+-      ? "同条件历史标签覆盖：未绑定；本页仅读取已绑定结果，不触发重算。"
+-      : `同条件事件标签已评估 ${evaluatedCount} 个日期（${dateSummary}）；${historyState}${missing.length ? `，缺项 ${missing.join("、")}` : ""}；本页仅读取已绑定结果，不触发重算。${coverage.historical_PIT === false ? "历史非PIT。" : ""}`;
+-
+-    const stats = row?.statistics;
+-    const expectedAsOf = metadata?.data_date ? displayDay(metadata.data_date) : "";
+-    const statsBound = stats && stats.asof === expectedAsOf
+-      && ["DESCRIPTIVE_STATS_COMPUTED", "NO_EVENT_GROUPS"].includes(stats.status);
+-    const priceLines = [];
+-    if (!statsBound) {
+-      priceLines.push("价格分位：未绑定当前日期产品；没有触发历史重算。");
+-    } else {
+-      const prices = stats.price_distribution || {};
+-      for (const [label, key] of [["近250个有效收盘", "near_250"], ["全部有效历史", "all_history"]]) {
+-        const value = prices[key] || {};
+-        const percentile = Number.isFinite(value.percentile_le) ? `${(value.percentile_le * 100).toFixed(2)}%` : "未知";
+-        const count = Number.isSafeInteger(value.n) ? value.n : "未知";
+-        priceLines.push(`${label}价格分位：${percentile}；n=${count}；范围 ${displayDay(value.start_date)}—${displayDay(value.end_date)}。`);
+-      }
+-    }
+-
+-    const groups = [];
+-    if (statsBound && Array.isArray(stats.groups)) {
+-      for (const group of stats.groups) {
+-        const identity = group?.source_identity;
+-        const bound = group?.identity_status === "BOUND"
+-          && identity?.generation === metadata?.source_generation
+-          && identity?.input === metadata?.source_identity?.input_sha256
+-          && identity?.formula === D29_NUMERIC_FORMULA_SHA256
+-          && identity?.asof === expectedAsOf
+-          && identity?.market === String(symbol || "").slice(-2)
+-          && identity?.basis === "QFQ_ASOF"
+-          && identity?.pit_status === "NONPIT"
+-          && identity?.rule_sha256 === group?.rule_sha256;
+-        const label = GROUP_LABELS[group?.group_id] || String(group?.group_id || "未知组");
+-        if (!bound) {
+-          groups.push({ label, bound: false, summary: `${label}：同条件收益身份未绑定当前名单代次，保留未知。`, horizons: [] });
+-          continue;
+-        }
+-        const eligible = Number.isSafeInteger(group.eligible_event_count) ? group.eligible_event_count : "未知";
+-        const unknown = coverage.unknown_by_group?.[group.group_id] ?? "未知";
+-        const horizons = Object.entries(group.horizons || {}).map(([key, value]) => {
+-          const total = Number.isSafeInteger(value?.total) ? value.total : "未知";
+-          const valid = Number.isSafeInteger(value?.valid) ? value.valid : "未知";
+-          const mean = Number.isFinite(value?.mean_return_pct) ? `${value.mean_return_pct.toFixed(2)}%` : "未知";
+-          const median = Number.isFinite(value?.median_return_pct) ? `${value.median_return_pct.toFixed(2)}%` : "未知";
+-          return {
+-            label: String(key).toUpperCase(),
+-            summary: `${String(key).toUpperCase()}：有效 ${valid}/${total}，正/负/平 ${value?.positive ?? "未知"}/${value?.negative ?? "未知"}/${value?.flat ?? "未知"}，未成熟 ${value?.not_matured ?? "未知"}，缺价 ${value?.missing_price ?? "未知"}；均值 ${mean}，中位 ${median}。`,
+-            cases: Array.isArray(value?.cases) ? value.cases.slice(0, 20) : [],
+-          };
+-        });
+-        groups.push({ label, bound: true, summary: `${label}：同条件历史事件 ${eligible}；未评估/未知条件日 ${unknown}。`, horizons });
+-      }
+-    } else if (statsBound) {
+-      groups.push({ label: "事件覆盖", bound: false, summary: "同条件历史收益组未提供；保留未知。", horizons: [] });
+-    } else {
+-      groups.push({ label: "事件覆盖", bound: false, summary: "同条件历史收益：未绑定当前日期产品；未触发历史重算。", horizons: [] });
+-    }
+-    return { coverageSummary, priceLines, groups };
++    const coverage = row?.historical_coverage || {}, dates = coverage.evaluated_dates || [];
++    const evaluated = Number.isSafeInteger(coverage.evaluated_count) ? coverage.evaluated_count : dates.length;
++    const coverageSummary = `已评估 ${evaluated} 个日期；条件未知日仍保留，不等于标签完整或历史PIT认证。`;
++    const stats = row?.statistics, expectedAsOf = displayDay(metadata?.data_date);
++    const statsBound = stats?.asof === expectedAsOf && ["DESCRIPTIVE_STATS_COMPUTED", "NO_EVENT_GROUPS"].includes(stats.status);
++    const priceLines = [], prices = statsBound ? stats.price_distribution || {} : {};
++    for (const [label, key] of [["近250日", "near_250"], ["历史", "all_history"]]) {
++      const p = prices[key]; priceLines.push({label, value:Number.isFinite(p?.percentile_le) ? `${(p.percentile_le*100).toFixed(2)}%` : "未知", detail:p || {}});
++    }
++    const groups = Object.entries(GROUP_LABELS).map(([id,label]) => {
++      const group = statsBound ? stats.groups?.find(g=>g.group_id===id) : null, identity=group?.source_identity;
++      const bound = group?.identity_status === "BOUND" && identity?.generation===metadata?.source_generation
++        && identity?.input===metadata?.source_identity?.input_sha256 && identity?.formula===D29_NUMERIC_FORMULA_SHA256
++        && identity?.asof===expectedAsOf && identity?.market===String(symbol).slice(-2) && identity?.basis==="QFQ_ASOF"
++        && identity?.pit_status==="NONPIT" && identity?.rule_sha256===group?.rule_sha256;
++      const eventCount = bound && Number.isSafeInteger(group.eligible_event_count) ? group.eligible_event_count : null;
++      const unknown = Number.isSafeInteger(coverage.unknown_by_group?.[id]) ? coverage.unknown_by_group[id] : null;
++      const today = row?.evaluation?.groups?.[id]?.status || (groupTokens(row?.groups).includes(id) ? "TRUE" : groupTokens(row?.pending_groups).includes(id) ? "UNKNOWN" : "FALSE");
++      const horizons = ["d2","d5"].map(key=>{
++        const v=bound ? group.horizons?.[key] : null, valid=v?.valid;
++        const counts = Number.isSafeInteger(valid) && valid>0 && [v?.positive,v?.negative,v?.flat].every(n=>Number.isSafeInteger(n)&&n>=0)
++          && v.positive+v.negative+v.flat===valid && Number.isFinite(v.positive_fraction) && Math.abs(v.positive_fraction-v.positive/valid)<1e-10;
++        return {key,label:key==="d2"?"D+2":"D+5",rate:counts?`${(v.positive/valid*100).toFixed(2)}%`:"数据不足",
++          positive:counts?v.positive:null, valid:counts?valid:null, total:v?.total??null,
++          mean:counts&&Number.isFinite(v.mean_return_pct)?`${v.mean_return_pct.toFixed(2)}%`:"未知",
++          summary:counts?`${v.positive}胜 / ${valid}次`:(v?.not_matured?`未成熟 ${v.not_matured} 次；暂不可算`:"暂无有效样本"),
++          cases:Array.isArray(v?.cases)?v.cases:[], raw:v||{}};
++      });
++      return {id,label,bound,today,eventCount,unknown,horizons,summary:eventCount>0?`${eventCount}次已知事件`:(unknown===0?"已评估范围未见匹配":"数据不足")};
++    });
++    return {coverageSummary,priceLines,groups};
+   }
+   function validateDatedChart(answer, symbol, metadata) {
+     if (answer?.ts_code !== symbol || answer.end_date !== metadata.data_date || answer.formula_version !== CHART_NAMESPACE
+@@ -434,9 +405,88 @@
+     let originalFrame = null;
+     let originalObserver = null;
+ 
++    let selectedSymbol = null, activeGroup = 'original', currentStatistics = null, caseFocus = null;
++    const caseReplies = new Map();
++    const sameRef=(a,b)=>typeof a?.path==='string'&&a.path===b?.path&&validSha256(a?.sha256)&&a.sha256===b?.sha256;
++    const number = value => value === null || value === undefined || value === '' ? null : Number.isFinite(Number(value)) ? Number(value) : null;
++    const amount = (value, unit) => { const n=number(value); return n===null?'未提供':unit==='元'?`${(n/1e8).toFixed(2)} 亿`:`${value} ${unit||'单位未提供'}`; };
++    const add = (host, tag, text, className) => { const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;host.appendChild(e);return e; };
++    function link(host,url,label) { if(typeof url!=='string'||!/^https?:\/\//.test(url))return;const a=add(host,'a',label);a.href=url;a.target='_blank';a.rel='noopener';return a; }
++    function sectionDetails(host,label) { const e=add(host,'details');add(e,'summary',label);return e; }
++    function setupReaderLayout() {
++      if(document.getElementById('dailyReaderSidebar'))return;
++      document.body.classList.add('daily-reader-mode');document.body.appendChild(panel);
++      const sidebar=add(panel,'aside',undefined,'daily-reader-sidebar');sidebar.id='dailyReaderSidebar';
++      add(sidebar,'h1','V4 研究');const searchLabel=add(sidebar,'label','搜索股票代码 / 名称');searchLabel.appendChild(search);
++      add(sidebar,'nav').id='dailyReaderGroups';add(sidebar,'div').id='dailyReaderStockList';
++      const footer=add(sidebar,'div',undefined,'reader-sidebar-footer');link(footer,'http://127.0.0.1:8873/research-panel/archive/2026-10-27/index.html','历史页与说明');
++      link(footer,new URL('/research-panel/code-map/index.html',windowObject.location.origin).href,'开发图谱');
++      const collapse=add(footer,'button','收起侧栏');collapse.type='button';collapse.onclick=()=>document.body.classList.toggle('reader-sidebar-collapsed');
++      const main=add(panel,'div',undefined,'daily-reader-main');main.id='dailyReaderMain';main.appendChild(chartPanel);
++      const header=add(chartPanel,'div',undefined,'reader-stock-header');header.id='dailyReaderHeader';
++      const identity=add(header,'div');identity.id='dailyReaderIdentity';identity.appendChild(chartTitle);add(identity,'p').id='dailyReaderDate';
++      const controls=add(header,'div',undefined,'reader-chart-controls');controls.innerHTML='<button type="button" class="active">日K</button><button type="button" disabled title="本次仅接入已绑定日K">周K</button><select id="dailyChartBars" aria-label="图窗根数"><option value="60">最近60根</option><option value="120" selected>最近120根</option><option value="250">最近250根</option></select><select id="dailyChartExtent" aria-label="历史区段"><option value="recent">当前区段</option><option value="all">全部历史</option></select><button type="button" id="dailyChartRestore">恢复区间</button><label><input id="dailyChartMarks" type="checkbox" checked>文字标注</label>';
++      chartPanel.insertBefore(header,chartPanel.firstChild);const host=add(chartPanel,'div');host.id='dailyOriginalChartHost';header.after(host);
++      const focus=add(chartPanel,'p',undefined,'reader-event-focus');focus.id='dailyChartEventFocus';focus.hidden=true;host.after(focus);
++      const stats=document.getElementById('dailyEventStatistics');focus.after(stats);
++      const cases=add(chartPanel,'details');cases.id='dailyEventCases';cases.hidden=true;stats.after(cases);add(cases,'summary','历史事件');
++      const material=add(chartPanel,'section');material.id='dailyCompanyMaterials';cases.after(material);
++      const received=add(chartPanel,'details');received.id='dailyReceivedReports';received.hidden=true;material.after(received);add(received,'summary','查看研报目录');
++      const reports=document.getElementById('relatedReports');if(reports){received.appendChild(reports);reports.hidden=false;}
++      const diagnostic=add(chartPanel,'details');diagnostic.id='dailyReaderDiagnostics';add(diagnostic,'summary','历史案例与数据来源');
++      const chartInfo=add(diagnostic,'details');add(chartInfo,'summary','原式51变量、22绘图与图形来源');chartInfo.ontoggle=()=>{if(!originalFrame)return;originalFrame.contentDocument?.body.classList.toggle('reader-full-details',chartInfo.open);originalFrame.style.height=chartInfo.open?'1650px':'460px';};
++      diagnostic.appendChild(chartStatus);for(const p of Array.from(chartPanel.children)){if(p.tagName==='P'&&p!==focus)diagnostic.appendChild(p);}
++      const reportsIdentity=document.getElementById('relatedReportsIdentity');if(reportsIdentity)reportsIdentity.textContent='正文库为当前知识补充；目录资料与库内匹配分开显示。';
++      document.getElementById('dailyChartBars').onchange=e=>{const w=originalFrame?.contentWindow;if(!w?.setOriginalWindow)return;const n=Number(e.target.value);w.document.getElementById('window').value=String(n);w.setOriginalWindow(n,w.RESEARCH_PANEL_STATE.rows.length);};
++      document.getElementById('dailyChartExtent').onchange=e=>{const w=originalFrame?.contentWindow;if(w?.setOriginalWindow)w.setOriginalWindow(e.target.value==='all'?0:120,w.RESEARCH_PANEL_STATE.rows.length);};
++      document.getElementById('dailyChartRestore').onclick=restoreCurrent;
++      document.getElementById('dailyChartMarks').onchange=e=>{const child=originalFrame?.contentDocument,box=child?.getElementById('draw-text');if(box){box.checked=e.target.checked;box.onchange?.();}};
++    }
++    function refreshReaderList(rows) {
++      const host=document.getElementById('dailyReaderStockList');if(!host)return;host.replaceChildren();
++      const ordered=[...rows].sort((a,b)=>(b.symbol===selectedSymbol)-(a.symbol===selectedSymbol));
++      for(const row of ordered){const b=add(host,'button',undefined,'numeric283-chart-trigger reader-stock'+(row.symbol===selectedSymbol?' active':''));b.type='button';b.dataset.symbol=row.symbol;add(b,'strong',row.symbol);add(b,'span',row.display_name||'名称未提供');b.onclick=()=>loadChart(row.symbol,row.display_name||'名称未提供');}
++      const groups=document.getElementById('dailyReaderGroups');groups.replaceChildren();
++      for(const [id,label]of [['all','全部'],...Object.entries(GROUP_LABELS)]){const b=add(groups,'button',undefined,groupSelect.value===id?'active':'');b.type='button';add(b,'span',label);add(b,'span',String(id==='all'?currentRows.length:payloadMetadata.group_counts[id]));b.onclick=()=>{groupSelect.value=id;refresh(currentRows);};}
++    }
++    function restoreCurrent(){caseFocus=null;const f=document.getElementById('dailyChartEventFocus');if(f)f.hidden=true;const w=originalFrame?.contentWindow;if(!w?.setOriginalWindow)return;const s=w.RESEARCH_PANEL_STATE;w.document.getElementById('window').value='120';w.setOriginalWindow(Math.min(120,s.rows.length),s.rows.length);w.choose(s.rows.length-1);w.paint();const bars=document.getElementById('dailyChartBars');if(bars)bars.value='120';const extent=document.getElementById('dailyChartExtent');if(extent)extent.value='recent';}
++    function paintCaseOverlay(w){if(!caseFocus)return;const s=w.RESEARCH_PANEL_STATE,g=s?.geometry,cv=w.document.getElementById('chart');if(!g||!s.visible?.length)return;const start=s.rows.findIndex(r=>r.trade_date===Number(caseFocus.event_date.replaceAll('-',''))),target=s.rows.findIndex(r=>r.trade_date===Number(String(caseFocus.target_date||'').replaceAll('-',''))),ratio=w.devicePixelRatio||1,c=cv.getContext('2d');c.save();c.setTransform(ratio,0,0,ratio,0,0);const left=g.L+(start-s.offset)*g.step,right=g.L+((target>=0?target:s.rows.length-1)-s.offset+1)*g.step,x=g.L+(start-s.offset+.5)*g.step;c.beginPath();c.rect(g.L,22,g.pw,g.h-52);c.clip();c.fillStyle='rgba(58,205,208,.10)';c.fillRect(left,22,Math.max(g.step,right-left),g.h-52);c.strokeStyle='#f4c97b';c.lineWidth=2;c.beginPath();c.moveTo(x,22);c.lineTo(x,g.h-30);c.stroke();if(target>=0){const tx=g.L+(target-s.offset+.5)*g.step;c.strokeStyle='#42e5d5';c.beginPath();c.moveTo(tx,22);c.lineTo(tx,g.h-30);c.stroke();}c.restore();}
++    function configureOriginalView(frame,child){if(child.getElementById('reader-focus-style'))return;const style=child.createElement('style');style.id='reader-focus-style';style.textContent='body{margin:0!important;background:#07131e!important}body:not(.reader-full-details) header,body:not(.reader-full-details) aside,body:not(.reader-full-details) .toolbar,body:not(.reader-full-details) .charthead .controls,body:not(.reader-full-details) #selected-date,body:not(.reader-full-details) .stats,body:not(.reader-full-details) .tables,body:not(.reader-full-details) details,body:not(.reader-full-details) #status,body:not(.reader-full-details) .foot,body:not(.reader-full-details) #chart-caption{display:none!important}main{display:block!important;max-width:none!important;margin:0!important;min-height:0!important}article{padding:12px!important}.chartbox{border:0!important;padding:0!important}.charthead{margin:0 0 4px!important}canvas{height:405px!important}';child.head.appendChild(style);const w=frame.contentWindow,originalPaint=w.paint;w.paint=function(){originalPaint();paintCaseOverlay(w);const bars=document.getElementById('dailyChartBars'),n=w.RESEARCH_PANEL_STATE.view?.count;if(bars&&n){let option=Array.from(bars.options).find(o=>o.value===String(n));if(!option){option=document.createElement('option');option.value=String(n);option.dataset.dynamic='true';option.textContent=`当前${n}根`;bars.appendChild(option);}bars.value=String(n);}};frame.style.height='460px';w.dispatchEvent(new w.Event('resize'));w.paint();frame.style.height=Math.max(450,Math.ceil(child.querySelector('article').getBoundingClientRect().bottom+8))+'px';}
++    function locateEvent(item){const w=originalFrame?.contentWindow,s=w?.RESEARCH_PANEL_STATE;if(!s)return;const i=s.rows.findIndex(r=>r.trade_date===Number(item.event_date.replaceAll('-','')));if(i<0)return;caseFocus=item;w.setOriginalWindow(Math.min(120,s.rows.length),Math.min(s.rows.length,i+84));w.choose(i);w.paint();const info=document.getElementById('dailyChartEventFocus');info.hidden=false;info.replaceChildren();add(info,'span',`事件日 ${item.event_date} → ${item.target_date||'目标日未提供'} · ${Number.isFinite(item.return_pct)?item.return_pct.toFixed(2)+'%':item.status==='not_matured'?'未成熟':'收益未知'}；黄色为事件日，青色为目标日。`);const back=add(info,'button',`返回当前 ${displayDay(payloadMetadata.data_date)}`);back.type='button';back.onclick=restoreCurrent;document.getElementById('dailyOriginalChartHost').scrollIntoView({block:'start'});}
++    async function showEventCases(symbol,group,horizon,subset='all'){
++      const host=document.getElementById('dailyEventCases');host.hidden=false;host.open=true;host.replaceChildren();add(host,'summary',`${GROUP_LABELS[group]} · ${horizon==='d2'?'D+2':'D+5'} ${subset==='all'?'全部历史同条件事件':'同价格分位事件'}`);const token=chartRequest,key=[payloadMetadata.manifest.sha256,symbol,group,horizon].join('|');
++      try{let answer=caseReplies.get(key);if(!answer){const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,group,horizon});answer=await (await windowObject.fetch('/api/v4/research/a-share/event-cases?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest)return;if(answer.status!=='READY'||answer.symbol!==symbol||!sameRef(answer.numeric_manifest,payloadMetadata.manifest))throw new Error('历史明细尚未物化或身份不匹配');caseReplies.set(key,answer);}
++      const cases=subset==='all'?answer.cases:answer.cases.filter(v=>v.percentile_bucket===answer.conditional?.bucket);
++      add(host,'p',`${subset==='all'?'总事件':'同分位事件'} ${cases.length} 次；正、负、平、未成熟和缺价均列出。点击任一日期定位原式图。`);
++      const wrap=add(host,'div',undefined,'reader-case-table');const table=add(wrap,'table');const head=add(table,'tr');for(const t of ['事件日','目标日','结果','收益','当时近250分位'])add(head,'th',t);
++      for(const item of cases){const row=add(table,'tr');const cell=add(row,'td'),button=add(cell,'button',item.event_date);button.type='button';button.onclick=()=>locateEvent(item);add(row,'td',item.target_date||'未知');add(row,'td',({positive:'正',negative:'负',flat:'平',not_matured:'未成熟'})[item.status]||'缺价/未知');add(row,'td',Number.isFinite(item.return_pct)?item.return_pct.toFixed(2)+'%':'—');add(row,'td',Number.isFinite(item.price_percentile)?(item.price_percentile*100).toFixed(2)+'%':'UNKNOWN（不足250有效价）');}
++      }catch(e){if(token===chartRequest)add(host,'p',`明细未确认：${e.message}`);}
++    }
++    function renderStatistics(symbol){const host=document.getElementById('dailyEventStatistics');if(!currentStatistics)return;const p=currentStatistics.presentation,selected=p.groups.find(g=>g.id===activeGroup)||p.groups[0];host.replaceChildren();
++      const metric=add(host,'div',undefined,'reader-win-metrics');
++      for(const h of selected.horizons){const card=add(metric,'div',undefined,'reader-win-card');const title=add(card,'p',`${h.label} 历史总体成功率`,'metric-label');title.title=`${selected.label}；正收益/有效样本，平收益保留分母`;const line=add(card,'div',undefined,'reader-win-line');const total=add(line,'button',h.rate,'reader-rate');total.type='button';total.dataset.horizon=h.key;total.dataset.subset='all';total.onclick=()=>showEventCases(symbol,selected.id,h.key);const summary=add(line,'div');add(summary,'div',h.summary);add(summary,'p',`平均收益 ${h.mean}`);const conditional=currentStatistics.conditional?.[h.key];const sub=add(card,'button',undefined,'reader-conditional');sub.type='button';sub.dataset.subset='conditional';sub.dataset.horizon=h.key;sub.disabled=!conditional;sub.textContent=conditional?`同分位成功率 ${conditional.bucket_label}：${conditional.valid>0?(conditional.positive/conditional.valid*100).toFixed(2)+'%':'样本不足'} · ${conditional.positive??'—'}胜/${conditional.valid??'—'}次`:'同分位成功率：统计未物化';sub.onclick=()=>showEventCases(symbol,selected.id,h.key,'conditional');}
++      const price=add(metric,'div',undefined,'reader-price-card');add(price,'p','价格分位','metric-label');for(const q of p.priceLines){const line=add(price,'p');add(line,'span',q.label+' ');add(line,'strong',q.value);}add(price,'small','价格位置，独立于历史胜率');
++      add(host,'p','以事件日收盘至D+2/D+5同源交易日收盘计；未成熟/缺价不计胜率，平收益计入有效样本。历史描述，非未来预测。','reader-note');
++      const diagnostics=document.getElementById('dailyReaderDiagnostics')||host;let groupHost=document.getElementById('dailyGroupStatistics');if(!groupHost){groupHost=add(diagnostics,'section');groupHost.id='dailyGroupStatistics';}groupHost.replaceChildren();add(groupHost,'h3','四组当前状态与历史样本');const table=add(groupHost,'table'),tr=add(table,'tr');for(const t of ['组别','今日命中','已知历史样本','D+2','D+5','条件未知日'])add(tr,'th',t);
++      for(const g of p.groups){const r=add(table,'tr'),cell=add(r,'td'),b=add(cell,'button',g.label);b.type='button';b.onclick=()=>{activeGroup=g.id;renderStatistics(symbol);loadConditionalSummaries(symbol,g.id,chartRequest);};add(r,'td',g.today==='TRUE'?'命中':g.today==='UNKNOWN'?'未知':'未命中');add(r,'td',g.summary);for(const h of g.horizons)add(r,'td',h.rate);add(r,'td',g.unknown===null?'未知':String(g.unknown));}
++      add(groupHost,'p',p.coverageSummary);const source=sectionDetails(groupHost,'查看日期覆盖、案例与统计来源');add(source,'pre',JSON.stringify({coverage:currentStatistics.row.historical_coverage,source_generation:payloadMetadata.source_generation,manifest:payloadMetadata.manifest,statistics:currentStatistics.row.statistics},null,2));}
++    async function loadConditionalSummaries(symbol,group,token){const values={};await Promise.all(['d2','d5'].map(async h=>{try{const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,group,horizon:h});const a=await(await windowObject.fetch('/api/v4/research/a-share/event-cases?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest||a.status!=='READY'||!sameRef(a.numeric_manifest,payloadMetadata.manifest))return;caseReplies.set([payloadMetadata.manifest.sha256,symbol,group,h].join('|'),a);if(a.conditional)values[h]=a.conditional;}catch(_){}}));if(token===chartRequest&&currentStatistics&&activeGroup===group){currentStatistics.conditional=values;renderStatistics(symbol);}}
++    function sourceLink(host,field,label='来源'){if(field?.source_url)link(host,field.source_url,label);}
++    async function showCompanyMaterials(symbol,token){const host=document.getElementById('dailyCompanyMaterials'),reports=document.getElementById('dailyReceivedReports');if(!host)return;const library=document.getElementById('relatedReports');host.textContent='正在读取已整理资料…';reports.replaceChildren();add(reports,'summary','查看研报目录');if(library){reports.appendChild(library);reports.hidden=false;}
++      try{const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,generation:payloadMetadata.source_generation,input_sha256:payloadMetadata.source_identity.input_sha256});const a=await(await windowObject.fetch('/api/v4/research/a-share/company-materials?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest)return;if(a.status!=='PARTIAL_RECEIVED'||a.symbol!==symbol||!sameRef(a.numeric_manifest,payloadMetadata.manifest))throw new Error('已有资料尚未绑定当前产品');const m=a.materials,b=m.business_reported||{},f=m.financials_reported||{},holders=m.shareholders_reported||{},detail=m.provenance_details||{},history=detail.shareholder_count_history||[];const latest=history.find(r=>r.asof_date===holders.holder_asof)||history[0];const catalog=m.report_catalog||[];host.replaceChildren();const grid=add(host,'div',undefined,'reader-material-grid');
++      const business=add(grid,'section',undefined,'reader-material-card');const bh=add(business,'h3','基本面');const more=add(bh,'button','查看详情');more.onclick=()=>{document.getElementById('dailyMaterialsDetails').open=true;document.getElementById('dailyMaterialsDetails').scrollIntoView({block:'start'});};add(business,'small','主营业务');const summary=add(business,'p',b.value||'主营业务未提供','reader-business');summary.title=b.value||'';add(business,'p',Number(f.latest_period_months)===9&&f.latest_period_kind==='YTD'?`${String(f.latest_report_period).slice(0,4)}年前三季度`:`${f.latest_report_period||'报告期未提供'} · ${f.latest_period_kind||''}`,'reader-note');const finance=add(business,'div',undefined,'reader-finance');for(const[label,key]of [['营收','latest_revenue'],['归母净利润','latest_net_profit_parent']]){const item=add(finance,'div');add(item,'small',label);add(item,'strong',amount(f[key],f.monetary_unit));}add(business,'p',`财务披露 ${f.latest_disclosed_at||'未提供'} · ${f.monetary_unit||'单位未提供'}`,'reader-note');link(business,f.latest_financial_source_url,'财务原始来源');
++      const owner=add(grid,'section',undefined,'reader-material-card');add(owner,'h3','股东变化');const n=number(holders.holder_count);add(owner,'strong',n===null?'数据未提供':`${n.toLocaleString('zh-CN')} 户`,'reader-holder-count');const change=number(holders.holder_change_accounts);add(owner,'p',change===null?'较上期变化未提供':change<0?`较上期减少 ${Math.abs(change).toLocaleString('zh-CN')} 户`:`较上期增加 ${change.toLocaleString('zh-CN')} 户`,'reader-holder-change');add(owner,'p',`统计日 ${holders.holder_asof||'未提供'} · 披露 ${latest?.holder_count?.disclosed_at||'未提供'}`,'reader-note');sourceLink(owner,latest?.holder_count,'股东户数来源');add(owner,'small','户数变化不等于筹码成本分布');
++      const report=add(grid,'section',undefined,'reader-material-card');add(report,'h3','研报');add(report,'span',`${catalog.length} 条目录`,'reader-report-count');if(catalog.length){const lead=catalog[0];add(report,'p',lead.title,'reader-report-title');add(report,'p',`${lead.institution||'机构未提供'} · ${String(lead.published_at||'日期未提供').slice(0,10)}`,'reader-note');add(report,'p',lead.full_text_status==='NOT_RETRIEVED_METADATA_ONLY'?'目录资料，正文未取得':lead.full_text_status||'正文状态未提供','reader-note');}else add(report,'p','本股回包未提供研报目录');const open=add(report,'button','查看研报目录');open.type='button';open.onclick=()=>{reports.hidden=false;reports.open=true;reports.scrollIntoView({block:'start'});};
++      add(reports,'p',`已整理 ${catalog.length} 条同代码目录；仅目录元数据，不能据此声称正文已读或库内主体匹配。`);for(const r of catalog){const e=add(reports,'article');add(e,'h4',r.title||'标题未提供');add(e,'p',`${r.institution||'机构未提供'} · ${String(r.published_at||'日期未提供').slice(0,10)} · ${r.full_text_status==='NOT_RETRIEVED_METADATA_ONLY'?'正文未取得':r.full_text_status?'正文状态详见来源':'正文状态未提供'}`);link(e,r.report_url,'目录所列研报链接');link(e,r.metadata_source_url,'查看实际目录来源');}
++      const known=m.stored_report;if(known?.document&&known?.source_detail_receipt){const e=add(reports,'article');add(e,'h4',known.document.filename||'库中已校验资料');add(e,'p','原件及OCR哈希曾校验；当前知识补充，研报主体关联仍保留原状态。');const source={document_id:known.document.document_id,research_date:known.document.date,receipt_sha256:known.source_detail_receipt.sha256};const body=add(e,'div'),button=add(e,'button','查看已校验OCR正文');button.type='button';button.onclick=()=>windowObject.RelatedReports?.openStoredDocument(source,{verified_pdf_sha256:known.source_detail_receipt.verified_pdf_sha256},body,button);}
++      if(library)reports.appendChild(library); // Preserve the successful catalog/body order; node already connected before await.
++      let details=document.getElementById('dailyMaterialsDetails');if(!details){details=sectionDetails(document.getElementById('dailyReaderDiagnostics'),'基本面字段、原值、单位与来源');details.id='dailyMaterialsDetails';}details.replaceChildren();add(details,'summary','基本面字段、原值、单位与来源');add(details,'p',`已有资料 ${m.fundamental_state||'PARTIAL'}；字段来源及首次披露/PIT限制原样保留，未作全字段认证。`);sourceLink(details,b,'主营业务公告原文');add(details,'p',`主营业务统计期 ${b.asof_date||'未提供'}；披露 ${b.disclosed_at||'未提供'}；来源状态 ${b.evidence_status||'未提供'}。`);add(details,'pre',JSON.stringify(m,null,2));
++      }catch(e){if(token===chartRequest)host.textContent=`已有资料未确认：${e.message}；未要求重新研究或填充缺失值。`;}
++    }
++
+     function clearOriginalChart() {
+       originalObserver?.disconnect(); originalObserver = null;
+-      originalFrame?.remove(); originalFrame = null;
++      originalFrame?.remove(); originalFrame = null; caseFocus = null;
+     }
+ 
+     function originalMode(active) {
+@@ -459,7 +509,7 @@
+           const frame = document.createElement("iframe");
+           originalFrame = frame; frame.id = "dailyOriginalFormulaFrame";
+           frame.title = `${symbol} · D${answer.data_date} · 原式51变量/22绘图`;
+-          frame.style.cssText = "width:100%;height:1650px;border:0;display:block";
++          frame.style.cssText = "width:100%;height:460px;border:0;display:block";
+           frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+           const fail = error => {
+             if (token !== chartRequest) return;
+@@ -479,6 +529,7 @@
+                   fail(new Error("原式图实际代码或日期不符")); return;
+                 }
+                 originalObserver?.disconnect(); originalObserver = null;
++                if(document.getElementById("dailyReaderMain"))configureOriginalView(frame,child);
+                 chartStatus.textContent = `${symbol} · D${answer.data_date} · 原式 d35c · ${answer.rows}行 · 51数值/22绘图；同源只读产物，非股票完整PASS或原生/PIT认证。`;
+               };
+               originalObserver = new windowObject.MutationObserver(ready);
+@@ -487,7 +538,7 @@
+             } catch (error) { fail(error); }
+           };
+           frame.src = answer.assets.html.url;
+-          chartPanel.appendChild(frame);
++          (document.getElementById("dailyOriginalChartHost") || chartPanel).appendChild(frame);
+         }).catch(error => {
+           if (token === chartRequest && error.name !== "AbortError") {
+             clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
+@@ -515,6 +566,7 @@
+     download.disabled = true;
+ 
+     function loadChart(symbol, name) {
++      selectedSymbol=symbol;activeGroup=groupTokens(currentRows.find(row=>row.symbol===symbol)?.groups)[0]||"original";currentStatistics=null;refreshReaderList(filterRows(currentRows,groupSelect.value,search.value));
+       const token = ++chartRequest;
+       chartController?.abort();
+       chartController = new AbortController();
+@@ -522,7 +574,8 @@
+       setChartControlsDisabled(true);
+       windowObject.Numeric283Chart?.clear();
+       chartPanel.hidden = false;
+-      chartTitle.textContent = `${symbol} · ${name}`;
++      chartTitle.textContent = `${name}  ${symbol}`;
++      const dateLine=document.getElementById("dailyReaderDate");if(dateLine)dateLine.textContent=`数据至 ${displayDay(payloadMetadata.data_date)} · ${displayGroups(currentRows.find(row=>row.symbol===symbol)?.groups||"")}入选`;
+       chartStatus.textContent = `正在读取 ${symbol} 的 D${payloadMetadata.data_date} 历史；旧图已清空。`;
+       chartPanel.scrollIntoView?.({ behavior: "smooth", block: "start" });
+       if (!payloadMetadata.rows?.some((row) => row.symbol === symbol)) {
+@@ -530,11 +583,11 @@
+         return;
+       }
+       const reports = document.getElementById("relatedReports");
+-      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name,false,currentRows.find(row=>row.symbol===symbol)?.display_name_source || null); }
+-      showStatistics(symbol, token);
++      if (reports) { reports.hidden=false;reports.dataset.identityDate=payloadMetadata.data_date;reports.dataset.generation=payloadMetadata.source_generation;windowObject.RelatedReports?.prepareSelection(symbol,name,currentRows.find(row=>row.symbol===symbol)?.display_name_source||null); }
+       const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
+       originalMode(datedOriginal);
+-      if (datedOriginal) { loadOriginalChart(symbol, token); return; }
++      if (datedOriginal) { loadOriginalChart(symbol, token);showStatistics(symbol, token);showCompanyMaterials(symbol,token);return; }
++      showStatistics(symbol, token);
+       if (!windowObject.Numeric283Chart) {
+         chartStatus.textContent = "图表渲染器不可用；旧图已清空。";
+         return;
+@@ -587,54 +640,35 @@
+     function refresh(rows) {
+       const filtered = filterRows(rows, groupSelect.value, search.value);
+       renderRows(tbody, filtered, payloadMetadata, loadChart);
++      refreshReaderList(filtered);
+       count.textContent = `${filtered.length}只 / ${rows.length}只；组别可重叠。`;
+       status.textContent = "当前日期产品已载入。研究用途；尚未进行本卡图形复核。";
+     }
+ 
+     function showStatistics(symbol, token) {
+-      const host = document.getElementById("dailyEventStatistics");
+-      if (!host) return;
+-      host.textContent = "正在读取同股同代统计…";
+-      windowObject.fetch(`/api/v4/research/a-share/daily-product?date=${payloadMetadata.data_date}&symbol=${encodeURIComponent(symbol)}`, {cache:"no-store"})
+-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then(answer => {
+-        const row = answer.row && {...answer.row, source_generation:answer.source_generation, data_date:answer.data_date};
+-        if (!row) throw new Error("同股统计未产出");
+-        if (token !== chartRequest) return;
+-        if (row.symbol !== symbol || row.source_generation !== payloadMetadata.source_generation || row.data_date !== payloadMetadata.data_date) throw new Error("统计身份不符");
+-        host.replaceChildren();
+-        const presentation = statisticsPresentation(row, symbol, payloadMetadata);
+-        appendTextLine(host, document, `${symbol} · D${displayDay(row.data_date)} · ${presentation.coverageSummary}`);
+-        for (const line of presentation.priceLines) appendTextLine(host, document, line);
+-        for (const group of presentation.groups) {
+-          appendTextLine(host, document, group.summary);
+-          for (const horizon of group.horizons) {
+-            const details = document.createElement("details"), summary = document.createElement("summary");
+-            summary.textContent = `${horizon.label} 历史事件覆盖（展开最近20项）`;
+-            details.appendChild(summary);
+-            appendTextLine(details, document, horizon.summary);
+-            for (const item of horizon.cases) {
+-              const result = Number.isFinite(item.return_pct) ? `${item.return_pct.toFixed(2)}%` : (item.status === "not_matured" ? "未成熟" : "未知");
+-              appendTextLine(details, document, `${displayDay(item.event_date)} → ${displayDay(item.target_date)}：${result}${item.detail_status ? `（${item.detail_status}）` : ""}`);
+-            }
+-            host.appendChild(details);
+-          }
+-        }
+-      }).catch(e => { if (token === chartRequest) host.textContent = `统计未确认：${e.message}`; });
++      const host=document.getElementById("dailyEventStatistics");if(!host)return;host.textContent="正在读取已算同条件胜率…";
++      windowObject.fetch(`/api/v4/research/a-share/daily-product?date=${payloadMetadata.data_date}&symbol=${encodeURIComponent(symbol)}`,{cache:"no-store",signal:chartController.signal})
++        .then(r=>r.json()).then(answer=>{if(token!==chartRequest)return;const row=answer.row;if(answer.status!=="READY"||row?.symbol!==symbol||answer.source_generation!==payloadMetadata.source_generation||answer.data_date!==payloadMetadata.data_date)throw new Error("同股统计身份不符");
++          currentStatistics={row,presentation:statisticsPresentation(row,symbol,payloadMetadata),conditional:{}};renderStatistics(symbol);loadConditionalSummaries(symbol,activeGroup,token);
++        }).catch(e=>{if(token===chartRequest)host.textContent=`统计未确认：${e.message}`;});
+     }
+     function commitPayload(payload) {
+       const rows = payload.schema_version === EXPECTED.schema_version ? validateData(payload) : validateDatedData(payload);
++      payload = keepCurrentProductBinding(payloadMetadata, payload);
+       if (payloadMetadata?.source_generation !== payload.source_generation || payloadMetadata?.data_date !== payload.data_date
+           || payloadMetadata?.artifact?.sha256 !== payload.artifact?.sha256) {
+         clearOriginalChart();
+         ++chartRequest; chartController?.abort(); windowObject.Numeric283Chart?.clear(); setChartControlsDisabled(true); windowObject.RelatedReports?.clear();
++        selectedSymbol=null;const material=document.getElementById('dailyCompanyMaterials');if(material)material.textContent='新日期资料待选股读取。';const cases=document.getElementById('dailyEventCases');if(cases)cases.hidden=true;
+         const stats = document.getElementById("dailyEventStatistics"); if(stats) stats.textContent = "新日期名单已更新；请选择当前名单股票读取统计。";
+         chartStatus.textContent = "名单已更新；请主动选择当前名单股票。";
+       }
+-      payloadMetadata = payload; currentRows = rows; download.disabled = false;
++      payloadMetadata = payload; currentRows = rows; download.disabled = false; setupReaderLayout();
+       const title = document.getElementById("dailyNumeric283Title"); if(title) title.textContent = `数值候选名单 · D${payload.data_date} · ${rows.length}只`;
+       for(const option of groupSelect.options) option.textContent = option.value === "all" ? `全部（${rows.length}）` : `${GROUP_LABELS[option.value]}（${payload.group_counts[option.value]}）`;
+       refresh(rows);
+       status.textContent = `D${payload.data_date} · ${payload.status || "日期产品"} · 已处理 ${payload.processed_count ?? rows.length}/${payload.source_universe_count ?? rows.length} · 未知股票 ${payload.unknown_count ?? "未知"}；组别可重叠。`;
++      if(document.getElementById("dailyReaderMain")&&!selectedSymbol){const first=rows.find(r=>r.symbol==="002003.SZ")||rows[0];if(first)loadChart(first.symbol,first.display_name||"名称未提供");}
+     }
+     async function loadDated(expectedEvent) {
+       const token = ++productRequest;
+@@ -672,6 +706,7 @@
+     validateDatedChart,
+     validateDailyCompletionEvent,
+     completionMatchesProduct,
++    keepCurrentProductBinding,
+     statisticsPresentation,
+     D29_NUMERIC_FORMULA_SHA256,
+     ORIGINAL_ENGINE_SHA256,
+--- a/research-panel/related-reports.js
++++ b/research-panel/related-reports.js
+@@ -5,7 +5,7 @@
+   const section = document.getElementById('relatedReports');
+   const state = document.getElementById('relatedReportsState');
+   const output = document.getElementById('relatedReportsOutput');
+-  const PAGE_SIZE = 5, MAX_PAGES = 20, MAX_RESTARTS = 1;
++  const PAGE_SIZE = 5, MAX_PAGES = 1, MAX_RESTARTS = 1;
+   class HttpError extends Error {
+     constructor(status) { super(`HTTP ${status}${status === 401 || status === 403 ? '（访问未获授权）' : ''}`); this.status = status; }
+   }
+@@ -17,8 +17,8 @@
+   const queryKey = item => JSON.stringify([item.day, item.symbol, item.name, item.generation]);
+   function showState(message) {
+     const prior = current ? successfulQueries.get(queryKey(current)) : null;
+-    state.textContent = `${message} 本页本股上次成功读取：${prior?.observedAt || '未知'}（本机观察时间，不等于索引更新或完整覆盖）；` +
+-      `上次响应所报索引最近成功：${prior?.indexAt || '未知'}（不是当前更新状态）。`;
++    state.textContent = message;
++    state.dataset.previousObservedAt=prior?.observedAt||'未知';state.dataset.previousIndexAt=prior?.indexAt||'未知';
+   }
+   function latestIndexSuccess(coverage) {
+     const updates = coverage?.index_updates;
+@@ -256,11 +256,11 @@
+     }
+     return { mode, next, backendIncomplete };
+   }
+-  async function readPages(symbol, day, query, controller, token) {
++  async function readPages(symbol, day, query, controller, token, resume = null) {
+     const expected = 'A.' + symbol.slice(0, 6);
+     const acc = { reports: [], bySha: new Map(), sourcesByKey: new Map(), gaps: [], verified: 0, attempts: 0 };
+     const seen = new Set();
+-    let cursor = null, signature = null, base = null, mode = null, offset = 0, pages = 0;
++    let cursor = resume?.cursor || null, signature = resume?.signature || null, base = null, mode = null, offset = resume?.offset || 0, pages = 0;
+     for (;;) {
+       if (cursor) query.set('cursor', cursor); else query.delete('cursor');
+       let data;
+@@ -296,7 +296,7 @@
+       if (info.next === null || pages >= MAX_PAGES) {
+         const stock = { ...base.stocks[0], reports: acc.reports };
+         const incompleteReason = info.backendIncomplete ? 'backend_limit' : info.next !== null ? 'page_limit' : null;
+-        return { data: base, stock, mode, pages, gaps: acc.gaps, verified: acc.verified, attempts: acc.attempts, incomplete: !!incompleteReason, incompleteReason };
++        return { data: base, stock, mode, pages, gaps: acc.gaps, verified: acc.verified, attempts: acc.attempts, incomplete: !!incompleteReason, incompleteReason, nextCursor:info.next, nextOffset:offset, signature };
+       }
+       cursor = info.next;
+       showState(`${symbol}：正在读取全文索引候选，已读取 ${pages} 页（PARTIAL）；请等待续页。`);
+@@ -306,36 +306,37 @@
+     const { data, stock, mode, pages, gaps, verified, attempts, incomplete, incompleteReason } = result;
+     const coverage = data.coverage;
+     output.replaceChildren();
+-    append(output, 'p', `接口状态 ${data.status}；身份日期 ${data.identity_date}。资料为当前知识补充，非历史 PIT，不能认为在研究日盘中已可用。`);
++    const diagnostics=append(output,"details");append(diagnostics,"summary","检索覆盖、来源与技术状态");
++    append(diagnostics, 'p', `接口状态 ${data.status}；身份日期 ${data.identity_date}。资料为当前知识补充，非历史 PIT，不能认为在研究日盘中已可用。`);
+     if (mode === 'NOT_MATERIALIZED') {
+-      append(output, 'p', '预建研报关系索引未就绪。本次只返回索引状态；未启动全量索引、历史来源扫描、OCR 或公式计算。');
++      append(diagnostics, 'p', '预建研报关系索引未就绪。本次只返回索引状态；未启动全量索引、历史来源扫描、OCR 或公式计算。');
+     } else if (mode === 'FULLTEXT_INDEX') {
+       const ending = incompleteReason === 'backend_limit' ? '；达到后端复验资源上限，续页未完成'
+         : incomplete ? '；达到页数上限，续页未完成' : '；本次查询的游标已结束';
+-      append(output, 'p', `全文索引已读取 ${pages} 页${ending}。仍为 PARTIAL，未覆盖全部历史资料。`);
+-      append(output, 'p', `已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；索引文档 ${printable(coverage.indexed_documents)}；候选文档 ${printable(coverage.candidate_documents)}；本次尝试 ${attempts} / 已校验 ${verified}；每页最多 ${PAGE_SIZE} 篇。`);
+-      append(output, 'p', `未入索引 ${printable(coverage.unindexed_ready)}；索引过期 ${printable(coverage.stale_documents)}；不可用 ${printable(coverage.unavailable_documents)}；已移除 ${printable(coverage.removed_documents)}。返回候选在各自分页时重新核验，未返回原件以最近索引时的校验为准；文字提及不是已认证主体。`);
++      append(diagnostics, 'p', `全文索引已读取 ${pages} 页${ending}。仍为 PARTIAL，未覆盖全部历史资料。`);
++      append(diagnostics, 'p', `已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；索引文档 ${printable(coverage.indexed_documents)}；候选文档 ${printable(coverage.candidate_documents)}；本次尝试 ${attempts} / 已校验 ${verified}；每页最多 ${PAGE_SIZE} 篇。`);
++      append(diagnostics, 'p', `未入索引 ${printable(coverage.unindexed_ready)}；索引过期 ${printable(coverage.stale_documents)}；不可用 ${printable(coverage.unavailable_documents)}；已移除 ${printable(coverage.removed_documents)}。返回候选在各自分页时重新核验，未返回原件以最近索引时的校验为准；文字提及不是已认证主体。`);
+       if (coverage.index_updates && typeof coverage.index_updates === 'object' && !Array.isArray(coverage.index_updates)) {
+-        const updates = append(output, 'details'); append(updates, 'summary', '各日期索引更新状态');
++        const updates = append(diagnostics, 'details'); append(updates, 'summary', '各日期索引更新状态');
+         for (const day of Object.keys(coverage.index_updates).sort()) {
+           const value = coverage.index_updates[day] || {};
+           append(updates, 'p', `${day} · 最近成功 ${printable(value.last_success_at)} · 最近尝试 ${printable(value.last_attempt_at)} · 状态 ${printable(value.last_update_status)}`);
+         }
+       }
+     } else {
+-      append(output, 'p', `首尾片段有限检索：已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；已校验文档 ${printable(coverage.verified_documents)}；上限 ${printable(coverage.limits?.dates)} 日 / ${printable(coverage.limits?.documents)} 篇。`);
+-      append(output, 'p', '仅筛标题、文件名及首尾片段，可能漏掉中间页和历史文档；该结果不是全文检索，文本提及不等于确认研报主体。');
++      append(diagnostics, 'p', `首尾片段有限检索：已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；已校验文档 ${printable(coverage.verified_documents)}；上限 ${printable(coverage.limits?.dates)} 日 / ${printable(coverage.limits?.documents)} 篇。`);
++      append(diagnostics, 'p', '仅筛标题、文件名及首尾片段，可能漏掉中间页和历史文档；该结果不是全文检索，文本提及不等于确认研报主体。');
+     }
+     if (mode !== 'NOT_MATERIALIZED') {
+       const large = largeCounts(coverage, mode);
+-      append(output, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料待索引：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量。`);
+-    }
+-    append(output, 'p', nameSourceText());
+-    append(output, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
++      append(diagnostics, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料待索引：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量。`);
++    }
++    append(diagnostics, 'p', nameSourceText());
++    append(diagnostics, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
+     if (stock.search_hint?.status === 'CALLER_PROVIDED_UNVERIFIED') {
+-      append(output, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
++      append(diagnostics, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
+     } else {
+-      append(output, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
++      append(diagnostics, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
+     }
+     if (!stock.reports.length) append(output, 'p', '已读取范围未返回匹配；覆盖不完整或续页未完成，不能据此判断没有研报。');
+     stock.reports.forEach((report, index) => {
+@@ -361,7 +362,7 @@
+     append(details, 'summary', `查看逐页覆盖缺口（${gaps.length} 条）`);
+     const pre = append(details, 'pre', JSON.stringify(gaps, null, 2)); pre.style.whiteSpace = 'pre-wrap';
+   }
+-  async function select(symbol, name, force = false, nameBinding = null) {
++  async function select(symbol, name, force = false, nameBinding = null, resume = null) {
+     const day = String(section.dataset.identityDate || '');
+     const generation = String(section.dataset.generation || '');
+     if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation && JSON.stringify(current?.nameBinding) === JSON.stringify(nameBinding)) return;
+@@ -380,11 +381,11 @@
+     try {
+       let result;
+       for (let restart = 0; restart <= MAX_RESTARTS; restart++) {
+-        try { result = await readPages(symbol, day, query, controller, token); break; }
++        try { result = await readPages(symbol, day, query, controller, token, resume); break; }
+         catch (error) {
+           if (token !== sequence) return;
+           if (!(error instanceof SnapshotChanged) || restart === MAX_RESTARTS) throw error;
+-          output.replaceChildren();
++          output.replaceChildren(); resume=null;
+           showState(`${symbol}：${error.message}；已丢弃旧页，正在从第一页重读（最多一次）。`);
+         }
+       }
+@@ -393,11 +394,9 @@
+         successfulQueries.set(queryKey(current), { observedAt: new Date().toISOString(), indexAt: latestIndexSuccess(result.data.coverage) });
+         if (successfulQueries.size > 512) successfulQueries.delete(successfulQueries.keys().next().value);
+       }
+-      showState(result.incomplete
+-        ? result.incompleteReason === 'index_not_materialized' ? `${symbol}：预建研报关系索引未就绪，未运行全量扫描或索引构建。`
+-          : result.incompleteReason === 'backend_limit' ? `${symbol}：PARTIAL，已达后端复验资源上限，续页未完成。`
+-          : `${symbol}：PARTIAL，已达 ${MAX_PAGES} 页上限，续页未完成。`
+-        : `${symbol}：候选已读取 ${result.pages} 页（PARTIAL，覆盖仍有边界）。`);
++      current.nextCursor=result.nextCursor;current.nextOffset=result.nextOffset;current.signature=result.signature;
++      const refresh=document.getElementById('relatedReportsRefresh');refresh.textContent=result.nextCursor?'继续读取下一页5篇候选':'重新读取首页';
++      showState(`${symbol}：本页已取 ${result.attempts} 篇候选，返回 ${result.stock.reports.length} 篇匹配；${result.nextCursor?'仍有续页（PARTIAL），未覆盖全部资料。':'当前游标已结束；覆盖仍以返回范围为准。'}`);
+       render(result, token);
+     } catch (error) {
+       if (token !== sequence) return;
+@@ -405,6 +404,7 @@
+       output.replaceChildren();
+     }
+   }
+-  document.getElementById('relatedReportsRefresh').onclick = () => { if (current) select(current.symbol, current.name, true, current.nameBinding); };
+-  window.RelatedReports = { select, clear };
++  function prepareSelection(symbol,name,nameBinding=null){clear();current={symbol,name,nameBinding,day:String(section.dataset.identityDate||''),generation:String(section.dataset.generation||'')};showState('已有研报目录在上方。正文库尚未查询；可按需先读5篇候选，覆盖为PARTIAL。');document.getElementById('relatedReportsRefresh').textContent='检索正文库（先读5篇）';}
++  document.getElementById('relatedReportsRefresh').onclick=()=>{if(current)select(current.symbol,current.name,true,current.nameBinding,current.nextCursor?{cursor:current.nextCursor,offset:current.nextOffset,signature:current.signature}:null);};
++  window.RelatedReports={select,clear,prepareSelection,openStoredDocument:(source,report,target,button)=>openDocument(source,report,target,button,sequence)};
+ })();

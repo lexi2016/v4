@@ -1,0 +1,39 @@
+{
+  "status": "WRITER_FOUR_P2_FIXED_FOR_SAME_REVIEWER_DELTA",
+  "before_sha256": "90bd9f68022071b47bad15bf247f62d7bc66d9efdfb0debfb6588de33aee227c",
+  "after_sha256": "9a985626cfeacc70e36c626212e18164345c18cacf2d4a408750f9076176268a",
+  "faults": [
+    "constant relative code-map link rejected by existing HTTP(S)guard; previous cache diagnosis disproved",
+    "relatedReports removed before awaited materials and restored only on success; failed/stale loads lostbodylibrary"
+  ],
+  "fixes": [
+    "constant code-map URL resolved to current location.origin; helper guard unchanged",
+    "samebodylibrary synchronously restored before any await, visible folded host retained; successorder remains unchanged; stale token staysguarded"
+  ],
+  "tests": [
+    "test_code_map_footer_creates_same_origin_http_link_and_keeps_scheme_guard PASS",
+    "test_report_library_remains_connected_on_failed_unmaterialized_and_stale_material_loads PASS"
+  ],
+  "reused": "prior7targeted/domain7/RootIABreader/graphdirectsearch4viewport/Archify9of9",
+  "root_click": "PENDING",
+  "no_numeric_or_material_recompute": true,
+  "control_fixes": [
+    "publish uses SHA-bound original Main owner from reviewed publicationplan; API has no producer",
+    "rollback allows failedbootout only with independently observed absent; normalstop stillclosed"
+  ],
+  "control_tests": [
+    "test_publisher_uses_sha_bound_existing_main_owner_not_api_profile PASS",
+    "test_only_rollback_may_restore_after_failed_bootout_when_service_is_really_absent PASS"
+  ],
+  "owner_publisher": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-name-zoom-20261030-r1-main/app/ops/research_panel_daily_product.py",
+    "sha256": "a281777b2b5120980151220d832d360498c8c53fcdd43d464bc7a52eae765abe",
+    "source_role": "C8_MAIN_ORIGINAL_OWNER_EXISTING_NO_SECOND_PRODUCER"
+  },
+  "control_source": {
+    "path": "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/control_c9.py",
+    "sha256": "dadf796d190f168f000e06d1e875250a1868089a3d051ebbb7c04ccbff2aab56",
+    "bytes": 4944
+  },
+  "no_real_service_actions": true
+}

@@ -469,6 +469,22 @@ def create_research_router(
         except (ValueError, OSError, KeyError) as error:
             return {"schema_version":"v4.a_share.daily_product.v1", "status":"CANNOT_CONFIRM", "data_date":date, "rows":[], "cannot_confirm":[str(error)], "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
 
+    @router.get("/a-share/company-materials")
+    def a_share_company_materials(date: str, symbol: str, generation: str | None = None, input_sha256: str | None = None) -> dict:
+        try:
+            return a_daily_source.read_a_daily_company_materials(date, symbol, generation=generation, input_sha256=input_sha256)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cannot_confirm":[str(error)],
+                    "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+
+    @router.get("/a-share/event-cases")
+    def a_share_event_cases(date: str, symbol: str, group: str = "original", horizon: str = "d2") -> dict:
+        try:
+            return a_daily_source.read_a_daily_event_cases(date, symbol, group=group, horizon=horizon)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cases":[], "cannot_confirm":[str(error)],
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+
     def original_chart_answer(request, date, symbol, generation, input_sha256, asset=None, sha256=None):
         try:
             if set(request.query_params) - {"date", "symbol", "generation", "input_sha256", "sha256"}:
