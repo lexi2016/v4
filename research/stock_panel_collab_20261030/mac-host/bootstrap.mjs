@@ -1,6 +1,6 @@
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection} from './dot/src/projection-view.mjs';
-import {setCompanyContext} from './company-local.mjs';
+import {setCompanyContext,renderCompanyStatus} from './company-local.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
 const el=id=>document.getElementById(id),add=(host,tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;host.append(n);return n};
@@ -11,7 +11,7 @@ const stat=add(el('interactivePanel'),'section');stat.className='panel';stat.id=
 let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null;
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
 const original=bridge.OriginalFullChart;
-window.OriginalFullChart={...original,clear(){original.clear();current=null;context=null;++contextSerial;setCompanyContext(null);stat.replaceChildren();el('companySummary').replaceChildren();el('companyMetrics').replaceChildren();el('companyEvidence').replaceChildren();el('marketCards').textContent='跨市场来源尚未与所选日期绑定';}};
+window.OriginalFullChart={...original,clear(){original.clear();current=null;context=null;++contextSerial;stat.replaceChildren();el('marketCards').textContent='跨市场来源尚未与所选日期绑定';}};
 const frame=original.bind();frame.style.height="460px";
 function sourceContext(day,force=false){
   const mine=++contextSerial;
@@ -40,6 +40,7 @@ function showStatistics(bundle){
 }
 frame.addEventListener('load',()=>{if(!current||frame.hidden)return;const w=frame.contentWindow;if(!w?.RESEARCH_PANEL_STATE)return;const child=frame.contentDocument;if(!child.getElementById('mac-original-focus-style')){const style=child.createElement('style');style.id='mac-original-focus-style';style.textContent='body{margin:0!important;background:#07131e!important}header,aside,.toolbar,.charthead .controls,#selected-date,.stats,.tables,details,#status,.foot,#chart-caption{display:none!important}main{display:block!important;max-width:none!important;margin:0!important;min-height:0!important}article{padding:12px!important}.chartbox{border:0!important;padding:0!important}.charthead{margin:0 0 4px!important}canvas{height:405px!important}';child.head.appendChild(style);w.dispatchEvent(new w.Event('resize'));w.paint();}if(preservedChart&&preservedChart.symbol===current.context.symbol&&preservedChart.source_date===current.context.source_date&&preservedChart.generation===current.context.generation){w.setOriginalWindow(preservedChart.count,preservedChart.start+preservedChart.count);w.choose(preservedChart.selected);w.paint();preservedChart=null;}const select=el('fullDateSelect');select.replaceChildren();for(const r of current.projection.data.rows){const option=add(select,'option',String(r.trade_date));option.value=String(r.trade_date)}select.value=String(current.projection.data.rows.at(-1).trade_date);select.onchange=()=>{const s=w.RESEARCH_PANEL_STATE,i=s.rows.findIndex(r=>String(r.trade_date)===select.value);if(i<0)return;w.setOriginalWindow(Math.min(120,s.rows.length),Math.min(s.rows.length,i+84));w.choose(i);w.paint()};});
 window.StockPanelHost={
+  clearCompany(){setCompanyContext(null);renderCompanyStatus(document,'IDLE');},
   async open(day,row,selectedGroup){
     const own=Object.entries(row.group_states).filter(([,v])=>v==='TRUE').map(([g])=>g);
     const group=own.includes(selectedGroup)?selectedGroup:own[0];
@@ -62,7 +63,7 @@ window.StockPanelHost={
     for(const item of contract?.time_contract?.nodes??[]){const d=document.querySelector(`.timetable-item[data-node-id="${item.id}"]`);if(!d)continue;const host=d.querySelector('.node-materials');if(!host)continue;host.replaceChildren();add(host,'strong',labels[item.execution_status]??item.execution_status);if(item.recorded_at)add(host,'p','实际记录 '+item.recorded_at);if(item.source_asof)add(host,'p','来源时点 '+item.source_asof);for(const reason of item.missing??[])add(host,'p','缺口：'+reason);if(item.error)add(host,'p','错误：'+item.error);for(const material of item.materials??[]){try{const u=new URL(material.url,location.href);if(!['https:','http:'].includes(u.protocol)||u.username||u.password)continue;const a=add(host,'a',material.label??'来源材料');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{add(host,'p','材料链接待核');}}}
   },
   preserveChart(){const s=frame.contentWindow?.RESEARCH_PANEL_STATE;if(context&&s?.view)preservedChart={symbol:context.symbol,source_date:context.source_date,generation:context.generation,...s.view,selected:s.selected};},
-  unbindDay(){moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;contextReply=null;++contextSerial;},
+  unbindDay(){this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;contextReply=null;++contextSerial;},
   bindDay(day){
     activeDay=day;this.paintClassificationCoverage(day);sourceContext(day,true);
     const key=day.source_date;if(moduleEvents?.key===key)return;

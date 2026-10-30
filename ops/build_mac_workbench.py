@@ -47,6 +47,7 @@ window.StockPanelHost.installCompletion({
   }catch(error){if(mine===completionSerial)$('loadingState').textContent='已保存更新尚未确认：'+error.message;}
  },
  async sourceChanged(){
+  window.StockPanelHost.clearCompany();
   const wanted=selection().date,mine=++completionSerial;
   try{const catalog=await loadJson(integrationBase+'/history');if(mine!==completionSerial||selection().date!==wanted)return;const entry=catalog.days.find(d=>d.source_date===wanted),option=Array.from($('date').options).find(o=>o.value.split('|')[0]===wanted);if(!entry||!option)throw Error('SOURCE_DATE_MISSING');option.value=wanted+'|'+entry.revision;$('date').value=option.value;await loadDay();}catch(error){if(mine===completionSerial)$('loadingState').textContent='来源重新绑定未确认：'+error.message;}
  }
@@ -94,7 +95,16 @@ def build(dot_root,output,receipt):
     patched=replace_once(patched,"b.classList.toggle('active',key===group);b.onclick", "b.classList.toggle('active',key===group);b.setAttribute('aria-pressed',String(key===group));b.type='button';b.onclick")
     patched=replace_once(patched,"page=Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1));", "page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1)));")
     patched=replace_once(patched,"$('listCount').textContent=`${filtered.length}只 · 原图${charts.size} · 真交互${projections.size} · 股价/金额为人民币`;$('listPage').textContent=`${page+1} / ${Math.max(1,Math.ceil(filtered.length/pageSize))}`;", "const totalCandidates=day.rows.filter(r=>r.eligible_candidate).length,scopeCount=$('scope').value==='all'?day.rows.length:totalCandidates,pageRows=filtered.slice(page*pageSize,(page+1)*pageSize);$('listCount').textContent=`总候选 ${totalCandidates}只 · 当前范围 ${scopeCount}只\\n筛选后 ${filtered.length}只 · 本页 ${pageRows.length}只${pageRows.length?'（'+(page*pageSize+1)+'–'+(page*pageSize+pageRows.length)+'）':''}`;$('listPage').textContent=`第 ${filtered.length?page+1:0} 页 / 共 ${Math.ceil(filtered.length/pageSize)} 页 · 每页 ${pageSize}只`;")
-    patched=replace_once(patched,"else{$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票。'}", "else{selected=null;++stockToken;clearInteractive();$('stockList').append(Object.assign(node('p','没有符合条件的股票，请调整上方范围、分组或搜索。'),{className:'stock-list-empty'}));$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票，请调整上方筛选。'}")
+    patched=replace_once(patched,"else{$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票。'}", "else{selected=null;++stockToken;clearInteractive();window.StockPanelHost.clearCompany();$('stockList').append(Object.assign(node('p','没有符合条件的股票，请调整上方范围、分组或搜索。'),{className:'stock-list-empty'}));$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票，请调整上方筛选。'}")
+    patched=replace_once(patched,'validateCompany,explanationFacts,independentTiming}', 'validateCompany,explanationFacts,independentTiming,beginCompanyRequest,isCurrentCompanyRequest,renderCompanyStatus}')
+    start=patched.index('async function loadCompany(');end=patched.index('\nfunction renderSecondary()',start)
+    company=patched[start:end]
+    company=replace_once(company,"$('companySummary').replaceChildren(node('p','正在按需读取公司材料…'));$('companyMetrics').replaceChildren();$('companyEvidence').replaceChildren();", "const request=beginCompanyRequest({symbol:r.symbol,source_date:day.source_date,observation_date:day.observation_date,generation:day.generation,input_sha256:day.input_sha256});renderCompanyStatus(document,'LOADING',r.symbol);")
+    company=replace_once(company,'if(token!==stockToken)return;', 'if(!isCurrentCompanyRequest(request))return;')
+    company=replace_once(company,"if(!x){$('companySummary').replaceChildren(node('p','本股解释材料尚未收录。'));return}", "if(!x){renderCompanyStatus(document,'MISSING',r.symbol);return}")
+    company=replace_once(company,'validateCompany(x,r.symbol);', "validateCompany(x,r.symbol);renderCompanyStatus(document,'READY',r.symbol);$('companyMetrics').replaceChildren();")
+    company=replace_once(company,"if(token===stockToken)$('companySummary').replaceChildren(node('p','公司材料读取失败；图和分组未受影响。'))", "if(isCurrentCompanyRequest(request))renderCompanyStatus(document,'ERROR',r.symbol)")
+    patched=patched[:start]+company+patched[end:]
     html=(dot_root/'shell/index.html').read_text()
     for old,new in [('<title>','<meta name="framework-api-base" content="/api/v4/research/workbench"><title>'),('href="./workbench.css"','href="workbench-host/dot/shell/workbench.css"'),('src="./workbench.mjs"','src="workbench-host/bootstrap.mjs"'),('<a href="../demo/index.html">合成联调示例</a>','<a id="macLegacyStockPage" href="legacy-daily.html">旧版单股归档</a>'),('外部个股模块待绑定','原式个股模块已接入'),('公共源码联调 · 未绑定服务','Mac本地 · 同源只读'),('昨日冻结候选','冻结数值候选')]:html=replace_once(html,old,new)
     html=html.replace('原五组','四组数值候选 · 风险待核另列')
