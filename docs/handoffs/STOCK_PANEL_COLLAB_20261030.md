@@ -133,3 +133,14 @@ imported once to a versioned local SQLite index; the current247 get exact code/
 name binding with three isolated name conflicts. See
 [entry/classification SOP](workbench_entry_classification_20261030/README.md).
 This changes display/query only, with no pool, formula, BUY or Main change.
+
+
+## 2026-10-30 19:42：000016绑定修复与D30日更接续
+
+代码已同步并回读至 `6395cd78ca838cbbafd2af5e4a439de5824bf433`。入口及精确边界见 [日更缺项接续说明](sop_binding_repair_20261030/oracle_continuation/parallel_missing_rows/README.md)。当前Mac Main为 `sop-binding-parallel-20261030-r3-main`；只消费原价格、原式及现有标签/收益缓存，API/Stage与框架沿既有版本。
+
+实际19:42:44结束：5808处理、172去重数值候选、172原图；D30 API和1440/694页面、D29/D30日期切换已验，浏览器已关闭。源日期D30对应观察日2026-11-02。14进程仅补3812项，288.78秒，峰值41.81GiB；原1996成功checkpoint字节不变。000016及同链9绑定已修、原通过20保留；000016原价格文件完整续跑后SHA不变。002003旧标签改指向相同批准SHA的固定快照，今日缓存保留。
+
+保留缺口：A口径PARTIAL（源接受5502/隔离306，A_SYNC_AUTHORITY_REBUILD_REQUIRED）；763条件未知；172候选中108完整历史标签，64需首次补齐；自然15:40运行未认证，金融审图未启动。
+
+框架owner接续项：已打开的D29页面没有自动加入新D30日期选项。新版本API和新页面已可用；请沿原上游完成事件更新日期选项/新版本提示，保留用户冻结日期、股票和区间，不另造producer或固定60秒查结果。此项尚未由本批修改，不宣称整个工作台自动跨日已闭环。
