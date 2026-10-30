@@ -1,0 +1,62 @@
+{
+  "status": "READONLY_DISCOVERY_PENDING_ROOT_PRECISE_SCOPE_ADDENDUM",
+  "baseline_release_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-sop-closure-20261029-r1-main/app",
+  "git_baseline": "5b8f281000478faa57fe72915f5d0b781a667655",
+  "paths": {
+    "ops/run_scheduled_slot.py": {
+      "baseline_sha256": "e2002f44e431b18ce3fc07fb11f1f2bb134ebc5257ff7a562d528354ca9b585a",
+      "task_exists": true,
+      "task_sha256": "654efa76eebe3246759729dd60603826bdca351af83375b0155257aba1610974"
+    },
+    "ops/run_v4_macos_scheduler_due.py": {
+      "baseline_sha256": "667a92369668a9adc62656bfda0bc48b625e6559d535adcc566c8eec236e1e0d",
+      "task_exists": false,
+      "task_sha256": null
+    },
+    "contracts/runtime_workloads.json": {
+      "baseline_sha256": "8f824427f77880c8051bee8d613fefb90874be0cb6aab0a1171bbe83ed8705a1",
+      "task_exists": true,
+      "task_sha256": "8f824427f77880c8051bee8d613fefb90874be0cb6aab0a1171bbe83ed8705a1"
+    },
+    "contracts/a_share_daily_source_policy.json": {
+      "baseline_sha256": "dc4de47fc1721cf41436fd3717cfa9bcb4b3c28f5de1b3b8b591469046a6a54f",
+      "task_exists": true,
+      "task_sha256": "dc4de47fc1721cf41436fd3717cfa9bcb4b3c28f5de1b3b8b591469046a6a54f"
+    },
+    "ops/research_panel_daily_source.py": {
+      "baseline_sha256": "a5ea986d1731177d2801905d5988b40ef0ca2b0834cce3abff8df6e685ac80ca",
+      "task_exists": true,
+      "task_sha256": "a5ea986d1731177d2801905d5988b40ef0ca2b0834cce3abff8df6e685ac80ca"
+    },
+    "ops/macos_research_panel_daily_gate.py": {
+      "baseline_sha256": "35f0d140d0aaba9fad685e5c3334c8e2b31e91f0b1b76c0489b7ea23cdf0e418",
+      "task_exists": true,
+      "task_sha256": "42bd22ee9c53adf896d062c5307948299eba7cbdda263d82d106a482d0ef9a6d"
+    },
+    "infrastructure/scheduling/execution_ledger.py": {
+      "baseline_sha256": "b777dc21d0884c2f7e6e7aa16444acea9bfb17c105378a96a10df1d646ba69d8",
+      "task_exists": true,
+      "task_sha256": "b777dc21d0884c2f7e6e7aa16444acea9bfb17c105378a96a10df1d646ba69d8"
+    },
+    "infrastructure/scheduling/executor_registry.py": {
+      "baseline_sha256": "37355fa1becd8efc0278bb78dbe558f13af5f9c734bc6ee51f999daf9e3e65c2",
+      "task_exists": true,
+      "task_sha256": "37355fa1becd8efc0278bb78dbe558f13af5f9c734bc6ee51f999daf9e3e65c2"
+    },
+    "ops/run_v4_macos_scheduler_daemon.py": {
+      "baseline_sha256": "16fee548fe80dd3a3e21370b7e38ba90d13f4be767692a25fae16186853f2480",
+      "task_exists": true,
+      "task_sha256": "16fee548fe80dd3a3e21370b7e38ba90d13f4be767692a25fae16186853f2480"
+    }
+  },
+  "prior_advance": {
+    "branch": "codex/a-daily-1530-20261029",
+    "tip": "73f8cb9f8f8c6183282e1d914ae0bad3f955b337",
+    "handoff": "docs/handoffs/a_daily_1530_20261029/HANDOFF.md",
+    "patch_sha256": "2dec17c529d344c916d0295444f7d71b9d0597bfbd4d6bb0c7bb3e4f9a7216c6",
+    "reuse": "design/test-method only; old17→1530 delta not applied to newer1610baseline",
+    "deployed": false
+  },
+  "missing_rule": "SHA-bound minimal overlays; no full-release copy or wrapper",
+  "no_source_mutation_yet": true
+}

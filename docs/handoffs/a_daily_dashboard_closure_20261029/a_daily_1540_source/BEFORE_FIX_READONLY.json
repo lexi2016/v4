@@ -1,0 +1,17 @@
+{
+  "status": "KNOWN_BEFORE_FIX_SOURCE_GAPS_REPRODUCED_READONLY",
+  "method": "AST execute only existing pure lane method + literal ALL_SLOTS + JSON catalog/policy; no scheduler/providers/live state",
+  "daemon_1540_lane": "DEFAULT",
+  "daemon_1610_lane": "A_LONG",
+  "slot1540_allowed": false,
+  "slot1640_allowed": false,
+  "A_slots": [
+    "1610"
+  ],
+  "HK_slots": [
+    "1720"
+  ],
+  "hourly1700_present": true,
+  "source_earliest_slot": "1610",
+  "pending_internal_path_decision": true
+}

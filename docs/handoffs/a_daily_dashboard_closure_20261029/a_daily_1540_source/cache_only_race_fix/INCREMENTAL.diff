@@ -1,0 +1,10 @@
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -192,6 +192,7 @@
+  for i,symbol in enumerate(selected):
+   checkpoint=parts/(symbol+'.json')
+   if checkpoint.is_file():row=json.loads(checkpoint.read_text())
++  elif cache_only:raise ValueError('DAILY_NUMERIC_CHECKPOINT_DISAPPEARED_CACHE_ONLY_NO_RECOMPUTE')
+   else:
+    try:
+     row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,**({'chart_capture':capture} if original_charts else {}));save(path,cache)

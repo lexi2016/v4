@@ -1,0 +1,70 @@
+{
+  "status": "SOURCE_ONLY_CANDIDATE",
+  "base_release_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-sop-closure-20261029-r1-main/app",
+  "C4_commit": "e6df789828ef064a9114e27962f99d2575711e7f",
+  "files": {
+    "ops/run_scheduled_slot.py": {
+      "before_sha256": "e2002f44e431b18ce3fc07fb11f1f2bb134ebc5257ff7a562d528354ca9b585a",
+      "after_sha256": "10c187ea5b8214dbd9bdde94c215d126e5151cbc40d5a033a19593d4076df2d1",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "ops/run_v4_macos_scheduler_due.py": {
+      "before_sha256": "667a92369668a9adc62656bfda0bc48b625e6559d535adcc566c8eec236e1e0d",
+      "after_sha256": "baf871af30db4ba937b204172bd1b8067833e17f3c67ac952395f3d9ec11accb",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "contracts/runtime_workloads.json": {
+      "before_sha256": "8f824427f77880c8051bee8d613fefb90874be0cb6aab0a1171bbe83ed8705a1",
+      "after_sha256": "19371ddea338448f029b3a22db88326b71380d5d18589cc970b7108fa34f4364",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "contracts/a_share_daily_source_policy.json": {
+      "before_sha256": "dc4de47fc1721cf41436fd3717cfa9bcb4b3c28f5de1b3b8b591469046a6a54f",
+      "after_sha256": "dff74b6d36b0b88363f66176d589c0efe42fcf5f38de1a1f05a9c8b450666370",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "ops/research_panel_daily_source.py": {
+      "before_sha256": "a5ea986d1731177d2801905d5988b40ef0ca2b0834cce3abff8df6e685ac80ca",
+      "after_sha256": "0d284f44f8012b77c31596876adf70cff141a19261d035854f3e13d3053d3323",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "ops/macos_research_panel_daily_gate.py": {
+      "before_sha256": "42bd22ee9c53adf896d062c5307948299eba7cbdda263d82d106a482d0ef9a6d",
+      "after_sha256": "5a1a5e17942d2c0cc4f08ef0b0bb3549fb977024830ec69ed8548963c1e64637",
+      "base_kind": "C4_GATE_HOOK_COMPOSED"
+    },
+    "ops/run_v4_macos_scheduler_daemon.py": {
+      "before_sha256": "16fee548fe80dd3a3e21370b7e38ba90d13f4be767692a25fae16186853f2480",
+      "after_sha256": "dea5ab8b4f133c70c486fd669ed497bf0ea06de7ede2190c9ef9bde191fdc8f8",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "infrastructure/scheduling/execution_ledger.py": {
+      "before_sha256": "b777dc21d0884c2f7e6e7aa16444acea9bfb17c105378a96a10df1d646ba69d8",
+      "after_sha256": "078f9b7b845b189fbf9ace24285a09fcd86add62aba0adb652286529542ac9b0",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "infrastructure/scheduling/executor_registry.py": {
+      "before_sha256": "37355fa1becd8efc0278bb78dbe558f13af5f9c734bc6ee51f999daf9e3e65c2",
+      "after_sha256": "60a13c88cd9b5048c4228e052a85a5f8200c12f020ae48702f35bcdabfb99b01",
+      "base_kind": "EXACT_DEPLOYED_RELEASE"
+    },
+    "ops/research_panel_daily_product.py": {
+      "before_sha256": "1f1bf48f950bab0806101b077bdb8d2d5117d373e0dfde5388050ac2f49568de",
+      "after_sha256": "5104a091009f8dc7257a5f8ede7354a242be92bac03027e4d367485fbdb5334f",
+      "base_kind": "C4_COMMIT"
+    }
+  },
+  "gate_dependency": {
+    "path": "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/dependencies/gate_materialize_daily_product.patch",
+    "sha256": "77fa06f4f800491cdca29eeaf18530f4f3bc1e55c615aa63dbe50a26c6b8ae4c",
+    "release_before_sha256": "35f0d140d0aaba9fad685e5c3334c8e2b31e91f0b1b76c0489b7ea23cdf0e418",
+    "hook_composed_sha256": "42bd22ee9c53adf896d062c5307948299eba7cbdda263d82d106a482d0ef9a6d",
+    "final_combined_sha256": "5a1a5e17942d2c0cc4f08ef0b0bb3549fb977024830ec69ed8548963c1e64637",
+    "apply_order": [
+      "exact release",
+      "accepted C4 gate dependency patch",
+      "C5 timing overlay"
+    ]
+  },
+  "actual_extra_source_paths_edited": []
+}

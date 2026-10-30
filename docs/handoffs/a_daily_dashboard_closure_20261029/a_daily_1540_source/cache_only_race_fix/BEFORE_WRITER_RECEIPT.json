@@ -1,0 +1,66 @@
+{
+  "status": "SOURCE_ONLY_OVERLAY_TARGETED_PASS_PENDING_ONE_INDEPENDENT_REVIEW",
+  "baseline_git": "5b8f281000478faa57fe72915f5d0b781a667655",
+  "baseline_release_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-sop-closure-20261029-r1-main/app",
+  "scope": "SCOPE.json+SCOPE_ADDENDUM_2.json+SCOPE_ADDENDUM_3.json",
+  "source_changes_in_task": [
+    "ops/run_v4_macos_scheduler_daemon.py"
+  ],
+  "overlay_only_paths": [
+    "ops/run_scheduled_slot.py",
+    "ops/run_v4_macos_scheduler_due.py",
+    "contracts/runtime_workloads.json",
+    "contracts/a_share_daily_source_policy.json",
+    "ops/research_panel_daily_source.py",
+    "ops/macos_research_panel_daily_gate.py",
+    "infrastructure/scheduling/execution_ledger.py",
+    "infrastructure/scheduling/executor_registry.py",
+    "ops/research_panel_daily_product.py"
+  ],
+  "overlay_sha256": "b18d6bd4a75336899f316c008c7941c862a9a72858850f8cdd4f5df62a84d59e",
+  "inventory_sha256": "862c6cdf80d01514c223ff5fce384cd69f19406e48e6ea54ecaec6abd8540990",
+  "test_sha256": "2b6d1ba002fee1df5b1ec7a189c6e721d676e58e726e82c183829e3a9640e2b8",
+  "gate_composition": {
+    "path": "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/dependencies/gate_materialize_daily_product.patch",
+    "sha256": "77fa06f4f800491cdca29eeaf18530f4f3bc1e55c615aa63dbe50a26c6b8ae4c",
+    "release_before_sha256": "35f0d140d0aaba9fad685e5c3334c8e2b31e91f0b1b76c0489b7ea23cdf0e418",
+    "hook_composed_sha256": "42bd22ee9c53adf896d062c5307948299eba7cbdda263d82d106a482d0ef9a6d",
+    "final_combined_sha256": "5a1a5e17942d2c0cc4f08ef0b0bb3549fb977024830ec69ed8548963c1e64637",
+    "apply_order": [
+      "exact release",
+      "accepted C4 gate dependency patch",
+      "C5 timing overlay"
+    ]
+  },
+  "mechanical_replay": "PASS all10 before/after SHA, both git apply --check0, C4 exact8line hook preserved; temporary full sources removed",
+  "targeted": {
+    "initial_overlay": "29 passed before direct boundary refinements; superseded, not acceptance",
+    "final_overlay_first_run": "34 passed,1 fixture-import failure (unrelated API import from old fixture module missing domains.related_pdf_reports)",
+    "fixture_fix": "AST reuses only existing C4 fixture functions without importing unrelated API modules; affected case1 passed in0.13s",
+    "new_exact_priority_boundary": "new1540 backlog priority plus affected1540 clock2 passed in0.12s",
+    "distinct_current_cases_covered": 36,
+    "no_old_suites_or_business_runs_repeated": true,
+    "command_prefix": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -m pytest -q tests/test_a_daily_1540_schedule.py",
+    "final_accepted_evidence": "34 unchanged cases + repaired1case + new1case, all PASS; affected1540 parameter reconfirmed"
+  },
+  "behavior": [
+    "15:39A notdue;15:40 exact A main before old backlog",
+    "1540/1610/1640 share A_LONG+child FD validation; healthy owner waits and is not cancelled",
+    "only A catalogslots changed; HK1720/hourly1700/other slots exact parity",
+    "same-date validated READY/PARTIAL_WITH_ROWS zero provider/numeric; original owner cache_only leaf is entered",
+    "cache_only missing anynumeric checkpoint =>typedgap beforecompute/provider",
+    "real failure-only observation accepts bound exact-date FAILED/CANNOT_CONFIRM with empty success metrics, without relaxing READY SHA/date/coverage validation",
+    "17:00no A catalogjob; late retry can emit alertonly and cannot start provider; active healthy owner is not cancelled",
+    "sourcebefore1540/nontrading/inputnotready preserved; no olddate fallback"
+  ],
+  "not_done": [
+    "independent review pending",
+    "installation/LaunchAgent/service/pins/CURRENT NOT_RUN",
+    "natural15:40/provider source availability/completion SLA CANNOT_CONFIRM",
+    "no wholemarket computation/chart/history/bootstrap/backtest"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

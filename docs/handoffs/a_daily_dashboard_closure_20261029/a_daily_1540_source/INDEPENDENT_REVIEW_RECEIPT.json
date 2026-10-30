@@ -1,0 +1,22 @@
+{
+  "status": "REVIEWED_PASS_SOURCE_ONLY",
+  "reviewer": "/root/original_chart_delta_review",
+  "evidence_source": "Root final acceptance message forwarded after same Reviewer delta review; no separate disk receipt existed when read",
+  "initial_verdict": "FAIL_P2_CACHE_ONLY_CHECKPOINT_DISAPPEARED_AFTER_PRECHECK",
+  "final_verdict": "PASS;typedgap_compute0_deltaSHA_match_other9paths_and_C4_composition_unchanged",
+  "matching_writer_receipt_sha256": "d5bac5f0c0154b81fb656e5cb932b20d874aa19b8e328bfe0954efe3cf5a4eca",
+  "matching_overlay_sha256": "8f3f101d8016fb11126078922eb922e4d28f522032a2c86db23d00c45ddfae09",
+  "matching_incremental_sha256": "be00adc87a240478334b18f0d3248e6d0160285bde1461ef91a6f8ba984f003d",
+  "evidence_reused": "36 prior matching cases +2 affected delta cases; no repeated suite/business run",
+  "maximum_claim": "SOURCE_ONLY_NOT_INSTALLED_OR_NATURAL_VERIFIED",
+  "not_done": [
+    "runtimeinstallation",
+    "LaunchAgents/services/pins/CURRENT",
+    "natural15:40",
+    "provideravailability/completionSLA"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

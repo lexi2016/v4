@@ -1,0 +1,15 @@
+{
+  "status": "REPRODUCED_FAIL",
+  "source": "Root-forwarded independent P2, then actual targeted pytest red case",
+  "case": "test_cache_only_checkpoint_disappears_after_precheck_never_computes",
+  "observed_is_file": [
+    true,
+    false
+  ],
+  "compute_stock_entries": 1,
+  "result": "1 failed in 0.14s",
+  "error": "AssertionError: cache_only entered compute after checkpoint disappeared",
+  "before_producer_sha256": "bafee4d41b0cb425f6d764ad137790cc799ab5f418063250f4ca6e973c0705a1",
+  "after_producer_sha256": "5104a091009f8dc7257a5f8ede7354a242be92bac03027e4d367485fbdb5334f",
+  "replay": "changed producer segment and one-line incremental both git apply --check/apply0; exact after bytes; temporary source removed"
+}

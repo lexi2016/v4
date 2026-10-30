@@ -1,0 +1,268 @@
+--- a/ops/run_scheduled_slot.py
++++ b/ops/run_scheduled_slot.py
+@@ -48,7 +48,7 @@
+     # a bounded no-op.
+     "0415", "0515", "0700", "0800", "0830", "0840", "0900", "0901", "0915", "0925", "0930", "0935", "0940",
+     "0945", "1000", "1030", "1100", "1130", "1200", "1300", "1315",
+-    "1400", "1500", "1530", "1555", "1600", "1605", "1608", "1610", "1700", "1710", "1720",
++    "1400", "1500", "1530", "1540", "1555", "1600", "1605", "1608", "1610", "1640", "1700", "1710", "1720",
+     "1730", "1800", "1900", "2000", "2001", "2030", "2040", "2050",
+     "2100", "2105", "2108", "2110", "2115", "2140", "2200",
+     "2300",
+--- a/ops/run_v4_macos_scheduler_due.py
++++ b/ops/run_v4_macos_scheduler_due.py
+@@ -15,7 +15,7 @@
+ # Research-panel A/H lanes are fixed canonical producer slots.  They receive
+ # the same fairness treatment as hourly work; executor-level dependencies are
+ # evaluated only after a slot is selected.
+-CATCHUP_EXACT_PRIORITY_SLOTS = frozenset(CATCHUP_HOURLY_SLOTS) | frozenset({"1530", "1700", "1720"})
++CATCHUP_EXACT_PRIORITY_SLOTS = frozenset(CATCHUP_HOURLY_SLOTS) | frozenset({"1530", "1540", "1700", "1720"})
+ # Fixed non-hourly owners must be recoverable after a five-minute launchd
+ # heartbeat without being confused with the neighbouring hourly workload.
+ # Morning stage/pre-stage slots are listed explicitly because a retryable
+@@ -40,7 +40,7 @@
+     "2115",
+ )
+ POST_CLOSE_CATCHUP_SLOTS = (
+-    "1500", "1530", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800", "2030", "2040",
++    "1500", "1530", "1540", "1555", "1605", "1610", "1640", "1700", "1710", "1720", "1730", "1800", "2030", "2040",
+     "2050", "2105", "2108", "2110", "2115", "2140",
+ )
+ # The post-close nodes remain the fixed candidate order used for tie-breaking.
+@@ -73,6 +73,8 @@
+ def _slot_retry_deadline(business_date: str, slot: str,
+                          catchup_window_minutes: int = DEFAULT_CATCHUP_WINDOW_MINUTES) -> datetime:
+     scheduled = datetime.strptime(business_date + slot, "%Y%m%d%H%M").replace(tzinfo=SHANGHAI)
++    if slot in {"1540", "1640"}:
++        return scheduled.replace(hour=16, minute=59, second=59, microsecond=999999)
+     if slot == "0915":
+         return scheduled.replace(hour=9, minute=19, second=59, microsecond=999999)
+     if slot in POST_CLOSE_CATCHUP_SLOTS:
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1010,7 +1010,9 @@
+       "session_requirement": "POST_CLOSE",
+       "signal_date_role": "BUSINESS_DATE",
+       "slots": [
+-        "1610"
++        "1540",
++        "1610",
++        "1640"
+       ],
+       "target_date_role": "BUSINESS_DATE",
+       "workload_id": "research_panel_daily_a"
+--- a/contracts/a_share_daily_source_policy.json
++++ b/contracts/a_share_daily_source_policy.json
+@@ -2,7 +2,7 @@
+   "schema": "a_daily_source_policy.v1",
+   "enabled": true,
+   "source_kind": "TDX_OFFICIAL_G4DAY",
+-  "earliest_slot": "1610",
++  "earliest_slot": "1540",
+   "calendar": {
+     "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/market_calendar_2026.json",
+     "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+--- a/ops/research_panel_daily_source.py
++++ b/ops/research_panel_daily_source.py
+@@ -19,7 +19,7 @@
+     value = json.loads(POLICY_PATH.read_text())
+     if (value.get("schema") != "a_daily_source_policy.v1" or value.get("enabled") is not True
+             or value.get("source_kind") != "TDX_OFFICIAL_G4DAY"
+-            or value.get("earliest_slot") != "1610" or value.get("RESEARCH_ONLY") is not True
++            or value.get("earliest_slot") != "1540" or value.get("RESEARCH_ONLY") is not True
+             or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+         raise QfqGateError("A_DAILY_SOURCE_POLICY_UNBOUND")
+     return value
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -166,7 +166,7 @@
+     lane: str | None = None,
+     now: _datetime.datetime | None = None,
+ ) -> dict[str, Any]:
+-    """Idempotently ensure A after 16:10 and other lanes after 17:00.
++    """Idempotently ensure A after 15:40 and other lanes after 17:00.
+ 
+     StartInterval can invoke this function repeatedly.  Explicit lane callers
+     use only their exact dated receipt as a fast path: A requires selector and
+@@ -208,7 +208,7 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
+-    earliest_slot = "1610" if requested_lane == "A" else "1700"
++    earliest_slot = "1540" if requested_lane == "A" else "1700"
+     if moment.strftime("%H%M") < earliest_slot:
+         return restore_context({**common, "status": f"BEFORE_{earliest_slot}", "runner_called": False, "idempotent": True})
+     selector_ready = selector_pointer_is_ready(selector_pointer, target)
+@@ -319,7 +319,7 @@
+     status = str(result.get("status") or "")
+     if "lane_ready" in result:
+         lane_ready = result.get("lane_ready") is True
+-        if status in {"BEFORE_1610", "BEFORE_1700"}:
++        if status in {"BEFORE_1540", "BEFORE_1700"}:
+             return 0
+         if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
+             return 0
+@@ -336,7 +336,7 @@
+                     backtest_pointer = formula.get("backtest_pointer_ready")
+     if backtest_pointer is False:
+         pointer_ready = False
+-    if status in {"BEFORE_1610", "BEFORE_1700"}:
++    if status in {"BEFORE_1540", "BEFORE_1700"}:
+         return 0
+     if status == "ALREADY_READY" and pointer_ready:
+         return 0
+--- a/ops/run_v4_macos_scheduler_daemon.py
++++ b/ops/run_v4_macos_scheduler_daemon.py
+@@ -870,7 +870,7 @@
+ class SlotProcessLanes:
+     """Bounded execution adapter around the original one-shot scheduler.
+ 
+-    The full 1610 slot owns A_LONG; every other fixed slot keeps one serial
++    The A main/retry slots 1540/1610/1640 own A_LONG; other fixed slots keep one serial
+     DEFAULT lane. Claims are created by the original child dispatcher and use
+     that child's PID. Observations never reserve or release business claims.
+     """
+@@ -900,7 +900,7 @@
+ 
+     @staticmethod
+     def lane(slot):
+-        return "A_LONG" if slot == "1610" else "DEFAULT"
++        return "A_LONG" if slot in {"1540", "1610", "1640"} else "DEFAULT"
+ 
+     @staticmethod
+     def _log(payload):
+--- a/infrastructure/scheduling/execution_ledger.py
++++ b/infrastructure/scheduling/execution_ledger.py
+@@ -452,7 +452,7 @@
+         raw_fd = os.environ.get("V4_SCHEDULER_LANE_FD")
+         if raw_fd is None:
+             return  # legacy/direct canary calls retain their original contract
+-        lane = "A_LONG" if slot == "1610" else "DEFAULT"
++        lane = "A_LONG" if slot in {"1540", "1610", "1640"} else "DEFAULT"
+         if (os.environ.get("V4_SCHEDULER_LANE_NAME") != lane
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_DATE") != business_date
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_SLOT") != slot):
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -8,6 +8,7 @@
+ """
+ from __future__ import annotations
+ from infrastructure.runtime_graph.notifications import notify as _graph_notify
++from infrastructure.market_time import shanghai_now
+ 
+ import hashlib
+ import json
+@@ -267,7 +268,7 @@
+ 
+ 
+ def _read_exact_dated_receipt(
+-    module: str, arguments: list[str]
++    module: str, arguments: list[str], *, allow_a_failure: bool = False
+ ) -> tuple[dict[str, Any] | None, str | None]:
+     """Read the fixed daily-panel receipt only as a bounded fallback seam."""
+ 
+@@ -309,6 +310,8 @@
+         "NON_TRADING_DAY",
+     }:
+         return None, "EXACT_DATED_RECEIPT_STATUS_INVALID"
++    if allow_a_failure and lane == "A" and status in {"FAILED", "CANNOT_CONFIRM"}:
++        return payload, None  # failure observation only; successful evidence stays strict
+     digest = payload.get("sha256")
+     if (
+         not isinstance(digest, str)
+@@ -725,8 +728,10 @@
+         try:
+             # A slot migration must not re-acquire an already completed date.
+             # Preserve the strict receipt status; this is dated artifact reuse,
+-            # never evidence that the new 16:10 provider run occurred.
+-            if request.mode.value == "LIVE" and request.slot == "1610":
++            # never evidence that the new 15:40 provider run occurred.
++            if request.mode.value == "LIVE" and request.slot in {"1540", "1610", "1640"}:
++                moment = shanghai_now()
++                in_window = moment.strftime("%Y%m%d") == request.business_date and "1540" <= moment.strftime("%H%M") < "1700"
+                 root = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
+                 selector = os.environ.get("V4_RESEARCH_PANEL_A_SELECTOR_POINTER")
+                 backtest = os.environ.get("V4_RESEARCH_PANEL_A_BACKTEST_POINTER")
+@@ -734,6 +739,7 @@
+                     receipt, _ = _read_exact_dated_receipt(
+                         "ops.macos_research_panel_daily",
+                         ["--date", request.business_date, "--lane", "A", "--receipt-root", root],
++                        allow_a_failure=request.slot in {"1610", "1640"},
+                     )
+                     from ops.macos_research_panel_daily_receipts import validate_a_receipt
+                     status = validate_a_receipt(receipt, request.business_date,
+@@ -743,11 +749,22 @@
+                         if not selector_pointer_is_ready(selector, request.business_date):
+                             raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
+                                 "SOP_MIGRATION_REBIND_REQUIRED:paired receipt exists but generation is not ready"))
++                        leaf = {"status": "CANNOT_CONFIRM", "reason": "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY"}
++                        if in_window:
++                            try:
++                                data_root = os.environ.get("V4_RESEARCH_PANEL_A_DATA_ROOT")
++                                if not data_root:
++                                    raise ValueError("A_DAILY_CHART_OWNER_ROOT_MISSING")
++                                from ops.research_panel_daily_product import materialize_daily_product
++                                leaf = materialize_daily_product(data_root=data_root, target=int(request.business_date), cache_only=True)
++                            except Exception as error:
++                                leaf = {"status": "CANNOT_CONFIRM", "reason": "CACHED_CHART_LEAF_UNAVAILABLE:" + str(error)}
+                         path = Path(root) / f"a-{request.business_date}.json"
+                         return {"status": "SUCCEEDED", "lane": "A", "lane_status": status,
+                                 "target_date": request.business_date, "modules": [], "exit_code": 0,
+                                 "migration_reuse": True, "provider_invoked": False,
+-                                "natural_1610_verified": False, "source_receipt": str(path),
++                                "numeric_recomputed": False, "original_chart_leaf": leaf,
++                                "natural_1540_verified": False, "source_receipt": str(path),
+                                 "source_receipt_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                                 "row_count": receipt.get("row_count"),
+                                 "coverage_rate": receipt.get("coverage_rate"),
+@@ -756,6 +773,16 @@
+                                 "target_count": receipt.get("target_count"),
+                                 "reason": "EXACT_DATED_A_RECEIPT_REUSED_WITH_PAIRED_ARTIFACT_BINDING",
+                                 "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++                    if request.slot in {"1610", "1640"} and (not isinstance(receipt, dict) or receipt.get("status") not in {"FAILED", "CANNOT_CONFIRM"}):
++                        raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
++                            "A_DAILY_RETRY_REQUIRES_EXACT_DATED_FAILED_RECEIPT"))
++                elif request.slot in {"1610", "1640"}:
++                    raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
++                        "A_DAILY_RETRY_BINDING_MISSING"))
++                if not in_window:
++                    failure = self._failure_result("research_panel_daily_a", [], "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
++                    failure.update(failure_class="UPSTREAM_NOT_READY", reason="A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
++                    raise WorkloadExecutionError(failure)
+             return self._research_panel_daily(request, lane="A")
+         finally:
+             self._active_workload_id = previous_workload_id
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -172,7 +172,7 @@
+  if chart_capture is not None and row['groups'] and captured:chart_capture(symbol,bars,captured[0])
+  return row,cache,cachefile
+ 
+-def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
++def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None,cache_only=False):
+  """Called once from original run_a; no historical loop in normal daily mode."""
+  context=SourceContext(data_root,target)
+  if output_root is not None:context.root=Path(output_root).resolve()
+@@ -181,6 +181,8 @@
+  selected=sorted(symbols if symbols is not None else context.scope)
+  if not set(selected)<=set(context.scope):raise ValueError('DAILY_PROJECTION_OUTSIDE_PROCESSED_UNIVERSE')
+  rows=[];row_refs={};runkey=digest(dict(identity=context.identity,config=context.config_ref,symbols=selected,history_dates=list(history_dates)));parts=root/'checkpoints'/str(target)/runkey
++ if cache_only and (history_dates or any(not (parts/(symbol+".json")).is_file() for symbol in selected)):
++  raise ValueError("DAILY_NUMERIC_CHECKPOINT_MISSING_CACHE_ONLY_NO_RECOMPUTE")
+  chart_gaps={}
+  def capture(symbol,bars,result):
+   try:
+@@ -190,6 +192,7 @@
+  for i,symbol in enumerate(selected):
+   checkpoint=parts/(symbol+'.json')
+   if checkpoint.is_file():row=json.loads(checkpoint.read_text())
++  elif cache_only:raise ValueError('DAILY_NUMERIC_CHECKPOINT_DISAPPEARED_CACHE_ONLY_NO_RECOMPUTE')
+   else:
+    try:
+     row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,**({'chart_capture':capture} if original_charts else {}));save(path,cache)
+@@ -220,4 +223,4 @@
+   if chart_descriptor is not None:
+    event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
+   save(root/'events/latest.json',event)
+- return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
++ return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS) | (dict(cache_only=True,numeric_recomputed=False,original_chart_leaf=chart_descriptor) if cache_only else {})

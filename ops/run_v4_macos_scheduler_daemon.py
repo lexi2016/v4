@@ -870,7 +870,7 @@ class PdfQueueDrainHook:
 class SlotProcessLanes:
     """Bounded execution adapter around the original one-shot scheduler.
 
-    The full 1610 slot owns A_LONG; every other fixed slot keeps one serial
+    The A main/retry slots 1540/1610/1640 own A_LONG; other fixed slots keep one serial
     DEFAULT lane. Claims are created by the original child dispatcher and use
     that child's PID. Observations never reserve or release business claims.
     """
@@ -900,7 +900,7 @@ class SlotProcessLanes:
 
     @staticmethod
     def lane(slot):
-        return "A_LONG" if slot == "1610" else "DEFAULT"
+        return "A_LONG" if slot in {"1540", "1610", "1640"} else "DEFAULT"
 
     @staticmethod
     def _log(payload):

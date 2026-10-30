@@ -1,0 +1,17 @@
+{
+  "status": "P2_FIXED_PENDING_DELTA_REVIEW",
+  "scope": "cache-only per-stock missing-checkpoint race only",
+  "initial_red": "1 failed in0.14s; first is_fileTrue thenFalse caused compute_stock1entry",
+  "fix": "single elif cache_only raises typed missing checkpoint gap before compute_stock",
+  "affected_tests": "new race negative + existing numeric-byte-reuse positive:2passed in0.12s",
+  "old_36_cases": "matching prior evidence reused; no whole suite/business execution repeated",
+  "changed_overlay_paths": [
+    "ops/research_panel_daily_product.py"
+  ],
+  "before_producer_sha256": "bafee4d41b0cb425f6d764ad137790cc799ab5f418063250f4ca6e973c0705a1",
+  "after_producer_sha256": "5104a091009f8dc7257a5f8ede7354a242be92bac03027e4d367485fbdb5334f",
+  "incremental_sha256": "be00adc87a240478334b18f0d3248e6d0160285bde1461ef91a6f8ba984f003d",
+  "test_sha256": "1a697a80f0037b29bdfe1612523b91199aa9667bbb68264ff41d73a011b55464",
+  "replay": "producer incremental+updated producer overlay both exact apply/check0; current targeted fixture also verified all manifest afterSHA",
+  "runtime_installation": false
+}

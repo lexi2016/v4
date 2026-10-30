@@ -1,0 +1,31 @@
+{
+  "status": "FINAL_SOURCE_ONLY_REVIEWED_PASS_READY_FOR_LOCAL_COMMIT",
+  "owned_files": {
+    "ops/run_v4_macos_scheduler_daemon.py": "dea5ab8b4f133c70c486fd669ed497bf0ea06de7ede2190c9ef9bde191fdc8f8",
+    "tests/test_a_daily_1540_schedule.py": "1a697a80f0037b29bdfe1612523b91199aa9667bbb68264ff41d73a011b55464",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/HANDOFF.md": "e5b5a27c3bbb420fee11b986c0ce67041a50e22fe5e41ac9397f2714cd92f491",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/RESTORE.md": "44088c100d3ae435b01e7a241a3893ee1ebf0eed65ba390c40e07fb087dfa1fa",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/BASELINE_DISCOVERY.json": "632dfb18be6d1a1736f9ecf65a0a727343f1f964a04cd895cbd3438adab3110e",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/BEFORE_FIX_READONLY.json": "2e9855e3753d659a146092138cf48e0db8c2d4fae0bba113341269b325696bd0",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/CANDIDATE_OVERLAY.patch": "8f3f101d8016fb11126078922eb922e4d28f522032a2c86db23d00c45ddfae09",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/OVERLAY_INVENTORY.json": "40d516a435d56da2eb87fb38aaa2fa5f331b845c14c2d1b79efe30d5184e647d",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/WRITER_RECEIPT.json": "d5bac5f0c0154b81fb656e5cb932b20d874aa19b8e328bfe0954efe3cf5a4eca",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/INDEPENDENT_REVIEW_RECEIPT.json": "aa86b04ace07822310276e8f74754dfbf73a4eee9b957c600febfb017caf2255",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/RESTORED_SHA_RECEIPT.json": "a259be194120235e3d1ca31938158090d2f3d7d9b70d5b9e524896a77c9fba1f",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/dependencies/gate_materialize_daily_product.patch": "77fa06f4f800491cdca29eeaf18530f4f3bc1e55c615aa63dbe50a26c6b8ae4c",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/cache_only_race_fix/INCREMENTAL.diff": "be00adc87a240478334b18f0d3248e6d0160285bde1461ef91a6f8ba984f003d",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/cache_only_race_fix/BEFORE_FIX_REPRO.json": "1a4e82a6b810792972322b1bcf4e086f227ed9e33a0b4790d2dee1722257f18d",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/cache_only_race_fix/RESULT.json": "8bf8cb363eb408227c073686b6c62dcb39507f56fdfe831fc37d73d6659a6a63",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/cache_only_race_fix/BEFORE_WRITER_RECEIPT.json": "5c7724028cecf52d4f27d844ecb76c31c257c6bb83207513c0bb81ecd7a033cb",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/a_daily_1540_source/cache_only_race_fix/BEFORE_OVERLAY_INVENTORY.json": "862c6cdf80d01514c223ff5fce384cd69f19406e48e6ea54ecaec6abd8540990"
+  },
+  "excluded_local_backup": "cache_only_race_fix/BEFORE_CANDIDATE_OVERLAY.patch retained locally; no full stale patch uploaded",
+  "uncommitted_gate_and_other_dirty_preserved": true,
+  "undeployed_dependencies": [
+    "exact a-daily-sop-closure-20261029-r1-main unchanged one-shot/registry-review/calendar/dispatcher",
+    "accepted C4 e6df7898 producer/helper/sourceconfig/readers + original pinned sources",
+    "C4 gate dependency before C5 overlay; see restored exact SHA receipt"
+  ],
+  "not_installed": true,
+  "not_pushed": true
+}
