@@ -1,6 +1,6 @@
 # Dashboard framework collaboration — PUBLIC / synthetic only
 
-**Parent-frozen source export, pending independent public-content review; not uploaded.** This isolated package contains pure framework modules and synthetic interface tests, not the source/data/configuration of the private deployed Site.
+**Collaboration source increment — VISUAL_QA_BLOCKED_NOT_DEPLOYED.** Baseline source was synchronized at `34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10`; this increment adds four-column sorting, explicitly dated saved-snapshot cadence, bounded stored-data polling, and a data-free late-market adapter. Local tests are not visual acceptance or deployment. This isolated package contains pure framework modules and synthetic interface tests, not the source/data/configuration of the private deployed Site.
 
 ## Scope and ownership
 - Overall framework: date/identity coordination, candidate presentation, observation ordering, source-time status, bounded upload utility, and read-only adapter contracts.
@@ -25,3 +25,6 @@ The six pure modules were checked byte-for-byte against the parent-frozen source
 
 ## Actual visual shell
 `shell/index.html` and `shell/research-system.html` retain the actual framework's layout/CSS and interaction wiring, not merely a redesigned diagram. A public export intentionally has no `framework-api-base` meta configuration, so it stops at a clear unbound empty state without network requests. Explicit same-origin host injection is needed before reading any service. Real personal schedule literals and runtime counts are removed, timetable grouping is injected via `visual_stages`/`stage_index`, and real schedule/material JSON is not included. No chart is fabricated: external renderer is absent and the shell says so. Company validation is a deliberately disabled generic placeholder. These changes are recorded separately from byte-identical style/source. The synthetic demo remains independently runnable; neither shell nor demo claims production standalone completeness.
+
+## Source map and non-sensitive operations
+See [code map](docs/code-map/MAP.md), [inspection commands](docs/code-map/README.md), and [collaboration SOP](docs/code-map/OPERATIONS.md). Maps describe only this sanitized namespace; runtime/private data and authenticated SOP editing are absent.

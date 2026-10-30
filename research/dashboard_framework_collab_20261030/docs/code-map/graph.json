@@ -1,0 +1,2173 @@
+{
+  "schema": "ENGINEERING_CODE_MAP_V1",
+  "method": "TypeScript AST + HTML resource references + SQL literal references",
+  "source_digest": "c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3",
+  "nodes": [
+    {
+      "id": "case:tests/backend-reference.test.mjs:2394",
+      "kind": "test-case",
+      "label": "full observation validator runs on synthetic source without private data or authorization"
+    },
+    {
+      "id": "case:tests/backend-reference.test.mjs:2948",
+      "kind": "test-case",
+      "label": "public shim denies every write even when caller claims owner and confirmation"
+    },
+    {
+      "id": "case:tests/backend-reference.test.mjs:3415",
+      "kind": "test-case",
+      "label": "absent volume overlay stays unknown; request cannot self-supply trust pins"
+    },
+    {
+      "id": "case:tests/backend-reference.test.mjs:3692",
+      "kind": "test-case",
+      "label": "bounded utility rejects oversized request before parsing"
+    },
+    {
+      "id": "case:tests/framework.test.mjs:1561",
+      "kind": "test-case",
+      "label": "read-only adapter requires explicit host, exact identity and bounded bytes"
+    },
+    {
+      "id": "case:tests/framework.test.mjs:2382",
+      "kind": "test-case",
+      "label": "failed bounded upload does not permit commit, including null rejection"
+    },
+    {
+      "id": "case:tests/framework.test.mjs:2708",
+      "kind": "test-case",
+      "label": "injected synthetic workflow does not assert execution or actual calendar"
+    },
+    {
+      "id": "case:tests/framework.test.mjs:512",
+      "kind": "test-case",
+      "label": "synthetic scope and candidate counts are not a production pool"
+    },
+    {
+      "id": "case:tests/framework.test.mjs:866",
+      "kind": "test-case",
+      "label": "ordering is display-only, unknown units remain invalid, saved values remain dated; history remains labeled historical"
+    },
+    {
+      "id": "case:tests/market-archive.test.mjs:1227",
+      "kind": "test-case",
+      "label": "Korea late two-index layer preserves original08 unknown and rejects date or evidence drift"
+    },
+    {
+      "id": "case:tests/market-archive.test.mjs:494",
+      "kind": "test-case",
+      "label": "late archive is dated and explicitly not current or original deadline verified"
+    },
+    {
+      "id": "case:tests/market-archive.test.mjs:791",
+      "kind": "test-case",
+      "label": "wrongdate, null numbers, altered original status and future source cannot render"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:1299",
+      "kind": "test-case",
+      "label": "sort asc/desc valid first, truezero valid, immutable pool and original order restoration"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:1977",
+      "kind": "test-case",
+      "label": "wrongday futuretime and missing contract fail closed; no lunch grace for old1100"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:2507",
+      "kind": "test-case",
+      "label": "sorting and stored-data refresh retain chart selection; drawer is not a scheduler"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:3010",
+      "kind": "test-case",
+      "label": "old 1100 lunch snapshot does not claim1130 held; localclock presentation updates without network"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:3445",
+      "kind": "test-case",
+      "label": "volume compares normalized shares, not mixed vendor raw; unknown BJ last both ways and no mutation"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:4464",
+      "kind": "test-case",
+      "label": "same-day refresh failure retains last-good only; industry source separate from accepted company"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:4844",
+      "kind": "test-case",
+      "label": "ten minute cadence retains saved values after120seconds and overdue; rejects capture lag"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:5489",
+      "kind": "test-case",
+      "label": "four column numeric and pinyin sorting; unknown always last; amount is native CNY yuan"
+    },
+    {
+      "id": "case:tests/observation-view.test.mjs:714",
+      "kind": "test-case",
+      "label": "lunch holds valid1130 source, next-round wait preserves saved verified values; missing and unknown units never zero"
+    },
+    {
+      "id": "case:tests/shell.test.mjs:642",
+      "kind": "test-case",
+      "label": "unbound actual visual shell reaches empty state without fetch or renderer"
+    },
+    {
+      "id": "case:tests/shell.test.mjs:95",
+      "kind": "test-case",
+      "label": "visual shell retains layout but excludes private data schedule and renderer implementation"
+    },
+    {
+      "id": "case:tests/workbench-date.test.mjs:2787",
+      "kind": "test-case",
+      "label": "actual date handler clears prior day, ignores late requests, selects new identity and missing day stays empty"
+    },
+    {
+      "id": "case:tests/workbench-date.test.mjs:4098",
+      "kind": "test-case",
+      "label": "each actual stage handler opens schedule and scrolls the matching right-rail section"
+    },
+    {
+      "id": "case:tests/workbench-date.test.mjs:4598",
+      "kind": "test-case",
+      "label": "four real header handlers toggle sort and preserve current selection; stored poll prevents overlap"
+    },
+    {
+      "id": "fetch:shell/workbench.mjs:10411",
+      "kind": "request-expression",
+      "label": "u",
+      "resolved": false
+    },
+    {
+      "id": "file:demo/demo.mjs",
+      "kind": "file",
+      "label": "demo/demo.mjs",
+      "path": "demo/demo.mjs",
+      "sha256": "75c0d0186e7a9798be8fc68e480137502a640a9a9c9bb6c3a92f000f72337e27",
+      "bytes": 577,
+      "lines": 2,
+      "source_url": "../../demo/demo.mjs"
+    },
+    {
+      "id": "file:demo/index.html",
+      "kind": "file",
+      "label": "demo/index.html",
+      "path": "demo/index.html",
+      "sha256": "e9cc45993dbca7e4d44f48b7deb13326cad8eb1fe9759fbd1c1843f2dda3bafa",
+      "bytes": 1263,
+      "lines": 2,
+      "source_url": "../../demo/index.html"
+    },
+    {
+      "id": "file:demo/synthetic.mjs",
+      "kind": "file",
+      "label": "demo/synthetic.mjs",
+      "path": "demo/synthetic.mjs",
+      "sha256": "a52154ee80ea7ba54cbfdbc6a3ff5925454f15ef4ff081c219021314e98b4796",
+      "bytes": 1666,
+      "lines": 5,
+      "source_url": "../../demo/synthetic.mjs"
+    },
+    {
+      "id": "file:schemas/OBSERVATION_SCHEMA.sql",
+      "kind": "file",
+      "label": "schemas/OBSERVATION_SCHEMA.sql",
+      "path": "schemas/OBSERVATION_SCHEMA.sql",
+      "sha256": "1099b588ad471e2bcfbcf6e785de13665164585cda1d54be421e20d34fa652ca",
+      "bytes": 748,
+      "lines": 17,
+      "source_url": "../../schemas/OBSERVATION_SCHEMA.sql"
+    },
+    {
+      "id": "file:shell/company.mjs",
+      "kind": "file",
+      "label": "shell/company.mjs",
+      "path": "shell/company.mjs",
+      "sha256": "94c6f0ba5b5f30ece93b89a5bc78201cf1d0ec6fe564f2ed54e8aaa0ac27c529",
+      "bytes": 322,
+      "lines": 5,
+      "source_url": "../../shell/company.mjs"
+    },
+    {
+      "id": "file:shell/index.html",
+      "kind": "file",
+      "label": "shell/index.html",
+      "path": "shell/index.html",
+      "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+      "bytes": 9997,
+      "lines": 6,
+      "source_url": "../../shell/index.html"
+    },
+    {
+      "id": "file:shell/market-archive.mjs",
+      "kind": "file",
+      "label": "shell/market-archive.mjs",
+      "path": "shell/market-archive.mjs",
+      "sha256": "d305c7868ef7a032e50fa7d09118ce121ad6d51c031232ba0c19ccb3ed1bbbeb",
+      "bytes": 2325,
+      "lines": 5,
+      "source_url": "../../shell/market-archive.mjs"
+    },
+    {
+      "id": "file:shell/research-system.html",
+      "kind": "file",
+      "label": "shell/research-system.html",
+      "path": "shell/research-system.html",
+      "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+      "bytes": 9997,
+      "lines": 6,
+      "source_url": "../../shell/research-system.html"
+    },
+    {
+      "id": "file:shell/workbench-context.mjs",
+      "kind": "file",
+      "label": "shell/workbench-context.mjs",
+      "path": "shell/workbench-context.mjs",
+      "sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
+      "bytes": 9392,
+      "lines": 30,
+      "source_url": "../../shell/workbench-context.mjs"
+    },
+    {
+      "id": "file:shell/workbench.mjs",
+      "kind": "file",
+      "label": "shell/workbench.mjs",
+      "path": "shell/workbench.mjs",
+      "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+      "bytes": 24596,
+      "lines": 50,
+      "source_url": "../../shell/workbench.mjs"
+    },
+    {
+      "id": "file:shell/workflow-materials.mjs",
+      "kind": "file",
+      "label": "shell/workflow-materials.mjs",
+      "path": "shell/workflow-materials.mjs",
+      "sha256": "1cd0a2f3c2052e431fcc3ce6cb198d74380bb9a9c71014ac994dc8bfca4ab814",
+      "bytes": 3336,
+      "lines": 13,
+      "source_url": "../../shell/workflow-materials.mjs"
+    },
+    {
+      "id": "file:src/backend/bounded-bytes.mjs",
+      "kind": "file",
+      "label": "src/backend/bounded-bytes.mjs",
+      "path": "src/backend/bounded-bytes.mjs",
+      "sha256": "dc8ff8afe62e0b700765156734e9176e7ad0eadb66478c55a643755bbcf74744",
+      "bytes": 870,
+      "lines": 32,
+      "source_url": "../../src/backend/bounded-bytes.mjs"
+    },
+    {
+      "id": "file:src/backend/bounded-json.mjs",
+      "kind": "file",
+      "label": "src/backend/bounded-json.mjs",
+      "path": "src/backend/bounded-json.mjs",
+      "sha256": "922fafe8e7015a3870f4148d8e852989dcb45fd57ec2f238537975660a0b3ef4",
+      "bytes": 859,
+      "lines": 10,
+      "source_url": "../../src/backend/bounded-json.mjs"
+    },
+    {
+      "id": "file:src/backend/contracts.mjs",
+      "kind": "file",
+      "label": "src/backend/contracts.mjs",
+      "path": "src/backend/contracts.mjs",
+      "sha256": "cdb5ea9f8970705d504edf4aff0a9c0ab740d8b4cda64153128336f9c42c0dc4",
+      "bytes": 677,
+      "lines": 8,
+      "source_url": "../../src/backend/contracts.mjs"
+    },
+    {
+      "id": "file:src/backend/observation-volume.mjs",
+      "kind": "file",
+      "label": "src/backend/observation-volume.mjs",
+      "path": "src/backend/observation-volume.mjs",
+      "sha256": "89a8dbbf5dc4fd9794924a485ef6d0a8b62bcefa0f22dc964f09116ed6d4b504",
+      "bytes": 7632,
+      "lines": 11,
+      "source_url": "../../src/backend/observation-volume.mjs"
+    },
+    {
+      "id": "file:src/backend/observations.mjs",
+      "kind": "file",
+      "label": "src/backend/observations.mjs",
+      "path": "src/backend/observations.mjs",
+      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "bytes": 15302,
+      "lines": 27,
+      "source_url": "../../src/backend/observations.mjs"
+    },
+    {
+      "id": "file:src/backend/trusted-bindings.mjs",
+      "kind": "file",
+      "label": "src/backend/trusted-bindings.mjs",
+      "path": "src/backend/trusted-bindings.mjs",
+      "sha256": "25312ce10c85777c356bfe62b46139dde27382f76bf426759955f46a6b0b8924",
+      "bytes": 212,
+      "lines": 3,
+      "source_url": "../../src/backend/trusted-bindings.mjs"
+    },
+    {
+      "id": "file:src/model.mjs",
+      "kind": "file",
+      "label": "src/model.mjs",
+      "path": "src/model.mjs",
+      "sha256": "1825e8bde206bca16b219a265648ce4b8791d00d69e64e9737002ead26e2d42b",
+      "bytes": 1968,
+      "lines": 7,
+      "source_url": "../../src/model.mjs"
+    },
+    {
+      "id": "file:src/observation-view.mjs",
+      "kind": "file",
+      "label": "src/observation-view.mjs",
+      "path": "src/observation-view.mjs",
+      "sha256": "c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc",
+      "bytes": 8027,
+      "lines": 32,
+      "source_url": "../../src/observation-view.mjs"
+    },
+    {
+      "id": "file:src/projection-view.mjs",
+      "kind": "file",
+      "label": "src/projection-view.mjs",
+      "path": "src/projection-view.mjs",
+      "sha256": "a31daea95ae7ed4f4312e882eaafbefbe733837d96c0a81e561e6b70bb25a8b7",
+      "bytes": 4054,
+      "lines": 22,
+      "source_url": "../../src/projection-view.mjs"
+    },
+    {
+      "id": "file:src/readonly-adapter.mjs",
+      "kind": "file",
+      "label": "src/readonly-adapter.mjs",
+      "path": "src/readonly-adapter.mjs",
+      "sha256": "574fb8e41a68b356180337ad38886c692595d4d653c95ade0c35bc974c62eb1e",
+      "bytes": 1446,
+      "lines": 3,
+      "source_url": "../../src/readonly-adapter.mjs"
+    },
+    {
+      "id": "file:src/upload-pool.mjs",
+      "kind": "file",
+      "label": "src/upload-pool.mjs",
+      "path": "src/upload-pool.mjs",
+      "sha256": "f15907ac909770771106cac2612ca3bf084798975c962e907f2fcdda0af562f2",
+      "bytes": 786,
+      "lines": 10,
+      "source_url": "../../src/upload-pool.mjs"
+    },
+    {
+      "id": "file:src/workbench-model.mjs",
+      "kind": "file",
+      "label": "src/workbench-model.mjs",
+      "path": "src/workbench-model.mjs",
+      "sha256": "6c0dea1c7dacf8243fc943cd28ff2ec3b98729fc3fb2f1c696d9066919534886",
+      "bytes": 1154,
+      "lines": 7,
+      "source_url": "../../src/workbench-model.mjs"
+    },
+    {
+      "id": "file:src/workflow-time.mjs",
+      "kind": "file",
+      "label": "src/workflow-time.mjs",
+      "path": "src/workflow-time.mjs",
+      "sha256": "a2b65eec48872122a1b1f67008b9f368a4fb46e069380add3eb662f42f761a38",
+      "bytes": 2673,
+      "lines": 6,
+      "source_url": "../../src/workflow-time.mjs"
+    },
+    {
+      "id": "file:tests/backend-reference.test.mjs",
+      "kind": "test",
+      "label": "tests/backend-reference.test.mjs",
+      "path": "tests/backend-reference.test.mjs",
+      "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+      "bytes": 3912,
+      "lines": 8,
+      "source_url": "../../tests/backend-reference.test.mjs"
+    },
+    {
+      "id": "file:tests/framework.test.mjs",
+      "kind": "test",
+      "label": "tests/framework.test.mjs",
+      "path": "tests/framework.test.mjs",
+      "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+      "bytes": 3159,
+      "lines": 7,
+      "source_url": "../../tests/framework.test.mjs"
+    },
+    {
+      "id": "file:tests/market-archive.test.mjs",
+      "kind": "test",
+      "label": "tests/market-archive.test.mjs",
+      "path": "tests/market-archive.test.mjs",
+      "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+      "bytes": 2131,
+      "lines": 6,
+      "source_url": "../../tests/market-archive.test.mjs"
+    },
+    {
+      "id": "file:tests/observation-view.test.mjs",
+      "kind": "test",
+      "label": "tests/observation-view.test.mjs",
+      "path": "tests/observation-view.test.mjs",
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "bytes": 6644,
+      "lines": 14,
+      "source_url": "../../tests/observation-view.test.mjs"
+    },
+    {
+      "id": "file:tests/shell.test.mjs",
+      "kind": "test",
+      "label": "tests/shell.test.mjs",
+      "path": "tests/shell.test.mjs",
+      "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+      "bytes": 1782,
+      "lines": 4,
+      "source_url": "../../tests/shell.test.mjs"
+    },
+    {
+      "id": "file:tests/workbench-date.test.mjs",
+      "kind": "test",
+      "label": "tests/workbench-date.test.mjs",
+      "path": "tests/workbench-date.test.mjs",
+      "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+      "bytes": 5776,
+      "lines": 14,
+      "source_url": "../../tests/workbench-date.test.mjs"
+    },
+    {
+      "id": "global:innerHeight",
+      "kind": "browser-global",
+      "label": "innerHeight"
+    },
+    {
+      "id": "global:OriginalFullChart",
+      "kind": "browser-global",
+      "label": "OriginalFullChart"
+    },
+    {
+      "id": "package:node:assert/strict",
+      "kind": "external-package",
+      "label": "node:assert/strict"
+    },
+    {
+      "id": "package:node:fs",
+      "kind": "external-package",
+      "label": "node:fs"
+    },
+    {
+      "id": "package:node:test",
+      "kind": "external-package",
+      "label": "node:test"
+    },
+    {
+      "id": "package:node:vm",
+      "kind": "external-package",
+      "label": "node:vm"
+    },
+    {
+      "id": "r2:src/backend/observations.mjs:11105",
+      "kind": "r2-operation",
+      "label": "get key(row.sha256)",
+      "operation": "get",
+      "key_expression": "key(row.sha256)"
+    },
+    {
+      "id": "r2:src/backend/observations.mjs:14061",
+      "kind": "r2-operation",
+      "label": "put key(id)",
+      "operation": "put",
+      "key_expression": "key(id)"
+    },
+    {
+      "id": "r2:src/backend/observations.mjs:14156",
+      "kind": "r2-operation",
+      "label": "get key(id)",
+      "operation": "get",
+      "key_expression": "key(id)"
+    },
+    {
+      "id": "route:src/backend/observations.mjs:/^\\/api\\/research-system\\/v1\\/days\\/(\\d{4}-\\d{2}-\\d{2})\\/observations$/",
+      "kind": "route",
+      "label": "/^\\/api\\/research-system\\/v1\\/days\\/(\\d{4}-\\d{2}-\\d{2})\\/observations$/",
+      "owner": "src/backend/observations.mjs",
+      "classification": "regex-candidate-not-runtime-registration"
+    },
+    {
+      "id": "route:src/backend/observations.mjs:/^\\/api\\/research-system\\/v1\\/observations\\/([a-f0-9]{64})$/",
+      "kind": "route",
+      "label": "/^\\/api\\/research-system\\/v1\\/observations\\/([a-f0-9]{64})$/",
+      "owner": "src/backend/observations.mjs",
+      "classification": "regex-candidate-not-runtime-registration"
+    },
+    {
+      "id": "route:src/backend/observations.mjs:/api/research-system/v1",
+      "kind": "route",
+      "label": "/api/research-system/v1",
+      "owner": "src/backend/observations.mjs",
+      "classification": "literal-or-regex-candidate-not-runtime-registration"
+    },
+    {
+      "id": "route:tests/framework.test.mjs:/api/",
+      "kind": "route",
+      "label": "/api/",
+      "owner": "tests/framework.test.mjs",
+      "classification": "literal-or-regex-candidate-not-runtime-registration"
+    },
+    {
+      "id": "route:tests/workbench-date.test.mjs:/^\\/synthetic-api\\/days\\/.*observations/",
+      "kind": "route",
+      "label": "/^\\/synthetic-api\\/days\\/.*observations/",
+      "owner": "tests/workbench-date.test.mjs",
+      "classification": "regex-candidate-not-runtime-registration"
+    },
+    {
+      "id": "schema:CLASSIFICATION_DISPLAY_COMPACT_V1",
+      "kind": "schema",
+      "label": "CLASSIFICATION_DISPLAY_COMPACT_V1"
+    },
+    {
+      "id": "schema:CROSS_MARKET_CONTEXT_V1",
+      "kind": "schema",
+      "label": "CROSS_MARKET_CONTEXT_V1"
+    },
+    {
+      "id": "schema:JAPAN_LATE_ARCHIVE_COMPACT_V1",
+      "kind": "schema",
+      "label": "JAPAN_LATE_ARCHIVE_COMPACT_V1"
+    },
+    {
+      "id": "schema:OBSERVATION_SNAPSHOT_V1",
+      "kind": "schema",
+      "label": "OBSERVATION_SNAPSHOT_V1"
+    },
+    {
+      "id": "schema:OBSERVATION_SNAPSHOT_VIEW_V1",
+      "kind": "schema",
+      "label": "OBSERVATION_SNAPSHOT_VIEW_V1"
+    },
+    {
+      "id": "schema:RESEARCH_SYSTEM_DAY_V1",
+      "kind": "schema",
+      "label": "RESEARCH_SYSTEM_DAY_V1"
+    },
+    {
+      "id": "schema:WORKFLOW_MATERIALS_V1",
+      "kind": "schema",
+      "label": "WORKFLOW_MATERIALS_V1"
+    },
+    {
+      "id": "table:no",
+      "kind": "d1-table",
+      "label": "no"
+    },
+    {
+      "id": "table:research_admissions",
+      "kind": "d1-table",
+      "label": "research_admissions"
+    },
+    {
+      "id": "table:research_days",
+      "kind": "d1-table",
+      "label": "research_days"
+    },
+    {
+      "id": "table:research_observation_snapshots",
+      "kind": "d1-table",
+      "label": "research_observation_snapshots"
+    }
+  ],
+  "edges": [
+    {
+      "from": "file:demo/demo.mjs",
+      "to": "file:demo/synthetic.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "demo/demo.mjs",
+        "line": 1,
+        "sha256": "75c0d0186e7a9798be8fc68e480137502a640a9a9c9bb6c3a92f000f72337e27",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/demo.mjs#L1"
+      }
+    },
+    {
+      "from": "file:demo/demo.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "demo/demo.mjs",
+        "line": 1,
+        "sha256": "75c0d0186e7a9798be8fc68e480137502a640a9a9c9bb6c3a92f000f72337e27",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/demo.mjs#L1"
+      }
+    },
+    {
+      "from": "file:demo/demo.mjs",
+      "to": "file:src/workbench-model.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "demo/demo.mjs",
+        "line": 1,
+        "sha256": "75c0d0186e7a9798be8fc68e480137502a640a9a9c9bb6c3a92f000f72337e27",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/demo.mjs#L1"
+      }
+    },
+    {
+      "from": "file:demo/index.html",
+      "to": "file:demo/demo.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "demo/index.html",
+        "line": 1,
+        "sha256": "e9cc45993dbca7e4d44f48b7deb13326cad8eb1fe9759fbd1c1843f2dda3bafa",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/index.html#L1"
+      }
+    },
+    {
+      "from": "file:demo/synthetic.mjs",
+      "to": "schema:RESEARCH_SYSTEM_DAY_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "demo/synthetic.mjs",
+        "line": 2,
+        "sha256": "a52154ee80ea7ba54cbfdbc6a3ff5925454f15ef4ff081c219021314e98b4796",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/synthetic.mjs#L2"
+      }
+    },
+    {
+      "from": "file:demo/synthetic.mjs",
+      "to": "schema:OBSERVATION_SNAPSHOT_VIEW_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "demo/synthetic.mjs",
+        "line": 3,
+        "sha256": "a52154ee80ea7ba54cbfdbc6a3ff5925454f15ef4ff081c219021314e98b4796",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../demo/synthetic.mjs#L3"
+      }
+    },
+    {
+      "from": "file:schemas/OBSERVATION_SCHEMA.sql",
+      "to": "table:no",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "schemas/OBSERVATION_SCHEMA.sql",
+        "line": 1,
+        "sha256": "1099b588ad471e2bcfbcf6e785de13665164585cda1d54be421e20d34fa652ca",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../schemas/OBSERVATION_SCHEMA.sql#L1"
+      },
+      "sql_operation": "CREATE"
+    },
+    {
+      "from": "file:schemas/OBSERVATION_SCHEMA.sql",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "schemas/OBSERVATION_SCHEMA.sql",
+        "line": 1,
+        "sha256": "1099b588ad471e2bcfbcf6e785de13665164585cda1d54be421e20d34fa652ca",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../schemas/OBSERVATION_SCHEMA.sql#L1"
+      },
+      "sql_operation": "CREATE"
+    },
+    {
+      "from": "file:shell/index.html",
+      "to": "file:shell/workbench.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/index.html",
+        "line": 5,
+        "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/index.html#L5"
+      }
+    },
+    {
+      "from": "file:shell/market-archive.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/market-archive.mjs",
+        "line": 1,
+        "sha256": "d305c7868ef7a032e50fa7d09118ce121ad6d51c031232ba0c19ccb3ed1bbbeb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/market-archive.mjs#L1"
+      }
+    },
+    {
+      "from": "file:shell/market-archive.mjs",
+      "to": "schema:JAPAN_LATE_ARCHIVE_COMPACT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "shell/market-archive.mjs",
+        "line": 3,
+        "sha256": "d305c7868ef7a032e50fa7d09118ce121ad6d51c031232ba0c19ccb3ed1bbbeb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/market-archive.mjs#L3"
+      }
+    },
+    {
+      "from": "file:shell/research-system.html",
+      "to": "file:shell/workbench.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/research-system.html",
+        "line": 5,
+        "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/research-system.html#L5"
+      }
+    },
+    {
+      "from": "file:shell/workbench-context.mjs",
+      "to": "file:shell/market-archive.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench-context.mjs",
+        "line": 1,
+        "sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench-context.mjs#L1"
+      }
+    },
+    {
+      "from": "file:shell/workbench-context.mjs",
+      "to": "file:shell/workflow-materials.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench-context.mjs",
+        "line": 2,
+        "sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench-context.mjs#L2"
+      }
+    },
+    {
+      "from": "file:shell/workbench-context.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench-context.mjs",
+        "line": 3,
+        "sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench-context.mjs#L3"
+      }
+    },
+    {
+      "from": "file:shell/workbench-context.mjs",
+      "to": "file:src/workflow-time.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench-context.mjs",
+        "line": 4,
+        "sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench-context.mjs#L4"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 1,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L1"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:shell/workbench-context.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 2,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L2"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:src/projection-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 3,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L3"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:src/model.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 4,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L4"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:src/workbench-model.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 5,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L5"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "file:shell/company.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 6,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L6"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "fetch:shell/workbench.mjs:10411",
+      "kind": "fetches",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 33,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L33"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 34,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L34"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 35,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L35"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 35,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L35"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:innerHeight",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 36,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L36"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 36,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L36"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 36,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L36"
+      }
+    },
+    {
+      "from": "file:shell/workbench.mjs",
+      "to": "global:OriginalFullChart",
+      "kind": "uses-global",
+      "evidence": {
+        "path": "shell/workbench.mjs",
+        "line": 36,
+        "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workbench.mjs#L36"
+      }
+    },
+    {
+      "from": "file:shell/workflow-materials.mjs",
+      "to": "schema:WORKFLOW_MATERIALS_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "shell/workflow-materials.mjs",
+        "line": 4,
+        "sha256": "1cd0a2f3c2052e431fcc3ce6cb198d74380bb9a9c71014ac994dc8bfca4ab814",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../shell/workflow-materials.mjs#L4"
+      }
+    },
+    {
+      "from": "file:src/backend/bounded-bytes.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/bounded-bytes.mjs",
+        "line": 1,
+        "sha256": "dc8ff8afe62e0b700765156734e9176e7ad0eadb66478c55a643755bbcf74744",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/bounded-bytes.mjs#L1"
+      }
+    },
+    {
+      "from": "file:src/backend/bounded-json.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/bounded-json.mjs",
+        "line": 1,
+        "sha256": "922fafe8e7015a3870f4148d8e852989dcb45fd57ec2f238537975660a0b3ef4",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/bounded-json.mjs#L1"
+      }
+    },
+    {
+      "from": "file:src/backend/observation-volume.mjs",
+      "to": "file:src/backend/trusted-bindings.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observation-volume.mjs",
+        "line": 2,
+        "sha256": "89a8dbbf5dc4fd9794924a485ef6d0a8b62bcefa0f22dc964f09116ed6d4b504",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observation-volume.mjs#L2"
+      }
+    },
+    {
+      "from": "file:src/backend/observation-volume.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observation-volume.mjs",
+        "line": 4,
+        "sha256": "89a8dbbf5dc4fd9794924a485ef6d0a8b62bcefa0f22dc964f09116ed6d4b504",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observation-volume.mjs#L4"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "file:src/backend/observation-volume.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 2,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L2"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 3,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L3"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "file:src/backend/bounded-json.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 4,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L4"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "file:src/backend/bounded-bytes.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 5,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L5"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "route:src/backend/observations.mjs:/api/research-system/v1",
+      "kind": "route-literal",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 6,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L6"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_admissions",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 11,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L11"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_days",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 11,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L11"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "schema:OBSERVATION_SNAPSHOT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 13,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L13"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "schema:CLASSIFICATION_DISPLAY_COMPACT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 14,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L14"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "schema:CROSS_MARKET_CONTEXT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 14,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L14"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "schema:OBSERVATION_SNAPSHOT_VIEW_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 19,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L19"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "r2:src/backend/observations.mjs:11105",
+      "kind": "r2-access",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 21,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L21"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "route:src/backend/observations.mjs:/^\\/api\\/research-system\\/v1\\/days\\/(\\d{4}-\\d{2}-\\d{2})\\/observations$/",
+      "kind": "route-regex",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 22,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L22"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 23,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L23"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "route:src/backend/observations.mjs:/^\\/api\\/research-system\\/v1\\/observations\\/([a-f0-9]{64})$/",
+      "kind": "route-regex",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 24,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L24"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 24,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L24"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "r2:src/backend/observations.mjs:14061",
+      "kind": "r2-access",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 25,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L25"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "r2:src/backend/observations.mjs:14156",
+      "kind": "r2-access",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 25,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L25"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 25,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L25"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 25,
+        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L25"
+      },
+      "sql_operation": "INSERT"
+    },
+    {
+      "from": "file:src/model.mjs",
+      "to": "schema:RESEARCH_SYSTEM_DAY_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/model.mjs",
+        "line": 2,
+        "sha256": "1825e8bde206bca16b219a265648ce4b8791d00d69e64e9737002ead26e2d42b",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/model.mjs#L2"
+      }
+    },
+    {
+      "from": "file:src/observation-view.mjs",
+      "to": "schema:OBSERVATION_SNAPSHOT_VIEW_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "src/observation-view.mjs",
+        "line": 25,
+        "sha256": "c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/observation-view.mjs#L25"
+      }
+    },
+    {
+      "from": "file:src/workflow-time.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/workflow-time.mjs",
+        "line": 1,
+        "sha256": "a2b65eec48872122a1b1f67008b9f368a4fb46e069380add3eb662f42f761a38",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/workflow-time.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "file:src/backend/bounded-json.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "file:src/backend/observation-volume.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "file:src/backend/observations.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 1,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "schema:OBSERVATION_SNAPSHOT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 3,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "case:tests/backend-reference.test.mjs:2394",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 4,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L4"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "case:tests/backend-reference.test.mjs:2948",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 5,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "case:tests/backend-reference.test.mjs:3415",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 6,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L6"
+      }
+    },
+    {
+      "from": "file:tests/backend-reference.test.mjs",
+      "to": "case:tests/backend-reference.test.mjs:3692",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/backend-reference.test.mjs",
+        "line": 7,
+        "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/backend-reference.test.mjs#L7"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:demo/synthetic.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/model.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/readonly-adapter.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/upload-pool.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/workbench-model.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "file:src/workflow-time.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 1,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "case:tests/framework.test.mjs:512",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 2,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "case:tests/framework.test.mjs:866",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 3,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "case:tests/framework.test.mjs:1561",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 4,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L4"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "route:tests/framework.test.mjs:/api/",
+      "kind": "route-literal",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 4,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L4"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "case:tests/framework.test.mjs:2382",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 5,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/framework.test.mjs",
+      "to": "case:tests/framework.test.mjs:2708",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/framework.test.mjs",
+        "line": 6,
+        "sha256": "c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/framework.test.mjs#L6"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "file:shell/market-archive.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 1,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 1,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 1,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "schema:JAPAN_LATE_ARCHIVE_COMPACT_V1",
+      "kind": "schema-literal",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 2,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "case:tests/market-archive.test.mjs:494",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 3,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "case:tests/market-archive.test.mjs:791",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 4,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L4"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "case:tests/market-archive.test.mjs:1227",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 5,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/market-archive.test.mjs",
+      "to": "file:shell/market-archive.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/market-archive.test.mjs",
+        "line": 5,
+        "sha256": "20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/market-archive.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 1,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 1,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:714",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 5,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:1299",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 6,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L6"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:1977",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 7,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L7"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:2507",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 8,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L8"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "package:node:fs",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 8,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L8"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:3010",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 9,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L9"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "package:node:fs",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 9,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L9"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:3445",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 10,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L10"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:4464",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 11,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L11"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "package:node:fs",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 11,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L11"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:4844",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 12,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L12"
+      }
+    },
+    {
+      "from": "file:tests/observation-view.test.mjs",
+      "to": "case:tests/observation-view.test.mjs:5489",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/observation-view.test.mjs",
+        "line": 13,
+        "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/observation-view.test.mjs#L13"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 1,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "package:node:fs",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 1,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 1,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "case:tests/shell.test.mjs:95",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 2,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "case:tests/shell.test.mjs:642",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 3,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/shell.test.mjs",
+      "to": "file:shell/workbench.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/shell.test.mjs",
+        "line": 3,
+        "sha256": "f1e8101831d76f0e29f0814325b237e42de453a87caab2211dbc9d6c526df7eb",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/shell.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 1,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "package:node:fs",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 1,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 1,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "package:node:vm",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 1,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L1"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "file:src/observation-view.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 2,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "case:tests/workbench-date.test.mjs:2787",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 9,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L9"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "case:tests/workbench-date.test.mjs:4098",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 11,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L11"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "case:tests/workbench-date.test.mjs:4598",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 13,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L13"
+      }
+    },
+    {
+      "from": "file:tests/workbench-date.test.mjs",
+      "to": "route:tests/workbench-date.test.mjs:/^\\/synthetic-api\\/days\\/.*observations/",
+      "kind": "route-regex",
+      "evidence": {
+        "path": "tests/workbench-date.test.mjs",
+        "line": 13,
+        "sha256": "f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/workbench-date.test.mjs#L13"
+      }
+    }
+  ],
+  "unknowns": [
+    {
+      "path": "shell/index.html",
+      "line": 1,
+      "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "unresolved-local-import",
+      "expression": "./workbench.css",
+      "source_url": "../../shell/index.html#L1"
+    },
+    {
+      "path": "shell/research-system.html",
+      "line": 1,
+      "sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "unresolved-local-import",
+      "expression": "./workbench.css",
+      "source_url": "../../shell/research-system.html#L1"
+    },
+    {
+      "path": "shell/workbench.mjs",
+      "line": 33,
+      "sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "fetch-target-not-runtime-resolved",
+      "expression": "u",
+      "source_url": "../../shell/workbench.mjs#L33"
+    },
+    {
+      "path": "src/backend/observations.mjs",
+      "line": 21,
+      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "computed-r2-key",
+      "expression": "key(row.sha256)",
+      "source_url": "../../src/backend/observations.mjs#L21"
+    },
+    {
+      "path": "src/backend/observations.mjs",
+      "line": 25,
+      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "computed-r2-key",
+      "expression": "key(id)",
+      "source_url": "../../src/backend/observations.mjs#L25"
+    },
+    {
+      "path": "src/backend/observations.mjs",
+      "line": 25,
+      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "computed-r2-key",
+      "expression": "key(id)",
+      "source_url": "../../src/backend/observations.mjs#L25"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 5,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L5"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 6,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L6"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 7,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L7"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 9,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L9"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 10,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L10"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 12,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L12"
+    },
+    {
+      "path": "tests/observation-view.test.mjs",
+      "line": 13,
+      "sha256": "205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37",
+      "certainty": "STATIC_SYNTAX",
+      "reason": "dynamic-import",
+      "expression": "import(url)",
+      "source_url": "../../tests/observation-view.test.mjs#L13"
+    }
+  ],
+  "visibility": "PUBLIC_SANITIZED_FRAMEWORK_SUBSET_ONLY",
+  "source_commit": null,
+  "base_commit": "34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10",
+  "source_revision_kind": "CONTENT_HASH_SNAPSHOT_PENDING_COMMIT",
+  "source_link_mode": "RELATIVE_TO_SAME_COMMIT_DOCS_CODE_MAP",
+  "parent_package_manifest_sha256": "118a86c29fa0484926737509ef2bda4209e05d8087cb5953786bfa49024368af",
+  "release_status": "VISUAL_QA_BLOCKED_NOT_DEPLOYED",
+  "scope_note": "Only sanitized manifest source subset, not private runtime. Exact bytes identified by per-file SHA and source_digest. Relative links resolve to code in the same eventual commit."
+}

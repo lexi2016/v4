@@ -1,5 +1,5 @@
 {
-  "status": "PARENT_SOURCE_FREEZE_VERIFIED_PENDING_INDEPENDENT_CONTENT_REVIEW",
+  "status": "FROZEN_PUBLIC_DELTA_VISUAL_QA_BLOCKED_NOT_DEPLOYED",
   "production_byte_identity_claim": false,
   "records": [
     {
@@ -57,37 +57,37 @@
   "visual_shell_records": [
     {
       "source_path": "public/research-system/index.html",
-      "source_code_sha256": "9c78c6e92e96d0719eda71f9cb0ca0cc5750a6d834824db325d5e02179a39b55",
+      "source_code_sha256": "a9ee3b328bffdd7793cbd54da61e983a446ba50447b4eb8ba9353a7a9cabc705",
       "export_path": "shell/index.html",
-      "export_sha256": "8fdaaef9d43a12928ecd1fb4ac87c8f7bfa3491ddb14c2b3e0b582227ac63e4f",
+      "export_sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
       "changes": "Source visual layout preserved; private schedule literals/data denominators/default endpoints/renderer loader removed or made host-injected as applicable; source import paths relocated."
     },
     {
       "source_path": "public/research-system/research-system.html",
-      "source_code_sha256": "9c78c6e92e96d0719eda71f9cb0ca0cc5750a6d834824db325d5e02179a39b55",
+      "source_code_sha256": "a9ee3b328bffdd7793cbd54da61e983a446ba50447b4eb8ba9353a7a9cabc705",
       "export_path": "shell/research-system.html",
-      "export_sha256": "8fdaaef9d43a12928ecd1fb4ac87c8f7bfa3491ddb14c2b3e0b582227ac63e4f",
+      "export_sha256": "787006345ab1e1c736570dec51bb5a3681a48b57d3e0e106773578abc6096fd8",
       "changes": "Source visual layout preserved; private schedule literals/data denominators/default endpoints/renderer loader removed or made host-injected as applicable; source import paths relocated."
     },
     {
       "source_path": "public/research-system/workbench.css",
-      "source_code_sha256": "afb733ce9443113c4ff9f1843be6b13f9a2d1586e189dd0fb24ad43c636d90cc",
+      "source_code_sha256": "6835ec096dac51e414c24e86fe400bf3aecc690acd718040a89d77fa94225b6e",
       "export_path": "shell/workbench.css",
-      "export_sha256": "afb733ce9443113c4ff9f1843be6b13f9a2d1586e189dd0fb24ad43c636d90cc",
+      "export_sha256": "6835ec096dac51e414c24e86fe400bf3aecc690acd718040a89d77fa94225b6e",
       "changes": "Byte-identical pure style/source, no runtime data."
     },
     {
       "source_path": "public/research-system/workbench.mjs",
-      "source_code_sha256": "194d1d0961e4ab88b50577e2b9542155a72043fff565a1247694e8479da585bc",
+      "source_code_sha256": "7be44e9c6517c3bc5eb3bb9ed39be55ff0db5599b4aca30f53f6c53d21c15538",
       "export_path": "shell/workbench.mjs",
-      "export_sha256": "a1737d6e407f333943e950dc3689da9a32f08eb6195d489495f94ff446678db9",
+      "export_sha256": "65044857a2eb6a84db24dda6179f87b81613ee050bdf2d29b0d3337e726e9179",
       "changes": "Source visual layout preserved; private schedule literals/data denominators/default endpoints/renderer loader removed or made host-injected as applicable; source import paths relocated."
     },
     {
       "source_path": "public/research-system/workbench-context.mjs",
-      "source_code_sha256": "46524e9a6832158584c3329f2b697ebf2120cec2514389e9aa5723139f139f58",
+      "source_code_sha256": "6f8a17730aceb78d5847aaf9873a294958b35474d0d2c6fcad69a07082de8b06",
       "export_path": "shell/workbench-context.mjs",
-      "export_sha256": "20d5cfd15593d078702a4da23c18f86b7ce04259f095417a423f652070dbd7dd",
+      "export_sha256": "c013f17facdf86e093d5291e941249ad6de32c2eb44fa55b0b82c49f8615d2d3",
       "changes": "Source visual layout preserved; private schedule literals/data denominators/default endpoints/renderer loader removed or made host-injected as applicable; source import paths relocated."
     },
     {
@@ -99,11 +99,22 @@
     },
     {
       "source_path": "public/research-system/market-archive.mjs",
-      "source_code_sha256": "eb48500f1b58ae8001771b5f469a8092a835398ef37eef510a3cfe3576129272",
+      "source_code_sha256": "fa787e23059400aa3ff6c9db9d176ca217897b6767955a3e0215a9fc1220f3a9",
       "export_path": "shell/market-archive.mjs",
-      "export_sha256": "a992592c29d0f63ae2e5b7ca654786d63b8b7a9f4418965f1da1ad42fbd5f4dc",
+      "export_sha256": "d305c7868ef7a032e50fa7d09118ce121ad6d51c031232ba0c19ccb3ed1bbbeb",
       "changes": "Source visual layout preserved; private schedule literals/data denominators/default endpoints/renderer loader removed or made host-injected as applicable; source import paths relocated."
     }
   ],
-  "visual_shell_boundary": "Actual layout source, not complete production standalone; no default API, renderer or company validator. Real user workflow schedule removed."
+  "visual_shell_boundary": "Actual layout source, not complete production standalone; no default API, renderer or company validator. Real user workflow schedule removed.",
+  "delta_base_public_commit": "34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10",
+  "delta_changes": "Three-way merged parent-frozen code delta onto sanitized baseline. Retained unbound zero-fetch shell, optional external renderer, injected schedule, deny-write authorization and null trust. Tests use artificial dates/values; no market compact included.",
+  "delta_source_records": [
+    {
+      "source_path": "public/research-system/observation-view.mjs",
+      "source_code_sha256": "c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc",
+      "export_path": "src/observation-view.mjs",
+      "export_sha256": "c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc",
+      "change": "Byte-identical pure module; saved-value cadence semantics updated."
+    }
+  ]
 }

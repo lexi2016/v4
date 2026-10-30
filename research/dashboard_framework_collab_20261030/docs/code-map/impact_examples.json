@@ -1,0 +1,65 @@
+[
+  {
+    "changed_file": "shell/workbench.mjs",
+    "scope": "transitive static local-import and window-global dependents; runtime calls and computed dependencies may be absent",
+    "affected_files": [
+      "shell/workbench.mjs",
+      "shell/index.html",
+      "shell/research-system.html",
+      "tests/shell.test.mjs"
+    ],
+    "tests": [
+      "tests/shell.test.mjs"
+    ]
+  },
+  {
+    "changed_file": "src/backend/observations.mjs",
+    "scope": "transitive static local-import and window-global dependents; runtime calls and computed dependencies may be absent",
+    "affected_files": [
+      "src/backend/observations.mjs",
+      "tests/backend-reference.test.mjs"
+    ],
+    "tests": [
+      "tests/backend-reference.test.mjs"
+    ]
+  },
+  {
+    "changed_file": "src/observation-view.mjs",
+    "scope": "transitive static local-import and window-global dependents; runtime calls and computed dependencies may be absent",
+    "affected_files": [
+      "src/observation-view.mjs",
+      "demo/demo.mjs",
+      "demo/index.html",
+      "shell/market-archive.mjs",
+      "shell/workbench-context.mjs",
+      "shell/workbench.mjs",
+      "src/workflow-time.mjs",
+      "tests/framework.test.mjs",
+      "tests/market-archive.test.mjs",
+      "tests/shell.test.mjs",
+      "tests/workbench-date.test.mjs",
+      "shell/index.html",
+      "shell/research-system.html"
+    ],
+    "tests": [
+      "tests/framework.test.mjs",
+      "tests/market-archive.test.mjs",
+      "tests/shell.test.mjs",
+      "tests/workbench-date.test.mjs"
+    ]
+  },
+  {
+    "changed_file": "src/projection-view.mjs",
+    "scope": "transitive static local-import and window-global dependents; runtime calls and computed dependencies may be absent",
+    "affected_files": [
+      "src/projection-view.mjs",
+      "shell/workbench.mjs",
+      "tests/shell.test.mjs",
+      "shell/index.html",
+      "shell/research-system.html"
+    ],
+    "tests": [
+      "tests/shell.test.mjs"
+    ]
+  }
+]
