@@ -98,7 +98,8 @@ class SourceContext:
   if frame.empty:return [],None
   if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
   bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
-  value=frame.name.iloc[-1];name=value if isinstance(value,str) and value else None
+  names=frame.name[frame.name.map(lambda value:isinstance(value,str) and bool(value.strip()))]
+  name=names.iloc[-1].strip() if len(names) else None
   return bars,name
  def engine(self):
   if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')

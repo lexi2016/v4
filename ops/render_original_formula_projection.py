@@ -171,6 +171,35 @@ def project(engine, inventory, bound, symbol):
         "renderer_semantics": "UNCHANGED_R19_DISPLAY; NOT_NATIVE_TDX_ICON_OR_COLOR_EQUIVALENCE_CERTIFICATION", **FLAGS}
 
 
+def interactive_chart_html(html):
+    """Adapt installed local R19 setWindow/wheel/drag to this R19 row shape.
+
+    Source: research-panel/r19-chart.js, SHA e66cbc2994b9ddcf13941323b9eb1dc9358e06ef902897d0226a2f2b862f3061.
+    The existing choose/paint glyph and table code and embedded payload stay intact.
+    """
+    if 'id="original-view-reset"' in html:
+        return html
+    old = "const count=Number($('window').value),offset=count?Math.max(0,state.rows.length-count):0,rows=state.rows.slice(offset);"
+    new = "const count=Number($('window').value);if(!state.view){const n=count?Math.min(count,state.rows.length):state.rows.length;state.view={start:state.rows.length-n,count:n};}const offset=state.view.start,rows=state.rows.slice(offset,offset+state.view.count);"
+    require(html.count(old) == 1 and html.count("$('window').onchange=paint;") == 1, "LOCAL_R19_VIEWPORT_ADAPTER_MISMATCH")
+    html = html.replace(old, new, 1).replace("state.visible=[];delete document.documentElement.dataset.loaded", "state.visible=[];state.view=null;delete document.documentElement.dataset.loaded", 1)
+    html = html.replace("$('window').onchange=paint;", "$('window').onchange=()=>setOriginalWindow(Number($('window').value),state.rows.length);", 1)
+    html = html.replace('</select><label><input id="draw-text"', '</select><button type="button" id="original-view-reset">恢复原区间</button><label><input id="draw-text"', 1)
+    html = html.replace('touch-action:pan-y', 'touch-action:none')
+    script = r"""
+// Existing local R19 interaction semantics; only rows/geometry names are adapted.
+function setOriginalWindow(count,end){const n=state.rows.length;if(!n)return;const view=state.view||{start:0,count:n};view.count=count===0?n:Math.max(Math.min(10,n),Math.min(n,Math.round(count)));view.start=Math.max(0,Math.min(n-view.count,(end??(view.start+view.count))-view.count));state.view=view;paint();}
+const originalCanvas=$('chart');let originalDrag=null;
+$('original-view-reset').onclick=()=>{setOriginalWindow(Number($('window').value),state.rows.length);choose(state.rows.length-1);paint();};
+originalCanvas.onpointerdown=e=>{originalDrag={x:e.clientX,start:state.view?.start||0};originalCanvas.setPointerCapture(e.pointerId);};
+originalCanvas.onpointerup=()=>{originalDrag=null;};originalCanvas.onpointercancel=()=>{originalDrag=null;};originalCanvas.onlostpointercapture=()=>{originalDrag=null;};
+originalCanvas.onpointermove=e=>{if(!state.visible.length||!state.geometry)return;const{L,step}=state.geometry;if(originalDrag){state.view.start=Math.max(0,Math.min(state.rows.length-state.view.count,originalDrag.start-Math.round((e.clientX-originalDrag.x)/step)));paint();}const xx=e.clientX-originalCanvas.getBoundingClientRect().left;const hover=Math.max(0,Math.min(state.visible.length-1,Math.floor((xx-L)/step)));choose(state.offset+hover);paint();};
+originalCanvas.addEventListener('wheel',e=>{e.preventDefault();if(!state.view)return;const oldEnd=state.view.start+state.view.count;setOriginalWindow(Math.round(state.view.count*(e.deltaY>0?1.2:.8)),oldEnd);},{passive:false});
+"""
+    require(html.count('(async()=>{try{const response=await fetch(\'/v1/registry\'') == 1, "LOCAL_R19_INITIALIZATION_MISMATCH")
+    return html.replace("(async()=>{try{const response=await fetch('/v1/registry'", script + "\n(async()=>{try{const response=await fetch('/v1/registry'", 1)
+
+
 def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
     """Reuse the R19 canvas/table implementation; replace only transport and labels."""
     require(not projection["unsupported_drawings"], "RENDERER_DRAWING_TYPE_UNSUPPORTED")
@@ -204,7 +233,7 @@ def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
     html = html.replace("function sourceLabel(body){", "function sourceLabel(body){if(body.projection_source_label)return body.projection_source_label;")
     html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示候选原式派生投影，尚不构成独审或原生等价认证。")
     html = html.replace("已登记", "样例派生").replace("完整重算行数", "原式投影行数")
-    return html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1)
+    return interactive_chart_html(html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1))
 
 
 def write_json(path, value):

@@ -936,7 +936,7 @@ class ResearchLaneSource:
 
     def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
         """Read only the explicitly bound, completed original-chart artifacts."""
-        product = self.read_a_daily_product(date)
+        product = self.read_a_daily_product(date, include_display_names=False)
         binding = self.original_chart_binding
         if binding is None:
             root = self._a_product_root()
@@ -1132,7 +1132,41 @@ class ResearchLaneSource:
                     or binding.get("rule_sha256") != group["rule_sha256"]):
                 raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
 
-    def read_a_daily_product(self, date=None, symbol=None):
+    def _a_daily_display_names(self, index, product, reference, date):
+        """Only a hash-bound, same-product display projection may fill empty names."""
+        descriptors = index.get("display_names")
+        descriptor = descriptors.get(date) if isinstance(descriptors, Mapping) else None
+        if descriptor is None:
+            return {}, None
+        names = self._a_product_reference(descriptor)
+        identity = product["source_identity"]
+        selector = names.get("selector")
+        if (names.get("schema_version") != "v4.a_share.daily_display_names.v1"
+                or names.get("numeric_manifest") != reference or names.get("data_date") != date
+                or names.get("source_generation") != product["source_generation"]
+                or names.get("input_sha256") != identity["input_sha256"]
+                or not isinstance(selector, Mapping)
+                or selector.get("sha256") != identity.get("selector_artifact_sha256")
+                or not isinstance(names.get("items"), Mapping)):
+            raise ValueError("A_DAILY_DISPLAY_NAMES_IDENTITY_CONFLICT")
+        for code, entry in names["items"].items():
+            if (code not in product["row_refs"] or not isinstance(entry, Mapping)
+                    or entry.get("symbol") != code or not isinstance(entry.get("name"), str)
+                    or not entry["name"].strip() or not isinstance(entry.get("source_date"), str)
+                    or not re.fullmatch(r"\d{8}", entry["source_date"]) or entry["source_date"] > date):
+                raise ValueError("A_DAILY_DISPLAY_NAME_ROW_INVALID")
+        return names["items"], descriptor
+
+    @staticmethod
+    def _a_daily_named_row(row, names, descriptor):
+        if row is None or (isinstance(row.get("display_name"), str) and row["display_name"].strip()):
+            return row
+        entry = names.get(row.get("symbol"))
+        return ({**row, "display_name": entry["name"], "display_name_source":
+                 {"kind": "BOUND_SELECTOR_LAST_NONEMPTY_NAME", "source_date": entry["source_date"], "binding": descriptor}}
+                if entry else row)
+
+    def read_a_daily_product(self, date=None, symbol=None, *, include_display_names=True):
         root = self._a_product_root()
         if date is not None and not re.fullmatch(r"\d{8}", date):
             raise ValueError("A_DAILY_DATE_INVALID")
@@ -1167,6 +1201,7 @@ class ResearchLaneSource:
                 or manifest.get("sample_only") is not False or product.get("sample_only") is not False
                 or manifest.get("processed_count") != product.get("processed_count")):
             raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
+        names, name_binding = self._a_daily_display_names(index, product, reference, chosen) if include_display_names else ({}, None)
         if symbol is not None:
             row_refs = product.get("row_refs")
             if not isinstance(row_refs, Mapping):
@@ -1183,10 +1218,10 @@ class ResearchLaneSource:
                     raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
                 if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
                     raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
-            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":self._a_daily_named_row(match, names, name_binding), "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
         chart_index = index.get("original_charts")
         descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
-        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
+        return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
 
     def read_a_daily_latest_event(self):
         root = self._a_product_root()

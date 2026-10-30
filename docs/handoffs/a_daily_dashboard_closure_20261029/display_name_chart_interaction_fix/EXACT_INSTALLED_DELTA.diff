@@ -1,0 +1,207 @@
+--- api/a/infrastructure/research_lane_source.py
++++ api/b/infrastructure/research_lane_source.py
+@@ -937,7 +937,7 @@
+ 
+     def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
+         """Read only the explicitly bound, completed original-chart artifacts."""
+-        product = self.read_a_daily_product(date)
++        product = self.read_a_daily_product(date, include_display_names=False)
+         current_product = product
+         chart_origin = None
+         binding = self.original_chart_binding
+@@ -1159,7 +1159,41 @@
+                     or binding.get("rule_sha256") != group["rule_sha256"]):
+                 raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+ 
+-    def read_a_daily_product(self, date=None, symbol=None):
++    def _a_daily_display_names(self, index, product, reference, date):
++        """Only a hash-bound, same-product display projection may fill empty names."""
++        descriptors = index.get("display_names")
++        descriptor = descriptors.get(date) if isinstance(descriptors, Mapping) else None
++        if descriptor is None:
++            return {}, None
++        names = self._a_product_reference(descriptor)
++        identity = product["source_identity"]
++        selector = names.get("selector")
++        if (names.get("schema_version") != "v4.a_share.daily_display_names.v1"
++                or names.get("numeric_manifest") != reference or names.get("data_date") != date
++                or names.get("source_generation") != product["source_generation"]
++                or names.get("input_sha256") != identity["input_sha256"]
++                or not isinstance(selector, Mapping)
++                or selector.get("sha256") != identity.get("selector_artifact_sha256")
++                or not isinstance(names.get("items"), Mapping)):
++            raise ValueError("A_DAILY_DISPLAY_NAMES_IDENTITY_CONFLICT")
++        for code, entry in names["items"].items():
++            if (code not in product["row_refs"] or not isinstance(entry, Mapping)
++                    or entry.get("symbol") != code or not isinstance(entry.get("name"), str)
++                    or not entry["name"].strip() or not isinstance(entry.get("source_date"), str)
++                    or not re.fullmatch(r"\d{8}", entry["source_date"]) or entry["source_date"] > date):
++                raise ValueError("A_DAILY_DISPLAY_NAME_ROW_INVALID")
++        return names["items"], descriptor
++
++    @staticmethod
++    def _a_daily_named_row(row, names, descriptor):
++        if row is None or (isinstance(row.get("display_name"), str) and row["display_name"].strip()):
++            return row
++        entry = names.get(row.get("symbol"))
++        return ({**row, "display_name": entry["name"], "display_name_source":
++                 {"kind": "BOUND_SELECTOR_LAST_NONEMPTY_NAME", "source_date": entry["source_date"], "binding": descriptor}}
++                if entry else row)
++
++    def read_a_daily_product(self, date=None, symbol=None, *, include_display_names=True):
+         root = self._a_product_root()
+         if date is not None and not re.fullmatch(r"\d{8}", date):
+             raise ValueError("A_DAILY_DATE_INVALID")
+@@ -1194,6 +1228,7 @@
+                 or manifest.get("sample_only") is not False or product.get("sample_only") is not False
+                 or manifest.get("processed_count") != product.get("processed_count")):
+             raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
++        names, name_binding = self._a_daily_display_names(index, product, reference, chosen) if include_display_names else ({}, None)
+         if symbol is not None:
+             row_refs = product.get("row_refs")
+             if not isinstance(row_refs, Mapping):
+@@ -1210,10 +1245,10 @@
+                     raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
+                 if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
+                     raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
+-            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":self._a_daily_named_row(match, names, name_binding), "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+         chart_index = index.get("original_charts")
+         descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
+-        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
++        return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
+ 
+     def read_a_daily_latest_event(self):
+         root = self._a_product_root()
+--- api/a/research-panel/numeric283-panel.js
++++ api/b/research-panel/numeric283-panel.js
+@@ -530,7 +530,7 @@
+         return;
+       }
+       const reports = document.getElementById("relatedReports");
+-      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name); }
++      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name,false,currentRows.find(row=>row.symbol===symbol)?.display_name_source || null); }
+       showStatistics(symbol, token);
+       const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
+       originalMode(datedOriginal);
+--- api/a/research-panel/related-reports.js
++++ api/b/research-panel/related-reports.js
+@@ -41,6 +41,13 @@
+   }
+   function append(parent, tag, value, className) { const item = node(tag, value, className); parent.append(item); return item; }
+   function printable(value) { return value === null || value === undefined || value === '' ? '未知' : String(value); }
++  function nameSourceText() {
++    const source = current?.nameBinding;
++    return source?.kind === 'BOUND_SELECTOR_LAST_NONEMPTY_NAME' && validDay(source.source_date)
++      && source.source_date <= current.day && /^[0-9a-f]{64}$/.test(String(source.binding?.sha256 || ''))
++      ? `名称“${current.name}”来自同代已绑定行情名称（来源日 ${source.source_date}）；代码 ${current.symbol}。`
++      : `名称来源未提供；代码 ${current?.symbol || '未知'}。`;
++  }
+   function validDay(value) {
+     const day = String(value ?? '');
+     if (!/^\d{8}$/.test(day)) return false;
+@@ -323,9 +330,10 @@
+       const large = largeCounts(coverage, mode);
+       append(output, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料待索引：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量。`);
+     }
+-    append(output, 'p', `证券身份：${printable(stock.identity?.status)}；名称：${printable(stock.identity?.name)}；原因：${printable(stock.identity?.reason)}。`);
++    append(output, 'p', nameSourceText());
++    append(output, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
+     if (stock.search_hint?.status === 'CALLER_PROVIDED_UNVERIFIED') {
+-      append(output, 'p', `名单名称“${printable(stock.search_hint.name)}”仅作为未认证的文字搜索提示，不构成身份确认。`);
++      append(output, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
+     } else {
+       append(output, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
+     }
+@@ -353,12 +361,12 @@
+     append(details, 'summary', `查看逐页覆盖缺口（${gaps.length} 条）`);
+     const pre = append(details, 'pre', JSON.stringify(gaps, null, 2)); pre.style.whiteSpace = 'pre-wrap';
+   }
+-  async function select(symbol, name, force = false) {
++  async function select(symbol, name, force = false, nameBinding = null) {
+     const day = String(section.dataset.identityDate || '');
+     const generation = String(section.dataset.generation || '');
+-    if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation) return;
++    if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation && JSON.stringify(current?.nameBinding) === JSON.stringify(nameBinding)) return;
+     const token = ++sequence;
+-    abortAll(); current = { symbol, name, day, generation }; output.replaceChildren();
++    abortAll(); current = { symbol, name, day, generation, nameBinding }; output.replaceChildren();
+     if (!validDay(day)) { showState('名单身份日期缺失或无效；未请求相关研报。'); return; }
+     if (!/^\d{6}\.(SH|SZ|BJ)$/.test(String(symbol))) { showState('股票代码无效；未请求相关研报。'); return; }
+     const query = new URLSearchParams({ identity_date: day });
+@@ -368,7 +376,7 @@
+     if (hintAccepted) query.append('hints', `${symbol}:${hint}`);
+     query.set('max_documents', String(PAGE_SIZE));
+     const controller = new AbortController(); requestController = controller;
+-    showState(`${symbol}：正在查询研报候选${hintAccepted ? '（名单名称为未认证搜索提示）' : '（名单名称不可用，仅查代码）'}。`);
++    showState(`${symbol}：正在查询研报候选。${nameSourceText()}${hintAccepted ? '同时按名称检索文字；研报主体关联仍见各篇状态。' : '仅查代码。'}`);
+     try {
+       let result;
+       for (let restart = 0; restart <= MAX_RESTARTS; restart++) {
+@@ -397,6 +405,6 @@
+       output.replaceChildren();
+     }
+   }
+-  document.getElementById('relatedReportsRefresh').onclick = () => { if (current) select(current.symbol, current.name, true); };
++  document.getElementById('relatedReportsRefresh').onclick = () => { if (current) select(current.symbol, current.name, true, current.nameBinding); };
+   window.RelatedReports = { select, clear };
+ })();
+--- main/a/ops/research_panel_daily_product.py
++++ main/b/ops/research_panel_daily_product.py
+@@ -98,7 +98,8 @@
+   if frame.empty:return [],None
+   if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
+   bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
+-  value=frame.name.iloc[-1];name=value if isinstance(value,str) and value else None
++  names=frame.name[frame.name.map(lambda value:isinstance(value,str) and bool(value.strip()))]
++  name=names.iloc[-1].strip() if len(names) else None
+   return bars,name
+  def engine(self):
+   if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')
+--- main/a/ops/render_original_formula_projection.py
++++ main/b/ops/render_original_formula_projection.py
+@@ -171,6 +171,35 @@
+         "renderer_semantics": "UNCHANGED_R19_DISPLAY; NOT_NATIVE_TDX_ICON_OR_COLOR_EQUIVALENCE_CERTIFICATION", **FLAGS}
+ 
+ 
++def interactive_chart_html(html):
++    """Adapt installed local R19 setWindow/wheel/drag to this R19 row shape.
++
++    Source: research-panel/r19-chart.js, SHA e66cbc2994b9ddcf13941323b9eb1dc9358e06ef902897d0226a2f2b862f3061.
++    The existing choose/paint glyph and table code and embedded payload stay intact.
++    """
++    if 'id="original-view-reset"' in html:
++        return html
++    old = "const count=Number($('window').value),offset=count?Math.max(0,state.rows.length-count):0,rows=state.rows.slice(offset);"
++    new = "const count=Number($('window').value);if(!state.view){const n=count?Math.min(count,state.rows.length):state.rows.length;state.view={start:state.rows.length-n,count:n};}const offset=state.view.start,rows=state.rows.slice(offset,offset+state.view.count);"
++    require(html.count(old) == 1 and html.count("$('window').onchange=paint;") == 1, "LOCAL_R19_VIEWPORT_ADAPTER_MISMATCH")
++    html = html.replace(old, new, 1).replace("state.visible=[];delete document.documentElement.dataset.loaded", "state.visible=[];state.view=null;delete document.documentElement.dataset.loaded", 1)
++    html = html.replace("$('window').onchange=paint;", "$('window').onchange=()=>setOriginalWindow(Number($('window').value),state.rows.length);", 1)
++    html = html.replace('</select><label><input id="draw-text"', '</select><button type="button" id="original-view-reset">恢复原区间</button><label><input id="draw-text"', 1)
++    html = html.replace('touch-action:pan-y', 'touch-action:none')
++    script = r"""
++// Existing local R19 interaction semantics; only rows/geometry names are adapted.
++function setOriginalWindow(count,end){const n=state.rows.length;if(!n)return;const view=state.view||{start:0,count:n};view.count=count===0?n:Math.max(Math.min(10,n),Math.min(n,Math.round(count)));view.start=Math.max(0,Math.min(n-view.count,(end??(view.start+view.count))-view.count));state.view=view;paint();}
++const originalCanvas=$('chart');let originalDrag=null;
++$('original-view-reset').onclick=()=>{setOriginalWindow(Number($('window').value),state.rows.length);choose(state.rows.length-1);paint();};
++originalCanvas.onpointerdown=e=>{originalDrag={x:e.clientX,start:state.view?.start||0};originalCanvas.setPointerCapture(e.pointerId);};
++originalCanvas.onpointerup=()=>{originalDrag=null;};originalCanvas.onpointercancel=()=>{originalDrag=null;};originalCanvas.onlostpointercapture=()=>{originalDrag=null;};
++originalCanvas.onpointermove=e=>{if(!state.visible.length||!state.geometry)return;const{L,step}=state.geometry;if(originalDrag){state.view.start=Math.max(0,Math.min(state.rows.length-state.view.count,originalDrag.start-Math.round((e.clientX-originalDrag.x)/step)));paint();}const xx=e.clientX-originalCanvas.getBoundingClientRect().left;const hover=Math.max(0,Math.min(state.visible.length-1,Math.floor((xx-L)/step)));choose(state.offset+hover);paint();};
++originalCanvas.addEventListener('wheel',e=>{e.preventDefault();if(!state.view)return;const oldEnd=state.view.start+state.view.count;setOriginalWindow(Math.round(state.view.count*(e.deltaY>0?1.2:.8)),oldEnd);},{passive:false});
++"""
++    require(html.count('(async()=>{try{const response=await fetch(\'/v1/registry\'') == 1, "LOCAL_R19_INITIALIZATION_MISMATCH")
++    return html.replace("(async()=>{try{const response=await fetch('/v1/registry'", script + "\n(async()=>{try{const response=await fetch('/v1/registry'", 1)
++
++
+ def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
+     """Reuse the R19 canvas/table implementation; replace only transport and labels."""
+     require(not projection["unsupported_drawings"], "RENDERER_DRAWING_TYPE_UNSUPPORTED")
+@@ -204,7 +233,7 @@
+     html = html.replace("function sourceLabel(body){", "function sourceLabel(body){if(body.projection_source_label)return body.projection_source_label;")
+     html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示候选原式派生投影，尚不构成独审或原生等价认证。")
+     html = html.replace("已登记", "样例派生").replace("完整重算行数", "原式投影行数")
+-    return html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1)
++    return interactive_chart_html(html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1))
+ 
+ 
+ def write_json(path, value):

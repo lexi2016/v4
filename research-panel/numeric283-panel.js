@@ -528,7 +528,7 @@
         return;
       }
       const reports = document.getElementById("relatedReports");
-      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name); }
+      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name,false,currentRows.find(row=>row.symbol===symbol)?.display_name_source || null); }
       showStatistics(symbol, token);
       const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
       originalMode(datedOriginal);

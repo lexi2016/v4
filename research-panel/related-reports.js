@@ -41,6 +41,13 @@
   }
   function append(parent, tag, value, className) { const item = node(tag, value, className); parent.append(item); return item; }
   function printable(value) { return value === null || value === undefined || value === '' ? '未知' : String(value); }
+  function nameSourceText() {
+    const source = current?.nameBinding;
+    return source?.kind === 'BOUND_SELECTOR_LAST_NONEMPTY_NAME' && validDay(source.source_date)
+      && source.source_date <= current.day && /^[0-9a-f]{64}$/.test(String(source.binding?.sha256 || ''))
+      ? `名称“${current.name}”来自同代已绑定行情名称（来源日 ${source.source_date}）；代码 ${current.symbol}。`
+      : `名称来源未提供；代码 ${current?.symbol || '未知'}。`;
+  }
   function validDay(value) {
     const day = String(value ?? '');
     if (!/^\d{8}$/.test(day)) return false;
@@ -323,9 +330,10 @@
       const large = largeCounts(coverage, mode);
       append(output, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料待索引：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量。`);
     }
-    append(output, 'p', `证券身份：${printable(stock.identity?.status)}；名称：${printable(stock.identity?.name)}；原因：${printable(stock.identity?.reason)}。`);
+    append(output, 'p', nameSourceText());
+    append(output, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
     if (stock.search_hint?.status === 'CALLER_PROVIDED_UNVERIFIED') {
-      append(output, 'p', `名单名称“${printable(stock.search_hint.name)}”仅作为未认证的文字搜索提示，不构成身份确认。`);
+      append(output, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
     } else {
       append(output, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
     }
@@ -353,12 +361,12 @@
     append(details, 'summary', `查看逐页覆盖缺口（${gaps.length} 条）`);
     const pre = append(details, 'pre', JSON.stringify(gaps, null, 2)); pre.style.whiteSpace = 'pre-wrap';
   }
-  async function select(symbol, name, force = false) {
+  async function select(symbol, name, force = false, nameBinding = null) {
     const day = String(section.dataset.identityDate || '');
     const generation = String(section.dataset.generation || '');
-    if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation) return;
+    if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation && JSON.stringify(current?.nameBinding) === JSON.stringify(nameBinding)) return;
     const token = ++sequence;
-    abortAll(); current = { symbol, name, day, generation }; output.replaceChildren();
+    abortAll(); current = { symbol, name, day, generation, nameBinding }; output.replaceChildren();
     if (!validDay(day)) { showState('名单身份日期缺失或无效；未请求相关研报。'); return; }
     if (!/^\d{6}\.(SH|SZ|BJ)$/.test(String(symbol))) { showState('股票代码无效；未请求相关研报。'); return; }
     const query = new URLSearchParams({ identity_date: day });
@@ -368,7 +376,7 @@
     if (hintAccepted) query.append('hints', `${symbol}:${hint}`);
     query.set('max_documents', String(PAGE_SIZE));
     const controller = new AbortController(); requestController = controller;
-    showState(`${symbol}：正在查询研报候选${hintAccepted ? '（名单名称为未认证搜索提示）' : '（名单名称不可用，仅查代码）'}。`);
+    showState(`${symbol}：正在查询研报候选。${nameSourceText()}${hintAccepted ? '同时按名称检索文字；研报主体关联仍见各篇状态。' : '仅查代码。'}`);
     try {
       let result;
       for (let restart = 0; restart <= MAX_RESTARTS; restart++) {
@@ -397,6 +405,6 @@
       output.replaceChildren();
     }
   }
-  document.getElementById('relatedReportsRefresh').onclick = () => { if (current) select(current.symbol, current.name, true); };
+  document.getElementById('relatedReportsRefresh').onclick = () => { if (current) select(current.symbol, current.name, true, current.nameBinding); };
   window.RelatedReports = { select, clear };
 })();
