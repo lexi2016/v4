@@ -89,3 +89,11 @@ R2原合同从已有journal续跑，保留原5个完成结果；retained supervi
 新增 `domains/research_event_case_cache.py`、`ops/reuse_stock_event_cases.py`及对应测试，提供持久逐事件收益/自身历史分位与真实R2分片导入。代次、合同和asof不单独作废已成熟收益；只对新事件、新成熟、补价和受影响修订调用原收益评价器。确切依赖、可执行命令、完成后机械检查和既有owner增量hook见上述 `INTEGRATION.md`。14项helper测试、真实已完成分片精确parity及零收益调用重复读取通过；全247仍RUNNING，不称全量完成或自动安装。
 
 个股源码另修复已证实组别错配：001328同时属于小K/回踩时，从回踩名单点入会保持回踩统计，卡片标题明确显示组别；全部/不可用组别回落首个自身组。`research-panel/numeric283-panel.js`仅改这一绑定和标题；`tests/test_stock_event_group_binding.py`两项定向检查与JS语法通过。现役页面/API未因此更新，旧异步stale防护保留。冻结范围独立Reviewer已给REVIEWED/PASS：14项缓存、2项组别绑定及JS语法通过；真实8股/32组/2038条horizon cases精确一致，重复收益/分位计算0次。主控按逐项allowlist同步开发分支；现役安装、API/UI及247终态仍待对应证据。
+
+## 9. 网站自动同步已现场闭环；框架接口另行交接
+
+现役个股API已更新为`a-stock-history-auto-sync-20261030-r1-api`，manifest SHA256 `790e1e067123510a0a7da8ed2017fcfd3ebaf0849073eef5017855e5705d3df1`。Retained kqueue消费者只监听既有R2逐股RESULT完成，复用原owner保存与Main既有A_LONG锁；每股完成即绑定新的dated product/事件明细/资料索引并发出原completion，未轮询重算。原图、资料原件、公式、Main/Stage保持。
+
+Root真实Chrome验收：002527在13:50:05仍pending1/3687，页面保持打开且不reload；13:52:03真实完成后，同一选股自动显示回踩D2 54/111、D5 52/109及对应分位统计。000554泰山石油已完成7887/7887日期，图/资料/明细可读；小K只有1个尚未成熟事件、有效样本0，正确保留“数据不足”，不借其他组胜率。B11 `ROOT_LIVE_UI_ACCEPTANCE.json`留存真实回执。此PASS限当前R2批次的自动网站传播，不冒称247终态或未来研究日Main增量hook已安装。
+
+按用户指定框架分支/固定commit新增own namespace `research/stock_panel_collab_20261030`：严格日期/证券/generation/input/manifest/SHA同源GET适配，复用frozen51/22验证器和原renderer的`OriginalFullChart`方法，保留公司null/报告期/单位/来源；独立observation_date不推断。13项接口测试及001328真实861行/265177-byte gzip/单次projection GET兼容验证通过。框架46文件未改；sanitized shell仍缺显式host context交接、实际endpoint配置与外部公司validator，未部署该框架。精确接法与缺口见own README/COMPATIBILITY，按开发分支增量交付，不覆盖框架源码。

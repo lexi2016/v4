@@ -1,0 +1,43 @@
+{
+  "schema_version": "v4.individual_framework_compatibility.v1",
+  "framework_commit": "0ae4a66d90c12a0d0335b5f7f65b528879c5e9cf",
+  "framework_branch": "codex/dashboard-framework-collab-20261030",
+  "protected_framework_files": 46,
+  "framework_files_changed": 0,
+  "implemented": [
+    "explicit same-origin GET context adapter",
+    "strict ISO source date to compact API date; independent observation date",
+    "symbol/generation/input/formula/manifest/asset SHA binding",
+    "actual byte count and gzip metadata with one HTTP projection download",
+    "frozen framework loadProjection returns original adapted51/22 shape",
+    "OriginalFullChart bind/setStock/clear/setWindow using existing original HTML renderer",
+    "explicit host context event with stale abort and listener cleanup",
+    "received company values/null/report periods/units/source refs preserved"
+  ],
+  "actual_local_read_sample": {
+    "symbol": "001328.SZ",
+    "source_date": "2026-10-29",
+    "observation_date": "2026-10-30",
+    "rows": 861,
+    "raw_projection_bytes": 265177,
+    "encoding": "gzip",
+    "projection_http_gets": 1,
+    "company_status": "PARTIAL_RECEIVED",
+    "event_group": "nav_pullback",
+    "event_horizon": "d2",
+    "event_status": "READY"
+  },
+  "missing_host_seams": [
+    "frozen shell does not emit a complete stock context; owner must call open or emit v4-stock-context",
+    "explicit authorized stock API base path and original renderer container must be supplied",
+    "frozen shell company validator is intentionally disabled; authorized host renderer/validator remains external",
+    "day catalog/global date/observation/backend authorization belong to the framework owner",
+    "no sanitized framework installation or framework visual acceptance was performed"
+  ],
+  "framework_installed": false,
+  "framework_visual_verified": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

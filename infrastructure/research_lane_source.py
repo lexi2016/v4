@@ -934,9 +934,39 @@ class ResearchLaneSource:
             raise ValueError("ORIGINAL_CHART_REFERENCE_SHA_DRIFT")
         return raw
 
+    def _a_chart_history_origin(self, product, descriptor, date, symbol):
+        """Validate the exact ref delta; read full rows only for this requested stock."""
+        chart_origin = descriptor.get("chart_origin_manifest")
+        if chart_origin is None:
+            return product
+        origin_manifest = self._a_product_reference(chart_origin)
+        origin = self._a_product_reference(origin_manifest["artifact"])
+        excluded = {"row_refs", "artifact", "manifest", "available_dates", "original_charts", "history_sync"}
+        declared = descriptor.get("history_updated_symbols")
+        if ({k:v for k,v in origin.items() if k not in excluded} != {k:v for k,v in product.items() if k not in excluded}
+                or origin_manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1"
+                or origin_manifest.get("data_date") != date or origin_manifest.get("source_generation") != product["source_generation"]
+                or origin_manifest.get("input_sha256") != product["source_identity"]["input_sha256"]
+                or set(origin["row_refs"]) != set(product["row_refs"])
+                or not isinstance(declared, list) or len(declared) != len(set(declared))):
+            raise ValueError("ORIGINAL_CHART_NUMERIC_ORIGIN_CONFLICT")
+        changed = {s for s in origin["row_refs"] if origin["row_refs"][s] != product["row_refs"][s]}
+        if not changed or changed != set(declared) or not changed <= {row["symbol"] for row in product["rows"]}:
+            raise ValueError("ORIGINAL_CHART_HISTORY_ORIGIN_DELTA_INVALID")
+        if symbol in changed:
+            old_row = self._a_product_reference(origin["row_refs"][symbol])
+            new_row = self._a_product_reference(product["row_refs"][symbol])
+            self._a_daily_checkpoint_binding(new_row, product, symbol, date)
+            if ({k:v for k,v in old_row.items() if k not in {"statistics", "historical_coverage"}}
+                    != {k:v for k,v in new_row.items() if k not in {"statistics", "historical_coverage"}}):
+                raise ValueError("ORIGINAL_CHART_HISTORY_ORIGIN_ROW_CONFLICT")
+        return {**origin, "manifest": chart_origin, "artifact": origin_manifest["artifact"]}
+
     def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
         """Read only the explicitly bound, completed original-chart artifacts."""
         product = self.read_a_daily_product(date, include_display_names=False)
+        current_product = product
+        chart_origin = None
         binding = self.original_chart_binding
         if binding is None:
             root = self._a_product_root()
@@ -944,7 +974,9 @@ class ResearchLaneSource:
             if (root is None or not isinstance(descriptor, Mapping)
                     or descriptor.get("numeric_manifest") != product.get("manifest")):
                 raise ValueError("ORIGINAL_CHART_OWNER_BINDING_NOT_CONFIGURED")
-            binding = {"artifact_root": str(root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
+            binding = {"artifact_root": str(getattr(self, "original_chart_artifact_root", None) or root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
+            chart_origin = descriptor.get("chart_origin_manifest")
+            product = self._a_chart_history_origin(product, descriptor, date, symbol)
         if not isinstance(binding, Mapping):
             raise ValueError("ORIGINAL_CHART_BINDING_NOT_CONFIGURED")
         read = lambda ref: self._original_chart_bytes(ref, binding=binding)
@@ -1051,6 +1083,8 @@ class ResearchLaneSource:
             "chart_manifest": binding["manifest"], "completion_receipt": binding["receipt"],
             "rows": item["rows"], "values_per_row": 51, "drawings_per_row": 22, "assets": refs,
             "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        if chart_origin is not None:
+            answer.update(product_manifest=current_product["manifest"], product_artifact=current_product["artifact"], chart_numeric_origin_manifest=chart_origin)
         if asset is not None:
             if asset not in refs or asset_sha256 != refs[asset]["sha256"]:
                 raise ValueError("ORIGINAL_CHART_ASSET_SHA_CONFLICT")
@@ -1201,6 +1235,17 @@ class ResearchLaneSource:
                 or manifest.get("sample_only") is not False or product.get("sample_only") is not False
                 or manifest.get("processed_count") != product.get("processed_count")):
             raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
+        sync = index.get("history_sync", {}).get(chosen)
+        if sync is not None and (sync.get("numeric_manifest") != reference
+                or sync.get("source_generation") != product["source_generation"]
+                or sync.get("input_sha256") != identity["input_sha256"]
+                or not isinstance(sync.get("candidate_symbols"), list)
+                or not isinstance(sync.get("completed_symbols"), list)
+                or not set(sync["completed_symbols"]) <= set(sync["candidate_symbols"])
+                or set(sync["candidate_symbols"]) != {row["symbol"] for row in product["rows"]}):
+            raise ValueError("HISTORY_SYNC_IDENTITY_CONFLICT")
+        stock_sync = ({**sync, "status":"COMPLETE" if symbol in sync["completed_symbols"] else "IN_PROGRESS"}
+                      if sync is not None and symbol in sync["candidate_symbols"] else None)
         names, name_binding = self._a_daily_display_names(index, product, reference, chosen) if include_display_names else ({}, None)
         if symbol is not None:
             row_refs = product.get("row_refs")
@@ -1218,7 +1263,7 @@ class ResearchLaneSource:
                     raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
                 if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
                     raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
-            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":self._a_daily_named_row(match, names, name_binding), "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":self._a_daily_named_row(match, names, name_binding), **({"history_sync":stock_sync} if stock_sync is not None else {}), "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
         chart_index = index.get("original_charts")
         descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
         return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
@@ -1247,7 +1292,7 @@ class ResearchLaneSource:
         shard = self._a_product_reference(manifest["items"][symbol])
         if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
                 or shard.get("symbol") != symbol or shard.get("data_date") != date
-                or shard.get("numeric_manifest") != product["manifest"]
+                or shard.get("numeric_manifest") != manifest.get("source_numeric_manifest", product["manifest"])
                 or shard.get("source_generation") != product["source_generation"]
                 or shard.get("input_sha256") != product["source_identity"]["input_sha256"]
                 or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
@@ -1267,7 +1312,9 @@ class ResearchLaneSource:
         index = json.loads((self._a_product_root() / "index.json").read_text())
         binding = index.get("event_cases", {}).get(date)
         if binding is None:
-            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+            pending = detail.get("history_sync", {}).get("status") == "IN_PROGRESS"
+            return {"status":"IN_PROGRESS" if pending else "NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "history_sync":detail.get("history_sync"),
                     "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
         manifest = self._a_product_reference(binding)
         if (manifest.get("schema_version") != "v4.a_share.event_cases_index.v1"
@@ -1278,12 +1325,16 @@ class ResearchLaneSource:
             raise ValueError("EVENT_CASE_MANIFEST_CONFLICT")
         row_ref = manifest["items"].get(symbol)
         if row_ref is None:
-            return {"status":"NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+            pending = detail.get("history_sync", {}).get("status") == "IN_PROGRESS"
+            return {"status":"IN_PROGRESS" if pending else "NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "history_sync":detail.get("history_sync"),
                     "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
         shard = self._a_product_reference(row_ref)
         stats_raw = json.dumps(detail["row"]["statistics"],ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
         if (shard.get("schema_version") != "v4.a_share.event_cases.v1" or shard.get("symbol") != symbol
-                or shard.get("data_date") != date or shard.get("numeric_manifest") != detail["manifest"]
+                or shard.get("data_date") != date or shard.get("numeric_manifest") != manifest.get("case_numeric_origins", {}).get(symbol, detail["manifest"])
+                or shard.get("source_generation") != detail["source_generation"]
+                or shard.get("input_sha256") != detail["source_identity"]["input_sha256"]
                 or shard.get("statistics_sha256") != hashlib.sha256(stats_raw).hexdigest()):
             raise ValueError("EVENT_CASE_SHARD_CONFLICT")
         selected = shard.get("groups", {}).get(group, {}).get(horizon)
