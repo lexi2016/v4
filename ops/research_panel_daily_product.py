@@ -67,6 +67,14 @@ class SourceContext:
   self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
   if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
   self.panel_stat=self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
+  self.label_results={}
+  label_root=os.environ.get('V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')
+  if label_root:
+   label_root=Path(label_root)
+   if not label_root.is_absolute() or label_root.is_symlink() or label_root.resolve(strict=True)!=label_root:raise ValueError('DAILY_LABEL_SOURCE_ROOT_INVALID')
+   label_index=json.loads((label_root/'index.json').read_text())
+   for old_day,sync in sorted(label_index.get('history_sync',{}).items()):
+    if int(old_day)<=self.target:self.label_results.update(sync.get('stock_results',{}))
   self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
   reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);self.reader=module(self.reader_ref,'dated_original_shared_reader');self._engine=None;self.calendars=self._calendars();self._g4={}
  def cached_sha(self,p):
@@ -98,7 +106,8 @@ class SourceContext:
   if frame.empty:return [],None
   if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
   bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
-  value=frame.name.iloc[-1];name=value if isinstance(value,str) and value else None
+  names=frame.name[frame.name.map(lambda value:isinstance(value,str) and bool(value.strip()))]
+  name=names.iloc[-1].strip() if len(names) else None
   return bars,name
  def engine(self):
   if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')
@@ -128,22 +137,65 @@ class SourceContext:
      prices=struct.unpack_from('<4I',raw,off+4);matches.append(all(Decimal(str(value['ohlc'][k])).quantize(Decimal('.01'))==Decimal(v)/100 for k,v in zip(('open','high','low','close'),prices)))
   return dict(value,correspondence_status='TRUE' if matches and all(matches) else 'UNKNOWN',reason=None if matches and all(matches) else 'RAW_G4_NATIVE_PARITY_UNCONFIRMED')
 
-def source_inputs(context,symbol,bars,asof,qualification):
+def source_inputs(context,symbol,bars,asof,qualification,*,retain=None):
  """Original formula/AST only; caller controls registered real computation."""
- engine=context.engine();result=engine.compute(bars,'prefix');rows=result['rows'];last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
+ engine=context.engine();result=engine.compute(bars,'prefix');
+ if retain is not None:retain(result)
+ rows=result['rows'];last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
  answer=dict(symbol=symbol,rows=rows,source_bar_exact={'amount':0},index_sha256=context.config_ref['sha256'])
  summary,_=_census(context.config['census'],asof,asof)(answer);stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
  baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
  return dict(original_breakout_by_date=breakout,baseline_memberships=baseline,old_main_anchor_date=summary.get('main_anchor_date'),qualification_status=qualification['status'],raw_g4_reference=context.g4_reference(symbol,asof,qualification))
 
-def compute_stock(context,symbol,*,evaluate=None,history_dates=()):
+def accepted_label_cache(context,symbol,rule_sha,cache):
+ """Restore the original completed labels by their saved result/cache SHA."""
+ ref=getattr(context,'label_results',{}).get(symbol)
+ if not ref:return cache
+ result=json.loads(checked(ref).read_text())
+ if result.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT' or result.get('symbol')!=symbol or any(result.get(k)!=v for k,v in FLAGS.items()):raise ValueError('DAILY_ACCEPTED_LABEL_RESULT_INVALID')
+ previous=json.loads(checked(result['history_cache']).read_text())
+ if previous.get('rule_sha256')!=rule_sha or previous.get('rules_signature')!=digest(context.config):raise ValueError('DAILY_ACCEPTED_LABEL_RULE_IDENTITY_CONFLICT')
+ return previous if len(previous.get('evaluations',{}))>len(cache.get('evaluations',{})) else cache
+
+
+def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
+ """Reuse the accepted durable owner without changing event or return rules."""
+ from domains.research_daily_statistics import build_daily_event_statistics
+ from domains.research_event_case_cache import EventCaseCache
+ closes=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars]
+ dates=[iso(d) for d in calendar];asof=iso(context.target)
+ # Original validation, provenance and price-distribution fields; no historical
+ # return is evaluated for an empty event set.
+ result=build_daily_event_statistics(close_rows=closes,market_calendar=dates,asof=asof,event_groups=[{**g,'event_dates':[]} for g in groups])
+ basis=context.identity.get('basis')
+ if not isinstance(basis,dict) or not context.reader_ref:raise ValueError('DAILY_CACHE_SEMANTIC_IDENTITY_UNBOUND')
+ identity=dict(symbol=symbol,market=symbol[-2:],basis={k:v for k,v in basis.items() if k!='asof_date'},source_authority=dict(reader=context.reader_ref),rule_sha256=groups[0]['rule_sha256'],formula_sha256=context.config['formula']['sha256'])
+ cache=EventCaseCache(store);all_groups={};counters=[]
+ try:
+  for original,summary in zip(groups,result['groups']):
+   events=sorted(d for d in original['event_dates'] if d<=asof)
+   value=cache.build(identity=identity,event_dates=events,close_rows=closes,calendar=dates,asof=asof)
+   all_groups[original['group_id']]=value['horizons'];counters.append(dict(group=original['group_id'],**value['cache']))
+   summary.update(status='AVAILABLE' if events else 'EMPTY_EVENT_SET',eligible_event_count=len(events))
+   for h,horizon in value['horizons'].items():
+    # Keep the established numerical contract byte-for-value; the complete
+    # cases/conditional view is saved separately for the existing API.
+    summary['horizons'][h]={k:v for k,v in horizon.items() if k not in ('conditional','cases')}
+    summary['horizons'][h]['cases']=[{k:c[k] for k in ('event_date','target_date','status','detail_status','return_pct')} for c in horizon['cases'][:20]]
+ finally:cache.close()
+ return result,all_groups,counters
+
+
+def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None):
  from domains.research_daily_product import evaluate_daily_product
  from domains.research_daily_statistics import build_daily_event_statistics
  evaluate=evaluate or evaluate_daily_product;bars,name=context.read(symbol);q=context.qualify(symbol);target=context.target;calendar=context.calendars[symbol[-2:]];rule_sha=sha(Path(__file__).resolve().parents[1]/'domains/research_daily_product.py')
  if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' and (not bars or bars[-1]['trade_date']!=target or str(bars[0]['trade_date'])!=q['history_start_date']):q=dict(status='UNKNOWN',reason='ADMITTED_PREFIX_START_OR_TARGET_MISMATCH')
- current_inputs=source_inputs(context,symbol,bars,target,q) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
+ captured=[]
+ current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
  current=evaluate(symbol=symbol,asof=target,fullprefix=bars,exchange_calendar=calendar,**current_inputs)
  history_root=context.root/'history'/rule_sha/symbol;cachefile=history_root/'checkpoint.json';cache=json.loads(cachefile.read_text()) if cachefile.is_file() else dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
+ cache=accepted_label_cache(context,symbol,rule_sha,cache)
  rules_signature=digest(context.config)
  if cache.get('rules_signature',rules_signature)!=rules_signature or q['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
  cache['rules_signature']=rules_signature
@@ -164,24 +216,38 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=()):
  cache['prefix_sha256']=digest(bars);cache['source_identity']=context.identity;cache['coverage']=dict(requested_start=bars[0]['trade_date'] if bars else None,requested_end=target,evaluated_dates=evaluated,evaluated_count=len(evaluated),available_prefix_dates=len(expected),known_full_history=complete,historical_PIT=False,maximum_claim='DIRECTION_ONLY',historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION',unknown_by_group={g:sum(r['groups'][g]=='UNKNOWN' for r in cache['evaluations'].values()) for g in GROUPS},missing=[] if complete else ['HISTORICAL_FULL_CONDITION_BOOTSTRAP'])
  identity=dict(generation=context.generation,input=context.identity['input_sha256'],formula=context.config['formula']['sha256'],rule_sha256=rule_sha,asof=iso(target),market=symbol[-2:],basis='QFQ_ASOF',pit_status='NONPIT')
  groups=[dict(group_id=g,event_dates=[iso(int(d)) for d,r in sorted(cache['evaluations'].items()) if r['groups'][g]=='TRUE'],rule_sha256=rule_sha,source_identity=identity) for g in GROUPS]
- statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
- return dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q),cache,cachefile
+ store=os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE');cached_groups=None;reuse=None
+ if store:
+  if not Path(store).is_absolute() or not Path(store).is_file():raise ValueError('EXISTING_DAILY_EVENT_CACHE_REQUIRED')
+  statistics,cached_groups,reuse=cached_daily_statistics(context,symbol,bars,calendar,groups,Path(store))
+ else:statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
+ row=dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q)
+ if cached_groups is not None:row['_daily_cached_groups']=cached_groups;row['_daily_cache_reuse']=reuse
+ if chart_capture is not None and row['groups'] and captured:chart_capture(symbol,bars,captured[0])
+ return row,cache,cachefile
 
-def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None):
+def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
  """Called once from original run_a; no historical loop in normal daily mode."""
  context=SourceContext(data_root,target)
  if output_root is not None:context.root=Path(output_root).resolve()
  root=context.root;context.unchanged()
+ index_start=(root/'index.json').read_bytes() if (root/'index.json').is_file() else None
  if formula_result and (str(context.panel)!=str(formula_result['selector']) or formula_result['selector_sha256']!=context.receipt['candidate_sha256']['selector']):raise ValueError('DAILY_FORMULA_COMPLETION_IDENTITY_CONFLICT')
  selected=sorted(symbols if symbols is not None else context.scope)
  if not set(selected)<=set(context.scope):raise ValueError('DAILY_PROJECTION_OUTSIDE_PROCESSED_UNIVERSE')
  rows=[];row_refs={};runkey=digest(dict(identity=context.identity,config=context.config_ref,symbols=selected,history_dates=list(history_dates)));parts=root/'checkpoints'/str(target)/runkey
+ chart_gaps={}
+ def capture(symbol,bars,result):
+  try:
+   from ops.render_original_formula_projection import retain_owner_result
+   retain_owner_result(context,parts,symbol,bars,result)
+  except Exception as error:chart_gaps[symbol]='RETAINED_RESULT_UNAVAILABLE:'+str(error)
  for i,symbol in enumerate(selected):
   checkpoint=parts/(symbol+'.json')
   if checkpoint.is_file():row=json.loads(checkpoint.read_text())
   else:
    try:
-    row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates);save(path,cache)
+    row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,**({'chart_capture':capture} if original_charts else {}));save(path,cache)
    except (ValueError,KeyError,TypeError,OSError) as error:
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
    row.update(FLAGS);save(checkpoint,row,immutable=True)
@@ -189,8 +255,40 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
  context.unchanged();counts={g:dict(Counter(r['evaluation']['groups'][g]['status'] for r in rows)) for g in GROUPS};candidates=[r for r in rows if r['groups']];unknown=sum(bool(r['pending_groups']) for r in rows)
  product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
  content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
+ chart_descriptor=None
+ if original_charts:
+  try:
+   from ops.render_original_formula_projection import finalize_owner_charts
+   chart_descriptor=finalize_owner_charts(context,parts,product,manifest_ref,artifact,gaps=chart_gaps,png_renderer=chart_png_renderer)
+  except Exception as error:
+   chart_descriptor=dict(status='CANNOT_CONFIRM',numeric_manifest=manifest_ref,reason='CHART_FINALIZATION_FAILED:'+str(error))
+ try:context.unchanged()
+ except Exception as error:
+  save(parts/'publication_error.json',dict(status='CANNOT_CONFIRM',reason='SOURCE_CHANGED_BEFORE_PUBLICATION:'+str(error),manifest=manifest_ref,artifact=artifact,original_charts=chart_descriptor,**FLAGS))
+  raise
  if symbols is None:
+  if ((root/'index.json').read_bytes() if (root/'index.json').is_file() else None)!=index_start:raise ValueError('DAILY_PUBLICATION_INDEX_CAS_MOVED')
   indexfile=root/'index.json';index=json.loads(indexfile.read_text()) if indexfile.is_file() else dict(schema_version='v4.a_share.daily_product_index.v1',dates={})
-  index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']];save(indexfile,index)
-  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS);save(root/'events/latest.json',event)
+  index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']]
+  if chart_descriptor is not None:index.setdefault('original_charts',{})[str(target)]=chart_descriptor
+  if os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE'):
+   items={}
+   for row in candidates:
+    if row.get('_daily_cached_groups') is None:continue
+    shard=dict(schema_version='v4.a_share.event_cases.v1',symbol=row['symbol'],data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],statistics_sha256=digest(row['statistics']),projection=(json.loads(checked(chart_descriptor['manifest']).read_text()).get('samples',{}).get(row['symbol'],{}).get('projection') if chart_descriptor and chart_descriptor.get('manifest') else None),groups=row['_daily_cached_groups'],cache_reuse=row['_daily_cache_reuse'],**FLAGS)
+    items[row['symbol']]=save(version/'event_cases'/(row['symbol']+'.json'),shard,immutable=True)
+   cases_index=dict(schema_version='v4.a_share.event_cases_index.v1',data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],items=items,**FLAGS)
+   index.setdefault('event_cases',{})[str(target)]=save(version/'event_cases_index.json',cases_index,immutable=True)
+  save(indexfile,index)
+  statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
+  if statistics_root:
+   try:
+    from ops.build_mac_workbench import materialize_statistics
+    materialize_statistics(root,Path(statistics_root))
+   except (ValueError,OSError,KeyError,TypeError) as error:
+    save(parts/'workbench_statistics_error.json',dict(status='CANNOT_CONFIRM',error=str(error),numeric_manifest=manifest_ref,**FLAGS))
+  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS)
+  if chart_descriptor is not None:
+   event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
+  save(root/'events/latest.json',event)
  return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)

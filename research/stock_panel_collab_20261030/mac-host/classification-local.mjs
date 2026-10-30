@@ -1,0 +1,19 @@
+// View-only classification axes. Empty/UNKNOWN never means no such business.
+const known=v=>typeof v==='string'&&v.trim()&&v!=='UNKNOWN';
+export function classificationText(row){const item=row.classification;if(item?.identity_status!=='BOUND_EXACT_CODE_NAME')return '';const c=item.classification??{};return [c.main_industry,c.main_business,c.official_industry?.major_name,c.official_industry?.sector_name,c.industry_chain_role,c.robotics_role,c.daily_catalyst?.text,...['shortline_themes','shortline_subthemes','normalized_themes','external_themes'].flatMap(k=>(c[k]??[]).map(x=>x.label))].filter(known).join(' ').toLowerCase();}
+export function matchesClassification(row,{query='',labels=[]}={}){if(!query.trim()&&!labels.length)return true;const text=classificationText(row);return !!text&&query.trim().toLowerCase().split(/\s+/).filter(Boolean).every(word=>text.includes(word))&&(!labels.length||labels.some(label=>text.includes(label.toLowerCase())));}
+export function renderClassification(target,row,day){
+ const doc=target.ownerDocument,add=(host,tag,text)=>{const n=doc.createElement(tag);n.textContent=text;host.append(n);return n},show=v=>known(v)?v:'UNKNOWN（未提供）',labels=v=>(v??[]).map(x=>x.label).filter(known).join('、')||'UNKNOWN（空数组不等于无题材）';target.replaceChildren();
+ const item=row.classification;if(item?.identity_status!=='BOUND_EXACT_CODE_NAME'){add(target,'p',item?.identity_status??'CANNOT_CONFIRM_SOURCE_NOT_BOUND');if(item)add(target,'p',`当前 ${item.current_name??'未知'} / 原分类 ${item.received_name??'未收录'}；${item.missing_reason??item.error??'分类身份未绑定，不套用标签。'}`);return;}
+ const c=item.classification,meta=day.classification_catalogs?.[item.market_scope]?.metadata??{};
+ add(target,'p',`${item.market_scope} · 来源基准 ${c.reference_date??meta.asof??'UNKNOWN'} · PARTIAL；历史补录/补查保留，未认证当前或PIT。`);
+ add(target,'p','原目录身份 '+show(c.identity_status)+'；'+(c.identity_source?.limitation??''));
+ add(target,'h4','主营行业 / 主营业务');add(target,'p',show(c.main_industry));add(target,'p',show(c.main_business));add(target,'small',`来源体系 ${show(c.main_industry_system)} · 层级 ${show(c.main_industry_level)} · 来源 ${show(c.main_industry_source)}`);
+ add(target,'h4','官方大类（独立口径）');const official=c.official_industry;add(target,'p',official?`${show(official.major_name)} / ${show(official.sector_name)} · ${official.classification_system??'UNKNOWN'} ${official.source_period??'UNKNOWN'}`:'UNKNOWN（未提供）');
+ add(target,'h4','交易题材（多标签，允许重叠）');for(const [key,label]of [['shortline_themes','短线侠原标签'],['shortline_subthemes','短线侠子题材'],['normalized_themes','规范化标签'],['external_themes','外部原标签']])add(target,'p',label+'：'+labels(c[key]));
+ add(target,'h4','催化剂');add(target,'p',`${show(c.daily_catalyst?.text)} · 事件日 ${c.daily_catalyst?.event_date??'UNKNOWN'}`);add(target,'p',`产业链：${show(c.industry_chain_role)}；机器人角色：${show(c.robotics_role)}`);
+ add(target,'p',`${c.classification_status??'UNKNOWN'} · ${c.missing_reason??'完整性未认证'}；标签不改变候选、评分、资格或BUY。`);
+ const evidence=add(target,'details','');add(evidence,'summary',`原始来源、时间与缺口 · ${item.evidence?.length??0}项证据`);add(evidence,'p',`知识截止 ${meta.knowledge_cutoff_at??'UNKNOWN'}；资料生成 ${meta.generated_at??'UNKNOWN'}；代码+名称精确绑定不提升分类完整性。`);
+ for(const record of item.evidence??[]){const box=add(evidence,'div','');add(box,'p',`${record.source??record.source_id??'UNKNOWN'} · ${record.label_verbatim??record.supporting_text??''}`);add(box,'small',`发布 ${record.published_at??'UNKNOWN'}；观察 ${record.observed_at??'UNKNOWN'}；实读 ${record.retrieved_at??'UNKNOWN'}；${record.temporal_scope??'UNKNOWN'}；历史可知 ${record.historical_availability??'UNKNOWN'}`);try{const url=new URL(record.url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(box,'a','来源原件');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{}}
+ if(item.missing_evidence_ids?.length)add(evidence,'p','证据记录缺失：'+item.missing_evidence_ids.join('、'));
+}

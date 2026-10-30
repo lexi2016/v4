@@ -72,6 +72,16 @@
         "label": "keepCurrentProductBinding",
         "line": 113,
         "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/research-panel/numeric283-panel.js"
+      },
+      {
+        "label": "versions",
+        "line": 128,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/infrastructure/research_workbench_host.py"
+      },
+      {
+        "label": "sourceContext",
+        "line": 16,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/research/stock_panel_collab_20261030/mac-host/bootstrap.mjs"
       }
     ],
     "daily_slot": [
@@ -79,13 +89,28 @@
         "label": "run_v4_macos_scheduler_daemon.py",
         "line": 1,
         "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/run_v4_macos_scheduler_daemon.py"
+      },
+      {
+        "label": "run",
+        "line": 20,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/run_workbench_observation_slot.py"
       }
     ],
     "dated_cache": [
       {
         "label": "compute_stock",
-        "line": 177,
+        "line": 189,
         "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/research_panel_daily_product.py"
+      },
+      {
+        "label": "EventCaseCache",
+        "line": 56,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/domains/research_event_case_cache.py"
+      },
+      {
+        "label": "materialize_statistics",
+        "line": 140,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/build_mac_workbench.py"
       }
     ],
     "display_projection": [
@@ -98,13 +123,38 @@
         "label": "stratify_event_cases_by_prefix_percentile",
         "line": 453,
         "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/domains/research_daily_statistics.py"
+      },
+      {
+        "label": "ResearchWorkbenchHost",
+        "line": 58,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/infrastructure/research_workbench_host.py"
+      },
+      {
+        "label": "import_received",
+        "line": 26,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/infrastructure/research_classification_view.py"
+      },
+      {
+        "label": "join",
+        "line": 133,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/infrastructure/research_classification_view.py"
       }
     ],
     "original_owner": [
       {
         "label": "materialize_daily_product",
-        "line": 225,
+        "line": 229,
         "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/research_panel_daily_product.py"
+      },
+      {
+        "label": "cached_daily_statistics",
+        "line": 161,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/research_panel_daily_product.py"
+      },
+      {
+        "label": "accepted_label_cache",
+        "line": 150,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/research_panel_daily_product.py"
       }
     ],
     "paired_inputs": [
@@ -117,13 +167,23 @@
     "read_only_get": [
       {
         "label": "read_a_daily_product",
-        "line": 1196,
+        "line": 1204,
         "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/infrastructure/research_lane_source.py"
       },
       {
         "label": "a_share_company_materials",
-        "line": 475,
+        "line": 478,
         "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/apps/api/v4_api/research_router.py"
+      },
+      {
+        "label": "create_research_panel_router",
+        "line": 85,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/apps/api/v4_api/research_panel_mount.py"
+      },
+      {
+        "label": "catalog",
+        "line": 121,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/infrastructure/research_classification_view.py"
       }
     ],
     "reader_canvas": [
@@ -136,6 +196,26 @@
         "label": "locateEvent",
         "line": 455,
         "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/research-panel/numeric283-panel.js"
+      },
+      {
+        "label": "historyRate",
+        "line": 3,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/research/stock_panel_collab_20261030/mac-host/rate-sort.mjs"
+      },
+      {
+        "label": "rowValidity",
+        "line": 7,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/research/stock_panel_collab_20261030/mac-host/observation-local.mjs"
+      },
+      {
+        "label": "requestedSourceDate",
+        "line": 2,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/research/stock_panel_collab_20261030/mac-host/entry-date.mjs"
+      },
+      {
+        "label": "renderClassification",
+        "line": 5,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/research/stock_panel_collab_20261030/mac-host/classification-local.mjs"
       }
     ],
     "release_boundary": [
@@ -148,6 +228,16 @@
         "label": "app.py",
         "line": 1,
         "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/apps/api/v4_api/app.py"
+      },
+      {
+        "label": "build",
+        "line": 58,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/build_mac_workbench.py"
+      },
+      {
+        "label": "build_homepage_entry",
+        "line": 122,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/ops/build_mac_workbench.py"
       }
     ],
     "retained_chart": [
@@ -161,6 +251,11 @@
   "evidence_status": "static; no natural/deploy/API/UI promotion",
   "groups": {
     "API_CANDIDATE_NOT_RUNTIME_PROOF": [
+      "bb34f546a41d82d2",
+      "b703d729e665960b",
+      "7ca7d62bf9c8d962",
+      "849c3ed88b1b794b",
+      "ec65292bdaf8535f",
       "d0d716a176149d6a",
       "ba52452c547a99d5",
       "4e7646c8aa01878e",
@@ -169,7 +264,7 @@
       "bcdf5ad53a725d9a",
       "acff900b3ace207e",
       "d65cf2505ddcc2a7",
-      "2f2a9579ba6786bf"
+      "0c0def8f7bee4e1d"
     ],
     "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE": [
       "0d1733c2b966ed69",
@@ -190,6 +285,27 @@
       "b1705495a8aa4afe"
     ],
     "TASK_SOURCE_DIRTY_AT_CAPTURE": [
+      "a927455eddf79ca7",
+      "be1428181f319f41",
+      "01676718361d5ee0",
+      "a416098d79c5a533",
+      "ba28cb317edb7461",
+      "8f0d596af4e6ab0c",
+      "977b657471b8161c",
+      "1d29a3e16c0fb0cb",
+      "d80d6c35cd4880fe",
+      "ca83a4e92db476a9",
+      "40457c753529a680",
+      "27c2668ca878137c",
+      "657183684bb153b9",
+      "b1b7018477f521ca",
+      "a32a8fce43237bc3",
+      "f3fc51b8647346fc",
+      "252a865b14662f4b",
+      "e4f4b333e0e494d8",
+      "fb1dbbdde523ea28",
+      "dd13dd80cb74a1b0",
+      "2ac3718526b6e5c9",
       "3ba0fbcab40d8bfd",
       "c8a69b3e581af1bd",
       "bf0cc2ea93ec327f",
@@ -197,7 +313,7 @@
       "532df5499fe3ad48",
       "5b060238c343ce4c",
       "7388e210853f1f5f",
-      "3bfaf9e373912822",
+      "cbf3b97f4804ed02",
       "4edcd0b09ba429c3",
       "24618e128ef583ed",
       "4e989f9642b5261c",

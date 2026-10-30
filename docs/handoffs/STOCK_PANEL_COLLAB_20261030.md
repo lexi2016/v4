@@ -97,3 +97,39 @@ R2原合同从已有journal续跑，保留原5个完成结果；retained supervi
 Root真实Chrome验收：002527在13:50:05仍pending1/3687，页面保持打开且不reload；13:52:03真实完成后，同一选股自动显示回踩D2 54/111、D5 52/109及对应分位统计。000554泰山石油已完成7887/7887日期，图/资料/明细可读；小K只有1个尚未成熟事件、有效样本0，正确保留“数据不足”，不借其他组胜率。B11 `ROOT_LIVE_UI_ACCEPTANCE.json`留存真实回执。此PASS限当前R2批次的自动网站传播，不冒称247终态或未来研究日Main增量hook已安装。
 
 按用户指定框架分支/固定commit新增own namespace `research/stock_panel_collab_20261030`：严格日期/证券/generation/input/manifest/SHA同源GET适配，复用frozen51/22验证器和原renderer的`OriginalFullChart`方法，保留公司null/报告期/单位/来源；独立observation_date不推断。13项接口测试及001328真实861行/265177-byte gzip/单次projection GET兼容验证通过。框架46文件未改；sanitized shell仍缺显式host context交接、实际endpoint配置与外部公司validator，未部署该框架。精确接法与缺口见own README/COMPATIBILITY，按开发分支增量交付，不覆盖框架源码。
+
+
+## 10. Dot框架已落地Mac；历史全批计算闭环
+
+本节更新前述源码阶段状态。实际完整看板入口为 `http://127.0.0.1:8873/research-panel/workbench.html`；现役API release为`a-mac-dot-workbench-20261030-r1-api`，manifest SHA256 `2905f6e41a31a85c3614f93045779127723f264b60726cbc0ed712af68ff351d`。固定Dot commit `0ae4a66d90c12a0d0335b5f7f65b528879c5e9cf`全部46文件原字节保留，通过自有host seam绑定真实日期目录、247候选四列、原图renderer、同组历史统计及资料。公司validator、同源API与context缺口已在自有适配层闭合，未启用sanitized backend写权限。
+
+独立源码PASS后，Root真实1440与694预览验证布局、选股/日期/组别、真实canvas与资料；694四列边界已修复且无横向溢出。按现有独占API lease及fresh CAS切换后，新API PID95764；新入口、旧daily和history/day接口实际GET通过。候选范围247与原处理5808明确区分；无已授权盘中观测源时价格保持空白/UNKNOWN，美国既存资料PARTIAL、日本延迟原件、韩国UNKNOWN。此为网页功能验收，未进入股票形态/金融审图流程。
+
+R2全部247只完成、零失败，累计724669历史日期；原父进程只因C11已授权更新live index而在最终保护处退出1，原日志/checkpoint和冻结runner SHA保留。独立机械closer生成absent-only RESULT与FINAL_RECONCILIATION，明确记录索引已变、原不可变product/manifest/chart未变。持久缓存导入247/247，收益重算0，导入92774条已接受收益；首次缺失分位缓存物化46387次，立即重复收益/分位计算均0。精确证据见B13 source freeze及日志。后续研究日Main自动缓存hook尚未安装；本轮不宣称PIT、金融审图或交易许可。
+
+## Engineering rectification candidate · 2026-10-30
+
+The new bounded candidate keeps the fixed46 Dot vendor source unchanged and
+adds checked build seams, separately versioned list/statistics/observations/
+context/execution readbacks, completion-driven module refresh, header D2/D5
+rates with valid n, exact event-date navigation and truthful20-node execution.
+The original daily owner can restore accepted historical labels and reuse the
+unique durable outcome cache, with an index CAS at publication. Source/candidate,
+independent review, install, API/UI and natural evidence remain separate.
+
+Deployment roles, exact configuration and replay commands are in
+[engineering handoff](workbench_engineering_rectification_20261030/README.md) and
+[data binding SOP](workbench_data_completion_20261030/README.md). This candidate
+has no Futu A-share collection; native intraday date/cumulative fields remain
+`CANNOT_CONFIRM_INTRADAY_SOURCE`, while the existing official daily package may
+be displayed as date-only close archive. Root controls installation and remote
+CAS synchronization, preserving the other owner's48 remote framework files.
+
+The user-entry/classification follow-up unifies old daily/home navigation to
+the new workbench while retaining requested dates and explicit missing-day
+status. The old HTML is physically under research-panel/待删除 and served only
+through an explicit legacy alias. Received A/HK/CDR classification materials are
+imported once to a versioned local SQLite index; the current247 get exact code/
+name binding with three isolated name conflicts. See
+[entry/classification SOP](workbench_entry_classification_20261030/README.md).
+This changes display/query only, with no pool, formula, BUY or Main change.

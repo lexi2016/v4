@@ -462,6 +462,9 @@ def create_research_router(
     a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=shared_data_root,
                                        original_chart_binding=original_chart_binding)
 
+    from infrastructure.research_workbench_host import create_workbench_router
+    router.include_router(create_workbench_router(a_daily_source))
+
     @router.get("/a-share/daily-product")
     def exact_a_share_daily_product(date: str | None = None, symbol: str | None = None) -> dict:
         try:
