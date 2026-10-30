@@ -45,11 +45,11 @@ window.StockPanelHost={
     const group=own.includes(selectedGroup)?selectedGroup:own[0];
     context={source_date:day.source_date,observation_date:day.observation_date,symbol:row.symbol,generation:day.generation,input_sha256:day.input_sha256,group,horizon:'d2'};
     setCompanyContext(context);sourceContext(day);
-    let coverage=el('macScopeCoverage');if(!coverage){coverage=document.createElement('p');coverage.id='macScopeCoverage';coverage.className='counts';el('listCount').after(coverage);}coverage.textContent=`当前已交付候选 ${day.scope_count} 条；原处理 ${day.original_processed_count} 条，未交付台账行不在本页展示。`;
+    let coverage=el('macScopeCoverage');if(!coverage){coverage=document.createElement('p');coverage.id='macScopeCoverage';coverage.className='counts';document.querySelector('.source-note').append(coverage);}coverage.textContent=`当前已交付候选 ${day.scope_count} 条；原处理 ${day.original_processed_count} 条，未交付台账行不在本页展示。`;
     const bundle=await bridge.open(context,{render:true});current=bundle;context=bundle.context;el('fullCoverage').textContent=`${bundle.projection.data.rows.length}行原式51变量/22绘图 · 来源日${context.source_date} · 统计manifest ${bundle.numeric_manifest.sha256.slice(0,12)}`;showStatistics(bundle);return bundle;
   },
   paintContext,
-  paintClassificationCoverage(day){let line=el('macClassificationCoverage');if(!line){line=document.createElement('p');line.id='macClassificationCoverage';line.className='counts';el('listCount').after(line);}const counts=day.classification_identity_counts??{};line.textContent='分类代码+名称 '+(counts.BOUND_EXACT_CODE_NAME??0)+'/'+day.scope_count+' · 冲突 '+(counts.IDENTITY_CONFLICT_NAME??0)+' · '+day.classification_status;},
+  paintClassificationCoverage(day){let line=el('macClassificationCoverage');if(!line){line=document.createElement('p');line.id='macClassificationCoverage';line.className='counts';document.querySelector('.source-note').append(line);}const counts=day.classification_identity_counts??{};line.textContent='分类代码+名称 '+(counts.BOUND_EXACT_CODE_NAME??0)+'/'+day.scope_count+' · 冲突 '+(counts.IDENTITY_CONFLICT_NAME??0)+' · '+day.classification_status;},
   paintClassification(row,day){renderClassification(el('classificationSummary'),row,day)},
   paintCompanyReports(value){
     const target=el('companyEvidence'),box=add(target,'details');add(box,'summary','研报来源与缺口');
