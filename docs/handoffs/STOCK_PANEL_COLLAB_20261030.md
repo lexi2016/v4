@@ -2,6 +2,11 @@
 
 更新时间：2026-10-30。用途：通过GitHub开发分支向乐熹交接**已完成的个股模块**；不是主分支合并或V4发布指令。
 
+本轮个股完整历史补齐入口及集成边界见
+[`stock_history_catchup_20261030/INTEGRATION.md`](stock_history_catchup_20261030/INTEGRATION.md)。
+它直接消费已有247份原式历史及研究面板来源缓存；原公式、名单、原图和现役服务不变。
+离线补齐、独立验收、代码同步及页面接入分别记录，不把离线结果当成已上线。
+
 ## 1. 分工与唯一Writer边界
 
 **本聊天负责个股**：原式个股K线/成交量、缩放/拖动/恢复、指标/历史信号与事件定位、历史总体和同价格分位成功率、基本面、股东变化、研报等逐股内容。
@@ -76,3 +81,11 @@
 5. 公共分支只含必要源码/测试/精简证据；大行情、Chat回包、研报PDF、运行缓存及认证信息不随代码上传。
 
 协作保持 `RESEARCH_ONLY=true`、`production_allowed=false`、`buy_gate_updated=false`、`orders_sent=false`。本说明供乐熹通过唯一标识 `STOCK_PANEL_COLLAB_20261030` 查找并对齐，不假称已直接发消息给尚未暴露发送入口的Dot。
+
+## 8. 2026-10-30 中断恢复与增量事件缓存交接
+
+R2原合同从已有journal续跑，保留原5个完成结果；retained supervisor PID88464、runner PID88465于13:14:29启动。状态以B10 `RESUME_LIFECYCLE.json`、`BATCH_PROGRESS.json`及`RESOURCE_GUARD_LATEST.json`为准；资源guard只观测/报告，未实现自动停止新增提交。冻结R2 runner SHA保持不变，未改变原式/逐前缀规则。
+
+新增 `domains/research_event_case_cache.py`、`ops/reuse_stock_event_cases.py`及对应测试，提供持久逐事件收益/自身历史分位与真实R2分片导入。代次、合同和asof不单独作废已成熟收益；只对新事件、新成熟、补价和受影响修订调用原收益评价器。确切依赖、可执行命令、完成后机械检查和既有owner增量hook见上述 `INTEGRATION.md`。14项helper测试、真实已完成分片精确parity及零收益调用重复读取通过；全247仍RUNNING，不称全量完成或自动安装。
+
+个股源码另修复已证实组别错配：001328同时属于小K/回踩时，从回踩名单点入会保持回踩统计，卡片标题明确显示组别；全部/不可用组别回落首个自身组。`research-panel/numeric283-panel.js`仅改这一绑定和标题；`tests/test_stock_event_group_binding.py`两项定向检查与JS语法通过。现役页面/API未因此更新，旧异步stale防护保留。冻结范围独立Reviewer已给REVIEWED/PASS：14项缓存、2项组别绑定及JS语法通过；真实8股/32组/2038条horizon cases精确一致，重复收益/分位计算0次。主控按逐项allowlist同步开发分支；现役安装、API/UI及247终态仍待对应证据。
