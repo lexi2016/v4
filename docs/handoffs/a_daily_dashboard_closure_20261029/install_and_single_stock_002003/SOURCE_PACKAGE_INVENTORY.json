@@ -1,0 +1,132 @@
+{
+  "C6_local_commit": "f255428403aeac3913f80733631dd920b73ccd87",
+  "RESEARCH_ONLY": true,
+  "api_receipt": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/install_and_single_stock_002003/API_CANDIDATE_RECEIPT.json",
+    "sha256": "944c62217e90b84530d6436ae77bfc119b80d8a19fda771c8fb7abbf85edf7a6"
+  },
+  "buy_gate_updated": false,
+  "files": {
+    "API_EXACT_DELTA.diff": {
+      "bytes": 115862,
+      "sha256": "6a564dbc28ff6457f5892d7671b3880ce39f8e145f6bef9f8c0318d1879ea504"
+    },
+    "API_FIRST_HANDOFF.md": {
+      "bytes": 3069,
+      "sha256": "6d67b1c89fbe10f0a4fd5c709390bcf6807d81aab2a62d6cbedd13fd7d515fa9"
+    },
+    "INSTALL_RESTORE.md": {
+      "bytes": 3597,
+      "sha256": "82c44b00bae07470bf33473e5ae4721c6a03e4812c0b7b258cb616f6ef33dee5"
+    },
+    "MAIN_EXACT_DELTA.diff": {
+      "bytes": 138074,
+      "sha256": "8e4db4166a4486ddf6e1e1c1f27f251da29e8998444c9fda70c2a7921ea6a842"
+    },
+    "check_api_candidate.py": {
+      "bytes": 6148,
+      "sha256": "163d4c979b1fdac7d3568bfd82442ed40555af4932a4cdb56da3fdddfed0bbea"
+    },
+    "check_single_publish.py": {
+      "bytes": 3633,
+      "sha256": "b87475c9692b42ce537e2fce34777cdb6ee2c7ea708e26afa51183ecb0a7164b"
+    },
+    "composed_source/domains/research_daily_product.py": {
+      "bytes": 40830,
+      "sha256": "48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3"
+    },
+    "composed_source/domains/research_daily_statistics.py": {
+      "bytes": 17013,
+      "sha256": "120bffdc50e29e8becec30cc6f21362c3a2641e191ecd495ed61b37947bbb0f5"
+    },
+    "composed_source/ops/research_panel_daily_product.py": {
+      "bytes": 28596,
+      "sha256": "261318b8e6560cb6047b128829926628ea2a86043423c6e57c1422fe3dfdf43f"
+    },
+    "cutover_api.py": {
+      "bytes": 2844,
+      "sha256": "1f589971e74f152a6aa8c34e01dc1d2b92684a3f8280e44f72cf1ca867eb2bac"
+    },
+    "cutover_main.py": {
+      "bytes": 3140,
+      "sha256": "630f45a52ad9eeeb4b5417893e6f94f65749eac6f2c7d97ea071a518e55cb2c9"
+    },
+    "prepare_api.py": {
+      "bytes": 12199,
+      "sha256": "ce65a4a89b1d62482a08138c94163f0208bd84808e36709e342c63e553a7db01"
+    },
+    "prepare_code.py": {
+      "bytes": 1623,
+      "sha256": "e752394d433e90b347fa54f29ec6af9b2de67a6d05edd2e81a3820dcf014e0f7"
+    },
+    "prepare_main.py": {
+      "bytes": 6460,
+      "sha256": "37c93bc7bbb9eb9d93f26fc0136a98950eaf94131a8b0e5d1936f65042b4b824"
+    },
+    "publish_initial.py": {
+      "bytes": 3914,
+      "sha256": "e2706d72aa1af2f8ffc9403617234a94b6098378d07a976b1ec63d74590b25af"
+    },
+    "publish_single.py": {
+      "bytes": 7066,
+      "sha256": "a4248a1e76147865b6d49fb88651e9f52189ec733c6090fb34997df7dd8765e5"
+    },
+    "single_stock_runner.py": {
+      "bytes": 11495,
+      "sha256": "b18c4f3ef95eb96e6a85bc129da0d430b1561468b2890cf3f9c9b8fed77ac859"
+    }
+  },
+  "independent_review": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "api_manifest_sha256": "d172fdcb82abf8ede5e46d838fd8f710e7a58642f7fbbc9a412c10d2050898d8",
+    "candidate_manifest_sha256": "d172fdcb82abf8ede5e46d838fd8f710e7a58642f7fbbc9a412c10d2050898d8",
+    "candidate_plist_sha256": "170d4811b3cd5948f21911f21eaf1ed167a0a5b4b0fb8345ec4b1b80bfeebf7c",
+    "initial_data_plan_sha256": "58718ef3633ba9913a6de79fa1b801a45121bfada5c8bff6812dd6ace7828d78",
+    "live_cutover_verified": false,
+    "main_before_plist_sha256": "8c09b1cc46f6c499fb3bd1b4487dd1c9a41f56da06f4001b3ef7ebf67c9b219c",
+    "main_candidate_plist_sha256": "4559835f1b42f01a76e299713f5cd49e909ffb555442c788c4243f7e675b3219",
+    "main_manifest_sha256": "c27dd9bc3d61e99055461becfb6f291069854079d6871e928a59fe5eea5e38da",
+    "natural_run_verified": false,
+    "reviewer": "/root/original_chart_delta_review",
+    "scope": "COMPOSED_API_BASELINE_REBASE_DATE_SUMMARY_DELTA",
+    "status": "REVIEWED_PASS_COMPOSED_BINDING"
+  },
+  "main_receipt": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/install_and_single_stock_002003/MAIN_CANDIDATE_RECEIPT.json",
+    "sha256": "7ee2f28fbf5cd82d6d0863219deb0110f3b08b286ae85d895b8a31b1e2c88518"
+  },
+  "natural1540": "NOT_RUN",
+  "no_more_code_or_checks_after_root_stop": true,
+  "one_real_history": "Root accepted and published002003 only; no full247 history claim",
+  "orders_sent": false,
+  "production_allowed": false,
+  "root_runtime_receipts": {
+    "API_INSTALLED_READBACK.json": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/install_and_single_stock_002003/API_INSTALLED_READBACK.json",
+      "sha256": "559e115e93f59f757b39426a8e1c7a8c8f135053c10aa2f1571d0bf86badf777",
+      "status": "INSTALLED_API_VERIFIED_UI_VERIFIED_ONE_STOCK"
+    },
+    "MAIN_INSTALLED_READBACK.json": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/install_and_single_stock_002003/MAIN_INSTALLED_READBACK.json",
+      "sha256": "15a185d898a8a283ff066c579b834ae8f7c944e561031de9dffe757c2831eeca",
+      "status": "INSTALLED_MAIN_RUNTIME_VERIFIED_NATURAL_PENDING"
+    },
+    "SINGLE_PUBLISH_RECEIPT.json": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/install_and_single_stock_002003/SINGLE_PUBLISH_RECEIPT.json",
+      "sha256": "d0f2524652271f668683369f70b661d4301d1b21fd53ed84b90f34353a1cbb5d",
+      "status": "PUBLISHED_002003_STATS_ONLY_IN_COMPLETE_PRODUCT"
+    }
+  },
+  "service_action_owner": "Root only",
+  "source_only_samples_and_artifacts_kept_out_of_git": [
+    "raw data",
+    "financial runtime result/caches",
+    "release trees",
+    "plists/backups",
+    "large API responses"
+  ],
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/docs/handoffs/a_daily_dashboard_closure_20261029/install_and_single_stock_002003",
+  "status": "SOURCE_ARCHIVE_OF_ROOT_INSTALLED_AND_LIVE_UI_ACCEPTED_BATCH"
+}

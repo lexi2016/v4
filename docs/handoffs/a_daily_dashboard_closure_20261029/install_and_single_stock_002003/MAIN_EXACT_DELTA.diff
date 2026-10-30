@@ -1,0 +1,2295 @@
+--- a/contracts/a_share_daily_source_policy.json
++++ b/contracts/a_share_daily_source_policy.json
+@@ -2,7 +2,7 @@
+   "schema": "a_daily_source_policy.v1",
+   "enabled": true,
+   "source_kind": "TDX_OFFICIAL_G4DAY",
+-  "earliest_slot": "1610",
++  "earliest_slot": "1540",
+   "calendar": {
+     "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/market_calendar_2026.json",
+     "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1010,7 +1010,9 @@
+       "session_requirement": "POST_CLOSE",
+       "signal_date_role": "BUSINESS_DATE",
+       "slots": [
+-        "1610"
++        "1540",
++        "1610",
++        "1640"
+       ],
+       "target_date_role": "BUSINESS_DATE",
+       "workload_id": "research_panel_daily_a"
+--- a/docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json
++++ b/docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json
+@@ -0,0 +1,68 @@
++{
++  "schema": "research_daily_product_sources.v1",
++  "engine": {
++    "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/bot216_prefilter_handoff_20261026/original/source_engine/panel_rebuild_20261023/formula/formula_engine.py",
++    "sha256": "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"
++  },
++  "formula": {
++    "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/bot216_prefilter_handoff_20261026/original/source_engine/panel_rebuild_20261023/formula/USER_MAIN_CHART_FORMULA_MESSAGE_EXACT_UTF8.txt",
++    "sha256": "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
++  },
++  "tri_state_core": {
++    "path": "/Users/lexi/Desktop/学习/Z哥方法论/research_workflow_v2/integration/core.py",
++    "sha256": "e5bbeed5cfa665ef863f0cacb0bb6b13a17ebe957c1429eaaa8dea0acaf44a35",
++    "stat": {
++      "size": 13521,
++      "mtime_ns": 1793027546808981764,
++      "inode": 60390200,
++      "device": 16777229
++    }
++  },
++  "admission_helper": {
++    "path": "/Users/lexi/Desktop/学习/Z哥方法论/research_workflow_v2/panel_read.py",
++    "sha256": "7d67ba9898ebc1e816d082ae43ca0f51e3a9bc16278a589c0104524af925047a",
++    "stat": {
++      "size": 60519,
++      "mtime_ns": 1793020760188306625,
++      "inode": 59483254,
++      "device": 16777229
++    }
++  },
++  "census": {
++    "path": "/Users/lexi/Desktop/学习/因子工厂/research/kuansong151_formula_daily_20261029_r1/today_all_a/five_group_completion_r1/source/census.py",
++    "sha256": "75ed99318a149f2b57cbedd42618e5d5910d60ae2dd11f7fcb159c3fb3a6f2ef"
++  },
++  "r5_index": {
++    "path": "/Users/lexi/Desktop/学习/因子工厂/research/kuansong151_formula_daily_20261029_r1/today_all_a/numeric_filters_v1_r1/EFFECTIVE_RESULTS_R5_INDEX.json",
++    "sha256": "8136398ddb939cdc41d95a39f683cd40aa0432b8632660b4956786a5429fa944"
++  },
++  "r5_freeze": {
++    "path": "/Users/lexi/Desktop/学习/因子工厂/research/kuansong151_formula_daily_20261029_r1/today_all_a/numeric_filters_v1_r1/EXECUTION_FREEZE_R5.json",
++    "sha256": "043589f2879a5633a835f084803b43c35afa564a8d2c17e1c4af5c3fb559ef5a"
++  },
++  "r5_calendar": {
++    "path": "/Users/lexi/Desktop/学习/因子工厂/research/kuansong151_formula_daily_20261029_r1/today_all_a/numeric_filters_v1_r1/SOURCE_CALENDAR_R4.json",
++    "sha256": "9e19862d6d4f7b17ad6aad032fef70047210683db728ca982209a252ca656ff9"
++  },
++  "r5_asof": 20261028,
++  "bootstrap_default": "NOT_RUN_WAIT_ROOT_MEASURED_COST_DECISION",
++  "workers": 4,
++  "RESEARCH_ONLY": true,
++  "production_allowed": false,
++  "buy_gate_updated": false,
++  "orders_sent": false,
++  "future_calendar": {
++    "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/contracts/market_calendar_2026.json",
++    "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
++  },
++  "dated_g4_packages": {
++    "20261028": {
++      "path": "/Users/lexi/Desktop/学习/因子工厂/research/kuansong151_formula_daily_20261029_r1/today_all_a/five_group_completion_r1/source/G4_D28_RAW.zip",
++      "sha256": "0422b0ad773f5d89ae53be7092824660721fd541afbca17e93d4d667fb49b32d"
++    },
++    "20261029": {
++      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/20261029.zip",
++      "sha256": "191a19d8a4231c0592ef887c5ae48bf8a06e26fb4754d0cda4a228561197c048"
++    }
++  }
++}
+--- a/domains/research_daily_product.py
++++ b/domains/research_daily_product.py
+@@ -0,0 +1,777 @@
++"""Approved V1 numeric research proxies. Pure, prefix-causal, no IO/network."""
++from decimal import Decimal as N, localcontext
++from collections import deque
++from bisect import bisect_left,bisect_right
++TRUE='TRUE'; FALSE='FALSE'; UNKNOWN='UNKNOWN'
++def truth(x): return UNKNOWN if x is None else TRUE if x else FALSE
++def strict_and(*xs): return None if any(x is None for x in xs) else all(xs)
++def strict_or(*xs): return None if any(x is None for x in xs) else any(xs)
++def risk_and(*xs):return False if any(x is False for x in xs) else None if any(x is None for x in xs) else all(xs)
++def risk_or(*xs):return True if any(x is True for x in xs) else None if any(x is None for x in xs) else any(xs)
++def cmp(a,op,b):
++ if a is None or b is None:return None
++ return {'>':lambda:a>b,'>=':lambda:a>=b,'<':lambda:a<b,'<=':lambda:a<=b,'=':lambda:a==b}[op]()
++def ratio(a,b): return None if a is None or b is None or b<=0 else a/b
++
++def normalize(rows):
++ out=[];last=0
++ for row in rows:
++  r={'date':int(row.get('date',row.get('trade_date')))}
++  assert r['date']>last,'NONINCREASING_DATE';last=r['date']
++  for k,alt in [('o','open'),('h','high'),('l','low'),('c','close'),('v','vol')]:
++   v=N(str(row.get(k,row.get(alt))));r[k]=v if v.is_finite() else None
++  out.append(r)
++ return out
++
++def valid(r,volume=True):
++ p=[r[k] for k in ('o','h','l','c')]
++ return all(x is not None and x>0 for x in p) and r['l']<=min(r['o'],r['c'])<=max(r['o'],r['c'])<=r['h'] and (not volume or r['v'] is not None and r['v']>=0)
++
++def ma(rows,i,n,key='v',include=True):
++ end=i+1 if include else i;start=end-n
++ if start<0:return None
++ vals=[r[key] for r in rows[start:end]]
++ if any(v is None or (v<=0 if key!='v' else v<0) for v in vals):return None
++ return sum(vals)/N(n)
++
++def fund_keys(rows,breakout):
++ """MA includes K; PLRY1 strict NOT(REF), OR/AND unknown propagation."""
++ out=[];plry=[]
++ with localcontext() as ctx:
++  ctx.prec=28
++  for i,r in enumerate(rows):
++   p=rows[i-1] if i else None
++   pc=p['c'] if p else None;pv=p['v'] if p else None
++   pct=ratio(r['c'],pc);volr=ratio(r['v'],pv);vm=ratio(r['v'],ma(rows,i,20))
++   body=cmp(r['c'],'>',r['o']) if valid(r) else None
++   pl=strict_and(cmp(r['v'],'>',ma(rows,i,40)),cmp(r['v'],'>',None if pv is None else pv*N('1.8')),body)
++   pl1=strict_and(pl,None if i==0 or plry[-1] is None else not plry[-1]);plry.append(pl)
++   cp=None if not valid(r) else N(0) if r['h']==r['l'] else (r['c']-r['l'])/(r['h']-r['l'])
++   fk=strict_and(cmp(None if pct is None else (pct-1)*100,'>=',N(4)),cmp(r['c'],'>=',r['o']) if valid(r) else None,strict_or(cmp(volr,'>=',N('1.45')),cmp(vm,'>=',N('1.35')),pl1),cmp(cp,'>=',N('.45')))
++   out.append({'date':r['date'],'original_breakout':truth(breakout[i]),'FUNDK':truth(fk),'PLRY':truth(pl),'PLRY1':truth(pl1),'candidate':truth(strict_or(breakout[i],fk))})
++ return out
++
++def consolidation(rows,k,calendar=None):
++ candidates=[];unknown=[]
++ for n in range(5,21):
++  a=k-n
++  if a<0:unknown.append({'n':n,'reason':'INSUFFICIENT_PREK_BARS'});continue
++  seg=rows[a:k]
++  if not all(valid(r) for r in seg):unknown.append({'n':n,'reason':'INVALID_PREK_OHLCV'});continue
++  if calendar is not None and [r['date'] for r in seg]!=calendar[bisect_left(calendar,seg[0]['date']):bisect_right(calendar,seg[-1]['date'])]:
++   unknown.append({'n':n,'reason':'MISSING_PREK_EXCHANGE_BAR'});continue
++  spread=max(r['h'] for r in seg)/min(r['l'] for r in seg)-1;drift=abs(seg[-1]['c']/seg[0]['c']-1)
++  if spread<=N('.15') and drift<=N('.05'):
++   red=[r['v'] for r in seg if r['c']>r['o']];green=[r['v'] for r in seg if r['c']<r['o']];flat=[r['v'] for r in seg if r['c']==r['o']]
++   rv=sum(red);gv=sum(green);ra=None if not red else rv/len(red);ga=None if not green else gv/len(green)
++   status=truth(strict_and(cmp(rv,'>',gv),cmp(ra,'>',ga)))
++   candidates.append({'n':n,'start':seg[0]['date'],'end':seg[-1]['date'],'spread':spread,'close_drift':drift,'red_count':len(red),'green_count':len(green),'flat_count':len(flat),'red_sum':rv,'green_sum':gv,'flat_sum':sum(flat),'red_mean':ra,'green_mean':ga,'redgreen':status,'green_bars':[{'date':r['date'],'volume':r['v']} for r in seg if r['c']<r['o']]})
++ selected=candidates[-1] if candidates else None
++ # An unobservable longer candidate could be the required longest; do not silently choose shorter.
++ higher_unknown=bool(selected and any(x['n']>selected['n'] for x in unknown))
++ status=UNKNOWN if higher_unknown or not selected and unknown else selected['redgreen'] if selected else FALSE
++ return {'status':status,'reason':'LONGER_SEGMENT_UNKNOWN' if higher_unknown else 'NO_QUALIFYING_SEGMENT' if not selected and not unknown else 'SEGMENT_UNKNOWN' if not selected else 'LONGEST_QUALIFYING_SEGMENT','selected':selected,'candidates':candidates,'unknown_lengths':unknown}
++
++def pivots(rows):
++ """Contiguous equal extrema zones, 2 bars on each side, known by prefix end."""
++ result=[]
++ for kind,key,sgn in [('peak','h',1),('trough','l',-1)]:
++  a=0
++  while a<len(rows):
++   b=a
++   while b+1<len(rows) and rows[b+1][key]==rows[a][key]:b+=1
++   if a>=2 and b+2<len(rows) and all(valid(r) for r in rows[a-2:b+3]):
++    x=rows[a][key]
++    if all((x-r[key])*sgn>0 for r in rows[a-2:a]+rows[b+1:b+3]):result.append({'kind':kind,'i':b,'start_i':a,'end_i':b,'date':rows[b]['date'],'zone_dates':[r['date'] for r in rows[a:b+1]],'price':x,'known_i':b+2,'known_date':rows[b+2]['date']})
++   a=b+1
++ return sorted(result,key=lambda p:(p['i'],p['kind']))
++
++def risk_scan(rows,event_dates=None,calendar=None,coverage_calendar=None):
++ """TRUE = proxy hit, FALSE = fully observed non-hit, UNKNOWN = incomplete."""
++ n=len(rows);event_dates=set(event_dates or [r['date'] for r in rows[-60:]])
++ positions={d:i for i,d in enumerate(calendar if calendar is not None else [r['date'] for r in rows])}
++ coverage_calendar=coverage_calendar if coverage_calendar is not None else calendar
++ coverage=set(coverage_calendar) if coverage_calendar is not None else set(positions)
++ coverage_dates=sorted(coverage)
++ def expected_dates(first,last):return coverage_dates[bisect_left(coverage_dates,first):bisect_right(coverage_dates,last)]
++ indices=[i for i,r in enumerate(rows) if r['date'] in event_dates]
++ checks={f'D{k}':[] for k in range(1,6)};events=[]
++ missing_dates=event_dates-{r['date'] for r in rows}
++ def prevmax(i,n,key):
++  if i<n or not all(valid(r) for r in rows[i-n:i]):return None
++  return max(r[key] for r in rows[i-n:i])
++ def accel(i):return None if i<11 or not valid(rows[i-1]) or not valid(rows[i-11]) else rows[i-1]['c']/rows[i-11]['c']-1>=N('.20')
++ def big(i):
++  if i<1 or not valid(rows[i]) or not valid(rows[i-1]):return None
++  r=rows[i];d=r['o']-r['c'];span=r['h']-r['l']
++  return r['c']<r['o'] and d/rows[i-1]['c']>=N('.03') and span>0 and d/span>=N('.60')
++ def volbig(i,mult):
++  value=ma(rows,i,20,include=False)
++  return cmp(rows[i]['v'],'>=',None if value is None or value<=0 else value*mult)
++ def record(kind,i,state,details,peak_i=None,completion_i=None,peak_indices=None):
++  checks[kind].append({'date':rows[i]['date'],'status':truth(state),**details})
++  if state is True:
++   pi=i if peak_i is None else peak_i;ci=i if completion_i is None else completion_i
++   span=peak_indices if peak_indices is not None else [pi];peak_price=max(rows[j]['h'] for j in span);ties=[j for j in span if rows[j]['h']==peak_price];pi=ties[-1]
++   events.append({'proxy':kind,'event_date':rows[i]['date'],'completion_date':rows[ci]['date'],'peak_date':rows[pi]['date'],'peak_dates':[rows[j]['date'] for j in ties],'peak_price':peak_price,'peak_binding_dates':[rows[j]['date'] for j in span],'details':details})
++ for i in indices:
++  r=rows[i];hh=prevmax(i,60,'h');mv=prevmax(i,60,'v');v20=ma(rows,i,20,include=False)
++  d1=risk_and(accel(i),cmp(r['h'],'>=',None if hh is None else hh*N('.9')),big(i),volbig(i,N(3)),cmp(r['v'],'>=',mv))
++  if i<60 or not all(valid(z) for z in rows[i-60:i+1]):d1=None
++  record('D1',i,d1,{'V20_prior':v20,'HH60_prior':hh,'maxV60_prior':mv,'acceleration':truth(accel(i)),'big_bear':truth(big(i)),'acceleration_base_date':rows[i-11]['date'] if i>=11 else None,'acceleration_base_close':rows[i-11]['c'] if i>=11 else None},peak_indices=list(range(max(0,i-10),i+1)))
++  if i<9: d5=None;detail={'reason':'LT10_BARS'}
++  else:
++   seg=rows[i-9:i+1];hi=None if i<59 or not all(valid(z) for z in rows[i-59:i+1]) else max(z['h'] for z in rows[i-59:i+1])
++   red=[z['v'] for z in seg if z['c']>z['o']];green=[z['v'] for z in seg if z['c']<z['o']]
++   ra=sum(red)/len(red) if red else None;ga=sum(green)/len(green) if green else None
++   small=None if i<10 or not all(valid(z) for z in rows[i-10:i+1]) else all(abs(rows[j]['c']-rows[j]['o'])/rows[j-1]['c']<=N('.03') for j in range(i-9,i+1))
++   d5=risk_and(cmp(min(z['c'] for z in seg),'>=',None if hi is None else hi*N('.9')),small,len(green)>=3,bool(red),cmp(ga,'>=',None if ra is None else ra*N('1.5')),None if not green or not red else sum(green)>=sum(red))
++   detail={'HH60_including_t':hi,'min_close10':min(z['c'] for z in seg),'small_body10':truth(small),'red_count':len(red),'green_count':len(green),'red_sum':sum(red),'green_sum':sum(green),'red_mean':ra,'green_mean':ga}
++  if i<60 or not all(valid(z) for z in rows[i-60:i+1]):d5=None
++  peak_i=max(range(max(0,i-9),i+1),key=lambda j:(rows[j]['h'],j)) if all(valid(z) for z in rows[max(0,i-59):i+1]) else i
++  record('D5',i,d5,detail,peak_i,peak_indices=list(range(max(0,i-9),i+1)))
++ ps=pivots(rows);peaks=[p for p in ps if p['kind']=='peak']
++ ambiguous={p['i'] for p in ps if sum(q['i']==p['i'] for q in ps)>1}
++ # Structural proxies use market ordinals ONLY; per-exchange coverage is separate.
++ # Bound pairs by frozen 5..30 sessions; no historical cross-product.
++ peaks_known=[p for p in peaks if p['date'] in positions]
++ peak_ord=[positions[p['date']] for p in peaks_known]
++ unavailable=[p for p in peaks if p['date'] not in positions]
++ event_start=bisect_left([r['date'] for r in rows],min(event_dates)) if event_dates else n
++ # Suffix minimum up to the event-window start excludes already broken old necklines in O(1).
++ pre_min=[None]*(event_start+1);pre_bad=[0]*(event_start+1)
++ for j in range(event_start-1,-1,-1):
++  good=valid(rows[j]);old=pre_min[j+1]
++  pre_min[j]=min(rows[j]['c'],old) if good and old is not None else rows[j]['c'] if good else old
++  pre_bad[j]=pre_bad[j+1]+int(not good)
++ bear_cache={}
++ def bear_window(p):
++  idx=p['i']
++  if idx not in bear_cache:
++   window=list(range(idx,min(n,idx+3)))
++   states=[risk_and(big(k),volbig(k,N(2))) for k in window]
++   bear_cache[idx]=(None if len(window)<3 else risk_or(*states),[{'date':rows[k]['date'],'big':truth(big(k)),'V20_prior':ma(rows,k,20,include=False),'volume':rows[k]['v']} for k in window])
++  return bear_cache[idx]
++ for p2 in unavailable:
++  ci=p2['known_i']
++  if rows[ci]['date'] in event_dates:
++   for kind in ('D2','D4'):record(kind,ci,None,{'reason':'PEAK_OUTSIDE_EXCHANGE_CALENDAR_COVERAGE','peak2':p2})
++ for bpos,p2 in enumerate(peaks_known):
++  b=p2['i'];complete=p2['known_i'];p2ordinal=peak_ord[bpos]
++  lo=bisect_left(peak_ord,p2ordinal-30,0,bpos);hi=bisect_right(peak_ord,p2ordinal-5,0,bpos)
++  for p1 in peaks_known[lo:hi]:
++   a=p1['i'];gap=p2ordinal-positions[p1['date']]
++   assert 5<=gap<=30
++   span=rows[a:b+1]
++   requested=expected_dates(rows[a]['date'],rows[b]['date'])
++   coverage_unknown=p1['date'] not in coverage or p2['date'] not in coverage
++   priceok=None if coverage_unknown or ({a,b}&ambiguous) or not requested or [z['date'] for z in span]!=requested else True
++   down=min(z['l'] for z in rows[a+1:b]) if b>a+1 and all(valid(z) for z in span) else None
++   any2,detail2=bear_window(p2)
++   detail={'peak1':p1,'peak2':p2,'spacing_market_sessions':gap,'neckline':down,'first_peak_acceleration':truth(accel(a)),'second_bear_window':detail2}
++   if rows[complete]['date'] in event_dates:
++    d2=risk_and(priceok,N('.9')*p1['price']<=p2['price']<=p1['price'],None if down is None else down<=p1['price']*N('.95'),accel(a),any2)
++    if coverage_unknown:d2=None
++    record('D2',complete,d2,detail,a,complete,peak_indices=list(range(p1['start_i'],p1['end_i']+1)))
++   # D4 old pairs remain eligible only if their FIRST neckline break is in this event window.
++   if abs(p2['price']/p1['price']-1)>N('.05'):continue
++   any1,detail1=bear_window(p1)
++   d4base=risk_and(priceok,any1,any2)
++   if d4base is False:continue
++   if down is None:
++    if rows[complete]['date'] in event_dates:record('D4',complete,None,{**detail,'reason':'UNKNOWN_INTERPEAK_NECKLINE'})
++    continue
++   prior_unknown=False
++   if b+1<event_start and complete<event_start:
++    prior_unknown=pre_bad[b+1]>0
++    if pre_min[b+1] is not None and pre_min[b+1]<down:continue
++   crossing=None
++   scan_start=max(b+1,event_start) if complete<event_start else b+1
++   for j in range(scan_start,n):
++    if not valid(rows[j]):prior_unknown=True;continue
++    if rows[j]['c']<down:crossing=j;break
++   if crossing is not None:
++    ci=max(complete,crossing)
++    if rows[ci]['date'] in event_dates:
++     state=None if prior_unknown else d4base
++     record('D4',ci,state,{**detail,'break_date':rows[crossing]['date'],'first_bear_window':detail1,'prior_cross_input_unknown':prior_unknown},a,ci,peak_indices=list(range(p1['start_i'],p1['end_i']+1))+list(range(p2['start_i'],p2['end_i']+1)))
++ # D3 needs prior upwave and two adjacent downwaves. Collapse consecutive same-kind pivots conservatively.
++ alternating=[]
++ for p in ps:
++  if p['i'] in ambiguous:continue
++  if alternating and alternating[-1]['kind']==p['kind']:
++   q=alternating[-1]
++   if (p['price']>=q['price'] if p['kind']=='peak' else p['price']<=q['price']):alternating[-1]=p
++  else:alternating.append(p)
++ for j in range(4,len(alternating)):
++  seq=alternating[j-4:j+1]
++  if [p['kind'] for p in seq]!=['trough','peak','trough','peak','trough']:continue
++  z,p1,v1,p2,v2=seq;a,b,c,d,e=[p['i'] for p in seq]
++  ci=v2['known_i']
++  if rows[ci]['date'] not in event_dates:continue
++  def avg(l,h):return None if h<=l or not all(valid(r) for r in rows[l+1:h+1]) else sum(r['v'] for r in rows[l+1:h+1])/N(h-l)
++  u1=avg(a,b);dn1=avg(b,c);u2=avg(c,d);dn2=avg(d,e);hh=prevmax(b,60,'h')
++  requested=expected_dates(rows[a]['date'],rows[e]['date'])
++  wave_gap=None if not requested or [r['date'] for r in rows[a:e+1]]!=requested else True
++  d3=risk_and(wave_gap,cmp(p1['price'],'>=',hh),p2['price']<p1['price'],v2['price']<v1['price'],cmp(dn1,'>=',None if u1 is None or u1<=0 else u1*N('1.5')),cmp(dn2,'>=',None if u2 is None or u2<=0 else u2*N('1.5')))
++  if hh is None:d3=None
++  record('D3',ci,d3,{'turns':seq,'up1_mean':u1,'down1_mean':dn1,'up2_mean':u2,'down2_mean':dn2,'start_HH60_prior':hh},b,ci,peak_indices=list(range(p1['start_i'],p1['end_i']+1)))
++ statuses={}
++ # Insufficient 60+60 warmup or incomplete event-date coverage makes untriggered structural absence UNKNOWN.
++ complete_history=bool(indices) and min(indices)>=60 and not missing_dates and all(valid(r) for r in rows[max(0,min(indices)-60):])
++ for key,values in checks.items():
++  statuses[key]=TRUE if any(x['status']==TRUE for x in values) else UNKNOWN if not complete_history or any(x['status']==UNKNOWN for x in values) else FALSE
++ return {'proxy_status':statuses,'events':events,'checks':checks,'confirmed_pivots':[p for p in ps if p['known_i']>=max(0,n-60)],'missing_event_dates':sorted(missing_dates),'input_complete':complete_history,'event_dates':sorted(event_dates),'last_two_bars_unconfirmed_pivots':True}
++
++def risk_disposition(scan,rows,keys):
++ if not rows or not valid(rows[-1]):return {'status':UNKNOWN,'reason':'INVALID_D_PRICE','events':[]}
++ out=[];states=[]
++ for event in scan['events']:
++  peak=event['peak_price'];drawdown=1-rows[-1]['c']/peak if peak and peak>0 else None
++  later=[k['date'] for k in keys if k['candidate']==TRUE and event['completion_date']<k['date']<rows[-1]['date']]
++  state=UNKNOWN if drawdown is None or drawdown>=N('.5') or later else FALSE
++  reason='REBUILD_PENDING_50PCT' if drawdown is not None and drawdown>=N('.5') else 'LATER_STRUCTURE_APPLICABILITY_PENDING' if later else 'NUMERIC_PROXY_TRIGGERED'
++  out.append({**event,'D_close':rows[-1]['c'],'peak_to_D_close_drawdown':drawdown,'later_key_dates':later,'disposition':state,'reason':reason});states.append(state)
++ status=FALSE if FALSE in states else UNKNOWN if states or UNKNOWN in scan['proxy_status'].values() else TRUE
++ return {'status':status,'reason':'ACTIVE_NUMERIC_PROXY' if status==FALSE else 'RISK_APPLICABILITY_OR_INPUT_PENDING' if status==UNKNOWN else 'LAST60_NUMERIC_PROXIES_NOT_TRIGGERED','events':out,'proxy_status':scan['proxy_status']}
++
++def prior_key_gate(keys,requested_dates,available_dates):
++ recent=[k for k in keys if k['date'] in requested_dates]
++ return TRUE if any(k['candidate']==TRUE for k in recent) else UNKNOWN if any(k['candidate']==UNKNOWN for k in recent) or set(requested_dates)-set(available_dates) else FALSE
++
++def result_binding_compatible(result,freeze_sha,calendar_sha):
++ return result.get('execution_freeze_sha256')==freeze_sha and result.get('calendar_sha256')==calendar_sha
++
++def market_spacing(first,last,exchange_dates):
++ positions={day:i for i,day in enumerate(exchange_dates)}
++ return None if first not in positions or last not in positions else positions[last]-positions[first]
++
++
++# Daily product adapter. The frozen numeric functions above intentionally remain
++# byte-for-byte identical to EXECUTION_FREEZE_R5.json; this layer only binds a
++# caller-supplied causal prefix and source metadata to those predicates.
++from collections import Counter
++from collections.abc import Mapping
++
++_GROUPS = ('original', 'nav_smallk', 'nav_pullback', 'nav_breakout')
++_QUALIFIED = 'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
++_SAFE_FLAGS = {
++    'RESEARCH_ONLY': True,
++    'production_allowed': False,
++    'buy_gate_updated': False,
++    'orders_sent': False,
++}
++
++
++def _as_date(value):
++    try:
++        date = int(value)
++    except (TypeError, ValueError, OverflowError):
++        return None
++    return date if len(str(date)) == 8 else None
++
++
++def _tri(value):
++    if isinstance(value, Mapping):
++        value = value.get('status', value.get('membership', value.get('state')))
++    if type(value) is bool:
++        return TRUE if value else FALSE
++    if value in ('TRUE', 'YES'):
++        return TRUE
++    if value in ('FALSE', 'NO'):
++        return FALSE
++    return UNKNOWN
++
++
++def _decimal_or_none(value):
++    if value is None:
++        return None
++    try:
++        number = N(str(value))
++    except Exception:
++        return None
++    return number if number.is_finite() else None
++
++
++def _raw_bar_value(row, key, alias):
++    value = row.get(key)
++    if value is None:
++        value = row.get(alias)
++    if value is None and isinstance(row.get('ohlcv'), Mapping):
++        nested = row['ohlcv']
++        value = nested.get(key)
++        if value is None:
++            value = nested.get(alias)
++    return value
++
++
++def _unknown_group(baseline, reasons, anchor_date=None):
++    after_redgreen = _gate_and(baseline, UNKNOWN)
++    final = _gate_and(after_redgreen, UNKNOWN)
++    return {
++        'baseline': baseline,
++        'redgreen_gate': UNKNOWN,
++        'anchor_applicability': UNKNOWN,
++        'after_redgreen': after_redgreen,
++        'risk_clear_gate': UNKNOWN,
++        'status': final,
++        'after_risk': final,
++        'anchor_date': anchor_date,
++        'event_dates': [anchor_date] if anchor_date is not None else [],
++        'reasons': list(dict.fromkeys(reasons)),
++    }
++
++
++def _gate_and(*states):
++    return FALSE if FALSE in states else UNKNOWN if UNKNOWN in states else TRUE
++
++
++def _base_statuses(baseline_memberships):
++    source = baseline_memberships if isinstance(baseline_memberships, Mapping) else {}
++    return {group: _tri(source.get(group)) for group in ('original', 'nav_pullback', 'nav_breakout')}
++
++
++def _raw_g4_smallk(raw_g4_reference, asof, rows):
++    """Compute the approved raw-day and volume-shrink base; never use QFQ close."""
++    raw = raw_g4_reference if isinstance(raw_g4_reference, Mapping) else {}
++    nested = raw.get('raw') if isinstance(raw.get('raw'), Mapping) else raw
++    date = _as_date(raw.get('date') or raw.get('trade_date') or nested.get('trade_date'))
++    correspondence = raw.get('correspondence_status', raw.get('status'))
++    if correspondence == 'AUXILIARY_D28_G4_REFERENCE_RESEARCH_ONLY':
++        correspondence = TRUE
++    correspondence = _tri(correspondence)
++    current_close = _decimal_or_none(nested.get('close'))
++    raw_prev_close = _decimal_or_none(nested.get('prev_close'))
++    if date != asof or correspondence != TRUE or current_close is None or raw_prev_close is None or raw_prev_close <= 0:
++        return UNKNOWN, {
++            'status': UNKNOWN,
++            'reason': 'RAW_G4_REFERENCE_OR_SAME_DATE_RAW_PARITY_UNKNOWN',
++            'raw_reference_date': date,
++            'raw_g4_prev_close_supplied': raw_prev_close is not None,
++        }
++    if len(rows) < 2 or rows[-1]['date'] != asof:
++        return UNKNOWN, {
++            'status': UNKNOWN,
++            'reason': 'CURRENT_OR_PREVIOUS_VOLUME_BAR_MISSING',
++            'raw_reference_date': date,
++            'raw_g4_prev_close': raw_prev_close,
++        }
++    current_volume = rows[-1]['v']
++    previous_volume = rows[-2]['v']
++    volume_shrink = None if current_volume is None or previous_volume is None or current_volume < 0 or previous_volume <= 0 else current_volume < previous_volume
++    raw_day_small = abs(current_close - raw_prev_close) * N(100) <= raw_prev_close * N(3)
++    membership = FALSE if raw_day_small is False or volume_shrink is False else TRUE if raw_day_small is True and volume_shrink is True else UNKNOWN
++    return membership, {
++        'status': membership,
++        'reason': 'RAW_G4_REFERENCE_AND_VOLUME_SHRINK_EVALUATED',
++        'raw_reference_date': date,
++        'raw_g4_close': current_close,
++        'raw_g4_prev_close': raw_prev_close,
++        'raw_day_small': truth(raw_day_small),
++        'volume_shrink': truth(volume_shrink),
++        'volume_basis': 'CALLER_SUPPLIED_PREFIX_VOLUME',
++        'raw_reference_basis': 'CALLER_SUPPLIED_RAW_G4_PREV_CLOSE',
++    }
++
++
++def _r5_d3_terminal_check(rows, calendar):
++    """R5 d3_terminal.check, with its frozen predicates bound locally."""
++    n = len(rows)
++    ps = pivots(rows)
++    counts = Counter(p['i'] for p in ps)
++    ambiguous = {i for i, count in counts.items() if count > 1}
++    turns = []
++    for pivot in ps:
++        if pivot['i'] in ambiguous:
++            continue
++        if turns and turns[-1]['kind'] == pivot['kind']:
++            old = turns[-1]
++            if (pivot['price'] >= old['price'] if pivot['kind'] == 'peak' else pivot['price'] <= old['price']):
++                turns[-1] = pivot
++        else:
++            turns.append(pivot)
++
++    def expected(first, last):
++        return calendar[bisect_left(calendar, first):bisect_right(calendar, last)]
++
++    def average(start, end):
++        segment = rows[start + 1:end + 1]
++        if end <= start or not all(valid(row) for row in segment):
++            return None
++        requested = expected(rows[start + 1]['date'], rows[end]['date'])
++        if not requested or [row['date'] for row in segment] != requested:
++            return None
++        return sum(row['v'] for row in segment) / N(end - start)
++
++    candidates = []
++    for end in range(max(0, n - 2), n):
++        if end + 1 < n and rows[end + 1]['l'] == rows[end]['l']:
++            continue
++        start = end
++        while start and rows[start - 1]['l'] == rows[end]['l']:
++            start -= 1
++        if start < 2:
++            continue
++        neighborhood = rows[start - 2:]
++        if not all(valid(row) for row in neighborhood):
++            continue
++        low = rows[end]['l']
++        right = rows[end + 1:]
++        if not all(low < row['l'] for row in rows[start - 2:start] + right):
++            continue
++        before = [pivot for pivot in turns if pivot['i'] < start]
++        if len(before) < 4:
++            continue
++        sequence = before[-4:]
++        if [pivot['kind'] for pivot in sequence] != ['trough', 'peak', 'trough', 'peak']:
++            continue
++        t0, p1, t1, p2 = sequence
++        a, b, c, d = [pivot['i'] for pivot in sequence]
++        if not (p2['price'] < p1['price'] and low < t1['price']):
++            continue
++        hh = None if b < 60 or not all(valid(row) for row in rows[b - 60:b]) else max(row['h'] for row in rows[b - 60:b])
++        if hh is not None and p1['price'] < hh:
++            continue
++        up1 = average(a, b)
++        down1 = average(b, c)
++        up2 = average(c, d)
++        down2 = average(d, end)
++        compare1 = None if up1 is None or up1 <= 0 or down1 is None else down1 >= up1 * N('1.5')
++        compare2 = None if up2 is None or up2 <= 0 or down2 is None else down2 >= up2 * N('1.5')
++        if compare1 is False or compare2 is False:
++            continue
++        candidates.append({
++            'status': UNKNOWN,
++            'reason': 'D3_PLAUSIBLE_SECOND_DOWNWAVE_TERMINAL_NOT_RIGHT2_CONFIRMED',
++            'turns': sequence,
++            'terminal_zone_dates': [row['date'] for row in rows[start:end + 1]],
++            'terminal_low': low,
++            'available_right_bars': n - end - 1,
++            'required_right_bars': 2,
++            'start_HH60_prior': hh,
++            'up1_mean': up1,
++            'down1_mean': down1,
++            'up2_mean': up2,
++            'down2_mean': down2,
++            'first_down_volume_test': truth(compare1),
++            'second_down_volume_test': truth(compare2),
++            'asof': rows[-1]['date'],
++        })
++    return {
++        'status': UNKNOWN if candidates else FALSE,
++        'reason': 'PLAUSIBLE_INCOMPLETE_D3_TERMINAL' if candidates else 'NO_PLAUSIBLE_INCOMPLETE_D3_TERMINAL',
++        'candidates': candidates,
++    }
++
++
++def _safe_risk_scan(rows, event_dates, calendar):
++    """Keep missing D5 colour/volume fields UNKNOWN instead of crashing the oracle."""
++    requested = set(event_dates)
++    for index, row in enumerate(rows):
++        if row['date'] not in requested or index < 9:
++            continue
++        if any(rows[j][key] is None for j in range(index - 9, index + 1) for key in ('o', 'c', 'v')):
++            return {
++                'proxy_status': {f'D{i}': UNKNOWN for i in range(1, 6)},
++                'events': [],
++                'checks': {f'D{i}': [] for i in range(1, 6)},
++                'confirmed_pivots': [],
++                'missing_event_dates': sorted(requested - {bar['date'] for bar in rows}),
++                'input_complete': False,
++                'event_dates': sorted(requested),
++                'last_two_bars_unconfirmed_pivots': True,
++                'reason': 'REQUIRED_RISK_WINDOW_FIELDS_MISSING',
++            }
++    return risk_scan(rows, event_dates, calendar, calendar)
++
++
++def _unknown_product(symbol, asof, baseline, reasons, *, future_bars_excluded=0, prior10_dates=None, smallk=None):
++    groups = {}
++    for group in _GROUPS:
++        group_baseline = baseline.get(group, UNKNOWN)
++        group_reasons = list(reasons)
++        if group == 'nav_smallk' and smallk is not None:
++            group_baseline = _gate_and(smallk, UNKNOWN)
++        groups[group] = _unknown_group(group_baseline, group_reasons)
++    return {
++        'symbol': symbol,
++        'asof': asof,
++        'status': 'UNKNOWN_INPUT_COVERAGE',
++        'groups': groups,
++        'layers': groups,
++        'baseline': {group: groups[group]['baseline'] for group in _GROUPS},
++        'new_prior10_key_gate': UNKNOWN,
++        'latest_prior_new_key_date': None,
++        'all_new_key_dates': [],
++        'new_key_unknown_dates': [],
++        'prior10_dates': prior10_dates or [],
++        'future_bars_excluded': future_bars_excluded,
++        'input_coverage': {'status': UNKNOWN, 'reasons': list(dict.fromkeys(reasons))},
++        'risk': {'status': UNKNOWN, 'reason': 'UNKNOWN_INPUT_COVERAGE', 'events': [], 'proxy_status': {f'D{i}': UNKNOWN for i in range(1, 6)}},
++        **_SAFE_FLAGS,
++    }
++
++
++def evaluate_daily_product(
++    *,
++    symbol,
++    asof,
++    fullprefix,
++    exchange_calendar,
++    original_breakout_by_date,
++    baseline_memberships,
++    old_main_anchor_date,
++    qualification_status,
++    raw_g4_reference,
++):
++    """Evaluate the frozen R5 four-group predicates for one explicit as-of date.
++
++    Inputs are already bound by the caller. The function has no I/O and never
++    obtains data. `original_breakout_by_date` contains the exact V192 assignment
++    result for each source date as TRUE/FALSE/UNKNOWN; missing dates stay UNKNOWN.
++    `fullprefix` may contain later bars, which are excluded before any predicate
++    runs. `exchange_calendar` must be the same-exchange session calendar.
++    `baseline_memberships` and `old_main_anchor_date` must be valid at this same
++    as-of cutoff; a current-only descriptor cannot be reused for a historical D.
++    `raw_g4_reference` must be the same-date raw close/prev_close reference with
++    raw correspondence verified by the caller.
++    """
++    asof = _as_date(asof)
++    base = _base_statuses(baseline_memberships)
++    baseline = {**base, 'nav_smallk': UNKNOWN}
++    reasons = []
++    if asof is None:
++        return _unknown_product(symbol, asof, baseline, ['INVALID_ASOF_DATE'])
++
++    calendar_values = []
++    for value in exchange_calendar if isinstance(exchange_calendar, (list, tuple)) else ():
++        date = _as_date(value)
++        if date is None:
++            return _unknown_product(symbol, asof, baseline, ['INVALID_EXCHANGE_CALENDAR_DATE'])
++        calendar_values.append(date)
++    if not calendar_values or calendar_values != sorted(set(calendar_values)) or asof not in calendar_values:
++        return _unknown_product(symbol, asof, baseline, ['ASOF_MISSING_OR_INVALID_EXCHANGE_CALENDAR'])
++    calendar = [date for date in calendar_values if date <= asof]
++    asof_position = calendar.index(asof)
++    prior10_dates = calendar[max(0, asof_position - 10):asof_position]
++
++    qualification = qualification_status
++    if isinstance(qualification, Mapping):
++        qualification = qualification.get('status')
++    if qualification != _QUALIFIED:
++        return _unknown_product(
++            symbol,
++            asof,
++            baseline,
++            ['UNKNOWN_SOURCE_ADMISSION'],
++            prior10_dates=prior10_dates,
++            future_bars_excluded=0,
++        )
++
++    if not isinstance(fullprefix, (list, tuple)):
++        return _unknown_product(symbol, asof, baseline, ['FULLPREFIX_MISSING_OR_INVALID'], prior10_dates=prior10_dates)
++
++    parsed = []
++    undated = 0
++    future_bars_excluded = 0
++    for source_row in fullprefix:
++        if not isinstance(source_row, Mapping):
++            undated += 1
++            continue
++        source_date = _as_date(source_row.get('date') or source_row.get('trade_date'))
++        if source_date is None:
++            undated += 1
++            continue
++        if source_date > asof:
++            future_bars_excluded += 1
++            continue
++        raw = {'date': source_date}
++        for key, alias in (('o', 'open'), ('h', 'high'), ('l', 'low'), ('c', 'close'), ('v', 'vol')):
++            value = _raw_bar_value(source_row, key, alias)
++            if key == 'v' and value is None:
++                value = source_row.get('volume')
++                if value is None and isinstance(source_row.get('ohlcv'), Mapping):
++                    value = source_row['ohlcv'].get('volume')
++            number = _decimal_or_none(value)
++            raw[key] = str(number) if number is not None else 'NaN'
++        parsed.append(raw)
++
++    if undated:
++        return _unknown_product(symbol, asof, baseline, ['UNDATED_PREFIX_ROW'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
++    if not parsed:
++        return _unknown_product(symbol, asof, baseline, ['FULLPREFIX_EMPTY'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
++    dates = [row['date'] for row in parsed]
++    if dates != sorted(set(dates)):
++        return _unknown_product(symbol, asof, baseline, ['DUPLICATE_OR_NONINCREASING_PREFIX_DATES'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
++    if any(date not in calendar for date in dates):
++        return _unknown_product(symbol, asof, baseline, ['PREFIX_DATE_OUTSIDE_EXCHANGE_CALENDAR'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
++    if dates[-1] != asof:
++        return _unknown_product(symbol, asof, baseline, ['ASOF_BAR_MISSING'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
++
++    rows = normalize(parsed)
++    source_statuses = original_breakout_by_date if isinstance(original_breakout_by_date, Mapping) else {}
++    breakout = []
++    original_signal_dates = []
++    source_dates = []
++    original_unknown_dates = []
++    for source_row in rows:
++        date = source_row['date']
++        state = _tri(source_statuses.get(date, source_statuses.get(str(date))))
++        breakout.append(None if state == UNKNOWN else state == TRUE)
++        if state == TRUE:
++            original_signal_dates.append(date)
++        if state == UNKNOWN:
++            original_unknown_dates.append(date)
++        if date in source_statuses or str(date) in source_statuses:
++            source_dates.append(date)
++    keys = fund_keys(rows, breakout)
++    available_dates = [row['date'] for row in rows]
++    prior_key_states = keys[:-1]
++    recent_gate = prior_key_gate(prior_key_states, prior10_dates, available_dates)
++    if len(prior10_dates) != 10:
++        recent_gate = UNKNOWN
++    smallk, smallk_detail = _raw_g4_smallk(raw_g4_reference, asof, rows)
++    baseline['nav_smallk'] = _gate_and(smallk, recent_gate)
++
++    eligible = [i for i, key in enumerate(prior_key_states) if key['candidate'] == TRUE]
++    uncertain = [key['date'] for key in prior_key_states if key['candidate'] == UNKNOWN]
++    latest = eligible[-1] if eligible else None
++    path_indices = sorted(set([i for i in eligible if rows[i]['date'] in prior10_dates] + ([latest] if latest is not None else [])))
++    paths = []
++    for index in path_indices:
++        segment = consolidation(rows, index, calendar)
++        paths.append({
++            'anchor_date': rows[index]['date'],
++            'role': 'LATEST_PRIOR_NEW_KEY' if index == latest else 'EARLIER_REFERENCE_RETAINED_NOT_SELECTED',
++            'key': keys[index],
++            'ohlcv': rows[index],
++            'preK': segment,
++            'same_anchor_support': {
++                'D_close': rows[-1]['c'],
++                'K_low': rows[index]['l'],
++                'K_high': rows[index]['h'],
++                'within_K_range': None if rows[index]['l'] is None or rows[-1]['c'] is None or rows[index]['h'] is None else rows[index]['l'] <= rows[-1]['c'] <= rows[index]['h'],
++                'above_K_high': None if rows[index]['h'] is None or rows[-1]['c'] is None else rows[-1]['c'] > rows[index]['h'],
++            },
++        })
++    current = next((path for path in paths if path['role'] == 'LATEST_PRIOR_NEW_KEY'), None)
++    key_uncertain = latest is None or any(date > rows[latest]['date'] for date in uncertain)
++    primary_redgreen = UNKNOWN if key_uncertain or current is None else current['preK']['status']
++    unresolved_other = primary_redgreen == FALSE and any(path['role'] != 'LATEST_PRIOR_NEW_KEY' and path['preK']['status'] != FALSE for path in paths)
++    redgreen = UNKNOWN if unresolved_other else primary_redgreen
++
++    baseline['original'] = base['original']
++    baseline['nav_pullback'] = base['nav_pullback']
++    baseline['nav_breakout'] = base['nav_breakout']
++    old_main_anchor_date = _as_date(old_main_anchor_date)
++    risk_event_dates = calendar[max(0, len(calendar) - 60):]
++    risk_scan_result = _safe_risk_scan(rows, risk_event_dates, calendar)
++    d3_terminal = None
++    if risk_scan_result['proxy_status']['D3'] == FALSE:
++        d3_terminal = _r5_d3_terminal_check(rows, calendar)
++        if d3_terminal['status'] == UNKNOWN:
++            risk_scan_result['proxy_status']['D3'] = UNKNOWN
++            risk_scan_result['checks']['D3'].append({'date': asof, 'status': UNKNOWN, 'terminal_pending': d3_terminal})
++    disposition = risk_disposition(risk_scan_result, rows, keys)
++
++    layers = {}
++    for group in _GROUPS:
++        applicability = TRUE
++        group_reasons = []
++        if key_uncertain:
++            applicability = UNKNOWN
++            group_reasons.append('LATEST_NEW_KEY_UNRESOLVED')
++        if group in ('nav_pullback', 'nav_breakout') and baseline[group] == TRUE:
++            new_anchor = rows[latest]['date'] if latest is not None else None
++            if old_main_anchor_date != new_anchor:
++                applicability = UNKNOWN
++                group_reasons.append('OLD_DESCRIPTOR_AND_NEW_FILTER_ANCHOR_DIFFER')
++        if group == 'nav_smallk' and current and current['anchor_date'] not in prior10_dates:
++            applicability = UNKNOWN
++            group_reasons.append('CURRENT_NEW_KEY_NOT_IN_PRIOR10')
++        after_redgreen = _gate_and(baseline[group], redgreen, applicability)
++        final = _gate_and(after_redgreen, disposition['status'])
++        if redgreen != TRUE:
++            group_reasons.append('REDGREEN_' + redgreen)
++        if disposition['status'] != TRUE:
++            group_reasons.append(disposition['reason'])
++        if d3_terminal is not None and d3_terminal['status'] == UNKNOWN:
++            group_reasons.append('D3_TERMINAL_UNCONFIRMED')
++        anchor_date = rows[latest]['date'] if latest is not None else None
++        layers[group] = {
++            'baseline': baseline[group],
++            'redgreen_gate': redgreen,
++            'anchor_applicability': applicability,
++            'after_redgreen': after_redgreen,
++            'risk_clear_gate': disposition['status'],
++            'status': final,
++            'after_risk': final,
++            'anchor_date': anchor_date,
++            'event_dates': [anchor_date] if anchor_date is not None else [],
++            'reasons': list(dict.fromkeys(group_reasons)),
++        }
++
++    field_missing = [
++        {'date': row['date'], 'fields': [{'o': 'open', 'h': 'high', 'l': 'low', 'c': 'close', 'v': 'vol'}[key] for key in ('o', 'h', 'l', 'c', 'v') if row[key] == 'NaN']}
++        for row in parsed
++        if any(row[key] == 'NaN' for key in ('o', 'h', 'l', 'c', 'v'))
++    ]
++    coverage_reasons = []
++    if field_missing:
++        coverage_reasons.append('MISSING_REQUIRED_PREFIX_FIELDS')
++    if original_unknown_dates:
++        coverage_reasons.append('V192_BREAKOUT_STATUS_UNKNOWN_OR_MISSING')
++    if smallk == UNKNOWN:
++        coverage_reasons.append('RAW_G4_REFERENCE_OR_VOLUME_COVERAGE_UNKNOWN')
++    if recent_gate == UNKNOWN:
++        coverage_reasons.append('PRIOR10_KEY_COVERAGE_UNKNOWN')
++    if not risk_scan_result.get('input_complete', False):
++        coverage_reasons.append('RISK_PROXY_HISTORY_OR_EVENT_COVERAGE_UNKNOWN')
++    result = {
++        'symbol': symbol,
++        'asof': asof,
++        'status': 'NUMERIC_PROXIES_COMPUTED',
++        'groups': layers,
++        'layers': layers,
++        'baseline': {group: layers[group]['baseline'] for group in _GROUPS},
++        'old_raw_memberships': {group: baseline[group] for group in ('original', 'nav_pullback', 'nav_breakout')},
++        'smallk_raw_base': smallk,
++        'smallk_reference': smallk_detail,
++        'new_prior10_key_gate': recent_gate,
++        'prior10_dates': prior10_dates,
++        'latest_prior_new_key_date': rows[latest]['date'] if latest is not None else None,
++        'new_key_true_count': len(eligible),
++        'new_key_unknown_dates': uncertain,
++        'all_new_key_dates': [key['date'] for key in prior_key_states if key['candidate'] == TRUE],
++        'unselected_older_key_applicability': 'UNKNOWN_NOT_PROMOTED_TO_CURRENT_REFERENCE',
++        'primary_path_redgreen': primary_redgreen,
++        'other_path_applicability_pending': unresolved_other,
++        'filter_anchor_paths': paths,
++        'event_dates': {
++            'original_v192_true': original_signal_dates,
++            'new_key_true': [key['date'] for key in prior_key_states if key['candidate'] == TRUE],
++            'risk': [event['event_date'] for event in disposition['events']],
++        },
++        'risk': disposition,
++        'risk_scan': risk_scan_result,
++        'd3_terminal_r5': d3_terminal,
++        'history_bars': len(rows),
++        'future_bars_excluded': future_bars_excluded,
++        'input_coverage': {
++            'status': UNKNOWN if coverage_reasons else TRUE,
++            'reason': coverage_reasons[0] if coverage_reasons else 'QUALIFIED_COMPLETE_INPUTS_SUPPLIED',
++            'reasons': coverage_reasons,
++            'missing_fields': field_missing,
++            'v192_breakout_unknown_or_missing_dates': original_unknown_dates,
++            'qualification_status': _QUALIFIED,
++            'original_breakout_coverage_count': len(source_dates),
++            'prefix_date_count': len(rows),
++            'calendar_prefix_count': len(calendar),
++        },
++        'whole_original_formula_compute_calls': 0,
++        'PIT': False,
++        'native_tdx_certified': False,
++        'human_list_confirmation_required_before_images': True,
++        **_SAFE_FLAGS,
++    }
++    return result
+--- a/domains/research_daily_statistics.py
++++ b/domains/research_daily_statistics.py
+@@ -0,0 +1,453 @@
++"""Pure descriptive statistics for explicitly supplied daily event groups.
++
++This module deliberately does not fetch prices, infer event rules, or bind an
++input to a producer. The caller supplies approved close rows, an authoritative
++market calendar, and already-evaluated event dates plus their source identity.
++"""
++from __future__ import annotations
++
++import copy
++import math
++import re
++from collections.abc import Mapping, Sequence
++from datetime import date
++from statistics import mean, median
++from typing import Any
++
++_REQUIRED_IDENTITY_FIELDS = (
++    "generation",
++    "input",
++    "formula",
++    "rule_sha256",
++    "asof",
++    "market",
++    "basis",
++    "pit_status",
++)
++_RULE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
++_HORIZONS = (("d2", 2), ("d5", 5))
++_PERCENTILE_WINDOW = 250
++_OUTCOME_STATUSES = (
++    "positive",
++    "negative",
++    "flat",
++    "not_matured",
++    "missing_price",
++    "nonfinite_price",
++    "nonpositive_price",
++    "nonfinite_return",
++)
++
++
++def _iso_date(value: Any, *, field: str) -> tuple[str, date]:
++    if not isinstance(value, str):
++        raise TypeError(f"{field} must be an ISO YYYY-MM-DD string")
++    try:
++        parsed = date.fromisoformat(value)
++    except ValueError as exc:
++        raise ValueError(f"{field} is not a valid ISO date: {value!r}") from exc
++    if parsed.isoformat() != value:
++        raise ValueError(f"{field} must use canonical YYYY-MM-DD form: {value!r}")
++    return value, parsed
++
++
++def _sequence(value: Any, *, field: str) -> Sequence[Any]:
++    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
++        raise TypeError(f"{field} must be a sequence")
++    return value
++
++
++def _classify_price(value: Any, *, field: str) -> tuple[str, float | None]:
++    if value is None:
++        return "missing_price", None
++    if isinstance(value, (bool, str, bytes)):
++        raise TypeError(f"{field} must be numeric or None")
++    try:
++        numeric = float(value)
++    except (TypeError, ValueError, OverflowError) as exc:
++        raise TypeError(f"{field} must be numeric or None") from exc
++    if not math.isfinite(numeric):
++        return "nonfinite_price", None
++    if numeric <= 0:
++        return "nonpositive_price", None
++    return "valid", numeric
++
++
++def _identity_metadata(
++    source_identity: Mapping[str, Any] | None,
++    *,
++    group_rule_sha256: str,
++    asof: str,
++    identity_facts: dict[str, Any],
++) -> tuple[str, list[str], dict[str, Any] | None]:
++    if source_identity is None:
++        return "MISSING", list(_REQUIRED_IDENTITY_FIELDS), None
++    if not isinstance(source_identity, Mapping):
++        raise TypeError("source_identity must be a mapping or None")
++
++    identity = copy.deepcopy(dict(source_identity))
++    missing = [
++        key
++        for key in _REQUIRED_IDENTITY_FIELDS
++        if key not in identity or identity[key] is None or identity[key] == ""
++    ]
++
++    bound_asof = identity.get("asof")
++    if bound_asof not in (None, ""):
++        _, parsed_bound_asof = _iso_date(bound_asof, field="source_identity.asof")
++        if parsed_bound_asof.isoformat() != asof:
++            raise ValueError("source identity asof conflicts with requested asof")
++
++    bound_rule = identity.get("rule_sha256")
++    if bound_rule not in (None, "") and bound_rule != group_rule_sha256:
++        raise ValueError("source identity rule_sha256 conflicts with group rule_sha256")
++
++    for key in ("market", "basis"):
++        value = identity.get(key)
++        if value not in (None, ""):
++            if key in identity_facts and identity_facts[key] != value:
++                raise ValueError(f"source identity {key} conflicts across event groups")
++            identity_facts[key] = value
++
++    return ("INCOMPLETE" if missing else "BOUND"), missing, identity
++
++
++def _evaluate_event_return(
++    *,
++    event_date: str,
++    horizon_sessions: int,
++    calendar: Sequence[str],
++    calendar_index: Mapping[str, int],
++    asof_index: int,
++    close_by_date: Mapping[str, Any],
++) -> tuple[str, str, str | None, float | None]:
++    event_index = calendar_index[event_date]
++    target_index = event_index + horizon_sessions
++    target_date = calendar[target_index] if target_index < len(calendar) else None
++
++    if target_index > asof_index:
++        return "not_matured", "TARGET_AFTER_ASOF", target_date, None
++
++    event_status, event_close = _classify_price(
++        close_by_date.get(event_date), field=f"close[{event_date}]"
++    )
++    if event_status != "valid":
++        detail = {
++            "missing_price": "MISSING_EVENT_PRICE",
++            "nonfinite_price": "NONFINITE_EVENT_PRICE",
++            "nonpositive_price": "NONPOSITIVE_EVENT_PRICE",
++        }[event_status]
++        return event_status, detail, target_date, None
++
++    # target_index <= asof_index and asof is in the calendar, so this lookup
++    # always names the exact calendar session; a missing individual bar stays
++    # missing and is never replaced with a later stock bar.
++    assert target_date is not None
++    target_status, target_close = _classify_price(
++        close_by_date.get(target_date), field=f"close[{target_date}]"
++    )
++    if target_status != "valid":
++        detail = {
++            "missing_price": (
++                "MISSING_TARGET_BAR"
++                if target_date not in close_by_date
++                else "MISSING_TARGET_PRICE"
++            ),
++            "nonfinite_price": "NONFINITE_TARGET_PRICE",
++            "nonpositive_price": "NONPOSITIVE_TARGET_PRICE",
++        }[target_status]
++        return target_status, detail, target_date, None
++
++    assert event_close is not None and target_close is not None
++    try:
++        return_pct = (target_close / event_close - 1.0) * 100.0
++    except OverflowError:
++        return "nonfinite_return", "NONFINITE_RETURN", target_date, None
++    if not math.isfinite(return_pct):
++        return "nonfinite_return", "NONFINITE_RETURN", target_date, None
++    if return_pct > 0:
++        status = "positive"
++    elif return_pct < 0:
++        status = "negative"
++    else:
++        status = "flat"
++    return status, "OK", target_date, return_pct
++
++
++def _horizon_statistics(
++    event_dates: Sequence[str],
++    *,
++    horizon_sessions: int,
++    calendar: Sequence[str],
++    calendar_index: Mapping[str, int],
++    asof_index: int,
++    close_by_date: Mapping[str, Any],
++    case_limit: int,
++) -> dict[str, Any]:
++    counts = {status: 0 for status in _OUTCOME_STATUSES}
++    valid_returns: list[float] = []
++    cases: list[dict[str, Any]] = []
++
++    # The caller passes dates in calendar order. Iterate oldest-to-newest for
++    # stable accumulation, then return the most recent cases first.
++    for event_date in event_dates:
++        status, detail, target_date, return_pct = _evaluate_event_return(
++            event_date=event_date,
++            horizon_sessions=horizon_sessions,
++            calendar=calendar,
++            calendar_index=calendar_index,
++            asof_index=asof_index,
++            close_by_date=close_by_date,
++        )
++        counts[status] += 1
++        if status in ("positive", "negative", "flat"):
++            assert return_pct is not None
++            valid_returns.append(return_pct)
++        cases.append(
++            {
++                "event_date": event_date,
++                "target_date": target_date,
++                "status": status,
++                "detail_status": detail,
++                "return_pct": return_pct,
++            }
++        )
++
++    valid = counts["positive"] + counts["negative"] + counts["flat"]
++    total = len(event_dates)
++    classified_total = sum(counts.values())
++    if classified_total != total:
++        raise AssertionError("event outcome counts do not reconcile")
++
++    return {
++        "horizon_trading_sessions": horizon_sessions,
++        "total": total,
++        "valid": valid,
++        "positive": counts["positive"],
++        "negative": counts["negative"],
++        "flat": counts["flat"],
++        "not_matured": counts["not_matured"],
++        "missing_price": counts["missing_price"],
++        "nonfinite_price": counts["nonfinite_price"],
++        "nonpositive_price": counts["nonpositive_price"],
++        "nonfinite_return": counts["nonfinite_return"],
++        "mean_return_pct": mean(valid_returns) if valid_returns else None,
++        "median_return_pct": median(valid_returns) if valid_returns else None,
++        "positive_fraction": counts["positive"] / valid if valid else None,
++        "reconciliation": {
++            "classified_total": classified_total,
++            "matches": classified_total == total,
++        },
++        "cases": list(reversed(cases[-case_limit:])) if case_limit else [],
++    }
++
++
++def _price_distribution(
++    close_by_date: Mapping[str, Any],
++    *,
++    asof: str,
++) -> dict[str, Any]:
++    valid_closes: list[tuple[str, float]] = []
++    for close_date, raw_close in close_by_date.items():
++        status, value = _classify_price(raw_close, field=f"close[{close_date}]")
++        if status == "valid":
++            assert value is not None
++            valid_closes.append((close_date, value))
++    valid_closes.sort(key=lambda item: item[0])
++
++    if asof not in close_by_date:
++        current_status = "NO_CLOSE_ROWS" if not close_by_date else "MISSING_ASOF_BAR"
++        current_close = None
++    else:
++        classified, current_value = _classify_price(
++            close_by_date[asof], field=f"close[{asof}]"
++        )
++        current_status = {
++            "valid": "VALID",
++            "missing_price": "MISSING_ASOF_PRICE",
++            "nonfinite_price": "NONFINITE_ASOF_CLOSE",
++            "nonpositive_price": "NONPOSITIVE_ASOF_CLOSE",
++        }[classified]
++        current_close = current_value if classified == "valid" else None
++
++    recent = valid_closes[-_PERCENTILE_WINDOW:]
++    all_count = len(valid_closes)
++    recent_count = len(recent)
++
++    def percentile_le(rows: Sequence[tuple[str, float]]) -> float | None:
++        if current_close is None or not rows:
++            return None
++        return sum(value <= current_close for _, value in rows) / len(rows)
++
++    return {
++        "status": current_status,
++        "asof": asof,
++        "current_close": current_close,
++        "comparison": "count(close <= current_asof_close) / n; includes asof and equals",
++        "near_250": {
++            "requested_n": _PERCENTILE_WINDOW,
++            "n": recent_count,
++            "start_date": recent[0][0] if recent else None,
++            "end_date": recent[-1][0] if recent else None,
++            "insufficient": recent_count < _PERCENTILE_WINDOW,
++            "percentile_le": percentile_le(recent),
++        },
++        "all_history": {
++            "n": all_count,
++            "start_date": valid_closes[0][0] if valid_closes else None,
++            "end_date": valid_closes[-1][0] if valid_closes else None,
++            "percentile_le": percentile_le(valid_closes),
++        },
++    }
++
++
++def build_daily_event_statistics(
++    *,
++    close_rows: Sequence[Mapping[str, Any]],
++    market_calendar: Sequence[str],
++    asof: str,
++    event_groups: Sequence[Mapping[str, Any]],
++    case_limit: int = 20,
++) -> dict[str, Any]:
++    """Build deterministic D+2/D+5 and close-price percentile summaries.
++
++    Inputs are treated as already approved, same-stock QFQ closes and fully
++    evaluated event-group date sets. The function validates identity metadata
++    without manufacturing any missing identity fields. It does not perform
++    event selection, data access, or PIT certification.
++    """
++    asof, asof_date = _iso_date(asof, field="asof")
++    calendar_values = _sequence(market_calendar, field="market_calendar")
++    calendar: list[str] = []
++    parsed_calendar: list[date] = []
++    for index, value in enumerate(calendar_values):
++        day_text, day = _iso_date(value, field=f"market_calendar[{index}]")
++        calendar.append(day_text)
++        parsed_calendar.append(day)
++    if not calendar:
++        raise ValueError("market_calendar cannot be empty")
++    if len(set(calendar)) != len(calendar):
++        raise ValueError("market_calendar contains duplicate sessions")
++    if parsed_calendar != sorted(parsed_calendar):
++        raise ValueError("market_calendar must be strictly increasing")
++    if asof not in calendar:
++        raise ValueError("asof must be present in market_calendar")
++    asof_index = calendar.index(asof)
++
++    if isinstance(case_limit, bool) or not isinstance(case_limit, int) or case_limit < 0:
++        raise ValueError("case_limit must be a nonnegative integer")
++
++    close_values = _sequence(close_rows, field="close_rows")
++    close_by_date: dict[str, Any] = {}
++    calendar_dates = set(calendar)
++    for index, row in enumerate(close_values):
++        if not isinstance(row, Mapping):
++            raise TypeError(f"close_rows[{index}] must be a mapping")
++        day_text, day = _iso_date(row.get("date"), field=f"close_rows[{index}].date")
++        if day > asof_date:
++            continue
++        if day_text in close_by_date:
++            raise ValueError(f"duplicate close row for {day_text}")
++        if day_text not in calendar_dates:
++            raise ValueError(f"close date {day_text} is absent from market_calendar")
++        close_by_date[day_text] = row.get("close")
++
++    groups = _sequence(event_groups, field="event_groups")
++    if not groups:
++        return {
++            "status": "NO_EVENT_GROUPS",
++            "asof": asof,
++            "price_distribution": _price_distribution(close_by_date, asof=asof),
++            "groups": [],
++        }
++
++    output_groups: list[dict[str, Any]] = []
++    seen_group_ids: set[str] = set()
++    identity_facts: dict[str, Any] = {}
++    calendar_index = {day: index for index, day in enumerate(calendar)}
++
++    for group_index, group in enumerate(groups):
++        if not isinstance(group, Mapping):
++            raise TypeError(f"event_groups[{group_index}] must be a mapping")
++        group_id = group.get("group_id")
++        if not isinstance(group_id, str) or not group_id.strip():
++            raise ValueError(f"event_groups[{group_index}].group_id is required")
++        group_id = group_id.strip()
++        if group_id in seen_group_ids:
++            raise ValueError(f"duplicate group_id: {group_id}")
++        seen_group_ids.add(group_id)
++
++        rule_sha256 = group.get("rule_sha256")
++        if not isinstance(rule_sha256, str) or not _RULE_SHA256_RE.fullmatch(rule_sha256):
++            raise ValueError(f"group {group_id} requires a lowercase SHA-256 rule_sha256")
++
++        identity_status, missing_identity_fields, source_identity = _identity_metadata(
++            group.get("source_identity"),
++            group_rule_sha256=rule_sha256,
++            asof=asof,
++            identity_facts=identity_facts,
++        )
++
++        raw_dates = _sequence(group.get("event_dates"), field=f"{group_id}.event_dates")
++        parsed_events: list[tuple[str, date]] = []
++        seen_dates: set[str] = set()
++        for event_index, raw_date in enumerate(raw_dates):
++            event_text, event_day = _iso_date(
++                raw_date, field=f"{group_id}.event_dates[{event_index}]"
++            )
++            if event_text in seen_dates:
++                raise ValueError(f"duplicate event date {event_text} in group {group_id}")
++            seen_dates.add(event_text)
++            parsed_events.append((event_text, event_day))
++
++        eligible_events = [
++            event_text for event_text, event_day in parsed_events
++            if event_day <= asof_date
++        ]
++        for event_text in eligible_events:
++            if event_text not in calendar_index:
++                raise ValueError(
++                    f"event date {event_text} in group {group_id} is absent from market_calendar"
++                )
++        eligible_events.sort(key=calendar_index.__getitem__)
++
++        if not parsed_events:
++            group_status = "EMPTY_EVENT_SET"
++        elif not eligible_events:
++            group_status = "NO_EVENTS_ASOF"
++        else:
++            group_status = "AVAILABLE"
++
++        output_groups.append(
++            {
++                "group_id": group_id,
++                "rule_sha256": rule_sha256,
++                "source_identity": source_identity,
++                "identity_status": identity_status,
++                "identity_missing_fields": missing_identity_fields,
++                "status": group_status,
++                "eligible_event_count": len(eligible_events),
++                "horizons": {
++                    name: _horizon_statistics(
++                        eligible_events,
++                        horizon_sessions=horizon_sessions,
++                        calendar=calendar,
++                        calendar_index=calendar_index,
++                        asof_index=asof_index,
++                        close_by_date=close_by_date,
++                        case_limit=case_limit,
++                    )
++                    for name, horizon_sessions in _HORIZONS
++                },
++            }
++        )
++
++    return {
++        "status": "DESCRIPTIVE_STATS_COMPUTED",
++        "asof": asof,
++        "price_distribution": _price_distribution(close_by_date, asof=asof),
++        "groups": output_groups,
++    }
++
++
++__all__ = ["build_daily_event_statistics"]
+--- a/infrastructure/scheduling/execution_ledger.py
++++ b/infrastructure/scheduling/execution_ledger.py
+@@ -452,7 +452,7 @@
+         raw_fd = os.environ.get("V4_SCHEDULER_LANE_FD")
+         if raw_fd is None:
+             return  # legacy/direct canary calls retain their original contract
+-        lane = "A_LONG" if slot == "1610" else "DEFAULT"
++        lane = "A_LONG" if slot in {"1540", "1610", "1640"} else "DEFAULT"
+         if (os.environ.get("V4_SCHEDULER_LANE_NAME") != lane
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_DATE") != business_date
+                 or os.environ.get("V4_SCHEDULER_RESOLVED_SLOT") != slot):
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -8,6 +8,7 @@
+ """
+ from __future__ import annotations
+ from infrastructure.runtime_graph.notifications import notify as _graph_notify
++from infrastructure.market_time import shanghai_now
+ 
+ import hashlib
+ import json
+@@ -267,7 +268,7 @@
+ 
+ 
+ def _read_exact_dated_receipt(
+-    module: str, arguments: list[str]
++    module: str, arguments: list[str], *, allow_a_failure: bool = False
+ ) -> tuple[dict[str, Any] | None, str | None]:
+     """Read the fixed daily-panel receipt only as a bounded fallback seam."""
+ 
+@@ -309,6 +310,8 @@
+         "NON_TRADING_DAY",
+     }:
+         return None, "EXACT_DATED_RECEIPT_STATUS_INVALID"
++    if allow_a_failure and lane == "A" and status in {"FAILED", "CANNOT_CONFIRM"}:
++        return payload, None  # failure observation only; successful evidence stays strict
+     digest = payload.get("sha256")
+     if (
+         not isinstance(digest, str)
+@@ -725,8 +728,10 @@
+         try:
+             # A slot migration must not re-acquire an already completed date.
+             # Preserve the strict receipt status; this is dated artifact reuse,
+-            # never evidence that the new 16:10 provider run occurred.
+-            if request.mode.value == "LIVE" and request.slot == "1610":
++            # never evidence that the new 15:40 provider run occurred.
++            if request.mode.value == "LIVE" and request.slot in {"1540", "1610", "1640"}:
++                moment = shanghai_now()
++                in_window = moment.strftime("%Y%m%d") == request.business_date and "1540" <= moment.strftime("%H%M") < "1700"
+                 root = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
+                 selector = os.environ.get("V4_RESEARCH_PANEL_A_SELECTOR_POINTER")
+                 backtest = os.environ.get("V4_RESEARCH_PANEL_A_BACKTEST_POINTER")
+@@ -734,6 +739,7 @@
+                     receipt, _ = _read_exact_dated_receipt(
+                         "ops.macos_research_panel_daily",
+                         ["--date", request.business_date, "--lane", "A", "--receipt-root", root],
++                        allow_a_failure=request.slot in {"1610", "1640"},
+                     )
+                     from ops.macos_research_panel_daily_receipts import validate_a_receipt
+                     status = validate_a_receipt(receipt, request.business_date,
+@@ -743,11 +749,22 @@
+                         if not selector_pointer_is_ready(selector, request.business_date):
+                             raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
+                                 "SOP_MIGRATION_REBIND_REQUIRED:paired receipt exists but generation is not ready"))
++                        leaf = {"status": "CANNOT_CONFIRM", "reason": "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY"}
++                        if in_window:
++                            try:
++                                data_root = os.environ.get("V4_RESEARCH_PANEL_A_DATA_ROOT")
++                                if not data_root:
++                                    raise ValueError("A_DAILY_CHART_OWNER_ROOT_MISSING")
++                                from ops.research_panel_daily_product import materialize_daily_product
++                                leaf = materialize_daily_product(data_root=data_root, target=int(request.business_date), cache_only=True, output_root=Path(os.environ['V4_A_SHARE_DAILY_PRODUCT_ROOT'])/'daily_products/a_share' if os.environ.get('V4_A_SHARE_DAILY_PRODUCT_ROOT') else None)
++                            except Exception as error:
++                                leaf = {"status": "CANNOT_CONFIRM", "reason": "CACHED_CHART_LEAF_UNAVAILABLE:" + str(error)}
+                         path = Path(root) / f"a-{request.business_date}.json"
+                         return {"status": "SUCCEEDED", "lane": "A", "lane_status": status,
+                                 "target_date": request.business_date, "modules": [], "exit_code": 0,
+                                 "migration_reuse": True, "provider_invoked": False,
+-                                "natural_1610_verified": False, "source_receipt": str(path),
++                                "numeric_recomputed": False, "original_chart_leaf": leaf,
++                                "natural_1540_verified": False, "source_receipt": str(path),
+                                 "source_receipt_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                                 "row_count": receipt.get("row_count"),
+                                 "coverage_rate": receipt.get("coverage_rate"),
+@@ -756,6 +773,16 @@
+                                 "target_count": receipt.get("target_count"),
+                                 "reason": "EXACT_DATED_A_RECEIPT_REUSED_WITH_PAIRED_ARTIFACT_BINDING",
+                                 "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++                    if request.slot in {"1610", "1640"} and (not isinstance(receipt, dict) or receipt.get("status") not in {"FAILED", "CANNOT_CONFIRM"}):
++                        raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
++                            "A_DAILY_RETRY_REQUIRES_EXACT_DATED_FAILED_RECEIPT"))
++                elif request.slot in {"1610", "1640"}:
++                    raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
++                        "A_DAILY_RETRY_BINDING_MISSING"))
++                if not in_window:
++                    failure = self._failure_result("research_panel_daily_a", [], "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
++                    failure.update(failure_class="UPSTREAM_NOT_READY", reason="A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
++                    raise WorkloadExecutionError(failure)
+             return self._research_panel_daily(request, lane="A")
+         finally:
+             self._active_workload_id = previous_workload_id
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -166,7 +166,7 @@
+     lane: str | None = None,
+     now: _datetime.datetime | None = None,
+ ) -> dict[str, Any]:
+-    """Idempotently ensure A after 16:10 and other lanes after 17:00.
++    """Idempotently ensure A after 15:40 and other lanes after 17:00.
+ 
+     StartInterval can invoke this function repeatedly.  Explicit lane callers
+     use only their exact dated receipt as a fast path: A requires selector and
+@@ -208,7 +208,7 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
+-    earliest_slot = "1610" if requested_lane == "A" else "1700"
++    earliest_slot = "1540" if requested_lane == "A" else "1700"
+     if moment.strftime("%H%M") < earliest_slot:
+         return restore_context({**common, "status": f"BEFORE_{earliest_slot}", "runner_called": False, "idempotent": True})
+     selector_ready = selector_pointer_is_ready(selector_pointer, target)
+@@ -319,7 +319,7 @@
+     status = str(result.get("status") or "")
+     if "lane_ready" in result:
+         lane_ready = result.get("lane_ready") is True
+-        if status in {"BEFORE_1610", "BEFORE_1700"}:
++        if status in {"BEFORE_1540", "BEFORE_1700"}:
+             return 0
+         if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
+             return 0
+@@ -336,7 +336,7 @@
+                     backtest_pointer = formula.get("backtest_pointer_ready")
+     if backtest_pointer is False:
+         pointer_ready = False
+-    if status in {"BEFORE_1610", "BEFORE_1700"}:
++    if status in {"BEFORE_1540", "BEFORE_1700"}:
+         return 0
+     if status == "ALREADY_READY" and pointer_ready:
+         return 0
+@@ -581,7 +581,14 @@
+             ),
+             "build_a_lane_outcome",
+         )
+-        return builder(sync, formula, target, bootstrap)
++        from ops.research_panel_daily_product import materialize_daily_product
++        try:
++            daily_product = materialize_daily_product(data_root=authority_paths["--a-data-root"], target=int(target), formula_result=formula, output_root=Path(os.environ['V4_A_SHARE_DAILY_PRODUCT_ROOT'])/'daily_products/a_share' if os.environ.get('V4_A_SHARE_DAILY_PRODUCT_ROOT') else None)
++        except Exception as error:
++            daily_product = {"status":"CANNOT_CONFIRM", "data_date":target, "reason":str(error)}
++        outcome = builder(sync, formula, target, bootstrap)
++        outcome["daily_product"] = daily_product
++        return outcome
+ 
+     def run_hk(target: str) -> dict[str, Any]:
+         # Every collector invocation gets a fresh manifest identity.  The
+--- a/ops/render_original_formula_projection.py
++++ b/ops/render_original_formula_projection.py
+@@ -0,0 +1,457 @@
++"""Explicit frozen-candidate d35c rendering projection over bound caches.
++
++Not an authoritative producer: no acquisition, pool decisions, history labels,
++shared state, or service changes. The pinned original interpreter is unchanged.
++"""
++from __future__ import annotations
++
++import argparse
++import base64
++import gzip
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import re
++import resource
++import time
++
++SAMPLES = ("600025.SH", "000410.SZ", "920454.BJ")
++DATE = "20261029"
++FORMULA_SHA = "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
++ENGINE_SHA = "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"
++RENDERER_SHA = "49bd460a60501197ffb8f62e36854f071fcb742c781da48212636ee14c7b7f5a"
++FLAGS = {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++
++
++def require(condition, reason):
++    if not condition:
++        raise ValueError(reason)
++
++
++def canonical(value):
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def reference(path):
++    path = Path(path).resolve(strict=True)
++    return {"path": str(path), "sha256": sha(path.read_bytes())}
++
++
++def pinned(ref):
++    require(isinstance(ref, dict) and isinstance(ref.get("path"), str), "REFERENCE_INVALID")
++    path = Path(ref["path"])
++    require(path.is_absolute() and path.resolve(strict=True) == path and not path.is_symlink(), "REFERENCE_PATH_INVALID")
++    raw = path.read_bytes()
++    require(sha(raw) == ref.get("sha256"), "REFERENCE_SHA_DRIFT")
++    return raw
++
++
++def safe(value):
++    return isinstance(value, dict) and all(value.get(key) is flag for key, flag in FLAGS.items())
++
++
++def candidate_allowlist(coverage, product, requested):
++    rows = coverage["items"]
++    symbols = [row["symbol"] for row in rows]
++    candidates = [row["symbol"] for row in product["rows"]]
++    require(len(symbols) == len(set(symbols)) == len(candidates) == len(set(candidates)) == product["unique_count"] == 247,
++            "CANDIDATE_ALLOWLIST_COUNT_OR_DUPLICATE")
++    require(set(symbols) == set(candidates), "CANDIDATE_ALLOWLIST_PRODUCT_CONFLICT")
++    require(requested and set(requested) <= set(symbols), "SYMBOL_OUTSIDE_BOUND_COVERAGE")
++    return tuple(sorted(symbols))
++
++
++def cache_sample(cache, item, symbol, expected, identity, coverage_identity, manifest_ref, product_ref):
++    require(safe(cache) and all(cache["source"].get(k) == v for k, v in expected.items()), "CACHE_IDENTITY_CONFLICT")
++    require(cache["source"]["selector_artifact_sha256"] == identity["selector_artifact_sha256"], "SELECTOR_ARTIFACT_CONFLICT")
++    require(cache["source"]["adjustment_convention"] == item["adjustment_convention"] == coverage_identity["adjustment_convention"], "ADJUSTMENT_CONFLICT")
++    require(("samples" in cache) != ("sample" in cache), "CACHE_SAMPLE_SHAPE_AMBIGUOUS")
++    if "sample" in cache:
++        samples = [cache["sample"]]
++        require(cache.get("bars_sha256") == item["source_cache"]["bars_sha256"], "CACHE_BARS_SHA_OR_COUNT_CONFLICT")
++        refs = cache["source_refs"]
++        require(refs.get("product_manifest_path") == manifest_ref["path"] and refs.get("product_manifest_sha256") == manifest_ref["sha256"]
++                and refs.get("product_path") == product_ref["path"] and refs.get("product_sha256") == product_ref["sha256"]
++                and refs.get("product_row_ref_path") == item["product_row_ref"]["path"]
++                and refs.get("product_row_ref_sha256") == item["product_row_ref"]["sha256"], "CACHE_PRODUCT_REFERENCE_CONFLICT")
++    else:
++        samples = cache["samples"]
++    matches = [sample for sample in samples if sample.get("symbol") == symbol]
++    require(len(matches) == 1, "CACHE_SYMBOL_AMBIGUOUS")
++    sample = matches[0]
++    bars = sample["bars"]
++    require(len(bars) == item["source_cache"]["rows"] and sha(canonical(bars)) == item["source_cache"]["bars_sha256"], "CACHE_BARS_SHA_OR_COUNT_CONFLICT")
++    require(bars and bars[-1]["date"] == DATE and sample["prefix"]["end_date"] == DATE, "CACHE_DATE_CONFLICT")
++    require(len({bar["date"] for bar in bars}) == len(bars) and all(bar["date"] <= DATE for bar in bars), "CACHE_DATE_COVERAGE_CONFLICT")
++    return sample
++
++
++def load_bound_inputs(config_path, coverage_path, index_path, symbols=SAMPLES):
++    index_ref = reference(index_path)
++    index = json.loads(pinned(index_ref))
++    manifest_ref = index["dates"][DATE]
++    manifest = json.loads(pinned(manifest_ref))
++    product = json.loads(pinned(manifest["artifact"]))
++    require(safe(product) and safe(manifest) and product.get("sample_only") is False, "PRODUCT_SAFETY_OR_SCOPE")
++    require(product.get("data_date") == manifest.get("data_date") == DATE, "PRODUCT_DATE_CONFLICT")
++    config_ref = reference(config_path)
++    require(config_ref == product.get("source_config"), "CONFIG_NOT_BOUND_TO_PRODUCT")
++    config = json.loads(pinned(config_ref))
++    require(config["engine"]["sha256"] == ENGINE_SHA and config["formula"]["sha256"] == FORMULA_SHA, "FORMULA_OR_ENGINE_PIN_CONFLICT")
++    engine_raw, formula_raw = pinned(config["engine"]), pinned(config["formula"])
++    spec = importlib.util.spec_from_file_location("bound_d35c_projection_engine", config["engine"]["path"])
++    engine = importlib.util.module_from_spec(spec)
++    exec(compile(engine_raw, config["engine"]["path"], "exec"), engine.__dict__)
++    inventory = engine.inventory()
++    coverage_ref = reference(coverage_path)
++    coverage = json.loads(pinned(coverage_ref))
++    identity = product["source_identity"]
++    expected = {"data_date": DATE, "generation_id": product["source_generation"],
++                "source_input_sha256": identity["input_sha256"], "formula_source_sha256": FORMULA_SHA,
++                "price_basis": identity["basis"]["price_basis"], "volume_basis": identity["basis"]["volume_basis"]}
++    require(identity["generation"] == product["source_generation"] and manifest["source_generation"] == product["source_generation"], "PRODUCT_GENERATION_CONFLICT")
++    require(manifest["input_sha256"] == identity["input_sha256"], "PRODUCT_INPUT_CONFLICT")
++    require(all(coverage["source_identity"].get(k) == v for k, v in expected.items()), "COVERAGE_IDENTITY_CONFLICT")
++    allowed = candidate_allowlist(coverage, product, symbols)
++    items = {row["symbol"]: row for row in coverage["items"] if row["symbol"] in symbols}
++    caches = {}
++    bound = {}
++    failures = {}
++    for symbol in dict.fromkeys(symbols):
++      try:
++        item = items[symbol]
++        require(all(item.get(k) == v for k, v in expected.items()), "SAMPLE_IDENTITY_CONFLICT")
++        require(item["product_row_ref"] == product["row_refs"].get(symbol), "PRODUCT_ROW_REFERENCE_CONFLICT")
++        row = json.loads(pinned(item["product_row_ref"]))
++        require(row["symbol"] == symbol and row["data_date"] == DATE and safe(row), "ROW_IDENTITY_CONFLICT")
++        cache_ref = {k: item["source_cache"][k] for k in ("path", "sha256")}
++        key = cache_ref["path"]
++        if key not in caches:
++            caches[key] = json.loads(pinned(cache_ref))
++        cache = caches[key]
++        sample = cache_sample(cache, item, symbol, expected, identity, coverage["source_identity"], manifest_ref, manifest["artifact"])
++        bound[symbol] = {"sample": sample, "source": cache["source"], "item": item, "allowed_symbols": allowed}
++      except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
++        failures[symbol] = str(error)
++    return engine, inventory, bound, {"product_index": index_ref, "manifest": manifest_ref,
++        "product": manifest["artifact"], "config": config_ref, "engine": config["engine"],
++        "formula": config["formula"], "coverage": coverage_ref, "source_identity": identity,
++        "formula_text_bytes": len(formula_raw), "scope_symbols": allowed, "input_failures": failures}
++
++
++def project(engine, inventory, bound, symbol):
++    require(symbol in bound.get("allowed_symbols", ()) and bound["sample"].get("symbol") == symbol, "SYMBOL_OUTSIDE_BOUND_COVERAGE")
++    sample = bound["sample"]
++    bars = [{"trade_date": int(row["date"]), "open": row["open"], "high": row["high"],
++             "low": row["low"], "close": row["close"], "vol": row["volume"]} for row in sample["bars"]]
++    result = engine.json_ready(engine.compute(bars, mode="prefix"))
++    require(result["formula_sha256"] == FORMULA_SHA and result["mode"] == "prefix", "ENGINE_RESULT_IDENTITY_CONFLICT")
++    require(result["field_count"] == 51 and result["drawing_count"] == 22 and len(result["rows"]) == len(bars), "ENGINE_RESULT_COVERAGE_CONFLICT")
++    names = [entry["name"] for entry in inventory["assignments"]]
++    definitions = inventory["drawings"]
++    require(len(names) == 51 and len(definitions) == 22, "INVENTORY_SHAPE_CONFLICT")
++    unsupported = []
++    for row, bar in zip(result["rows"], bars):
++        require(row["trade_date"] == bar["trade_date"] and list(row["values"]) == names, "LOSSLESS_VALUE_COVERAGE_CONFLICT")
++        require(len(row["drawings"]) == 22, "LOSSLESS_DRAWING_COVERAGE_CONFLICT")
++        for drawing, definition in zip(row["drawings"], definitions):
++            require(all(drawing[key] == definition[key] for key in ("id", "kind", "styles")), "DRAWING_DEFINITION_CONFLICT")
++            if drawing["kind"] not in ("DRAWTEXT", "DRAWICON") or (drawing["kind"] == "DRAWICON" and drawing["payload"] not in ("1", "2")):
++                unsupported.append({"trade_date": row["trade_date"], "drawing": drawing})
++    return {"schema": "v4.d35c.bound_candidate_projection.v1", "symbol": symbol,
++        "data_date": DATE, "authority": "DERIVED_RENDERING_ONLY", "historical_PIT": False,
++        "source": bound["source"], "source_cache": bound["item"]["source_cache"],
++        "product_row_ref": bound["item"]["product_row_ref"], "inventory": inventory,
++        "formula_result": result, "unsupported_drawings": unsupported,
++        "renderer_semantics": "UNCHANGED_R19_DISPLAY; NOT_NATIVE_TDX_ICON_OR_COLOR_EQUIVALENCE_CERTIFICATION", **FLAGS}
++
++
++def chart_html(renderer_raw, projection, lineage, *, compress_payload=False):
++    """Reuse the R19 canvas/table implementation; replace only transport and labels."""
++    require(not projection["unsupported_drawings"], "RENDERER_DRAWING_TYPE_UNSUPPORTED")
++    source = projection["source"]
++    rows = projection["formula_result"]["rows"]
++    date = projection["data_date"]
++    payload = {"status": "READY", "symbol": projection["symbol"], "target_date": date,
++        "rows": rows, "first_date": rows[0]["trade_date"], "last_date": rows[-1]["trade_date"],
++        "total_rows": len(rows), "source_vendor": "EXISTING_BOUND_QFQ_CACHE",
++        "source_kind": source["adjustment_convention"], "full_history_recomputed": True,
++        "projection_source_label": f'{source["price_basis"]} / {source["volume_basis"]} / {source["adjustment_convention"]}；历史非PIT',
++        "projection_lineage": lineage, **FLAGS}
++    registry = {"entry_count": 1, "available_count": 1, "no_target_bar_count": 0, "pending_count": 0,
++        "entries": [{"symbol": projection["symbol"], "rows": len(rows), "source_vendor": "BOUND_CACHE_DERIVATIVE"}]}
++    embedded = json.dumps({"payload": payload, "registry": registry}, ensure_ascii=False, separators=(",", ":"), allow_nan=False).replace("<", "\\u003c")
++    if compress_payload:
++        encoded = base64.b64encode(gzip.compress(embedded.encode(), mtime=0)).decode()
++        loader = "const projectionGzip='" + encoded + "';const projectedReady=(async()=>{const bytes=Uint8Array.from(atob(projectionGzip),c=>c.charCodeAt(0));" + \
++            "const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(stream).text());})();"
++    else:
++        loader = "const projectedReady=Promise.resolve(" + embedded + ");"
++    adapter = "<script>" + loader + "window.fetch=async function(url){const projected=await projectedReady;const u=new URL(url,location.href);" + \
++        "if(u.pathname==='/v1/registry')return new Response(JSON.stringify(projected.registry));" + \
++        "if(u.pathname==='/v1/research'&&u.searchParams.get('symbol')===projected.payload.symbol&&u.searchParams.get('date')===projected.payload.target_date)return new Response(JSON.stringify(projected.payload));" + \
++        "return new Response(JSON.stringify({status:'UNKNOWN',reason:'OUTSIDE_FROZEN_PROJECTION'}),{status:404});};</script>"
++    html = renderer_raw.decode()
++    label = "D29" if date == DATE else "D" + date
++    html = re.sub(r"<title>.*?</title>", f"<title>原式 d35c · {label} 候选派生投影</title>", html, count=1)
++    html = re.sub(r"<header>.*?</header>", f'<header><div><h1>原式 d35c · {label} 候选派生投影</h1><div class="muted">51变量与22绘图原样保留；仅渲染投影，独审及原生等价未确认。</div></div><span class="badge">RESEARCH_ONLY</span></header>', html, count=1)
++    html = html.replace("2026-10-27", f"{date[:4]}-{date[4:6]}-{date[6:]}").replace('id="draw-text" type="checkbox"', 'id="draw-text" type="checkbox" checked')
++    html = html.replace("function sourceLabel(body){", "function sourceLabel(body){if(body.projection_source_label)return body.projection_source_label;")
++    html = html.replace("正在显示已独审、已登记的完整重算产物。", "正在显示候选原式派生投影，尚不构成独审或原生等价认证。")
++    html = html.replace("已登记", "样例派生").replace("完整重算行数", "原式投影行数")
++    return html.replace("<script>\n'use strict';", adapter + "<script>\n'use strict';", 1)
++
++
++def write_json(path, value):
++    temporary = path.with_name("." + path.name + ".pending")
++    temporary.write_bytes(canonical(value) + b"\n")
++    temporary.replace(path)
++
++
++OWNER_RENDERER = {"path": "/Users/lexi/Desktop/学习/因子工厂/research/tdx_panel_parity_20261028_r1/r19_copy/OUTSIDE151_R19/outside151/r19_work/research_reader/index.html", "sha256": RENDERER_SHA}
++
++
++def retain_owner_result(context, parts, symbol, bars, result):
++    """Keep the candidate's existing computation, never invoke compute here."""
++    require(context.config["formula"]["sha256"] == FORMULA_SHA and context.config["engine"]["sha256"] == ENGINE_SHA,
++            "OWNER_FORMULA_ENGINE_CONFLICT")
++    if not hasattr(context, "_original_chart_inventory"):
++        context._original_chart_inventory = context.engine().inventory()
++    payload = {"symbol": symbol, "data_date": str(context.target), "identity": context.identity,
++        "config": context.config_ref, "bars_sha256": sha(canonical(bars)), "bar_dates": [b["trade_date"] for b in bars],
++        "calendar": context.calendars[symbol[-2:]], "inventory": context._original_chart_inventory,
++        "formula_result": context.engine().json_ready(result), **FLAGS}
++    path = Path(parts) / "original_retained" / (symbol + ".json.gz")
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary = path.with_name("." + path.name + ".pending")
++    temporary.write_bytes(gzip.compress(json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode(), mtime=0)); temporary.replace(path)
++
++
++def owner_pngs(items):
++    """Same R19 headless canvas checks, one private browser for this owner run."""
++    import subprocess
++    script = r"""
++const fs=require('fs'),{pathToFileURL}=require('url');
++const {chromium}=require('/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
++(async()=>{let browser;const errors={};try{
++browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',args:['--no-first-run','--no-default-browser-check','--disable-extensions','--disable-background-networking']});
++const context=await browser.newContext({viewport:{width:1600,height:1200}});
++await context.route('**/*',r=>r.request().url().startsWith('file://')&&['GET','HEAD'].includes(r.request().method())?r.continue():r.abort());
++for(const item of JSON.parse(fs.readFileSync(0,'utf8'))){let page;try{
++page=await context.newPage();const faults=[];page.on('pageerror',e=>faults.push(String(e)));
++await page.goto(pathToFileURL(item.html).href,{waitUntil:'load'});await page.waitForFunction(s=>document.documentElement.dataset.loaded===s,item.symbol);
++const ok=await page.evaluate(item=>{const state=window.RESEARCH_PANEL_STATE,canvas=document.querySelector('#chart'),pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let visible=false;for(let i=3;i<pixels.length;i+=4)if(pixels[i]){visible=true;break;}return state.symbol===item.symbol&&state.rows.at(-1).trade_date===Number(item.date)&&state.rows.length===item.rows&&document.querySelectorAll('#values tr').length===51&&document.querySelectorAll('#drawings tr').length===22&&document.querySelector('#draw-text').checked&&visible;},item);
++if(!ok||faults.length)throw Error('OWNER_ACTUAL_RENDER_CONTRACT:'+faults.join(';'));await page.screenshot({path:item.png,fullPage:true});
++}catch(e){errors[item.symbol]=String(e);}finally{if(page)await page.close();}}
++}finally{if(browser)await browser.close();}process.stdout.write(JSON.stringify(errors));})().catch(e=>{console.error(String(e));process.exitCode=1;});
++"""
++    run = subprocess.run(["/Users/lexi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "-e", script],
++        input=json.dumps(items), capture_output=True, text=True)
++    require(run.returncode == 0, "OWNER_HEADLESS_UNAVAILABLE:" + run.stderr[-1000:])
++    return json.loads(run.stdout)
++
++
++def finalize_owner_charts(context, parts, product, manifest_ref, artifact, *, gaps, png_renderer=None):
++    """Numeric hashes are final first; sidecars point to them, never vice versa."""
++    renderer_raw = pinned(OWNER_RENDERER)
++    lineage = {"product": artifact, "manifest": manifest_ref, "config": context.config_ref,
++        "engine": context.config["engine"], "formula": context.config["formula"], "renderer": OWNER_RENDERER}
++    output = Path(manifest_ref["path"]).parent / "original_charts"
++    output.mkdir(parents=True, exist_ok=True)
++    samples, records, errors, pending = {}, {}, {}, []
++    for row in product["rows"]:
++        symbol = row["symbol"]
++        try:
++            require(re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol), "OWNER_SYMBOL_INVALID")
++            checkpoint = output / (symbol + ".ready.json")
++            if checkpoint.is_file():
++                prior = json.loads(checkpoint.read_text())
++                require(prior["source_binding"] == lineage and prior["product_row_ref"] == product["row_refs"][symbol]
++                        and prior["symbol"] == symbol and prior["data_date"] == str(context.target)
++                        and prior["source_generation"] == context.generation
++                        and prior["source_input_sha256"] == context.identity["input_sha256"]
++                        and prior["formula_sha256"] == FORMULA_SHA
++                        and prior["source_cache"]["path"] == str(Path(parts) / "original_retained" / (symbol + ".json.gz"))
++                        and prior["source_cache"]["calendar_sha256"] == sha(canonical(context.calendars[symbol[-2:]])), "OWNER_CHART_CACHE_IDENTITY_CONFLICT")
++                pinned(prior["source_cache"])
++                for kind in ("html", "PNG", "projection"):
++                    require(Path(prior[kind]["path"]).is_relative_to(output), "OWNER_CHART_CACHE_PATH_CONFLICT")
++                    pinned(prior[kind])
++                samples[symbol] = prior; records[symbol] = prior
++                continue
++            retained_path = Path(parts) / "original_retained" / (symbol + ".json.gz")
++            require(retained_path.is_file(), gaps.get(symbol, "RETAINED_FULL_RESULT_MISSING_LEGACY_NUMERIC_CACHE_NO_RECOMPUTE"))
++            retained_ref = reference(retained_path)
++            with gzip.open(retained_path, "rb") as stream:
++                raw = stream.read(64 * 1024 * 1024 + 1)
++            require(len(raw) <= 64 * 1024 * 1024, "OWNER_RETAINED_SIZE_LIMIT")
++            retained = json.loads(raw)
++            require(safe(retained) and retained["symbol"] == symbol and retained["data_date"] == str(context.target)
++                    and retained["identity"] == context.identity and retained["config"] == context.config_ref
++                    and retained["calendar"] == context.calendars[symbol[-2:]], "OWNER_RETAINED_BINDING_CONFLICT")
++            result, inventory = retained["formula_result"], retained["inventory"]
++            names = [entry["name"] for entry in inventory["assignments"]]
++            definitions = inventory["drawings"]
++            require(result["formula_sha256"] == FORMULA_SHA and result["mode"] == "prefix"
++                    and result["field_count"] == len(names) == 51 and result["drawing_count"] == len(definitions) == 22
++                    and [r["trade_date"] for r in result["rows"]] == retained["bar_dates"]
++                    and retained["bar_dates"][-1] == context.target, "OWNER_RESULT_SHAPE_CONFLICT")
++            for value in result["rows"]:
++                require(list(value["values"]) == names and len(value["drawings"]) == 22, "OWNER_RESULT_LOSSLESS_CONFLICT")
++                for drawing, definition in zip(value["drawings"], definitions):
++                    require(all(drawing[k] == definition[k] for k in ("id", "kind", "styles"))
++                            and drawing["kind"] in ("DRAWTEXT", "DRAWICON")
++                            and (drawing["kind"] != "DRAWICON" or drawing["payload"] in ("1", "2")), "OWNER_DRAWING_UNSUPPORTED")
++            source = {"generation_id": context.generation, "source_input_sha256": context.identity["input_sha256"],
++                "price_basis": context.identity["basis"]["price_basis"], "volume_basis": context.identity["basis"]["volume_basis"],
++                "adjustment_convention": context.identity["basis"].get("adjustment_convention", "BOUND_ORIGINAL_OWNER_QFQ")}
++            cache = {**retained_ref, "bars_sha256": retained["bars_sha256"], "rows": len(result["rows"]),
++                "calendar_sha256": sha(canonical(retained["calendar"]))}
++            projection = {"schema": "v4.d35c.bound_candidate_projection.v1", "symbol": symbol, "data_date": str(context.target),
++                "authority": "DERIVED_RENDERING_ONLY", "historical_PIT": False, "source": source, "source_cache": cache,
++                "product_row_ref": product["row_refs"][symbol], "inventory": inventory, "formula_result": result,
++                "unsupported_drawings": [], "lineage": lineage, **FLAGS}
++            projection_path, html_path, png_path = (output / (symbol + suffix) for suffix in (".projection.json.gz", ".html", ".png"))
++            projection_path.write_bytes(gzip.compress(canonical(projection), mtime=0))
++            html_path.write_text(chart_html(renderer_raw, projection, lineage, compress_payload=True))
++            item = {"symbol": symbol, "data_date": str(context.target), "source_generation": context.generation,
++                "source_input_sha256": context.identity["input_sha256"], "formula_sha256": FORMULA_SHA,
++                "source_binding": lineage, "source_cache": cache, "product_row_ref": product["row_refs"][symbol],
++                "rows": len(result["rows"]), "projection": reference(projection_path), "html": reference(html_path)}
++            records[symbol] = item
++            pending.append({"symbol": symbol, "date": str(context.target), "rows": item["rows"], "html": str(html_path), "png": str(png_path)})
++        except Exception as error:
++            errors[symbol] = str(error)
++    if pending:
++        try:
++            render_errors = (png_renderer or owner_pngs)(pending)
++        except Exception as error:
++            render_errors = {item["symbol"]: str(error) for item in pending}
++        for item in pending:
++            symbol = item["symbol"]
++            try:
++                require(symbol not in render_errors, render_errors.get(symbol))
++                record = records[symbol]; record["PNG"] = reference(item["png"])
++                write_json(output / (symbol + ".ready.json"), record)
++                samples[symbol] = record
++            except Exception as error:
++                errors[symbol] = str(error)
++    status = "OWNER_CHARTS_PARTIAL" if errors else "OWNER_CHARTS_COMPLETED"
++    manifest = {"schema": "v4.a_share.owner_original_charts.v1", "samples": samples, **FLAGS}
++    receipt = {"status": status, "owner_sidecar": True, "expected": len(product["rows"]), "verified": len(samples),
++        "missing": [], "extra": [], "errors": [{"symbol": s, "reason": r} for s, r in sorted(errors.items())],
++        "records": [samples[s] for s in sorted(samples)], "source_binding": lineage, **FLAGS}
++    write_json(output / "MANIFEST.json", manifest); write_json(output / "COMPLETION_RECEIPT.json", receipt)
++    return {"status": status, "numeric_manifest": manifest_ref, "manifest": reference(output / "MANIFEST.json"),
++        "receipt": reference(output / "COMPLETION_RECEIPT.json")}
++
++
++def reuse_reviewed_three(manifest_path, bound):
++    manifest_ref = reference(manifest_path)
++    old = json.loads(pinned(manifest_ref))
++    review_ref = reference(Path(manifest_path).parent / "INDEPENDENT_REVIEW_RECEIPT.json")
++    review = json.loads(pinned(review_ref))
++    require(safe(old) and safe(review) and review["status"] == "REVIEWED_PASS_BEHAVIOR_VERIFIED_3SAMPLES_ONLY", "OLD_THREE_PASS_UNBOUND")
++    require(set(old["samples"]) == set(review["samples"]) == set(SAMPLES), "OLD_THREE_SCOPE_CONFLICT")
++    reused = {}
++    for symbol in SAMPLES:
++        item = old["samples"][symbol]
++        projection = json.loads(pinned(item["projection"]))
++        pinned(item["html"])
++        require(projection["symbol"] == symbol and projection["data_date"] == DATE and safe(projection), "OLD_THREE_IDENTITY_CONFLICT")
++        require(projection["source_cache"] == bound[symbol]["item"]["source_cache"]
++                and projection["product_row_ref"] == bound[symbol]["item"]["product_row_ref"]
++                and projection["formula_result"]["formula_sha256"] == FORMULA_SHA
++                and projection["lineage"]["projection_code"]["sha256"] == review["source_hashes"]["ops/render_original_formula_projection.py"], "OLD_THREE_BINDING_CONFLICT")
++        reused[symbol] = {**item, "status": "REUSED_INDEPENDENT_PASS", "review_receipt": review_ref, "reused_manifest": manifest_ref}
++    return reused
++
++
++def export_one(engine, inventory, bound, symbol, lineage, renderer_raw, output):
++    """One independent checkpoint; a controller may schedule these after review."""
++    started = time.perf_counter()
++    stem = symbol.replace(".", "_")
++    checkpoints = output / "checkpoints"
++    checkpoints.mkdir(parents=True, exist_ok=True)
++    checkpoint = checkpoints / (stem + ".json")
++    binding = sha(canonical({"symbol": symbol, "product": lineage["product"], "cache": bound["item"]["source_cache"],
++                             "code": lineage["projection_code"], "renderer": lineage["renderer"], "format": "LOSSLESS_GZIP_V1"}))
++    if checkpoint.exists():
++        prior = json.loads(checkpoint.read_text())
++        if prior.get("status") == "READY" and prior.get("binding_sha256") == binding:
++            pinned(prior["projection"])
++            pinned(prior["html"])
++            return prior
++    try:
++        projection = project(engine, inventory, bound, symbol)
++        projection["lineage"] = lineage
++        raw = canonical(projection) + b"\n"
++        packed = gzip.compress(raw, mtime=0)
++        require(gzip.decompress(packed) == raw, "PROJECTION_GZIP_PARITY_CONFLICT")
++        projection_path = output / (stem + ".projection.json.gz")
++        projection_path.write_bytes(packed)
++        html_path = output / (stem + ".html")
++        html_path.write_text(chart_html(renderer_raw, projection, lineage, compress_payload=True))
++        record = {"status": "READY", "binding_sha256": binding, "projection": reference(projection_path),
++            "html": reference(html_path), "rows": len(projection["formula_result"]["rows"]),
++            "values_per_row": 51, "drawings_per_row": 22, "unsupported_drawings": len(projection["unsupported_drawings"]),
++            "format": "LOSSLESS_GZIP_V1;HTML_GZIP_BASE64_PAYLOAD", "projection_uncompressed_bytes": len(raw),
++            "projection_gzip_bytes": len(packed), "html_bytes": html_path.stat().st_size,
++            "seconds": time.perf_counter() - started, "worker_peak_rss_bytes": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
++            "visual_readback": "NOT_RUN", "independent_review": "PENDING"}
++    except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
++        record = {"status": "CANNOT_CONFIRM", "reason": str(error), "binding_sha256": binding,
++                  "seconds": time.perf_counter() - started}
++    write_json(checkpoint, record)
++    return record
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ("config", "coverage", "product-index", "renderer", "output"):
++        parser.add_argument("--" + name, required=True, type=Path)
++    parser.add_argument("--symbol", action="append", required=True, help="Explicit current-coverage symbol; never defaults to all247")
++    parser.add_argument("--reuse-manifest", type=Path, help="Reference the independently passed three outputs without recomputation")
++    args = parser.parse_args()
++    renderer_ref = reference(args.renderer)
++    require(renderer_ref["sha256"] == RENDERER_SHA, "R19_RENDERER_PIN_CONFLICT")
++    renderer_raw = pinned(renderer_ref)
++    requested = tuple(dict.fromkeys(args.symbol))
++    require(args.reuse_manifest is not None or not set(requested) & set(SAMPLES), "OLD_THREE_REQUIRE_REVIEWED_REUSE_MANIFEST")
++    inputs = tuple(dict.fromkeys(requested + (SAMPLES if args.reuse_manifest else ())))
++    engine, inventory, bound, lineage = load_bound_inputs(args.config, args.coverage, args.product_index, inputs)
++    lineage.update(renderer=renderer_ref, projection_code=reference(Path(__file__)))
++    args.output.mkdir(parents=True, exist_ok=True)
++    binding_path = args.output / "INPUT_BINDING.json"
++    input_binding = {key: lineage[key] for key in ("product", "manifest", "config", "engine", "formula", "coverage", "renderer", "scope_symbols")}
++    if binding_path.exists():
++        require(json.loads(binding_path.read_text()) == json.loads(canonical(input_binding)), "FROZEN_EXPORT_INPUT_DRIFT")
++    else:
++        write_json(binding_path, input_binding)
++    manifest_path = args.output / "MANIFEST.json"
++    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"schema": "d35c.bound_candidate_projection_manifest.v1", "samples": {}, **FLAGS}
++    if args.reuse_manifest:
++        require(not set(SAMPLES) & set(lineage["input_failures"]), "OLD_THREE_CURRENT_BINDING_INVALID")
++        manifest["samples"].update(reuse_reviewed_three(args.reuse_manifest, bound))
++    for symbol in requested:
++        if symbol in manifest["samples"] and manifest["samples"][symbol].get("status") == "REUSED_INDEPENDENT_PASS":
++            continue
++        if symbol in lineage["input_failures"]:
++            record = {"status": "CANNOT_CONFIRM", "reason": lineage["input_failures"][symbol]}
++        else:
++            record = export_one(engine, inventory, bound[symbol], symbol, lineage, renderer_raw, args.output)
++        manifest["samples"][symbol] = record
++        write_json(manifest_path, manifest)
++        print(json.dumps({"symbol": symbol, **record}, ensure_ascii=False), flush=True)
++    write_json(manifest_path, manifest)
++    if any(manifest["samples"][symbol].get("status") == "CANNOT_CONFIRM" for symbol in requested):
++        raise SystemExit(1)
++
++
++if __name__ == "__main__":
++    main()
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -0,0 +1,275 @@
++"""Dated four-group projection at the existing A producer completion boundary.
++
++No acquisition or GET execution. Historical bootstrap is explicit and bounded;
++the normal daily path evaluates only its target date and reuses validated history.
++"""
++from __future__ import annotations
++import ast,hashlib,importlib.util,json,math,os,struct,sys,time,zipfile
++from collections import Counter
++from datetime import datetime,timedelta,timezone
++from decimal import Decimal
++from pathlib import Path
++
++FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
++GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
++CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
++SCHEMA='v4.a_share.daily_product.v1'
++
++def canonical(v):return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False,default=lambda x:str(x) if isinstance(x,Decimal) else (_ for _ in ()).throw(TypeError(type(x).__name__))).encode()
++def digest(v):return hashlib.sha256(canonical(v)).hexdigest()
++def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
++def reference(p):return dict(path=str(Path(p).resolve()),sha256=sha(p))
++def checked(r):
++ p=Path(r['path'])
++ if not p.is_absolute() or p.is_symlink() or p.resolve(strict=True)!=p or sha(p)!=r['sha256']:raise ValueError('DAILY_SOURCE_PIN_DRIFT:'+str(p))
++ return p
++def save(p,v,immutable=False):
++ p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);raw=canonical(v)+b'\n'
++ if immutable and p.exists():
++  if p.read_bytes()!=raw:raise ValueError('DAILY_IMMUTABLE_CONFLICT:'+str(p))
++  return reference(p)
++ tmp=p.with_name('.'+p.name+f'.{os.getpid()}.pending')
++ with tmp.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
++ os.replace(tmp,p);return reference(p)
++def module(r,name):
++ p=checked(r);raw=p.read_bytes();spec=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;exec(compile(raw,str(p),'exec'),m.__dict__);return m
++
++def iso(d):return datetime.strptime(str(d),'%Y%m%d').strftime('%Y-%m-%d')
++def tristate(v):return 'TRUE' if v is True else 'FALSE' if v is False else 'UNKNOWN'
++def config():
++ p=Path(os.environ.get('V4_RESEARCH_DAILY_PRODUCT_CONFIG') or CONFIG);v=json.loads(p.read_text())
++ if v.get('schema')!='research_daily_product_sources.v1':raise ValueError('DAILY_SOURCE_CONFIG_SCHEMA')
++ for k in ('engine','formula','tri_state_core','admission_helper','census'):checked(v[k])
++ for ref in v.get('dated_g4_packages',{}).values():checked(ref)
++ if v.get('future_calendar'):checked(v['future_calendar'])
++ return v,reference(p)
++
++def _census(r,asof,observation):
++ p=checked(r);tree=ast.parse(p.read_text());fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='analyze')
++ class BindDate(ast.NodeTransformer):
++  def visit_Constant(self,node):
++   if type(node.value) is int and node.value in (20261027,20261028):return ast.copy_location(ast.Constant(asof if node.value==20261027 else observation),node)
++   # Keep the reviewed R5 descriptor namespace stable; values carry actual dates.
++   if isinstance(node.value,str):return ast.copy_location(ast.Constant(node.value.replace('D27','D28').replace('D26','D27')),node)
++   return node
++ env={'math':math};exec(compile(ast.fix_missing_locations(ast.Module(body=[BindDate().visit(fn)],type_ignores=[])),str(p),'exec'),env);return env['analyze']
++
++class SourceContext:
++ def __init__(self,data_root,target,*,source_config=None):
++  from ops.research_panel_qfq import panel_contract
++  self.data_root=Path(data_root).resolve();self.target=int(target);self.config,self.config_ref=(source_config if source_config else config());self.root=self.data_root/'daily_products/a_share'
++  self.pointer=self.data_root/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';self.backpointer=self.data_root/'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt';self.pointer_bytes=self.pointer.read_bytes();self.back_bytes=self.backpointer.read_bytes()
++  self.panel=Path(self.pointer_bytes.decode('utf-8-sig').strip());self.footer=panel_contract(self.panel);back=panel_contract(Path(self.back_bytes.decode('utf-8-sig').strip()))
++  if self.footer.get('asof_date')!=self.target or self.footer.get('generation_id')!=back.get('generation_id'):raise ValueError('DAILY_PAIRED_GENERATION_OR_DATE_CONFLICT')
++  self.generation=self.footer['generation_id'];self.receipt_ref=reference(Path(self.footer['generation_manifest_path']));self.receipt=json.loads(checked(self.receipt_ref).read_text());self.snapshot_ref=self.receipt['adjustment_snapshot'];self.snapshot=json.loads(checked(self.snapshot_ref).read_text());self.quarantine_ref=self.receipt['quarantine_manifest'];self.quarantine=json.loads(checked(self.quarantine_ref).read_text())
++  if self.receipt.get('generation_id')!=self.generation or self.quarantine.get('generation_id')!=self.generation or self.snapshot.get('asof_date')!=self.target:raise ValueError('DAILY_RECEIPT_SNAPSHOT_IDENTITY_CONFLICT')
++  if (self.footer.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt['candidates']['selector']!=str(self.panel)):raise ValueError('DAILY_SNAPSHOT_SHA_CONFLICT')
++  self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
++  if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
++  self.panel_stat=self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
++  self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
++  reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);self.reader=module(self.reader_ref,'dated_original_shared_reader');self._engine=None;self.calendars=self._calendars();self._g4={}
++ def cached_sha(self,p):
++  p=Path(p);s=p.stat();stamp=(s.st_size,s.st_mtime_ns,s.st_ino)
++  if str(p) in self.hash_cache:
++   old,h=self.hash_cache[str(p)]
++   if old!=stamp:raise ValueError('DAILY_REFERENCE_CHANGED:'+str(p))
++   return h
++  h=sha(p);self.hash_cache[str(p)]=(stamp,h);return h
++ def unchanged(self):
++  s=self.panel.stat()
++  if self.pointer.read_bytes()!=self.pointer_bytes or self.backpointer.read_bytes()!=self.back_bytes or (s.st_size,s.st_mtime_ns,s.st_ino)!=(self.panel_stat.st_size,self.panel_stat.st_mtime_ns,self.panel_stat.st_ino):raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
++ def _calendars(self):
++  import pyarrow.parquet as pq
++  dates={e:set() for e in ('SH','SZ','BJ')}
++  for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
++   for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
++    if e in dates and int(d)<=self.target:dates[e].add(int(d))
++  if self.config.get('future_calendar'):
++   pinned=json.loads(checked(self.config['future_calendar']).read_text());periods=pinned['markets']['a_share']['holiday_periods'];day=datetime.strptime(str(self.target),'%Y%m%d')+timedelta(days=1)
++   while day.year==pinned['year']:
++    if day.weekday()<5 and not any(v['start']<=day.strftime('%Y%m%d')<=v['end'] for v in periods):
++     for values in dates.values():values.add(int(day.strftime('%Y%m%d')))
++    day+=timedelta(days=1)
++  return {e:sorted(v) for e,v in dates.items()}
++ def qualify(self,symbol):return self.helper.verify_symbol_admission(symbol,str(self.target),self.footer,self.receipt,self.quarantine,self.generation,Path(self.quarantine_ref['path']))
++ def read(self,symbol):
++  frame=self.reader.load_selector_ready(columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume'],filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None).sort_values('trade_date',kind='stable')
++  if frame.empty:return [],None
++  if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
++  bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
++  value=frame.name.iloc[-1];name=value if isinstance(value,str) and value else None
++  return bars,name
++ def engine(self):
++  if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')
++  return self._engine
++ def g4_reference(self,symbol,date,qualification):
++  # Source is an existing bound dated package; never fetch in this projection.
++  date=int(date);pin=self.config.get('dated_g4_packages',{}).get(str(date))
++  if pin is None:
++   syncpath=Path(os.environ.get('V4_RESEARCH_PANEL_RECEIPT_ROOT') or self.data_root.parent.parent/'research_panel_daily/receipts')/'a_sync_authority/official_daily'/str(date)/'input.json'
++   if syncpath.is_file():pin=json.loads(syncpath.read_text()).get('package')
++  if pin is None:return dict(date=date,correspondence_status='UNKNOWN',reason='RAW_G4_PREV_CLOSE_SOURCE_MISSING')
++  if date not in self._g4:
++   from ops._a_share_daily_sync_parts.official_daily_package import parse_package
++   p=checked(pin);raw=p.read_bytes();parsed,_=parse_package(raw,date);values={}
++   with zipfile.ZipFile(p) as z:
++    blocks={name:z.read(name) for name in {lineage['md1_member']['name'] for _,lineage,_ in parsed.values()}}
++    for (market,code),(bar,lineage,volume) in parsed.items():
++     block=blocks[lineage['md1_member']['name']];previous=struct.unpack_from('<d',block,lineage['md1_byte_offset']+4)[0];values[code+'.'+{0:'SZ',1:'SH',2:'BJ'}[market]]=dict(date=date,close=bar['close'],prev_close=previous,ohlc={k:bar[k] for k in ('open','high','low','close')},source=pin)
++   self._g4[date]=values
++  value=self._g4[date].get(symbol)
++  if value is None:return dict(date=date,correspondence_status='UNKNOWN',reason='RAW_G4_SYMBOL_ABSENT')
++  matches=[]
++  for r in qualification.get('verified_raw_sources',[]):
++   raw=checked(r).read_bytes()
++   for off in range(0,len(raw),32):
++    if struct.unpack_from('<I',raw,off)[0]==date:
++     prices=struct.unpack_from('<4I',raw,off+4);matches.append(all(Decimal(str(value['ohlc'][k])).quantize(Decimal('.01'))==Decimal(v)/100 for k,v in zip(('open','high','low','close'),prices)))
++  return dict(value,correspondence_status='TRUE' if matches and all(matches) else 'UNKNOWN',reason=None if matches and all(matches) else 'RAW_G4_NATIVE_PARITY_UNCONFIRMED')
++
++def source_inputs(context,symbol,bars,asof,qualification,*,retain=None,prefix_reuse=None):
++ """Original formula/AST only; caller controls registered real computation."""
++ engine=context.engine()
++ if prefix_reuse is None:
++  result=engine.compute(bars,'prefix')
++  if retain is not None:retain(result)
++  rows=result['rows']
++ else:
++  fields=('B1','B2','B3','突破','突破接十字星','零上二金','零下二金','一级买点','二级买点')
++  if retain is not None or prefix_reuse.get('fields')!=fields:raise ValueError('CANNOT_CONFIRM_PREFIX_REUSE_CONSUMED_FIELDS')
++  pins={'engine':'ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c','formula':'d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac','tri_state_core':'e5bbeed5cfa665ef863f0cacb0bb6b13a17ebe957c1429eaaa8dea0acaf44a35','census':'75ed99318a149f2b57cbedd42618e5d5910d60ae2dd11f7fcb159c3fb3a6f2ef'}
++  if any(context.config[k]['sha256']!=value or context.cached_sha(Path(context.config[k]['path']))!=value for k,value in pins.items()):raise ValueError('CANNOT_CONFIRM_PREFIX_CAUSALITY_PINS')
++  if context.cached_sha(Path(context.config_ref['path']))!=context.config_ref['sha256']:raise ValueError('CANNOT_CONFIRM_PREFIX_CONFIG_DRIFT')
++  if (prefix_reuse.get('symbol')!=symbol or prefix_reuse.get('generation')!=context.generation
++      or prefix_reuse.get('identity')!=digest(context.identity) or prefix_reuse.get('config')!=digest(context.config)
++      or prefix_reuse.get('config_ref')!=digest(context.config_ref) or prefix_reuse.get('qualification')!=digest(qualification) or prefix_reuse.get('target')!=context.target
++      or not bars or bars[-1]['trade_date']!=int(asof) or int(asof)>context.target
++      or tuple(b['trade_date'] for b in bars)!=prefix_reuse['dates'][:len(bars)]
++      or digest(bars)!=prefix_reuse['prefix_sha256'].get(int(asof))):raise ValueError('CANNOT_CONFIRM_PREFIX_REUSE_IDENTITY_OR_PREFIX_DRIFT')
++  proof_key=tuple((k,context.config[k]['path'],v) for k,v in pins.items())
++  if getattr(context,'_history_prefix_causal_proof',None)!=proof_key:
++   assignments={a['name']:engine.Parser(a['expression']).parse() for a in engine.inventory()['assignments']};proved=set();visiting=set()
++   def visit(node):
++    kind=node[0]
++    if kind=='var':
++     variable=node[1]
++     if variable in {'OPEN','HIGH','LOW','CLOSE','VOL','DRAWNULL'}:return
++     if variable not in assignments or variable in visiting:raise ValueError('CANNOT_CONFIRM_PREFIX_NONCAUSAL_VARIABLE:'+variable)
++     if variable not in proved:
++      visiting.add(variable);visit(assignments[variable]);visiting.remove(variable);proved.add(variable)
++    elif kind=='call':
++     if node[1] not in {'MA','EMA','SMA','REF','COUNT','BARSLAST','CROSS','HHV','LLV'}:raise ValueError('CANNOT_CONFIRM_PREFIX_NONCAUSAL_FUNCTION:'+node[1])
++     for argument in node[2]:visit(argument)
++    elif kind=='binary':visit(node[2]);visit(node[3])
++    elif kind=='unary':visit(node[2])
++    elif kind not in {'number','text'}:raise ValueError('CANNOT_CONFIRM_PREFIX_AST_UNKNOWN')
++   for field in fields:visit(('var',field))
++   context._history_prefix_causal_proof=proof_key
++  rows=list(prefix_reuse['rows'][:len(bars)])
++ last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
++ answer=dict(symbol=symbol,rows=rows,source_bar_exact={'amount':0},index_sha256=context.config_ref['sha256'])
++ summary,_=_census(context.config['census'],asof,asof)(answer);stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
++ baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
++ return dict(original_breakout_by_date=breakout,baseline_memberships=baseline,old_main_anchor_date=summary.get('main_anchor_date'),qualification_status=qualification['status'],raw_g4_reference=context.g4_reference(symbol,asof,qualification))
++
++def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False):
++ from domains.research_daily_product import evaluate_daily_product
++ from domains.research_daily_statistics import build_daily_event_statistics
++ history_dates=tuple(history_dates)
++ evaluate=evaluate or evaluate_daily_product;bars,name=context.read(symbol);q=context.qualify(symbol);target=context.target;calendar=context.calendars[symbol[-2:]];rule_sha=sha(Path(__file__).resolve().parents[1]/'domains/research_daily_product.py')
++ if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' and (not bars or bars[-1]['trade_date']!=target or str(bars[0]['trade_date'])!=q['history_start_date']):q=dict(status='UNKNOWN',reason='ADMITTED_PREFIX_START_OR_TARGET_MISMATCH')
++ captured=[]
++ current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None or (reuse_history_prefix and history_dates) else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
++ current=evaluate(symbol=symbol,asof=target,fullprefix=bars,exchange_calendar=calendar,**current_inputs)
++ history_root=context.root/'history'/rule_sha/symbol;cachefile=history_root/'checkpoint.json';cache=json.loads(cachefile.read_text()) if cachefile.is_file() else dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
++ rules_signature=digest(context.config)
++ if cache.get('rules_signature',rules_signature)!=rules_signature or q['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
++ cache['rules_signature']=rules_signature
++ old_end=max(map(int,cache['evaluations']),default=0);old_prefix=[b for b in bars if b['trade_date']<=old_end]
++ if cache.get('prefix_sha256') and digest(old_prefix)!=cache['prefix_sha256']:cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
++ cache['evaluations'][str(target)]=dict(groups={g:current['groups'][g]['status'] for g in GROUPS},source_identity=context.identity,qualification=q,exact_full_conditions=True)
++ # Explicit reuse is opt-in. Census/G4/qualification still use each cutoff;
++ # only proven causal formula fields may come from the exact same full start.
++ prefix_reuse=None
++ if reuse_history_prefix and history_dates and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
++  from types import MappingProxyType
++  if not captured:raise ValueError('CANNOT_CONFIRM_PREFIX_FULL_RESULT_MISSING')
++  result=captured[0];fields=('B1','B2','B3','突破','突破接十字星','零上二金','零下二金','一级买点','二级买点');dates=tuple(b['trade_date'] for b in bars)
++  if (result.get('mode')!='prefix' or result.get('formula_sha256')!=context.config['formula']['sha256'] or result.get('field_count')!=51 or result.get('drawing_count')!=22
++      or tuple(r['trade_date'] for r in result['rows'])!=dates):raise ValueError('CANNOT_CONFIRM_PREFIX_FULL_RESULT_IDENTITY')
++  chain=hashlib.sha256(b'[');prefix_hashes={}
++  for index,bar in enumerate(bars):
++   if index:chain.update(b',')
++   chain.update(canonical(bar));point=chain.copy();point.update(b']');prefix_hashes[bar['trade_date']]=point.hexdigest()
++  frozen_rows=tuple(MappingProxyType(dict(trade_date=r['trade_date'],ohlcv=MappingProxyType(dict(r['ohlcv'])),values=MappingProxyType({field:r['values'][field] for field in fields}))) for r in result['rows'])
++  prefix_reuse=MappingProxyType(dict(symbol=symbol,generation=context.generation,identity=digest(context.identity),config=digest(context.config),config_ref=digest(context.config_ref),qualification=digest(q),target=context.target,fields=fields,dates=dates,prefix_sha256=MappingProxyType(prefix_hashes),rows=frozen_rows))
++ for day in history_dates:
++  day=int(day)
++  if day>=target or str(day) in cache['evaluations']:continue
++  prefix=[b for b in bars if b['trade_date']<=day]
++  if not prefix or prefix[-1]['trade_date']!=day:continue
++  inputs=source_inputs(context,symbol,prefix,day,q,**({'prefix_reuse':prefix_reuse} if prefix_reuse is not None else {})) if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
++  earlier=evaluate(symbol=symbol,asof=day,fullprefix=prefix,exchange_calendar=calendar,**inputs)
++  cache['evaluations'][str(day)]=dict(groups={g:earlier['groups'][g]['status'] for g in GROUPS},source_identity=context.identity,qualification=q,exact_full_conditions=True,historical_PIT=False,historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION')
++ evaluated=sorted(map(int,cache['evaluations']));expected=[b['trade_date'] for b in bars];complete=set(expected)<=set(evaluated)
++ cache['prefix_sha256']=digest(bars);cache['source_identity']=context.identity;cache['coverage']=dict(requested_start=bars[0]['trade_date'] if bars else None,requested_end=target,evaluated_dates=evaluated,evaluated_count=len(evaluated),available_prefix_dates=len(expected),known_full_history=complete,historical_PIT=False,maximum_claim='DIRECTION_ONLY',historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION',unknown_by_group={g:sum(r['groups'][g]=='UNKNOWN' for r in cache['evaluations'].values()) for g in GROUPS},missing=[] if complete else ['HISTORICAL_FULL_CONDITION_BOOTSTRAP'])
++ identity=dict(generation=context.generation,input=context.identity['input_sha256'],formula=context.config['formula']['sha256'],rule_sha256=rule_sha,asof=iso(target),market=symbol[-2:],basis='QFQ_ASOF',pit_status='NONPIT')
++ groups=[dict(group_id=g,event_dates=[iso(int(d)) for d,r in sorted(cache['evaluations'].items()) if r['groups'][g]=='TRUE'],rule_sha256=rule_sha,source_identity=identity) for g in GROUPS]
++ statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
++ row=dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q)
++ if chart_capture is not None and row['groups'] and captured:chart_capture(symbol,bars,captured[0])
++ return row,cache,cachefile
++
++def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None,cache_only=False):
++ """Called once from original run_a; no historical loop in normal daily mode."""
++ context=SourceContext(data_root,target)
++ if output_root is not None:context.root=Path(output_root).resolve()
++ root=context.root;context.unchanged()
++ if formula_result and (str(context.panel)!=str(formula_result['selector']) or formula_result['selector_sha256']!=context.receipt['candidate_sha256']['selector']):raise ValueError('DAILY_FORMULA_COMPLETION_IDENTITY_CONFLICT')
++ selected=sorted(symbols if symbols is not None else context.scope)
++ if not set(selected)<=set(context.scope):raise ValueError('DAILY_PROJECTION_OUTSIDE_PROCESSED_UNIVERSE')
++ rows=[];row_refs={};runkey=digest(dict(identity=context.identity,config=context.config_ref,symbols=selected,history_dates=list(history_dates)));parts=root/'checkpoints'/str(target)/runkey
++ if cache_only and (history_dates or any(not (parts/(symbol+".json")).is_file() for symbol in selected)):
++  raise ValueError("DAILY_NUMERIC_CHECKPOINT_MISSING_CACHE_ONLY_NO_RECOMPUTE")
++ chart_gaps={}
++ def capture(symbol,bars,result):
++  try:
++   from ops.render_original_formula_projection import retain_owner_result
++   retain_owner_result(context,parts,symbol,bars,result)
++  except Exception as error:chart_gaps[symbol]='RETAINED_RESULT_UNAVAILABLE:'+str(error)
++ for i,symbol in enumerate(selected):
++  checkpoint=parts/(symbol+'.json')
++  if checkpoint.is_file():row=json.loads(checkpoint.read_text())
++  elif cache_only:raise ValueError('DAILY_NUMERIC_CHECKPOINT_DISAPPEARED_CACHE_ONLY_NO_RECOMPUTE')
++  else:
++   try:
++    row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,**({'chart_capture':capture} if original_charts else {}));save(path,cache)
++   except (ValueError,KeyError,TypeError,OSError) as error:
++    row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
++   row.update(FLAGS);save(checkpoint,row,immutable=True)
++  rows.append(row);row_refs[symbol]=reference(checkpoint);save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
++ context.unchanged();counts={g:dict(Counter(r['evaluation']['groups'][g]['status'] for r in rows)) for g in GROUPS};candidates=[r for r in rows if r['groups']];unknown=sum(bool(r['pending_groups']) for r in rows)
++ product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
++ content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
++ chart_descriptor=None
++ if original_charts:
++  try:
++   from ops.render_original_formula_projection import finalize_owner_charts
++   chart_descriptor=finalize_owner_charts(context,parts,product,manifest_ref,artifact,gaps=chart_gaps,png_renderer=chart_png_renderer)
++  except Exception as error:
++   chart_descriptor=dict(status='CANNOT_CONFIRM',numeric_manifest=manifest_ref,reason='CHART_FINALIZATION_FAILED:'+str(error))
++ try:context.unchanged()
++ except Exception as error:
++  save(parts/'publication_error.json',dict(status='CANNOT_CONFIRM',reason='SOURCE_CHANGED_BEFORE_PUBLICATION:'+str(error),manifest=manifest_ref,artifact=artifact,original_charts=chart_descriptor,**FLAGS))
++  raise
++ if symbols is None:
++  indexfile=root/'index.json';index=json.loads(indexfile.read_text()) if indexfile.is_file() else dict(schema_version='v4.a_share.daily_product_index.v1',dates={})
++  index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']]
++  if chart_descriptor is not None:index.setdefault('original_charts',{})[str(target)]=chart_descriptor
++  save(indexfile,index)
++  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS)
++  if chart_descriptor is not None:
++   event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
++  save(root/'events/latest.json',event)
++ return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS) | (dict(cache_only=True,numeric_recomputed=False,original_chart_leaf=chart_descriptor) if cache_only else {})
+--- a/ops/research_panel_daily_source.py
++++ b/ops/research_panel_daily_source.py
+@@ -19,7 +19,7 @@
+     value = json.loads(POLICY_PATH.read_text())
+     if (value.get("schema") != "a_daily_source_policy.v1" or value.get("enabled") is not True
+             or value.get("source_kind") != "TDX_OFFICIAL_G4DAY"
+-            or value.get("earliest_slot") != "1610" or value.get("RESEARCH_ONLY") is not True
++            or value.get("earliest_slot") != "1540" or value.get("RESEARCH_ONLY") is not True
+             or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+         raise QfqGateError("A_DAILY_SOURCE_POLICY_UNBOUND")
+     return value
+--- a/ops/run_scheduled_slot.py
++++ b/ops/run_scheduled_slot.py
+@@ -48,7 +48,7 @@
+     # a bounded no-op.
+     "0415", "0515", "0700", "0800", "0830", "0840", "0900", "0901", "0915", "0925", "0930", "0935", "0940",
+     "0945", "1000", "1030", "1100", "1130", "1200", "1300", "1315",
+-    "1400", "1500", "1530", "1555", "1600", "1605", "1608", "1610", "1700", "1710", "1720",
++    "1400", "1500", "1530", "1540", "1555", "1600", "1605", "1608", "1610", "1640", "1700", "1710", "1720",
+     "1730", "1800", "1900", "2000", "2001", "2030", "2040", "2050",
+     "2100", "2105", "2108", "2110", "2115", "2140", "2200",
+     "2300",
+--- a/ops/run_v4_macos_scheduler_daemon.py
++++ b/ops/run_v4_macos_scheduler_daemon.py
+@@ -870,7 +870,7 @@
+ class SlotProcessLanes:
+     """Bounded execution adapter around the original one-shot scheduler.
+ 
+-    The full 1610 slot owns A_LONG; every other fixed slot keeps one serial
++    The A main/retry slots 1540/1610/1640 own A_LONG; other fixed slots keep one serial
+     DEFAULT lane. Claims are created by the original child dispatcher and use
+     that child's PID. Observations never reserve or release business claims.
+     """
+@@ -900,7 +900,7 @@
+ 
+     @staticmethod
+     def lane(slot):
+-        return "A_LONG" if slot == "1610" else "DEFAULT"
++        return "A_LONG" if slot in {"1540", "1610", "1640"} else "DEFAULT"
+ 
+     @staticmethod
+     def _log(payload):
+--- a/ops/run_v4_macos_scheduler_due.py
++++ b/ops/run_v4_macos_scheduler_due.py
+@@ -15,7 +15,7 @@
+ # Research-panel A/H lanes are fixed canonical producer slots.  They receive
+ # the same fairness treatment as hourly work; executor-level dependencies are
+ # evaluated only after a slot is selected.
+-CATCHUP_EXACT_PRIORITY_SLOTS = frozenset(CATCHUP_HOURLY_SLOTS) | frozenset({"1530", "1700", "1720"})
++CATCHUP_EXACT_PRIORITY_SLOTS = frozenset(CATCHUP_HOURLY_SLOTS) | frozenset({"1530", "1540", "1700", "1720"})
+ # Fixed non-hourly owners must be recoverable after a five-minute launchd
+ # heartbeat without being confused with the neighbouring hourly workload.
+ # Morning stage/pre-stage slots are listed explicitly because a retryable
+@@ -40,7 +40,7 @@
+     "2115",
+ )
+ POST_CLOSE_CATCHUP_SLOTS = (
+-    "1500", "1530", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800", "2030", "2040",
++    "1500", "1530", "1540", "1555", "1605", "1610", "1640", "1700", "1710", "1720", "1730", "1800", "2030", "2040",
+     "2050", "2105", "2108", "2110", "2115", "2140",
+ )
+ # The post-close nodes remain the fixed candidate order used for tie-breaking.
+@@ -73,6 +73,8 @@
+ def _slot_retry_deadline(business_date: str, slot: str,
+                          catchup_window_minutes: int = DEFAULT_CATCHUP_WINDOW_MINUTES) -> datetime:
+     scheduled = datetime.strptime(business_date + slot, "%Y%m%d%H%M").replace(tzinfo=SHANGHAI)
++    if slot in {"1540", "1640"}:
++        return scheduled.replace(hour=16, minute=59, second=59, microsecond=999999)
+     if slot == "0915":
+         return scheduled.replace(hour=9, minute=19, second=59, microsecond=999999)
+     if slot in POST_CLOSE_CATCHUP_SLOTS:

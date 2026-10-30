@@ -1,0 +1,2000 @@
+--- a/apps/api/v4_api/app.py
++++ b/apps/api/v4_api/app.py
+@@ -6219,6 +6219,8 @@
+             research_read_root=resolved_research_root,
+             wechat_archive_root=os.environ.get("V4_WECHAT_ARCHIVE_ROOT"),
+             shared_data_root=os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT"),
++            a_share_daily_root=os.environ.get("V4_A_SHARE_DAILY_PRODUCT_ROOT") or os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT"),
++            original_chart_artifact_root=os.environ.get("V4_ORIGINAL_CHART_ARTIFACT_ROOT"),
+         )
+     )
+ 
+@@ -6239,6 +6241,7 @@
+             # US digest already writes the native data store.  Do not move the
+             # independent research lane, morning news or external-news reader.
+             us_market_data_root=store.root,
++            a_share_daily_root=os.environ.get("V4_A_SHARE_DAILY_PRODUCT_ROOT") or os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT"),
+         )
+     )
+ 
+--- a/apps/api/v4_api/research_lane_router.py
++++ b/apps/api/v4_api/research_lane_router.py
+@@ -6,9 +6,12 @@
+ assistant-run-log read exists here, and no event is ever synthesized.
+ """
+ from __future__ import annotations
++from domains.related_pdf_reports import read_related_pdf_reports
+ 
+ import asyncio
+ import json
++import os
++import re
+ from datetime import datetime, time, timedelta
+ from pathlib import Path
+ from typing import Any, Mapping
+@@ -18,7 +21,16 @@
+ from fastapi.responses import StreamingResponse
+ from starlette.concurrency import run_in_threadpool
+ 
+-from domains.report_subjects import project_report_roles
++try:
++    from domains.report_subjects import project_report_roles
++except ModuleNotFoundError as error:
++    if error.name != "domains.report_subjects":
++        raise
++    # Keep the read-only lane available when the optional role projection
++    # package is absent.  Passing through the original evidence is safer than
++    # manufacturing classifications.
++    def project_report_roles(payload: Mapping[str, Any]) -> dict[str, Any]:
++        return dict(payload)
+ from domains.research_day_product import consume_authoritative_research_day
+ from infrastructure.data_store import _date, _sha256
+ from infrastructure.research_lane_source import ResearchLaneSource
+@@ -41,6 +53,78 @@
+ MARKET_SNAPSHOT_SCHEMA_VERSION = "v3_5.us_market_snapshot.v1"
+ LATE_CAPTURE_MODE = "CONTROLLED_LATE_POST_CLOSE"
+ LATE_CAPTURE_REASON = "NATURAL_SLOT_MISSED_CONTROLLED_RECOVERY"
++_SHA256 = re.compile(r"^[0-9a-f]{64}$")
++
++
++def _daily_completion_matches_current_product(
++    event: Mapping[str, Any] | None,
++    product: Mapping[str, Any] | None,
++) -> bool:
++    """Accept an SSE completion only when its full refs match the current product.
++
++    The event and product are separate immutable reads.  Matching the date and
++    generation alone is insufficient if a pointer was moved or one side was
++    replaced, so both artifact and manifest paths and hashes are compared.
++    """
++    if not isinstance(event, Mapping) or not isinstance(product, Mapping):
++        return False
++    if (
++        event.get("schema_version") != "v4.a_share.daily_completion.v1"
++        or product.get("schema_version") != "v4.a_share.daily_product.v1"
++        or event.get("status") not in {"READY", "PARTIAL_WITH_ROWS"}
++        or product.get("status") != event.get("status")
++        or event.get("RESEARCH_ONLY") is not True
++        or product.get("RESEARCH_ONLY") is not True
++        or any(event.get(key) is not False or product.get(key) is not False
++               for key in ("production_allowed", "buy_gate_updated", "orders_sent"))
++    ):
++        return False
++    data_date = event.get("data_date")
++    generation = event.get("source_generation")
++    input_sha = event.get("input_sha256")
++    event_id = event.get("event_id")
++    if (
++        not isinstance(data_date, str)
++        or not re.fullmatch(r"\d{8}", data_date)
++        or not isinstance(generation, str)
++        or not _SHA256.fullmatch(generation)
++        or not isinstance(input_sha, str)
++        or not _SHA256.fullmatch(input_sha)
++        or not isinstance(event_id, str)
++        or not _SHA256.fullmatch(event_id)
++    ):
++        return False
++    product_identity = product.get("source_identity")
++    if not isinstance(product_identity, Mapping):
++        return False
++    if (
++        product.get("data_date") != data_date
++        or product.get("source_generation") != generation
++        or product_identity.get("generation") != generation
++        or product_identity.get("asof") != int(data_date)
++        or product_identity.get("input_sha256") != input_sha
++        or event.get("processed_count") != product.get("processed_count")
++        or event.get("source_universe_count") != product.get("source_universe_count")
++    ):
++        return False
++
++    def same_reference(left: Any, right: Any) -> bool:
++        return (
++            isinstance(left, Mapping)
++            and isinstance(right, Mapping)
++            and left.get("path") == right.get("path")
++            and isinstance(left.get("path"), str)
++            and bool(left.get("path"))
++            and left.get("sha256") == right.get("sha256")
++            and isinstance(left.get("sha256"), str)
++            and _SHA256.fullmatch(left["sha256"]) is not None
++        )
++
++    if event.get("original_charts") != product.get("original_charts"):
++        return False
++    return same_reference(event.get("manifest"), product.get("manifest")) and same_reference(
++        event.get("artifact"), product.get("artifact")
++    )
+ 
+ 
+ def _is_late_capture_identity(value: Any) -> bool:
+@@ -777,9 +861,10 @@
+     morning_news_data_root: Path | str | None = None,
+     ledger_root: Path | None = None,
+     us_market_data_root: Path | str | None = None,
++    a_share_daily_root: Path | str | None = None,
+ ) -> APIRouter:
+     router = APIRouter(prefix="/api/v4/research", tags=["research-lane"])
+-    source = ResearchLaneSource(data_root, ledger_root=ledger_root)
++    source = ResearchLaneSource(data_root, ledger_root=ledger_root, a_share_daily_root=a_share_daily_root)
+     daily_store = ResearchArchiveStore(data_root)
+     peripheral_source = ResearchPeripheralStore(data_root)
+     # A bounded consumer binding; no data copying and no fallback across roots.
+@@ -978,6 +1063,26 @@
+                 resolved, artifact_verified=result.get("status") in {"READY", "LIVE_HOURLY"})
+         return result
+ 
++    @router.get("/pdf-relations")
++    def research_pdf_relations(
++        symbols: list[str] = Query(...),
++        identity_date: str = Query(...),
++        hints: list[str] = Query(default=[]),
++        max_dates: int = Query(default=1, ge=1, le=2),
++        max_documents: int = Query(default=5, ge=1, le=10),
++        cursor: str | None = Query(default=None, max_length=1024),
++        response: Response = None,
++    ) -> dict:
++        """Batch candidate evidence; does not alter the selected stock rows."""
++        if response is not None:
++            response.headers["Cache-Control"] = "no-store"
++        authority_root = os.environ.get("V4_MANAGER_SECURITY_MASTER_ROOT") or shared_data_root
++        try:
++            return read_related_pdf_reports(data_root, authority_root, identity_date=identity_date, symbols=symbols,
++                                            hints=hints, max_dates=max_dates, max_documents=max_documents, cursor=cursor)
++        except ValueError as error:
++            raise HTTPException(status_code=422, detail=str(error)) from error
++
+     @router.get("/pdf-documents/{document_id}")
+     def research_pdf_document_detail(
+         document_id: str,
+@@ -1088,6 +1193,7 @@
+     async def research_events(request: Request) -> StreamingResponse:
+         async def event_stream():
+             last_event_id = str(request.query_params.get("since") or "")
++            last_daily_event_id = str(request.query_params.get("daily_since") or "")
+             yield ": connected\n\n"
+             while not await request.is_disconnected():
+                 try:
+@@ -1111,6 +1217,19 @@
+                         "orders_sent": False,
+                     }
+                     yield f"id: {event_id}\nevent: research_generation_completed\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
++                try:
++                    daily_event = await run_in_threadpool(source.read_a_daily_latest_event)
++                except (ValueError, OSError):
++                    daily_event = None
++                daily_id = str((daily_event or {}).get("event_id") or "")
++                if daily_id and daily_id != last_daily_event_id:
++                    last_daily_event_id = daily_id
++                    try:
++                        current_product = await run_in_threadpool(source.read_a_daily_product)
++                    except (ValueError, OSError, KeyError, TypeError):
++                        current_product = None
++                    if _daily_completion_matches_current_product(daily_event, current_product):
++                        yield f"id: {daily_id}\nevent: a_share_daily_completed\ndata: {json.dumps(daily_event, ensure_ascii=False)}\n\n"
+                 await asyncio.sleep(2)
+ 
+         return StreamingResponse(
+--- a/apps/api/v4_api/research_router.py
++++ b/apps/api/v4_api/research_router.py
+@@ -6,10 +6,16 @@
+ import re
+ from pathlib import Path
+ from typing import Any, Mapping
+-
+-from fastapi import APIRouter, HTTPException, Query, Response
+-
+-from apps.api.v4_api.wechat_research_router import create_wechat_research_router
++from urllib.parse import urlencode
++
++from fastapi import APIRouter, HTTPException, Query, Request, Response
++
++try:
++    from apps.api.v4_api.wechat_research_router import create_wechat_research_router
++except ModuleNotFoundError as error:
++    if error.name != "apps.api.v4_api.wechat_research_router":
++        raise
++    create_wechat_research_router = None
+ from infrastructure.wechat_research_archive import WechatResearchArchive
+ 
+ from contracts.research_day_product import (
+@@ -30,7 +36,12 @@
+     validate_research_day_product,
+ )
+ from domains.research_day_product import consume_authoritative_research_day
+-from domains.zero_to_history_high_position import Position25Provider
++try:
++    from domains.zero_to_history_high_position import Position25Provider
++except ModuleNotFoundError as error:
++    if error.name != "domains.zero_to_history_high_position":
++        raise
++    Position25Provider = None
+ from infrastructure.data_store import _date
+ from infrastructure.research_store import (
+     HourlyResearchStore,
+@@ -431,6 +442,9 @@
+     research_read_root: Path | None = None,
+     wechat_archive_root: Path | str | None = None,
+     shared_data_root: Path | str | None = None,
++    original_chart_binding: Mapping[str, Any] | None = None,
++    a_share_daily_root: Path | str | None = None,
++    original_chart_artifact_root: Path | str | None = None,
+ ) -> APIRouter:
+     """Build the legacy research API with an explicit read-only source root.
+ 
+@@ -444,7 +458,52 @@
+     daily_store = ResearchArchiveStore(resolved_research_read_root)
+     hourly_store = HourlyResearchStore(resolved_research_read_root)
+     selection_store = ResearchSelectionStore(data_root)
+-    position25_provider = position25_provider or Position25Provider()
++    position25_provider = position25_provider or (Position25Provider() if Position25Provider else None)
++
++    from infrastructure.research_lane_source import ResearchLaneSource
++    a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=a_share_daily_root if a_share_daily_root is not None else shared_data_root,
++                                       original_chart_binding=original_chart_binding, original_chart_artifact_root=original_chart_artifact_root)
++
++    @router.get("/a-share/daily-product")
++    def exact_a_share_daily_product(date: str | None = None, symbol: str | None = None) -> dict:
++        try:
++            return a_daily_source.read_a_daily_product(date, symbol)
++        except (ValueError, OSError, KeyError) as error:
++            return {"schema_version":"v4.a_share.daily_product.v1", "status":"CANNOT_CONFIRM", "data_date":date, "rows":[], "cannot_confirm":[str(error)], "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++
++    def original_chart_answer(request, date, symbol, generation, input_sha256, asset=None, sha256=None):
++        try:
++            if set(request.query_params) - {"date", "symbol", "generation", "input_sha256", "sha256"}:
++                raise ValueError("ORIGINAL_CHART_QUERY_NOT_ALLOWED")
++            answer = a_daily_source.read_original_chart(date, symbol, generation=generation,
++                input_sha256=input_sha256, asset=asset, asset_sha256=sha256)
++            if asset is not None:
++                media = {"html": "text/html", "png": "image/png", "projection": "application/octet-stream"}[asset]
++                headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Original-Chart-SHA256": sha256}
++                if asset == "html":
++                    headers["Content-Security-Policy"] = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
++                return Response(content=answer.pop("_asset_bytes"), media_type=media, headers=headers)
++            query = {"date": date, "symbol": symbol, "generation": answer["source_generation"], "input_sha256": answer["input_sha256"]}
++            answer["assets"] = {kind: {**ref, "url": "/api/v4/research/a-share/original-chart/" + kind + "?" + urlencode({**query, "sha256": ref["sha256"]})}
++                                for kind, ref in answer["assets"].items()}
++            return answer
++        except (ValueError, OSError, KeyError, TypeError, AttributeError, EOFError) as error:
++            answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "CANNOT_CONFIRM", "data_date": date,
++                "symbol": symbol, "cannot_confirm": [str(error)], "research_only": True,
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++            if asset is not None:
++                return Response(content=json.dumps(answer), status_code=409, media_type="application/json", headers={"Cache-Control": "no-store"})
++            return answer
++
++    @router.get("/a-share/original-chart")
++    def exact_original_chart(request: Request, date: str, symbol: str, generation: str | None = None,
++                             input_sha256: str | None = None):
++        return original_chart_answer(request, date, symbol, generation, input_sha256)
++
++    @router.get("/a-share/original-chart/{asset}")
++    def exact_original_chart_asset(asset: str, request: Request, date: str, symbol: str,
++                                   generation: str | None = None, input_sha256: str | None = None, sha256: str | None = None):
++        return original_chart_answer(request, date, symbol, generation, input_sha256, asset, sha256)
+ 
+     @router.get("/a-share/history")
+     def exact_a_share_history(ts_code: str, start_date: str, end_date: str, formula_version: str) -> dict:
+@@ -454,9 +513,10 @@
+         except ValueError as error:
+             raise HTTPException(status_code=422, detail=str(error)) from error
+     # Independent read-only archive branch; it cannot invoke existing producers.
+-    router.include_router(create_wechat_research_router(WechatResearchArchive(
+-        wechat_archive_root, data_root / "research" / "wechat_materials",
+-    )))
++    if create_wechat_research_router is not None:
++        router.include_router(create_wechat_research_router(WechatResearchArchive(
++            wechat_archive_root, data_root / "research" / "wechat_materials",
++        )))
+ 
+     @router.get("/articles/latest")
+     def latest_articles() -> dict:
+@@ -490,14 +550,15 @@
+             requested_date=selected,
+         )
+ 
+-    @router.get("/zero-to-history-high-position")
+-    def exact_zero_to_history_high_position(
+-        ts_code: str = Query(...),
+-        asof: str = Query(...),
+-    ) -> dict[str, Any]:
+-        """Read one row from the hash-bound 25-stock frozen position result."""
+-
+-        return position25_provider.get(ts_code=ts_code, asof=asof)
++    if position25_provider is not None:
++        @router.get("/zero-to-history-high-position")
++        def exact_zero_to_history_high_position(
++            ts_code: str = Query(...),
++            asof: str = Query(...),
++        ) -> dict[str, Any]:
++            """Read one row from the hash-bound 25-stock frozen position result."""
++
++            return position25_provider.get(ts_code=ts_code, asof=asof)
+ 
+     @router.get("/single-stock-repair-sop")
+     def exact_single_stock_repair_sop(response: Response) -> dict[str, Any]:
+--- a/domains/related_pdf_cursor.py
++++ b/domains/related_pdf_cursor.py
+@@ -0,0 +1,91 @@
++"""Bounded per-process cursor sessions for PDF relation pagination.
++
++Opaque random tokens carry no offset or source data. A restart, different
++worker, expiry, eviction or mismatch is a stale cursor, never an empty page.
++"""
++from __future__ import annotations
++
++import os
++import re
++import secrets
++import threading
++import time
++from collections import OrderedDict
++from dataclasses import dataclass
++from typing import Callable
++
++CURSOR_TTL_SECONDS = 300
++MAX_CURSOR_SESSIONS = 256
++MAX_PRIOR_DOCUMENTS = 32
++MAX_PRIOR_BYTES = 96 * 1024 * 1024
++MAX_CURRENT_PAGE_BYTES = 96 * 1024 * 1024
++
++
++@dataclass(frozen=True)
++class PriorDocument:
++    document_id: str
++    research_date: str
++    pdf_sha256: str
++    receipt_sha256: str
++    pdf_size: int
++    pages_size: int
++
++
++@dataclass(frozen=True)
++class CursorState:
++    checkpoint: str
++    signature: str
++    offset: int
++    prior: tuple[PriorDocument, ...]
++    expires: float
++    pid: int
++
++
++class CursorStore:
++    def __init__(self, *, clock: Callable[[], float] = time.monotonic,
++                 ttl: int = CURSOR_TTL_SECONDS, capacity: int = MAX_CURSOR_SESSIONS):
++        self._clock = clock
++        self._ttl = ttl
++        self._capacity = capacity
++        self._lock = threading.RLock()
++        self._states: OrderedDict[str, CursorState] = OrderedDict()
++
++    def _expire_locked(self, now: float) -> None:
++        for token, state in list(self._states.items()):
++            if state.expires <= now or state.pid != os.getpid():
++                self._states.pop(token, None)
++
++    def issue(self, checkpoint: str, signature: str, offset: int, prior: tuple[PriorDocument, ...]) -> str:
++        if (type(offset) is not int or offset < 0 or len(prior) > MAX_PRIOR_DOCUMENTS
++                or sum(item.pdf_size + item.pages_size for item in prior) > MAX_PRIOR_BYTES):
++            raise ValueError('SEARCH_PAGINATION_VALIDATION_LIMIT')
++        now = self._clock()
++        with self._lock:
++            self._expire_locked(now)
++            while len(self._states) >= self._capacity:
++                self._states.popitem(last=False)
++            token = secrets.token_urlsafe(32)
++            while token in self._states:
++                token = secrets.token_urlsafe(32)
++            self._states[token] = CursorState(checkpoint, signature, offset, prior, now + self._ttl, os.getpid())
++            return token
++
++    def resolve(self, token: str, checkpoint: str, signature: str, count: int) -> CursorState:
++        if not isinstance(token, str) or not re.fullmatch(r'[A-Za-z0-9_-]{43}', token):
++            raise ValueError('SEARCH_CURSOR_INVALID')
++        now = self._clock()
++        with self._lock:
++            self._expire_locked(now)
++            state = self._states.get(token)
++            if (state is None or state.checkpoint != checkpoint or state.signature != signature
++                    or not 0 <= state.offset <= count):
++                raise ValueError('SEARCH_CURSOR_STALE')
++            return state
++
++    def invalidate(self, token: str | None) -> None:
++        if token:
++            with self._lock:
++                self._states.pop(token, None)
++
++
++CURSORS = CursorStore()
+--- a/domains/related_pdf_reports.py
++++ b/domains/related_pdf_reports.py
+@@ -0,0 +1,634 @@
++"""Read-only, non-PIT candidate associations over V4's verified PDF reader.
++
++No acquisition, OCR, selection, or trading decisions occur here.  Matches are
++textual evidence, not certified report subjects.  A batch shares one scan.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import re
++from collections import Counter
++from datetime import datetime
++from pathlib import Path
++from typing import Any, Callable, Mapping, Sequence
++
++try:
++    from domains.report_subjects import report_title_evidence
++except ModuleNotFoundError as error:
++    if error.name != "domains.report_subjects":
++        raise
++    # Without the optional title-role parser, keep every hit as a neutral text
++    # candidate.  This avoids asserting a report subject from a mere mention.
++    report_title_evidence = None
++from domains.related_pdf_cursor import (CURSORS, PriorDocument, MAX_CURRENT_PAGE_BYTES,
++                                      MAX_PRIOR_BYTES, MAX_PRIOR_DOCUMENTS, CURSOR_TTL_SECONDS)
++from infrastructure import zsxq_pdf_ingestion as pdf_owner
++from upstreams.v3_shared_data.shared_data.store import StoreError
++
++SAFETY = {"research_only": True, "production_allowed": False,
++          "buy_gate_updated": False, "orders_sent": False}
++MAX_SYMBOLS = 250
++DEFAULT_DOCUMENTS = 5
++MAX_DOCUMENTS = 10
++DEFAULT_DATES = 1
++MAX_DATES = 2
++_SHA = re.compile(r"[0-9a-f]{64}\Z")
++_HINT_NAME = re.compile(r"[\u3400-\u9fffA-Za-z0-9·* .&\-]{2,32}\Z")
++_CJK_INTERCHAR_SPACES = re.compile(r"(?<=[\u3400-\u9fff]) +(?=[\u3400-\u9fff])")
++_CODE_IN_TEXT = re.compile(
++    r"(?<![A-Za-z0-9])(?:(?P<prefix>SH|SZ|BJ|A|HK)\s*\.\s*)?"
++    r"(?P<digits>\d{1,6})(?:\s*\.\s*(?P<suffix>SH|SZ|BJ|HK))?"
++    r"(?![A-Za-z0-9])", re.I)
++
++
++def _day(value: str) -> str:
++    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{8}", value):
++        raise ValueError("IDENTITY_DATE_INVALID")
++    try:
++        datetime.strptime(value, "%Y%m%d")
++    except ValueError as error:
++        raise ValueError("IDENTITY_DATE_INVALID") from error
++    return value
++
++
++def _symbol(value: str) -> dict[str, str | None]:
++    raw = str(value or "").strip().upper()
++    a = re.fullmatch(r"(?:(A|SH|SZ|BJ)\.(\d{6})|(\d{6})\.(SH|SZ|BJ))", raw)
++    if a:
++        exchange = a.group(1) or a.group(4)
++        digits = a.group(2) or a.group(3)
++        return {"symbol": "A." + digits, "market": "A", "code": digits,
++                "exchange": None if exchange == "A" else exchange}
++    hk = re.fullmatch(r"(?:HK\.(\d{1,5})|(\d{1,5})\.HK)", raw)
++    if hk:
++        digits = (hk.group(1) or hk.group(2)).zfill(5)
++        return {"symbol": "HK." + digits, "market": "HK", "code": digits, "exchange": "HK"}
++    raise ValueError("SYMBOL_INVALID")
++
++
++def _load_identity(root: Path | str | None, day: str, symbol: Mapping[str, Any], *,
++                   loader_cache: dict[str, Any] | None = None) -> dict[str, Any]:
++    """Use exact-date verified V4 registries. Names are never supplied by callers."""
++    result: dict[str, Any] = {"status": "CANNOT_CONFIRM", "name": None, "witnesses": [],
++                              "reason": "EXACT_DATE_IDENTITY_NOT_AVAILABLE"}
++    if root is None:
++        return result
++    observations: list[dict[str, Any]] = []
++    if symbol["market"] == "A":
++        from upstreams.v3_shared_data.shared_data.a_share_security_master import (
++            load_current_display_names, load_verified_a_share_security_master)
++        for label, loader in (("A_SHARE_SELECTOR_MASTER", load_verified_a_share_security_master),
++                              ("A_SHARE_DISPLAY_NAME_ONLY", load_current_display_names)):
++            try:
++                if loader_cache is not None:
++                    if label not in loader_cache:
++                        try:
++                            loader_cache[label] = loader(root, day)
++                        except (StoreError, OSError, ValueError, KeyError, TypeError):
++                            loader_cache[label] = None
++                    loaded = loader_cache[label]
++                    if loaded is None:
++                        continue
++                    rows, manifest = loaded
++                else:
++                    rows, manifest = loader(root, day)
++                row = rows.get(symbol["code"])
++                if row:
++                    exchange = str(row.get("market") or row.get("exchange") or "").upper()
++                    observations.append({"name": str(row.get("name") or "").strip(),
++                        "exchange": exchange, "source": label, "date": day,
++                        "run_id": manifest.get("run_id"), "artifact_sha256": manifest.get("artifact_sha256"),
++                        "evidence_sha256": row.get("evidence_sha256"),
++                        "observed_at": row.get("observed_at"), "available_at": row.get("available_at")})
++            except (StoreError, OSError, ValueError, KeyError, TypeError):
++                continue
++    else:
++        from upstreams.v3_shared_data.shared_data.hk_security_master import load_verified_hk_security_master_snapshot
++        try:
++            if loader_cache is not None:
++                if "HK_SECURITY_MASTER_SNAPSHOT" not in loader_cache:
++                    try:
++                        loader_cache["HK_SECURITY_MASTER_SNAPSHOT"] = load_verified_hk_security_master_snapshot(root, day)
++                    except (StoreError, OSError, ValueError, KeyError, TypeError):
++                        loader_cache["HK_SECURITY_MASTER_SNAPSHOT"] = None
++                loaded = loader_cache["HK_SECURITY_MASTER_SNAPSHOT"]
++                if loaded is None:
++                    return result
++                rows, _manifest, witness = loaded
++            else:
++                rows, _manifest, witness = load_verified_hk_security_master_snapshot(root, day)
++            row = rows.get(symbol["symbol"])
++            if row:
++                observations.append({"name": str(row.get("name") or "").strip(), "exchange": "HK",
++                    "source": "HK_SECURITY_MASTER_SNAPSHOT", "date": day,
++                    "run_id": witness.get("run_id"), "artifact_sha256": witness.get("artifact_sha256"),
++                    "manifest_sha256": witness.get("manifest_sha256"),
++                    "observed_at": row.get("captured_at"), "available_at": row.get("captured_at")})
++        except (StoreError, OSError, ValueError, KeyError, TypeError):
++            pass
++    valid = [row for row in observations if len(row["name"]) >= 2 and row["exchange"] in {"SH", "SZ", "BJ", "HK"}]
++    result["witnesses"] = observations
++    names = {row["name"] for row in valid}
++    exchanges = {row["exchange"] for row in valid}
++    if not valid:
++        return result
++    if len(names) != 1 or len(exchanges) != 1 or (symbol["exchange"] and symbol["exchange"] not in exchanges):
++        result["reason"] = "SECURITY_IDENTITY_CONFLICT"
++        return result
++    return {"status": "EXACT_DATE_SOURCE_VERIFIED_REFERENCE_ONLY", "name": next(iter(names)),
++            "exchange": next(iter(exchanges)), "witnesses": valid, "reason": None,
++            "pit_certified": False}
++
++
++def _name_variants(identity: Mapping[str, Any]) -> list[str]:
++    """Preserve the name and add only the Chinese intercharacter-space form.
++
++    This is a search alias, not an identity assertion.  It does not alter
++    English names or arbitrary punctuation and works with existing indexes.
++    """
++    name = identity.get("_search_name")
++    if not isinstance(name, str) or not name:
++        return []
++    compact = _CJK_INTERCHAR_SPACES.sub("", name)
++    return list(dict.fromkeys([name, compact]))
++
++
++def _matches(text: str, symbol: Mapping[str, Any], identity: Mapping[str, Any]) -> list[dict[str, str]]:
++    hits: list[dict[str, str]] = []
++    target_exchange = identity.get("exchange") or symbol.get("exchange")
++    for m in _CODE_IN_TEXT.finditer(text):
++        prefix, suffix = (m.group("prefix") or "").upper(), (m.group("suffix") or "").upper()
++        digits = m.group("digits")
++        if prefix and suffix and prefix != suffix:
++            continue
++        marker = prefix or suffix
++        if symbol["market"] == "HK" and (marker != "HK" or len(digits) > 5 or digits.zfill(5) != symbol['code']):
++            continue  # A bare or mismatched number is not market-identified.
++        if symbol["market"] == "A" and digits != symbol["code"]:
++            continue
++        if symbol["market"] == "A" and (marker == "HK" or (marker in {"SH", "SZ", "BJ"} and target_exchange and marker != target_exchange)):
++            continue
++        hits.append({"kind": "CODE_EXPLICIT_MARKET" if marker in {"SH", "SZ", "BJ", "HK"} else "CODE_MARKET_UNCONFIRMED",
++                     "text": text[max(0, m.start()-55):min(len(text), m.end()+85)]})
++    for name in _name_variants(identity):
++        pos = text.find(name)
++        if pos >= 0:
++            hit = {"kind": str(identity.get("_search_kind") or "NAME_REFERENCE_ONLY"),
++                   "text": text[max(0, pos-55):min(len(text), pos+len(name)+85)]}
++            if name != identity.get("_search_name"):
++                hit["name_match_form"] = "CJK_INTERCHAR_SPACE_REMOVED"
++            hits.append(hit)
++    return hits[:3]
++
++
++def _safe(payload: Mapping[str, Any]) -> bool:
++    return all(payload.get(key) is value for key, value in SAFETY.items())
++
++
++def _title_role(text: str, symbol: Mapping[str, Any], identity: Mapping[str, Any]) -> str:
++    if report_title_evidence is None:
++        return "TITLE_OR_FILENAME_MENTION_CANDIDATE"
++    info = report_title_evidence(text, "research_report")
++    for subject in info["subjects"]:
++        raw_matches = _matches(str(subject.get("raw_code") or ""), symbol, identity)
++        if raw_matches:
++            return "TITLE_SUBJECT_TEXT_CANDIDATE"
++    if info.get("publisher") in _name_variants(identity):
++        return "REPORT_PUBLISHER_TEXT_CANDIDATE"
++    return "TITLE_OR_FILENAME_MENTION_CANDIDATE"
++
++
++def _search_profiles(parsed: Mapping[str, Mapping[str, Any]], identities: Mapping[str, Mapping[str, Any]],
++                     hints: Sequence[str]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
++    if len(hints) > MAX_SYMBOLS:
++        raise ValueError("NAME_HINT_COUNT_INVALID")
++    names_by_symbol: dict[str, set[str]] = {}
++    for raw in hints:
++        if not isinstance(raw, str) or len(raw) > 70 or raw.count(":") != 1:
++            raise ValueError("NAME_HINT_INVALID")
++        code, name = raw.split(":", 1)
++        name = name.strip()
++        if not _HINT_NAME.fullmatch(name) or not re.search(r"[\u3400-\u9fffA-Za-z]", name):
++            raise ValueError("NAME_HINT_INVALID")
++        hint_symbol = _symbol(code)
++        key = str(hint_symbol["symbol"])
++        if key not in parsed:
++            raise ValueError("NAME_HINT_SYMBOL_NOT_REQUESTED")
++        expected_exchange = parsed[key].get("exchange")
++        if hint_symbol.get("exchange") and expected_exchange and hint_symbol["exchange"] != expected_exchange:
++            raise ValueError("NAME_HINT_EXCHANGE_CONFLICT")
++        names_by_symbol.setdefault(key, set()).add(name)
++    profiles: dict[str, dict[str, Any]] = {}
++    hint_status: dict[str, dict[str, Any]] = {}
++    for key in parsed:
++        identity = identities[key]
++        profile = dict(identity)
++        hints_for_symbol = names_by_symbol.get(key, set())
++        verified_name = identity.get("name") if identity.get("status") == "EXACT_DATE_SOURCE_VERIFIED_REFERENCE_ONLY" else None
++        if verified_name:
++            profile.update(_search_name=verified_name, _search_kind="NAME_REFERENCE_ONLY")
++            hint_status[key] = {"status": "VERIFIED_REFERENCE_PRECEDENCE" if hints_for_symbol else "NOT_PROVIDED", "name": None}
++        elif identity.get("reason") == "SECURITY_IDENTITY_CONFLICT":
++            hint_status[key] = {"status": "SUPPRESSED_IDENTITY_CONFLICT", "name": None}
++        elif len(hints_for_symbol) > 1:
++            hint_status[key] = {"status": "CONFLICTING_CALLER_HINTS", "name": None}
++        elif hints_for_symbol:
++            name = next(iter(hints_for_symbol))
++            profile.update(_search_name=name, _search_kind="NAME_HINT_UNVERIFIED")
++            hint_status[key] = {"status": "CALLER_PROVIDED_UNVERIFIED", "name": name}
++        else:
++            hint_status[key] = {"status": "NOT_PROVIDED", "name": None}
++        profiles[key] = profile
++    owners: dict[str, set[str]] = {}
++    for key, profile in profiles.items():
++        for name in _name_variants(profile):
++            owners.setdefault(name, set()).add(key)
++    for name, keys in owners.items():
++        if len(keys) > 1:
++            for key in keys:
++                profiles[key].pop("_search_name", None)
++                profiles[key].pop("_search_kind", None)
++                hint_status[key] = {"status": "AMBIGUOUS_NAME_ACROSS_SYMBOLS", "name": name}
++    return profiles, hint_status
++
++
++def _revalidate_prior(data_root: Path | str, prior: tuple[PriorDocument, ...], reader: Any) -> None:
++    """Recheck every previously emitted source with the original owner."""
++    for item in prior:
++        try:
++            detail = reader.read_pdf_document_detail(Path(data_root), item.document_id, item.research_date)
++            receipt = detail.get('receipt') or {}
++            processing = detail.get('processing') or {}
++            if (not isinstance(detail, Mapping) or not _safe(detail) or detail.get('status') != 'READY'
++                or detail.get('schema_version') != 'v4.zsxq_pdf_document_detail.v1'
++                or detail.get('document_id') != item.document_id or detail.get('research_date') != item.research_date
++                or receipt.get('integrity') != 'SOURCE_PDF_AND_PAGE_HASHES_VERIFIED'
++                or receipt.get('verified_pdf_sha256') != item.pdf_sha256 or receipt.get('sha256') != item.receipt_sha256
++                or processing.get('verified_pdf_size') != item.pdf_size or processing.get('verified_pages_size') != item.pages_size):
++                raise ValueError('prior detail mismatch')
++        except Exception as error:
++            raise ValueError('SEARCH_CURSOR_STALE') from error
++
++
++def _indexed_result(data_root: Path | str, day: str, parsed: Mapping[str, Mapping[str, Any]],
++                    identities: Mapping[str, Mapping[str, Any]], profiles: Mapping[str, Mapping[str, Any]],
++                    hint_status: Mapping[str, Mapping[str, Any]], terms: Mapping[str, list[str]],
++                    search: Mapping[str, Any], max_documents: int, cursor: str | None, reader: Any) -> dict[str, Any]:
++    signature = hashlib.sha256(json.dumps({'data_root': str(Path(data_root).resolve()), 'identity_date': day, 'symbols': parsed, 'terms': terms,
++        'identity': identities, 'hints': hint_status},
++        ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
++    candidates = search['candidates']
++    cursor_state = CURSORS.resolve(cursor, str(search['checkpoint_sha256']), signature, len(candidates)) if cursor else None
++    offset = cursor_state.offset if cursor_state else 0
++    prior = cursor_state.prior if cursor_state else ()
++    chunk = []
++    page_bytes = 0
++    for candidate in candidates[offset:offset + max_documents]:
++        pdf_size, pages_size = candidate.get('verified_pdf_size'), candidate.get('verified_pages_size')
++        if type(pdf_size) is not int or type(pages_size) is not int or pdf_size < 1 or pages_size < 1:
++            raise ValueError('SEARCH_INDEX_SIZE_INVALID')
++        artifact_bytes = pdf_size + pages_size
++        if page_bytes + artifact_bytes > MAX_CURRENT_PAGE_BYTES:
++            break
++        chunk.append(candidate)
++        page_bytes += artifact_bytes
++    if offset < len(candidates) and not chunk:
++        raise ValueError('SEARCH_PAGE_ARTIFACT_LIMIT')
++    grouped: dict[str, dict[str, dict[str, Any]]] = {key: {} for key in parsed}
++    all_sources: dict[str, list[dict[str, Any]]] = {}
++    gaps = list(search['coverage'].get('gaps') or [])
++    verified = 0
++    current_verified: dict[tuple[str, str], PriorDocument] = {}
++    for candidate in chunk:
++        doc_id, source_day = candidate['document_id'], candidate['research_date']
++        try:
++            detail = reader.read_pdf_document_detail(Path(data_root), doc_id, source_day)
++        except (pdf_owner.ZsxqPdfError, OSError, ValueError) as error:
++            gaps.append({'research_date': source_day, 'document_id': doc_id,
++                         'reason': getattr(error, 'code', type(error).__name__)})
++            continue
++        if (not isinstance(detail, Mapping) or not _safe(detail) or detail.get('status') != 'READY'
++            or detail.get('schema_version') != 'v4.zsxq_pdf_document_detail.v1'
++            or detail.get('document_id') != doc_id or detail.get('research_date') != source_day
++            or not isinstance(detail.get('receipt'), Mapping)
++            or detail['receipt'].get('integrity') != 'SOURCE_PDF_AND_PAGE_HASHES_VERIFIED'
++            or detail['receipt'].get('verified_pdf_sha256') != candidate.get('verified_pdf_sha256')
++            or not isinstance(detail.get('source'), Mapping) or not isinstance(detail.get('processing'), Mapping)
++            or detail['processing'].get('verified_pdf_size') != candidate.get('verified_pdf_size')
++            or detail['processing'].get('verified_pages_size') != candidate.get('verified_pages_size')
++            or not re.fullmatch(r'[0-9a-f]{64}', str(detail['receipt'].get('sha256') or ''))
++            or not isinstance(detail.get('pages'), list)):
++            gaps.append({'research_date': source_day, 'document_id': doc_id, 'reason': 'DOCUMENT_DETAIL_CONTRACT_INVALID'})
++            continue
++        verified += 1
++        source, processing = detail['source'], detail['processing']
++        pdf_sha = detail['receipt']['verified_pdf_sha256']
++        current_verified[(source_day, doc_id)] = PriorDocument(doc_id, source_day, pdf_sha,
++            detail['receipt']['sha256'], processing['verified_pdf_size'], processing['verified_pages_size'])
++        record = {'document_id': doc_id, 'research_date': source_day, 'source_run_id': source.get('source_run_id'),
++                  'topic_id': source.get('topic_id'), 'file_id': source.get('file_id'),
++                  'topic_title': source.get('topic_title'), 'original_filename': source.get('original_filename'),
++                  'source_topic_published_at': source.get('source_topic_published_at'),
++                  'source_fetched_at': source.get('source_fetched_at'), 'pdf_published_at': source.get('pdf_published_at'),
++                  'available_at': processing.get('available_at'), 'pit_status': processing.get('pit_status') or source.get('pit_status'),
++                  'receipt_sha256': detail['receipt'].get('sha256')}
++        all_sources.setdefault(pdf_sha, []).append(record)
++        segments = [('topic_title', None, str(source.get('topic_title') or '')),
++                    ('original_filename', None, str(source.get('original_filename') or ''))]
++        segments += [('page', page.get('page_number'), str(page.get('text') or ''))
++                     for page in detail['pages'] if isinstance(page, Mapping)]
++        for key, symbol in parsed.items():
++            evidence = []
++            for location, page_number, text in segments:
++                for hit in _matches(text, symbol, profiles[key]):
++                    role = _title_role(text, symbol, profiles[key]) if location != 'page' else 'BODY_MENTION_CANDIDATE'
++                    evidence.append({'location': location, 'page_number': page_number, 'role': role, **hit})
++                if len(evidence) >= 8:
++                    break
++            if not evidence:
++                continue
++            report = grouped[key].setdefault(pdf_sha, {'relation_status': 'TEXT_CANDIDATE_NOT_SUBJECT_CONFIRMED',
++                                                       'verified_pdf_sha256': pdf_sha, 'dedup_status': 'VERIFIED_PDF_BYTES', 'sources': []})
++            report['sources'].append({**record, 'evidence': evidence[:8], 'text_match_in_source': True})
++    stocks = []
++    for key in parsed:
++        for digest, report in grouped[key].items():
++            found = {(s['research_date'], s['document_id']) for s in report['sources']}
++            for source in all_sources[digest]:
++                if (source['research_date'], source['document_id']) not in found:
++                    report['sources'].append({**source, 'evidence': [], 'text_match_in_source': False})
++        reports = list(grouped[key].values())
++        stocks.append({'symbol': key, 'identity': identities[key], 'search_hint': hint_status[key],
++                       'reports': reports, 'result_status': 'CANDIDATES_FOUND' if reports else 'NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE'})
++    next_offset = offset + len(chunk)
++    next_cursor = None
++    checkpoint_valid = True
++    if search['coverage'].get('indexed_documents', 0) > verified:
++        gaps.append({'reason': 'NONRETURNED_ARTIFACTS_NOT_REVERIFIED_IN_THIS_REQUEST',
++                     'count': search['coverage']['indexed_documents'] - verified})
++    try:
++        final = reader.query_pdf_search_index(Path(data_root), {})
++        checkpoint_changed = final.get('checkpoint_sha256') != search.get('checkpoint_sha256')
++        if checkpoint_changed:
++            gaps.append({'reason': 'SEARCH_CHECKPOINT_CHANGED_DURING_READ'})
++            checkpoint_valid = False
++            for stock in stocks:
++                stock['reports'] = []
++                stock['result_status'] = 'CANNOT_CONFIRM'
++        # Source status may change without an owner-index mutation.
++        final_gaps = final.get('coverage', {}).get('gaps', [])
++        gaps.extend(g for g in final_gaps if g not in gaps)
++        invalid_runs = {g.get('source_run_id') for g in final_gaps if isinstance(g, Mapping) and g.get('source_run_id')}
++        if invalid_runs and not checkpoint_changed:
++            for stock in stocks:
++                retained = []
++                for report in stock['reports']:
++                    report['sources'] = [source for source in report['sources'] if source.get('source_run_id') not in invalid_runs]
++                    if report['sources']:
++                        retained.append(report)
++                stock['reports'] = retained
++                stock['result_status'] = 'CANDIDATES_FOUND' if retained else 'NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE'
++    except (OSError, ValueError, KeyError, TypeError) as error:
++        gaps.append({'reason': 'SEARCH_CHECKPOINT_RECHECK_FAILED', 'error': type(error).__name__})
++        checkpoint_valid = False
++        for stock in stocks:
++            stock['reports'] = []
++            stock['result_status'] = 'CANNOT_CONFIRM'
++    if cursor_state and checkpoint_valid:
++        try:
++            _revalidate_prior(data_root, prior, reader)
++        except ValueError:
++            CURSORS.invalidate(cursor)
++            raise
++    if not checkpoint_valid:
++        CURSORS.invalidate(cursor)
++    emitted = {(source['research_date'], source['document_id'])
++               for stock in stocks for report in stock['reports'] for source in report['sources']}
++    combined = {(item.research_date, item.document_id): item for item in prior}
++    combined.update({key: current_verified[key] for key in emitted if key in current_verified})
++    pagination_incomplete = False
++    if checkpoint_valid and next_offset < len(candidates):
++        cumulative = tuple(combined.values())
++        if len(cumulative) > MAX_PRIOR_DOCUMENTS or sum(item.pdf_size + item.pages_size for item in cumulative) > MAX_PRIOR_BYTES:
++            pagination_incomplete = True
++            gaps.append({'reason': 'SEARCH_PAGINATION_VALIDATION_LIMIT', 'remaining_candidates': len(candidates) - next_offset})
++        else:
++            next_cursor = CURSORS.issue(str(search['checkpoint_sha256']), signature, next_offset, cumulative)
++            gaps.append({'reason': 'SEARCH_PAGINATION_REQUIRED', 'remaining_candidates': len(candidates) - next_offset})
++    coverage = {**search['coverage'], 'gaps': gaps, 'candidate_documents': len(candidates),
++                'detail_attempts': len(chunk), 'verified_documents': verified, 'page_offset': offset,
++                'indexed_content_time': 'VERIFIED_AT_LAST_INDEX_UPDATE',
++                'limits': {'documents': max_documents, 'current_page_artifact_bytes': MAX_CURRENT_PAGE_BYTES,
++                           'prior_documents': MAX_PRIOR_DOCUMENTS, 'prior_artifact_bytes': MAX_PRIOR_BYTES,
++                           'cursor_ttl_seconds': CURSOR_TTL_SECONDS}, 'legacy_max_dates_ignored': True,
++                'prior_revalidated': len(prior) if checkpoint_valid else 0,
++                'pagination_incomplete': pagination_incomplete, 'pagination_required': next_cursor is not None}
++    return {'schema_version': 'v4.related_pdf_reports.candidate.v1', 'status': 'PARTIAL',
++            'search_mode': 'FULLTEXT_INDEX', 'identity_date': day, 'time_semantics': 'CURRENT_KNOWLEDGE_NON_PIT',
++            'coverage': coverage, 'next_cursor': next_cursor, 'stocks': stocks, **SAFETY}
++
++
++def read_related_pdf_reports(data_root: Path | str, identity_root: Path | str | None, *,
++                             identity_date: str, symbols: Sequence[str], hints: Sequence[str] = (),
++                             max_dates: int = DEFAULT_DATES, max_documents: int = DEFAULT_DOCUMENTS,
++                             cursor: str | None = None,
++                             identity_reader: Callable[..., dict[str, Any]] = _load_identity,
++                             reader: Any = pdf_owner) -> dict[str, Any]:
++    day = _day(identity_date)
++    if not symbols or len(symbols) > MAX_SYMBOLS:
++        raise ValueError("SYMBOL_COUNT_INVALID")
++    if type(max_dates) is not int or not 1 <= max_dates <= MAX_DATES or type(max_documents) is not int or not 1 <= max_documents <= MAX_DOCUMENTS:
++        raise ValueError("SCAN_LIMIT_INVALID")
++    parsed: dict[str, dict[str, Any]] = {}
++    for requested in symbols:
++        item = _symbol(requested)
++        key = str(item["symbol"])
++        if key in parsed and parsed[key].get("exchange") and item.get("exchange") and parsed[key]["exchange"] != item["exchange"]:
++            raise ValueError("SYMBOL_EXCHANGE_CONFLICT")
++        if key not in parsed or item.get("exchange"):
++            parsed[key] = item
++    identity_cache: dict[str, Any] = {}
++    identities = {key: (identity_reader(identity_root, day, item, loader_cache=identity_cache)
++                         if identity_reader is _load_identity else identity_reader(identity_root, day, item))
++                  for key, item in parsed.items()}
++    profiles, hint_status = _search_profiles(parsed, identities, hints)
++    terms = {}
++    for key, symbol in parsed.items():
++        codes = [str(symbol['code'])]
++        if symbol['market'] == 'HK':
++            short = str(symbol['code']).lstrip('0') or '0'
++            codes.append(short if len(short) >= 2 else 'HK')
++        terms[key] = list(dict.fromkeys(codes + _name_variants(profiles[key])))
++    search_gaps: list[dict[str, Any]] = []
++    if hasattr(reader, 'query_pdf_search_index'):
++        try:
++            search = reader.query_pdf_search_index(Path(data_root), terms)
++            if search.get('status') != 'NOT_MATERIALIZED':
++                return _indexed_result(data_root, day, parsed, identities, profiles, hint_status,
++                                       terms, search, max_documents, cursor, reader)
++            search_gaps = list(search.get('coverage', {}).get('gaps') or [])
++        except (OSError, ValueError, KeyError, TypeError) as error:
++            if str(error) in {'SEARCH_CURSOR_STALE', 'SEARCH_CURSOR_INVALID'}:
++                raise
++            search_gaps = [{'reason': 'SEARCH_INDEX_READ_FAILED', 'error': type(error).__name__}]
++    if hasattr(reader, 'query_pdf_search_index'):
++        if cursor is not None:
++            raise ValueError('SEARCH_CURSOR_STALE')
++        # A GET may query an existing derived index, but it must not fall back
++        # to enumerating every source date/document or performing excerpt OCR
++        # when that index is absent.  Return the gap and let its existing
++        # owner decide separately whether to build it.
++        return {
++            'schema_version': 'v4.related_pdf_reports.candidate.v1',
++            'status': 'NOT_MATERIALIZED',
++            'search_mode': 'NOT_MATERIALIZED',
++            'identity_date': day,
++            'time_semantics': 'CURRENT_KNOWLEDGE_NON_PIT',
++            'coverage': {
++                'scope': 'PREBUILT_SEARCH_INDEX_ONLY',
++                'dates_scanned': [],
++                'candidate_documents': 0,
++                'detail_attempts': 0,
++                'verified_documents': 0,
++                'page_offset': 0,
++                'gaps': search_gaps or [{'reason': 'SEARCH_INDEX_NOT_MATERIALIZED'}],
++            },
++            'next_cursor': None,
++            'stocks': [
++                {'symbol': key, 'identity': identities[key], 'search_hint': hint_status[key], 'reports': []}
++                for key in parsed
++            ],
++            **SAFETY,
++        }
++    if cursor is not None:
++        raise ValueError('SEARCH_CURSOR_STALE')
++    by_stock: dict[str, dict[str, Any]] = {key: {"symbol": key, "identity": identities[key],
++                                                 "search_hint": hint_status[key], "reports": []} for key in parsed}
++    scope = reader.read_pdf_index_scope(Path(data_root))
++    gaps: list[dict[str, Any]] = search_gaps + list(scope.get("gaps") or [])
++    dates = list(scope.get("dates") or [])
++    if len(dates) > max_dates:
++        gaps.append({"reason": "DATE_LIMIT_REACHED", "available": len(dates), "selected": max_dates})
++        dates = dates[-max_dates:]
++    dates = list(reversed(dates))  # Latest indexed source dates first, not publication order.
++    scanned_dates: list[str] = []
++    counters = Counter()
++    unavailable_reasons: Counter[tuple[str, str]] = Counter()
++    seen_documents: set[tuple[str, str]] = set()
++    grouped: dict[str, dict[str, dict[str, Any]]] = {key: {} for key in parsed}
++    all_sources: dict[str, list[dict[str, Any]]] = {}
++    gaps.append({"reason": "EXCERPT_SHORTLIST_CAN_MISS_MIDDLE_PAGES"})
++    for source_day in dates:
++        scanned_dates.append(source_day)
++        projection = reader.read_pdf_ingestion_projection(Path(data_root), source_day)
++        if not isinstance(projection, Mapping) or not _safe(projection) or projection.get("research_date") != source_day:
++            gaps.append({"research_date": source_day, "reason": "PROJECTION_CONTRACT_INVALID"})
++            continue
++        for reason in projection.get("cannot_confirm") or []:
++            gaps.append({"research_date": source_day, "reason": str(reason)})
++        for row in projection.get("items") or []:
++            if not isinstance(row, Mapping):
++                gaps.append({"research_date": source_day, "reason": "PROJECTION_ITEM_INVALID"})
++                continue
++            doc_id = str(row.get("document_id") or "")
++            key = (source_day, doc_id)
++            if key in seen_documents:
++                continue
++            seen_documents.add(key)
++            counters["indexed_documents"] += 1
++            if row.get("status") != "READY" or row.get("can_open_detail") is not True:
++                counters["unavailable_documents"] += 1
++                reason = str(row.get("reason_code") or row.get("status") or "DOCUMENT_UNAVAILABLE")
++                unavailable_reasons[(source_day, reason)] += 1
++                continue
++            projected_source = row.get("source") or {}
++            if not isinstance(projected_source, Mapping):
++                gaps.append({"research_date": source_day, "document_id": doc_id, "reason": "PROJECTION_SOURCE_INVALID"})
++                continue
++            shortlist_text = "\n".join(str(value or "") for value in (
++                projected_source.get("topic_title"), projected_source.get("original_filename"),
++                row.get("excerpt"), row.get("last_page_excerpt")))
++            if not any(_matches(shortlist_text, symbol, profiles[key]) for key, symbol in parsed.items()):
++                counters["not_shortlisted_documents"] += 1
++                continue
++            counters["shortlisted_documents"] += 1
++            if counters["detail_attempts"] >= max_documents:
++                counters["shortlisted_not_verified_limit"] += 1
++                continue
++            counters["detail_attempts"] += 1
++            try:
++                detail = reader.read_pdf_document_detail(Path(data_root), doc_id, source_day)
++            except (pdf_owner.ZsxqPdfError, OSError, ValueError) as error:
++                counters["unavailable_documents"] += 1
++                gaps.append({"research_date": source_day, "document_id": doc_id,
++                             "reason": getattr(error, "code", type(error).__name__)})
++                continue
++            if (not isinstance(detail, Mapping) or not _safe(detail) or detail.get("status") != "READY"
++                or detail.get("schema_version") != "v4.zsxq_pdf_document_detail.v1"
++                or detail.get("document_id") != doc_id or detail.get("research_date") != source_day
++                or not isinstance(detail.get("receipt"), Mapping)
++                or detail["receipt"].get("integrity") != "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"):
++                counters["unavailable_documents"] += 1
++                gaps.append({"research_date": source_day, "document_id": doc_id, "reason": "DOCUMENT_DETAIL_CONTRACT_INVALID"})
++                continue
++            counters["verified_documents"] += 1
++            pdf_sha = detail["receipt"].get("verified_pdf_sha256")
++            if not isinstance(pdf_sha, str) or not _SHA.fullmatch(pdf_sha):
++                pdf_sha = None
++                gaps.append({"research_date": source_day, "document_id": doc_id, "reason": "VERIFIED_PDF_SHA_UNAVAILABLE"})
++            source = detail.get("source") or {}
++            processing = detail.get("processing") or {}
++            if not isinstance(source, Mapping) or not isinstance(processing, Mapping) or not isinstance(detail.get("pages"), list):
++                gaps.append({"research_date": source_day, "document_id": doc_id, "reason": "DOCUMENT_DETAIL_STRUCTURE_INVALID"})
++                continue
++            group_key = "sha256:" + pdf_sha if pdf_sha else f"unmerged:{source_day}:{doc_id}"
++            source_record = {"document_id": doc_id, "research_date": source_day,
++                "topic_id": source.get("topic_id"), "file_id": source.get("file_id"),
++                "topic_title": source.get("topic_title"), "original_filename": source.get("original_filename"),
++                "source_topic_published_at": source.get("source_topic_published_at"),
++                "source_fetched_at": source.get("source_fetched_at"),
++                "pdf_published_at": source.get("pdf_published_at"), "available_at": processing.get("available_at"),
++                "pit_status": processing.get("pit_status") or source.get("pit_status"),
++                "receipt_sha256": detail["receipt"].get("sha256")}
++            all_sources.setdefault(group_key, []).append(source_record)
++            segments = [("topic_title", None, str(source.get("topic_title") or "")),
++                        ("original_filename", None, str(source.get("original_filename") or ""))]
++            segments += [("page", page.get("page_number"), str(page.get("text") or ""))
++                         for page in detail["pages"] if isinstance(page, Mapping)]
++            for symbol_key, symbol in parsed.items():
++                evidence: list[dict[str, Any]] = []
++                for location, page_number, text in segments:
++                    hits = _matches(text, symbol, profiles[symbol_key])
++                    for hit in hits:
++                        role = _title_role(text, symbol, profiles[symbol_key]) if location != "page" else "BODY_MENTION_CANDIDATE"
++                        evidence.append({"location": location, "page_number": page_number, "role": role, **hit})
++                    if len(evidence) >= 8:
++                        break
++                if not evidence:
++                    continue
++                report = grouped[symbol_key].setdefault(group_key, {"relation_status": "TEXT_CANDIDATE_NOT_SUBJECT_CONFIRMED",
++                    "verified_pdf_sha256": pdf_sha, "dedup_status": "VERIFIED_PDF_BYTES" if pdf_sha else "CANNOT_CONFIRM",
++                    "sources": []})
++                report["sources"].append({**source_record, "evidence": evidence[:8], "text_match_in_source": True})
++    gaps.extend({"research_date": source_day, "reason": reason, "count": count}
++                for (source_day, reason), count in sorted(unavailable_reasons.items()))
++    if counters["shortlisted_not_verified_limit"]:
++        gaps.append({"reason": "DOCUMENT_LIMIT_REACHED", "limit": max_documents,
++                     "unverified_candidates": counters["shortlisted_not_verified_limit"]})
++    for symbol_key, item in by_stock.items():
++        for group_key, report in grouped[symbol_key].items():
++            found = {(s["research_date"], s["document_id"]) for s in report["sources"]}
++            for source in all_sources[group_key]:
++                if (source["research_date"], source["document_id"]) not in found:
++                    report["sources"].append({**source, "evidence": [], "text_match_in_source": False})
++        item["reports"] = list(grouped[symbol_key].values())
++        item["result_status"] = "CANDIDATES_FOUND" if item["reports"] else "NO_MATCH_IN_SCANNED_DOCUMENTS_COVERAGE_INCOMPLETE"
++    return {"schema_version": "v4.related_pdf_reports.candidate.v1", "status": "PARTIAL", "search_mode": "EXCERPT_CANARY", "next_cursor": None,
++            "identity_date": day, "time_semantics": "CURRENT_KNOWLEDGE_NON_PIT",
++            "coverage": {"scope": scope.get("scope"), "indexed_dates_seen": len(scope.get("dates") or []),
++                         "dates_selected": dates, "dates_scanned": scanned_dates, **dict(counters),
++                         "shortlist": "TITLE_FILENAME_FIRST_AND_LAST_EXCERPT_ONLY",
++                         "limits": {"dates": max_dates, "documents": max_documents},
++                         "gaps": gaps, "historical_sources_complete": False},
++            "stocks": list(by_stock.values()), **SAFETY}
+--- a/infrastructure/research_lane_source.py
++++ b/infrastructure/research_lane_source.py
+@@ -12,6 +12,8 @@
+ import json
+ import re
+ import hashlib
++import gzip
++import io
+ from datetime import datetime
+ from pathlib import Path
+ from typing import Any, Mapping
+@@ -21,8 +23,8 @@
+ from infrastructure.data_store import _sha256
+ from infrastructure.market_time import shanghai_now
+ from infrastructure.owned_path import resolve_owned_path
++from infrastructure.owned_io import SafeRoot
+ from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
+-from infrastructure.scheduling.execution_ledger import ExecutionLedger
+ 
+ 
+ _EVENT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9:._-]{0,255}")
+@@ -34,6 +36,13 @@
+ _SHANGHAI = ZoneInfo("Asia/Shanghai")
+ 
+ 
++def _execution_ledger_type():
++    """Load scheduling support only for endpoints that actually read it."""
++    from infrastructure.scheduling.execution_ledger import ExecutionLedger
++
++    return ExecutionLedger
++
++
+ class ResearchLaneSource:
+     """Projections over a verified ``ResearchArchiveStore``.
+ 
+@@ -43,8 +52,12 @@
+     ``ResearchArchiveStore.read_exact`` / ``read_latest`` and only projects.
+     """
+ 
+-    def __init__(self, data_root: Path, *, ledger_root: Path | None = None) -> None:
++    def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None,
++                 original_chart_binding: Mapping[str, Any] | None = None, original_chart_artifact_root: Path | str | None = None) -> None:
+         self.data_root = Path(data_root)
++        self.a_share_daily_root = Path(a_share_daily_root).resolve() if a_share_daily_root is not None else None
++        self.original_chart_binding = original_chart_binding
++        self.original_chart_artifact_root = Path(original_chart_artifact_root).resolve() if original_chart_artifact_root is not None else None
+         self.ledger_root = Path(ledger_root) if ledger_root is not None else self.data_root.parent / "dispatcher"
+         self.store = ResearchArchiveStore(self.data_root)
+         self.hourly_store = HourlyResearchStore(self.data_root)
+@@ -159,7 +172,7 @@
+         # Use the existing ledger's date/mode ordering and integrity check.
+         # Random run filenames are not execution chronology. Unverified JSON
+         # cannot be projected as a successful hourly run.
+-        ledger = ExecutionLedger(self.ledger_root)
++        ledger = _execution_ledger_type()(self.ledger_root)
+         try:
+             rows = ledger.list_receipts(research_date, mode="LIVE")
+             valid, _ = ledger.verify_receipt_chain(research_date, mode="LIVE")
+@@ -435,7 +448,7 @@
+             "message": "已到计划窗口，但无可核验的同日执行回执；上游或执行状态未确认，不等于已执行失败。",
+         }
+         try:
+-            ledger = ExecutionLedger(self.ledger_root)
++            ledger = _execution_ledger_type()(self.ledger_root)
+             receipts = ledger.list_receipts(research_date, mode="LIVE")
+             receipts = tuple(row for row in receipts
+                 if row.get("scheduled_date") == research_date and row.get("target_date") == research_date
+@@ -900,6 +913,329 @@
+             return self._project_bound_source(payload, slot=slot), slot, len(slots)
+         return self.store.read_exact(archive_date), "", 0
+ 
++    def _a_product_root(self):
++        if self.a_share_daily_root is None:
++            return None
++        return self.a_share_daily_root / "daily_products/a_share"
++
++    def _original_chart_bytes(self, reference, *, binding=None):
++        binding = self.original_chart_binding if binding is None else binding
++        if (not isinstance(binding, Mapping) or not isinstance(reference, Mapping)
++                or not isinstance(reference.get("path"), str) or not isinstance(reference.get("sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])):
++            raise ValueError("ORIGINAL_CHART_REFERENCE_INVALID")
++        root = Path(binding["artifact_root"])
++        path = Path(reference["path"])
++        if (not root.is_absolute() or root.resolve(strict=True) != root
++                or not path.is_absolute() or not path.is_relative_to(root)
++                or path.resolve(strict=True) != path or path.is_symlink()):
++            raise ValueError("ORIGINAL_CHART_REFERENCE_OUTSIDE_BOUND_ROOT")
++        raw = SafeRoot(root).read_bytes(str(path.relative_to(root)), max_bytes=64 * 1024 * 1024)
++        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
++            raise ValueError("ORIGINAL_CHART_REFERENCE_SHA_DRIFT")
++        return raw
++
++    def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
++        """Read only the explicitly bound, completed original-chart artifacts."""
++        product = self.read_a_daily_product(date)
++        current_product = product
++        chart_origin = None
++        binding = self.original_chart_binding
++        if binding is None:
++            root = self._a_product_root()
++            descriptor = product.get("original_charts")
++            if (root is None or not isinstance(descriptor, Mapping)
++                    or descriptor.get("numeric_manifest") != product.get("manifest")):
++                raise ValueError("ORIGINAL_CHART_OWNER_BINDING_NOT_CONFIGURED")
++            binding = {"artifact_root": str(self.original_chart_artifact_root or root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
++            chart_origin = descriptor.get("chart_origin_manifest")
++            if chart_origin is not None:
++                origin_manifest = self._a_product_reference(chart_origin)
++                origin = self._a_product_reference(origin_manifest["artifact"])
++                excluded = {"row_refs", "artifact", "manifest", "available_dates", "original_charts"}
++                if ({k:v for k,v in origin.items() if k not in excluded} != {k:v for k,v in product.items() if k not in excluded}
++                        or origin_manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1"
++                        or origin_manifest.get("data_date") != date or origin_manifest.get("source_generation") != product["source_generation"]
++                        or origin_manifest.get("input_sha256") != product["source_identity"]["input_sha256"]
++                        or set(origin["row_refs"]) != set(product["row_refs"])):
++                    raise ValueError("ORIGINAL_CHART_NUMERIC_ORIGIN_CONFLICT")
++                changed = {s for s in origin["row_refs"] if origin["row_refs"][s] != product["row_refs"][s]}
++                if len(changed) != 1 or changed != set(descriptor.get("history_updated_symbols", [])):
++                    raise ValueError("ORIGINAL_CHART_SINGLE_HISTORY_ORIGIN_INVALID")
++                for changed_symbol in changed:
++                    old_row = self._a_product_reference(origin["row_refs"][changed_symbol])
++                    new_row = self._a_product_reference(product["row_refs"][changed_symbol])
++                    self._a_daily_checkpoint_binding(new_row, product, changed_symbol, date)
++                    if ({k:v for k,v in old_row.items() if k not in {"statistics", "historical_coverage"}}
++                            != {k:v for k,v in new_row.items() if k not in {"statistics", "historical_coverage"}}):
++                        raise ValueError("ORIGINAL_CHART_HISTORY_ORIGIN_ROW_CONFLICT")
++                product = {**origin, "manifest": chart_origin, "artifact": origin_manifest["artifact"]}
++        if not isinstance(binding, Mapping):
++            raise ValueError("ORIGINAL_CHART_BINDING_NOT_CONFIGURED")
++        read = lambda ref: self._original_chart_bytes(ref, binding=binding)
++        identity = product.get("source_identity") or {}
++        if (product.get("status") not in ("READY", "PARTIAL_WITH_ROWS")
++                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
++                or generation is not None and generation != product.get("source_generation")
++                or input_sha256 is not None and input_sha256 != identity.get("input_sha256")):
++            raise ValueError("ORIGINAL_CHART_PRODUCT_IDENTITY_CONFLICT")
++        config_ref = product["source_config"]
++        config_path = Path(config_ref["path"])
++        if not config_path.is_absolute() or config_path.resolve(strict=True) != config_path:
++            raise ValueError("ORIGINAL_CHART_CONFIG_PATH_INVALID")
++        config_raw = SafeRoot(config_path.parent).read_bytes(config_path.name, max_bytes=2 * 1024 * 1024)
++        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
++            raise ValueError("ORIGINAL_CHART_CONFIG_SHA_DRIFT")
++        config = json.loads(config_raw)
++        if (config["formula"]["sha256"] != "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
++                or config["engine"]["sha256"] != "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"):
++            raise ValueError("ORIGINAL_CHART_FORMULA_OR_ENGINE_CONFLICT")
++        manifest = json.loads(read(binding["manifest"]))
++        receipt = json.loads(read(binding["receipt"]))
++        candidates = {row["symbol"] for row in product["rows"]}
++        records = receipt.get("records")
++        owner = receipt.get("owner_sidecar") is True
++        errors = receipt.get("errors")
++        if not isinstance(errors, list) or not isinstance(records, list):
++            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
++        failed = {row["symbol"] for row in errors} if owner else set()
++        ready = candidates - failed
++        if ((receipt.get("status") not in ("OWNER_CHARTS_COMPLETED", "OWNER_CHARTS_PARTIAL") if owner else receipt.get("status") != "MECHANICAL_247_DELIVERY_PASS")
++                or receipt.get("expected") != len(candidates) or receipt.get("verified") != len(ready)
++                or not failed <= candidates or len(failed) != len(errors) or (not owner and errors)
++                or any(receipt.get(key) != [] for key in ("missing", "extra"))
++                or len(records) != len(ready) or {row.get("symbol") for row in records} != ready
++                or not isinstance(manifest.get("samples"), Mapping) or set(manifest["samples"]) != ready
++                or any(manifest.get(key) is not value or receipt.get(key) is not value
++                       for key, value in {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())):
++            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
++        source_binding = receipt["source_binding"]
++        expected = {"product": product["artifact"], "manifest": product["manifest"], "config": config_ref,
++                    "formula": config["formula"], "engine": config["engine"]}
++        if any(source_binding.get(key) != value for key, value in expected.items()):
++            raise ValueError("ORIGINAL_CHART_COMPLETION_SOURCE_CONFLICT")
++        if symbol in failed:
++            raise ValueError("ORIGINAL_CHART_OWNER_TYPED_GAP:" + next(row.get("reason", "UNKNOWN") for row in errors if row["symbol"] == symbol))
++        item = manifest["samples"][symbol]
++        record = next(row for row in records if row["symbol"] == symbol)
++        if (record.get("data_date") != date or record.get("source_generation") != product["source_generation"]
++                or record.get("source_input_sha256") != identity["input_sha256"]
++                or record.get("formula_sha256") != config["formula"]["sha256"]):
++            raise ValueError("ORIGINAL_CHART_RECORD_IDENTITY_CONFLICT")
++        refs = {"html": item["html"], "png": item["PNG"], "projection": item["projection"]}
++        for kind, key in (("html", "html"), ("png", "PNG"), ("projection", "projection")):
++            if any(refs[kind].get(part) != record[key].get(part) for part in ("path", "sha256")):
++                raise ValueError("ORIGINAL_CHART_OUTPUT_REFERENCE_CONFLICT")
++        raw = {kind: read(ref) for kind, ref in refs.items()}
++        if refs["projection"]["path"].endswith(".gz"):
++            with gzip.GzipFile(fileobj=io.BytesIO(raw["projection"])) as compressed:
++                projection_raw = compressed.read(64 * 1024 * 1024 + 1)
++        else:
++            projection_raw = raw["projection"]
++        if len(projection_raw) > 64 * 1024 * 1024:
++            raise ValueError("ORIGINAL_CHART_PROJECTION_SIZE_LIMIT")
++        projection = json.loads(projection_raw)
++        formula = projection["formula_result"]
++        source = projection["source"]
++        if owner:
++            retained_bytes = read(projection["source_cache"])
++            with gzip.GzipFile(fileobj=io.BytesIO(retained_bytes)) as compressed:
++                retained_raw = compressed.read(64 * 1024 * 1024 + 1)
++            if len(retained_raw) > 64 * 1024 * 1024:
++                raise ValueError("ORIGINAL_CHART_RETAINED_SIZE_LIMIT")
++            retained = json.loads(retained_raw)
++            calendar_raw = json.dumps(retained["calendar"], ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++            if (retained.get("symbol") != symbol or retained.get("data_date") != date
++                    or retained.get("identity") != identity or retained.get("config") != config_ref
++                    or retained.get("bars_sha256") != projection["source_cache"].get("bars_sha256")
++                    or hashlib.sha256(calendar_raw).hexdigest() != projection["source_cache"].get("calendar_sha256")
++                    or retained.get("formula_result") != formula
++                    or retained.get("bar_dates") != [row.get("trade_date") for row in formula.get("rows", [])]):
++                raise ValueError("ORIGINAL_CHART_RETAINED_BINDING_CONFLICT")
++        if (projection.get("symbol") != symbol or projection.get("data_date") != date
++                or any(projection.get(key) is not value for key, value in
++                       {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())
++                or source.get("generation_id") != product["source_generation"]
++                or source.get("source_input_sha256") != identity["input_sha256"]
++                or source.get("price_basis") != identity["basis"]["price_basis"]
++                or source.get("volume_basis") != identity["basis"]["volume_basis"]
++                or projection.get("source_cache") != record.get("source_cache")
++                or record.get("product_row_ref") != product["row_refs"].get(symbol)
++                or projection.get("product_row_ref") != product["row_refs"].get(symbol)
++                or any(projection["lineage"].get(key) != value for key, value in expected.items())
++                or formula.get("formula_sha256") != config["formula"]["sha256"] or formula.get("mode") != "prefix"
++                or formula.get("field_count") != 51 or formula.get("drawing_count") != 22
++                or len(formula.get("rows", [])) != item.get("rows") or not formula.get("rows")
++                or formula["rows"][-1].get("trade_date") != int(date)
++                or projection.get("unsupported_drawings") != []):
++            raise ValueError("ORIGINAL_CHART_PROJECTION_IDENTITY_CONFLICT")
++        answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "READY", "symbol": symbol,
++            "data_date": date, "source_generation": product["source_generation"], "input_sha256": identity["input_sha256"],
++            "formula_sha256": config["formula"]["sha256"], "engine_sha256": config["engine"]["sha256"],
++            "product_manifest": product["manifest"], "product_artifact": product["artifact"],
++            "chart_manifest": binding["manifest"], "completion_receipt": binding["receipt"],
++            "rows": item["rows"], "values_per_row": 51, "drawings_per_row": 22, "assets": refs,
++            "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++        if chart_origin is not None:
++            answer.update(product_manifest=current_product["manifest"], product_artifact=current_product["artifact"], chart_numeric_origin_manifest=chart_origin)
++        if asset is not None:
++            if asset not in refs or asset_sha256 != refs[asset]["sha256"]:
++                raise ValueError("ORIGINAL_CHART_ASSET_SHA_CONFLICT")
++            answer["_asset_bytes"] = raw[asset]
++        return answer
++
++    def _a_product_reference(self, reference):
++        root = self._a_product_root()
++        if (
++            not isinstance(reference, Mapping)
++            or not isinstance(reference.get("path"), str)
++            or not reference.get("path")
++            or not isinstance(reference.get("sha256"), str)
++            or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])
++        ):
++            raise ValueError("A_DAILY_PRODUCT_REFERENCE_INVALID")
++        path = Path(reference["path"])
++        if root is None or not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path or not path.is_relative_to(root):
++            raise ValueError("A_DAILY_PRODUCT_REFERENCE_OUTSIDE_BOUND_ROOT")
++        raw = path.read_bytes()
++        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
++            raise ValueError("A_DAILY_PRODUCT_REFERENCE_SHA_DRIFT")
++        value = json.loads(raw)
++        if not isinstance(value, Mapping):
++            raise ValueError("A_DAILY_PRODUCT_OBJECT_INVALID")
++        if value.get("RESEARCH_ONLY") is not True or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent")):
++            raise ValueError("A_DAILY_PRODUCT_SAFETY_UNBOUND")
++        return value
++
++    def _a_daily_checkpoint_binding(self, row, product, symbol, date):
++        """Bind the whole stored row, including price statistics, to this product."""
++        identity = product["source_identity"]
++        qualification = row.get("qualification")
++        statistics = row.get("statistics")
++        asof = f"{date[:4]}-{date[4:6]}-{date[6:]}"
++        if (not isinstance(qualification, Mapping)
++                or qualification.get("source_generation") != product["source_generation"]
++                or qualification.get("symbol") != symbol or qualification.get("target_date") != date
++                or not isinstance(statistics, Mapping) or statistics.get("asof") != asof
++                or not isinstance(statistics.get("groups"), list) or not statistics["groups"]):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++        snapshot = identity.get("snapshot")
++        if snapshot is not None and (not isinstance(snapshot, Mapping)
++                or not snapshot.get("path") or not snapshot.get("sha256")
++                or qualification.get("snapshot_path") != snapshot["path"]
++                or qualification.get("snapshot_sha256") != snapshot["sha256"]):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++        config_ref = product.get("source_config")
++        if (not isinstance(config_ref, Mapping) or not isinstance(config_ref.get("path"), str)
++                or not config_ref["path"] or not isinstance(config_ref.get("sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", config_ref["sha256"])):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
++        # The producer's explicitly hash-bound config can live outside the
++        # product directory. Read only that exact file; never infer a config.
++        config_path = Path(config_ref["path"])
++        if (not config_path.is_absolute() or config_path.is_symlink()
++                or config_path.resolve(strict=True) != config_path):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
++        config_raw = config_path.read_bytes()
++        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_CONFIG_SHA_DRIFT")
++        config = json.loads(config_raw)
++        formula = config.get("formula") if isinstance(config, Mapping) else None
++        if (not isinstance(formula, Mapping) or not isinstance(formula.get("sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", formula["sha256"])):
++            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
++        basis = identity.get("basis")
++        expected = {"generation": product["source_generation"], "input": identity["input_sha256"],
++                    "asof": asof, "market": symbol[-2:], "formula": formula["sha256"],
++                    "basis": basis.get("price_basis") if isinstance(basis, Mapping) else "QFQ_ASOF"}
++        for group in statistics["groups"]:
++            binding = group.get("source_identity") if isinstance(group, Mapping) else None
++            if (not isinstance(binding, Mapping) or group.get("identity_status") != "BOUND"
++                    or any(binding.get(key) != value for key, value in expected.items())
++                    or not isinstance(binding.get("formula"), str)
++                    or not re.fullmatch(r"[0-9a-f]{64}", binding["formula"])
++                    or not isinstance(group.get("rule_sha256"), str)
++                    or not re.fullmatch(r"[0-9a-f]{64}", group["rule_sha256"])
++                    or binding.get("rule_sha256") != group["rule_sha256"]):
++                raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
++
++    def read_a_daily_product(self, date=None, symbol=None):
++        root = self._a_product_root()
++        if date is not None and not re.fullmatch(r"\d{8}", date):
++            raise ValueError("A_DAILY_DATE_INVALID")
++        if symbol is not None and not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol):
++            raise ValueError("A_DAILY_SYMBOL_INVALID")
++        if root is None or not (root / "index.json").is_file():
++            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":date, "rows":[], "available_dates":[]}
++        index = json.loads((root / "index.json").read_text())
++        if not isinstance(index, Mapping) or not isinstance(index.get("dates"), Mapping):
++            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
++        chosen = date or index.get("latest_date")
++        if not isinstance(chosen, str) or not re.fullmatch(r"\d{8}", chosen):
++            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
++        reference = index.get("dates", {}).get(chosen)
++        if reference is None:
++            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":chosen, "rows":[], "available_dates":sorted(index.get("dates", {}))}
++        manifest = self._a_product_reference(reference)
++        product = self._a_product_reference(manifest["artifact"])
++        identity = product.get("source_identity")
++        if (not isinstance(identity, Mapping)
++                or not isinstance(product.get("source_generation"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", product["source_generation"])
++                or identity.get("generation") != product["source_generation"]
++                or str(identity.get("asof")) != chosen
++                or not isinstance(identity.get("input_sha256"), str)
++                or not re.fullmatch(r"[0-9a-f]{64}", identity["input_sha256"])):
++            raise ValueError("A_DAILY_PRODUCT_SOURCE_IDENTITY_INVALID")
++        if (manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1" or product.get("schema_version") != "v4.a_share.daily_product.v1"
++                or manifest.get("data_date") != chosen or product.get("data_date") != chosen
++                or manifest.get("source_generation") != product.get("source_generation")
++                or manifest.get("input_sha256") != identity["input_sha256"]
++                or manifest.get("sample_only") is not False or product.get("sample_only") is not False
++                or manifest.get("processed_count") != product.get("processed_count")):
++            raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
++        if symbol is not None:
++            row_refs = product.get("row_refs")
++            if not isinstance(row_refs, Mapping):
++                raise ValueError("A_DAILY_PRODUCT_ROW_REFERENCES_INVALID")
++            row_ref = row_refs.get(symbol)
++            match = self._a_product_reference(row_ref) if row_ref else None
++            if match is not None and (match.get("symbol") != symbol or match.get("data_date") != chosen):
++                raise ValueError("A_DAILY_SYMBOL_DETAIL_IDENTITY_CONFLICT")
++            if match is not None:
++                self._a_daily_checkpoint_binding(match, product, symbol, chosen)
++            if match is None:
++                rows = product.get("rows")
++                if not isinstance(rows, list):
++                    raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
++                if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
++                    raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
++            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":match, "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++        chart_index = index.get("original_charts")
++        descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
++        return {k:v for k,v in product.items() if k != "all_rows"} | {"available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
++
++    def read_a_daily_latest_event(self):
++        root = self._a_product_root()
++        if root is None or not (root / "events/latest.json").is_file():
++            return None
++        event = json.loads((root / "events/latest.json").read_text())
++        if not isinstance(event, Mapping):
++            raise ValueError("A_DAILY_EVENT_OBJECT_INVALID")
++        if event.get("schema_version") != "v4.a_share.daily_completion.v1" or event.get("RESEARCH_ONLY") is not True or any(event.get(k) is not False for k in ("production_allowed","buy_gate_updated","orders_sent")):
++            raise ValueError("A_DAILY_EVENT_SCHEMA_OR_SAFETY_INVALID")
++        event_manifest = event.get("manifest")
++        if not isinstance(event_manifest, Mapping):
++            raise ValueError("A_DAILY_EVENT_MANIFEST_REFERENCE_INVALID")
++        manifest = self._a_product_reference(event_manifest)
++        if (event.get("artifact") != manifest.get("artifact") or any(event.get(k) != manifest.get(k) for k in ("data_date","source_generation","input_sha256","processed_count","source_universe_count","status"))):
++            raise ValueError("A_DAILY_EVENT_MANIFEST_IDENTITY_CONFLICT")
++        if "original_charts" in event:
++            product = self.read_a_daily_product(event["data_date"])
++            if event["original_charts"] != product.get("original_charts"):
++                raise ValueError("A_DAILY_EVENT_CHART_DESCRIPTOR_CONFLICT")
++        return event
++
+     def read_latest_event(self) -> dict[str, Any] | None:
+         relative = (
+             "research_module/runtime_outputs/events/"
+--- a/infrastructure/zsxq_pdf_ingestion.py
++++ b/infrastructure/zsxq_pdf_ingestion.py
+@@ -845,6 +845,8 @@
+         "processing": {
+             "page_count": page_count,
+             "processed_page_count": len(pages),
++            "verified_pdf_size": pdf_size if verify_pdf else None,
++            "verified_pages_size": len(pages_raw),
+             "downloaded_at": artifact.get("downloaded_at"),
+             "ocr_started_at": artifact.get("ocr_started_at"),
+             "ocr_completed_at": artifact.get("ocr_completed_at"),
+@@ -871,6 +873,7 @@
+         "receipt": {
+             "path": receipt_path,
+             "sha256": _sha256(receipt_raw),
++            "verified_pdf_sha256": artifact["pdf_sha256"] if verify_pdf else None,
+             "integrity": "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED" if verify_pdf else "SOURCE_AND_PAGE_HASHES_VERIFIED",
+         },
+         **SAFETY,
+@@ -2315,6 +2318,65 @@
+     if partial or failed or cannot:
+         return "PARTIAL" if any((done, partial)) else "FAILED" if failed else "CANNOT_CONFIRM"
+     return "READY" if done else "READY_EMPTY"
++
++
++def query_pdf_search_index(data_root: Path, terms: Mapping[str, list[str]]) -> dict[str, Any]:
++    """Read derived search candidates; callers must reverify each original."""
++    from infrastructure.zsxq_pdf_search_index import query
++    return query(data_root, terms)
++
++
++
++def read_pdf_index_scope(data_root: Path) -> dict[str, Any]:
++    """List candidate dates and recheck each indexed source enumeration.
++
++    This is only the ingestion index's scope; it is not a claim about all
++    historical research, all ZSXQ attachments, or any unindexed sources.
++    """
++    try:
++        root = Path(data_root).expanduser()
++        if not root.is_dir() or root.is_symlink():
++            raise ZsxqPdfError("DATA_ROOT_INVALID")
++        if not _safe_artifact_path(root, STATE_RELATIVE).is_file():
++            raise ZsxqPdfError("PDF_INGESTION_NOT_MATERIALIZED")
++        store = NativeDataStore(root)
++        index = _read_index(store)
++        dates: set[str] = set()
++        gaps: list[dict[str, str]] = []
++        bindings: dict[str, Any] = {}
++        def scope_day(value: Any) -> str:
++            text = str(value or "")
++            if not re.fullmatch(r"[0-9]{8}", text):
++                raise ZsxqPdfError("TRADE_DATE_INVALID")
++            return _date(text)
++        for source_run_id, source in index["sources"].items():
++            try:
++                if not isinstance(source, Mapping):
++                    raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
++                day = scope_day(source.get("trade_date"))
++                dates.add(day)
++                _verified_source_enumeration(store, index, str(source_run_id), source)
++                bindings[str(source_run_id)] = {"status": "VERIFIED", "source_signature": source.get("source_signature"),
++                                                "input_sha256": source.get("input_sha256")}
++            except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++                reason = _error_code(error)
++                gaps.append({"source_run_id": str(source_run_id), "reason": reason})
++                bindings[str(source_run_id)] = {"status": "CANNOT_CONFIRM", "reason": reason}
++        for document_id, row in index["documents"].items():
++            try:
++                if not isinstance(row, Mapping) or not isinstance(row.get("source"), Mapping):
++                    raise ZsxqPdfError("DOCUMENT_SOURCE_INVALID")
++                source = row["source"]
++                day = scope_day(source.get("trade_date"))
++                dates.add(day)
++                if str(source.get("source_run_id") or "") not in index["sources"]:
++                    raise ZsxqPdfError("PDF_SOURCE_ENUMERATION_MISSING")
++            except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++                gaps.append({"document_id": str(document_id), "reason": _error_code(error)})
++        return {"dates": sorted(dates), "gaps": gaps, "source_bindings": bindings, "scope": "INGESTION_INDEX_ONLY"}
++    except (ZsxqPdfError, OSError, ValueError, TypeError) as error:
++        return {"dates": [], "gaps": [{"reason": _error_code(error)}], "source_bindings": {}, "scope": "INGESTION_INDEX_ONLY"}
++
+ 
+ 
+ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[str, Any]:
+--- a/infrastructure/zsxq_pdf_search_index.py
++++ b/infrastructure/zsxq_pdf_search_index.py
+@@ -0,0 +1,447 @@
++"""Disposable, date-sharded PDF search hints maintained by the existing owner.
++
++This module has no scheduler or acquisition path. A hit only chooses a document
++for the existing PDF/receipt/source verifier; the index is never authority.
++"""
++from __future__ import annotations
++
++import base64
++import binascii
++import hashlib
++import json
++import re
++from pathlib import Path
++from typing import Any, Mapping, Sequence
++
++from infrastructure.data_store import NativeDataStore
++
++INDEX_ROOT = 'external_sources/zsxq_hourly/pdf_search_derived_v1'
++SCHEMA = 'v4.zsxq_pdf_search_day.v1'
++BIT_COUNT = 16384
++BIT_BYTES = BIT_COUNT // 8
++MAX_DAY_BYTES = 16 * 1024 * 1024
++MAX_BATCH_DOCUMENTS = 10
++INLINE_PDF_BYTES = 4 * 1024 * 1024
++MAX_PDF_BYTES = 64 * 1024 * 1024
++SAFETY = {'research_only': True, 'production_allowed': False,
++          'buy_gate_updated': False, 'orders_sent': False}
++
++
++class SearchIndexError(ValueError):
++    pass
++
++
++def _owner():
++    from infrastructure import zsxq_pdf_ingestion
++    return zsxq_pdf_ingestion
++
++
++def _canonical(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('utf-8')
++
++
++def _sha(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def _path(day: str) -> str:
++    if not isinstance(day, str) or not re.fullmatch(r'[0-9]{8}', day):
++        raise SearchIndexError('SEARCH_DATE_INVALID')
++    try:
++        _owner()._date(day)
++    except ValueError as error:
++        raise SearchIndexError('SEARCH_DATE_INVALID') from error
++    return f'{INDEX_ROOT}/days/{day}.json'
++
++
++def _fingerprint(index: Mapping[str, Any], document_id: str) -> tuple[str, str, str]:
++    row = index['documents'].get(document_id)
++    if not isinstance(row, Mapping) or not isinstance(row.get('source'), Mapping):
++        return _sha(_canonical({'document_id': document_id, 'row': row})), '', 'INVALID'
++    source = row['source']
++    day = str(source.get('trade_date') or '')
++    run_id = str(source.get('source_run_id') or '')
++    latest = _owner()._latest_engine_run(row)
++    status = str(latest[1].get('status') or 'PENDING').upper() if latest else 'PENDING'
++    version = {'source': source, 'source_entry': index['sources'].get(run_id),
++               'latest_engine_id': latest[0] if latest else None,
++               'latest_engine': latest[1] if latest else None}
++    return _sha(_canonical(version)), day, status
++
++
++def _positions(gram: str) -> tuple[int, int, int]:
++    digest = hashlib.sha256(gram.encode('utf-8')).digest()
++    return tuple(int.from_bytes(digest[i:i+2], 'big') % BIT_COUNT for i in (0, 2, 4))
++
++
++def _text_bits(segments: Sequence[str]) -> bytes:
++    bits = bytearray(BIT_BYTES)
++    grams: set[str] = set()
++    for segment in segments:
++        text = segment.casefold()
++        grams.update(text[i:i+2] for i in range(len(text)-1))
++    for gram in grams:
++        for pos in _positions(gram):
++            bits[pos >> 3] |= 1 << (pos & 7)
++    return bytes(bits)
++
++
++def _term_positions(term: str) -> tuple[int, ...]:
++    text = term.casefold()
++    if len(text) < 2:
++        raise SearchIndexError('SEARCH_TERM_TOO_SHORT')
++    return tuple(sorted({pos for i in range(len(text)-1) for pos in _positions(text[i:i+2])}))
++
++
++def _maybe(bits: bytes, positions: Sequence[int]) -> bool:
++    return all(bits[p >> 3] & (1 << (p & 7)) for p in positions)
++
++
++def _read_day(store: NativeDataStore, day: str) -> tuple[dict[str, Any] | None, str | None]:
++    try:
++        raw = _owner()._store_io(store).read_bytes(_path(day), max_bytes=MAX_DAY_BYTES)
++    except FileNotFoundError:
++        return None, None
++    except (OSError, ValueError) as error:
++        raise SearchIndexError('SEARCH_INDEX_DAY_UNREADABLE') from error
++    try:
++        outer = json.loads(raw.decode('utf-8'))
++        body = outer['body']
++        if (not isinstance(body, dict) or body.get('schema_version') != SCHEMA
++                or body.get('research_date') != day or not isinstance(body.get('entries'), dict)
++                or outer.get('sha256') != _sha(_canonical(body))):
++            raise ValueError('invalid envelope')
++        for doc_id, record in body['entries'].items():
++            if (not isinstance(doc_id, str) or not re.fullmatch(r'[0-9a-f]{64}', doc_id)
++                    or not isinstance(record, dict) or not re.fullmatch(r'[0-9a-f]{64}', str(record.get('fingerprint') or ''))):
++                raise ValueError('invalid entry')
++            bloom = record.get('bloom')
++            if bloom is not None:
++                if (len(base64.b64decode(bloom, validate=True)) != BIT_BYTES
++                        or not re.fullmatch(r'[0-9a-f]{64}', str(record.get('verified_pdf_sha256') or ''))
++                        or not re.fullmatch(r'[0-9a-f]{64}', str(record.get('receipt_sha256') or ''))
++                        or type(record.get('page_count')) is not int or record['page_count'] < 1
++                        or ('verified_pdf_size' in record and
++                            (type(record['verified_pdf_size']) is not int or not 1 <= record['verified_pdf_size'] <= MAX_PDF_BYTES))
++                        or ('verified_pages_size' in record and
++                            (type(record['verified_pages_size']) is not int or not 1 <= record['verified_pages_size'] <= 32 * 1024 * 1024))):
++                    raise ValueError('invalid bloom or provenance')
++    except (UnicodeError, ValueError, TypeError, KeyError, binascii.Error) as error:
++        raise SearchIndexError('SEARCH_INDEX_DAY_CORRUPT') from error
++    return body, _sha(raw)
++
++
++def _write_day(store: NativeDataStore, body: Mapping[str, Any]) -> str:
++    raw = _canonical({'body': body, 'sha256': _sha(_canonical(body))})
++    if len(raw) > MAX_DAY_BYTES:
++        raise SearchIndexError('SEARCH_INDEX_DAY_SIZE_LIMIT')
++    _owner()._store_io(store).write_bytes(_path(str(body['research_date'])), raw)
++    return _sha(raw)
++
++
++def _next_pending_locked(store: NativeDataStore, index: Mapping[str, Any], day: str, *,
++                         max_pdf_bytes: int, exclude: set[str]) -> str | None:
++    """Choose one bounded, previously unindexed READY doc without retry loops."""
++    body, _ = _read_day(store, day)
++    entries = (body or {}).get('entries', {})
++    for doc_id, row in sorted(index['documents'].items()):
++        if (doc_id in exclude or not isinstance(row, Mapping) or not isinstance(row.get('source'), Mapping)
++                or row['source'].get('trade_date') != day):
++            continue
++        fingerprint, _day, status = _fingerprint(index, doc_id)
++        previous = entries.get(doc_id) or {}
++        if status != 'READY' or (previous.get('fingerprint') == fingerprint and previous.get('verification_error')):
++            continue
++        if previous.get('fingerprint') == fingerprint and previous.get('bloom') and previous.get('verified_pdf_size') and previous.get('verified_pages_size'):
++            continue
++        latest = _owner()._latest_engine_run(row)
++        if latest and int(latest[1].get('pdf_size') or 0) <= max_pdf_bytes:
++            return doc_id
++    return None
++
++
++def _refresh_locked(store: NativeDataStore, index: Mapping[str, Any], day: str, ids: Sequence[str], *,
++                    max_pdf_bytes: int, reset_corrupt: bool = False, force_verify: bool = False) -> dict[str, Any]:
++    """Update one date under the PDF owner's existing kernel lock."""
++    _path(day)
++    if (not 1 <= max_pdf_bytes <= MAX_PDF_BYTES or len(ids) > MAX_BATCH_DOCUMENTS
++            or any(not isinstance(x, str) or not re.fullmatch(r'[0-9a-f]{64}', x) for x in ids)):
++        raise SearchIndexError('SEARCH_UPDATE_ARGUMENT_INVALID')
++    reset_or_missing = False
++    try:
++        body, _ = _read_day(store, day)
++    except SearchIndexError as error:
++        if str(error) != 'SEARCH_INDEX_DAY_CORRUPT' or not reset_corrupt:
++            raise
++        raw = _owner()._store_io(store).read_bytes(_path(day), max_bytes=MAX_DAY_BYTES)
++        quarantine = f'{INDEX_ROOT}/quarantine/{day}-{_sha(raw)}.json'
++        try:
++            _owner()._store_io(store).write_bytes(quarantine, raw, require_absent=True)
++        except FileExistsError:
++            if _owner()._store_io(store).read_bytes(quarantine, max_bytes=MAX_DAY_BYTES) != raw:
++                raise SearchIndexError('SEARCH_QUARANTINE_CONFLICT')
++        body = None
++        reset_or_missing = True
++    if body is None:
++        reset_or_missing = True
++    body = body or {'schema_version': SCHEMA, 'research_date': day, 'entries': {}}
++    entries = body['entries']
++    results = []
++    changed = False
++    for doc_id in dict.fromkeys(ids):
++        if doc_id not in index['documents']:
++            results.append({'document_id': doc_id, 'status': 'OWNER_DOCUMENT_REMOVED'})
++            continue  # preserve the old derived record; query excludes it.
++        fingerprint, observed_day, status = _fingerprint(index, doc_id)
++        if observed_day != day:
++            results.append({'document_id': doc_id, 'status': 'SEARCH_DATE_MISMATCH'})
++            continue
++        prior = entries.get(doc_id)
++        if status != 'READY':
++            if prior:
++                updated = dict(prior, verification_error='OWNER_DOCUMENT_NOT_READY')
++                entries[doc_id] = updated
++                changed = changed or updated != prior
++            results.append({'document_id': doc_id, 'status': 'OWNER_DOCUMENT_NOT_READY'})
++            continue
++        row = index['documents'][doc_id]
++        latest = _owner()._latest_engine_run(row)
++        if prior and prior.get('fingerprint') == fingerprint and prior.get('verified_pdf_size') and prior.get('verified_pages_size') and not prior.get('verification_error') and not force_verify:
++            results.append({'document_id': doc_id, 'status': 'ALREADY_INDEXED'})
++            continue
++        if int(latest[1].get('pdf_size') or 0) > max_pdf_bytes:
++            results.append({'document_id': doc_id, 'status': 'SEARCH_UPDATE_PDF_SIZE_LIMIT'})
++            continue
++        try:
++            detail = _owner()._verified_document_detail(store, index, doc_id, verify_pdf=True)
++            receipt = detail['receipt']
++            # The original owner verifies this same engine artifact but returns
++            # only a receipt reference, not duplicated PDF hashes/file lengths.
++            artifact = latest[1]
++            pdf_sha = artifact.get('pdf_sha256')
++            pdf_size = artifact.get('pdf_size')
++            if (detail.get('status') != 'READY' or receipt.get('integrity') != 'SOURCE_PDF_AND_PAGE_HASHES_VERIFIED'
++                    or not isinstance(pdf_sha, str) or not re.fullmatch(r'[0-9a-f]{64}', pdf_sha)
++                    or type(pdf_size) is not int or not 1 <= pdf_size <= MAX_PDF_BYTES):
++                raise SearchIndexError('SEARCH_OWNER_DETAIL_INVALID')
++            pages_raw = _owner()._store_io(store).read_bytes(artifact['pages_path'], max_bytes=32 * 1024 * 1024)
++            if _sha(pages_raw) != artifact.get('pages_file_sha256'):
++                raise SearchIndexError('SEARCH_OWNER_PAGES_SHA_DRIFT')
++            pages_size = len(pages_raw)
++            if not 1 <= pages_size <= 32 * 1024 * 1024:
++                raise SearchIndexError('SEARCH_OWNER_DETAIL_INVALID')
++            source = detail['source']
++            pages = detail['pages']
++            segments = [str(source.get('topic_title') or ''), str(source.get('original_filename') or '')]
++            segments.extend(str(page.get('text') or '') for page in pages)
++            entries[doc_id] = {'fingerprint': fingerprint, 'verified_pdf_sha256': pdf_sha,
++                               'verified_pdf_size': pdf_size,
++                               'verified_pages_size': pages_size,
++                               'receipt_sha256': receipt.get('sha256'), 'source_run_id': source.get('source_run_id'),
++                               'page_count': len(pages), 'bloom': base64.b64encode(_text_bits(segments)).decode('ascii'),
++                               'verification_error': None}
++            changed = True
++            results.append({'document_id': doc_id, 'status': 'INDEXED', 'page_count': len(pages)})
++        except (ValueError, OSError, KeyError, TypeError) as error:
++            reason = getattr(error, 'code', None) or (str(error) if isinstance(error, SearchIndexError) else type(error).__name__)
++            if prior:
++                updated = dict(prior, verification_error=reason)
++            else:
++                updated = {'fingerprint': fingerprint, 'verification_error': reason, 'bloom': None}
++            entries[doc_id] = updated
++            changed = changed or updated != prior
++            results.append({'document_id': doc_id, 'status': 'CANNOT_CONFIRM', 'reason': reason})
++    result_status = 'PARTIAL' if any(r['status'] not in {'INDEXED', 'ALREADY_INDEXED'} for r in results) else 'READY'
++    if results and (changed or reset_or_missing or any(r['status'] != 'ALREADY_INDEXED' for r in results)):
++        body['last_attempt_at'] = _owner()._iso()
++        body['last_update_status'] = result_status
++        if any(r['status'] == 'INDEXED' for r in results):
++            body['last_success_at'] = _owner()._iso()
++        changed = True
++    # One atomic publish for one day; failure leaves the previous committed bytes.
++    if changed or reset_or_missing:
++        checkpoint = _write_day(store, body)
++    else:
++        _, checkpoint = _read_day(store, day)
++    return {'status': result_status, 'research_date': day, 'results': results, 'checkpoint_sha256': checkpoint,
++            'last_success_at': body.get('last_success_at'), 'last_attempt_at': body.get('last_attempt_at'), **SAFETY}
++
++
++def refresh(data_root: Path | str, *, research_date: str, document_ids: Sequence[str] | None = None,
++            max_documents: int = 5, max_pdf_bytes: int = MAX_PDF_BYTES,
++            reset_corrupt: bool = False, retry_failed: bool = False) -> dict[str, Any]:
++    """Explicit bounded repair/backfill by the existing owner; never schedules work."""
++    if type(max_documents) is not int or not 1 <= max_documents <= MAX_BATCH_DOCUMENTS:
++        raise SearchIndexError('SEARCH_UPDATE_LIMIT_INVALID')
++    root = Path(data_root).expanduser()
++    if not root.is_dir() or root.is_symlink():
++        raise SearchIndexError('DATA_ROOT_INVALID')
++    _path(research_date)
++    store = NativeDataStore(root)
++    owner = _owner()
++    with owner._store_io(store).kernel_lock(owner.LOCK_RELATIVE, timeout=10):
++        index = owner._read_index(store)
++        if document_ids is None:
++            try:
++                body, _ = _read_day(store, research_date)
++            except SearchIndexError:
++                if not reset_corrupt:
++                    raise
++                body = None
++            entries = (body or {}).get('entries', {})
++            pending = []
++            deferred_failures = 0
++            for doc_id in sorted(index['documents']):
++                fp, day, status = _fingerprint(index, doc_id)
++                prior = entries.get(doc_id) or {}
++                if day != research_date or status != 'READY':
++                    continue
++                same_failed = prior.get('fingerprint') == fp and prior.get('verification_error')
++                if same_failed and not retry_failed:
++                    deferred_failures += 1
++                elif prior.get('fingerprint') != fp or same_failed or not prior.get('bloom') or not prior.get('verified_pdf_size') or not prior.get('verified_pages_size'):
++                    pending.append(doc_id)
++            ids = pending[:max_documents]
++        else:
++            if len(document_ids) > max_documents:
++                raise SearchIndexError('SEARCH_UPDATE_LIMIT_INVALID')
++            ids = list(document_ids)
++            pending = []
++            deferred_failures = 0
++        result = _refresh_locked(store, index, research_date, ids, max_pdf_bytes=max_pdf_bytes,
++                                 reset_corrupt=reset_corrupt, force_verify=document_ids is not None)
++        result['remaining_ready_candidates'] = max(0, len(pending) - len(ids)) if document_ids is None else None
++        result['ready_failed_deferred'] = deferred_failures if document_ids is None else None
++        return result
++
++
++def query(data_root: Path | str, terms: Mapping[str, Sequence[str]]) -> dict[str, Any]:
++    """Search every indexed day using a no-false-negative bigram Bloom prefilter."""
++    root = Path(data_root).expanduser()
++    if not root.is_dir() or root.is_symlink():
++        raise SearchIndexError('DATA_ROOT_INVALID')
++    store = NativeDataStore(root)
++    owner = _owner()
++    cache_days: set[str] = set()
++    discovery_gaps: list[dict[str, Any]] = []
++    try:
++        for filename in owner._store_io(store).files(f'{INDEX_ROOT}/days', suffix='.json'):
++            candidate_day = filename[:-5]
++            try:
++                _path(candidate_day)
++                cache_days.add(candidate_day)
++            except SearchIndexError:
++                discovery_gaps.append({'reason': 'SEARCH_INDEX_DAY_NAME_INVALID'})
++    except (OSError, ValueError):
++        discovery_gaps.append({'reason': 'SEARCH_INDEX_DIRECTORY_UNREADABLE'})
++    # No materialized shard can produce a hit. Do not load/fingerprint the much
++    # larger ingestion inventory merely to report that the derived index is absent.
++    if not cache_days:
++        return {'status': 'NOT_MATERIALIZED', 'candidates': [], 'checkpoint_sha256': None,
++                'day_sha256': {}, 'inventory_sha256': None, 'source_bindings_sha256': None,
++                'coverage': {'scope': 'INGESTION_INDEX_ONLY', 'indexed_dates_seen': None,
++                             'cache_dates_seen': 0, 'dates_considered': [], 'dates_scanned': [],
++                             'owner_documents': None, 'indexed_documents': 0,
++                             'gaps': [*discovery_gaps, {'reason': 'SEARCH_INDEX_NOT_MATERIALIZED'}],
++                             'index_updates': {},
++                             'search_method': 'ALL_INDEXED_PAGE_BIGRAM_BLOOM_CANDIDATES_REVERIFY_PDF',
++                             'historical_sources_complete': False}, **SAFETY}
++    index = owner._read_index(store)
++    inventory: dict[str, tuple[str, str, str]] = {}
++    malformed = 0
++    for doc_id in index['documents']:
++        try:
++            if not re.fullmatch(r'[0-9a-f]{64}', doc_id):
++                raise ValueError('document id')
++            fp, day, status = _fingerprint(index, doc_id)
++            _path(day)
++            inventory[doc_id] = (fp, day, status)
++        except (ValueError, TypeError, KeyError):
++            malformed += 1
++    inventory_days = {value[1] for value in inventory.values()}
++    days = sorted(inventory_days | cache_days)
++    masks = {symbol: [_term_positions(term) for term in values] for symbol, values in terms.items()}
++    ledgers: dict[str, dict[str, Any]] = {}
++    hashes: dict[str, str] = {}
++    updates: dict[str, dict[str, Any]] = {}
++    gaps: list[dict[str, Any]] = discovery_gaps
++    for day in days:
++        try:
++            body, digest = _read_day(store, day)
++            if body is None:
++                gaps.append({'research_date': day, 'reason': 'SEARCH_INDEX_DATE_MISSING'})
++            else:
++                ledgers[day] = body['entries']
++                hashes[day] = str(digest)
++                updates[day] = {'last_success_at': body.get('last_success_at'),
++                                'last_attempt_at': body.get('last_attempt_at'),
++                                'last_update_status': body.get('last_update_status')}
++                if body.get('last_update_status') not in (None, 'READY'):
++                    gaps.append({'research_date': day, 'reason': 'SEARCH_LAST_UPDATE_PARTIAL',
++                                 'last_success_at': body.get('last_success_at')})
++        except SearchIndexError as error:
++            gaps.append({'research_date': day, 'reason': str(error)})
++    if not ledgers:
++        gaps.append({'reason': 'SEARCH_INDEX_NOT_MATERIALIZED'})
++    candidates = []
++    counts = {'owner_documents': len(inventory), 'indexed_documents': 0, 'unindexed_ready': 0, 'size_unknown_documents': 0,
++              'stale_documents': 0, 'unavailable_documents': 0, 'removed_documents': 0,
++              'large_ready_pending': 0, 'large_verification_error': 0,
++              'malformed_documents': malformed}
++    for doc_id, (fingerprint, day, status) in inventory.items():
++        record = ledgers.get(day, {}).get(doc_id)
++        if status != 'READY':
++            counts['unavailable_documents'] += 1
++            continue
++        latest = owner._latest_engine_run(index['documents'][doc_id])
++        size = latest[1].get('pdf_size') if latest else None
++        if (type(size) is int and INLINE_PDF_BYTES < size <= owner.MAX_PDF_BYTES
++                and (not record or record.get('fingerprint') != fingerprint or record.get('verification_error')
++                     or not record.get('bloom') or not record.get('verified_pdf_size') or not record.get('verified_pages_size'))):
++            counts['large_ready_pending'] += 1
++            if record and record.get('fingerprint') == fingerprint and record.get('verification_error'):
++                counts['large_verification_error'] += 1
++        if not record:
++            counts['unindexed_ready'] += 1
++            continue
++        if record.get('fingerprint') != fingerprint:
++            counts['stale_documents'] += 1
++            continue
++        if record.get('verification_error') or not record.get('bloom'):
++            counts['unavailable_documents'] += 1
++            continue
++        if not record.get('verified_pdf_size') or not record.get('verified_pages_size'):
++            counts['size_unknown_documents'] += 1
++            continue
++        counts['indexed_documents'] += 1
++        bits = base64.b64decode(record['bloom'], validate=True)
++        if any(_maybe(bits, positions) for symbol_masks in masks.values() for positions in symbol_masks):
++            candidates.append({'document_id': doc_id, 'research_date': day,
++                               'verified_pdf_sha256': record.get('verified_pdf_sha256'),
++                               'verified_pdf_size': record.get('verified_pdf_size'),
++                               'verified_pages_size': record.get('verified_pages_size')})
++    for day, entries in ledgers.items():
++        counts['removed_documents'] += sum(1 for doc_id in entries if doc_id not in inventory or inventory[doc_id][1] != day)
++    if counts['large_ready_pending']:
++        gaps.append({'reason': 'SEARCH_INDEX_LARGE_PENDING', 'count': counts['large_ready_pending'],
++                     'verification_errors': counts['large_verification_error']})
++    if malformed:
++        gaps.append({'reason': 'OWNER_INDEX_MALFORMED_DOCUMENTS', 'count': malformed})
++    for key, reason in [('unindexed_ready', 'SEARCH_INDEX_LAG'), ('size_unknown_documents', 'SEARCH_INDEX_SIZE_UNKNOWN'), ('stale_documents', 'SEARCH_INDEX_STALE'),
++                        ('unavailable_documents', 'OWNER_DOCUMENT_UNAVAILABLE'), ('removed_documents', 'SEARCH_INDEX_OWNER_DOCUMENT_REMOVED')]:
++        if counts[key]: gaps.append({'reason': reason, 'count': counts[key]})
++    scope = owner.read_pdf_index_scope(root)
++    gaps.extend(scope.get('gaps') or [])
++    inventory_digest = _sha(_canonical(sorted((doc_id, *value) for doc_id, value in inventory.items())))
++    binding_digest = _sha(_canonical(scope.get('source_bindings') or {}))
++    snapshot = _sha(_canonical({'ledgers': hashes, 'inventory': inventory_digest, 'source_bindings': binding_digest}))
++    candidates.sort(key=lambda row: (row['research_date'], row['document_id']), reverse=True)
++    return {'status': 'NOT_MATERIALIZED' if not ledgers else 'PARTIAL' if gaps else 'READY', 'candidates': candidates,
++            'checkpoint_sha256': snapshot, 'day_sha256': hashes, 'inventory_sha256': inventory_digest,
++            'source_bindings_sha256': binding_digest,
++            'coverage': {'scope': 'INGESTION_INDEX_ONLY', 'indexed_dates_seen': len(inventory_days),
++                         'cache_dates_seen': len(cache_days), 'dates_considered': days,
++                         'dates_scanned': sorted(ledgers), **counts, 'gaps': gaps,
++                         'index_updates': updates,
++                         'search_method': 'ALL_INDEXED_PAGE_BIGRAM_BLOOM_CANDIDATES_REVERIFY_PDF',
++                         'historical_sources_complete': False}, **SAFETY}
