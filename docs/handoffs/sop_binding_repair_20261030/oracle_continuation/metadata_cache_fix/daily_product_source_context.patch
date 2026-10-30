@@ -1,0 +1,32 @@
+--- installed/ops/research_panel_daily_product.py
++++ candidate/ops/research_panel_daily_product.py
+@@ -101,8 +101,28 @@
+     day+=timedelta(days=1)
+   return {e:sorted(v) for e,v in dates.items()}
+  def qualify(self,symbol):return self.helper.verify_symbol_admission(symbol,str(self.target),self.footer,self.receipt,self.quarantine,self.generation,Path(self.quarantine_ref['path']))
++ def _read_frame(self,symbol):
++  columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume'];self.unchanged()
++  cache=getattr(self,'_selector_read_cache',None)
++  if cache is None:
++   # The original reader validates profile/basis and the paired publication
++   # before this context reuses one Dataset's parsed Parquet metadata.
++   frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
++   self.unchanged()
++   import pyarrow.dataset as ds
++   paths=[self.panel,Path(self.back_bytes.decode('utf-8-sig').strip()),Path(self.receipt_ref['path']),Path(self.reader_ref['path'])]
++   stamps={p:(p.stat().st_dev,p.stat().st_ino,p.stat().st_size,p.stat().st_mtime_ns) for p in paths}
++   journal=self.data_root/'runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json'
++   self._selector_read_cache=dict(dataset=ds.dataset(self.panel,format='parquet'),stamps=stamps,journal=journal,journal_bytes=journal.read_bytes())
++   return frame
++  for path,stamp in cache['stamps'].items():
++   s=path.stat()
++   if (s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns)!=stamp:raise ValueError('DAILY_READ_BINDING_CHANGED:'+str(path))
++  if cache['journal'].read_bytes()!=cache['journal_bytes']:raise ValueError('DAILY_READ_PUBLICATION_JOURNAL_CHANGED')
++  import pyarrow.dataset as ds
++  return cache['dataset'].to_table(columns=list(dict.fromkeys(['trade_date','ts_code',*columns])),filter=(ds.field('ts_code')==symbol)&(ds.field('trade_date')<=str(self.target))).to_pandas().reset_index(drop=True)
+  def read(self,symbol):
+-  frame=self.reader.load_selector_ready(columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume'],filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None).sort_values('trade_date',kind='stable')
++  frame=self._read_frame(symbol).sort_values('trade_date',kind='stable')
+   if frame.empty:return [],None
+   if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
+   bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
