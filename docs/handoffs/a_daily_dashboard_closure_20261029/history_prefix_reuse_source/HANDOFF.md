@@ -1,0 +1,11 @@
+# C6 explicit history prefix source reuse
+
+Frozen SCOPE/REUSE_FINDINGS; sole Writer dashboard_repair_sol. Short source-only capsule: C6_OVERLAY.patch, OVERLAY_INVENTORY.json, STATIC_FEASIBILITY.json, CAUSALITY_PROOF.md, WRITER_RECEIPT.json and tests/test_history_prefix_reuse.py. One independent lineage Reviewer is required, dispatched by Root.
+
+Static feasibility is proven only for nine actually consumed buy values (31 transitive assignments), using exact pinned engine/formula/core/census semantics; see proof. Every cutoff still runs census on cropped OHLCV/values and the same raw G4/qualification path. Drawings/asof fields are excluded, unknowns preserved.
+
+Only explicit compute_stock(history_dates=...,reuse_history_prefix=True) reuses the already-computed full series, with config/source bytes, generation/input/basis/snapshot, stock, prefix start/date/raw bytes and qualification guards. Default isFalse; daily path is unchanged. Snapshot rows/values are immutable. No source proof =>typed CANNOT_CONFIRM, no speculative fallback.18 synthetic targeted checks passed0.50s; 4engine calls→1 with identical fabricated row/cache and G4 calls, plus mismatch/noncausal/UNKNOWN negatives. No real historical labels/returns were generated. Initial fixture-path failure and its exact-rule identity fix are recorded in receipt.
+
+Compose after accepted C5 producer5104a091009f8dc7257a5f8ede7354a242be92bac03027e4d367485fbdb5334f, obtained by applying its producer segment to accepted C4e6 bytes. Then apply only C6_OVERLAY.patch and check C6 afterSHA. AST comparison proves only source_inputs/compute_stock differ; two C5 cache_only guards are untouched. prepare_overlay.py is a fixed source-delta generation aid, not a producer or runtime wrapper. Tests replay this limited source combination in owned temp and preserve the rule48cc identity file. The actual task producer and all live sources remain untouched.
+
+Prior real_io_parity_r1 three stocks/four cutoffs input4ece/rule48cc is reused only as legacy baseline; it does not certify the new fast path on real markets. Root must freeze/register any future real comparison before RUN_STARTED. Current scope remains CONTRACT_ONLY_NOT_COUNTED_NO_REAL_EVALUATION_STARTED; no real canary/bootstrap/returns/full-library/backtest/runtime/GET/UI changes. After one SOURCE_ONLY lineage PASS stop.

@@ -1,0 +1,45 @@
+{
+  "status": "SYNTHETIC_SOURCE_ONLY_PASS_PENDING_ONE_LINEAGE_REVIEW",
+  "base_git": "b2c4cbfd2bd06cac8e49e56b60d83edbda544e44",
+  "C5_base_producer_sha256": "5104a091009f8dc7257a5f8ede7354a242be92bac03027e4d367485fbdb5334f",
+  "C6_combined_producer_sha256": "261318b8e6560cb6047b128829926628ea2a86043423c6e57c1422fe3dfdf43f",
+  "overlay_sha256": "226e73b88257ba4b6dec0fcd135f02374f831a25d4fe2fb6b8b7ef68be3ea4c8",
+  "inventory_sha256": "c5b66961b01d7c231637acc15bcd378cc88ab231d6aae4f13176b15beda96000",
+  "test_sha256": "da905139dcbac8cd3ae8ea16a0cc738c533ef2445ded54235944b88d4f8b6fc0",
+  "static_proof_sha256": "243551f445bb4c35c526804d193c2818013e6d9252c7ee40d265b181256afbf7",
+  "allowed_change": "source_inputs and compute_stock only; AST verified no other top-level node differs; C5 cache-only guards2 remain",
+  "opt_in": "compute_stock(history_dates=...,reuse_history_prefix=True); defaultFalse/daily unchanged",
+  "targeted": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "command": "-m pytest -q tests/test_history_prefix_reuse.py --basetemp=B/history_prefix_reuse_source/pytest_synthetic_final",
+    "result": "18 passed in0.50s",
+    "data": "deterministic fabricated160weekday OHLCV bars, synthetic symbol999999.SH; no real panel/price/label read",
+    "engine_calls": "legacy current+3cutoffs4 vs reuse1; exact synthetic row/cache parity, G4 call parity and UNKNOWN retained",
+    "negatives": [
+      "stock/generation/input/config/prefix/cutoff/start/qualification drift",
+      "four source pin metadata and copied-file byte drift",
+      "CURRBARSCOUNT dependency/extra drawing field denied",
+      "immutable consumed rows and retain-drawing reuse denied",
+      "unqualified data stays UNKNOWN with engine0/G4zero"
+    ],
+    "initial_fixture_failure": "15 cases stopped before compute because temporary composed producer lacked its domains/research_daily_product.py identity file; fixed fixture by copying exact unchanged rule48cc bytes, no source change for that issue"
+  },
+  "reused_real_baseline": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/real_io_parity_r1/RESULT.json",
+    "sha256": "401582b4ae5dd5989a43dcedc3beb897976aa6e2bcd28ff8ddb5a49510a09652",
+    "status": "PASS_IO_ONLY_EXACT_PARITY reused unchanged3stocks/4cutoffs; no new fast-path financial comparison claimed",
+    "input_sha256": "4ece54421d52a4ab488f06a06c8598b961c30ffbaf631bc7b9933b74161068b2",
+    "rule_sha256": "48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3"
+  },
+  "experiment_registration_status": "CONTRACT_ONLY_NOT_COUNTED_NO_REAL_EVALUATION_STARTED",
+  "not_done": [
+    "independent lineage review pending",
+    "new real historical/returns comparison or bootstrap NOT_RUN pending RootRUN_STARTED",
+    "no actual producer/live source edits or runtime installation",
+    "no PIT/nativeTDX/trading/financial acceptance"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
