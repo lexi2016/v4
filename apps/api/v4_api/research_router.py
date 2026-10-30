@@ -6,8 +6,9 @@ import json
 import re
 from pathlib import Path
 from typing import Any, Mapping
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 try:
     from apps.api.v4_api.wechat_research_router import create_wechat_research_router
@@ -441,6 +442,7 @@ def create_research_router(
     research_read_root: Path | None = None,
     wechat_archive_root: Path | str | None = None,
     shared_data_root: Path | str | None = None,
+    original_chart_binding: Mapping[str, Any] | None = None,
 ) -> APIRouter:
     """Build the legacy research API with an explicit read-only source root.
 
@@ -457,7 +459,8 @@ def create_research_router(
     position25_provider = position25_provider or (Position25Provider() if Position25Provider else None)
 
     from infrastructure.research_lane_source import ResearchLaneSource
-    a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=shared_data_root)
+    a_daily_source = ResearchLaneSource(resolved_research_read_root, a_share_daily_root=shared_data_root,
+                                       original_chart_binding=original_chart_binding)
 
     @router.get("/a-share/daily-product")
     def exact_a_share_daily_product(date: str | None = None, symbol: str | None = None) -> dict:
@@ -465,6 +468,56 @@ def create_research_router(
             return a_daily_source.read_a_daily_product(date, symbol)
         except (ValueError, OSError, KeyError) as error:
             return {"schema_version":"v4.a_share.daily_product.v1", "status":"CANNOT_CONFIRM", "data_date":date, "rows":[], "cannot_confirm":[str(error)], "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+
+    @router.get("/a-share/company-materials")
+    def a_share_company_materials(date: str, symbol: str, generation: str | None = None, input_sha256: str | None = None) -> dict:
+        try:
+            return a_daily_source.read_a_daily_company_materials(date, symbol, generation=generation, input_sha256=input_sha256)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cannot_confirm":[str(error)],
+                    "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+
+    @router.get("/a-share/event-cases")
+    def a_share_event_cases(date: str, symbol: str, group: str = "original", horizon: str = "d2") -> dict:
+        try:
+            return a_daily_source.read_a_daily_event_cases(date, symbol, group=group, horizon=horizon)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            return {"status":"CANNOT_CONFIRM", "symbol":symbol, "data_date":date, "cases":[], "cannot_confirm":[str(error)],
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+
+    def original_chart_answer(request, date, symbol, generation, input_sha256, asset=None, sha256=None):
+        try:
+            if set(request.query_params) - {"date", "symbol", "generation", "input_sha256", "sha256"}:
+                raise ValueError("ORIGINAL_CHART_QUERY_NOT_ALLOWED")
+            answer = a_daily_source.read_original_chart(date, symbol, generation=generation,
+                input_sha256=input_sha256, asset=asset, asset_sha256=sha256)
+            if asset is not None:
+                media = {"html": "text/html", "png": "image/png", "projection": "application/octet-stream"}[asset]
+                headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Original-Chart-SHA256": sha256}
+                if asset == "html":
+                    headers["Content-Security-Policy"] = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+                return Response(content=answer.pop("_asset_bytes"), media_type=media, headers=headers)
+            query = {"date": date, "symbol": symbol, "generation": answer["source_generation"], "input_sha256": answer["input_sha256"]}
+            answer["assets"] = {kind: {**ref, "url": "/api/v4/research/a-share/original-chart/" + kind + "?" + urlencode({**query, "sha256": ref["sha256"]})}
+                                for kind, ref in answer["assets"].items()}
+            return answer
+        except (ValueError, OSError, KeyError, TypeError, AttributeError, EOFError) as error:
+            answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "CANNOT_CONFIRM", "data_date": date,
+                "symbol": symbol, "cannot_confirm": [str(error)], "research_only": True,
+                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+            if asset is not None:
+                return Response(content=json.dumps(answer), status_code=409, media_type="application/json", headers={"Cache-Control": "no-store"})
+            return answer
+
+    @router.get("/a-share/original-chart")
+    def exact_original_chart(request: Request, date: str, symbol: str, generation: str | None = None,
+                             input_sha256: str | None = None):
+        return original_chart_answer(request, date, symbol, generation, input_sha256)
+
+    @router.get("/a-share/original-chart/{asset}")
+    def exact_original_chart_asset(asset: str, request: Request, date: str, symbol: str,
+                                   generation: str | None = None, input_sha256: str | None = None, sha256: str | None = None):
+        return original_chart_answer(request, date, symbol, generation, input_sha256, asset, sha256)
 
     @router.get("/a-share/history")
     def exact_a_share_history(ts_code: str, start_date: str, end_date: str, formula_version: str) -> dict:

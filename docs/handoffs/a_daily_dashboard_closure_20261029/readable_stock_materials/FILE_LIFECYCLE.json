@@ -1,0 +1,26 @@
+{
+  "created_and_needed": [
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/EXACT_INSTALLED_DELTA.diff",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/HANDOFF.md",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/SCOPE.json",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/WRITER_RECEIPT.json",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/actual_check.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/control_c9.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/prepare_c9.py",
+    "docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/project_event_details.py"
+  ],
+  "disposable_after_Root_closes": [
+    "temporary demo process on61451",
+    "/tmp/c9-targeted-tests-20261030",
+    "/tmp/c9-code-map-final-20261030",
+    "/tmp/c9-archify-deliver.json"
+  ],
+  "failure_evidence_preserved": "research/readable_stock_materials/failure_repro + INITIAL_UI_FAILURE.json + initial emptychart screenshot",
+  "forbidden_to_clean": [
+    "all other dirtyfiles",
+    "acceptedmaterial/numeric/cache/raw/PDF data",
+    "successfulartifacts/checkpoints",
+    "live services/releases",
+    "RootIABuser tabs"
+  ]
+}

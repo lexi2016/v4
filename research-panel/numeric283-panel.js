@@ -15,6 +15,7 @@
   const CHART_PROFILE = "V4_DAILY_NUMERIC283_CHART_20261029_R1";
   const CHART_NAMESPACE = "ACTIVE_MA_USER_20261021_V1";
   const D29_NUMERIC_FORMULA_SHA256 = "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac";
+  const ORIGINAL_ENGINE_SHA256 = "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c";
 
   const GROUP_LABELS = Object.freeze({
     original: "原始公式",
@@ -109,6 +110,16 @@
 
   function validSha256(value) { return typeof value === "string" && /^[a-f0-9]{64}$/.test(value); }
 
+  function keepCurrentProductBinding(previous, incoming) {
+    const same = (a,b) => a?.path===b?.path && validSha256(a?.sha256) && a.sha256===b?.sha256;
+    // The initial SSE can re-read the exact product while its chart is loading.
+    // Preserve that request's object binding; new versions still get a new token.
+    return previous && previous.data_date===incoming.data_date && previous.source_generation===incoming.source_generation
+      && previous.source_identity?.input_sha256===incoming.source_identity?.input_sha256
+      && same(previous.manifest,incoming.manifest) && same(previous.artifact,incoming.artifact)
+      ? Object.assign(previous,incoming) : incoming;
+  }
+
   function validReference(value) {
     return value && typeof value.path === "string" && value.path.length > 0 && validSha256(value.sha256);
   }
@@ -152,74 +163,37 @@
   }
 
   function statisticsPresentation(row, symbol, metadata) {
-    const coverage = row?.historical_coverage || {};
-    const evaluatedDates = Array.isArray(coverage.evaluated_dates) ? coverage.evaluated_dates : [];
-    const evaluatedCount = Number.isSafeInteger(coverage.evaluated_count) ? coverage.evaluated_count : evaluatedDates.length;
-    const missing = Array.isArray(coverage.missing) ? coverage.missing.filter(value => typeof value === "string") : [];
-    const historyState = coverage.known_full_history === true ? "全历史事件标签完整" : "全历史事件标签覆盖不完整";
-    const dateSummary = evaluatedDates.length
-      ? evaluatedDates.map(displayDay).join("、")
-      : "日期未提供";
-    const coverageSummary = coverage.evaluated_count === undefined && !evaluatedDates.length
-      ? "同条件历史标签覆盖：未绑定；未启动全历史回算。"
-      : `同条件事件标签已评估 ${evaluatedCount} 个日期（${dateSummary}）；${historyState}${missing.length ? `，缺项 ${missing.join("、")}` : ""}；未启动全历史回算。${coverage.historical_PIT === false ? "历史非PIT。" : ""}`;
-
-    const stats = row?.statistics;
-    const expectedAsOf = metadata?.data_date ? displayDay(metadata.data_date) : "";
-    const statsBound = stats && stats.asof === expectedAsOf
-      && ["DESCRIPTIVE_STATS_COMPUTED", "NO_EVENT_GROUPS"].includes(stats.status);
-    const priceLines = [];
-    if (!statsBound) {
-      priceLines.push("价格分位：未绑定当前日期产品；没有触发历史重算。");
-    } else {
-      const prices = stats.price_distribution || {};
-      for (const [label, key] of [["近250个有效收盘", "near_250"], ["全部有效历史", "all_history"]]) {
-        const value = prices[key] || {};
-        const percentile = Number.isFinite(value.percentile_le) ? `${(value.percentile_le * 100).toFixed(2)}%` : "未知";
-        const count = Number.isSafeInteger(value.n) ? value.n : "未知";
-        priceLines.push(`${label}价格分位：${percentile}；n=${count}；范围 ${displayDay(value.start_date)}—${displayDay(value.end_date)}。`);
-      }
+    const coverage = row?.historical_coverage || {}, dates = coverage.evaluated_dates || [];
+    const evaluated = Number.isSafeInteger(coverage.evaluated_count) ? coverage.evaluated_count : dates.length;
+    const coverageSummary = `已评估 ${evaluated} 个日期；条件未知日仍保留，不等于标签完整或历史PIT认证。`;
+    const stats = row?.statistics, expectedAsOf = displayDay(metadata?.data_date);
+    const statsBound = stats?.asof === expectedAsOf && ["DESCRIPTIVE_STATS_COMPUTED", "NO_EVENT_GROUPS"].includes(stats.status);
+    const priceLines = [], prices = statsBound ? stats.price_distribution || {} : {};
+    for (const [label, key] of [["近250日", "near_250"], ["历史", "all_history"]]) {
+      const p = prices[key]; priceLines.push({label, value:Number.isFinite(p?.percentile_le) ? `${(p.percentile_le*100).toFixed(2)}%` : "未知", detail:p || {}});
     }
-
-    const groups = [];
-    if (statsBound && Array.isArray(stats.groups)) {
-      for (const group of stats.groups) {
-        const identity = group?.source_identity;
-        const bound = group?.identity_status === "BOUND"
-          && identity?.generation === metadata?.source_generation
-          && identity?.input === metadata?.source_identity?.input_sha256
-          && identity?.formula === D29_NUMERIC_FORMULA_SHA256
-          && identity?.asof === expectedAsOf
-          && identity?.market === String(symbol || "").slice(-2)
-          && identity?.basis === "QFQ_ASOF"
-          && identity?.pit_status === "NONPIT"
-          && identity?.rule_sha256 === group?.rule_sha256;
-        const label = GROUP_LABELS[group?.group_id] || String(group?.group_id || "未知组");
-        if (!bound) {
-          groups.push({ label, bound: false, summary: `${label}：同条件收益身份未绑定当前名单代次，保留未知。`, horizons: [] });
-          continue;
-        }
-        const eligible = Number.isSafeInteger(group.eligible_event_count) ? group.eligible_event_count : "未知";
-        const unknown = coverage.unknown_by_group?.[group.group_id] ?? "未知";
-        const horizons = Object.entries(group.horizons || {}).map(([key, value]) => {
-          const total = Number.isSafeInteger(value?.total) ? value.total : "未知";
-          const valid = Number.isSafeInteger(value?.valid) ? value.valid : "未知";
-          const mean = Number.isFinite(value?.mean_return_pct) ? `${value.mean_return_pct.toFixed(2)}%` : "未知";
-          const median = Number.isFinite(value?.median_return_pct) ? `${value.median_return_pct.toFixed(2)}%` : "未知";
-          return {
-            label: String(key).toUpperCase(),
-            summary: `${String(key).toUpperCase()}：有效 ${valid}/${total}，正/负/平 ${value?.positive ?? "未知"}/${value?.negative ?? "未知"}/${value?.flat ?? "未知"}，未成熟 ${value?.not_matured ?? "未知"}，缺价 ${value?.missing_price ?? "未知"}；均值 ${mean}，中位 ${median}。`,
-            cases: Array.isArray(value?.cases) ? value.cases.slice(0, 20) : [],
-          };
-        });
-        groups.push({ label, bound: true, summary: `${label}：同条件历史事件 ${eligible}；未评估/未知条件日 ${unknown}。`, horizons });
-      }
-    } else if (statsBound) {
-      groups.push({ label: "事件覆盖", bound: false, summary: "同条件历史收益组未提供；保留未知。", horizons: [] });
-    } else {
-      groups.push({ label: "事件覆盖", bound: false, summary: "同条件历史收益：未绑定当前日期产品；未触发历史重算。", horizons: [] });
-    }
-    return { coverageSummary, priceLines, groups };
+    const groups = Object.entries(GROUP_LABELS).map(([id,label]) => {
+      const group = statsBound ? stats.groups?.find(g=>g.group_id===id) : null, identity=group?.source_identity;
+      const bound = group?.identity_status === "BOUND" && identity?.generation===metadata?.source_generation
+        && identity?.input===metadata?.source_identity?.input_sha256 && identity?.formula===D29_NUMERIC_FORMULA_SHA256
+        && identity?.asof===expectedAsOf && identity?.market===String(symbol).slice(-2) && identity?.basis==="QFQ_ASOF"
+        && identity?.pit_status==="NONPIT" && identity?.rule_sha256===group?.rule_sha256;
+      const eventCount = bound && Number.isSafeInteger(group.eligible_event_count) ? group.eligible_event_count : null;
+      const unknown = Number.isSafeInteger(coverage.unknown_by_group?.[id]) ? coverage.unknown_by_group[id] : null;
+      const today = row?.evaluation?.groups?.[id]?.status || (groupTokens(row?.groups).includes(id) ? "TRUE" : groupTokens(row?.pending_groups).includes(id) ? "UNKNOWN" : "FALSE");
+      const horizons = ["d2","d5"].map(key=>{
+        const v=bound ? group.horizons?.[key] : null, valid=v?.valid;
+        const counts = Number.isSafeInteger(valid) && valid>0 && [v?.positive,v?.negative,v?.flat].every(n=>Number.isSafeInteger(n)&&n>=0)
+          && v.positive+v.negative+v.flat===valid && Number.isFinite(v.positive_fraction) && Math.abs(v.positive_fraction-v.positive/valid)<1e-10;
+        return {key,label:key==="d2"?"D+2":"D+5",rate:counts?`${(v.positive/valid*100).toFixed(2)}%`:"数据不足",
+          positive:counts?v.positive:null, valid:counts?valid:null, total:v?.total??null,
+          mean:counts&&Number.isFinite(v.mean_return_pct)?`${v.mean_return_pct.toFixed(2)}%`:"未知",
+          summary:counts?`${v.positive}胜 / ${valid}次`:(v?.not_matured?`未成熟 ${v.not_matured} 次；暂不可算`:"暂无有效样本"),
+          cases:Array.isArray(v?.cases)?v.cases:[], raw:v||{}};
+      });
+      return {id,label,bound,today,eventCount,unknown,horizons,summary:eventCount>0?`${eventCount}次已知事件`:(unknown===0?"已评估范围未见匹配":"数据不足")};
+    });
+    return {coverageSummary,priceLines,groups};
   }
   function validateDatedChart(answer, symbol, metadata) {
     if (answer?.ts_code !== symbol || answer.end_date !== metadata.data_date || answer.formula_version !== CHART_NAMESPACE
@@ -390,6 +364,27 @@
     return answer;
   }
 
+  function validateOriginalChart(answer, symbol, product) {
+    const sameRef = (a, b) => a?.path === b?.path && a?.sha256 === b?.sha256;
+    if (answer?.status !== "READY") throw new Error((answer?.cannot_confirm || [answer?.status || "原式图未绑定"]).join(" · "));
+    if (answer.schema_version !== "v4.a_share.original_chart.v1" || answer.symbol !== symbol || answer.data_date !== product.data_date
+        || answer.source_generation !== product.source_generation || answer.input_sha256 !== product.source_identity?.input_sha256
+        || answer.formula_sha256 !== D29_NUMERIC_FORMULA_SHA256 || answer.engine_sha256 !== ORIGINAL_ENGINE_SHA256
+        || !sameRef(answer.product_manifest, product.manifest) || !sameRef(answer.product_artifact, product.artifact)
+        || answer.research_only !== true || answer.production_allowed !== false || answer.buy_gate_updated !== false || answer.orders_sent !== false
+        || !Number.isInteger(answer.rows) || answer.rows < 1 || answer.values_per_row !== 51 || answer.drawings_per_row !== 22) {
+      throw new Error("原式图与当前代码、日期、来源或公式身份不匹配");
+    }
+    const asset = answer.assets?.html;
+    if (!/^[0-9a-f]{64}$/.test(asset?.sha256 || "") || !asset.url?.startsWith("/api/v4/research/a-share/original-chart/html?")) throw new Error("原式图地址未绑定");
+    const url = new URL(asset.url, "http://bound.invalid");
+    for (const [key, value] of Object.entries({date: product.data_date, symbol, generation: product.source_generation,
+      input_sha256: product.source_identity.input_sha256, sha256: asset.sha256})) {
+      if (url.searchParams.get(key) !== value) throw new Error("原式图地址身份冲突");
+    }
+    return answer;
+  }
+
   function mount(document, windowObject) {
     const panel = document.getElementById("dailyNumeric283Panel");
     if (!panel) return;
@@ -407,6 +402,149 @@
     let payloadMetadata = null;
     let currentRows = [];
     let productRequest = 0;
+    let originalFrame = null;
+    let originalObserver = null;
+
+    let selectedSymbol = null, activeGroup = 'original', currentStatistics = null, caseFocus = null;
+    const caseReplies = new Map();
+    const sameRef=(a,b)=>typeof a?.path==='string'&&a.path===b?.path&&validSha256(a?.sha256)&&a.sha256===b?.sha256;
+    const number = value => value === null || value === undefined || value === '' ? null : Number.isFinite(Number(value)) ? Number(value) : null;
+    const amount = (value, unit) => { const n=number(value); return n===null?'未提供':unit==='元'?`${(n/1e8).toFixed(2)} 亿`:`${value} ${unit||'单位未提供'}`; };
+    const add = (host, tag, text, className) => { const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;host.appendChild(e);return e; };
+    function link(host,url,label) { if(typeof url!=='string'||!/^https?:\/\//.test(url))return;const a=add(host,'a',label);a.href=url;a.target='_blank';a.rel='noopener';return a; }
+    function sectionDetails(host,label) { const e=add(host,'details');add(e,'summary',label);return e; }
+    function setupReaderLayout() {
+      if(document.getElementById('dailyReaderSidebar'))return;
+      document.body.classList.add('daily-reader-mode');document.body.appendChild(panel);
+      const sidebar=add(panel,'aside',undefined,'daily-reader-sidebar');sidebar.id='dailyReaderSidebar';
+      add(sidebar,'h1','V4 研究');const searchLabel=add(sidebar,'label','搜索股票代码 / 名称');searchLabel.appendChild(search);
+      add(sidebar,'nav').id='dailyReaderGroups';add(sidebar,'div').id='dailyReaderStockList';
+      const footer=add(sidebar,'div',undefined,'reader-sidebar-footer');link(footer,'http://127.0.0.1:8873/research-panel/archive/2026-10-27/index.html','历史页与说明');
+      link(footer,new URL('/research-panel/code-map/index.html',windowObject.location.origin).href,'开发图谱');
+      const collapse=add(footer,'button','收起侧栏');collapse.type='button';collapse.onclick=()=>document.body.classList.toggle('reader-sidebar-collapsed');
+      const main=add(panel,'div',undefined,'daily-reader-main');main.id='dailyReaderMain';main.appendChild(chartPanel);
+      const header=add(chartPanel,'div',undefined,'reader-stock-header');header.id='dailyReaderHeader';
+      const identity=add(header,'div');identity.id='dailyReaderIdentity';identity.appendChild(chartTitle);add(identity,'p').id='dailyReaderDate';
+      const controls=add(header,'div',undefined,'reader-chart-controls');controls.innerHTML='<button type="button" class="active">日K</button><button type="button" disabled title="本次仅接入已绑定日K">周K</button><select id="dailyChartBars" aria-label="图窗根数"><option value="60">最近60根</option><option value="120" selected>最近120根</option><option value="250">最近250根</option></select><select id="dailyChartExtent" aria-label="历史区段"><option value="recent">当前区段</option><option value="all">全部历史</option></select><button type="button" id="dailyChartRestore">恢复区间</button><label><input id="dailyChartMarks" type="checkbox" checked>文字标注</label>';
+      chartPanel.insertBefore(header,chartPanel.firstChild);const host=add(chartPanel,'div');host.id='dailyOriginalChartHost';header.after(host);
+      const focus=add(chartPanel,'p',undefined,'reader-event-focus');focus.id='dailyChartEventFocus';focus.hidden=true;host.after(focus);
+      const stats=document.getElementById('dailyEventStatistics');focus.after(stats);
+      const cases=add(chartPanel,'details');cases.id='dailyEventCases';cases.hidden=true;stats.after(cases);add(cases,'summary','历史事件');
+      const material=add(chartPanel,'section');material.id='dailyCompanyMaterials';cases.after(material);
+      const received=add(chartPanel,'details');received.id='dailyReceivedReports';received.hidden=true;material.after(received);add(received,'summary','查看研报目录');
+      const reports=document.getElementById('relatedReports');if(reports){received.appendChild(reports);reports.hidden=false;}
+      const diagnostic=add(chartPanel,'details');diagnostic.id='dailyReaderDiagnostics';add(diagnostic,'summary','历史案例与数据来源');
+      const chartInfo=add(diagnostic,'details');add(chartInfo,'summary','原式51变量、22绘图与图形来源');chartInfo.ontoggle=()=>{if(!originalFrame)return;originalFrame.contentDocument?.body.classList.toggle('reader-full-details',chartInfo.open);originalFrame.style.height=chartInfo.open?'1650px':'460px';};
+      diagnostic.appendChild(chartStatus);for(const p of Array.from(chartPanel.children)){if(p.tagName==='P'&&p!==focus)diagnostic.appendChild(p);}
+      const reportsIdentity=document.getElementById('relatedReportsIdentity');if(reportsIdentity)reportsIdentity.textContent='正文库为当前知识补充；目录资料与库内匹配分开显示。';
+      document.getElementById('dailyChartBars').onchange=e=>{const w=originalFrame?.contentWindow;if(!w?.setOriginalWindow)return;const n=Number(e.target.value);w.document.getElementById('window').value=String(n);w.setOriginalWindow(n,w.RESEARCH_PANEL_STATE.rows.length);};
+      document.getElementById('dailyChartExtent').onchange=e=>{const w=originalFrame?.contentWindow;if(w?.setOriginalWindow)w.setOriginalWindow(e.target.value==='all'?0:120,w.RESEARCH_PANEL_STATE.rows.length);};
+      document.getElementById('dailyChartRestore').onclick=restoreCurrent;
+      document.getElementById('dailyChartMarks').onchange=e=>{const child=originalFrame?.contentDocument,box=child?.getElementById('draw-text');if(box){box.checked=e.target.checked;box.onchange?.();}};
+    }
+    function refreshReaderList(rows) {
+      const host=document.getElementById('dailyReaderStockList');if(!host)return;host.replaceChildren();
+      const ordered=[...rows].sort((a,b)=>(b.symbol===selectedSymbol)-(a.symbol===selectedSymbol));
+      for(const row of ordered){const b=add(host,'button',undefined,'numeric283-chart-trigger reader-stock'+(row.symbol===selectedSymbol?' active':''));b.type='button';b.dataset.symbol=row.symbol;add(b,'strong',row.symbol);add(b,'span',row.display_name||'名称未提供');b.onclick=()=>loadChart(row.symbol,row.display_name||'名称未提供');}
+      const groups=document.getElementById('dailyReaderGroups');groups.replaceChildren();
+      for(const [id,label]of [['all','全部'],...Object.entries(GROUP_LABELS)]){const b=add(groups,'button',undefined,groupSelect.value===id?'active':'');b.type='button';add(b,'span',label);add(b,'span',String(id==='all'?currentRows.length:payloadMetadata.group_counts[id]));b.onclick=()=>{groupSelect.value=id;refresh(currentRows);};}
+    }
+    function restoreCurrent(){caseFocus=null;const f=document.getElementById('dailyChartEventFocus');if(f)f.hidden=true;const w=originalFrame?.contentWindow;if(!w?.setOriginalWindow)return;const s=w.RESEARCH_PANEL_STATE;w.document.getElementById('window').value='120';w.setOriginalWindow(Math.min(120,s.rows.length),s.rows.length);w.choose(s.rows.length-1);w.paint();const bars=document.getElementById('dailyChartBars');if(bars)bars.value='120';const extent=document.getElementById('dailyChartExtent');if(extent)extent.value='recent';}
+    function paintCaseOverlay(w){if(!caseFocus)return;const s=w.RESEARCH_PANEL_STATE,g=s?.geometry,cv=w.document.getElementById('chart');if(!g||!s.visible?.length)return;const start=s.rows.findIndex(r=>r.trade_date===Number(caseFocus.event_date.replaceAll('-',''))),target=s.rows.findIndex(r=>r.trade_date===Number(String(caseFocus.target_date||'').replaceAll('-',''))),ratio=w.devicePixelRatio||1,c=cv.getContext('2d');c.save();c.setTransform(ratio,0,0,ratio,0,0);const left=g.L+(start-s.offset)*g.step,right=g.L+((target>=0?target:s.rows.length-1)-s.offset+1)*g.step,x=g.L+(start-s.offset+.5)*g.step;c.beginPath();c.rect(g.L,22,g.pw,g.h-52);c.clip();c.fillStyle='rgba(58,205,208,.10)';c.fillRect(left,22,Math.max(g.step,right-left),g.h-52);c.strokeStyle='#f4c97b';c.lineWidth=2;c.beginPath();c.moveTo(x,22);c.lineTo(x,g.h-30);c.stroke();if(target>=0){const tx=g.L+(target-s.offset+.5)*g.step;c.strokeStyle='#42e5d5';c.beginPath();c.moveTo(tx,22);c.lineTo(tx,g.h-30);c.stroke();}c.restore();}
+    function configureOriginalView(frame,child){if(child.getElementById('reader-focus-style'))return;const style=child.createElement('style');style.id='reader-focus-style';style.textContent='body{margin:0!important;background:#07131e!important}body:not(.reader-full-details) header,body:not(.reader-full-details) aside,body:not(.reader-full-details) .toolbar,body:not(.reader-full-details) .charthead .controls,body:not(.reader-full-details) #selected-date,body:not(.reader-full-details) .stats,body:not(.reader-full-details) .tables,body:not(.reader-full-details) details,body:not(.reader-full-details) #status,body:not(.reader-full-details) .foot,body:not(.reader-full-details) #chart-caption{display:none!important}main{display:block!important;max-width:none!important;margin:0!important;min-height:0!important}article{padding:12px!important}.chartbox{border:0!important;padding:0!important}.charthead{margin:0 0 4px!important}canvas{height:405px!important}';child.head.appendChild(style);const w=frame.contentWindow,originalPaint=w.paint;w.paint=function(){originalPaint();paintCaseOverlay(w);const bars=document.getElementById('dailyChartBars'),n=w.RESEARCH_PANEL_STATE.view?.count;if(bars&&n){let option=Array.from(bars.options).find(o=>o.value===String(n));if(!option){option=document.createElement('option');option.value=String(n);option.dataset.dynamic='true';option.textContent=`当前${n}根`;bars.appendChild(option);}bars.value=String(n);}};frame.style.height='460px';w.dispatchEvent(new w.Event('resize'));w.paint();frame.style.height=Math.max(450,Math.ceil(child.querySelector('article').getBoundingClientRect().bottom+8))+'px';}
+    function locateEvent(item){const w=originalFrame?.contentWindow,s=w?.RESEARCH_PANEL_STATE;if(!s)return;const i=s.rows.findIndex(r=>r.trade_date===Number(item.event_date.replaceAll('-','')));if(i<0)return;caseFocus=item;w.setOriginalWindow(Math.min(120,s.rows.length),Math.min(s.rows.length,i+84));w.choose(i);w.paint();const info=document.getElementById('dailyChartEventFocus');info.hidden=false;info.replaceChildren();add(info,'span',`事件日 ${item.event_date} → ${item.target_date||'目标日未提供'} · ${Number.isFinite(item.return_pct)?item.return_pct.toFixed(2)+'%':item.status==='not_matured'?'未成熟':'收益未知'}；黄色为事件日，青色为目标日。`);const back=add(info,'button',`返回当前 ${displayDay(payloadMetadata.data_date)}`);back.type='button';back.onclick=restoreCurrent;document.getElementById('dailyOriginalChartHost').scrollIntoView({block:'start'});}
+    async function showEventCases(symbol,group,horizon,subset='all'){
+      const host=document.getElementById('dailyEventCases');host.hidden=false;host.open=true;host.replaceChildren();add(host,'summary',`${GROUP_LABELS[group]} · ${horizon==='d2'?'D+2':'D+5'} ${subset==='all'?'全部历史同条件事件':'同价格分位事件'}`);const token=chartRequest,key=[payloadMetadata.manifest.sha256,symbol,group,horizon].join('|');
+      try{let answer=caseReplies.get(key);if(!answer){const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,group,horizon});answer=await (await windowObject.fetch('/api/v4/research/a-share/event-cases?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest)return;if(answer.status!=='READY'||answer.symbol!==symbol||!sameRef(answer.numeric_manifest,payloadMetadata.manifest))throw new Error('历史明细尚未物化或身份不匹配');caseReplies.set(key,answer);}
+      const cases=subset==='all'?answer.cases:answer.cases.filter(v=>v.percentile_bucket===answer.conditional?.bucket);
+      add(host,'p',`${subset==='all'?'总事件':'同分位事件'} ${cases.length} 次；正、负、平、未成熟和缺价均列出。点击任一日期定位原式图。`);
+      const wrap=add(host,'div',undefined,'reader-case-table');const table=add(wrap,'table');const head=add(table,'tr');for(const t of ['事件日','目标日','结果','收益','当时近250分位'])add(head,'th',t);
+      for(const item of cases){const row=add(table,'tr');const cell=add(row,'td'),button=add(cell,'button',item.event_date);button.type='button';button.onclick=()=>locateEvent(item);add(row,'td',item.target_date||'未知');add(row,'td',({positive:'正',negative:'负',flat:'平',not_matured:'未成熟'})[item.status]||'缺价/未知');add(row,'td',Number.isFinite(item.return_pct)?item.return_pct.toFixed(2)+'%':'—');add(row,'td',Number.isFinite(item.price_percentile)?(item.price_percentile*100).toFixed(2)+'%':'UNKNOWN（不足250有效价）');}
+      }catch(e){if(token===chartRequest)add(host,'p',`明细未确认：${e.message}`);}
+    }
+    function renderStatistics(symbol){const host=document.getElementById('dailyEventStatistics');if(!currentStatistics)return;const p=currentStatistics.presentation,selected=p.groups.find(g=>g.id===activeGroup)||p.groups[0];host.replaceChildren();
+      const metric=add(host,'div',undefined,'reader-win-metrics');
+      for(const h of selected.horizons){const card=add(metric,'div',undefined,'reader-win-card');const title=add(card,'p',`${h.label} 历史总体成功率`,'metric-label');title.title=`${selected.label}；正收益/有效样本，平收益保留分母`;const line=add(card,'div',undefined,'reader-win-line');const total=add(line,'button',h.rate,'reader-rate');total.type='button';total.dataset.horizon=h.key;total.dataset.subset='all';total.onclick=()=>showEventCases(symbol,selected.id,h.key);const summary=add(line,'div');add(summary,'div',h.summary);add(summary,'p',`平均收益 ${h.mean}`);const conditional=currentStatistics.conditional?.[h.key];const sub=add(card,'button',undefined,'reader-conditional');sub.type='button';sub.dataset.subset='conditional';sub.dataset.horizon=h.key;sub.disabled=!conditional;sub.textContent=conditional?`同分位成功率 ${conditional.bucket_label}：${conditional.valid>0?(conditional.positive/conditional.valid*100).toFixed(2)+'%':'样本不足'} · ${conditional.positive??'—'}胜/${conditional.valid??'—'}次`:'同分位成功率：统计未物化';sub.onclick=()=>showEventCases(symbol,selected.id,h.key,'conditional');}
+      const price=add(metric,'div',undefined,'reader-price-card');add(price,'p','价格分位','metric-label');for(const q of p.priceLines){const line=add(price,'p');add(line,'span',q.label+' ');add(line,'strong',q.value);}add(price,'small','价格位置，独立于历史胜率');
+      add(host,'p','以事件日收盘至D+2/D+5同源交易日收盘计；未成熟/缺价不计胜率，平收益计入有效样本。历史描述，非未来预测。','reader-note');
+      const diagnostics=document.getElementById('dailyReaderDiagnostics')||host;let groupHost=document.getElementById('dailyGroupStatistics');if(!groupHost){groupHost=add(diagnostics,'section');groupHost.id='dailyGroupStatistics';}groupHost.replaceChildren();add(groupHost,'h3','四组当前状态与历史样本');const table=add(groupHost,'table'),tr=add(table,'tr');for(const t of ['组别','今日命中','已知历史样本','D+2','D+5','条件未知日'])add(tr,'th',t);
+      for(const g of p.groups){const r=add(table,'tr'),cell=add(r,'td'),b=add(cell,'button',g.label);b.type='button';b.onclick=()=>{activeGroup=g.id;renderStatistics(symbol);loadConditionalSummaries(symbol,g.id,chartRequest);};add(r,'td',g.today==='TRUE'?'命中':g.today==='UNKNOWN'?'未知':'未命中');add(r,'td',g.summary);for(const h of g.horizons)add(r,'td',h.rate);add(r,'td',g.unknown===null?'未知':String(g.unknown));}
+      add(groupHost,'p',p.coverageSummary);const source=sectionDetails(groupHost,'查看日期覆盖、案例与统计来源');add(source,'pre',JSON.stringify({coverage:currentStatistics.row.historical_coverage,source_generation:payloadMetadata.source_generation,manifest:payloadMetadata.manifest,statistics:currentStatistics.row.statistics},null,2));}
+    async function loadConditionalSummaries(symbol,group,token){const values={};await Promise.all(['d2','d5'].map(async h=>{try{const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,group,horizon:h});const a=await(await windowObject.fetch('/api/v4/research/a-share/event-cases?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest||a.status!=='READY'||!sameRef(a.numeric_manifest,payloadMetadata.manifest))return;caseReplies.set([payloadMetadata.manifest.sha256,symbol,group,h].join('|'),a);if(a.conditional)values[h]=a.conditional;}catch(_){}}));if(token===chartRequest&&currentStatistics&&activeGroup===group){currentStatistics.conditional=values;renderStatistics(symbol);}}
+    function sourceLink(host,field,label='来源'){if(field?.source_url)link(host,field.source_url,label);}
+    async function showCompanyMaterials(symbol,token){const host=document.getElementById('dailyCompanyMaterials'),reports=document.getElementById('dailyReceivedReports');if(!host)return;const library=document.getElementById('relatedReports');host.textContent='正在读取已整理资料…';reports.replaceChildren();add(reports,'summary','查看研报目录');if(library){reports.appendChild(library);reports.hidden=false;}
+      try{const q=new URLSearchParams({date:payloadMetadata.data_date,symbol,generation:payloadMetadata.source_generation,input_sha256:payloadMetadata.source_identity.input_sha256});const a=await(await windowObject.fetch('/api/v4/research/a-share/company-materials?'+q,{cache:'no-store',signal:chartController.signal})).json();if(token!==chartRequest)return;if(a.status!=='PARTIAL_RECEIVED'||a.symbol!==symbol||!sameRef(a.numeric_manifest,payloadMetadata.manifest))throw new Error('已有资料尚未绑定当前产品');const m=a.materials,b=m.business_reported||{},f=m.financials_reported||{},holders=m.shareholders_reported||{},detail=m.provenance_details||{},history=detail.shareholder_count_history||[];const latest=history.find(r=>r.asof_date===holders.holder_asof)||history[0];const catalog=m.report_catalog||[];host.replaceChildren();const grid=add(host,'div',undefined,'reader-material-grid');
+      const business=add(grid,'section',undefined,'reader-material-card');const bh=add(business,'h3','基本面');const more=add(bh,'button','查看详情');more.onclick=()=>{document.getElementById('dailyMaterialsDetails').open=true;document.getElementById('dailyMaterialsDetails').scrollIntoView({block:'start'});};add(business,'small','主营业务');const summary=add(business,'p',b.value||'主营业务未提供','reader-business');summary.title=b.value||'';add(business,'p',Number(f.latest_period_months)===9&&f.latest_period_kind==='YTD'?`${String(f.latest_report_period).slice(0,4)}年前三季度`:`${f.latest_report_period||'报告期未提供'} · ${f.latest_period_kind||''}`,'reader-note');const finance=add(business,'div',undefined,'reader-finance');for(const[label,key]of [['营收','latest_revenue'],['归母净利润','latest_net_profit_parent']]){const item=add(finance,'div');add(item,'small',label);add(item,'strong',amount(f[key],f.monetary_unit));}add(business,'p',`财务披露 ${f.latest_disclosed_at||'未提供'} · ${f.monetary_unit||'单位未提供'}`,'reader-note');link(business,f.latest_financial_source_url,'财务原始来源');
+      const owner=add(grid,'section',undefined,'reader-material-card');add(owner,'h3','股东变化');const n=number(holders.holder_count);add(owner,'strong',n===null?'数据未提供':`${n.toLocaleString('zh-CN')} 户`,'reader-holder-count');const change=number(holders.holder_change_accounts);add(owner,'p',change===null?'较上期变化未提供':change<0?`较上期减少 ${Math.abs(change).toLocaleString('zh-CN')} 户`:`较上期增加 ${change.toLocaleString('zh-CN')} 户`,'reader-holder-change');add(owner,'p',`统计日 ${holders.holder_asof||'未提供'} · 披露 ${latest?.holder_count?.disclosed_at||'未提供'}`,'reader-note');sourceLink(owner,latest?.holder_count,'股东户数来源');add(owner,'small','户数变化不等于筹码成本分布');
+      const report=add(grid,'section',undefined,'reader-material-card');add(report,'h3','研报');add(report,'span',`${catalog.length} 条目录`,'reader-report-count');if(catalog.length){const lead=catalog[0];add(report,'p',lead.title,'reader-report-title');add(report,'p',`${lead.institution||'机构未提供'} · ${String(lead.published_at||'日期未提供').slice(0,10)}`,'reader-note');add(report,'p',lead.full_text_status==='NOT_RETRIEVED_METADATA_ONLY'?'目录资料，正文未取得':lead.full_text_status||'正文状态未提供','reader-note');}else add(report,'p','本股回包未提供研报目录');const open=add(report,'button','查看研报目录');open.type='button';open.onclick=()=>{reports.hidden=false;reports.open=true;reports.scrollIntoView({block:'start'});};
+      add(reports,'p',`已整理 ${catalog.length} 条同代码目录；仅目录元数据，不能据此声称正文已读或库内主体匹配。`);for(const r of catalog){const e=add(reports,'article');add(e,'h4',r.title||'标题未提供');add(e,'p',`${r.institution||'机构未提供'} · ${String(r.published_at||'日期未提供').slice(0,10)} · ${r.full_text_status==='NOT_RETRIEVED_METADATA_ONLY'?'正文未取得':r.full_text_status?'正文状态详见来源':'正文状态未提供'}`);link(e,r.report_url,'目录所列研报链接');link(e,r.metadata_source_url,'查看实际目录来源');}
+      const known=m.stored_report;if(known?.document&&known?.source_detail_receipt){const e=add(reports,'article');add(e,'h4',known.document.filename||'库中已校验资料');add(e,'p','原件及OCR哈希曾校验；当前知识补充，研报主体关联仍保留原状态。');const source={document_id:known.document.document_id,research_date:known.document.date,receipt_sha256:known.source_detail_receipt.sha256};const body=add(e,'div'),button=add(e,'button','查看已校验OCR正文');button.type='button';button.onclick=()=>windowObject.RelatedReports?.openStoredDocument(source,{verified_pdf_sha256:known.source_detail_receipt.verified_pdf_sha256},body,button);}
+      if(library)reports.appendChild(library); // Preserve the successful catalog/body order; node already connected before await.
+      let details=document.getElementById('dailyMaterialsDetails');if(!details){details=sectionDetails(document.getElementById('dailyReaderDiagnostics'),'基本面字段、原值、单位与来源');details.id='dailyMaterialsDetails';}details.replaceChildren();add(details,'summary','基本面字段、原值、单位与来源');add(details,'p',`已有资料 ${m.fundamental_state||'PARTIAL'}；字段来源及首次披露/PIT限制原样保留，未作全字段认证。`);sourceLink(details,b,'主营业务公告原文');add(details,'p',`主营业务统计期 ${b.asof_date||'未提供'}；披露 ${b.disclosed_at||'未提供'}；来源状态 ${b.evidence_status||'未提供'}。`);add(details,'pre',JSON.stringify(m,null,2));
+      }catch(e){if(token===chartRequest)host.textContent=`已有资料未确认：${e.message}；未要求重新研究或填充缺失值。`;}
+    }
+
+    function clearOriginalChart() {
+      originalObserver?.disconnect(); originalObserver = null;
+      originalFrame?.remove(); originalFrame = null; caseFocus = null;
+    }
+
+    function originalMode(active) {
+      const legacy = document.getElementById("numeric283chart85Panel"); if (legacy) legacy.hidden = active;
+      const unknown = document.getElementById("numeric283chart85Unknown"); if (active && unknown) unknown.hidden = true;
+      for (const line of chartPanel.querySelectorAll("p")) {
+        if (line.textContent.includes("历史图 API 使用指标命名空间")) line.hidden = active;
+      }
+    }
+
+    function loadOriginalChart(symbol, token) {
+      const product = payloadMetadata;
+      const query = new URLSearchParams({date: product.data_date, symbol, generation: product.source_generation,
+        input_sha256: product.source_identity.input_sha256});
+      windowObject.fetch(`/api/v4/research/a-share/original-chart?${query}`, {signal: chartController.signal, cache: "no-store"})
+        .then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
+        .then(answer => {
+          if (token !== chartRequest || product !== payloadMetadata) return;
+          validateOriginalChart(answer, symbol, product);
+          const frame = document.createElement("iframe");
+          originalFrame = frame; frame.id = "dailyOriginalFormulaFrame";
+          frame.title = `${symbol} · D${answer.data_date} · 原式51变量/22绘图`;
+          frame.style.cssText = "width:100%;height:460px;border:0;display:block";
+          frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+          const fail = error => {
+            if (token !== chartRequest) return;
+            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
+          };
+          frame.onload = () => {
+            if (token !== chartRequest || product !== payloadMetadata) { frame.remove(); return; }
+            try {
+              const child = frame.contentDocument;
+              if (!child || child.contentType !== "text/html" || !child.getElementById("chart")) throw new Error("原式图文件未通过只读接口校验");
+              const ready = () => {
+                if (token !== chartRequest || product !== payloadMetadata) { clearOriginalChart(); return; }
+                if (child.getElementById("status")?.classList.contains("error")) { fail(new Error("原式图内部身份未确认")); return; }
+                if (!child.documentElement.dataset.loaded) return;
+                const state = frame.contentWindow.RESEARCH_PANEL_STATE;
+                if (state?.symbol !== symbol || state.rows?.at(-1)?.trade_date !== Number(product.data_date) || state.rows.length !== answer.rows) {
+                  fail(new Error("原式图实际代码或日期不符")); return;
+                }
+                originalObserver?.disconnect(); originalObserver = null;
+                if(document.getElementById("dailyReaderMain"))configureOriginalView(frame,child);
+                chartStatus.textContent = `${symbol} · D${answer.data_date} · 原式 d35c · ${answer.rows}行 · 51数值/22绘图；同源只读产物，非股票完整PASS或原生/PIT认证。`;
+              };
+              originalObserver = new windowObject.MutationObserver(ready);
+              originalObserver.observe(child.documentElement, {attributes: true, subtree: true, childList: true, characterData: true});
+              ready();
+            } catch (error) { fail(error); }
+          };
+          frame.src = answer.assets.html.url;
+          (document.getElementById("dailyOriginalChartHost") || chartPanel).appendChild(frame);
+        }).catch(error => {
+          if (token === chartRequest && error.name !== "AbortError") {
+            clearOriginalChart(); chartStatus.textContent = `原式图未确认，旧图已清空：${error.message}`;
+          }
+        });
+    }
 
     function setChartControlsDisabled(disabled) {
       const previousWindow = document.getElementById("numeric283prevWindow");
@@ -428,13 +566,16 @@
     download.disabled = true;
 
     function loadChart(symbol, name) {
+      selectedSymbol=symbol;activeGroup=groupTokens(currentRows.find(row=>row.symbol===symbol)?.groups)[0]||"original";currentStatistics=null;refreshReaderList(filterRows(currentRows,groupSelect.value,search.value));
       const token = ++chartRequest;
       chartController?.abort();
       chartController = new AbortController();
+      clearOriginalChart();
       setChartControlsDisabled(true);
       windowObject.Numeric283Chart?.clear();
       chartPanel.hidden = false;
-      chartTitle.textContent = `${symbol} · ${name}`;
+      chartTitle.textContent = `${name}  ${symbol}`;
+      const dateLine=document.getElementById("dailyReaderDate");if(dateLine)dateLine.textContent=`数据至 ${displayDay(payloadMetadata.data_date)} · ${displayGroups(currentRows.find(row=>row.symbol===symbol)?.groups||"")}入选`;
       chartStatus.textContent = `正在读取 ${symbol} 的 D${payloadMetadata.data_date} 历史；旧图已清空。`;
       chartPanel.scrollIntoView?.({ behavior: "smooth", block: "start" });
       if (!payloadMetadata.rows?.some((row) => row.symbol === symbol)) {
@@ -442,7 +583,10 @@
         return;
       }
       const reports = document.getElementById("relatedReports");
-      if (reports) { chartPanel.appendChild(reports); reports.hidden = false; reports.dataset.identityDate = payloadMetadata.data_date; reports.dataset.generation = payloadMetadata.source_generation; windowObject.RelatedReports?.select(symbol,name); }
+      if (reports) { reports.hidden=false;reports.dataset.identityDate=payloadMetadata.data_date;reports.dataset.generation=payloadMetadata.source_generation;windowObject.RelatedReports?.prepareSelection(symbol,name,currentRows.find(row=>row.symbol===symbol)?.display_name_source||null); }
+      const datedOriginal = payloadMetadata.schema_version !== EXPECTED.schema_version;
+      originalMode(datedOriginal);
+      if (datedOriginal) { loadOriginalChart(symbol, token);showStatistics(symbol, token);showCompanyMaterials(symbol,token);return; }
       showStatistics(symbol, token);
       if (!windowObject.Numeric283Chart) {
         chartStatus.textContent = "图表渲染器不可用；旧图已清空。";
@@ -496,52 +640,35 @@
     function refresh(rows) {
       const filtered = filterRows(rows, groupSelect.value, search.value);
       renderRows(tbody, filtered, payloadMetadata, loadChart);
+      refreshReaderList(filtered);
       count.textContent = `${filtered.length}只 / ${rows.length}只；组别可重叠。`;
       status.textContent = "当前日期产品已载入。研究用途；尚未进行本卡图形复核。";
     }
 
     function showStatistics(symbol, token) {
-      const host = document.getElementById("dailyEventStatistics");
-      if (!host) return;
-      host.textContent = "正在读取同股同代统计…";
-      windowObject.fetch(`/api/v4/research/a-share/daily-product?date=${payloadMetadata.data_date}&symbol=${encodeURIComponent(symbol)}`, {cache:"no-store"})
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then(answer => {
-        const row = answer.row && {...answer.row, source_generation:answer.source_generation, data_date:answer.data_date};
-        if (!row) throw new Error("同股统计未产出");
-        if (token !== chartRequest) return;
-        if (row.symbol !== symbol || row.source_generation !== payloadMetadata.source_generation || row.data_date !== payloadMetadata.data_date) throw new Error("统计身份不符");
-        host.replaceChildren();
-        const presentation = statisticsPresentation(row, symbol, payloadMetadata);
-        appendTextLine(host, document, `${symbol} · D${displayDay(row.data_date)} · ${presentation.coverageSummary}`);
-        for (const line of presentation.priceLines) appendTextLine(host, document, line);
-        for (const group of presentation.groups) {
-          appendTextLine(host, document, group.summary);
-          for (const horizon of group.horizons) {
-            const details = document.createElement("details"), summary = document.createElement("summary");
-            summary.textContent = `${horizon.label} 历史事件覆盖（展开最近20项）`;
-            details.appendChild(summary);
-            appendTextLine(details, document, horizon.summary);
-            for (const item of horizon.cases) {
-              const result = Number.isFinite(item.return_pct) ? `${item.return_pct.toFixed(2)}%` : (item.status === "not_matured" ? "未成熟" : "未知");
-              appendTextLine(details, document, `${displayDay(item.event_date)} → ${displayDay(item.target_date)}：${result}${item.detail_status ? `（${item.detail_status}）` : ""}`);
-            }
-            host.appendChild(details);
-          }
-        }
-      }).catch(e => { if (token === chartRequest) host.textContent = `统计未确认：${e.message}`; });
+      const host=document.getElementById("dailyEventStatistics");if(!host)return;host.textContent="正在读取已算同条件胜率…";
+      windowObject.fetch(`/api/v4/research/a-share/daily-product?date=${payloadMetadata.data_date}&symbol=${encodeURIComponent(symbol)}`,{cache:"no-store",signal:chartController.signal})
+        .then(r=>r.json()).then(answer=>{if(token!==chartRequest)return;const row=answer.row;if(answer.status!=="READY"||row?.symbol!==symbol||answer.source_generation!==payloadMetadata.source_generation||answer.data_date!==payloadMetadata.data_date)throw new Error("同股统计身份不符");
+          currentStatistics={row,presentation:statisticsPresentation(row,symbol,payloadMetadata),conditional:{}};renderStatistics(symbol);loadConditionalSummaries(symbol,activeGroup,token);
+        }).catch(e=>{if(token===chartRequest)host.textContent=`统计未确认：${e.message}`;});
     }
     function commitPayload(payload) {
       const rows = payload.schema_version === EXPECTED.schema_version ? validateData(payload) : validateDatedData(payload);
-      if (payloadMetadata?.source_generation !== payload.source_generation) {
+      payload = keepCurrentProductBinding(payloadMetadata, payload);
+      if (payloadMetadata?.source_generation !== payload.source_generation || payloadMetadata?.data_date !== payload.data_date
+          || payloadMetadata?.artifact?.sha256 !== payload.artifact?.sha256) {
+        clearOriginalChart();
         ++chartRequest; chartController?.abort(); windowObject.Numeric283Chart?.clear(); setChartControlsDisabled(true); windowObject.RelatedReports?.clear();
+        selectedSymbol=null;const material=document.getElementById('dailyCompanyMaterials');if(material)material.textContent='新日期资料待选股读取。';const cases=document.getElementById('dailyEventCases');if(cases)cases.hidden=true;
         const stats = document.getElementById("dailyEventStatistics"); if(stats) stats.textContent = "新日期名单已更新；请选择当前名单股票读取统计。";
         chartStatus.textContent = "名单已更新；请主动选择当前名单股票。";
       }
-      payloadMetadata = payload; currentRows = rows; download.disabled = false;
+      payloadMetadata = payload; currentRows = rows; download.disabled = false; setupReaderLayout();
       const title = document.getElementById("dailyNumeric283Title"); if(title) title.textContent = `数值候选名单 · D${payload.data_date} · ${rows.length}只`;
       for(const option of groupSelect.options) option.textContent = option.value === "all" ? `全部（${rows.length}）` : `${GROUP_LABELS[option.value]}（${payload.group_counts[option.value]}）`;
       refresh(rows);
       status.textContent = `D${payload.data_date} · ${payload.status || "日期产品"} · 已处理 ${payload.processed_count ?? rows.length}/${payload.source_universe_count ?? rows.length} · 未知股票 ${payload.unknown_count ?? "未知"}；组别可重叠。`;
+      if(document.getElementById("dailyReaderMain")&&!selectedSymbol){const first=rows.find(r=>r.symbol==="002003.SZ")||rows[0];if(first)loadChart(first.symbol,first.display_name||"名称未提供");}
     }
     async function loadDated(expectedEvent) {
       const token = ++productRequest;
@@ -564,6 +691,7 @@
       events.addEventListener("a_share_daily_completed", event => { try { const body=validateDailyCompletionEvent(JSON.parse(event.data)); if (event.lastEventId && event.lastEventId !== body.event_id) throw new Error("SSE id 与事件 ID 不匹配"); loadDated(body).catch(e=>{status.textContent=`新日期产品未确认，保留已核验名单：${e.message}`;}); } catch(e) { status.textContent=`完成事件身份未确认，保留已验证名单：${e.message}`; } });
       windowObject.addEventListener("pagehide",()=>events.close(),{once:true});
     }
+    windowObject.addEventListener("pagehide", clearOriginalChart, {once:true});
 
   }
 
@@ -578,8 +706,11 @@
     validateDatedChart,
     validateDailyCompletionEvent,
     completionMatchesProduct,
+    keepCurrentProductBinding,
     statisticsPresentation,
     D29_NUMERIC_FORMULA_SHA256,
+    ORIGINAL_ENGINE_SHA256,
+    validateOriginalChart,
     filterRows,
     displayGroups,
     displayPendingGroups,

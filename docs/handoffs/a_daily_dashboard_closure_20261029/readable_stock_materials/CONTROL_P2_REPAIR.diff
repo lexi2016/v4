@@ -1,0 +1,41 @@
+--- a/control_c9.py
++++ b/control_c9.py
+@@ -10,6 +10,18 @@
+         if seen.returncode==113 and 'could not find service' in seen.stderr.lower():return
+         if time.monotonic()>=deadline:raise RuntimeError('C9_SERVICE_NOT_ABSENT_NO_BOOTSTRAP:'+seen.stderr)
+         time.sleep(.2)
++def load_publisher(plan):
++    reference=plan['owner_publisher']
++    if sha(reference['path'])!=reference['sha256']:raise ValueError('C9_ORIGINAL_MAIN_OWNER_SHA_DRIFT')
++    spec=importlib.util.spec_from_file_location('c9_owner_save',Path(reference['path']));owner=importlib.util.module_from_spec(spec);spec.loader.exec_module(owner);return owner
++
++def stop_and_wait_absent(service,rollback):
++    stop=subprocess.run(['launchctl','bootout',service],capture_output=True,text=True)
++    if stop.returncode:
++        seen=subprocess.run(['launchctl','print',service],capture_output=True,text=True) if rollback else None
++        if seen is None or seen.returncode!=113 or 'could not find service' not in seen.stderr.lower():raise RuntimeError('C9_GRACEFUL_BOOTOUT_FAILED:'+stop.stderr)
++    wait_absent(service)
++
+ def main():
+     p=argparse.ArgumentParser();p.add_argument('--review',required=True,type=Path);p.add_argument('--publish',action='store_true');p.add_argument('--api',action='store_true');p.add_argument('--rollback',action='store_true');a=p.parse_args()
+     c=json.loads((B/'CANDIDATES.json').read_text())['api'];plan=json.loads((B/'PUBLICATION_PLAN.json').read_text());review=json.loads(a.review.read_text())
+@@ -18,7 +30,7 @@
+     lock=open(B/'control.lock','a+b');fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+     if a.publish:
+         # Reuse the existing owner atomic save, not a second publisher format.
+-        owner_path=Path(c['release'])/'app/ops/research_panel_daily_product.py';spec=importlib.util.spec_from_file_location('c9_owner_save',owner_path);owner=importlib.util.module_from_spec(spec);spec.loader.exec_module(owner)
++        owner=load_publisher(plan)
+         if a.rollback:
+             prior=json.loads((B/'PUBLICATION_RECEIPT.json').read_text());steps={k:dict(target=plan[k]['target'],before=prior['after'][k],candidate=prior['preimages'][k]) for k in ['index','event']}
+         else:steps={k:plan[k] for k in ['index','event']}
+@@ -33,9 +45,7 @@
+     if not a.api:p.error('--publish or --api required')
+     live=Path('/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist');target=c['plist_before'] if a.rollback else c['plist_candidate'];expected=c['plist_candidate']['sha256'] if a.rollback else c['plist_before']['sha256']
+     if sha(target['path'])!=target['sha256'] or sha(live)!=expected:raise ValueError('C9_LIVE_PLIST_CAS_DRIFT_NO_STOP')
+-    service=f'gui/{os.getuid()}/com.lexi.v4.api';stop=subprocess.run(['launchctl','bootout',service],capture_output=True,text=True)
+-    if stop.returncode:raise RuntimeError('C9_GRACEFUL_BOOTOUT_FAILED:'+stop.stderr)
+-    wait_absent(service)
++    service=f'gui/{os.getuid()}/com.lexi.v4.api';stop_and_wait_absent(service,a.rollback)
+     if sha(live)!=expected:raise ValueError('C9_LIVE_PLIST_CHANGED_DURING_STOP')
+     pending=live.with_name('.'+live.name+'.c9-pending');pending.write_bytes(Path(target['path']).read_bytes());os.replace(pending,live)
+     start=subprocess.run(['launchctl','bootstrap',f'gui/{os.getuid()}',str(live)],capture_output=True,text=True)

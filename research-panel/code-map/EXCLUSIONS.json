@@ -1,0 +1,16 @@
+{
+  "excluded": [
+    "raw prices and selector rows",
+    "statistics/cache contents",
+    "received company/report data",
+    "PDF/OCR bodies",
+    "credentials/accounts",
+    "unrelatedV4modules",
+    "historicalV3migration graph as today authority"
+  ],
+  "reference_only": [
+    "docs/v35-mac-end-to-end-code-graph.md",
+    "infrastructure/runtime_graph/_service_parts/graph_build.py",
+    "ops/collect_runtime_graph.py"
+  ]
+}

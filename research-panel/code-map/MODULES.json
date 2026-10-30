@@ -1,0 +1,213 @@
+{
+  "archify_edge_sources": {
+    "completion_sse->reader_canvas": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "completion_sse",
+      "to_node": "reader_canvas"
+    },
+    "daily_slot->paired_inputs": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "daily_slot",
+      "to_node": "paired_inputs"
+    },
+    "dated_cache->completion_sse": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "dated_cache",
+      "to_node": "completion_sse"
+    },
+    "dated_cache->read_only_get": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "dated_cache",
+      "to_node": "read_only_get"
+    },
+    "dated_cache->retained_chart": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "dated_cache",
+      "to_node": "retained_chart"
+    },
+    "display_projection->read_only_get": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "display_projection",
+      "to_node": "read_only_get"
+    },
+    "original_owner->dated_cache": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "original_owner",
+      "to_node": "dated_cache"
+    },
+    "paired_inputs->original_owner": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "paired_inputs",
+      "to_node": "original_owner"
+    },
+    "read_only_get->reader_canvas": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "read_only_get",
+      "to_node": "reader_canvas"
+    },
+    "release_boundary->read_only_get": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "release_boundary",
+      "to_node": "read_only_get"
+    },
+    "retained_chart->display_projection": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "retained_chart",
+      "to_node": "display_projection"
+    },
+    "retained_chart->read_only_get": {
+      "basis": "static source relationship; precise node paths below; projection also reads accepted cache TRUE",
+      "from_node": "retained_chart",
+      "to_node": "read_only_get"
+    }
+  },
+  "archify_node_sources": {
+    "completion_sse": [
+      {
+        "label": "research_lane_router.py",
+        "line": 1,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/apps/api/v4_api/research_lane_router.py"
+      },
+      {
+        "label": "keepCurrentProductBinding",
+        "line": 113,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/research-panel/numeric283-panel.js"
+      }
+    ],
+    "daily_slot": [
+      {
+        "label": "run_v4_macos_scheduler_daemon.py",
+        "line": 1,
+        "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/run_v4_macos_scheduler_daemon.py"
+      }
+    ],
+    "dated_cache": [
+      {
+        "label": "compute_stock",
+        "line": 177,
+        "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/research_panel_daily_product.py"
+      }
+    ],
+    "display_projection": [
+      {
+        "label": "data",
+        "line": 56,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/prepare_c9.py"
+      },
+      {
+        "label": "stratify_event_cases_by_prefix_percentile",
+        "line": 453,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/domains/research_daily_statistics.py"
+      }
+    ],
+    "original_owner": [
+      {
+        "label": "materialize_daily_product",
+        "line": 225,
+        "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/research_panel_daily_product.py"
+      }
+    ],
+    "paired_inputs": [
+      {
+        "label": "SourceContext",
+        "line": 57,
+        "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/research_panel_daily_product.py"
+      }
+    ],
+    "read_only_get": [
+      {
+        "label": "read_a_daily_product",
+        "line": 1196,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/infrastructure/research_lane_source.py"
+      },
+      {
+        "label": "a_share_company_materials",
+        "line": 475,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/apps/api/v4_api/research_router.py"
+      }
+    ],
+    "reader_canvas": [
+      {
+        "label": "loadChart",
+        "line": 568,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/research-panel/numeric283-panel.js"
+      },
+      {
+        "label": "locateEvent",
+        "line": 455,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/research-panel/numeric283-panel.js"
+      }
+    ],
+    "release_boundary": [
+      {
+        "label": "candidate",
+        "line": 25,
+        "path": "TASK_SOURCE_DIRTY_AT_CAPTURE/docs/handoffs/a_daily_dashboard_closure_20261029/readable_stock_materials/prepare_c9.py"
+      },
+      {
+        "label": "app.py",
+        "line": 1,
+        "path": "API_CANDIDATE_NOT_RUNTIME_PROOF/apps/api/v4_api/app.py"
+      }
+    ],
+    "retained_chart": [
+      {
+        "label": "finalize_owner_charts",
+        "line": 288,
+        "path": "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE/ops/render_original_formula_projection.py"
+      }
+    ]
+  },
+  "evidence_status": "static; no natural/deploy/API/UI promotion",
+  "groups": {
+    "API_CANDIDATE_NOT_RUNTIME_PROOF": [
+      "d0d716a176149d6a",
+      "ba52452c547a99d5",
+      "4e7646c8aa01878e",
+      "9024a2027a7c9e9e",
+      "a39e8a69aa0e4a53",
+      "bcdf5ad53a725d9a",
+      "acff900b3ace207e",
+      "d65cf2505ddcc2a7",
+      "2f2a9579ba6786bf"
+    ],
+    "MAIN_C8_INSTALLED_SOURCE_AT_CAPTURE": [
+      "0d1733c2b966ed69",
+      "048ef15495af8da8",
+      "353fb2cd12024fd4",
+      "c0791ac5de0482d4",
+      "da5a2064c2ed8e67",
+      "48a4e921d3a7edc0",
+      "931412347921ab62",
+      "b36a6d01c3141438",
+      "cf572e8c06014163",
+      "7c6eea95beac7128",
+      "6a7cbb1150247bd6"
+    ],
+    "REFERENCE_ONLY_LEGACY_GRAPH": [
+      "aecf0c912ba1c69d",
+      "cb860760e7d5210a",
+      "b1705495a8aa4afe"
+    ],
+    "TASK_SOURCE_DIRTY_AT_CAPTURE": [
+      "3ba0fbcab40d8bfd",
+      "c8a69b3e581af1bd",
+      "bf0cc2ea93ec327f",
+      "ea87ec3b146d0dd8",
+      "532df5499fe3ad48",
+      "5b060238c343ce4c",
+      "7388e210853f1f5f",
+      "3bfaf9e373912822",
+      "4edcd0b09ba429c3",
+      "24618e128ef583ed",
+      "4e989f9642b5261c",
+      "e4ff325db2d1ea37",
+      "f0fa152f2080077b",
+      "d02d8fc53101a6a2",
+      "4765fb4aae4dd0f1",
+      "bef03d7e78919918",
+      "77b6d7e22159ce4c",
+      "8560552a081b595f"
+    ]
+  }
+}
