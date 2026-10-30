@@ -1,10 +1,10 @@
 # Public framework code map
 
-Static syntax evidence, not runtime or test PASS. Source commit is not yet assigned; exact source bytes are pinned below. Known base: `34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10`.
+Static syntax evidence, not runtime or test PASS. Source commit is not yet assigned; exact source bytes are pinned below. Known base: `91c492363b1073b4ba486f5111f98e7729884ca5`.
 
 Status: **VISUAL_QA_BLOCKED_NOT_DEPLOYED**. The code links are relative to this documentation directory (`docs/code-map`) and resolve to source in the same eventual commit, not to the older base.
 
-Source digest: `c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3`
+Source digest: `cd6f01866326ac952dd339a1b4a1f22b5814e13d3fa42422b13ea9feb83cb67e`
 
 |File|SHA256|Lines|
 |---|---|---:|
@@ -22,8 +22,9 @@ Source digest: `c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3
 |[src/backend/bounded-bytes.mjs](../../src/backend/bounded-bytes.mjs#L1)|`dc8ff8afe62e0b700765156734e9176e7ad0eadb66478c55a643755bbcf74744`|32|
 |[src/backend/bounded-json.mjs](../../src/backend/bounded-json.mjs#L1)|`922fafe8e7015a3870f4148d8e852989dcb45fd57ec2f238537975660a0b3ef4`|10|
 |[src/backend/contracts.mjs](../../src/backend/contracts.mjs#L1)|`cdb5ea9f8970705d504edf4aff0a9c0ab740d8b4cda64153128336f9c42c0dc4`|8|
+|[src/backend/decimal-amount.mjs](../../src/backend/decimal-amount.mjs#L1)|`d0143892dbe8ae857d38e37435a21e27bc22a5dfbefab1e039498700a52eb5b4`|14|
 |[src/backend/observation-volume.mjs](../../src/backend/observation-volume.mjs#L1)|`89a8dbbf5dc4fd9794924a485ef6d0a8b62bcefa0f22dc964f09116ed6d4b504`|11|
-|[src/backend/observations.mjs](../../src/backend/observations.mjs#L1)|`aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1`|27|
+|[src/backend/observations.mjs](../../src/backend/observations.mjs#L1)|`a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a`|28|
 |[src/backend/trusted-bindings.mjs](../../src/backend/trusted-bindings.mjs#L1)|`25312ce10c85777c356bfe62b46139dde27382f76bf426759955f46a6b0b8924`|3|
 |[src/model.mjs](../../src/model.mjs#L1)|`1825e8bde206bca16b219a265648ce4b8791d00d69e64e9737002ead26e2d42b`|7|
 |[src/observation-view.mjs](../../src/observation-view.mjs#L1)|`c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc`|32|
@@ -33,6 +34,7 @@ Source digest: `c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3
 |[src/workbench-model.mjs](../../src/workbench-model.mjs#L1)|`6c0dea1c7dacf8243fc943cd28ff2ec3b98729fc3fb2f1c696d9066919534886`|7|
 |[src/workflow-time.mjs](../../src/workflow-time.mjs#L1)|`a2b65eec48872122a1b1f67008b9f368a4fb46e069380add3eb662f42f761a38`|6|
 |[tests/backend-reference.test.mjs](../../tests/backend-reference.test.mjs#L1)|`30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb`|8|
+|[tests/decimal-amount.test.mjs](../../tests/decimal-amount.test.mjs#L1)|`8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335`|8|
 |[tests/framework.test.mjs](../../tests/framework.test.mjs#L1)|`c65eec95eb1f07ab84b7ad621b632424690da5086192cdf3cf5d5ac19e361f28`|7|
 |[tests/market-archive.test.mjs](../../tests/market-archive.test.mjs#L1)|`20de6b5190e4e3593823bb60582d460d212dd85349554faa22ee0deda7147abf`|6|
 |[tests/observation-view.test.mjs](../../tests/observation-view.test.mjs#L1)|`205b0694e0115a2a33d4a1861c991ba01ae3d5b01b41c28262a2a6ef50922b37`|14|
@@ -40,17 +42,3 @@ Source digest: `c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3
 |[tests/workbench-date.test.mjs](../../tests/workbench-date.test.mjs#L1)|`f271dd949ed6fcf3dea8fc63df706221ae605b5234136e219750bfee78f70631`|14|
 
 Exact edges/unknowns: graph.json. Reverse static dependency examples: impact_examples.json. No private source data, deployed runtime, original chart renderer or personal SOP is included.
-
-## Module imports (derived from the indexed static edges)
-
-```mermaid
-flowchart LR
-  demo --> pure_modules
-  shell --> pure_modules
-  tests --> backend
-  tests --> demo
-  tests --> pure_modules
-  tests --> shell
-```
-
-Arrows are imports only, not actual requests or test execution. For complete individual-file edges and explicit unresolved expressions, read graph.json.

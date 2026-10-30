@@ -28,3 +28,6 @@ The six pure modules were checked byte-for-byte against the parent-frozen source
 
 ## Source map and non-sensitive operations
 See [code map](docs/code-map/MAP.md), [inspection commands](docs/code-map/README.md), and [collaboration SOP](docs/code-map/OPERATIONS.md). Maps describe only this sanitized namespace; runtime/private data and authenticated SOP editing are absent.
+
+## Exact decimal amount comparison
+The backend reference now compares the textual amount against the ten-thousand-unit field with bounded integer decimal arithmetic. The original inclusive one-unit tolerance is unchanged; there is no floating epsilon. Synthetic tests cover exact boundaries, minimally outside values, malformed strings and the 128-character limit. This generic arithmetic sync contains no real snapshot values or receipts and does not change the four-column candidate visual/release status.

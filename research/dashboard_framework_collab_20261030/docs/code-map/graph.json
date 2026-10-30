@@ -1,7 +1,7 @@
 {
   "schema": "ENGINEERING_CODE_MAP_V1",
   "method": "TypeScript AST + HTML resource references + SQL literal references",
-  "source_digest": "c7dee556d534a2c557193cf3065cf80c462b771d106683e5faa9d1bfff6dceb3",
+  "source_digest": "cd6f01866326ac952dd339a1b4a1f22b5814e13d3fa42422b13ea9feb83cb67e",
   "nodes": [
     {
       "id": "case:tests/backend-reference.test.mjs:2394",
@@ -22,6 +22,26 @@
       "id": "case:tests/backend-reference.test.mjs:3692",
       "kind": "test-case",
       "label": "bounded utility rejects oversized request before parsing"
+    },
+    {
+      "id": "case:tests/decimal-amount.test.mjs:1353",
+      "kind": "test-case",
+      "label": "sanitized backend uses exact comparator and retains fail-closed authorization"
+    },
+    {
+      "id": "case:tests/decimal-amount.test.mjs:247",
+      "kind": "test-case",
+      "label": "synthetic exact positive and negative one-yuan boundaries are inclusive"
+    },
+    {
+      "id": "case:tests/decimal-amount.test.mjs:509",
+      "kind": "test-case",
+      "label": "a decimal amount even minimally outside one yuan is rejected without epsilon"
+    },
+    {
+      "id": "case:tests/decimal-amount.test.mjs:902",
+      "kind": "test-case",
+      "label": "bounded text grammar rejects missing non-string malformed exponent whitespace and overlength"
     },
     {
       "id": "case:tests/framework.test.mjs:1561",
@@ -280,6 +300,16 @@
       "source_url": "../../src/backend/contracts.mjs"
     },
     {
+      "id": "file:src/backend/decimal-amount.mjs",
+      "kind": "file",
+      "label": "src/backend/decimal-amount.mjs",
+      "path": "src/backend/decimal-amount.mjs",
+      "sha256": "d0143892dbe8ae857d38e37435a21e27bc22a5dfbefab1e039498700a52eb5b4",
+      "bytes": 922,
+      "lines": 14,
+      "source_url": "../../src/backend/decimal-amount.mjs"
+    },
+    {
       "id": "file:src/backend/observation-volume.mjs",
       "kind": "file",
       "label": "src/backend/observation-volume.mjs",
@@ -294,9 +324,9 @@
       "kind": "file",
       "label": "src/backend/observations.mjs",
       "path": "src/backend/observations.mjs",
-      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
-      "bytes": 15302,
-      "lines": 27,
+      "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+      "bytes": 15366,
+      "lines": 28,
       "source_url": "../../src/backend/observations.mjs"
     },
     {
@@ -390,6 +420,16 @@
       "source_url": "../../tests/backend-reference.test.mjs"
     },
     {
+      "id": "file:tests/decimal-amount.test.mjs",
+      "kind": "test",
+      "label": "tests/decimal-amount.test.mjs",
+      "path": "tests/decimal-amount.test.mjs",
+      "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+      "bytes": 1929,
+      "lines": 8,
+      "source_url": "../../tests/decimal-amount.test.mjs"
+    },
+    {
       "id": "file:tests/framework.test.mjs",
       "kind": "test",
       "label": "tests/framework.test.mjs",
@@ -460,6 +500,11 @@
       "label": "node:fs"
     },
     {
+      "id": "package:node:fs/promises",
+      "kind": "external-package",
+      "label": "node:fs/promises"
+    },
+    {
       "id": "package:node:test",
       "kind": "external-package",
       "label": "node:test"
@@ -470,21 +515,21 @@
       "label": "node:vm"
     },
     {
-      "id": "r2:src/backend/observations.mjs:11105",
+      "id": "r2:src/backend/observations.mjs:11169",
       "kind": "r2-operation",
       "label": "get key(row.sha256)",
       "operation": "get",
       "key_expression": "key(row.sha256)"
     },
     {
-      "id": "r2:src/backend/observations.mjs:14061",
+      "id": "r2:src/backend/observations.mjs:14125",
       "kind": "r2-operation",
       "label": "put key(id)",
       "operation": "put",
       "key_expression": "key(id)"
     },
     {
-      "id": "r2:src/backend/observations.mjs:14156",
+      "id": "r2:src/backend/observations.mjs:14220",
       "kind": "r2-operation",
       "label": "get key(id)",
       "operation": "get",
@@ -1006,14 +1051,26 @@
     },
     {
       "from": "file:src/backend/observations.mjs",
+      "to": "file:src/backend/decimal-amount.mjs",
+      "kind": "imports",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 1,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L1"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
       "to": "file:src/backend/observation-volume.mjs",
       "kind": "imports",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 2,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 3,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L2"
+        "source_url": "../../src/backend/observations.mjs#L3"
       }
     },
     {
@@ -1022,10 +1079,10 @@
       "kind": "imports",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 3,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 4,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L3"
+        "source_url": "../../src/backend/observations.mjs#L4"
       }
     },
     {
@@ -1034,10 +1091,10 @@
       "kind": "imports",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 4,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 5,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L4"
+        "source_url": "../../src/backend/observations.mjs#L5"
       }
     },
     {
@@ -1046,10 +1103,10 @@
       "kind": "imports",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 5,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 6,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L5"
+        "source_url": "../../src/backend/observations.mjs#L6"
       }
     },
     {
@@ -1058,10 +1115,10 @@
       "kind": "route-literal",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 6,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 7,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L6"
+        "source_url": "../../src/backend/observations.mjs#L7"
       }
     },
     {
@@ -1070,10 +1127,10 @@
       "kind": "sql-references",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 11,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 12,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L11"
+        "source_url": "../../src/backend/observations.mjs#L12"
       },
       "sql_operation": "SELECT"
     },
@@ -1083,10 +1140,10 @@
       "kind": "sql-references",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 11,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 12,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L11"
+        "source_url": "../../src/backend/observations.mjs#L12"
       },
       "sql_operation": "SELECT"
     },
@@ -1096,10 +1153,10 @@
       "kind": "schema-literal",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 13,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 14,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L13"
+        "source_url": "../../src/backend/observations.mjs#L14"
       }
     },
     {
@@ -1108,10 +1165,10 @@
       "kind": "schema-literal",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 14,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 15,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L14"
+        "source_url": "../../src/backend/observations.mjs#L15"
       }
     },
     {
@@ -1120,10 +1177,10 @@
       "kind": "schema-literal",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 14,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 15,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L14"
+        "source_url": "../../src/backend/observations.mjs#L15"
       }
     },
     {
@@ -1132,22 +1189,22 @@
       "kind": "schema-literal",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 19,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 20,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L19"
+        "source_url": "../../src/backend/observations.mjs#L20"
       }
     },
     {
       "from": "file:src/backend/observations.mjs",
-      "to": "r2:src/backend/observations.mjs:11105",
+      "to": "r2:src/backend/observations.mjs:11169",
       "kind": "r2-access",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 21,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 22,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L21"
+        "source_url": "../../src/backend/observations.mjs#L22"
       }
     },
     {
@@ -1156,10 +1213,10 @@
       "kind": "route-regex",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 22,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 23,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L22"
+        "source_url": "../../src/backend/observations.mjs#L23"
       }
     },
     {
@@ -1168,10 +1225,10 @@
       "kind": "sql-references",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 23,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 24,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L23"
+        "source_url": "../../src/backend/observations.mjs#L24"
       },
       "sql_operation": "SELECT"
     },
@@ -1181,45 +1238,8 @@
       "kind": "route-regex",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 24,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
-        "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L24"
-      }
-    },
-    {
-      "from": "file:src/backend/observations.mjs",
-      "to": "table:research_observation_snapshots",
-      "kind": "sql-references",
-      "evidence": {
-        "path": "src/backend/observations.mjs",
-        "line": 24,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
-        "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L24"
-      },
-      "sql_operation": "SELECT"
-    },
-    {
-      "from": "file:src/backend/observations.mjs",
-      "to": "r2:src/backend/observations.mjs:14061",
-      "kind": "r2-access",
-      "evidence": {
-        "path": "src/backend/observations.mjs",
         "line": 25,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
-        "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L25"
-      }
-    },
-    {
-      "from": "file:src/backend/observations.mjs",
-      "to": "r2:src/backend/observations.mjs:14156",
-      "kind": "r2-access",
-      "evidence": {
-        "path": "src/backend/observations.mjs",
-        "line": 25,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
         "source_url": "../../src/backend/observations.mjs#L25"
       }
@@ -1231,7 +1251,7 @@
       "evidence": {
         "path": "src/backend/observations.mjs",
         "line": 25,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
         "source_url": "../../src/backend/observations.mjs#L25"
       },
@@ -1239,14 +1259,51 @@
     },
     {
       "from": "file:src/backend/observations.mjs",
+      "to": "r2:src/backend/observations.mjs:14125",
+      "kind": "r2-access",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 26,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L26"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "r2:src/backend/observations.mjs:14220",
+      "kind": "r2-access",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 26,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L26"
+      }
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
       "to": "table:research_observation_snapshots",
       "kind": "sql-references",
       "evidence": {
         "path": "src/backend/observations.mjs",
-        "line": 25,
-        "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+        "line": 26,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
         "certainty": "STATIC_SYNTAX",
-        "source_url": "../../src/backend/observations.mjs#L25"
+        "source_url": "../../src/backend/observations.mjs#L26"
+      },
+      "sql_operation": "SELECT"
+    },
+    {
+      "from": "file:src/backend/observations.mjs",
+      "to": "table:research_observation_snapshots",
+      "kind": "sql-references",
+      "evidence": {
+        "path": "src/backend/observations.mjs",
+        "line": 26,
+        "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../src/backend/observations.mjs#L26"
       },
       "sql_operation": "INSERT"
     },
@@ -1416,6 +1473,114 @@
         "sha256": "30fe2444ff348ee4a7fc0368a22877b3cf2f99c000cec03d3f0fa5547f4040eb",
         "certainty": "STATIC_SYNTAX",
         "source_url": "../../tests/backend-reference.test.mjs#L7"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "package:node:assert/strict",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 2,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "package:node:test",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 2,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L2"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "file:src/backend/decimal-amount.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 3,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L3"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "case:tests/decimal-amount.test.mjs:247",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 4,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L4"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "case:tests/decimal-amount.test.mjs:509",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 5,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L5"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "case:tests/decimal-amount.test.mjs:902",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 6,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L6"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "case:tests/decimal-amount.test.mjs:1353",
+      "kind": "declares-test-not-execution",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 7,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L7"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "file:src/backend/contracts.mjs",
+      "kind": "test-imports",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 7,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L7"
+      }
+    },
+    {
+      "from": "file:tests/decimal-amount.test.mjs",
+      "to": "package:node:fs/promises",
+      "kind": "imports-external",
+      "evidence": {
+        "path": "tests/decimal-amount.test.mjs",
+        "line": 7,
+        "sha256": "8676fccf08d073d5f83014c862d30896b22dae76eec6b3e5b912d10acb664335",
+        "certainty": "STATIC_SYNTAX",
+        "source_url": "../../tests/decimal-amount.test.mjs#L7"
       }
     },
     {
@@ -2073,30 +2238,30 @@
     },
     {
       "path": "src/backend/observations.mjs",
-      "line": 21,
-      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "line": 22,
+      "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
       "certainty": "STATIC_SYNTAX",
       "reason": "computed-r2-key",
       "expression": "key(row.sha256)",
-      "source_url": "../../src/backend/observations.mjs#L21"
+      "source_url": "../../src/backend/observations.mjs#L22"
     },
     {
       "path": "src/backend/observations.mjs",
-      "line": 25,
-      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "line": 26,
+      "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
       "certainty": "STATIC_SYNTAX",
       "reason": "computed-r2-key",
       "expression": "key(id)",
-      "source_url": "../../src/backend/observations.mjs#L25"
+      "source_url": "../../src/backend/observations.mjs#L26"
     },
     {
       "path": "src/backend/observations.mjs",
-      "line": 25,
-      "sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
+      "line": 26,
+      "sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
       "certainty": "STATIC_SYNTAX",
       "reason": "computed-r2-key",
       "expression": "key(id)",
-      "source_url": "../../src/backend/observations.mjs#L25"
+      "source_url": "../../src/backend/observations.mjs#L26"
     },
     {
       "path": "tests/observation-view.test.mjs",
@@ -2164,10 +2329,10 @@
   ],
   "visibility": "PUBLIC_SANITIZED_FRAMEWORK_SUBSET_ONLY",
   "source_commit": null,
-  "base_commit": "34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10",
+  "base_commit": "91c492363b1073b4ba486f5111f98e7729884ca5",
   "source_revision_kind": "CONTENT_HASH_SNAPSHOT_PENDING_COMMIT",
   "source_link_mode": "RELATIVE_TO_SAME_COMMIT_DOCS_CODE_MAP",
-  "parent_package_manifest_sha256": "118a86c29fa0484926737509ef2bda4209e05d8087cb5953786bfa49024368af",
+  "parent_package_manifest_sha256": "3bb44a14b09daec82ed887f2b34676e52092c6368b5cb83f63010ccb4e471939",
   "release_status": "VISUAL_QA_BLOCKED_NOT_DEPLOYED",
   "scope_note": "Only sanitized manifest source subset, not private runtime. Exact bytes identified by per-file SHA and source_digest. Relative links resolve to code in the same eventual commit."
 }

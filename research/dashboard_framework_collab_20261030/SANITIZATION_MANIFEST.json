@@ -4,10 +4,10 @@
   "records": [
     {
       "original_path": "src/research-system/observations.mjs",
-      "original_code_sha256": "8489793355d733b3c113ee98d852e59fcf48818b3ed8e335fe12a4f57678ae5d",
+      "original_code_sha256": "96aadd7b2f216b82cb18449c16e8f6f054470817b6ea531dd87c808bc8060c34",
       "export_path": "src/backend/observations.mjs",
-      "export_sha256": "aba75fdf5c9579bf825c93920b38e5d325ffa1abcb96907f6143d79f66906cd1",
-      "change": "Full validator/routes retained; imports redirected to public-only shims."
+      "export_sha256": "a36caf0b5f00ca06c5e55c27838a0cad9159d780a0ddadf8a33ee53104a83d3a",
+      "change": "Full validator/routes retained; imports redirected to public-only shims. Exact decimal comparator import and predicate substituted; no other backend logic changed."
     },
     {
       "original_path": "src/research-system/observation-volume.mjs",
@@ -43,6 +43,13 @@
       "export_path": "schemas/OBSERVATION_SCHEMA.sql",
       "export_sha256": "1099b588ad471e2bcfbcf6e785de13665164585cda1d54be421e20d34fa652ca",
       "change": "Schema-only table definition, no values or runtime records."
+    },
+    {
+      "original_path": "src/research-system/decimal-amount.mjs",
+      "original_code_sha256": "d0143892dbe8ae857d38e37435a21e27bc22a5dfbefab1e039498700a52eb5b4",
+      "export_path": "src/backend/decimal-amount.mjs",
+      "export_sha256": "d0143892dbe8ae857d38e37435a21e27bc22a5dfbefab1e039498700a52eb5b4",
+      "change": "Byte-identical pure bounded decimal arithmetic; no observations or private bindings."
     }
   ],
   "never_included": [
@@ -116,5 +123,9 @@
       "export_sha256": "c7ba4f79acef6bf549946ce1cc12d3a4ea19d380b46aa973e943564d892e6ecc",
       "change": "Byte-identical pure module; saved-value cadence semantics updated."
     }
-  ]
+  ],
+  "decimal_increment": {
+    "public_parent_commit": "91c492363b1073b4ba486f5111f98e7729884ca5",
+    "scope": "Generic bounded decimal arithmetic only; artificial boundary tests; preserve denied authorization and null trust registry."
+  }
 }

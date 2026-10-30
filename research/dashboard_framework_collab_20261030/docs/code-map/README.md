@@ -1,6 +1,6 @@
 # Public framework code map and maintenance SOP — pending increment
 
-Scope: the sanitized framework source manifest supplied with this same package. Known base commit is `34c353cc1ba4ae0d02fbf36bc6158f38ff17fe10`, but the new source commit is not yet assigned. It is intentionally `null`, not invented. Exact source identity is per-file SHA256 plus source_digest.
+Scope: the sanitized framework source manifest supplied with this same package. Known base commit is `91c492363b1073b4ba486f5111f98e7729884ca5`, but the new source commit is not yet assigned. It is intentionally `null`, not invented. Exact source identity is per-file SHA256 plus source_digest.
 
 Status: **VISUAL_QA_BLOCKED_NOT_DEPLOYED**. Source tests and public content review do not authorize or certify a production release.
 
