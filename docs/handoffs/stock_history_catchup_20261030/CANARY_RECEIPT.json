@@ -1,0 +1,140 @@
+{
+  "status": "CANARY_PASS_BATCH_RUNNING",
+  "symbol": "001328.SZ",
+  "available_dates": 861,
+  "evaluated_dates": 861,
+  "remaining_dates": [],
+  "elapsed_seconds": 36.30032079201192,
+  "peak_rss_bytes": 2228617216,
+  "formula_engine_compute_calls": 0,
+  "retained_formula_result_reads": 1,
+  "pure_prefix_parity": [
+    {
+      "date": 20230410,
+      "evaluation_sha256": "5acf0c08d0b9bb47c9ae9598821ff069cec22fd71a3d4b7d052df963d3c638cf",
+      "prefix_rows": 1
+    },
+    {
+      "date": 20230608,
+      "evaluation_sha256": "1039789818f742b05ac5f605f1a1ce8026b978d48c3091af0ab11ca6afe9bd97",
+      "prefix_rows": 41
+    },
+    {
+      "date": 20261022,
+      "evaluation_sha256": "1f5d0f1f648423f7e893460ff1c9f40abed32f5f59dc8dfa8892b667434b78ef",
+      "prefix_rows": 856
+    }
+  ],
+  "current_groups": "nav_smallk|nav_pullback",
+  "unknown_by_group": {
+    "nav_breakout": 117,
+    "nav_pullback": 94,
+    "nav_smallk": 170,
+    "original": 116
+  },
+  "groups": {
+    "nav_breakout": {
+      "d2": {
+        "total": 21,
+        "valid": 21,
+        "positive": 8,
+        "negative": 13,
+        "flat": 0,
+        "not_matured": 0,
+        "missing_price": 0,
+        "positive_fraction": 0.38095238095238093
+      },
+      "d5": {
+        "total": 21,
+        "valid": 19,
+        "positive": 8,
+        "negative": 11,
+        "flat": 0,
+        "not_matured": 2,
+        "missing_price": 0,
+        "positive_fraction": 0.42105263157894735
+      }
+    },
+    "nav_pullback": {
+      "d2": {
+        "total": 20,
+        "valid": 18,
+        "positive": 12,
+        "negative": 6,
+        "flat": 0,
+        "not_matured": 2,
+        "missing_price": 0,
+        "positive_fraction": 0.6666666666666666
+      },
+      "d5": {
+        "total": 20,
+        "valid": 17,
+        "positive": 12,
+        "negative": 5,
+        "flat": 0,
+        "not_matured": 3,
+        "missing_price": 0,
+        "positive_fraction": 0.7058823529411765
+      }
+    },
+    "nav_smallk": {
+      "d2": {
+        "total": 2,
+        "valid": 0,
+        "positive": 0,
+        "negative": 0,
+        "flat": 0,
+        "not_matured": 2,
+        "missing_price": 0,
+        "positive_fraction": null
+      },
+      "d5": {
+        "total": 2,
+        "valid": 0,
+        "positive": 0,
+        "negative": 0,
+        "flat": 0,
+        "not_matured": 2,
+        "missing_price": 0,
+        "positive_fraction": null
+      }
+    },
+    "original": {
+      "d2": {
+        "total": 20,
+        "valid": 20,
+        "positive": 13,
+        "negative": 7,
+        "flat": 0,
+        "not_matured": 0,
+        "missing_price": 0,
+        "positive_fraction": 0.65
+      },
+      "d5": {
+        "total": 20,
+        "valid": 18,
+        "positive": 11,
+        "negative": 7,
+        "flat": 0,
+        "not_matured": 2,
+        "missing_price": 0,
+        "positive_fraction": 0.6111111111111112
+      }
+    }
+  },
+  "result_sha256": "4b6fb537fbb1c61eface204d2928a101cd4e353a596dd610b989f40fe128b98a",
+  "contract": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/stock_history_catchup_20261030/CONTRACT_71342329457bdbe5db592ede25d332587b9a7548cbde0ea67324a16a06e40f83.json",
+    "sha256": "7ef827a583726e8b4e234ac2444d8ddcd492682b2da718d14c045b2a310eafd4"
+  },
+  "unknown_reason_limit": "Original owner cache stores final tri-state only; no per-date reason attribution manufactured",
+  "recovery_counter_note": "resumed_dates in R2 result is final journal cardinality; it is not the initial resumed count",
+  "cross_day_incremental": "NOT_INTEGRATED",
+  "DEPLOYED": false,
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

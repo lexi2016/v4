@@ -1,0 +1,42 @@
+{
+  "status": "SYNTHETIC10PASS_R2_WAIT_ROOT_REGISTERED_REBIND",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "command": "PANEL_PYTHON -m unittest discover -s tests -p test_stock_history_bootstrap.py -v",
+  "tests": 10,
+  "failures": 0,
+  "errors": 0,
+  "synthetic_prefixes": 65,
+  "real_evaluation": "R1_INITIALIZATION_FAILED_BEFORE_ANY_DATE_EVALUATION",
+  "same_source_002003_SZ_calendar_exact_parity_dates": 8793,
+  "frozen_binding": {
+    "contract": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/stock_history_catchup_20261030/CONTRACT_71342329457bdbe5db592ede25d332587b9a7548cbde0ea67324a16a06e40f83.json",
+      "sha256": "7ef827a583726e8b4e234ac2444d8ddcd492682b2da718d14c045b2a310eafd4"
+    },
+    "code": [
+      {
+        "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/stock-history-catchup-20261030/ops/bootstrap_stock_event_history.py",
+        "sha256": "6626459582e06398d9819b652b2fc54ae69648d4cde9fbe8c598550b56e52212"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-name-zoom-20261030-r1-main/app/ops/research_panel_daily_product.py",
+        "sha256": "a281777b2b5120980151220d832d360498c8c53fcdd43d464bc7a52eae765abe"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/stock-history-catchup-20261030/domains/research_daily_product.py",
+        "sha256": "48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3"
+      },
+      {
+        "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/stock-history-catchup-20261030/domains/research_daily_statistics.py",
+        "sha256": "49f20f898517131403b329b99565a5b244c5a74b5a30f5cae54c4ced77187fff"
+      }
+    ],
+    "config_sha256": "a12e1960b770947f049ee5182e76fdadb7740fce7eb9b442a37fd406d6c7f3b8"
+  },
+  "tests_sha256": "efa90efe32fad31ecc0236dc03a443ac9d1b5710f4b3e679748466f325065a71",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "failure": "Lazy original rule import; fixed by explicit pinned import and targeted regression"
+}
