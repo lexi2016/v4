@@ -1,0 +1,11 @@
+# Ordinary A-share turnover: missing-only daily integration
+
+The existing QFQ daily owner now derives ordinary turnover percent from same-day TDX G4 native share volume divided by dated GBBQ circulating shares, multiplied by 100. GBBQ capital units are converted from 10,000 shares. Unresolved subsequent capital events and absent valid prices remain null; free-float turnover is not inferred. Historical native `.day` volume is used only where the same-day G4 capture is unavailable, with its precision limitation recorded. Historical results are not PIT-certified.
+
+The helper fills only existing A_SHARE/BJ code/date rows and missing turnover fields. Existing non-null values, row order, prices, indicators and other markets remain unchanged. D28 projection identity/cutoff and the current D30 baseline identity are separately bound; importing a historical projection cannot regress CURRENT or append rows. The exact compatibility gate retains the original primary/approved bindings and rejects PENDING or mismatched proof/helper bytes.
+
+Completed isolated data: D28 5,538 rows, 5,240 valued and 298 null. Historical missing cohort: 12,661,841 filled, 1,888,958 unresolved, 2,536,941 pre-existing values retained. Current D30 candidate: each role 17,152,902 rows; 12,662,678 fills, 1,888,983 unresolved matches, no matching duplicate keys. These date cohorts differ; their counts are not interchangeable. Missing suspension/delisting/capital evidence remains missing and is skipped according to the existing date-specific SOP.
+
+Source scope: `ops/research_panel_qfq.py`, `ops/research_panel_turnover.py`, `tests/test_research_panel_turnover.py`. Independent review: REVIEWED/PASS, with 10 focused tests passing and three representative D28 rows checked for original non-target values. A complete inactive Main package preserves all 988 non-delta inventory entries. Installation, service restart, runtime acceptance update, default-data promotion, API/UI and natural daily-run acceptance have not been performed. The new strategy screen/workbench groups/chart batch have not run as part of this turnover change.
+
+RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false.
