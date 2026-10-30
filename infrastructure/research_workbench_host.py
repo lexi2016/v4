@@ -70,9 +70,18 @@ class ResearchWorkbenchHost:
         self._lock=threading.RLock()
         if binding.get('schema')!='V4_MAC_WORKBENCH_BINDING_V1' or binding.get('RESEARCH_ONLY') is not True or any(binding.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent')):
             raise ValueError('WORKBENCH_HOST_BINDING_REQUIRED')
+        self.skill_r2=None
+        if binding.get('skill_r2_d28'):
+            from infrastructure.research_workbench_skill_r2 import SkillR2Workbench
+            self.skill_r2=SkillR2Workbench(binding['skill_r2_d28'])
 
     def _index(self):
         return json.loads((self.source._a_product_root()/'index.json').read_text())
+
+    def _is_skill_date(self,source_date):
+        if self.skill_r2 is None or source_date!='2026-10-28':return False
+        if '20261028' in self._index().get('dates',{}):raise ValueError('SKILL_R2_EXISTING_DATE_PRODUCT_CONFLICT')
+        return True
 
     def _view(self,source_date,revision=None):
         day=compact(source_date);index=self._index();reference=index.get('dates',{}).get(day)
@@ -126,6 +135,14 @@ class ResearchWorkbenchHost:
         return self.binding.get(module,{}).get(day) if isinstance(self.binding.get(module),dict) else None
 
     def versions(self,source_date,revision=None):
+        if self._is_skill_date(source_date):
+            result=self.skill_r2.versions(self._observation_date(source_date),revision)
+            def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+            index=self._index()
+            result['modules']['catalog']=digest({key:index.get(key,{})for key in ('dates','attempts')})
+            result['modules']['top200']=digest(index.get('top200',{}).get(compact(source_date)))
+            result['event_id']=digest(result['modules'])
+            return result
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         def version(module,day):
@@ -133,7 +150,7 @@ class ResearchWorkbenchHost:
             except (ValueError,OSError,KeyError,TypeError) as error:return {'error':str(error)}
         try:quote=self._observation_commit(observation)
         except (ValueError,OSError,KeyError,TypeError) as error:quote={'error':str(error)}
-        modules=dict(classification=self.classifications.version(),list=digest([p['manifest'],self._index().get('display_names',{}).get(compact(source_date))]),
+        modules=dict(catalog=digest({key:self._index().get(key,{})for key in ('dates','attempts')}),top200=digest(self._index().get('top200',{}).get(compact(source_date))),classification=self.classifications.version(),list=digest([p['manifest'],self._index().get('display_names',{}).get(compact(source_date))]),
                      statistics=digest(version('statistics',source_date)),observations=digest(quote),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
@@ -145,9 +162,36 @@ class ResearchWorkbenchHost:
             iso=f'{value[:4]}-{value[4:6]}-{value[6:]}'
             product=self._view(iso)
             days.append(dict(source_date=iso,observation_date=self._observation_date(iso),revision=product['source_generation'],numeric_manifest=product['manifest']))
+        if self.skill_r2 is not None:
+            try:
+                if self._is_skill_date('2026-10-28'):days.append(self.skill_r2.history_entry(self._observation_date('2026-10-28')))
+            except (ValueError,OSError,KeyError,TypeError):pass
+        for value,reference in sorted(self._index().get('attempts',{}).items(),reverse=True):
+            if value in self._index().get('dates',{}):continue
+            attempt=self.source._a_product_reference(reference)
+            if attempt.get('data_date')!=value or attempt.get('schema')!='V4_A_DAILY_DERIVATIVES_V1':raise ValueError('WORKBENCH_ATTEMPT_IDENTITY_CONFLICT')
+            iso=f'{value[:4]}-{value[4:6]}-{value[6:]}'
+            days.append(dict(source_date=iso,observation_date=self._observation_date(iso),revision=None,status=attempt['status'],attempt=reference))
+        days.sort(key=lambda value:value['source_date'],reverse=True)
         return dict(status='READY',days=days,revision_kind='SOURCE_GENERATION_NOT_STATISTICS_REVISION',**FLAGS)
 
+    def top200(self,source_date,revision=None):
+        if self._is_skill_date(source_date):
+            self.skill_r2.versions(self._observation_date(source_date),revision)
+            return dict(status='CANNOT_CONFIRM_NOT_MATERIALIZED',source_date=source_date,top200=[],statistics={},**FLAGS)
+        p=self._view(source_date,revision);reference=self._index().get('top200',{}).get(compact(source_date))
+        if reference is None:return dict(status='CANNOT_CONFIRM_NOT_MATERIALIZED',source_date=source_date,top200=[],statistics={},**FLAGS)
+        value=self.source._a_product_reference(reference)
+        if (value.get('schema')!='V4_A_SHARE_TOP200_V1' or value.get('data_date')!=p['data_date'] or
+            value.get('numeric_manifest')!=p['manifest'] or value.get('source_generation')!=p['source_generation'] or
+            value.get('input_sha256')!=p['source_identity']['input_sha256'] or len(value.get('top200',[]))!=value.get('top200_count') or
+            len({row['symbol']for row in value.get('top200',[])})!=value.get('top200_count')):
+            raise ValueError('WORKBENCH_TOP200_SOURCE_CONFLICT')
+        return {key:item for key,item in value.items() if key!='coverage'}|dict(artifact=reference)
+
     def day(self,source_date,revision=None):
+        if self._is_skill_date(source_date):
+            return self.skill_r2.day(self._observation_date(source_date),self.workflow(source_date),revision)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         if observation is None:raise ValueError('WORKBENCH_OBSERVATION_DATE_UNBOUND')
         rows=[]
@@ -198,6 +242,7 @@ class ResearchWorkbenchHost:
         return self.classifications.catalog(market)
 
     def chart_views(self,source_date,revision=None):
+        if self._is_skill_date(source_date):return self.skill_r2.chart_views(revision)
         p=self._view(source_date,revision);descriptor=p.get('original_charts')
         if not isinstance(descriptor,dict) or descriptor.get('numeric_manifest')!=p['manifest']:
             empty=dict(rows=[],status='UNKNOWN_CHART_BINDING',source_date=source_date,**FLAGS)
@@ -231,6 +276,7 @@ class ResearchWorkbenchHost:
         return result
 
     def company(self,source_date,symbol,revision=None):
+        if self._is_skill_date(source_date):return None
         p=self._view(source_date,revision)
         answer=self.source.read_a_daily_company_materials(p['data_date'],symbol,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'])
         if answer.get('status')!='PARTIAL_RECEIVED':return None
@@ -246,6 +292,10 @@ class ResearchWorkbenchHost:
         return dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],business=dict(summary=fact(business.get('value'),business)),actual_controller=None,latest_financial=dict(report_period=finance.get('latest_report_period'),period_kind=finance.get('latest_period_kind')),facts=[['营收',fact(finance.get('latest_revenue'),finance)],['归母净利润',fact(finance.get('latest_net_profit_parent'),finance)],['股东户数',holder_fact('holder_count',holders.get('holder_count'),'户')],['股东较上期变化',holder_fact('change_accounts',holders.get('holder_change_accounts'),'户')],['股东较上期变化率',holder_fact('change_percent',holders.get('holder_change_percent'),'%')]],reports=dict(metadata_only_count=len(m.get('report_catalog') or []),catalog=m.get('report_catalog') or [],stored_report=m.get('stored_report'),missing_reason=None if m.get('report_catalog') else 'CANNOT_CONFIRM_NO_BOUND_REPORT_METADATA'),received_materials=m,material_ref=answer.get('material_ref'),**FLAGS)
 
     def observations(self,source_date,observation_date,revision=None):
+        if self._is_skill_date(source_date):
+            self.skill_r2.versions(self._observation_date(source_date),revision)
+            if observation_date!=self._observation_date(source_date):raise ValueError('WORKBENCH_OBSERVATION_DATE_CONFLICT')
+            return dict(latest=None,status='UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT',source_date=source_date,observation_date=observation_date,**FLAGS)
         p=self._view(source_date,revision)
         if observation_date!=self._observation_date(source_date):raise ValueError('WORKBENCH_OBSERVATION_DATE_CONFLICT')
         pointer=self._observation_commit(observation_date)
@@ -270,6 +320,9 @@ class ResearchWorkbenchHost:
         return pointer
 
     def source_context(self,source_date,revision=None):
+        if self._is_skill_date(source_date):
+            version=self.skill_r2.versions(self._observation_date(source_date),revision)
+            return dict(source_date=source_date,observation_date=version['observation_date'],generation=version['generation'],input_sha256=version['input_sha256'],markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']},intraday_status='UNKNOWN',**FLAGS)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         packet=self._module_reference('overseas',observation)
         markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']}
@@ -313,12 +366,18 @@ class ResearchWorkbenchHost:
             except (ValueError,OSError,KeyError,TypeError):pass
         return dict(status=status,recorded_at=value.get('finished_at'),error=value.get('error'),evidence=[reference],missing=[] if status=='COMPLETED' else ['原回执不含精确完成时刻；保留UNKNOWN'] if not value.get('finished_at') else [],owner_receipt_status=value.get('status'))
 
+    def skill_r2_asset(self,source_date,symbol,kind,sha,revision=None):
+        if not self._is_skill_date(source_date):raise KeyError('SKILL_R2_ASSET_NOT_FOUND')
+        return self.skill_r2.asset(symbol,kind,sha,revision)
+
     def workflow(self,source_date=None):
         plan=checked(self.binding['workflow_plan']);nodes=[];error=None
         observation=self._observation_date(source_date) if source_date else self.binding.get('workflow_date')
         try:
             ref=self._module_reference('execution',observation) if observation else None
-            ref=ref or self.binding.get('workflow_execution')
+            if ref is None and self.binding.get('workflow_execution'):
+                fallback=self.binding['workflow_execution'];candidate=checked(fallback)
+                if not observation or candidate.get('observation_date')==observation:ref=fallback
             evidence=checked(ref) if ref else {}
             if evidence and observation and evidence.get('observation_date')!=observation:raise ValueError('WORKBENCH_EXECUTION_DATE_CONFLICT')
         except (ValueError,OSError,KeyError,TypeError) as exc:evidence={};error=str(exc)
@@ -343,7 +402,7 @@ class ResearchWorkbenchHost:
 def create_workbench_router(source):
     import asyncio
     from fastapi import APIRouter,HTTPException,Request
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import Response,StreamingResponse
     from starlette.concurrency import run_in_threadpool
     router=APIRouter(prefix='/workbench',tags=['local-research-workbench'])
     binding_path=os.environ.get('V4_WORKBENCH_HOST_BINDING');binding_sha=os.environ.get('V4_WORKBENCH_HOST_BINDING_SHA256')
@@ -380,10 +439,16 @@ def create_workbench_router(source):
         return StreamingResponse(stream(),media_type='text/event-stream',headers={'Cache-Control':'no-store','X-Accel-Buffering':'no'})
     @router.get('/days/{source_date}')
     def day(source_date:str,revision:str|None=None):return call('day',source_date,revision)
+    @router.get('/days/{source_date}/top200')
+    def top200(source_date:str,revision:str|None=None):return call('top200',source_date,revision)
     @router.get('/days/{source_date}/charts')
     def charts(source_date:str,revision:str|None=None):return call('chart_views',source_date,revision)['charts']
     @router.get('/days/{source_date}/projections')
     def projections(source_date:str,revision:str|None=None):return call('chart_views',source_date,revision)['projections']
+    @router.get('/days/{source_date}/skill-r2/assets/{symbol}/{kind}')
+    def skill_asset(source_date:str,symbol:str,kind:str,sha256:str,revision:str|None=None):
+        content,media=call('skill_r2_asset',source_date,symbol,kind,sha256,revision)
+        return Response(content,media_type=media,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
     @router.get('/days/{source_date}/company/{symbol}')
     def company(source_date:str,symbol:str,revision:str|None=None):return call('company',source_date,symbol,revision)
     @router.get('/days/{source_date}/observations')
