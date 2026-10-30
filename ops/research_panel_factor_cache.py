@@ -123,16 +123,40 @@ _ACCEPTED_SOP_LITERALS = frozenset({
 _CONTROLLER_FACT_SET_SHA = "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
 _CONTROLLER_PENDING_LITERAL = "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING"
 _MIRROR_CAVEAT = "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT"
+_LIFECYCLE_ASSET_PATH = Path(__file__).with_name("a_share_lifecycle_notes.json")
+_CONTROLLER_ARTIFACTS = {
+    "000016.SZ": "000016_cninfo_delisting_pdf",
+    "688287.SH": "688287_sse_delisting",
+    "832317.BJ": "832317_cninfo_issuer_pdf",
+    "833874.BJ": "833874_cninfo_notice_pdf",
+    "833994.BJ": "833994_cninfo_notice_pdf",
+    "920680.BJ": "920680_issuer_mirror_pdf",
+    "920305.BJ": "920305_issuer_mirror",
+    "600193.SH": "600193_broker_notice_mirror_pdf",
+}
+_TWO_BROKERS_SHA = "ef8f665560db18168cd9c0f093394fc06f10503bf73260899d1b8eee7cf9cb47"
+
+
+def _fixed_lifecycle_fact(code: str, fact: dict) -> bool:
+    # Bind the complete original projection, including market/event identity,
+    # approval references and caveats. A matching pending literal is not proof.
+    asset = json.loads(_source(dict(path=str(_LIFECYCLE_ASSET_PATH), sha256=_LIFECYCLE_ASSET_SHA),
+                               owner="original lifecycle projection").read_text())
+    matches = [item for item in asset.get("verified_delistings", []) if item.get("ts_code") == code]
+    return len(matches) == 1 and matches[0] == fact
 
 
 def _controller_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
     # Consume the original controller-approved non-admission fact as-is. This
     # does not turn its mirror source or pending consumer review into PASS.
-    if (code != "600193.SH" or fact.get("old_market_only") is not True
-            or fact.get("price_chain_admitted") is not False or fact.get("event_type") != "DELISTING"
+    if (code not in _CONTROLLER_ARTIFACTS
+            or (code != "600193.SH" and not _fixed_lifecycle_fact(code, fact))
+            or fact.get("old_market_only") is not True
+            or fact.get("price_chain_admitted") is not False
             or fact.get("historical_PIT") is not False
-            or fact.get("accepted_review_literal") != _CONTROLLER_PENDING_LITERAL
-            or fact.get("source_quality") != _MIRROR_CAVEAT or not fact.get("source_caveat")):
+            or fact.get("accepted_review_literal") != _CONTROLLER_PENDING_LITERAL):
+        return False
+    if code == "600193.SH" and (fact.get("event_type") != "DELISTING" or not fact.get("source_caveat")):
         return False
     ref = fact.get("accepted_case_result_ref")
     if not isinstance(ref, dict) or ref.get("sha256") != _CONTROLLER_FACT_SET_SHA:
@@ -140,18 +164,47 @@ def _controller_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
     approved = json.loads(_source(ref, owner="original controller-approved lifecycle fact set").read_text())
     if (approved.get("schema") != "controller_relayed_lineage_fact_set.v1"
             or approved.get("delisting_facts", {}).get(code) != effective
-            or approved.get("quality_caveats", {}).get(code) != _MIRROR_CAVEAT
             or approved.get("consumer_independent_review") != "PENDING"):
         return False
-    bound = approved.get("bound_primary_artifacts", {}).get("600193_broker_notice_mirror_pdf")
-    mirrors = fact.get("issuer_or_broker_mirror_refs")
-    if not isinstance(bound, dict) or not isinstance(mirrors, list) or len(mirrors) != 1:
+    caveat = approved.get("quality_caveats", {}).get(code)
+    quality = caveat or "PRIMARY_SOURCE_BYTES_CAPTURED"
+    if fact.get("source_quality") != quality:
         return False
-    mirror = mirrors[0]
-    if (not isinstance(mirror, dict) or mirror.get("source_quality") != _MIRROR_CAVEAT
-            or any(mirror.get(k) != bound.get(k) for k in ("path", "sha256"))):
+    bound = approved.get("bound_primary_artifacts", {}).get(_CONTROLLER_ARTIFACTS[code])
+    refs = fact.get("issuer_or_broker_mirror_refs" if caveat else "official_source_refs")
+    if not isinstance(bound, dict) or not isinstance(refs, list) or len(refs) != 1:
         return False
-    _source(mirror, owner="original accepted broker mirror bytes")
+    ref = refs[0]
+    if (not isinstance(ref, dict) or ref.get("source_quality") != quality
+            or any(ref.get(k) != bound.get(k) for k in ("path", "sha256"))):
+        return False
+    _source(ref, owner="original controller-bound lifecycle source bytes")
+    return True
+
+
+def _two_brokers_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
+    if (code not in ("601198.SH", "601059.SH") or not _fixed_lifecycle_fact(code, fact)
+            or fact.get("accepted_review_literal") != "EXISTING_ROOT_ACCEPTED_OFFICIAL_DELISTING_FACT_NO_REAUTHOR"):
+        return False
+    ref = fact.get("accepted_case_result_ref")
+    if not isinstance(ref, dict) or ref.get("sha256") != _TWO_BROKERS_SHA:
+        return False
+    approved = json.loads(_source(ref, owner="original accepted two-broker facts").read_text())
+    matches = [item for item in approved.get("facts", []) if item.get("ts_code") == code]
+    if len(matches) != 1:
+        return False
+    item = matches[0]
+    if (item.get("effective_delisting_date") != effective
+            or item.get("status") != "OFFICIAL_DELISTING_CONFIRMED"
+            or item.get("retry_policy_for_this_workflow") != "DO_NOT_FETCH_CURRENT_BARS_ON_OR_AFTER_EFFECTIVE_DATE"
+            or item.get("raw_or_qfq_price_changes") is not False
+            or item.get("historical_rows") != "RETAIN" or item.get("silent_code_remap") is not False):
+        return False
+    refs = fact.get("official_source_refs")
+    expected = dict(path=item["source_path"], sha256=item["source_sha256"], url=item["source_url"])
+    if refs != [expected]:
+        return False
+    _source(expected, owner="original accepted exchange termination bytes")
     return True
 
 
@@ -193,6 +246,12 @@ def _verified_sop_skip(code: str, row: dict | None, target: int, sync_ref: dict 
             or row.get("records_written") != 0):
         return None
     try:
+        if fact.get("accepted_review_literal") not in _ACCEPTED_SOP_LITERALS and code != "600193.SH":
+            market = {0: "SZ", 1: "SH", 2: "BJ"}.get(row.get("market")) if type(row.get("market")) is int else None
+            if (code != str(row.get("symbol", "")).zfill(6) + "." + str(market)
+                    or Path(row["path"]).name != code[-2:].lower() + code[:6] + ".day"
+                    or row.get("source_sha256_before") != row.get("source_sha256_after")):
+                return None
         effective = fact["delisting_effective_date"]
         datetime.strptime(effective, "%Y%m%d")
         if int(effective) > target:
@@ -204,7 +263,10 @@ def _verified_sop_skip(code: str, row: dict | None, target: int, sync_ref: dict 
                 _source(fact[name], owner="accepted original lifecycle SOP")
             proof_route = "ORIGINAL_FIXED_ASSET_SOP_VARIANT"
         elif _controller_quarantine_fact(code, fact, effective):
-            proof_route = "ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_MIRROR_CAVEAT"
+            proof_route = ("ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_MIRROR_CAVEAT"
+                           if fact.get("issuer_or_broker_mirror_refs") else "ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_PRIMARY_BYTES")
+        elif _two_brokers_quarantine_fact(code, fact, effective):
+            proof_route = "ORIGINAL_ROOT_ACCEPTED_OFFICIAL_QUARANTINE_ONLY"
         else:
             return None
     except (KeyError, TypeError, ValueError, OSError, QfqGateError):

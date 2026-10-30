@@ -1,0 +1,18 @@
+# SOP binding repair, 2026-10-30
+
+Candidate only. The factor-cache consumer rejected 9 of the original 29 lifecycle exclusions because it recognized only three legacy PASS literals and the specific 600193 mirror binding. The fresh original D30 sync receipt reproduced 20 accepted / 9 rejected.
+
+The repair binds the nine affected rows to the immutable lifecycle asset, exact stock/market identity, effective date, unchanged raw SHA, original approval document SHA, and the approved primary or mirror byte reference. The five primary-source controller facts, two mirror facts and two prior accepted broker facts retain their original classifications and provenance. The three legacy literal routes and 600193's accepted mirror route retain their original behavior. The consumer never admits current prices, changes an alias, or fetches evidence.
+
+The controller fact set remains `consumer_independent_review=PENDING`; recognizing its original quarantine facts is not promotion of that metadata to PASS. 920680/920305 remain issuer mirrors with original exchange bytes unverified; 600193 retains its mirror caveat. Cross-market transfer annotations remain context only. The A-share 000016 binding excludes B-share 200016.
+
+`target_window` records the historical evidence window. The original producer's `_lifecycle_fact_for_target` uses the permanent delisting/old-market termination condition `target >= delisting_effective_date`, without an end-window test. This repair preserves that condition, rejects pre-effective targets, and does not rewrite or extend the original evidence window. No suspension inference is added.
+
+Validation used the absolute interpreter `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python`:
+
+- `-m pytest -q tests/test_factor_cache_sop_binding.py tests/test_factor_cache_carry_forward.py tests/test_factor_sop_prequery.py --basetemp=<B15>/pytest_tmp --tb=short`: exit 0, **98 passed in 1.20s**. Covers pinned source/approval/asset/raw SHA drift, identity/event/date mismatch, mirror promotion rejection, legacy routes and carry-forward behavior.
+- `docs/handoffs/sop_binding_repair_20261030/verify_real.py --evidence-root <B15> --sync '/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a_sync_authority/20261030/summary.json'`: exit 0, **9 fixed / 20 retained**, all 29 raw SHA values unchanged. The first real 000016 run used the actual collection entry point with an isolated disposable cache, zero provider contexts/calls, and `PARTIAL_EXPECTED_EXCLUSIONS / SOP_SKIPPED`. Full original sync rows are retained as provenance; no raw file is written.
+
+`<B15>` is `/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/dashboard_resume_20261030/sop_binding_repair_20261030`. It contains `BASELINE_REPRO.json`, `REAL_000016.json`, `REAL_29_BINDING_RESULT.json`, and `WRITER_SOURCE_FREEZE.json` with exact paths/hashes/commands/results. The real script reads existing local evidence only. No provider, network, chart, formula, group, workbench, historical price, lifecycle asset or approval document was changed.
+
+Ownership ends with this candidate handoff. Independent review, source installation/CAS, Git synchronization, scheduler/SOP update and original-owner D30 resume belong to Root and are **NOT_RUN by Writer**. Runtime integration, natural delivery, API/UI behavior and any broader PIT/source certification remain **CANNOT_CONFIRM from this handoff**. Four research safety flags remain unchanged. No commit, push, service or scheduled-task action was performed.
