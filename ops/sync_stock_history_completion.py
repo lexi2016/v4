@@ -81,7 +81,8 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
         old_event.get('artifact') != manifest['artifact']):
         raise ValueError('LATEST_PRODUCT_OR_COMPLETION_EVENT_MOVED')
     original = load(contract['refs']['numeric_product'])
-    candidates = set(contract['config']['symbols'])
+    targets = set(contract['config']['symbols'])
+    candidates = set(contract['config'].get('candidate_symbols', contract['config']['symbols']))
     if (product['data_date'] != date or product['source_generation'] != contract['source_generation'] or
         product['source_identity'] != contract['source_identity'] or product['source_config'] != contract['refs']['source_config'] or
         {row['symbol'] for row in product['rows']} != candidates or
@@ -90,16 +91,17 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
         raise ValueError('CURRENT_PRODUCT_IDENTITY_OR_MEMBERSHIP_DRIFT')
     changed_before = {symbol for symbol in product['row_refs'] if product['row_refs'][symbol] != original['row_refs'][symbol]}
     sync_before = index.get('history_sync', {}).get(date)
-    if changed_before and (not sync_before or set(sync_before['completed_symbols']) != changed_before):
+    if changed_before and (not sync_before or not changed_before <= set(sync_before['completed_symbols'])):
         raise ValueError('UNOWNED_CURRENT_ROW_CHANGE')
     descriptor = copy.deepcopy(index['original_charts'][date])
-    origin_ref = descriptor['chart_origin_manifest']
+    origin_ref = descriptor['chart_origin_manifest'] if 'chart_origin_manifest' in descriptor else contract['refs']['numeric_manifest']
+    descriptor['chart_origin_manifest'] = origin_ref
     chart_origin = load(load(origin_ref)['artifact'])
     if (set(chart_origin['row_refs']) != set(product['row_refs']) or
         {k:v for k,v in chart_origin.items() if k != 'row_refs'} != {k:v for k,v in product.items() if k != 'row_refs'}):
         raise ValueError('CHART_ORIGIN_PRODUCT_CONFLICT')
     available = {}
-    for symbol in sorted(candidates):
+    for symbol in sorted(targets):
         done = batch / 'stocks' / symbol / 'RESULT.json'
         if done.is_file() and (selected is None or symbol in selected):
             result_ref = ref(done)
@@ -107,7 +109,12 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
             if result['contract'] != contract_ref or result['symbol'] != symbol or result['status'] != 'COMPLETE_DESCRIPTIVE_NONPIT':
                 raise ValueError('STOCK_COMPLETION_CONTRACT_CONFLICT:' + symbol)
             available[symbol] = (result_ref, result)
-    completed = changed_before | set(available)
+    precompleted = set()
+    for symbol in candidates - targets:
+        row = load(product['row_refs'][symbol])
+        if row.get('historical_coverage', {}).get('known_full_history') and not row['historical_coverage'].get('missing'):
+            precompleted.add(symbol)
+    completed = precompleted | changed_before | set(available)
     if sync_before and set(sync_before['completed_symbols']) == completed:
         return dict(status='NO_NEW_COMPLETION', expected_index=index_ref, completed=sorted(completed), **FLAGS)
     updated = copy.deepcopy(product)
@@ -124,6 +131,7 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
         if (row['symbol'] != symbol or row['data_date'] != date or without_statistics(row) != without_statistics(old_row) or
             not row['historical_coverage']['known_full_history'] or row['historical_coverage']['missing'] or
             history['source_identity'] != contract['source_identity'] or
+            not set(entry.get('prior_entry_reuse', {}).get('dates', [])) <= set(history['evaluations']) or
             history['rule_sha256'] != contract['code'][2]['sha256'] or
             len(history['evaluations']) != entry['rows'] or result['remaining_dates'] or
             cases['symbol'] != symbol or cases['data_date'] != date or cases['contract'] != contract_ref or
@@ -167,13 +175,16 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
                       history_contract=contract_ref)
     new_index['original_charts'][date] = descriptor
     # Display names are a small independent projection; update only its binding.
-    names = load(index['display_names'][date])
-    names['numeric_manifest'] = new_manifest_ref
-    new_index['display_names'][date] = writer.immutable(f'display_names/{date}', 'names.json', names)
-    materials = load(index['company_materials'][date])
-    materials['source_numeric_manifest'] = materials.get('source_numeric_manifest', materials['numeric_manifest'])
-    materials['numeric_manifest'] = new_manifest_ref
-    new_index['company_materials'][date] = writer.immutable(f'company_materials/{date}', 'index.json', materials)
+    names_ref=index.get('display_names',{}).get(date)
+    if names_ref:
+        names=load(names_ref);names['numeric_manifest']=new_manifest_ref
+        new_index['display_names'][date]=writer.immutable(f'display_names/{date}','names.json',names)
+    materials_ref=index.get('company_materials',{}).get(date)
+    if materials_ref:
+        materials=load(materials_ref)
+        materials['source_numeric_manifest']=materials.get('source_numeric_manifest',materials['numeric_manifest'])
+        materials['numeric_manifest']=new_manifest_ref
+        new_index['company_materials'][date]=writer.immutable(f'company_materials/{date}','index.json',materials)
     events = load(index['event_cases'][date])
     origins = events.setdefault('case_numeric_origins', {})
     for symbol, reference in events['items'].items():
@@ -187,11 +198,20 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
     new_index['event_cases'][date] = writer.immutable(f'event_cases/{date}', 'index.json', events)
     new_index.setdefault('history_sync', {})[date] = dict(numeric_manifest=new_manifest_ref,
         source_generation=contract['source_generation'], input_sha256=contract['input_sha256'], contract=contract_ref,
-        candidate_symbols=sorted(candidates), completed_symbols=sorted(completed), stock_results=result_refs,
+        candidate_symbols=sorted(candidates), completed_symbols=sorted(completed), bootstrap_symbols=sorted(targets), preserved_complete_symbols=sorted(precompleted), stock_results=result_refs,
         status='COMPLETE' if completed == candidates else 'RUNNING', **FLAGS)
+    top_ref = new_index.get('top200', {}).get(date)
+    if top_ref:
+        top = load(top_ref)
+        if top.get('numeric_manifest') != manifest_ref or top.get('source_generation') != contract['source_generation']:
+            raise ValueError('TOP200_PRIOR_NUMERIC_BINDING_DRIFT')
+        top['numeric_manifest'] = new_manifest_ref
+        new_index['top200'][date] = writer.immutable('top200/'+date, 'top200.json', top)
     event = {**old_event, 'manifest':new_manifest_ref, 'artifact':artifact, 'original_charts':descriptor,
-             'company_materials':new_index['company_materials'][date], 'event_cases':new_index['event_cases'][date],
-             'display_names':new_index['display_names'][date],
+             'event_cases':new_index['event_cases'][date],
+             **({'company_materials':new_index['company_materials'][date]} if materials_ref else {}),
+             **({'display_names':new_index['display_names'][date]} if names_ref else {}),
+             **({'top200':new_index['top200'][date]} if top_ref else {}),
              'event_id':hashlib.sha256(canonical(dict(numeric_manifest=new_manifest_ref, original_charts=descriptor))).hexdigest()}
     staged_index, staged_event = save(stage / 'index.json', new_index), save(stage / 'event.json', event)
     owner_ref = next(reference for reference in contract['code'] if reference['path'].endswith('/ops/research_panel_daily_product.py'))
@@ -201,6 +221,27 @@ def prepare(batch, root, stage, *, selected=None, owner_lock=DEFAULT_OWNER_LOCK)
         owner_publisher=owner_ref, shared_owner_lock=lock_binding, target_root=str(root), stage=str(stage), contract=contract_ref, **FLAGS)
     save(stage / 'PLAN.json', plan)
     return plan
+
+
+def _inherited_owner_duplicate(shared,date):
+    raw=os.environ.get('V4_SCHEDULER_LANE_FD')
+    if raw is None:return None
+    try:
+        fd=int(raw)
+        if fd<3 or os.environ.get('V4_SCHEDULER_LANE_NAME')!='A_LONG' or os.environ.get('V4_SCHEDULER_RESOLVED_DATE')!=date or os.environ.get('V4_SCHEDULER_RESOLVED_SLOT')not in {'1540','1610','1640'}:raise ValueError('identity')
+        held=os.fstat(fd);current=os.stat(shared['path'],follow_symlinks=False)
+        if not stat.S_ISREG(held.st_mode) or (held.st_dev,held.st_ino)!=(shared['device'],shared['inode']) or (current.st_dev,current.st_ino)!=(held.st_dev,held.st_ino):raise ValueError('inode')
+        probe=os.open(shared['path'],os.O_RDONLY|os.O_NOFOLLOW)
+        try:
+            try:fcntl.flock(probe,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except BlockingIOError:pass
+            else:raise ValueError('inherited_lane_not_locked')
+        finally:os.close(probe)
+        # A different open description on the same inode cannot re-acquire the
+        # held lock. This succeeds only for the original inherited lease.
+        fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        return os.dup(fd)
+    except (ValueError,OSError)as error:raise ValueError('SHARED_INHERITED_OWNER_FD_INVALID:'+str(error))from error
 
 
 def publish(plan, *, refresh=None):
@@ -216,7 +257,8 @@ def publish(plan, *, refresh=None):
     lock = (root / '.stock-history-completion.lock').open('a+b')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     shared = plan['shared_owner_lock']
-    shared_fd = os.open(shared['path'], os.O_RDONLY | os.O_NOFOLLOW)
+    inherited = _inherited_owner_duplicate(shared, load(plan['expected_event'])['data_date'])
+    shared_fd = inherited if inherited is not None else os.open(shared['path'], os.O_RDONLY | os.O_NOFOLLOW)
     try:
         # The same stable inode is inherited by the actual Main A_LONG lane.
         # Blocking flock waits for that real owner, without a polling/retry loop.
@@ -247,7 +289,7 @@ def publish(plan, *, refresh=None):
             if ref(root / 'index.json') == after_index:
                 owner.save(root / 'index.json', before['index'])
             raise
-        receipt = dict(status='PUBLISHED_HISTORY_SYNC', index=after_index, event=after_event,
+        receipt = dict(status='PUBLISHED_TOP200' if plan['status']=='PREPARED_TOP200' else 'PUBLISHED_HISTORY_SYNC', index=after_index, event=after_event,
                        before=before, completed=plan['completed'], **FLAGS)
         save(Path(plan['stage']) / 'PUBLICATION_RECEIPT.json', receipt)
         return receipt

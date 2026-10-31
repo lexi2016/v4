@@ -8,6 +8,7 @@ absent the module fails closed and the registry raises a structured failure.
 """
 from __future__ import annotations
 from infrastructure.runtime_graph.notifications import notify as _graph_notify
+from infrastructure.market_time import shanghai_now
 
 import hashlib
 import json
@@ -267,7 +268,7 @@ def _decode_authoritative_payload(source: Any) -> tuple[dict[str, Any] | None, s
 
 
 def _read_exact_dated_receipt(
-    module: str, arguments: list[str]
+    module: str, arguments: list[str], *, allow_a_failure: bool = False
 ) -> tuple[dict[str, Any] | None, str | None]:
     """Read the fixed daily-panel receipt only as a bounded fallback seam."""
 
@@ -309,6 +310,8 @@ def _read_exact_dated_receipt(
         "NON_TRADING_DAY",
     }:
         return None, "EXACT_DATED_RECEIPT_STATUS_INVALID"
+    if allow_a_failure and lane == "A" and status in {"FAILED", "CANNOT_CONFIRM"}:
+        return payload, None  # failure observation only; successful evidence stays strict
     digest = payload.get("sha256")
     if (
         not isinstance(digest, str)
@@ -719,14 +722,48 @@ class FixedExecutorRegistry:
             "orders_sent": False,
         }
 
-    def _run_a_daily(self, request: DispatchRequest) -> dict[str, Any]:
+    def _run_a_daily(self, request):
+        failed = None
+        try:
+            result = self._run_a_daily_source(request)
+        except WorkloadExecutionError as error:
+            failed = error
+            result = dict(error.result)
+        if request.mode.value != "LIVE":
+            if failed is not None:
+                raise failed
+            return result
+        if (result.get("reason") == "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY" or
+                result.get("original_chart_leaf", {}).get("reason") == "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY"):
+            if failed is not None:
+                raise failed
+            return {**result, "daily_derivatives": {"status": "SKIPPED_OUTSIDE_WINDOW", "data_date": request.business_date}}
+        root = os.environ.get("V4_A_SHARE_DAILY_PRODUCT_ROOT")
+        data = os.environ.get("V4_RESEARCH_PANEL_A_DATA_ROOT")
+        receipts = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
+        classification = os.environ.get("V4_WORKBENCH_CLASSIFICATION_ROOT")
+        if not all((root, data, receipts, classification)):
+            missing = {**result, "daily_derivatives": {"status": "CANNOT_CONFIRM", "reason": "A_DAILY_DERIVATIVE_BINDINGS_MISSING"}}
+            if failed is not None:
+                raise WorkloadExecutionError(missing)
+            return missing
+        from ops.research_panel_top200 import complete_daily_derivatives
+        derivatives = complete_daily_derivatives(Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), result if failed is not None or result.get("status") in {"FAILED", "CANNOT_CONFIRM", "TIMEOUT", "INTERRUPTED"} else None)
+        completed = {**result, "daily_derivatives": derivatives}
+        if failed is not None:
+            raise WorkloadExecutionError(completed)
+        return completed
+
+    def _run_a_daily_source(self, request: DispatchRequest) -> dict[str, Any]:
         previous_workload_id = self._active_workload_id
         self._active_workload_id = "research_panel_daily_a"
         try:
             # A slot migration must not re-acquire an already completed date.
             # Preserve the strict receipt status; this is dated artifact reuse,
-            # never evidence that the new 16:10 provider run occurred.
-            if request.mode.value == "LIVE" and request.slot == "1610":
+            # never evidence that the new 15:40 provider run occurred.
+            if request.mode.value == "LIVE" and request.slot in {"1540", "1610", "1640"}:
+                moment = shanghai_now()
+                in_window = moment.strftime("%Y%m%d") == request.business_date and "1540" <= moment.strftime("%H%M") < "1700"
                 root = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
                 selector = os.environ.get("V4_RESEARCH_PANEL_A_SELECTOR_POINTER")
                 backtest = os.environ.get("V4_RESEARCH_PANEL_A_BACKTEST_POINTER")
@@ -734,6 +771,7 @@ class FixedExecutorRegistry:
                     receipt, _ = _read_exact_dated_receipt(
                         "ops.macos_research_panel_daily",
                         ["--date", request.business_date, "--lane", "A", "--receipt-root", root],
+                        allow_a_failure=request.slot in {"1610", "1640"},
                     )
                     from ops.macos_research_panel_daily_receipts import validate_a_receipt
                     status = validate_a_receipt(receipt, request.business_date,
@@ -743,19 +781,105 @@ class FixedExecutorRegistry:
                         if not selector_pointer_is_ready(selector, request.business_date):
                             raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
                                 "SOP_MIGRATION_REBIND_REQUIRED:paired receipt exists but generation is not ready"))
+                        leaf = {"status": "CANNOT_CONFIRM", "reason": "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY"}
+                        if in_window:
+                            try:
+                                data_root = os.environ.get("V4_RESEARCH_PANEL_A_DATA_ROOT")
+                                if not data_root:
+                                    raise ValueError("A_DAILY_CHART_OWNER_ROOT_MISSING")
+                                product_root = Path(os.environ["V4_A_SHARE_DAILY_PRODUCT_ROOT"])/"daily_products/a_share"
+                                from ops.research_panel_daily_product import checked, materialize_daily_product
+                                from ops.research_panel_qfq import panel_contract
+                                # validate_a_receipt already verified the paired files.
+                                # Reuse the original footer contract, without another
+                                # full-calendar or multi-gigabyte panel scan here.
+                                selector_bytes = Path(selector).read_bytes()
+                                backtest_bytes = Path(backtest).read_bytes()
+                                if (selector_bytes.decode("utf-8-sig").strip() != receipt["selector"] or
+                                        backtest_bytes.decode("utf-8-sig").strip() != receipt["backtest"]):
+                                    raise ValueError("PAIRED_SOURCE_POINTER_IDENTITY_CONFLICT")
+                                footer = panel_contract(Path(receipt["selector"]))
+                                back_footer = panel_contract(Path(receipt["backtest"]))
+                                authority = receipt["formula"]["authority"]
+                                if (any(item["asof_date"] != int(request.business_date) or
+                                        item["generation_id"] != authority["generation_id"] or
+                                        item["input_sha256"] != authority["source_sha256"]
+                                        for item in (footer, back_footer)) or
+                                        footer["adjustment_snapshot"]["sha256"] != footer["snapshot_file_sha256"] or
+                                        back_footer["adjustment_snapshot"] != footer["adjustment_snapshot"]):
+                                    raise ValueError("PAIRED_SOURCE_FOOTER_IDENTITY_CONFLICT")
+                                expected_identity = dict(generation=authority["generation_id"],
+                                    input_sha256=authority["source_sha256"], snapshot=footer["adjustment_snapshot"],
+                                    selector_artifact_sha256=receipt["selector_sha256"], asof=int(request.business_date),
+                                    basis=footer["market_basis"]["A"], historical_PIT=False)
+                                def saved_leaf():
+                                    index = json.loads((product_root/"index.json").read_bytes())
+                                    manifest_ref = index["dates"][request.business_date]
+                                    manifest = json.loads(checked(manifest_ref).read_bytes())
+                                    product = json.loads(checked(manifest["artifact"]).read_bytes())
+                                    if product["data_date"] != request.business_date or product["sample_only"] is not False:
+                                        raise ValueError("EXISTING_DAILY_PRODUCT_DATE_OR_SCOPE_CONFLICT")
+                                    if (product["source_identity"] != expected_identity or
+                                            product["source_generation"] != expected_identity["generation"] or
+                                            manifest["source_generation"] != expected_identity["generation"] or
+                                            manifest["input_sha256"] != expected_identity["input_sha256"] or
+                                            manifest["snapshot"] != expected_identity["snapshot"]):
+                                        raise ValueError("EXISTING_DAILY_PRODUCT_CURRENT_PAIRED_IDENTITY_CONFLICT")
+                                    chart = index["original_charts"][request.business_date]
+                                    if chart["numeric_manifest"] != manifest_ref:
+                                        raise ValueError("EXISTING_DAILY_CHART_NUMERIC_BINDING_CONFLICT")
+                                    samples = json.loads(checked(chart["manifest"]).read_bytes())["samples"]
+                                    chart_receipt = json.loads(checked(chart["receipt"]).read_bytes())
+                                    if (set(samples) != {row["symbol"] for row in product["rows"]} or
+                                            chart_receipt.get("status") != "OWNER_CHARTS_COMPLETED"):
+                                        raise ValueError("EXISTING_DAILY_CHART_LEAF_INCOMPLETE")
+                                    for sample in samples.values():
+                                        if any(not Path(sample[kind]["path"]).is_file() for kind in ("html", "PNG", "projection")):
+                                            raise ValueError("EXISTING_DAILY_CHART_ASSET_MISSING")
+                                    if (Path(selector).read_bytes() != selector_bytes or
+                                            Path(backtest).read_bytes() != backtest_bytes):
+                                        raise ValueError("PAIRED_SOURCE_CHANGED_DURING_LEAF_RECOVERY")
+                                    return {"status": product["status"], "manifest": manifest_ref, "reused": True, "numeric_recomputed": False}
+                                try:
+                                    leaf = saved_leaf()
+                                except (OSError, ValueError, KeyError, TypeError):
+                                    # The paired source is already valid. Resume its exact
+                                    # original materializer/checkpoints, without invoking
+                                    # collection or formula-source generation a second time.
+                                    recovered = materialize_daily_product(data_root=data_root,
+                                        target=int(request.business_date), output_root=product_root)
+                                    leaf = {**saved_leaf(), "recovered_by_original_materializer": True,
+                                            "numeric_recomputed": None, "materialization": recovered}
+                            except Exception as error:
+                                leaf = {"status": "CANNOT_CONFIRM", "reason": "ORIGINAL_CHART_LEAF_RECOVERY_FAILED:" + str(error)}
                         path = Path(root) / f"a-{request.business_date}.json"
-                        return {"status": "SUCCEEDED", "lane": "A", "lane_status": status,
+                        reused = {"status": "SUCCEEDED", "lane": "A", "lane_status": status,
                                 "target_date": request.business_date, "modules": [], "exit_code": 0,
                                 "migration_reuse": True, "provider_invoked": False,
-                                "natural_1610_verified": False, "source_receipt": str(path),
+                                "numeric_recomputed": leaf.get("numeric_recomputed"), "source_recomputed": False, "original_chart_leaf": leaf,
+                                "natural_1540_verified": False, "source_receipt": str(path),
                                 "source_receipt_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                                 "row_count": receipt.get("row_count"),
                                 "coverage_rate": receipt.get("coverage_rate"),
                                 "accepted_count": receipt.get("accepted_count"),
                                 "quarantine_count": receipt.get("quarantine_count"),
                                 "target_count": receipt.get("target_count"),
-                                "reason": "EXACT_DATED_A_RECEIPT_REUSED_WITH_PAIRED_ARTIFACT_BINDING",
+                                "reason": "EXACT_DATED_A_RECEIPT_REUSED_WITH_PAIRED_ARTIFACT_BINDING" if in_window else "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY",
                                 "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+                        if in_window and leaf["status"] == "CANNOT_CONFIRM":
+                            raise WorkloadExecutionError({**reused, "status": "FAILED", "exit_code": 1,
+                                "reason": "A_DAILY_PRODUCT_LEAF_RECOVERY_FAILED"})
+                        return reused
+                    if request.slot in {"1610", "1640"} and (not isinstance(receipt, dict) or receipt.get("status") not in {"FAILED", "CANNOT_CONFIRM"}):
+                        raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
+                            "A_DAILY_RETRY_REQUIRES_EXACT_DATED_FAILED_RECEIPT"))
+                elif request.slot in {"1610", "1640"}:
+                    raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
+                        "A_DAILY_RETRY_BINDING_MISSING"))
+                if not in_window:
+                    failure = self._failure_result("research_panel_daily_a", [], "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
+                    failure.update(failure_class="UPSTREAM_NOT_READY", reason="A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
+                    raise WorkloadExecutionError(failure)
             return self._research_panel_daily(request, lane="A")
         finally:
             self._active_workload_id = previous_workload_id

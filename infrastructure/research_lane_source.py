@@ -53,10 +53,11 @@ class ResearchLaneSource:
     """
 
     def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None,
-                 original_chart_binding: Mapping[str, Any] | None = None) -> None:
+                 original_chart_binding: Mapping[str, Any] | None = None, original_chart_artifact_root: Path | str | None = None) -> None:
         self.data_root = Path(data_root)
         self.a_share_daily_root = Path(a_share_daily_root).resolve() if a_share_daily_root is not None else None
         self.original_chart_binding = original_chart_binding
+        self.original_chart_artifact_root = Path(original_chart_artifact_root).resolve() if original_chart_artifact_root is not None else None
         self.ledger_root = Path(ledger_root) if ledger_root is not None else self.data_root.parent / "dispatcher"
         self.store = ResearchArchiveStore(self.data_root)
         self.hourly_store = HourlyResearchStore(self.data_root)
@@ -974,7 +975,7 @@ class ResearchLaneSource:
             if (root is None or not isinstance(descriptor, Mapping)
                     or descriptor.get("numeric_manifest") != product.get("manifest")):
                 raise ValueError("ORIGINAL_CHART_OWNER_BINDING_NOT_CONFIGURED")
-            binding = {"artifact_root": str(getattr(self, "original_chart_artifact_root", None) or root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
+            binding = {"artifact_root": str(self.original_chart_artifact_root or root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
             chart_origin = descriptor.get("chart_origin_manifest")
             product = self._a_chart_history_origin(product, descriptor, date, symbol)
         if not isinstance(binding, Mapping):

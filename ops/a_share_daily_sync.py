@@ -234,7 +234,40 @@ def _load_verified_lifecycle_facts():
         if code in indexed:
             raise RuntimeError("LIFECYCLE_FACT_ASSET_DUPLICATE_CODE")
         indexed[code] = row
+    from ops._a_share_daily_sync_parts.progress import _evidence_bytes
+    for row in _daily_source_policy_additions().get('verified_delisting_additions',[]):
+        if (row.get('ts_code')!='301139.SZ' or row.get('delisting_effective_date')!='20261028' or
+                row.get('last_trading_date')!='20261027' or row.get('verified') is not True or
+                row.get('requires_recent_listed_A_share_bars') is not False or
+                row.get('official_notice',{}).get('sha256')!='8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc'):
+            raise RuntimeError('SOURCE_POLICY_DELISTING_IDENTITY')
+        _evidence_bytes(row['official_notice'])
+        if row['ts_code'] in indexed and indexed[row['ts_code']]!=row:raise RuntimeError('SOURCE_POLICY_DELISTING_CONFLICT')
+        policy_path=Path(__file__).resolve().parents[1]/'contracts/a_share_daily_source_policy.json'
+        indexed[row['ts_code']]={**row, 'source_policy_ref': dict(path=str(policy_path),sha256=hashlib.sha256(policy_path.read_bytes()).hexdigest())}
     return indexed
+
+
+def _daily_source_policy_additions():
+    """Read only this release's reviewed, exact evidence-bound source facts."""
+    policy_path=Path(__file__).resolve().parents[1]/'contracts/a_share_daily_source_policy.json'
+    value=json.loads(policy_path.read_bytes())
+    if (value.get('schema')!='a_daily_source_policy.v1' or value.get('RESEARCH_ONLY') is not True or
+            any(value.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))):
+        raise RuntimeError('SOURCE_POLICY_ADDITIONS_CONTRACT')
+    return value
+
+
+def _exact_no_current_bar_for_target(symbol,market,target,source_sha256):
+    suffix={0:'SZ',1:'SH',2:'BJ'}.get(market)
+    from ops._a_share_daily_sync_parts.progress import _evidence_bytes
+    matches=[row for row in _daily_source_policy_additions().get('exact_no_current_bar_dispositions',[]) if row.get('symbol')==f'{symbol}.{suffix}' and row.get('target_date')==int(target)]
+    if not matches:return None
+    if len(matches)!=1:raise RuntimeError('NO_CURRENT_BAR_DUPLICATE_FACT')
+    row=matches[0]
+    if (row.get('expected_native_sha256')!=source_sha256 or row.get('historical_PIT') is not False or row.get('price_retry_allowed') is not False):return None
+    _evidence_bytes(row['evidence'])
+    return row
 
 
 def _lifecycle_fact_for_target(facts, symbol, market, target):

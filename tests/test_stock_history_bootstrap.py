@@ -83,6 +83,17 @@ class BootstrapTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 adapter.validate_cache(Owner, bad, bars, identity, config)
 
+    def test_prior_generation_entry_is_preserved_only_with_exact_bound_proof(self):
+        bars=[dict(trade_date=20261029,close='10'),dict(trade_date=20261030,close='11')]
+        previous={'generation':'old'};identity={'generation':'new'};config={'rule':'frozen'}
+        cache=dict(rule_sha256=adapter.RULE,source_identity=identity,rules_signature=Owner.digest(config),prefix_sha256=Owner.digest(bars),
+            evaluations={'20261029':dict(source_identity=previous,groups=self.states),'20261030':dict(source_identity=identity,groups=self.states)})
+        before=copy.deepcopy(cache)
+        with self.assertRaisesRegex(ValueError,'BINDING_DRIFT'):adapter.validate_cache(Owner,cache,bars,identity,config)
+        adapter.validate_cache(Owner,cache,bars,identity,config,dict(dates=['20261029'],source_identity=previous))
+        self.assertEqual(cache,before)
+        with self.assertRaisesRegex(ValueError,'BINDING_DRIFT'):adapter.validate_cache(Owner,cache,bars,identity,config,dict(dates=[],source_identity=previous))
+
     def test_reference_drift_is_not_accepted(self):
         path = self.directory / 'source.json'
         reference = adapter.save(path, {'source': 1})

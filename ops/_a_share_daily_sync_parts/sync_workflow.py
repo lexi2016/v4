@@ -321,7 +321,8 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                 records_written=0, attempt_ordinal=0, raw_response_snapshots=[],
                 source_sha256_before=source_sha_before, source_sha256_after=source_sha_before,
                 lifecycle_skip=True, lifecycle_fact=lifecycle_fact,
-                lifecycle_asset_sha256=_v4_global(_v4_scope, 'LIFECYCLE_NOTES_SHA256'),
+                lifecycle_asset_sha256=lifecycle_fact.get('source_policy_ref', {}).get('sha256', _v4_global(_v4_scope, 'LIFECYCLE_NOTES_SHA256')),
+                **({'lifecycle_policy_ref': lifecycle_fact['source_policy_ref']} if 'source_policy_ref' in lifecycle_fact else {}),
                 original_symbol_progress_preserved=True, run_id=run_id,
                 rule_id=_v4_global(_v4_scope, 'RULE_ID'), rule_version=_v4_global(_v4_scope, 'RULE_VERSION'),
                 field_rule_id=_v4_global(_v4_scope, 'FIELD_RULE_ID'), field_rule_version=_v4_global(_v4_scope, 'FIELD_RULE_VERSION'),
@@ -332,6 +333,14 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
             # observation lives in a separate field, not over its old record.
             progress.setdefault("lifecycle_skips", {})[symbol] = row
             _v4_global(_v4_scope, '_persist_progress')(progress_file, progress)
+            continue
+        no_current_bar=_v4_global(_v4_scope,'_exact_no_current_bar_for_target')(symbol,_v4_global(_v4_scope,'int')(item.market),target_int,source_sha_before)
+        if no_current_bar is not None:
+            last_date=_v4_global(_v4_scope,'read_last_date')(item.path) if source_sha_before else None
+            row=dict(symbol=symbol,market=_v4_global(_v4_scope,'int')(item.market),status='CANNOT_CONFIRM',fetch_status='REBUILD_REQUIRED',classification='QUARANTINED',quarantine=True,reason_code='EXPECTED_NO_CURRENT_BAR',target_date_ready=False,path=str(item.path),last_date_before=last_date,last_date_after=last_date,host='not_attempted_evidenced_no_current_bar',records_written=0,attempt_ordinal=0,raw_response_snapshots=[],source_sha256_before=source_sha_before,source_sha256_after=source_sha_before,expected_no_current_bar=True,no_current_bar_disposition=no_current_bar,historical_PIT=False,run_id=run_id,recorded_at=recorded_at)
+            by_symbol[symbol]=row;reconciliation_rows.append(dict(row))
+            progress.setdefault('expected_no_current_bar',{})[symbol]=row
+            _v4_global(_v4_scope,'_persist_progress')(progress_file,progress)
             continue
         pending_status = _v4_global(_v4_scope, '_pending_trading_status_for_target')(
             pending_status_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int)

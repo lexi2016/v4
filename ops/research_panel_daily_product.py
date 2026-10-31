@@ -45,6 +45,132 @@ def config():
  if v.get('future_calendar'):checked(v['future_calendar'])
  return v,reference(p)
 
+def _exact_typed_end_fact(context,symbol):
+ """Exact already-published source fact; never edits its source snapshot."""
+ path=os.environ.get('V4_A_DAILY_TYPED_END_FACT_PATH');expected=os.environ.get('V4_A_DAILY_TYPED_END_FACT_SHA256')
+ if not path and not expected:return None,None
+ if not path or not expected:raise ValueError('TYPED_END_FACT_BINDING_INCOMPLETE')
+ ref=dict(path=path,sha256=expected);proof=json.loads(checked(ref).read_bytes());item=context.snapshot['symbols'][symbol]
+ if (proof.get('schema')!='V4_EXACT_002731_D30_TYPED_METADATA_V2' or symbol!='002731.SZ' or context.target!=20261030
+     or proof.get('symbol')!=symbol or proof.get('target_date')!=context.target or 'history_end_date'in item
+     or proof.get('source_generation')!=context.generation
+     or context.generation!='d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5'
+     or proof.get('snapshot')!=context.snapshot_ref
+     or context.snapshot_ref['sha256']!='e3a475a74dfd494fbf3177779e634c94509542551a27a6f40802b1c7c6e0202e'
+     or proof.get('producer_receipt')!=context.receipt_ref or proof.get('raw_refs')!=item['raw_files']
+     or proof.get('original_missing_field')is not True or proof.get('original_reason')!='CURRENT_SYMBOL_HISTORY_END_MISMATCH'
+     or proof.get('effective_history_end_date')!=context.target or proof.get('resolved_rows')!=2819
+     or proof.get('historical_PIT')is not False or any(proof.get(k)!=v for k,v in FLAGS.items())):
+  raise ValueError('TYPED_END_EXACT_SOURCE_SCOPE_CONFLICT')
+ helper={key:context.config['admission_helper'][key]for key in ('path','sha256')}
+ if proof.get('helper')!=helper or helper['sha256']!='7d67ba9898ebc1e816d082ae43ca0f51e3a9bc16278a589c0104524af925047a':raise ValueError('TYPED_END_HELPER_BINDING_CONFLICT')
+ checked(helper);checked(proof['snapshot']);checked(proof['producer_receipt'])
+ native=proof['native']
+ if native not in item['raw_files'] or native['sha256']!='87c5e2c62f250f72a87cee8dafac4bddd69d38f36a23e6330539911e6dca50af':raise ValueError('TYPED_END_NATIVE_BINDING_CONFLICT')
+ checked(native)
+ from ops import research_panel_qfq as q
+ if sha(Path(q.__file__))!=proof['resolved_owner']['sha256']:raise ValueError('TYPED_END_ORIGINAL_RAW_OWNER_DRIFT')
+ checked(proof['resolved_owner']);driver,_=q.authorities(checked(proof['driver']),checked(proof['formula']))
+ raw=q.resolved_raw_history(symbol,item,context.target,driver)
+ if len(raw)!=2819 or int(raw.trade_date.max())!=context.target:raise ValueError('TYPED_END_RESOLVED_HISTORY_CONFLICT')
+ columns=('open','high','low','close','vol','amount');last=raw.loc[raw.trade_date.eq(context.target)]
+ if len(last)!=1:raise ValueError('TYPED_END_TARGET_RAW_ROW_CONFLICT')
+ target={key:float(last.iloc[0][key])for key in columns}
+ if target!=proof['target_ohlcva'] or not all(math.isfinite(v)and v>0 for v in target.values()):raise ValueError('TYPED_END_TARGET_RAW_VALUES_CONFLICT')
+ import pyarrow as pa
+ import pyarrow.parquet as pq
+ if set(proof['paired_roles'])!={'selector','backtest'}:raise ValueError('TYPED_END_PAIRED_ROLES_CONFLICT')
+ context.unchanged()
+ for role,path in context.receipt['candidates'].items():
+  bound=proof['paired_roles'][role];p=Path(path);stamp=p.stat();schema=pq.read_schema(p)
+  if (bound['path']!=path or bound['sha256']!=context.receipt['candidate_sha256'][role]
+      or bound['generation_id']!=context.generation or bound['stat']!={'size':stamp.st_size,'mtime_ns':stamp.st_mtime_ns}
+      or q.panel_contract(p).get('generation_id')!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
+  volume='volume'if'volume'in schema.names else'vol';date=context.target if pa.types.is_integer(schema.field('trade_date').type)else str(context.target)
+  table=pq.read_table(p,columns=['ts_code','trade_date','open','high','low','close',volume,'amount'],filters=[('ts_code','=',symbol),('trade_date','=',date)])
+  if len(table)!=1:raise ValueError('TYPED_END_PAIRED_TARGET_ROW_MISSING')
+  record=table.to_pylist()[0];values={key:float(record[volume if key=='vol'else key])for key in columns}
+  if values!=target or values!=bound['target_row'] or p.stat()!=stamp:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
+ _exact_typed_acceptance_references(context,proof)
+ context.unchanged();return proof,ref
+
+
+def _exact_typed_acceptance_references(context,proof):
+ """Metadata aggregation over real stock-specific accepted source receipts."""
+ refs=proof.get('accepted_evidence')
+ if not isinstance(refs,list)or len(refs)!=1:raise ValueError('TYPED_SOURCE_REFERENCE_SCOPE_CONFLICT')
+ evidence=json.loads(checked(refs[0]).read_bytes())
+ if (evidence.get('schema')!='V4_EXACT_002731_D30_EXISTING_SOURCE_REFERENCES_V1' or evidence.get('symbol')!='002731.SZ'
+     or evidence.get('target_date')!=20261030 or evidence.get('source_generation')!=context.generation
+     or evidence.get('snapshot')!=context.snapshot_ref or evidence.get('native')!=proof['native']
+     or evidence.get('raw_refs')!=proof['raw_refs'] or evidence.get('producer_receipt')!=context.receipt_ref
+     or evidence.get('historical_PIT')is not False or any(evidence.get(k)!=v for k,v in FLAGS.items())):raise ValueError('TYPED_SOURCE_REFERENCE_APPLICABILITY_CONFLICT')
+ admission=json.loads(checked(evidence['original_source_admission']).read_bytes());rows=[r for r in admission['symbol_reconciliation']if r.get('symbol')=='002731'and r.get('market')==0]
+ if (admission.get('target_date')!='20261030' or admission.get('technical_failure_count')!=0 or len(rows)!=1):raise ValueError('TYPED_SOURCE_ADMISSION_SCOPE_CONFLICT')
+ row=rows[0];lineage=row.get('source_lineage',{})
+ if (digest(row)!=evidence['original_source_row_sha256'] or row.get('classification')!='ACCEPTED' or row.get('quarantine')is not False
+     or row.get('source_sha256_after')!=proof['native']['sha256'] or row.get('last_date_after')!=20261030 or row.get('target_date_ready')is not True
+     or lineage.get('code')!='002731' or lineage.get('market')!=0 or lineage.get('target_date')!=20261030):raise ValueError('TYPED_SOURCE_ADMISSION_ROW_CONFLICT')
+ for ref in row.get('raw_response_snapshots',[]):checked(ref)
+ checked(lineage['input_ref']);checked(lineage['package'])
+ activation=json.loads(checked(evidence['original_native_activation']).read_bytes());items=[r for r in activation['items']if r['symbol']=='002731.SZ']
+ if (activation.get('canonical_activated')is not True or len(items)!=1 or digest(items[0])!=evidence['original_native_item_sha256']):raise ValueError('TYPED_SOURCE_NATIVE_ACTIVATION_CONFLICT')
+ item=items[0]
+ if item['original']['path']!=proof['native']['path'] or item['candidate']['sha256']!=proof['native']['sha256'] or item['backup']['sha256']!=item['original']['sha256']:raise ValueError('TYPED_SOURCE_NATIVE_IDENTITY_CONFLICT')
+ checked(item['backup']);checked(item['candidate'])
+ preparation=json.loads(checked(evidence['original_preparation']).read_bytes());entries=[r for r in preparation['items']if r['symbol']=='002731.SZ']
+ if len(entries)!=1 or digest(entries[0])!=evidence['original_preparation_entry_sha256']or entries[0]['candidate']['sha256']!=row['source_sha256_before']:raise ValueError('TYPED_SOURCE_REPAIR_CHAIN_CONFLICT')
+ checked(entries[0]['candidate']);capture=json.loads(checked(evidence['original_capture']).read_bytes())
+ if (capture.get('symbol')!='002731.SZ' or str(capture.get('target_date'))!='20261030' or capture.get('response_error')is not None
+     or capture.get('request',{}).get('code')!='002731' or capture['request'].get('market')!=0):raise ValueError('TYPED_SOURCE_RAW_CAPTURE_APPLICABILITY_CONFLICT')
+ seed=json.loads(checked(evidence['seed_descriptor']).read_bytes());boundary=seed.get('delisting_first_session_boundaries',{}).get('002731.SZ')
+ if (boundary!=evidence.get('first_retirement_session')or boundary.get('session_date')!=20261023
+     or boundary.get('type')!='SZSE_DELISTING_CONSOLIDATION_FIRST_SESSION_NO_PRICE_LIMIT'
+     or boundary.get('raw_source')!=entries[0]['candidate']):raise ValueError('TYPED_SOURCE_HISTORICAL_EXCEPTION_SCOPE_CONFLICT')
+ checked(boundary['official_notice']);publication=json.loads(checked(evidence['paired_publication']).read_bytes())
+ if publication.get('status')!='ACTUAL_PAIRED_READY_POINTERS_COMMITTED'or publication.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_PUBLICATION_CONFLICT')
+ journal=json.loads(checked(publication['publication_journal']).read_bytes());published=json.loads(checked(publication['producer_receipt']).read_bytes())
+ if journal.get('status')!='COMMITTED'or published.get('status')!='READY'or published.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_ACTUAL_STATUS_CONFLICT')
+ for role,path in context.receipt['candidates'].items():
+  if (publication['pointers'][role]['actual_target']!=path or journal['after'][role].strip()!=path
+      or published['candidate_sha256'][role]!=context.receipt['candidate_sha256'][role]):raise ValueError('TYPED_SOURCE_PAIRED_ACTUAL_IDENTITY_CONFLICT')
+ return refs
+
+
+def _exact_typed_end_validator(helper,helper_ref,proof,*,derive_references=True):
+ """Only two original metadata nodes get typed facts; all other AST remains."""
+ import copy
+ if helper_ref.get('sha256')!='7d67ba9898ebc1e816d082ae43ca0f51e3a9bc16278a589c0104524af925047a':raise ValueError('TYPED_END_HELPER_INTERFACE_DRIFT')
+ source=checked(helper_ref);tree=ast.parse(source.read_text());functions=[n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='verify_symbol_admission']
+ if len(functions)!=1:raise ValueError('TYPED_END_HELPER_INTERFACE_DRIFT')
+ original=functions[0]
+ if ([arg.arg for arg in original.args.args]!=['code','target_date','source_contract','generation_receipt','quarantine','generation_id','quarantine_path']
+     or original.args.posonlyargs or original.args.kwonlyargs or original.args.defaults or original.args.vararg or original.args.kwarg or original.decorator_list
+     or hashlib.sha256(ast.dump(original,include_attributes=False).encode()).hexdigest()!=proof['helper_function_ast_sha256']):raise ValueError('TYPED_END_HELPER_INTERFACE_DRIFT')
+ predicate=ast.parse("str(symbol.get('history_end_date')) != target_date",mode='eval').body
+ nodes=[(i,n)for i,n in enumerate(original.body)if isinstance(n,ast.If)and ast.dump(n.test,include_attributes=False)==ast.dump(predicate,include_attributes=False)]
+ expected=ast.parse("if str(symbol.get('history_end_date')) != target_date:\n return {'status':'UNKNOWN','reason':'CURRENT_SYMBOL_HISTORY_END_MISMATCH'}").body[0]
+ if len(nodes)!=1 or ast.dump(nodes[0][1],include_attributes=False)!=ast.dump(expected,include_attributes=False):raise ValueError('TYPED_END_HELPER_PREDICATE_DRIFT')
+ index,_=nodes[0];adapted=copy.deepcopy(original);adapted.body[index].test=ast.parse('str(_typed_history_end_date) != target_date',mode='eval').body
+ lookup=ast.parse("references = [*symbol.get('accepted_evidence', [])]").body[0]
+ assignments=[i for i,node in enumerate(original.body)if ast.dump(node,include_attributes=False)==ast.dump(lookup,include_attributes=False)]
+ if len(assignments)!=1:raise ValueError('TYPED_END_HELPER_REFERENCE_LOOKUP_DRIFT')
+ lookup_index=assignments[0];state={'used':False}
+ def references(symbol):
+  value=symbol.get('accepted_evidence',[])
+  if not isinstance(value,list):raise ValueError('TYPED_END_EXISTING_REFERENCE_FIELD_INVALID')
+  if 'accepted_evidence'not in symbol or value==[]:
+   state['used']=True;return proof['accepted_evidence']
+  return value
+ if derive_references:adapted.body[lookup_index].value.elts[0].value=ast.parse('_typed_accepted_evidence(symbol)',mode='eval').body
+ restored=copy.deepcopy(adapted);restored.body[index].test=copy.deepcopy(original.body[index].test)
+ if derive_references:restored.body[lookup_index]=copy.deepcopy(original.body[lookup_index])
+ if ast.dump(restored,include_attributes=False)!=ast.dump(original,include_attributes=False):raise ValueError('TYPED_END_HELPER_OTHER_AST_DRIFT')
+ environment={**helper.__dict__,'_typed_history_end_date':proof['effective_history_end_date'],'_typed_accepted_evidence':references}
+ exec(compile(ast.fix_missing_locations(ast.Module(body=[adapted],type_ignores=[])),str(source),'exec'),environment)
+ validator=environment['verify_symbol_admission'];validator.typed_reference_state=state;return validator
+
+
 def _census(r,asof,observation):
  p=checked(r);tree=ast.parse(p.read_text());fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='analyze')
  class BindDate(ast.NodeTransformer):
@@ -101,7 +227,23 @@ class SourceContext:
      for values in dates.values():values.add(int(day.strftime('%Y%m%d')))
     day+=timedelta(days=1)
   return {e:sorted(v) for e,v in dates.items()}
- def qualify(self,symbol):return self.helper.verify_symbol_admission(symbol,str(self.target),self.footer,self.receipt,self.quarantine,self.generation,Path(self.quarantine_ref['path']))
+ def qualify(self,symbol):
+  args=(symbol,str(self.target),self.footer,self.receipt,self.quarantine,self.generation,Path(self.quarantine_ref['path']))
+  original=self.helper.verify_symbol_admission(*args)
+  if (symbol!='002731.SZ' or self.target!=20261030 or original.get('reason')!='CURRENT_SYMBOL_HISTORY_END_MISMATCH'
+      or 'history_end_date' in self.snapshot.get('symbols',{}).get(symbol,{})):return original
+  proof,proof_ref=_exact_typed_end_fact(self,symbol)
+  if proof is None:return original
+  date_only=_exact_typed_end_validator(self.helper,self.config['admission_helper'],proof,derive_references=False)(*args)
+  validator=_exact_typed_end_validator(self.helper,self.config['admission_helper'],proof)
+  result=validator(*args)if date_only.get('reason')=='CURRENT_SYMBOL_ACCEPTANCE_REFERENCES_MISSING'else date_only
+  if result.get('status')=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
+   result.update(history_end_date=str(proof['effective_history_end_date']),history_end_metadata=dict(
+    schema='EXACT_D30_002731_TYPED_METADATA_CONSUMER_V2',original_missing_fields=proof['original_missing_fields'],original_admission=original,
+    date_only_admission=date_only,effective_date_is_derived=True,evidence=proof_ref,original_helper=proof['helper'],
+    derived_accepted_evidence=proof['accepted_evidence']if validator.typed_reference_state['used']else[],
+    validator=reference(Path(__file__)),snapshot_bytes_unchanged=True))
+  return result
  def _read_frame(self,symbol):
   columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume'];self.unchanged()
   cache=getattr(self,'_selector_read_cache',None)
@@ -158,11 +300,46 @@ class SourceContext:
      prices=struct.unpack_from('<4I',raw,off+4);matches.append(all(Decimal(str(value['ohlc'][k])).quantize(Decimal('.01'))==Decimal(v)/100 for k,v in zip(('open','high','low','close'),prices)))
   return dict(value,correspondence_status='TRUE' if matches and all(matches) else 'UNKNOWN',reason=None if matches and all(matches) else 'RAW_G4_NATIVE_PARITY_UNCONFIRMED')
 
-def source_inputs(context,symbol,bars,asof,qualification,*,retain=None):
+def source_inputs(context,symbol,bars,asof,qualification,*,retain=None,prefix_reuse=None):
  """Original formula/AST only; caller controls registered real computation."""
- engine=context.engine();result=engine.compute(bars,'prefix');
- if retain is not None:retain(result)
- rows=result['rows'];last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
+ engine=context.engine()
+ if prefix_reuse is None:
+  result=engine.compute(bars,'prefix')
+  if retain is not None:retain(result)
+  rows=result['rows']
+ else:
+  fields=('B1','B2','B3','突破','突破接十字星','零上二金','零下二金','一级买点','二级买点')
+  if retain is not None or prefix_reuse.get('fields')!=fields:raise ValueError('CANNOT_CONFIRM_PREFIX_REUSE_CONSUMED_FIELDS')
+  pins={'engine':'ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c','formula':'d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac','tri_state_core':'e5bbeed5cfa665ef863f0cacb0bb6b13a17ebe957c1429eaaa8dea0acaf44a35','census':'75ed99318a149f2b57cbedd42618e5d5910d60ae2dd11f7fcb159c3fb3a6f2ef'}
+  if any(context.config[k]['sha256']!=value or context.cached_sha(Path(context.config[k]['path']))!=value for k,value in pins.items()):raise ValueError('CANNOT_CONFIRM_PREFIX_CAUSALITY_PINS')
+  if context.cached_sha(Path(context.config_ref['path']))!=context.config_ref['sha256']:raise ValueError('CANNOT_CONFIRM_PREFIX_CONFIG_DRIFT')
+  if (prefix_reuse.get('symbol')!=symbol or prefix_reuse.get('generation')!=context.generation
+      or prefix_reuse.get('identity')!=digest(context.identity) or prefix_reuse.get('config')!=digest(context.config)
+      or prefix_reuse.get('config_ref')!=digest(context.config_ref) or prefix_reuse.get('qualification')!=digest(qualification) or prefix_reuse.get('target')!=context.target
+      or not bars or bars[-1]['trade_date']!=int(asof) or int(asof)>context.target
+      or tuple(b['trade_date'] for b in bars)!=prefix_reuse['dates'][:len(bars)]
+      or digest(bars)!=prefix_reuse['prefix_sha256'].get(int(asof))):raise ValueError('CANNOT_CONFIRM_PREFIX_REUSE_IDENTITY_OR_PREFIX_DRIFT')
+  proof_key=tuple((k,context.config[k]['path'],v) for k,v in pins.items())
+  if getattr(context,'_history_prefix_causal_proof',None)!=proof_key:
+   assignments={a['name']:engine.Parser(a['expression']).parse() for a in engine.inventory()['assignments']};proved=set();visiting=set()
+   def visit(node):
+    kind=node[0]
+    if kind=='var':
+     variable=node[1]
+     if variable in {'OPEN','HIGH','LOW','CLOSE','VOL','DRAWNULL'}:return
+     if variable not in assignments or variable in visiting:raise ValueError('CANNOT_CONFIRM_PREFIX_NONCAUSAL_VARIABLE:'+variable)
+     if variable not in proved:
+      visiting.add(variable);visit(assignments[variable]);visiting.remove(variable);proved.add(variable)
+    elif kind=='call':
+     if node[1] not in {'MA','EMA','SMA','REF','COUNT','BARSLAST','CROSS','HHV','LLV'}:raise ValueError('CANNOT_CONFIRM_PREFIX_NONCAUSAL_FUNCTION:'+node[1])
+     for argument in node[2]:visit(argument)
+    elif kind=='binary':visit(node[2]);visit(node[3])
+    elif kind=='unary':visit(node[2])
+    elif kind not in {'number','text'}:raise ValueError('CANNOT_CONFIRM_PREFIX_AST_UNKNOWN')
+   for field in fields:visit(('var',field))
+   context._history_prefix_causal_proof=proof_key
+  rows=list(prefix_reuse['rows'][:len(bars)])
+ last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
  answer=dict(symbol=symbol,rows=rows,source_bar_exact={'amount':0},index_sha256=context.config_ref['sha256'])
  summary,_=_census(context.config['census'],asof,asof)(answer);stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
  baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
@@ -207,13 +384,14 @@ def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
  return result,all_groups,counters
 
 
-def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None):
+def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False):
  from domains.research_daily_product import evaluate_daily_product
  from domains.research_daily_statistics import build_daily_event_statistics
+ history_dates=tuple(history_dates)
  evaluate=evaluate or evaluate_daily_product;bars,name=context.read(symbol);q=context.qualify(symbol);target=context.target;calendar=context.calendars[symbol[-2:]];rule_sha=sha(Path(__file__).resolve().parents[1]/'domains/research_daily_product.py')
  if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' and (not bars or bars[-1]['trade_date']!=target or str(bars[0]['trade_date'])!=q['history_start_date']):q=dict(status='UNKNOWN',reason='ADMITTED_PREFIX_START_OR_TARGET_MISMATCH')
  captured=[]
- current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
+ current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None or (reuse_history_prefix and history_dates) else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
  current=evaluate(symbol=symbol,asof=target,fullprefix=bars,exchange_calendar=calendar,**current_inputs)
  history_root=context.root/'history'/rule_sha/symbol;cachefile=history_root/'checkpoint.json';cache=json.loads(cachefile.read_text()) if cachefile.is_file() else dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
  cache=accepted_label_cache(context,symbol,rule_sha,cache)
@@ -223,14 +401,27 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
  old_end=max(map(int,cache['evaluations']),default=0);old_prefix=[b for b in bars if b['trade_date']<=old_end]
  if cache.get('prefix_sha256') and digest(old_prefix)!=cache['prefix_sha256']:cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
  cache['evaluations'][str(target)]=dict(groups={g:current['groups'][g]['status'] for g in GROUPS},source_identity=context.identity,qualification=q,exact_full_conditions=True)
- # Current admission authorizes this full prefix; each historical formula is
- # recomputed on its own slice. This is descriptive replay, never historical PIT.
+ # Explicit reuse is opt-in. Census/G4/qualification still use each cutoff;
+ # only proven causal formula fields may come from the exact same full start.
+ prefix_reuse=None
+ if reuse_history_prefix and history_dates and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
+  from types import MappingProxyType
+  if not captured:raise ValueError('CANNOT_CONFIRM_PREFIX_FULL_RESULT_MISSING')
+  result=captured[0];fields=('B1','B2','B3','突破','突破接十字星','零上二金','零下二金','一级买点','二级买点');dates=tuple(b['trade_date'] for b in bars)
+  if (result.get('mode')!='prefix' or result.get('formula_sha256')!=context.config['formula']['sha256'] or result.get('field_count')!=51 or result.get('drawing_count')!=22
+      or tuple(r['trade_date'] for r in result['rows'])!=dates):raise ValueError('CANNOT_CONFIRM_PREFIX_FULL_RESULT_IDENTITY')
+  chain=hashlib.sha256(b'[');prefix_hashes={}
+  for index,bar in enumerate(bars):
+   if index:chain.update(b',')
+   chain.update(canonical(bar));point=chain.copy();point.update(b']');prefix_hashes[bar['trade_date']]=point.hexdigest()
+  frozen_rows=tuple(MappingProxyType(dict(trade_date=r['trade_date'],ohlcv=MappingProxyType(dict(r['ohlcv'])),values=MappingProxyType({field:r['values'][field] for field in fields}))) for r in result['rows'])
+  prefix_reuse=MappingProxyType(dict(symbol=symbol,generation=context.generation,identity=digest(context.identity),config=digest(context.config),config_ref=digest(context.config_ref),qualification=digest(q),target=context.target,fields=fields,dates=dates,prefix_sha256=MappingProxyType(prefix_hashes),rows=frozen_rows))
  for day in history_dates:
   day=int(day)
   if day>=target or str(day) in cache['evaluations']:continue
   prefix=[b for b in bars if b['trade_date']<=day]
   if not prefix or prefix[-1]['trade_date']!=day:continue
-  inputs=source_inputs(context,symbol,prefix,day,q) if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
+  inputs=source_inputs(context,symbol,prefix,day,q,**({'prefix_reuse':prefix_reuse} if prefix_reuse is not None else {})) if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
   earlier=evaluate(symbol=symbol,asof=day,fullprefix=prefix,exchange_calendar=calendar,**inputs)
   cache['evaluations'][str(day)]=dict(groups={g:earlier['groups'][g]['status'] for g in GROUPS},source_identity=context.identity,qualification=q,exact_full_conditions=True,historical_PIT=False,historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION')
  evaluated=sorted(map(int,cache['evaluations']));expected=[b['trade_date'] for b in bars];complete=set(expected)<=set(evaluated)

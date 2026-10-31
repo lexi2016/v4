@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 from infrastructure.research_workbench_host import ResearchWorkbenchHost
-from ops.build_mac_workbench import build
+from ops.build_mac_workbench import build,SOURCE
 
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 G='a'*64;I='b'*64
@@ -121,7 +121,7 @@ def test_fixed_dot_builder_preserves_original46_and_minimal_host_seams(tmp_path)
     import os
     w=Path(__file__).resolve().parents[1]
     dot=Path(os.environ.get('DOT_FRAMEWORK_SOURCE_ROOT',w/'research/dashboard_framework_collab_20261030'))
-    receipt=w/'research/stock_panel_collab_20261030/mac-host/DOT_SOURCE_LOCK.json'
+    receipt=SOURCE/'mac-host/DOT_SOURCE_LOCK.json'
     if not dot.is_dir():pytest.skip('fixed46 source must be supplied explicitly')
     result=build(dot,tmp_path,receipt)
     for item in json.loads(receipt.read_text())['entries']:
@@ -214,7 +214,7 @@ def test_unique_anchors_fail_closed_and_build_is_byte_reproducible(tmp_path):
     with pytest.raises(ValueError,match='ANCHOR_COUNT'):replace_once('aa','a','b')
     with pytest.raises(ValueError,match='ANCHOR_COUNT'):replace_once('xx','a','b')
     with pytest.raises(ValueError,match='ANCHOR_ORDER'):replace_block('end start','start','end','x')
-    dot=Path(os.environ['DOT_FRAMEWORK_SOURCE_ROOT']);receipt=Path(__file__).resolve().parents[1]/'research/stock_panel_collab_20261030/mac-host/DOT_SOURCE_LOCK.json'
+    dot=Path(os.environ['DOT_FRAMEWORK_SOURCE_ROOT']);receipt=SOURCE/'mac-host/DOT_SOURCE_LOCK.json'
     one=tmp_path/'one';two=tmp_path/'two';build(dot,one,receipt);build(dot,two,receipt)
     before={str(p.relative_to(one)):p.read_bytes() for p in one.rglob('*') if p.is_file()}
     assert before=={str(p.relative_to(two)):p.read_bytes() for p in two.rglob('*') if p.is_file()}
@@ -241,7 +241,7 @@ def test_workflow_future_date_does_not_reuse_other_day_receipts_and_not_due_expi
     assert f.host.workflow('2026-10-29')['time_contract']['nodes'][0]['execution_status']=='CANNOT_CONFIRM_OVERDUE'
     f.host.binding['observation_dates']['2026-10-29']={'date':'2026-11-02','authority':reference(f.root/'future-date.json',dict(source_date='2026-10-29',observation_date='2026-11-02'))}
     future=f.host.workflow('2026-10-29')['time_contract']['nodes'][0]
-    assert future['execution_status']=='CANNOT_CONFIRM_BAD_RECEIPT' and future['materials']==[]
+    assert future['execution_status']=='CANNOT_CONFIRM_NO_RECEIPT' and future['materials']==[] and future['error']is None
 
 
 def test_actual_original_owner_failure_updates_workflow_version_and_never_claims_retry(host_fixture):
@@ -319,3 +319,28 @@ p=host.read(day,true);const switched=pending.shift();host.setDay({...day,source_
 """
     result=subprocess.run([node,'--input-type=module','-e',script],cwd=Path(__file__).resolve().parents[1],capture_output=True,text=True)
     assert result.returncode==0,result.stderr
+
+
+def test_top200_requires_matching_numeric_manifest_and_retains_missing_state(host_fixture):
+    f=host_fixture
+    assert f.host.top200('2026-10-29')['status']=='CANNOT_CONFIRM_NOT_MATERIALIZED'
+    payload=dict(schema='V4_A_SHARE_TOP200_V1',data_date='20261029',source_generation=G,input_sha256=I,numeric_manifest=f.mf,top200=[{'symbol':'000001.SZ'}],top200_count=1,coverage=[{'symbol':'large audit coverage'}],**FLAGS)
+    top=reference(f.root/'top.json',payload)
+    reference(f.root/'index.json',dict(dates={'20261029':f.mf},top200={'20261029':top}))
+    f.source._a_product_reference=lambda ref:json.loads(Path(ref['path']).read_bytes())
+    assert 'coverage' not in f.host.top200('2026-10-29')
+    before=f.host.versions('2026-10-29')['modules']['top200']
+    payload['numeric_manifest']={'path':'other','sha256':'f'*64}
+    top=reference(f.root/'top.json',payload);reference(f.root/'index.json',dict(dates={'20261029':f.mf},top200={'20261029':top}))
+    assert f.host.versions('2026-10-29')['modules']['top200']!=before
+    with pytest.raises(ValueError,match='TOP200_SOURCE_CONFLICT'):f.host.top200('2026-10-29')
+
+
+def test_failed_new_date_is_discovered_without_replacing_valid_old_day(host_fixture):
+    f=host_fixture;attempt=reference(f.root/'failed.json',dict(schema='V4_A_DAILY_DERIVATIVES_V1',data_date='20261030',status='CANNOT_CONFIRM',**FLAGS))
+    reference(f.root/'index.json',dict(dates={'20261029':f.mf},attempts={'20261030':attempt}))
+    f.source._a_product_reference=lambda ref:json.loads(Path(ref['path']).read_bytes())
+    f.host._observation_date=lambda day:'2026-11-02'if day=='2026-10-30'else'2026-10-30'
+    days=f.host.history()['days']
+    assert days[0]['source_date']=='2026-10-30' and days[0]['status']=='CANNOT_CONFIRM' and days[0]['revision']is None
+    assert f.host.day('2026-10-29')['source_date']=='2026-10-29'

@@ -166,7 +166,7 @@ def ensure_after_1700(
     lane: str | None = None,
     now: _datetime.datetime | None = None,
 ) -> dict[str, Any]:
-    """Idempotently ensure A after 16:10 and other lanes after 17:00.
+    """Idempotently ensure A after 15:40 and other lanes after 17:00.
 
     StartInterval can invoke this function repeatedly.  Explicit lane callers
     use only their exact dated receipt as a fast path: A requires selector and
@@ -208,7 +208,7 @@ def ensure_after_1700(
         "buy_gate_updated": False,
         "orders_sent": False,
     }
-    earliest_slot = "1610" if requested_lane == "A" else "1700"
+    earliest_slot = "1540" if requested_lane == "A" else "1700"
     if moment.strftime("%H%M") < earliest_slot:
         return restore_context({**common, "status": f"BEFORE_{earliest_slot}", "runner_called": False, "idempotent": True})
     selector_ready = selector_pointer_is_ready(selector_pointer, target)
@@ -319,7 +319,7 @@ def ensure_exit_code(result: Mapping[str, Any]) -> int:
     status = str(result.get("status") or "")
     if "lane_ready" in result:
         lane_ready = result.get("lane_ready") is True
-        if status in {"BEFORE_1610", "BEFORE_1700"}:
+        if status in {"BEFORE_1540", "BEFORE_1700"}:
             return 0
         if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
             return 0
@@ -336,7 +336,7 @@ def ensure_exit_code(result: Mapping[str, Any]) -> int:
                     backtest_pointer = formula.get("backtest_pointer_ready")
     if backtest_pointer is False:
         pointer_ready = False
-    if status in {"BEFORE_1610", "BEFORE_1700"}:
+    if status in {"BEFORE_1540", "BEFORE_1700"}:
         return 0
     if status == "ALREADY_READY" and pointer_ready:
         return 0
@@ -581,7 +581,14 @@ def main() -> int:
             ),
             "build_a_lane_outcome",
         )
-        return builder(sync, formula, target, bootstrap)
+        from ops.research_panel_daily_product import materialize_daily_product
+        try:
+            daily_product = materialize_daily_product(data_root=authority_paths["--a-data-root"], target=int(target), formula_result=formula, output_root=Path(os.environ['V4_A_SHARE_DAILY_PRODUCT_ROOT'])/'daily_products/a_share' if os.environ.get('V4_A_SHARE_DAILY_PRODUCT_ROOT') else None)
+        except Exception as error:
+            daily_product = {"status":"CANNOT_CONFIRM", "data_date":target, "reason":str(error)}
+        outcome = builder(sync, formula, target, bootstrap)
+        outcome["daily_product"] = daily_product
+        return outcome
 
     def run_hk(target: str) -> dict[str, Any]:
         # Every collector invocation gets a fresh manifest identity.  The

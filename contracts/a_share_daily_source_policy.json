@@ -2,7 +2,7 @@
   "schema": "a_daily_source_policy.v1",
   "enabled": true,
   "source_kind": "TDX_OFFICIAL_G4DAY",
-  "earliest_slot": "1610",
+  "earliest_slot": "1540",
   "calendar": {
     "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/market_calendar_2026.json",
     "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
@@ -30,5 +30,88 @@
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "verified_delisting_additions": [
+    {
+      "ts_code": "301139.SZ",
+      "verified": true,
+      "requires_recent_listed_A_share_bars": false,
+      "delisting_effective_date": "20261028",
+      "last_trading_date": "20261027",
+      "official_notice": {
+        "key": "301139_delist1028",
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/execution/source44/evidence/301139_delist1028.pdf",
+        "sha256": "8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"
+      },
+      "historical_PIT": false
+    }
+  ],
+  "exact_no_current_bar_dispositions": [
+    {
+      "symbol": "002717.SZ",
+      "target_date": 20261030,
+      "expected_native_sha256": "8986aa665fc8a40d6de6030953eb4011686bda3a86999d5e8fb43140e81c24ce",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/dot_inputs/SOP_D30_ZERO_ROWS_002717_002827_20261030.md",
+        "sha256": "9464068283f7e6b2c9e2a02dd7cafeab5d39587213886245fb75af2efbb88d88"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "002827.SZ",
+      "target_date": 20261030,
+      "expected_native_sha256": "0a250d52d84995610d965c8ac7d624c78a3174395ac12cd16950a0c89b90f253",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/dot_inputs/SOP_D30_ZERO_ROWS_002717_002827_20261030.md",
+        "sha256": "9464068283f7e6b2c9e2a02dd7cafeab5d39587213886245fb75af2efbb88d88"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "601326.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "ab6e06e683400e9a43ba877fc27ae23b1f43edeaca80c4282e67984921159741",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "605258.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "d7a6c6512c6b6f88588ef69774b2c92378148a5535f056db4946f35295cce95c",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688121.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "ae23d6bd580b40f6ef106e770bd91d8585470ef2a4a2e54b4197e7f090fc88e9",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    }
+  ]
 }

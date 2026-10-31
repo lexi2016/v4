@@ -6,7 +6,8 @@ import json
 import shutil
 
 COMMIT='0ae4a66d90c12a0d0335b5f7f65b528879c5e9cf'
-SOURCE=Path(__file__).resolve().parents[1]/'research/stock_panel_collab_20261030'
+LOCAL_SOURCE=Path(__file__).resolve().parents[1]/'research/stock_panel_collab_20261030'
+SOURCE=Path('/Users/lexi/Desktop/学习/v4_app/.task_worktrees/workbench-filters-20261030/research/stock_panel_collab_20261030')
 HOST_FILES=('bootstrap.mjs','company-local.mjs','completion-action.mjs','rate-sort.mjs','observation-local.mjs','entry-date.mjs','classification-local.mjs')
 RUNTIME_ASSETS=('workbench.html',*(f'workbench-host/{p}' for p in HOST_FILES),'workbench-host/stock/stock-bridge.mjs','workbench-host/dot/shell/workbench.local.mjs','workbench-host/dot/shell/workbench.css','workbench-host/dot/shell/workbench-context.mjs','workbench-host/dot/shell/market-archive.mjs','workbench-host/dot/shell/workflow-materials.mjs','workbench-host/dot/src/observation-view.mjs','workbench-host/dot/src/projection-view.mjs','workbench-host/dot/src/model.mjs','workbench-host/dot/src/workbench-model.mjs','workbench-host/dot/src/workflow-time.mjs')
 
@@ -25,8 +26,24 @@ def replace_block(text,start,end,new):
 
 
 CALLBACKS=r'''
-let completionSerial=0;
+let completionSerial=0,catalogSerial=0;
+let followLatestResearchDay=!new URLSearchParams(location.search).has('date');
+$('date').addEventListener('change',()=>{followLatestResearchDay=false;});
 window.StockPanelHost.installCompletion({
+ async catalog(){
+  const mine=++catalogSerial,wanted=selection().date;
+  try{
+   const catalog=await loadJson(integrationBase+'/history');
+   if(mine!==catalogSerial||selection().date!==wanted||!Array.isArray(catalog?.days))return;
+   const select=$('date'),existing=new Map(Array.from(select.options).map(option=>[option.value.split('|')[0],option]));
+   for(const entry of catalog.days){let option=existing.get(entry.source_date);if(!option){option=node('option',entry.source_date);select.append(option);existing.set(entry.source_date,option);}option.value=entry.source_date+(entry.revision?'|'+entry.revision:'');option.textContent=entry.source_date+(entry.status?' · '+entry.status:'');}
+   const committed=catalog.days.filter(entry=>entry.revision).sort((a,b)=>b.source_date.localeCompare(a.source_date)),latest=committed[0];
+   if(followLatestResearchDay&&latest&&latest.source_date!==wanted){select.value=existing.get(latest.source_date).value;await loadDay();return;}
+   const selected=existing.get(wanted);if(selected)select.value=selected.value;
+   if(latest&&latest.source_date>wanted)$('loadingState').textContent='已有新研究日 '+latest.source_date+'，可在研究日期中选择；当前历史日期保持固定。';
+   if(!day&&catalog.days.some(entry=>entry.source_date===wanted&&entry.revision))await loadDay();
+  }catch(error){if(mine===catalogSerial)$('loadingState').textContent='研究日期目录更新待确认：'+error.message;}
+ },
  refresh(){this.modules(['list','statistics']);},
  async modules(changed,event){
   if(!day)return;const mine=++completionSerial,wanted=selection().date,oldDay=day;
@@ -40,6 +57,8 @@ window.StockPanelHost.installCompletion({
     if(symbol&&selected?.symbol===symbol){selected=day.rows.find(r=>r.symbol===symbol)??selected;window.StockPanelHost.preserveChart();loadInteractive(selected,++stockToken);}
    }
    if(changed.includes('classification')&&!changed.some(k=>['list','statistics'].includes(k))){const next=validateDay(await loadJson(endpoint('day')));if(mine!==completionSerial||selection().date!==wanted||next.source_date!==wanted||next.generation!==day.generation||next.input_sha256!==day.input_sha256)return;const symbol=selected?.symbol;day=next;window.StockPanelHost.paintClassificationCoverage(day);renderList(false);if(symbol&&selected?.symbol===symbol){selected=day.rows.find(r=>r.symbol===symbol)??selected;renderClassification(selected);}}
+   if(changed.includes('catalog'))await this.catalog();
+   if(changed.includes('top200'))await window.StockPanelHost.paintTop200();
    if(changed.includes('observations'))await refreshObservationData();
    if(mine!==completionSerial||selection().date!==wanted)return;
    if(changed.includes('workflow')){const contract=await loadJson(integrationBase+'/workflow-contract?source_date='+wanted);if(mine!==completionSerial||selection().date!==wanted)return;timeContract=contract;renderContext(timeContract,observationSnapshot);window.StockPanelHost.paintWorkflow(contract);}
@@ -47,6 +66,7 @@ window.StockPanelHost.installCompletion({
   }catch(error){if(mine===completionSerial)$('loadingState').textContent='已保存更新尚未确认：'+error.message;}
  },
  async sourceChanged(){
+  window.StockPanelHost.clearCompany();
   const wanted=selection().date,mine=++completionSerial;
   try{const catalog=await loadJson(integrationBase+'/history');if(mine!==completionSerial||selection().date!==wanted)return;const entry=catalog.days.find(d=>d.source_date===wanted),option=Array.from($('date').options).find(o=>o.value.split('|')[0]===wanted);if(!entry||!option)throw Error('SOURCE_DATE_MISSING');option.value=wanted+'|'+entry.revision;$('date').value=option.value;await loadDay();}catch(error){if(mine===completionSerial)$('loadingState').textContent='来源重新绑定未确认：'+error.message;}
  }
@@ -81,7 +101,9 @@ def build(dot_root,output,receipt):
     patched=replace_once(patched,"该日期尚无研究数据，不沿用旧池。", "${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。")
     patched=replace_once(patched,"$('loadingState').textContent='${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。'", "$('loadingState').textContent=`${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。`")
     patched=replace_once(patched,"const h=await loadJson(endpoint('history'));if(!h?.days?.length){$('loadingState').textContent='尚无已提交研究日期。';return}", "let requested;try{requested=requestedSourceDate(location.search)}catch(error){$('loadingState').textContent='请求日期无效 · CANNOT_CONFIRM；未自动选择其他日期。';return;}const h=await loadJson(endpoint('history'))??{days:[]};if(!Array.isArray(h.days))throw Error('INVALID_HISTORY_CATALOG');if(!h.days.length&&!requested){$('loadingState').textContent='尚无已提交研究日期 · CANNOT_CONFIRM。';return}")
+    patched=replace_once(patched,"$('date').append(o)}await loadDay()","if(d.status)o.textContent=d.source_date+' · '+d.status;$('date').append(o)}await loadDay()")
     patched=replace_once(patched,"$('date').append(o)}await loadDay()", "$('date').append(o)}if(requested){let option=Array.from($('date').options).find(o=>o.value.split('|')[0]===requested);if(!option){option=node('option',requested+' · 未物化 / CANNOT_CONFIRM');option.value=requested;$('date').prepend(option);}$('date').value=option.value;}await loadDay()")
+    patched=replace_once(patched,"}await loadDay()", "}else{const latest=h.days.filter(d=>d.revision).sort((a,b)=>b.source_date.localeCompare(a.source_date))[0];if(!latest){$('loadingState').textContent='尚无已提交研究日期 · CANNOT_CONFIRM。';return;}$('date').value=Array.from($('date').options).find(o=>o.value.split('|')[0]===latest.source_date).value;}await loadDay()")
     patched=replace_once(patched,"if(token!==loadToken)return;group='all';page=0;","if(token!==loadToken)return;try{timeContract=await loadJson(integrationBase+'/workflow-contract?source_date='+day.source_date)}catch{timeContract=null}if(token!==loadToken)return;renderContext(timeContract,null);group='all';page=0;")
     patched=replace_once(patched,"renderFilters();renderSecondary();renderList(true);await refreshObservationData()","window.StockPanelHost.bindDay(day);renderFilters();renderSecondary();renderList(true);await refreshObservationData();window.StockPanelHost.paintWorkflow(timeContract)")
     # The existing source timer repeatedly reads the same snapshot. Completion
@@ -90,6 +112,20 @@ def build(dot_root,output,receipt):
     patched=replace_once(patched,"setInterval(pollStoredObservations,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollStoredObservations();});",'')
     patched+='\n'+CALLBACKS
     patched+="\n$('classificationQuery').addEventListener('input',()=>{page=0;renderList(true)});for(const checkbox of document.querySelectorAll('[data-classification-label]'))checkbox.addEventListener('change',()=>{page=0;renderList(true)});const stockGridViewport=$('stockGridViewport');$('showStockNames').onclick=()=>stockGridViewport.scrollTo({left:0,behavior:'smooth'});$('showStockRates').onclick=()=>stockGridViewport.scrollTo({left:stockGridViewport.scrollWidth,behavior:'smooth'});\n"
+    # Keep the fixed vendor untouched; change only its existing list seams.
+    patched=replace_once(patched,"b.classList.toggle('active',key===group);b.onclick", "b.classList.toggle('active',key===group);b.setAttribute('aria-pressed',String(key===group));b.type='button';b.onclick")
+    patched=replace_once(patched,"page=Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1));", "page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1)));")
+    patched=replace_once(patched,"$('listCount').textContent=`${filtered.length}只 · 原图${charts.size} · 真交互${projections.size} · 股价/金额为人民币`;$('listPage').textContent=`${page+1} / ${Math.max(1,Math.ceil(filtered.length/pageSize))}`;", "const totalCandidates=day.rows.filter(r=>r.eligible_candidate).length,scopeCount=$('scope').value==='all'?day.rows.length:totalCandidates,pageRows=filtered.slice(page*pageSize,(page+1)*pageSize);$('listCount').textContent=`总候选 ${totalCandidates}只 · 当前范围 ${scopeCount}只\\n筛选后 ${filtered.length}只 · 本页 ${pageRows.length}只${pageRows.length?'（'+(page*pageSize+1)+'–'+(page*pageSize+pageRows.length)+'）':''}`;$('listPage').textContent=`第 ${filtered.length?page+1:0} 页 / 共 ${Math.ceil(filtered.length/pageSize)} 页 · 每页 ${pageSize}只`;")
+    patched=replace_once(patched,"else{$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票。'}", "else{selected=null;++stockToken;clearInteractive();window.StockPanelHost.clearCompany();$('stockList').append(Object.assign(node('p','没有符合条件的股票，请调整上方范围、分组或搜索。'),{className:'stock-list-empty'}));$('content').hidden=true;$('loadingState').textContent='没有符合条件的股票，请调整上方筛选。'}")
+    patched=replace_once(patched,'validateCompany,explanationFacts,independentTiming}', 'validateCompany,explanationFacts,independentTiming,beginCompanyRequest,isCurrentCompanyRequest,renderCompanyStatus}')
+    start=patched.index('async function loadCompany(');end=patched.index('\nfunction renderSecondary()',start)
+    company=patched[start:end]
+    company=replace_once(company,"$('companySummary').replaceChildren(node('p','正在按需读取公司材料…'));$('companyMetrics').replaceChildren();$('companyEvidence').replaceChildren();", "const request=beginCompanyRequest({symbol:r.symbol,source_date:day.source_date,observation_date:day.observation_date,generation:day.generation,input_sha256:day.input_sha256});renderCompanyStatus(document,'LOADING',r.symbol);")
+    company=replace_once(company,'if(token!==stockToken)return;', 'if(!isCurrentCompanyRequest(request))return;')
+    company=replace_once(company,"if(!x){$('companySummary').replaceChildren(node('p','本股解释材料尚未收录。'));return}", "if(!x){renderCompanyStatus(document,'MISSING',r.symbol);return}")
+    company=replace_once(company,'validateCompany(x,r.symbol);', "validateCompany(x,r.symbol);renderCompanyStatus(document,'READY',r.symbol);$('companyMetrics').replaceChildren();")
+    company=replace_once(company,"if(token===stockToken)$('companySummary').replaceChildren(node('p','公司材料读取失败；图和分组未受影响。'))", "if(isCurrentCompanyRequest(request))renderCompanyStatus(document,'ERROR',r.symbol)")
+    patched=patched[:start]+company+patched[end:]
     html=(dot_root/'shell/index.html').read_text()
     for old,new in [('<title>','<meta name="framework-api-base" content="/api/v4/research/workbench"><title>'),('href="./workbench.css"','href="workbench-host/dot/shell/workbench.css"'),('src="./workbench.mjs"','src="workbench-host/bootstrap.mjs"'),('<a href="../demo/index.html">合成联调示例</a>','<a id="macLegacyStockPage" href="legacy-daily.html">旧版单股归档</a>'),('外部个股模块待绑定','原式个股模块已接入'),('公共源码联调 · 未绑定服务','Mac本地 · 同源只读'),('昨日冻结候选','冻结数值候选')]:html=replace_once(html,old,new)
     html=html.replace('原五组','四组数值候选 · 风险待核另列')
@@ -100,7 +136,12 @@ def build(dot_root,output,receipt):
     html=replace_once(html,'官方行业大类 / 原库题材（分层来源）','主营行业 / 官方大类 / 交易题材 / 催化剂')
     html=replace_once(html,'<div class="stock-grid-head" aria-label="股票六列排序">','<div class="stock-grid-controls" aria-label="股票横向浏览"><button id="showStockNames" type="button" aria-controls="stockGridViewport">← 名称</button><span>横向查看</span><button id="showStockRates" type="button" aria-controls="stockGridViewport">D+2 / D+5 →</button></div><div id="stockGridViewport" tabindex="0" role="region" aria-label="股票六列，可横向滚动；表头与列表同步"><div id="stockGridTable"><div class="stock-grid-head" aria-label="股票六列排序">')
     html=replace_once(html,'<nav id="stockList" aria-label="股票列表"></nav>','<nav id="stockList" aria-label="股票列表"></nav></div></div>')
+    scope_start=html.index('<details class="scope-options">');scope_end=html.index('</details>',scope_start)+len('</details>')
+    scope=html[scope_start:scope_end].replace('<details class="scope-options"><summary>范围 / 分组</summary>','<section class="scope-options" aria-label="范围与研究分组"><strong class="scope-heading">范围 / 分组</strong>').replace('</details>','</section>')
+    html=html[:scope_start]+html[scope_end:]
+    html=replace_once(html,'<label for="query"',scope+'<label for="query"')
     html=replace_once(html,'</head>','''<style>#interactiveChart .interactive-scroll,#interactiveChart .chart-nav{display:none}#macHistoricalStatistics{margin-top:8px}#macOriginalRenderer iframe{display:block}.stock-grid-head,.stock-grid-row{grid-template-columns:minmax(110px,1.4fr) 58px 62px 66px 104px 104px!important;min-width:540px}.sidebar{min-width:0;overflow:hidden}#stockGridViewport{flex:1;min-height:150px;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--cyan) var(--panel)}#stockGridTable{width:540px;min-width:100%}#stockGridViewport #stockList{overflow:visible;min-height:0;max-height:none;white-space:normal;flex:none}.stock-grid-head{position:sticky;top:0;z-index:2;background:var(--panel);padding-left:3px;padding-right:3px;border-left:1px solid transparent;border-right:1px solid transparent;width:100%}.stock-grid-controls{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:4px 0;font-size:9px;color:var(--muted)}.stock-grid-controls button{font-size:10px;padding:4px 6px}@media(max-width:650px){#stockGridViewport{min-height:100px;max-height:155px}}.classification-filter{font-size:10px;margin:5px 0;max-height:115px;overflow:auto}.classification-filter label{display:inline-flex;align-items:center;font-size:10px;margin-right:4px}.classification-filter input[type=search]{font-size:10px}.grid-rate{font-size:11px;text-align:right}.stock-grid-head button{white-space:nowrap}.stock-item{width:100%}@media(min-width:651px) and (max-width:950px){.layout{grid-template-columns:250px minmax(0,1fr)}}</style></head>''')
+    html=replace_once(html,'</head>','''<style id="workbench-filter-layout-r1">.sidebar{height:auto;min-height:calc(100vh - 240px);max-height:none;overflow:visible}.sidebar>*{flex-shrink:0}.sidebar-title .subtle{display:none}.sidebar>.scope-options{display:block;margin:6px 0 0;padding:6px 0 0}.scope-heading{display:block;color:var(--text);font-size:11px}.scope-options>label{font-size:10px}.scope-options select{margin:3px 0}.group-tabs{margin:3px 0 5px}.group-tabs button{line-height:1.3}.sidebar #listCount{display:block;white-space:pre-line;overflow:visible;line-height:1.5;margin:4px 0}.sidebar #stockGridViewport{flex:none;height:clamp(240px,calc(100vh - 610px),540px);min-height:240px;max-height:none}.sidebar .list-pager{display:flex;gap:5px;flex-wrap:wrap}.list-pager #listPage{flex:1;min-width:105px;text-align:center;line-height:1.5}.sidebar .source-note .counts{display:block;white-space:normal;line-height:1.5}.sidebar .source-note[open]{max-height:160px;overflow:auto}.stock-list-empty{padding:12px;color:var(--muted);white-space:normal;max-width:220px;font-size:12px}@media(max-width:650px){.sidebar{height:auto;min-height:0;max-height:none}.sidebar #stockGridViewport{height:260px;min-height:260px}.sidebar>.source-note{display:block}}</style></head>''')
     # Validate every source/anchor before creating or replacing output bytes.
     host=output/'workbench-host';host.mkdir(parents=True,exist_ok=True)
     if not (host/'dot').exists():shutil.copytree(dot_root,host/'dot')
@@ -108,7 +149,7 @@ def build(dot_root,output,receipt):
         for entry in entries:
             relative=Path(entry['path']).relative_to('research/dashboard_framework_collab_20261030')
             if hashlib.sha256((host/'dot'/relative).read_bytes()).hexdigest()!=entry['sha256']:raise ValueError('EXISTING_VENDOR_DRIFT:'+str(relative))
-    for name in HOST_FILES:shutil.copyfile(SOURCE/'mac-host'/name,host/name)
+    for name in HOST_FILES:shutil.copyfile((LOCAL_SOURCE if name in {'bootstrap.mjs','completion-action.mjs'} else SOURCE)/'mac-host'/name,host/name)
     (host/'stock').mkdir(exist_ok=True)
     for name in ['stock-bridge.mjs','host-context.mjs']:shutil.copyfile(SOURCE/name,host/'stock'/name)
     (host/'dot/shell/workbench.local.mjs').write_text(patched);(output/'workbench.html').write_text(html)

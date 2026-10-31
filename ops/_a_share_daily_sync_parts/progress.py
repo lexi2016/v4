@@ -221,9 +221,74 @@ def _tdx_seed_events(bundle, item, symbol):
     return accepted, closure_ref
 
 
+def _supplemental_tdx_seed_evidence(scope, bundle, symbol):
+    """Exact-pair extension from the existing captured/parser cache owner.
+
+    This explicitly references a current NONPIT capture. It does not pretend
+    that the new symbols were in the old adopted snapshot or certify Futu parity.
+    """
+    import struct
+    spec = bundle['descriptor']['supplemental_tdx_seed_pairs'][symbol]
+    if (spec.get('schema') != 'TDX_CAPTURED_CATEGORY1_EXACT_PAIR_V1' or
+            spec.get('symbol') != symbol or not symbol.endswith('.BJ') or
+            spec.get('historical_PIT') is not False or spec.get('futu_equivalence') is not False):
+        raise ValueError('supplemental_tdx_scope')
+    previous, current = map(_evidence_day, spec['pair_dates'])
+    capture = _evidence_json(spec['capture'])
+    policy = _evidence_json(spec['policy'])
+    if (capture.get('source_url') != 'http://www.tdx.com.cn/products/data/data/dbf/gbbq.zip' or
+            not current <= capture['coverage_end_date'] or
+            policy.get('policy_id') != 'TDX_GBBQ_CATEGORY1_AFFINE_BJ_V1' or not policy.get('controller') or
+            policy.get('category_policy', {}).get('1') != 'PRICE_ACTION_PER10_CASH_RIGHTS_BONUS_AFFINE'):
+        raise ValueError('supplemental_tdx_capture_policy')
+    for reference in (capture['raw'], capture['archive'], capture['parser'], spec['policy']):
+        _evidence_bytes(reference)
+    key = hashlib.sha256(json.dumps(dict(raw=capture['raw'], parser=capture['parser'], policy=spec['policy']),sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+    receipt = _evidence_json(spec['parser_receipt'])
+    if receipt != dict(cache_id=key,sha256=spec['parser_cache']['sha256']):
+        raise ValueError('supplemental_tdx_parser_receipt')
+    frames = bundle.setdefault('supplemental_frames', {})
+    if key not in frames:
+        import io
+        import pandas as pd
+        raw = _evidence_bytes(capture['raw'])
+        frame = pd.read_parquet(io.BytesIO(_evidence_bytes(spec['parser_cache'])))
+        if len(frame) != struct.unpack('<I',raw[:4])[0]:
+            raise ValueError('supplemental_tdx_parser_count')
+        frames[key] = frame
+    frame = frames[key]
+    rows = frame.loc[(frame.market==2)&(frame.code==symbol.split('.')[0])&(frame.datetime>previous)&(frame.datetime<=current)]
+    actions = rows.loc[rows.category==1]
+    if len(actions)!=1 or int(actions.iloc[0]['datetime'])!=current:
+        raise ValueError('supplemental_tdx_exact_action_missing')
+    row=actions.iloc[0]
+    cash,rights_price,bonus,rights=(float(row[field]) for field in ('hongli_panqianliutong','peigujia_qianzongguben','songgu_qianzongguben','peigu_houzongguben'))
+    if any(struct.unpack('<f',struct.pack('<f',v))[0]!=v for v in (cash,rights_price,bonus,rights)):
+        raise ValueError('supplemental_tdx_original_wire_precision')
+    denominator=1+(bonus+rights)/10
+    event=(1/denominator,(-cash/10+rights_price*rights/10)/denominator,denominator)
+    if not all(math.isfinite(v) for v in event) or denominator<=0:
+        raise ValueError('supplemental_tdx_nonfinite')
+    codec=_v4_global(scope,'DAY_STRUCT');raw=_evidence_bytes(spec['raw_source']);selected={}
+    if not raw or len(raw)%codec.size:raise ValueError('supplemental_tdx_raw_shape')
+    dates=[]
+    for offset in range(0,len(raw),codec.size):
+        original=raw[offset:offset+codec.size];day,*_rest=codec.unpack(original)
+        if dates and day<=dates[-1]:raise ValueError('supplemental_tdx_raw_order')
+        dates.append(day)
+        if day in (previous,current):selected[day]=dict(close=codec.unpack(original)[4]/100.0,row_sha256=hashlib.sha256(original).hexdigest(),source_ref=spec['raw_source'],row_index=offset//codec.size)
+    if {str(day):value['row_sha256'] for day,value in selected.items()}!=spec['pair_row_sha256']:
+        raise ValueError('supplemental_tdx_pair_row_binding')
+    return dict(start=previous,end=current,events={current:event},selected=selected,provider_response=spec['capture'],source_kind='TDX_CURRENT_CAPTURE_EXACT_PAIR_NOT_OLD_ADOPTION_NOT_FUTU_EQUIVALENT',supplemental_source=spec)
+
+
 def _seed_symbol_evidence(scope, bundle, symbol):
     if symbol in bundle['symbols']:
         return bundle['symbols'][symbol]
+    if symbol in bundle['descriptor'].get('supplemental_tdx_seed_pairs', {}):
+        evidence = _supplemental_tdx_seed_evidence(scope,bundle,symbol)
+        bundle['symbols'][symbol] = evidence
+        return evidence
     item = bundle['snapshot']['symbols'][symbol]
     start = _evidence_day(item['history_start_date'])
     end = _evidence_day(item['history_end_date'])
@@ -343,6 +408,8 @@ def _explain_seed_pair(scope, context, symbol, target_date, previous_date, curre
                       snapshot=bundle['descriptor']['snapshot'], adoption_receipt=bundle['descriptor']['adoption_receipt'])
         if 'source_kind' in evidence:
             record['source_kind'] = evidence['source_kind']
+        if 'supplemental_source' in evidence:
+            record['supplemental_source'] = evidence['supplemental_source']
     except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError) as error:
         record['reason'] = str(error)
     context.setdefault('records', []).append(record)
@@ -528,11 +595,43 @@ def _ipo_symbol_evidence(scope, bundle, symbol):
     return evidence
 
 
+def _explain_delisting_first_session(scope,context,bundle,symbol,previous_date,current_date,previous_close,close):
+    record=dict(symbol=symbol,previous_date=previous_date,current_date=current_date,previous_close=previous_close,close=close,status='UNEXPLAINED',method='SZSE_DELISTING_CONSOLIDATION_FIRST_SESSION_NO_PRICE_LIMIT')
+    try:
+        spec=bundle['descriptor']['delisting_first_session_boundaries'][symbol]
+        # One reviewed issuer fact, never a market-wide ratio exception.
+        if (symbol!='002731.SZ' or current_date!=20261023 or previous_date!=20260831 or
+                spec.get('type')!='SZSE_DELISTING_CONSOLIDATION_FIRST_SESSION_NO_PRICE_LIMIT' or
+                spec.get('session_date')!=current_date or spec.get('previous_session_date')!=previous_date or
+                spec['official_notice'].get('sha256')!='8d2be086e1a9d3329a2c70739f04e57811d01671546cdc8e82fb86ac68cde1fd' or
+                spec.get('historical_PIT') is not False):
+            raise ValueError('delisting_first_session_exact_scope')
+        _evidence_bytes(spec['official_notice'])
+        raw=_evidence_bytes(spec['raw_source']);codec=_v4_global(scope,'DAY_STRUCT');selected={};dates=[]
+        if not raw or len(raw)%codec.size:raise ValueError('delisting_raw_shape')
+        for offset in range(0,len(raw),codec.size):
+            original=raw[offset:offset+codec.size];day,*_=codec.unpack(original)
+            if dates and day<=dates[-1]:raise ValueError('delisting_raw_order')
+            dates.append(day)
+            if day in (previous_date,current_date):selected[day]=dict(row_sha256=hashlib.sha256(original).hexdigest(),close=codec.unpack(original)[4]/100.0)
+        if (len(selected)!=2 or dates[dates.index(previous_date)+1]!=current_date or
+                selected[previous_date]['close']!=previous_close or selected[current_date]['close']!=close or
+                {str(k):v['row_sha256'] for k,v in selected.items()}!=spec['pair_row_sha256']):
+            raise ValueError('delisting_exact_whole_row_pair_binding')
+        record.update(status='EXPLAINED_DELISTING_FIRST_SESSION_NO_PRICE_LIMIT',pair_sources=selected,official_notice=spec['official_notice'],raw_source=spec['raw_source'],descriptor_sha256=bundle['descriptor_sha256'],historical_PIT=False)
+    except (OSError,ValueError,TypeError,KeyError,AttributeError,OverflowError) as error:
+        record['reason']=str(error)
+    context.setdefault('records',[]).append(record)
+    return record['status']=='EXPLAINED_DELISTING_FIRST_SESSION_NO_PRICE_LIMIT'
+
+
 def _explain_historical_seed_pair(scope, context, symbol, target_date, previous_date, current_date,
                                   previous_close, close, seed_bars):
     # Non-IPO descriptors/symbols retain the exact R3 affine implementation.
     try:
         bundle = _seed_evidence_bundle(context, target_date)
+        if symbol in bundle['descriptor'].get('delisting_first_session_boundaries', {}):
+            return _explain_delisting_first_session(scope,context,bundle,symbol,previous_date,current_date,previous_close,close)
         ipo = bundle['descriptor'].get('ipo_seed_boundaries', {})
         if isinstance(ipo, dict) and symbol not in ipo:
             return _explain_seed_pair(scope, context, symbol, target_date, previous_date, current_date, previous_close, close)

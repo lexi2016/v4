@@ -16,6 +16,7 @@ import fcntl
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -151,6 +152,12 @@ def _research_cache_semantics(snapshot: dict, target: int) -> str:
     for descriptor in (config["prior_detector"], config["current_detector"]):
         for name in ("capture", "raw", "archive", "parser", "category_policy", "derived_parquet", "derived_receipt"):
             _source(descriptor[name], owner="typed research detector " + name)
+    if metadata.get("same_asof_metadata_reuse") is not None:
+        from ops.research_panel_factor_cache import _same_asof_metadata_records
+        provenance = metadata["same_asof_metadata_reuse"]
+        rows, expected_provenance = _same_asof_metadata_records(provenance["input"], metadata["requested_codes"], target, config_ref)
+        if provenance != expected_provenance or any(metadata["symbols"].get(code) != row for code, row in rows.items()):
+            raise QfqGateError("SAME_ASOF_METADATA_TYPED_RECORD_DRIFT")
     source_hashes = {r["sha256"] for r in snapshot["source_files"]}
     semantic = {}
     for code, item in snapshot["symbols"].items():
@@ -192,7 +199,7 @@ def _release_tuple_bound() -> bool:
     if Path(manifest["app_root"]).resolve() != root:
         return False
     inventory = {r["path"]: r["sha256"] for r in manifest["application_inventory"]["entries"] if r.get("kind", "file") == "file"}
-    paths = ["ops/research_panel_qfq.py", "ops/research_panel_factor_cache.py",
+    paths = ["ops/research_panel_qfq.py", "ops/research_panel_turnover.py", "ops/research_panel_factor_cache.py",
         "ops/research_panel_adjustment_inputs.py", "ops/research_panel_tdx_adjustment_inputs.py",
         "ops/research_panel_daily_source.py", "contracts/a_share_generation_compatibility.json",
         "contracts/a_share_daily_source_policy.json"]
@@ -542,7 +549,8 @@ def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int
 LEGACY_STATIC_FIELDS = frozenset("""raw_code name total_share_10k float_share_10k market_cap_yi float_market_cap_yi turnover_rate_pct finance_source_date list_date tdx_finance_area_code tdx_finance_industry_code tdx_industry_code sw_industry_code static_fundamental_source fundamental_snapshot_note tdx_industry_name is_st_snapshot research_panel_scope candidate_pool_policy minute_data_policy minute_data_output_root minute_data_contract_path minute_data_default_scope minute_data_required_outputs""".split())
 LEGACY_RAW_CONTEXT_FIELDS = frozenset("""price_limit_pct_est limit_up_price_est limit_down_price_est is_limit_up_est is_limit_down_est is_one_word_limit_up_est limit_board_count_est limit_down_board_count_est price_limit_source limit_up_approx limit_down_approx""".split())
 LEGACY_MARKET_CONTEXT_FIELDS = frozenset("""market_active_stock_count market_up_count market_down_count market_flat_count market_limit_up_count_est market_limit_down_count_est market_max_limit_board_count_est market_total_amount_yi market_context_source""".split())
-LEGACY_AUX_FIELDS = LEGACY_STATIC_FIELDS | LEGACY_RAW_CONTEXT_FIELDS | LEGACY_MARKET_CONTEXT_FIELDS
+TURNOVER_CONTEXT_FIELDS = frozenset({"turnover_rate_status", "turnover_rate_volume_source", "turnover_rate_denominator_10k"})
+LEGACY_AUX_FIELDS = LEGACY_STATIC_FIELDS | LEGACY_RAW_CONTEXT_FIELDS | LEGACY_MARKET_CONTEXT_FIELDS | TURNOVER_CONTEXT_FIELDS
 
 
 def field_basis_contract(driver) -> dict:
@@ -550,6 +558,10 @@ def field_basis_contract(driver) -> dict:
               for fields, basis in ((LEGACY_STATIC_FIELDS, "LEGACY_STATIC_CONTEXT"),
                                     (LEGACY_RAW_CONTEXT_FIELDS, "LEGACY_RAW_CONTEXT"),
                                     (LEGACY_MARKET_CONTEXT_FIELDS, "LEGACY_MARKET_CONTEXT")) for name in sorted(fields)}
+    for name in ("turnover_rate_pct", "float_share_10k", *TURNOVER_CONTEXT_FIELDS):
+        result[name] = dict(basis="TDX_G4_NATIVE_SHARES_AND_DATED_GBBQ_ORDINARY_FLOAT",
+            scope="A", historical_values="RETAIN_ORIGINAL", new_dates="COMPUTE_IF_BOUND_ELSE_NULL",
+            historical_PIT=False, free_float=False)
     result["field_contract_version"] = dict(basis="AUTHORITATIVE_LINEAGE_METADATA", scope="A", value=driver.CONTRACT_PROVENANCE_FIELD_DEFAULTS["field_contract_version"])
     return result
 
@@ -564,13 +576,13 @@ def computation_kernel_sha(source: Path) -> str:
 
 
 def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseline: dict, data_root: Path,
-                        *, tail_delta: dict | None = None) -> dict:
+                        *, tail_delta: dict | None = None, same_asof: dict | None = None) -> dict:
     if not ref:
         return {}
     recovery = json.loads(_source(ref, owner="reviewed checkpoint recovery").read_text())
     old = recovery["source_identity"]
     if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
-            or any(old.get(k) != v for k, v in identity.items() if k != "adapter_sha256")
+            or any(old.get(k) != v for k, v in identity.items() if k not in {"adapter_sha256", "turnover_input_sha256"})
             or recovery.get("baseline_panel_sha256") != baseline):
         raise QfqGateError("CHECKPOINT_RECOVERY_INPUT_OR_FORMULA_CHANGED")
     original_snapshot = _source(recovery["original_snapshot"], owner="original prepared input snapshot")
@@ -584,7 +596,16 @@ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseli
     if run.name != "qfq_" + old_generation[:20] or json.loads((run / "adjustment_input_snapshot.json").read_text()) != snapshot:
         raise QfqGateError("CHECKPOINT_RECOVERY_SOURCE_GENERATION_CONFLICT")
     chunks, retry = recovery["chunks"], set(recovery["retry_original_quarantined"])
-    if tail_delta is not None:
+    if same_asof is not None:
+        binding = same_asof.get("binding_ref")
+        if (same_asof.get("schema") != "qfq_same_asof_source_repair_v1"
+                or not isinstance(binding, dict) or recovery.get("same_asof_source_repair") != binding
+                or tail_delta is not None or recovery.get("tail_delta") is not None or retry
+                or not isinstance(same_asof.get("codes"), dict) or len(same_asof["codes"]) != 38
+                or set(chunks) != set(same_asof["codes"])):
+            raise QfqGateError("CHECKPOINT_RECOVERY_EXACT38_SAME_ASOF_SCOPE_CONFLICT")
+        _source(binding, owner="validated same-asof checkpoint scope")
+    elif tail_delta is not None:
         binding = tail_delta.get("binding_ref")
         tail_codes = tail_delta.get("codes")
         if (tail_delta.get("schema") != "qfq_native_tail_delta_v2"
@@ -597,7 +618,7 @@ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseli
         bound_tail = json.loads(_source(binding, owner="validated tail checkpoint scope").read_text())
         if bound_tail != {k: v for k, v in tail_delta.items() if k != "binding_ref"}:
             raise QfqGateError("CHECKPOINT_RECOVERY_TAIL_BINDING_CHANGED")
-    elif (recovery.get("tail_delta") is not None or set(chunks) & retry
+    elif (recovery.get("tail_delta") is not None or recovery.get("same_asof_source_repair") is not None or set(chunks) & retry
             or set(chunks) | retry != set(snapshot["symbols"])
             or not retry.issubset(snapshot.get("original_quarantine_eligible", {}))):
         raise QfqGateError("CHECKPOINT_RECOVERY_SYMBOL_COVERAGE_CONFLICT")
@@ -677,6 +698,208 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             table = table.set_column(schema.get_field_index(field.name), field, pa.Array.from_pandas(values, type=field.type))
     return table
+
+
+def _overlay_turnover_table(table: pa.Table, overlay, schema: pa.Schema) -> tuple[pa.Table, dict]:
+    """Fill matching null turnover keys; leave all other source values intact."""
+    for field in schema:
+        if field.name not in table.schema.names:
+            table = table.append_column(field, pa.nulls(len(table), type=field.type))
+    codes, dates = table["ts_code"].to_pylist(), table["trade_date"].to_pylist()
+    names = ("turnover_rate_pct", "float_share_10k", "turnover_rate_status",
+             "turnover_rate_volume_source", "turnover_rate_denominator_10k")
+    values = {name: table[name].to_pylist() for name in names}
+    market_types = table["market_type"].to_pylist() if "market_type" in table.schema.names else [None] * len(table)
+
+    def market_scope(code, market_type):
+        if isinstance(code, str) and code.endswith((".SH", ".SZ")):
+            return "A_SHARE"
+        if isinstance(code, str) and code.endswith(".BJ"):
+            return "BJ"
+        if isinstance(code, str) and code.endswith(".HK_CONNECT"):
+            return "HK_CONNECT"
+        if (isinstance(code, str) and code.endswith(".HK_FUND")) or market_type == "HK_FUND":
+            return "HK_FUND"
+        if (isinstance(code, str) and code.endswith(".HK")) or market_type == "HK":
+            return "HK"
+        return "OTHER"
+
+    scope_names = ("A_SHARE", "BJ", "HK", "HK_CONNECT", "HK_FUND", "OTHER")
+    scopes = [market_scope(code, kind) for code, kind in zip(codes, market_types)]
+    scope_counts = dict.fromkeys(scope_names, 0)
+    for scope in scopes:
+        scope_counts[scope] += 1
+    groups = {}
+    for pos, (code, date) in enumerate(zip(codes, dates)):
+        if isinstance(code, str) and CODE.fullmatch(code):
+            groups.setdefault(code, {}).setdefault(int(date), []).append(pos)
+    # Count the baseline's old values even if the overlay has no row for that
+    # key. Those values are still preserved by copying the original table.
+    stats = dict(matched_existing_keys=0,
+                 preserved_non_null=sum(not pd.isna(value) for value in values["turnover_rate_pct"]),
+                 filled=0, unknown=0)
+    for scope in scope_names:
+        stats["baseline_rows_" + scope] = scope_counts[scope]
+        stats["matched_existing_keys_" + scope] = 0
+        stats["filled_" + scope] = 0
+        stats["unknown_" + scope] = 0
+    for code, positions in groups.items():
+        patch = overlay.for_code(code)
+        if patch.empty:
+            continue
+        for item in patch.itertuples(index=False):
+            for pos in positions.get(int(item.trade_date), []):
+                stats["matched_existing_keys"] += 1
+                stats["matched_existing_keys_" + scopes[pos]] += 1
+                old = values["turnover_rate_pct"][pos]
+                if old is not None and not (isinstance(old, float) and math.isnan(old)):
+                    continue
+                rate = item.turnover_rate_pct
+                values["turnover_rate_status"][pos] = str(item.turnover_status)
+                values["turnover_rate_volume_source"][pos] = None if pd.isna(item.volume_source) else str(item.volume_source)
+                if pd.isna(rate):
+                    stats["unknown"] += 1
+                    stats["unknown_" + scopes[pos]] += 1
+                    continue
+                denominator = float(item.turnover_float_share_10k)
+                values["turnover_rate_pct"][pos] = float(rate)
+                values["turnover_rate_denominator_10k"][pos] = denominator
+                original_float = values["float_share_10k"][pos]
+                if original_float is None or (isinstance(original_float, float) and math.isnan(original_float)):
+                    values["float_share_10k"][pos] = denominator
+                stats["filled"] += 1
+                stats["filled_" + scopes[pos]] += 1
+    for name in names:
+        i = schema.get_field_index(name)
+        table = table.set_column(i, schema.field(i), pa.Array.from_pandas(values[name], type=schema.field(i).type))
+    return table.replace_schema_metadata(schema.metadata), stats
+
+
+def build_turnover_overlay_candidate(*, overlay_ref: dict, panels: dict[str, Path], output_root: Path) -> dict:
+    """Build an isolated pair through the original owner; never touch CURRENT.
+
+    This opt-in path copies existing Arrow row groups and changes only missing
+    turnover/context fields. It does not call the formula engine or collect data.
+    """
+    from ops.research_panel_turnover import HistoricalOverlay, POLICY
+    overlay = HistoricalOverlay(overlay_ref)
+    if set(panels) != {"selector", "backtest"} or not Path(output_root).is_absolute():
+        raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_SCOPE_INVALID")
+    root = Path(output_root).resolve()
+    if root.exists() and any(root.iterdir()):
+        raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_ROOT_NOT_EMPTY")
+    contracts, originals, original_stats = {}, {}, {}
+    for role, source in panels.items():
+        bound = overlay.value["baseline_roles"][role]
+        path = _source(bound, owner="turnover baseline " + role)
+        if path != Path(source) or path.resolve().is_relative_to(root):
+            raise QfqGateError("TURNOVER_BASELINE_PATH_CONFLICT:" + role)
+        contract = panel_contract(path)
+        if (contract.get("schema") != "a_share_qfq_panel_v1"
+                or contract.get("generation_id") != overlay.value["baseline_generation_id"]
+                or contract.get("asof_date") != overlay.value["baseline_asof_date"]
+                or contract.get("generation_manifest_path") != overlay.baseline_receipt_ref["path"]
+                or contract.get("RESEARCH_ONLY") is not True
+                or any(contract.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+            raise QfqGateError("TURNOVER_BASELINE_GENERATION_CONFLICT:" + role)
+        source_parquet = pq.ParquetFile(path)
+        baseline_receipt = overlay.baseline_receipt
+        if (baseline_receipt.get("candidates", {}).get(role) != str(path)
+                or baseline_receipt.get("candidate_sha256", {}).get(role) != bound["sha256"]
+                or baseline_receipt.get("counts", {}).get(role, {}).get("panel_rows") != source_parquet.metadata.num_rows):
+            raise QfqGateError("TURNOVER_BASELINE_RECEIPT_ARTIFACT_CONFLICT:" + role)
+        originals[role], contracts[role] = path, contract
+        stat = path.stat()
+        original_stats[role] = (stat.st_size, stat.st_mtime_ns, bound["sha256"])
+    generation = canonical_sha(dict(kind="TURNOVER_ONLY_OVERLAY",
+        projection_generation_id=overlay.value["projection_generation_id"],
+        projection_baseline_roles=overlay.value["projection_baseline_roles"],
+        baseline_generation_id=overlay.value["baseline_generation_id"],
+        baseline_asof_date=overlay.value["baseline_asof_date"],
+        baseline_roles=overlay.value["baseline_roles"],
+        baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
+        input=overlay_ref, owner_sha256=sha(Path(__file__)),
+        helper_sha256=sha(Path(__file__).with_name("research_panel_turnover.py"))))
+    root.mkdir(parents=True, exist_ok=True)
+    outputs, counts, quarantine = {}, {}, None
+    for role, source in originals.items():
+        original = pq.ParquetFile(source)
+        old_schema = original.schema_arrow
+        if not {"ts_code", "trade_date"}.issubset(old_schema.names):
+            raise QfqGateError("TURNOVER_BASELINE_SCHEMA_MISSING:" + role)
+        original_receipt = json.loads(Path(contracts[role]["generation_manifest_path"]).read_text()) if contracts[role].get("quarantine_manifest_path") else {}
+        ref = original_receipt.get("quarantine_manifest")
+        if contracts[role].get("quarantine_manifest_path") and (not ref or ref["path"] != contracts[role]["quarantine_manifest_path"]):
+            raise QfqGateError("TURNOVER_BASELINE_QUARANTINE_BINDING_INVALID:" + role)
+        if ref:
+            _source(ref, owner="turnover retained quarantine")
+            if quarantine is not None and quarantine != ref:
+                raise QfqGateError("TURNOVER_BASELINE_QUARANTINE_PAIR_CONFLICT")
+            quarantine = ref
+        fields = list(old_schema)
+        for name, typ in (("turnover_rate_pct", pa.float64()), ("float_share_10k", pa.float64()),
+                          ("turnover_rate_status", pa.string()), ("turnover_rate_volume_source", pa.string()),
+                          ("turnover_rate_denominator_10k", pa.float64())):
+            if name not in old_schema.names:
+                fields.append(pa.field(name, typ, nullable=True))
+        meta = dict(contracts[role], generation_id=generation,
+            generation_manifest_path=str(root / "candidate_receipt.json"),
+            turnover_overlay=dict(source=overlay_ref, policy=POLICY,
+                projection_generation_id=overlay.value["projection_generation_id"],
+                projection_asof_date=overlay.value["projection_asof_date"],
+                projection_baseline_roles=overlay.value["projection_baseline_roles"],
+                baseline_generation_id=overlay.value["baseline_generation_id"],
+                baseline_asof_date=overlay.value["baseline_asof_date"],
+                baseline_roles=overlay.value["baseline_roles"],
+                baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
+                cutoff=overlay.cutoff, owner_sha256=sha(Path(__file__)), historical_PIT=False, free_float=False,
+                scope="EXISTING_KEYS_AND_NULL_TURNOVER_ONLY"))
+        basis = dict(meta.get("field_basis", {}))
+        for name in ("turnover_rate_pct", "float_share_10k", *TURNOVER_CONTEXT_FIELDS):
+            basis[name] = dict(basis="TDX_G4_NATIVE_SHARES_AND_DATED_GBBQ_ORDINARY_FLOAT",
+                scope="A", historical_values="PRESERVE_NON_NULL_FILL_BOUND_MISSING_ONLY", historical_PIT=False, free_float=False)
+        meta["field_basis"] = basis
+        schema = pa.schema(fields, metadata={**(old_schema.metadata or {}), META_KEY: json.dumps(meta).encode()})
+        final = root / (role + ".parquet")
+        pending = root / (role + ".pending.parquet")
+        if final.exists() or pending.exists():
+            raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_EXISTS:" + role)
+        tally = dict(source_rows=0, output_rows=0, matched_existing_keys=0, preserved_non_null=0, filled=0, unknown=0)
+        for scope in ("A_SHARE", "BJ", "HK", "HK_CONNECT", "HK_FUND", "OTHER"):
+            for metric in ("baseline_rows", "matched_existing_keys", "filled", "unknown"):
+                tally[f"{metric}_{scope}"] = 0
+        with pq.ParquetWriter(pending, schema, compression="zstd") as writer:
+            for i in range(original.num_row_groups):
+                table = original.read_row_group(i)
+                tally["source_rows"] += len(table)
+                table, part = _overlay_turnover_table(table, overlay, schema)
+                for key, value in part.items():
+                    tally[key] += value
+                writer.write_table(table)
+                tally["output_rows"] += len(table)
+        if tally["source_rows"] != tally["output_rows"]:
+            raise QfqGateError("TURNOVER_OVERLAY_ROW_COUNT_CHANGED:" + role)
+        os.link(pending, final)  # Atomic create, never overwrite an existing candidate.
+        pending.unlink()
+        outputs[role] = dict(path=str(final), sha256=sha(final), rows=tally["output_rows"])
+        counts[role] = tally
+    overlay.verify_sources()
+    for role, source in originals.items():
+        stat = source.stat()
+        if ((stat.st_size, stat.st_mtime_ns) != original_stats[role][:2]
+                or sha(source) != original_stats[role][2]):
+            raise QfqGateError("TURNOVER_BASELINE_CHANGED_DURING_BUILD:" + role)
+    receipt = dict(schema="a_share_turnover_overlay_candidate_v2", status="READY_ISOLATED",
+        generation_id=generation, baseline_generation_id=overlay.value["baseline_generation_id"],
+        baseline_asof_date=overlay.value["baseline_asof_date"],
+        baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
+        projection_generation_id=overlay.value["projection_generation_id"],
+        projection_asof_date=overlay.value["projection_asof_date"],
+        projection_baseline_roles=overlay.value["projection_baseline_roles"], cutoff=overlay.cutoff,
+        overlay_ref=overlay_ref, candidates=outputs, counts=counts, quarantine_manifest=quarantine,
+        historical_PIT=False, no_formula_recomputation=True, current_updated=False, **FLAGS)
+    _json(root / "candidate_receipt.json", receipt)
+    return receipt
 
 
 def history_extension_binding(ref: dict, *, data_root: Path, return_root: Path,
@@ -834,6 +1057,43 @@ def factor_cache_identity(data_root: Path, target: int, snapshot: dict) -> str |
     return canonical_sha(semantic)
 
 
+def turnover_source_watch(data_root: Path, tdx_root: Path, target: int, turnover) -> list[dict]:
+    """Stat the bound inputs and missing-input locations for same-day reuse."""
+    root = input_path(data_root).parent
+    sync = tdx_root.parent / "receipts/a_sync_authority" / str(target) / "summary.json"
+    paths = {Path(__file__).with_name("research_panel_turnover.py"), sync,
+             root / "qfq_tdx_official_source.json", root / "official_gbbq",
+             root / "official_gbbq/capture_receipts"}
+    if sync.is_file():
+        try:
+            source = json.loads(sync.read_text()).get("official_daily_source", {})
+            for key in ("package", "input_ref"):
+                if source.get(key, {}).get("path"):
+                    paths.add(Path(source[key]["path"]))
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass  # The sync file itself remains watched and input stays null.
+    if turnover.binding:
+        descriptor = turnover.binding["gbbq"]
+        for key in ("capture", "raw", "archive", "parser", "category_policy", "derived_parquet", "derived_receipt"):
+            paths.add(Path(descriptor[key]["path"]))
+    return [dict(path=str(path), exists=path.exists(),
+                 size=path.stat().st_size if path.exists() else None,
+                 mtime_ns=path.stat().st_mtime_ns if path.exists() else None)
+            for path in sorted(paths)]
+
+
+def turnover_watch_unchanged(watch: list[dict]) -> bool:
+    for ref in watch:
+        path = Path(ref["path"])
+        if path.exists() != ref["exists"]:
+            return False
+        if ref["exists"]:
+            stat = path.stat()
+            if stat.st_size != ref["size"] or stat.st_mtime_ns != ref["mtime_ns"]:
+                return False
+    return True
+
+
 def pointer_ready(selector_pointer: Path, target: int, snapshot_path: Path) -> bool:
     """Cheap scheduler check: changed event cache bytes invalidate same-date READY.
 
@@ -856,6 +1116,8 @@ def pointer_ready(selector_pointer: Path, target: int, snapshot_path: Path) -> b
             return False
         readiness = json.loads(snapshot_path.with_name("qfq_readiness.json").read_text())
         if readiness.get("generation_id") != contract.get("generation_id"):
+            return False
+        if not readiness.get("turnover_watch") or not turnover_watch_unchanged(readiness["turnover_watch"]):
             return False
         cache_identity = factor_cache_identity(selector_pointer.parent.parent, target, snapshot)
         if not cache_identity or readiness.get("factor_cache_identity") != cache_identity:
@@ -988,29 +1250,82 @@ def _code_binding(identity: dict) -> dict:
 
 
 def _convention_tuple_accepted(accepted: dict, binding: dict) -> bool:
-    """One original tuple plus one explicitly reviewed complete successor."""
+    """Accept the primary tuple or one of at most two reviewed successors."""
     keys = {"driver_sha256", "formula_sha256", "adapter_sha256", "input_adapter_sha256",
             "factor_cache_sha256", "tdx_adapter_sha256", "user_formula_sha256", "field_contract_sha256"}
     primary = accepted.get("code_binding")
     if set(binding) != keys or not isinstance(primary, dict) or set(primary) != keys:
         return False
+    entries = accepted.get("approved_tuple_entries", [])
+    if not isinstance(entries, list) or len(entries) > 2:
+        return False
+    seen = [primary]
+    for entry in entries:
+        item = entry.get("code_binding") if isinstance(entry, dict) else None
+        if not isinstance(item, dict) or set(item) != keys or item in seen:
+            return False
+        seen.append(item)
     if binding == primary:
         return True
-    entries = accepted.get("approved_tuple_entries", [])
-    if accepted.get("tuple_compatibility_schema") != "qfq_exact_two_tuple_acceptance.v1" or len(entries) != 1:
+    if (accepted.get("tuple_compatibility_schema") != "qfq_exact_two_tuple_acceptance.v1"
+            or len(entries) not in {1, 2}):
         return False
-    entry = entries[0]
-    if (entry.get("code_binding") != binding or set(entry["code_binding"]) != keys
-            or entry.get("status") != "PASS" or not entry.get("reviewer_id")
-            or entry.get("reviewer_id") == "/root/sop_cache_runtime_writer"):
-        return False
-    proof = json.loads(_source(entry["equivalence_receipt"], owner="reviewed convention tuple equivalence").read_text())
-    return (proof.get("status") == "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
-            and proof.get("code_binding") == binding and proof.get("baseline_code_binding") == primary
-            and all(proof.get("assertions", {}).get(k) is True for k in
-                    ("events_parity", "volume_math_parity", "original_provider_dates_preserved", "source_and_code_pins_verified"))
-            and proof.get("RESEARCH_ONLY") is True
-            and all(proof.get(k) is False for k in ("production_allowed", "buy_gate_updated", "orders_sent")))
+    for index, entry in enumerate(entries):
+        if entry["code_binding"] != binding:
+            continue
+        if (entry.get("status") != "PASS" or not entry.get("reviewer_id")
+                or entry.get("reviewer_id") == "/root/sop_cache_runtime_writer"):
+            return False
+        if index == 1 and any(binding[key] != entries[0]["code_binding"][key]
+                              for key in keys - {"adapter_sha256"}):
+            return False
+        proof = json.loads(_source(entry["equivalence_receipt"], owner="reviewed convention tuple equivalence").read_text())
+        if not (proof.get("status") == "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
+                and proof.get("code_binding") == binding and proof.get("baseline_code_binding") == primary
+                and all(proof.get("assertions", {}).get(k) is True for k in
+                        ("events_parity", "volume_math_parity", "original_provider_dates_preserved", "source_and_code_pins_verified"))
+                and proof.get("RESEARCH_ONLY") is True
+                and all(proof.get(k) is False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+            return False
+        if index == 1:
+            kernel = proof.get("qfq_kernel_equivalence")
+            if not isinstance(kernel, dict) or set(kernel) != {
+                    "schema", "baseline_source", "candidate_source", "helper_source",
+                    "baseline_kernel_sha256", "candidate_kernel_sha256"}:
+                return False
+            if kernel.get("schema") != "qfq_turnover_kernel_equivalence_v1":
+                return False
+            baseline_source = _source(kernel["baseline_source"], owner="QFQ baseline kernel proof")
+            candidate_source = _source(kernel["candidate_source"], owner="QFQ candidate kernel proof")
+            helper_source = _source(kernel["helper_source"], owner="turnover helper source proof")
+            proof_paths = [kernel[key]["path"] for key in ("baseline_source", "candidate_source", "helper_source")]
+            if any(not Path(path).is_absolute() or str(Path(path).resolve(strict=True)) != path for path in proof_paths):
+                return False
+            installed_helper = Path(__file__).with_name("research_panel_turnover.py")
+            baseline_kernel = computation_kernel_sha(baseline_source)
+            candidate_kernel = computation_kernel_sha(candidate_source)
+            running_kernel = computation_kernel_sha(Path(__file__))
+            running_helper_sha = sha(installed_helper)
+            if (binding["adapter_sha256"] != sha(Path(__file__))
+                    or kernel["baseline_source"]["sha256"] != primary["adapter_sha256"]
+                    or kernel["candidate_source"]["sha256"] != binding["adapter_sha256"]
+                    or candidate_source.name != "research_panel_qfq.py"
+                    or helper_source.name != "research_panel_turnover.py"
+                    or candidate_source.parent != helper_source.parent
+                    or kernel["helper_source"]["sha256"] != running_helper_sha
+                    or kernel["helper_source"]["sha256"] != sha(helper_source)
+                    or kernel["baseline_kernel_sha256"] != baseline_kernel
+                    or kernel["candidate_kernel_sha256"] != candidate_kernel
+                    or baseline_kernel != candidate_kernel or candidate_kernel != running_kernel):
+                return False
+            if (proof.get("independent_review_status") != "PASS"
+                    or proof.get("reviewer_id") != entry.get("reviewer_id")
+                    or proof.get("author_id") == entry.get("reviewer_id")
+                    or proof.get("provider_calls") != 0
+                    or proof.get("new_displayed_oracle") is not False):
+                return False
+        return True
+    return False
 
 
 def verify_release_gate(root: Path, output: Path, identity: dict, target: int, convention: str) -> None:
@@ -1913,6 +2228,181 @@ def _symbol_process_task(payload):
         return code, None, str(exc)
 
 
+def _same_asof_repair_reference(target: int) -> dict | None:
+    if str(target) != os.environ.get("V4_A_QFQ_SOURCE_REPAIR_DATE"):
+        return None
+    return dict(path=os.environ["V4_A_QFQ_SOURCE_REPAIR_INPUT"],
+                sha256=os.environ["V4_A_QFQ_SOURCE_REPAIR_INPUT_SHA256"])
+
+
+def _same_asof_owner_math_sha(path: Path) -> str:
+    excluded = {"run_daily_rebuild", "_same_asof_repair_reference", "_same_asof_owner_math_sha",
+                "_same_asof_stock_dependencies", "_same_asof_price_reuse", "_retained_turnover_context",
+                "_same_asof_arrow_unchanged", "checkpoint_recovery",
+                "_research_cache_semantics"}
+    nodes = []
+    for node in ast.parse(path.read_text()).body:
+        if isinstance(node, ast.FunctionDef) and node.name in excluded:
+            continue
+        if isinstance(node, ast.Import) and len(node.names) == 1 and node.names[0].name == "pyarrow.compute":
+            continue
+        nodes.append(ast.dump(node, include_attributes=False))
+    return canonical_sha(nodes)
+
+
+def _same_asof_stock_dependencies(item: dict) -> dict:
+    # Only these proof/observation fields are not read by the original kernel.
+    # Every other key, raw byte SHA, ordering and date filter stays in the key.
+    value = {k: v for k, v in item.items() if k not in {
+        "source_config", "accepted_evidence", "provider_response_scope", "source_method"}}
+    value["raw_files"] = [{k: v for k, v in ref.items() if k not in {"path", "original_ref", "native_update_receipt"}}
+                          for ref in item["raw_files"]]
+    return value
+
+
+def _same_asof_price_reuse(ref: dict, *, snapshot: dict, contracts: dict, currents: dict,
+                           baseline_hashes: dict, identity: dict, target: int, journal: Path,
+                           price_field_basis: dict) -> dict:
+    """Exact reviewed same-date source revision; no fallback to all-stock rebuild."""
+    value = json.loads(_source(ref, owner="same-asof source repair input").read_text())
+    if (value.get("schema") != "qfq_same_asof_source_repair_v1" or value.get("asof_date") != target
+            or value.get("RESEARCH_ONLY") is not True
+            or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise QfqGateError("SAME_ASOF_REPAIR_CONTRACT_INVALID")
+    committed = json.loads(journal.read_text())
+    if (committed.get("status") != "COMMITTED" or set(currents) != {"selector", "backtest"}
+            or any(committed.get("after", {}).get(r, "").strip() != str(p) for r, p in currents.items())):
+        raise QfqGateError("SAME_ASOF_REPAIR_NOT_CURRENT_COMMITTED_PAIR")
+    old_snapshot = _source(value["baseline_snapshot"], owner="same-asof committed snapshot")
+    old = json.loads(old_snapshot.read_text())
+    receipt = json.loads(_source(value["baseline_receipt"], owner="same-asof committed receipt").read_text())
+    core = _source(value["baseline_core"], owner="same-asof original computation")
+    accepted_owner = _source(value["accepted_owner_source"], owner="same-asof accepted owner")
+    if (old.get("asof_date") != target or snapshot.get("asof_date") != target
+            or computation_kernel_sha(core) != computation_kernel_sha(Path(__file__))
+            or _same_asof_owner_math_sha(accepted_owner) != _same_asof_owner_math_sha(Path(__file__))):
+        raise QfqGateError("SAME_ASOF_REPAIR_MATH_OR_DATE_CHANGED")
+    proof = json.loads(_source(value["factor_equivalence"], owner="reviewed metadata-only factor equivalence").read_text())
+    review = json.loads(_source(proof["independent_review"], owner="factor equivalence independent review").read_text())
+    factor_ast = json.loads(_source(proof["factor_ast_equivalence"], owner="factor equivalence AST").read_text())
+    prior_factor = _source(value["baseline_factor_source"], owner="same-asof original factor owner")
+    current_factor = Path(__file__).with_name("research_panel_factor_cache.py")
+    accepted_factor = _source(value["accepted_factor_source"], owner="R6 accepted factor owner")
+    def factor_math(path):
+        return canonical_sha([ast.dump(n, include_attributes=False) for n in ast.parse(path.read_text()).body
+            if not (isinstance(n, ast.FunctionDef) and n.name in {"_verified_sop_skip", "_reviewed_policy_lifecycle_fact", "collect_research_metadata", "_same_asof_metadata_records"})])
+    if (proof.get("status") != "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
+            or proof.get("independent_review_status") != "PASS" or review.get("status") != "PASS"
+            or proof.get("reviewer_id") != review.get("reviewer")
+            or factor_ast.get("baseline", {}).get("sha256") != sha(prior_factor)
+            or factor_ast.get("candidate", {}).get("sha256") != sha(accepted_factor)
+            or identity.get("factor_cache_sha256") != sha(current_factor)
+            or factor_math(prior_factor) != factor_math(accepted_factor)
+            or factor_math(accepted_factor) != factor_math(current_factor)):
+        raise QfqGateError("SAME_ASOF_REPAIR_FACTOR_MATH_UNBOUND")
+    policies = [json.loads(_source(value[k], owner=k).read_text())
+                for k in ("baseline_source_policy", "current_source_policy")]
+    current_policy = Path(__file__).resolve().parents[1] / "contracts/a_share_daily_source_policy.json"
+    if sha(current_policy) != value["current_source_policy"]["sha256"]:
+        raise QfqGateError("SAME_ASOF_REPAIR_CURRENT_POLICY_DRIFT")
+    for key in ("calendar", "calendar_adapter"):
+        if policies[0].get(key) != policies[1].get(key):
+            raise QfqGateError("SAME_ASOF_REPAIR_CALENDAR_CHANGED")
+        _source(policies[0][key], owner="same-asof calendar dependency")
+    for key in ("schema", "price_basis", "price_rounding", "volume_basis", "volume_adjustment", "amount_basis", "convention"):
+        if old.get(key) != snapshot.get(key):
+            raise QfqGateError("SAME_ASOF_REPAIR_BASIS_CHANGED:" + key)
+    context = {"turnover_rate_pct", "float_share_10k"} | TURNOVER_CONTEXT_FIELDS
+    for role, path in currents.items():
+        bound = value["baseline_roles"][role];meta = contracts[role]
+        if (bound.get("path") != str(path) or bound.get("sha256") != baseline_hashes[role]
+                or receipt.get("candidates", {}).get(role) != str(path)
+                or receipt.get("candidate_sha256", {}).get(role) != baseline_hashes[role]
+                or meta.get("generation_id") != receipt.get("generation_id")
+                or meta.get("asof_date") != target or meta.get("input_sha256") != canonical_sha(old)
+                or meta.get("adapter_sha256") != sha(core)
+                or meta.get("factor_cache_sha256") != sha(prior_factor)
+                or meta.get("adjustment_snapshot") != value["baseline_snapshot"]
+                or any(meta.get(k) != v for k, v in identity.items()
+                       if k not in {"adapter_sha256", "factor_cache_sha256", "input_sha256", "turnover_input_sha256"})
+                or {k: v for k, v in meta.get("field_basis", {}).items() if k not in context}
+                   != {k: v for k, v in price_field_basis.items() if k not in context}):
+            raise QfqGateError("SAME_ASOF_REPAIR_BASELINE_OR_FORMULA_UNBOUND:" + role)
+    source = json.loads(_source(value["source_admission"], owner="same-asof completed source admission").read_text())
+    if (str(source.get("target_date")) != str(target) or source.get("technical_failure_count") != 0
+            or source.get("failures") or source.get("RESEARCH_ONLY") is not True):
+        raise QfqGateError("SAME_ASOF_REPAIR_SOURCE_ADMISSION_UNBOUND")
+    allowed = value.get("allowed_changed_codes")
+    if not isinstance(allowed, list) or len(allowed) != 44 or len(set(allowed)) != 44:
+        raise QfqGateError("SAME_ASOF_REPAIR_EXACT44_SCOPE_UNBOUND")
+    available = set(snapshot["symbols"]);before = old["symbols"];changed = {};reused = []
+    checked = set()
+    for code, item in snapshot["symbols"].items():
+        for raw in item["raw_files"]:
+            key = (raw["path"], raw["sha256"])
+            if key not in checked:
+                _source(raw, owner="same-asof current full prefix " + code);checked.add(key)
+        if code in before and _same_asof_stock_dependencies(before[code]) == _same_asof_stock_dependencies(item):
+            reused.append(code)
+        else:
+            changed[code] = dict(reason="CHANGED_OR_NEW_REAL_PRICE_DEPENDENCIES")
+    removed = set(before) - available
+    if (set(changed) | removed) - set(allowed):
+        raise QfqGateError("SAME_ASOF_REPAIR_OUTSIDE_EXACT44:" + repr(sorted((set(changed) | removed) - set(allowed))))
+    return dict(schema="qfq_same_asof_source_repair_v1", codes=changed, reused_codes=sorted(reused),
+                removed_codes=sorted(removed), binding_ref=ref, baseline_generation=receipt["generation_id"],
+                baseline_roles=value["baseline_roles"], baseline_snapshot=value["baseline_snapshot"],
+                factor_equivalence=value["factor_equivalence"], computation_kernel_sha256=computation_kernel_sha(core))
+
+
+def _same_asof_arrow_unchanged(before, after) -> bool:
+    """Exact zero-copy proof, including valid NaNs and null-buffer layout."""
+    if before.type != after.type or len(before) != len(after) or before.num_chunks != after.num_chunks:
+        return False
+    for left, right in zip(before.chunks, after.chunks):
+        if len(left) != len(right) or left.offset != right.offset or left.null_count != right.null_count:
+            return False
+        for a, b in zip(left.buffers(), right.buffers()):
+            if (a is None) != (b is None) or a is not None and (a.address != b.address or a.size != b.size):
+                return False
+    return True
+
+
+def _retained_turnover_context(table: pa.Table, turnover, schema: pa.Schema) -> tuple[pa.Table, dict]:
+    """Retain every price array; original helper only fills missing target context."""
+    import pyarrow.compute as pc
+    context = {"turnover_rate_pct", "float_share_10k"} | TURNOVER_CONTEXT_FIELDS
+    price = {name: table[name] for name in table.column_names if name not in context}
+    for name in context:
+        if name not in table.column_names:
+            table = table.append_column(schema.field(name), pa.nulls(len(table), type=schema.field(name).type))
+    mask = pc.and_(pc.equal(pc.cast(table["trade_date"], pa.int32()), turnover.target),
+                   pa.array([bool(CODE.fullmatch(str(c))) for c in table["ts_code"].to_pylist()]))
+    current = table.filter(mask).select(["ts_code", "trade_date"] + sorted(context)).to_pandas()
+    old_rates = table["turnover_rate_pct"]
+    existing = pc.fill_null(pc.is_finite(old_rates), False)
+    missing_before = int(pd.to_numeric(current.turnover_rate_pct, errors="coerce").isna().sum())
+    if len(current):
+        for code, positions in current.groupby("ts_code", sort=False).indices.items():
+            block = turnover.apply_target(str(code), current.iloc[positions].copy())
+            for name in context:
+                current.loc[current.index[positions], name] = block[name].to_numpy()
+        for name in context:
+            replacement = pa.array(current[name], type=table.schema.field(name).type, from_pandas=True)
+            if isinstance(replacement, pa.ChunkedArray):
+                replacement = replacement.combine_chunks()
+            values = pc.replace_with_mask(table[name].combine_chunks(), mask.combine_chunks(), replacement)
+            table = table.set_column(table.schema.get_field_index(name), table.schema.field(name), values)
+    if not table["turnover_rate_pct"].filter(existing).equals(old_rates.filter(existing)):
+        raise QfqGateError("SAME_ASOF_REPAIR_EXISTING_TURNOVER_CHANGED")
+    if any(not _same_asof_arrow_unchanged(value, table[name]) for name, value in price.items()):
+        raise QfqGateError("SAME_ASOF_REPAIR_RETAINED_PRICE_ARRAY_CHANGED")
+    missing_after = int(pd.to_numeric(current.turnover_rate_pct, errors="coerce").isna().sum())
+    return table, dict(target_rows=len(current), target_missing_before=missing_before,
+                       target_filled=missing_before-missing_after, target_unknown=missing_after,
+                       old_nonnull_preserved=int(pc.sum(existing).as_py() or 0), price_arrays_unchanged=True)
+
+
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
@@ -1933,6 +2423,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
     compute_backend = compute_backend or os.environ.get("V4_A_QFQ_COMPUTE_BACKEND", "thread")
     if compute_backend not in {"thread", "process"}:
         raise QfqGateError("QFQ_COMPUTE_BACKEND_INVALID")
+    same_asof_ref = _same_asof_repair_reference(target)
+    if same_asof_ref is not None and any(x is not None for x in (history_extension, tail_delta, archive_additions)):
+        raise QfqGateError("SAME_ASOF_REPAIR_MODE_CONFLICT")
     history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
                                         pointers=pointers, publish=publish) if history_extension is not None else None)
     with publication_lock(data_root):
@@ -1955,13 +2448,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 codes=list(required_start)) if history is None else None)
             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
                              force_refresh=False, research_cache_config_ref=research_config,
-                             history_extension=history, retained_history=retained_history)
+                             history_extension=history, retained_history=retained_history,
+                             **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None else {}))
         snapshot = load_snapshot(snapshot_file, target)
         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:
             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
         if archive_additions is None and snapshot.get("history_extension") != history_extension:
             raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
+        from ops.research_panel_turnover import load_daily
+        turnover = load_daily(data_root, tdx_root, target)
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
+        identity["turnover_input_sha256"] = turnover.identity
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
                                    target=target, retained_history=retained_history)
         addition = archive_addition_binding(archive_additions, snapshot=snapshot, pointers=pointers, identity=identity,
@@ -1990,8 +2487,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         already_current = (len(generations) == 1 and None not in generations
                            and all(item.get("asof_date") == target and all(item.get(k) == v for k, v in identity.items()) for item in contracts.values()))
         baseline_hashes = {} if already_current else {role: sha(path) for role, path in currents.items()}
-        recovered = checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root,
-                                        tail_delta=delta)
+        recovered = (checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root,
+                                        tail_delta=delta) if same_asof_ref is None else {})
         run_id = next(iter(generations)) if already_current else canonical_sha(dict(target=target, baseline_panel_sha256=baseline_hashes, **identity))
         run_dir = return_root / ("qfq_" + run_id[:20])
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -2024,7 +2521,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             source_stats.append(dict(path=ref["path"], size=stat.st_size, mtime_ns=stat.st_mtime_ns))
         readiness = dict(generation_id=run_id, source_stats=source_stats,
                          factor_cache_identity=factor_cache_identity(data_root, target, snapshot),
-                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv)])
+                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv)],
+                         turnover_watch=turnover_source_watch(data_root, tdx_root, target, turnover))
         if already_current:
             _json(snapshot_file.with_name("qfq_readiness.json"), readiness)
             return dict(status="READY", already_current=True, target_date=target, selector=str(currents["selector"]), backtest=str(currents["backtest"]),
@@ -2048,7 +2546,16 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         missing = sorted((expected_codes | discovered) - foreign - legacy_codes - available - set(quarantined) - retained_history_codes)
         if missing:
             raise QfqGateError(f"MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING:{missing}")
-        meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver), checkpoint_recovery=checkpoint_resume, price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
+        same_asof = (_same_asof_price_reuse(same_asof_ref, snapshot=snapshot, contracts=contracts,
+            currents=currents, baseline_hashes=baseline_hashes, identity=identity, target=target,
+            journal=journal, price_field_basis=field_basis_contract(driver)) if same_asof_ref is not None else None)
+        if same_asof is not None and checkpoint_resume is not None:
+            recovered = checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root,
+                                            same_asof=same_asof)
+        incremental = incremental or same_asof
+        meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver), checkpoint_recovery=checkpoint_resume,
+                    turnover_input=dict(binding=turnover.binding, failure=turnover.failure, historical_PIT=False),
+                    price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
                     volume_basis="MIXED_BY_MARKET" if foreign else "QFQ_EVENT_VOLUME", amount_basis="MIXED_BY_MARKET" if foreign else "RAW_TURNOVER",
                     market_basis={"A": dict(price_basis="QFQ_ASOF", volume_basis="QFQ_EVENT_VOLUME", amount_basis="RAW_TURNOVER", asof_date=target),
                                   **{market: dict(price_basis="UNKNOWN_NATIVE", volume_basis="UNKNOWN_NATIVE", amount_basis="UNKNOWN_NATIVE", asof_date=None,
@@ -2080,6 +2587,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 historical_PIT=False, inherited_history_sidecars=retained_history_sidecars,
                 history_source_policy=history["source_policy"], history_source_config=history["source_config"],
                 nullable_context_reason="NO_AUTHENTICATED_HISTORICAL_CONTEXT; BARS_OBSERVED_NOT_LISTING_AGE")
+        if same_asof:
+            if checkpoint_resume is not None:
+                original_recovery = json.loads(_source(checkpoint_resume, owner="accepted same-asof pure checkpoint recovery").read_text())
+                meta["same_asof_checkpoint_recovery"] = dict(binding_ref=checkpoint_resume,
+                    source_identity=original_recovery["source_identity"], source_run=original_recovery["source_run"],
+                    recovered_codes=sorted(recovered), recovered_count=len(recovered),
+                    original_rebuild_count=len(set(same_asof["codes"]) - set(recovered)),
+                    semantics="OLD_COMPUTATION_IDENTITY_RETAINED; NEW_PUBLICATION_IDENTITY_SEPARATE")
+            meta.update(same_asof_source_repair=same_asof,
+                same_asof_semantics="UNCHANGED_PRICE_FORMULA_ARROW_COPY; ORIGINAL_MISSING_TARGET_TURNOVER_ONLY",
+                historical_PIT=False)
         if delta:
             meta.update(tail_delta=tail_delta, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
                         tail_delta_semantics="CHANGED_FULL_PREFIX_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
@@ -2097,6 +2615,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         for role, path in currents.items():
             old_schema = pq.ParquetFile(path).schema_arrow
             schemas[role] = pa.schema([pa.field(f.name, pa.float64(), nullable=f.nullable, metadata=f.metadata) if f.name in double_core else f for f in old_schema], metadata=old_schema.metadata)
+            additions = [("turnover_rate_pct", pa.float64()), ("float_share_10k", pa.float64()),
+                         ("turnover_rate_status", pa.string()), ("turnover_rate_volume_source", pa.string()),
+                         ("turnover_rate_denominator_10k", pa.float64())]
+            schemas[role] = pa.schema(list(schemas[role]) + [pa.field(name, typ, nullable=True)
+                for name, typ in additions if name not in schemas[role].names], metadata=old_schema.metadata)
         # History activation adds explicit user labels. Later daily runs inherit
         # these fields from the accepted schema and recompute them from prefix.
         if history is not None:
@@ -2197,6 +2720,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 retained_by_market = {}
                 unchanged_active_rows = 0
                 unchanged_inactive_rows = 0
+                retained_turnover_counts = dict(target_rows=0, target_missing_before=0, target_filled=0,
+                    target_unknown=0, old_nonnull_preserved=0)
                 delta_prefix_changes[role] = []
                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
                     for bucket in range(32):
@@ -2217,10 +2742,14 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             retained = old_table.filter(pa.array([c in foreign or c in retained_history_codes or c in unchanged_codes for c in old_codes]))
                             if len(retained):
                                 for field in schema:
-                                    if field.name not in retained.schema.names and field.name in USER_FORMULA_SIGNAL_FIELDS:
+                                    if field.name not in retained.schema.names and field.name in set(USER_FORMULA_SIGNAL_FIELDS) | TURNOVER_CONTEXT_FIELDS | {"turnover_rate_pct", "float_share_10k"}:
                                         retained = retained.append_column(field, pa.nulls(len(retained), type=field.type))
                                 if incremental and not retained.schema.equals(schema, check_metadata=False):
                                     raise QfqGateError("TAIL_DELTA_UNCHANGED_SCHEMA_CHANGED:" + role)
+                                if same_asof:
+                                    retained, context_counts = _retained_turnover_context(retained, turnover, schema)
+                                    for name in retained_turnover_counts:
+                                        retained_turnover_counts[name] += context_counts[name]
                                 writer.write_table(retained.replace_schema_metadata(schema.metadata) if incremental else retained.cast(schema))
                                 retained_non_a_rows += sum(c in foreign for c in retained["ts_code"].to_pylist())
                                 retained_a_history_rows += sum(c in retained_history_codes for c in retained["ts_code"].to_pylist())
@@ -2249,6 +2778,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             if rebuilt.empty:
                                 continue
                             frame = merge_rebuilt(old, rebuilt, role=role, driver=driver, history_extension=history is not None or retained_history is not None)
+                            frame = turnover.apply_target(code, frame)
                             if role == "selector" and frame.trade_date.eq(target).any():
                                 # Same original gate; validation sees generated fields
                                 # before output-schema pruning.
@@ -2276,6 +2806,10 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     old_keys_preservation="REBUILT_A_OR_RETAINED_NON_A_OR_EXACT_LEGACY_QUARANTINE_DISJOINT")
                 role_counts[role] = dict(accepted_rows=rows_written - retained_non_a_rows, panel_rows=rows_written, retained_non_a_old_rows=retained_non_a_rows, target_date_symbols=len(latest_codes), quarantined_old_rows=quarantined_rows,
                     original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_a_history_rows=retained_a_history_rows, unchanged_active_rows=unchanged_active_rows, unchanged_inactive_rows=unchanged_inactive_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
+                if same_asof:
+                    role_counts[role].update(price_reused_symbols=len(unchanged_codes & old_symbols[role]),
+                        price_rebuilt_symbols=len(codes), original_rebuild_submitted=len(codes),
+                        retained_target_turnover=retained_turnover_counts)
                 if history is not None:
                     role_counts[role].update(added_accepted_history_rows=rows_written - retained_non_a_rows - replaced_old_rows,
                         inherited_sidecar_files=len(retained_history_sidecars[role]),
@@ -2300,8 +2834,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
                     unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
             # Revalidate source bytes before CURRENT can change.
-            if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != identity:
+            if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
                 raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
+            turnover.verify_binding()
+            if not turnover_watch_unchanged(readiness["turnover_watch"]):
+                raise QfqGateError("TURNOVER_INPUT_STATUS_CHANGED_DURING_BUILD")
             if factor_cache_identity(data_root, target, snapshot) != readiness["factor_cache_identity"]:
                 raise QfqGateError("FACTOR_CACHE_CHANGED_DURING_BUILD")
             check_baseline(pointers, frozen_baseline)
@@ -2309,6 +2846,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 _source(tail_delta, owner="tail delta contract before publication")
             if addition:
                 _source(archive_additions, owner="archive addition contract before publication")
+            if same_asof:
+                _source(same_asof_ref, owner="same-asof repair before publication")
             for ref in inherited_quarantine.values():
                 _source(ref, owner="prior-generation quarantine")
             _json(run_dir / "quarantine_manifest.json", dict(generation_id=run_id, reasons=quarantine_reasons,

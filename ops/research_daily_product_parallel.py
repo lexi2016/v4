@@ -75,6 +75,42 @@ def initialize(data_root, target, output_root, parts, identity, config_ref, scop
     _PARTS, _CHARTS = Path(parts), charts
 
 
+def retained_same_day_formula(context,symbol,bars):
+    """Reuse original owner retention only for an identical full same-day prefix."""
+    import gzip
+    if not hasattr(context,'_same_day_retained_source'):
+        context._same_day_retained_source=None
+        path=context.root/'index.json'
+        if path.exists():
+            index=json.loads(path.read_bytes());day=str(context.target);manifest_ref=index.get('dates',{}).get(day)
+            charts_ref=index.get('original_charts',{}).get(day,{}).get('manifest')
+            if manifest_ref and charts_ref:
+                manifest=json.loads(product.checked(manifest_ref).read_bytes());old=json.loads(product.checked(manifest['artifact']).read_bytes());charts=json.loads(product.checked(charts_ref).read_bytes())
+                samples=charts.get('samples',{})
+                if (samples and old['source_config']==context.config_ref and old['source_identity']['basis']==context.identity['basis'] and old['data_date']==day):
+                    roots={str(Path(item['source_cache']['path']).parent)for item in samples.values()}
+                    if len(roots)==1:
+                        directory=Path(next(iter(roots)))
+                        if directory.name=='original_retained' and directory.is_relative_to(context.root/'checkpoints'/day) and not directory.is_symlink():context._same_day_retained_source=(directory,old,samples,manifest_ref)
+    source=context._same_day_retained_source
+    if source is None:return None
+    directory,old,samples,manifest_ref=source
+    if symbol not in old['row_refs']:return None
+    prior_row=json.loads(product.checked(old['row_refs'][symbol]).read_bytes())
+    path=directory/(symbol+'.json.gz')
+    if path.is_symlink() or not path.is_file():return None
+    reference=product.reference(path)
+    if symbol in samples and reference!={key:samples[symbol]['source_cache'][key]for key in ('path','sha256')}:raise ValueError('DAILY_RETAINED_FORMULA_SOURCE_DRIFT')
+    retained=json.loads(gzip.decompress(product.checked(reference).read_bytes()))
+    if (retained.get('symbol')!=symbol or retained.get('data_date')!=str(context.target) or
+            retained.get('identity')!=old['source_identity'] or retained.get('config')!=context.config_ref or
+            retained.get('calendar')!=context.calendars[symbol[-2:]] or retained.get('bars_sha256')!=product.digest(bars) or
+            retained.get('bar_dates')!=[bar['trade_date']for bar in bars]):return None
+    result=retained['formula_result']
+    if (result.get('formula_sha256')!=context.config['formula']['sha256'] or result.get('mode')!='prefix' or result.get('field_count')!=51 or result.get('drawing_count')!=22 or [row['trade_date']for row in result['rows']]!=retained['bar_dates']):raise ValueError('DAILY_RETAINED_FORMULA_SHAPE_DRIFT')
+    return result,dict(source=reference,source_numeric_manifest=manifest_ref,original_identity=old['source_identity'],current_identity=context.identity,full_prefix_sha256=retained['bars_sha256'],calendar_sha256=product.digest(retained['calendar']),rules_config=context.config_ref,prior_row=old['row_refs'][symbol],prior_groups=prior_row['groups'],formula_engine_compute_calls=0)
+
+
 def checkpoint(symbol):
     context = _CONTEXT
     path = _PARTS / (symbol + '.json')
@@ -92,9 +128,19 @@ def checkpoint(symbol):
             retain_owner_result(context, _PARTS, code, bars, result)
         except Exception as error:
             gaps[code] = 'RETAINED_RESULT_UNAVAILABLE:' + str(error)
+    engine=context.engine();original_compute=engine.compute;reuse=None
+    def reuse_compute(bars,mode):
+        nonlocal reuse
+        reused=retained_same_day_formula(context,symbol,bars)if mode=='prefix'else None
+        if reused is None:return original_compute(bars,mode)
+        result,reuse=reused
+        return result
+    engine.compute=reuse_compute
     try:
         row, cache, cachepath = product.compute_stock(context, symbol, history_dates=(),
             **({'chart_capture': capture} if _CHARTS else {}))
+        if reuse and row['groups']!=reuse['prior_groups']:raise ValueError('DAILY_UNCHANGED_PREFIX_GROUP_PARITY_FAILED')
+        if reuse:row['same_day_formula_reuse']=reuse
         product.save(cachepath, cache)
     except (ValueError, KeyError, TypeError, OSError) as error:
         if str(error).startswith('DAILY_SOURCE_PIN_DRIFT'):
@@ -104,6 +150,7 @@ def checkpoint(symbol):
             risk_clear='UNKNOWN', evaluation={'groups': {g: {'status': 'UNKNOWN', 'reasons': ['SOURCE_ISOLATED:' + str(error)]} for g in product.GROUPS}},
             statistics=None, historical_coverage={'known_full_history': False, 'evaluated_count': 0, 'missing': ['SOURCE_ISOLATED']},
             qualification={'status': 'UNKNOWN', 'reason': str(error)})
+    finally:engine.compute=original_compute
     context.unchanged()
     row.update(product.FLAGS)
     return dict(symbol=symbol, ref=product.save(path, row, immutable=True), chart_gaps=gaps)

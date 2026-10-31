@@ -11,7 +11,7 @@ from ops.bootstrap_stock_event_history import load, ref, save
 from ops.sync_stock_history_completion import prepare, publish, Staging
 
 
-def fixture(tmp_path):
+def fixture(tmp_path, *, preserved_complete=False, legacy_chart_origin=True):
     root, batch, stage = (tmp_path/name for name in ('root','batch','stage'))
     root.mkdir();batch.mkdir()
     owner_lock=tmp_path/'A_LONG.lock';owner_lock.touch()
@@ -27,6 +27,7 @@ def fixture(tmp_path):
     flags=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
     stats={'asof':'2026-10-29','groups':[dict(group_id='original',horizons={key:dict(total=1) for key in ['d2','d5']})]}
     rows={s:dict(symbol=s,data_date='20261029',groups='original',statistics=copy.deepcopy(stats),historical_coverage=dict(known_full_history=False,missing=['bootstrap']),**flags) for s in symbols}
+    if preserved_complete:rows['000554.SZ']['historical_coverage']=dict(known_full_history=True,missing=[])
     row_refs={s:save(root/'old'/f'{s}.json',row) for s,row in rows.items()}
     product=dict(schema_version='v4.a_share.daily_product.v1',data_date='20261029',source_generation='g',source_identity=identity,source_config=config,row_refs=row_refs,rows=[{'symbol':s,'groups':'original'} for s in symbols],**flags)
     artifact=save(root/'old/product.json',product)
@@ -37,10 +38,13 @@ def fixture(tmp_path):
     names=save(root/'names.json',dict(items={},numeric_manifest=manifest,**flags))
     chart=save(root/'chart.json',dict(samples={},**flags));receipt=save(root/'receipt.json',flags)
     index=dict(dates={'20261029':manifest},latest_date='20261029',latest=manifest,original_charts={'20261029':dict(chart_origin_manifest=manifest,history_updated_symbols=[],numeric_manifest=manifest,manifest=chart,receipt=receipt)},display_names={'20261029':names},company_materials={'20261029':material_index},event_cases={'20261029':events_index},**flags)
+    if not legacy_chart_origin:index['original_charts']['20261029'].pop('chart_origin_manifest')
     save(root/'index.json',index);save(root/'events/latest.json',dict(manifest=manifest,artifact=artifact,data_date='20261029',source_generation='g',input_sha256='i',**flags))
     calendar=save(tmp_path/'calendar.json',dict(dates={'SZ':[20261027,20261028,20261029,20261030]},**flags))
     projection=save(tmp_path/'projection.json',flags)
     contract=dict(config={'target':20261029,'symbols':symbols},code=code,source_generation='g',source_identity=identity,input_sha256='i',refs=dict(numeric_product=artifact,source_config=config,calendar=calendar),entries={s:dict(rows=2,projection=projection) for s in symbols},**flags)
+    if preserved_complete:contract['config'].update(symbols=['001328.SZ'],candidate_symbols=symbols)
+    contract['refs']['numeric_manifest']=manifest
     contract_ref=save(batch/'CONTRACT.json',contract);save(batch/'RUN_AUTHORIZATION_R2.json',dict(status='ROOT_RUN_STARTED_REGISTERED',contract=contract_ref,contract_sha256=contract_ref['sha256']))
     symbol='001328.SZ';row=copy.deepcopy(rows[symbol]);row['historical_coverage']=dict(known_full_history=True,missing=[])
     new_row=save(batch/'row.json',row)
@@ -150,3 +154,67 @@ def test_shared_owner_lock_is_same_stable_inode_and_reconciles_after_wait(tmp_pa
         return prepare(f.batch,f.root,f.stage/'reconciled',owner_lock=f.owner_lock)
     assert publish(plan,refresh=refresh)['status']=='PUBLISHED_HISTORY_SYNC'
     assert called==[True]
+
+
+def test_subset_bootstrap_preserves_completed_candidates_and_initial_chart_origin(tmp_path):
+    f=fixture(tmp_path,preserved_complete=True,legacy_chart_origin=False)
+    original=load(load(f.original['latest'])['artifact'])
+    plan=prepare(f.batch,f.root,f.stage,owner_lock=f.owner_lock)
+    index=load(plan['staged_index']);sync=index['history_sync']['20261029']
+    assert sync['candidate_symbols']==['000554.SZ','001328.SZ']
+    assert sync['bootstrap_symbols']==['001328.SZ']
+    assert sync['preserved_complete_symbols']==['000554.SZ']
+    assert sync['completed_symbols']==sync['candidate_symbols'] and sync['status']=='COMPLETE'
+    writer=Staging(f.root,f.stage);writer.files=plan['immutable_files']
+    assert writer.read(plan['artifact'])['row_refs']['000554.SZ']==original['row_refs']['000554.SZ']
+    assert index['original_charts']['20261029']['chart_origin_manifest']==f.original['latest']
+    assert index['original_charts']['20261029']['history_updated_symbols']==['001328.SZ']
+
+
+def test_inherited_owner_fd_reuses_held_lease_and_never_unlocks_parent(tmp_path,monkeypatch):
+    import os,fcntl
+    from ops.sync_stock_history_completion import _inherited_owner_duplicate
+    f=fixture(tmp_path);plan=prepare(f.batch,f.root,f.stage,owner_lock=f.owner_lock)
+    fd=os.open(f.owner_lock,os.O_RDONLY);fcntl.flock(fd,fcntl.LOCK_EX)
+    monkeypatch.setenv('V4_SCHEDULER_LANE_FD',str(fd));monkeypatch.setenv('V4_SCHEDULER_LANE_NAME','A_LONG');monkeypatch.setenv('V4_SCHEDULER_RESOLVED_DATE','20261029');monkeypatch.setenv('V4_SCHEDULER_RESOLVED_SLOT','1540')
+    try:
+        assert publish(plan)['status']=='PUBLISHED_HISTORY_SYNC'
+        probe=os.open(f.owner_lock,os.O_RDONLY)
+        try:
+            with pytest.raises(BlockingIOError):fcntl.flock(probe,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        finally:os.close(probe)
+        fcntl.flock(fd,fcntl.LOCK_UN)
+        with pytest.raises(ValueError,match='OWNER_FD_INVALID'):_inherited_owner_duplicate(plan['shared_owner_lock'],'20261029')
+        other=tmp_path/'other.lock';other.touch();different=os.open(other,os.O_RDONLY);monkeypatch.setenv('V4_SCHEDULER_LANE_FD',str(different))
+        try:
+            with pytest.raises(ValueError,match='OWNER_FD_INVALID'):_inherited_owner_duplicate(plan['shared_owner_lock'],'20261029')
+        finally:os.close(different)
+    finally:os.close(fd)
+
+
+def test_absent_new_date_optional_sidecars_remain_absent_not_old_date_reused(tmp_path):
+    f=fixture(tmp_path)
+    index=json.loads((f.root/'index.json').read_bytes())
+    for key in ('display_names','company_materials'):index[key]={'20261028':index[key]['20261029']}
+    save(f.root/'index.json',index)
+    plan=prepare(f.batch,f.root,f.stage,owner_lock=f.owner_lock)
+    new=load(plan['staged_index']);event=load(plan['staged_event'])
+    for key in ('display_names','company_materials'):
+        assert new[key]==index[key] and key not in event
+    assert plan['completed']==['001328.SZ']
+
+
+def test_inherited_closed_and_independent_same_inode_fd_cannot_bypass_owner(tmp_path,monkeypatch):
+    import os,fcntl
+    from ops.sync_stock_history_completion import _inherited_owner_duplicate
+    f=fixture(tmp_path);plan=prepare(f.batch,f.root,f.stage,owner_lock=f.owner_lock)
+    held=os.open(f.owner_lock,os.O_RDONLY);fcntl.flock(held,fcntl.LOCK_EX)
+    monkeypatch.setenv('V4_SCHEDULER_LANE_NAME','A_LONG');monkeypatch.setenv('V4_SCHEDULER_RESOLVED_DATE','20261029');monkeypatch.setenv('V4_SCHEDULER_RESOLVED_SLOT','1540')
+    try:
+        independent=os.open(f.owner_lock,os.O_RDONLY);monkeypatch.setenv('V4_SCHEDULER_LANE_FD',str(independent))
+        try:
+            with pytest.raises(ValueError,match='OWNER_FD_INVALID'):_inherited_owner_duplicate(plan['shared_owner_lock'],'20261029')
+        finally:os.close(independent)
+        monkeypatch.setenv('V4_SCHEDULER_LANE_FD',str(independent))
+        with pytest.raises(ValueError,match='OWNER_FD_INVALID'):_inherited_owner_duplicate(plan['shared_owner_lock'],'20261029')
+    finally:os.close(held)
