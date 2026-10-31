@@ -4375,6 +4375,9 @@ def create_app(
             preselection_source_root=(
                 resolved_pool_source if configured_pool_source else None
             ),
+            # Navigation readers share one read-only projection; the verified
+            # scans behind it are the slowest part of the first page load.
+            use_cache=True,
         )
 
     def _stage_projection_status(
@@ -5420,6 +5423,11 @@ def create_app(
             "research_dates": research_source.list_dates(),
             "research_source": research_source.binding(),
         }
+        # ``stage_artifacts`` and ``independent_pool_evidence`` are navigation
+        # inputs only: they feed the date lists above and have no client or
+        # server consumer. Serializing them added ~2.4 MB to this response.
+        response.pop("stage_artifacts", None)
+        response.pop("independent_pool_evidence", None)
         response["requested_date"] = requested
         response["selected_date"] = requested or response["navigation_date"]
         # Reuse the existing read-only validator. A configured string alone is

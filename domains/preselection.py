@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import time
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -35,21 +37,107 @@ OPTIONAL_DAILY_POOL_IDS = frozenset(
 )
 
 
+DATE_CATALOG_CACHE_TTL_ENV = "V4_DATE_CATALOG_TTL_SECONDS"
+# The TTL only bounds reuse of an *unchanged* tree: every real publish moves
+# one of the tracked mtimes and forces a rebuild first. A longer default keeps
+# a normal browsing session warm without ever hiding new pool or stage dates.
+DATE_CATALOG_DEFAULT_TTL_SECONDS = 300.0
+_DATE_CATALOG_CACHE_MAX_ENTRIES = 8
+_date_catalog_cache: dict[tuple[Any, ...], tuple[float, dict[str, Any]]] = {}
+
+
+def _date_catalog_ttl_seconds() -> float:
+    raw = os.environ.get(DATE_CATALOG_CACHE_TTL_ENV)
+    if raw is None:
+        return DATE_CATALOG_DEFAULT_TTL_SECONDS
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return DATE_CATALOG_DEFAULT_TTL_SECONDS
+    return value if value > 0 else 0.0
+
+
+def _stat_mtime_ns(path: Path) -> int | None:
+    try:
+        return path.stat().st_mtime_ns
+    except OSError:
+        return None
+
+
+def _catalog_freshness_token(
+    store: NativeDataStore,
+    stage_selection_root: Path | str | None,
+    preselection_source_root: Path | str | None,
+) -> tuple[Any, ...]:
+    """Cheap change detector so a cached catalog never hides a fresh publish.
+
+    The TTL only bounds how long an unchanged tree may be reused; any new pool
+    date, selection publish or store update changes one of these mtimes and
+    forces a rebuild before the TTL expires.
+    """
+    roots = [Path(store.root)]
+    if preselection_source_root is not None:
+        source = Path(preselection_source_root).expanduser()
+        if source not in roots:
+            roots.append(source)
+    token: list[Any] = [
+        (
+            str(root),
+            _stat_mtime_ns(root / "date_catalog.json"),
+            _stat_mtime_ns(root / "preselection_pools"),
+        )
+        for root in roots
+    ]
+    if stage_selection_root is not None:
+        selection = Path(stage_selection_root).expanduser()
+        token.append(
+            (
+                str(selection),
+                _stat_mtime_ns(selection / "selection_latest.json"),
+                _stat_mtime_ns(selection / "selection_runs"),
+            )
+        )
+    else:
+        token.append((None, None, None))
+    return tuple(token)
+
+
 def date_catalog(
     store: NativeDataStore,
     *,
     current_date: str | None = None,
     stage_selection_root: Path | str | None = None,
     preselection_source_root: Path | str | None = None,
+    use_cache: bool = False,
 ) -> dict[str, Any]:
     from domains._preselection_parts.date_catalog import _date_catalog_body as _v4_impl
-    return _v4_impl(
+
+    ttl = _date_catalog_ttl_seconds() if use_cache else 0.0
+    cache_key: tuple[Any, ...] | None = None
+    if ttl > 0:
+        wall_date = datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
+        cache_key = (
+            current_date or "",
+            wall_date,
+            _catalog_freshness_token(store, stage_selection_root, preselection_source_root),
+        )
+        cached = _date_catalog_cache.get(cache_key)
+        if cached is not None and (time.monotonic() - cached[0]) < ttl:
+            # Shallow copy keeps the cached top-level keys private to the
+            # caller; nested projections are treated as read-only.
+            return dict(cached[1])
+    value = _v4_impl(
         globals(),
         store,
         current_date=current_date,
         stage_selection_root=stage_selection_root,
         preselection_source_root=preselection_source_root,
     )
+    if cache_key is not None:
+        if len(_date_catalog_cache) >= _DATE_CATALOG_CACHE_MAX_ENTRIES:
+            _date_catalog_cache.clear()
+        _date_catalog_cache[cache_key] = (time.monotonic(), value)
+    return value
 
 
 def _verified_stage_artifact_catalog(
