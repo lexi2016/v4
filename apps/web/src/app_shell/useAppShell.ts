@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { StageSummary } from "../components/review/StageSummaryPanel.vue";
 import { loadReview } from "../api/review";
-import { loadPoolSnapshot, loadStageSnapshot, projectSummaryPoolPage, POOL_PAGE_SIZE } from "../api/pool_stage";
+import { loadPoolSnapshot, loadStageSnapshot, loadStageTimelineBatch, projectSummaryPoolPage, POOL_PAGE_SIZE } from "../api/pool_stage";
 import type { ReviewEnvelope } from "../contracts/review";
 import type { DateResponse, ModelSelectionReview, NavigationUrlState, PoolGroup, PoolResponse, StageRow, StageTimelineSnapshot, StageWorkbench } from "./types";
 
@@ -511,24 +511,39 @@ async function loadStageTimeline(date: string, currentStage: string, currentPayl
   }
   stageSnapshots.value = initialSnapshots;
 
-  await Promise.all(stageDefinitions.map(async (stage) => {
-    if (stage.id === currentStage && currentPayloadMatches) return;
-    try {
-      const payload = await loadStageSnapshot(date, stage.id, controller.signal);
-      if (version === stageTimelineRequestVersion && date === selectedDate.value) {
-        setStageTimelineSnapshot(stage.id, { date, loading: false, payload }, version);
-        if (stage.id === selectedStage.value) stageWorkbench.value = payload;
+  try {
+    const summaries = await loadStageTimelineBatch(
+      date,
+      stageDefinitions.map((stage) => stage.id),
+      controller.signal,
+    );
+    if (version === stageTimelineRequestVersion && date === selectedDate.value) {
+      const next: Record<string, StageTimelineSnapshot> = { ...initialSnapshots };
+      for (const stage of stageDefinitions) {
+        if (stage.id === currentStage && currentPayloadMatches) continue;
+        const payload = summaries[stage.id];
+        next[stage.id] = payload
+          ? { date, loading: false, payload }
+          : { date, loading: false, error: "阶段时间轴读取失败" };
       }
-    } catch (reason) {
-      if (version === stageTimelineRequestVersion && date === selectedDate.value) {
-        const message = reason instanceof Error && reason.message.includes("超时")
-          ? "阶段工作台读取超时"
-          : "阶段工作台读取失败";
-        setStageTimelineSnapshot(stage.id, { date, loading: false, error: message }, version);
-      }
+      stageSnapshots.value = next;
     }
-  }));
-  if (stageTimelineRequestController === controller) stageTimelineRequestController = null;
+  } catch (reason) {
+    if (version === stageTimelineRequestVersion && date === selectedDate.value) {
+      const message = reason instanceof Error && reason.message.includes("超时")
+        ? "阶段时间轴读取超时"
+        : "阶段时间轴读取失败";
+      const settled: Record<string, StageTimelineSnapshot> = {};
+      for (const stage of stageDefinitions) {
+        settled[stage.id] = stage.id === currentStage && currentPayloadMatches
+          ? initialSnapshots[stage.id]
+          : { date, loading: false, error: message };
+      }
+      stageSnapshots.value = settled;
+    }
+  } finally {
+    if (stageTimelineRequestController === controller) stageTimelineRequestController = null;
+  }
 }
 
 async function openNextFutureTargetPool() {

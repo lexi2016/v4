@@ -19,6 +19,8 @@ vi.mock("./api/runtime", () => ({
 vi.mock("./api/pool_stage", () => ({
   loadPoolSnapshot: vi.fn(async () => null),
   loadStageSnapshot: vi.fn(async (date: string, stage: string) => makeWorkbench(date, stage)),
+  loadStageTimelineBatch: vi.fn(async (date: string, stages: string[]) =>
+    Object.fromEntries(stages.map((stage) => [stage, makeWorkbench(date, stage)]))),
   projectSummaryPoolPage: vi.fn(() => null), POOL_PAGE_SIZE: 200,
 }));
 

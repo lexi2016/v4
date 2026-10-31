@@ -8,6 +8,9 @@ from pathlib import Path
 import sys
 from typing import Any, Mapping
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import TimeoutError as FuturesTimeoutError
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
@@ -4257,6 +4260,87 @@ def _hk_morning_history_observation(
         return {}
 
 
+_STAGE_TIMELINE_MARKET_KEYS = (
+    "status",
+    "display_mode",
+    "source_status",
+    "requested_rows",
+    "source_rows",
+    "selection_manifest_receipt_verified",
+    "observation_count",
+)
+
+
+def _project_stage_timeline_summary(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep only the fields the stage timeline renders.
+
+    The summary is copied from the same projection the single-stage route
+    returns, so the compact timeline payload and the full stage view cannot
+    disagree. Stock rows, source evidence and the snapshot/evidence bodies are
+    deliberately dropped: they were ~96% of each stage response.
+    """
+    markets = payload.get("markets")
+    compact_markets: dict[str, dict[str, Any]] = {}
+    if isinstance(markets, Mapping):
+        for market in ("A", "HK"):
+            summary = markets.get(market)
+            if isinstance(summary, Mapping):
+                compact_markets[market] = {
+                    key: summary.get(key) for key in _STAGE_TIMELINE_MARKET_KEYS
+                }
+
+    def _snapshot_side(value: Any, rows_key: str) -> dict[str, Any] | None:
+        if not isinstance(value, Mapping):
+            return None
+        side: dict[str, Any] = {"status": value.get("status")}
+        side_markets = value.get("markets")
+        picked = side_markets.get("A_SHARE") if isinstance(side_markets, Mapping) else None
+        if isinstance(picked, Mapping):
+            side["markets"] = {
+                "A_SHARE": {
+                    key: picked.get(key)
+                    for key in ("mode", rows_key, "captured_at")
+                }
+            }
+        return side
+
+    execution = payload.get("execution_evidence")
+    compact_execution = None
+    if isinstance(execution, Mapping):
+        compact_execution = {
+            key: execution.get(key) for key in ("status", "due_status")
+        }
+
+    stage = payload.get("stage")
+    compact_stage = None
+    if isinstance(stage, Mapping):
+        compact_stage = {
+            key: stage.get(key)
+            for key in ("stage_id", "label", "window", "status", "display_status")
+        }
+
+    summary: dict[str, Any] = {
+        "schema_version": payload.get("schema_version"),
+        "trade_date": payload.get("trade_date"),
+        "stage_id": payload.get("stage_id"),
+        "status": payload.get("status"),
+        "stage": compact_stage,
+        "markets": compact_markets,
+        "execution_evidence": compact_execution,
+        "selected_a_rows": payload.get("selected_a_rows"),
+        "selected_hk_rows": payload.get("selected_hk_rows"),
+        "selected_total_rows": payload.get("selected_total_rows"),
+        "selection_mode": payload.get("selection_mode"),
+        "snapshot_reselection": _snapshot_side(payload.get("snapshot_reselection"), "selected_rows"),
+        "snapshot_recovery": _snapshot_side(payload.get("snapshot_recovery"), "observed_rows"),
+    }
+    for flag in TRADING_SAFETY_FLAGS:
+        summary[flag] = payload.get(flag, False)
+    summary["RESEARCH_ONLY"] = payload.get("RESEARCH_ONLY", True)
+    summary["write_performed"] = payload.get("write_performed", False)
+    return summary
+
+
 def create_app(
     data_root: Path | None = None,
     quote_provider: ReadOnlyQuoteProvider | None = None,
@@ -6119,6 +6203,71 @@ def create_app(
                 ordinary_hk_display=True,
             )
         return stage_runner.ensure(selected, stage, force=force)
+
+    @app.get("/api/v4/workbench/stage-batch")
+    def stage_workbench_batch(
+        date: str | None = None,
+        stages: str | None = None,
+    ) -> dict:
+        """Timeline summaries for several stages in one round trip."""
+        selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+        if not selected:
+            selected = _catalog()["system_date"]
+        requested = [item for item in (stages or "").split(",") if item]
+        if any(stage_id not in FROZEN_STAGE_IDS for stage_id in requested):
+            raise HTTPException(status_code=422, detail="unknown stage")
+        ordered = [
+            stage_id
+            for stage_id in FROZEN_STAGE_IDS
+            if not requested or stage_id in requested
+        ]
+
+        def _summary_for(stage_id: str) -> tuple[str, dict | None]:
+            try:
+                payload = stage_workbench(selected, stage_id, 50)
+            except HTTPException:
+                return stage_id, None
+            except (OSError, ValueError, TypeError, KeyError):
+                return stage_id, None
+            return stage_id, _project_stage_timeline_summary(payload)
+
+        summaries: dict[str, dict] = {}
+        if ordered:
+            workers = min(
+                len(ordered),
+                max(1, int(os.environ.get("V4_STAGE_BATCH_WORKERS", "8") or "8")),
+            )
+            timeout_seconds = float(os.environ.get("V4_STAGE_BATCH_TIMEOUT_SECONDS", "12") or "12")
+            if workers == 1:
+                for stage_id in ordered:
+                    name, summary = _summary_for(stage_id)
+                    if summary is not None:
+                        summaries[name] = summary
+            else:
+                with ThreadPoolExecutor(max_workers=workers) as pool:
+                    futures = {
+                        pool.submit(_summary_for, stage_id): stage_id
+                        for stage_id in ordered
+                    }
+                    try:
+                        for future in as_completed(futures, timeout=timeout_seconds):
+                            name, summary = future.result()
+                            if summary is not None:
+                                summaries[name] = summary
+                    except FuturesTimeoutError:
+                        pass
+                    finally:
+                        for future in futures:
+                            future.cancel()
+
+        return {
+            "schema_version": "v4.stage_timeline_batch.v1",
+            "trade_date": selected,
+            "stages": summaries,
+            **dict(TRADING_SAFETY_FLAGS),
+            "RESEARCH_ONLY": True,
+            "write_performed": False,
+        }
 
     @app.get("/api/v4/stage-center/selection")
     def shared_stage_selection(

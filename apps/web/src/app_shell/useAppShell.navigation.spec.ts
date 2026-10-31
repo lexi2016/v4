@@ -1,7 +1,7 @@
 import { createApp, h, nextTick, type App } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppShell } from "./useAppShell";
-import { loadStageSnapshot } from "../api/pool_stage";
+import { loadStageSnapshot, loadStageTimelineBatch } from "../api/pool_stage";
 
 vi.mock("../api/review", () => ({
   loadReview: vi.fn(async (date: string) => ({ trade_date: date })),
@@ -14,6 +14,13 @@ vi.mock("../api/pool_stage", () => ({
     stage: { stage_id: stage },
     unified_rows: [],
   })),
+  loadStageTimelineBatch: vi.fn(async (date: string, stages: string[]) =>
+    Object.fromEntries(stages.map((stage) => [stage, {
+      trade_date: date,
+      stage: { stage_id: stage, status: "READY" },
+      selected_a_rows: 0,
+      selected_hk_rows: null,
+    }]))),
   projectSummaryPoolPage: vi.fn(() => null),
   POOL_PAGE_SIZE: 200,
 }));
@@ -113,25 +120,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("stage timeline request reuse", () => {
+describe("stage timeline batching", () => {
   const currentStage = "STAGE_1300_1315";
-  const mockedLoad = vi.mocked(loadStageSnapshot);
+  const mockedDetail = vi.mocked(loadStageSnapshot);
+  const mockedBatch = vi.mocked(loadStageTimelineBatch);
 
   beforeEach(() => {
     window.history.replaceState({}, "", `/?date=${TARGET_DATE}&stage=${currentStage}`);
-    mockedLoad.mockReset();
-    mockedLoad.mockImplementation(async (date, stage) => ({
+    mockedDetail.mockReset();
+    mockedDetail.mockImplementation(async (date, stage) => ({
       trade_date: date,
       stage: { stage_id: stage, status: "READY" },
       unified_rows: [],
     }) as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>);
+    mockedBatch.mockReset();
+    mockedBatch.mockImplementation(async (date, stages) =>
+      Object.fromEntries(stages.map((stage) => [stage, {
+        trade_date: date,
+        stage: { stage_id: stage, status: "READY" },
+        selected_a_rows: 0,
+        selected_hk_rows: null,
+      }])) as unknown as Awaited<ReturnType<typeof loadStageTimelineBatch>>);
   });
 
-  it("reuses the current detail and refreshes the seven other stages", async () => {
+  it("fetches the current detail once and every other stage in one batch", async () => {
     const current = mountShell();
     await vi.waitFor(() => expect(current.shell.timelineStageStatus("STAGE_1545_1555")).toBe("READY"));
-    expect(mockedLoad).toHaveBeenCalledTimes(8);
-    expect(mockedLoad.mock.calls.filter(([, stage]) => stage === currentStage)).toHaveLength(1);
+    expect(mockedDetail).toHaveBeenCalledTimes(1);
+    expect(mockedDetail.mock.calls[0][1]).toBe(currentStage);
+    expect(mockedBatch).toHaveBeenCalledTimes(1);
+    expect(mockedBatch.mock.calls[0][0]).toBe(TARGET_DATE);
+    expect(mockedBatch.mock.calls[0][1]).toHaveLength(8);
     expect(current.shell.timelineStageStatus(currentStage)).toBe("READY");
     expect(current.shell.stageWorkbench.value?.stage.stage_id).toBe(currentStage);
   });
@@ -139,46 +158,43 @@ describe("stage timeline request reuse", () => {
   it.each([
     ["a newer request", TARGET_DATE],
     ["a different date", SECOND_DATE],
-  ])("aborts and ignores stale timeline responses after %s", async (_label, nextDate) => {
+  ])("aborts and ignores stale batch responses after %s", async (_label, nextDate) => {
+    type BatchResult = Awaited<ReturnType<typeof loadStageTimelineBatch>>;
     const current = mountShell();
     const lastStage = "STAGE_1545_1555";
     await vi.waitFor(() => expect(current.shell.timelineStageStatus(lastStage)).toBe("READY"));
-    mockedLoad.mockClear();
+    mockedBatch.mockClear();
 
-    let releaseStale: ((value: Awaited<ReturnType<typeof loadStageSnapshot>>) => void) | undefined;
-    let staleSignal: AbortSignal | undefined;
-    let shouldDelay = true;
-    mockedLoad.mockImplementation(async (date, stage, signal) => {
-      if (stage === lastStage && shouldDelay) {
-        shouldDelay = false;
-        staleSignal = signal;
-        return new Promise((resolve) => { releaseStale = resolve; });
-      }
-      return { trade_date: date, stage: { stage_id: stage, status: "READY" }, unified_rows: [] } as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>;
+    const signals: AbortSignal[] = [];
+    const releases: Array<(value: BatchResult) => void> = [];
+    mockedBatch.mockImplementation(async (_date, _stages, signal) => {
+      if (signal) signals.push(signal);
+      return new Promise<BatchResult>((resolve) => { releases.push(resolve); });
     });
     await current.shell.loadStage(currentStage);
-    expect(staleSignal?.aborted).toBe(false);
+    expect(signals).toHaveLength(1);
+    expect(signals[0].aborted).toBe(false);
     current.shell.selectedDate.value = nextDate;
     await current.shell.loadStage("STAGE_0930_0935");
-    await vi.waitFor(() => expect(current.shell.timelineStageStatus(lastStage)).toBe("READY"));
-    expect(staleSignal?.aborted).toBe(true);
-    releaseStale!({ trade_date: TARGET_DATE, stage: { stage_id: lastStage, status: "STALE" } } as unknown as Awaited<ReturnType<typeof loadStageSnapshot>>);
+    expect(signals.length).toBeGreaterThanOrEqual(2);
+    expect(signals[0].aborted).toBe(true);
+    releases[1]({
+      STAGE_0930_0935: { trade_date: nextDate, stage: { stage_id: "STAGE_0930_0935", status: "READY" }, selected_a_rows: 0, selected_hk_rows: null },
+    } as unknown as BatchResult);
     await nextTick();
-    expect(current.shell.timelineStageStatus(lastStage)).toBe("READY");
+    releases[0]({
+      [lastStage]: { trade_date: TARGET_DATE, stage: { stage_id: lastStage, status: "STALE" }, selected_a_rows: 0, selected_hk_rows: null },
+    } as unknown as BatchResult);
+    await nextTick();
+    expect(current.shell.timelineStageStatus(lastStage)).not.toBe("STALE");
     expect(current.shell.stageWorkbench.value?.stage.stage_id).toBe("STAGE_0930_0935");
   });
 
-  it.each([
-    ["wrong date", { trade_date: SECOND_DATE, stage: { stage_id: currentStage } }],
-    ["wrong stage", { trade_date: TARGET_DATE, stage: { stage_id: "STAGE_0930_0935" } }],
-    ["invalid payload", null],
-  ])("fetches all eight timeline stages for %s", async (_label, payload) => {
-    mockedLoad.mockResolvedValueOnce(payload as Awaited<ReturnType<typeof loadStageSnapshot>>);
+  it("marks the timeline as failed when the batch request rejects", async () => {
+    mockedBatch.mockRejectedValueOnce(new Error("阶段时间轴读取失败"));
     const current = mountShell();
-    await vi.waitFor(() => expect(current.shell.timelineStageStatus("STAGE_1545_1555")).toBe("READY"));
-    expect(mockedLoad).toHaveBeenCalledTimes(9);
-    expect(mockedLoad.mock.calls.filter(([, stage]) => stage === currentStage)).toHaveLength(2);
-    expect(current.shell.timelineStageStatus(currentStage)).toBe("READY");
+    await vi.waitFor(() => expect(current.shell.timelineStageStatus("STAGE_1545_1555")).toBe("读取失败/点击重试"));
+    expect(current.shell.stageWorkbench.value?.stage.stage_id).toBe(currentStage);
   });
 });
 
