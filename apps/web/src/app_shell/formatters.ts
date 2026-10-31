@@ -1,4 +1,4 @@
-import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow, StageWorkbench } from "./types";
+import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow, StageTimelinePayload, StageWorkbench } from "./types";
 
 export function poolRows(group: PoolGroup) {
   return group.rows ?? [];
@@ -157,7 +157,7 @@ export function stageMarketCountText(summary: MarketSummary | undefined, selecte
   if (summary?.display_mode === "READY_EMPTY") return "0 条 · 正式空结果已验证";
   return stageCountText(selectedRows);
 }
-export function stageMarketStateText(workbench: StageWorkbench | null | undefined, market: "A" | "HK") {
+export function stageMarketStateText(workbench: StageWorkbench | StageTimelinePayload | null | undefined, market: "A" | "HK") {
   const stageId = workbench?.stage?.stage_id;
   if (market === "A" && stageId === "STAGE_1545_1555") return "不适用";
   if (!workbench) return "待确认";

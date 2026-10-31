@@ -1,4 +1,4 @@
-import type { PoolGroup, PoolResponse, StageWorkbench } from "../app_shell/types";
+import type { PoolGroup, PoolResponse, StageTimelinePayload, StageWorkbench } from "../app_shell/types";
 import { assertExactResponseDate, assertExactStagePayload } from "../app_shell/formatters";
 
 export const POOL_PAGE_SIZE = 200;
@@ -485,4 +485,45 @@ export async function loadStageSnapshot(date: string, stageId: string, signal?: 
   const url = `/api/v4/workbench/stage?date=${encodeURIComponent(date)}&stage=${encodeURIComponent(stageId)}&limit=${STAGE_PAGE_SIZE}`;
   const payload = await requestJson(url, signal, STAGE_READ_TIMEOUT_MS);
   return validateStageResponse(payload, date, stageId);
+}
+
+const STAGE_TIMELINE_BATCH_TIMEOUT_MS = 20_000;
+
+function validateStageTimelineSummary(value: unknown, label: string): StageTimelinePayload {
+  if (!isRecord(value)) invalid(label, "阶段摘要不是对象");
+  if (!isRecord(value.stage)) invalid(label, "缺少 stage");
+  count(value.selected_a_rows, label);
+  count(value.selected_hk_rows, label, true);
+  if (typeof value.selected_a_rows !== "number") invalid(label, "缺少 selected_a_rows");
+  if (value.execution_evidence !== undefined && value.execution_evidence !== null
+      && !isRecord(value.execution_evidence)) invalid(label, "execution_evidence 必须是对象");
+  for (const key of ["markets", "snapshot_reselection", "snapshot_recovery"]) {
+    if (value[key] !== undefined && value[key] !== null && !isRecord(value[key])) {
+      invalid(label, `${key} 必须是对象`);
+    }
+  }
+  return value as StageTimelinePayload;
+}
+
+export async function loadStageTimelineBatch(
+  date: string,
+  stages: string[],
+  signal?: AbortSignal,
+): Promise<Record<string, StageTimelinePayload>> {
+  if (!/^\d{8}$/.test(date)) throw new Error("阶段时间轴请求日期格式错误。");
+  if (!stages.length) return {};
+  const url = `/api/v4/workbench/stage-batch?date=${encodeURIComponent(date)}&stages=${encodeURIComponent(stages.join(","))}`;
+  const payload = await requestJson(url, signal, STAGE_TIMELINE_BATCH_TIMEOUT_MS);
+  if (!isRecord(payload)) invalid("阶段时间轴", "响应不是对象");
+  if (payload.schema_version !== "v4.stage_timeline_batch.v1") invalid("阶段时间轴", "schema_version 不受支持");
+  if (payload.trade_date !== date) invalid("阶段时间轴", "响应日期与请求不一致");
+  assertResearchOnlyFlags(payload, "阶段时间轴", { writePerformed: true });
+  if (!isRecord(payload.stages)) invalid("阶段时间轴", "缺少 stages");
+  const summaries: Record<string, StageTimelinePayload> = {};
+  for (const stage of stages) {
+    const summary = payload.stages[stage];
+    if (summary === undefined) continue;
+    summaries[stage] = validateStageTimelineSummary(summary, `阶段时间轴 ${stage}`);
+  }
+  return summaries;
 }

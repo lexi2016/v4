@@ -161,10 +161,31 @@ export type StageLineage = {
   recovery?: StageLineageBranch;
   cannot_confirm?: string[];
 };
+export type StageTimelinePayload = {
+  schema_version?: string;
+  trade_date?: string;
+  stage_id?: string;
+  status?: string;
+  stage: StageWorkbench["stage"];
+  markets?: { A?: MarketSummary; HK?: MarketSummary };
+  execution_evidence?: StageExecutionEvidence;
+  selected_a_rows: number;
+  selected_hk_rows: number | null;
+  selected_total_rows?: number | null;
+  selection_mode?: string;
+  snapshot_reselection?: {
+    status?: string;
+    markets?: { A_SHARE?: { mode?: string; selected_rows?: number; captured_at?: string } };
+  } | null;
+  snapshot_recovery?: {
+    status?: string;
+    markets?: { A_SHARE?: { mode?: string; observed_rows?: number; captured_at?: string } };
+  } | null;
+};
 export type StageTimelineSnapshot = {
   date: string;
   loading: boolean;
-  payload?: StageWorkbench;
+  payload?: StageTimelinePayload;
   error?: string;
 };
 export type ReviewMetric = ContractReviewMetric;
