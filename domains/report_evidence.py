@@ -32,7 +32,7 @@ class ReportEvidenceService:
             raise ValueError('INVALID_DATE_INTERVAL')
         docs = {}
         self._eligibility_gaps = set()
-        for row in db.execute('SELECT id,metadata FROM documents WHERE active=1'):
+        for row in db.execute('SELECT id,metadata FROM documents WHERE active=1').fetchall():
             if self.document_allowlist is not None and row['id'] not in self.document_allowlist:
                 continue
             m = json.loads(row['metadata'])

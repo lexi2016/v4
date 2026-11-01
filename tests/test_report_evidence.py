@@ -64,6 +64,20 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn('b'*64,{h['document_id'] for h in r['hits']})
         self.assertEqual(r['query_coverage']['eligible_documents'],1)
 
+    async def test_owner_preflight_releases_sqlite_cursor_before_slow_reads(self):
+        import sqlite3
+        self.add(detail('b'*64))
+        original=self.owner.verified
+        def concurrent_write(doc,day):
+            # Model a concurrent index checkpoint while the source owner is read.
+            with sqlite3.connect(self.index.path,timeout=.05) as writer:
+                writer.execute('UPDATE ledger SET reason=? WHERE id=?',('checkpoint',doc))
+            return original(doc,day)
+        self.owner.verified=concurrent_write
+        r=await self.service.search('测试',strategy='keyword')
+        self.assertTrue(r['hits'])
+        self.assertNotIn('SOURCE_PAGE_RECEIPT_OR_PERMISSION_CHANGED',r['gaps'])
+
     async def test_read_enforces_same_document_allowlist(self):
         self.add(detail('b'*64))
         with self.index.connect() as db:
