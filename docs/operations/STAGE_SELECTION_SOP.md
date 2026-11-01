@@ -141,7 +141,7 @@
 
 ```sh
 PANEL_PYTHON='/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python'
-export V4_APP_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-stage/app'
+export V4_APP_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app'
 export STAGE_CENTER_CONFIG="$V4_APP_ROOT/stage_center_tick_config.json"
 export PYTHONDONTWRITEBYTECODE=1
 "$PANEL_PYTHON" -B "$V4_APP_ROOT/ops/stage_data_recovery.py" \
@@ -172,3 +172,20 @@ export PYTHONDONTWRITEBYTECODE=1
 **回滚。** 本批候选无服务切换；放弃候选时保留原件、失败账和验收结果，停止使用候选身份即可。未来若已授权换版，回到交接中固定的旧release/config/manifest identity tuple，不能删除新产生的原始capture、重置attempt预算、覆盖原正式结果或回写历史成功。独立补选若不可读，保留其原件并报告具体SHA/reader错误，不能把原失败涂绿。
 
 A分钟共享HQ/Futu子进程的原始响应另外保存在 raw 的 `.process_requests/{D}/{stage}/{market}/{sha}/`：`request.json`绑定实际子命令/计划codes、真实时钟、返回码或原异常与stdout/stderr的SHA，`stdout.bin`/`stderr.bin`在共享bridge解析、聚合及坏行过滤前保存。返回文本用可逆UTF-8 surrogatepass标记；不保存进程环境。超时有部分输出则保留部分输出；64MiB单流边界或落盘失败不宣称原始齐备。无网络返回仍有失败请求记录；ContextVar仅覆盖当前collector调用，退出即解除，不跨市场复用。
+
+
+### 8.1 API手动补采必须绑定同一封存Stage
+
+独审发现API手动补采曾另读旧配置，`stage_owner_root`指向`hk-stage8-network-20261020-r1`。仅升级主Stage不能修复这条实际`ManualCollectionService._invoke_owner`入口。本批r3在API app内封存`config/api-v4_manual_collection_stage_config.json`，保持原allowlisted键、原state根及业务功能，只绑定新Stage owner、解释器和与该Stage一致的既有shared来源。新Stage authority config的release_id与其实际目录身份一致，原服务端配置不覆盖。
+
+未来获准切换API时，除其自身V4_APP_ROOT/release/manifest身份，还须将API进程环境的`V4_MANUAL_COLLECTION_STAGE_CONFIG`设为：
+
+```
+/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app/config/api-v4_manual_collection_stage_config.json
+```
+
+该值必须在API启动/装载手动router前生效，浏览器参数不能指定root/config。完整准备tuple、manual配置SHA与Stage authority config SHA见本批bundle的`activation-environment.json`和交接；这只是待验收、未应用的环境计划，不表示现役API env已修改。独审后若路径变动，必须重新封存并核对实际入口，不能继续使用旧pin。
+
+验证使用真实router→ManualCollectionService→_invoke_owner，Popen在创建前截获参数，确认新Stage的cwd、PYTHONPATH、V4_APP_ROOT、release_id与固定HK程序一致；不创建子进程、不调用行情provider、不写线上state。API manual_collection.py业务字节保持原样。当前固定子程序仅HK Stage8，未消费继承的API manifest环境字段；这些字段不能冒称Stage manifest见证，也不为未调用的A研究链扩大本轮改动。原配置/回执和独审FAIL证据保留；仅凭配置文件存在不宣称手动补采或自然运行成功。
+
+Stage8 SDK import/context/close异常的原始message只写入既有capture的provider_diagnostics；对外的类型/状态码保持原有边界，不将原始SDK异常体回显到用户入口或Git。

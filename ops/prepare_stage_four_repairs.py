@@ -10,6 +10,9 @@ STAGE = LOCAL/'releases/a-stage-owner-compatibility-20261030-r2-stage/app'
 API = LOCAL/'candidates/date-history-fix-20261101-r1/app'
 MAIN = LOCAL/'releases/workbench-daily-chain-20261031-r6-main/app'
 PRECAPTURE = LOCAL/'releases/a-snapshot-recovery-20261029-r1-stage/app'
+MANUAL_CONFIG = LOCAL/'releases/v4-retirement-20261028-api/config/api-v4_manual_collection_stage_config.json'
+MANUAL_CONFIG_PIN = 'c6c3a1144d69b23714bdd432e1f228cc56c9f9e4a80fffec8df28f5c5ebb87ee'
+MANUAL_CONFIG_RELATIVE = 'config/api-v4_manual_collection_stage_config.json'
 PINS = {'stage':'9ef8f0bdebca08a7ac5cc04f42ef4a323d186d2d894ee29a8062908802361d35',
         'api':'2bcd7c67bc27f515824eb1a861d534f1937e863e44505d8244a54780b694e247',
         'main':'f32d922fafcbf8c1e6f9958d5802eef80e58195502f16410a6d11f744e98ac74',
@@ -72,6 +75,9 @@ def prepare(output, source, *, prepared_runtime=False):
     no_alias(output);no_alias(source)
     if output.parent not in {Path('/private/tmp'),LOCAL/'candidates'} or output.exists():raise ValueError('NEW_ISOLATED_CANDIDATE_ROOT_REQUIRED')
     tools=inventory_tools();baselines={}
+    no_alias(MANUAL_CONFIG)
+    manual_raw=MANUAL_CONFIG.read_bytes()
+    if sha(manual_raw)!=MANUAL_CONFIG_PIN:raise ValueError('MANUAL_CONFIG_SOURCE_CAS_CHANGED')
     for role,app in [('stage',STAGE),('api',API),('main',MAIN),('a_precapture',PRECAPTURE)]:
         no_alias(app)
         raw=(app.parent/'release-manifest.json').read_bytes()
@@ -116,6 +122,7 @@ def prepare(output, source, *, prepared_runtime=False):
                 '        return retained_process_call(process_runner, command, **kwargs)\n')
             write(app,relative,text.encode());allowed.add(relative)
             relative='stage_center_tick_config.json';cfg=json.loads((base/relative).read_bytes())
+            cfg['release_id']=root.name
             retired=cfg['research_historical_owner_bindings'][0]
             prior=cfg['research_owner_binding'];cfg['research_owner_binding']=binding(MAIN)
             cfg['research_historical_owner_bindings']=[prior,cfg['research_historical_owner_bindings'][1]]
@@ -124,6 +131,17 @@ def prepare(output, source, *, prepared_runtime=False):
                 for key in ('raw_root','selection_root','receipt_root','a_auction_root','hk_auction_root','hk_stage_replay_root'):
                     path=output/'isolated-state'/key;path.mkdir(parents=True,exist_ok=True);cfg[key]=str(path)
             write(app,relative,(json.dumps(cfg,ensure_ascii=False,indent=2,sort_keys=True)+'\n').encode());allowed.add(relative)
+        if role=='api':
+            stage_app=Path(results['stage']['app_root'])
+            stage_cfg=json.loads((stage_app/'stage_center_tick_config.json').read_bytes())
+            manual_cfg=json.loads(manual_raw)
+            # Keep the existing manual service's exact allowlisted shape and
+            # data roots. Only executable owner and its accepted shared source
+            # move to the new Stage tuple; no new manual collection behavior.
+            manual_cfg.update(stage_owner_root=str(stage_app),
+                stage_owner_python=stage_cfg['python_path'],shared_data_root=stage_cfg['shared_data_root'])
+            manual_bytes=(json.dumps(manual_cfg,ensure_ascii=False,indent=2,sort_keys=True)+'\n').encode()
+            write(app,MANUAL_CONFIG_RELATIVE,manual_bytes);allowed.add(MANUAL_CONFIG_RELATIVE)
         original=baselines[role][1];actual=tools.inventory_tree(app)
         before={r['path']:r for r in original};after={r['path']:r for r in actual}
         delta=[p for p in sorted(set(before)|set(after)) if before.get(p)!=after.get(p)]
@@ -138,13 +156,29 @@ def prepare(output, source, *, prepared_runtime=False):
             'base_app':str(base),'base_manifest_sha256':PINS[role],
             'delta':[{'path':p,'before':before.get(p),'after':after.get(p)} for p in delta],
             'retired_historical_binding_read_only_record':retired if role=='stage' else None,
+            'manual_config_source':{'path':str(MANUAL_CONFIG),'sha256':MANUAL_CONFIG_PIN} if role=='api' else None,
             'configuration_mode':'PREPARED_RUNTIME_NOT_EXECUTED' if prepared_runtime else 'ISOLATED_TEST_ONLY'}
         dump(root/'release-manifest.json',manifest)
         results[role]={'app_root':str(app),'release_id':root.name,'manifest_sha256':sha((root/'release-manifest.json').read_bytes()),
                        'inventory_sha256':tools.inventory_digest(actual),'delta':delta,
                        'source_role':{'stage':'STAGE_PRIMARY_SCHEDULER','api':'API_SOP_AND_EXECUTION_READER',
                                       'a_precapture':'A_OPENING_PRECAPTURE'}[role]}
-    dump(output/'candidates.json',results);return results
+    dump(output/'candidates.json',results)
+    api_app=Path(results['api']['app_root']);stage_app=Path(results['stage']['app_root'])
+    dump(output/'activation-environment.json',{
+        'status':'PREPARED_NOT_APPLIED','runtime_state_roots_changed':False,
+        'api_environment':{'V4_APP_ROOT':str(api_app),'V4_RELEASE_ID':results['api']['release_id'],
+            'V4_RELEASE_MANIFEST_PATH':str(api_app.parent/'release-manifest.json'),
+            'V4_RELEASE_MANIFEST_SHA256':results['api']['manifest_sha256'],
+            'V4_MANUAL_COLLECTION_STAGE_CONFIG':str(api_app/MANUAL_CONFIG_RELATIVE)},
+        'manual_config_sha256':sha((api_app/MANUAL_CONFIG_RELATIVE).read_bytes()),
+        'stage_owner_identity':results['stage'],
+        'stage_authority_config_sha256':sha((stage_app/'stage_center_tick_config.json').read_bytes()),
+        'manual_HK_child_manifest_environment':
+            'Existing fixed HK-only owner program does not consume inherited API manifest variables; '
+            'V4_APP_ROOT/release_id/PYTHONPATH are rebound by unchanged manual_collection.py',
+    })
+    return results
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--source-root',type=Path,default=Path(__file__).resolve().parents[1])

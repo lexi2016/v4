@@ -387,6 +387,68 @@ asyncio.run(main())
             raw=path.read_bytes();self.assertIn(marker,raw.decode())
         RESULTS.append({'case':'F1_SDK_error_retention','phases':list(markers),'original_messages_retained':True,
             'actual_capture_reader_checked':True,'provider_network_invocations':0})
+    def test_15_actual_manual_router_owner_parameters_without_spawn(self):
+        app=Path(IDENTITIES['api']['app_root']);env=runtime_env('api')
+        plan=json.loads((BUNDLE/'activation-environment.json').read_bytes())
+        env.update(plan['api_environment']);env['STAGE_FOUR_MANUAL_STATE']=str(self.root/'manual-probe')
+        env['STAGE_FOUR_EXPECTED_STAGE']=IDENTITIES['stage']['app_root']
+        env['STAGE_FOUR_EXPECTED_STAGE_PIN']=IDENTITIES['stage']['manifest_sha256']
+        code='''import hashlib,inspect,json,os
+from pathlib import Path
+from unittest.mock import patch
+from apps.api.v4_api.manual_collection_router import create_manual_collection_router
+from infrastructure.scheduling.dispatcher import validate_release_identity
+from infrastructure.manual_collection import _OWNER_PROGRAM
+config_path=Path(os.environ['V4_MANUAL_COLLECTION_STAGE_CONFIG'])
+raw=config_path.read_bytes();config=json.loads(raw)
+stage=Path(os.environ['STAGE_FOUR_EXPECTED_STAGE']);old='/releases/hk-stage8-network-20261020-r1/app'
+assert config['stage_owner_root']==str(stage)
+assert old not in raw.decode()
+assert hashlib.sha256((stage.parent/'release-manifest.json').read_bytes()).hexdigest()==os.environ['STAGE_FOUR_EXPECTED_STAGE_PIN']
+router=create_manual_collection_router(Path(os.environ['STAGE_FOUR_MANUAL_STATE'])/'data',
+    stage_selection_root=config['selection_root'])
+endpoint=next(route.endpoint for route in router.routes if 'POST' in route.methods)
+service=inspect.getclosurevars(endpoint).nonlocals['service']
+assert service.stage_config is not None,service.config_error
+assert service.config_sha==hashlib.sha256(raw).hexdigest()
+assert service.owner_identity['release_id']==stage.parent.name
+assert service.owner_identity['authority_config_sha256']==hashlib.sha256((stage/'stage_center_tick_config.json').read_bytes()).hexdigest()
+calls=[]
+class StopBeforeSpawn(RuntimeError):pass
+def probe(command,**kwargs):
+    calls.append((command,kwargs))
+    raise StopBeforeSpawn()
+with patch('infrastructure.manual_collection.subprocess.Popen',side_effect=probe):
+    try:service._invoke_owner({'trade_date':'20261030','phase':'REPLAY'})
+    except StopBeforeSpawn:pass
+assert len(calls)==1
+command,kwargs=calls[0];child=kwargs['env']
+assert command==[config['stage_owner_python'],'-c',_OWNER_PROGRAM]
+assert kwargs['cwd']==str(stage) and kwargs['shell'] is False
+assert child['V4_APP_ROOT']==str(stage) and child['V4_RELEASE_ID']==stage.parent.name
+assert child['PYTHONPATH']==os.pathsep.join((str(stage/'upstreams'),str(stage)))
+assert child['REVIEW_CORE_PACKAGE_ROOT']==str(stage/'upstreams')
+assert old not in json.dumps({'command':command,'cwd':kwargs['cwd'],'pythonpath':child['PYTHONPATH'],'owner':child['V4_APP_ROOT']})
+assert child['V4_RELEASE_MANIFEST_PATH']==os.environ['V4_RELEASE_MANIFEST_PATH']
+assert child['V4_RELEASE_MANIFEST_SHA256']==os.environ['V4_RELEASE_MANIFEST_SHA256']
+assert 'historical_markets=("HK_CONNECT",)' in _OWNER_PROGRAM
+assert 'V4_RELEASE_MANIFEST' not in _OWNER_PROGRAM
+api=Path(os.environ['V4_APP_ROOT'])
+original=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/date-history-fix-20261101-r1/app/infrastructure/manual_collection.py')
+assert (api/'infrastructure/manual_collection.py').read_bytes()==original.read_bytes()
+print(json.dumps({'case':'F2_actual_manual_router_to_owner_parameter_probe','status':'PASS',
+    'api_identity':validate_release_identity(),'manual_config_path':str(config_path),
+    'manual_config_sha256':service.config_sha,'owner_root':str(stage),
+    'owner_authority_config_sha256':service.owner_identity['authority_config_sha256'],
+    'child_command_shape':[command[0],'-c','UNCHANGED_FIXED_HK_OWNER_PROGRAM'],
+    'child_program_sha256':hashlib.sha256(command[2].encode()).hexdigest(),
+    'child_cwd':kwargs['cwd'],'child_pythonpath':child['PYTHONPATH'],
+    'child_release_id':child['V4_RELEASE_ID'],'api_business_bytes_unchanged':True,
+    'inherited_API_manifest_env':'PRESENT_BUT_NOT_CONSUMED_BY_FIXED_HK_PROGRAM',
+    'Popen_calls_intercepted':1,'Popen_executed':0,'provider_invocations':0,'state_writes':0}))
+'''
+        result=subprocess.run([sys.executable,'-B','-c',code],cwd=app,env=env,capture_output=True,text=True,check=True)
+        RESULTS.append(json.loads(result.stdout.strip().splitlines()[-1]))
 
 if __name__=='__main__':
     suite=(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name,FourRepairTests)
