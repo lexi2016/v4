@@ -331,7 +331,7 @@ def switch(plan_sha, rollback=False):
         event('ADMISSION_PASS',rollback=rollback)
         try:
             # Arm idle calendar owners first; only API then has a short outage.
-            for role in ('stage','pre','api'):
+            for role in (tuple(reversed(TARGETS)) if rollback else tuple(TARGETS)):
                 record=records[role];old,new=raws[role];previous,desired=(new,old) if rollback else (old,new)
                 # Track before unload: a failure after a successful bootout but
                 # before plist replacement must still restore this exact owner.

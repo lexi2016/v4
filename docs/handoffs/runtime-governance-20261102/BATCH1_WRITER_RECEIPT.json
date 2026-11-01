@@ -1,0 +1,69 @@
+{
+  "scope": "Batch1 Stage/API only. Main/pre unchanged. No live mutation.",
+  "baseline_commit": "0c672d8c1b16cf77312cb5c7d8dfb1d6ecdb16f1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-runtime-governance-20261102",
+  "source_sha256": {
+    "ops/activate_stage_four_repairs.py": "a2ee9627eb456f249fed5d333321784317e89cc53b7232213016dea7964fb5c0",
+    "ops/activate_runtime_two_roles.py": "2caf926903f382e963e774776d61e7d7bcad3ec256b7f69b64e78020a67ef76c",
+    "ops/prepare_runtime_governance_candidate.py": "dfa3fd2830daffa1d4c6049ec815877a079df45cfcdb9096167d5f16c03adf4a",
+    "tests/test_runtime_activation.py": "51b84440a12fd9c8896e749837eda1cd53bb7b872e13b4d79bafa2c937591a00"
+  },
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r1",
+  "candidate_receipt_sha256": "07d27dd39bc6c8d8d6f8115362401dac89e103d52928e3fdf9634a710e7fd0a1",
+  "plan_sha256": "b17173c9b66b29f4870379f39db52cc877a499ed36825f9c520633f168914138",
+  "candidate_roles": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r1/runtime-governance-20261102-r1-api/app",
+      "delta": [
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json"
+      ],
+      "generated_cache_omissions": [
+        {
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+            "sha256": "12875f1cd96f2cae1ee64bd6139846719b0cb5af57fce48da760880583916bca",
+            "size": 36179
+          },
+          "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc"
+        }
+      ],
+      "inventory_sha256": "e581c85391ee772f9197373276580bad0f96fd7bab450f9d686d32f50a54d294",
+      "manifest_sha256": "ee2900fd76e5c5645cf5c3aaab0f2a5b051b7c7bb20d0e02df2b6395a30e8315",
+      "protected_files_unchanged": 1330,
+      "release_id": "runtime-governance-20261102-r1-api"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r1/runtime-governance-20261102-r1-stage/app",
+      "delta": [
+        "infrastructure/manager_input_attestation.py",
+        "stage_center_tick_config.json"
+      ],
+      "generated_cache_omissions": [],
+      "inventory_sha256": "eacf449235c83a633919c8f73564910b50de156e23001bcafc08ecea4a8d2aeb",
+      "manifest_sha256": "a495e5d947bb4c2e10e010e63b18b43b9b70599fc68a03b2226517b0e1584f35",
+      "protected_files_unchanged": 989,
+      "release_id": "runtime-governance-20261102-r1-stage"
+    }
+  },
+  "tests": {
+    "command": "PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp=<runtime/pytest-activation-frozen> tests/test_runtime_activation.py",
+    "result": "5 passed",
+    "launchctl_mutations": 0,
+    "real_read_only_inventory": "two current and two candidate full official inventories verified",
+    "real_read_only_protection": "12 protected job plists and loaded definitions + panel full inventory verified"
+  },
+  "prior_acceptance_reused": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_f10_stage_binding_20261102_r1/scheduler-review/REVIEW.json",
+    "scope": "13 tests and three original historical owner replays; identical attestation delta and exact retained history; no natural F10 claim"
+  },
+  "DEPLOYMENT": "NOT_DEPLOYED",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "REVIEWER": "PENDING",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
