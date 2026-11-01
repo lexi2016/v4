@@ -1,0 +1,171 @@
+{
+  "schema_version": "v4.unified_runtime_writer_freeze.v1",
+  "integration_source_commit": "4e181d776491b0c23abd52a5ce72b6661bfa2c2c",
+  "runtime_reviewed_source_commit": "61cb77f0a9e83521789c1d27b7a4ba2b9b2e97f0",
+  "report_source_commit": "5e44e2929e9baf36c4dbf4628e3286052c9062e8",
+  "canonical_source_not_modified": true,
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r1",
+  "candidate_receipt_sha256": "cadb8018f968470ca218f770bccec3b14cdd808883d3a06eb1365507754c3126",
+  "roles": {
+    "api": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/top200-manual-r4-20261102-a4e6b78d4b1d8ab3/app",
+      "actual_current_manifest_sha256": "ed5a244d363328f303d3f8ba86e60944bab083635a3fb7de44b35c298beb69ee",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r1/v4-unified-implementation-20261102-r1-api/app",
+      "delta": [
+        "apps/api/v4_api/app.py",
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md",
+        "domains/report_evidence.py",
+        "infrastructure/operations_sop_reader.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/verify_report_evidence_canary.py"
+      ],
+      "inventory_sha256": "b8010387b6744f22b1f353b8869987ffcf2c04e5d90626446ddcf454dcd8f004",
+      "manifest_sha256": "009803787f0a86f21d1388af5f2d8f881deefe032c7bac1aa01259b20062adf2",
+      "protected_current_files_unchanged": 1328,
+      "release_id": "v4-unified-implementation-20261102-r1-api"
+    },
+    "main": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app",
+      "actual_current_manifest_sha256": "3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r1/v4-unified-implementation-20261102-r1-main/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/review_generation.py",
+        "infrastructure/scheduling/dispatcher.py",
+        "infrastructure/scheduling/execution_ledger.py",
+        "infrastructure/stage_completion_hooks.py",
+        "infrastructure/tdx_minute_replay_provider.py",
+        "ops/build_a_share_close_review.py",
+        "ops/build_close_review.py",
+        "ops/build_runtime_governance_registry.py",
+        "ops/collect_hkconnect_close_snapshot.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_milestone.py",
+        "ops/run_v4_macos_scheduler_due.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py"
+      ],
+      "inventory_sha256": "dc8300df1354e77c0bd356fa0b8c3dda4751c7e6a9c83c7af6b5a3b639a5fc74",
+      "manifest_sha256": "dad577f9822491e6d489c1a2fe6cc23333c84e21bd2c9159e9269ca8c855dab4",
+      "protected_current_files_unchanged": 990,
+      "release_id": "v4-unified-implementation-20261102-r1-main"
+    },
+    "stage": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+      "actual_current_manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r1/v4-unified-implementation-20261102-r1-stage/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "domains/report_subjects.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/stage_completion_hooks.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "156fb5a9f0c47b966df40d786feda6d8c75832aa3387a7c64c717bc99fbee5d0",
+      "manifest_sha256": "65dbb5ac563efcafbc855f43688770776bdd795f21f53676322b3e0a97007e86",
+      "protected_current_files_unchanged": 988,
+      "release_id": "v4-unified-implementation-20261102-r1-stage"
+    }
+  },
+  "publication_plan": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/publication-r1/publication-plan.json",
+    "sha256": "054ee3f870b5e1152da59fa4bfc0229251c0b5cdabbdbc34120e681e1cbac1b3",
+    "forward_order": [
+      "main",
+      "stage",
+      "api"
+    ],
+    "rollback_order": [
+      "api",
+      "stage",
+      "main"
+    ],
+    "omitted_f10_matching_receipts": 0,
+    "explicit_delayed_rollback": "Refuses any receipt from the new Main before unloading any owner",
+    "live_preparation_run": false,
+    "live_activation_run": false
+  },
+  "independent_prior_scope": {
+    "BATCH1_REVIEW.json": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/review/BATCH1_REVIEW.json",
+      "sha256": "877872ee071c5cc6eca6dfe7a9e584684a50c7e2f2caee90c70bcf0f786b8d87",
+      "verdict": "REVIEWED/PASS"
+    },
+    "BATCH2_REVIEW.json": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/review/BATCH2_REVIEW.json",
+      "sha256": "05d527b7dede9d100767db73a2b469099c08ed8c41036ec18cd7e8500e837827",
+      "verdict": "REVIEWED/PASS"
+    }
+  },
+  "actual_entry_checks": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/actual-entry-r1/RESULT.json",
+    "sha256": "08daaba70ddacb1ddf58b6bcf0cc4bd272f4ea5445d9a4c7bcc0893f08a372cd",
+    "status": "3 PASS; Main/Stage each off/on/reuse/independent failure; actual ASGI API",
+    "main_callback_submit_seconds": 0.014565750025212765,
+    "stage_callback_submit_seconds": 0.011382583994418383,
+    "source_files_unchanged": 7,
+    "index_scope": "3 original PDFs only; full-corpus latency not certified"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "states": {
+    "SOURCE": "IMPLEMENTED",
+    "BATCH1": "INDEPENDENT_PASS_HISTORICAL_CAS_STALE_AFTER_API_CHANGE",
+    "BATCH2": "INDEPENDENT_PASS_R10",
+    "UNIFIED_CANDIDATE": "WRITER_VERIFIED_PENDING_INCREMENTAL_REVIEW",
+    "DEPLOYMENT": "NOT_DEPLOYED",
+    "UI": "NOT_RUN",
+    "NATURAL": "NOT_RUN",
+    "TDX_THREE_MARKET_LIVE_CANARY": "CANNOT_CONFIRM_OUTSIDE_REAL_TRADING_WINDOW",
+    "FULL_CORPUS_NATIVE": "IN_PROGRESS_EXTERNAL_OWNER_HEALTHY_NOT_CERTIFIED"
+  },
+  "known_history": [
+    "r2/r3/r4/r5/r6/r7/r8 superseded; r8 API assembly preimage was fresh but actual copy base was old, rejected",
+    "r9 build failed on one declared legacy pyc omission, retained; r10 actual-current delta and protection independently passed",
+    "No claim that external panel files remained unchanged for the entire session; another owner updated the served panel. Candidate binds its fresh actual baseline."
+  ],
+  "commands": [
+    "PANEL_PYTHON -B -m pytest tests/test_runtime_activation.py (5 PASS; independent B1)",
+    "PANEL_PYTHON -B -m pytest tests/test_runtime_governance.py (12 PASS; independent B2)",
+    "PANEL_PYTHON -B -m pytest tests/test_runtime_activation_main.py (7 PASS) plus delayed-rollback negative (1 PASS)",
+    "F10_BINDING_CANDIDATE=r7 F10_BINDING_REPLAY=original-review-replay PANEL_PYTHON -B -m pytest tests/test_runtime_hourly_witness.py tests/test_f10_stage_binding.py::test_same_code_selects_only_successful_pinned_release (6 PASS; independent B2)",
+    "PANEL_PYTHON -B -m ops.prepare_unified_runtime_candidate --runtime r10 --report-ref 5e44e2929e9baf36c4dbf4628e3286052c9062e8 --output <unified-r1>",
+    "PANEL_PYTHON -B docs/handoffs/runtime-governance-20261102/verify_unified_candidate.py --candidate <unified-r1> --evidence <integration/actual-entry-r1> --index <retrieval/canary-r2-index> --data-root <existing-owner> --selection <existing-stage> --receipts <existing-runner> --bridge <existing-local-native> (3 PASS)",
+    "PANEL_PYTHON -B -m ops.prepare_runtime_governance_publication --candidate <unified-r1> --output <integration/publication-r1> (PREPARED PARAMETERS ONLY; no launchctl mutation)"
+  ]
+}
