@@ -112,6 +112,37 @@ def row_dicts(name: str) -> tuple[dict[str, Any], ...]:
     return tuple(result)
 
 
+def tuple_rows(name: str) -> tuple[tuple[Any, ...], ...]:
+    """Return a ``tuple[tuple]`` table for a pinned ``tuple_rows`` dataset.
+
+    Rows are positional and have no column names in the source, so the
+    dataset declares only the arity. Values must be JSON scalars; nested
+    structures would need their own restoration rule.
+    """
+    entry = _manifest().get(name)
+    if entry is None:
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:not_in_manifest")
+    if entry.get("key_type") != "tuple_rows":
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:key_type")
+    payload = _read_dataset(entry)
+    arity = payload.get("arity")
+    rows = payload.get("rows")
+    if not isinstance(arity, int) or isinstance(arity, bool) or arity <= 0:
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:arity")
+    if not isinstance(rows, list):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:rows")
+    if entry.get("entry_count") != len(rows):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:entry_count")
+    result: list[tuple[Any, ...]] = []
+    for row in rows:
+        if not isinstance(row, list) or len(row) != arity:
+            raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:row_arity")
+        if any(not isinstance(value, (str, int, float, bool)) and value is not None for value in row):
+            raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:row_scalar")
+        result.append(tuple(row))
+    return tuple(result)
+
+
 def tuple_keyed(name: str) -> dict[tuple[str, ...], str]:
     """Return a ``{tuple_key: str}`` map for a pinned ``tuple2`` dataset."""
     entry = _manifest().get(name)

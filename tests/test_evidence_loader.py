@@ -160,3 +160,48 @@ def _staged_rows(tmp_path: Path, mutate) -> None:
             entry["sha256"] = digest
             entry["entry_count"] = len(data["rows"])
     (tmp_path / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
+
+
+# --- C3: R5 bindings and R8 binding rows -------------------------------------
+
+def test_r5_bindings_match_the_type_tagged_oracle():
+    oracle = json.loads(Path("tests/fixtures/evidence_oracle/hk_afterfact_r5_bindings.json").read_text(encoding="utf-8"))
+    expected = tuple(_untag(row) for row in oracle["rows"])
+    loaded = loader.row_dicts("hk_afterfact_r5_bindings")
+    assert loaded == expected
+    _assert_same_types(loaded, expected)
+    assert len(loaded) == 9
+    assert isinstance(loaded[0]["required_evidence"], tuple)
+
+
+def test_r8_binding_rows_match_the_type_tagged_oracle():
+    oracle = json.loads(Path("tests/fixtures/evidence_oracle/hk_afterfact_r8_binding_rows.json").read_text(encoding="utf-8"))
+    expected = tuple(_untag(row) for row in oracle["rows"])
+    loaded = loader.tuple_rows("hk_afterfact_r8_binding_rows")
+    assert loaded == expected
+    _assert_same_types(loaded, expected)
+    assert len(loaded) == 15
+    assert all(isinstance(row, tuple) and len(row) == 11 for row in loaded)
+
+
+def test_tuple_rows_reject_wrong_arity(tmp_path: Path, monkeypatch):
+    def mutate(manifest, data):
+        data["rows"][0] = data["rows"][0][:-1]
+    _stage_named(tmp_path, "hk_afterfact_r8_binding_rows", mutate, update_count=False)
+    _point_at(tmp_path, monkeypatch)
+    with pytest.raises(loader.EvidenceDatasetError) as error:
+        loader.tuple_rows("hk_afterfact_r8_binding_rows")
+    assert "row_arity" in str(error.value)
+
+
+def _stage_named(tmp_path: Path, name: str, mutate, *, update_count: bool = True) -> None:
+    source = loader.EVIDENCE_DIR
+    manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+    entry = next(item for item in manifest["datasets"] if item["name"] == name)
+    data = json.loads((source / entry["path"]).read_text(encoding="utf-8"))
+    mutate(manifest, data)
+    (tmp_path / entry["path"]).write_text(json.dumps(data, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    entry["sha256"] = hashlib.sha256((tmp_path / entry["path"]).read_bytes()).hexdigest()
+    if update_count:
+        entry["entry_count"] = len(data["rows"])
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
