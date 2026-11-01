@@ -8,8 +8,9 @@ from pathlib import Path
 import sys
 from typing import Any, Mapping
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from concurrent.futures import TimeoutError as FuturesTimeoutError
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from threading import BoundedSemaphore
+import time
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
@@ -41,6 +42,59 @@ from stage_center.consumer import StageSelectionConsumer
 from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
 
 _STAGE_RESEARCH_READER_SHA256 = "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
+
+
+# One process-wide pool and admission limit: timed-out reads cannot spawn a
+# new pool per request or leave an unbounded queue behind stalled readers.
+_STAGE_BATCH_CAPACITY = 8
+_stage_batch_executor = ThreadPoolExecutor(
+    max_workers=_STAGE_BATCH_CAPACITY, thread_name_prefix="v4-stage-batch"
+)
+_stage_batch_slots = BoundedSemaphore(_STAGE_BATCH_CAPACITY)
+
+
+def _bounded_stage_summaries(read_summary, ordered, *, workers, timeout_seconds):
+    deadline = time.monotonic() + max(0.0, timeout_seconds)
+    slots = _stage_batch_slots
+    pending = {}
+    remaining = iter(ordered)
+    summaries = {}
+    exhausted = False
+    try:
+        while time.monotonic() < deadline:
+            while not exhausted and len(pending) < workers and time.monotonic() < deadline:
+                if not slots.acquire(blocking=False):
+                    break
+                try:
+                    stage_id = next(remaining)
+                except StopIteration:
+                    slots.release()
+                    exhausted = True
+                    break
+                try:
+                    future = _stage_batch_executor.submit(read_summary, stage_id)
+                except BaseException:
+                    slots.release()
+                    raise
+                future.add_done_callback(lambda _future: slots.release())
+                pending[future] = stage_id
+            if not pending:
+                # Saturation is an incomplete read, never an invitation to
+                # queue more work or to bypass the response deadline.
+                break
+            done, _ = wait(pending, timeout=max(0.0, deadline - time.monotonic()),
+                           return_when=FIRST_COMPLETED)
+            if not done:
+                break
+            for future in done:
+                del pending[future]
+                name, summary = future.result()
+                if summary is not None:
+                    summaries[name] = summary
+    finally:
+        for future in pending:
+            future.cancel()
+    return summaries
 
 
 _V4_STATE_ROOT = (
@@ -6238,27 +6292,10 @@ def create_app(
                 max(1, int(os.environ.get("V4_STAGE_BATCH_WORKERS", "8") or "8")),
             )
             timeout_seconds = float(os.environ.get("V4_STAGE_BATCH_TIMEOUT_SECONDS", "12") or "12")
-            if workers == 1:
-                for stage_id in ordered:
-                    name, summary = _summary_for(stage_id)
-                    if summary is not None:
-                        summaries[name] = summary
-            else:
-                with ThreadPoolExecutor(max_workers=workers) as pool:
-                    futures = {
-                        pool.submit(_summary_for, stage_id): stage_id
-                        for stage_id in ordered
-                    }
-                    try:
-                        for future in as_completed(futures, timeout=timeout_seconds):
-                            name, summary = future.result()
-                            if summary is not None:
-                                summaries[name] = summary
-                    except FuturesTimeoutError:
-                        pass
-                    finally:
-                        for future in futures:
-                            future.cancel()
+            summaries = _bounded_stage_summaries(
+                _summary_for, ordered, workers=min(workers, _STAGE_BATCH_CAPACITY),
+                timeout_seconds=timeout_seconds,
+            )
 
         return {
             "schema_version": "v4.stage_timeline_batch.v1",

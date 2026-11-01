@@ -1,0 +1,57 @@
+{
+  "application_bytes_changed": false,
+  "base_plist_sha256": "9d4a872d3d0b7f6246f209969f1dbe31a97fc260ecb77d76e8f498326752f908",
+  "candidate_plist_sha256": "f390eab840f8c6871985c79b88c8fa748c43539bc934fd6994464451408d0dd5",
+  "isolated_identity": {
+    "detailed_identity": {
+      "aggregate_status_before_staged_filter": "DRIFT",
+      "live_plist_binding_status": "DRIFT",
+      "live_plist_comparison_excluded": true,
+      "relevant_drift_paths": [],
+      "staged_release_pins": "VERIFIED",
+      "statuses": {
+        "app_root_status": "VERIFIED",
+        "receipt_status": "MISSING",
+        "release_id_status": "VERIFIED",
+        "release_manifest_sha_status": "VERIFIED",
+        "runtime_dependency_manifest_status": "MISSING",
+        "runtime_inventory_status": "MISSING",
+        "selected_modules_status": "VERIFIED"
+      }
+    },
+    "frontend": {
+      "api_manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b",
+      "api_release_id": "perf-runtime-repair-20261101-r1",
+      "bundle_sha256": "1544515934350684b546e771bb4e2ae168d7db058a48c0fab449801fa3c3bdc6",
+      "index_sha256": "93c601f9b95b15daf45669401ae9b9e226035e52b26332ee427e323423be7cc5",
+      "script_path": "/assets/main-C4Mq08oe.js",
+      "status": "VERIFIED"
+    },
+    "identity": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/perf-runtime-repair-20261101-r1/app",
+      "release_id": "perf-runtime-repair-20261101-r1",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/perf-runtime-repair-20261101-r1/release-manifest.json",
+      "release_manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b"
+    }
+  },
+  "manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b",
+  "metadata_revision": "TOP_LEVEL_IDENTITY_AND_SOURCE_PROVENANCE_REPAIRED",
+  "preserved_evidence_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/perf-runtime-repair-20261101-r1/metadata-before-top-level-identity-fix",
+  "status": "PREPARED_NOT_ACTIVATED",
+  "superseded_manifest_sha256": "1c1895521af351118d85e826d8014ad9b9c96e54d5a3dc30a5a51b1a3e61c11f",
+  "superseded_preparation_sha256": "ef52beb743621955a666781b215b2df9ac1c86139d06914dff883c9158cbc55b",
+  "verification": {
+    "application_inventory_entry_count": 1301,
+    "application_inventory_sha256": "9772f211dd1cc8f6ac9e7097ade338216410fe854ecec54120cfa140263fde36",
+    "base_manifest_sha256": "843d568dd1c43caa8c19d6307369e25288d5cffbfc9ac48e6b5616f77af18979",
+    "delta_paths": [
+      "apps/api/v4_api/app.py",
+      "domains/preselection.py"
+    ],
+    "module_role": "api",
+    "non_delta_entry_count": 1299,
+    "non_delta_inventory_sha256": "f80067fd0931b2bcf36ede668c1f2a5fb8ea302d40640954d28d8564b1a33592",
+    "schema": "TASK_SPECIFIC_PINNED_API_MANIFEST",
+    "status": "PASS"
+  }
+}

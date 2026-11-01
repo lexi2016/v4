@@ -152,3 +152,77 @@ def test_batch_rejects_unknown_stage(tmp_path: Path) -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_timeout_bounds_response_including_serial_workers(tmp_path: Path, monkeypatch) -> None:
+    import time
+    from threading import Event
+    from domains.stages import StageRunner
+
+    store = _store(tmp_path.resolve())
+    client = TestClient(create_app(data_root=store.root, current_date="20260818"))
+    release = Event()
+    started = Event()
+
+    def stalled(self, *args, **kwargs):
+        started.set()
+        release.wait(2)
+        return _full_payload()
+
+    monkeypatch.setattr(StageRunner, "read_workbench", stalled)
+    monkeypatch.setenv("V4_STAGE_BATCH_TIMEOUT_SECONDS", "0.02")
+    try:
+        for workers in (1, 2):
+            monkeypatch.setenv("V4_STAGE_BATCH_WORKERS", str(workers))
+            before = time.monotonic()
+            response = client.get("/api/v4/workbench/stage-batch", params={
+                "date": "20260818", "stages": "STAGE_0925,STAGE_0930_0935",
+            })
+            assert time.monotonic() - before < 0.20
+            assert started.is_set()
+            assert response.status_code == 200
+            assert response.json()["stages"] == {}
+            assert response.json()["write_performed"] is False
+    finally:
+        release.set()
+
+
+def test_repeated_stalled_reads_have_bounded_inflight_work(monkeypatch) -> None:
+    import importlib
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import BoundedSemaphore, Event, Lock
+
+    api = importlib.import_module("apps.api.v4_api.app")
+    release = Event()
+    lock = Lock()
+    started = []
+    executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="bounded-regression")
+    monkeypatch.setattr(api, "_stage_batch_executor", executor)
+    slots = BoundedSemaphore(2)
+    monkeypatch.setattr(api, "_stage_batch_slots", slots)
+
+    def stalled(stage_id):
+        with lock:
+            started.append(stage_id)
+        release.wait(2)
+        return stage_id, {"ok": True}
+
+    try:
+        before = time.monotonic()
+        for _ in range(20):
+            assert api._bounded_stage_summaries(stalled, ["one", "two", "three"],
+                workers=2, timeout_seconds=0.02) == {}
+        assert time.monotonic() - before < 0.25
+        assert len(started) == 2
+        release.set()
+        # An executor barrier waits for a completed read and its slot-release
+        # callback without replacing the shared pool or guessing a sleep.
+        executor.submit(lambda: None).result(timeout=1)
+        assert api._bounded_stage_summaries(
+            lambda name: (name, {"ok": True}), ["recovered"],
+            workers=1, timeout_seconds=1,
+        ) == {"recovered": {"ok": True}}
+    finally:
+        release.set()
+        executor.shutdown(wait=True, cancel_futures=True)

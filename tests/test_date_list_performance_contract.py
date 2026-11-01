@@ -117,3 +117,33 @@ def test_date_list_response_omits_unused_projection_payloads(tmp_path: Path) -> 
     assert "independent_pool_evidence" not in payload
     for key in DATE_LIST_CLIENT_KEYS:
         assert key in payload, key
+
+
+def test_cache_sees_official_publish_into_existing_date(tmp_path: Path, monkeypatch) -> None:
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+
+    monkeypatch.setenv("V4_DATE_CATALOG_TTL_SECONDS", "300")
+    store = _store(tmp_path.resolve())
+    date_dir = store.root / "preselection_pools" / "20260820"
+    date_dir.mkdir(parents=True)
+    calls = _count_body_calls(monkeypatch)
+    assert date_catalog(store, current_date="20260818", use_cache=True)["future_target_dates"] == []
+    parent_mtime = date_dir.parent.stat().st_mtime_ns
+
+    PreselectionPoolStore(store.root).materialize({
+        "schema_version": "v3_5.preselection_pool.v1",
+        "trade_date": "20260820", "pool_id": "a_share_baimao_research_map",
+        "display_name": "cache publication regression", "market": "A",
+        "status": "PARTIAL", "producer_id": "test_fixture",
+        "source_role": "RAW_SOURCE", "source_path": "fixture.json",
+        "source_sha256": "a" * 64, "rows": [{"code": "000001"}],
+        "cannot_confirm": [], "production_allowed": False,
+        "buy_gate_updated": False, "orders_sent": False,
+    })
+    assert date_dir.parent.stat().st_mtime_ns == parent_mtime
+    cached = date_catalog(store, current_date="20260818", use_cache=True)
+    assert cached["future_target_dates"] == ["20260820"]
+    assert cached == date_catalog(store, current_date="20260818", use_cache=False)
+    assert calls["n"] == 3
+    date_catalog(store, current_date="20260818", use_cache=True)
+    assert calls["n"] == 3

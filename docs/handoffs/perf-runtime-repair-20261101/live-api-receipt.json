@@ -1,0 +1,76 @@
+{
+  "/healthz": {
+    "seconds": 2.2089,
+    "bytes": 15,
+    "result": {
+      "status": "ok"
+    }
+  },
+  "/readyz": {
+    "seconds": 0.0068,
+    "bytes": 73,
+    "result": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "/api/v4/runtime-graph/frontend-build": {
+    "seconds": 0.116,
+    "bytes": 367,
+    "result": {
+      "status": "VERIFIED",
+      "script_path": "/assets/main-C4Mq08oe.js",
+      "bundle_sha256": "1544515934350684b546e771bb4e2ae168d7db058a48c0fab449801fa3c3bdc6",
+      "index_sha256": "93c601f9b95b15daf45669401ae9b9e226035e52b26332ee427e323423be7cc5",
+      "api_release_id": "perf-runtime-repair-20261101-r1",
+      "api_manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b"
+    }
+  },
+  "/api/v4/runtime-graph/status": {
+    "seconds": 0.3046,
+    "bytes": 112220,
+    "result": {
+      "status": "CANNOT_CONFIRM",
+      "pid": 32999,
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/perf-runtime-repair-20261101-r1/app",
+      "app_root_status": "VERIFIED",
+      "release_id": "perf-runtime-repair-20261101-r1",
+      "release_id_status": "VERIFIED",
+      "release_manifest_locator_status": "VERIFIED",
+      "release_manifest_sha_status": "VERIFIED",
+      "release_manifest_status": "VERIFIED",
+      "receipt_status": "MISSING",
+      "plist_status": "VERIFIED",
+      "plist_binding_status": "CANNOT_CONFIRM",
+      "selected_modules_status": "VERIFIED",
+      "runtime_inventory_status": "MISSING",
+      "runtime_dependency_manifest_status": "MISSING"
+    }
+  },
+  "/api/v1/runs/date-list": {
+    "seconds": 0.0165,
+    "bytes": 3762,
+    "result": {
+      "application": "V4",
+      "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+      "release_id": "perf-runtime-repair-20261101-r1",
+      "process_status": "CANNOT_CONFIRM",
+      "manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b"
+    }
+  },
+  "/api/v4/workbench/stage-batch?date=20261030": {
+    "seconds": 2.3634,
+    "bytes": 10454,
+    "result": {
+      "stage_count": 8,
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "write_performed": false
+      }
+    }
+  }
+}

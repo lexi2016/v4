@@ -1,0 +1,113 @@
+{
+  "RESEARCH_ONLY": true,
+  "api_ui_natural": "NOT_RUN",
+  "baseline_commit": "bbed661f1441239f7a06f093418efb6ceab0c7cc",
+  "branch": "codex/perf-runtime-repair-20261101",
+  "buy_gate_updated": false,
+  "deployment": "PREPARED_NOT_ACTIVATED",
+  "external_report": {
+    "after_sha256": "877f0fc916b699fa98cd08640e60a3b4b31866f0b5fc062811bc7314fc01ad83",
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_code_audit_20261101/PERF_FIX_RESULT.md"
+  },
+  "files": {
+    "apps/api/v4_api/app.py": {
+      "after_sha256": "5cece085a8017b597deb7656d0523ae5c2ea90e1cbd31b5add75513b65ef2a87",
+      "before_sha256": "1266d2af6d926244a82e929b8713f58c5e9d7a7bf9ae85b4f0b54600a81451c8"
+    },
+    "docs/handoffs/perf-runtime-repair-20261101/release_repair.py": {
+      "after_sha256": "6a4abcbfbc6a33841c77c5e56fc67bb1ebcbd67bec930adc743f3d8aab3b8d2e",
+      "before_final_metadata_revision_sha256": "a9ac8a460200fa412c12c0b8b146728a02174e8bf7d64e8fd8e3a0f90653c1bc",
+      "before_sha256": null,
+      "prior_writer_sha256": "b989ef0fe3eebc612ac0561078a4b60c98a0ed1e5bca8aa36739a639ec48a4c7"
+    },
+    "domains/preselection.py": {
+      "after_sha256": "27570df644a7d4b2962c83951dc358d648855e70f5a3100a5133dda5b12ceaea",
+      "before_sha256": "5f6ec00e0a95ad7d84a858d819924a25e2c78076bf0d82166add23f3b494fd4a"
+    },
+    "tests/test_date_list_performance_contract.py": {
+      "after_sha256": "46bd239ec786e933bcd3b1d9ac9cec0eefa2d7d816999dfa75e8291c23fd78ae",
+      "before_sha256": "6cb4e2c2bd95ce81f13e0585a7b46f78bcd9faf32ab7c3af858a9c0851392888"
+    },
+    "tests/test_perf_runtime_repair_release.py": {
+      "after_sha256": "e0d18ffd3988984825f0aea71d9ded98f58fb348610a7f41f52591127cdb6427",
+      "before_final_metadata_revision_sha256": "126f6d18947c8de1f0ff3578ba230223486dbb953e416c6c2675b18e833c967c",
+      "before_sha256": null,
+      "prior_writer_sha256": "d151e1ac7223eba44ead207dd2ac20907e29d349c1a85db13b13b2527b578584"
+    },
+    "tests/test_stage_timeline_batch.py": {
+      "after_sha256": "d153f21a2c0eaa087d534c4cc13b13d45a11ea1f95e68695888e34313d706300",
+      "before_sha256": "d014471d0209f5934d508e9ca9b2492af2a6329a68e8cdfd9ad34e06823cf1f0"
+    }
+  },
+  "final_metadata_revision": {
+    "application_bytes_changed": false,
+    "application_inventory_sha256": "9772f211dd1cc8f6ac9e7097ade338216410fe854ecec54120cfa140263fde36",
+    "candidate_manifest_sha256": "8f93397a31986a1871276ee90b7f4d89e2a31d5691eeb6ea529e0cbea67a481b",
+    "isolated_detailed_identity": {
+      "aggregate_status_before_staged_filter": "DRIFT",
+      "live_plist_binding_status": "DRIFT",
+      "live_plist_comparison_excluded": true,
+      "relevant_drift_paths": [],
+      "staged_release_pins": "VERIFIED",
+      "statuses": {
+        "app_root_status": "VERIFIED",
+        "receipt_status": "MISSING",
+        "release_id_status": "VERIFIED",
+        "release_manifest_sha_status": "VERIFIED",
+        "runtime_dependency_manifest_status": "MISSING",
+        "runtime_inventory_status": "MISSING",
+        "selected_modules_status": "VERIFIED"
+      }
+    },
+    "live_plist_sha256_unchanged": "9d4a872d3d0b7f6246f209969f1dbe31a97fc260ecb77d76e8f498326752f908",
+    "operation": "release_repair.py repair-prepared-metadata",
+    "operation_result": "PREPARED_METADATA_REPAIRED_NOT_ACTIVATED",
+    "prepared_receipt_sha256": "e4251dd54c483cb3be10730a95892016284831b13dcaf2f45fa8652a97c5a684",
+    "scope": "top-level and nested runtime identity plus truthful source provenance only",
+    "service_actions_performed": false,
+    "source_behavior_changed": false,
+    "tests_command": "PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-perf-helper-identity-final-20261101 tests/test_perf_runtime_repair_release.py -k 'top_level or detailed_identity'",
+    "tests_result": "2 passed, 7 deselected in 0.03s"
+  },
+  "incremental_revision": {
+    "candidate_manifest_sha256": "1c1895521af351118d85e826d8014ad9b9c96e54d5a3dc30a5a51b1a3e61c11f",
+    "live_plist_sha256_after_prepare": "9d4a872d3d0b7f6246f209969f1dbe31a97fc260ecb77d76e8f498326752f908",
+    "prepared_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/perf-runtime-repair-20261101-r1/repair-preparation.json",
+    "prepared_receipt_sha256": "ef52beb743621955a666781b215b2df9ac1c86139d06914dff883c9158cbc55b",
+    "real_live_check": "PINNED_LIVE_PREFLIGHT_PASS_1301_ENTRIES",
+    "scope": [
+      "release helper compatibility with actual api module schema",
+      "recovery CAS before service action"
+    ],
+    "service_actions_performed": false,
+    "source_behavior_changed": false,
+    "source_behavior_prior_pass_reused": true,
+    "tests_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-perf-helper-revision-20261101 tests/test_perf_runtime_repair_release.py",
+    "tests_result": "7 passed in 0.29s"
+  },
+  "independent_review": "FINAL_METADATA_FIX_AWAITING_FOCUSED_REVIEW_PRIOR_PASS_REUSED",
+  "metadata_sample": {
+    "date_counts": [
+      6,
+      69
+    ],
+    "raw_artifacts_read": false,
+    "seconds": 0.019871
+  },
+  "orders_sent": false,
+  "overlay_check": {
+    "files": {
+      "apps/api/v4_api/app.py": "1f51339e55d12e1b544aec227a8288f30a1f60cb0829cdb3e5c4af2c1bb65801",
+      "domains/preselection.py": "27570df644a7d4b2962c83951dc358d648855e70f5a3100a5133dda5b12ceaea"
+    },
+    "status": "EXACT_OVERLAY_CHECK_PASS"
+  },
+  "production_allowed": false,
+  "schema_version": "v4.perf_runtime_repair.source_receipt.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/perf-runtime-repair-20261101",
+  "tests": {
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=/tmp/v4-perf-writer-final-20261101 tests/test_stage_timeline_batch.py tests/test_date_list_performance_contract.py tests/test_perf_runtime_repair_release.py",
+    "result": "18 passed in 0.86s",
+    "scope": "cache publication into pre-existing date; serial/parallel deadline; repeated-stall admission/recovery; inherited-byte overlay; bounded unload; CAS; automatic rollback"
+  }
+}

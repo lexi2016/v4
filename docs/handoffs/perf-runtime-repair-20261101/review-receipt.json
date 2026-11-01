@@ -1,0 +1,30 @@
+{
+  "reviewer": "/root/repair_review",
+  "writer": "/root/repair_writer",
+  "verdict": "REVIEWED/PASS",
+  "scope": "Frozen activation readiness; cache/timeout behavior isolated; source preservation, CAS recovery, manifest identity",
+  "prior_findings_preserved": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "issues": [
+        "incompatible official high-level release helper",
+        "recovery unload before CAS"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "FAIL",
+      "issues": [
+        "top-level manifest identity retained old release"
+      ]
+    },
+    {
+      "round": 3,
+      "verdict": "PASS",
+      "new_tests": "2 passed, 7 deselected; earlier source/helper PASS reused"
+    }
+  ],
+  "final_helper_sha256": "6a4abcbfbc6a33841c77c5e56fc67bb1ebcbd67bec930adc743f3d8aab3b8d2e",
+  "live_acceptance_owner": "controller; see live-api-receipt.json and live-ui-receipt.json"
+}
