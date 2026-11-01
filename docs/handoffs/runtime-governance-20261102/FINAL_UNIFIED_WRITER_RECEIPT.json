@@ -1,6 +1,6 @@
 {
   "schema_version": "v4.unified_runtime_writer_final.v1",
-  "status": "WRITER_INCREMENTAL_PASS_PENDING_INDEPENDENT_REVIEW",
+  "status": "REVIEWED_FAIL_P4_STATE_INTEGRITY",
   "runtime_source_commit": "61cb77f0a9e83521789c1d27b7a4ba2b9b2e97f0",
   "integration_business_commit": "935040cb0b7da8e00d0f178812a215518fb35dd4",
   "report_source_commit": "7862ef3e871e80a10a1ce78cca4285609bc3b894",
@@ -217,7 +217,7 @@
     "SOURCE": "IMPLEMENTED",
     "BATCH1": "INDEPENDENT_PASS_HISTORICAL_PREIMAGE_STALE",
     "BATCH2": "INDEPENDENT_PASS_R10",
-    "UNIFIED": "WRITER_INCREMENTAL_PASS_PENDING_INDEPENDENT_REVIEW",
+    "UNIFIED": "REVIEWED_FAIL_P4_STATE_INTEGRITY",
     "DEPLOYMENT": "NOT_DEPLOYED",
     "UI": "NOT_RUN",
     "NATURAL": "NOT_RUN",
@@ -228,7 +228,8 @@
   "known_failures": [
     "Unified r2/425 race fix FAILED independent review; retained and superseded by7862/r3",
     "r1/r2 old API CAS became stale after independent Edan update; no live mutation was attempted",
-    "Historical runtime r8 old API copy base failed; r9 declared legacy pyc omission failed; retained failures are not overwritten"
+    "Historical runtime r8 old API copy base failed; r9 declared legacy pyc omission failed; retained failures are not overwritten",
+    "Final unified r3/786 independent state-integrity UNKNOWN status and mismatched job_id negative cases FAIL; STOP reached, no further P4 code changes authorized"
   ],
   "scope_limits": [
     "Actual on/off hooks used complete D30 two-market runner and frozen3PDF native index; not full-corpus latency certification",
@@ -248,5 +249,22 @@
     "PANEL_PYTHON -B docs/handoffs/runtime-governance-20261102/verify_unified_tcp.py --candidate <unified-r3> --evidence <integration/tcp-r3> --index <retrieval/canary-r2-index> --data-root <read-only-existing-owner> --sidecars <isolated-prior-fixture> --bridge <existing-native> (TCP/manifest/hybrid3hits PASS; own process+port closed)",
     "PANEL_PYTHON -B -m ops.prepare_runtime_governance_publication --candidate <unified-r3> --output <integration/publication-r3> --batch1 <runtime-r1> (parameters only; PREPARED_NOT_AUTHORIZED_TO_ACTIVATE)",
     "Official inventory + full actual-current exact delta + fresh loaded preimage readback (3roles PASS, zero pyc, protected990/988/1328)"
-  ]
+  ],
+  "independent_final_increment": {
+    "verdict": "FAIL",
+    "scope": "786 original race closed:10 targeted PASS; final P4 state-integrity negative cases FAIL",
+    "failures": [
+      "receipt.status=UNKNOWN can be overwritten and spawn again",
+      "Previous receipt.job_id mismatch can still return REUSED"
+    ],
+    "stop_rule": "Final bounded repair exhausted; no further business edits. Controller must obtain user decision.",
+    "candidate_eligibility": "NOT_ACCEPTED_FOR_PUBLICATION",
+    "passed_scope_preserved": [
+      "Batches1/2 matching independent PASS",
+      "Actual Main/Stage normal off/on/reuse/fault paths on5e44",
+      "786 final race direct regressions10PASS; actual candidate four new state regressionsPASS",
+      "Edan API isolated TCP/manifest/hybrid3PDF PASS",
+      "Full official actual-current inventories/exact delta and protection PASS"
+    ]
+  }
 }
