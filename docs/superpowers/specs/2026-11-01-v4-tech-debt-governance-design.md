@@ -1,40 +1,58 @@
-# V4 技术债治理设计
+# V4 技术债治理设计（修订版）
 
-- 日期：2026-11-01
+- 日期：2026-11-01（修订 r2）
 - 状态：待批准
 - 适用范围：`v4_app` 源码仓库（线上 8873 的后端与前端源码）
 - 关联审计：`/Users/lexi/Desktop/学习/agents调试/v4_code_audit_20261101/AUDIT_REPORT.md`
+- 修订依据：独立审查 6 点意见（2026-11-01），逐条已并入本文
+
+## 0. 本修订解决了什么
+
+| 原问题 | 本版处理 |
+| --- | --- |
+| "补数据不发版"与实现方式矛盾 | 目标改为**证据与逻辑分离**；运行中更新证据单独立项 |
+| 响应 SHA 不能单独证明等价 | 改为精确字段路径白名单 + 身份必过断言 + 冻结数据 generation/配置/时钟 |
+| 基线覆盖不闭合 | 8 个阶段、真实路由清单、负向分支样本、写接口隔离测试 |
+| 数据迁移缺初始化语义 | 明确迁移"导入初始化后的最终值"，oracle 递归校验类型/顺序/键唯一/命中与撤销 |
+| "globals 根因是循环导入"未证实 | 先画依赖图并分类，再决定普通导入还是显式参数 |
+| 验收指标与发布基线不收紧 | 固定命令与诊断集合、受影响范围零新增错误、发布绑定现役 manifest 与继承 SHA |
 
 ## 1. 意图与目标
 
-把当前"改一次数据要发版、改一个阶段怕碰坏别的、看不懂跳不动、前端大文件改不动"
-这四类问题逐项消除。目标不是"代码变好看"，而是三件可验证的事：
+把四类问题逐项消除。**可验证**的目标如下（按阶段对应）：
 
-1. 补历史数据不需要改代码、不需要发版；
-2. 改一个阶段的行为，只碰几十行代码，且有测试兜底；
-3. 编辑器能跳转、类型检查能报真问题；前端改一个 tab 不再动 4,000 行文件。
+1. **阶段 1**：历史证据与业务逻辑在源码上分离——证据是可被独立校验的数据资源，
+   逻辑不再被 4,398 行字面量淹没。**本阶段不承诺"运行中更新证据"**。
+2. **阶段 2**：改一个阶段的行为只碰几十行函数，且有测试兜底。
+3. **阶段 3**：编辑器能跳转、类型检查能覆盖真实缺陷。
+4. **阶段 4**：前端改一个 tab 不再动 4,000 行文件。
+
+### 1.1 明确不在本设计内
+
+"补一次数据不用发版"仍需要一个独立设计：接入既有数据 owner、版本指针、
+校验与回退合同。本设计只把证据从代码中移出，**仍随 release 冻结**。
 
 ## 2. 非目标与反目标
 
-- 不改任何业务含义、数据边界、PIT/证据链语义、BUY gate。
+- 不改业务含义、数据边界、PIT/证据链语义、BUY gate。
 - 不迁移架构（不换框架、不换数据库、不改模块角色）。
-- 不做"大爆炸"重写；不允许攒成一个持续多周、一次性上线的大重构。
-- 反目标：治理过程中出现任何响应内容变化（哪怕字段顺序），都视为失败。
+- 不做一次性大重构。
+- 反目标：任何**非预期**的响应差异（状态码、关键响应头、规范化后的业务字段）即 FAIL。
 
 ## 3. 现状（2026-11-01 实测，线上 release）
 
-后端非 vendor 代码 **208,187 行**。集中在这个文件：
+后端非 vendor 代码 208,187 行。集中在这个文件：
 
 | 指标 | 数值 |
 | --- | --- |
-| `apps/api/v4_api/app.py` | **6,478 行 / 400 KB** |
-| 其中 `create_app` 之前（模块级） | **4,398 行** |
-| 其中 `create_app` 函数 | **2,081 行** |
+| `apps/api/v4_api/app.py` | 6,478 行 / 400 KB |
+| `create_app` 之前（模块级） | 4,398 行 |
+| `create_app` 函数 | 2,081 行 |
 | 模块级赋值语句 | 31 个，合计 3,735 行 |
-| 64 位 SHA 字面量 | **1,572 个** |
+| 64 位 SHA 字面量 | 1,572 个 |
 | 8 位日期字面量 | 176 个 |
 
-### 3.1 模块级常量的真实构成（前 10）
+### 3.1 模块级常量（前 10）
 
 | 行数 | 名称 | 类型 |
 | --- | --- | --- |
@@ -45,255 +63,268 @@
 | 101 | `_HK_R9_LEGACY_STALE_LANE_IDENTITIES` | Dict |
 | 76 | `_HK_MORNING_HISTORY_20261023` | Dict |
 | 58 | `_HK_MORNING_SELECTION_RECOVERY_ROWS` | Tuple |
-| 51 | `_APPROVED_EXACT_STAGE_BACKFILLS[(date, stage, market, run_id)]` | Dict |
+| 51 | `_APPROVED_EXACT_STAGE_BACKFILLS`（元组键） | Dict |
 | 44 | `_HK_MORNING_HISTORY_SAFE_PACKETS` | Dict |
 | 31 | `_HK_R8_COMMON_REQUIRED_EVIDENCE` | Tuple |
 
-其中 `_MONTH_HK_AFTERFACT_R8_BINDINGS`、`_MONTH_HK_AFTERFACT_R9_BINDINGS`、
-`_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE` 是**计算得到的**（Call / DictComp），
-不是纯数据；它们由叶子常量派生，迁移叶子后保持不动。
+计算型常量（`Call` / `DictComp`）保留在代码中，只把叶子依赖换成加载值。
 
 ### 3.2 其它结构债
 
-| 位置 | 问题 |
-| --- | --- |
-| `apps/api/v4_api/app.py` | `create_app` 2,081 行；`stage_workbench` 单路由 540 行；`project_shared_selection` 264 行 |
-| `domains/*`、`infrastructure/*` | **72 处** `globals(),` 注入 + **8 个** `_*_parts` 目录；为拆文件而放弃正常导入 |
-| `apps/web/src/views/ManagerSelectionView.vue` | **4,002 行** |
-| `apps/web/src/api/managerWorkspace.ts` | **1,858 行**，只有 4 个 fetch，其余全是内联校验 |
-| `apps/web/src/manager-workbench/Workbench.vue` | 1,333 行 |
-| `apps/web/src/components/research/GlobalIndustryMap.vue` | 1,232 行 |
-| `apps/web/src/app_shell/useAppShell.ts` | 990 行，返回 106 个键 |
+- `create_app` 2,081 行；`stage_workbench` 540 行；`project_shared_selection` 264 行
+- **72 处** `globals(),` 注入 + **8 个** `_*_parts` 目录
+- 前端：`ManagerSelectionView.vue` 4,002 行、`managerWorkspace.ts` 1,858 行、
+  `Workbench.vue` 1,333 行、`GlobalIndustryMap.vue` 1,232 行、`useAppShell.ts` 990 行
 
 ## 4. 总体策略
 
-四个独立项目，按 **数据 → `create_app` → `globals()` → 前端** 顺序推进。
-每个阶段满足：独立分支、独立 canary、独立验收、独立发布、独立回滚。
+四个独立项目，顺序：**数据 → `create_app` → `globals()` → 前端**。
+每阶段独立分支、独立 canary、独立验收、独立发布、独立回滚。
 
-阶段之间**不共享分支**，不允许前一阶段未发布就开下一阶段。
+## 5. 阶段 0：安全网
 
-## 5. 阶段 0：安全网（所有阶段的前置）
+### 5.1 工具
 
-在动任何代码前先固化"行为基线"，否则无法证明重构没有改变行为。
+新增 `ops/capture_response_baseline.py`（只读 GET），输出：
 
-- 工具：新增 `ops/capture_response_baseline.py`（只读，GET 全部路由）。
-- 输入：固定日期集合（近 10 个交易日 + 3 个历史回补日 + 1 个空日期）。
-- 输出：每个 `(date, path)` 的响应体 SHA-256 与字节数，写入
-  `agents调试/tech_debt_20261101/baseline/<phase>.json`。
-- 验收：每个阶段完成后重跑同一工具，**所有 SHA 必须完全一致**；出现差异即为 FAIL，
-  必须解释并证明差异是预期的（例如显式记录了新增字段）。
+```
+{
+  "captured_at": "...", "target": "<url>", "frozen": {...},
+  "samples": [{"id": "...", "method":"GET", "path":"...", "params":{},
+               "status": 200,
+               "headers": {"content-type": "..."},
+               "body_sha256": "<规范化的业务字段摘要>",
+               "normalized": {"<field.path>": "<value>"}}]
+}
+```
 
-采集范围：`/api/v1/runs/date-list`、`/api/v4/meta/stages`、`/api/v4/preselection-pools`、
-`/api/v4/workbench/stage`（7 个阶段）、`/api/v4/workbench/stage-batch`、
-`/api/v4/review`、`/api/v4/tasks/status`、`/api/v4/manager-workbench/*`（只读子集）。
+### 5.2 规范化：精确字段路径白名单（不是模糊删除）
 
-### 5.1 规范化规则（否则 SHA 相等不可能成立）
+**禁止**按 `*_at` / `*_time` 通配删除——那会掩盖发布时间、采集时间、截止时点等业务变化。
+改为**逐路由列出允许忽略的精确路径**，每条都要写明忽略理由：
 
-实测这些响应含易变内容，直接比对 SHA 会永远 FAIL。基线工具必须按路由做确定性规范化：
-
-| 路由 | 易变字段 | 处理 |
+| 路由 | 精确忽略路径 | 理由 |
 | --- | --- | --- |
-| 全部 | `runtime_identity`（每次发布后 `release_id`/`manifest_sha256` 变化） | 整块移除 |
-| `date-list` | `system_date`、`navigation_date`、`requested_date`、`selected_date`、`research_dates` 等随自然日/请求变化 | 固定 `?date=` 并移除 `system_date` |
-| `tasks/status` | 时间戳、进程状态、耗时 | 移除 `*_at`、`*_seconds`、`process_status` 类字段 |
-| `review` | 生成时间类字段 | 移除 `*_at`、`*_time` |
-| 全部 | 列表顺序敏感性 | 仅对明确无序的字段排序；有顺序含义的（如选中排名）保持原序 |
+| 全部 | `runtime_identity.release_id`、`runtime_identity.manifest_sha256` | 每阶段候选的发布标识必然变化 |
+| — | 其余 `runtime_identity.*` **不忽略** | 身份回归必须被捕获 |
+| `tasks/status` | 逐条列出实测确认的时钟/进程字段（采集时由工具生成，不在文档里猜） | 进程与时钟属运行时事实 |
 
-规范化规则写在基线工具里，并与其输出一起存档。规则本身的任何变更都必须显式记录，
-因为它会改变"一致"的含义。
+规则：
 
-### 5.2 采集安全性
+- 忽略清单在**采集时**由工具与基线一起冻结（含每条的实测样本值），不允许事后追加。
+- 任何**未列出**的字段差异一律 FAIL。
+- 身份另设**必过断言**：候选实例必须满足
+  `runtime_identity.status == MANIFEST_EXECUTION_FILES_VERIFIED`
+  与 `/api/v4/runtime-graph/frontend-build` 的 `status == VERIFIED`；
+  这两条是断言，不是"忽略项"。
 
-被采集的全部是 GET 路由。当前实现中 GET 路径只读 store / 只读文件，
-响应携带 `write_performed=false`，人工收集类是 POST 且不在采集范围。
-尽管如此，基线工具仍要在采集前断言目标实例的只读标志，并在采集后比对 store 目录
-mtime 未变化。
+### 5.3 比较口径
 
-### 5.3 环境
+- 比较 **HTTP 状态码**、**关键响应头**（`content-type`）、**规范化后的 JSON 结构**；
+- 不比较序列化差异（空白、字段顺序、数字字面量形式）；
+- JSON 结构比较保持**数组顺序**（排名、时间轴有顺序含义），对象按键集合比较。
 
-- **线上 8873** 当前运行的是候选 release（不是某个 git 分支的 HEAD）。
-- 每个阶段从**对应源码分支**切出，构建候选后在**临时端口**（如 8991）用真实数据验证，
-  再决定是否切换线上。
-- 切换线上属于需要单独授权的动作；每个阶段结尾都停在"候选已验证、等授权"。
+### 5.4 冻结条件
 
-## 6. 阶段 1：数据出代码
+每次采集必须同时记录并固定：
 
-### 6.1 做法
+- 数据 generation：`date_catalog.json` 的 SHA、`selection_latest.json` 的 SHA；
+- 配置：相关 `V4_*` 环境变量的值；
+- 时钟：采集时的 `system_date` 与采集窗口。
 
-1. 新增 `apps/api/v4_api/evidence/` 目录，按数据集拆 JSON：
-   `hk_r9_stage_rows.json`、`hk_r5_bindings.json`、`hk_r8_binding_rows.json`、
-   `hk_r9_pool_evidence.json`、`hk_r9_stale_lane_identities.json`、
-   `hk_morning_history_20261023.json`、`hk_morning_history_safe_packets.json`、
-   `hk_r8_common_required_evidence.json` 等。
-2. 新增 `apps/api/v4_api/evidence/loader.py`：
-   - 启动时加载，校验 `evidence/manifest.json`（每个文件 path + SHA-256 + 条目数）；
-   - **元组键还原**：JSON 只能表达数组，加载后把需要元组键的映射还原为 `tuple` 键
-     （`_APPROVED_EXACT_STAGE_BACKFILLS` 实测需要）；
-   - **元组/列表保真**：原字面量是 `tuple` 的，加载后仍为 `tuple`，避免比较语义变化；
-   - 失败即抛 `EVIDENCE_DATASET_INVALID:<name>:<reason>`，不允许静默降级。
-3. `app.py` 顶部改为从 loader 取名字，消费代码一行不改：
-   `from apps.api.v4_api.evidence.loader import _MONTH_HK_AFTERFACT_R9_STAGE_ROWS`
-   或 `_HK_R9_POOL_EVIDENCE = evidence.named("hk_r9_pool_evidence")`。
-4. 计算型常量（Call / DictComp）保持在代码里，只把它们的叶子依赖换成加载值。
+三者任一在前后两次采集中不同，结论标记为 `NOT_COMPARABLE`，不判 PASS/FAIL。
 
-### 6.2 迁移顺序（canary 优先）
+### 5.5 样本清单（闭合）
 
-| 批次 | 数据集 | 理由 |
-| --- | --- | --- |
-| C1 | `_HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE`（17 行） | 最小、纯字典、可立即验证 |
-| C2 | `_MONTH_HK_AFTERFACT_R9_STAGE_ROWS`（2,276 行） | 最大收益，单独一批便于定位问题 |
-| C3 | `_MONTH_HK_AFTERFACT_R5_BINDINGS` + `_MONTH_HK_AFTERFACT_R8_BINDING_ROWS` | 两个大元组 |
-| C4 | 其余小字典/元组（约 8 个） | 收尾 |
-| C5 | 删除 `app.py` 中的原字面量，行数目标 < 3,000 | 收益兑现 |
+阶段（现役 **8 个**）：`STAGE_0925`、`STAGE_0930_0935`、`STAGE_0935_0940`、
+`STAGE_0940_0945`、`STAGE_0945_1030`、`STAGE_1300_1315`、`STAGE_1445_1500`、`STAGE_1545_1555`。
 
-每批完成后立即：跑全量测试 + 阶段 0 基线对比 + 独立提交。
+只读路由（采集时以 OpenAPI 实际路由为准，逐一登记参数）：
 
-### 6.3 等价性证明（每批必做）
+- `/healthz`、`/readyz`
+- `/api/v1/runs/date-list`
+- `/api/v4/meta/stages`
+- `/api/v4/preselection-pools?date=&limit=&offset=`（含分页第 1 页与第 2 页）
+- `/api/v4/workbench/stage?date=&stage=&limit=`（8 个阶段）
+- `/api/v4/workbench/stage-batch?date=&stages=`
+- `/api/v4/stage-center/selection?date=&stage=`
+- `/api/v4/review?date=`
+- `/api/v4/tasks/status?date=`
+- `/api/v4/manager/stage-selection?date=`
+- `/api/v4/manager-workbench/*`（只读子集，参数与分页在采集清单中逐条登记）
+- `/api/v4/runtime-graph/*`（只读状态类）
 
-- 迁移前：用 `pickle` 或 JSON 规范化导出原常量到 `agents调试/.../oracle/<name>.json`。
-- 迁移后：断言 `loaded == oracle`，并额外断言类型一致（`Tuple`/`Dict`/键类型）。
-- 迁移完成后把 oracle 保留为回归测试，防止后续误改。
+**负向分支样本**（必须覆盖，不能只挑正常日期）：
 
-### 6.4 已知风险
-
-| 风险 | 应对 |
+| 样本 | 目的 |
 | --- | --- |
-| 元组键无法直接 JSON 化 | loader 显式还原；测试覆盖 `.get((d,s,m,r))` 的命中与未命中 |
-| 元组/列表语义不同 | 按原类型还原；oracle 断言类型 |
-| 字典顺序影响输出 | JSON 保留插入顺序；基线 SHA 对比兜底 |
-| 大文件加载影响启动 | 实测启动耗时；必要时按需惰性加载（先用全量加载，简单优先） |
-| 数据文件未随 release 打包 | 已核实：发布构建**只复制 git 跟踪的文件**（`build_candidate` 用 `_git_tracked_paths`），所以 `evidence/*.json` 必须先提交到 git，且在构建后用 inventory 条目数校验 |
+| 撤销绑定的日期/阶段 | 撤销逻辑 |
+| SHA 不匹配的构造样本（临时 store） | 校验失败路径 |
+| 缺失证据的日期 | CANNOT_CONFIRM 路径 |
+| 空结果（READY_EMPTY） | 零结果路径 |
+| 事后观察（AFTERFACT / OBSERVATION_UNVERIFIED） | 观察路径 |
 
-### 6.5 验收
+**写接口**：`/api/v4/workbench/stage/ensure`、`/api/v4/stage-center/selection/ensure`
+不进基线（会写），但阶段 2 必须为它们补**隔离测试**（临时 store，证明拆分前后行为一致）。
 
-- `app.py` < 3,000 行；
-- 31 个模块级赋值中，纯数据项全部来自 `evidence/`；
-- 全量测试通过（基线为当前线上分支的 78 项后端测试）；
-- 阶段 0 基线 SHA 全部一致；
-- 启动时间不高于当前 +0.5 s。
+### 5.6 采集安全
+
+只采 GET；采集前断言目标实例只读标志；采集后比对 store 目录 mtime 未变化；
+v4-mac 解释器以 `-I` 启动，避免 `PYTHONPATH` 指向 release 导致测错代码。
+
+### 5.7 环境
+
+- 线上 8873 运行的是候选 release，不是 git 分支 HEAD。
+- 每阶段从对应源码分支切出 → 构建候选 → **临时端口**用真实数据验证 → 单独授权后再切换线上。
+
+## 6. 阶段 1：证据与逻辑分离
+
+### 6.1 核心约定：迁移的是"初始化后的最终值"
+
+`app.py` 在导入期并不只是定义字面量：`_APPROVED_EXACT_STAGE_BACKFILLS` 有后续追加，
+部分常量由 `Call` / `DictComp` 派生。因此必须明确：
+
+- **迁移对象 = 模块导入完成后、`create_app` 第一次执行前**的最终值；
+- 加载器返回该最终值，**不再执行任何初始化逻辑**（追加、撤销都在数据侧完成）；
+- 数据文件记录生成时的初始化来源与步骤，便于追溯。
+
+### 6.2 类型与结构保真
+
+不只是 tuple/list：
+
+| 结构 | 处理 |
+| --- | --- |
+| `tuple` | 加载后仍为 `tuple` |
+| `set` | JSON 存排序数组，加载时还原 `set` |
+| 元组键映射（`_APPROVED_EXACT_STAGE_BACKFILLS`、`_HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE`） | JSON 存 `[[key...], value]`，加载时还原元组键 |
+| 派生映射 | 仍由代码从叶子值计算，不迁移 |
+
+### 6.3 加载器
+
+`apps/api/v4_api/evidence/loader.py`：
+
+- 启动时加载 `evidence/manifest.json`（每文件 path + SHA-256 + 条目数）；
+- 校验失败抛 `EVIDENCE_DATASET_INVALID:<name>:<reason>`，不静默降级；
+- 不复制业务逻辑，只做解码与类型还原；
+- 不做运行时热更新。
+
+### 6.4 迁移顺序（canary 优先）
+
+| 批次 | 数据集 | 说明 |
+| --- | --- | --- |
+| C1 | `_HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE`（17 行） | **注意：它本身已是元组键**，直接验证键还原 |
+| C2 | `_MONTH_HK_AFTERFACT_R9_STAGE_ROWS`（2,276 行） | 最大收益 |
+| C3 | `_MONTH_HK_AFTERFACT_R5_BINDINGS` + `_MONTH_HK_AFTERFACT_R8_BINDING_ROWS` | 两个大元组 |
+| C4 | 其余小字典/元组 | 收尾 |
+
+### 6.5 等价性证明
+
+- oracle 来自**迁移前的原始代码**，不是迁移后的 JSON；
+- 递归比较：类型、tuple/list/set、键唯一性、顺序、元组键的**命中 / 未命中 / 撤销**；
+- 额外断言 `_APPROVED_EXACT_STAGE_BACKFILLS` 的追加与撤销结果；
+- oracle 保留为回归测试。
+
+### 6.6 发布打包约束（已核实）
+
+发布构建**只复制 git 跟踪的文件**（`_git_tracked_paths`），因此：
+
+- `evidence/*.json` 必须先提交到 git；
+- 构建后用 inventory 条目数核对新增文件已包含。
+
+### 6.7 验收
+
+- 迁移的每个数据集 oracle 全等（含类型与键语义）；
+- 阶段 0 基线与负向样本全部一致，身份断言通过；
+- 受影响范围的测试零新增失败；
+- `app.py` 行数下降（参考指标，不作为硬指标）。
 
 ## 7. 阶段 2：拆 `create_app`
 
-### 7.1 做法
-
-按职责切成模块，`create_app` 只做装配：
-
-| 新模块 | 承接内容 | 预计行数 |
-| --- | --- | --- |
-| `v4_api/read_models.py` | 数据读取与 store 装配 | ~300 |
-| `v4_api/verify.py` | HK 回补/晨间/择时证据校验（`_hk_r8_*`、`_hk_r9_*`、`_hk_morning_*`） | ~600 |
-| `v4_api/projection.py` | `project_shared_selection`、市场状态归约 | ~500 |
-| `v4_api/routes/stage.py` | `stage_workbench`（540 行）拆成 3 段私有函数 | ~540 |
-
-### 7.2 顺序（canary 优先）
-
-1. `project_shared_selection`（264 行闭包）→ 独立函数，参数显式传入依赖；
-2. `stage_workbench` 540 行按"取数 / 校验 / 投影"拆三段；
-3. `_hk_r8_*` / `_hk_r9_*` 校验函数成组迁移到 `verify.py`；
-4. `create_app` 收敛到 < 300 行装配代码。
-
-### 7.3 验收
-
-- `create_app` < 300 行；
-- 路由目录测试通过（`tests/test_v4_legacy_retirement.py` 的完整路由清单）；
-- 阶段 0 基线 SHA 全部一致；
-- 全量测试通过。
+- 目标：「读取 / 校验 / 投影」三模块 + `routes/`；`create_app` 只做装配（目标 < 300 行，参考值）。
+- 顺序：`project_shared_selection` → `stage_workbench`（540 行）三段化 → HK 校验函数成组迁移 → 装配收敛。
+- 写接口（`ensure` 两个）必须补隔离测试，证明拆分前后行为一致。
+- 验收：路由清单测试、写接口隔离测试、基线一致。
 
 ## 8. 阶段 3：去 `globals()`
 
-### 8.1 根因
+### 8.1 先证实，再动手
 
-`_parts` 分片是为了在不改内部引用的前提下物理拆文件，`_namespace.read_global` 是它的垫片。
-根因是**循环导入**：门面 `domains/preselection.py` 导入 parts，parts 又需要门面的名字。
+不预设"根因是循环导入"。第一步产出依赖图：
 
-### 8.2 做法
+- 每个 `_*_parts` 目录里，被 `_v4_global` 读取的名字分类：
+  **常量 / 函数 / 缓存 / 锁 / 实例状态**；
+- 标出哪些引用可以在导入期解析，哪些必须运行期绑定；
+- 记录测试对这些名字的 monkeypatch 依赖。
 
-按模块分批，每批：
+### 8.2 按分类选择改法
 
-1. 抽出共享常量/工具到 `_common.py`（不依赖门面）；
-2. parts 正常 `from ._common import ...`，删除 `_v4_global(_v4_scope, ...)`；
-3. 门面改为直接 `from ._parts.x import y` 并 re-export；
-4. 删除 `_namespace.py` 与该模块的 `globals(),` 调用。
+| 类别 | 改法 |
+| --- | --- |
+| 常量 | 移到 `_common.py`，正常导入 |
+| 纯函数 | 正常导入 |
+| 缓存 / 锁 | 显式模块级单例，随模块导入 |
+| 实例状态 | 显式参数传入 |
 
-### 8.3 顺序
+### 8.3 批次与验收
 
-| 批次 | 模块 | 调用点 |
-| --- | --- | --- |
-| G1 | `domains/_preselection_parts` | 约 20 处 |
-| G2 | `infrastructure/_research_store_parts`、`_research_peripheral_store_parts` | 约 15 处 |
-| G3 | `stage_center/_selection_parts`、`_runner_parts` | 约 20 处 |
-| G4 | 其余 parts | 剩余 |
+按模块分批（preselection → infrastructure → stage_center → 其余），每批：
+依赖图更新 → 改动 → 全量测试 → 基线一致 → `grep 'globals(),'` 计数下降。
 
-### 8.4 验收
-
-- `grep -rn 'globals(),' → 0`；
-- `_parts` 目录仍可存在（拆文件本身不是问题），但不再有命名空间垫片；
-- 每个模块导入图无环（新增一个 import-graph 测试）；
-- 全量测试 + 基线 SHA 一致。
+最终验收：`globals(),` 为 0；导入图无环（新增 import-graph 测试）；
+受影响范围的测试零新增失败。
 
 ## 9. 阶段 4：前端拆组件
 
-### 9.1 做法
+- `ManagerSelectionView.vue` 按 tab 拆 6 个子组件 + 1 个组合式函数；
+- `managerWorkspace.ts` 只保留 fetch 与类型导出，校验器抽到 contracts；
+- 验收：单文件行数下降（参考）、vitest 全绿、`vue-tsc` **受影响文件零新增诊断**、build 成功、浏览器实测。
 
-1. `ManagerSelectionView.vue`（4,002 行）→ 按 tab 拆 6 个子组件 + 1 个
-   `useManagerSelection.ts` 组合式函数；父组件只保留布局与 tab 切换。
-2. `managerWorkspace.ts`（1,858 行）→ 校验器抽到 `contracts/managerWorkspaceSchema.ts`，
-   `api/` 只保留 4 个 fetch 与类型导出。
-3. `Workbench.vue`、`GlobalIndustryMap.vue` 按同一原则拆。
+## 10. 交付与验收（收紧版）
 
-### 9.2 验收
+### 10.1 固定命令与诊断集合
 
-- 单文件 < 800 行；
-- `vitest` 17 项通过；新增拆分组件的渲染测试；
-- `vue-tsc` 错误数不高于基线（当前 26 个既有错误）；
-- `vite build` 成功；
-- 浏览器实测:经理工作台各 tab、研究地图、阶段页正常。
-
-## 10. 每阶段的统一交付物
-
-| 项 | 内容 |
-| --- | --- |
-| 分支 | `refactor/<阶段>-<日期>`，从线上对应分支切出 |
-| canary | 每阶段先迁 1 个最小单元并验证 |
-| 独立验收 | 阶段 0 基线 SHA + 全量测试 + 单独一个 reviewer |
-| 发布 | 走现有 release 候选流程（非直接改线上） |
-| 回滚 | 保留上一版 release 目录与 plist 备份 |
-
-### 10.1 基线健康度（2026-11-01 实测）
-
-| 分支 | 后端 | 前端 |
+| 项 | 固定命令 | 判据 |
 | --- | --- | --- |
-| `claude/perf-date-list-live-20261101`（线上基线） | pytest **78 passed** | vitest **12 passed**；vue-tsc **26 个既有错误**；build 成功 |
-| `claude/perf-date-list-20261101` | pytest **105 passed**（4 个为既有 `P29_STAGE_APP_ROOT` 环境依赖失败） | vitest **17 passed** |
+| 后端测试 | `PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp=<task bench>` | 失败集合 ⊆ 基线失败集合 |
+| 前端测试 | `npx vitest run` | 全部通过 |
+| 类型检查 | `npx vue-tsc --noEmit` | **受影响文件零新增**；整体错误集合与基线逐条比对（不仅比数量） |
+| 构建 | `npx vite build` | 成功 |
 
-这些数字就是各阶段的验收阈值。若某台机器跑不出这些数字，先修环境，不要动重构。
+### 10.2 发布基线
 
-### 10.2 独立验收与授权
+每个候选必须记录：
 
-- 每个阶段安排**一次独立 reviewer**（只读身份、非 Writer），按项目 C 类整改规则。
-- 每个阶段的部署都是单独授权的动作；阶段结束时停在"候选已在临时端口验证通过、等授权切换"。
+- 现役 `release-manifest.json` 的 SHA 与 `release_id`；
+- 继承文件的 SHA（非本批修改）；
+- 本批差异文件清单与前后 SHA。
 
-## 11. 工作量估算（粗估，按一个熟练执行者）
+不接受"从对应分支切出"作为基线声明。
+
+### 10.3 节奏
+
+- **每个 canary 小批次**：定向测试 + 该数据集 oracle + 受影响路由基线，不强制全量；
+- **每个阶段候选**：全量测试 + 全量基线 + 一次独立 reviewer；
+- 独立 reviewer 为只读身份，按项目 C 类规则。
+
+### 10.4 独立验收与授权
+
+部署是单独授权的动作；阶段结束停在"候选已在临时端口验证通过、等授权切换"。
+
+## 11. 工作量估算（粗估）
 
 | 阶段 | 工作量 | 可感知收益 |
 | --- | --- | --- |
-| 0 安全网 | 0.5–1 天 | 无（但后续每一步都依赖） |
-| 1 数据出代码 | 2–3 天 | 补数据不再发版 |
+| 0 安全网 | 1–1.5 天 | 无（后续依赖） |
+| 1 证据分离 | 2–3 天 | 逻辑与数据分开，`app.py` 大幅缩小 |
 | 2 拆 create_app | 3–5 天 | 改阶段只碰小函数 |
-| 3 去 globals | 2–4 天 | 能跳转、能静态检查 |
+| 3 去 globals | 2–4 天（含依赖图） | 能跳转、能静态检查 |
 | 4 前端拆分 | 3–5 天 | 改 tab 不动大文件 |
 
-## 12. 决定项（本设计的判断，供你核对）
+## 12. 已决定的判断（供核对）
 
-1. **先数据后结构**：因为数据的痛最频繁，且它独立于其他三项。
-2. **保留 `_parts` 目录形态**：问题不是"拆文件"，而是"用 `globals()` 拆"，所以只去垫片。
-3. **不做一次性大重构**：每阶段单独发布，失败只回滚那一阶段。
-4. **以响应 SHA 作为行为等价判据**：比人工看代码可靠。
-5. **数据文件用 JSON 而不是 Python 字面量**：可被外部工具校验，且不会再被当成代码编译。
-
-## 13. 未决事项（等你的意见）
-
-- 数据文件是放在 `apps/api/v4_api/evidence/`（代码同级），还是放在共享数据仓
-  `v3_shared_data`（跨项目复用）？本设计默认前者，因为它是该 API 的运行时证据。
-- 阶段 3 完成后是否要把 `_parts` 目录合并回单文件？本设计建议**不合并**，
-  拆文件本身无害，合并会引入新的风险。
+1. 先数据后结构；四阶段独立发布。
+2. 数据文件放 `apps/api/v4_api/evidence/`，随 release 冻结；既有权威研究数据仍由原 owner 管理。
+3. **不合并** `_parts` 目录；只恢复明确依赖与可测试边界。
+4. 基线以"精确字段路径白名单 + 身份必过断言"为准，不用通配删除。
+5. 数据迁移对象是"导入初始化后的最终值"，加载器不再执行初始化。
+6. globals 改造前先产出依赖图，不预设循环导入。
