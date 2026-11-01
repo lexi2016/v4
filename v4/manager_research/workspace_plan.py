@@ -737,13 +737,22 @@ def rebound_history_sessions(trade_date: str) -> dict:
                 calendar_sha256=hashlib.sha256(calendar_bytes).hexdigest())
 
 
-def rebound_history_rows(frame: Any, symbols: list[str], sessions: Mapping[str, Any]) -> dict:
+def rebound_history_rows(frame: Any, symbols: list[str], sessions: Mapping[str, Any], *,
+                         source_frame: Any = None, source_policy: Any = None) -> dict:
     """Pure original-panel projection. Missing/duplicate dates are not substituted."""
     required={'trade_date_compact','code_norm','high','trade'}
     if not required.issubset(set(frame.columns)): raise ValueError('REBOUND_PANEL_COLUMNS_MISSING')
     data=frame.copy()
     data['trade_date_compact']=data['trade_date_compact'].astype(str)
     data['code_norm']=data['code_norm'].astype(str)
+    source_data = source_frame if source_frame is not None else data
+    from upstreams.v3_shared_data.shared_data.hk_panel_audit import inspect_source_window
+    requested_symbols=set(symbols)
+    requested_dates=set(sessions['prior60']) | set(sessions['previous5'])
+    source_rows = source_data.loc[
+        source_data['code_norm'].astype(str).isin(requested_symbols)
+        & source_data['trade_date_compact'].astype(str).isin(requested_dates)]
+    source_by_code={str(code):group.to_dict('records') for code,group in source_rows.groupby('code_norm')}
     result={}
     for symbol in sorted(set(symbols)):
         rows=data.loc[(data['code_norm']==symbol) & data['trade_date_compact'].isin(sessions['prior60'])]
@@ -757,9 +766,18 @@ def rebound_history_rows(frame: Any, symbols: list[str], sessions: Mapping[str, 
         if len(vol)!=5 or any(v is None for v in vol):gaps.append('REBOUND_PREVIOUS5_VOLUME_INCOMPLETE')
         mean=sum(vol)/5 if len(vol)==5 and all(v is not None for v in vol) else None
         if mean==0:gaps.append('REBOUND_PREVIOUS5_MEAN_ZERO')
-        result[symbol]=dict(prior60_high=max(hi) if len(hi)==60 and all(v is not None for v in hi) else None,
-            previous5_mean=mean, previous5_count=sum(v is not None for v in vol),
-            prior60_count=sum(v is not None for v in hi), gaps=gaps)
+        raw = source_by_code.get(symbol,[])
+        price_evidence=inspect_source_window(raw,code=symbol,
+            field_sessions={'high':list(sessions['prior60'])},policy=source_policy)
+        volume_evidence=inspect_source_window(raw,code=symbol,
+            field_sessions={'trade':list(sessions['previous5'])},policy=source_policy)
+        if price_evidence['status']!='CLEAR':gaps.append('REBOUND_HIGH_SOURCE_WINDOW_UNVERIFIED')
+        if volume_evidence['status']!='CLEAR':gaps.append('REBOUND_TRADE_SOURCE_WINDOW_UNVERIFIED')
+        result[symbol]=dict(prior60_high=max(hi) if price_evidence['status']=='CLEAR' and len(hi)==60 and all(v is not None for v in hi) else None,
+            previous5_mean=mean if volume_evidence['status']=='CLEAR' else None,
+            previous5_count=sum(v is not None for v in vol),
+            prior60_count=sum(v is not None for v in hi), gaps=gaps,
+            source_field_window_evidence=dict(price=price_evidence,volume=volume_evidence))
     return result
 
 
@@ -893,13 +911,20 @@ def read_rebound_history(authority_root: Path | None, trade_date: str, symbols: 
                 if hashlib.sha256(raw).hexdigest()!=source[shakey]:raise ValueError('REBOUND_SOURCE_CHANGED_DURING_READ')
                 refs.append(dict(owner=owner,artifact_ref=ref,sha256=source[shakey]))
         import pandas as pd
-        frame=pd.read_parquet(panel['panel_path'],columns=['trade_date_compact','code_norm','high','trade'])
-        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
+        frame=pd.read_parquet(panel['panel_path'])
+        source_frame=frame
+        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame, policy_for_shared
+        from upstreams.v3_shared_data.shared_data import hk_panel_audit as source_audit
+        source_guard_sha256=hashlib.sha256(Path(source_audit.__file__).read_bytes()).hexdigest()
+        source_policy=policy_for_shared(root)
+        source_policy.check_panel(panel['panel_sha256'])
         frame = guard_rebound_frame(frame, root, panel_sha256=panel['panel_sha256'], sessions=sessions)
         result['history_resolution_proofs'] = frame.attrs['history_resolution_proofs']
         if str(frame['trade_date_compact'].astype(str).max())!=sessions['panel_session']:
             raise ValueError('REBOUND_PANEL_DATE_CONTENT_MISMATCH')
-        result['symbols']=rebound_history_rows(frame,symbols,sessions)
+        result['symbols']=rebound_history_rows(frame,symbols,sessions,
+            source_frame=source_frame,source_policy=source_policy)
+        result['source_window_guard_sha256']=source_guard_sha256
         for symbol,row in result['symbols'].items():
             if symbol not in master['names']:row['gaps'].append('REBOUND_EXACT_SECURITY_MASTER_MISSING')
         # Cross-owner volume unit is never inferred from turnover, price,
@@ -912,6 +937,8 @@ def read_rebound_history(authority_root: Path | None, trade_date: str, symbols: 
         for ref in refs:
             if hashlib.sha256(owned_resolve(root,ref['artifact_ref']).read_bytes()).hexdigest()!=ref['sha256']:
                 raise ValueError('REBOUND_SOURCE_CHANGED_DURING_READ')
+        if hashlib.sha256(Path(source_audit.__file__).read_bytes()).hexdigest()!=source_guard_sha256:
+            raise ValueError('REBOUND_SOURCE_GUARD_CHANGED_DURING_READ')
         return result
     except (ImportError,OSError,ValueError,KeyError,TypeError,RuntimeError) as exc:
         # Exception text may contain host paths; only bounded type/code leaves.
@@ -1051,17 +1078,24 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
         master_names = master.get('names') or {}
         try:
             import pandas as pd
-            frame = pd.read_parquet(panel['panel_path'], columns=[
-                'trade_date_compact', 'code_norm', 'name', 'open', 'high', 'low',
-                'close', 'amount', 'trade', 'pre_close',
-            ])
+            # Retain row-level source and unit status; a native container label
+            # alone does not attest the inherited provider or volume scale.
+            frame = pd.read_parquet(panel['panel_path'])
+            source_frame = frame
         except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
             return _screen_empty(context, ['SCREEN_PANEL_READ_FAILED:' + type(exc).__name__])
-        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
+        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame, policy_for_shared
+        from upstreams.v3_shared_data.shared_data import hk_panel_audit as source_audit
+        inspect_source_window = source_audit.inspect_source_window
+        source_guard_sha256 = hashlib.sha256(Path(source_audit.__file__).read_bytes()).hexdigest()
+        source_reader_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+        source_policy = policy_for_shared(root)
+        source_policy.check_panel(panel['panel_sha256'])
         frame = guard_rebound_frame(frame, root, panel_sha256=panel['panel_sha256'],
             sessions=history_sessions, current_day=day)
         resolution_proofs = frame.attrs['history_resolution_proofs']
-        resolution_excluded = set(frame.attrs['history_resolution_holds'])
+        resolution_holds = dict(frame.attrs['history_resolution_holds'])
+        resolution_excluded = set(resolution_holds)
         required = {'trade_date_compact', 'code_norm', 'high', 'low', 'close', 'amount', 'trade', 'pre_close'}
         if not required.issubset(set(frame.columns)):
             return _screen_empty(context, ['SCREEN_PANEL_SCHEMA_INVALID'])
@@ -1069,11 +1103,37 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
         frame['trade_date_compact'] = frame['trade_date_compact'].astype(str).str.zfill(8)
         frame['code_norm'] = frame['code_norm'].astype(str).str.upper()
         target = frame.loc[frame['trade_date_compact'] == day].copy()
-        if target.empty:
+        source_target = source_frame.loc[
+            source_frame['trade_date_compact'].astype(str).eq(day)
+        ].copy()
+        source_target['code_norm'] = source_target['code_norm'].astype(str).str.upper()
+        if target.empty and source_target.empty:
             return _screen_empty(context, ['SCREEN_PANEL_TARGET_SESSION_EMPTY'])
         if target['code_norm'].duplicated().any():
             return _screen_empty(context, ['SCREEN_PANEL_TARGET_DUPLICATE_CODE'])
         codes = set(target['code_norm'].tolist()) - resolution_excluded
+        original_target_codes = set(source_target['code_norm'])
+        held_target_codes = resolution_excluded & original_target_codes
+        unexplained_target_codes = original_target_codes - set(target['code_norm']) - held_target_codes
+        pending_target_codes = held_target_codes | unexplained_target_codes
+        relevant_dates = set(prior60_session_dates) | {day}
+        source_by_code = {
+            str(code).upper(): group.to_dict('records')
+            for code, group in source_frame.loc[
+                source_frame['trade_date_compact'].astype(str).isin(relevant_dates)
+            ].groupby('code_norm')
+        }
+        previous20_session_dates = prior60_session_dates[-20:]
+        source_checks = {}
+        for code in codes | pending_target_codes:
+            source_rows = source_by_code.get(code, [])
+            source_checks[code] = dict(
+                price=inspect_source_window(source_rows,code=code,
+                    field_sessions={'high':prior60_session_dates,'close':[day]},policy=source_policy),
+                volume5=inspect_source_window(source_rows,code=code,
+                    field_sessions={'trade':[*previous5_session_dates,day]},policy=source_policy),
+                volume20=inspect_source_window(source_rows,code=code,
+                    field_sessions={'trade':[*previous20_session_dates,day]},policy=source_policy))
         target_by_code = {
             str(row['code_norm']): row.to_dict()
             for _, row in target.iterrows()
@@ -1116,7 +1176,9 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                 _screen_number(current.get(field), positive=True) is not None
                 for field in ('open', 'high', 'low', 'close')
             ) and _screen_number(current.get('trade')) is not None
-            if complete_prior and complete_previous and complete_target:
+            if (complete_prior and complete_previous and complete_target
+                    and source_checks[code]['price']['status']=='CLEAR'
+                    and source_checks[code]['volume5']['status']=='CLEAR'):
                 canonical_complete_codes.add(code)
 
         supplement = None
@@ -1216,13 +1278,15 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             )
             volume_evidence = (supplement_volume_evidence if use_supplement_volume
                                else panel_volume_evidence)
-            volume_proven = volume_evidence['status'] == 'OWNER_VERIFIED'
+            volume_proven = (volume_evidence['status'] == 'OWNER_VERIFIED'
+                and (use_supplement_volume or source_checks[code]['volume5']['status']=='CLEAR'))
             relative_volume_verified = (
                 use_supplement_volume
                 and volume_evidence.get('relative_comparability_status')
                     == 'VERIFIED_SAME_RESPONSE_RAW_FIELD_UNIT_UNKNOWN'
             )
-            volume_comparable = volume_proven or relative_volume_verified
+            volume_comparable = (volume_proven or relative_volume_verified) and (
+                use_supplement_volume or source_checks[code]['volume5']['status']=='CLEAR')
             if use_supplement_volume:
                 supplement_manifest = (supplement or {}).get('manifest') or {}
                 supplement_record = supplement_records.get(code) or {}
@@ -1264,7 +1328,7 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             duplicate_previous5_dates = duplicate_history_dates.intersection(previous5_session_dates)
             prior60 = code_history.loc[code_history['trade_date_compact'].isin(prior60_session_dates)]
             previous5 = code_history.loc[code_history['trade_date_compact'].isin(previous5_session_dates)]
-            previous20 = code_history.tail(20)
+            previous20 = code_history.loc[code_history['trade_date_compact'].isin(previous20_session_dates)]
             count60 = int(len(prior60))
             valid_highs = prior60['high'].map(lambda value: _screen_number(value, positive=True)).dropna()
             if use_supplement_volume:
@@ -1283,12 +1347,19 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                                        if session not in available_history_dates]
             prior60_high = (float(valid_highs.max())
                             if count60 == 60 and len(valid_highs) == 60
-                            and not missing_prior60_dates and not duplicate_prior60_dates else None)
+                            and not missing_prior60_dates and not duplicate_prior60_dates
+                            and source_checks[code]['price']['status']=='CLEAR' else None)
             previous5_mean = (float(sum(valid_vol5) / 5)
                               if len(previous5) == 5 and len(valid_vol5) == 5
                               and all(value is not None for value in valid_vol5)
-                              and not missing_previous5_dates and not duplicate_previous5_dates else None)
-            previous20_mean = float(valid_vol20.mean()) if len(previous20) == 20 and len(valid_vol20) == 20 else None
+                              and not missing_previous5_dates and not duplicate_previous5_dates
+                              and (use_supplement_volume or source_checks[code]['volume5']['status']=='CLEAR') else None)
+            previous20_dates = previous20['trade_date_compact'].tolist()
+            previous20_mean = (float(valid_vol20.mean())
+                if len(previous20)==20 and len(set(previous20_dates))==20
+                and set(previous20_dates)==set(previous20_session_dates) and len(valid_vol20)==20
+                and not use_supplement_volume and volume_proven
+                and source_checks[code]['volume20']['status']=='CLEAR' else None)
             close = _screen_number(current.get('close'), positive=True)
             low = _screen_number(current.get('low'), positive=True)
             high = _screen_number(current.get('high'), positive=True)
@@ -1297,7 +1368,7 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             previous_close = _screen_number(current.get('pre_close'), positive=True)
             rebound = ((close / low) - 1.0) * 100.0 if close is not None and low is not None else None
             volume_ratio = (current_volume / previous5_mean
-                            if current_volume is not None and previous5_mean not in (None, 0) else None)
+                            if volume_comparable and current_volume is not None and previous5_mean not in (None, 0) else None)
             volume_ratio20 = (current_volume / previous20_mean
                               if not use_supplement_volume and current_volume is not None
                               and previous20_mean not in (None, 0) else None)
@@ -1322,11 +1393,17 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             rebound_flag = (bool(rebound >= _REBOUND_CLOSE_LOW_GATE)
                             if rebound is not None else None)
             complete_prior60 = (not missing_prior60_dates and not duplicate_prior60_dates
-                                and count60 == 60 and len(valid_highs) == 60)
+                                and count60 == 60 and len(valid_highs) == 60
+                                and source_checks[code]['price']['status']=='CLEAR')
             complete_previous5 = (not missing_previous5_dates and len(previous5) == 5
                                   and not duplicate_previous5_dates and len(valid_vol5) == 5
-                                  and previous5_mean not in (None, 0))
+                                  and previous5_mean not in (None, 0)
+                                  and (use_supplement_volume or source_checks[code]['volume5']['status']=='CLEAR'))
             unknown_reasons = []
+            if source_checks[code]['price']['status']!='CLEAR':
+                unknown_reasons.append('PRICE_SOURCE_WINDOW_UNVERIFIED')
+            if not use_supplement_volume and source_checks[code]['volume5']['status']!='CLEAR':
+                unknown_reasons.append('VOLUME_SOURCE_WINDOW_UNVERIFIED')
             if not volume_comparable:
                 unknown_reasons.append('VOLUME_UNIT_OR_SCALE_NOT_PROVEN')
                 gaps.extend(volume_evidence['gaps'])
@@ -1366,10 +1443,12 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             numeric_history_complete = (complete_prior60 and complete_previous5 and close is not None
                                         and current_volume is not None)
             history_status = ('KNOWN' if numeric_history_complete and volume_comparable else 'PARTIAL_UNKNOWN')
-            strict = bool(history_status == 'KNOWN' and oversold is True and volume_flag is True)
+            strict = (bool(oversold is True and volume_flag is True)
+                      if history_status == 'KNOWN' else None)
             known_gate_count = int(oversold is not None) + int(volume_flag is not None)
             passing_gate_count = int(oversold is True) + int(volume_flag is True)
-            near_eligible = bool(history_status == 'KNOWN' and known_gate_count == 2 and passing_gate_count == 1)
+            near_eligible = (bool(known_gate_count == 2 and passing_gate_count == 1)
+                             if history_status == 'KNOWN' else None)
             failed_gate = None
             failed_value = None
             gate_value = None
@@ -1392,7 +1471,7 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
             row = dict(
                 classification=None, qualification_status='RESEARCH_ONLY_CANDIDATE', code=code, name=name,
                 verified_session=int(day), target_monday=int(context.get('plan_trade_date') or 0),
-                amount_hkd=amount,
+                amount_hkd=None, amount_native=amount, amount_currency_status='NOT_PROVEN',
                 connect_eligibility='TARGET_DATE_AUTHORITY_NOT_EVALUATED',
                 membership_source=dict(owner=panel['owner'], source_date=day,
                                        payload_sha256=panel['panel_sha256'], exchange='HK_CONNECT'),
@@ -1452,17 +1531,83 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                 volume_relative_comparability_status=volume_evidence.get(
                     'relative_comparability_status', 'NOT_PROVEN'),
                 volume_provenance=volume_evidence,
+                source_field_window_evidence=source_checks[code],
                 research_boundary='RESEARCH_ONLY; no buy/sell/order conclusion',
             )
             # Return recent returns from the panel only when the exact rows are
             # available. These are background context, never a gate.
-            ordered = code_history.sort_values('trade_date_compact')
             for periods, key in ((3, 'recent_3_session_return_pct'), (5, 'recent_5_session_return_pct')):
-                if len(ordered) >= periods:
-                    anchor = _screen_number(ordered.iloc[-periods]['close'], positive=True)
+                required_dates = prior60_session_dates[-periods:]
+                recent_rows = code_history.loc[code_history['trade_date_compact'].isin(required_dates)]
+                close_source = inspect_source_window(source_by_code.get(code, []),code=code,
+                    field_sessions={'close':[*required_dates,day]},policy=source_policy)
+                if (len(recent_rows)==periods and set(recent_rows['trade_date_compact'])==set(required_dates)
+                        and close_source['status']=='CLEAR'):
+                    anchor = _screen_number(recent_rows.sort_values('trade_date_compact').iloc[0]['close'], positive=True)
                     if anchor not in (None, 0) and close is not None:
                         row[key] = ((close / anchor) - 1.0) * 100.0
             rows.append(row)
+        # The frozen history guard intentionally removes held codes from its
+        # clean frame. Preserve original target identities as pending evidence;
+        # never reuse their disputed values as a selection result or bypass the
+        # original field/window proof.
+        for code in sorted(pending_target_codes):
+            original = source_target.loc[source_target['code_norm'].eq(code)]
+            try:
+                current = (source_policy.effective_values(code,day,original.iloc[0].to_dict())
+                           if len(original)==1 else {})
+            except (ValueError, TypeError):
+                current = {}
+            def held_safe(field, *, positive=False):
+                try:
+                    held = source_policy.held_fields(code,day,(field,))
+                except (ValueError, TypeError):
+                    return None
+                if held:
+                    return None
+                return _screen_number(current.get(field),positive=positive)
+            close = held_safe('close',positive=True)
+            current_volume = held_safe('trade')
+            raw_amount = held_safe('amount')
+            name = str(master_names.get(code, {}).get('name') or current.get('name') or code).strip() or code
+            reason = ('HK_HISTORY_FIELD_QUARANTINED' if code in held_target_codes
+                      else 'HK_HISTORY_GUARD_TARGET_ROW_UNEXPLAINED')
+            reasons = [reason]
+            if len(original)!=1:
+                reasons.append('TARGET_SOURCE_ROW_DUPLICATE')
+            rows.append(dict(
+                classification=None, qualification_status='SOURCE_HOLD_PENDING', code=code, name=name,
+                verified_session=int(day), target_monday=int(context.get('plan_trade_date') or 0),
+                amount_hkd=None, amount_native=raw_amount, amount_currency_status='NOT_PROVEN',
+                connect_eligibility='TARGET_DATE_AUTHORITY_NOT_EVALUATED',
+                membership_source=dict(owner=panel['owner'], source_date=day,
+                                       payload_sha256=panel['panel_sha256'], exchange='HK_CONNECT'),
+                close=close, prev_close=None, current_volume=current_volume,
+                history_status='PARTIAL_UNKNOWN', history_numeric_status='PARTIAL_UNKNOWN',
+                history_unknown_reasons=';'.join(reasons),
+                history_raw_status=reason,
+                history_resolution_holds=resolution_holds.get(code,[]),
+                source_field_window_evidence=source_checks[code],
+                prior60_session_count=None, previous5_session_count=None,
+                previous20_session_count=None, prior60_session_high=None,
+                previous5_mean_volume=None, previous20_mean_volume_background=None,
+                volume_ratio_5d=None, volume_ratio_20d_background=None,
+                volume_ratio_current_to_previous5_mean=None,
+                volume_ratio_current_to_previous20_mean_background=None,
+                volume_ratio_status='UNVERIFIED_UNIT_OR_SCALE',
+                background20_status='PARTIAL_UNKNOWN',
+                oversold_flag=None, oversold_close_le_80pct_prior60_high=None,
+                volume_flag_5d_ge_1_5=None, high_volume_ratio_ge_1_5=None,
+                strict_two_gate_oversold_5dvolume=None, near_two_gate_one_missing=None,
+                source_refs=[dict(owner=panel['owner'], payload_path=panel['panel_path'],
+                                  payload_sha256=panel['panel_sha256'],
+                                  manifest_path=panel['panel_manifest_path'],
+                                  manifest_sha256=panel['panel_manifest_sha256']),
+                             dict(owner=master['owner'], payload_path=master['artifact_path'],
+                                  payload_sha256=master['artifact_sha256'],
+                                  manifest_path=master['manifest_path'],
+                                  manifest_sha256=master['manifest_sha256'])],
+                research_boundary='RESEARCH_ONLY; no buy/sell/order conclusion'))
         strict_rows = sorted((row for row in rows if row['strict_two_gate_oversold_5dvolume']),
                              key=lambda row: row['code'])
         near_rows = [row for row in rows if row['near_two_gate_one_missing']]
@@ -1505,7 +1650,9 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
         unresolved_rows.sort(key=lambda row: row['code'])
         public_master = {key: value for key, value in master.items() if key != 'names'}
         authority = dict(panel_witness=panel, security_master=public_master,
-                         source_contract=panel['source_contract'], amount_unit='HKD',
+                         source_contract=panel['source_contract'], amount_unit=None,
+                         amount_unit_status='NOT_PROVEN',
+                         source_window_guard_sha256=source_guard_sha256,
                          price_basis='RAW', session_kind='FULL_DAY_CLOSE',
                          volume_provenance=panel_volume_evidence)
         if supplement is not None:
@@ -1530,6 +1677,8 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                                trading_calendar_sha256=history_sessions['calendar_sha256'],
                                screen_phase=context['screen_phase'],
                                screen_session_policy=context['screen_session_policy'],
+                               source_window_guard_sha256=source_guard_sha256,
+                               source_reader_sha256=source_reader_sha256,
                                volume_gate_policy=('SAME_RESPONSE_SIX_BAR_RELATIVE_COMPARABILITY;'
                                                    'ABSOLUTE_UNIT_REMAINS_NOT_PROVEN'),
                                observation_only=['amount_hkd', 'rebound_close_vs_low_pct']))
@@ -1539,6 +1688,9 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                         history_pending_count=len(pending), strict_count=len(strict_rows),
                         near_candidate_count=len(near_rows), near_count=len(near_rows),
                         selected_count=len(selected), pending_codes=[row['code'] for row in pending],
+                        original_panel_target_code_count=len(original_target_codes),
+                        history_held_target_code_count=len(held_target_codes),
+                        unexplained_guard_target_code_count=len(unexplained_target_codes),
                         panel_row_count=panel.get('panel_rows'), panel_code_count=panel.get('panel_code_count'),
                         excluded_count=len(excluded_rows), screen_unresolved_count=len(unresolved_rows),
                         row_accounted_count=(len(selected)+len(pending)+len(excluded_rows)+len(unresolved_rows)))
@@ -1549,6 +1701,9 @@ def read_rebound_screen(authority_root: Path | None, context: Mapping[str, Any])
                        row['oversold_cutoff_80pct_prior60_high'], row['volume_ratio_5d'])
                       for row in excluded_rows],
             unresolved=[(row['code'], row['exclusion_reason_code']) for row in unresolved_rows]))
+        if (hashlib.sha256(Path(source_audit.__file__).read_bytes()).hexdigest()!=source_guard_sha256
+                or hashlib.sha256(Path(__file__).read_bytes()).hexdigest()!=source_reader_sha256):
+            raise ValueError('SCREEN_SOURCE_READER_CHANGED_DURING_READ')
         return dict(history_resolution_proofs=resolution_proofs,
                     history_resolution_excluded_code_count=len(resolution_excluded),schema_version=REBOUND_SCREEN_SCHEMA, rule_version=REBOUND_SCREEN_RULE,
             target_trade_date=str(context.get('plan_trade_date') or ''), verified_session=day,

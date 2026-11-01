@@ -46,6 +46,113 @@ def _instant(value):
     return parsed
 
 
+def inspect_source_window(rows, *, code, field_sessions, policy):
+    """Check only the requested field/session dependencies against existing holds.
+
+    CLEAR means no contradiction was found in recorded source tags or scale
+    markers. It is not a vendor, unit, currency, adjustment, PIT or eligibility
+    attestation; the calling reader must retain its existing proof requirements.
+    Missing rows, unresolved source tags, approximate volume and held fields
+    remain UNKNOWN for the affected dependency, without altering source values.
+    """
+    code = _code(code)
+    if not isinstance(field_sessions, dict) or not field_sessions:
+        raise ValueError('HK_WINDOW_REQUIREMENTS_INVALID')
+    wanted = {}
+    for field, dates in field_sessions.items():
+        dates = list(dates)
+        if (field not in FIELDS or not dates or dates != sorted(set(dates))
+                or any(_date(date) != date for date in dates)):
+            raise ValueError('HK_WINDOW_REQUIREMENTS_INVALID')
+        wanted[field] = dates
+    if not code:
+        return dict(status='UNKNOWN', code='', reasons=['SOURCE_CODE_INVALID'],
+            fields={field:dict(status='UNKNOWN', reasons=['SOURCE_CODE_INVALID'],
+                checked_sessions=len(dates), missing_sessions=[], issues=[],
+                recorded_sources=[], volume_unit_statuses=[], recorded_scales=[])
+                for field, dates in wanted.items()},
+            source_status='RECORDED_TAGS_ONLY_NOT_VENDOR_PROOF',
+            unit_status='NOT_ATTESTED_BY_THIS_CHECK')
+    relevant = set().union(*map(set, wanted.values()))
+    index = {}
+    records = rows.to_dict('records') if hasattr(rows, 'to_dict') else rows
+    for row in records:
+        if not isinstance(row, dict) or _code(row.get('code_norm', row.get('code', ''))) != code:
+            continue
+        date = _date(row.get('trade_date_compact', row.get('trade_date', row.get('date', ''))))
+        if date in relevant:
+            index.setdefault(date, []).append(row)
+
+    def text(value):
+        return value.strip() if isinstance(value, str) and value.strip().lower() not in {'', 'nan', 'none', 'null'} else ''
+
+    output, combined_sources, combined_reasons = {}, set(), set()
+    for field, dates in wanted.items():
+        reasons, sources, statuses, scales, missing, issues = set(), set(), set(), set(), [], []
+        for date in dates:
+            selected = index.get(date, [])
+            day_reasons = []
+            if not selected:
+                missing.append(date)
+                day_reasons.append('MISSING_SESSION_ROW')
+            elif len(selected) != 1:
+                day_reasons.append('DUPLICATE_SESSION_ROW')
+            else:
+                row = selected[0]
+                value = row.get(field)
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                    day_reasons.append('FIELD_VALUE_UNKNOWN')
+                elif value < 0 or (field in ('open', 'high', 'low', 'close') and value == 0):
+                    day_reasons.append('FIELD_VALUE_INVALID')
+                history_source = text(row.get('history_source'))
+                source = history_source or text(row.get('source'))
+                if source.upper() in {'UNKNOWN', 'NOT_PROVEN', 'UNVERIFIED', 'CANNOT_CONFIRM', 'N/A'}:
+                    source = ''
+                if policy is None:
+                    day_reasons.append('HISTORY_POLICY_UNAVAILABLE')
+                else:
+                    if policy.held_fields(code, date, (field,)):
+                        day_reasons.append('HISTORY_FIELD_QUARANTINED')
+                    if policy.field_admission(code, date, field) == 'CORRECTED_TDX_RETROSPECTIVE_CHANNEL':
+                        source = 'TDXPY_CORRECTED_RETROSPECTIVE'
+                if source:
+                    sources.add(source)
+                else:
+                    day_reasons.append('SOURCE_TAG_UNKNOWN')
+                if field == 'trade':
+                    unit_status = text(row.get('volume_unit_status'))
+                    if unit_status:
+                        statuses.add(unit_status)
+                        if 'APPROXIMATE' in unit_status.upper() or 'NOT_LOSSLESS' in unit_status.upper():
+                            day_reasons.append('APPROXIMATE_OR_LOSSY_SCALE')
+                    native = row.get('native_fields')
+                    scale = native.get('scale_applied') if isinstance(native, dict) else row.get('scale_applied')
+                    if scale is not None:
+                        if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not math.isfinite(scale) or scale <= 0:
+                            day_reasons.append('SCALE_INVALID')
+                        else:
+                            scales.add(float(scale))
+            if day_reasons:
+                reasons.update(day_reasons)
+                issues.append(dict(date=date, reasons=sorted(set(day_reasons))))
+        if len(sources) > 1:
+            reasons.add('MIXED_RECORDED_SOURCES')
+        if len(scales) > 1:
+            reasons.add('SCALE_MISMATCH')
+        combined_sources.update(sources)
+        combined_reasons.update(reasons)
+        output[field] = dict(status='UNKNOWN' if reasons else 'CLEAR', reasons=sorted(reasons),
+            checked_sessions=len(dates), missing_sessions=missing, issues=issues,
+            recorded_sources=sorted(sources), volume_unit_statuses=sorted(statuses),
+            recorded_scales=sorted(scales))
+    if len(combined_sources) > 1:
+        combined_reasons.add('MIXED_RECORDED_SOURCES')
+    return dict(status='UNKNOWN' if combined_reasons else 'CLEAR', code=code,
+        fields=output, reasons=sorted(combined_reasons),
+        source_status='RECORDED_TAGS_ONLY_NOT_VENDOR_PROOF',
+        unit_status='NOT_ATTESTED_BY_THIS_CHECK')
+
+
 def audit_frame(frame, *, package, source_sha256, through_date=None):
     """Return normalized facts, one disposition per original row and a profile.
 

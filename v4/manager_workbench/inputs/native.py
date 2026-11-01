@@ -815,7 +815,19 @@ class NativeAdapters:
         code_col = "code_norm" if "code_norm" in frame else "symbol"
         frame[date_col] = frame[date_col].astype(str).str.replace("-", "", regex=False).str[:8]
         frame = frame[frame[date_col] <= date]
+        wanted = []; cursor = date
+        for _ in range(61):
+            wanted.append(cursor); cursor=previous_session(self.calendar,cursor,market="hk_securities")
+        wanted.reverse()
+        source_by_code = {
+            symbol(code): group.to_dict("records")
+            for code, group in frame[frame[date_col].isin(wanted)].groupby(code_col)
+            if symbol(code)
+        }
         from upstreams.v3_shared_data.shared_data.hk_history_resolution import policy_for_shared
+        from upstreams.v3_shared_data.shared_data import hk_panel_audit as source_audit
+        inspect_source_window = source_audit.inspect_source_window
+        source_guard_sha256 = raw_sha(Path(source_audit.__file__).read_bytes())
         resolution = policy_for_shared(root)
         resolution.check_panel(manifest["panel_sha256"])
         frame = resolution.guard_frame(frame, required_fields=('close','high'), code_column=code_col,
@@ -849,10 +861,6 @@ class NativeAdapters:
         codes, member_ref, gaps = self.membership(context)
         if member_ref:
             refs.append(member_ref)
-        wanted = []; cursor = date
-        for _ in range(61):
-            wanted.append(cursor); cursor=previous_session(self.calendar,cursor,market="hk_securities")
-        wanted.reverse()
         records = []
         for code in sorted(master_codes):
             bars = []
@@ -874,7 +882,9 @@ class NativeAdapters:
                                  volume_unit=volume_unit, price_basis=price_basis, currency=raw_row.get("currency", pin.get("currency")),
                                  suspended=raw_row.get("suspended", False),
                                  source_available_at=raw_row.get("request_finished_at", pin.get("available_at")),
-                                 source_metadata={k:(None if isinstance(v,float) and pd.isna(v) else v) for k,v in raw_row.items() if k == "source" or k == "source_path" or k.startswith("history_") or k == "native_fields"}))
+                                 source_metadata={k:(None if isinstance(v,float) and pd.isna(v) else v) for k,v in raw_row.items()
+                                    if k in {"source", "source_path", "native_fields", "volume_unit_status", "scale_applied"}
+                                    or k.startswith("history_")}))
             record = dict(symbol=code, price_session=date, bars=sorted(bars,key=lambda r:r["date"]),
                           expected_sessions=pin.get("expected_sessions"),
                           evidence_ids=[r.evidence_id for r in refs], name=None)
@@ -887,12 +897,18 @@ class NativeAdapters:
             # Restrict the comparison to its exact 61-session window. Older panel
             # history remains in the original artifact, not in window admission.
             record["bars"] = [b for b in record["bars"] if b["date"] in wanted]
-            sources=set()
-            for b in record["bars"]:
-                meta=b["source_metadata"]
-                source=meta.get("history_source",meta.get("source"))
-                if source is not None: sources.add(str(source))
-            if len(sources)>1: record["window_gap"]="PANEL_MIXED_SOURCE_COMPARISON_UNVERIFIED"
+            price_source = inspect_source_window(source_by_code.get(code, []), code=code,
+                field_sessions={'high': wanted[:-1], 'close': [date]}, policy=resolution)
+            volume_source = inspect_source_window(source_by_code.get(code, []), code=code,
+                field_sessions={'trade': wanted[-6:]}, policy=resolution)
+            record["panel_field_window_evidence"] = dict(price=price_source, volume=volume_source,
+                                                         guard_sha256=source_guard_sha256)
+            if code not in resolution_holds and (price_source['status'] != 'CLEAR' or volume_source['status'] != 'CLEAR'):
+                reasons = set(price_source['reasons']) | set(volume_source['reasons'])
+                record["window_gap"] = (
+                    "PANEL_MIXED_SOURCE_COMPARISON_UNVERIFIED" if 'MIXED_RECORDED_SOURCES' in reasons
+                    else "HISTORY_DATE_DUPLICATE_OR_GAP" if 'MISSING_SESSION_ROW' in reasons or 'DUPLICATE_SESSION_ROW' in reasons
+                    else "PANEL_SOURCE_OR_SCALE_UNVERIFIED")
             records.append(self._member(record, codes, member_ref))
         from ..engines.oversold import window_metrics
         base = batch(context,Lane.OVERSOLD,records,refs,"Shared HK panel window",Coverage(scope_count=len(master_codes),observed_count=len(records)),gaps)
@@ -938,6 +954,8 @@ class NativeAdapters:
                 record.pop("window_gap",None)
                 record.update(bars=bars,comparison_basis=basis,source_sha256=ref.sha256,available_at=ref.available_at,
                     window_origin="PANEL_OWNER_SUPPLEMENT",evidence_ids=[ref.evidence_id]+([member_ref.evidence_id] if member_ref else []))
+        if raw_sha(Path(source_audit.__file__).read_bytes()) != source_guard_sha256:
+            raise ValueError('HK_SOURCE_GUARD_CHANGED_DURING_READ')
         return batch(context, Lane.OVERSOLD, records, refs, "Full exact-date security master and shared HK history",
                      Coverage(scope_count=len(master_codes), observed_count=len(records), gaps=gaps), gaps,
                      member_ref.evidence_id if member_ref else None)

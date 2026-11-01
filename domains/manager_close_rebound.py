@@ -151,20 +151,30 @@ def _verify_history_sources(body: Mapping[str, Any], root: Path | None) -> None:
     if any(body.get(key) != audit[key] for key in audit):
         raise ValueError('REBOUND_HISTORY_NATIVE_EVIDENCE_MISMATCH')
     import pandas as pd
-    frame=pd.read_parquet(resolve(root,panel_ref['artifact_ref']),columns=['trade_date_compact','code_norm','high','trade'])
-    from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
+    frame=pd.read_parquet(resolve(root,panel_ref['artifact_ref']))
+    source_frame=frame
+    from upstreams.v3_shared_data.shared_data import hk_panel_audit as source_audit
+    guard_sha256=digest(Path(source_audit.__file__).read_bytes())
+    if body.get('source_window_guard_sha256')!=guard_sha256:
+        raise ValueError('REBOUND_HISTORY_SOURCE_GUARD_SHA_MISMATCH')
+    from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame, policy_for_shared
+    source_policy=policy_for_shared(root)
+    source_policy.check_panel(manifest['panel_sha256'])
     frame = guard_rebound_frame(frame, root, panel_sha256=manifest['panel_sha256'], sessions=sessions)
     if body.get('history_resolution_proofs') != frame.attrs['history_resolution_proofs']:
         raise ValueError('REBOUND_HISTORY_RESOLUTION_PROOF_MISMATCH')
     if str(frame['trade_date_compact'].astype(str).max())!=sessions['panel_session']:
         raise ValueError('REBOUND_HISTORY_PANEL_DATE_CONTENT_MISMATCH')
-    values=rebound_history_rows(frame,list(body['symbols']),sessions)
+    values=rebound_history_rows(frame,list(body['symbols']),sessions,
+        source_frame=source_frame,source_policy=source_policy)
     for symbol,value in values.items():
         if symbol not in master['names']:value['gaps'].append('REBOUND_EXACT_SECURITY_MASTER_MISSING')
     if values!=body['symbols']:raise ValueError('REBOUND_HISTORY_DERIVATION_MISMATCH')
     for ref in refs:
         if digest(resolve(root,ref['artifact_ref']).read_bytes())!=ref['sha256']:
             raise ValueError('REBOUND_HISTORY_SOURCE_CHANGED_DURING_READBACK')
+    if digest(Path(source_audit.__file__).read_bytes())!=guard_sha256:
+        raise ValueError('REBOUND_HISTORY_SOURCE_GUARD_CHANGED_DURING_READBACK')
 
 
 def read_history(state_root: Path, date: str, *, as_of: datetime, root: Path | None) -> HistoryRead:
