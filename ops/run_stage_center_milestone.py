@@ -135,6 +135,10 @@ def run_milestone(
     receipt_path = _receipt_path(Path(data_root).expanduser().resolve(), date, node)
     _atomic_write(receipt_path, receipt)
     receipt["receipt_path"] = str(receipt_path)
+    from infrastructure.stage_completion_hooks import on_main_milestone
+    peripheral = on_main_milestone(selection_root=Path(selection_root), trade_date=date, stage_id=stage_id,
+        usable=status in USABLE_SELECTION_STATUSES)
+    if peripheral["status"] != "DISABLED": receipt["report_evidence_sidecar"] = peripheral
     return receipt
 
 
