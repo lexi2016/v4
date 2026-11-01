@@ -1,0 +1,37 @@
+{
+ "name": "hk_r8_common_required_evidence",
+ "value": {
+  "__type__": "tuple",
+  "items": [
+   "historical_provider=pytdx_exhq",
+   "historical_capture_after_target_cutoff=true",
+   "historical_temporal_cutoff_safe=false",
+   "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+   "historical_natural_time_capture=CANNOT_CONFIRM",
+   "historical_pit_safe=false",
+   "historical_supplemental_batch_receipt_sha256=d15a83a7e201e79817c313960463479746c2a99cec31eef28dfd3286cd7b6738",
+   "historical_fixed_cache_code_file_sha256=cd510cb9e49b4c06415c612104857ed3726fbb88d5a6733805a66cd61c0adca7",
+   "historical_cache_code_set_sha256=4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae",
+   "historical_cache_observed_codes=100",
+   "historical_cache_missing_codes=0",
+   "due_status=HISTORICAL_BACKFILL",
+   "historical_observation_contract=STAGE_CENTER_AFTERFACT_OBSERVATION_R1",
+   "hk_d1_membership=exact_date_top100",
+   "hk_acquisition_scope=EXACT_D1_TOP100",
+   "hk_d1_status=STRICT_0_2_READY",
+   "hk_d1_model_id=prob_active",
+   "hk_d1_pool_version=hkconnect_d1_top100_pool.v3_vipdoc_panel",
+   "selection_contract=V3_TOP10_RECOMMENDATION",
+   "selection_mode=RESEARCH_ONLY",
+   "historical_observation=AFTERFACT_RESEARCH_ONLY_NO_BUY",
+   "observation_status=OBSERVATION_UNVERIFIED",
+   "formal_stage_eligibility=CANNOT_CONFIRM",
+   "natural_time_capture=CANNOT_CONFIRM",
+   "formal_pit=false",
+   "algorithm_sha256=fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
+   "production_allowed=false",
+   "buy_gate_updated=false",
+   "orders_sent=false"
+  ]
+ }
+}

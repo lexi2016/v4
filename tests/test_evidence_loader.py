@@ -99,8 +99,13 @@ def _untag(value):
         return tuple(_untag(item) for item in value["items"])
     if isinstance(value, dict) and value.get("__type__") == "list":
         return [_untag(item) for item in value["items"]]
+    if isinstance(value, dict) and value.get("__type__") == "set":
+        return {_untag(item) for item in value["items"]}
     if isinstance(value, dict) and value.get("__type__") == "dict":
-        return {key: _untag(item) for key, item in value["items"].items()}
+        items = value["items"]
+        if isinstance(items, dict):
+            return {key: _untag(item) for key, item in items.items()}
+        return {_untag(pair[0]): _untag(pair[1]) for pair in items}
     return value
 
 
@@ -205,3 +210,40 @@ def _stage_named(tmp_path: Path, name: str, mutate, *, update_count: bool = True
     if update_count:
         entry["entry_count"] = len(data["rows"])
     (tmp_path / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
+
+
+# --- C4: remaining tagged evidence datasets ----------------------------------
+
+C4_DATASETS = [
+    "hk_r9_pool_evidence",
+    "hk_r9_legacy_stale_lane_identities",
+    "hk_morning_history_20261023",
+    "hk_morning_selection_recovery_rows",
+    "hk_morning_history_safe_packets",
+    "hk_r8_common_required_evidence",
+    "hk_r8_pool_evidence",
+    "hk_morning_selection_recovery_required_evidence",
+    "hk_r9_legacy_stale_pool_contracts",
+    "revoked_hk_stage_backfill_keys",
+    "approved_exact_stage_backfills",
+]
+
+
+@pytest.mark.parametrize("name", C4_DATASETS)
+def test_tagged_dataset_matches_its_oracle(name):
+    oracle = json.loads(Path(f"tests/fixtures/evidence_oracle/{name}.json").read_text(encoding="utf-8"))
+    expected = _untag(oracle["value"])
+    loaded = loader.tagged_value(name)
+    assert loaded == expected
+    _assert_same_types(loaded, expected)
+
+
+def test_backfills_keep_final_initialized_value():
+    backfills = loader.tagged_value("approved_exact_stage_backfills")
+    assert isinstance(backfills, dict)
+    assert len(backfills) == 116
+    assert all(isinstance(key, tuple) and len(key) == 4 for key in backfills)
+    revoked = loader.tagged_value("revoked_hk_stage_backfill_keys")
+    assert revoked == {("20261005", "STAGE_1545_1555", "HK_CONNECT", "dd0b08a26ea14cb6ba7423d8b75e09e5")}
+    assert not (revoked & set(backfills))
+

@@ -43,6 +43,7 @@ from stage_center.research_read_binding import ApprovedResearchReadBinding, Rese
 from apps.api.v4_api.evidence.loader import (
     row_dicts as _evidence_row_dicts,
     tuple_keyed as _evidence_tuple_keyed,
+    tagged_value as _evidence_tagged,
     tuple_rows as _evidence_tuple_rows,
 )
 
@@ -118,183 +119,22 @@ _DAY25_HK0930_BINDING_KEY = (
     "HK_CONNECT",
     _DAY25_HK0930_BACKFILL_RUN_ID,
 )
-_APPROVED_EXACT_STAGE_BACKFILLS: dict[tuple[str, str, str, str], dict[str, Any]] = {
-    _DAY25_HK0930_BINDING_KEY: {
-        "selection_run_id": "run-00ed21b8213cc63c7c1bebc3",
-        "artifact_id": "selection-00ed21b8213cc63c7c1bebc3",
-        "raw_artifact_sha256": "02229d41078a562a3863124dc799c37c1c087759744d4254b640873c1b5adefd",
-        "algorithm_id": "V3_STAGE_SELECTION_V1",
-        "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
-        "selection_status": "PARTIAL_WITH_ROWS",
-        "source_status": "PARTIAL_WITH_ROWS",
-        "selected_rows": 10,
-        "source_rows": 96,
-        "cannot_confirm_count": 12,
-        "selection_manifest_sha256": "8f8fa02aa165d53641f546bc64d6d8cfd43150e1aadfe4c95a21205ea58fbc01",
-        "selection_receipt_sha256": "00d21a26efa9ff3b960a2765e5a4a4599ff9c7567338f942ffc18676dbbab217",
-        "selection_artifact_sha256": "8e32219e33962113527f78f0d0a2bc44276a39345264dd2c968d533bc324ed01",
-        "runner_receipt_sha256": "57c0ebadf08e372f2165b624d54b9287737451a9545cc11a9c2015e42c51deae",
-        "required_evidence": (
-            "historical_observation_contract=HK_STAGE0930_RESEARCH_ONLY",
-            "historical_base_raw_sha256=eabaa273897b0db7261d0e0d3245493e75297e5f148edad665061d90fb5f6070",
-            "historical_gap_fields_sha256=11e256bec4ee181f956bb2792260290b1e2b5784a9838ebef91b3074eebbcc3e",
-            "historical_gap_csv_sha256=d02371d0d8fdb28fad944bc0881943ba1deb4899bf57b11f9a4f3d1adb6a7546",
-            "historical_gap_receipt_sha256=1d1d6cbd74aff12d48cfa250551430ec8e7a046075a8769438c93e974375996a",
-            "historical_base_source_id=futu_request_history_kline_none",
-            "historical_d1_pool_sha256=c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0",
-            "historical_formal_pit=false",
-            "due_status=HISTORICAL_BACKFILL",
-            "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
-            "hk_d1_binding_mode=EXPLICIT_HK_STAGE0930_RESEARCH_TARGET_DATE",
-            "hk_d1_source_trade_date=20260925",
-            "hk_d1_source_signal_date=20260924",
-            "hk_d1_binding_sha256=c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0",
-            "selection_contract=V3_TOP10_RECOMMENDATION",
-            "historical_observation=WATCH_ONLY_NO_BUY",
-            "production_allowed=false",
-            "buy_gate_updated=false",
-            "orders_sent=false",
-        ),
-    }
-}
+_APPROVED_EXACT_STAGE_BACKFILLS = _evidence_tagged("approved_exact_stage_backfills")
 
 _DAY24_HK0930_BACKFILL_RUN_ID = "1d3ab9f9bd3a44c3811bf1fed2b74108"
-_APPROVED_EXACT_STAGE_BACKFILLS[
-    ("20260924", "STAGE_0930_0935", "HK_CONNECT", _DAY24_HK0930_BACKFILL_RUN_ID)
-] = {
-    "selection_run_id": "run-1f781dcc3ea56ab3c3e97c70",
-    "artifact_id": "selection-1f781dcc3ea56ab3c3e97c70",
-    "raw_artifact_sha256": "709a5d00bb4507bd6cc32ad9bf1b4e0e4615fe702262b39088b6fad3505f10c1",
-    "algorithm_id": "V3_STAGE_SELECTION_V1",
-    "algorithm_sha256": "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
-    "selection_status": "PARTIAL_WITH_ROWS",
-    "source_status": "PARTIAL_WITH_ROWS",
-    "selected_rows": 10,
-    "source_rows": 100,
-    "cannot_confirm_count": 8,
-    "selection_manifest_sha256": "21040d9758662b43892b2b64b9fd5fe13baf876b5f74bd928179317c5123ab1d",
-    "selection_receipt_sha256": "c7abf5f56e6256eac0bb7cfef78422c4f1d9e0ce3cfe0f93f69768bf8f1f916e",
-    "selection_artifact_sha256": "6c0d7edba26455714421a4af7b625573679416fc97ed8accea6a939508081c87",
-    "runner_receipt_sha256": "70a9c5bb6637f14218d99a18c4f02e0cc7c18086f3a89056185c90a589e6bbfa",
-    "required_evidence": (
-        "historical_observation_contract=TDX_EXHQ_AFTERFACT_RESEARCH_ONLY",
-        "historical_provider=pytdx_exhq",
-        "historical_request_method=TdxExHq_API.get_instrument_bars",
-        "historical_capture_after_target_cutoff=true",
-        "historical_temporal_cutoff_safe=false",
-        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
-        "historical_natural_time_capture=CANNOT_CONFIRM",
-        "historical_pit_safe=false",
-        "historical_target_date=20260924",
-        "historical_signal_date=20260923",
-        "historical_stage_id=STAGE_0930_0935",
-        "historical_stage_window=09:31:00-09:35:00",
-        "historical_d1_projection_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
-        "historical_d1_projection_receipt_sha256=ffa32388a978691c1a6c1d1ae580e0e69fa4691fb2aee62868eb1f7292d48fa5",
-        "historical_d1_producer_artifact_sha256=30576eee9f0370c6956da6e41725d0720253e917a8e3741cce20f875b5e28f89",
-        "historical_d1_producer_manifest_sha256=c10ecc440585f0546a28dc8faf52bcf3e198c378216e5164c022b96d4d428465",
-        "historical_d1_producer_receipt_sha256=a96626f926b53a461039fce732658f765eea5383a63fe0830cbb21d7d780c73d",
-        "historical_rank45_gap_receipt_sha256=e3ea5b867f591d83a65e59aa855275d83dae188a7de8634dfa8b6fc9b605cf6a",
-        "historical_rank45_gap_code=HK.02915",
-        "historical_rank45_gap_rank=45",
-        "historical_rank45_gap_status=CANNOT_CONFIRM",
-        "historical_input_minute_full_coverage_sha256=936d5381445aaf94f6ef11ca91cf219139461dad5df787cb0b781bf07435e20d",
-        "historical_input_minute_batch_receipt_sha256=9eb1e45a668404e480127c62e2fcb42f9e148774ba2e1d53735e758270a69e78",
-        "historical_input_minute_canary_sha256=70f83ef90c5545ce1fd53767b35c7d64dfb8d53f107fa8fd1ed49e6be871dcb0",
-        "historical_input_minute_page_set_sha256=43de2248f4a8360ef82eae6ea7829d9847f8d824834dbc631cfdde26f2bde9c8",
-        "historical_selection_action_boundary=NO_BUY",
-        "historical_raw_bundle=OMITTED_HK_ONLY_RESEARCH_BACKFILL",
-        "formal_pit=false",
-        "production_allowed=false",
-        "buy_gate_updated=false",
-        "orders_sent=false",
-    ),
-}
 
 
 # BEGIN MONTH_HK_AFTERFACT_R5_API_BINDINGS
 _MONTH_HK_AFTERFACT_R5_BINDINGS = _evidence_row_dicts("hk_afterfact_r5_bindings")
 # END MONTH_HK_AFTERFACT_R5_API_BINDINGS
-for _r5_binding in _MONTH_HK_AFTERFACT_R5_BINDINGS:
-    _r5_key = (
-        _r5_binding["date"],
-        _r5_binding["stage_id"],
-        _r5_binding["market"],
-        _r5_binding["backfill_run_id"],
-    )
-    if _r5_key in _APPROVED_EXACT_STAGE_BACKFILLS:
-        raise RuntimeError(f"duplicate exact stage backfill binding: {_r5_key}")
-    _APPROVED_EXACT_STAGE_BACKFILLS[_r5_key] = {
-        key: value
-        for key, value in _r5_binding.items()
-        if key not in {"date", "stage_id", "market", "backfill_run_id"}
-    }
 
 
 # R8 uses immutable exact-target D1 evidence for all affected date/stage cells.
 # The source artifacts remain research-only; these bindings do not update shared pointers.
 _MONTH_HK_AFTERFACT_R8_BINDING_ROWS = _evidence_tuple_rows("hk_afterfact_r8_binding_rows")
-_HK_R8_POOL_EVIDENCE = {
-    "20260924": {
-        "pool_sha256": "50a014bb51a66ca5bf56853bcf25bc6dc2dacbda257a03e0bb0db2abd7448564",
-        "pool_source_sha256": "8ee3a43ebe014f4df7e65beb83271de79978c81e83558c908559c83a7f64291d",
-        "source_date": "20260924",
-        "signal_date": "20260923",
-        "price_signal_date": "20260923",
-        "source_run_id": "hk-d1-50a014bb51a66ca5",
-        "page_set_sha256": "a0f724f5df59bec2bbcccea6d68501aa2207f22e245e37a7c6a2f9b14d503627",
-    },
-    "20260930": {
-        "pool_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
-        "pool_source_sha256": "8a548960a26268ec248d680466153acad0cfc1764b565d6cee06e9392590b666",
-        "source_date": "20260930",
-        "signal_date": "20260929",
-        "price_signal_date": "20260929",
-        "source_run_id": "hk-d1-f45233cd1d30d04a",
-        "page_set_sha256": "298ee8706062e0ea73fc870beb753648e81c12b9c4e2707b562191b6b6a2b883",
-    },
-    "20261005": {
-        "pool_sha256": "8799c7ef056981549204ece5958222acad92204bfbf9ba5f12ef26bae57dad01",
-        "pool_source_sha256": "1d25a2f8c225d58faf060a9ee01dd861f5101b683f072d553c209abddcafddb5",
-        "source_date": "20261005",
-        "signal_date": "20261002",
-        "price_signal_date": "20261002",
-        "source_run_id": "hk-d1-8799c7ef05698154",
-        "page_set_sha256": "fb71c5f844c94d85ccbf0348d570f35fdfe20de30a798e1985fb2d127f49d0c4",
-    },
-}
+_HK_R8_POOL_EVIDENCE = _evidence_tagged("hk_r8_pool_evidence")
 _HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE = _evidence_tuple_keyed("hk_r8_observation_mode")
-_HK_R8_COMMON_REQUIRED_EVIDENCE = (
-    "historical_provider=pytdx_exhq",
-    "historical_capture_after_target_cutoff=true",
-    "historical_temporal_cutoff_safe=false",
-    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
-    "historical_natural_time_capture=CANNOT_CONFIRM",
-    "historical_pit_safe=false",
-    "historical_supplemental_batch_receipt_sha256=d15a83a7e201e79817c313960463479746c2a99cec31eef28dfd3286cd7b6738",
-    "historical_fixed_cache_code_file_sha256=cd510cb9e49b4c06415c612104857ed3726fbb88d5a6733805a66cd61c0adca7",
-    "historical_cache_code_set_sha256=4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae",
-    "historical_cache_observed_codes=100",
-    "historical_cache_missing_codes=0",
-    "due_status=HISTORICAL_BACKFILL",
-    "historical_observation_contract=STAGE_CENTER_AFTERFACT_OBSERVATION_R1",
-    "hk_d1_membership=exact_date_top100",
-    "hk_acquisition_scope=EXACT_D1_TOP100",
-    "hk_d1_status=STRICT_0_2_READY",
-    "hk_d1_model_id=prob_active",
-    "hk_d1_pool_version=hkconnect_d1_top100_pool.v3_vipdoc_panel",
-    "selection_contract=V3_TOP10_RECOMMENDATION",
-    "selection_mode=RESEARCH_ONLY",
-    "historical_observation=AFTERFACT_RESEARCH_ONLY_NO_BUY",
-    "observation_status=OBSERVATION_UNVERIFIED",
-    "formal_stage_eligibility=CANNOT_CONFIRM",
-    "natural_time_capture=CANNOT_CONFIRM",
-    "formal_pit=false",
-    "algorithm_sha256=fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506",
-    "production_allowed=false",
-    "buy_gate_updated=false",
-    "orders_sent=false",
-)
+_HK_R8_COMMON_REQUIRED_EVIDENCE = _evidence_tagged("hk_r8_common_required_evidence")
 
 def _hk_r8_required_evidence(
     trade_date: str,
@@ -374,170 +214,13 @@ _HK_R8_BINDING_BY_DATE_STAGE = {
 
 # Revoke the 10/05 15:45 R5 wrapper: it was bound to the 09/30 pool.
 # Its immutable artifact and receipt remain available in the original evidence store.
-_REVOKED_HK_STAGE_BACKFILL_KEYS = {
-    ("20261005", "STAGE_1545_1555", "HK_CONNECT", "dd0b08a26ea14cb6ba7423d8b75e09e5"),
-}
-for _revoked_key in _REVOKED_HK_STAGE_BACKFILL_KEYS:
-    _APPROVED_EXACT_STAGE_BACKFILLS.pop(_revoked_key, None)
+_REVOKED_HK_STAGE_BACKFILL_KEYS = _evidence_tagged("revoked_hk_stage_backfill_keys")
 
-for _r8_binding in _MONTH_HK_AFTERFACT_R8_BINDINGS:
-    _r8_key = (
-        _r8_binding["date"],
-        _r8_binding["stage_id"],
-        _r8_binding["market"],
-        _r8_binding["backfill_run_id"],
-    )
-    if _r8_key in _APPROVED_EXACT_STAGE_BACKFILLS:
-        raise RuntimeError(f"duplicate exact stage backfill binding: {_r8_key}")
-    _APPROVED_EXACT_STAGE_BACKFILLS[_r8_key] = {
-        key: value
-        for key, value in _r8_binding.items()
-        if key not in {"date", "stage_id", "market", "backfill_run_id"}
-    }
 
 # R9 adds 87 exact target-pool after-fact observation bindings. The source
 # artifacts are immutable evidence candidates; ordinary reads compose them
 # read-only and never publish to shared selection pointers.
-_HK_R9_POOL_EVIDENCE = {'20260907': {'code_set_sha256': 'e282b4db0f77ca555eea50c55ab7398863d582ad3e4c9423cdcd4bad222b8f96',
-              'pool_manifest_sha256': '8c68aeab43831af0eb6a5c8439ce5d9289095f6a2b497e19e210a510f5b4ee6b',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260907/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '6b7763f3a1abb27afad0d13fae42967645a3275fc62c9b4679d70d0f363792bc',
-              'pool_sha256': 'a3edf9a33bf8344ef4543e118c8171336264f17d5929f9a7f06e2a58badcc384',
-              'signal_date': '20260904',
-              'source_date': '20260907',
-              'source_run_id': 'hk-d1-a3edf9a33bf8344e',
-              'source_sha256': '34424331022b65b47163544dd851402dc9a3d775f3faff526314e6b4d45e59a2'},
- '20260908': {'code_set_sha256': '903db0edd5c21e035ee82a619a92ef61e6e34b333ace0d138b0aee3f77f4a1f7',
-              'pool_manifest_sha256': 'ae23f331688c43a953e77ae98e9f5a218def05787c6637928da524114dc5e358',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260908/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '338e0430f4c4010a0ec8c01f1215883d9cb530390eedc986ce3f3b3e4e9dd81f',
-              'pool_sha256': '9b11fd7f192801552902e406045ee520a19d5a6b373c60a790f6925a30afa3bb',
-              'signal_date': '20260907',
-              'source_date': '20260908',
-              'source_run_id': 'hk-d1-9b11fd7f19280155',
-              'source_sha256': '7e4978a2337d90ef7a9b66033188ebfc542a065042f50cc28de39a0496c8ef00'},
- '20260909': {'code_set_sha256': '7ae472d85426c54e879d15be255c7f6a8c0fde67042fb024f58bc449e89b87db',
-              'pool_manifest_sha256': 'bedadc60f6515937efe19f60c93fe676ddc2454087bc3780322f9e072c2109dc',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260909/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '5af4c0e9c03b9fdfd7df6abc8df161cdc46ea96398b2b0419cbba7133dfd2a1a',
-              'pool_sha256': '72d3b18d18e7c402eabb4c030d98d2b3ddd8079383c3e3f4c3ed6e57618feb65',
-              'signal_date': '20260908',
-              'source_date': '20260909',
-              'source_run_id': 'hk-d1-72d3b18d18e7c402',
-              'source_sha256': '315595df733365d4b73885fd4e56a27644e1a54255552a342faf44f1d4180a72'},
- '20260910': {'code_set_sha256': '7fd6e487c67612ddf0c047e23ac08b69dbad35b8db5233991bb8b302d2f3d1b9',
-              'pool_manifest_sha256': 'd219d6d62872549598573231292e7a14016a9d09cd1121f78a3655f5fa5c5ee2',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260910/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '2d0a57ad8c94cbe5d33fb1c5e9b56e7a58a574cf9d7261e97db0761f133da3ea',
-              'pool_sha256': '2a514ccf092ba41a03a864098f204e15154acbfcb049b8b36c89e138f9f47304',
-              'signal_date': '20260909',
-              'source_date': '20260910',
-              'source_run_id': 'hk-d1-2a514ccf092ba41a',
-              'source_sha256': '77e6996021aaf320fefba6c43ec25d31db88ac392e87150b4c962fd250794593'},
- '20260911': {'code_set_sha256': '508db177627340b456ce44bdb92f5ee42bd19a9ceceed3549f4b871e1598aa93',
-              'pool_manifest_sha256': 'c3ab9e60dddd1a1874be9c122285ac45a094c346551979ea7aa0e8cfd3c046b2',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260911/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': 'e0ad3b7279948d30ee5b68e5b6326320b84f9ff5adc18a05d5b993f6a9875fe5',
-              'pool_sha256': 'fa90437cbb0988a156b78c70281b8201aa305aa698921ff99662cd33b03690bd',
-              'signal_date': '20260910',
-              'source_date': '20260911',
-              'source_run_id': 'hk-d1-fa90437cbb0988a1',
-              'source_sha256': '94905013337883f8c52c9c8fe3636b89e1b08a336147eeb1d602e9a9a6f1914c'},
- '20260914': {'code_set_sha256': '5fe73e8febe7a131c398b911564cfa05396bb9943479f5ba661a075e57f23417',
-              'pool_manifest_sha256': '96c9f6c8f8085f531bfbb26921c57836bb53b0098b4110b34e7eba9db800568b',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v4.local/state/data/preselection_pools/20260914/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': 'f8e8bea7188acb8fd55db82e9d30c7aa281a3c0ed4635cbdd62d0cc886cdc5b1',
-              'pool_sha256': 'beba5c0c39bf78ca01415485db146a0259ad6558cc74501a6125b7ae19cb2d02',
-              'signal_date': '20260911',
-              'source_date': '20260914',
-              'source_run_id': 'hk-d1-beba5c0c39bf78ca',
-              'source_sha256': '149d5edcd7d3c2b4a564e46967f4b0d22cff79ff6b918acaffe085f3e4df6d91'},
- '20260915': {'code_set_sha256': '212a42b5e56e5cd7fb3ab75125237775d07a3764bf7f09ca5614fa1c927ed2de',
-              'pool_manifest_sha256': '3435f8ce38d8ff1e4f1b5ab864e470ff0e2cc1ab1a657515a57686f54a757098',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v4.local/state/data/preselection_pools/20260915/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '1a1effa9ff4bc1523bd8a2f7b2ab49a7e08b9c7752aabab721b062cf054eb063',
-              'pool_sha256': 'f59e2c47637d1f4cb2283394e9dbd6fa5c396789601d9bf8fb6db45a170dd91b',
-              'signal_date': '20260914',
-              'source_date': '20260915',
-              'source_run_id': 'hk-d1-f59e2c47637d1f4c',
-              'source_sha256': '187b259de24d898f02a97f0500690993118cb18c6c79cc97de8ff43309b35534'},
- '20260916': {'code_set_sha256': 'fa22d9a1e37d43ef039837857aa2505a5562686285ea457dfa7b1a59f0cd69c4',
-              'pool_manifest_sha256': '4835c50466347fff3adbd2f45c220a9a192031b36f198e7dd78682fbe43c75e2',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v4.local/state/data/preselection_pools/20260916/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': 'aa454faad343b63f4d48569a2af2dc2be200e6df38d06d9f4b67f760d7e1a0b5',
-              'pool_sha256': '474bbc703cc1c45e3d3bea39ea0d649b523c7706f3e02fdbea25d1734da52f5f',
-              'signal_date': '20260915',
-              'source_date': '20260916',
-              'source_run_id': 'hk-d1-474bbc703cc1c45e',
-              'source_sha256': '54a6e1245a5de9402c61e1f19108a992f09bfb9108cf48a5afca2d0f02769447'},
- '20260917': {'code_set_sha256': '8eda436d7a7a9b3dee8051e700585de6b0d3b9a134b7183802c59c869f071cd7',
-              'pool_manifest_sha256': '66561e7bbc891e9a0b2317ab9107301eb87bf9a408ca06673a5e04cc40d46ef5',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v4.local/state/data/preselection_pools/20260917/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '9759f2d8218e9f3c55b144c05434b9f3f2169259fe7eb6f3fe9a2f3bcb071831',
-              'pool_sha256': 'f0d425d355df4cdacb5d0e77ec4798ed83b468cf97d30a2fe333b8ebfab9e470',
-              'signal_date': '20260916',
-              'source_date': '20260917',
-              'source_run_id': 'hk-d1-f0d425d355df4cda',
-              'source_sha256': 'ce24544643020aafff2bf05d295add1c559787778723688479c27ce6451fe030'},
- '20260918': {'code_set_sha256': 'd3dd24a11a1f9670cb754869d0173f0fe690078e4b6c542dbcf72055be99cf37',
-              'pool_manifest_sha256': '9552a91e012620875217135b08ac7472ff05c3fa60becebe87d0ad2ff99bec5e',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v4.local/state/data/preselection_pools/20260918/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '12ef7b967634677a6a76759f41c770fc16a4b950eae95c12a2526ba9ef7d1be3',
-              'pool_sha256': '87304841ab06ba4778547fcd9744427ccd73b31c0482861e02d42bd1959e5f24',
-              'signal_date': '20260917',
-              'source_date': '20260918',
-              'source_run_id': 'hk-d1-87304841ab06ba47',
-              'source_sha256': 'c3dfa04e3b4a6a03aed7e98152f52e993a9945fd094f4a43ab8d3d8b1c16a890'},
- '20260922': {'code_set_sha256': '1f4a63a44899d43b2b821fd10ea17ca18303751bc838e586c658cdd826d8de64',
-              'pool_manifest_sha256': '7517f005249a7ee7a1d2def70a2c2df48c191e42d02567c9c522dbf1d8b70ae4',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260922/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': 'd6a9eb58df0220901d962da3c6139ee866233c7cc88e5a24f267570f2becbf16',
-              'pool_sha256': '499908ce213e00c31dc487e9a47f904b91a49f3cc817f549b2f6021c29105ffb',
-              'signal_date': '20260921',
-              'source_date': '20260922',
-              'source_run_id': 'hk-d1-499908ce213e00c3',
-              'source_sha256': 'd39bcce29b75693656783e00ecb0c4a62fb54dd58c47616c52c303ffd3c99c79'},
- '20260923': {'code_set_sha256': 'c15c86d9d0dee9f092dd75e285112ca03e0064653ad0f8ab6585cde41f52a744',
-              'pool_manifest_sha256': '8c3871d1793d50d66eb503e89d4612de3702ac245b07500de33203d4206871b7',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260923/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '20bdfa7490919220b75a1dbc8f395b92e986de9791045ff9d341c246ab62c741',
-              'pool_sha256': 'c8d0cf45d9c8a99c44a4a568b4d1e26cb0f50fa48d7124e3f0ddecf8e267ded2',
-              'signal_date': '20260922',
-              'source_date': '20260923',
-              'source_run_id': 'hk-d1-c8d0cf45d9c8a99c',
-              'source_sha256': 'f0822dbbf4b638351f4655f2a82d47af4bb0dc82ed40025ce4d61d73521e9cc2'},
- '20260929': {'code_set_sha256': 'd4a294e18d5e0399a8410e833b4535dc8b1c3423af9d30aba0703b899d5f86a8',
-              'pool_manifest_sha256': 'b0f06ae4d85c34018a0a5cc05034776f8035414fa63d0284931349ce966c3acf',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20260929/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': 'a809f6379462fed4fd1ffeaf3a1116d635af9c0dff19fe307147eb22a3be8b27',
-              'pool_sha256': 'd94eae4903aa09088f88d954d358869e7c1ac991782488ad62fd3bec40eeaaf3',
-              'signal_date': '20260928',
-              'source_date': '20260929',
-              'source_run_id': 'hk-d1-d94eae4903aa0908',
-              'source_sha256': '83940e1da0914b2b90c96ce65f241154403502da65e4cacca6023e79e0a13dbb'},
- '20261002': {'code_set_sha256': '78bb7af3f8e2b165170325734e1c3bc43de12deb1d95b0b2365ed2b1a77d2181',
-              'pool_manifest_sha256': '56989eb471718751e8f64335bc5c38af015cf9d147732e24ab5617fc647b7529',
-              'pool_path': '/Users/lexi/Library/Application '
-                           'Support/com.lexi.v35.local/state/data/preselection_pools/20261002/hkconnect_d1_top100.json',
-              'pool_receipt_sha256': '9da167bbe73e78c3d0cf0f3376ccf71c41a6988a53d2ebc97d07b7288ee9483b',
-              'pool_sha256': '9486b32cd8290994e1bf82cd15863fb7d0c00100bd52f1f6eb5d03af80b72077',
-              'signal_date': '20260930',
-              'source_date': '20261002',
-              'source_run_id': 'hk-d1-9486b32cd8290994',
-              'source_sha256': 'b6038d1eba2cc7c005451d0b208c90985eddfe8442321547f036c359a2636654'}}
+_HK_R9_POOL_EVIDENCE = _evidence_tagged("hk_r9_pool_evidence")
 _MONTH_HK_AFTERFACT_R9_STAGE_ROWS = _evidence_row_dicts("hk_afterfact_r9_stage_rows")
 
 def _hk_r9_required_evidence(row: Mapping[str, Any], pool: Mapping[str, str]) -> tuple[str, ...]:
@@ -621,82 +304,8 @@ _HK_R9_BINDING_BY_DATE_STAGE = {
     for item in _MONTH_HK_AFTERFACT_R9_BINDINGS
 }
 
-_HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE = (
-    "recovery_mode=HISTORICAL_BACKFILL",
-    "due_status=HISTORICAL_BACKFILL",
-    "HISTORICAL_BACKFILL",
-    "selection_mode=BACKFILL",
-    "observation_status=OBSERVATION_UNVERIFIED",
-    "observation_contract=HK_MORNING_SELECTION_REPROJECTION_R1",
-    "historical_capture_after_target_cutoff=true",
-    "historical_temporal_cutoff_safe=false",
-    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
-    "historical_natural_time_capture=CANNOT_CONFIRM",
-    "historical_pit_safe=false",
-    "historical_orderbook=CANNOT_CONFIRM",
-    "recovery_original_failure=HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
-    "production_allowed=false",
-    "buy_gate_updated=false",
-    "orders_sent=false",
-)
-_HK_MORNING_SELECTION_RECOVERY_ROWS = (
-    {
-        "stage_id": "STAGE_0930_0935",
-        "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
-        "selection_run_id": "run-e8a2024a09a9c2f5f2e94312",
-        "artifact_id": "selection-e8a2024a09a9c2f5f2e94312",
-        "raw_artifact_sha256": "1c850296885d7516151ea658f81ef1afd3706047664005f3568de86a4acad777",
-        "original_manifest_sha256": "831b93b360bd61e1bf65f9704844e5a32ef98f7af2e5bd12dd0494eaaa0fb85d",
-        "original_receipt_sha256": "5be67f93b87e7c262f5b840e7a51d343c341720ed277bc86b366c53823fb0792",
-        "selection_manifest_sha256": "f2c6a24eb3104b1cb4e95c8d69cc125678be920283d80523ab2e3b8b7b4a627a",
-        "selection_receipt_sha256": "7c97a711f9e07b0d85933138f4e47089644fe00de4e68a9420c24e3488505bd1",
-        "selection_artifact_sha256": "64da4a35c08c0fd194b751d14ee681c4e192e64542054440d7b357166207d0e2",
-        "runner_receipt_sha256": "7705fd6b8393e2cbe2dfebdd12bead7d370511ce24c01440ca161ab1edb659af",
-        "source_evidence_sha256": "3467ddde3ed8c612e077d61d8bf9d288765f41c84f18ca14a1c168077d2d31f2",
-    },
-    {
-        "stage_id": "STAGE_0935_0940",
-        "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
-        "selection_run_id": "run-ccc20f037cc139b83f8a3f7c",
-        "artifact_id": "selection-ccc20f037cc139b83f8a3f7c",
-        "raw_artifact_sha256": "a71b46e70063bfa2c9665eec341680cd88d6c9bc6bb358cb9966a999702ee26c",
-        "original_manifest_sha256": "b9a099fb646ee9654f1200906cb2558e37bc7ba87ec40e6ab7e5cd25e6211b7c",
-        "original_receipt_sha256": "9d8444d33e119193521aab0d43901e8a181603d13f2433c750dda87d20602783",
-        "selection_manifest_sha256": "c6a427472e3d22f464c8c4f71c147c76394d591cc034408bf69ebcb934b44d83",
-        "selection_receipt_sha256": "10b6f0d7deff4a0863e893893d51115983d78e7c4a603b544286265a773ce546",
-        "selection_artifact_sha256": "ed05e2eb54592992be63aa9bb842e10443fa4c9b2bacda1d989bd52898f1a09b",
-        "runner_receipt_sha256": "e6c3ea14d193a3cdc6f4a622b0c55d7176087316da1d4d3217dbe175f5eb0b60",
-        "source_evidence_sha256": "c99e8481604fcb9280c1c428e7eae4cc67c5a1efb3dea81bfc4444496906e072",
-    },
-    {
-        "stage_id": "STAGE_0940_0945",
-        "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
-        "selection_run_id": "run-9f5dbc39a836451324721acf",
-        "artifact_id": "selection-9f5dbc39a836451324721acf",
-        "raw_artifact_sha256": "6c273dcd40a7de66a10c523b9345171565d866c64c6c33b6c39c713ea7914655",
-        "original_manifest_sha256": "d27bcf81f1622bb85a5033c01986688d98e38a3a6c82eda2a977a95fdaaf2d23",
-        "original_receipt_sha256": "e0564cc51f362e19f3de119c6c62376f37623e4773f6689321170df02e10c743",
-        "selection_manifest_sha256": "ba2f1ea44b9e348e1d3de61b4bcb9ac8cc38fbd71d3537ce9c2a4feb4e75b937",
-        "selection_receipt_sha256": "126085edf5155e4861c1d3fb4a47fe88b9fd338746e713237889c134c0d839e9",
-        "selection_artifact_sha256": "c4e4720a38ea2de6d2bb0b40ca6a0356289cab33825890f6329056567dedb950",
-        "runner_receipt_sha256": "64573855d3ed3a4e7454dd27cbd207fa4d1bf95e238f4e7510404bcf662d749d",
-        "source_evidence_sha256": "ba4e0c1d97d166789eed605cde6cdd0753a75558c196e34c6db06201426dad2b",
-    },
-    {
-        "stage_id": "STAGE_0945_1030",
-        "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
-        "selection_run_id": "run-181ddc8bd8047a502234b698",
-        "artifact_id": "selection-181ddc8bd8047a502234b698",
-        "raw_artifact_sha256": "c7e8bfcae1e969874e8291e58b7cbcebddd0ac1c9a38435257b45ccaed1ab794",
-        "original_manifest_sha256": "e3214b8e79cc32c249f7970cf2b221f6150c33c8df225bfe421a61454975593a",
-        "original_receipt_sha256": "b5af283cebd60428599247c2e3f5d954fae530b477e1be10e2d7f8e12beb0612",
-        "selection_manifest_sha256": "4479d731a796b0ef6e2065c92dab98da3b88462b334cdd31d32e7e2e11908e13",
-        "selection_receipt_sha256": "ac37537b8bab1e0fbd02dd836b17f23dedbf98a7e5a159b4e80a67204b6dacca",
-        "selection_artifact_sha256": "0e8ecec964d6b9827dd07eba568c3c9318e3ee622abbd7801a6b50daa67c903b",
-        "runner_receipt_sha256": "b286e07ed50e8b8c806661939cb4c2b441d28f0fd1bf627925a908f8145e7ec0",
-        "source_evidence_sha256": "f2cbaa26f106c7b59cdc7574fdcb91507f4ddca2e780b8f331382442f3fa4832",
-    },
-)
+_HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE = _evidence_tagged("hk_morning_selection_recovery_required_evidence")
+_HK_MORNING_SELECTION_RECOVERY_ROWS = _evidence_tagged("hk_morning_selection_recovery_rows")
 _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE = {
     ("20261016", row["stage_id"]): {
         **row,
@@ -715,24 +324,6 @@ _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE = {
     }
     for row in _HK_MORNING_SELECTION_RECOVERY_ROWS
 }
-for _hk_morning_binding in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.values():
-    _hk_morning_key = (
-        "20261016",
-        _hk_morning_binding["stage_id"],
-        "HK_CONNECT",
-        _hk_morning_binding["backfill_run_id"],
-    )
-    if _hk_morning_key in _APPROVED_EXACT_STAGE_BACKFILLS:
-        raise RuntimeError(f"duplicate exact stage backfill binding: {_hk_morning_key}")
-    _APPROVED_EXACT_STAGE_BACKFILLS[_hk_morning_key] = {
-        key: value
-        for key, value in _hk_morning_binding.items()
-        if key not in {
-            "stage_id",
-            "original_manifest_sha256",
-            "original_receipt_sha256",
-        }
-    }
 
 # These nine legacy observations were captured from the live ordinary reader
 # and its verified SelectionStore entries. Their HK D1 markers consistently
@@ -740,138 +331,9 @@ for _hk_morning_binding in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.
 # the compatibility boundary pinned to each old run, artifact, pool path, and
 # SelectionStore manifest/receipt identity. In particular, candidate_current
 # markers are intentionally not treated as HK D1 pool aliases.
-_HK_R9_LEGACY_STALE_POOL_CONTRACTS = {
-    "20260914": {
-        "pool_sha256": "5efc2b292418f062c9d3acce6bb3c47ded90eff3c80f753311deb1e5b6ca81ed",
-        "pool_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260914/hkconnect_d1_top100.json",
-        "source_trade_date": None,
-        "source_signal_date": None,
-        "binding_sha256": None,
-    },
-    "20261002": {
-        "pool_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
-        "pool_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20260930/hkconnect_d1_top100.json",
-        "source_trade_date": "20260930",
-        "source_signal_date": "20260929",
-        "binding_sha256": "f45233cd1d30d04a8e89c3a08ba8dab4ff63f1d787809b3323307f6f96cb5901",
-    },
-}
-_HK_R9_LEGACY_STALE_LANE_IDENTITIES = {
-    ("20260914", "STAGE_0930_0935"): {
-        "run_id": "run-ddebe6065cd641562d3c98cf",
-        "artifact_id": "selection-ddebe6065cd641562d3c98cf",
-        "raw_artifact_sha256": "376143acf36ee74c3c62c799e8f4c533b79fc6a74a3e8581c5cf5d9f1148da94",
-        "selection_artifact_sha256": "5b1603976188ffedaff797973320415a55b6cfec614f53e1b8892df94e2c35b9",
-        "selection_manifest_sha256": "03d9937adaffc40b879b6a173ee95ccefae612c34b92fbe58995ef70b82b4d67",
-        "selection_receipt_sha256": "bfc4f20cb94998c68c5fd71cebf8e9de86693810be416750837ab499cd422c29",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20260914", "STAGE_0935_0940"): {
-        "run_id": "run-f754096694ad081a4c1be700",
-        "artifact_id": "selection-f754096694ad081a4c1be700",
-        "raw_artifact_sha256": "7ce0e02268a5fa2370304dee8645bae0e2093e513d4d15f4411961a98aa16965",
-        "selection_artifact_sha256": "b8635ed884fefe876dfedb85936cb059c8ab551a02bd363af50b7d5bf32f7046",
-        "selection_manifest_sha256": "a0ea55d19a11c2b1086d536d8a4e947714be57140d26b2e2a31de560533e43e0",
-        "selection_receipt_sha256": "15667a53038a19e37729b7ca424adc7e60b0d339f53ca0cb141c684488e3bc2a",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20260914", "STAGE_0940_0945"): {
-        "run_id": "run-762102f832912b5c3eba93c4",
-        "artifact_id": "selection-762102f832912b5c3eba93c4",
-        "raw_artifact_sha256": "d75c50e6579261393ac480e66e0e5e6e5f6c67d20143e7db58c5ca55053c91fd",
-        "selection_artifact_sha256": "6d9afff2d240a67bd67012b414c1b404e7901d4ead7325a12edbb7ad548bc918",
-        "selection_manifest_sha256": "d136b81561d58c3f44c4db801576b5b4c927bcd6ffb29f7d3668bf078d7bb8ca",
-        "selection_receipt_sha256": "8e446c5066e0c15c70a58bdc9d48ead4e8155f1d8d80c7aecce8cec8631ba95d",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20260914", "STAGE_0945_1030"): {
-        "run_id": "run-34cecc7adf0c099e6438f665",
-        "artifact_id": "selection-34cecc7adf0c099e6438f665",
-        "raw_artifact_sha256": "210d90e915de4e495b50545a3b06c803773ec3310d5b74a7a076e1d815fd70ae",
-        "selection_artifact_sha256": "fa0d9a43683c23b1b803a0816d80b0a5b6c48c6cb99114859af98908710f6c6b",
-        "selection_manifest_sha256": "de38f6f660cdd11451009b9c5424e1b9529c85ca2fc0fbbca86af12cf2e42605",
-        "selection_receipt_sha256": "c3c445ee9d321c0245ce7721ec3e57ee95b41b2fbc861c4f937de8718c65e24b",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20260914", "STAGE_1300_1315"): {
-        "run_id": "run-098cfa4c85b2a45cc3bb6f73",
-        "artifact_id": "selection-098cfa4c85b2a45cc3bb6f73",
-        "raw_artifact_sha256": "22cbd1dc00b32a6238840d43ddee3ad163547aeebcb2f27f15f6286dbe5c0d34",
-        "selection_artifact_sha256": "ea990e08437b0a358bdc59877904e8cce8e08a1b70ef10108809df1e3095263d",
-        "selection_manifest_sha256": "c8e0778ebf4ba5209847e106d7fa952c281637384854ccada480e4258d67fc08",
-        "selection_receipt_sha256": "07c1658a3284bddc260e24bfeedfcf0179ea096033b9a1764d09f282059e39ca",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20260914", "STAGE_1445_1500"): {
-        "run_id": "run-6b5e1f0bdea67ed9c2e4ebca",
-        "artifact_id": "selection-6b5e1f0bdea67ed9c2e4ebca",
-        "raw_artifact_sha256": "4b4dae2c8854b39e4b518c1b6bbb023e330ff889699d314300753e527f0f6ee3",
-        "selection_artifact_sha256": "693edb804e828fd3c4ae63b3d97fe5311d6b0ab79463fc740e25527f771fb6cb",
-        "selection_manifest_sha256": "538eab784d1ed420d87e0d322570c5206487242ec7971d2019de6b2afd19b2b0",
-        "selection_receipt_sha256": "6ce094c2613b51e29b01773438d6d7b3955e7c1b7ed7cc25bf81725fc4e645ee",
-        "requested_rows": 100,
-        "source_rows": 99,
-        "observation_count": 10,
-    },
-    ("20261002", "STAGE_1300_1315"): {
-        "run_id": "run-c54d3c6ebf6aab8c3b972491",
-        "artifact_id": "selection-c54d3c6ebf6aab8c3b972491",
-        "raw_artifact_sha256": "8f2a1d886b59d45d3f90d6d26e5a5fc9c7578fed97609ed42e50d134ef7ec13a",
-        "selection_artifact_sha256": "289f8b79fe63f401fb933d4a29bf8a5e0bacead0d6c7234c7e818efe1664c42d",
-        "selection_manifest_sha256": "125c9beb951e5177d67baf2463127b5347599c634c23b5cacf97339f9e8bdaa7",
-        "selection_receipt_sha256": "16fa584e093fedfa8b75669b6ef59ea841ebdaea7d6bc43070fa35c765ee6cc8",
-        "requested_rows": 100,
-        "source_rows": 100,
-        "observation_count": 10,
-    },
-    ("20261002", "STAGE_1445_1500"): {
-        "run_id": "run-7c9d106a75703472c9f1a202",
-        "artifact_id": "selection-7c9d106a75703472c9f1a202",
-        "raw_artifact_sha256": "6b6d739b7d52adebd137f1dfff785d83cd7d3dfc867e37c9957aad904bb28179",
-        "selection_artifact_sha256": "362f43d40b711eb57d821bd447e8dc9fbe23df40ea8d3164b2b4d0b63301d7df",
-        "selection_manifest_sha256": "bc2dd14b8b6947d0e2f2745225734b9c89e26744a6549555d3b8c24cdc8e2ebd",
-        "selection_receipt_sha256": "859346ab581fbae28ea973054011749b286b8de3c29f7fab34f3ea0ce99adc80",
-        "requested_rows": 100,
-        "source_rows": 100,
-        "observation_count": 10,
-    },
-    ("20261002", "STAGE_1545_1555"): {
-        "run_id": "run-d4e2e669cf2bd4fb1f572779",
-        "artifact_id": "selection-d4e2e669cf2bd4fb1f572779",
-        "raw_artifact_sha256": "434ea250c413770aa4f584d737b66666dca21bc37c36fc5da5936052c91a1177",
-        "selection_artifact_sha256": "1f56fa22b1e95c926229e9ea438163186e2b39bc0e2765c001358eaeb637d555",
-        "selection_manifest_sha256": "fa861d31404eb59f8788e3f50e39ea197eb779244e6862469e6df9c984d627e8",
-        "selection_receipt_sha256": "54220679a950ff06c3b94427e61f0f35630ce3e1d51bbc588f3de71d12a23933",
-        "requested_rows": 2,
-        "source_rows": 2,
-        "observation_count": 2,
-    },
-}
+_HK_R9_LEGACY_STALE_POOL_CONTRACTS = _evidence_tagged("hk_r9_legacy_stale_pool_contracts")
+_HK_R9_LEGACY_STALE_LANE_IDENTITIES = _evidence_tagged("hk_r9_legacy_stale_lane_identities")
 _HK_R9_LEGACY_STALE_POOL_KEYS = frozenset(_HK_R9_LEGACY_STALE_LANE_IDENTITIES)
-for _r9_binding in _MONTH_HK_AFTERFACT_R9_BINDINGS:
-    _r9_key = (
-        _r9_binding["date"],
-        _r9_binding["stage_id"],
-        _r9_binding["market"],
-        _r9_binding["backfill_run_id"],
-    )
-    if _r9_key in _APPROVED_EXACT_STAGE_BACKFILLS:
-        raise RuntimeError(f"duplicate exact stage backfill binding: {_r9_key}")
-    _APPROVED_EXACT_STAGE_BACKFILLS[_r9_key] = {
-        key: value
-        for key, value in _r9_binding.items()
-        if key not in {"date", "stage_id", "market", "backfill_run_id"}
-    }
 
 def _resolve_exact_backfill_selection_root(selection_root: Path | str, run_id: str) -> Path:
     """Resolve one pinned run-scoped store without following namespace symlinks."""
@@ -982,127 +444,9 @@ def _strict_date(value: str) -> str:
 
 
 # Exact saved 20261023 observation inputs; this grants no formal/PIT eligibility.
-_HK_MORNING_HISTORY_20261023 = {'STAGE_0930_0935': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/artifact.csv': '701da95236a8fbe1182a2a9764472794f2429963721ffdcdf4b646a0c42e3659',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json': '57d86298fd5741a95315e311711d409ac8a4f6a728bc3f27d51fcf85190984f9',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/receipt.json': '38c146f3a37c308c01d891bf66774132666c7cb5db3923bfbcac8c74c69d0f22',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv': 'f6892dd0a6f0da01fc4e79a9d3c3f64eb6f3fff3fad33e8be44f08a3dfb65a43',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json': 'a3c1da782b5d6a5af2455e938f2c937c02439789f03638f4f98b509d1a9fce6e',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/receipt.json': 'b05faa232b96866af443cb61b8db1d525f7e1dda92cd0844acc24e73cbf721b9',
-                               'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
-                               'receipts/20261023/STAGE_0930_0935/receipt.json': '9d460bf292ae29da6badaba9f9be5786eb4d8d58aa658ce510bf9e13339f9b4f'},
-                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json',
-                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json',
-                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv',
-                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json',
-                     'capture_sha256': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
-                     'run_id': 'run-c189009adf3a4eebf481d892',
-                     'captured_at': '2026-10-23T11:03:25.217128+08:00',
-                     'cutoff_at': '2026-10-23T09:35:05+08:00',
-                     'window_start': '2026-10-23 09:31:00',
-                     'window_end': '2026-10-23 09:35:00',
-                     'bars_per_code': 5},
- 'STAGE_0935_0940': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/artifact.csv': '6e52e72acfaf6626724484b9d931bcbafb1dd7577a27af5a6a697bbe1671a2a0',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json': 'b5e37cda6e032c60046edec7fa1accb0fefdf9315b5112c0facfb0fae45acf3a',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/receipt.json': '8ea0642b67cdaeaf80efe34048493684ebce1805e72458a5ce9fb7331fca67d6',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv': 'f8070e1f4a6c758137a525d7f709f769728f737094b13dc57debd2dc649986fe',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json': '69eade2952a355a4d357bb168637c0160e92fc7516de9003c4546e20947f050f',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/receipt.json': '62baf4a9a04055d6e4392fa2fa8dab7b1002139728ef33f3a9125b41fd6818bf',
-                               'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
-                               'receipts/20261023/STAGE_0935_0940/receipt.json': '2796c68a950bbae12730cf927d1b31ec818f2812919ec063c55721f8fb5511cf'},
-                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json',
-                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json',
-                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv',
-                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json',
-                     'capture_sha256': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
-                     'run_id': 'run-3365f6cb264f0a04cf63eb2d',
-                     'captured_at': '2026-10-23T11:04:35.595295+08:00',
-                     'cutoff_at': '2026-10-23T09:40:05+08:00',
-                     'window_start': '2026-10-23 09:36:00',
-                     'window_end': '2026-10-23 09:40:00',
-                     'bars_per_code': 5},
- 'STAGE_0940_0945': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/artifact.csv': 'bf21d7ab87b3952b8d660778245252c0fdd566c70a8e41ef3a5caa4bb3790ccc',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json': 'eae87f78c78e11f525a525cc7c3cae8e54d2d4bef8f9d79da578b1c7fc69bfb6',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/receipt.json': 'eceda83c242390c80146dc5ea6dfa00a1bc6dd89bb4bd3adff88665dffbe77c2',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv': '4e011cb4d14e5116ab0696cbe499cef951985786623b80dcebe2969b7375b6b9',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json': 'fa48d6d3c34b3f221fe601fe35875182d8c9c2e6a5f60b02bd8deabafd6b8e97',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/receipt.json': '20aaece7a864b6902e57a2326653f533a4fd1e5d84f6bbe8118c1e33e6839e93',
-                               'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
-                               'receipts/20261023/STAGE_0940_0945/receipt.json': '8b84f04d86dc978cd6622c99decb3dbbdc9e33d03ec01123d7618b61e851ca38'},
-                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json',
-                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json',
-                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv',
-                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json',
-                     'capture_sha256': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
-                     'run_id': 'run-02a055be59ac29221881ecc1',
-                     'captured_at': '2026-10-23T11:05:08.649061+08:00',
-                     'cutoff_at': '2026-10-23T09:45:05+08:00',
-                     'window_start': '2026-10-23 09:41:00',
-                     'window_end': '2026-10-23 09:45:00',
-                     'bars_per_code': 5},
- 'STAGE_0945_1030': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json': 'afb32532f9f5ebf418ade4f5acff47a485be0619c168dac49948c22d5b90ade4',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/receipt.json': '96e696894c67c74f97ed115b42e2d7df0c2793e52dccdb072a5eb91036274fe0',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv': '8a3210d20ae0d7cd0bea61ae3b98d586a4e8e23124d56a8bbd4d9c22482029b3',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json': '1548b6314b181c0f14b88a80312e0d3797990d2ed54e5925c38a2fa85e15a92d',
-                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/receipt.json': '78cf3347e5fa7e91a09a0d86d56c06a80246c17d3a1f2d809b47e8b7d1e5c963',
-                               'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
-                               'receipts/20261023/STAGE_0945_1030/receipt.json': 'b97055c40b2944559a524a01037cae52841643070084203cbaef9c825cc5e823'},
-                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json',
-                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json',
-                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv',
-                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json',
-                     'capture_sha256': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
-                     'run_id': 'run-00601d8e8688ada1f675d798',
-                     'captured_at': '2026-10-23T11:05:50.283826+08:00',
-                     'cutoff_at': '2026-10-23T10:30:00+08:00',
-                     'window_start': '2026-10-23 09:46:00',
-                     'window_end': '2026-10-23 10:29:00',
-                     'bars_per_code': 44}}
+_HK_MORNING_HISTORY_20261023 = _evidence_tagged("hk_morning_history_20261023")
 
-_HK_MORNING_HISTORY_SAFE_PACKETS = {'STAGE_0930_0935': {'files': {'derived_raw.csv': '79c431cbfba8b87b7697b96150eb0ead54c94afd14753a0e65217426f327cb7e',
-                               'observation_receipt.json': '2b1984c1347464048707b040e0d73dfcf974006fe3c7bf8c00dcbeb4abbd2c4a',
-                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
-                               'selection/selection_latest.json': 'c75ce537291bc1675bf245fe13e617c9d4476c1b57d2d24f0b7224adec21b409',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/artifact.csv': 'ac3a091fd6f213f5dcc880b33737f7d87e1624f4eb160b1e1b31fa200d28712d',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/manifest.json': 'ef573bf94741185288dcc241312147bd88a35cb206edb98c01912a800de18d90',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/receipt.json': '82e2d93cd0a0625a55f7a2f72dbff69da62892ced51470bd2997f8169eeb55f9'},
-                     'selection_run_id': 'run-418f15f2beca8fef1c0b986e',
-                     'window_start': '2026-10-23 09:31:00',
-                     'window_end': '2026-10-23 09:34:00',
-                     'bars_per_code': 4},
- 'STAGE_0935_0940': {'files': {'derived_raw.csv': '7412095d3bc2ebbb5e0b99dcd68140d7f7d239bd5ba16ed105b78f960f0f8844',
-                               'observation_receipt.json': 'fce74ac9201a70768cf0532f3ae777e0167ec130d981cbbae1f01242bb19ed69',
-                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
-                               'selection/selection_latest.json': '3c559b18159d4d29559e0b0ef34a18df29ceaa7ceab711a59e378701321c7cf4',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/artifact.csv': '773534448ff06d297536517d2bd79c7e24afce9c3f697b34910477e2ee9849ec',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/manifest.json': '4bfc1f9889ae1c0f4fea9cc933af5888a1b97e9a55a5e672e2dc6d8e2673d002',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/receipt.json': '9471f5b3bcd4e5b8d9083b5960930539fa30946602f68c504516fc2eb6c9cbcf'},
-                     'selection_run_id': 'run-220305b51cdbc8c6dcf661d0',
-                     'window_start': '2026-10-23 09:36:00',
-                     'window_end': '2026-10-23 09:39:00',
-                     'bars_per_code': 4},
- 'STAGE_0940_0945': {'files': {'derived_raw.csv': '23b740ab2cdb7b85a24d4f11acdc1956a13e0027f0d01c8ff541daeda643a7a9',
-                               'observation_receipt.json': '6c68cb52aeb1e0230bb01e3299bbaaf85c05012e0f92cd18167ef901b7ff2578',
-                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
-                               'selection/selection_latest.json': 'ee02a86b3c72e892c5ca9dd1df4b032fc01d6958323f667f18c49396e661d7ab',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/artifact.csv': '6917ddeb0c43f6e5a0a7a28204062708d24ef6cd06a1b73fc1790eabeaab9bef',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/manifest.json': '65e5119e7ebaa203fd174c87f8e2e262525a31297a937cdcf72984865c7bcaf5',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/receipt.json': 'dde981f4e97c797b7967f25764c7234374d025ab3afbbedf2773e0408c00cd60'},
-                     'selection_run_id': 'run-c20b5937969e33c36510e94f',
-                     'window_start': '2026-10-23 09:41:00',
-                     'window_end': '2026-10-23 09:44:00',
-                     'bars_per_code': 4},
- 'STAGE_0945_1030': {'files': {'derived_raw.csv': '0030c37c07627c00528a6740df1579dc034bd410e2a8fb776218c4d0c5fcdbd6',
-                               'observation_receipt.json': '12ae9f02fd8f340a418a1302fe2665e75176635824d8c09fbc56cef14c6f0166',
-                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
-                               'selection/selection_latest.json': '7f3a35356ec84e5f06c04889a913d2ba8038f78681a4d2c84330235e10bf8afc',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/manifest.json': '2c88829cdcc4e172fed87d48d0dc05f5ea43ff89ba48e85f67100635bc66fe4d',
-                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/receipt.json': '03e20c0f8dbd76e806f7775061990399aa6895d238f4944f49f9b23b1070d42a'},
-                     'selection_run_id': 'run-39eb622c15067fbe1775b711',
-                     'window_start': '2026-10-23 09:46:00',
-                     'window_end': '2026-10-23 10:29:00',
-                     'bars_per_code': 44}}
+_HK_MORNING_HISTORY_SAFE_PACKETS = _evidence_tagged("hk_morning_history_safe_packets")
 
 def _hk_morning_history_observation(
     selection_root: Path | None, pool_root: Path, market_payload: Mapping[str, Any],

@@ -112,6 +112,48 @@ def row_dicts(name: str) -> tuple[dict[str, Any], ...]:
     return tuple(result)
 
 
+def _decode_tagged(value: Any) -> Any:
+    if not isinstance(value, Mapping):
+        return value
+    kind = value.get("__type__")
+    if kind is None:
+        return value
+    items = value.get("items")
+    if kind == "tuple":
+        return tuple(_decode_tagged(item) for item in items)
+    if kind == "list":
+        return [_decode_tagged(item) for item in items]
+    if kind == "set":
+        return {_decode_tagged(item) for item in items}
+    if kind == "dict":
+        result: dict[Any, Any] = {}
+        for pair in items:
+            key = _decode_tagged(pair[0])
+            if key in result:
+                raise EvidenceDatasetError("EVIDENCE_DATASET_INVALID:tagged:duplicate_key")
+            result[key] = _decode_tagged(pair[1])
+        return result
+    raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:tagged:unknown_type:{kind}")
+
+
+def tagged_value(name: str) -> Any:
+    """Return the exact Python value of a ``tagged`` dataset.
+
+    Used for the small evidence constants whose shape is not a plain table
+    (mappings with tuple keys, sets, nested tuples). The type tags make the
+    restoration explicit instead of guessing from JSON's array syntax.
+    """
+    entry = _manifest().get(name)
+    if entry is None:
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:not_in_manifest")
+    if entry.get("key_type") != "tagged":
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:key_type")
+    payload = _read_dataset(entry)
+    if "value" not in payload:
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:value")
+    return _decode_tagged(payload["value"])
+
+
 def tuple_rows(name: str) -> tuple[tuple[Any, ...], ...]:
     """Return a ``tuple[tuple]`` table for a pinned ``tuple_rows`` dataset.
 
