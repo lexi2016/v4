@@ -1,0 +1,39 @@
+{
+  "schema_version": "v4.baseline_ignore.v1",
+  "captured_from": "two consecutive captures on 2026-11-01 against release perf-runtime-repair-20261101-r1",
+  "note": "Only paths observed to change between two back-to-back captures, plus the release identity fields that change per phase. Release identity status is asserted separately and is not ignorable.",
+  "paths": [
+    {
+      "path": "display_name_authority.display_as_of",
+      "reason": "clock-derived display timestamp; changed on every request in the two-run diff"
+    },
+    {
+      "path": "collection_age_seconds",
+      "reason": "runtime age counter in runtime-graph/status"
+    },
+    {
+      "path": "observed_at",
+      "reason": "SOP document read timestamp"
+    },
+    {
+      "path": "monitor.last_success_at",
+      "reason": "runtime monitor timestamp from runtime-graph/status"
+    },
+    {
+      "path": "groups.logical[].next_due",
+      "reason": "next scheduled slot, derived from the clock; changes when the slot boundary passes"
+    },
+    {
+      "path": "groups.logical[].next_due_slot",
+      "reason": "same clock-derived slot label as next_due"
+    },
+    {
+      "path": "runtime_identity.release_id",
+      "reason": "changes with each phase candidate; identity status is asserted separately"
+    },
+    {
+      "path": "runtime_identity.manifest_sha256",
+      "reason": "changes with each phase candidate; identity status is asserted separately"
+    }
+  ]
+}

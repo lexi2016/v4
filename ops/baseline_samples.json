@@ -1,0 +1,339 @@
+{
+  "schema_version": "v4.baseline_samples.v1",
+  "dates": [
+    "20261030",
+    "20261029",
+    "20261102"
+  ],
+  "stages": [
+    "STAGE_0925",
+    "STAGE_0930_0935",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945",
+    "STAGE_0945_1030",
+    "STAGE_1300_1315",
+    "STAGE_1445_1500",
+    "STAGE_1545_1555"
+  ],
+  "samples": [
+    {
+      "id": "healthz",
+      "method": "GET",
+      "path": "/healthz",
+      "params": {}
+    },
+    {
+      "id": "readyz",
+      "method": "GET",
+      "path": "/readyz",
+      "params": {}
+    },
+    {
+      "id": "date_list",
+      "method": "GET",
+      "path": "/api/v1/runs/date-list",
+      "params": {}
+    },
+    {
+      "id": "date_list_d",
+      "method": "GET",
+      "path": "/api/v1/runs/date-list",
+      "params": {
+        "date": "20261030"
+      }
+    },
+    {
+      "id": "meta_stages",
+      "method": "GET",
+      "path": "/api/v4/meta/stages",
+      "params": {}
+    },
+    {
+      "id": "sop",
+      "method": "GET",
+      "path": "/api/v4/operations/sop",
+      "params": {
+        "doc": "overview"
+      }
+    },
+    {
+      "id": "pools_20261030_0",
+      "method": "GET",
+      "path": "/api/v4/preselection-pools",
+      "params": {
+        "date": "20261030",
+        "limit": 200,
+        "offset": 0
+      }
+    },
+    {
+      "id": "pools_20261030_200",
+      "method": "GET",
+      "path": "/api/v4/preselection-pools",
+      "params": {
+        "date": "20261030",
+        "limit": 200,
+        "offset": 200
+      }
+    },
+    {
+      "id": "pools_20261102_0",
+      "method": "GET",
+      "path": "/api/v4/preselection-pools",
+      "params": {
+        "date": "20261102",
+        "limit": 200,
+        "offset": 0
+      }
+    },
+    {
+      "id": "stage_STAGE_0925_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0925",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_0930_0935_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0930_0935",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_0935_0940_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0935_0940",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_0940_0945_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0940_0945",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_0945_1030_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0945_1030",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_1300_1315_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_1300_1315",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_1445_1500_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_1445_1500",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_STAGE_1545_1555_20261030",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_1545_1555",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_batch",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage-batch",
+      "params": {
+        "date": "20261030",
+        "stages": "STAGE_0925,STAGE_0930_0935,STAGE_0935_0940,STAGE_0940_0945,STAGE_0945_1030,STAGE_1300_1315,STAGE_1445_1500,STAGE_1545_1555"
+      }
+    },
+    {
+      "id": "stage_0930_prev",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261029",
+        "stage": "STAGE_0930_0935",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_future",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20261102",
+        "stage": "STAGE_0925",
+        "limit": 50
+      }
+    },
+    {
+      "id": "stage_backfill_0925",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20260925",
+        "stage": "STAGE_0930_0935",
+        "market": "HK_CONNECT",
+        "backfill_run_id": "55742332ec504f119a54c42ce9cad3cd"
+      }
+    },
+    {
+      "id": "stage_backfill_0924",
+      "method": "GET",
+      "path": "/api/v4/workbench/stage",
+      "params": {
+        "date": "20260924",
+        "stage": "STAGE_0930_0935",
+        "market": "HK_CONNECT",
+        "backfill_run_id": "1d3ab9f9bd3a44c3811bf1fed2b74108"
+      }
+    },
+    {
+      "id": "selection",
+      "method": "GET",
+      "path": "/api/v4/stage-center/selection",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0930_0935"
+      }
+    },
+    {
+      "id": "manager_selection",
+      "method": "GET",
+      "path": "/api/v4/manager/stage-selection",
+      "params": {
+        "date": "20261030",
+        "stage": "STAGE_0930_0935"
+      }
+    },
+    {
+      "id": "review",
+      "method": "GET",
+      "path": "/api/v4/review",
+      "params": {
+        "date": "20261030"
+      }
+    },
+    {
+      "id": "tasks",
+      "method": "GET",
+      "path": "/api/v4/tasks/status",
+      "params": {
+        "date": "20261030"
+      }
+    },
+    {
+      "id": "mw_recommendations",
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/days/20261030/recommendations/US_MAPPING",
+      "params": {
+        "offset": 0,
+        "limit": 50,
+        "view": "compact",
+        "projection": "focus"
+      }
+    },
+    {
+      "id": "mw_mapping_catalog",
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/mapping-catalog",
+      "params": {
+        "offset": 0,
+        "limit": 25
+      }
+    },
+    {
+      "id": "mw_history",
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/history",
+      "params": {
+        "date": "20261030"
+      }
+    },
+    {
+      "id": "mw_reviews",
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/reviews/20261030",
+      "params": {}
+    },
+    {
+      "id": "mw_announcement_flash",
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/announcement-flash",
+      "params": {}
+    },
+    {
+      "id": "rg_frontend_build",
+      "method": "GET",
+      "path": "/api/v4/runtime-graph/frontend-build",
+      "params": {}
+    },
+    {
+      "id": "rg_status",
+      "method": "GET",
+      "path": "/api/v4/runtime-graph/status",
+      "params": {}
+    },
+    {
+      "id": "rg_authorities",
+      "method": "GET",
+      "path": "/api/v4/runtime-graph/authorities",
+      "params": {}
+    }
+  ],
+  "excluded": [
+    {
+      "prefix": "/api/v4/research/",
+      "reason": "research lane reads its own store; not touched by phases 1-4"
+    },
+    {
+      "prefix": "/api/v4/baimao/",
+      "reason": "observation store; untouched by phases 1-4"
+    },
+    {
+      "prefix": "/api/v4/manager/research/",
+      "reason": "announcement/PDF corpus; heavy and untouched"
+    },
+    {
+      "prefix": "/api/v4/manual-collection/",
+      "reason": "job id is not stable across runs"
+    },
+    {
+      "prefix": "/api/v4/manager-workbench/runs/",
+      "reason": "run id is not stable across runs"
+    },
+    {
+      "prefix": "/api/v4/manager-workbench/stocks/",
+      "reason": "needs a symbol; covered by recommendations sample"
+    }
+  ]
+}
