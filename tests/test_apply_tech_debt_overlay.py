@@ -17,6 +17,7 @@ from ops.apply_tech_debt_overlay import (
     _split_hk_verify,
     _split_routes,
     _split_stage_workbench,
+    main,
 )
 
 APP = '''\
@@ -108,6 +109,27 @@ def test_overlay_fails_when_an_anchor_is_missing(tmp_path: Path):
     app.write_text("def create_app():\n    pass\n", encoding="utf-8")
     with pytest.raises(OverlayError):
         _rewrite_app(app)
+
+
+def test_main_does_not_ship_source_python_cache(tmp_path: Path):
+    app_root = tmp_path / "app"
+    api = app_root / "apps/api/v4_api"
+    api.mkdir(parents=True)
+    _write_app(api)
+    source = tmp_path / "source"
+    source_api = source / "apps/api/v4_api"
+    evidence = source_api / "evidence"
+    (evidence / "__pycache__").mkdir(parents=True)
+    (evidence / "loader.py").write_text("# reviewed source\n")
+    (evidence / "__pycache__/loader.cpython-314.pyc").write_bytes(b"stale")
+    (evidence / "legacy.pyc").write_bytes(b"stale")
+    (evidence / "legacy.pyo").write_bytes(b"stale")
+    (source_api / "projection.py").write_text("# reviewed projection\n")
+    assert main(["--app-root", str(app_root), "--source-root", str(source)]) == 0
+    assert (api / "evidence/loader.py").read_text() == "# reviewed source\n"
+    assert not list(app_root.rglob("__pycache__"))
+    assert not list(app_root.rglob("*.pyc"))
+    assert not list(app_root.rglob("*.pyo"))
 
 
 WORKBENCH_APP = '''\

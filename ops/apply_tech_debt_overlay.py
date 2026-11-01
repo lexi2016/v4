@@ -710,7 +710,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     target_evidence = app / "apps/api/v4_api/evidence"
     if target_evidence.exists():
         shutil.rmtree(target_evidence)
-    shutil.copytree(source / "apps/api/v4_api/evidence", target_evidence)
+    shutil.copytree(
+        source / "apps/api/v4_api/evidence", target_evidence,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+    )
     shutil.copy2(source / "apps/api/v4_api/projection.py", app / "apps/api/v4_api/projection.py")
     receipt = _rewrite_app(app / "apps/api/v4_api/app.py")
     if args.stage_workbench:

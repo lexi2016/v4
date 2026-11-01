@@ -61,6 +61,7 @@ def test_ignore_spec_lists_exact_paths_with_reasons():
 import pytest
 
 from ops.capture_response_baseline import BaselineError, _assert_read_only, compare
+from ops import capture_response_baseline as baseline_tool
 
 READ_ONLY_FLAGS = ("write_performed", "production_allowed", "buy_gate_updated", "orders_sent")
 
@@ -155,3 +156,149 @@ def test_one_sided_failure_is_flagged(tmp_path):
 def test_body_change_on_a_matching_request_is_still_caught(tmp_path):
     problems = compare(_write_baseline(tmp_path), _candidate(samples=[_sample(digest="sha-b")]))
     assert any("normalized body changed" in p for p in problems)
+
+
+@pytest.fixture
+def missing_native_catalog(tmp_path, monkeypatch):
+    for name in baseline_tool.ROOT_ENV_NAMES:
+        monkeypatch.delenv(name, raising=False)
+    native, source = tmp_path / "native", tmp_path / "source"
+    native.mkdir()
+    source.mkdir()
+    (native / "manifest.json").write_text('{"native":1}')
+    (source / "manifest.json").write_text('{"source":1}')
+    (source / "date_catalog.json").write_text('{"system_date":"20261101"}')
+    monkeypatch.setenv("V4_DATA_ROOT", str(native))
+    monkeypatch.setenv("V4_PRESELECTION_SOURCE_ROOT", str(source))
+    return native, source
+
+
+def test_missing_native_catalog_has_a_typed_input_generation(missing_native_catalog):
+    native, source = missing_native_catalog
+    left = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    right = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    descriptor = left["date_catalog_input_generation"]
+    assert descriptor["schema_version"] == baseline_tool.CATALOG_GENERATION_SCHEMA
+    assert descriptor["native_catalog"] == {"state": "MISSING", "file_sha256": None}
+    assert descriptor["native_fallback_system_date"] == "20261101"
+    assert descriptor["explicit_preselection_catalog"]["state"] == "PRESENT"
+    assert left["date_catalog_hash_kind"] == baseline_tool.CATALOG_HASH_KIND
+    assert left["date_catalog_sha256"] == right["date_catalog_sha256"] == baseline_tool._digest(descriptor)
+    assert left["native_date_catalog_file_sha256"] is None
+    assert left["preselection_date_catalog_file_sha256"] == baseline_tool._file_sha256(source / "date_catalog.json")
+    assert descriptor["root_manifests"]["V4_DATA_ROOT"]["file_sha256"] == baseline_tool._file_sha256(native / "manifest.json")
+    assert not (native / "date_catalog.json").exists()
+
+
+@pytest.mark.parametrize("change", ["fallback_date", "source_catalog", "native_manifest"])
+def test_catalog_generation_changes_are_not_comparable(missing_native_catalog, change):
+    native, source = missing_native_catalog
+    before = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    if change == "source_catalog":
+        (source / "date_catalog.json").write_text('{"system_date":"20261102"}')
+    elif change == "native_manifest":
+        (native / "manifest.json").write_text('{"native":2}')
+    after = baseline_tool._frozen_context("unused", {"system_date": "20261102" if change == "fallback_date" else "20261101"})
+    before["selection_latest_sha256"] = after["selection_latest_sha256"] = "same"
+    problems = baseline_tool._compare_frozen({"frozen": before}, {"frozen": after})
+    assert any("NOT_COMPARABLE frozen.date_catalog_sha256" in problem for problem in problems)
+
+
+def test_persisted_native_catalog_keeps_its_actual_file_hash(missing_native_catalog):
+    native, _ = missing_native_catalog
+    path = native / "date_catalog.json"
+    path.write_text('{"system_date":"20261030"}')
+    context = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    assert context["native_date_catalog_file_sha256"] == baseline_tool._file_sha256(path)
+    assert context["date_catalog_input_generation"]["native_fallback_system_date"] is None
+    assert context["date_catalog_sha256"] != context["native_date_catalog_file_sha256"]
+
+
+def test_read_lock_lifecycle_does_not_change_content_stamp(missing_native_catalog):
+    from infrastructure.interprocess_lock import owned_interprocess_lock
+
+    native, source = missing_native_catalog
+    before = baseline_tool._root_stamp([native, source])
+    with owned_interprocess_lock(native / ".import.lock", timeout_seconds=1, timeout_message="test"):
+        assert baseline_tool._root_stamp([native, source]) == before
+        temp = native / ("..import.lock." + "a" * 32 + ".tmp")
+        temp.write_bytes(b"temporary lock owner")
+        assert baseline_tool._root_stamp([native, source]) == before
+        temp.unlink()
+    assert baseline_tool._root_stamp([native, source]) == before
+
+
+def test_content_stamp_detects_nested_changes_even_with_restored_mtime(missing_native_catalog):
+    import os
+
+    native, source = missing_native_catalog
+    folder = native / "nested"
+    folder.mkdir()
+    path = folder / "payload.json"
+    path.write_bytes(b"old")
+    metadata = path.stat()
+    before = baseline_tool._root_stamp([native, source])
+    path.write_bytes(b"new")
+    os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+    assert baseline_tool._root_stamp([native, source]) != before
+
+
+def test_lock_exclusion_does_not_hide_other_files(missing_native_catalog):
+    native, _ = missing_native_catalog
+    before = baseline_tool._root_stamp([native])
+    (native / ".import.lock.backup").write_bytes(b"not an excluded lock")
+    assert baseline_tool._root_stamp([native]) != before
+
+
+@pytest.mark.parametrize("change", ["payload", "source_catalog", "fallback_date"])
+def test_capture_rejects_real_changes(missing_native_catalog, tmp_path, monkeypatch, change):
+    native, source = missing_native_catalog
+    samples = tmp_path / "samples.json"
+    samples.write_text(json.dumps({"samples": [{"id": "healthz", "path": "/healthz"}]}))
+    date = "20261101"
+
+    def get_json(base_url, path, params=None):
+        nonlocal date
+        if path == "/healthz":
+            if change == "payload":
+                (native / "new_payload.json").write_text("{}")
+            elif change == "source_catalog":
+                (source / "date_catalog.json").write_text('{"changed":true}')
+            else:
+                date = "20261102"
+            return 200, "application/json", {"status": "ok"}
+        return 200, "application/json", {"system_date": date}
+
+    monkeypatch.setattr(baseline_tool, "_get_json", get_json)
+    with pytest.raises(BaselineError, match="changed during capture"):
+        baseline_tool.capture("unused", samples, [])
+
+
+def test_capture_accepts_missing_native_catalog_and_normal_read_lock(missing_native_catalog, tmp_path, monkeypatch):
+    from infrastructure.interprocess_lock import owned_interprocess_lock
+
+    native, _ = missing_native_catalog
+    samples = tmp_path / "samples.json"
+    samples.write_text(json.dumps({"samples": [{"id": "healthz", "path": "/healthz"}]}))
+
+    def get_json(base_url, path, params=None):
+        with owned_interprocess_lock(native / ".import.lock", timeout_seconds=1, timeout_message="test"):
+            return 200, "application/json", {"system_date": "20261101", "status": "ok"}
+
+    monkeypatch.setattr(baseline_tool, "_get_json", get_json)
+    captured = baseline_tool.capture("unused", samples, [])
+    assert captured["frozen"]["date_catalog_input_generation"]["native_catalog"]["state"] == "MISSING"
+    assert captured["samples"][0]["status"] == 200
+
+
+def test_typed_catalog_digest_cannot_be_compared_as_a_file_hash(missing_native_catalog):
+    context = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    old = {key: value for key, value in context.items() if key not in ("date_catalog_hash_kind", "date_catalog_input_generation")}
+    assert any("date_catalog_hash_kind" in problem for problem in baseline_tool._compare_frozen({"frozen": old}, {"frozen": context}))
+
+
+def test_unbound_native_root_cannot_prove_catalog_generation(missing_native_catalog, monkeypatch):
+    monkeypatch.delenv("V4_DATA_ROOT")
+    context = baseline_tool._frozen_context("unused", {"system_date": "20261101"})
+    context["selection_latest_sha256"] = "same"
+    assert any("catalog input descriptor invalid" in problem for problem in baseline_tool._compare_frozen({"frozen": context}, {"frozen": context}))
