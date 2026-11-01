@@ -904,9 +904,10 @@ def read_rebound_history(authority_root: Path | None, trade_date: str, symbols: 
         if panel is None:
             result['gaps']=['REBOUND_PRIOR_PANEL_UNVERIFIED',*gaps];return result
         from v3_shared_data.shared_data.store import StoreError
+        from upstreams.v3_shared_data.shared_data.hk_security_master import HKSecurityMasterReadError
         try:
             master,manifest=_screen_security_master_witness(root,trade_date)
-        except StoreError:
+        except (StoreError, HKSecurityMasterReadError):
             # Actual owner rejects an absent/invalid exact-date master. This is
             # an input gap, not a reason to substitute a later or latest master.
             result['gaps']=['REBOUND_EXACT_SECURITY_MASTER_UNVERIFIED']
