@@ -23,10 +23,13 @@ def test_same_code_selects_only_successful_pinned_release(tmp_path, monkeypatch)
     roots=[tmp_path/name/'app' for name in ('f10','r6','name-zoom','sop')]
     for root in roots:
         (root/'ops').mkdir(parents=True); (root/'ops/run_hourly_research.py').write_bytes(b'identical-materializer')
+        (root/'infrastructure').mkdir(); (root/'infrastructure/manager_input_attestation.py').write_bytes(b'identical-publication-writer')
     config={'research_historical_owner_bindings':[{'app_root':str(root),'release_id':root.parent.name,'manifest_sha256':'a'*64} for root in roots[1:]]}
     (stage/'stage_center_tick_config.json').write_text(json.dumps(config))
     pub=data/'research/hourly/publication/live/20261101/2300.json';pub.parent.mkdir(parents=True)
     pub.write_text(json.dumps({'materializer_sha256':m.digest(b'identical-materializer')}))
+    input_pub=data/'research/incoming/20261101/2300.json.publication.json';input_pub.parent.mkdir(parents=True)
+    input_pub.write_text(json.dumps({'owner_code':{'publication_writer_sha256':m.digest(b'identical-publication-writer')}}))
     monkeypatch.setattr(m,'trusted_research_owner',lambda *a:(roots[0],tmp_path/'ledger',('fixed-main-pin',)))
     validated=[]; monkeypatch.setattr(m,'_release_manifest',lambda app,*a:validated.append(app))
     calls=[]

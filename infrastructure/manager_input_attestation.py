@@ -589,8 +589,8 @@ def read_stage_hourly_attestation(*, stage_app: Path, data_root: Path, date: str
     record = json.loads(SafeRoot(data_root).read_bytes(f'research/hourly/publication/live/{date}/{slot}.json'))
     materializer_sha = record.get('materializer_sha256') if isinstance(record, dict) else None
     input_publication = json.loads(SafeRoot(data_root).read_bytes(f'research/incoming/{date}/{slot}.json.publication.json'))
-    publication_writer_sha = (input_publication.get('owner_code', {}).get('publication_writer_sha256')
-                              if isinstance(input_publication, dict) else None)
+    owner_code = input_publication.get('owner_code') if isinstance(input_publication, dict) else None
+    publication_writer_sha = owner_code.get('publication_writer_sha256') if isinstance(owner_code, dict) else None
     if not isinstance(publication_writer_sha, str) or not re.fullmatch('[0-9a-f]{64}', publication_writer_sha):
         raise PublicationError('CATALYST_PUBLICATION_IDENTITY_OR_SHA_MISMATCH')
     missing_witness = None
