@@ -30,7 +30,6 @@ def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="000000
 def prepare(candidate, output, batch1):
     if output.exists(): raise ValueError("PUBLICATION_OUTPUT_MUST_BE_NEW")
     candidate_receipt = json.loads((candidate / "candidate_receipt.json").read_bytes())
-    first = json.loads((batch1 / "candidate_receipt.json").read_bytes())
     records = {}; original = {}; output.mkdir()
     for role, label in LABELS.items():
         before = candidate_receipt["live_preimages"][role]
@@ -63,11 +62,21 @@ def prepare(candidate, output, batch1):
         if label not in LABELS.values(): protected.append({"label": label, "plist_path": str(path), "plist_sha256": sha(path.read_bytes())})
     stage_app = Path(records["stage"]["candidate"]["app_root"])
     manual = Path(records["api"]["candidate"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json"
+    api_env = candidate_receipt["live_preimages"]["api"]["environment"]
+    panel_env = {key: value for key, value in api_env.items() if key.startswith(("V4_RESEARCH_PANEL_", "V4_WORKBENCH_"))}
+    external = {}
+    for key in ("V4_RESEARCH_PANEL_ASSET_MANIFEST", "V4_WORKBENCH_HOST_BINDING"):
+        path = Path(panel_env[key]); external[key] = {"path": str(path), "sha256": sha(path.read_bytes())}
+    if external["V4_WORKBENCH_HOST_BINDING"]["sha256"] != panel_env["V4_WORKBENCH_HOST_BINDING_SHA256"]:
+        raise ValueError("CURRENT_HOST_BINDING_SHA_CHANGED")
+    tools = inventory_tools(Path(api_env["V4_APP_ROOT"]))
+    entries = tools.inventory_tree(Path(panel_env["V4_RESEARCH_PANEL_ROOT"]))
+    external["panel_inventory"] = {"entry_count": len(entries), "aggregate_sha256": tools.inventory_digest(entries)}
     plan = {"schema_version": "v4.runtime_main_stage_api_publication.v1", "status": "PREPARED_NOT_AUTHORIZED_TO_ACTIVATE",
         "roles": records, "forward_order": ["main", "stage", "api"], "rollback_order": ["api", "stage", "main"],
         "main_binding": json.loads((stage_app / "stage_center_tick_config.json").read_bytes())["research_owner_binding"],
         "manual_config": {"after_path": str(manual), "after_sha256": sha(manual.read_bytes())},
-        "protected_labels": protected, "protected_external": first["protected_external"], "preserved_panel_environment": first["preserved_panel_environment"],
+        "protected_labels": protected, "protected_external": external, "preserved_panel_environment": panel_env,
         "omitted_main_owner_zero_proof": proof, "requires_future_explicit_activation_authorization": True,
         "RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
     dump(output / "publication-plan.json", plan)

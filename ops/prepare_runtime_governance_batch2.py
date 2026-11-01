@@ -127,10 +127,14 @@ def prepare(output, source, batch1):
     spec = importlib.util.spec_from_file_location("governance_batch2_inventory", inventory_path)
     inv = importlib.util.module_from_spec(spec); spec.loader.exec_module(inv)
     live = {role: loaded_role(*pin) for role, pin in pins.items()}
+    old_stage_env = baseline["actual_role_baselines"]["stage"]["environment"]
+    if any(live["stage"]["environment"].get(key) != old_stage_env.get(key) for key in (
+        "V4_APP_ROOT", "V4_RELEASE_ID", "V4_RELEASE_MANIFEST_PATH", "V4_RELEASE_MANIFEST_SHA256")):
+        raise ValueError("REVIEWED_STAGE_BASELINE_REBASE_REQUIRED")
     for role, (_, app, pin) in pins.items(): verified_baseline(app, pin, inv)
     output.mkdir(); result = {}
     for role in ("main", "stage", "api"):
-        base = pins[role][1] if role == "main" else Path(baseline["roles"][role]["app_root"])
+        base = pins[role][1] if role in {"main", "api"} else Path(baseline["roles"][role]["app_root"])
         base_manifest = json.loads((base.parent / "release-manifest.json").read_bytes())
         root = output / (output.name + "-" + role); app = root / "app"
         shutil.copytree(base, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
@@ -151,9 +155,12 @@ def prepare(output, source, batch1):
             cfg["report_evidence_sidecar_enabled"] = False
             dump(app / "stage_center_tick_config.json", cfg)
         else:
-            manual = json.loads((app / "config/api-v4_manual_collection_stage_config.json").read_bytes())
+            manual_source = Path(live["api"]["environment"]["V4_MANUAL_COLLECTION_STAGE_CONFIG"])
+            manual_before = manual_source.read_bytes()
+            manual = json.loads(manual_before)
             manual["stage_owner_root"] = result["stage"]["app_root"]
             dump(app / "config/api-v4_manual_collection_stage_config.json", manual)
+            if manual_source.read_bytes() != manual_before: raise ValueError("EFFECTIVE_MANUAL_SOURCE_CHANGED")
         entries = inv.inventory_tree(app); after = {r["path"]: r for r in entries}
         delta = [p for p in sorted(set(before) | set(after)) if before.get(p) != after.get(p)]
         allowed = set({"main": MAIN_FILES, "api": API_FILES, "stage": STAGE_FILES}[role]) | {
