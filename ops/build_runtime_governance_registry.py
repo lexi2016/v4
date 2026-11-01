@@ -87,15 +87,18 @@ def build(*, launch_agents: Path, graph_path: Path | None = None, tasks_path: Pa
             "input": {k: row[k] for k in ("scheduled_date_role", "signal_date_role", "target_date_role", "market_scope")},
             "output": list(row["command"]), "locks": ["ExecutionLedger.try_claim_workload"],
             "retry": "existing dispatcher failure_class/backoff/max_attempts", "consumers": []})
-    hooks = []
-    for relative in ("infrastructure/scheduling/executor_registry.py", "ops/run_stage_center_nodes.py"):
+    hooks = []; parsed = []
+    hook_files = ["ops/run_v4_macos_scheduler_daemon.py", "ops/run_stage_center_nodes.py"]
+    hook_files += [str(path.relative_to(app)) for path in sorted((app / "infrastructure/scheduling").glob("executor_registry*.py"))]
+    for relative in hook_files:
         path = app / relative
         if not path.exists(): continue
         body = path.read_bytes()
         tree = ast.parse(body)
+        parsed.append({"path": str(path), "source_sha256": sha(body), "parse_status": "PASS"})
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(token in node.name for token in ("after_stage", "recapture", "milestone", "completion")):
-                hooks.append({"owner": main["node_id"], "file": str(path), "line": node.lineno, "name": node.name, "source_sha256": sha(body)})
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and any(token in node.name.lower() for token in ("after_stage", "recapture", "milestone", "completion", "hook", "pdf_queue")):
+                hooks.append({"owner": main["node_id"], "file": str(path), "line": node.lineno, "end_line": node.end_lineno, "name": node.name, "kind": type(node).__name__, "source_sha256": sha(body)})
     prior_graph = json.loads(graph_path.read_bytes()) if graph_path else None
     reused_tasks = []
     if tasks_path:
@@ -124,7 +127,7 @@ def build(*, launch_agents: Path, graph_path: Path | None = None, tasks_path: Pa
                 "business_success": None, "business_noop": None, "times": task["slots"],
                 "input": task["inputs"], "output": task["products"], "locks": task["read_write_locks"],
                 "retry": task["retry"], "consumers": task["consumers"]})
-    identity = {"nodes": nodes, "registered_tasks": reused_tasks, "internal_hooks": hooks, "catalog_sha256": sha(raw),
+    identity = {"nodes": nodes, "registered_tasks": reused_tasks, "internal_hooks": hooks, "fresh_hook_source_files": parsed, "catalog_sha256": sha(raw),
                 "reused_graph_sha256": sha(graph_path.read_bytes()) if graph_path else None}
     generation = sha(json.dumps(identity, sort_keys=True).encode())
     return {"schema_version": "v4.runtime_governance_registry.v1", "generated_at": datetime.now(timezone.utc).isoformat(),

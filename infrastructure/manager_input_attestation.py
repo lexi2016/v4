@@ -396,7 +396,11 @@ def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: 
     payload_sha = digest(encoded(payload)[:-1])
     late = False
     for value, raw in receipts:
-        if (value.get('status') != 'SUCCEEDED' or value.get('release_id') != manifest.get('release_id')
+        # A sibling's failure/busy claim cannot erase an independently
+        # successful hourly publication. All hourly membership, authority,
+        # exact source/release/run hashes and completion-cutoff gates below
+        # remain mandatory; an aggregate status alone never authorizes it.
+        if (value.get('status') not in {'SUCCEEDED', 'FAILED', 'DUPLICATE_WORKLOAD_SKIPPED'} or value.get('release_id') != manifest.get('release_id')
             or any(value.get(key) != date for key in ('scheduled_date', 'target_date'))
             or any(value.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))
             or any('hourly_research' not in value.get(key, []) for key in

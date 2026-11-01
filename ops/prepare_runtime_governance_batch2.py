@@ -107,11 +107,11 @@ def patch_stage(text):
     return replace_once(text, before, after)
 
 
-MAIN_FILES = ("infrastructure/review_generation.py", "ops/build_a_share_close_review.py", "ops/build_close_review.py",
+MAIN_FILES = ("infrastructure/manager_input_attestation.py", "infrastructure/review_generation.py", "ops/build_a_share_close_review.py", "ops/build_close_review.py",
     "ops/collect_hkconnect_close_snapshot.py", "infrastructure/tdx_minute_replay_provider.py", "ops/consume_close_stage_completion.py",
     "ops/recover_stage_data.py", "ops/verify_tdx_trade_window_canary.py", "ops/build_runtime_governance_registry.py")
 API_FILES = ("infrastructure/operations_sop_reader.py", "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md")
-STAGE_FILES = ("infrastructure/stage_completion_hooks.py", "ops/consume_close_stage_completion.py", "ops/recover_stage_data.py", "ops/verify_tdx_trade_window_canary.py")
+STAGE_FILES = ("infrastructure/manager_input_attestation.py", "infrastructure/stage_completion_hooks.py", "ops/consume_close_stage_completion.py", "ops/recover_stage_data.py", "ops/verify_tdx_trade_window_canary.py")
 
 
 def prepare(output, source, batch1):
