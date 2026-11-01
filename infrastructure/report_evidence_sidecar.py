@@ -145,13 +145,24 @@ def _write_job_receipt(io,job_id,status,**fields):
 
 
 def _running_worker(active):
-    pid=active.get('pid')
-    if type(pid) is not int or pid<=0:return False
+    """True=matching live worker, False=observed dead/other, None=unknown."""
+    if not active:return False
+    pid=active.get('pid');job_id=active.get('job_id')
+    if type(pid) is not int or pid<=0 or not isinstance(job_id,str) or not re.fullmatch('[0-9a-f]{64}',job_id):
+        return None
     try:
-        command=subprocess.check_output(['ps','-p',str(pid),'-o','command='],text=True,stderr=subprocess.DEVNULL,timeout=2)
-        return 'ops.run_report_evidence_sidecar_job' in command and active.get('job_id','') in command
-    except (OSError,subprocess.SubprocessError):
-        return False
+        command=subprocess.check_output(['ps','-ww','-p',str(pid),'-o','command='],text=True,stderr=subprocess.DEVNULL,timeout=2)
+        return 'ops.run_report_evidence_sidecar_job' in command and job_id in command
+    except subprocess.CalledProcessError:
+        try:
+            os.kill(pid,0)
+        except ProcessLookupError:
+            return False
+        except OSError:
+            return None
+        return None
+    except (OSError,subprocess.TimeoutExpired):
+        return None
 
 
 def on_stage_completed(*, config, trade_date, stage_id, receipt):
@@ -184,19 +195,27 @@ def on_stage_completed(*, config, trade_date, stage_id, receipt):
                 return dict(status='EVIDENCE_GAP',job_id=job_id,reason='JOB_PREVIOUSLY_FAILED',callback_seconds=time.perf_counter()-started,**SAFETY)
             try:active=json.loads(io.read_bytes('active.json'))
             except FileNotFoundError:active={}
-            if _running_worker(active):
+            live=_running_worker(active)
+            if live is None:
+                return dict(status='BUSY',job_id=job_id,job_status='LIVENESS_UNKNOWN',callback_seconds=time.perf_counter()-started,**SAFETY)
+            if live:
                 status='REUSED' if active.get('job_id')==job_id else 'BUSY'
                 return dict(status=status,job_id=job_id,active_job_id=active.get('job_id'),job_status='IN_FLIGHT',callback_seconds=time.perf_counter()-started,**SAFETY)
-            # The worker may complete while the PID probe is in progress.
-            # Re-read its authoritative result before declaring an orphan.
-            previous=json.loads(io.read_bytes(job_id+'.receipt.json')) if previous else {}
-            if previous.get('status')=='COMPLETED':
-                return dict(status='REUSED',job_id=job_id,job_status='COMPLETED',callback_seconds=time.perf_counter()-started,**SAFETY)
-            if previous.get('status')=='FAILED':
-                return dict(status='EVIDENCE_GAP',job_id=job_id,reason='JOB_PREVIOUSLY_FAILED',callback_seconds=time.perf_counter()-started,**SAFETY)
             if previous.get('status') in {'SUBMITTED','RUNNING'}:
-                _write_job_receipt(io,job_id,'FAILED',reason='WORKER_EXITED_WITHOUT_COMPLETION')
-                return dict(status='EVIDENCE_GAP',job_id=job_id,reason='WORKER_EXITED_WITHOUT_COMPLETION',**SAFETY)
+                # Same lock as the worker's RUNNING -> terminal writes. Never
+                # wait on healthy materialization while holding Stage's lock.
+                with owned_interprocess_lock(root/'jobs/consumer.lock',timeout_seconds=0,timeout_message='SIDECAR_CONSUMER_BUSY'):
+                    previous=json.loads(io.read_bytes(job_id+'.receipt.json'))
+                    if previous.get('status')=='COMPLETED':
+                        return dict(status='REUSED',job_id=job_id,job_status='COMPLETED',callback_seconds=time.perf_counter()-started,**SAFETY)
+                    if previous.get('status')=='FAILED':
+                        return dict(status='EVIDENCE_GAP',job_id=job_id,reason='JOB_PREVIOUSLY_FAILED',callback_seconds=time.perf_counter()-started,**SAFETY)
+                    pid=previous.get('worker_pid') or (active.get('pid') if active.get('job_id')==job_id else None)
+                    observed=_running_worker(dict(job_id=job_id,pid=pid))
+                    if observed is not False:
+                        return dict(status='BUSY',job_id=job_id,job_status='LIVENESS_UNKNOWN' if observed is None else 'IN_FLIGHT',callback_seconds=time.perf_counter()-started,**SAFETY)
+                    _write_job_receipt(io,job_id,'FAILED',reason='WORKER_EXITED_WITHOUT_COMPLETION')
+                    return dict(status='EVIDENCE_GAP',job_id=job_id,reason='WORKER_EXITED_WITHOUT_COMPLETION',**SAFETY)
             io.write_bytes(job_id+'.job.json',canonical(payload).encode())
             _write_job_receipt(io,job_id,'SUBMITTED')
             log_path=root/'jobs'/(job_id+'.worker.log')
@@ -209,8 +228,8 @@ def on_stage_completed(*, config, trade_date, stage_id, receipt):
             return dict(status='SUBMITTED',job_id=job_id,worker_pid=child.pid,callback_seconds=time.perf_counter()-started,**SAFETY)
     except Exception as error:
         code=str(error) if re.fullmatch('[A-Z][A-Z0-9_]+',str(error)) else type(error).__name__
-        status='BUSY' if code=='SIDECAR_SUBMIT_BUSY' else 'EVIDENCE_GAP'
-        return dict(status=status,reason=code,callback_seconds=time.perf_counter()-started,**SAFETY)
+        status='BUSY' if code in {'SIDECAR_SUBMIT_BUSY','SIDECAR_CONSUMER_BUSY'} else 'EVIDENCE_GAP'
+        return dict(status=status,job_id=locals().get('job_id'),reason=code,callback_seconds=time.perf_counter()-started,**SAFETY)
 
 
 def consume_sidecar_job(job_id):
@@ -227,6 +246,7 @@ def consume_sidecar_job(job_id):
         with owned_interprocess_lock(root/'jobs/consumer.lock',timeout_seconds=.05,timeout_message='SIDECAR_CONSUMER_BUSY'):
             previous=json.loads(io.read_bytes(job_id+'.receipt.json'))
             if previous.get('status')=='COMPLETED':return dict(status='REUSED',job_id=job_id,**SAFETY)
+            if previous.get('status')=='FAILED':return previous
             _write_job_receipt(io,job_id,'RUNNING',worker_pid=os.getpid())
             try:
                 result=_materialize_worker(payload)
@@ -272,4 +292,3 @@ def read_sidecar(root, *, date, stage, selection_run, market):
             for cid in hit.get('merged_chunk_ids', [hit['chunk_id']]):
                 service.read(cid)
     return value
-

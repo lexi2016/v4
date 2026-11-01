@@ -99,6 +99,85 @@ class SidecarCompatibilityTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(duplicate['status'],'REUSED')
             self.assertEqual(json.loads(path.read_text())['status'],'COMPLETED')
 
+    async def test_unknown_ps_is_busy_and_does_not_overwrite_worker_terminal(self):
+        import subprocess,threading,time
+        from infrastructure import report_evidence_sidecar as module
+        from infrastructure.interprocess_lock import owned_interprocess_lock
+        env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
+        kwargs=dict(config=self.config,trade_date=self.date,stage_id=self.stage,receipt=self.receipt)
+        with patch.dict(os.environ,env),patch.object(module.subprocess,'Popen',return_value=SimpleNamespace(pid=12345)):
+            first=module.on_stage_completed(**kwargs);jobs=self.root/'sidecars/jobs';entered=threading.Event();finish=threading.Event();errors=[]
+            def worker():
+                try:
+                    with owned_interprocess_lock(jobs/'consumer.lock',timeout_seconds=1,timeout_message='busy'):
+                        io=module._job_io(self.root/'sidecars');module._write_job_receipt(io,first['job_id'],'RUNNING',worker_pid=12345);entered.set();finish.wait(2);module._write_job_receipt(io,first['job_id'],'COMPLETED')
+                except Exception as error:errors.append(error);entered.set()
+            thread=threading.Thread(target=worker);thread.start();self.assertTrue(entered.wait(2))
+            try:
+                with patch.object(module.subprocess,'check_output',side_effect=subprocess.TimeoutExpired('ps',2)):
+                    t=time.perf_counter();result=module.on_stage_completed(**kwargs);elapsed=time.perf_counter()-t
+                self.assertEqual(result['status'],'BUSY');self.assertEqual(result['job_status'],'LIVENESS_UNKNOWN');self.assertLess(elapsed,.5)
+            finally:finish.set();thread.join(2)
+            self.assertFalse(thread.is_alive());self.assertEqual(errors,[])
+            path=jobs/(first['job_id']+'.receipt.json');before=path.read_bytes();self.assertEqual(json.loads(before)['status'],'COMPLETED')
+            self.assertEqual(module.on_stage_completed(**kwargs)['status'],'REUSED');self.assertEqual(path.read_bytes(),before)
+        self.assertEqual(self.path.read_bytes(),self.before)
+
+    async def test_orphan_check_uses_same_consumer_lock_without_waiting(self):
+        import threading,time
+        from infrastructure import report_evidence_sidecar as module
+        from infrastructure.interprocess_lock import owned_interprocess_lock
+        env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
+        kwargs=dict(config=self.config,trade_date=self.date,stage_id=self.stage,receipt=self.receipt)
+        with patch.dict(os.environ,env),patch.object(module.subprocess,'Popen',return_value=SimpleNamespace(pid=12345)):
+            first=module.on_stage_completed(**kwargs);jobs=self.root/'sidecars/jobs';entered=threading.Event();finish=threading.Event();errors=[]
+            def worker():
+                try:
+                    with owned_interprocess_lock(jobs/'consumer.lock',timeout_seconds=1,timeout_message='busy'):
+                        io=module._job_io(self.root/'sidecars');module._write_job_receipt(io,first['job_id'],'RUNNING',worker_pid=12345);entered.set();finish.wait(2);module._write_job_receipt(io,first['job_id'],'COMPLETED')
+                except Exception as error:errors.append(error);entered.set()
+            thread=threading.Thread(target=worker);thread.start();self.assertTrue(entered.wait(2))
+            try:
+                with patch.object(module,'_running_worker',return_value=False):
+                    t=time.perf_counter();result=module.on_stage_completed(**kwargs);elapsed=time.perf_counter()-t
+                self.assertEqual(result['status'],'BUSY');self.assertEqual(result['reason'],'SIDECAR_CONSUMER_BUSY');self.assertLess(elapsed,.5)
+            finally:finish.set();thread.join(2)
+            self.assertFalse(thread.is_alive());self.assertEqual(errors,[])
+            self.assertEqual(json.loads((jobs/(first['job_id']+'.receipt.json')).read_text())['status'],'COMPLETED')
+            self.assertEqual(module.on_stage_completed(**kwargs)['status'],'REUSED')
+        self.assertEqual(self.path.read_bytes(),self.before)
+
+    async def test_confirmed_dead_fails_once_and_terminal_states_are_immutable(self):
+        import subprocess
+        from infrastructure import report_evidence_sidecar as module
+        env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
+        kwargs=dict(config=self.config,trade_date=self.date,stage_id=self.stage,receipt=self.receipt)
+        with patch.dict(os.environ,env),patch.object(module.subprocess,'Popen',return_value=SimpleNamespace(pid=12345)):
+            first=module.on_stage_completed(**kwargs)
+            with patch.object(module.subprocess,'check_output',side_effect=subprocess.CalledProcessError(1,'ps')),patch.object(module.os,'kill',side_effect=ProcessLookupError()):
+                result=module.on_stage_completed(**kwargs)
+            self.assertEqual(result['status'],'EVIDENCE_GAP');self.assertEqual(result['reason'],'WORKER_EXITED_WITHOUT_COMPLETION')
+            path=self.root/'sidecars/jobs'/(first['job_id']+'.receipt.json');before=path.read_bytes()
+            with patch.object(module,'_materialize_worker',side_effect=AssertionError('must not restart terminal job')):
+                self.assertEqual(module.consume_sidecar_job(first['job_id'])['status'],'FAILED')
+            self.assertEqual(path.read_bytes(),before);self.assertEqual(module.on_stage_completed(**kwargs)['reason'],'JOB_PREVIOUSLY_FAILED')
+        self.assertEqual(self.path.read_bytes(),self.before)
+
+    def test_pid_probe_distinguishes_unknown_from_observed_dead(self):
+        import subprocess
+        from infrastructure import report_evidence_sidecar as module
+        active=dict(pid=12345,job_id='a'*64)
+        with patch.object(module.subprocess,'check_output',side_effect=subprocess.TimeoutExpired('ps',2)):
+            self.assertIsNone(module._running_worker(active))
+        with patch.object(module.subprocess,'check_output',side_effect=OSError('probe unavailable')):
+            self.assertIsNone(module._running_worker(active))
+        with patch.object(module.subprocess,'check_output',side_effect=subprocess.CalledProcessError(1,'ps')),patch.object(module.os,'kill',side_effect=ProcessLookupError()):
+            self.assertIs(module._running_worker(active),False)
+        with patch.object(module.subprocess,'check_output',side_effect=subprocess.CalledProcessError(1,'ps')),patch.object(module.os,'kill',return_value=None):
+            self.assertIsNone(module._running_worker(active))
+        with patch.object(module.subprocess,'check_output',return_value='python -B -m ops.run_report_evidence_sidecar_job --job-id '+'a'*64):
+            self.assertIs(module._running_worker(active),True)
+
     async def test_failed_job_is_separate_and_duplicate_does_not_retry(self):
         from infrastructure.report_evidence_sidecar import on_stage_completed,consume_sidecar_job
         env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
