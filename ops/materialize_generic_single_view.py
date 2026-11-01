@@ -7,16 +7,26 @@ start a service, or create a second research producer.
 from __future__ import annotations
 
 import base64
+import ast
 from collections import defaultdict
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from datetime import datetime
 import gzip
 import hashlib
 import io
 import json
 import math
+import multiprocessing
+import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
+import tempfile
+import time
+import zlib
 
+import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
@@ -99,8 +109,19 @@ def _write_immutable(root, stem, suffix, raw, *, decoded_bytes=None, full_hash=F
     if path.exists():
         _require(path.read_bytes() == raw, 'GENERIC_IMMUTABLE_CONFLICT')
     else:
-        with path.open('xb') as handle:
-            handle.write(raw)
+        fd, temporary = tempfile.mkstemp(prefix='.' + stem + '_', suffix='.pending', dir=root)
+        try:
+            with os.fdopen(fd, 'wb') as handle:
+                handle.write(raw); handle.flush(); os.fsync(handle.fileno())
+            try:
+                os.link(temporary, path)
+            except FileExistsError:
+                _require(path.read_bytes() == raw, 'GENERIC_IMMUTABLE_CONFLICT')
+            os.unlink(temporary)
+        except BaseException:
+            # A partial temporary is not a completed artifact; leave it for
+            # evidence. A later restart uses a new temporary path.
+            raise
     result = {'path':str(path), 'sha256':digest, 'bytes':len(raw)}
     if decoded_bytes is not None:
         result.update(encoding='gzip', decoded_bytes=decoded_bytes)
@@ -965,3 +986,388 @@ def materialize_hk_observations(*, index_ref, receipt_ref, history_response_ref,
            'source_panel_sha256':identity['source_panel']['sha256'],'projection_producer':producer,
            'symbols':results,'historical_PIT':False,**FLAGS}
     return _write_immutable(root,'HK_OBSERVATION_INDEX','.json',_canonical(index)),results
+
+
+def _bulk_owner_functions(owner_ref, spool_owner_ref, adapter_sha):
+    """Load only the two SHA-frozen owner functions used for the existing join."""
+    _require(owner_ref.get('sha256')==adapter_sha,'GENERIC_BULK_OWNER_SHA_CONFLICT')
+    owner=_checked(owner_ref,maximum=4*1024*1024);old=_checked(spool_owner_ref,maximum=4*1024*1024)
+    def nodes(path):
+        return {node.name:node for node in ast.parse(path.read_text()).body if isinstance(node,ast.FunctionDef)}
+    current,previous=nodes(owner),nodes(old)
+    _require(all(name in current and name in previous and ast.dump(current[name],include_attributes=False)==ast.dump(previous[name],include_attributes=False)
+                 for name in ('_bucket','spool_current')),'GENERIC_BULK_SPOOL_OWNER_CONFLICT')
+    _require('_kb_overlay_retained' in current,'GENERIC_BULK_OWNER_OVERLAY_MISSING')
+    namespace={'pa':pa,'pq':pq,'pd':pd,'re':re,'zlib':zlib,'Path':Path,'CODE':q.CODE,'QfqGateError':q.QfqGateError,
+               'KB_FIELDS':q.KB_FIELDS,'SINGLE_FEEDBACK_FIELDS':q.SINGLE_FEEDBACK_FIELDS,
+               'SINGLE_ACTION_FIELDS':q.SINGLE_ACTION_FIELDS,'SINGLE_YIDONG_FIELDS':q.SINGLE_YIDONG_FIELDS,
+               'SINGLE_GAP_FIELDS':q.SINGLE_GAP_FIELDS}
+    tree=ast.fix_missing_locations(ast.Module(body=[current['_bucket'],current['_kb_overlay_retained']],type_ignores=[]))
+    exec(compile(tree,str(owner),'exec'),namespace)
+    return namespace['_bucket'],namespace['_kb_overlay_retained']
+
+
+def _bulk_spools(spool_ref,receipt,owner_ref):
+    desc=json.loads(_checked(spool_ref,maximum=1024*1024).read_bytes())
+    _require(desc.get('schema')=='a_share_original_spool_reuse_v1' and desc.get('status')=='OWNER_PRODUCED_ARROW_BUCKETS'
+             and desc.get('baseline_panel_sha256')==receipt.get('baseline_panel_sha256')
+             and all(desc.get(k) is v for k,v in FLAGS.items()) and set(desc.get('roles',{}))=={'selector','backtest'},
+             'GENERIC_BULK_SPOOL_CONFLICT')
+    inputs=json.loads(_checked(desc['owner_inputs'],maximum=4*1024*1024).read_bytes())
+    oldrun=json.loads(_checked(desc['owner_run_receipt'],maximum=4*1024*1024).read_bytes())
+    _require(inputs.get('qfq_source',{}).get('sha256')==desc['owner_source']['sha256']
+             and oldrun.get('schema')=='v4.full_owner_lifecycle_bounded_run.v1'
+             and oldrun.get('status')=='FAIL' and oldrun.get('stage')=='OWNER_RUN', 'GENERIC_BULK_SPOOL_EVIDENCE_CONFLICT')
+    bucket,overlay=_bulk_owner_functions(owner_ref,desc['owner_source'],receipt['adapter_sha256'])
+    roles={}
+    for role,ref in desc['roles'].items():
+        value=json.loads(_checked(ref,maximum=1024*1024).read_bytes())
+        _require(value.get('source_sha256')==receipt['baseline_panel_sha256'][role] and value.get('row_copy')=='ARROW_V1'
+                 and set(value.get('files',{}))=={str(i) for i in range(32)},'GENERIC_BULK_SPOOL_RECEIPT_CONFLICT:'+role)
+        roles[role]={int(k):v for k,v in value['files'].items()}
+    return desc,roles,bucket,overlay
+
+
+def _bulk_columns(role, *, fields=False):
+    common=['ts_code','trade_date','open','high','low','close','zge_white_line','zge_yellow_line']
+    names=common+(['volume','name',*ORIGINAL_FIELDS] if role=='selector' else ['vol',*SHARED_ORIGINAL_FIELDS])
+    return list(dict.fromkeys(names+(_fields() if fields else [])))
+
+
+def _bulk_addition_groups(roles,receipt):
+    resolution=json.loads(_checked(receipt['lifecycle_resolution'],maximum=4*1024*1024).read_bytes())
+    codes=set(resolution.get('codes',{}));_require(codes,'GENERIC_BULK_ADDITIONS_MISSING')
+    result={}
+    for role in ('selector','backtest'):
+        parquet=pq.ParquetFile(roles[role]['path']);column=parquet.schema_arrow.get_field_index('ts_code');groups={}
+        for i in range(parquet.metadata.num_row_groups):
+            stat=parquet.metadata.row_group(i).column(column).statistics
+            _require(stat is not None and stat.has_min_max,'GENERIC_BULK_ROWGROUP_STAT_MISSING')
+            if stat.min==stat.max and stat.min in codes:
+                _require(stat.min not in groups,'GENERIC_BULK_ROWGROUP_DUPLICATE');groups[stat.min]=i
+        _require(set(groups)==codes,'GENERIC_BULK_ADDITION_ROWGROUP_CONFLICT:'+role);result[role]=groups
+    return codes,result
+
+
+def _bulk_checkpoint(code,receipt,parts):
+    record=json.loads((parts/(code+'.receipt.json')).read_bytes());path=parts/(code+'.parquet')
+    _require(isinstance(record.get('sha256'),str) and SHA.fullmatch(record['sha256']),'GENERIC_BULK_CHECKPOINT_RECEIPT_INVALID')
+    before=_stat(path);_checked({'path':str(path),'sha256':record['sha256']});_require(_stat(path)==before,'GENERIC_BULK_CHECKPOINT_MOVED')
+    for key,source in (('confirmed_gap_sidecar',receipt['confirmed_gap_sidecars']),('n_structure_checkpoint',receipt['n_structure_checkpoints'])):
+        expected=source.get(code);actual=record.get(key)
+        _require(isinstance(expected,dict) and isinstance(actual,dict)
+                 and all(expected.get(k)==actual.get(k) for k in ('path','sha256','checkpoint_id')),
+                 'GENERIC_BULK_CHECKPOINT_BINDING_CONFLICT:'+key)
+        reused=(key=='n_structure_checkpoint' and code in receipt.get('materialized_reuse_refs',{})
+                and actual.get('source_generation')==receipt.get('materialized_reuse_source_generation')
+                and actual.get('resume_across_generation') is False and actual.get('checkpoint_id') is None)
+        _require(reused or actual.get('checkpoint_id')==record.get('checkpoint_id'),
+                 'GENERIC_BULK_CHECKPOINT_BINDING_CONFLICT:'+key)
+    return record,before
+
+
+def _bulk_overlay(code,left,right,roles,parts,overlay):
+    output=[]
+    for role,table in (('selector',left),('backtest',right)):
+        names=list(dict.fromkeys([*table.column_names,*_fields()]))
+        schema=pa.schema([roles[role]['schema'].field(name) for name in names])
+        output.append(overlay(table,schema,parts,full_research=True))
+    return output
+
+
+def _bulk_resources(root,worker_pids=()):
+    """Conservative macOS resource gate; no submissions when telemetry is missing."""
+    free=shutil.disk_usage(root).free
+    if free<40*1024**3:return {'ok':False,'reason':'DISK_BELOW_40_GIB','disk_free':free}
+    try:
+        vm=subprocess.run(['vm_stat'],capture_output=True,text=True,check=True,timeout=5).stdout
+        page=int(re.search(r'page size of (\d+) bytes',vm).group(1))
+        values={name:int(re.search(r'^Pages '+name+r':\s*(\d+)',vm,re.M).group(1)) for name in ('free','inactive','speculative')}
+        available=sum(values.values())*page
+        pressure=subprocess.run(['memory_pressure'],capture_output=True,text=True,check=True,timeout=5).stdout
+        pct=int(re.search(r'System-wide memory free percentage:\s*(\d+)%',pressure).group(1))
+        pids=','.join(str(x) for x in (os.getpid(),*worker_pids))
+        ps=subprocess.run(['ps','-o','rss=','-p',pids],capture_output=True,text=True,check=True,timeout=5).stdout
+        rss=sum(int(x) for x in ps.split())*1024
+    except (OSError,subprocess.SubprocessError,ValueError,AttributeError):
+        return {'ok':False,'reason':'RESOURCE_TELEMETRY_UNAVAILABLE','disk_free':free}
+    reason='SYSTEM_MEMORY_BELOW_24_GIB' if available<24*1024**3 else 'MEMORY_PRESSURE' if pct<20 else 'JOB_RSS_ABOVE_64_GIB' if rss>64*1024**3 else None
+    return {'ok':reason is None,'reason':reason,'disk_free':free,'available_estimate':available,'pressure_free_pct':pct,'job_rss':rss}
+
+
+_BULK_WORKER=None
+def _bulk_worker_init(context):
+    global _BULK_WORKER
+    _,overlay=_bulk_owner_functions(context['owner_ref'],context['spool_owner_ref'],context['receipt']['adapter_sha256'])
+    _BULK_WORKER={**context,'overlay':overlay}
+
+
+def _bulk_one(code,left,right,old):
+    started=time.monotonic();c=_BULK_WORKER;receipt=c['receipt'];parts=Path(c['parts']);roles=c['roles']
+    try:
+        record,before=_bulk_checkpoint(code,receipt,parts)
+        if old:left,right=_bulk_overlay(code,left,right,roles,parts,c['overlay'])
+        else:
+            checkpoint=pq.read_table(parts/(code+'.parquet'),columns=['trade_date',*_fields()]).sort_by([('trade_date','ascending')]).to_pylist()
+            candidate=left.sort_by([('trade_date','ascending')]).to_pylist()
+            _require(len(candidate)==len(checkpoint),'GENERIC_BULK_ADDITION_CHECKPOINT_LENGTH')
+            for a,b in zip(candidate,checkpoint):
+                _require(str(a['trade_date'])==str(b['trade_date']) and all(_same(_plain(a[n]),_plain(b[n])) for n in _fields()),
+                         'GENERIC_BULK_ADDITION_CHECKPOINT_CONFLICT')
+        _require(_stat(parts/(code+'.parquet'))==before,'GENERIC_BULK_CHECKPOINT_MOVED')
+        side_ref=receipt['confirmed_gap_sidecars'][code];side=pq.read_table(_checked(side_ref))
+        side_meta=json.loads((side.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+        _require(side_meta.get('symbol')==code and side_meta.get('generation_id')==receipt['generation_id']
+                 and side_meta.get('source_input_sha256')==receipt['input_sha256'] and side_meta.get('n_structure_enabled') is True
+                 and set(side_meta.get('diagnostic_keys',[]))==set(q.SINGLE_GAP_DIAGNOSTICS)|{'kb_n_structure'}
+                 and all(side_meta.get(k) is v for k,v in FLAGS.items()),'GENERIC_BULK_SIDECAR_CONFLICT')
+        n_identity=_n_sidecar_identity(receipt,side_meta,side,code)
+        name_values=[x for x in left['name'].to_pylist() if isinstance(x,str) and x.strip()]
+        identity=dict(symbol=code,name=name_values[-1].strip() if name_values else code,
+            source_date=c['source_date'],observation_date=c['observation_date'],generation=c['source_generation'],
+            candidate_generation=receipt['generation_id'],input_sha256=c['source_input'],candidate_input_sha256=receipt['input_sha256'],
+            numeric_manifest=c['numeric_manifest_ref'],paired_receipt=c['paired_receipt_ref'],
+            pair_sha256=receipt['candidate_sha256'],baseline_panel_sha256=receipt['baseline_panel_sha256'],
+            kb_authority_sha256=receipt.get('kb_authority_sha256'),kb_field_contract_sha256=receipt.get('kb_field_contract_sha256'),
+            diagnostics_sha256=side_ref['sha256'],n_rule_sha256=side_meta['n_structure_contract_sha256'],
+            n_helper_sha256=side_meta['n_structure_helper_sha256'],adjustment_convention=receipt.get('convention','BOUND_ORIGINAL_OWNER_QFQ'),
+            historical_PIT=False,**n_identity,**FLAGS)
+        bound=build_from_verified_tables(symbol=code,selector=left,backtest=right,diagnostics=side,identity=identity,
+            output_root=Path(c['output_root']),original_projection_ref=c['originals'].get(code),engine_config_ref=c['engine_ref'])
+        product=json.loads(_checked(bound,maximum=4*1024*1024).read_bytes())
+        _require(product['chart']['status']=='READY','GENERIC_BULK_CHART_NOT_READY:'+str(product['chart'].get('reason')))
+        refs=[bound,product['history_input'],product['overlay'],*product['chunks'],product['chart']['projection'],product['chart']['html']]
+        return {'status':'READY','binding':bound,'rows':product['rows'],'asset_bytes':sum(x['bytes'] for x in refs),
+                'elapsed_seconds':round(time.monotonic()-started,3)}
+    except (ValueError,OSError,KeyError,TypeError,pa.ArrowException) as exc:
+        reason=str(exc)
+        return {'status':'UNKNOWN' if reason=='GENERIC_TARGET_DATE_MISSING' else 'FAILED','reason':reason}
+
+
+def _bulk_compare_prior(code,left,right,old,context,prior,overlay):
+    record,before=_bulk_checkpoint(code,context['receipt'],Path(context['parts']))
+    if old:left,right=_bulk_overlay(code,left,right,context['roles'],Path(context['parts']),overlay)
+    _require(_stat(Path(context['parts'])/(code+'.parquet'))==before,'GENERIC_BULK_CHECKPOINT_MOVED')
+    item=prior['symbols'][code];_require(item.get('status')=='READY','GENERIC_BULK_CANARY_NOT_READY')
+    binding=json.loads(_checked(item['binding'],maximum=4*1024*1024).read_bytes());fields=binding['field_names']
+    expected=[]
+    for ref in binding['chunks']:
+        expected.extend(json.loads(_bounded_gzip(ref,maximum=MAX_CHUNK_DECODED,compressed_maximum=MAX_CHUNK_COMPRESSED))['rows'])
+    a=left.sort_by([('trade_date','ascending')]).to_pylist();b=right.sort_by([('trade_date','ascending')]).to_pylist()
+    side_ref=context['receipt']['confirmed_gap_sidecars'][code];side_table=pq.read_table(_checked(side_ref))
+    side_meta=json.loads((side_table.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+    n_identity=_n_sidecar_identity(context['receipt'],side_meta,side_table,code)
+    _require(all(binding.get(k,binding.get('candidate_generation' if k=='n_generation_id' else 'candidate_input_sha256'))==v
+                 for k,v in n_identity.items() if k in {'n_generation_id','n_input_sha256'}),'GENERIC_BULK_CANARY_N_IDENTITY_CONFLICT')
+    side=side_table.sort_by([('trade_date','ascending')]).to_pylist()
+    _require(len(a)==len(b)==len(side)==len(expected),'GENERIC_BULK_CANARY_LENGTH_CONFLICT')
+    for x,y,d,z in zip(a,b,side,expected):
+        _require(x['ts_code']==y['ts_code']==d['ts_code']==code and str(x['trade_date'])==str(y['trade_date'])==str(d['trade_date'])==str(z[0]),
+                 'GENERIC_BULK_CANARY_KEY_CONFLICT')
+        _require(all(_same(_plain(x[n]),_plain(y[n])) and _same(_plain(x[n]),v) for n,v in zip(fields,z[1]))
+                 and all(_same(_plain(x[n]),v) for n,v in zip(ORIGINAL_FIELDS,z[2]))
+                 and json.loads(d['diagnostics_json'])==z[3]
+                 and [_plain(x['zge_white_line']),_plain(x['zge_yellow_line'])]==z[4],
+                 'GENERIC_BULK_CANARY_VALUES_CONFLICT')
+    chart=binding['chart'];_require(chart.get('status')=='READY','GENERIC_BULK_CANARY_CHART_MISSING')
+    projection=json.loads(_bounded_gzip(chart['projection'],maximum=MAX_PROJECTION_DECODED,compressed_maximum=MAX_PROJECTION_COMPRESSED))
+    _projection_rows(projection,code,context['source_date'].replace('-',''),context['source_generation'],context['source_input'],a)
+    return {'symbol':code,'rows':len(a),'kb_cells':len(a)*len(fields),'checkpoint_sha256':record['sha256'],'status':'PASS'}
+
+
+def _bulk_read_bucket(spools,bucket):
+    tables={}
+    for role in ('selector','backtest'):
+        ref=spools[role][bucket];path=Path(ref['path']);before=_stat(path)
+        _require(path.is_absolute() and not path.is_symlink() and path.resolve(strict=True)==path,'GENERIC_BULK_BUCKET_PATH_CONFLICT')
+        raw=path.read_bytes();_require(_stat(path)==before and hashlib.sha256(raw).hexdigest()==ref['sha256'],
+                                      'GENERIC_BULK_BUCKET_SHA_OR_STAT_CONFLICT:'+role)
+        tables[role]=pq.read_table(pa.BufferReader(raw),columns=_bulk_columns(role))
+    return tables
+
+
+def prepare_owner_bulk(*, paired_receipt_ref, verified_pair_ref, numeric_manifest_ref, spool_ref, owner_ref,
+                       prior_index_ref, no_frame_ref, original_manifest_ref, engine_ref, output_root, observation_date):
+    """Prepare a resumable view-only traversal of the existing owner outputs."""
+    root=Path(output_root).resolve(strict=True);_require(root.is_dir(),'GENERIC_BULK_OUTPUT_ROOT_INVALID')
+    receipt,roles=_pair_snapshot(paired_receipt_ref,verified_pair_ref)
+    _require(receipt.get('full_research_spool_reuse')==spool_ref,'GENERIC_BULK_SPOOL_RECEIPT_UNBOUND')
+    desc,spools,bucket,overlay=_bulk_spools(spool_ref,receipt,owner_ref)
+    numeric=json.loads(_checked(numeric_manifest_ref,maximum=8*1024*1024).read_bytes())
+    prior=json.loads(_checked(prior_index_ref,maximum=8*1024*1024).read_bytes())
+    source_date=datetime.strptime(str(receipt['target_date']),'%Y%m%d').strftime('%Y-%m-%d')
+    source_generation=numeric.get('source_generation');source_input=numeric.get('input_sha256')
+    _require(prior.get('schema')=='v4.workbench.generic_single_index.v1' and prior.get('source_date')==source_date
+             and prior.get('observation_date')==observation_date and prior.get('source_generation')==source_generation
+             and prior.get('input_sha256')==source_input and prior.get('candidate_generation')==receipt['generation_id']
+             and prior.get('candidate_input_sha256')==receipt['input_sha256'] and prior.get('numeric_manifest')==numeric_manifest_ref
+             and prior.get('paired_receipt')==paired_receipt_ref and prior.get('verified_pair')==verified_pair_ref
+             and prior.get('pair_sha256')==receipt['candidate_sha256'] and prior.get('historical_PIT') is False
+             and all(prior.get(k) is v for k,v in FLAGS.items()),'GENERIC_BULK_PRIOR_IDENTITY_CONFLICT')
+    _require(receipt.get('kb_initial_upgrade',{}).get('source_generation_id')==source_generation
+             and receipt.get('materialized_reuse_source_input_sha256')==source_input
+             and receipt.get('kb_initial_upgrade',{}).get('baseline_panel_sha256')==receipt['baseline_panel_sha256'],
+             'GENERIC_BULK_SOURCE_LINEAGE_CONFLICT')
+    missing=json.loads(_checked(no_frame_ref,maximum=1024*1024).read_bytes());items=missing.get('items')
+    frame=set(receipt['confirmed_gap_sidecars']);_require(frame==set(receipt['n_structure_checkpoints']), 'GENERIC_BULK_SIDECAR_DENOMINATOR_CONFLICT')
+    _require(missing.get('schema')=='v4.a_share.no_paired_frame_scope.v1' and missing.get('status')=='EXACT_SET_DIFFERENCE_VERIFIED'
+             and missing.get('generation_id')==receipt['generation_id'] and missing.get('input_sha256')==receipt['input_sha256']
+             and missing.get('attestation')==verified_pair_ref and missing.get('data_date')==str(receipt['target_date'])
+             and missing.get('a_frame_count')==len(frame) and isinstance(items,list)
+             and missing.get('missing_count')==len(items) and missing.get('effective_count')==len(frame)+len(items)
+             and all(missing.get(k) is v for k,v in FLAGS.items()),'GENERIC_BULK_SCOPE_LEDGER_CONFLICT')
+    no_frame={item.get('symbol'):item for item in items};_require(len(no_frame)==len(items) and not frame&set(no_frame)
+        and all(isinstance(code,str) and CODE.fullmatch(code) and item.get('frame_status')=='NO_PAIRED_A_FRAME'
+                for code,item in no_frame.items()),'GENERIC_BULK_SCOPE_LEDGER_CONFLICT')
+    original=json.loads(_checked(original_manifest_ref,maximum=8*1024*1024).read_bytes())
+    _require(original.get('schema')=='v4.a_share.owner_original_charts.v1' and isinstance(original.get('samples'),dict)
+             and all(original.get(k) is v for k,v in FLAGS.items()),'GENERIC_BULK_ORIGINAL_MANIFEST_CONFLICT')
+    originals={code:item['projection'] for code,item in original['samples'].items()
+               if isinstance(item,dict) and isinstance(item.get('projection'),dict)}
+    _checked(engine_ref,maximum=1024*1024)
+    additions,groups=_bulk_addition_groups(roles,receipt)
+    _require(additions<=frame and set(prior.get('symbols',{}))<=frame,'GENERIC_BULK_PRIOR_SCOPE_CONFLICT')
+    code_path=Path(__file__).resolve(strict=True)
+    producer=_write_immutable(root,'BULK_PROJECTION_PRODUCER','.py',code_path.read_bytes(),full_hash=True)
+    producer.update(source_path=str(code_path),source_sha256=producer['sha256'])
+    run_identity={'paired_receipt':paired_receipt_ref,'verified_pair':verified_pair_ref,'numeric_manifest':numeric_manifest_ref,
+        'spool':spool_ref,'owner':owner_ref,'prior_index':prior_index_ref,'no_frame':no_frame_ref,
+        'original_manifest':original_manifest_ref,'engine_config':engine_ref,'producer_sha256':producer['sha256'],
+        'observation_date':observation_date,'historical_PIT':False,**FLAGS}
+    existing=list(root.glob('BULK_RUN_IDENTITY_*.json'))
+    if existing:
+        _require(len(existing)==1 and json.loads(existing[0].read_bytes())==run_identity,'GENERIC_BULK_RESUME_IDENTITY_CONFLICT')
+    identity_ref=_write_immutable(root,'BULK_RUN_IDENTITY','.json',_canonical(run_identity),full_hash=True)
+    context={'receipt':receipt,'roles':roles,'parts':str(Path(receipt['run_dir'])/'symbol_checkpoints'),
+        'source_date':source_date,'observation_date':observation_date,'source_generation':source_generation,'source_input':source_input,
+        'numeric_manifest_ref':numeric_manifest_ref,'paired_receipt_ref':paired_receipt_ref,'verified_pair_ref':verified_pair_ref,
+        'owner_ref':owner_ref,'spool_owner_ref':desc['owner_source'],'engine_ref':engine_ref,'originals':originals,
+        'output_root':str(root),'producer':producer,'run_identity':identity_ref,'frame':frame,'no_frame':no_frame,'no_frame_ref':no_frame_ref,
+        'additions':additions,'groups':groups,'spools':spools,'bucket':bucket,'overlay':overlay,'prior':prior,'prior_ref':prior_index_ref}
+    return context
+
+
+def verify_owner_bulk_canary(context,symbols):
+    """Compare old3/new/long samples to existing pair-derived assets, without recomputing."""
+    symbols=list(dict.fromkeys(symbols));prior=context['prior'];cached={};results=[]
+    for code in symbols:
+        _require(code in context['frame'] and prior.get('symbols',{}).get(code,{}).get('status')=='READY','GENERIC_BULK_CANARY_SCOPE_CONFLICT')
+        old=code not in context['additions']
+        if old:
+            bucket=context['bucket'](code)
+            if bucket not in cached:cached[bucket]=_bulk_read_bucket(context['spools'],bucket)
+            tables=cached[bucket]
+            left=tables['selector'].filter(pc.equal(tables['selector']['ts_code'],code))
+            right=tables['backtest'].filter(pc.equal(tables['backtest']['ts_code'],code))
+        else:
+            left=pq.ParquetFile(context['roles']['selector']['path']).read_row_group(context['groups']['selector'][code],columns=_bulk_columns('selector',fields=True))
+            right=pq.ParquetFile(context['roles']['backtest']['path']).read_row_group(context['groups']['backtest'][code],columns=_bulk_columns('backtest',fields=True))
+        results.append(_bulk_compare_prior(code,left,right,old,context,prior,context['overlay']))
+    return cached,results
+
+
+def run_owner_bulk(context, cached_buckets, *, workers=4, max_new=None):
+    """Append read-only views; stop submitting at resource, identity or I/O failure."""
+    _require(type(workers) is int and 1<=workers<=4,'GENERIC_BULK_WORKER_LIMIT')
+    _require(max_new is None or type(max_new) is int and max_new>0,'GENERIC_BULK_LIMIT_INVALID')
+    root=Path(context['output_root']);checkpoints=root/'symbol_receipts';checkpoints.mkdir(exist_ok=True)
+    results=dict(context['prior']['symbols']);identity_sha=context['run_identity']['sha256'];errors=[]
+    for code,item in context['no_frame'].items():
+        results[code]={'status':'UNKNOWN','reason':'NO_PAIRED_A_FRAME:'+str(item.get('snapshot_quarantine_reason') or 'SOURCE_GAP'),
+                       'source_scope_ref':context['no_frame_ref'],'source_qualification_reason':item.get('source_qualification_reason')}
+    for path in checkpoints.glob('*_VIEW_RESULT_*.json'):
+        value=json.loads(path.read_bytes());code=value.get('symbol')
+        _require(code in context['frame'] and value.get('run_identity_sha256')==identity_sha,'GENERIC_BULK_RESUME_RECEIPT_CONFLICT')
+        result=value.get('result',{});_require(result.get('status') in {'READY','UNKNOWN','FAILED'},'GENERIC_BULK_RESUME_RECEIPT_INVALID')
+        if result['status']=='READY':
+            _checked(result['binding'],maximum=4*1024*1024)
+            if code in results and results[code].get('status')=='READY':
+                _require(results[code]['binding']==result['binding'],'GENERIC_BULK_RESUME_DUPLICATE_CONFLICT')
+            results[code]=result
+        elif code not in results or results[code].get('status')!='READY':results[code]=result
+    # A recorded deterministic source gap is terminal. Failed attempts remain
+    # in the ledger but may be retried after the environment is corrected.
+    pending={code for code in context['frame'] if code not in results or results[code].get('status')=='FAILED'}
+    worker_context={k:v for k,v in context.items() if k in {'receipt','parts','source_date','observation_date','source_generation',
+        'source_input','numeric_manifest_ref','paired_receipt_ref','owner_ref','spool_owner_ref','engine_ref','originals','output_root'}}
+    worker_context['roles']={role:{'schema':value['schema']} for role,value in context['roles'].items()}
+    submitted=0;started=time.monotonic();new_bytes=0;stopped=None;last_resources=None;last_health=0.0
+    def write_result(code,result):
+        nonlocal new_bytes,stopped
+        value={'schema':'v4.workbench.generic_bulk_symbol_receipt.v1','symbol':code,'run_identity_sha256':identity_sha,'result':result,**FLAGS}
+        _write_immutable(checkpoints,code.replace('.','_')+'_VIEW_RESULT','.json',_canonical(value))
+        results[code]=result;new_bytes+=result.get('asset_bytes',0)
+        if result.get('status')=='FAILED':errors.append({'symbol':code,'reason':result.get('reason')});stopped='SYMBOL_FAILURE'
+    def drain(futures,block=False):
+        if not futures:return
+        done,_=wait(futures,return_when=FIRST_COMPLETED,timeout=None if block else 0)
+        for future in done:
+            code=futures.pop(future)
+            try:result=future.result()
+            except BaseException as exc:result={'status':'FAILED','reason':type(exc).__name__+': '+str(exc)}
+            write_result(code,result)
+    worker_health=_bulk_resources(root);last_resources=worker_health
+    if not worker_health['ok']:stopped=worker_health['reason']
+    pool=ProcessPoolExecutor(max_workers=workers,initializer=_bulk_worker_init,initargs=(worker_context,)) if not stopped and pending else None
+    futures={}
+    try:
+        order=list(cached_buckets)+[i for i in range(32) if i not in cached_buckets]
+        for bucket in order:
+            codes=sorted(code for code in pending if code not in context['additions'] and context['bucket'](code)==bucket)
+            if not codes or stopped:continue
+            if max_new is not None and submitted>=max_new:stopped='BOUNDED_BATCH_LIMIT';break
+            last_resources=_bulk_resources(root,[p.pid for p in multiprocessing.active_children() if p.pid])
+            if not last_resources['ok']:stopped=last_resources['reason'];break
+            tables=cached_buckets.pop(bucket,None) or _bulk_read_bucket(context['spools'],bucket)
+            for code in codes:
+                while len(futures)>=workers and not stopped:drain(futures,True)
+                if stopped or max_new is not None and submitted>=max_new:
+                    stopped=stopped or 'BOUNDED_BATCH_LIMIT';break
+                if time.monotonic()-last_health>=5:
+                    last_resources=_bulk_resources(root,[p.pid for p in multiprocessing.active_children() if p.pid]);last_health=time.monotonic()
+                    if not last_resources['ok']:stopped=last_resources['reason'];break
+                if shutil.disk_usage(root).free<40*1024**3:stopped='DISK_BELOW_40_GIB';break
+                left=tables['selector'].filter(pc.equal(tables['selector']['ts_code'],code))
+                right=tables['backtest'].filter(pc.equal(tables['backtest']['ts_code'],code))
+                if not left.num_rows or not right.num_rows:write_result(code,{'status':'FAILED','reason':'GENERIC_BULK_BUCKET_SYMBOL_MISSING'});break
+                futures[pool.submit(_bulk_one,code,left,right,True)]=code;submitted+=1
+            while futures:drain(futures,True)
+            if stopped=='BOUNDED_BATCH_LIMIT':cached_buckets[bucket]=tables
+        for code in sorted(pending & context['additions']):
+            if stopped:break
+            if max_new is not None and submitted>=max_new:stopped='BOUNDED_BATCH_LIMIT';break
+            while len(futures)>=workers and not stopped:drain(futures,True)
+            if stopped:break
+            last_resources=_bulk_resources(root,[p.pid for p in multiprocessing.active_children() if p.pid])
+            if not last_resources['ok']:stopped=last_resources['reason'];break
+            left=pq.ParquetFile(context['roles']['selector']['path']).read_row_group(context['groups']['selector'][code],columns=_bulk_columns('selector',fields=True))
+            right=pq.ParquetFile(context['roles']['backtest']['path']).read_row_group(context['groups']['backtest'][code],columns=_bulk_columns('backtest',fields=True))
+            futures[pool.submit(_bulk_one,code,left,right,False)]=code;submitted+=1
+        while futures:drain(futures,True)
+    except (ValueError,OSError,KeyError,TypeError,pa.ArrowException) as exc:
+        stopped='BULK_INPUT_FAILURE';errors.append({'symbol':None,'reason':type(exc).__name__+': '+str(exc)})
+        while futures:drain(futures,True)
+    finally:
+        if pool:pool.shutdown(wait=True)
+    try:
+        _unchanged(context['roles'])
+        _require(q.sha(Path(__file__).resolve(strict=True))==context['producer']['sha256'],'GENERIC_BULK_PRODUCER_MOVED')
+    except (ValueError,OSError) as exc:
+        stopped='BULK_IDENTITY_MOVED';errors.append({'symbol':None,'reason':str(exc)})
+    unfinished=sorted(code for code in context['frame'] if code not in results or results[code].get('status')=='FAILED')
+    summary={'schema':'v4.workbench.generic_bulk_progress.v1','run_identity':context['run_identity'],'frame_count':len(context['frame']),
+        'effective_count':len(context['frame'])+len(context['no_frame']),'ready':sum(x.get('status')=='READY' for x in results.values()),
+        'unknown':sum(x.get('status')=='UNKNOWN' for x in results.values()),'unfinished_count':len(unfinished),
+        'unfinished':unfinished,'submitted_this_run':submitted,'asset_bytes_this_run':new_bytes,
+        'elapsed_seconds':round(time.monotonic()-started,3),'stop_reason':stopped,'errors':errors,'resources':last_resources,**FLAGS}
+    progress=_write_immutable(root,'BULK_PROGRESS','.json',_canonical(summary))
+    if unfinished or stopped or errors:return {'status':'PARTIAL','progress':progress,**summary}
+    index={'schema':'v4.workbench.generic_single_index.v1','source_date':context['source_date'],'observation_date':context['observation_date'],
+        'source_generation':context['source_generation'],'input_sha256':context['source_input'],
+        'candidate_generation':context['receipt']['generation_id'],'candidate_input_sha256':context['receipt']['input_sha256'],
+        'numeric_manifest':context['numeric_manifest_ref'],'paired_receipt':context['paired_receipt_ref'],
+        'pair_sha256':context['receipt']['candidate_sha256'],'projection_producer':context['producer'],
+        'verified_pair':context['verified_pair_ref'],'previous_index':context['prior_ref'],
+        'scope_gap_receipt':context['no_frame_ref'],'symbols':results,'historical_PIT':False,**FLAGS}
+    index_ref=_write_immutable(root,'GENERIC_SINGLE_INDEX','.json',_canonical(index))
+    return {'status':'COMPLETE','index':index_ref,'progress':progress,**summary}

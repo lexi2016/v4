@@ -1,6 +1,7 @@
 """Read-only shape adapter for the fixed Dot visual shell, no financial producer."""
 from __future__ import annotations
 import copy
+import csv
 import gzip
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -78,6 +79,30 @@ def checked_bounded_bytes(reference,maximum):
 
 def checked_bounded(reference,maximum):
     return json.loads(checked_bounded_bytes(reference,maximum))
+
+
+def checked_company_snapshot(stock,witness,name_table,symbol):
+    """Validate the captured source identity; capture time is not a PIT claim."""
+    name_bytes=checked_bounded_bytes(name_table,256*1024)
+    matches=[row for row in csv.DictReader(io.StringIO(name_bytes.decode('utf-8-sig'))) if row.get('symbol')==symbol]
+    text=stock.get('source_text');name=stock.get('name');raw=stock.get('finance_native_raw')
+    captured=stock.get('captured_at');exchange=symbol.rsplit('.',1)[1];market={'SH':1,'SZ':0,'BJ':2}[exchange]
+    try:timestamp=datetime.fromisoformat(captured)
+    except (TypeError,ValueError):timestamp=None
+    header=re.search(r'◇'+re.escape(symbol.split('.')[0])+r'\s+([^◇\n]+?)\s+更新日期[：:]\s*(\d{4}-\d{2}-\d{2})',text[:300]) if isinstance(text,str) else None
+    if (len(matches)!=1 or matches[0].get('market')!=exchange or not name or name!=matches[0].get('name')
+        or name!=witness.get('name') or not header or header.group(1).strip()!=name
+        or header.group(2)!=stock.get('source_updated_date') or witness.get('source_updated_date')!=stock.get('source_updated_date')
+        or 'finance_updated_date' in witness and witness['finance_updated_date']!=stock.get('finance_updated_date')
+        or witness.get('captured_at')!=captured or not timestamp or timestamp.tzinfo is None or timestamp.utcoffset() is None
+        or stock.get('symbol')!=symbol or stock.get('exchange')!=exchange or stock.get('status')!='OBSERVED'
+        or exchange=='BJ' and stock.get('endpoint_markets')!={'text':0,'finance':2}
+        or not isinstance(raw,dict) or raw.get('code')!=symbol.split('.')[0] or raw.get('market')!=market
+        or hashlib.sha256(text.encode()).hexdigest()!=stock.get('source_text_sha256')
+        or stock.get('historical_PIT') is not False or any(stock.get(k) is not v for k,v in FLAGS.items())):
+        raise ValueError('F10_CANDIDATE_STOCK_IDENTITY_CONFLICT')
+    return {k:stock.get(k) for k in ('name','captured_at','source_updated_date','finance_updated_date','concepts',
+                                     'concept_status','industry','financials','source_text_sha256')}
 
 
 def checked_single_display_projection(binding,identity):
@@ -679,6 +704,197 @@ class ResearchWorkbenchHost:
             for source in refs:checked_bytes(source)
         return raw,{'kb':'application/octet-stream','projection':'application/octet-stream','html':'text/html; charset=utf-8','history':'application/octet-stream','company':'application/octet-stream'}[kind]
 
+    def _candidate_f10(self,source_date,symbol,p):
+        """Read only an explicitly registered isolated F10 completion for this pair."""
+        single=self.binding.get('candidate_f10_completion');multiple=self.binding.get('candidate_f10_completions')
+        if single and multiple:raise ValueError('F10_CANDIDATE_BINDING_CONFLICT')
+        refs=multiple if multiple is not None else ([single] if single else [])
+        if not isinstance(refs,list) or len(refs)>8:raise ValueError('F10_CANDIDATE_BINDING_CONFLICT')
+        if not refs:return None
+        matches=[];day=compact(source_date)
+        for proof_ref in refs:
+            proof=checked_bounded(proof_ref,1024*1024)
+            if (proof.get('schema') not in {'v4.a_share.isolated_bj_f10_completion_proof.v1',
+                                           'v4.a_share.isolated_a6_f10_completion_proof.v1'}
+                or proof.get('status')!='ISOLATED_OWNER_COMPLETION_VERIFIED'
+                or proof.get('lock_scope')!='ISOLATED_ONLY' or proof.get('not_global_current') is not True
+                or proof.get('historical_PIT') is not False or any(proof.get(k) is not v for k,v in FLAGS.items())
+                or not isinstance(proof.get('items'),dict)):
+                raise ValueError('F10_CANDIDATE_PROOF_CONFLICT')
+            if symbol in proof['items']:matches.append((proof_ref,proof,proof['items'][symbol]))
+        if len(matches)>1:raise ValueError('F10_CANDIDATE_SCOPE_OVERLAP')
+        if not matches:return None
+        proof_ref,proof,item=matches[0]
+        index=checked_bounded(self.binding['generic_single_index'],8*1024*1024)
+        if index.get('source_date')!=source_date:return None
+        meta=self._generic_single(source_date,symbol,p['source_generation'])
+        if (not meta or meta.get('status')!='READY_FOR_RESEARCH_REVIEW'
+            or proof.get('source_generation')!=meta['panel_generation']
+            or proof.get('input_sha256')!=meta['candidate_input_sha256']
+            or proof.get('pair_attestation')!=index.get('verified_pair')):
+            raise ValueError('F10_CANDIDATE_VIEW_CONFLICT')
+        pair=checked_bounded(index['paired_receipt'],16*1024*1024)
+        att=checked_bounded(proof['pair_attestation'],4*1024*1024)
+        source_manifest=self.source._a_product_reference(p['manifest'])
+        if (pair.get('status')!='CANDIDATE_READY' or pair.get('generation_id')!=meta['panel_generation']
+            or pair.get('input_sha256')!=meta['candidate_input_sha256']
+            or pair.get('candidate_sha256')!=index.get('pair_sha256')
+            or pair.get('kb_initial_upgrade',{}).get('source_generation_id')!=p['source_generation']
+            or pair.get('kb_initial_upgrade',{}).get('baseline_panel_sha256',{}).get('selector')!=p['source_identity'].get('selector_artifact_sha256')
+            or pair.get('materialized_reuse_source_input_sha256')!=p['source_identity']['input_sha256']
+            or pair.get('materialized_reuse_source_snapshot_sha256')!=source_manifest.get('snapshot',{}).get('sha256')
+            or source_manifest.get('source_generation')!=p['source_generation']
+            or source_manifest.get('input_sha256')!=p['source_identity']['input_sha256']
+            or att.get('status')!='PASS' or att.get('candidate_receipt')!=index['paired_receipt']
+            or att.get('generation_id')!=meta['panel_generation'] or att.get('input_sha256')!=meta['candidate_input_sha256']
+            or att.get('old_arrow_equivalence',{}).get('status')!='PASS'
+            or any(value.get('historical_PIT') is not False for value in (pair,att))
+            or any(any(value.get(k) is not v for k,v in FLAGS.items()) for value in (pair,att))):
+            raise ValueError('F10_CANDIDATE_LINEAGE_CONFLICT')
+        root=Path(proof.get('product_root',''))
+        if (not root.is_absolute() or root.is_symlink() or root.resolve(strict=True)!=root
+            or Path(proof_ref['path']).parent!=root.parent):raise ValueError('F10_CANDIDATE_ROOT_CONFLICT')
+        def read_registered(ref,maximum=4*1024*1024):
+            if (not isinstance(ref,dict) or not isinstance(ref.get('path'),str)
+                or not Path(ref['path']).is_relative_to(root)):
+                raise ValueError('F10_CANDIDATE_OUTSIDE_REGISTERED_ROOT')
+            return checked_bounded(ref,maximum)
+        ix=read_registered(proof['index']);event=read_registered(proof['event'])
+        manifest=read_registered(proof['numeric_manifest']);numeric=read_registered(proof['numeric_artifact'])
+        receipt=read_registered(proof['f10_receipt'])
+        checkpoint=read_registered(proof['f10_checkpoint']);identity=checkpoint.get('identity',{})
+        owner=proof['f10_owner'];checked_bounded_bytes(owner,4*1024*1024)
+        checked_bounded_bytes(proof['daily_owner'],4*1024*1024);checked_bounded(proof['source_config'],4*1024*1024)
+        replay=checked_bounded(proof['raw_replay'],4*1024*1024)
+        candidate_generation=meta['panel_generation'];candidate_input=meta['candidate_input_sha256']
+        if (ix.get('schema_version')!='v4.a_share.daily_product_index.v1'
+            or ix.get('dates',{}).get(day)!=proof['numeric_manifest'] or ix.get('f10',{}).get(day)!=proof['f10_receipt']
+            or event.get('schema_version')!='v4.a_share.daily_completion.v1' or event.get('data_date')!=day
+            or event.get('source_generation')!=candidate_generation or event.get('input_sha256')!=candidate_input
+            or event.get('manifest')!=proof['numeric_manifest'] or event.get('f10')!=proof['f10_receipt']
+            or event.get('publication_scope')!='ISOLATED_CANDIDATE_SAMPLE_ONLY' or event.get('sample_only') is not True
+            or manifest.get('schema_version')!='v4.a_share.daily_product_manifest.v1' or manifest.get('data_date')!=day
+            or manifest.get('source_generation')!=candidate_generation or manifest.get('input_sha256')!=candidate_input
+            or manifest.get('sample_only') is not True or manifest.get('artifact')!=proof['numeric_artifact']
+            or numeric.get('schema_version')!='v4.a_share.daily_product.v1' or numeric.get('data_date')!=day
+            or numeric.get('source_generation')!=candidate_generation or numeric.get('source_identity',{}).get('input_sha256')!=candidate_input
+            or numeric.get('source_identity',{}).get('selector_artifact_sha256')!=index['pair_sha256']['selector']
+            or numeric.get('source_identity',{}).get('historical_PIT') is not False
+            or numeric.get('source_config')!=proof['source_config'] or numeric.get('sample_only') is not True
+            or symbol not in numeric.get('processed_universe',[])
+            or receipt.get('schema')!='v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date')!=day
+            or receipt.get('source_generation')!=candidate_generation or receipt.get('input_sha256')!=candidate_input
+            or receipt.get('selector_sha256')!=index['pair_sha256']['selector']
+            or receipt.get('status') not in {'COMPLETE','PARTIAL'} or receipt.get('captured_as_current_knowledge') is not True
+            or receipt.get('upstream_success_receipt')!=proof['numeric_manifest'] or receipt.get('checkpoint')!=proof['f10_checkpoint']
+            or checkpoint.get('schema')!='v4.a_share.f10_checkpoint.v1'
+            or checkpoint.get('upstream_success_receipt')!=proof['numeric_manifest']
+            or any(identity.get(k)!=receipt.get(k) for k in ('data_date','source_generation','input_sha256','selector_sha256','scope_sha256','adapter_sha256','collector_sha256'))
+            or receipt.get('adapter_sha256')!=owner.get('sha256')
+            or (replay.get('schema'),replay.get('status'))!=
+               (('v4.a_share.f10_bj_replay_receipt.v1','FIVE_OBSERVATIONS_REPLAYED')
+                if proof['schema']=='v4.a_share.isolated_bj_f10_completion_proof.v1'
+                else ('v4.a_share.f10_a7_owner_replay.v1','SEVEN_CAPTURED_COMPANY_ITEMS_REPLAYED'))
+            or replay.get('adapter_sha256')!=owner.get('sha256') or replay.get('collector_sha256')!=receipt.get('collector_sha256')
+            or replay.get('sample_lock')!=proof.get('name_table') or replay.get('no_new_network_request') is not True
+            or any(value.get('historical_PIT') is not False for value in (receipt,replay))
+            or any(any(value.get(k) is not v for k,v in FLAGS.items()) for value in (event,manifest,numeric,receipt,checkpoint,replay))):
+            raise ValueError('F10_CANDIDATE_REGISTRATION_CONFLICT')
+        scope=receipt.get('scope',{});names=scope.get('symbols');stock_ref=checkpoint.get('items',{}).get(symbol)
+        if (scope.get('kind')!='EXPLICIT_SYMBOLS' or not isinstance(names,list) or len(names)!=len(set(names))
+            or scope.get('count')!=len(names) or receipt.get('requested')!=len(names) or symbol not in names
+            or any(not re.fullmatch(r'\d{6}\.(?:BJ|SH|SZ)',str(code)) for code in names)
+            or receipt.get('scope_sha256')!=hashlib.sha256(json.dumps({code:code.rsplit('.',1)[1] for code in names},sort_keys=True).encode()).hexdigest()
+            or receipt.get('observed')!=len(checkpoint.get('items',{})) or set(checkpoint.get('items',{}))!=set(proof['items'])
+            or not isinstance(item,dict) or not isinstance(stock_ref,dict) or stock_ref!=item.get('stock')
+            or replay.get('items',{}).get(symbol,{}).get('artifact',{}).get('sha256')!=stock_ref.get('sha256')):
+            raise ValueError('F10_CANDIDATE_SCOPE_CONFLICT')
+        stock=read_registered(stock_ref,2*1024*1024)
+        displayed=checked_company_snapshot(stock,item,proof['name_table'],symbol)
+        return dict(status='OBSERVED_CANDIDATE',symbol=symbol,data_date=day,
+            source_generation=candidate_generation,input_sha256=candidate_input,
+            bound_source_generation=p['source_generation'],bound_source_input_sha256=p['source_identity']['input_sha256'],
+            lineage='REGISTERED_ISOLATED_PAIRED_CANDIDATE',receipt=proof['f10_receipt'],stock_ref=stock_ref,
+            f10=displayed,
+            historical_PIT=False,**FLAGS)
+
+    def _independent_company(self,source_date,symbol,p):
+        """Read a registered company observation without admitting its price panel."""
+        if symbol!='688496.SH':return None
+        single=self.binding.get('candidate_f10_completion');multiple=self.binding.get('candidate_f10_completions')
+        refs=multiple if multiple is not None else ([single] if single else [])
+        if single and multiple or not isinstance(refs,list) or len(refs)>8:raise ValueError('F10_CANDIDATE_BINDING_CONFLICT')
+        matches=[]
+        for ref in refs:
+            proof=checked_bounded(ref,1024*1024)
+            if proof.get('independent_company_688496'):matches.append((ref,proof))
+        if len(matches)>1:raise ValueError('F10_INDEPENDENT_SCOPE_OVERLAP')
+        if not matches:return None
+        proof_ref,proof=matches[0];day=compact(source_date)
+        index=checked_bounded(self.binding['generic_single_index'],8*1024*1024)
+        if index.get('source_date')!=source_date:return None
+        meta=self._generic_single(source_date,symbol,p['source_generation'])
+        root=Path(proof.get('product_root',''))
+        if (not meta or meta.get('status')!='UNKNOWN_SOURCE_ADMISSION'
+            or proof.get('schema')!='v4.a_share.isolated_a6_f10_completion_proof.v1'
+            or proof.get('status')!='ISOLATED_OWNER_COMPLETION_VERIFIED' or proof.get('lock_scope')!='ISOLATED_ONLY'
+            or proof.get('not_global_current') is not True or proof.get('historical_PIT') is not False
+            or any(proof.get(k) is not v for k,v in FLAGS.items())
+            or proof.get('source_generation')!=index.get('candidate_generation')
+            or proof.get('input_sha256')!=index.get('candidate_input_sha256')
+            or proof.get('pair_attestation')!=index.get('verified_pair')
+            or not root.is_absolute() or root.is_symlink() or root.resolve(strict=True)!=root
+            or Path(proof_ref['path']).parent!=root.parent):
+            raise ValueError('F10_INDEPENDENT_REGISTRATION_CONFLICT')
+        def read_registered(ref,maximum=4*1024*1024):
+            if not isinstance(ref,dict) or not isinstance(ref.get('path'),str) or not Path(ref['path']).is_relative_to(root):
+                raise ValueError('F10_CANDIDATE_OUTSIDE_REGISTERED_ROOT')
+            return checked_bounded(ref,maximum)
+        ix=read_registered(proof['index']);event=read_registered(proof['event'])
+        manifest=read_registered(proof['numeric_manifest']);receipt=read_registered(proof['f10_receipt'])
+        pair=checked_bounded(index['paired_receipt'],16*1024*1024);att=checked_bounded(proof['pair_attestation'],4*1024*1024)
+        source_manifest=self.source._a_product_reference(p['manifest'])
+        if (ix.get('schema_version')!='v4.a_share.daily_product_index.v1'
+            or ix.get('dates',{}).get(day)!=proof['numeric_manifest'] or ix.get('f10',{}).get(day)!=proof['f10_receipt']
+            or event.get('manifest')!=proof['numeric_manifest'] or event.get('f10')!=proof['f10_receipt']
+            or event.get('data_date')!=day or event.get('publication_scope')!='ISOLATED_CANDIDATE_SAMPLE_ONLY'
+            or manifest.get('data_date')!=day or receipt.get('data_date')!=day
+            or any(x.get('source_generation')!=index['candidate_generation'] or x.get('input_sha256')!=index['candidate_input_sha256'] for x in (event,manifest,receipt))
+            or pair.get('generation_id')!=index['candidate_generation'] or pair.get('input_sha256')!=index['candidate_input_sha256']
+            or pair.get('candidate_sha256')!=index['pair_sha256']
+            or pair.get('kb_initial_upgrade',{}).get('source_generation_id')!=p['source_generation']
+            or pair.get('kb_initial_upgrade',{}).get('baseline_panel_sha256',{}).get('selector')!=p['source_identity'].get('selector_artifact_sha256')
+            or pair.get('materialized_reuse_source_input_sha256')!=p['source_identity']['input_sha256']
+            or pair.get('materialized_reuse_source_snapshot_sha256')!=source_manifest.get('snapshot',{}).get('sha256')
+            or att.get('status')!='PASS' or att.get('candidate_receipt')!=index['paired_receipt']
+            or att.get('generation_id')!=index['candidate_generation'] or att.get('input_sha256')!=index['candidate_input_sha256']
+            or any(any(x.get(k) is not v for k,v in FLAGS.items()) for x in (event,manifest,receipt,pair,att))):
+            raise ValueError('F10_INDEPENDENT_REGISTRATION_CONFLICT')
+        observation_ref=proof['independent_company_688496'];observation=read_registered(observation_ref,1024*1024)
+        owner=proof['f10_owner'];checked_bounded_bytes(owner,4*1024*1024)
+        replay=checked_bounded(proof['raw_replay'],4*1024*1024)
+        company_ref=observation.get('company_ref')
+        if (observation.get('schema')!='v4.a_share.independent_company_observation.v1'
+            or observation.get('status')!='COMPANY_IDENTITY_VERIFIED' or observation.get('symbol')!=symbol
+            or observation.get('source_generation') is not None or observation.get('price_panel_admission')!='NOT_ASSERTED'
+            or observation.get('data_asof')!='CURRENT_CAPTURE_ONLY' or observation.get('historical_PIT') is not False
+            or any(observation.get(k) is not v for k,v in FLAGS.items())
+            or observation.get('f10_owner')!=owner or observation.get('raw_replay')!=proof['raw_replay']
+            or observation.get('name_table')!=proof['name_table']
+            or replay.get('schema')!='v4.a_share.f10_a7_owner_replay.v1' or replay.get('status')!='SEVEN_CAPTURED_COMPANY_ITEMS_REPLAYED'
+            or replay.get('adapter_sha256')!=owner.get('sha256') or replay.get('sample_lock')!=proof['name_table']
+            or replay.get('no_new_network_request') is not True or replay.get('historical_PIT') is not False
+            or any(replay.get(k) is not v for k,v in FLAGS.items())
+            or not isinstance(company_ref,dict)
+            or replay.get('items',{}).get(symbol,{}).get('artifact',{}).get('sha256')!=company_ref.get('sha256')):
+            raise ValueError('F10_INDEPENDENT_OBSERVATION_CONFLICT')
+        stock=read_registered(company_ref,2*1024*1024)
+        displayed=checked_company_snapshot(stock,observation,proof['name_table'],symbol)
+        return dict(status='OBSERVED_INDEPENDENT_COMPANY',symbol=symbol,data_date=day,source_generation=None,input_sha256=None,
+            bound_source_generation=p['source_generation'],bound_source_input_sha256=p['source_identity']['input_sha256'],
+            lineage='REGISTERED_INDEPENDENT_COMPANY_WITHOUT_PRICE_ADMISSION',price_panel_admission='NOT_ASSERTED',
+            stock_ref=company_ref,company_proof=observation_ref,f10=displayed,historical_PIT=False,**FLAGS)
+
     def f10(self,source_date,symbol,revision=None):
         """Read the existing completion-index F10 snapshot, never acquire it on GET."""
         p=self._view(source_date,revision)
@@ -688,7 +904,7 @@ class ResearchWorkbenchHost:
         if root is None:raise ValueError('F10_PRODUCT_ROOT_UNBOUND')
         index=json.loads((root/'index.json').read_bytes());day=compact(source_date);ref=index.get('f10',{}).get(day)
         common=dict(symbol=symbol,data_date=day,source_generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],historical_PIT=False,**FLAGS)
-        if not ref:return dict(status='NOT_MATERIALIZED',**common)
+        if not ref:return self._candidate_f10(source_date,symbol,p) or self._independent_company(source_date,symbol,p) or dict(status='NOT_MATERIALIZED',**common)
         receipt=self.source._a_product_reference(ref)
         if (receipt.get('schema')!='v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date')!=day
             or receipt.get('source_generation')!=p['source_generation'] or receipt.get('input_sha256')!=p['source_identity']['input_sha256']
@@ -699,7 +915,7 @@ class ResearchWorkbenchHost:
         stock_ref=checkpoint.get('items',{}).get(symbol)
         if not stock_ref:
             failed=receipt.get('failures',{}).get(symbol,{})
-            if failed.get('status')!='PARTIAL':return dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,**common)
+            if failed.get('status')!='PARTIAL':return self._candidate_f10(source_date,symbol,p) or self._independent_company(source_date,symbol,p) or dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,**common)
             partial_ref=failed.get('artifact')
             if (not isinstance(partial_ref,dict) or not isinstance(partial_ref.get('path'),str)
                 or Path(partial_ref['path']).stat().st_size>2*1024*1024):raise ValueError('F10_PARTIAL_REFERENCE_INVALID')

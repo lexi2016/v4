@@ -56,6 +56,37 @@ def fixture_data(count=3):
     return pa.Table.from_pylist(left),pa.Table.from_pylist(right),pa.Table.from_pylist(diagnostics),identity
 
 
+def test_bulk_disk_gate_and_interrupted_immutable_write_can_resume(tmp_path,monkeypatch):
+    monkeypatch.setattr(view.shutil,'disk_usage',lambda _:SimpleNamespace(free=39*1024**3))
+    assert view._bulk_resources(tmp_path)['reason']=='DISK_BELOW_40_GIB'
+    real_link=view.os.link
+    monkeypatch.setattr(view.os,'link',lambda *_:(_ for _ in ()).throw(OSError('injected interruption')))
+    with pytest.raises(OSError,match='injected interruption'):
+        view._write_immutable(tmp_path,'STOCK_RESULT','.json',b'valid')
+    assert not list(tmp_path.glob('STOCK_RESULT_*.json'))
+    assert len(list(tmp_path.glob('.STOCK_RESULT_*.pending')))==1
+    monkeypatch.setattr(view.os,'link',real_link)
+    result=view._write_immutable(tmp_path,'STOCK_RESULT','.json',b'valid')
+    assert Path(result['path']).read_bytes()==b'valid'
+    assert view._write_immutable(tmp_path,'STOCK_RESULT','.json',b'valid')==result
+
+
+def test_bulk_reuses_old_n_checkpoint_only_with_frozen_source_and_no_resume(tmp_path):
+    code='002865.SZ';checkpoint=tmp_path/(code+'.parquet');checkpoint.write_bytes(b'checkpoint')
+    gap={'path':'/gap','sha256':S('a'),'checkpoint_id':S('b')}
+    old_n={'path':'/old-n','sha256':S('c'),'source_generation':S('d'),'resume_across_generation':False}
+    record={'checkpoint_id':S('b'),'sha256':hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+            'confirmed_gap_sidecar':gap,'n_structure_checkpoint':old_n}
+    put_json(tmp_path/(code+'.receipt.json'),record)
+    receipt={'confirmed_gap_sidecars':{code:gap},'n_structure_checkpoints':{code:old_n},
+             'materialized_reuse_refs':{code:{'path':'/old'}},'materialized_reuse_source_generation':S('d')}
+    assert view._bulk_checkpoint(code,receipt,tmp_path)[0]['sha256']==record['sha256']
+    bad={**old_n,'resume_across_generation':True};record['n_structure_checkpoint']=bad
+    put_json(tmp_path/(code+'.receipt.json'),record);receipt['n_structure_checkpoints'][code]=bad
+    with pytest.raises(ValueError,match='CHECKPOINT_BINDING_CONFLICT:n_structure_checkpoint'):
+        view._bulk_checkpoint(code,receipt,tmp_path)
+
+
 def test_chunks_are_date_bound_and_do_not_fill_unknowns(tmp_path):
     left,right,diag,identity=fixture_data(513)
     result=view.build_from_verified_tables(symbol=identity['symbol'],selector=left,backtest=right,diagnostics=diag,
@@ -378,6 +409,125 @@ def test_f10_partial_keeps_verified_component_and_rejects_wrong_identity(tmp_pat
     with pytest.raises(ValueError,match='COMPONENT_MARKET_CONFLICT'):host.f10(day,symbol,generation)
     invalid=json.loads(json.dumps(partial));invalid['source_components']['text']['source_text']='◇999999 错误 更新日期：2026-10-30';bind(invalid)
     with pytest.raises(ValueError,match='PARTIAL_TEXT_CONFLICT'):host.f10(day,symbol,generation)
+
+
+def candidate_f10_fixture(root, *, outside=False, wrong_name=False):
+    root.mkdir();product=root/'product';product.mkdir();canonical=root/'canonical';canonical.mkdir()
+    symbol='920196.BJ';name='错名' if wrong_name else '南方乳业';source_gen,source_input=S('a'),S('b')
+    candidate_gen,candidate_input=S('c'),S('d');selector,backtest,snapshot=S('e'),S('f'),S('1')
+    source_manifest=put_json(root/'source_manifest.json',{'source_generation':source_gen,'input_sha256':source_input,'snapshot':{'sha256':snapshot}})
+    p={'source_generation':source_gen,'source_identity':{'input_sha256':source_input,'selector_artifact_sha256':S('2')},'manifest':source_manifest,'rows':[]}
+    owner=root/'f10_owner.py';owner.write_text('# pinned owner\n');owner_ref=ref(owner)
+    daily=root/'daily_owner.py';daily.write_text('# pinned daily\n');daily_ref=ref(daily)
+    config=put_json(root/'config.json',{'source':'fixture'})
+    names=root/'names.csv';names.write_text('market,symbol,name\nBJ,920196.BJ,南方乳业\n');name_ref=ref(names)
+    text=f'◇920196 {name} 更新日期：2026-10-30◇'
+    stock={'symbol':symbol,'name':name,'exchange':'BJ','status':'OBSERVED','captured_at':'2026-11-02T01:02:03+00:00',
+        'source_updated_date':'2026-10-30','finance_updated_date':'20261030','source_text':text,
+        'source_text_sha256':hashlib.sha256(text.encode()).hexdigest(),'endpoint_markets':{'text':0,'finance':2},
+        'finance_native_raw':{'code':'920196','market':2},'financials':{},'concepts':[],
+        'historical_PIT':False,**view.FLAGS}
+    stock_ref=put_json((root if outside else product)/'stock.json',stock)
+    item={'name':name,'captured_at':stock['captured_at'],'source_updated_date':stock['source_updated_date'],
+          'finance_updated_date':stock['finance_updated_date'],'stock':stock_ref}
+    collector={'tdx_f10_fetch_existing.py':S('3')}
+    replay=put_json(root/'replay.json',{'schema':'v4.a_share.f10_bj_replay_receipt.v1','status':'FIVE_OBSERVATIONS_REPLAYED',
+        'adapter_sha256':owner_ref['sha256'],'collector_sha256':collector,'sample_lock':name_ref,'no_new_network_request':True,
+        'items':{symbol:{'artifact':stock_ref}},'historical_PIT':False,**view.FLAGS})
+    pair_ref=put_json(root/'pair.json',{'status':'CANDIDATE_READY','generation_id':candidate_gen,'input_sha256':candidate_input,
+        'candidate_sha256':{'selector':selector,'backtest':backtest},
+        'kb_initial_upgrade':{'source_generation_id':source_gen,'baseline_panel_sha256':{'selector':S('2')}},
+        'materialized_reuse_source_input_sha256':source_input,'materialized_reuse_source_snapshot_sha256':snapshot,
+        'historical_PIT':False,**view.FLAGS})
+    att_ref=put_json(root/'attestation.json',{'status':'PASS','candidate_receipt':pair_ref,'generation_id':candidate_gen,
+        'input_sha256':candidate_input,'old_arrow_equivalence':{'status':'PASS'},'historical_PIT':False,**view.FLAGS})
+    generic_ref=put_json(root/'generic.json',{'source_date':'2026-10-30','candidate_generation':candidate_gen,
+        'candidate_input_sha256':candidate_input,'paired_receipt':pair_ref,'verified_pair':att_ref,
+        'pair_sha256':{'selector':selector,'backtest':backtest}})
+    numeric_ref=put_json(product/'numeric.json',{'schema_version':'v4.a_share.daily_product.v1','data_date':'20261030',
+        'source_generation':candidate_gen,'source_identity':{'input_sha256':candidate_input,'selector_artifact_sha256':selector,
+            'historical_PIT':False},'source_config':config,'sample_only':True,'processed_universe':[symbol],**view.FLAGS})
+    manifest_ref=put_json(product/'manifest.json',{'schema_version':'v4.a_share.daily_product_manifest.v1','data_date':'20261030',
+        'source_generation':candidate_gen,'input_sha256':candidate_input,'sample_only':True,'artifact':numeric_ref,**view.FLAGS})
+    scope_sha=hashlib.sha256(json.dumps({symbol:'BJ'},sort_keys=True).encode()).hexdigest()
+    identity={'data_date':'20261030','source_generation':candidate_gen,'input_sha256':candidate_input,'selector_sha256':selector,
+        'scope_sha256':scope_sha,'adapter_sha256':owner_ref['sha256'],'collector_sha256':collector}
+    checkpoint_ref=put_json(product/'checkpoint.json',{'schema':'v4.a_share.f10_checkpoint.v1','identity':identity,
+        'upstream_success_receipt':manifest_ref,'items':{symbol:stock_ref},**view.FLAGS})
+    receipt_ref=put_json(product/'receipt.json',{'schema':'v4.a_share.f10_daily_receipt.v1',**identity,'status':'COMPLETE',
+        'captured_as_current_knowledge':True,'upstream_success_receipt':manifest_ref,'checkpoint':checkpoint_ref,
+        'scope':{'kind':'EXPLICIT_SYMBOLS','count':1,'symbols':[symbol]},'requested':1,'observed':1,
+        'historical_PIT':False,**view.FLAGS})
+    event_ref=put_json(product/'event.json',{'schema_version':'v4.a_share.daily_completion.v1','data_date':'20261030',
+        'source_generation':candidate_gen,'input_sha256':candidate_input,'manifest':manifest_ref,'f10':receipt_ref,
+        'publication_scope':'ISOLATED_CANDIDATE_SAMPLE_ONLY','sample_only':True,**view.FLAGS})
+    index_ref=put_json(product/'index.json',{'schema_version':'v4.a_share.daily_product_index.v1',
+        'dates':{'20261030':manifest_ref},'f10':{'20261030':receipt_ref}})
+    proof_ref=put_json(root/'proof.json',{'schema':'v4.a_share.isolated_bj_f10_completion_proof.v1',
+        'status':'ISOLATED_OWNER_COMPLETION_VERIFIED','lock_scope':'ISOLATED_ONLY','not_global_current':True,
+        'product_root':str(product),'source_generation':candidate_gen,'input_sha256':candidate_input,
+        'index':index_ref,'event':event_ref,'numeric_manifest':manifest_ref,'numeric_artifact':numeric_ref,
+        'f10_receipt':receipt_ref,'f10_checkpoint':checkpoint_ref,'f10_owner':owner_ref,'daily_owner':daily_ref,
+        'source_config':config,'raw_replay':replay,'name_table':name_ref,'pair_attestation':att_ref,
+        'items':{symbol:item},'historical_PIT':False,**view.FLAGS})
+    put_json(canonical/'index.json',{'f10':{}})
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={'generic_single_index':generic_ref,'candidate_f10_completion':proof_ref}
+    host._view=lambda *_:p;host.single_stock_research=lambda *_:{'status':'READY_FOR_RESEARCH_REVIEW'}
+    host._generic_single=lambda *_:{'status':'READY_FOR_RESEARCH_REVIEW','panel_generation':candidate_gen,'candidate_input_sha256':candidate_input}
+    host.source=SimpleNamespace(_a_product_root=lambda:canonical,_a_product_reference=lambda r:research_workbench_host.checked_bounded(r,4*1024*1024))
+    return host,p,symbol,stock_ref
+
+
+def test_candidate_f10_keeps_lineage_and_rejects_unregistered_paths_and_names(tmp_path):
+    host,p,symbol,stock_ref=candidate_f10_fixture(tmp_path/'ok')
+    answer=host.f10('2026-10-30',symbol,p['source_generation'])
+    assert answer['status']=='OBSERVED_CANDIDATE' and answer['f10']['name']=='南方乳业'
+    assert answer['source_generation']==S('c') and answer['bound_source_generation']==S('a')
+    assert answer['input_sha256']==S('d') and answer['bound_source_input_sha256']==S('b')
+    assert host.f10('2026-10-29',symbol,S('a'))['status']=='NOT_MATERIALIZED'
+    proof_ref=host.binding.pop('candidate_f10_completion');host.binding['candidate_f10_completions']=[proof_ref,proof_ref]
+    with pytest.raises(ValueError,match='F10_CANDIDATE_SCOPE_OVERLAP'):host.f10('2026-10-30',symbol,S('a'))
+    host.binding.pop('candidate_f10_completions');host.binding['candidate_f10_completion']=proof_ref
+    wrong={**p,'source_identity':{**p['source_identity'],'input_sha256':S('9')}};host._view=lambda *_:wrong
+    with pytest.raises(ValueError,match='F10_CANDIDATE_LINEAGE_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
+    host._view=lambda *_:p;Path(stock_ref['path']).write_text('{}')
+    with pytest.raises(ValueError,match='SHA_DRIFT|SIZE_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
+    host,p,symbol,_=candidate_f10_fixture(tmp_path/'outside',outside=True)
+    with pytest.raises(ValueError,match='F10_CANDIDATE_OUTSIDE_REGISTERED_ROOT'):host.f10('2026-10-30',symbol,S('a'))
+    host,p,symbol,_=candidate_f10_fixture(tmp_path/'name',wrong_name=True)
+    with pytest.raises(ValueError,match='F10_CANDIDATE_STOCK_IDENTITY_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
+
+
+def test_independent_company_does_not_admit_quarantined_price(tmp_path):
+    host,p,_,_=candidate_f10_fixture(tmp_path/'independent')
+    proof_path=Path(host.binding['candidate_f10_completion']['path']);proof=json.loads(proof_path.read_text())
+    product=Path(proof['product_root']);symbol='688496.SH';name='*ST清越'
+    names=Path(proof['name_table']['path']);names.write_text('market,symbol,name\nBJ,920196.BJ,南方乳业\nSH,688496.SH,*ST清越\n')
+    proof['name_table']=ref(names);text='◇688496 *ST清越 更新日期：2026-11-02◇';captured='2026-11-02T01:02:03+00:00'
+    stock={'symbol':symbol,'name':name,'exchange':'SH','status':'OBSERVED','captured_at':captured,'source_updated_date':'2026-11-02',
+        'source_text':text,'source_text_sha256':hashlib.sha256(text.encode()).hexdigest(),
+        'finance_native_raw':{'code':'688496','market':1},'financials':{},'concepts':[],
+        'historical_PIT':False,**view.FLAGS}
+    stock_ref=put_json(product/'independent_stock.json',stock)
+    replay=put_json(proof_path.parent/'a7_replay.json',{'schema':'v4.a_share.f10_a7_owner_replay.v1',
+        'status':'SEVEN_CAPTURED_COMPANY_ITEMS_REPLAYED','adapter_sha256':proof['f10_owner']['sha256'],
+        'sample_lock':proof['name_table'],'no_new_network_request':True,'items':{symbol:{'artifact':stock_ref}},
+        'historical_PIT':False,**view.FLAGS})
+    proof['raw_replay']=replay;proof['schema']='v4.a_share.isolated_a6_f10_completion_proof.v1'
+    observation={'schema':'v4.a_share.independent_company_observation.v1','status':'COMPANY_IDENTITY_VERIFIED','symbol':symbol,
+        'source_generation':None,'price_panel_admission':'NOT_ASSERTED','data_asof':'CURRENT_CAPTURE_ONLY',
+        'name':name,'captured_at':captured,'source_updated_date':'2026-11-02','company_ref':stock_ref,
+        'f10_owner':proof['f10_owner'],'raw_replay':replay,'name_table':proof['name_table'],
+        'historical_PIT':False,**view.FLAGS}
+    proof['independent_company_688496']=put_json(product/'independent_proof.json',observation)
+    host.binding['candidate_f10_completion']=put_json(proof_path,proof)
+    host._generic_single=lambda *_:{'status':'UNKNOWN_SOURCE_ADMISSION'}
+    result=host.f10('2026-10-30',symbol,S('a'))
+    assert result['status']=='OBSERVED_INDEPENDENT_COMPANY' and result['f10']['name']==name
+    assert result['source_generation'] is None and result['input_sha256'] is None and result['price_panel_admission']=='NOT_ASSERTED'
+    host._generic_single=lambda *_:{'status':'READY_FOR_RESEARCH_REVIEW'}
+    with pytest.raises(ValueError,match='F10_INDEPENDENT_REGISTRATION_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
 
 
 def test_hk_raw_observation_keeps_missing_session_and_excluded_day(tmp_path,monkeypatch):

@@ -1,8 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {decodeGenericChunk,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind} from '../research-panel/workbench-host/kb-single-stock.mjs';
 
 const sha=char=>char.repeat(64);
+
+test('F10 canonical and registered candidate retain distinct identities',()=>{
+  const day={source_date:'2026-10-30',generation:sha('a'),input_sha256:sha('b')};
+  const meta={schema:'v4.workbench.generic_single_research.v1',symbol:'920196.BJ',panel_generation:sha('c'),candidate_input_sha256:sha('d')};
+  const common={symbol:meta.symbol,data_date:'20261030',historical_PIT:false,RESEARCH_ONLY:true,
+    production_allowed:false,buy_gate_updated:false,orders_sent:false,stock_ref:{sha256:sha('e')}};
+  const canonical={...common,status:'OBSERVED',source_generation:day.generation,input_sha256:day.input_sha256};
+  const candidate={...common,status:'OBSERVED_CANDIDATE',source_generation:meta.panel_generation,input_sha256:meta.candidate_input_sha256,
+    bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,lineage:'REGISTERED_ISOLATED_PAIRED_CANDIDATE'};
+  assert.equal(f10SourceKind(canonical,day,meta),'CANONICAL');assert.equal(f10SourceKind(candidate,day,meta),'CANDIDATE');
+  for(const altered of [{...candidate,bound_source_input_sha256:sha('9')},{...candidate,input_sha256:sha('9')},
+    {...candidate,symbol:'920201.BJ'},{...candidate,lineage:'UNREGISTERED'}, {...candidate,historical_PIT:true}])
+    assert.equal(f10SourceKind(altered,day,meta),null);
+  const quarantine={...meta,symbol:'688496.SH',status:'UNKNOWN_SOURCE_ADMISSION'};
+  const independent={...common,symbol:quarantine.symbol,status:'OBSERVED_INDEPENDENT_COMPANY',source_generation:null,input_sha256:null,
+    bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,price_panel_admission:'NOT_ASSERTED',
+    lineage:'REGISTERED_INDEPENDENT_COMPANY_WITHOUT_PRICE_ADMISSION'};
+  assert.equal(f10SourceKind(independent,day,quarantine),'INDEPENDENT');
+  assert.equal(f10SourceKind(independent,day,{...quarantine,status:'READY_FOR_RESEARCH_REVIEW'}),null);
+  assert.equal(f10SourceKind({...independent,price_panel_admission:'PASS'},day,quarantine),null);
+});
 
 function sample(){
   const groups={kb:['kb_b1'],hold_score:['kb_hold_trend_up','kb_hold_trend_up_reason'],supplemental:[],

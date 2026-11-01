@@ -1,4 +1,4 @@
-import {installSingleResearch,bindSingleSymbolSearch,financialLines,financialDisclosureText,verifiedCompanyPart,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
+import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,verifiedCompanyPart,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
@@ -141,13 +141,17 @@ function loadSingleDetails(day,meta,signal,assets){
   paintF10(m.f10,'单股已绑定快照');
   fetch('/api/v4/research/workbench/days/'+day.source_date+'/f10/'+meta.symbol+'?'+new URLSearchParams({revision:day.generation}),{signal,credentials:'same-origin',redirect:'error',cache:'no-store'})
     .then(response=>response.ok?response.json():null).then(value=>{
-      const valid=!signal.aborted&&value?.symbol===meta.symbol&&value.data_date===day.source_date.replaceAll('-','')&&
-        value.source_generation===day.generation&&value.input_sha256===day.input_sha256&&value.historical_PIT===false&&
-        value.RESEARCH_ONLY===true&&['production_allowed','buy_gate_updated','orders_sent'].every(k=>value[k]===false)&&
-        /^[a-f0-9]{64}$/.test(value.stock_ref?.sha256??'');
-      if(!valid)return;
-      if(value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照');
-      else if(generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
+      if(signal.aborted)return;const kind=f10SourceKind(value,day,meta);
+      if(kind==='CANONICAL'&&value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照');
+      else if(kind==='CANONICAL'&&generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
+      else if(kind==='CANDIDATE'){
+        paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12));
+        if((!meta.name||meta.name===meta.symbol)&&typeof value.f10?.name==='string'&&value.f10.name)el('kbSingleName').textContent=value.f10.name;
+      }
+      else if(kind==='INDEPENDENT'){
+        paintF10(value.f10,'独立公司资料 · 行情仍未准入');
+        if((!meta.name||meta.name===meta.symbol)&&typeof value.f10?.name==='string'&&value.f10.name)el('kbSingleName').textContent=value.f10.name;
+      }
     }).catch(()=>{});
   const reports=el('relatedReports');reports.hidden=true;reports.dataset.identityDate=day.source_date.replaceAll('-','');reports.dataset.generation=day.generation;
   window.RelatedReports?.select(meta.symbol,meta.name,true,null);
