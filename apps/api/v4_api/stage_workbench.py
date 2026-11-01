@@ -443,6 +443,8 @@ def _ordinary_selection_response(
             )
             if day24_binding_key in ctx.approved_exact_stage_backfills:
                 try:
+                    # The route validated this date and stage before reaching
+                    # here, so the module read is called without re-entering it.
                     exact_hk = read_stage_workbench(
                         ctx, selected, stage, limit, "HK_CONNECT", day24_run_id,
                     )

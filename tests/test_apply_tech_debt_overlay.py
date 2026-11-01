@@ -443,3 +443,22 @@ def test_routes_requires_every_anchor(tmp_path: Path):
     app.write_text("def create_app():\n    pass\n", encoding="utf-8")
     with pytest.raises(OverlayError, match="route anchors missing"):
         _split_routes(app, None, tmp_path / "out.py")
+
+
+def test_overlay_does_not_duplicate_existing_imports_or_context_args(tmp_path: Path):
+    app = _write_app(tmp_path)
+    original = app.read_text(encoding="utf-8")
+    app.write_text(
+        "from apps.api.v4_api.evidence.loader import (\n"
+        "    row_dicts as _evidence_row_dicts,\n"
+        ")\n"
+        "from apps.api.v4_api.projection import ProjectionContext, project_shared_selection\n"
+        + original,
+        encoding="utf-8",
+    )
+    _rewrite_app(app)
+    out = app.read_text(encoding="utf-8")
+    assert out.count("from apps.api.v4_api.evidence.loader import") == 1
+    assert out.count("from apps.api.v4_api.projection import") == 1
+    assert "project_shared_selection(projection_ctx, projection_ctx" not in out
+    assert out.count("project_shared_selection(projection_ctx, {}, 50)") == 1

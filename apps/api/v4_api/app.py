@@ -16,6 +16,17 @@ import time
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
+from apps.api.v4_api.projection import ProjectionContext, project_shared_selection
+from apps.api.v4_api.stage_workbench import StageWorkbenchContext, read_stage_workbench
+from apps.api.v4_api.hk_verify import (
+    HkVerifyContext,
+    quarantine_known_hk_auction_pool_mismatch,
+    read_exact_target_hk_override,
+    read_hk_morning_selection_recovery_override,
+    read_r8_exact_target_hk_override,
+    read_r9_exact_target_hk_override,
+)
+from apps.api.v4_api.routes import RouteContext, register_routes
 from apps.api.v4_api.baimao_router import create_baimao_router
 from apps.api.v4_api.preselection_router import create_preselection_router
 from apps.api.v4_api.preselection_service import PreselectionPoolService
@@ -47,17 +58,6 @@ from apps.api.v4_api.evidence.loader import (
     tagged_value as _evidence_tagged,
     tuple_rows as _evidence_tuple_rows,
 )
-from apps.api.v4_api.projection import ProjectionContext, project_shared_selection
-from apps.api.v4_api.stage_workbench import StageWorkbenchContext, read_stage_workbench
-from apps.api.v4_api.hk_verify import (
-    HkVerifyContext,
-    quarantine_known_hk_auction_pool_mismatch,
-    read_exact_target_hk_override,
-    read_hk_morning_selection_recovery_override,
-    read_r8_exact_target_hk_override,
-    read_r9_exact_target_hk_override,
-)
-from apps.api.v4_api.routes import RouteContext, register_routes
 
 _STAGE_RESEARCH_READER_SHA256 = "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
 
@@ -753,6 +753,15 @@ def create_app(
         ledger_root=resolved_research_ledger,
     )
     configured_selection_root = stage_center_selection_root
+    projection_ctx = ProjectionContext(
+        store=store,
+        configured_selection_root=configured_selection_root,
+        configured_pool_source=configured_pool_source,
+        resolved_pool_source=resolved_pool_source,
+        configured_morning_news_root=configured_morning_news_root,
+        morning_history_observation=_hk_morning_history_observation,
+        morning_selection_recovery_bindings=_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE,
+    )
     shared_selection_consumer = (
         StageSelectionConsumer(
             configured_selection_root,
@@ -808,15 +817,10 @@ def create_app(
             use_cache=True,
         )
 
-    projection_ctx = ProjectionContext(
-        store=store,
-        configured_selection_root=configured_selection_root,
-        configured_pool_source=configured_pool_source,
-        resolved_pool_source=resolved_pool_source,
-        configured_morning_news_root=configured_morning_news_root,
-        morning_history_observation=_hk_morning_history_observation,
-        morning_selection_recovery_bindings=_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE,
-    )
+
+
+
+
 
 
     app.include_router(create_preselection_router(
@@ -828,7 +832,6 @@ def create_app(
         get_catalog=_catalog,
         validate_date=_strict_date,
     ))
-
 
     @app.get("/api/v4/workbench/stage")
     def stage_workbench(

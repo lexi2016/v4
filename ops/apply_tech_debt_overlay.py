@@ -52,15 +52,15 @@ CTX_BLOCK = [
     "        morning_selection_recovery_bindings=_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE,",
     "    )",
 ]
-IMPORT_BLOCK = (
+EVIDENCE_IMPORT = (
     "from apps.api.v4_api.evidence.loader import (\n"
     "    row_dicts as _evidence_row_dicts,\n"
     "    tagged_value as _evidence_tagged,\n"
     "    tuple_keyed as _evidence_tuple_keyed,\n"
     "    tuple_rows as _evidence_tuple_rows,\n"
-    ")\n"
-    "from apps.api.v4_api.projection import ProjectionContext, project_shared_selection\n"
+    ")"
 )
+PROJECTION_IMPORT = "from apps.api.v4_api.projection import ProjectionContext, project_shared_selection"
 
 SW_ROUTE_ANCHOR = '    @app.get("/api/v4/workbench/stage")'
 SW_BLOCK1 = "        morning_binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get("
@@ -111,6 +111,12 @@ class OverlayError(RuntimeError):
     pass
 
 
+def _already_imported(lines: Sequence[str], module: str) -> bool:
+    """True when the app already imports this module, so passes stay idempotent."""
+    prefix = f"from {module} import"
+    return any(line.startswith(prefix) for line in lines)
+
+
 def _assignment_name(node: ast.AST) -> str | None:
     if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
         return node.target.id
@@ -159,13 +165,28 @@ def _rewrite_app(path: Path) -> dict[str, int]:
         lines[start - 1:end] = replacement
     text = "\n".join(lines)
     if "project_shared_selection(" in text:
-        text = text.replace("project_shared_selection(", "project_shared_selection(projection_ctx, ")
+        text = re.sub(
+            r"project_shared_selection\((?!projection_ctx)",
+            "project_shared_selection(projection_ctx, ",
+            text,
+        )
+    if "project_shared_selection(projection_ctx, projection_ctx" in text:
+        raise OverlayError("projection_ctx passed twice")
     import_anchor = "from apps.api.v4_api.baimao_router import"
     index = next((i for i, line in enumerate(text.splitlines()) if line.startswith(import_anchor)), None)
     if index is None:
         raise OverlayError("import anchor not found")
     out = text.splitlines()
-    out.insert(index, IMPORT_BLOCK.rstrip("\n"))
+    missing = [
+        import_text
+        for module, import_text in (
+            ("apps.api.v4_api.evidence.loader", EVIDENCE_IMPORT),
+            ("apps.api.v4_api.projection", PROJECTION_IMPORT),
+        )
+        if not _already_imported(out, module)
+    ]
+    if missing:
+        out.insert(index, "\n".join(missing))
     text = "\n".join(out) + "\n"
     ast.parse(text)
     for name in CONSTANTS:
@@ -258,6 +279,8 @@ def _transform_block(body: Sequence[str], *, self_call: bool) -> str:
     if self_call:
         text, count = SW_SELF_CALL.subn(
             lambda m: (
+                f'{m["ind"]}# The route validated this date and stage before reaching\n'
+                f'{m["ind"]}# here, so the module read is called without re-entering it.\n'
                 f'{m["ind"]}exact_hk = read_stage_workbench(\n'
                 f'{m["ind"]}    ctx, selected, stage, limit, "HK_CONNECT", day24_run_id,\n'
                 f'{m["ind"]})'
@@ -314,7 +337,8 @@ def _split_stage_workbench(
     route = _index(new_lines, SW_ROUTE_ANCHOR)
     new_lines[route:route] = SW_CTX_BLOCK
     projection_import = _index(new_lines, "from apps.api.v4_api.projection import ProjectionContext, project_shared_selection")
-    new_lines.insert(projection_import + 1, SW_IMPORT)
+    if not _already_imported(new_lines, "apps.api.v4_api.stage_workbench"):
+        new_lines.insert(projection_import + 1, SW_IMPORT)
     text = "\n".join(new_lines) + "\n"
     ast.parse(text)
     path.write_text(text, encoding="utf-8")
@@ -493,7 +517,8 @@ def _split_hk_verify(path: Path, reviewed_module: Path | None, out_module: Path)
     new_lines.insert(typing_import + 1, "from functools import partial")
     stage_import = next(i for i, line in enumerate(new_lines)
                         if line.startswith("from apps.api.v4_api.stage_workbench import"))
-    new_lines.insert(stage_import + 1, HV_IMPORT.rstrip("\n"))
+    if not _already_imported(new_lines, "apps.api.v4_api.hk_verify"):
+        new_lines.insert(stage_import + 1, HV_IMPORT.rstrip("\n"))
 
     text = "\n".join(new_lines) + "\n"
     ast.parse(text)
@@ -651,7 +676,8 @@ def _split_routes(path: Path, reviewed_module: Path | None, out_module: Path) ->
     else:
         import_anchor = max(i for i, line in enumerate(new_lines[:20])
                             if line.startswith(("import ", "from ")))
-    new_lines.insert(import_anchor + 1, RT_IMPORT)
+    if not _already_imported(new_lines, "apps.api.v4_api.routes"):
+        new_lines.insert(import_anchor + 1, RT_IMPORT)
 
     text = "\n".join(new_lines) + "\n"
     ast.parse(text)
