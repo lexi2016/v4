@@ -187,6 +187,13 @@ def on_stage_completed(*, config, trade_date, stage_id, receipt):
             if _running_worker(active):
                 status='REUSED' if active.get('job_id')==job_id else 'BUSY'
                 return dict(status=status,job_id=job_id,active_job_id=active.get('job_id'),job_status='IN_FLIGHT',callback_seconds=time.perf_counter()-started,**SAFETY)
+            # The worker may complete while the PID probe is in progress.
+            # Re-read its authoritative result before declaring an orphan.
+            previous=json.loads(io.read_bytes(job_id+'.receipt.json')) if previous else {}
+            if previous.get('status')=='COMPLETED':
+                return dict(status='REUSED',job_id=job_id,job_status='COMPLETED',callback_seconds=time.perf_counter()-started,**SAFETY)
+            if previous.get('status')=='FAILED':
+                return dict(status='EVIDENCE_GAP',job_id=job_id,reason='JOB_PREVIOUSLY_FAILED',callback_seconds=time.perf_counter()-started,**SAFETY)
             if previous.get('status') in {'SUBMITTED','RUNNING'}:
                 _write_job_receipt(io,job_id,'FAILED',reason='WORKER_EXITED_WITHOUT_COMPLETION')
                 return dict(status='EVIDENCE_GAP',job_id=job_id,reason='WORKER_EXITED_WITHOUT_COMPLETION',**SAFETY)

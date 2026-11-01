@@ -85,6 +85,20 @@ class SidecarCompatibilityTests(unittest.IsolatedAsyncioTestCase):
             repeated=on_stage_completed(**kwargs);self.assertEqual(repeated['status'],'REUSED');self.assertEqual(repeated['job_status'],'COMPLETED');self.assertEqual(spawn.call_count,1)
         self.assertEqual(self.path.read_bytes(),self.before)
 
+    async def test_duplicate_observes_worker_finishing_during_pid_probe(self):
+        from infrastructure.report_evidence_sidecar import on_stage_completed
+        env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
+        kwargs=dict(config=self.config,trade_date=self.date,stage_id=self.stage,receipt=self.receipt)
+        with patch.dict(os.environ,env),patch('infrastructure.report_evidence_sidecar.subprocess.Popen',return_value=SimpleNamespace(pid=12345)):
+            first=on_stage_completed(**kwargs)
+            path=self.root/'sidecars/jobs'/(first['job_id']+'.receipt.json')
+            def finish_during_probe(active):
+                value=json.loads(path.read_text());value['status']='COMPLETED';path.write_text(json.dumps(value));return False
+            with patch('infrastructure.report_evidence_sidecar._running_worker',side_effect=finish_during_probe):
+                duplicate=on_stage_completed(**kwargs)
+            self.assertEqual(duplicate['status'],'REUSED')
+            self.assertEqual(json.loads(path.read_text())['status'],'COMPLETED')
+
     async def test_failed_job_is_separate_and_duplicate_does_not_retry(self):
         from infrastructure.report_evidence_sidecar import on_stage_completed,consume_sidecar_job
         env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
