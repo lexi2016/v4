@@ -119,3 +119,26 @@ def test_python_input_keeps_original_json_key_normalization():
     normalized["changes"] = {"keys": {"10": "ten", "2": "two"}}
     payload["product_sha256"] = product_digest(normalized)
     assert PlanSnapshot.model_validate(payload).product_sha256 == payload["product_sha256"]
+
+
+@pytest.mark.parametrize("token", [b"NaN", b"Infinity", b"-Infinity"])
+def test_read_plan_keeps_original_nonfinite_to_null_normalization(tmp_path, token):
+    from v4.manager_workbench.store import WorkbenchStore
+
+    payload = seal_snapshot(snapshot_data()).model_dump(mode="json")
+    payload["changes"]["value"] = None
+    payload["product_sha256"] = product_digest(payload)
+    raw = canonical(payload).replace(b'"value":null', b'"value":' + token)
+    assert raw != canonical(payload)
+    original = PlanSnapshot.model_validate(json.loads(raw))
+    store = WorkbenchStore(tmp_path)
+    path = store.root / "snapshots/run-one.json"
+    path.parent.mkdir()
+    path.write_bytes(raw)
+    updated = store.read_plan("run-one")
+    assert updated.model_dump(mode="json") == original.model_dump(mode="json")
+    assert updated.product_sha256 == payload["product_sha256"]
+    invalid = raw.replace(payload["product_sha256"].encode(), b"0" * 64)
+    path.write_bytes(invalid)
+    with pytest.raises(ValidationError, match="PRODUCT_SHA_MISMATCH"):
+        store.read_plan("run-one")

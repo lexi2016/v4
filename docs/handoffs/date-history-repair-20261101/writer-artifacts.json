@@ -13,6 +13,8 @@
   "frontend_build_root": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web",
   "frontend_dependency_lock_sha256": "772a8aa331c25a5f7dc74c483ff7956aee554b80d91babbec8686806e812ae9c",
   "installed_dependency_lock_sha256": "5808e51ce65448f3eaf2f0d4e5adaee42e621b0f7754d2b9bd18bce8b72f60eb",
+  "long_evidence_stored_outside_git": "/private/tmp/v4-date-history-repair-20261101/writer-evidence",
+  "nonfinite_followup": "nonfinite-fix-handoff.json",
   "not_run": [
     "ISOLATED_TCP_HTTP",
     "BROWSER_CLICK",
@@ -69,7 +71,7 @@
       "path": "apps/web/src/App.research-panel-date.spec.ts"
     },
     {
-      "after_sha256": "46024de3cdd12ac3dc95aa835816d514b6124a86c9a464c1dac883e660edbda5",
+      "after_sha256": "f721e5d6cb567d971289c901fce46ed4d0124eea4cdb61689e40bcb41cf7f04f",
       "base_sha256": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
       "path": "v4/manager_workbench/contracts.py"
     },
@@ -79,12 +81,12 @@
       "path": "v4/manager_workbench/store.py"
     },
     {
-      "after_sha256": "21ed65fc478b86fe60f61849e4bf72019a750b5f0985f4bfa6ab1efdb0008cf7",
+      "after_sha256": "8b2d01c17c19bde2a977f9c7b52b83ef1ebe51a0cc11d280ccbc4e96c9a19091",
       "base_sha256": null,
       "path": "tests/test_manager_snapshot_digest.py"
     },
     {
-      "after_sha256": "7c358cb7e046e6c07c10b0612cf2afd38181a8e5ba09389d93100b1b7dbf5bcc",
+      "after_sha256": "25c160291f6d165effdd59fac40f041493b882c7ea54af663291d18aa82b0b3f",
       "base_sha256": null,
       "path": "docs/handoffs/date-history-repair-20261101/README.md"
     }

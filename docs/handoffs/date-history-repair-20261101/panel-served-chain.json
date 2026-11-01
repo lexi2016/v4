@@ -1,0 +1,114 @@
+{
+  "workbench.html?date=2026-11-02": {
+    "url": "http://127.0.0.1:18874/research-panel/workbench.html?date=2026-11-02",
+    "sha256": "ea485c47a5197e616858a054e00071fcf93dfe702b7df148c885ae0aac46dcd3",
+    "file_sha256": "ea485c47a5197e616858a054e00071fcf93dfe702b7df148c885ae0aac46dcd3",
+    "matches_root_file": true,
+    "cache_control": null,
+    "bytes": 16945,
+    "scripts": [
+      "workbench-host/bootstrap.mjs"
+    ],
+    "imports": []
+  },
+  "workbench-host/bootstrap.mjs": {
+    "url": "http://127.0.0.1:18874/research-panel/workbench-host/bootstrap.mjs",
+    "sha256": "42a829275b8bb8b7d5e819f14153bf78798396be28c47feb72721cd5e0f0343d",
+    "file_sha256": "42a829275b8bb8b7d5e819f14153bf78798396be28c47feb72721cd5e0f0343d",
+    "matches_root_file": true,
+    "cache_control": null,
+    "bytes": 22368,
+    "scripts": [],
+    "imports": [
+      [
+        "'",
+        "./kb-single-stock.mjs"
+      ],
+      [
+        "'",
+        "./stock/stock-bridge.mjs"
+      ],
+      [
+        "'",
+        "./dot/src/projection-view.mjs"
+      ],
+      [
+        "'",
+        "./dot/src/workbench-model.mjs"
+      ],
+      [
+        "'",
+        "./company-local.mjs"
+      ],
+      [
+        "'",
+        "./completion-action.mjs"
+      ],
+      [
+        "'",
+        "./classification-local.mjs"
+      ],
+      [
+        "'",
+        "./dot/shell/workbench.local.mjs"
+      ]
+    ]
+  },
+  "workbench-host/dot/shell/workbench.local.mjs": {
+    "url": "http://127.0.0.1:18874/research-panel/workbench-host/dot/shell/workbench.local.mjs",
+    "sha256": "eee0fe8c2d7a8f47e3298fb3e69d35ddc4952dfcf9402cdd127ec56259a5e0a6",
+    "file_sha256": "eee0fe8c2d7a8f47e3298fb3e69d35ddc4952dfcf9402cdd127ec56259a5e0a6",
+    "matches_root_file": true,
+    "cache_control": null,
+    "bytes": 35883,
+    "scripts": [],
+    "imports": [
+      [
+        "'",
+        "../../rate-sort.mjs"
+      ],
+      [
+        "'",
+        "../../entry-date.mjs"
+      ],
+      [
+        "'",
+        "../../classification-local.mjs"
+      ],
+      [
+        "'",
+        "../../observation-local.mjs"
+      ],
+      [
+        "'",
+        "./workbench-context.mjs"
+      ],
+      [
+        "'",
+        "../src/projection-view.mjs"
+      ],
+      [
+        "'",
+        "../src/model.mjs"
+      ],
+      [
+        "'",
+        "../src/workbench-model.mjs"
+      ],
+      [
+        "'",
+        "../../company-local.mjs"
+      ]
+    ]
+  },
+  "workbench-host/entry-date.mjs": {
+    "url": "http://127.0.0.1:18874/research-panel/workbench-host/entry-date.mjs",
+    "sha256": "6e2ebfd705585131da48e8d0d916bf537e0aa8c2cdd6b5073c0096b0093ee8e7",
+    "file_sha256": "6e2ebfd705585131da48e8d0d916bf537e0aa8c2cdd6b5073c0096b0093ee8e7",
+    "matches_root_file": true,
+    "cache_control": null,
+    "bytes": 568,
+    "scripts": [],
+    "imports": []
+  }
+}

@@ -1,8 +1,8 @@
 {
   "cold_process_seconds": 12.62584758293815,
-  "version_count": 12,
+  "product_sha_validation": "ALL_12_PASSED",
+  "profile_stored_outside_git": true,
   "response_sha256": "75b11f14a396695ba266243b1b3710939f3c17998121e198d885f09eb3ef0167",
   "same_complete_http_body": true,
-  "product_sha_validation": "ALL_12_PASSED",
-  "profile": "         2896377 function calls (2896000 primitive calls) in 12.626 seconds\n\n   Ordered by: cumulative time\n   List reduced from 405 to 22 due to restriction <22>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.030    0.030   12.626   12.626 store.py:153(list_plans)\n       12    0.002    0.000   12.589    1.049 store.py:144(read_plan)\n       12    0.000    0.000    8.733    0.728 main.py:693(model_validate)\n       12    4.170    0.348    8.733    0.728 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}\n       12    0.002    0.000    4.552    0.379 contracts.py:393(ensure_consistent)\n       12    0.064    0.005    4.547    0.379 contracts.py:459(_model_product_digest)\n       24    0.001    0.000    3.858    0.161 store.py:65(_read)\n       24    0.000    0.000    3.759    0.157 __init__.py:304(loads)\n       12    0.000    0.000    3.640    0.303 __init__.py:185(dumps)\n       12    0.000    0.000    3.640    0.303 encoder.py:185(encode)\n       12    3.364    0.280    3.640    0.303 encoder.py:207(iterencode)\n       24    0.000    0.000    3.324    0.139 decoder.py:340(decode)\n       24    3.324    0.139    3.324    0.139 decoder.py:351(raw_decode)\n       12    0.449    0.037    0.449    0.037 {method 'encode' of 'str' objects}\n       24    0.435    0.018    0.435    0.018 {method 'decode' of 'bytes' objects}\n       12    0.394    0.033    0.394    0.033 {built-in method _hashlib.openssl_sha256}\n   211394    0.135    0.000    0.276    0.000 contracts.py:479(encode_model)\n       24    0.000    0.000    0.096    0.004 owned_io.py:103(read_bytes)\n       27    0.092    0.003    0.092    0.003 {method 'read' of '_io.BufferedReader' objects}\n  1851660    0.080    0.000    0.080    0.000 {built-in method builtins.getattr}\n   211406    0.033    0.000    0.060    0.000 _utils.py:431(__get__)\n   211406    0.016    0.000    0.027    0.000 main.py:275(model_fields)\n\n\n"
+  "version_count": 12
 }

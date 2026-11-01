@@ -27,7 +27,9 @@ legacy history contributed zero rows and was not the bottleneck.
 The original cProfile reproduced 24.017 seconds: `read_plan` consumed 23.981,
 Pydantic validation 20.043, and `ensure_consistent` 14.580 seconds, including
 9.735 seconds dumping complete models. File reads consumed only 0.095 seconds.
-`history-cprofile.txt` retains the original profile.
+Long profiles are retained outside Git under the task's temporary
+`writer-evidence` directory. Source handoffs contain only response metrics and
+SHAs; no full history response is included.
 
 The repair removes repeated deep copies during the product-SHA check. After the
 existing owned store decodes JSON, it supplies a private identity token to the
@@ -43,7 +45,7 @@ Measurements retained without relabeling failures:
 | --- | ---: | --- |
 | Original live HTTP | 25.954 | TCP GET, 12 versions |
 | Original offline profile | 24.017 | Original complete store read |
-| First direct-encoder profile | 12.626 | Complete reads; Python-input semantics subsequently isolated |
+| First direct-encoder profile | 12.626 | Below initial reduction threshold; Python-input semantics subsequently isolated |
 | Native `model_validate_json` trial | 17.018 | Cold HTTP route; rejected as slower and reverted |
 | Final owned parsed-JSON path | 15.315 | Cold process, real HTTP route through TestClient, no cache |
 

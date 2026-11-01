@@ -1,0 +1,57 @@
+{
+  "files": [
+    {
+      "after_sha256": "f721e5d6cb567d971289c901fce46ed4d0124eea4cdb61689e40bcb41cf7f04f",
+      "before_sha256": "46024de3cdd12ac3dc95aa835816d514b6124a86c9a464c1dac883e660edbda5",
+      "path": "v4/manager_workbench/contracts.py"
+    },
+    {
+      "after_sha256": "8b2d01c17c19bde2a977f9c7b52b83ef1ebe51a0cc11d280ccbc4e96c9a19091",
+      "before_sha256": "21ed65fc478b86fe60f61849e4bf72019a750b5f0985f4bfa6ab1efdb0008cf7",
+      "path": "tests/test_manager_snapshot_digest.py"
+    }
+  ],
+  "finite_real_canary": {
+    "finite_path_used_original_dump_fallback": false,
+    "full_validation": true,
+    "product_sha256": "0cddbc404f797334a941f22481c895f97f62a97b6808e9cad5520d56f0203da9",
+    "production_writes": false,
+    "run_id": "070cd25162ca4930917b035f931cdbb8",
+    "scope": "one real finite 20261030 snapshot, first sorted catalog entry",
+    "snapshot_bytes": 117445709,
+    "status": "PASS"
+  },
+  "git_diff_check": "PASS",
+  "not_run": [
+    "ISOLATED_SERVICE_RELOAD",
+    "BROWSER",
+    "DEPLOYMENT",
+    "COMMIT",
+    "PUSH"
+  ],
+  "panel_date_observation": {
+    "external_assets_changed": false,
+    "final_date_binding_must_equal_requested_date": true,
+    "initial_async_catalog_can_populate_first_option_before_query_initialization": true,
+    "original_failure_retracted": true,
+    "served_HTML_module_chain_matches_485_asset_root": true,
+    "source_evidence": "panel-served-chain.json"
+  },
+  "performance": "FROZEN; no new full-history HTTP or profiling",
+  "regressions": {
+    "checks": [
+      "original Python decoder/model acceptance equals updated owned read_plan",
+      "existing full product SHA still checked after normalization",
+      "tampered product SHA remains rejected"
+    ],
+    "other_tests_not_rerun": 15,
+    "passed": 3,
+    "tokens": [
+      "NaN",
+      "Infinity",
+      "-Infinity"
+    ]
+  },
+  "scope": "P2 nonfinite normalization compatibility only; no performance optimization",
+  "status": "WRITER_TESTED_PENDING_INCREMENTAL_REVIEW"
+}

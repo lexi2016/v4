@@ -402,8 +402,18 @@ class PlanSnapshot(Safety):
                 raise ValueError("RULES_VERSION_MISMATCH")
         # JSON mode guarantees JSON-native Any trees. General Python inputs
         # retain Pydantic's original normalization (dates, keys, subclasses).
-        actual = (_model_product_digest(self) if (info.mode == "json" or info.context is _PARSED_JSON_SNAPSHOT) and type(self) is PlanSnapshot
-                  else product_digest(self.model_dump(mode="json")))
+        if (info.mode == "json" or info.context is _PARSED_JSON_SNAPSHOT) and type(self) is PlanSnapshot:
+            try:
+                actual = _model_product_digest(self)
+            except ValueError as error:
+                if not str(error).startswith("Out of range float values"):
+                    raise
+                # json.loads accepts NaN/Infinity. Preserve the original
+                # Pydantic JSON-mode normalization of these values to null.
+                # Healthy finite inputs need no extra tree scan.
+                actual = product_digest(self.model_dump(mode="json"))
+        else:
+            actual = product_digest(self.model_dump(mode="json"))
         if self.product_sha256 != actual:
             raise ValueError("PRODUCT_SHA_MISMATCH")
         if len({s.symbol for s in self.stocks}) != len(self.stocks):
