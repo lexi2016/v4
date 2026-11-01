@@ -1,0 +1,174 @@
+{
+  "schema_version": "v4.f10_stage_binding_independent_review.v1",
+  "reviewer": "/root/schedule_graph_reviewer",
+  "writer": "/root/f10_binding_writer",
+  "review_round": 1,
+  "read_only_business_files": true,
+  "recorded_at": "2026-11-01T16:23:15.434133+00:00",
+  "frozen_scope": "F10 Main identity binding in active-r3-derived Stage, exact three retained historical owners, API manual owner config on current Junda52b837, isolation/original-byte and time checks, current role proposal closure; no deployment",
+  "source_commit": "fd321e7788678a11a1ce23b3a06d77b8b13cfbfd",
+  "source_baseline": "ca20c4edf4f715cf075da0eb9c309aec055bf0d7",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1",
+  "candidate_identities": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-api/app",
+      "delta": [
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json"
+      ],
+      "generated_cache_omissions": [
+        {
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+            "sha256": "12875f1cd96f2cae1ee64bd6139846719b0cb5af57fce48da760880583916bca",
+            "size": 36179
+          },
+          "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc"
+        }
+      ],
+      "inventory_sha256": "db70f0a47e6763cc586f65fd15e53e599f0a94de1481c871aad8af012e43acaa",
+      "manifest_sha256": "c724f07e10c7c5ba17d599d7ead6ce28a6dbfadb82bebcafa858c1c7f231a3a1",
+      "protected_files_unchanged": 1329,
+      "release_id": "f10-stage-binding-20261102-r1-api"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-stage/app",
+      "delta": [
+        "infrastructure/manager_input_attestation.py",
+        "stage_center_tick_config.json"
+      ],
+      "generated_cache_omissions": [],
+      "inventory_sha256": "98110340e15c70203d220b8be4529b646fa5ee3ea9877807c7aa2cc02f61467a",
+      "manifest_sha256": "df06194b880f72cf64ccc7e2c331dbfab45bc80a37f14694d72071ed8a7e4817",
+      "protected_files_unchanged": 989,
+      "release_id": "f10-stage-binding-20261102-r1-stage"
+    }
+  },
+  "checks": [
+    {
+      "name": "frozen_commit_clean",
+      "status": "PASS",
+      "commit": "fd321e7788678a11a1ce23b3a06d77b8b13cfbfd"
+    },
+    {
+      "name": "independent_actual_diff",
+      "status": "PASS",
+      "evidence": "INDEPENDENT_DIFF.json"
+    },
+    {
+      "name": "focused_pytest",
+      "status": "PASS",
+      "command": "F10_BINDING_CANDIDATE=<frozen candidate> F10_BINDING_REPLAY=<reviewer_real_replay.json> PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp=<own pytest-state> tests/test_f10_stage_binding.py tests/test_v4_research_provenance_boundary.py",
+      "output": "13 passed in 1.48s",
+      "collection_failures": 0,
+      "skipped": 0,
+      "assertion_failures": 0
+    },
+    {
+      "name": "three_original_historical_replays",
+      "status": "PASS",
+      "evidence": "reviewer_real_replay.json",
+      "original_file_postcheck_count": 27
+    },
+    {
+      "name": "real_manual_child_transport",
+      "status": "PASS_FIXTURE_ONLY",
+      "evidence": "reviewer_manual_transport.json",
+      "collectors_run": false
+    },
+    {
+      "name": "official_full_release_inventory_and_protection",
+      "status": "PASS",
+      "evidence": "reviewer_protection.json",
+      "panel_files": 491,
+      "manifest_assets": 488,
+      "original_sources": 27,
+      "original_dispatch_receipts": 3,
+      "protected_other_plists": 12
+    }
+  ],
+  "findings": [],
+  "p0_p1_p2_in_scope_defects": 0,
+  "acceptance": {
+    "new_F10_identity": "BEHAVIOR_VERIFIED_FIXTURE_WITH_FULL_SOURCE_PUBLICATION_WITNESS_CONTRACT",
+    "old_r6_binding_against_F10_fixture": "REJECTED_THEN_NEW_BINDING_ACCEPTED",
+    "retained_original_owner_replays": [
+      {
+        "date": "20261101",
+        "slot": "2300",
+        "release_id": "workbench-daily-chain-20261031-r6-main",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      },
+      {
+        "date": "20261030",
+        "slot": "1000",
+        "release_id": "a-daily-name-zoom-20261030-r1-main",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      },
+      {
+        "date": "20261029",
+        "slot": "2300",
+        "release_id": "a-daily-sop-closure-20261029-r1-main",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      }
+    ],
+    "strict_negatives": [
+      "unknown release",
+      "fourth history",
+      "duplicate owner",
+      "bad owner manifest SHA",
+      "bad Stage config SHA",
+      "bad input SHA",
+      "publication after cutoff",
+      "dispatch completion after cutoff"
+    ],
+    "candidate_stage_runtime_delta": "only historical maximum2->3, fixed primaryF10 plus historical[r6,namezoom,sop]",
+    "api_manual_config_semantic_delta": "only stage_owner_root",
+    "raw_physical_vs_inventory": {
+      "stage_physical_delta": 2,
+      "stage_inventory_delta": 2,
+      "api_physical_delta": 6,
+      "api_inventory_delta": 2,
+      "all_physical_path_and_sha_evidence": "INDEPENDENT_DIFF.json",
+      "api_cache_omissions": "1 manifest-listed312pyc plus4 preexisting generated314pyc excluded by existing inventory contract",
+      "candidate_bytecode_cache_count": 0
+    },
+    "original_bytes_after_tests": "27 source+3 receipts retained SHA; panel491/assets488/role plist protections PASS"
+  },
+  "limitations": [
+    "F10 positive dispatch release explicitly fixture; no original natural F10 hourly receipt established",
+    "manual transport runs real child with fixture StageRunner; no collector/production lock invoked",
+    "whole-ledger coordinated malicious rewrite remains unauthenticated as existing contract states",
+    "formal API HTTP/UI and natural-slot integration NOT_RUN",
+    "runtimegraph is static/observational evidence, not whole-repository or natural execution certification"
+  ],
+  "publication": {
+    "verdict": "CONDITIONAL",
+    "candidate_code_can_advance": true,
+    "direct_old_activation_command_usable": false,
+    "plan_sha256": "cd6563c70864cb55ef158c749ee50a14a131082489f77d68a08bb5d756084cf4",
+    "conditions": [
+      "future explicit Stage+API activation authorization",
+      "fresh under-guard current role/plist/full-inventory/panel and active-child/Stage-idle CAS admission",
+      "transplant exact two-role parameters into existing fixed release workflow; remove pre mutation and stale forward-check constants; review any actual code change only",
+      "use reviewed exact proposed plist/env/manual paths and owned reverse rollback; do not modify Main/pre/data/panel",
+      "after authorized activation report API/runtime/manual readback separately; natural F10 completion remains NOT_RUN until its original dated receipt exists"
+    ]
+  },
+  "states": {
+    "SOURCE": "REVIEWED",
+    "CANDIDATE": "REVIEWED_PASS",
+    "BEHAVIOR_VERIFIED": "SCOPED_FIXTURE_POSITIVE_AND_NEGATIVE_PLUS_THREE_ORIGINAL_HISTORICAL_REPLAYS",
+    "DEPLOYMENT": "NOT_DEPLOYED",
+    "API_HTTP": "NOT_RUN",
+    "UI": "NOT_RUN",
+    "NATURAL": "NATURAL_NOT_RUN"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "verdict": "REVIEWED/PASS"
+}
