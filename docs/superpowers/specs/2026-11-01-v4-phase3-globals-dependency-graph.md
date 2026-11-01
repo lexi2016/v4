@@ -134,11 +134,17 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
 | 文件 | 行数 | 与 stage release 比对 |
 | --- | --- | --- |
 | `_runner_parts/configuration.py` | 37 | **完全相同**(sha 前缀 `bbf325df58b1`) |
-| `_runner_parts/row_evidence.py` | 239 | **不同**(git `8529d4961bcf` / stage `13ab48fa5429`) |
+| `_runner_parts/row_evidence.py` | 239 | 不同(git `8529d4961bcf` / stage `13ab48fa5429`),但读取的名字集合完全一致 |
 | `_raw_store_parts/transaction_publish.py` | 278 | 未比对 |
 
-`configuration.py` 两边一致,恢复无歧义;`row_evidence.py` 有两个版本,
-但两者读取的名字集合**完全相同**(28 个,且仅差实现细节),所以接口上二选一都兼容。
+**兼容性已逐个门面核实**(按函数体 AST 比对):
+
+- `stage_center/runner.py`:两侧共 23 个 `_v4_impl` 门面函数,**22 个完全相同**。
+  唯一差异是 `build_production_config` 少了可选参数 `hk_snapshot_shared_store_root`;
+  而 `configuration.py` 里该参数默认 `None`,缺失不影响调用。
+- `stage_center/raw_store.py`:7 个门面函数**全部完全相同**。
+
+结论:从 `2d1936518` 恢复这 12 个 parts 文件与当前门面兼容,不需要改门面。
 
 ### 5.6 缺失之外的第二个断点
 
