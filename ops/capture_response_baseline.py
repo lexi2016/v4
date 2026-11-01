@@ -105,14 +105,15 @@ def _digest(value: Any) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+READ_ONLY_FLAGS = ("write_performed", "production_allowed", "buy_gate_updated", "orders_sent")
+
+
 def _assert_read_only(sample_id: str, body: Any) -> None:
     if not isinstance(body, Mapping):
         return
-    for key in ("write_performed", "production_allowed", "buy_gate_updated", "orders_sent"):
-        if body.get(key) is True and key != "production_allowed":
+    for key in READ_ONLY_FLAGS:
+        if body.get(key) is True:
             raise BaselineError(f"{sample_id}: target reports {key}=true; refusing to capture")
-    if body.get("write_performed") is True:
-        raise BaselineError(f"{sample_id}: write_performed=true; refusing to capture")
 
 
 def _tracked_roots() -> list[Path]:
@@ -222,9 +223,29 @@ def _require_identity(samples: Sequence[Mapping[str, Any]]) -> None:
         )
 
 
+# The capture varies these by design (release identity, wall clock). Everything
+# else that is frozen at capture time must match, or the two captures cannot be
+# compared at all.
+COMPARABLE_FROZEN_KEYS = ("system_date", "selection_latest_sha256", "date_catalog_sha256")
+
+
+def _compare_frozen(baseline: Mapping[str, Any], candidate: Mapping[str, Any]) -> list[str]:
+    problems: list[str] = []
+    left = baseline.get("frozen") or {}
+    right = candidate.get("frozen") or {}
+    for key in COMPARABLE_FROZEN_KEYS:
+        if key not in left or key not in right:
+            problems.append(f"NOT_COMPARABLE frozen.{key} missing on one side")
+        elif left[key] != right[key]:
+            problems.append(f"NOT_COMPARABLE frozen.{key} {left[key]!r} -> {right[key]!r}")
+    if list(baseline.get("ignored_paths") or []) != list(candidate.get("ignored_paths") or []):
+        problems.append("NOT_COMPARABLE ignored_paths differ; the normalisation rule changed")
+    return problems
+
+
 def compare(baseline_path: Path, candidate: Mapping[str, Any]) -> list[str]:
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
-    problems: list[str] = []
+    problems = _compare_frozen(baseline, candidate)
     left = {item["id"]: item for item in baseline["samples"]}
     right = {item["id"]: item for item in candidate["samples"]}
     for missing in sorted(set(left) - set(right)):
@@ -233,9 +254,16 @@ def compare(baseline_path: Path, candidate: Mapping[str, Any]) -> list[str]:
         problems.append(f"unexpected sample: {extra}")
     for sample_id in sorted(set(left) & set(right)):
         a, b = left[sample_id], right[sample_id]
+        if a.get("path") != b.get("path") or (a.get("params") or {}) != (b.get("params") or {}):
+            problems.append(
+                f"NOT_COMPARABLE {sample_id}: request changed "
+                f"{a.get('path')}{a.get('params') or {}} -> {b.get('path')}{b.get('params') or {}}"
+            )
+            continue
         if a.get("error") or b.get("error"):
-            if a.get("error") != b.get("error"):
-                problems.append(f"{sample_id}: capture error {a.get('error')} -> {b.get('error')}")
+            problems.append(
+                f"NOT_VERIFIED {sample_id}: error baseline={a.get('error')} candidate={b.get('error')}"
+            )
             continue
         if a["status"] != b["status"]:
             problems.append(f"{sample_id}: status {a['status']} -> {b['status']}")
