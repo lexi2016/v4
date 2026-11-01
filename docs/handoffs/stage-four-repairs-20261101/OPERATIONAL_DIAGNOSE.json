@@ -1,0 +1,87 @@
+{
+  "status": "DEPLOYED_D30_0925_READ_ONLY_DIAGNOSE_PASS_WITH_STAGE8_CANNOT_CONFIRM_PRESERVED",
+  "module_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+  "results": [
+    {
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+        "-B",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/ops/stage_data_recovery.py",
+        "--config",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/stage_center_tick_config.json",
+        "--trade-date",
+        "20261030",
+        "--stage-id",
+        "STAGE_1545_1555",
+        "--action",
+        "diagnose",
+        "--expected-receipt-sha256",
+        "1059392062c56ca016f2c5081929c9b5626ea4b4ffb09f07e59e86e05a8042cc"
+      ],
+      "exit_code": 3,
+      "original_receipt_sha256": "1059392062c56ca016f2c5081929c9b5626ea4b4ffb09f07e59e86e05a8042cc",
+      "receipt_unchanged": true,
+      "result": {
+        "status": "CANNOT_CONFIRM",
+        "error": "ValueError:SNAPSHOT_RECOVERY_EXACT_A_IDENTITY",
+        "network_invocations": 0,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "execution": "Actual single prior invocation preserved"
+    },
+    {
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+        "-B",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/ops/stage_data_recovery.py",
+        "--config",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/stage_center_tick_config.json",
+        "--trade-date",
+        "20261030",
+        "--stage-id",
+        "STAGE_0925",
+        "--action",
+        "diagnose",
+        "--expected-receipt-sha256",
+        "c01c9ba988aed03d72c68874000510b123815b8d627e99a51f8a6a3c26c37068"
+      ],
+      "exit_code": 0,
+      "original_receipt_sha256": "c01c9ba988aed03d72c68874000510b123815b8d627e99a51f8a6a3c26c37068",
+      "receipt_unchanged": true,
+      "result": {
+        "buy_gate_updated": false,
+        "candidate_current_sha256": "c8a5023fff39c3d5b5b31363f53211137661fee9e6c60079c91ee5d9479b8d5e",
+        "effective_row_count": 531,
+        "natural_execution_verified": false,
+        "network_invocations": 0,
+        "observation": {
+          "captured_at": "2026-10-30T09:34:07.021281+08:00",
+          "observation_id": "e5f28b00e618b9ac730aec556da3403e1722f1d8d018fa50ed81448d2548a023",
+          "observed_rows": 522,
+          "observed_trade_date": "20261030"
+        },
+        "orders_sent": false,
+        "original_row_count": 532,
+        "production_allowed": false,
+        "quarantined_codes": [
+          "A.261029"
+        ],
+        "receipt_sha256": "c01c9ba988aed03d72c68874000510b123815b8d627e99a51f8a6a3c26c37068",
+        "stage_id": "STAGE_0925",
+        "status": "DIAGNOSED",
+        "supplement": {
+          "captured_at": "2026-10-30T09:34:07.021281+08:00",
+          "mode": "AFTERFACT_SNAPSHOT_RESELECTION",
+          "recommendation_status": "WATCH_ONLY",
+          "selected_rows": 10
+        },
+        "trade_date": "20261030"
+      },
+      "execution": "Actual invocation"
+    }
+  ],
+  "business_writes": 0,
+  "providers": 0
+}

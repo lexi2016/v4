@@ -1,0 +1,175 @@
+{
+  "status": "ACTIVATED_OPERATIONAL_VERIFIED",
+  "baseline_commit": "cdabde6a74939bb3b30f845f70bc5675ab077e4f",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-stage-four-repairs-20261101",
+  "script_sha256": "a55a43dd7ff72b896e170a2a13856e0af39114d6904688901a5992c5f6c3b893",
+  "plan": "/private/tmp/v4-stage-four-release-20261101-r2/preparation.json",
+  "plan_sha256": "cd227c3d43705163744e9f06cd35280a4c6bd4bd83e98681b6e961c178b545fe",
+  "actual_steps": [
+    "ADMISSION_PASS",
+    "UNLOADED:stage",
+    "PLIST_REPLACED:stage",
+    "STARTED_VERIFIED:stage",
+    "UNLOADED:pre",
+    "PLIST_REPLACED:pre",
+    "STARTED_VERIFIED:pre",
+    "UNLOADED:api",
+    "PLIST_REPLACED:api",
+    "STARTED_VERIFIED:api",
+    "ACTIVATED_OPERATIONAL_VERIFIED"
+  ],
+  "loaded_owners": {
+    "stage": {
+      "loaded_definition_sha256": "da8ee37c504e8b5bda1cf18ec4a44d456f1190c8cf1bf8dab4cf19db3d37c592",
+      "pid": null,
+      "plist_sha256": "9035f1508f9507a5c6598f23d22a9852662dd1a23e734156fd5d97d244a2505e",
+      "release_id": "stage-four-repairs-20261101-r3-stage",
+      "state": "not running"
+    },
+    "pre": {
+      "loaded_definition_sha256": "fe25d7842490d70edec45108d4a8db27caa2b4f2035217c447c35deb3e87e8c8",
+      "pid": null,
+      "plist_sha256": "685abb6be5fe17e04e7b9a7f4a69d90ae11b9445697d329118cd36f25e69b86c",
+      "release_id": "stage-four-repairs-20261101-r3-a_precapture",
+      "state": "not running"
+    },
+    "api": {
+      "job": {
+        "loaded_definition_sha256": "65a9ee381a8c4c5dbb0f2f38ea913247daccb0e2f9f35ac684828b1f930a2d3a",
+        "pid": 13758,
+        "plist_sha256": "06d2a44ffac56d902e0ffdc7ba0d1dd46ea36e3f5d3be4503f8e39caf870a4ce",
+        "release_id": "stage-four-repairs-20261101-r4-api",
+        "state": "running"
+      },
+      "runtime_identity": {
+        "application": "V4",
+        "manifest_sha256": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a",
+        "process_status": "CANNOT_CONFIRM",
+        "release_id": "stage-four-repairs-20261101-r4-api",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED"
+      }
+    }
+  },
+  "postchecks": {
+    "manual_actual_service_execution": "CONTROLLER_PENDING",
+    "manual_loaded_env_config_pinned": true,
+    "raw_actual_executed_path": "CONTROLLER_PENDING",
+    "sealed_sop_sha256": {
+      "overview": "e70b9f8e50d021aaf9740f66d941bdb78379bf18c29e27cda4c451325b63f0ce",
+      "repair-20261028-29": "faca9693fb575f9faccca2ed5960d11f57ed88c8f060cfec338b90e9f643c02f",
+      "stage-selection": "e7b8ac64ba04c37067869a4660a6313569b4571036762633836a62af97050b58"
+    }
+  },
+  "health_monitor": {
+    "exit_code": 0,
+    "wall_seconds": 24.415074415970594,
+    "health_sample_interval_seconds": 0.05,
+    "request_timeout_seconds": 0.25,
+    "health_observations": 405,
+    "failed_observations": 218,
+    "outages": [
+      {
+        "first_failure_to_recovery_seconds": 11.8270479158964,
+        "last_success_to_recovery_upper_bound_seconds": 11.882078249938786
+      },
+      {
+        "first_failure_to_recovery_seconds": 0.36865266715176404,
+        "last_success_to_recovery_upper_bound_seconds": 0.4226298341527581
+      }
+    ],
+    "recovered": true,
+    "first_samples_healthy": true,
+    "last_samples_healthy": true
+  },
+  "protected_panel_generation_sha256": "f5c4b58901f7c40ae905df96e787b93ffa1b5e840c74650ca5bcc559efc204a3",
+  "protected_panel_assets": 488,
+  "protected_jobs": [
+    "com.lexi.review-core.daily",
+    "com.lexi.stage-center.hk-deadline",
+    "com.lexi.v4.scheduler",
+    "com.lexi.vibe-astock.local"
+  ],
+  "data_preservation_scope": {
+    "raw": {
+      "content_sample": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.store.lock.mutex",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "entries": 1654,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+      "stat_inventory_sha256": "304d65f4d1dcd2fe42e940587e1c6899f269e28da1330a62686c31082ff1cfa2"
+    },
+    "receipts": {
+      "content_sample": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20260915/STAGE_0925/receipt.json",
+        "sha256": "133b5696f5c498af90d8d8150d3234d62bfe707adc3564ea956eef2f4a73ef59"
+      },
+      "entries": 1495,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+      "stat_inventory_sha256": "22b43b86856b466e98a76ee06962c7efcb3fe440adda931bf48890fd5f0ff573"
+    },
+    "selection": {
+      "content_sample": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/.selection.store.lock.mutex",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "entries": 1780,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "stat_inventory_sha256": "78f083a4d5b836d803d1056d7bd1c193c962d9e1e4670349315eef3fe0441307"
+    }
+  },
+  "data_preservation_result": "All raw/selection/receipts file stat inventories plus one content SHA sample per root unchanged; excludes lock files; no claim of full content hashing",
+  "target_plist_preimages": {
+    "api": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+      "mode": 420,
+      "original_sha256": "fead69c7da4d0f92e8c0ea66655024466d5af792a46afa3f7f85f72df9e98395",
+      "staged_sha256": "06d2a44ffac56d902e0ffdc7ba0d1dd46ea36e3f5d3be4503f8e39caf870a4ce"
+    },
+    "pre": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.a-opening-precapture.plist",
+      "mode": 384,
+      "original_sha256": "3c9d1864510f68b04d31c3cf5032477377cfb32c598115032c6be474377592a4",
+      "staged_sha256": "685abb6be5fe17e04e7b9a7f4a69d90ae11b9445697d329118cd36f25e69b86c"
+    },
+    "stage": {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "mode": 384,
+      "original_sha256": "80d58cc8270c85f9894d59b7c2cabdc9d907347db36ec6364a377687eb5fe528",
+      "staged_sha256": "9035f1508f9507a5c6598f23d22a9852662dd1a23e734156fd5d97d244a2505e"
+    }
+  },
+  "commands": {
+    "test": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B tests/test_stage_four_activation.py",
+    "prepare": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B ops/activate_stage_four_repairs.py prepare",
+    "activate": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B ops/activate_stage_four_repairs.py activate --plan-sha cd227c3d43705163744e9f06cd35280a4c6bd4bd83e98681b6e961c178b545fe",
+    "rollback": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B ops/activate_stage_four_repairs.py rollback --plan-sha cd227c3d43705163744e9f06cd35280a4c6bd4bd83e98681b6e961c178b545fe",
+    "local_diagnostic_retention": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B /private/tmp/v4-stage-four-release-20261101-r2/retention-probe.py"
+  },
+  "tests": "2 rollback mock regressions PASS; frozen r2 operational independent REVIEWED/PASS; six old/new inventory and safety flags verified; current panel static router ASGI representative 3/3 HTTP200+SHA",
+  "failure_preserved": "OPERATIONAL_PREFLIGHT.json original0296 vs currentf5 panel generation mismatch; controller authorized single-generation derived protection",
+  "temporary_evidence_root": "/private/tmp/v4-stage-four-release-20261101-r2",
+  "rollback_actual_execution": "NOT_RUN_NOT_NEEDED",
+  "business_candidate_bytes_changed": false,
+  "UI_VERIFIED": "CONTROLLER_PENDING",
+  "manual_actual_service_execution": "CONTROLLER_PENDING",
+  "raw_actual_executed_path": {
+    "status": "DEPLOYED_MODULE_LOCAL_DIAGNOSTIC_WRITE_PASS",
+    "receipt": "OPERATIONAL_RETENTION.json",
+    "scope": "Original retained_collector_call on real local missing-D30-RTDATA path; actual current clock; original same FileNotFoundError rethrown; no provider, market replay or natural capture",
+    "added_diagnostic_files": 2,
+    "added_diagnostic_bytes": 3804
+  },
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "Git_sync": "CONTROLLER_PENDING",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "deployed_readonly_diagnose": {
+    "receipt": "OPERATIONAL_DIAGNOSE.json",
+    "D30_0925": "DIAGNOSED_ORIGINAL532_EFFECTIVE531_RECEIPT_UNCHANGED",
+    "D30_Stage8": "CANNOT_CONFIRM_SNAPSHOT_RECOVERY_EXACT_A_IDENTITY_PRESERVED"
+  },
+  "diagnostic_probe_sha256": "d8f554aa457590564fd7fa00636e8ce4c4d240c915b13a8fc36c3314fe6761f7"
+}

@@ -1,0 +1,83 @@
+{
+  "status": "DEPLOYED_ORIGINAL_RETENTION_FUNCTION_LOCAL_DIAGNOSTIC_WRITE_PASS",
+  "provenance": {
+    "mode": "LOCAL_DIAGNOSTIC_MISSING_ORIGINAL_RTDATA",
+    "provider_execution": false,
+    "market_replay_execution": false,
+    "natural_execution_verified": false,
+    "historical_reconstruction": false,
+    "authorizes_selection": false,
+    "source_snapshot": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots_v2/20261030/STAGE_1545_1555/snapshot.json",
+      "sha256": "af8736691b04a5a352d12ea8f3edcd16125d9b77a1a018a89c6fce5d93e7043e",
+      "mode": "READ_ONLY_SEALED_ORIGINAL"
+    },
+    "diagnostic_lookup": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_stage8_rtdata_captures/20261030/STAGE_1545_1555",
+    "capture_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.retention_acceptance/stage-four-repairs-20261101-r2/.collector_requests/20261030/STAGE_1545_1555/HK_CONNECT/10933141bd6813642e7c2ff895fa0bdb20a5ea464bfd67d62ca0af566a828bb7.json",
+    "capture_sha256": "10933141bd6813642e7c2ff895fa0bdb20a5ea464bfd67d62ca0af566a828bb7",
+    "capture_module": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/stage_center/collector_capture.py",
+    "capture_module_sha256": "dcd6253b9d3ab66cf9f2553b4e02b559fd35f60fe343c792f42738e4d43fdc44",
+    "capture_started_at": "2026-11-01T22:37:09.113562+08:00",
+    "capture_finished_at": "2026-11-01T22:37:09.113622+08:00",
+    "original_error": {
+      "type": "FileNotFoundError",
+      "message": "[Errno 2] No such file or directory: '/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_stage8_rtdata_captures/20261030/STAGE_1545_1555'",
+      "same_exception_object": true
+    },
+    "network_invocations": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "added_files": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.retention_acceptance/stage-four-repairs-20261101-r2/.collector_requests/20261030/STAGE_1545_1555/HK_CONNECT/10933141bd6813642e7c2ff895fa0bdb20a5ea464bfd67d62ca0af566a828bb7.json",
+      "bytes": 1926,
+      "sha256": "10933141bd6813642e7c2ff895fa0bdb20a5ea464bfd67d62ca0af566a828bb7"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.retention_acceptance/stage-four-repairs-20261101-r2/DIAGNOSTIC_PROVENANCE.json",
+      "bytes": 1878,
+      "sha256": "b541c2e8af47ffd012926829e52c5e134a1a4f4c85744b4b0e2ee5243b6a99e9"
+    }
+  ],
+  "original_file_stat_inventories_before": {
+    "raw_root": {
+      "count": 1654,
+      "sha256": "304d65f4d1dcd2fe42e940587e1c6899f269e28da1330a62686c31082ff1cfa2"
+    },
+    "receipt_root": {
+      "count": 1495,
+      "sha256": "22b43b86856b466e98a76ee06962c7efcb3fe440adda931bf48890fd5f0ff573"
+    },
+    "selection_root": {
+      "count": 1780,
+      "sha256": "78f083a4d5b836d803d1056d7bd1c193c962d9e1e4670349315eef3fe0441307"
+    }
+  },
+  "original_file_stat_inventories_after": {
+    "raw_root": {
+      "count": 1654,
+      "sha256": "304d65f4d1dcd2fe42e940587e1c6899f269e28da1330a62686c31082ff1cfa2"
+    },
+    "receipt_root": {
+      "count": 1495,
+      "sha256": "22b43b86856b466e98a76ee06962c7efcb3fe440adda931bf48890fd5f0ff573"
+    },
+    "selection_root": {
+      "count": 1780,
+      "sha256": "78f083a4d5b836d803d1056d7bd1c193c962d9e1e4670349315eef3fe0441307"
+    }
+  },
+  "original_files_unchanged": true,
+  "candidate_original_rows": 532,
+  "candidate_effective_rows": 531,
+  "candidate_current_sha256": "c8a5023fff39c3d5b5b31363f53211137661fee9e6c60079c91ee5d9479b8d5e",
+  "raw_store_calls": 0,
+  "selection_writes": 0,
+  "receipt_writes": 0,
+  "index_writes": 0,
+  "sealed_app_changes": 0,
+  "no_claim_of_natural_or_provider_capture": true
+}

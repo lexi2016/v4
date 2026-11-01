@@ -1,0 +1,184 @@
+{
+  "status": "UI_VERIFIED_WITH_RECORDED_LIMITS",
+  "api_release": "stage-four-repairs-20261101-r4-api",
+  "frontend": "main-Klhi0XX-.js",
+  "historical_stage_clicks": [
+    {
+      "date": "20261030",
+      "stage": "STAGE_0925",
+      "result": "A_AFTERFACT10_HK_OBSERVATION10_ORIGINAL_FAILURE_RETAINED"
+    },
+    {
+      "date": "20261030",
+      "stage": "STAGE_0930_0935",
+      "result": "A_AFTERFACT10_CAPTURE0937_NOT_ORIGINAL_TIME"
+    },
+    {
+      "date": "20261030",
+      "stage": "STAGE_1445_1500",
+      "result": "A10_HK_OBSERVATION10_PARTIAL"
+    },
+    {
+      "date": "20261030",
+      "stage": "STAGE_1545_1555",
+      "result": "ORIGINAL_MISSING_RETAINED"
+    }
+  ],
+  "stage_batch_requests": [
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261102&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261030&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261030&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261030&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261030&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage-batch?date=20261102&stages=STAGE_0925%2CSTAGE_0930_0935%2CSTAGE_0935_0940%2CSTAGE_0940_0945%2CSTAGE_0945_1030%2CSTAGE_1300_1315%2CSTAGE_1445_1500%2CSTAGE_1545_1555",
+      "status": 200
+    }
+  ],
+  "SOP": {
+    "status": "PASS",
+    "sha256": "e7b8ac64ba04c37067869a4660a6313569b4571036762633836a62af97050b58",
+    "raw_retention_CAS_recovery_r4_binding_displayed": true
+  },
+  "manual": {
+    "actual_POST_and_GET_200": true,
+    "job_id": "9bc918c3dc454f21b557f8e0d17a96d2",
+    "status": "CANNOT_CONFIRM",
+    "reason": [
+      "HK_STAGE8_EXACT_RTDATA_REPLAY_UNAVAILABLE"
+    ],
+    "owner_pid": 13758,
+    "stage_owner_release": "stage-four-repairs-20261101-r3-stage",
+    "stage_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+    "child_started": false,
+    "data_recovered": false,
+    "natural_verified": false
+  },
+  "research_panel": {
+    "preserved": true,
+    "requested_url": "http://127.0.0.1:8873/research-panel/workbench.html?date=2026-10-30",
+    "display_observation_date": "2026-11-02",
+    "display_source_date": "2026-10-30",
+    "interpretation": "Existing panel observation/source-date mapping; no panel code change in this release",
+    "requests": [
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/workflow-contract",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/history",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/charts?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/projections?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/workflow-contract?source_date=2026-10-30",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/single-research/002865.SZ?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/context?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/top200",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/context?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/company/000528.SZ?revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/observations?observation_date=2026-11-02&revision=d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5",
+        "status": 200
+      },
+      {
+        "url": "http://127.0.0.1:8873/api/v4/research/workbench/days/2026-10-30/events",
+        "status": 200
+      }
+    ]
+  },
+  "console_error_warn_at_manual_check": [],
+  "runtime_exceptions": [],
+  "network_failures": [
+    {
+      "id": "73048.74",
+      "canceled": true,
+      "error": "net::ERR_ABORTED",
+      "url": "http://127.0.0.1:8873/api/v4/workbench/stage?date=20261030&stage=STAGE_0925&limit=50"
+    },
+    {
+      "id": "DFD459DA935F6F3DE41DE937B9D7860C",
+      "canceled": true,
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "browser_command_timeout": {
+    "operation": "back from preserved research panel",
+    "recovered_by": "explicit navigation to original user URL"
+  },
+  "screenshots": {
+    "home": "/Users/lexi/.codex/visualizations/2026/11/01/01a194a4-03c8-7b11-9dd8-7debf9205ffe/output/playwright/stage-four-release/deployed-stage-home.png",
+    "manual": "/Users/lexi/.codex/visualizations/2026/11/01/01a194a4-03c8-7b11-9dd8-7debf9205ffe/output/playwright/stage-four-release/manual-time-boundary.png",
+    "panel": "/Users/lexi/.codex/visualizations/2026/11/01/01a194a4-03c8-7b11-9dd8-7debf9205ffe/output/playwright/stage-four-release/preserved-research-panel.png"
+  },
+  "UI_scope": "Actual click/read/request outcomes; not new provider capture or natural slot certification",
+  "control_handoff": {
+    "sessionId": "01a194a4-03c8-7b11-9dd8-7debf9205ffe",
+    "threadId": "01a194a4-03c8-7b11-9dd8-7debf9205ffe",
+    "callId": "exec-2690bebd-c121-4ffc-a948-8f00bea37976",
+    "native_input_actions": 0,
+    "held_input_requests": 0,
+    "all_semantic_actions_completed": true,
+    "original_tab_restored": {
+      "pointerLocked": false,
+      "pointerLockType": "object",
+      "lockedTag": null,
+      "openDialogs": 0,
+      "activeTag": "BODY",
+      "url": "http://127.0.0.1:8873/?date=20261102&stage=STAGE_0925"
+    },
+    "remaining_tabs": [
+      {
+        "id": "1",
+        "providerTabId": "e736d55b-5e9b-4dfa-b98d-fcb79fedc14a",
+        "title": "V4",
+        "url": "http://127.0.0.1:8873/?date=20261102&stage=STAGE_0925"
+      }
+    ],
+    "actual_DOM_verified_by_CDP": true,
+    "DOM_proxy_pointer_property_not_supported": true
+  }
+}
