@@ -6,6 +6,9 @@ No downloader, OCR, analysis, selection scoring or scheduler lives in this modul
 from __future__ import annotations
 import hashlib
 import json
+import os
+import stat
+from functools import lru_cache
 import re
 import sqlite3
 from contextlib import contextmanager
@@ -36,6 +39,72 @@ class PdfOwner:
         self.root = Path(data_root)
         from infrastructure import zsxq_pdf_ingestion
         self.owner = zsxq_pdf_ingestion
+        self.store = self.owner.NativeDataStore(self.root)
+        self._query_index = None
+        self._index_signature = None
+        self._authorization = {}
+        self._query_signatures = {}
+
+    def _signature(self, relative):
+        # Open every ancestry through the existing no-follow owner boundary.
+        io = self.owner._store_io(self.store)
+        with io.parent(relative) as (parent, name):
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=parent)
+            try:
+                s = os.fstat(fd)
+                if not stat.S_ISREG(s.st_mode):
+                    raise ValueError('SOURCE_NOT_REGULAR')
+                return (s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns,s.st_mode,s.st_uid,s.st_gid)
+            finally:
+                os.close(fd)
+
+    def begin_query(self):
+        signature = self._signature(self.owner.STATE_RELATIVE)
+        if signature != self._index_signature:
+            self._query_index = self.owner._read_index(self.store)
+            self._authorization.clear()
+            if signature != self._signature(self.owner.STATE_RELATIVE):
+                raise ValueError('OWNER_INDEX_CHANGED_DURING_READ')
+            self._index_signature = signature
+        self._query_signatures = {}
+
+    def authorized(self, m):
+        """Source/permission preflight BEFORE either ranked candidate branch.
+
+        Cache only a successful full owner verification. Reuse requires the same
+        owner index and no-follow readable file identities/ctime/mode for every
+        bound input and artifact. Candidate readback still performs fresh hashes.
+        """
+        try:
+            if self._query_index is None:
+                self.begin_query()
+            row = self._query_index['documents'][m['document_id']]
+            if row.get('retracted') is True:
+                return False
+            source = row['source']; latest = self.owner._latest_engine_run(row)
+            if latest is None or latest[1].get('status') != 'READY':
+                return False
+            pdf,pages,receipt = self.owner._safe_document_paths(source,latest[1],latest[0])
+            entry = self._query_index['sources'][source['source_run_id']]
+            day,slot,run = source['trade_date'],entry['slot'],source['source_run_id']
+            paths = [self.owner.STATE_RELATIVE,pdf,pages,receipt,
+                f'research_module/runtime_outputs/zsxq_hourly/{day}/{slot}/v35_zsxq_hourly_status_{day}_{slot}.json',
+                *[f'external_sources/zsxq_hourly/{run}/{name}' for name in
+                  ('zsxq_recent_topics_fetch_result.json','zsxq_recent_topics.json','zsxq_summary.json')]]
+            signatures = tuple((p,self._signature(p)) for p in paths)
+            key = digest(canonical({k:v for k,v in m.items() if k!='vector_scope_uri'}))
+            if self._authorization.get(key) == signatures:
+                return True
+            detail = self.owner._verified_document_detail(self.store,self._query_index,m['document_id'],verify_pdf=True)
+            detail['schema_version'] = 'v4.zsxq_pdf_document_detail.v1'
+            if metadata(detail) != {k:v for k,v in m.items() if k!='vector_scope_uri'}:
+                return False
+            if signatures != tuple((p,self._signature(p)) for p in paths):
+                return False
+            self._authorization[key] = signatures
+            return True
+        except Exception:
+            return False
 
     def inventory(self):
         # Enumerate the existing owner's index, never directory-scan PDFs.
@@ -56,6 +125,10 @@ class PdfOwner:
             if digest(page['text']) != page.get('text_sha256'):
                 raise ValueError('PAGE_SHA_MISMATCH')
         return detail
+
+@lru_cache(maxsize=4)
+def shared_pdf_owner(data_root: str):
+    return PdfOwner(data_root)
 
 class BgeTokenizer:
     """Pinned official local tokenizer, no model load and no network download."""
@@ -78,7 +151,7 @@ def structure_chunks(text: str, tokenizer: BgeTokenizer):
     if not enc.ids:
         return
     table = bool(re.search(r'财务|现金流量表|资产负债表|\|.*\|', text))
-    markdown = bool(re.search(r'^\s*\|.*\|\s*$', text, re.M))
+    markdown = bool(re.search(r'^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$', text, re.M))
     prefix = ''
     if table:
         headers = [line for line in text.splitlines() if re.search(r'百万元|亿元|单位|20\d\d[AE]|\|.*\|', line)]
