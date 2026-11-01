@@ -144,7 +144,13 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
   而 `configuration.py` 里该参数默认 `None`,缺失不影响调用。
 - `stage_center/raw_store.py`:7 个门面函数**全部完全相同**。
 
-结论:从 `2d1936518` 恢复这 12 个 parts 文件与当前门面兼容,不需要改门面。
+结论:从 `2d1936518` 恢复这 12 个 parts 文件与当前门面**部分**兼容。
+
+> **本节结论已被 §9 修正。** 逐函数比对只能证明"委托函数一致",
+> 不能证明 parts 依赖的模块级私有实现也在。实测恢复后仍有两处
+> `NameError`,且分支的两个门面相对 `2d1936518` 是严格子集
+> (`runner.py` 缺 9 个、`raw_store.py` 缺 42 个模块级定义)。
+
 
 ### 5.6 缺失之外的第二个断点
 
@@ -191,3 +197,58 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
 依赖图由一次性只读脚本生成,脚本不入库(AST 扫描门面函数的 `_v4_impl(globals(), ...)`
 调用与 parts 模块的 `_v4_global(_v4_scope, '...')` 字面量)。
 表 3、表 4 的数字可直接从该输出核对;`UNDEFINED` 与 `dynamic` 为 0 是硬断言。
+
+## 9. 补齐尝试的实测结果(2026-11-01)
+
+按 §5.5 的结论从 `2d1936518` 恢复了 12 个 parts 文件,**结论要修正**:
+12 个文件本身不是完整的缺口。
+
+### 9.1 恢复后能到什么程度
+
+- 12 个模块全部可导入(`import_module` 无失败)。
+- `build_production_config` 需要一处适配:`configuration.py` 把
+  `hk_snapshot_shared_store_root` 传给 `RunnerConfig`,而本分支的 `RunnerConfig`
+  没有该字段。去掉该参数后,调用成功并返回 `RunnerConfig`。
+- `StageCenterRunner(config)` 可构造。
+- `publish_raw_artifact` 仍然失败:`NameError: _allows_temporal_false_observation`。
+
+### 9.2 根因:分支的两个门面是严格子集
+
+按模块级名字比对(`2d1936518` 相对本分支):
+
+| 文件 | 分支独有定义 | 2d1936518 独有定义 |
+| --- | --- | --- |
+| `stage_center/runner.py` | **0** | **9** |
+| `stage_center/raw_store.py` | **0** | **42** |
+
+`raw_store.py` 缺的 42 个里含 5 个大函数(180 / 126 / 67 / 48 / 36 行),
+以及 `HK_FUTU_RTDATA_*` 等常量与 `TradingDayState`、`resolve_market_states` 的导入。
+
+即:parts 是给**较新的门面**生成的,本分支的门面是较旧版本——
+门面里的委托函数一致,但它们依赖的模块级私有实现没跟过来。
+
+### 9.3 共有定义也不全同
+
+| 文件 | 共有定义 | 完全相同 | 不同 |
+| --- | --- | --- | --- |
+| `runner.py` | 46 | 41 | `RunnerConfig`、`StageCenterRunner`、`build_production_config`、`_authorize_hk_0930_tdx_temporal_false_observation`、`_build_hk_stage_binding` |
+| `raw_store.py` | 22 | 21 | `validate_rows` |
+
+`RunnerConfig` 只差一个可选字段;`StageCenterRunner` 接口相同(10 个方法),
+但实现体不同;`validate_rows` 的实现体不同。
+
+### 9.4 因此有三条路
+
+1. **选择性补齐**:只把 51 个缺失定义搬过来,保留本分支的 `RunnerConfig`、
+   `StageCenterRunner`、`validate_rows` 实现。风险:parts 与这些旧实现从未一起跑过,
+   每处不兼容都要逐个实测发现(已经发现 2 处)。
+2. **整对采纳**:直接采用 `2d1936518` 的 `runner.py` + `raw_store.py` 全文再加 12 个
+   parts。三者本是同一批生成的,自洽性最好;代价是 `RunnerConfig` 加回一个字段、
+   `StageCenterRunner` 与 `validate_rows` 的实现升级——属于行为变更,需要单独验收。
+3. **暂不补齐**:承认这两个模块在分支上是断的,阶段 3 先在
+   `domains/preselection.py` 与 `apps/api/v4_api/research_lane_router.py`
+   两个完整门面上做。
+
+工作区现状:12 个 parts 文件已放入工作树(未提交),`configuration.py` 有上述一处改动;
+全量测试仍 134 通过、1 个既有失败。
+
