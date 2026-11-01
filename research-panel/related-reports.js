@@ -20,6 +20,16 @@
     state.textContent = message;
     state.dataset.previousObservedAt=prior?.observedAt||'未知';state.dataset.previousIndexAt=prior?.indexAt||'未知';
   }
+  function showFailure(message) {
+    showState(message);
+    output.replaceChildren();
+    if (section.dataset.hideEmpty === 'true') {
+      if (current) { current.nextCursor = null; current.nextOffset = null; current.signature = null; }
+      section.hidden = false;
+      section.open = true;
+      document.getElementById('relatedReportsRefresh').textContent = '重新读取首页';
+    }
+  }
   function latestIndexSuccess(coverage) {
     const updates = coverage?.index_updates;
     if (!updates || typeof updates !== 'object' || Array.isArray(updates)) return null;
@@ -65,6 +75,7 @@
     abortAll(); current = null;
     state.textContent = '等待选择股票。';
     output.replaceChildren();
+    if(section.dataset.hideEmpty==='true')section.hidden=true;
   }
   function safety(data) {
     return data?.research_only === true && data.production_allowed === false && data.buy_gate_updated === false && data.orders_sent === false;
@@ -304,6 +315,17 @@
   }
   function render(result, token) {
     const { data, stock, mode, pages, gaps, verified, attempts, incomplete, incompleteReason } = result;
+    if(section.dataset.hideEmpty==='true'){
+      // Exhausting this indexed query does not certify coverage of the whole archive.
+      const indexedCandidatesExhausted = mode === 'FULLTEXT_INDEX' && !result.nextCursor && !incomplete && verified === attempts;
+      section.hidden=!stock.reports.length && indexedCandidatesExhausted;
+      if(section.hidden)return;
+      if(!stock.reports.length){
+        output.replaceChildren();
+        append(output,'p',result.nextCursor?'当前已读范围无匹配；可继续读取下一页，资料覆盖尚未完成。':'当前覆盖未认证完整，不能判断没有研报。');
+        return;
+      }
+    }
     const coverage = data.coverage;
     output.replaceChildren();
     const diagnostics=append(output,"details");append(diagnostics,"summary","检索覆盖、来源与技术状态");
@@ -367,9 +389,13 @@
     const generation = String(section.dataset.generation || '');
     if (!force && current?.symbol === symbol && current?.name === name && current?.day === day && current?.generation === generation && JSON.stringify(current?.nameBinding) === JSON.stringify(nameBinding)) return;
     const token = ++sequence;
+    if(section.dataset.hideEmpty==='true'){
+      section.hidden=false;
+      document.getElementById('relatedReportsRefresh').textContent='重新读取首页';
+    }
     abortAll(); current = { symbol, name, day, generation, nameBinding }; output.replaceChildren();
-    if (!validDay(day)) { showState('名单身份日期缺失或无效；未请求相关研报。'); return; }
-    if (!/^\d{6}\.(SH|SZ|BJ)$/.test(String(symbol))) { showState('股票代码无效；未请求相关研报。'); return; }
+    if (!validDay(day)) { showFailure('名单身份日期缺失或无效；未请求相关研报。'); return; }
+    if (!/^\d{6}\.(SH|SZ|BJ)$/.test(String(symbol))) { showFailure('股票代码无效；未请求相关研报。'); return; }
     const query = new URLSearchParams({ identity_date: day });
     query.append('symbols', symbol);
     const hint = String(name || '').trim();
@@ -400,8 +426,7 @@
       render(result, token);
     } catch (error) {
       if (token !== sequence) return;
-      showState(`${symbol}：相关研报未完整或读取失败：${error?.message || '网络不可达'}；已丢弃本次页面，不能据此判断没有研报。`);
-      output.replaceChildren();
+      showFailure(`${symbol}：相关研报未完整或读取失败：${error?.message || '网络不可达'}；已丢弃本次页面，不能据此判断没有研报。`);
     }
   }
   function prepareSelection(symbol,name,nameBinding=null){clear();current={symbol,name,nameBinding,day:String(section.dataset.identityDate||''),generation:String(section.dataset.generation||'')};showState('已有研报目录在上方。正文库尚未查询；可按需先读5篇候选，覆盖为PARTIAL。');document.getElementById('relatedReportsRefresh').textContent='检索正文库（先读5篇）';}

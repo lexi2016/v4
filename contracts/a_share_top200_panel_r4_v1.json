@@ -1,0 +1,32 @@
+{
+  "schema": "a_share_top200_panel_r4_v1",
+  "scope": "TOP200_PARTIAL_197_ADMITTED_ALL_HISTORY_RESEARCH_ONLY",
+  "parent_manifest_sha256": "8709651e5fd2f6c3703a551b2b2ab62d18d6add4fa273bb6ca153331c2048298",
+  "parent_validation_sha256": "8136286fce0156cf856313941870325839ef7e3385e2d0dd636ccc246a5aa651",
+  "original_top200_sha256": "62f32398e8e89ecf7f3c48f8f803b4e6d154211f3871d12489be898a0e39b0a7",
+  "calculation_columns": {"selector": 340, "backtest": 192},
+  "research_projection_columns": {"selector": 317, "backtest": 186},
+  "physical_kb_fields": 109,
+  "added_wide_columns": 0,
+  "modified_fields": [
+    "kb_rebuild", "kb_brick_trend", "kb_brick_action_desc", "kb_yidong_above_60d",
+    "kb_double_gun_vol1", "kb_double_gun_vol2", "kb_double_gun_gap_days",
+    "kb_violence_k_type", "kb_violence_k_body",
+    "kb_hold_volume_ok", "kb_hold_volume_ok_reason", "kb_hold_trend_up", "kb_hold_trend_up_reason",
+    "kb_hold_score", "kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status",
+    "kb_action_with_position", "kb_action_with_position_status", "kb_action_reasons"
+  ],
+  "type_fix": {"kb_double_gun_gap_days": "int64 to int32 after validating values are null or in 3..10"},
+  "trend": "User-confirmed local N V1, same-date structure sidecar; event dates and confirmation dates stay separate.",
+  "volume": "Reuse the previously verified valid bullish-candle/positive-volume branch only; all other branches remain UNKNOWN.",
+  "source_conflicts": "Keep existing core signals unchanged, mark only affected derived components UNKNOWN with sidecar status.",
+  "diagnostics": "24 frozen helper diagnostics and kb_n_structure in one same-symbol, same-date SHA-bound sidecar.",
+  "price_basis": "Parent QFQ_ASOF adjustment snapshot and existing source admission; historical PIT is not certified.",
+  "calendar": "Full-history calendar identity remains CANNOT_CONFIRM; cross-generation checkpoint reuse is prohibited.",
+  "statistical_inputs": "Preserve all original OHLCV and KB core fields except kb_rebuild exactly; retain native anomaly archive and all event-sidecar SHA identities.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false
+}

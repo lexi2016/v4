@@ -1,0 +1,86 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "materialized_fields": {
+    "kb_yidong_bullish_count_5": {
+      "meaning": "latest 5 bars with close strictly greater than open, including today",
+      "type": "int8"
+    },
+    "kb_yidong_is": {
+      "meaning": "65 valid-history eligibility, today volume / prior 5-bar mean >= 2 and pct_chg >= 2",
+      "type": "bool"
+    },
+    "kb_yidong_james": {
+      "meaning": "65 valid-history eligibility, volume ratio >= 3, pct_chg >= 5 and at least 3 bullish candles among the latest 5",
+      "type": "bool"
+    },
+    "kb_yidong_ma60_distance_pct": {
+      "meaning": "current close relative to the current bound MA60, percentage points; not the pre-rise anchor",
+      "type": "double"
+    },
+    "kb_yidong_peak_ratio_5_20": {
+      "meaning": "latest-5 maximum divided by preceding-20 maximum",
+      "type": "double"
+    },
+    "kb_yidong_phase_anchor_date": {
+      "meaning": "null until rise/pullback anchor selection is confirmed",
+      "type": "int32"
+    },
+    "kb_yidong_phase_status": {
+      "meaning": "ANCHOR_RULE_NOT_QUANTIFIED: rise/pullback segment and support definitions are pending",
+      "type": "string"
+    },
+    "kb_yidong_price_volume_up_days_5": {
+      "meaning": "latest 5 bars where close > previous close and volume > previous volume; descriptive comparison, not an authenticated 放量上涨 definition",
+      "type": "int8"
+    },
+    "kb_yidong_rule_sha256": {
+      "meaning": "SHA256 of these contract bytes",
+      "type": "string"
+    },
+    "kb_yidong_status": {
+      "meaning": "source-rule eligibility / input validity, distinguishing incomplete data",
+      "type": "string"
+    },
+    "kb_yidong_type": {
+      "meaning": "詹姆斯级 or 徐杰级 on a known hit; null if no hit or classification unknown",
+      "type": "string"
+    },
+    "kb_yidong_vol_peak_5": {
+      "meaning": "maximum volume of the latest 5 bars including today",
+      "type": "double"
+    },
+    "kb_yidong_vol_peak_prior20": {
+      "meaning": "maximum volume in the 20 bars before those latest 5 bars",
+      "type": "double"
+    },
+    "kb_yidong_vol_ratio_5": {
+      "meaning": "today volume divided by mean volume of the 5 preceding bars",
+      "type": "double"
+    },
+    "kb_yidong_yellow_distance_pct": {
+      "meaning": "current close relative to the current bound yellow line, percentage points; not the pre-rise anchor",
+      "type": "double"
+    }
+  },
+  "orders_sent": false,
+  "phase_gaps": {
+    "pre_rise": "A pre-rise anchor is not uniquely specified; current MA60/yellow distances are not mislabeled as pre-rise distances.",
+    "pullback": "Peak drawdown, volume divided by rise-phase volume, minimum volume since anomaly, and support remain UNKNOWN until rise/pullback segmentation and support rules are given.",
+    "second_rise": "Second rise, volume-supported rise, and volume-supported breakout are separate future date fields; no event date is invented without thresholds and a prior-high window."
+  },
+  "production_allowed": false,
+  "rules": "No forward data; windows use only bars through the row date. Numeric metrics are descriptive and do not certify a KB trading signal. No change to existing 57 labels or original formula.",
+  "schema": "a_share_kb_yidong_v1",
+  "scope": "TOP200_PARTIAL_197_ADMITTED_FULL_HISTORY_RESEARCH_ONLY",
+  "scope_manifest_sha256": "62f32398e8e89ecf7f3c48f8f803b4e6d154211f3871d12489be898a0e39b0a7",
+  "scope_note": "Native dictionary and descriptive fields only; separate as-of event payload carries the explicitly labelled engineering interpretation.",
+  "source": {
+    "article_sha256": "8dfd4f30b0255eba97a5164a68ae0ad2adca96256d11395347161c66abed9ff9",
+    "dictionary_sha256": "5ccf9e16657cf82f11ec11fed0cc5f575a674132c623e36b9fc43fd756337d32",
+    "name": "volume_patterns.py::detect_volume_anomaly",
+    "note": "Fixed indicator implementation and dictionary give numerical thresholds; qualitative article does not itself supply all these windows. Insufficient or invalid inputs are UNKNOWN, not source defaults.",
+    "source_sha256": "42141485be6b9f55ca6cf016e2160271e7d20287b2f7284f907b74c119bfc2ce"
+  },
+  "source_contract_sha256": "98059cef2fae727f42d8f622a415186b77c272af84a433c7ffff2bb11fce1116"
+}

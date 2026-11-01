@@ -1,0 +1,24 @@
+{
+  "schema": "a_share_top200_display_projection_v1",
+  "scope": "TOP200_PARTIAL_197_ADMITTED_RESEARCH_DISPLAY_ONLY",
+  "parent_single_stock_policy_sha256": "da82c1fc206730c092ec7164c665dde9e0553af8be33b7d0b8f14047fcf47a4c",
+  "excluded_from_display_projection": [
+    "B1", "B2", "B3", "brick_buy", "brick_exist_b", "brick_resonance_context",
+    "didi_break_prev_low", "fd_volume_yin", "macd_above_zero_second_gold",
+    "macd_below_zero_second_gold", "macd_bottom_divergence", "macd_top_divergence",
+    "ref_score_close_up", "single_needle_under20", "strong_volume_up",
+    "user_v1_break_yesterday_keyline_daily", "user_v1_breakout", "user_v1_breakout_cross_star",
+    "user_v1_first_fly", "user_v1_hold_yesterday_keyline_daily", "user_v1_second_fly",
+    "user_v1_three_quarter_yin_volume_line", "user_v1_under_yellow", "volume_up", "white_yellow_death_cross"
+  ],
+  "retained_from_plan": {
+    "kb_hold_volume_ok_reason": "Required to distinguish UNKNOWN from an observed negative score."
+  },
+  "source_timing": "Current observed F10 and period comparisons are separate company assets; no current snapshot is backfilled into historical bars.",
+  "preservation": "The complete 393/245 research archives and global price/QFQ panels remain intact; projected values and rows are exact subsets.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false
+}

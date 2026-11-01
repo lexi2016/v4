@@ -1,0 +1,34 @@
+{
+  "schema": "v4.a_share.kb_rebuild_brick_local.v1",
+  "purpose": "Use the existing single-security QFQ full-prefix inputs and cached brick series to calculate the repaired rebuild observation and explicitly named brick source fields.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false,
+  "owner": "existing V4 A-share daily producer; no new producer or scheduler",
+  "rebuild": {
+    "rule_id": "ZGE_REBUILD_FULL_PREFIX_124_LOCAL_V1",
+    "source": "complex_patterns.py::detect_zaihou_chongjian",
+    "corrected_skill_source_sha256": "304544550c0a6cd34231a3f883c6c44a5ff881bc19c65f80cb2a5d7d9aec698d",
+    "status": "LOCAL_RULE_DERIVED_FROM_CORRECTED_SOURCE; local module and contract have their own separate SHA identities",
+    "repair": "Use full prefix MA14/28/57/114 for current yellow and prefix slices ending 4 and 9 bars before current for the two historical yellow values; require 124 observations before returning a boolean.",
+    "warmup": "kb_rebuild=null, reason=INSUFFICIENT_HISTORY, required=124 and available=observed prefix count when fewer than 124 bars exist. Invalid required inputs have their own reason, not a history-shortage reason.",
+    "source_semantics": "Retain the corrected source's first matching up-volume day among the latest 15 observations, its partial initial volume slice divided by 5, strict comparisons, and positive-yellow guard. The implementation does not itself require a golden-cross event even though its prose mentions one; this local value is a source-implementation research signal, not full original-rule certification.",
+    "input": "close, positive volume, percent change: same stock, ascending unique dates, same bound QFQ generation; caller validates upstream data/calendar/price basis and supplies only the intended as-of index.",
+    "outputs": ["kb_rebuild", "kb_rebuild_reason", "kb_rebuild_required_bars", "kb_rebuild_available_bars", "kb_rebuild_rule_id"]
+  },
+  "brick": {
+    "rule_id": "ZGE_BRICK_B195_WARMUP_FLIP_DESC_LOCAL_V1",
+    "source": "brick.py::calculate_brick_history and detect_four_brick_system",
+    "source_sha256": "a87ed7f6025387b6c1977d27ff0662bce0ed4f97b3360bc86a004cf83292401e",
+    "input": "The existing kb_signal_authority._brick_series full-prefix cached sequence (Python round to two decimals), bound to security/generation/valid HLC prefix and recursive seed. The caller must explicitly affirm validity, seed binding and series_id=KB_AUTHORITY_BRICK_SERIES_B195_V1.",
+    "trend": "RED when today's source brick value >= yesterday's; otherwise GREEN. Two actual mature values require at least 13 bars. This is a color, not kb_brick_trend_up's separate slope condition.",
+    "count": "Consecutive source-color run after an observed reversal; if the run starts within synthetic source warmup, value is null with BRICK_RUN_ORIGIN_IN_WARMUP, even if a lower bound is known. Do not label this data gap as a source-rule conflict.",
+    "description_patch": "On red-to-green the source text interpolates the current green run count in place of the preceding red run. The local rule computes the actual prior red-run count; if its origin is in warmup, the description is null with PREVIOUS_RED_RUN_ORIGIN_IN_WARMUP. Other descriptions retain the source text.",
+    "display": "These are source pattern descriptions only; never trade instructions or changed buy gates.",
+    "outputs": ["kb_brick_trend", "kb_brick_trend_reason", "kb_brick_count", "kb_brick_count_reason", "kb_brick_action_desc", "kb_brick_action_desc_reason", "kb_brick_required_bars", "kb_brick_available_bars", "kb_brick_observed_run_lower_bound", "kb_brick_rule_id"]
+  },
+  "incremental": "On initial missing-field bootstrap compute only the bound affected stock rows. Persist null reason, required/available history and rule identity. Subsequently compute new dates, newly matured rows after earlier input is actually restored, and rows whose dependent inputs were revised; reuse other validated rows when input/calendar/price basis/rule hashes match. Do not rescan all history solely due to a new generation or export.",
+  "acceptance": "Candidate source tests and two-stock historical evidence do not imply integration, deployment, API/UI visibility, natural execution, historical PIT or strategy validity."
+}

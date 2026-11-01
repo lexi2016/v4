@@ -1,0 +1,73 @@
+{
+  "schema": "a_share_kb_full_supplement.v1",
+  "scope": "TOP200_PARTIAL_197_ADMITTED_COMPLETE_OBSERVED_PREFIX",
+  "parent_generation": "ecc4f1726c8d1c0ce67f90a557e3a582662276646508bf05edcedd0e20a5e595",
+  "input_basis": "PARENT_QFQ_NONPIT; TWO_ROLES_SHARE_INCREMENTAL_FIELD_AUTHORITY",
+  "dictionary_fields": [
+    "kb_rsi6", "kb_rsi12", "kb_rsi24", "kb_wr5", "kb_wr10",
+    "kb_boll_mid", "kb_boll_upper", "kb_boll_lower", "kb_boll_width", "kb_boll_position", "kb_vol_ratio",
+    "kb_yidong_type", "kb_yidong_vol_ratio", "kb_yidong_above_60d",
+    "kb_brick_trend", "kb_brick_count", "kb_brick_action_desc", "kb_b1_rally_pct", "kb_b1_pass_30",
+    "kb_double_gun_vol1", "kb_double_gun_vol2", "kb_double_gun_gap_days", "kb_bowl_upper", "kb_bowl_lower",
+    "kb_key_k_list", "kb_violence_k_type", "kb_violence_k_body", "kb_signal", "kb_prev_high", "kb_prev_low",
+    "kb_high_52w", "kb_high_52w_dist", "kb_net_lg_mf", "kb_net_elg_mf", "kb_dmi_plus", "kb_dmi_minus", "kb_adx"
+  ],
+  "f10_fields": [
+    "kb_concepts", "kb_concept_count", "kb_gudongrenshu", "kb_gudongrenshu_prev", "kb_top10_float_ratio",
+    "kb_fund_hold_ratio", "kb_pledge_ratio", "kb_gudongrenshu_asof", "kb_eps", "kb_bps", "kb_roe_pct",
+    "kb_total_share", "kb_float_a_share", "kb_h_share", "kb_restricted_share", "kb_revenue_yi",
+    "kb_revenue_yoy_pct", "kb_net_profit_yi", "kb_finance_asof", "kb_latest_announcement", "kb_capital_action",
+    "kb_dividend_plan", "kb_ipo_date"
+  ],
+  "process_fields": [
+    "kb_yidong_origin_line", "kb_yidong_origin_distance_pct", "kb_yidong_origin_class",
+    "kb_yidong_origin_ma60_distance_pct", "kb_yidong_origin_ma60_class", "kb_yidong_persistence_days5",
+    "kb_yidong_peak_ratio20", "kb_yidong_strong_wave", "kb_yidong_anchor_date", "kb_yidong_peak_date",
+    "kb_yidong_peak_close", "kb_yidong_peak_high", "kb_yidong_pullback_date", "kb_yidong_pullback_pct",
+    "kb_yidong_pullback_vol_ratio", "kb_yidong_ground_volume", "kb_yidong_support_ok", "kb_yidong_resume_date",
+    "kb_yidong_resumed", "kb_yidong_volume_resumed", "kb_yidong_breakout"
+  ],
+  "anomaly": {
+    "quantification_design_sha256": "e6825de7169da6fd51831219a97529c440b2380bdf4189b761829a1400d64222",
+    "native_flag": "kb_yidong remains the original native detector, not the full structural event",
+    "primary_line": "zge_yellow_line, pre-anchor close/line",
+    "comparison_line": "ma60, pre-anchor close/line",
+    "origin_near_5pct": "ENGINEERING_INITIAL_VALUE_NOT_ORIGINAL_KB_THRESHOLD",
+    "origin_near_3pct": "ENGINEERING_SENSITIVITY_ONLY; retained in event payload",
+    "persistence_5bars": "ENGINEERING_WINDOW_REUSING_DICTIONARY_GRADE_WINDOW",
+    "peak_prior_20bars": "ENGINEERING_INITIAL_WINDOW_NOT_ORIGINAL_KB_THRESHOLD",
+    "recent_anchor_20bars": "RETAIN_PREVIOUSLY_FROZEN_TOP200_DESCRIPTIVE_SCOPE",
+    "selection": "most advanced eligible event then most recent anchor; all as-of anchor states retained separately",
+    "temporal_order": "anchor_a <= peak_p < pullback_q < each observed resumption_r; no future backfill"
+  },
+  "dictionary_limits": {
+    "wr": "negative source-helper output: helper computes positive 0..100, dictionary specifies -100..0; undefined range stays null",
+    "key_k_list": "as-of 60-day list assembled from replayed per-day latest detection; source helper itself scans latest five days",
+    "brick_count": "reuse kb_brick_consecutive only where its core authority provided a known value; sample compare native brick history",
+    "qfq_negative": "finite negative adjusted prices retained for difference indicators; undefined or non-positive required denominators remain null",
+    "money_flow": "kb_net_lg_mf and kb_net_elg_mf are UNKNOWN: classified money-flow source not bound",
+    "trade_signal": "source enum is research-only and does not update BUY gates or send orders"
+  },
+  "f10_limits": {
+    "historical_wide_fields": "UNKNOWN_WHEN_SOURCE_OBSERVED_AFTER_BAR; current snapshot is never backfilled",
+    "observed_history": "separate bound source snapshot, captured_at, report_period, optional publication_date, and native source data",
+    "bj": "UNKNOWN when F10 exchange/transport mapping is not identity-certified",
+    "shareholder_conflicts": "keep provider observations and their separate dates, do not silently merge"
+  },
+  "sources": {
+    "dictionary_sha256": "5ccf9e16657cf82f11ec11fed0cc5f575a674132c623e36b9fc43fd756337d32",
+    "core_py_sha256": "8423882092943a11d92b125e2834ef50641053faf984b4592cd12ff599a6c4c7",
+    "base_py_sha256": "999c2cb21dc24a1fec37add14a5a49e4b7ed2a5911e0149d8a54474893b7835c",
+    "brick_py_sha256": "a87ed7f6025387b6c1977d27ff0662bce0ed4f97b3360bc86a004cf83292401e",
+    "key_candles_py_sha256": "38a3b58212925ffd1c9827193dc357bf5a623c99a2820190a4acbf4fada3af4c",
+    "screener_helper_py_sha256": "e27ccaea93af97729969395bb8bc3f5dc526177cdcec7496d96fb9fa3bcffefd",
+    "descriptive_yidong_authority_parent_sha256": "0391a138dd2e0d70b5a4227f81f90c1dda24d0b034bfd81c9b3c740e53921a63",
+    "descriptive_yidong_contract_parent_sha256": "98059cef2fae727f42d8f622a415186b77c272af84a433c7ffff2bb11fce1116",
+    "native_detector_sha256": "42141485be6b9f55ca6cf016e2160271e7d20287b2f7284f907b74c119bfc2ce"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false
+}
