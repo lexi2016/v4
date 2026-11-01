@@ -23,6 +23,7 @@ MAX_DAY_BYTES = 16 * 1024 * 1024
 MAX_BATCH_DOCUMENTS = 10
 INLINE_PDF_BYTES = 4 * 1024 * 1024
 MAX_PDF_BYTES = 64 * 1024 * 1024
+METADATA_PRIORITY_SORT_VERSION = 'EXACT_SOURCE_TERM_V1'
 SAFETY = {'research_only': True, 'production_allowed': False,
           'buy_gate_updated': False, 'orders_sent': False}
 
@@ -95,6 +96,27 @@ def _term_positions(term: str) -> tuple[int, ...]:
 
 def _maybe(bits: bytes, positions: Sequence[int]) -> bool:
     return all(bits[p >> 3] & (1 << (p & 7)) for p in positions)
+
+
+def _metadata_priority_terms(terms: Mapping[str, Sequence[str]]) -> tuple[list[str], list[re.Pattern[str]]]:
+    """Collect meaningful exact terms for ordering, not relation assertions."""
+    names: list[str] = []
+    codes: list[re.Pattern[str]] = []
+    for values in terms.values():
+        for term in values:
+            if re.fullmatch(r'[0-9]+', term):
+                # Short HK search fragments are too common to order by.
+                if len(term) >= 5:
+                    codes.append(re.compile(r'(?<![A-Za-z0-9])' + re.escape(term) + r'(?![A-Za-z0-9])'))
+            elif len(term) >= 3 or (len(term) >= 2 and re.search(r'[\u3400-\u9fff]', term)):
+                names.append(term)
+    return names, codes
+
+
+def _metadata_matches(source: Mapping[str, Any], names: Sequence[str], codes: Sequence[re.Pattern[str]]) -> bool:
+    texts = (str(source.get('topic_title') or ''), str(source.get('original_filename') or ''))
+    return any(name in text for text in texts for name in names) or any(
+        code.search(text) for text in texts for code in codes)
 
 
 def _read_day(store: NativeDataStore, day: str) -> tuple[dict[str, Any] | None, str | None]:
@@ -361,6 +383,7 @@ def query(data_root: Path | str, terms: Mapping[str, Sequence[str]]) -> dict[str
     inventory_days = {value[1] for value in inventory.values()}
     days = sorted(inventory_days | cache_days)
     masks = {symbol: [_term_positions(term) for term in values] for symbol, values in terms.items()}
+    metadata_names, metadata_codes = _metadata_priority_terms(terms)
     ledgers: dict[str, dict[str, Any]] = {}
     hashes: dict[str, str] = {}
     updates: dict[str, dict[str, Any]] = {}
@@ -384,6 +407,7 @@ def query(data_root: Path | str, terms: Mapping[str, Sequence[str]]) -> dict[str
     if not ledgers:
         gaps.append({'reason': 'SEARCH_INDEX_NOT_MATERIALIZED'})
     candidates = []
+    metadata_priority: set[str] = set()
     counts = {'owner_documents': len(inventory), 'indexed_documents': 0, 'unindexed_ready': 0, 'size_unknown_documents': 0,
               'stale_documents': 0, 'unavailable_documents': 0, 'removed_documents': 0,
               'large_ready_pending': 0, 'large_verification_error': 0,
@@ -416,6 +440,8 @@ def query(data_root: Path | str, terms: Mapping[str, Sequence[str]]) -> dict[str
         counts['indexed_documents'] += 1
         bits = base64.b64decode(record['bloom'], validate=True)
         if any(_maybe(bits, positions) for symbol_masks in masks.values() for positions in symbol_masks):
+            if _metadata_matches(index['documents'][doc_id]['source'], metadata_names, metadata_codes):
+                metadata_priority.add(doc_id)
             candidates.append({'document_id': doc_id, 'research_date': day,
                                'verified_pdf_sha256': record.get('verified_pdf_sha256'),
                                'verified_pdf_size': record.get('verified_pdf_size'),
@@ -434,8 +460,9 @@ def query(data_root: Path | str, terms: Mapping[str, Sequence[str]]) -> dict[str
     gaps.extend(scope.get('gaps') or [])
     inventory_digest = _sha(_canonical(sorted((doc_id, *value) for doc_id, value in inventory.items())))
     binding_digest = _sha(_canonical(scope.get('source_bindings') or {}))
-    snapshot = _sha(_canonical({'ledgers': hashes, 'inventory': inventory_digest, 'source_bindings': binding_digest}))
-    candidates.sort(key=lambda row: (row['research_date'], row['document_id']), reverse=True)
+    snapshot = _sha(_canonical({'ledgers': hashes, 'inventory': inventory_digest, 'source_bindings': binding_digest,
+                                'candidate_order': METADATA_PRIORITY_SORT_VERSION}))
+    candidates.sort(key=lambda row: (row['document_id'] in metadata_priority, row['research_date'], row['document_id']), reverse=True)
     return {'status': 'NOT_MATERIALIZED' if not ledgers else 'PARTIAL' if gaps else 'READY', 'candidates': candidates,
             'checkpoint_sha256': snapshot, 'day_sha256': hashes, 'inventory_sha256': inventory_digest,
             'source_bindings_sha256': binding_digest,
