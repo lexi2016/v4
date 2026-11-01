@@ -1,4 +1,4 @@
-import {installSingleResearch,financialLines,financialDisclosureText,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
+import {installSingleResearch,bindSingleSymbolSearch,financialLines,financialDisclosureText,verifiedCompanyPart,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
@@ -14,7 +14,8 @@ let context=null,current=null,contextSerial=0,completionCallback=null,contextRep
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
 const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
-el('stockList').addEventListener('click',event=>{const symbol=event.target.closest?.('[data-symbol]')?.dataset.symbol;if(symbol==='301048.SZ')singleResearch.openSymbol(symbol);else if(symbol)singleResearch.clear()});
+el('stockList').addEventListener('click',event=>{const item=event.target.closest?.('[data-symbol]');if(item?.dataset.symbol)singleResearch.openSymbol(item.dataset.symbol,item.dataset.name)});
+bindSingleSymbolSearch(el('query'),symbol=>singleResearch.openSymbol(symbol));
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
 const original=bridge.OriginalFullChart;
 window.OriginalFullChart={...original,clear(){cancelOriginalReady();++r2Serial;r2Controller?.abort();r2Controller=null;if(skillReviewCleanup){skillReviewCleanup();skillReviewCleanup=null}original.clear();current=null;context=null;++contextSerial;stat.replaceChildren();el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
@@ -94,9 +95,11 @@ function loadSingleDetails(day,meta,signal,assets){
   if(signal.aborted)return;
   const history=el('kbSingleHistory'),company=el('kbSingleCompany'),finance=el('kbSingleFinancial');
   history.replaceChildren();company.replaceChildren();finance.replaceChildren();
-  const groups=visibleSingleHistoryGroups(assets.history.statistics?.groups);
-  if(!Array.isArray(groups)||!groups.length)throw Error('单股历史统计缺失');
-  add(history,'p',`截至 ${day.source_date} · 已存${meta.rows}日标签；按深市交易日计算。原式一级/二级买点与KB各自统计，历史PIT未认证，不预测未来。`);
+  const generic=meta.schema==='v4.workbench.generic_single_research.v1';
+  const groups=assets?.history?visibleSingleHistoryGroups(assets.history.statistics?.groups):null;
+  if(groups){
+  if(!groups.length)throw Error('单股历史统计缺失');
+  add(history,'p',`截至 ${day.source_date} · 已存${meta.rows}日标签；按同证券所属交易所日历计算。原式一级/二级买点与KB各自统计，历史PIT未认证，不预测未来。${generic?' 来源为已核对的既有历史版本 '+meta.detail_status.history.source_candidate_generation.slice(0,12)+'。':''}`);
   const text=v=>v?.valid>0&&Number.isFinite(v.positive_fraction)?`${v.positive}/${v.valid}（${(v.positive_fraction*100).toFixed(1)}%）`:`有效 ${v?.valid??0}，样本不足`;
   for(const group of groups){
     const h=group.horizons,p=group.same_position?.horizons;
@@ -110,7 +113,11 @@ function loadSingleDetails(day,meta,signal,assets){
   const list=add(cases,'div');let shown=0;const more=add(cases,'button','再显示20条');more.type='button';
   function appendCases(reset=false){if(reset){shown=0;list.replaceChildren()}const g=groups.find(x=>x.group_id===groupChoice.value);const rows=g.horizons.d2.cases;for(const item of rows.slice(shown,shown+20)){const b=add(list,'button',`${item.event_date} → ${item.target_date??'未成熟'} · ${item.return_pct==null?item.status:item.return_pct.toFixed(2)+'%'}`);b.type='button';b.style.display='block';b.onclick=()=>{el('kbSingleDate').value=item.event_date;el('kbSingleDate').dispatchEvent(new Event('change'))}}shown+=20;more.hidden=shown>=rows.length}
   groupChoice.onchange=()=>appendCases(true);more.onclick=()=>appendCases();appendCases(true);
-  const m=assets.company,b=m.business_reported??{},f=m.financials_reported??{},holders=m.shareholders_reported??{};
+  }else add(history,'p','同股历史事件统计待核。');
+  const m=assets?.company??{},checks=meta.detail_status?.company?.source_checks??{};
+  const trusted=value=>generic?verifiedCompanyPart(value,checks,m.source_refs):value??{};
+  const b=trusted(m.business_reported),f=trusted(m.financials_reported),holders=trusted(m.shareholders_reported);
+  if(generic&&assets?.company)add(company,'p','已存公司资料来源版本 '+meta.detail_status.company.source_candidate_generation.slice(0,12)+'；各项来源分别核验。');
   add(company,'p',b.value??'主营资料待核');if(b.source_url){const source=add(company,'a','官方三季报原件');source.href=b.source_url;source.target='_blank';source.rel='noopener noreferrer';}
   add(finance,'p',financialDisclosureText(f,m.f10,m.source_refs));
   const financeLines=[add(finance,'p'),add(finance,'p'),add(finance,'p')];
@@ -121,9 +128,27 @@ function loadSingleDetails(day,meta,signal,assets){
     const provenance=add(f10Box,'p',`${source} · 实际采集 ${f10.captured_at??'时间待核'}，来源更新 ${f10.source_updated_date??'待核'}；概念不回填历史。`);
     provenance.title=`TDX行业源代码 ${f10.industry?.tdx_finance_industry_code??'未知'}；映射状态 ${f10.industry?.status??'未知'}`;
   };
+  const paintPartialF10=value=>{
+    const text=value.source_components?.text,raw=value.source_components?.finance;
+    f10Box.replaceChildren();add(f10Box,'p',`TDX F10部分采集 · 实际采集 ${value.captured_at??'待核'} · 来源更新日期待核；非历史PIT。`);
+    if(text?.status==='OBSERVED'){
+      const details=add(f10Box,'details');add(details,'summary','查看已核对的正文（前2000字）');add(details,'pre',text.source_text.slice(0,2000));
+    }else add(f10Box,'p','正文待核：'+(text?.reason??'来源缺失'));
+    if(raw?.status==='OBSERVED'){
+      const details=add(finance,'details');add(details,'summary','查看已核对的财务源原始字段（单位及报告期待核）');add(details,'pre',JSON.stringify(raw.finance_native_raw,null,2));
+    }else add(finance,'p','财务源分项待核：'+(raw?.reason??'来源缺失'));
+  };
   paintF10(m.f10,'单股已绑定快照');
   fetch('/api/v4/research/workbench/days/'+day.source_date+'/f10/'+meta.symbol+'?'+new URLSearchParams({revision:day.generation}),{signal,credentials:'same-origin',redirect:'error',cache:'no-store'})
-    .then(response=>response.ok?response.json():null).then(value=>{if(!signal.aborted&&value?.status==='OBSERVED'&&value.symbol===meta.symbol&&value.source_generation===day.generation&&value.input_sha256===day.input_sha256&&value.stock_ref?.sha256===meta.display_projection?.f10_source_sha256)paintF10(value.f10,'日更完成快照')}).catch(()=>{});
+    .then(response=>response.ok?response.json():null).then(value=>{
+      const valid=!signal.aborted&&value?.symbol===meta.symbol&&value.data_date===day.source_date.replaceAll('-','')&&
+        value.source_generation===day.generation&&value.input_sha256===day.input_sha256&&value.historical_PIT===false&&
+        value.RESEARCH_ONLY===true&&['production_allowed','buy_gate_updated','orders_sent'].every(k=>value[k]===false)&&
+        /^[a-f0-9]{64}$/.test(value.stock_ref?.sha256??'');
+      if(!valid)return;
+      if(value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照');
+      else if(generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
+    }).catch(()=>{});
   const reports=el('relatedReports');reports.hidden=true;reports.dataset.identityDate=day.source_date.replaceAll('-','');reports.dataset.generation=day.generation;
   window.RelatedReports?.select(meta.symbol,meta.name,true,null);
 }
