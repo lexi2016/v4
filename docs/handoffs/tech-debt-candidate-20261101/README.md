@@ -1,6 +1,8 @@
 # Isolated candidate preparation
 
-Status: `ISOLATED_RUNTIME_UI_ACCEPTANCE_PASS`. Independent review receipt is recorded separately below. Nothing activated or deployed.
+Status: `DEPLOYED_API_UI_VERIFIED` on 2026-11-01. The isolated-acceptance record
+below is retained as historical evidence; the production cutover and click-test
+results are recorded in the final section. Natural-time acceptance is `NOT_RUN`.
 
 Frozen source: `c06db9db262b9c756d8401dcfc43b70d34c6f3ef`.
 Reviewed entity changes: `97ff8531d`, `5419e52dd`, `8f39cdf67`, `c06db9db2`.
@@ -65,6 +67,50 @@ and Git synchronization. Raw data and runtime artifacts stay outside Git.
 
 `RESEARCH_ONLY=true`, `production_allowed=false`, `buy_gate_updated=false`,
 `orders_sent=false`.
+
+## Formal promotion and controller cutover
+
+`ops/activate_tech_debt_candidate.py --prepare` copies the accepted app unchanged
+to a new formal candidate, rebinds only manifest path identity, and freezes a
+preparation receipt. It backs up the current plist bytes/mode and changes only
+`WorkingDirectory` plus the four V4 release identity environment variables in the
+staged plist; current WeChat configuration and other keys are preserved.
+
+The script reuses the tracked low-level lifecycle helpers from
+`docs/handoffs/perf-runtime-repair-20261101/release_repair.py`, dynamically binding
+the current base and plist. The preparation receipt pins that helper and the
+activation script by SHA; no old helper prepare/switch or stale CAS constant runs.
+The imported packaging helper's existing official inventory/dispatcher checks
+are reused. New packaging paths are included in its source-history allowlist.
+
+```text
+python -B -m ops.activate_tech_debt_candidate --prepare
+python -B -m ops.activate_tech_debt_candidate --revise-preparation --receipt-sha256 <OLD_PREPARATION_SHA>
+python -B -m ops.activate_tech_debt_candidate --activate --receipt-sha256 <PREPARATION_SHA>
+python -B -m ops.activate_tech_debt_candidate --rollback --receipt-sha256 <PREPARATION_SHA> --activation-sha256 <ACTIVATION_RESULT_SHA>
+```
+
+Only the controller executes activate/rollback after independent review.
+Activation holds the existing API release mutex, checks plist bytes/mode, job
+PID, inventories and prepared artifacts, then waits for job disappearance,
+socket release and old PID exit before bootstrap. Health, safety and exact
+release identity must pass. A failed cutover restores the previous plist and
+verifies its running identity; a foreign plist/job change blocks recovery actions
+and is recorded as a recovery failure. Manual rollback also pins the activation
+result and exact started PID. Failures and success records remain in the formal
+candidate's `evidence` directory. Writer ran 10 lifecycle mock tests and prepare;
+real activation/rollback were not run by Writer.
+
+A successful bootstrap records ownership before a PID is available. If that
+exact loaded job never obtains a PID or its observed PID exits, automatic
+rollback can still unload it after validating configuration pins. A different
+observed PID or changed configuration is refused. Targeted regressions keep the
+real switch/parser/unload/readiness chain and simulate only OS/HTTP boundaries.
+`--revise-preparation` is restricted to an inactive candidate with the original
+live plist/job still matching: it CAS-checks the old receipt, preserves its
+metadata under `evidence/preparation-before-revision-*`, and changes only the
+activation-tool pin plus revision provenance. Existing app, manifest and plist
+bytes remain unchanged. Activation must use the new receipt SHA.
 
 ## Controller acceptance completed on 2026-11-01
 
@@ -162,9 +208,98 @@ or frozen research data are uploaded to GitHub.
 
 Only packaging/capture tools, focused tests and this compact handoff are committed.
 Independent Reviewer has read-only ownership; its final verdict is the separate
-reviewer-final receipt. Activation, formal release-path/plist preparation, actual
-cutover, post-deployment API/UI and natural-time acceptance are NOT_RUN. Moving
+reviewer-final receipt. At the end of that isolated phase, activation, formal
+release-path/plist preparation, cutover, post-deployment API/UI and natural-time
+acceptance were NOT_RUN. Moving
 the package to a new app root requires path-bound manifest regeneration and
 identity validation there. Future cutover must preserve the latest WeChat binding,
 recheck the current plist CAS and use a prepared rollback plus job-unload polling.
 This batch makes no performance, research-quality, PIT or trading-eligibility claim.
+
+## Authorized production cutover and click tests, 2026-11-01
+
+The user subsequently authorized deployment and actual page clicking. The
+controller promoted the accepted application bytes unchanged to
+`~/Library/Application Support/com.lexi.v4.local/candidates/tech-debt-entity-filter-20261101-r1/app`.
+Its path-bound manifest SHA is
+`551a3065545c18ce3e4c41e73bab7c1b577d1064a385e8057db76f9b402615ab`;
+the 1324-entry inventory remains
+`d685ec81693ce11135704d39096eec6fd694ed0744f5a7e352b32a1c4a5d0839`.
+The preparation receipt SHA is
+`3b0f120b95d9d896c6c0ae0e7e79639cc55f97c348d321a8c1b79717b099b3b2`.
+
+Before cutover, independent review found that rollback could fail when bootstrap
+loaded a job without obtaining a PID. Writer fixed that ownership case; 13
+targeted tests and the Reviewer's separate real-method simulation passed before
+any production change. The revised preparation receipt archived its predecessor
+and left application, manifest and plist bytes unchanged. The activation-tool
+SHA is `adfccea7bd37a3af336db3da604e1ab38338cd3aa261154f28ff495b6951c054`.
+
+Activation succeeded with `ACTIVATED_VERIFIED`, PID `96385`, health/ready HTTP
+200 and `MANIFEST_EXECUTION_FILES_VERIFIED`. The active plist SHA is
+`f8a52405cb6846637a0a471934a0ed55d9bb1fc42ac77358b17a8bb515182113`.
+It changes only the working directory and four release identity variables;
+the current V4-owned WeChat archive binding is preserved. The former release
+and exact original plist bytes/mode remain available for rollback at
+`<formal-release-root>/config/original-api.plist`.
+
+This was not a zero-downtime switch: the independent health sampler observed
+about 12 seconds of transient unavailability during the approximately 15.6-second
+activation. No rollback was triggered. The activation-result SHA is
+`62dc7881068bc671700c33142da3764480b85beaa344592fe58af3a295f02ec1`.
+If rollback is necessary, use the reviewed tool from this worktree with the
+absolute v4-mac Python, `-B`, and these exact pins:
+
+```text
+python -B -m ops.activate_tech_debt_candidate --rollback --receipt-sha256 3b0f120b95d9d896c6c0ae0e7e79639cc55f97c348d321a8c1b79717b099b3b2 --activation-sha256 62dc7881068bc671700c33142da3764480b85beaa344592fe58af3a295f02ec1
+```
+
+Post-deployment API checks passed for health, ready, date list, frontend identity,
+SOP, research lane, tasks, runtime graph and eight-stage batch. Complete pool
+pagination returned 643 -> 642 (20261030) and 593 -> 591 (20261102), retaining
+all 100 HK rows on each date; the actual research lane returned 447 -> 445.
+The six pinned original pool/archive/selection files remain byte-identical.
+The unchanged frontend is `main-C4Mq08oe.js` with verified API binding.
+
+The built-in browser actually clicked the date picker, stage dropdown and stage
+card, pool next/previous pages and collapse/expand, all three SOP documents,
+research filters (stock/AI/WeChat/all), manager navigation and four representative
+tabs, task status and the research-panel link/date selector. Eight stage cards,
+the 10-stock saved manager focus list, 12 plan-history entries and the 667-stock
+mapping catalog loaded. Browser error logs were empty. The complete bounded
+stage trace shows one single-stage request plus one eight-stage batch, both 200.
+The longer research/manager trace truncated and is not complete-network proof.
+Initial loading snapshots and locator waits are retained alongside settled DOMs;
+an intermediate spinner is not counted as successful content loading.
+
+Two observed limitations remain:
+
+- The existing main-navigation research-panel link is fixed to 2026-10-28 even
+  when the main page selects 2026-10-30. The panel loads and its own date selector
+  switches to 2026-10-30. Frontend bytes match the previous release, so this is a
+  pre-existing date-context defect, not a regression repaired by this release.
+- A manager plan-history GET took approximately 24.7 seconds before returning
+  200 and 12 saved records. No matching pre-deployment latency measurement exists;
+  causation and performance improvement are `CANNOT_CONFIRM`.
+
+No new blocking page regression was found in this representative click scope.
+Existing dated `CANNOT_CONFIRM` / `PARTIAL` and source/PIT gaps remain; no natural
+scheduled run or trading action was exercised. Other services and schedulers were
+not changed. The controller closed its test tab, refreshed the preserved user tab
+at its original date/stage and recorded input handoff.
+
+Production evidence stays local in
+`/private/tmp/v4-live-click-acceptance-20261101/`: `post-api.json`,
+`post-click-actions.json`, settled DOMs/screenshots, bounded network traces,
+`health-monitor.json`, `activation-command.json`, `final-runtime.json`,
+`browser-handoff.json` and the independent `reviewer-final.json`.
+Formal preparation/activation receipts remain under the deployed release's
+`evidence/`. None of these runtime packages, raw data or captures are uploaded.
+
+Independent read-only Reviewer `/root/candidate_review` returned `REVIEWED/PASS`
+after the actual cutover and settled UI checks, with no unresolved blocking
+findings in the frozen release scope. The controller transcribed that final
+verdict verbatim into the local JSON and identified the transcription origin.
+`DEPLOYED`, `API_VERIFIED` and `UI_VERIFIED` apply to this recorded scope;
+natural-time execution remains `NOT_RUN`. Real production rollback was not
+exercised; failed-start rollback is covered by tests and independent simulation.

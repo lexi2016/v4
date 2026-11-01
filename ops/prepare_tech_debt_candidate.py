@@ -50,6 +50,7 @@ CACHE_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
 PACKAGING_PATHS = (
     "ops/apply_tech_debt_overlay.py", "ops/prepare_tech_debt_candidate.py",
     "ops/capture_response_baseline.py", "tests/test_apply_tech_debt_overlay.py",
+    "ops/activate_tech_debt_candidate.py", "tests/test_activate_tech_debt_candidate.py",
     "tests/test_prepare_tech_debt_candidate.py", "tests/test_tech_debt_candidate_protocol.py",
     "tests/test_capture_response_baseline.py",
     "docs/handoffs/tech-debt-candidate-20261101/README.md",
