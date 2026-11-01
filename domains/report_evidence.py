@@ -31,15 +31,14 @@ class ReportEvidenceService:
         if date_from and date_to and date_from > date_to:
             raise ValueError('INVALID_DATE_INTERVAL')
         docs = {}
+        self._eligibility_gaps = set()
         for row in db.execute('SELECT id,metadata FROM documents WHERE active=1'):
             if self.document_allowlist is not None and row['id'] not in self.document_allowlist:
                 continue
             m = json.loads(row['metadata'])
             if m.get('retracted'):
                 continue
-            if code and not any(s['code'] == code for s in m['subjects']):
-                continue
-            if market and not any(s['market'] == market for s in m['subjects']):
+            if (code or market) and not any((not code or s['code']==code) and (not market or s['market']==market) for s in m['subjects']):
                 continue
             if source and source not in {m.get('source'), m.get('publisher')}:
                 continue
@@ -50,6 +49,20 @@ class ReportEvidenceService:
                 continue
             published = timestamp(m.get('published_at'))
             if cutoff and published and published > cutoff:
+                continue
+            # Both branches consume only currently authorized owner records.
+            try:
+                if hasattr(self.index.owner,'authorized'):
+                    if not self.index.owner.authorized(m):
+                        self._eligibility_gaps.add('SOURCE_PAGE_RECEIPT_OR_PERMISSION_CHANGED')
+                        continue
+                else:
+                    detail=self.index.owner.verified(m['document_id'],m['research_date'])
+                    if detail['receipt']['verified_pdf_sha256']!=m['pdf_sha'] or detail['receipt']['sha256']!=m['receipt_sha']:
+                        self._eligibility_gaps.add('SOURCE_PAGE_RECEIPT_OR_PERMISSION_CHANGED')
+                        continue
+            except Exception:
+                self._eligibility_gaps.add('SOURCE_PAGE_RECEIPT_OR_PERMISSION_CHANGED')
                 continue
             docs[row['id']] = m
         return docs
@@ -81,6 +94,11 @@ class ReportEvidenceService:
             raise ValueError('HISTORICAL_AS_OF_REQUIRED_WITH_TIMEZONE')
         if not self.index.path.is_file():
             return dict(status='EVIDENCE_GAP', gaps=['INDEX_NOT_MATERIALIZED'], hits=[], **SAFETY)
+        if hasattr(self.index.owner,'begin_query'):
+            try:
+                self.index.owner.begin_query()
+            except Exception:
+                return dict(status='EVIDENCE_GAP',gaps=['OWNER_AUTHORIZATION_UNAVAILABLE'],hits=[],**SAFETY)
         with self.index.connect() as db:
             docs = self.eligible(db, security=security, market=market, source=source, date_from=date_from,
                                  date_to=date_to, mode=mode, as_of=as_of)
@@ -110,7 +128,7 @@ class ReportEvidenceService:
                     lexical[cid] = lexical.get(cid, 0) + score
             keyword = sorted(lexical, key=lambda k: (-lexical[k], k))[:50]
             uris = sorted({(docs[r['document_id']].get('vector_scope_uri') if docs[r['document_id']].get('vector_scope_uri') and r['uri'].startswith(docs[r['document_id']]['vector_scope_uri'] + '/') else r['uri']) for r in rows.values() if r['uri']})
-        vector, gaps = [], []
+        vector, gaps = [], list(self._eligibility_gaps)
         vector_attempted = vector_succeeded = False
         if strategy != 'keyword' and docs:
             if not self.native or not uris:
@@ -191,6 +209,8 @@ class ReportEvidenceService:
         if row is None or not row['active']:
             raise ValueError('OUT_OF_SCOPE_OR_RETRACTED')
         row = dict(row); m = json.loads(row['metadata'])
+        if self.document_allowlist is not None and m['document_id'] not in self.document_allowlist:
+            raise ValueError('OUT_OF_SCOPE_OR_RETRACTED')
         if m.get('retracted') or not self.verify(m, row, {}):
             raise ValueError('SOURCE_PAGE_RECEIPT_OR_PERMISSION_CHANGED')
         return dict(document_id=m['document_id'], page=row['page'], text=row['body'],

@@ -17,91 +17,105 @@ def save(path, obj):
     temp.write_text(json.dumps(obj, ensure_ascii=False, indent=2))
     os.replace(temp, path)
 
-async def import_vectors(index, native):
-    """Resume exact-content imports in a dedicated namespace, one in flight."""
+async def import_vectors(index, native, pending=1):
+    """Bounded native task pipeline; the existing embedding service stays batch1."""
     from openviking_sdk import AsyncHTTPClient
-    c = native.credentials()
-    client = AsyncHTTPClient(url=native.runtime.URL, api_key=c['api_key'], account=c['account'], user=c['user'], timeout=120)
+    if not 1<=pending<=8:
+        raise ValueError('PENDING_LIMIT_1_TO_8')
+    c=native.credentials()
+    client=AsyncHTTPClient(url=native.runtime.URL,api_key=c['api_key'],account=c['account'],user=c['user'],timeout=120)
     await client.initialize()
-    cp = index.root/'native-checkpoint.json'
-    state = json.loads(cp.read_text()) if cp.exists() else dict(namespace=NAMESPACE, model_revision=MODEL_REVISION, chunks={})
-    if state['namespace'] != NAMESPACE or state['model_revision'] != MODEL_REVISION:
+    cp=index.root/'native-checkpoint.json'
+    state=json.loads(cp.read_text()) if cp.exists() else dict(namespace=NAMESPACE,model_revision=MODEL_REVISION,chunks={})
+    if state['namespace']!=NAMESPACE or state['model_revision']!=MODEL_REVISION:
         raise RuntimeError('CHECKPOINT_IDENTITY_MISMATCH')
     with index.connect(True) as db:
-        db.execute('CREATE TABLE IF NOT EXISTS native_tasks(id TEXT PRIMARY KEY, entry TEXT NOT NULL)')
-        for task in db.execute('SELECT id,entry FROM native_tasks'):
-            state['chunks'][task['id']] = json.loads(task['entry'])
-    def checkpoint(content_id,entry):
+        db.execute('CREATE TABLE IF NOT EXISTS native_tasks(id TEXT PRIMARY KEY,entry TEXT NOT NULL)')
+        for row in db.execute('SELECT id,entry FROM native_tasks'):
+            state['chunks'][row['id']]=json.loads(row['entry'])
+    def checkpoint(cid,entry):
         with index.connect(True) as db:
-            db.execute('INSERT OR REPLACE INTO native_tasks VALUES(?,?)',(content_id,canonical(entry)))
-    snapshots = index.root/'snapshots'; snapshots.mkdir(exist_ok=True)
-    started=time.perf_counter(); imported=0
+            db.execute('INSERT OR REPLACE INTO native_tasks VALUES(?,?)',(cid,canonical(entry)))
+    snapshots=index.root/'snapshots';snapshots.mkdir(exist_ok=True)
+    started=time.perf_counter();completed=0;resolved=0;errors=[]
+    with index.connect() as db:
+        rows=[dict(r) for r in db.execute('SELECT c.* FROM chunks c JOIN documents d ON c.document_id=d.id WHERE d.active=1 ORDER BY c.id')]
+    pages={}
+    for row in rows:pages.setdefault(row['document_id'],set()).add((row['page'],row['page_sha']))
+    scopes={}
+    with index.connect(True) as db:
+        for doc_id,source_pages in pages.items():
+            m=json.loads(db.execute('SELECT metadata FROM documents WHERE id=?',(doc_id,)).fetchone()[0])
+            scopes[doc_id]=NAMESPACE+'/'+m['pdf_sha']+'/'+digest(canonical([sorted(source_pages),MODEL_REVISION]))
+            m['vector_scope_uri']=scopes[doc_id]
+            db.execute('UPDATE documents SET metadata=? WHERE id=?',(canonical(m),doc_id))
+    groups={}
+    for row in rows:
+        if row['uri']:completed+=1;continue
+        cid=json.loads(row['detail'])['content_id'];groups.setdefault(cid,[]).append(row)
+    def progress():
+        elapsed=time.perf_counter()-started
+        value=dict(completed_rows=completed,total_rows=len(rows),resolved_content_groups=resolved,seconds=elapsed,
+            rows_per_second=resolved/elapsed,remaining_seconds_estimate=(len(groups)-resolved)*elapsed/max(resolved,1),
+            model_batch_size=1,native_in_flight_limit=pending,queue_limit=2*pending,
+            stop_requested=(index.root/'pause-new-submissions').exists())
+        save(index.root/'native-progress.json',value)
+        print('NATIVE_CHECKPOINT',canonical(value),flush=True)
+    async def one(cid,group):
+        row=group[0];entry=state['chunks'].setdefault(cid,{})
+        snapshot=snapshots/(cid+'.md')
+        if not snapshot.exists():snapshot.write_text(row['body'])
+        if digest(snapshot.read_bytes())!=digest(row['body']):raise RuntimeError('SNAPSHOT_SHA_DRIFT')
+        if not entry.get('imported_uri'):
+            native.guard()
+            if not entry.get('task_id'):
+                result=await client.add_resource(str(snapshot),to=scopes[row['document_id']]+'/'+cid,wait=False,
+                    options={'processing_mode':'vectors_only','args':{'parse_mode':'no_split'},'create_parent':True})
+                entry.update(task_id=result.get('task_id'),ingest_result=result);checkpoint(cid,entry)
+                if not entry['task_id']:raise RuntimeError('TASK_ID_MISSING_CHECKPOINT_RETAINED')
+            while True:
+                task=await client.get_task(entry['task_id'])
+                status=task.get('status') if task else None
+                if entry.get('task_status')!=status:entry['task_status']=status;checkpoint(cid,entry)
+                if task and status=='completed':break
+                if task and status in {'failed','cancelled'}:raise RuntimeError('NATIVE_TASK_FAILED_CHECKPOINT_RETAINED')
+                await asyncio.sleep(.1)
+            root=task.get('result',{}).get('root_uri') or entry['ingest_result'].get('root_uri')
+            if not root or not root.startswith(NAMESPACE+'/'):raise RuntimeError('NATIVE_NAMESPACE_MISMATCH')
+            if root.endswith('.md'):uri=root
+            else:
+                files=[x['uri'] for x in await client.ls(root,recursive=True,node_limit=10) if x.get('uri','').endswith('.md') and not Path(x['uri']).name.startswith('.')]
+                if len(files)!=1:raise RuntimeError('EXPECTED_ONE_ORIGINAL_CHUNK')
+                uri=files[0]
+            if snapshot.read_text().strip() not in await client.read(uri):raise RuntimeError('NATIVE_BODY_READBACK_MISMATCH')
+            entry.update(imported_uri=uri,readback_sha=digest(row['body']));checkpoint(cid,entry)
+        if entry.get('readback_sha')!=digest(row['body']):raise RuntimeError('CHECKPOINT_BODY_MISMATCH')
+        with index.connect(True) as db:
+            db.executemany('UPDATE chunks SET uri=? WHERE id=?',[(entry['imported_uri'],r['id']) for r in group])
+    queue=asyncio.Queue(maxsize=2*pending)
+    async def worker():
+        nonlocal completed,resolved
+        while True:
+            item=await queue.get()
+            try:
+                if item is None:return
+                if errors or (index.root/'pause-new-submissions').exists():continue
+                cid,group=item
+                try:
+                    await one(cid,group);completed+=len(group);resolved+=1
+                    if resolved%25==0:progress()
+                except Exception as error:
+                    errors.append(type(error).__name__)
+                    save(index.root/'native-error.json',dict(status='STOPPED_NEW_SUBMISSIONS',error_type=type(error).__name__,checkpoint_retained=True))
+            finally:queue.task_done()
+    workers=[asyncio.create_task(worker()) for _ in range(pending)]
     try:
-        with index.connect() as db:
-            rows = [dict(r) for r in db.execute('SELECT c.* FROM chunks c JOIN documents d ON c.document_id=d.id WHERE d.active=1 ORDER BY c.id')]
-        grouped={}
-        for row in rows:
-            grouped.setdefault(row['document_id'],set()).add((row['page'],row['page_sha']))
-        scopes={}
-        with index.connect(True) as db:
-            for doc_id,pages in grouped.items():
-                m=json.loads(db.execute('SELECT metadata FROM documents WHERE id=?',(doc_id,)).fetchone()[0])
-                scope=NAMESPACE+'/'+m['pdf_sha']+'/'+digest(canonical([sorted(pages),MODEL_REVISION]))
-                scopes[doc_id]=scope;m['vector_scope_uri']=scope
-                db.execute('UPDATE documents SET metadata=? WHERE id=?',(canonical(m),doc_id))
-        for n, row in enumerate(rows, 1):
-            if row['uri']:
-                continue
-            chunk = json.loads(row['detail']); content_id = chunk['content_id']
-            entry = state['chunks'].setdefault(content_id, {})
-            snapshot = snapshots/(content_id+'.md')
-            if not snapshot.exists():
-                snapshot.write_text(row['body'])
-            if digest(snapshot.read_bytes()) != digest(row['body']):
-                raise RuntimeError('SNAPSHOT_SHA_DRIFT')
-            if not entry.get('imported_uri'):
-                native.guard()
-                if not entry.get('task_id'):
-                    result = await client.add_resource(str(snapshot), to=scopes[row['document_id']]+'/'+content_id, wait=False,
-                        options={'processing_mode':'vectors_only','args':{'parse_mode':'no_split'},'create_parent':True})
-                    entry.update(task_id=result.get('task_id'), ingest_result=result)
-                    checkpoint(content_id,entry)
-                    if not entry['task_id']:
-                        raise RuntimeError('TASK_ID_MISSING_CHECKPOINT_RETAINED')
-                while True:
-                    task = await client.get_task(entry['task_id'])
-                    entry['task_status'] = task.get('status') if task else None
-                    checkpoint(content_id,entry)
-                    if task and task['status'] == 'completed':
-                        break
-                    if task and task['status'] in {'failed','cancelled'}:
-                        raise RuntimeError('NATIVE_TASK_FAILED_CHECKPOINT_RETAINED')
-                    await asyncio.sleep(.1)
-                root = task.get('result',{}).get('root_uri') or entry['ingest_result'].get('root_uri')
-                if not root or not root.startswith(NAMESPACE+'/'):
-                    raise RuntimeError('NATIVE_NAMESPACE_MISMATCH')
-                if root.endswith('.md'):
-                    uri = root
-                else:
-                    files = [x['uri'] for x in await client.ls(root,recursive=True,node_limit=10)
-                             if x.get('uri','').endswith('.md') and not Path(x['uri']).name.startswith('.')]
-                    if len(files) != 1:
-                        raise RuntimeError('EXPECTED_ONE_ORIGINAL_CHUNK')
-                    uri = files[0]
-                if snapshot.read_text().strip() not in await client.read(uri):
-                    raise RuntimeError('NATIVE_BODY_READBACK_MISMATCH')
-                entry.update(imported_uri=uri, readback_sha=digest(row['body']))
-                checkpoint(content_id,entry)
-            if entry.get('readback_sha') != digest(row['body']):
-                raise RuntimeError('CHECKPOINT_BODY_MISMATCH')
-            with index.connect(True) as db:
-                db.execute('UPDATE chunks SET uri=? WHERE id=?', (entry['imported_uri'],row['id']))
-            imported+=1
-            if n%25 == 0:
-                elapsed=time.perf_counter()-started
-                progress=dict(completed_rows=n,total_rows=len(rows),new_imports=imported,seconds=elapsed,imports_per_second=imported/elapsed,remaining_seconds_estimate=(len(rows)-n)*elapsed/max(imported,1),model_batch_size=1,native_in_flight=1)
-                save(index.root/'native-progress.json',progress)
-                print('NATIVE_CHECKPOINT',canonical(progress),flush=True)
+        for item in groups.items():
+            if errors or (index.root/'pause-new-submissions').exists():break
+            await queue.put(item)
+        for _ in workers:await queue.put(None)
+        await queue.join();await asyncio.gather(*workers);progress()
+        if errors:raise RuntimeError('NATIVE_TASK_FAILED_INFLIGHT_DRAINED_CHECKPOINT_RETAINED')
     finally:
         await client.close()
 
@@ -118,7 +132,7 @@ async def main(args):
         mechanical=json.loads((index.root/'coverage.json').read_text())
         if mechanical.get('full_scope') is not True:
             raise RuntimeError('FULL_MECHANICAL_COVERAGE_REQUIRED')
-        await import_vectors(index,native)
+        await import_vectors(index,native,args.pending)
         save(index.root/'coverage.json',{**mechanical,**index.coverage()})
         print(canonical(index.coverage()))
         return
@@ -148,7 +162,7 @@ async def main(args):
                     db.execute('INSERT OR REPLACE INTO ledger VALUES(?,?,?)',(r[0],'RETRACTED','REMOVED_FROM_OWNER_INDEX'))
     save(index.root/'coverage-checkpoint.json',dict(total_scope=len(scope),completed=len(scope),items=statuses))
     if args.vectors:
-        await import_vectors(index,native)
+        await import_vectors(index,native,args.pending)
     save(index.root/'coverage.json', dict(**index.coverage(),owner_inventory=len(inventory),processed_scope=len(scope),
         historical_available_unknown=sum(x.get('status')!='CANNOT_CONFIRM' and x.get('available_at') is None for x in statuses),
         source_semantics='OWNER_INDEX_ONLY_NOT_ALL_REPORTS',full_scope=args.full))
@@ -157,7 +171,7 @@ async def main(args):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--data-root',required=True);p.add_argument('--index-root',required=True);p.add_argument('--bridge',required=True)
-    p.add_argument('--document-id',action='append',default=[]);p.add_argument('--vectors',action='store_true');p.add_argument('--full',action='store_true');p.add_argument('--canary-receipt');p.add_argument('--vectors-only',action='store_true')
+    p.add_argument('--document-id',action='append',default=[]);p.add_argument('--vectors',action='store_true');p.add_argument('--full',action='store_true');p.add_argument('--canary-receipt');p.add_argument('--vectors-only',action='store_true');p.add_argument('--pending',type=int,default=1)
     args=p.parse_args();ReportIndex(args.index_root,PdfOwner(args.data_root)).root.mkdir(parents=True,exist_ok=True)
     with (Path(args.index_root)/'operation.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)

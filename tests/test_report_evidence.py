@@ -51,6 +51,33 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.service.search('测试',security='HK.00301',market='HK'))['hits'],[])
         self.assertEqual((await self.service.search('测试',security='601211'))['hits'],[])
 
+    async def test_revoked_owner_excluded_before_keyword_and_native_ranking(self):
+        self.add(detail('b'*64))
+        with self.index.connect(True) as db:
+            for row in db.execute('SELECT id,document_id FROM chunks').fetchall():
+                db.execute('UPDATE chunks SET uri=? WHERE id=?',('viking://resources/v4-report-evidence-20261102/'+row['document_id']+'/'+row['id']+'.md',row['id']))
+        class Spy:
+            async def find(self,q,uris,limit):self.uris=uris;return []
+        spy=Spy();self.service.native=spy;self.owner.denied.add('b'*64)
+        r=await self.service.search('测试')
+        self.assertTrue(r['hits']);self.assertTrue(all('b'*64 not in u for u in spy.uris))
+        self.assertNotIn('b'*64,{h['document_id'] for h in r['hits']})
+        self.assertEqual(r['query_coverage']['eligible_documents'],1)
+
+    async def test_read_enforces_same_document_allowlist(self):
+        self.add(detail('b'*64))
+        with self.index.connect() as db:
+            cid=db.execute('SELECT id FROM chunks WHERE document_id=?',('b'*64,)).fetchone()[0]
+        scoped=ReportEvidenceService(self.index,document_allowlist=['a'*64])
+        with self.assertRaisesRegex(ValueError,'OUT_OF_SCOPE'):scoped.read(cid)
+
+    async def test_code_and_market_belong_to_same_title_subject(self):
+        self.add(detail('b'*64,title='券商证券-目标公司(301216)及腾讯控股(HK.00700)测试.pdf'))
+        r=await self.service.search('测试',security='A.301216',market='HK')
+        self.assertEqual(r['hits'],[])
+        r=await self.service.search('测试',security='HK.00700',market='HK')
+        self.assertEqual({h['document_id'] for h in r['hits']},{'b'*64})
+
     async def test_history_unknown_and_future(self):
         self.assertEqual((await self.service.search('测试',mode='historical_evidence',as_of='2026-10-28T11:00:00+08:00'))['hits'],[])
         self.add(detail('c'*64,available=None))
@@ -97,6 +124,44 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):ReportIndex(self.owner.root.parent,self.owner)
         self.assertEqual(on_stage_completed(config={},trade_date='',stage_id='',receipt={})['status'],'DISABLED')
         with self.assertRaises(ValueError):sidecar_key('20261027','../../x','run-a','A_SHARE')
+
+    def test_owner_proof_cache_invalidates_on_read_permission_and_pdf_change(self):
+        from types import SimpleNamespace
+        from infrastructure.report_evidence_index import PdfOwner,metadata
+        from infrastructure.owned_io import SafeRoot
+        root=Path(self.temp.name).resolve()/'authority';root.mkdir()
+        doc='f'*64;d=detail(doc);raw=b'%PDF-fixture-A';d['receipt']['verified_pdf_sha256']=digest(raw)
+        source={'trade_date':'20261027','source_run_id':'source1','document_key':doc}
+        index={'documents':{doc:{'source':source}},'sources':{'source1':{'slot':'1000'}}}
+        relatives=['index.json','pdf.pdf','pages.json','receipt.json',
+          'research_module/runtime_outputs/zsxq_hourly/20261027/1000/v35_zsxq_hourly_status_20261027_1000.json',
+          *['external_sources/zsxq_hourly/source1/'+name for name in ['zsxq_recent_topics_fetch_result.json','zsxq_recent_topics.json','zsxq_summary.json']]]
+        for relative in relatives:
+            p=root/relative;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('{}')
+        (root/'index.json').write_text(json.dumps(index));(root/'pdf.pdf').write_bytes(raw)
+        calls=[]
+        def verify(*args,**kwargs):
+            calls.append(1)
+            if digest((root/'pdf.pdf').read_bytes())!=d['receipt']['verified_pdf_sha256']:raise ValueError('sha')
+            return copy.deepcopy(d)
+        owner=PdfOwner.__new__(PdfOwner);owner.root=root;owner.store=SimpleNamespace(root=root)
+        owner.owner=SimpleNamespace(STATE_RELATIVE='index.json',_store_io=lambda store:SafeRoot(root),
+            _read_index=lambda store:json.loads((root/'index.json').read_text()),
+            _latest_engine_run=lambda row:('engine',{'status':'READY'}),
+            _safe_document_paths=lambda *args:('pdf.pdf','pages.json','receipt.json'),_verified_document_detail=verify)
+        owner._query_index=None;owner._index_signature=None;owner._authorization={};owner._query_signatures={}
+        owner.begin_query();m=metadata(d);self.assertTrue(owner.authorized(m));self.assertTrue(owner.authorized(m));self.assertEqual(len(calls),1)
+        (root/'pdf.pdf').chmod(0)
+        try:self.assertFalse(owner.authorized(m))
+        finally:(root/'pdf.pdf').chmod(0o600)
+        (root/'pdf.pdf').write_bytes(b'%PDF-fixture-B');self.assertFalse(owner.authorized(m));self.assertGreater(len(calls),1)
+        (root/'pdf.pdf').write_bytes(raw);self.assertTrue(owner.authorized(m))
+        index['documents']={};(root/'index.json').write_text(json.dumps(index));owner.begin_query();self.assertFalse(owner.authorized(m))
+
+    def test_single_ocr_pipe_is_not_a_structured_table(self):
+        chunks=list(structure_chunks('|证券研究报告|\n财务摘要（百万元）\n收入\n2026E\n123\n||\n',Tokens()))
+        self.assertTrue(chunks)
+        self.assertTrue(all(c['quality']=='LINEARIZED_OCR_TABLE_UNCERTAIN' for c in chunks))
 
     def test_structure_limits_original_spans_and_table_headers(self):
         text='财务摘要（百万元）\n|项目|2026E|2027E|\n|---|---|---|\n'+''.join('|收入'+str(i)+'|123|234|\n' for i in range(100))

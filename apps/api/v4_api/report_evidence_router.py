@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from fastapi import APIRouter, HTTPException, Query
 from domains.report_evidence import ReportEvidenceService
-from infrastructure.report_evidence_index import PdfOwner, ReportIndex, SAFETY
+from infrastructure.report_evidence_index import PdfOwner, ReportIndex, SAFETY, shared_pdf_owner
 from infrastructure.report_evidence_native import LocalNative
 
 def configured_service(data_root):
@@ -11,7 +11,7 @@ def configured_service(data_root):
     if not root:
         return None
     bridge = os.environ.get('V4_REPORT_EVIDENCE_LOCAL_BRIDGE')
-    return ReportEvidenceService(ReportIndex(Path(root), PdfOwner(data_root)), LocalNative(bridge) if bridge else None)
+    return ReportEvidenceService(ReportIndex(Path(root), shared_pdf_owner(str(data_root))), LocalNative(bridge) if bridge else None)
 
 def create_report_evidence_router(data_root):
     router=APIRouter(prefix='/api/v4/research',tags=['research-evidence'])
