@@ -1,0 +1,202 @@
+{
+  "schema_version": "v4.runtime_governance_batch2_writer_handoff.v1",
+  "source_commit": "de99bb04ba0f186780d822e2fb1454c8745c873c",
+  "baseline": "78233da67632c35a7cd2a6a2334fc9e60ca33345",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-runtime-governance-20261102",
+  "source_sha256": {
+    "docs/handoffs/runtime-governance-20261102/DEPENDENCY_PORTS.json": "f466fa8fc1a16eace4bdf82896e7f8cdd83a87d1a59328a5c87bb6d1a62cae61",
+    "docs/handoffs/runtime-governance-20261102/verify_batch2_candidate.py": "cf34f97846011e94b0d543d5000ab439e892968e7469f0ff95ac7b35d0241c8d",
+    "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md": "e496bb45da96017851a342cfc980c6a97c4921f8319f5d0693d53723decc930c",
+    "domains/close_review.py": "396a9675d56fbafd7dd11b2a49ee6b7815f7515d3e3fef8fd5cc6752e9bac07e",
+    "infrastructure/hkconnect_close_store.py": "fd5ac86b72457e893edacd5c028fe0c76af1e13497c0d398be1480407fb303d8",
+    "infrastructure/operations_sop_reader.py": "3bb6766c49c79832174f272416df72a09af1656656d1db09806857661e2d2f3f",
+    "infrastructure/review_generation.py": "6cb20578d85e5ae8792ce959b436346a7014ed0542eafe9f8e44db2b865fb362",
+    "infrastructure/scheduling/dispatcher.py": "ff9386b1734326eeca7577335b6c0b765f35fb84852bd9536aa9524931b4d4f0",
+    "infrastructure/scheduling/execution_ledger.py": "3894a50d5350f70e8ab9e3a51d951400879de3df6c319a644f266308dbb70d0c",
+    "infrastructure/stage_completion_hooks.py": "36f2dc11ce2990e102552bc7b6cfd62e34c479a967d30f2252ff28a5f491e8b3",
+    "infrastructure/tdx_minute_replay_provider.py": "aaedbcd4494d3fd9edebd423e0c790af525d77ae2f8f3173056a3b854d7bda03",
+    "ops/build_a_share_close_review.py": "a96709ce54ee188ddf1710fcb6b9617f2f83c048cf8628ace697ac03248bc608",
+    "ops/build_close_review.py": "dff4b5520ea60b9945fd8b3a0ededd7318ea7cb78fd62cb9ce8cd20e53cf0892",
+    "ops/build_runtime_governance_registry.py": "4ce08ed006d83144440af63149b64d9b9dc98d5f2b5b1061a393c8fc4397a8a7",
+    "ops/collect_hkconnect_close_snapshot.py": "983b8f3232abbd0f058b25a0c6e97e57995d9dcd55497340c6a5f2284c0b51d9",
+    "ops/consume_close_stage_completion.py": "9b66ca04a50c5fb3f779139537287d72b07b92f146a5889dc635c559f153309c",
+    "ops/prepare_runtime_governance_batch2.py": "e3bca1d0bf3cdb9b268ad89191b8d011f16996649193ec3d4b5d6a40c1558f67",
+    "ops/recover_stage_data.py": "7af729ca94a12b56832f4a6a17bb46dd9c7543908e2010cf12ef777f0bda6afd",
+    "ops/run_stage_center_nodes.py": "c4e6451a3a72b90747ab12121eb22850a2eca837199aeda9fdaf22777ee4c0f4",
+    "ops/run_v4_macos_scheduler_due.py": "5069460d6ce04ba967228da24d79dbe4aef25674c6ca8ba22464a4e2cfaadc82",
+    "ops/verify_tdx_trade_window_canary.py": "a3534de341e89844568d9804057e8317f766a7bc61f3510ca4d1fd977e974e21",
+    "tests/test_runtime_governance.py": "34c6ffa3eb6d97d8044d3098a22f134b3e240d0a7f53c63881eac0dc8a6ead4c"
+  },
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r4",
+  "candidate_receipt_sha256": "0c4c302833b83542293845151f619512fba28d84bb8f804a7a911a5ba2d69b22",
+  "roles": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r4/runtime-governance-20261102-r4-api/app",
+      "delta": [
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md",
+        "infrastructure/operations_sop_reader.py"
+      ],
+      "inventory_sha256": "03548f8de556ba02e5f84ddc4047e63b0fb2d6660a31efe97d5736a6f9679bd9",
+      "manifest_sha256": "506b7230bcb93ef4737b130b3ed49129c367b0f15ed396c986b2dd3b202ab3e9",
+      "release_id": "runtime-governance-20261102-r4-api"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r4/runtime-governance-20261102-r4-main/app",
+      "delta": [
+        "infrastructure/review_generation.py",
+        "infrastructure/scheduling/dispatcher.py",
+        "infrastructure/scheduling/execution_ledger.py",
+        "infrastructure/tdx_minute_replay_provider.py",
+        "ops/build_a_share_close_review.py",
+        "ops/build_close_review.py",
+        "ops/build_runtime_governance_registry.py",
+        "ops/collect_hkconnect_close_snapshot.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/run_v4_macos_scheduler_due.py",
+        "ops/verify_tdx_trade_window_canary.py"
+      ],
+      "inventory_sha256": "2de37498ca9870ef0465a000a7307638fd08959336a5368c13a33496bb01d452",
+      "manifest_sha256": "b89d8f09c2469acdb38fb7ebc3e8379b41894beb56b43f13b951ccdf44ff8a07",
+      "release_id": "runtime-governance-20261102-r4-main"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/runtime-governance-20261102-r4/runtime-governance-20261102-r4-stage/app",
+      "delta": [
+        "infrastructure/stage_completion_hooks.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/verify_tdx_trade_window_canary.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "11f341d893b2180b4a0f83d2fbef7e788cccd90e825670adecf26d807c273be9",
+      "manifest_sha256": "4be96ed994299dc80ee20fbb7069551a963438c236a539327bc2bb55c928590a",
+      "release_id": "runtime-governance-20261102-r4-stage"
+    }
+  },
+  "publication_dependencies": [
+    {
+      "consumer_config_sha256": "dcc5e7dcda97113deed2159f1b851486c6cd42a9c6f92cbc7ec9e8e0b8f0943a",
+      "manual_reference_sha256": "52d468ffbc6433d9ab6657068a656540ec4be5ac8dcf5bee6ebe43c9493866c1",
+      "producer_manifest_sha256": "b89d8f09c2469acdb38fb7ebc3e8379b41894beb56b43f13b951ccdf44ff8a07",
+      "producer_release": "runtime-governance-20261102-r4-main",
+      "receipt_publication": "NOT_RUN"
+    },
+    {
+      "consumer_config_sha256": "dcc5e7dcda97113deed2159f1b851486c6cd42a9c6f92cbc7ec9e8e0b8f0943a",
+      "manual_reference_sha256": "52d468ffbc6433d9ab6657068a656540ec4be5ac8dcf5bee6ebe43c9493866c1",
+      "producer_manifest_sha256": "f32d922fafcbf8c1e6f9958d5802eef80e58195502f16410a6d11f744e98ac74",
+      "producer_release": "workbench-daily-chain-20261031-r6-main",
+      "receipt_publication": "NOT_RUN"
+    },
+    {
+      "consumer_config_sha256": "dcc5e7dcda97113deed2159f1b851486c6cd42a9c6f92cbc7ec9e8e0b8f0943a",
+      "manual_reference_sha256": "52d468ffbc6433d9ab6657068a656540ec4be5ac8dcf5bee6ebe43c9493866c1",
+      "producer_manifest_sha256": "814499810d0a978810858b18053c24fa2a67bf7b965f3b152190f9d93878d679",
+      "producer_release": "a-daily-name-zoom-20261030-r1-main",
+      "receipt_publication": "NOT_RUN"
+    },
+    {
+      "consumer_config_sha256": "dcc5e7dcda97113deed2159f1b851486c6cd42a9c6f92cbc7ec9e8e0b8f0943a",
+      "manual_reference_sha256": "52d468ffbc6433d9ab6657068a656540ec4be5ac8dcf5bee6ebe43c9493866c1",
+      "producer_manifest_sha256": "a9a93e9f0bcb99ea7cd9d14d2cba6d4492e664ceb99943acbc4ee120b95cceb4",
+      "producer_release": "a-daily-sop-closure-20261029-r1-main",
+      "receipt_publication": "NOT_RUN"
+    }
+  ],
+  "publication_roles_required": [
+    "main",
+    "stage",
+    "api"
+  ],
+  "activation_command": "NOT_PREPARED_FOR_BATCH2; Batch1 two-role adapter refuses Main; future actual publication must freeze fresh role plan/CAS",
+  "default_hooks": {
+    "close_review_completion_enabled": false,
+    "report_evidence_sidecar_enabled": false
+  },
+  "tests": [
+    {
+      "scope": "source focused generation/claim/afterfact/unknown/hooks",
+      "result": "12 passed",
+      "command": "PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp=<runtime/pytest-batch2-source-final> tests/test_runtime_governance.py"
+    },
+    {
+      "scope": "actual r2 Main generation/raw/recovery plus claims",
+      "result": "8 passed, 1 deselected",
+      "command": "PANEL_PYTHON -B -m pytest --import-mode=importlib --basetemp=<runtime/pytest-main-candidate-r1> <source/tests/test_runtime_governance.py> -k not completion_hooks",
+      "reuse": "unchanged builder/provider/recovery bytes verified by inventory; only later event changes have incrementals below"
+    },
+    {
+      "scope": "r2 isolated actual API HTTP SOP, actual Main 1555 manager independent, Stage default-off hook",
+      "result": "3 PASS",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/candidate-checks-r1/RESULT.json",
+      "reuse": "SOP reader/doc, Main registry manager owner, Stage hook/facade bytes equal r4 counterparts"
+    },
+    {
+      "scope": "actual r3 event-only semantics/natural runner verification/slot hash chain",
+      "result": "3 passed; one failed due older active Main aggregate receipt verifier",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/pytest-main-candidate-events-final"
+    },
+    {
+      "scope": "actual final r4 per-workload completed sibling verification",
+      "result": "1 passed",
+      "command": "PANEL_PYTHON -B -m pytest --import-mode=importlib --basetemp=<runtime/pytest-main-candidate-sibling-r4> <source/tests/test_runtime_governance.py::test_event_failure_does_not_release_foreign_cron_claim_or_close_busy_slot>"
+    }
+  ],
+  "registry": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/registry-final.json",
+    "sha256": "1f1cfe39b81e4fdd084e4152c02822251c1dc58251620792946c4df38627fab2",
+    "generation": "e311059ff8133b196b4c1c6de3edf371d738ac8baba50455a0c9ffeb5d1cedcd",
+    "observed_nodes": 38,
+    "registered_prior_scope_tasks": 55,
+    "source_drifts": [
+      "com.lexi.v4.api"
+    ],
+    "business_success": "CANNOT_CONFIRM: not inferred from loaded/enabled/exit code"
+  },
+  "recovery": {
+    "original_raw": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/original-raw-replay/20261030/STAGE_1445_1500/ee7a7cc27e4749d8ada4de5a9aff7b75/recovery_receipt.json",
+      "sha256": "2b759921b97372d1ac3fc171dfe93a85d370655be5e22e1f26767982b3756fbb",
+      "rows": 530,
+      "original_receipt_sha256": "5e534ee3aa652ca043ad66533e25abe1296786c40e97ad86f9f6c75e84ca38f4",
+      "raw_artifact_sha256": "c03666ca88d0edb2d08c7b270a8146d7761c009a90a262637a9b3f8248d70f0a",
+      "original_receipt_unchanged": true,
+      "network_invocations": 0,
+      "missing_symbols": [
+        "SZ.261029",
+        "SZ.002555"
+      ],
+      "status": "ORIGINAL_RAW_REPLAYED_PARTIAL_NOT_NATURAL_EXECUTION"
+    },
+    "historical_api": "Fixture tested with raw-response receipt; real transport NOT_RUN this batch",
+    "unrecoverable_gap": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/unrecoverable-gap/20261030/STAGE_1545_1555/8de90d660dee4d828e27f0217537db89/recovery_receipt.json",
+      "sha256": "057f5feb2eceb440183336dd89039d58416f2151eae8ececb1894e8b24eca9b5",
+      "status": "CANNOT_CONFIRM"
+    },
+    "real_trade_window_canary": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/canary/tdx-trade-window-canary.json",
+      "sha256": "a6ac67bc1040ae116703be8fffb8994d1e6d3d5ce64c2123197d5c01f13a638a",
+      "status": "CANNOT_CONFIRM_OUTSIDE_REAL_TRADING_WINDOW",
+      "network_invocations": 0
+    }
+  },
+  "failures_preserved": [
+    "pytest default temporary-root cleanup hit unrelated preexisting EPERM; subsequent runs used own explicit basetemp",
+    "missing legacy HK store/domain dependency ported exactly from active Main; see DEPENDENCY_PORTS.json",
+    "registry command evidence nesting now parsed recursively",
+    "r3 actual Main aggregate receipt verifier mismatch; fixed by exact existing source per-workload verifier in r4"
+  ],
+  "independent_review": "PENDING_CONTROLLER_REVIEW",
+  "DEPLOYMENT": "NOT_DEPLOYED",
+  "API_HTTP": "ISOLATED_SOP_ONLY",
+  "UI": "NOT_RUN",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
