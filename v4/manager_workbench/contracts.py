@@ -8,10 +8,13 @@ from enum import Enum
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator, model_serializer
 
 SCHEMA_VERSION = "v4.manager_workbench.v1"
 HK = ZoneInfo("Asia/Hong_Kong")
+# Only the owned store, after json.loads, supplies this identity token. It is
+# neither an HTTP input nor permission to skip schema/consistency/SHA checks.
+_PARSED_JSON_SNAPSHOT = object()
 
 
 class StrictModel(BaseModel):
@@ -391,13 +394,17 @@ class PlanSnapshot(Safety):
         return iso_time(v)
 
     @model_validator(mode="after")
-    def ensure_consistent(self) -> "PlanSnapshot":
+    def ensure_consistent(self, info: ValidationInfo) -> "PlanSnapshot":
         for lane in self.lanes:
             if lane.run_id != self.run_id:
                 raise ValueError("LANE_RUN_MISMATCH")
             if lane.rules_version != self.context.rules_version:
                 raise ValueError("RULES_VERSION_MISMATCH")
-        if self.product_sha256 != product_digest(self.model_dump(mode="json")):
+        # JSON mode guarantees JSON-native Any trees. General Python inputs
+        # retain Pydantic's original normalization (dates, keys, subclasses).
+        actual = (_model_product_digest(self) if (info.mode == "json" or info.context is _PARSED_JSON_SNAPSHOT) and type(self) is PlanSnapshot
+                  else product_digest(self.model_dump(mode="json")))
+        if self.product_sha256 != actual:
             raise ValueError("PRODUCT_SHA_MISMATCH")
         if len({s.symbol for s in self.stocks}) != len(self.stocks):
             raise ValueError("DUPLICATE_STOCK")
@@ -454,6 +461,41 @@ class ReviewSummary(StrictModel):
 def product_digest(snapshot: dict[str, Any]) -> str:
     """Hash every persisted field except the self-referential product_sha256."""
     return digest({k: v for k, v in snapshot.items() if k != "product_sha256"})
+
+
+def _model_product_digest(snapshot: PlanSnapshot) -> str:
+    """Encode an exact JSON-mode snapshot once, without copying JSON trees.
+
+    The ordinary model dump recursively copies the large JSON-valued fields,
+    and each compatibility wrap serializer copies its result again. The JSON
+    encoder can traverse those original values directly. Typed model fields
+    still use the exact existing compatibility serializers below.
+    """
+    from pydantic_core import to_jsonable_python
+
+    plain_types = (RunContext, EvidenceRef, Coverage, GateDecision,
+                   StrictSelectionDecision, TriggeredFocusDecision,
+                   TriggeredFocusSummary, StockDecision, Counts)
+    compatibility = {
+        MappingPath: MappingPath.serialize_quote_compatible,
+        ResearchCandidate: ResearchCandidate.serialize_industry_compatible,
+        MappingSelectionSummary: MappingSelectionSummary.serialize_industry_compatible,
+        LaneResult: LaneResult.serialize_legacy_compatible,
+    }
+
+    def encode_model(value):
+        kind = type(value)
+        if kind in plain_types or kind in compatibility:
+            fields = {name: getattr(value, name) for name in kind.model_fields}
+            serializer = compatibility.get(kind)
+            return serializer(value, lambda _: fields) if serializer else fields
+        return to_jsonable_python(value)
+
+    body = {name: getattr(snapshot, name) for name in PlanSnapshot.model_fields
+            if name != "product_sha256"}
+    raw = (json.dumps(body, default=encode_model, ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
 
 
 def seal_snapshot(data: dict[str, Any]) -> PlanSnapshot:

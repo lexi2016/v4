@@ -1,0 +1,40 @@
+         191332 function calls (190955 primitive calls) in 24.017 seconds
+
+   Ordered by: cumulative time
+   List reduced from 407 to 32 due to restriction <32>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.029    0.029   24.015   24.015 store.py:153(list_plans)
+       12    0.000    0.000   23.981    1.998 store.py:144(read_plan)
+       12    0.000    0.000   20.043    1.670 main.py:693(model_validate)
+       12    5.452    0.454   20.043    1.670 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+       12    0.564    0.047   14.580    1.215 contracts.py:393(ensure_consistent)
+       12    0.000    0.000    9.735    0.811 main.py:427(model_dump)
+       12    7.524    0.627    9.735    0.811 {method 'to_python' of 'pydantic_core._pydantic_core.SchemaSerializer' objects}
+       12    0.000    0.000    4.277    0.356 contracts.py:454(product_digest)
+       12    0.002    0.000    4.277    0.356 contracts.py:97(digest)
+       24    0.002    0.000    3.941    0.164 store.py:65(_read)
+       12    0.048    0.004    3.878    0.323 contracts.py:93(canonical)
+       24    0.000    0.000    3.844    0.160 __init__.py:304(loads)
+       24    0.000    0.000    3.407    0.142 decoder.py:340(decode)
+       24    3.407    0.142    3.407    0.142 decoder.py:351(raw_decode)
+       12    0.000    0.000    3.375    0.281 __init__.py:185(dumps)
+       12    0.000    0.000    3.374    0.281 encoder.py:185(encode)
+       12    3.374    0.281    3.374    0.281 encoder.py:207(iterencode)
+       26    1.377    0.053    2.210    0.085 contracts.py:328(serialize_legacy_compatible)
+       12    0.630    0.052    0.833    0.069 contracts.py:307(serialize_industry_compatible)
+       12    0.456    0.038    0.456    0.038 {method 'encode' of 'str' objects}
+       24    0.437    0.018    0.437    0.018 {method 'decode' of 'bytes' objects}
+       12    0.397    0.033    0.397    0.033 {built-in method _hashlib.openssl_sha256}
+     8040    0.182    0.000    0.203    0.000 contracts.py:209(serialize_industry_compatible)
+       24    0.000    0.000    0.095    0.004 owned_io.py:103(read_bytes)
+       27    0.091    0.003    0.091    0.003 {method 'read' of '_io.BufferedReader' objects}
+    17208    0.021    0.000    0.021    0.000 contracts.py:188(serialize_quote_compatible)
+      120    0.003    0.000    0.006    0.000 {built-in method builtins.sum}
+     8360    0.001    0.000    0.005    0.000 contracts.py:349(symbol_check)
+       12    0.001    0.000    0.004    0.000 contracts.py:270(consistent_focus)
+     8396    0.001    0.000    0.004    0.000 __init__.py:169(fullmatch)
+    96/48    0.000    0.000    0.003    0.000 {built-in method builtins.next}
+       48    0.000    0.000    0.003    0.000 owned_io.py:93(parent)
+
+

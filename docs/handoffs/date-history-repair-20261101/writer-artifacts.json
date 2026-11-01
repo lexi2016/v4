@@ -1,0 +1,128 @@
+{
+  "allowed_candidate_deltas": [
+    "apps/web/src/App.vue",
+    "v4/manager_workbench/contracts.py",
+    "v4/manager_workbench/store.py",
+    "apps/web/dist/assets/main-BkKZXFuV.css",
+    "apps/web/dist/assets/main-Klhi0XX-.js",
+    "apps/web/dist/index.html"
+  ],
+  "base_commit": "3699f353a09f734d5f7c6bdd497a05078a9657f6",
+  "baseline_frontend_rebuild": "3 entry HTML and all 7 built assets byte-identical to active dist before date patch",
+  "excluded_unchanged": "all other app paths, external 485 research-panel assets, workbench binding, Junda single-stock integration, production plist and research data",
+  "frontend_build_root": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web",
+  "frontend_dependency_lock_sha256": "772a8aa331c25a5f7dc74c483ff7956aee554b80d91babbec8686806e812ae9c",
+  "installed_dependency_lock_sha256": "5808e51ce65448f3eaf2f0d4e5adaee42e621b0f7754d2b9bd18bce8b72f60eb",
+  "not_run": [
+    "ISOLATED_TCP_HTTP",
+    "BROWSER_CLICK",
+    "INDEPENDENT_REVIEW",
+    "DEPLOYMENT",
+    "COMMIT",
+    "PUSH"
+  ],
+  "panel_missing_day_behavior": "existing requested date is retained; unavailable day labelled CANNOT_CONFIRM, no latest substitution",
+  "performance": {
+    "baseline_live_seconds": 25.953613291028887,
+    "full_validation": "ALL_12_COMPLETE_MODELS_AND_PRODUCT_SHA_VALIDATED",
+    "further_optimization_stopped_by_controller": true,
+    "initial_threshold_met": false,
+    "mode": "COLD_PROCESS_IN_PROCESS_REAL_HTTP_ROUTE_NO_CACHE",
+    "reduction_percent": 40.98930033667547,
+    "response_bytes": 3970,
+    "response_sha256": "75b11f14a396695ba266243b1b3710939f3c17998121e198d885f09eb3ef0167",
+    "same_complete_http_response": true,
+    "seconds": 15.315408790949732,
+    "status": 200,
+    "version_count": 12
+  },
+  "runtime_app_vue_after_sha256": "b9d82dfa7f21f69af3ca60ecd67b4007c480befcf1d7a1ab7a1113b453362588",
+  "runtime_app_vue_artifact": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web/src/App.vue",
+  "runtime_app_vue_before_sha256": "bfec6d347cd5c754073421fc1ebbe670885c9cef98266786ca67513f01d12067",
+  "runtime_date_patch": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-date-history-repair-20261101/docs/handoffs/date-history-repair-20261101/runtime-app-date.patch",
+  "runtime_dist_deltas": [
+    {
+      "artifact": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web/dist/assets/main-BkKZXFuV.css",
+      "relative": "assets/main-BkKZXFuV.css",
+      "sha256": "1b4627d8ad179bb2906eccdfab19fcdf982b7bc4dd4d9dbee5cba2544a332081"
+    },
+    {
+      "artifact": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web/dist/assets/main-Klhi0XX-.js",
+      "relative": "assets/main-Klhi0XX-.js",
+      "sha256": "9cd253d8bcb99bfb71d6a25d546687c8afa91d784f0bb6ff43398d591554ddf8"
+    },
+    {
+      "artifact": "/private/tmp/v4-date-history-repair-20261101/frontend-baseline/apps/web/dist/index.html",
+      "relative": "index.html",
+      "sha256": "c781c4071a31cf435f08062be7c2e93f8847a610530e3656bd98e0a170064c87"
+    }
+  ],
+  "source_files": [
+    {
+      "after_sha256": "736e0add9771810bcbfad8df470079c9a1cf1dad3b0efabea3ca82e4d19a1244",
+      "base_sha256": "9391d907452fa219da6fa17617f794b4b1ffeef26a8cbe3ff97c4898ec946e0b",
+      "path": "apps/web/src/App.vue"
+    },
+    {
+      "after_sha256": "f19d68b7c5b6c84df0c80910278c2df54308e753b244caa1b625dc28722a43b8",
+      "base_sha256": null,
+      "path": "apps/web/src/App.research-panel-date.spec.ts"
+    },
+    {
+      "after_sha256": "46024de3cdd12ac3dc95aa835816d514b6124a86c9a464c1dac883e660edbda5",
+      "base_sha256": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "path": "v4/manager_workbench/contracts.py"
+    },
+    {
+      "after_sha256": "758ba604de2c03547dc77f993ef24eb87fa0ae45a9b89526153ccd3006706e60",
+      "base_sha256": "df636867611e53e96d2366e91ad6b680c913468d18d93d81e7def7f28dd616e6",
+      "path": "v4/manager_workbench/store.py"
+    },
+    {
+      "after_sha256": "21ed65fc478b86fe60f61849e4bf72019a750b5f0985f4bfa6ab1efdb0008cf7",
+      "base_sha256": null,
+      "path": "tests/test_manager_snapshot_digest.py"
+    },
+    {
+      "after_sha256": "7c358cb7e046e6c07c10b0612cf2afd38181a8e5ba09389d93100b1b7dbf5bcc",
+      "base_sha256": null,
+      "path": "docs/handoffs/date-history-repair-20261101/README.md"
+    }
+  ],
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-date-history-repair-20261101",
+  "tests": {
+    "contract_command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/private/tmp/v4-date-history-contract-r2-tests-20261101",
+      "tests/test_manager_snapshot_digest.py"
+    ],
+    "contracts_and_store_total": 15,
+    "dates": [
+      "2026-10-29",
+      "2026-10-30",
+      "2026-11-02"
+    ],
+    "final_store_command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=/private/tmp/v4-date-history-contract-r3-tests-20261101",
+      "tests/test_manager_snapshot_digest.py",
+      "-k",
+      "read_plan"
+    ],
+    "final_store_incremental": 7,
+    "frontend_date_link_dom": 1,
+    "git_diff_check": "PASS"
+  }
+}

@@ -1,0 +1,11 @@
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -270,7 +270,7 @@
+       <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
+       <button type="button" @click="scrollToPool()">D-1 预选池</button>
+       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
+-      <a class="entry-nav-link research-panel-entry" href="/research-panel/daily.html?date=2026-10-28">研究看板</a>
++      <a class="entry-nav-link research-panel-entry" :href="`/research-panel/daily.html?date=${formatDateInput(selectedDate)}`">研究看板</a>
+       <button type="button" @click="openManagerSelection()">经理选股工作台</button>
+       <button :class="{ active: sopActive }" type="button" @click="openSop()">SOP</button>
+       <button :class="{ active: taskStatusActive }" type="button" @click="openTaskStatus()">任务状态</button>

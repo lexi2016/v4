@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Iterator
 from infrastructure.owned_io import SafeRoot
 
-from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, iso_time, validate_date
+from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, _PARSED_JSON_SNAPSHOT, canonical, iso_time, validate_date
 
 _DEFAULT_READ_LIMIT = 64 * 1024 * 1024
 _PLAN_READ_LIMIT = 128 * 1024 * 1024
@@ -145,7 +145,7 @@ class WorkbenchStore:
         obj = self._read(self._path("snapshots", _key(run_id)), max_bytes=_PLAN_READ_LIMIT)
         if obj is None:
             raise KeyError("PLAN_NOT_FOUND")
-        saved = PlanSnapshot.model_validate(obj)
+        saved = PlanSnapshot.model_validate(obj, context=_PARSED_JSON_SNAPSHOT)
         if saved.run_id != run_id:
             raise StorageConflict("RUN_ID_MISMATCH")
         return saved
