@@ -2,9 +2,9 @@
   "schema": "a_share_kb_supplemental_signals_v1",
   "scope": "EXPLICIT_A_SHARE_SINGLE_STOCK_RESEARCH_ONLY",
   "fields": [
-    {"name": "kb_s1", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "SOURCE_VERSION_CONFLICT_AND_UNQUANTIFIED", "description": "正文为流畅上涨后高位巨量大阴且假阴真阳亦算；独立概念卡为高位巨量不限阴阳，且高位与巨量均未统一量化。"},
-    {"name": "kb_s2", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_ANCHOR_AND_RULE_UNCONFIRMED", "description": "正文需先有S1锚点，再挑战S1前高且MACD顶背离；未认证的简化实现不替代正文。"},
-    {"name": "kb_s3", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_S2_ANCHOR_AND_RULE_UNCONFIRMED", "description": "正文需先有S1/S2锚点并反抽到其下沿；未认证的简化实现不替代正文。"},
+    {"name": "kb_s1", "rule_family": "EXIT_SEQUENCE_3", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "SOURCE_VERSION_CONFLICT_AND_UNQUANTIFIED", "description": "正文为流畅上涨后高位巨量大阴且假阴真阳亦算；独立概念卡为高位巨量不限阴阳，且高位与巨量均未统一量化。"},
+    {"name": "kb_s2", "rule_family": "EXIT_SEQUENCE_3", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_ANCHOR_AND_RULE_UNCONFIRMED", "description": "正文需先有S1锚点，再挑战S1前高且MACD顶背离；未认证的简化实现不替代正文。"},
+    {"name": "kb_s3", "rule_family": "EXIT_SEQUENCE_3", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_S2_ANCHOR_AND_RULE_UNCONFIRMED", "description": "需要已确认的S1或S2锚点，先跌离再反抽；数值条件未认证，简化实现不替代正文。"},
     {"name": "kb_didi_1455", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "BOUND_1455_MINUTE_INPUT_UNAVAILABLE", "description": "14:55跌破昨低的时间口径；未绑定分钟行情，不由日线收盘价推定。"}
   ],
   "reused_fields": {

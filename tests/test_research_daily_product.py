@@ -31,7 +31,7 @@ def accepted_g4(day, *, close='103', prev_close='100'):
 
 
 def d28_calendar():
-    day = date(2026, 8, 3)
+    day = date(2026, 4, 1)
     end = date(2026, 10, 28)
     days = []
     while day <= end:
@@ -156,7 +156,7 @@ class DailyProductPredicateTests(unittest.TestCase):
         self.assertIn('D3_TERMINAL_UNCONFIRMED', result['groups']['original']['reasons'])
 
     def test_missing_required_fields_is_reported_unknown_without_global_price_reject(self):
-        calendar = [int((date(2026, 1, 1) + timedelta(days=i)).strftime('%Y%m%d')) for i in range(70)]
+        calendar = [int((date(2026, 1, 1) + timedelta(days=i)).strftime('%Y%m%d')) for i in range(140)]
         data = bars(calendar)
         data[0].update(open='-1', high='0', low='-2', close='-1')
         data[-1]['open'] = None
@@ -174,6 +174,33 @@ class DailyProductPredicateTests(unittest.TestCase):
         self.assertEqual(result['status'], 'UNKNOWN_INPUT_COVERAGE')
         self.assertEqual(result['groups']['original']['status'], 'UNKNOWN')
         self.assertEqual(result['groups']['nav_smallk']['baseline'], 'UNKNOWN')
+
+    def test_short_valid_prefix_cannot_turn_unknown_into_false(self):
+        calendar = d28_calendar()
+        data = bars(calendar[-113:])
+        baseline = {'original':'FALSE', 'nav_pullback':'FALSE', 'nav_breakout':'FALSE'}
+        result = call_product(calendar, data, {}, baseline_memberships=baseline)
+        self.assertEqual({x['status'] for x in result['groups'].values()}, {'UNKNOWN'})
+        self.assertTrue(all('INSUFFICIENT_HISTORY_114' in x['reasons'] for x in result['groups'].values()))
+
+    def test_114_valid_bars_enters_original_rule_but_bad_input_does_not(self):
+        calendar = d28_calendar()
+        data = bars(calendar[-114:])
+        baseline = {'original':'FALSE', 'nav_pullback':'FALSE', 'nav_breakout':'FALSE'}
+        enough = call_product(calendar, data, {}, baseline_memberships=baseline)
+        self.assertEqual(enough['groups']['original']['status'], 'FALSE')
+        data[0]['close'] = None
+        unknown = call_product(calendar, data, {}, baseline_memberships=baseline)
+        self.assertEqual({x['status'] for x in unknown['groups'].values()}, {'UNKNOWN'})
+
+    def test_future_bar_does_not_complete_a_short_prefix(self):
+        calendar = d28_calendar() + [20261029]
+        data = bars(calendar[-114:])
+        asof = calendar[-2]
+        result = call_product(calendar, data, {}, asof=asof,
+            baseline_memberships={'original':'FALSE','nav_pullback':'FALSE','nav_breakout':'FALSE'})
+        self.assertEqual(result['future_bars_excluded'], 1)
+        self.assertEqual({x['status'] for x in result['groups'].values()}, {'UNKNOWN'})
 
 
 if __name__ == '__main__':

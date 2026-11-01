@@ -5,26 +5,33 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from datetime import date, timedelta
 from unittest.mock import patch
 from types import SimpleNamespace
 
 from ops import research_panel_daily_product as product
 
 class ProjectionGlueTests(unittest.TestCase):
- def context(self, root):
-  bars=[dict(trade_date=d,open='10',high='11',low='9',close='10',vol='100') for d in (20261026,20261027,20261028,20261029)]
-  return SimpleNamespace(root=root,target=20261029,calendars={'SH':[20261026,20261027,20261028,20261029,20261030,20261102,20261103,20261104,20261105]},generation='a'*64,identity={'input_sha256':'b'*64},config={'formula':{'sha256':'c'*64}},read=lambda s:(copy.deepcopy(bars),None),qualify=lambda s:{'status':'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH','history_start_date':'20261026'})
+ def context(self, root, extra_history=False):
+  earlier=[];day=date(2026,4,1)
+  while extra_history and day<date(2026,10,26):
+   if day.weekday()<5:earlier.append(int(day.strftime('%Y%m%d')))
+   day+=timedelta(days=1)
+  dates=earlier+[20261026,20261027,20261028,20261029]
+  bars=[dict(trade_date=d,open='10',high='11',low='9',close='10',vol='100') for d in dates]
+  return SimpleNamespace(root=root,target=20261029,calendars={'SH':dates+[20261030,20261102,20261103,20261104,20261105]},generation='a'*64,identity={'input_sha256':'b'*64},config={'formula':{'sha256':'c'*64}},read=lambda s:(copy.deepcopy(bars),None),qualify=lambda s:{'status':'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH','history_start_date':str(dates[0])})
  def test_historical_slices_are_recomputed_and_not_borrowed(self):
   with tempfile.TemporaryDirectory() as td:
-   ctx=self.context(Path(td)); calls=[]
+   ctx=self.context(Path(td),extra_history=True); calls=[]
    def inputs(c,s,bars,day,q):
     calls.append((day,[b['trade_date'] for b in bars]));return dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
    def evaluate(**kw):
     return {'groups':{g:{'status':'TRUE' if kw['asof']==20261027 else 'UNKNOWN','anchor_date':20261026,'reasons':[]} for g in product.GROUPS}}
    with patch.object(product,'source_inputs',inputs):row,cache,path=product.compute_stock(ctx,'600025.SH',evaluate=evaluate,history_dates=[20261026,20261027,20261028])
-   self.assertEqual(calls,[(20261029,[20261026,20261027,20261028,20261029]),(20261026,[20261026]),(20261027,[20261026,20261027]),(20261028,[20261026,20261027,20261028])])
-   self.assertTrue(row['historical_coverage']['known_full_history']);self.assertFalse(row['historical_coverage']['historical_PIT'])
-   self.assertEqual(row['statistics']['price_distribution']['all_history']['n'],4)
+   self.assertEqual([day for day,_ in calls],[20261029,20261026,20261027,20261028])
+   for day,prefix in calls:self.assertEqual(prefix[-1],day);self.assertGreaterEqual(len(prefix),114)
+   self.assertFalse(row['historical_coverage']['known_full_history']);self.assertFalse(row['historical_coverage']['historical_PIT'])
+   self.assertEqual(row['statistics']['price_distribution']['all_history']['n'],len(ctx.read('600025.SH')[0]))
    self.assertEqual(row['statistics']['groups'][0]['eligible_event_count'],1)
  def test_revised_prefix_invalidates_old_events(self):
   with tempfile.TemporaryDirectory() as td:
@@ -49,8 +56,13 @@ class ProductReaderTests(unittest.TestCase):
   from infrastructure.research_lane_source import ResearchLaneSource
   with tempfile.TemporaryDirectory() as td:
    base=Path(td).resolve();root=base/'daily_products/a_share';source=ResearchLaneSource(base,a_share_daily_root=base)
-   row=product.save(root/'stock.json',dict(symbol='600025.SH',data_date='20261029',statistics={},**product.FLAGS))
-   artifact=product.save(root/'product.json',dict(schema_version=product.SCHEMA,data_date='20261029',source_generation='a'*64,source_identity={'input_sha256':'b'*64},sample_only=False,processed_count=2,source_universe_count=2,row_refs={'600025.SH':row},rows=[],**product.FLAGS))
+   config=product.save(root/'config.json',{'formula':{'sha256':'c'*64}})
+   identity={'generation':'a'*64,'input_sha256':'b'*64,'asof':20261029,'basis':{'price_basis':'QFQ_ASOF'}}
+   binding={'generation':'a'*64,'input':'b'*64,'asof':'2026-10-29','market':'SH','formula':'c'*64,'basis':'QFQ_ASOF','rule_sha256':'d'*64}
+   qualification={'symbol':'600025.SH','source_generation':'a'*64,'target_date':'20261029'}
+   stats={'asof':'2026-10-29','groups':[{'identity_status':'BOUND','rule_sha256':'d'*64,'source_identity':binding}]}
+   row=product.save(root/'stock.json',dict(symbol='600025.SH',data_date='20261029',statistics=stats,qualification=qualification,**product.FLAGS))
+   artifact=product.save(root/'product.json',dict(schema_version=product.SCHEMA,data_date='20261029',source_generation='a'*64,source_identity=identity,source_config=config,sample_only=False,processed_count=2,source_universe_count=2,row_refs={'600025.SH':row},rows=[],**product.FLAGS))
    manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date='20261029',source_generation='a'*64,input_sha256='b'*64,sample_only=False,processed_count=2,source_universe_count=2,status='PARTIAL_WITH_ROWS',artifact=artifact,**product.FLAGS)
    ref=product.save(root/'manifest.json',manifest);product.save(root/'index.json',dict(dates={'20261029':ref},latest_date='20261029'))
    event=dict(schema_version='v4.a_share.daily_completion.v1',event_id='e'*64,manifest=ref,artifact=artifact,data_date='20261029',source_generation='a'*64,input_sha256='b'*64,processed_count=2,source_universe_count=2,status='PARTIAL_WITH_ROWS',**product.FLAGS)
@@ -64,19 +76,24 @@ class ProductReaderTests(unittest.TestCase):
   from infrastructure.research_lane_source import ResearchLaneSource
   with tempfile.TemporaryDirectory() as td:
    base=Path(td).resolve();root=base/'daily_products/a_share';source=ResearchLaneSource(base,a_share_daily_root=base)
-   artifact=product.save(root/'product.json',dict(schema_version=product.SCHEMA,data_date='20261029',source_generation='a',source_identity={},sample_only=True,processed_count=1,**product.FLAGS))
-   ref=product.save(root/'manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date='20261029',source_generation='a',artifact=artifact,sample_only=True,processed_count=1,**product.FLAGS));product.save(root/'index.json',dict(dates={'20261029':ref},latest_date='20261029'))
+   identity={'generation':'a'*64,'input_sha256':'b'*64,'asof':20261029}
+   artifact=product.save(root/'product.json',dict(schema_version=product.SCHEMA,data_date='20261029',source_generation='a'*64,source_identity=identity,sample_only=True,processed_count=1,**product.FLAGS))
+   ref=product.save(root/'manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date='20261029',source_generation='a'*64,input_sha256='b'*64,artifact=artifact,sample_only=True,processed_count=1,**product.FLAGS));product.save(root/'index.json',dict(dates={'20261029':ref},latest_date='20261029'))
    with self.assertRaisesRegex(ValueError,'COVERAGE_CONFLICT'):source.read_a_daily_product()
 
 class NativeReaderSchemaTests(unittest.TestCase):
  def test_string_date_filter_matches_current_native_schema(self):
+  import pandas as pd
+  import pyarrow as pa
+  import pyarrow.parquet as pq
   observed={}
-  class Empty:
-   empty=True
-   def sort_values(self,*a,**kw):return self
-  def read(**kw):observed.update(kw);return Empty()
-  context=product.SourceContext.__new__(product.SourceContext);context.target=20261029;context.panel=Path('/bound/panel');context.reader=SimpleNamespace(load_selector_ready=read)
-  self.assertEqual(context.read('600025.SH'),([],None));self.assertEqual(observed['filters'],[('ts_code','=','600025.SH'),('trade_date','<=','20261029')])
+  def read(**kw):observed.update(kw);return pd.DataFrame(columns=['trade_date'])
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);panel=root/'panel.parquet';pq.write_table(pa.table({'ts_code':pa.array([],type=pa.string()),'trade_date':pa.array([],type=pa.string())}),panel)
+   pointer=root/'selector';pointer.write_text(str(panel));back=root/'backtest';back.write_text(str(panel));receipt=root/'receipt';receipt.write_text('{}');reader=root/'reader';reader.write_text('{}')
+   journal=root/'runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json';journal.parent.mkdir(parents=True);journal.write_text('{}')
+   context=product.SourceContext.__new__(product.SourceContext);context.target=20261029;context.panel=panel;context.panel_stat=panel.stat();context.data_root=root;context.pointer=pointer;context.backpointer=back;context.pointer_bytes=pointer.read_bytes();context.back_bytes=back.read_bytes();context.receipt_ref={'path':str(receipt)};context.reader_ref={'path':str(reader)};context.reader=SimpleNamespace(load_selector_ready=read)
+   self.assertEqual(context.read('600025.SH'),([],None));self.assertEqual(observed['filters'],[('ts_code','=','600025.SH'),('trade_date','<=','20261029')])
 
 class G4BlockReadTests(unittest.TestCase):
  def test_each_md1_member_is_read_once_not_once_per_symbol(self):
@@ -108,8 +125,8 @@ class FullMaterializerOutputTests(unittest.TestCase):
    def compute(c,s,**kw):
     calls.append(s);status='UNKNOWN' if s.endswith('.BJ') else 'TRUE';row=dict(symbol=s,display_name=None,data_date='20261029',groups='original' if status=='TRUE' else '',pending_groups='original' if status=='UNKNOWN' else '',evaluation={'groups':{g:{'status':status if g=='original' else 'FALSE'} for g in product.GROUPS}})
     return row,{},output/'history'/(s+'.json')
-   with patch.object(product,'SourceContext',return_value=context),patch.object(product,'compute_stock',side_effect=compute):
-    first=product.materialize_daily_product(data_root='/read-only',target=20261029,output_root=output)
-    second=product.materialize_daily_product(data_root='/read-only',target=20261029,output_root=output)
+   with patch.object(product,'SourceContext',return_value=context),patch.object(product,'compute_stock',side_effect=compute),patch('ops.research_daily_product_parallel.prefill_missing',return_value={'chart_gaps':{}}):
+    first=product.materialize_daily_product(data_root='/read-only',target=20261029,output_root=output,original_charts=False)
+    second=product.materialize_daily_product(data_root='/read-only',target=20261029,output_root=output,original_charts=False)
    self.assertEqual(len(calls),3);self.assertEqual(first,second);self.assertFalse(default.exists())
    payload=json.loads(Path(first['artifact']['path']).read_text());self.assertFalse(payload['sample_only']);self.assertEqual(payload['processed_count'],3);self.assertEqual(payload['source_universe_count'],3);self.assertEqual(payload['unique_count'],2);self.assertEqual(payload['unknown_count'],1)

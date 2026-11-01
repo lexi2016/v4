@@ -41,12 +41,15 @@ CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 from ops.research_panel_factor_cache import QfqGateError
 from ops.kb_signal_authority import append_kb_signals, _field_spec
-from ops.kb_hold_score import project_single_history, SUPPLEMENTAL_REASONS, SINGLE_STOCKS
+from ops.kb_hold_score import (project_single_history, score_history, apply_n_score, COMPONENTS,
+                               SUPPLEMENTAL_REASONS, SINGLE_STOCKS, research_code_in_scope)
+from ops.kb_n_structure import project_n_history
 from ops.kb_action_authority import FIELDS as SINGLE_ACTION_FIELDS, INPUT_FIELDS as SINGLE_ACTION_INPUTS, project_action, action_rule_sha256
 from ops.kb_yidong_authority import FIELDS as SINGLE_YIDONG_FIELD_TYPES, INPUT_FIELDS as SINGLE_YIDONG_INPUTS, project_yidong_history, rule_sha256 as yidong_rule_sha256
 from ops.kb_confirmed_gap import (FIELDS as SINGLE_GAP_FIELDS, FIELD_TYPES as SINGLE_GAP_FIELD_TYPES,
     project_with_reuse as project_gap_with_reuse, rule_sha256 as gap_rule_sha256,
-    helper_sha256s as gap_helper_sha256s, DIAGNOSTICS as SINGLE_GAP_DIAGNOSTICS)
+    helper_sha256s as gap_helper_sha256s, prefix_hashes as gap_prefix_hashes,
+    DIAGNOSTICS as SINGLE_GAP_DIAGNOSTICS)
 
 KB_FIELDS = frozenset(field["name"] for field in _field_spec()["fields"])
 SINGLE_YIDONG_FIELDS = frozenset(SINGLE_YIDONG_FIELD_TYPES)
@@ -78,6 +81,164 @@ def kb_schema(schema: pa.Schema) -> pa.Schema:
     if spec["drop_fields"]:
         raise QfqGateError("KB_DROP_FIELDS_WITHOUT_BOUND_CONSUMER_EVIDENCE")
     return pa.schema(fields, metadata=schema.metadata)
+
+
+def full_research_contract(reference: dict) -> dict:
+    """Require the exact, separately authorized all-A research schema contract."""
+    path = _source(reference, owner='full A-share research contract')
+    expected_path = Path(__file__).resolve().parents[1] / 'contracts/a_share_kb_full_research_v1.json'
+    if reference.get('sha256') != sha(expected_path):
+        raise QfqGateError('FULL_RESEARCH_CONTRACT_SHA_CONFLICT')
+    spec = json.loads(path.read_text())
+    fields = SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS | SINGLE_GAP_FIELDS
+    if (spec.get('schema') != 'a_share_kb_full_research_v1' or spec.get('scope') != 'ADMITTED_A_SHARE'
+            or spec.get('total_derived_fields') != 107 or set(spec.get('base_kb_fields', [])) != KB_FIELDS
+            or set(spec.get('additional_fields', {})) != fields or len(fields) != 50
+            or spec.get('drop_fields') != [] or any(spec.get(k) != v for k, v in FLAGS.items())):
+        raise QfqGateError('FULL_RESEARCH_CONTRACT_INVALID')
+    return spec
+
+
+def full_research_schema(schema: pa.Schema, spec: dict) -> pa.Schema:
+    """Append the approved 57+50 fields without changing any old Arrow field."""
+    schema = kb_schema(schema)
+    fields = SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS | SINGLE_GAP_FIELDS
+    present = fields & set(schema.names)
+    if present and present != fields:
+        raise QfqGateError('FULL_RESEARCH_PARTIAL_SCHEMA')
+    types = {'string':pa.string(), 'bool':pa.bool_(), 'double':pa.float64(), 'int8':pa.int8(), 'int32':pa.int32()}
+    if set(spec.get('additional_fields', {})) != fields:
+        raise QfqGateError('FULL_RESEARCH_FIELD_INVENTORY_CONFLICT')
+    order = [*sorted(SINGLE_FEEDBACK_FIELDS), *sorted(SINGLE_ACTION_FIELDS),
+             *sorted(SINGLE_YIDONG_FIELDS), *sorted(SINGLE_GAP_FIELDS)]
+    result = list(schema)
+    for name in order:
+        kind=spec['additional_fields'][name]
+        if kind not in types:raise QfqGateError('FULL_RESEARCH_FIELD_TYPE_INVALID:' + name)
+        if name in schema.names:
+            field=schema.field(name)
+            if field.type != types[kind] or not field.nullable:
+                raise QfqGateError('FULL_RESEARCH_FIELD_TYPE_CONFLICT:' + name)
+        else:
+            result.append(pa.field(name,types[kind],nullable=True))
+    return pa.schema(result,metadata=schema.metadata)
+
+
+def _full_research_schema_declaration(schema: pa.Schema, spec: dict, contract_sha256: str) -> pa.Schema:
+    """Declare the same explicit opt-in on each output role before mode gates."""
+    schema = full_research_schema(schema, spec)
+    metadata = dict(schema.metadata or {})
+    try:
+        value = json.loads(metadata.get(META_KEY, b'{}'))
+    except (TypeError, ValueError) as exc:
+        raise QfqGateError('FULL_RESEARCH_SCHEMA_METADATA_INVALID') from exc
+    if not isinstance(value, dict):
+        raise QfqGateError('FULL_RESEARCH_SCHEMA_METADATA_INVALID')
+    value.update(research_scope='ADMITTED_A_SHARE', full_research_contract_sha256=contract_sha256,
+                 single_feedback_enabled=True, single_action_enabled=True, single_yidong_enabled=True,
+                 confirmed_gap_enabled=True, n_structure_enabled=True)
+    metadata[META_KEY] = json.dumps(value, sort_keys=True).encode()
+    return schema.with_metadata(metadata)
+
+
+def _validate_full_research_isolation(root: Path | None, data_root: Path, return_root: Path,
+                                      pointers: dict[str, Path]) -> Path:
+    """Keep candidate journals, outputs and pointer files inside one isolated root."""
+    if root is None or not Path(root).is_dir() or set(pointers) != {'selector', 'backtest'}:
+        raise QfqGateError('FULL_RESEARCH_ISOLATION_ROOT_REQUIRED')
+    isolated = Path(root).resolve()
+    protected = [Path.home() / 'Library/Application Support/com.lexi.v35.local/state',
+                 Path.home() / 'Library/Application Support/com.lexi.v4.local/state']
+    if any(isolated == path or isolated in path.parents or path in isolated.parents for path in map(Path.resolve, protected)):
+        raise QfqGateError('FULL_RESEARCH_ISOLATION_OVERLAPS_ACTIVE_STATE')
+    if any(not Path(path).resolve().is_relative_to(isolated) for path in (data_root, return_root, *pointers.values())):
+        raise QfqGateError('FULL_RESEARCH_ISOLATION_PATH_ESCAPE')
+    return isolated
+
+
+def _materialized_reuse_descriptor(reference: dict, *, target: int, source_generation: str,
+                                   input_sha256: str, snapshot_sha256: str, baseline: dict) -> dict:
+    """Bind only the three existing single-stock values to the same QFQ source."""
+    descriptor = json.loads(_source(reference, owner='materialized reuse descriptor').read_text())
+    if (descriptor.get('schema') != 'a_share_materialized_reuse_v1'
+            or descriptor.get('status') != 'PREPARED_NOT_CONSUMED'
+            or descriptor.get('source_generation') != source_generation
+            or descriptor.get('source_input_sha256') != input_sha256
+            or descriptor.get('snapshot_sha256') != snapshot_sha256
+            or descriptor.get('baseline_panel_sha256') != baseline
+            or set(descriptor.get('stocks', {})) != set(SINGLE_STOCKS)
+            or any(descriptor.get(key) != value for key, value in FLAGS.items())):
+        raise QfqGateError('FULL_RESEARCH_REUSE_DESCRIPTOR_CONFLICT')
+    audit = json.loads(_source(descriptor.get('audit'), owner='materialized reuse rule audit').read_text())
+    if (audit.get('status') != 'PASS_RULE_AND_NULL_AUDIT_NOT_A_CANDIDATE'
+            or audit.get('source_generation') != source_generation
+            or any(audit.get(key) != value for key, value in FLAGS.items())):
+        raise QfqGateError('FULL_RESEARCH_REUSE_AUDIT_CONFLICT')
+    _source(audit['audit_script'], owner='materialized reuse audit script')
+    score_sources = {name: _source(ref, owner='materialized reuse score source')
+                     for name, ref in audit['score_sources'].items()}
+    root = Path(__file__).resolve().parents[1]
+    if sha(score_sources['bulk']) != sha(root / 'ops/kb_hold_score.py'):
+        raise QfqGateError('FULL_RESEARCH_REUSE_SCORE_CODE_DRIFT')
+    def body(path, name, skip):
+        tree = ast.parse(path.read_text())
+        matches = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == name]
+        if len(matches) != 1:
+            raise QfqGateError('FULL_RESEARCH_REUSE_SCORE_FUNCTION_MISSING:' + name)
+        return ast.dump(ast.Module(body=matches[0].body[skip:], type_ignores=[]), include_attributes=False)
+    for name, skip in (('score_history', 0), ('project_single_history', 2), ('apply_n_score', 2)):
+        if len({body(path, name, skip) for path in score_sources.values()}) != 1:
+            raise QfqGateError('FULL_RESEARCH_REUSE_SCORE_SEMANTICS_CONFLICT:' + name)
+    audited = {item['symbol']: item for item in audit.get('stocks', [])}
+    if set(audited) != set(descriptor['stocks']):
+        raise QfqGateError('FULL_RESEARCH_REUSE_AUDIT_STOCKS_CONFLICT')
+    policies = {
+        'score_contract_sha256': ('a_share_kb_hold_score_v1.json', {'authorized_symbols'}),
+        'action_contract_sha256': ('a_share_kb_action_v1.json', {'scope', 'authorized_symbols', 'all_fields'}),
+        'yidong_contract_sha256': ('a_share_kb_yidong_v1.json', {'scope'}),
+    }
+    authorities = ('ops/kb_signal_authority.py', 'ops/kb_action_authority.py', 'ops/kb_yidong_authority.py',
+                   'ops/kb_confirmed_gap.py', 'ops/kb_n_structure.py', 'ops/kb_panel_rebuild_brick.py',
+                   'ops/kb_panel_signal_components.py', 'contracts/a_share_kb_fields_v1.json',
+                   'contracts/a_share_kb_confirmed_gap_v1.json', 'contracts/a_share_kb_n_structure_v1.json')
+    for code, candidate_ref in descriptor['stocks'].items():
+        if audited[code].get('candidate') != candidate_ref:
+            raise QfqGateError('FULL_RESEARCH_REUSE_CANDIDATE_AUDIT_CONFLICT:' + code)
+        candidate = json.loads(_source(candidate_ref, owner='materialized reuse candidate').read_text())
+        value = candidate.get('candidate_identity', {})
+        if (value.get('symbol') != code or candidate.get('candidate_generation') != canonical_sha(value)
+                or value.get('source_generation') != source_generation or value.get('source_input_sha256') != input_sha256
+                or value.get('snapshot_sha256') != snapshot_sha256 or value.get('baseline_panel_sha256') != baseline
+                or str(value.get('source_date', '')).replace('-', '') != str(target)
+                or any(candidate.get(key) != val for key, val in FLAGS.items())):
+            raise QfqGateError('FULL_RESEARCH_REUSE_CANDIDATE_IDENTITY_CONFLICT:' + code)
+        if value.get('score_engine_sha256') not in {sha(path) for path in score_sources.values()}:
+            raise QfqGateError('FULL_RESEARCH_REUSE_SCORE_SOURCE_CONFLICT:' + code)
+        if any(value.get('source_sha256', {}).get(name) != sha(root / name) for name in authorities):
+            raise QfqGateError('FULL_RESEARCH_REUSE_AUTHORITY_CONFLICT:' + code)
+        refs = audited[code].get('source_contracts', {})
+        for key, (filename, ignored) in policies.items():
+            old_path = _source(refs.get(key), owner='materialized reuse original contract')
+            if sha(old_path) != value.get(key):
+                raise QfqGateError('FULL_RESEARCH_REUSE_CONTRACT_IDENTITY_CONFLICT:' + code + ':' + key)
+            old = json.loads(old_path.read_text()); new = json.loads((root / 'contracts' / filename).read_text())
+            for field in ignored:
+                old.pop(field, None); new.pop(field, None)
+            if old != new:
+                raise QfqGateError('FULL_RESEARCH_REUSE_CONTRACT_SEMANTICS_CONFLICT:' + code + ':' + key)
+        supplemental = _source(refs.get('supplemental_contract_sha256'), owner='materialized reuse supplemental contract')
+        if sha(supplemental) != value.get('supplemental_contract_sha256'):
+            raise QfqGateError('FULL_RESEARCH_REUSE_SUPPLEMENTAL_IDENTITY_CONFLICT:' + code)
+        for path in (supplemental, root / 'contracts/a_share_kb_supplemental_signals_v1.json'):
+            fields = {item['name']: item for item in json.loads(path.read_text())['fields']}
+            if any(fields.get(name, {}).get('value', 'missing') is not None or fields[name].get('status') != 'UNKNOWN'
+                   for name in SUPPLEMENTAL_REASONS):
+                raise QfqGateError('FULL_RESEARCH_REUSE_SUPPLEMENTAL_STATE_CONFLICT:' + code)
+        for role in ('selector', 'backtest'):
+            _source(candidate['outputs'][role], owner='materialized reuse ' + role)
+        _source(candidate['confirmed_gap']['diagnostics'], owner='materialized reuse diagnostics')
+        _source(candidate['n_structure']['checkpoint'], owner='materialized reuse N checkpoint')
+    return descriptor
 
 
 def _validate_single_feedback_schema(schema: pa.Schema, *, required: bool = False) -> pa.Schema:
@@ -233,6 +394,79 @@ def _single_gap_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
     return modes.pop()
 
 
+def _single_n_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
+    """N is opt-in metadata: its score columns also exist in legacy panels."""
+    if set(schemas) != {'selector', 'backtest'}:
+        raise QfqGateError('SINGLE_N_ROLE_SET_INVALID')
+    modes = []
+    for schema in schemas.values():
+        declarations = []
+        for key in (META_KEY, b'kb_single_candidate_v1'):
+            if key not in (schema.metadata or {}):
+                continue
+            try:
+                metadata = json.loads(schema.metadata[key])
+            except (TypeError, ValueError) as exc:
+                raise QfqGateError('SINGLE_N_METADATA_INVALID') from exc
+            if not isinstance(metadata, dict):
+                raise QfqGateError('SINGLE_N_METADATA_INVALID')
+            if 'n_structure_enabled' in metadata:
+                if not isinstance(metadata['n_structure_enabled'], bool):
+                    raise QfqGateError('SINGLE_N_MODE_INVALID')
+                declarations.append(metadata['n_structure_enabled'])
+        if len(set(declarations)) > 1:
+            raise QfqGateError('SINGLE_N_MODE_CONFLICT')
+        modes.append(declarations[0] if declarations else False)
+    if len(set(modes)) != 1:
+        raise QfqGateError('SINGLE_N_ROLE_MODE_MISMATCH')
+    if modes[0] and (not _single_feedback_pair_mode(schemas) or not _single_gap_pair_mode(schemas)):
+        raise QfqGateError('SINGLE_N_REQUIRES_FEEDBACK_AND_GAP')
+    return modes[0]
+
+
+def _n_sha256s() -> dict:
+    root = Path(__file__).resolve().parents[1]
+    return dict(n_structure_helper_sha256=sha(root / 'ops/kb_n_structure.py'),
+                n_structure_contract_sha256=sha(root / 'contracts/a_share_kb_n_structure_v1.json'))
+
+
+def _revalidate_build_identity(snapshot_file, target, source_relocation_ref, driver_path, formula_path, contract_csv,
+                               source_identity, identity, confirmed_gap_enabled, n_structure_enabled, confirmed_gap_reuse_ref,
+                               full_research_contract_ref=None, materialized_reuse_ref=None):
+    if generation_identity(load_snapshot(snapshot_file, target, source_relocation_ref), driver_path, formula_path,
+                           contract_csv, source_relocation_ref) != source_identity:
+        raise QfqGateError('INPUT_CHANGED_DURING_BUILD')
+    root = Path(__file__).resolve().parents[1]
+    if confirmed_gap_enabled and (identity['confirmed_gap_contract_sha256'] != gap_rule_sha256()
+            or identity['confirmed_gap_helper_sha256'] != gap_helper_sha256s()
+            or identity['confirmed_gap_snapshot_file_sha256'] != sha(snapshot_file)
+            or identity['confirmed_gap_rebuild_contract_sha256'] != sha(root / 'contracts/a_share_kb_rebuild_brick_v1.json')
+            or identity['confirmed_gap_components_contract_sha256'] != sha(root / 'contracts/a_share_kb_signal_components_v1.json')):
+        raise QfqGateError('SINGLE_GAP_INPUT_CHANGED_DURING_BUILD')
+    if n_structure_enabled and any(identity.get(k) != v for k, v in _n_sha256s().items()):
+        raise QfqGateError('SINGLE_N_INPUT_CHANGED_DURING_BUILD')
+    if identity.get('research_scope') == 'ADMITTED_A_SHARE':
+        if not full_research_contract_ref or full_research_contract_ref.get('sha256') != identity.get('full_research_contract_sha256'):
+            raise QfqGateError('FULL_RESEARCH_CONTRACT_REFERENCE_MISSING')
+        full_research_contract(full_research_contract_ref)
+        if not materialized_reuse_ref or materialized_reuse_ref.get('sha256') != identity.get('materialized_reuse_descriptor_sha256'):
+            raise QfqGateError('FULL_RESEARCH_REUSE_REFERENCE_MISSING')
+        current = _materialized_reuse_descriptor(materialized_reuse_ref, target=target,
+            source_generation=identity['materialized_reuse_source_generation'],
+            input_sha256=identity.get('materialized_reuse_source_input_sha256', identity['input_sha256']),
+            snapshot_sha256=identity.get('materialized_reuse_source_snapshot_sha256', identity['confirmed_gap_snapshot_file_sha256']),
+            baseline=identity['materialized_reuse_baseline_panel_sha256'])
+        if current['stocks'] != identity['materialized_reuse_refs']:
+            raise QfqGateError('FULL_RESEARCH_REUSE_DESCRIPTOR_CHANGED')
+    if identity.get('confirmed_gap_calendar_ref'):
+        _source(identity['confirmed_gap_calendar_ref'], owner='confirmed gap final exchange calendar')
+    if confirmed_gap_reuse_ref is not None:
+        _source(confirmed_gap_reuse_ref, owner='confirmed gap final reuse descriptor')
+    for refs in identity.get('confirmed_gap_reuse_refs', {}).values():
+        for role, ref in refs.items():
+            _source(ref, owner='confirmed gap final reused ' + role)
+
+
 def sha(path: Path) -> str:
     digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
@@ -318,6 +552,11 @@ def required_a_history(pointers: dict[str, Path]) -> dict[str, int]:
 
 def _research_cache_semantics(snapshot: dict, target: int, source_relocation_ref: dict | None = None) -> str:
     """Verify typed proof without relabelling an old provider observation."""
+    if snapshot.get('lifecycle_additions'):
+        from ops.research_panel_lifecycle import verify_snapshot
+        lifecycle = verify_snapshot(snapshot, target)
+        baseline = _research_cache_semantics(lifecycle['baseline'], target, source_relocation_ref)
+        return canonical_sha(dict(baseline_semantics=baseline, lifecycle_semantics=lifecycle['semantic_sha256']))
     from ops.research_panel_factor_cache import RESEARCH_CARRY_SCHEMA, RESEARCH_CARRY_LABEL
     metadata = snapshot.get("research_factor_receipts", {})
     config_ref = snapshot.get("research_cache_configuration")
@@ -384,7 +623,7 @@ _GENERATION_TUPLE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "
     "single_score_contract_sha256", "single_supplemental_contract_sha256")
 
 
-def _release_tuple_bound(include_action: bool = False, include_yidong: bool = False, include_gap: bool = False) -> bool:
+def _release_tuple_bound(include_action: bool = False, include_yidong: bool = False, include_gap: bool = False, include_n: bool = False) -> bool:
     """Exact release inventory binds current modules/policies without a self-SHA cycle."""
     manifest = json.loads(_source(dict(path=os.environ["V4_RELEASE_MANIFEST_PATH"],
         sha256=os.environ["V4_RELEASE_MANIFEST_SHA256"]), owner="Main release inventory").read_text())
@@ -406,6 +645,8 @@ def _release_tuple_bound(include_action: bool = False, include_yidong: bool = Fa
         paths += ['ops/kb_confirmed_gap.py', 'contracts/a_share_kb_confirmed_gap_v1.json',
                   'ops/kb_panel_rebuild_brick.py', 'contracts/a_share_kb_rebuild_brick_v1.json',
                   'ops/kb_panel_signal_components.py', 'contracts/a_share_kb_signal_components_v1.json']
+    if include_n:
+        paths += ['ops/kb_n_structure.py', 'contracts/a_share_kb_n_structure_v1.json']
     return all(inventory.get(p) == sha(root / p) for p in paths)
 
 
@@ -447,14 +688,21 @@ def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
                          confirmed_gap_components_contract_sha256=sha(Path(__file__).resolve().parents[1] / 'contracts/a_share_kb_signal_components_v1.json'))
         current.update(gap_tuple)
         actual.update({key:contract.get(key) for key in gap_tuple})
+    n_enabled = contract.get('n_structure_enabled') is True
+    if n_enabled:
+        if not gap_enabled or contract.get('single_feedback_enabled') is not True:
+            return False
+        n_tuple = _n_sha256s()
+        current.update(n_tuple)
+        actual.update({key:contract.get(key) for key in n_tuple})
     if (refs[0]["sha256"] != DRIVER_SHA or refs[1]["sha256"] != FORMULA_SHA
             or actual["field_contract_sha256"] != refs[2]["sha256"]):
         return False
     if actual == current:
-        return _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled)
+        return _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled, include_n=n_enabled)
     policy_path = Path(__file__).resolve().parents[1] / "contracts/a_share_generation_compatibility.json"
     policy = json.loads(policy_path.read_text())
-    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled):
+    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled, include_n=n_enabled):
         return False
     for old in policy["accepted_old_generations"]:
         if (actual == old["module_tuple"] and contract.get("generation_id") == old["generation_id"]
@@ -774,6 +1022,103 @@ def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int
     return files
 
 
+def _bound_full_research_spools(reference: dict, baseline: dict) -> dict:
+    """Reuse only the prior owner's exact, SHA-bound original Arrow buckets."""
+    descriptor_path = _source(reference, owner='full research original spool descriptor')
+    descriptor = json.loads(descriptor_path.read_text())
+    if (descriptor.get('schema') != 'a_share_original_spool_reuse_v1'
+            or descriptor.get('status') != 'OWNER_PRODUCED_ARROW_BUCKETS'
+            or descriptor.get('baseline_panel_sha256') != baseline
+            or set(descriptor.get('roles', {})) != {'selector', 'backtest'}
+            or any(descriptor.get(k) != v for k, v in FLAGS.items())):
+        raise QfqGateError('FULL_RESEARCH_SPOOL_DESCRIPTOR_CONFLICT')
+    owner = _source(descriptor['owner_source'], owner='original spool owner source')
+    inputs_path = _source(descriptor['owner_inputs'], owner='original spool owner inputs')
+    failure_path = _source(descriptor['owner_run_receipt'], owner='original spool owner run receipt')
+    inputs = json.loads(inputs_path.read_text()); prior = json.loads(failure_path.read_text())
+    if (inputs.get('qfq_source', {}).get('sha256') != descriptor['owner_source']['sha256']
+            or prior.get('schema') != 'v4.full_owner_lifecycle_bounded_run.v1'
+            or prior.get('status') != 'FAIL' or prior.get('stage') != 'OWNER_RUN'):
+        raise QfqGateError('FULL_RESEARCH_SPOOL_OWNER_EVIDENCE_CONFLICT')
+    def relevant_ast(path):
+        tree = ast.parse(path.read_text())
+        functions = {node.name: ast.dump(node, include_attributes=False) for node in tree.body
+                     if isinstance(node, ast.FunctionDef) and node.name in {'_bucket', 'spool_current'}}
+        if set(functions) != {'_bucket', 'spool_current'}:
+            raise QfqGateError('FULL_RESEARCH_SPOOL_OWNER_INTERFACE_MISSING')
+        return functions
+    if relevant_ast(owner) != relevant_ast(Path(__file__)):
+        raise QfqGateError('FULL_RESEARCH_SPOOL_OWNER_CHANGED')
+    watched = [descriptor_path, owner, inputs_path, failure_path]
+    roles = {}
+    for role in ('selector', 'backtest'):
+        receipt_path = _source(descriptor['roles'][role], owner='original ' + role + ' spool receipt')
+        receipt = json.loads(receipt_path.read_text()); watched.append(receipt_path)
+        if (receipt.get('source_sha256') != baseline[role] or receipt.get('row_copy') != 'ARROW_V1'
+                or not isinstance(receipt.get('files'), dict) or not receipt['files']):
+            raise QfqGateError('FULL_RESEARCH_SPOOL_RECEIPT_CONFLICT:' + role)
+        files = {}
+        for raw_index, ref in receipt['files'].items():
+            if not str(raw_index).isdigit() or not 0 <= int(raw_index) < 32 or int(raw_index) in files:
+                raise QfqGateError('FULL_RESEARCH_SPOOL_BUCKET_INVALID:' + role)
+            path = _source(ref, owner='original ' + role + ' spool bucket')
+            if path.is_symlink() or path.resolve() != path:
+                raise QfqGateError('FULL_RESEARCH_SPOOL_PATH_INVALID:' + role)
+            files[int(raw_index)] = path; watched.append(path)
+        roles[role] = files
+    if set(roles['selector']) != set(roles['backtest']):
+        raise QfqGateError('FULL_RESEARCH_SPOOL_ROLE_BUCKETS_CONFLICT')
+    stamps = {}
+    for path in watched:
+        value = path.stat()
+        stamps[str(path)] = (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+    return dict(roles=roles, stamps=stamps, reference=dict(reference))
+
+
+def _check_full_research_spool_stamps(binding: dict) -> None:
+    for name, expected in binding['stamps'].items():
+        value = Path(name).stat()
+        if (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns) != expected:
+            raise QfqGateError('FULL_RESEARCH_SPOOL_CHANGED_DURING_BUILD:' + name)
+
+
+def _verify_original_arrow_readback(old_buckets: dict, candidate: Path, plan: list[dict],
+                                    original_schema: pa.Schema) -> dict:
+    """Verify every original persisted value against its exact old Arrow row."""
+    panel = pq.ParquetFile(candidate)
+    if panel.num_row_groups != len(plan):
+        raise QfqGateError('FULL_RESEARCH_READBACK_ROW_GROUP_PLAN_CONFLICT')
+    checked_rows = 0
+    verified = []
+    names = original_schema.names
+    for index, item in enumerate(plan):
+        if panel.metadata.row_group(index).num_rows != item['rows']:
+            raise QfqGateError('FULL_RESEARCH_READBACK_ROW_GROUP_SIZE_CONFLICT:' + str(index))
+        if item['kind'] != 'old':
+            continue
+        bucket = item['bucket']
+        source = pq.read_table(old_buckets[bucket], columns=names)
+        actual = panel.read_row_group(index, columns=names)
+        if len(source) != len(actual) or len(source) != item['rows']:
+            raise QfqGateError('FULL_RESEARCH_READBACK_ROW_COUNT_CONFLICT:' + str(bucket))
+        for field in original_schema:
+            if source.schema.field(field.name) != field or actual.schema.field(field.name) != field:
+                raise QfqGateError('FULL_RESEARCH_READBACK_FIELD_TYPE_CONFLICT:' + field.name)
+            left = source[field.name].combine_chunks(); right = actual[field.name].combine_chunks()
+            if pa.types.is_dictionary(field.type):
+                left = left.cast(field.type.value_type); right = right.cast(field.type.value_type)
+            elif pa.types.is_float64(field.type):
+                left = left.view(pa.uint64()); right = right.view(pa.uint64())
+            elif pa.types.is_float32(field.type):
+                left = left.view(pa.uint32()); right = right.view(pa.uint32())
+            if not left.equals(right):
+                raise QfqGateError('FULL_RESEARCH_READBACK_OLD_VALUE_CONFLICT:' + str(bucket) + ':' + field.name)
+        checked_rows += len(source)
+        verified.append(dict(bucket=bucket, rows=len(source)))
+    return dict(rows=checked_rows, columns=len(names), buckets=verified,
+                method='ALL_ORIGINAL_ARROW_VALUES_NULLS_NAN_AND_FLOAT_BITS_EXACT')
+
+
 LEGACY_STATIC_FIELDS = frozenset("""raw_code name total_share_10k float_share_10k market_cap_yi float_market_cap_yi turnover_rate_pct finance_source_date list_date tdx_finance_area_code tdx_finance_industry_code tdx_industry_code sw_industry_code static_fundamental_source fundamental_snapshot_note tdx_industry_name is_st_snapshot research_panel_scope candidate_pool_policy minute_data_policy minute_data_output_root minute_data_contract_path minute_data_default_scope minute_data_required_outputs""".split())
 LEGACY_RAW_CONTEXT_FIELDS = frozenset("""price_limit_pct_est limit_up_price_est limit_down_price_est is_limit_up_est is_limit_down_est is_one_word_limit_up_est limit_board_count_est limit_down_board_count_est price_limit_source limit_up_approx limit_down_approx""".split())
 LEGACY_MARKET_CONTEXT_FIELDS = frozenset("""market_active_stock_count market_up_count market_down_count market_flat_count market_limit_up_count_est market_limit_down_count_est market_max_limit_board_count_est market_total_amount_yi market_context_source""".split())
@@ -909,7 +1254,8 @@ def _panel_symbols(path: Path) -> set[str]:
 
 def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history_extension: bool = False,
            single_feedback_enabled: bool = False, single_action_enabled: bool = False,
-           single_yidong_enabled: bool = False, confirmed_gap_enabled: bool = False) -> pa.Table:
+           single_yidong_enabled: bool = False, confirmed_gap_enabled: bool = False,
+           research_scope: str = 'REGISTERED') -> pa.Table:
     # No original formula field is silently default-filled with zero.
     present = SINGLE_FEEDBACK_FIELDS & set(frame.columns)
     if present - set(schema.names):
@@ -918,7 +1264,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
         _validate_single_feedback_schema(schema, required=True)
         if "ts_code" not in frame:
             raise QfqGateError("SINGLE_FEEDBACK_SYMBOL_UNBOUND:" + role)
-        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        target = frame.ts_code.astype(str).map(lambda code: research_code_in_scope(code, research_scope))
         if target.any() and present != SINGLE_FEEDBACK_FIELDS:
             raise QfqGateError("SINGLE_FEEDBACK_TARGET_FIELDS_MISSING:" + role)
         if target.any() and frame.loc[target, ["kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status"]].isna().any().any():
@@ -932,7 +1278,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
     if single_action_enabled:
         if not single_feedback_enabled or SINGLE_ACTION_FIELDS - set(schema.names):
             raise QfqGateError("SINGLE_ACTION_SCHEMA_MISSING:" + role)
-        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        target = frame.ts_code.astype(str).map(lambda code: research_code_in_scope(code, research_scope))
         required_action = {"kb_action_no_position_status", "kb_action_with_position_status", "kb_action_reasons", "kb_action_rule_sha256"}
         if target.any() and (present_action != SINGLE_ACTION_FIELDS or
                 frame.loc[target, sorted(required_action)].isna().any().any()):
@@ -948,7 +1294,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
     if single_yidong_enabled:
         if SINGLE_YIDONG_FIELDS - set(schema.names):
             raise QfqGateError("SINGLE_YIDONG_SCHEMA_MISSING:" + role)
-        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        target = frame.ts_code.astype(str).map(lambda code: research_code_in_scope(code, research_scope))
         required_yidong = {"kb_yidong_status", "kb_yidong_phase_status", "kb_yidong_rule_sha256"}
         if target.any() and (present_yidong != SINGLE_YIDONG_FIELDS or
                 frame.loc[target, sorted(required_yidong)].isna().any().any()):
@@ -966,7 +1312,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
             raise QfqGateError('SINGLE_GAP_SCHEMA_MISSING:' + role)
         if 'ts_code' not in frame:
             raise QfqGateError('SINGLE_GAP_SYMBOL_UNBOUND:' + role)
-        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        target = frame.ts_code.astype(str).map(lambda code: research_code_in_scope(code, research_scope))
         if target.any() and present_gap != SINGLE_GAP_FIELDS:
             raise QfqGateError('SINGLE_GAP_TARGET_FIELDS_MISSING:' + role)
         if present_gap and not target.all() and frame.loc[~target, sorted(present_gap)].notna().any().any():
@@ -1265,7 +1611,7 @@ def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, c
                         source_relocation_ref: dict | None = None) -> dict:
     if source_relocation_ref is not None:
         _source(source_relocation_ref, owner="generation source relocation")
-    return dict(input_sha256=canonical_sha(snapshot), driver_sha256=sha(driver_path), formula_sha256=sha(formula_path),
+    result = dict(input_sha256=canonical_sha(snapshot), driver_sha256=sha(driver_path), formula_sha256=sha(formula_path),
                 adapter_sha256=sha(Path(__file__)), input_adapter_sha256=sha(Path(__file__).with_name("research_panel_adjustment_inputs.py")),
                 factor_cache_sha256=sha(Path(__file__).with_name("research_panel_factor_cache.py")),
                 tdx_adapter_sha256=sha(Path(__file__).with_name("research_panel_tdx_adjustment_inputs.py")),
@@ -1280,6 +1626,12 @@ def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, c
                 single_yidong_authority_sha256=sha(Path(__file__).with_name("kb_yidong_authority.py")),
                 single_yidong_contract_sha256=yidong_rule_sha256(),
                 source_relocation_sha256=source_relocation_ref["sha256"] if source_relocation_ref else None)
+    if snapshot.get('lifecycle_additions'):
+        root = Path(__file__).resolve().parents[1]
+        result.update(lifecycle_authority_sha256=sha(root / 'ops/research_panel_lifecycle.py'),
+                      lifecycle_contract_sha256=sha(root / 'contracts/a_share_lifecycle_admission_v1.json'),
+                      lifecycle_additions_sha256=snapshot['lifecycle_additions']['sha256'])
+    return result
 
 
 def refresh_due(data_root: Path, target: int, max_age_hours: int = 6) -> bool:
@@ -2388,6 +2740,27 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
     if ref is None:
         return None
     value = json.loads(_source(ref, owner="archive addition contract").read_text())
+    if value.get('schema') == 'qfq_lifecycle_additions_v1':
+        from ops.research_panel_lifecycle import verify_snapshot
+        lifecycle = verify_snapshot(snapshot, target)
+        if (snapshot.get('lifecycle_additions') != ref or lifecycle['descriptor_ref'] != ref
+                or set(value.get('baseline_roles', {})) != set(pointers)
+                or snapshot.get('history_retention_binding') != retained_history):
+            raise QfqGateError('LIFECYCLE_BASELINE_OR_RETENTION_CONFLICT')
+        codes = value['symbols']
+        for role, pointer in pointers.items():
+            path = _source(value['baseline_roles'][role], owner='lifecycle original ' + role)
+            meta = panel_contract(path)
+            if (path != Path(pointer.read_text(encoding='utf-8-sig').strip())
+                    or meta.get('generation_id') != value['baseline_generation_id']
+                    or meta.get('input_sha256') != lifecycle['baseline_input_sha256']
+                    or meta.get('asof_date') != target or set(codes) & _panel_symbols(path)):
+                raise QfqGateError('LIFECYCLE_BASELINE_PANEL_CONFLICT:' + role)
+        return {**value, 'codes': codes, 'binding_ref': ref,
+                'lifecycle_verified': lifecycle,
+                'lifecycle_source_semantic_sha256': lifecycle['semantic_sha256'],
+                'lifecycle_frame_refs': lifecycle['frame_refs'],
+                'baseline_input_sha256': lifecycle['baseline_input_sha256']}
     codes = value.get("codes", {})
     if (value.get("schema") != "qfq_archive_only_history_additions_v1" or value.get("asof_date") != target
             or not isinstance(codes, dict) or not 1 <= len(codes) <= 8 or not retained_history
@@ -2495,15 +2868,53 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
     return {**value, "binding_ref": ref}
 
 
-def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
+def _bulk_feedback_projection(code: str, source_rows: list[dict]) -> list[dict]:
+    """Match J only when both established source gates have a usable value."""
+    if not research_code_in_scope(code, 'ADMITTED_A_SHARE'):
+        raise ValueError('SINGLE_STOCK_SCOPE_CONFLICT')
+    output = score_history(source_rows)
+    for source, row in zip(source_rows, output):
+        if 'kb_b1_j' not in source:
+            raise ValueError('BOUND_KB_J_MISSING')
+        existing = source['kb_b1_j']
+        if existing is not None and isinstance(existing, float) and math.isnan(existing):
+            existing = None
+        computed = row['kb_hold_j']
+        if existing is not None and computed is not None and existing != computed:
+            raise ValueError('BOUND_KB_J_MISMATCH')
+        if existing is None and computed is not None:
+            # B1 has additional volume/previous-close gates. Do not expose a
+            # score based on an unavailable bound J field as a confirmed fact.
+            row['kb_hold_j_not_dead'] = None
+            row['kb_hold_j_not_dead_reason'] = 'BOUND_KB_J_UNAVAILABLE'
+            values = [row[name] for name in COMPONENTS]
+            lower = sum(value is True for value in values)
+            unknown = sum(value is None for value in values)
+            row.update(kb_hold_score=lower if unknown == 0 else None, kb_hold_score_min=lower,
+                       kb_hold_score_max=lower + unknown,
+                       kb_hold_score_status='COMPLETE' if unknown == 0 else 'PARTIAL_UNKNOWN')
+        del row['kb_hold_j']
+        for name in SUPPLEMENTAL_REASONS:
+            row[name] = None
+    return output
+
+
+def _single_feedback_daily(code: str, computed: pd.DataFrame, n_rows=None, *, scope='REGISTERED') -> pd.DataFrame:
     """Append the separately bound single-stock fields on this QFQ prefix."""
-    if code not in SINGLE_STOCKS:
+    if not research_code_in_scope(code, scope):
         return computed
     required = ["trade_date", "open", "high", "low", "close", "volume", "kb_b1_j"]
     if any(name not in computed for name in required):
         raise QfqGateError("SINGLE_FEEDBACK_PREFIX_MISSING_FIELDS")
     try:
-        projected = project_single_history(code, computed[required].to_dict("records"))
+        source_rows = computed[required].to_dict("records")
+        projected = (_bulk_feedback_projection(code, source_rows) if scope == 'ADMITTED_A_SHARE' else
+                     project_single_history(code, source_rows, scope=scope))
+        if n_rows is not None:
+            identities = _n_sha256s()
+            projected = apply_n_score(code, source_rows, projected, n_rows,
+                rule_sha256=identities['n_structure_contract_sha256'],
+                helper_sha256=identities['n_structure_helper_sha256'], scope=scope)
     except ValueError as exc:
         raise QfqGateError("SINGLE_FEEDBACK_PREFIX_CONFLICT:" + str(exc)) from exc
     if not projected or set(projected[0]) != SINGLE_FEEDBACK_FIELDS:
@@ -2514,8 +2925,26 @@ def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
-def _single_action_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
-    if code not in SINGLE_STOCKS:
+def _single_n_daily(code: str, computed: pd.DataFrame, identity: dict, generation_id: str, *, scope='REGISTERED'):
+    """Calculate only a registered affected stock on its complete bound prefix."""
+    if not research_code_in_scope(code, scope) or any(k not in computed for k in ('trade_date', 'high', 'low', 'close')):
+        raise QfqGateError('SINGLE_N_PREFIX_MISSING:' + code)
+    hashes = _n_sha256s()
+    if any(identity.get(k) != v for k, v in hashes.items()):
+        raise QfqGateError('SINGLE_N_SOURCE_IDENTITY_CONFLICT:' + code)
+    source_identity = dict(generation_id=generation_id, input_sha256=identity['input_sha256'],
+        rule_sha256=hashes['n_structure_contract_sha256'], helper_sha256=hashes['n_structure_helper_sha256'],
+        calendar_sha256=identity.get('confirmed_gap_calendar_sha256'), price_basis_sha256=None,
+        price_basis='QFQ_ASOF')
+    try:
+        return project_n_history(code, computed[['trade_date', 'high', 'low', 'close']].to_dict('records'),
+                                 identity=source_identity)
+    except ValueError as exc:
+        raise QfqGateError('SINGLE_N_PREFIX_CONFLICT:' + code + ':' + str(exc)) from exc
+
+
+def _single_action_daily(code: str, computed: pd.DataFrame, *, scope='REGISTERED') -> pd.DataFrame:
+    if not research_code_in_scope(code, scope):
         return computed
     missing = SINGLE_ACTION_INPUTS - set(computed.columns)
     if missing:
@@ -2528,8 +2957,8 @@ def _single_action_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
-def _single_yidong_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
-    if code not in SINGLE_STOCKS:
+def _single_yidong_daily(code: str, computed: pd.DataFrame, *, scope='REGISTERED') -> pd.DataFrame:
+    if not research_code_in_scope(code, scope):
         return computed
     missing = SINGLE_YIDONG_INPUTS - set(computed.columns)
     if missing:
@@ -2544,7 +2973,56 @@ def _single_yidong_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
-def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_root: Path, fingerprint: str, generation_id: str):
+def _bulk_gap_strict_input_frame(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Mark component inputs unavailable without changing persisted 57 labels.
+
+    The 57-field signal permits some finite nonpositive adjusted prices that
+    the separately confirmed component helper rejects. Only that helper's
+    temporary input is masked; original values and provenance stay intact.
+    """
+    from ops import kb_confirmed_gap as gap
+    missing = set(gap.INPUTS) - set(frame.columns)
+    if missing:
+        raise ValueError('CONFIRMED_GAP_INPUT_MISSING:' + ','.join(sorted(missing)))
+    rows = frame[list(gap.INPUTS)].to_dict('records')
+    bad = [[0] for _ in range(5)]
+    closes = []
+    for row in rows:
+        op, hi, lo, close, vol, prev, pct = (gap._num(row[k]) for k in
+            ('open', 'high', 'low', 'close', 'vol', 'pre_close', 'pct_chg'))
+        valid_close = close is not None and close > 0
+        valid_hlc = valid_close and hi is not None and lo is not None and 0 < lo <= close <= hi
+        valid_ohlc = valid_hlc and op is not None and lo <= op <= hi
+        valid_vol = vol is not None and vol > 0
+        valid_pct = valid_close and prev is not None and prev > 0 and pct is not None
+        if valid_pct:
+            valid_pct = abs((close / prev - 1) * 100 - pct) <= 0.02
+            if closes and closes[-1] is not None:
+                valid_pct = valid_pct and abs(prev - closes[-1]) <= max(1e-6, abs(closes[-1]) * 1e-5)
+        closes.append(close if valid_close else None)
+        for index, valid in enumerate((valid_close, valid_hlc, valid_ohlc, valid_vol, valid_pct)):
+            bad[index].append(bad[index][-1] + (not valid))
+    def ok(kind, start, end):
+        return start >= 0 and bad[kind][start] == bad[kind][end]
+    masked = {'kb_double_gun': 0, 'kb_violence_k': 0}
+    proxy = frame.copy()
+    replacements = {name: [] for name in masked}
+    for i, row in enumerate(rows):
+        n = i + 1
+        gun_valid = n >= 24 and ok(1, 0, n) and ok(2, n-24, n) and ok(3, n-24, n) and ok(4, n-23, n)
+        violence_valid = n >= 21 and ok(2, n-21, n) and ok(3, n-6, n) and ok(4, n-6, n)
+        for name, valid in (('kb_double_gun', gun_valid), ('kb_violence_k', violence_valid)):
+            value = gap._tri(row[name])
+            if value is not None and not valid:
+                value = None
+                masked[name] += 1
+            replacements[name].append(value)
+    for name, values in replacements.items():
+        proxy[name] = values
+    return proxy, masked
+
+
+def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_root: Path, fingerprint: str, generation_id: str, n_rows=None):
     """Write the selected stock's eight values and a separately bound sidecar."""
     if bool(identity.get('confirmed_gap_calendar_sha256')) != bool(identity.get('confirmed_gap_calendar_ref')):
         raise QfqGateError('SINGLE_GAP_CALENDAR_REFERENCE_INCOMPLETE:' + code)
@@ -2585,17 +3063,44 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
         if 'volume' not in panel.column_names or 'vol' not in backtest.column_names or not panel['volume'].equals(backtest['vol']):
             raise QfqGateError('SINGLE_GAP_REUSE_ROLE_VALUES_CONFLICT:' + code + ':volume')
         prior = panel.to_pandas().rename(columns={'volume':'vol'})
-        previous = {'frame':prior, 'sidecar':sidecar.to_pylist(), 'metadata':metadata}
+        sidecar_rows = sidecar.to_pylist()
+        if metadata.get('n_structure_enabled') is True:
+            if any(metadata.get(k) != v for k, v in _n_sha256s().items()):
+                raise QfqGateError('SINGLE_N_REUSED_SIDECAR_IDENTITY_CONFLICT:' + code)
+            for row in sidecar_rows:
+                diagnostics = json.loads(row['diagnostics_json'])
+                n = diagnostics.pop('kb_n_structure', None)
+                if (not isinstance(n, dict) or n.get('rule_sha256') != metadata['n_structure_contract_sha256']
+                        or n.get('helper_sha256') != metadata['n_structure_helper_sha256']):
+                    raise QfqGateError('SINGLE_N_REUSED_SIDECAR_VALUE_CONFLICT:' + code)
+                row['diagnostics_json'] = json.dumps(diagnostics, sort_keys=True, separators=(',', ':'))
+        previous = {'frame':prior, 'sidecar':sidecar_rows, 'metadata':metadata}
     calculation = computed.rename(columns={'volume':'vol'}) if 'vol' not in computed.columns and 'volume' in computed.columns else computed
     try:
-        projected, prefix_hashes, counts = project_gap_with_reuse(calculation, prior=previous,
+        masked = None
+        gap_input = calculation
+        if _research_scope(identity) == 'ADMITTED_A_SHARE':
+            gap_input, masked = _bulk_gap_strict_input_frame(calculation)
+            if previous is not None and any(masked.values()):
+                raise ValueError('BULK_GAP_MASKED_CROSS_GENERATION_REUSE_UNSUPPORTED')
+        projected, prefix_hashes, counts = project_gap_with_reuse(gap_input, prior=previous,
             calendar_sha256=identity.get('confirmed_gap_calendar_sha256'))
+        if masked is not None:
+            # Bind diagnostics to the real original labels, not the temporary
+            # missing-value projection passed to the stricter component gate.
+            prefix_hashes = gap_prefix_hashes(calculation)
+            counts['stricter_component_input_unavailable'] = masked
     except (ValueError, KeyError) as exc:
         raise QfqGateError('SINGLE_GAP_PROJECTION_CONFLICT:' + code + ':' + str(exc)) from exc
     output = computed.copy()
     for name in sorted(SINGLE_GAP_FIELDS | {'kb_rebuild'}):
         output[name] = [projected[i][0][name] for i in range(len(output))]
-    records = [json.dumps(projected[i][1], ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    if n_rows is not None and (len(n_rows) != len(output) or any(
+            row.get('ts_code') != code or str(row.get('trade_date')) != str(output.trade_date.iloc[i])
+            for i, row in enumerate(n_rows))):
+        raise QfqGateError('SINGLE_N_SIDECAR_KEY_CONFLICT:' + code)
+    records = [json.dumps({**projected[i][1], **({'kb_n_structure': n_rows[i]['kb_n_structure']} if n_rows is not None else {})},
+                          ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
                for i in range(len(output))]
     table = pa.table({'ts_code':pa.array([code]*len(output), type=pa.string()),
                       'trade_date':pa.array([str(x) for x in output.trade_date], type=pa.string()),
@@ -2605,7 +3110,13 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
         source_input_sha256=identity['input_sha256'], freeze_snapshot_sha256=identity['confirmed_gap_snapshot_file_sha256'],
         confirmed_gap_contract_sha256=gap_rule_sha256(), helper_sha256=gap_helper_sha256s(),
         calendar_sha256=identity.get('confirmed_gap_calendar_sha256'), calendar_status=counts['calendar_status'],
-        price_basis='QFQ_ASOF', volume_basis='QFQ_EVENT_VOLUME', diagnostic_keys=list(SINGLE_GAP_DIAGNOSTICS), **FLAGS)
+        price_basis='QFQ_ASOF', volume_basis='QFQ_EVENT_VOLUME',
+        diagnostic_keys=list(SINGLE_GAP_DIAGNOSTICS) + (['kb_n_structure'] if n_rows is not None else []), **FLAGS)
+    if masked is not None:
+        metadata.update(stricter_component_input_unavailable=masked,
+                        prefix_hash_basis='ORIGINAL_UNMASKED_57_LABELS')
+    if n_rows is not None:
+        metadata.update(n_structure_enabled=True, **_n_sha256s())
     table = table.replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(metadata, sort_keys=True).encode()})
     destination = parts_root / (code + '.gap_diagnostics.parquet')
     temporary = destination.with_suffix('.pending')
@@ -2615,9 +3126,23 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
                     'checkpoint_id':fingerprint, **counts}
 
 
-def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driver, single_feedback_enabled=False, confirmed_gap_generation_id=None):
+def _research_scope(identity: dict) -> str:
+    scope = identity.get('research_scope', 'REGISTERED')
+    if scope not in ('REGISTERED', 'ADMITTED_A_SHARE'):
+        raise QfqGateError('RESEARCH_SCOPE_INVALID')
+    if scope == 'ADMITTED_A_SHARE':
+        contract = Path(__file__).resolve().parents[1] / 'contracts/a_share_kb_full_research_v1.json'
+        if identity.get('full_research_contract_sha256') != sha(contract):
+            raise QfqGateError('FULL_RESEARCH_CONTRACT_IDENTITY_CONFLICT')
+    return scope
+
+
+def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driver, single_feedback_enabled=False,
+                       confirmed_gap_generation_id=None, *, prepared_frame=None):
     if (identity.get("single_feedback_enabled") is True) != single_feedback_enabled:
         raise QfqGateError("SINGLE_FEEDBACK_CHECKPOINT_MODE_CONFLICT:" + code)
+    scope = _research_scope(identity)
+    in_scope = research_code_in_scope(code, scope)
     checkpoint = parts_root / (code + ".parquet")
     checkpoint_receipt = parts_root / (code + ".receipt.json")
     fingerprint = canonical_sha(dict(code=code, item=item, **identity))
@@ -2625,7 +3150,7 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
         check = panel_contract(checkpoint)
         bound = json.loads(checkpoint_receipt.read_text())
         if check.get("checkpoint_id") == fingerprint and bound.get("sha256") == sha(checkpoint):
-            if identity.get('confirmed_gap_enabled') is True and code in SINGLE_STOCKS:
+            if identity.get('confirmed_gap_enabled') is True and in_scope:
                 sidecar = bound.get('confirmed_gap_sidecar')
                 if not sidecar or sidecar.get('checkpoint_id') != fingerprint:
                     raise QfqGateError('SINGLE_GAP_CHECKPOINT_SIDECAR_MISSING:' + code)
@@ -2636,17 +3161,54 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
                         or metadata.get('helper_sha256') != gap_helper_sha256s()
                         or metadata.get('freeze_snapshot_sha256') != identity.get('confirmed_gap_snapshot_file_sha256')):
                     raise QfqGateError('SINGLE_GAP_CHECKPOINT_IDENTITY_CONFLICT:' + code)
+                if identity.get('n_structure_enabled') is True:
+                    saved_n = bound.get('n_structure_checkpoint')
+                    if not saved_n or saved_n.get('checkpoint_id') != fingerprint:
+                        raise QfqGateError('SINGLE_N_CHECKPOINT_MISSING:' + code)
+                    n_checkpoint = json.loads(_source(saved_n, owner='N structure checkpoint').read_text())
+                    expected = _n_sha256s()
+                    if (metadata.get('n_structure_enabled') is not True
+                            or any(metadata.get(k) != v for k, v in expected.items())
+                            or n_checkpoint.get('symbol') != code
+                            or n_checkpoint.get('identity', {}).get('generation_id') != confirmed_gap_generation_id
+                            or n_checkpoint.get('identity', {}).get('input_sha256') != identity['input_sha256']
+                            or n_checkpoint.get('identity', {}).get('rule_sha256') != expected['n_structure_contract_sha256']
+                            or n_checkpoint.get('identity', {}).get('helper_sha256') != expected['n_structure_helper_sha256']):
+                        raise QfqGateError('SINGLE_N_CHECKPOINT_IDENTITY_CONFLICT:' + code)
             return code, checkpoint
-    if code in recovered:
+    if prepared_frame is not None:
+        if recovered or set(prepared_frame.ts_code.astype(str)) != {code}:
+            raise QfqGateError('PREPARED_FRAME_IDENTITY_CONFLICT:' + code)
+        computed = prepared_frame.copy()
+    elif code in recovered:
         ref = recovered[code]["artifact"]
         computed = pq.read_table(_source(ref, owner="reused pure computation " + code)).to_pandas()
         if set(computed.ts_code.astype(str)) != {code}:
             raise QfqGateError("CHECKPOINT_RECOVERY_ROW_CODE_CONFLICT:" + code)
+    elif code in identity.get('lifecycle_frame_refs', {}):
+        if not identity.get('lifecycle_additions_sha256') or not identity.get('lifecycle_source_semantic_sha256'):
+            raise QfqGateError('LIFECYCLE_FRAME_IDENTITY_UNBOUND:' + code)
+        frame = pq.read_table(_source(identity['lifecycle_frame_refs'][code],
+                                     owner='lifecycle verified formula frame ' + code)).to_pandas()
+        if (set(frame.ts_code.astype(str)) != {code} or frame.empty
+                or int(frame.trade_date.iloc[0]) != item['history_start_date']
+                or int(frame.trade_date.iloc[-1]) != target or frame.trade_date.duplicated().any()):
+            raise QfqGateError('LIFECYCLE_FRAME_PREFIX_CONFLICT:' + code)
+        # Original QFQ/formula values were verified from the exact same raw
+        # rows and events; only the newly authorized KB fields are computed.
+        computed = append_kb_signals(frame)
     else:
         computed = rebuild_symbol(code, item, target, driver)
+    n_rows = n_checkpoint = None
+    if identity.get('n_structure_enabled') is True and in_scope:
+        if not single_feedback_enabled or identity.get('confirmed_gap_enabled') is not True:
+            raise QfqGateError('SINGLE_N_REQUIRES_FEEDBACK_AND_GAP:' + code)
+        if not isinstance(confirmed_gap_generation_id, str) or not re.fullmatch('[0-9a-f]{64}', confirmed_gap_generation_id):
+            raise QfqGateError('SINGLE_N_GENERATION_ID_MISSING:' + code)
+        n_rows, n_checkpoint = _single_n_daily(code, computed, identity, confirmed_gap_generation_id, scope=scope)
     if single_feedback_enabled:
-        if code in SINGLE_STOCKS:
-            computed = _single_feedback_daily(code, computed)
+        if in_scope:
+            computed = _single_feedback_daily(code, computed, n_rows, scope=scope)
         else:
             computed = computed.copy()
             for name in SINGLE_FEEDBACK_FIELDS:
@@ -2656,8 +3218,8 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     if identity.get("single_action_enabled") is True:
         if not single_feedback_enabled:
             raise QfqGateError("SINGLE_ACTION_REQUIRES_FEEDBACK:" + code)
-        if code in SINGLE_STOCKS:
-            computed = _single_action_daily(code, computed)
+        if in_scope:
+            computed = _single_action_daily(code, computed, scope=scope)
         else:
             computed = computed.copy()
             for name in SINGLE_ACTION_FIELDS:
@@ -2665,8 +3227,8 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     elif SINGLE_ACTION_FIELDS & set(computed.columns):
         raise QfqGateError("SINGLE_ACTION_DISABLED_WITH_COMPUTED_FIELDS:" + code)
     if identity.get("single_yidong_enabled") is True:
-        if code in SINGLE_STOCKS:
-            computed = _single_yidong_daily(code, computed)
+        if in_scope:
+            computed = _single_yidong_daily(code, computed, scope=scope)
         else:
             computed = computed.copy()
             for name in SINGLE_YIDONG_FIELDS:
@@ -2677,10 +3239,10 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     if identity.get('confirmed_gap_enabled') is True:
         if not identity.get('single_yidong_enabled'):
             raise QfqGateError('SINGLE_GAP_REQUIRES_YIDONG:' + code)
-        if code in SINGLE_STOCKS:
+        if in_scope:
             if not isinstance(confirmed_gap_generation_id,str) or not re.fullmatch('[0-9a-f]{64}',confirmed_gap_generation_id):
                 raise QfqGateError('SINGLE_GAP_GENERATION_ID_MISSING:' + code)
-            computed, gap_sidecar = _single_gap_daily(code, computed, identity, parts_root, fingerprint, confirmed_gap_generation_id)
+            computed, gap_sidecar = _single_gap_daily(code, computed, identity, parts_root, fingerprint, confirmed_gap_generation_id, n_rows)
         else:
             computed = computed.copy()
             for name in SINGLE_GAP_FIELDS:
@@ -2692,7 +3254,13 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     temporary = checkpoint.with_suffix(".pending")
     pq.write_table(table, temporary, compression="zstd")
     os.replace(temporary, checkpoint)
-    _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint), confirmed_gap_sidecar=gap_sidecar))
+    n_ref = None
+    if n_checkpoint is not None:
+        n_path = parts_root / (code + '.n_structure.checkpoint.json')
+        _json(n_path, n_checkpoint)
+        n_ref = dict(path=str(n_path), sha256=sha(n_path), checkpoint_id=fingerprint)
+    _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint), confirmed_gap_sidecar=gap_sidecar,
+                                   n_structure_checkpoint=n_ref))
     return code, checkpoint
 
 _PROCESS_DRIVER = None
@@ -2741,14 +3309,164 @@ def _kb_retained_history_starts(snapshot: dict) -> dict[str, int]:
     return starts
 
 
-def _kb_seed_checkpoint(code, source, item, expected_start, target, identity, baseline, parts_root, driver):
+def _materialized_reuse_checkpoint(code, source, item, expected_start, target, identity, baseline,
+                                   parts_root, generation_id, candidate_ref):
+    """Copy an already verified same-prefix result, without running its rules."""
+    if not isinstance(generation_id, str) or not re.fullmatch('[0-9a-f]{64}', generation_id):
+        raise QfqGateError('FULL_RESEARCH_GENERATION_ID_MISSING:' + code)
+    if int(source.trade_date.iloc[0]) != expected_start:
+        raise QfqGateError('FULL_RESEARCH_REUSE_PREFIX_INCOMPLETE:' + code)
+    candidate = json.loads(_source(candidate_ref, owner='materialized reuse checkpoint candidate').read_text())
+    old_id = candidate['candidate_identity']
+    source_input_sha = identity.get('materialized_reuse_source_input_sha256', identity.get('input_sha256'))
+    source_snapshot_sha = identity.get('materialized_reuse_source_snapshot_sha256',
+                                       identity.get('confirmed_gap_snapshot_file_sha256'))
+    if (old_id.get('symbol') != code or candidate.get('candidate_generation') != canonical_sha(old_id)
+            or old_id.get('source_generation') != identity.get('materialized_reuse_source_generation')
+            or old_id.get('source_input_sha256') != source_input_sha
+            or old_id.get('baseline_panel_sha256') != baseline):
+        raise QfqGateError('FULL_RESEARCH_REUSE_CANDIDATE_IDENTITY_CONFLICT:' + code)
+    fingerprint = canonical_sha(dict(kind='FULL_MATERIALIZED_REUSE_V1', code=code, candidate=candidate_ref,
+                                     item=item, expected_start=expected_start, baseline=baseline, **identity))
+    root = Path(parts_root); path = root / (code + '.parquet'); receipt = root / (code + '.receipt.json')
+    if path.exists() != receipt.exists():
+        raise QfqGateError('FULL_RESEARCH_INCOMPLETE_CHECKPOINT:' + code)
+    resuming = path.exists()
+    if resuming:
+        saved = json.loads(receipt.read_text())
+        side = saved.get('confirmed_gap_sidecar'); n_ref = saved.get('n_structure_checkpoint')
+        if (saved.get('checkpoint_id') != fingerprint or saved.get('sha256') != sha(path)
+                or panel_contract(path).get('checkpoint_id') != fingerprint or not side or not n_ref
+                or n_ref.get('resume_across_generation') is not False):
+            raise QfqGateError('FULL_RESEARCH_IMMUTABLE_CHECKPOINT_CONFLICT:' + code)
+        saved_side = pq.read_schema(_source(side, owner='reused materialized sidecar'))
+        side_meta = json.loads((saved_side.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+        if side_meta.get('checkpoint_id') != fingerprint or side_meta.get('generation_id') != generation_id:
+            raise QfqGateError('FULL_RESEARCH_REUSE_SIDECAR_IDENTITY_CONFLICT:' + code)
+        _source(n_ref, owner='nonresumable original N checkpoint')
+    roles = {role: pq.read_table(_source(candidate['outputs'][role], owner='materialized reuse ' + role))
+             for role in ('selector', 'backtest')}
+    fields = KB_FIELDS | SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS | SINGLE_GAP_FIELDS
+    def same(left, right):
+        if left.type != right.type or len(left) != len(right):
+            return False
+        for a, b in zip(left.to_pylist(), right.to_pylist()):
+            if isinstance(a, float) and isinstance(b, float) and math.isnan(a) and math.isnan(b):
+                continue
+            if a != b:
+                return False
+        return True
+    dates = [int(x) for x in source.trade_date]
+    aliases = {'selector': {'vol':'volume'}, 'backtest': {'vol':'vol'}}
+    columns = ['open', 'high', 'low', 'close', 'vol', 'pre_close', 'pct_chg',
+               'ma60', 'zge_yellow_line', 'user_v1_sell_signal_daily']
+    source_types = source.attrs.get('full_research_input_types', {})
+    for role, table in roles.items():
+        metadata = json.loads((table.schema.metadata or {}).get(b'kb_single_candidate_v1', b'{}'))
+        if (metadata.get('candidate_generation') != candidate['candidate_generation']
+                or metadata.get('source_generation') != identity['materialized_reuse_source_generation']
+                or metadata.get('source_input_sha256') != source_input_sha
+                or set(table['ts_code'].to_pylist()) != {code}
+                or [int(x) for x in table['trade_date'].to_pylist()] != dates
+                or not fields.issubset(table.column_names)):
+            raise QfqGateError('FULL_RESEARCH_REUSE_ROLE_IDENTITY_CONFLICT:' + code + ':' + role)
+        for column in columns:
+            name = aliases[role].get(column, column); arr = table[name]
+            valid = source.get('__valid__' + column)
+            if (valid is None or str(arr.type) != source_types.get(column)
+                    or arr.is_valid().to_pylist() != valid.tolist()):
+                raise QfqGateError('FULL_RESEARCH_REUSE_INPUT_TYPE_OR_NULL_CONFLICT:' + code + ':' + column)
+            expected = pd.to_numeric(source[column], errors='coerce').to_numpy(dtype=float)
+            actual = pd.to_numeric(pd.Series(arr.to_pylist()), errors='coerce').to_numpy(dtype=float)
+            if not np.array_equal(expected, actual, equal_nan=True):
+                raise QfqGateError('FULL_RESEARCH_REUSE_INPUT_VALUE_CONFLICT:' + code + ':' + column)
+    for name in fields:
+        if not same(roles['selector'][name], roles['backtest'][name]):
+            raise QfqGateError('FULL_RESEARCH_REUSE_ROLE_VALUE_CONFLICT:' + code + ':' + name)
+    table = roles['selector']
+    for name in SUPPLEMENTAL_REASONS:
+        if table[name].null_count != len(table):
+            raise QfqGateError('FULL_RESEARCH_REUSE_SUPPLEMENTAL_NOT_UNKNOWN:' + code + ':' + name)
+    for name, old_sha, new_sha in (
+            ('kb_action_rule_sha256', old_id['action_contract_sha256'], action_rule_sha256()),
+            ('kb_yidong_rule_sha256', old_id['yidong_contract_sha256'], yidong_rule_sha256())):
+        if set(table[name].to_pylist()) != {old_sha}:
+            raise QfqGateError('FULL_RESEARCH_REUSE_RULE_IDENTITY_CONFLICT:' + code + ':' + name)
+        index = table.schema.get_field_index(name)
+        table = table.set_column(index, table.schema.field(name), pa.array([new_sha] * len(table), type=table[name].type))
+    side = pq.read_table(_source(candidate['confirmed_gap']['diagnostics'], owner='materialized reuse diagnostics'))
+    side_meta = json.loads((side.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+    n_hashes = _n_sha256s()
+    if (side.column_names != ['ts_code', 'trade_date', 'diagnostics_json', 'prefix_input_sha256']
+            or side_meta.get('candidate_generation') != candidate['candidate_generation']
+            or side_meta.get('symbol') != code or side_meta.get('source_input_sha256') != source_input_sha
+            or side_meta.get('freeze_snapshot_sha256') != source_snapshot_sha
+            or side_meta.get('confirmed_gap_contract_sha256') != gap_rule_sha256()
+            or side_meta.get('price_basis') != 'QFQ_ASOF' or side_meta.get('volume_basis') != 'QFQ_EVENT_VOLUME'
+            or side_meta.get('calendar_sha256') is not None
+            or any(side_meta.get(k) != v for k, v in n_hashes.items())
+            or side['ts_code'].to_pylist() != [code] * len(dates)
+            or [int(x) for x in side['trade_date'].to_pylist()] != dates):
+        raise QfqGateError('FULL_RESEARCH_REUSE_SIDECAR_CONFLICT:' + code)
+    prior_frame = roles['selector'].to_pandas().rename(columns={'volume':'vol'})
+    if side['prefix_input_sha256'].to_pylist() != gap_prefix_hashes(prior_frame):
+        raise QfqGateError('FULL_RESEARCH_REUSE_PREFIX_HASH_CONFLICT:' + code)
+    for row, trend, reason in zip(side['diagnostics_json'].to_pylist(),
+                                  table['kb_hold_trend_up'].to_pylist(), table['kb_hold_trend_up_reason'].to_pylist()):
+        diagnostics = json.loads(row); structure = diagnostics.get('kb_n_structure')
+        if (set(diagnostics) != set(SINGLE_GAP_DIAGNOSTICS) | {'kb_n_structure'}
+                or not isinstance(structure, dict)
+                or structure.get('rule_sha256') != n_hashes['n_structure_contract_sha256']
+                or structure.get('helper_sha256') != n_hashes['n_structure_helper_sha256']
+                or structure.get('state') != ('TREND_UP' if trend is True else reason)):
+            raise QfqGateError('FULL_RESEARCH_REUSE_N_DIAGNOSTICS_CONFLICT:' + code)
+    n_ref = candidate['n_structure']['checkpoint']
+    n = json.loads(_source(n_ref, owner='materialized reuse original N checkpoint').read_text())
+    if (n.get('symbol') != code or n.get('identity', {}).get('generation_id') != identity['materialized_reuse_source_generation']
+            or n.get('identity', {}).get('input_sha256') != source_input_sha
+            or n.get('identity', {}).get('rule_sha256') != n_hashes['n_structure_contract_sha256']
+            or n.get('identity', {}).get('helper_sha256') != n_hashes['n_structure_helper_sha256']
+            or n.get('identity', {}).get('price_basis') != 'QFQ_ASOF'
+            or n.get('identity', {}).get('calendar_sha256') is not None
+            or n.get('identity', {}).get('price_basis_sha256') is not None):
+        raise QfqGateError('FULL_RESEARCH_REUSE_N_CHECKPOINT_CONFLICT:' + code)
+    if resuming:
+        return code
+    side_meta.pop('candidate_generation', None)
+    side_meta.update(generation_id=generation_id, checkpoint_id=fingerprint,
+                     source_input_sha256=identity['input_sha256'], materialized_source_input_sha256=source_input_sha,
+                     freeze_snapshot_sha256=identity['confirmed_gap_snapshot_file_sha256'],
+                     materialized_source_snapshot_sha256=source_snapshot_sha,
+                     materialized_source_candidate_generation=candidate['candidate_generation'],
+                     n_checkpoint_resume_across_generation=False)
+    side = side.replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(side_meta, sort_keys=True).encode()})
+    side_path = root / (code + '.gap_diagnostics.parquet'); pending = side_path.with_suffix('.pending')
+    pq.write_table(side, pending, compression='zstd')
+    if side_path.exists() and sha(side_path) != sha(pending):
+        raise QfqGateError('FULL_RESEARCH_REUSE_SIDECAR_IMMUTABLE_CONFLICT:' + code)
+    os.replace(pending, side_path)
+    output = table.select(['trade_date'] + sorted(fields)).replace_schema_metadata(
+        {META_KEY:json.dumps(dict(checkpoint_id=fingerprint, prefix_provenance='EXACT_BOUND_MATERIALIZED_REUSE')).encode()})
+    pending = path.with_suffix('.pending'); pq.write_table(output, pending, compression='zstd'); os.replace(pending, path)
+    _json(receipt, dict(checkpoint_id=fingerprint, sha256=sha(path), rows=len(output),
+        provenance='EXACT_BOUND_MATERIALIZED_REUSE', source_candidate=candidate_ref,
+        rebound_rule_fields=['kb_action_rule_sha256', 'kb_yidong_rule_sha256'],
+        confirmed_gap_sidecar=dict(path=str(side_path), sha256=sha(side_path), rows=len(side), checkpoint_id=fingerprint),
+        n_structure_checkpoint={**n_ref, 'source_generation':identity['materialized_reuse_source_generation'],
+                                'resume_across_generation':False}))
+    return code
+
+
+def _kb_seed_checkpoint(code, source, item, expected_start, target, identity, baseline, parts_root, driver,
+                        generation_id=None):
     """Use the admitted old A rows; recover only a demonstrably missing prefix."""
     root = Path(parts_root)
     path = root / (code + ".parquet")
     receipt = root / (code + ".receipt.json")
     fingerprint = canonical_sha(dict(kind="KB_EXISTING_A_ROWS_V1", code=code,
         baseline_panel_sha256=baseline, expected_start=expected_start, **identity))
-    if path.is_file() and receipt.is_file():
+    scope = _research_scope(identity)
+    if scope == 'REGISTERED' and path.is_file() and receipt.is_file():
         recorded = json.loads(receipt.read_text())
         if (recorded.get("checkpoint_id") == fingerprint and recorded.get("sha256") == sha(path)
                 and panel_contract(path).get("checkpoint_id") == fingerprint):
@@ -2759,6 +3477,28 @@ def _kb_seed_checkpoint(code, source, item, expected_start, target, identity, ba
     first = int(source.trade_date.iloc[0])
     if first < expected_start:
         raise QfqGateError("KB_PANEL_PRECEDES_BOUND_INPUT:" + code)
+    reuse_ref = identity.get('materialized_reuse_refs', {}).get(code) if scope == 'ADMITTED_A_SHARE' else None
+    if reuse_ref is not None:
+        return _materialized_reuse_checkpoint(code, source, item, expected_start, target, identity, baseline,
+                                              root, generation_id, reuse_ref)
+    if scope == 'ADMITTED_A_SHARE':
+        source = source.drop(columns=[name for name in source if name.startswith('__valid__')])
+    if scope == 'ADMITTED_A_SHARE' and (path.exists() or receipt.exists()):
+        if path.exists() != receipt.exists():
+            raise QfqGateError('FULL_RESEARCH_INCOMPLETE_CHECKPOINT:' + code)
+        provenance = ('ADMITTED_PANEL_FULL_OBSERVED_PREFIX' if first == expected_start
+                      else 'BOUND_RAW_PREFIX_AND_PANEL_OVERLAP_EXACT')
+        bound = dict(identity, seed_baseline_panel_sha256=baseline, seed_expected_start=expected_start,
+                     seed_prefix_provenance=provenance)
+        expected = canonical_sha(dict(code=code, item=item, **bound))
+        saved = json.loads(receipt.read_text())
+        if saved.get('checkpoint_id') != expected or saved.get('sha256') != sha(path):
+            raise QfqGateError('FULL_RESEARCH_IMMUTABLE_CHECKPOINT_CONFLICT:' + code)
+        # The existing owner verifies checkpoint, sidecar and N identity before
+        # returning; do not recompute 57 already checkpointed labels on resume.
+        _symbol_checkpoint(code, item, target, bound, root, {}, driver, True, generation_id,
+                           prepared_frame=source)
+        return code
     if first == expected_start:
         computed = append_kb_signals(source)
         provenance = "ADMITTED_PANEL_FULL_OBSERVED_PREFIX"
@@ -2772,13 +3512,36 @@ def _kb_seed_checkpoint(code, source, item, expected_start, target, identity, ba
         fresh = rebuilt.set_index("trade_date")
         if int(rebuilt.trade_date.iloc[0]) != expected_start or not set(old.index).issubset(fresh.index):
             raise QfqGateError("KB_BOUND_PREFIX_NOT_AVAILABLE:" + code)
-        for col in ("open", "high", "low", "close", "vol", "pre_close", "pct_chg"):
+        columns = ["open", "high", "low", "close", "vol", "pre_close", "pct_chg"]
+        if scope == 'ADMITTED_A_SHARE':
+            columns += ['ma60', 'zge_yellow_line', 'user_v1_sell_signal_daily']
+        for col in columns:
             left = pd.to_numeric(old[col], errors="coerce").to_numpy(dtype=float)
             right = pd.to_numeric(fresh.loc[old.index, col], errors="coerce").to_numpy(dtype=float)
             if not np.array_equal(left, right, equal_nan=True):
                 raise QfqGateError("KB_BOUND_PREFIX_PANEL_CONFLICT:" + code + ":" + col)
-        computed = rebuilt.loc[rebuilt.trade_date.isin(source.trade_date)].copy()
+        computed = rebuilt if scope == 'ADMITTED_A_SHARE' else rebuilt.loc[rebuilt.trade_date.isin(source.trade_date)].copy()
         provenance = "BOUND_RAW_PREFIX_AND_PANEL_OVERLAP_EXACT"
+    if scope == 'ADMITTED_A_SHARE':
+        if not isinstance(generation_id, str) or not re.fullmatch('[0-9a-f]{64}', generation_id):
+            raise QfqGateError('FULL_RESEARCH_GENERATION_ID_MISSING:' + code)
+        # These bytes came from the same validated QFQ prefix; `volume` is the
+        # selector alias of the shared `vol` input, not a new market source.
+        if 'volume' not in computed:
+            computed = computed.copy()
+            computed['volume'] = computed['vol']
+        bound = dict(identity, seed_baseline_panel_sha256=baseline, seed_expected_start=expected_start,
+                     seed_prefix_provenance=provenance)
+        expected = canonical_sha(dict(code=code, item=item, **bound))
+        if path.exists() != receipt.exists():
+            raise QfqGateError('FULL_RESEARCH_INCOMPLETE_CHECKPOINT:' + code)
+        if path.exists():
+            saved = json.loads(receipt.read_text())
+            if saved.get('checkpoint_id') != expected or saved.get('sha256') != sha(path):
+                raise QfqGateError('FULL_RESEARCH_IMMUTABLE_CHECKPOINT_CONFLICT:' + code)
+        _symbol_checkpoint(code, item, target, bound, root, {}, driver, True, generation_id,
+                           prepared_frame=computed)
+        return code
     output = computed.loc[:, ["trade_date"] + sorted(KB_FIELDS)]
     table = pa.Table.from_pandas(output, preserve_index=False).replace_schema_metadata(
         {META_KEY: json.dumps(dict(checkpoint_id=fingerprint, prefix_provenance=provenance)).encode()})
@@ -2793,16 +3556,27 @@ def _kb_seed_checkpoint(code, source, item, expected_start, target, identity, ba
 
 
 def _kb_seed_process(payload):
-    return _kb_seed_checkpoint(*payload, driver=_PROCESS_DRIVER)
+    return _kb_seed_checkpoint(*payload[:-1], driver=_PROCESS_DRIVER, generation_id=payload[-1])
 
 
 def _kb_seed_checkpoints(spools, snapshot, target, identity, baseline, parts_root, driver,
-                         driver_path, formula_path, workers, compute_backend, run_dir):
+                         driver_path, formula_path, workers, compute_backend, run_dir, generation_id=None,
+                         *, max_new=None):
     """Compare both A roles exactly, then checkpoint one shared KB calculation."""
     retained_starts = _kb_retained_history_starts(snapshot)
     selector_cols = ["ts_code", "trade_date", "open", "high", "low", "close", "volume", "pre_close", "pct_chg"]
     backtest_cols = ["ts_code", "trade_date", "open", "high", "low", "close", "vol", "pre_close", "pct_chg"]
+    scope = _research_scope(identity)
+    if scope == 'ADMITTED_A_SHARE':
+        extra = ['ma60', 'zge_yellow_line', 'user_v1_sell_signal_daily']
+        selector_cols += extra
+        backtest_cols += extra
     completed = 0
+    seeded = []
+    new_count = 0
+    partial = False
+    if max_new is not None and (type(max_new) is not int or max_new < 1 or scope != 'ADMITTED_A_SHARE'):
+        raise QfqGateError('FULL_RESEARCH_BATCH_LIMIT_INVALID')
     if compute_backend == "process":
         multiprocessing.set_executable(sys.executable)
         pool = ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn"),
@@ -2812,10 +3586,20 @@ def _kb_seed_checkpoints(spools, snapshot, target, identity, baseline, parts_roo
     with pool as executor:
         for bucket in range(32):
             tables = {}
+            input_types = {}
             for role, cols in (("selector", selector_cols), ("backtest", backtest_cols)):
                 path = spools[role].get(bucket)
-                tables[role] = (pq.read_table(path, columns=cols).to_pandas().rename(columns={"volume": "vol"})
-                                if path else pd.DataFrame(columns=backtest_cols))
+                arrow = pq.read_table(path, columns=cols) if path else None
+                tables[role] = (arrow.to_pandas().rename(columns={"volume": "vol"})
+                                if arrow is not None else pd.DataFrame(columns=backtest_cols))
+                if scope == 'ADMITTED_A_SHARE' and arrow is not None:
+                    input_types[role] = {}
+                    for name in cols[2:]:
+                        canonical = 'vol' if name == 'volume' else name
+                        input_types[role][canonical] = arrow.schema.field(name).type
+                        # Arrow null and floating NaN both become NaN in pandas;
+                        # retain the source validity bit for the paired gate.
+                        tables[role]['__valid__' + canonical] = arrow[name].is_valid().to_pylist()
                 tables[role]["trade_date"] = pd.to_numeric(tables[role]["trade_date"]).astype(int)
                 tables[role]["ts_code"] = tables[role]["ts_code"].astype(str)
             s, b = tables["selector"], tables["backtest"]
@@ -2830,30 +3614,67 @@ def _kb_seed_checkpoints(spools, snapshot, target, identity, baseline, parts_roo
                 right = b.iloc[bgroups[code]].sort_values("trade_date").reset_index(drop=True)
                 if left.trade_date.duplicated().any() or right.trade_date.duplicated().any() or not left.trade_date.equals(right.trade_date):
                     raise QfqGateError("KB_ROLE_A_KEYS_MISMATCH:" + code)
-                for column in ("open", "high", "low", "close", "vol", "pre_close", "pct_chg"):
+                columns = ["open", "high", "low", "close", "vol", "pre_close", "pct_chg"]
+                if scope == 'ADMITTED_A_SHARE':
+                    columns += ['ma60', 'zge_yellow_line', 'user_v1_sell_signal_daily']
+                for column in columns:
+                    if scope == 'ADMITTED_A_SHARE' and (input_types['selector'][column] != input_types['backtest'][column]
+                            or not left['__valid__' + column].equals(right['__valid__' + column])):
+                        raise QfqGateError("KB_ROLE_A_INPUT_TYPE_OR_NULL_MISMATCH:" + code + ":" + column)
                     a = pd.to_numeric(left[column], errors="coerce").to_numpy(dtype=float)
                     z = pd.to_numeric(right[column], errors="coerce").to_numpy(dtype=float)
                     if not np.array_equal(a, z, equal_nan=True):
                         raise QfqGateError("KB_ROLE_A_INPUT_MISMATCH:" + code + ":" + column)
+                if scope == 'ADMITTED_A_SHARE':
+                    left.attrs['full_research_input_types'] = {column:str(input_types['selector'][column]) for column in columns}
                 item = snapshot["symbols"].get(code)
                 start = (item.get("compute_start_date") or item["history_start_date"]) if item else retained_starts.get(code)
                 if start is None:
                     raise QfqGateError("KB_PREFIX_START_NOT_BOUND:" + code)
-                payloads.append((code, left, item, int(start), target, identity, baseline, str(parts_root)))
+                if max_new is not None:
+                    checkpoint = Path(parts_root) / (code + '.parquet')
+                    receipt = Path(parts_root) / (code + '.receipt.json')
+                    if checkpoint.exists() != receipt.exists():
+                        raise QfqGateError('FULL_RESEARCH_INCOMPLETE_CHECKPOINT:' + code)
+                    if not checkpoint.exists():
+                        if new_count >= max_new:
+                            partial = True
+                            break
+                        new_count += 1
+                payloads.append((code, left, item, int(start), target, identity, baseline, str(parts_root), generation_id))
             for offset in range(0, len(payloads), workers):
                 batch = payloads[offset:offset + workers]
                 futures = [executor.submit(_kb_seed_process, x) if compute_backend == "process" else
-                           executor.submit(_kb_seed_checkpoint, *x, driver) for x in batch]
-                for future in futures:
-                    future.result()
+                           executor.submit(_kb_seed_checkpoint, *x[:-1], driver, x[-1]) for x in batch]
+                failures = []
+                for payload, future in zip(batch, futures):
+                    try:
+                        seeded.append(future.result())
+                    except Exception as exc:
+                        # Preserve a stable failure record; a failed stock never
+                        # becomes an accepted or silently skipped checkpoint.
+                        failure = dict(stage='KB_EXISTING_PANEL_PREFIX', symbol=payload[0],
+                                       error_type=type(exc).__name__, error=str(exc),
+                                       generation_id=generation_id, **FLAGS)
+                        failure_path = run_dir / 'failures' / (payload[0] + '.' + canonical_sha(failure)[:16] + '.json')
+                        if not failure_path.exists():
+                            _json(failure_path, failure)
+                        failures.append(exc)
+                if failures:
+                    raise failures[0]
                 completed += len(batch)
                 _json(run_dir / "progress.json", dict(stage="KB_EXISTING_PANEL_PREFIX", completed=completed,
                       bucket=bucket, generation_id=canonical_sha(dict(target=target, baseline_panel_sha256=baseline, **identity)),
                       compute_backend=compute_backend, workers=workers))
-    return completed
+            if partial:
+                break
+    if max_new is not None:
+        return dict(codes=seeded, status='PARTIAL_CHECKPOINT_BATCH' if partial else 'COMPLETE',
+                    new_checkpoints_written=new_count, completed_on_this_traversal=completed)
+    return seeded
 
 
-def _kb_overlay_retained(table: pa.Table, schema: pa.Schema, parts_root: Path) -> pa.Table:
+def _kb_overlay_retained(table: pa.Table, schema: pa.Schema, parts_root: Path, *, full_research=False) -> pa.Table:
     """Append checkpointed KB data while retaining the original Arrow columns."""
     codes = table["ts_code"].to_pylist()
     dates = [int(x) for x in table["trade_date"].to_pylist()]
@@ -2861,17 +3682,25 @@ def _kb_overlay_retained(table: pa.Table, schema: pa.Schema, parts_root: Path) -
     for i, code in enumerate(codes):
         if CODE.fullmatch(code):
             positions.setdefault(code, []).append(i)
-    values = {name: [None] * len(table) for name in KB_FIELDS}
+    fields = KB_FIELDS | (SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS | SINGLE_GAP_FIELDS if full_research else set())
+    values = {name: [None] * len(table) for name in fields}
     for code, indices in positions.items():
         checkpoint = pq.read_table(parts_root / (code + ".parquet")).to_pandas().set_index("trade_date")
+        if full_research:
+            # Reused selector checkpoints retain YYYYMMDD strings; new QFQ
+            # checkpoints use integers. Normalize only the lookup index, not
+            # either role's persisted Arrow date column.
+            if any(not re.fullmatch(r"\d{8}", str(date)) for date in checkpoint.index):
+                raise QfqGateError("KB_CHECKPOINT_INVALID_DATE:" + code)
+            checkpoint.index = pd.Index([int(date) for date in checkpoint.index], name="trade_date")
         keys = [dates[i] for i in indices]
-        if checkpoint.index.has_duplicates or set(keys) != set(checkpoint.index):
+        if checkpoint.index.has_duplicates or (not set(keys).issubset(checkpoint.index) if full_research else set(keys) != set(checkpoint.index)):
             raise QfqGateError("KB_CHECKPOINT_ROLE_KEYS_MISMATCH:" + code)
         ordered = checkpoint.loc[keys]
-        for name in KB_FIELDS:
+        for name in fields:
             for pos, value in zip(indices, ordered[name].tolist()):
                 values[name][pos] = value
-    for name in KB_FIELDS:
+    for name in fields:
         field = schema.field(name)
         column = pa.Array.from_pandas(pd.Series(values[name]), type=field.type)
         index = table.schema.get_field_index(name)
@@ -3064,10 +3893,31 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
                       tail_delta: dict | None = None, archive_additions: dict | None = None,
                       source_relocation_ref: dict | None = None,
-                      confirmed_gap_reuse_ref: dict | None = None) -> dict:
+                      confirmed_gap_reuse_ref: dict | None = None,
+                      full_research_contract_ref: dict | None = None,
+                      full_research_isolation_root: Path | None = None,
+                      materialized_reuse_ref: dict | None = None,
+                      full_research_batch_limit: int | None = None,
+                      full_research_spool_reuse_ref: dict | None = None) -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if source_relocation_ref is not None and (publish or refresh_inputs):
         raise QfqGateError("SOURCE_RELOCATION_ISOLATED_CANDIDATE_ONLY")
+    if full_research_contract_ref is not None and (publish or refresh_inputs):
+        raise QfqGateError('FULL_RESEARCH_ISOLATED_CANDIDATE_ONLY')
+    full_spec = full_research_contract(full_research_contract_ref) if full_research_contract_ref is not None else None
+    if full_research_batch_limit is not None and (full_spec is None or type(full_research_batch_limit) is not int
+                                                   or full_research_batch_limit < 1):
+        raise QfqGateError('FULL_RESEARCH_BATCH_LIMIT_INVALID')
+    if full_research_spool_reuse_ref is not None and full_spec is None:
+        raise QfqGateError('FULL_RESEARCH_SPOOL_REUSE_WITHOUT_CONTRACT')
+    if full_spec is not None:
+        _validate_full_research_isolation(full_research_isolation_root, data_root, return_root, pointers)
+        if materialized_reuse_ref is None:
+            raise QfqGateError('FULL_RESEARCH_REUSE_REFERENCE_REQUIRED')
+    elif full_research_isolation_root is not None:
+        raise QfqGateError('FULL_RESEARCH_ISOLATION_WITHOUT_CONTRACT')
+    elif materialized_reuse_ref is not None:
+        raise QfqGateError('FULL_RESEARCH_REUSE_WITHOUT_CONTRACT')
     if tail_delta is not None and (history_extension is not None or refresh_inputs):
         raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
     if tail_delta is not None and checkpoint_resume is not None and publish:
@@ -3116,16 +3966,41 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         from ops.research_panel_turnover import load_daily
         turnover = load_daily(data_root, tdx_root, target)
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv, source_relocation_ref)
+        source_identity = dict(identity)
         identity["turnover_input_sha256"] = turnover.identity
         # The existing paired baseline enables this single-stock extension only
         # when both role schemas already bind every optional field.
         expected = {role: path.read_bytes() for role, path in pointers.items()}
         currents = {role: Path(value.decode("utf-8-sig").strip()) for role, value in expected.items()}
         current_schemas = {role: pq.ParquetFile(path).schema_arrow for role, path in currents.items()}
+        prior_scopes = set()
+        for schema in current_schemas.values():
+            try:
+                declaration = json.loads((schema.metadata or {}).get(META_KEY, b'{}'))
+            except (TypeError, ValueError) as exc:
+                raise QfqGateError('FULL_RESEARCH_SCHEMA_METADATA_INVALID') from exc
+            if not isinstance(declaration, dict):
+                raise QfqGateError('FULL_RESEARCH_SCHEMA_METADATA_INVALID')
+            prior_scopes.add(declaration.get('research_scope', 'REGISTERED'))
+        if len(prior_scopes) != 1 or not prior_scopes <= {'REGISTERED', 'ADMITTED_A_SHARE'}:
+            raise QfqGateError('FULL_RESEARCH_ROLE_SCOPE_CONFLICT')
+        if prior_scopes == {'ADMITTED_A_SHARE'}:
+            # Later-day reuse is intentionally blocked until exchange-calendar,
+            # adjustment and prior-prefix identities have all been bound.
+            raise QfqGateError('FULL_RESEARCH_INCREMENTAL_IDENTITY_NOT_YET_BOUND')
         single_feedback_enabled = _single_feedback_pair_mode(current_schemas)
         single_action_enabled = _single_action_pair_mode(current_schemas)
         single_yidong_enabled = _single_yidong_pair_mode(current_schemas)
         confirmed_gap_enabled = _single_gap_pair_mode(current_schemas)
+        n_structure_enabled = _single_n_pair_mode(current_schemas)
+        if full_spec is not None:
+            if any((single_feedback_enabled, single_action_enabled, single_yidong_enabled,
+                    confirmed_gap_enabled, n_structure_enabled)):
+                raise QfqGateError('FULL_RESEARCH_INITIAL_REQUIRES_LEGACY_BASELINE')
+            single_feedback_enabled = single_action_enabled = single_yidong_enabled = True
+            confirmed_gap_enabled = n_structure_enabled = True
+            identity.update(research_scope='ADMITTED_A_SHARE',
+                            full_research_contract_sha256=full_research_contract_ref['sha256'])
         if single_action_enabled and not single_feedback_enabled:
             raise QfqGateError("SINGLE_ACTION_REQUIRES_FEEDBACK")
         if single_feedback_enabled:
@@ -3144,6 +4019,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 confirmed_gap_snapshot_file_sha256=sha(snapshot_file))
         elif confirmed_gap_reuse_ref is not None:
             raise QfqGateError('SINGLE_GAP_REUSE_WITHOUT_SCHEMA')
+        if n_structure_enabled:
+            identity.update(n_structure_enabled=True, **_n_sha256s())
         if confirmed_gap_reuse_ref is not None:
             reuse=json.loads(_source(confirmed_gap_reuse_ref, owner='confirmed gap reuse descriptor').read_text())
             calendar_ref=reuse.get('calendar')
@@ -3169,6 +4046,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                    target=target, retained_history=retained_history)
         addition = archive_addition_binding(archive_additions, snapshot=snapshot, pointers=pointers, identity=identity,
                                            target=target, retained_history=retained_history)
+        lifecycle_addition = bool(addition and addition.get('schema') == 'qfq_lifecycle_additions_v1')
+        if lifecycle_addition and full_spec is None:
+            raise QfqGateError('LIFECYCLE_REQUIRES_FULL_RESEARCH_CONTRACT')
         incremental = delta or addition
         # One fixed journal owned by the original entry covers crashes between
         # replacing the original two files, even after a new input revision.
@@ -3177,10 +4057,13 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         if any(fields and fields != KB_FIELDS for fields in existing_kb.values()) or bool(existing_kb["selector"]) != bool(existing_kb["backtest"]):
             raise QfqGateError("KB_PARTIAL_BASELINE_SCHEMA")
         kb_upgrade = not any(existing_kb.values())
+        if full_spec is not None and not kb_upgrade:
+            raise QfqGateError('FULL_RESEARCH_INITIAL_REQUIRES_LEGACY_BASELINE')
         if kb_upgrade:
-            if single_feedback_enabled:
+            if single_feedback_enabled and full_spec is None:
                 raise QfqGateError("SINGLE_FEEDBACK_REQUIRES_EXISTING_KB_SCHEMA")
-            if publish or refresh_inputs or any(x is not None for x in (tail_delta, archive_additions, history_extension, checkpoint_resume, same_asof_ref)):
+            if (publish or refresh_inputs or any(x is not None for x in (tail_delta, history_extension, checkpoint_resume, same_asof_ref))
+                    or archive_additions is not None and not lifecycle_addition):
                 raise QfqGateError("KB_INITIAL_UPGRADE_ISOLATED_SAME_ASOF_ONLY")
             if len({c.get("generation_id") for c in contracts.values()}) != 1:
                 raise QfqGateError("KB_BASELINE_GENERATION_MISMATCH")
@@ -3194,19 +4077,26 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             turnover = DailyTurnover(target, None, {}, prior_turnover.get("binding", {}), prior_turnover.get("failure"))
             turnover.verify_binding()
             identity["turnover_input_sha256"] = turnover.identity
+            ignored_identity = {"adapter_sha256", "factor_cache_sha256", "kb_authority_sha256", "kb_field_contract_sha256", "source_relocation_sha256",
+                                "single_score_authority_sha256", "single_score_contract_sha256", "single_supplemental_contract_sha256",
+                                "single_action_authority_sha256", "single_action_contract_sha256",
+                                "single_yidong_authority_sha256", "single_yidong_contract_sha256"}
+            if full_spec is not None:
+                ignored_identity |= set(identity) - set(source_identity) - {'turnover_input_sha256'}
+            if lifecycle_addition:
+                ignored_identity |= {'input_sha256', 'lifecycle_authority_sha256',
+                                     'lifecycle_contract_sha256', 'lifecycle_additions_sha256'}
             for role, contract in contracts.items():
                 if (contract.get("asof_date") != target or contract.get("adapter_sha256") != KB_BASELINE_ADAPTER_SHA
                         or contract.get("factor_cache_sha256") != KB_BASELINE_FACTOR_CACHE_SHA
+                        or lifecycle_addition and contract.get('input_sha256') != addition['baseline_input_sha256']
                         or any(contract.get(k) != v for k, v in identity.items()
-                               if k not in {"adapter_sha256", "factor_cache_sha256", "kb_authority_sha256", "kb_field_contract_sha256", "source_relocation_sha256",
-                                            "single_score_authority_sha256", "single_score_contract_sha256", "single_supplemental_contract_sha256",
-                                            "single_action_authority_sha256", "single_action_contract_sha256",
-                                            "single_yidong_authority_sha256", "single_yidong_contract_sha256"})):
+                               if k not in ignored_identity)):
                     raise QfqGateError("KB_BASELINE_IDENTITY_MISMATCH:" + role)
                 receipt = json.loads(Path(contract["generation_manifest_path"]).read_text())
                 if (receipt.get("generation_id") != contract["generation_id"]
                         or receipt.get("candidate_sha256", {}).get(role) != sha(currents[role])
-                        or receipt.get("input_sha256") != identity["input_sha256"]):
+                        or receipt.get("input_sha256") != (addition['baseline_input_sha256'] if lifecycle_addition else identity['input_sha256'])):
                     raise QfqGateError("KB_BASELINE_RECEIPT_MISMATCH:" + role)
         if history is not None:
             for role, path in currents.items():
@@ -3226,6 +4116,24 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         already_current = (len(generations) == 1 and None not in generations
                            and all(item.get("asof_date") == target and all(item.get(k) == v for k, v in identity.items()) for item in contracts.values()))
         baseline_hashes = {} if already_current else {role: sha(path) for role, path in currents.items()}
+        spool_binding = (_bound_full_research_spools(full_research_spool_reuse_ref, baseline_hashes)
+                         if full_research_spool_reuse_ref is not None else None)
+        if spool_binding is not None:
+            identity['full_research_spool_reuse_sha256'] = full_research_spool_reuse_ref['sha256']
+        if full_spec is not None:
+            reuse_input = addition['baseline_input_sha256'] if lifecycle_addition else identity['input_sha256']
+            reuse_snapshot = addition['baseline_snapshot']['sha256'] if lifecycle_addition else sha(snapshot_file)
+            reuse = _materialized_reuse_descriptor(materialized_reuse_ref, target=target,
+                source_generation=next(iter(generations)), input_sha256=reuse_input,
+                snapshot_sha256=reuse_snapshot, baseline=baseline_hashes)
+            identity.update(materialized_reuse_descriptor_sha256=materialized_reuse_ref['sha256'],
+                materialized_reuse_source_generation=reuse['source_generation'],
+                materialized_reuse_baseline_panel_sha256=baseline_hashes, materialized_reuse_refs=reuse['stocks'])
+            if lifecycle_addition:
+                identity.update(materialized_reuse_source_input_sha256=reuse_input,
+                    materialized_reuse_source_snapshot_sha256=reuse_snapshot,
+                    lifecycle_source_semantic_sha256=addition['lifecycle_source_semantic_sha256'],
+                    lifecycle_frame_refs=addition['lifecycle_frame_refs'])
         recovered = (checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root,
                                         tail_delta=delta) if same_asof_ref is None else {})
         run_id = next(iter(generations)) if already_current else canonical_sha(dict(target=target, baseline_panel_sha256=baseline_hashes, **identity))
@@ -3317,6 +4225,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     convention=snapshot["convention"], revision=snapshot["revision"], pit_certified=False, **identity, **FLAGS)
         if source_relocation_ref is not None:
             meta["source_relocation"] = dict(source_relocation_ref)
+        if full_spec is not None:
+            meta['full_research_contract'] = dict(full_research_contract_ref)
+            meta['materialized_reuse_descriptor'] = dict(materialized_reuse_ref)
+            if spool_binding is not None:
+                meta['full_research_spool_reuse'] = dict(full_research_spool_reuse_ref)
         if kb_upgrade:
             meta["kb_initial_upgrade"] = dict(source_generation_id=next(iter(generations)),
                 baseline_panel_sha256=baseline_hashes, input_sha256=identity["input_sha256"],
@@ -3353,9 +4266,15 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         tail_delta_semantics="CHANGED_FULL_PREFIX_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
                         tail_delta_baseline_generation=delta["baseline_generation_id"])
         if addition:
-            meta.update(archive_additions=archive_additions, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
-                        archive_addition_semantics="NEW_BOUND_ARCHIVE_HISTORY_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
-                        archive_addition_baseline_generation=addition["baseline_generation_id"])
+            if lifecycle_addition:
+                meta.update(lifecycle_additions=archive_additions, maximum_claim='DIRECTION_ONLY', historical_PIT=False,
+                            lifecycle_semantics='BOUND_ORIGINAL_WHOLE_ROWS_AND_UNCHANGED_FORMULA_FRAMES',
+                            lifecycle_baseline_generation=addition['baseline_generation_id'],
+                            expected_scope_certified=False)
+            else:
+                meta.update(archive_additions=archive_additions, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
+                            archive_addition_semantics="NEW_BOUND_ARCHIVE_HISTORY_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
+                            archive_addition_baseline_generation=addition["baseline_generation_id"])
         candidates = {
             "selector": data_root / "selector_ready_panels/data_layer_daily_formula_increment_update_v1" / f"selector_ready_current_to_{target}_qfq_{run_id[:16]}" / f"selector_ready_current_to_{target}.parquet",
             "backtest": data_root / "backtest_panels/data_layer_daily_formula_increment_update_v1" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}_qfq_{run_id[:16]}" / "panel" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}.parquet",
@@ -3374,11 +4293,15 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         # these fields from the accepted schema and recompute them from prefix.
         if history is not None:
             schemas = {role: user_formula_schema(schema) for role, schema in schemas.items()}
-        schemas = {role: _validate_single_feedback_schema(kb_schema(schema)) for role, schema in schemas.items()}
+        schemas = ({role: _full_research_schema_declaration(schema, full_spec, full_research_contract_ref['sha256'])
+                    for role, schema in schemas.items()} if full_spec is not None else
+                   {role: _validate_single_feedback_schema(kb_schema(schema)) for role, schema in schemas.items()})
         if _single_feedback_pair_mode(schemas) != single_feedback_enabled:
             raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CHANGED")
         if _single_gap_pair_mode(schemas) != confirmed_gap_enabled:
             raise QfqGateError('SINGLE_GAP_SCHEMA_MODE_CHANGED')
+        if _single_n_pair_mode(schemas) != n_structure_enabled:
+            raise QfqGateError('SINGLE_N_SCHEMA_MODE_CHANGED')
         if kb_upgrade:
             for role, path in currents.items():
                 original = pq.ParquetFile(path).schema_arrow
@@ -3393,7 +4316,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         def one(code: str):
             return _symbol_checkpoint(code, snapshot["symbols"][code], target, identity, parts_root, recovered, driver,
                                       single_feedback_enabled, run_id if confirmed_gap_enabled else None)
-        codes = [] if kb_upgrade else sorted(incremental["codes"] if incremental else available)
+        codes = (sorted(addition['codes']) if lifecycle_addition else []) if kb_upgrade else sorted(incremental["codes"] if incremental else available)
         unchanged_codes = ((expected_codes & available) - set(codes) - foreign - legacy_codes
                                   - set(quarantined) - retained_history_codes) if incremental or kb_upgrade else set()
         quarantine_reasons = dict(quarantined)
@@ -3411,11 +4334,34 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 return code, None
         try:
             old_spools = None
+            seeded_codes = []
             if kb_upgrade:
-                old_spools = {role: spool_current(path, run_dir / ("current_" + role + "_buckets"), baseline_hashes[role])
-                              for role, path in currents.items()}
-                _kb_seed_checkpoints(old_spools, snapshot, target, identity, baseline_hashes, parts_root,
-                                     driver, driver_path, formula_path, workers, compute_backend, run_dir)
+                old_spools = (spool_binding['roles'] if spool_binding is not None else
+                              {role: spool_current(path, run_dir / ("current_" + role + "_buckets"), baseline_hashes[role])
+                               for role, path in currents.items()})
+                seeded = _kb_seed_checkpoints(old_spools, snapshot, target, identity, baseline_hashes, parts_root,
+                                     driver, driver_path, formula_path, workers, compute_backend, run_dir,
+                                     run_id if full_spec is not None else None, max_new=full_research_batch_limit)
+                seeded_codes = seeded['codes'] if full_research_batch_limit is not None else seeded
+                if full_research_batch_limit is not None and seeded['status'] == 'PARTIAL_CHECKPOINT_BATCH':
+                    _revalidate_build_identity(snapshot_file, target, source_relocation_ref, driver_path, formula_path,
+                        contract_csv, source_identity, identity, confirmed_gap_enabled, n_structure_enabled,
+                        confirmed_gap_reuse_ref, full_research_contract_ref, materialized_reuse_ref)
+                    turnover.verify_binding()
+                    check_baseline(pointers, frozen_baseline)
+                    if spool_binding is not None:
+                        _check_full_research_spool_stamps(spool_binding)
+                    expected_a = {code for code in old_symbols['selector'] if CODE.fullmatch(code)}
+                    if expected_a != {code for code in old_symbols['backtest'] if CODE.fullmatch(code)}:
+                        raise QfqGateError('FULL_RESEARCH_PAIRED_DENOMINATOR_CONFLICT')
+                    status = dict(status='PARTIAL_CHECKPOINT_BATCH', generation_id=run_id, input_sha256=identity['input_sha256'],
+                        original_a_codes=len(expected_a), checked_codes=sorted(seeded_codes),
+                        remaining_codes=sorted(expected_a - set(seeded_codes)),
+                        lifecycle_addition_codes=sorted(addition['codes']) if lifecycle_addition else [],
+                        new_checkpoints_written=seeded['new_checkpoints_written'], candidate_pair_ready=False,
+                        global_pointer_updated=False, expected_market_universe='CANNOT_CONFIRM', **FLAGS)
+                    _json(run_dir / 'stage_status.json', status)
+                    return status
             if compute_backend == "process":
                 multiprocessing.set_executable(sys.executable)
                 pool = ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn"),
@@ -3447,8 +4393,10 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 if prior_sidecars != contracts['backtest'].get('confirmed_gap_sidecars', {}):
                     raise QfqGateError('SINGLE_GAP_PRIOR_SIDECAR_ROLE_CONFLICT')
                 gap_sidecars = {}
-                for code in sorted((set(codes) | unchanged_codes) & set(SINGLE_STOCKS) - set(quarantine_reasons)):
-                    if code in codes:
+                selected = ((set(seeded_codes) | set(codes)) if full_spec is not None else
+                            (set(codes) | unchanged_codes) & set(SINGLE_STOCKS)) - set(quarantine_reasons)
+                for code in sorted(selected):
+                    if full_spec is not None or code in codes:
                         checkpoint_receipt = json.loads((parts_root / (code + '.receipt.json')).read_text())
                         ref = checkpoint_receipt.get('confirmed_gap_sidecar')
                     else:
@@ -3458,6 +4406,19 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     _source(ref, owner='confirmed gap generation sidecar ' + code)
                     gap_sidecars[code] = ref
                 meta['confirmed_gap_sidecars'] = gap_sidecars
+                if n_structure_enabled:
+                    prior_n = contracts['selector'].get('n_structure_checkpoints', {})
+                    if prior_n != contracts['backtest'].get('n_structure_checkpoints', {}):
+                        raise QfqGateError('SINGLE_N_PRIOR_CHECKPOINT_ROLE_CONFLICT')
+                    n_checkpoints = {}
+                    for code in gap_sidecars:
+                        receipt = json.loads((parts_root / (code + '.receipt.json')).read_text()) if full_spec is not None or code in codes else None
+                        ref = receipt.get('n_structure_checkpoint') if receipt else prior_n.get(code)
+                        if not ref:
+                            raise QfqGateError('SINGLE_N_REQUIRED_CHECKPOINT_MISSING:' + code)
+                        _source(ref, owner='N structure generation checkpoint ' + code)
+                        n_checkpoints[code] = ref
+                    meta['n_structure_checkpoints'] = n_checkpoints
             # Check all old key sets before either role is written. A key absent
             # from raw is a concrete source gap, not permission to drop a row.
             if old_spools is None:
@@ -3485,7 +4446,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             quarantine_reasons[code] = dict(reason="RAW_HISTORY_KEYS_MISSING", role=role,
                                 missing_dates=missing_keys, original_status=eligible[code])
             codes = [code for code in codes if code not in quarantine_reasons]
-            quarantine_artifacts, role_counts, delta_prefix_changes = {}, {}, {}
+            quarantine_artifacts, role_counts, delta_prefix_changes, old_arrow_proofs = {}, {}, {}, {}
             for role, candidate in candidates.items():
                 old_buckets = old_spools[role]
                 candidate.parent.mkdir(parents=True, exist_ok=True)
@@ -3508,6 +4469,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 retained_turnover_counts = dict(target_rows=0, target_missing_before=0, target_filled=0,
                     target_unknown=0, old_nonnull_preserved=0)
                 delta_prefix_changes[role] = []
+                readback_plan = []
                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
                     for bucket in range(32):
                         old_table = pq.read_table(old_buckets[bucket]) if bucket in old_buckets else None
@@ -3525,12 +4487,14 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                 quarantine_writer.write_table(excluded.replace_schema_metadata(quarantine_schema.metadata))
                                 quarantined_rows += len(excluded)
                             retained = old_table.filter(pa.array([c in foreign or c in retained_history_codes or c in unchanged_codes for c in old_codes]))
+                            if lifecycle_addition and len(retained) != len(old_table):
+                                raise QfqGateError('LIFECYCLE_OLD_ROWS_NOT_EXACTLY_RETAINED:' + role + ':' + str(bucket))
                             if len(retained):
                                 for field in schema:
                                     if field.name not in retained.schema.names and field.name in set(USER_FORMULA_SIGNAL_FIELDS) | TURNOVER_CONTEXT_FIELDS | KB_FIELDS | {"turnover_rate_pct", "float_share_10k"}:
                                         retained = retained.append_column(field, pa.nulls(len(retained), type=field.type))
                                 if kb_upgrade:
-                                    retained = _kb_overlay_retained(retained, schema, parts_root)
+                                    retained = _kb_overlay_retained(retained, schema, parts_root, full_research=full_spec is not None)
                                 else:
                                     foreign_mask = pa.array([c in foreign for c in retained["ts_code"].to_pylist()])
                                     if any(retained[name].filter(foreign_mask).null_count != int(sum(foreign_mask.to_pylist())) for name in KB_FIELDS):
@@ -3541,7 +4505,12 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                     retained, context_counts = _retained_turnover_context(retained, turnover, schema)
                                     for name in retained_turnover_counts:
                                         retained_turnover_counts[name] += context_counts[name]
-                                writer.write_table(retained.replace_schema_metadata(schema.metadata) if incremental else retained.cast(schema))
+                                output_table = retained.replace_schema_metadata(schema.metadata) if incremental else retained.cast(schema)
+                                if lifecycle_addition:
+                                    writer.write_table(output_table, row_group_size=len(output_table))
+                                    readback_plan.append(dict(kind='old', bucket=bucket, rows=len(output_table)))
+                                else:
+                                    writer.write_table(output_table)
                                 retained_non_a_rows += sum(c in foreign for c in retained["ts_code"].to_pylist())
                                 retained_a_history_rows += sum(c in retained_history_codes for c in retained["ts_code"].to_pylist())
                                 unchanged_target_here = set(old_frame.loc[pd.to_numeric(old_frame.trade_date).eq(target), "ts_code"]) & unchanged_codes
@@ -3578,11 +4547,16 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                     raise QfqGateError(f"ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:{code}:{gate}")
                             table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None,
                                            single_feedback_enabled=single_feedback_enabled, single_action_enabled=single_action_enabled,
-                                           single_yidong_enabled=single_yidong_enabled, confirmed_gap_enabled=confirmed_gap_enabled)
+                                           single_yidong_enabled=single_yidong_enabled, confirmed_gap_enabled=confirmed_gap_enabled,
+                                           research_scope='ADMITTED_A_SHARE' if full_spec is not None else 'REGISTERED')
                             if delta:
                                 original = old_table.take(pa.array(old_groups[code]))
                                 delta_prefix_changes[role].extend(tail_delta_prefix(original, table, delta["codes"][code]["added_dates"], code))
-                            writer.write_table(table)
+                            if lifecycle_addition:
+                                writer.write_table(table, row_group_size=len(table))
+                                readback_plan.append(dict(kind='new', code=code, rows=len(table)))
+                            else:
+                                writer.write_table(table)
                             latest = max(latest, int(frame.trade_date.max()))
                             rows_written += len(frame)
                             if frame.trade_date.eq(target).any():
@@ -3608,10 +4582,19 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         inherited_sidecar_files=len(retained_history_sidecars[role]),
                         inherited_sidecar_preservation="BYTE_IDENTICAL_SEPARATE_EXCLUDED_ARTIFACTS")
                 if addition:
-                    role_counts[role].update(archive_added_codes=sorted(addition["codes"]),
-                                            archive_added_rows=rows_written - old_rows)
+                    if lifecycle_addition:
+                        role_counts[role].update(lifecycle_added_codes=sorted(addition['codes']),
+                                                 lifecycle_added_rows=rows_written - old_rows)
+                    else:
+                        role_counts[role].update(archive_added_codes=sorted(addition["codes"]),
+                                                 archive_added_rows=rows_written - old_rows)
                 if latest != target:
                     raise QfqGateError(f"PANEL_TARGET_DATE_MISSING:{role}:{latest}")
+                if lifecycle_addition:
+                    proof = _verify_original_arrow_readback(old_buckets, temporary, readback_plan, legacy_schema)
+                    if proof['rows'] != old_rows:
+                        raise QfqGateError('LIFECYCLE_OLD_READBACK_COVERAGE_CONFLICT:' + role)
+                    old_arrow_proofs[role] = proof
                 if candidate.exists():
                     # Immutable generations: do not replace an existing file.
                     if sha(candidate) != sha(temporary):
@@ -3627,14 +4610,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
                     unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
             # Revalidate source bytes before CURRENT can change.
-            if generation_identity(load_snapshot(snapshot_file, target, source_relocation_ref), driver_path, formula_path, contract_csv, source_relocation_ref) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
-                raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
+            _revalidate_build_identity(snapshot_file, target, source_relocation_ref, driver_path, formula_path, contract_csv,
+                                       source_identity, identity, confirmed_gap_enabled, n_structure_enabled, confirmed_gap_reuse_ref,
+                                       full_research_contract_ref, materialized_reuse_ref)
             turnover.verify_binding()
             if not turnover_watch_unchanged(readiness["turnover_watch"]):
                 raise QfqGateError("TURNOVER_INPUT_STATUS_CHANGED_DURING_BUILD")
             if factor_cache_identity(data_root, target, snapshot, source_relocation_ref) != readiness["factor_cache_identity"]:
                 raise QfqGateError("FACTOR_CACHE_CHANGED_DURING_BUILD")
             check_baseline(pointers, frozen_baseline)
+            if spool_binding is not None:
+                _check_full_research_spool_stamps(spool_binding)
             if delta:
                 _source(tail_delta, owner="tail delta contract before publication")
             if addition:
@@ -3649,7 +4635,24 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             receipt = dict(status="CANDIDATE_READY", target_date=target, run_dir=str(run_dir), candidates={r: str(p) for r, p in candidates.items()},
                            quarantine_manifest=dict(path=str(run_dir / "quarantine_manifest.json"), sha256=sha(run_dir / "quarantine_manifest.json")),
                            counts=role_counts, candidate_sha256={r: sha(p) for r, p in candidates.items()}, **meta)
+            if lifecycle_addition:
+                from ops.research_panel_lifecycle import write_pair_resolution
+                old_proof_path = run_dir / 'old_arrow_equivalence.json'
+                _json(old_proof_path, dict(schema='qfq_lifecycle_original_arrow_readback_v1', status='PASS',
+                    generation_id=run_id, baseline_panel_sha256=baseline_hashes,
+                    candidate_sha256=receipt['candidate_sha256'], roles=old_arrow_proofs,
+                    historical_PIT=False, **FLAGS))
+                receipt['old_arrow_equivalence'] = dict(path=str(old_proof_path), sha256=sha(old_proof_path))
+                pair_refs = {role: dict(path=str(candidates[role]), sha256=receipt['candidate_sha256'][role])
+                             for role in candidates}
+                receipt['lifecycle_resolution'] = write_pair_resolution(snapshot, addition['lifecycle_verified'],
+                    target, run_id, pair_refs, run_dir / 'lifecycle_resolution.json')
             _json(run_dir / "candidate_receipt.json", receipt)
+            if lifecycle_addition:
+                from ops.research_panel_lifecycle import verify_pair_admission
+                quarantine_value = json.loads(Path(receipt['quarantine_manifest']['path']).read_text())
+                receipt['lifecycle_admission'] = verify_pair_admission(snapshot, addition['lifecycle_verified'],
+                    receipt, quarantine_value, run_dir / 'lifecycle_admission.json')
             if publish:
                 verify_release_gate(snapshot_file.parent, candidates["selector"], identity, target, snapshot["convention"])
                 publish_pair(pointers, candidates, expected, journal, expected_baseline=frozen_baseline)

@@ -609,6 +609,12 @@ def evaluate_daily_product(
         return _unknown_product(symbol, asof, baseline, ['ASOF_BAR_MISSING'], future_bars_excluded=future_bars_excluded, prior10_dates=prior10_dates)
 
     rows = normalize(parsed)
+    # A shorter usable prefix is insufficient for the four original groups.
+    # Do not let an old FALSE baseline absorb this UNKNOWN via three-valued AND.
+    if sum(valid(row) for row in rows) < 114:
+        return _unknown_product(symbol, asof, {group: UNKNOWN for group in _GROUPS},
+            ['INSUFFICIENT_HISTORY_114'], future_bars_excluded=future_bars_excluded,
+            prior10_dates=prior10_dates)
     source_statuses = original_breakout_by_date if isinstance(original_breakout_by_date, Mapping) else {}
     breakout = []
     original_signal_dates = []

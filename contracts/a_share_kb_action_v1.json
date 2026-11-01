@@ -1,7 +1,7 @@
 {
   "schema": "a_share_kb_action_v1",
-  "scope": "TWO_STOCK_RESEARCH_DISPLAY_ONLY",
-  "authorized_symbols": ["002865.SZ", "301048.SZ"],
+  "scope": "REGISTERED_STOCK_RESEARCH_DISPLAY_ONLY",
+  "authorized_symbols": ["002865.SZ", "301048.SZ", "300206.SZ"],
   "identity": "Same-date KB fields and hold score already bound by the single-stock candidate; the backend persists action rows in both roles and no action output changes any saved market or label field.",
   "contexts": "Display both no-position and already-holding branches; neither actual holding, profit/loss nor market timing is inferred.",
   "canonical_actions": ["买入", "卖出", "持有", "放飞", "等回调"],
@@ -13,7 +13,7 @@
     "kb_action_reasons": "JSON array of source-based explanations and unbound conditions",
     "kb_action_rule_sha256": "SHA256 of these exact contract bytes"
   },
-  "all_fields": "nullable Arrow string; the two registered A-share symbols carry all six fields, other symbols remain null",
+  "all_fields": "nullable Arrow string; registered A-share symbols carry all six fields, other symbols remain null",
   "inputs": {
     "buy_signals": ["kb_b1", "kb_b2", "kb_b3"],
     "risk_and_trend": ["kb_white_cross_down", "kb_bull_rope_status", "kb_macd_veto", "kb_brick_action", "kb_brick_flip_green"],

@@ -1,16 +1,17 @@
 """Knowledge-body five-part holding-score projection for one ordered A-share.
 
-The source's unquantified volume branches and N-shape trend remain unknown.
+Unquantified volume branches remain unknown; N is applied only when bound.
 This module does not change the 57 KB fields or issue trading instructions.
 """
 from __future__ import annotations
 
 import math
+import re
 
 
 COMPONENTS = ('kb_hold_close_up', 'kb_hold_above_bbi', 'kb_hold_volume_ok',
               'kb_hold_trend_up', 'kb_hold_j_not_dead')
-SINGLE_STOCKS = frozenset({'002865.SZ', '301048.SZ'})
+SINGLE_STOCKS = frozenset({'002865.SZ', '301048.SZ', '300206.SZ'})
 SUPPLEMENTAL_REASONS = {
     'kb_s1': 'SOURCE_VERSION_CONFLICT_AND_UNQUANTIFIED',
     'kb_s2': 'S1_ANCHOR_AND_RULE_UNCONFIRMED',
@@ -93,14 +94,23 @@ def score_history(rows):
     return result
 
 
-def project_single_history(code, rows):
+def research_code_in_scope(code, scope='REGISTERED'):
+    """Widen only when the caller explicitly binds the A-share research mode."""
+    if scope == 'REGISTERED':
+        return code in SINGLE_STOCKS
+    if scope == 'ADMITTED_A_SHARE':
+        return isinstance(code,str) and re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',code) is not None
+    raise ValueError('RESEARCH_SCOPE_INVALID')
+
+
+def project_single_history(code, rows, *, scope='REGISTERED'):
     """Append-only single-stock daily projection on the bound QFQ prefix.
 
     Revision must pass the revised complete prefix so the same authority is
     used for a fresh build, next day, and correction. It does not obtain bars,
     select a pool, change pointers, or compute any of the accepted 57 fields.
     """
-    if code not in SINGLE_STOCKS:
+    if not research_code_in_scope(code,scope):
         raise ValueError('SINGLE_STOCK_SCOPE_CONFLICT')
     output = score_history(rows)
     for source, row in zip(rows, output):
@@ -116,3 +126,30 @@ def project_single_history(code, rows):
         for field, reason in SUPPLEMENTAL_REASONS.items():
             row[field] = None
     return output
+
+
+def apply_n_score(code, source_rows, score_rows, n_rows, *, rule_sha256, helper_sha256, scope='REGISTERED'):
+    """Update only the fifth component and dependent score from bound N rows."""
+    if not research_code_in_scope(code,scope) or len(source_rows) != len(score_rows) or len(source_rows) != len(n_rows):
+        raise ValueError('HOLD_N_ROW_SET_CONFLICT')
+    result=[]
+    for source,score,n in zip(source_rows,score_rows,n_rows):
+        structure=n.get('kb_n_structure')
+        trend=n.get('kb_hold_trend_up')
+        reason=n.get('kb_hold_trend_up_reason')
+        if (str(source['trade_date']) != str(n.get('trade_date')) or n.get('ts_code') != code
+                or trend not in (True,False,None) or isinstance(trend,int) and not isinstance(trend,bool)
+                or not isinstance(structure,dict) or structure.get('rule_sha256') != rule_sha256
+                or structure.get('helper_sha256') != helper_sha256
+                or structure.get('state') != ('TREND_UP' if trend is True else reason)
+                or trend is True and reason is not None or trend is not True and not isinstance(reason,str)):
+            raise ValueError('HOLD_N_ROW_IDENTITY_CONFLICT:' + str(source['trade_date']))
+        row=dict(score);row['kb_hold_trend_up']=trend;row['kb_hold_trend_up_reason']=reason
+        values=[row.get(name) for name in COMPONENTS]
+        if any(value not in (True,False,None) or isinstance(value,int) and not isinstance(value,bool) for value in values):
+            raise ValueError('HOLD_COMPONENT_TRISTATE_INVALID:' + str(source['trade_date']))
+        lower=sum(value is True for value in values);unknown=sum(value is None for value in values)
+        row.update(kb_hold_score=lower if unknown==0 else None,kb_hold_score_min=lower,
+                   kb_hold_score_max=lower+unknown,kb_hold_score_status='COMPLETE' if unknown==0 else 'PARTIAL_UNKNOWN')
+        result.append(row)
+    return result
