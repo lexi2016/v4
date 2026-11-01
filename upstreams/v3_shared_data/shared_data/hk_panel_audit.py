@@ -89,6 +89,7 @@ def inspect_source_window(rows, *, code, field_sessions, policy):
     output, combined_sources, combined_reasons = {}, set(), set()
     for field, dates in wanted.items():
         reasons, sources, statuses, scales, missing, issues = set(), set(), set(), set(), [], []
+        scale_sessions = 0
         for date in dates:
             selected = index.get(date, [])
             day_reasons = []
@@ -120,18 +121,31 @@ def inspect_source_window(rows, *, code, field_sessions, policy):
                 else:
                     day_reasons.append('SOURCE_TAG_UNKNOWN')
                 if field == 'trade':
-                    unit_status = text(row.get('volume_unit_status'))
-                    if unit_status:
-                        statuses.add(unit_status)
-                        if 'APPROXIMATE' in unit_status.upper() or 'NOT_LOSSLESS' in unit_status.upper():
-                            day_reasons.append('APPROXIMATE_OR_LOSSY_SCALE')
                     native = row.get('native_fields')
-                    scale = native.get('scale_applied') if isinstance(native, dict) else row.get('scale_applied')
-                    if scale is not None:
+                    native = native if isinstance(native, dict) else {}
+                    for unit_status in (text(row.get('volume_unit_status')), text(native.get('volume_unit_status'))):
+                        if not unit_status:
+                            continue
+                        statuses.add(unit_status)
+                        upper = unit_status.upper()
+                        if 'APPROXIMATE' in upper or 'NOT_LOSSLESS' in upper:
+                            day_reasons.append('APPROXIMATE_OR_LOSSY_SCALE')
+                        elif any(marker in upper for marker in ('NOT_PROVEN','UNKNOWN','UNVERIFIED',
+                                'CANNOT_CONFIRM','UNSPECIFIED','NOT_ATTESTED')):
+                            day_reasons.append('VOLUME_UNIT_STATUS_UNPROVEN')
+                    day_scales = set()
+                    for scale in (row.get('scale_applied'), native.get('scale_applied')):
+                        if scale is None or isinstance(scale, float) and math.isnan(scale):
+                            continue
                         if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not math.isfinite(scale) or scale <= 0:
                             day_reasons.append('SCALE_INVALID')
                         else:
-                            scales.add(float(scale))
+                            day_scales.add(float(scale))
+                    if len(day_scales) > 1:
+                        day_reasons.append('SCALE_CONFLICT')
+                    if day_scales:
+                        scale_sessions += 1
+                        scales.update(day_scales)
             if day_reasons:
                 reasons.update(day_reasons)
                 issues.append(dict(date=date, reasons=sorted(set(day_reasons))))
@@ -139,6 +153,8 @@ def inspect_source_window(rows, *, code, field_sessions, policy):
             reasons.add('MIXED_RECORDED_SOURCES')
         if len(scales) > 1:
             reasons.add('SCALE_MISMATCH')
+        if field == 'trade' and 0 < scale_sessions < len(dates):
+            reasons.add('SCALE_METADATA_INCOMPLETE')
         combined_sources.update(sources)
         combined_reasons.update(reasons)
         output[field] = dict(status='UNKNOWN' if reasons else 'CLEAR', reasons=sorted(reasons),

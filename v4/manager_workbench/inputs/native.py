@@ -875,7 +875,11 @@ class NativeAdapters:
                     return v
                 raw_row=clean(raw_row)
                 native = raw_row.get("native_fields") if isinstance(raw_row.get("native_fields"),dict) else {}
-                volume_unit = native.get("volume_unit") or raw_row.get("volume_unit") or pin.get("volume_unit")
+                # A row/pin unit label is not an owner attestation for the
+                # inherited panel history. Preserve it in source_metadata,
+                # but only a separately proven same-response supplement may
+                # supply a comparable volume window to the engine.
+                volume_unit = None
                 price_basis = native.get("price_basis") or raw_row.get("price_basis") or pin.get("price_basis")
                 bars.append(dict(date=str(raw_row[date_col]), close=raw_row.get("close"), high=raw_row.get("high"),
                                  volume=raw_row.get("volume", raw_row.get("trade")),
@@ -883,7 +887,7 @@ class NativeAdapters:
                                  suspended=raw_row.get("suspended", False),
                                  source_available_at=raw_row.get("request_finished_at", pin.get("available_at")),
                                  source_metadata={k:(None if isinstance(v,float) and pd.isna(v) else v) for k,v in raw_row.items()
-                                    if k in {"source", "source_path", "native_fields", "volume_unit_status", "scale_applied"}
+                                    if k in {"source", "source_path", "native_fields", "volume_unit", "volume_unit_status", "scale_applied"}
                                     or k.startswith("history_")}))
             record = dict(symbol=code, price_session=date, bars=sorted(bars,key=lambda r:r["date"]),
                           expected_sessions=pin.get("expected_sessions"),

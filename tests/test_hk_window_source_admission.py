@@ -134,7 +134,7 @@ def test_rebound_consumer_does_not_bridge_three_hk_exchange_days():
         '20261005','20261006','20261007']
 
 
-@pytest.mark.parametrize('all_held',[False,True,None],ids=['one-held','all-held','unexplained-removal'])
+@pytest.mark.parametrize('all_held',[False,True,None,'price'],ids=['one-held','all-held','unexplained-removal','price-held'])
 def test_actual_rebound_consumer_keeps_good_code_and_does_not_bridge_mixed_missing_history(monkeypatch,all_held):
     import pandas as pd
     from pathlib import Path
@@ -177,13 +177,14 @@ def test_actual_rebound_consumer_keeps_good_code_and_does_not_bridge_mixed_missi
     monkeypatch.setattr(pd,'read_parquet',lambda *a,**k:frame.copy())
     monkeypatch.setattr(hk_security_master,'HKSecurityMasterReadError',type('TestMasterError',(ValueError,),{}),raising=False)
     held_day=sessions['previous5'][-1]
-    blocked={'HK.00001','HK.00700','HK.00941','HK.02318'} if all_held else {'HK.02318'}
-    fake=Policy({(code,held_day,'trade') for code in blocked} if all_held is not None else set());fake.check_panel=lambda sha:None
+    blocked={'HK.00001','HK.00700','HK.00941','HK.02318'} if all_held is True else {'HK.02318'}
+    held_field='high' if all_held=='price' else 'trade'
+    fake=Policy({(code,held_day,held_field) for code in blocked} if all_held is not None else set());fake.check_panel=lambda sha:None
     monkeypatch.setattr(resolution_module,'policy_for_shared',lambda root:fake)
     def guard(frame,*a,**kw):
         out=frame.loc[~frame.code_norm.isin(blocked)].copy()
         out.attrs['history_resolution_proofs']=['fixture-proof']
-        out.attrs['history_resolution_holds']=({code:[{'date':held_day,'fields':['trade'],'reason':'HK_HISTORY_FIELD_QUARANTINED'}] for code in blocked} if all_held is not None else {})
+        out.attrs['history_resolution_holds']=({code:[{'date':held_day,'fields':[held_field],'reason':'HK_HISTORY_FIELD_QUARANTINED'}] for code in blocked} if all_held is not None else {})
         return out
     monkeypatch.setattr(resolution_module,'guard_rebound_frame',guard)
     result=workspace_plan.read_rebound_screen(Path('/test'),{
@@ -191,7 +192,7 @@ def test_actual_rebound_consumer_keeps_good_code_and_does_not_bridge_mixed_missi
         'screen_phase':'TEST','screen_session_policy':'TEST'})
     cards={r['code']:r for r in [*result['cards'],*result['pending']]}
     assert cards, result['gaps']
-    if all_held:
+    if all_held is True:
         assert result['coverage']['input_candidate_count']==4
         assert result['coverage']['history_pending_count']==4
         assert set(result['coverage']['pending_codes'])==blocked
@@ -202,6 +203,13 @@ def test_actual_rebound_consumer_keeps_good_code_and_does_not_bridge_mixed_missi
         assert result['coverage']['unexplained_guard_target_code_count']==1
         assert cards['HK.02318']['history_raw_status']=='HK_HISTORY_GUARD_TARGET_ROW_UNEXPLAINED'
         assert cards['HK.02318']['history_resolution_holds']==[]
+        return
+    if all_held=='price':
+        assert cards['HK.02318']['prior60_session_high'] is None
+        assert cards['HK.02318']['oversold_flag'] is None
+        assert cards['HK.02318']['volume_ratio_5d']==2
+        assert cards['HK.02318']['volume_flag_5d_ge_1_5'] is True
+        assert cards['HK.02318']['strict_two_gate_oversold_5dvolume'] is None
         return
     assert cards['HK.00001']['oversold_flag'] is True
     assert cards['HK.00001']['volume_ratio_5d']==2
@@ -219,6 +227,8 @@ def test_actual_rebound_consumer_keeps_good_code_and_does_not_bridge_mixed_missi
     assert cards['HK.02318']['history_status']=='PARTIAL_UNKNOWN'
     assert cards['HK.02318']['strict_two_gate_oversold_5dvolume'] is None
     assert cards['HK.02318']['close']==75
+    assert cards['HK.02318']['prior60_session_high']==100
+    assert cards['HK.02318']['oversold_flag'] is True
     assert cards['HK.02318']['volume_ratio_5d'] is None
     assert cards['HK.02318']['history_resolution_holds'][0]['date']==held_day
     assert cards['HK.02318']['source_field_window_evidence']['price']['status']=='CLEAR'
@@ -288,7 +298,132 @@ def test_native_oversold_uses_null_fallback_and_preserves_unit_metadata(monkeypa
     assert 'NOT_LOSSLESS' in old['source_metadata']['volume_unit_status']
 
 
-def test_hk_history_reread_verifies_same_sources_and_unchanged_guard_sha(monkeypatch,tmp_path):
+@pytest.mark.parametrize('unit_status',[None,'NOT_PROVEN','nested-NOT_PROVEN'],
+                         ids=['missing-proof','explicit-not-proven','nested-not-proven'])
+def test_native_real_engine_does_not_upgrade_panel_unit_from_pin(monkeypatch,tmp_path,unit_status):
+    import hashlib
+    from types import SimpleNamespace
+    import pandas as pd
+    from contracts.trading_calendar import load_market_calendar,previous_session
+    from v4.manager_workbench.inputs import native
+    from v4.manager_workbench.engines import oversold as engine
+    from upstreams.v3_shared_data.shared_data import hk_history_resolution as resolution_module
+
+    date='20261030';cal=load_market_calendar();wanted=[];cursor=date
+    for _ in range(61):
+        wanted.append(cursor);cursor=previous_session(cal,cursor,market='hk_securities')
+    wanted.reverse()
+    rows=[bar(day,high=100,close=75,trade=200 if day==date else 100,
+              status=None if unit_status=='nested-NOT_PROVEN' else unit_status)
+          for day in wanted]
+    if unit_status=='nested-NOT_PROVEN':
+        for row in rows:row['native_fields']['volume_unit_status']='NOT_PROVEN'
+    panel_file=tmp_path/'panel.parquet';pd.DataFrame(rows).to_parquet(panel_file,index=False)
+    master_file=tmp_path/'master.csv';master_file.write_text('code\nHK.00001\n')
+    panel_sha=hashlib.sha256(panel_file.read_bytes()).hexdigest()
+    master_sha=hashlib.sha256(master_file.read_bytes()).hexdigest()
+    stamp='2026-10-30T18:00:00+08:00'
+    manifest={'panel_max_date':date,'panel_relative':'panel.parquet','research_only':True,
+              'production_allowed':False,'manifest_prepared_at':stamp,'panel_sha256':panel_sha}
+    master={'artifact_relative':'master.csv','artifact_sha256':master_sha,'row_count':1,'captured_at':stamp}
+    pin={'manifest_relative':'panel-manifest.json','manifest_sha256':'a'*64,'panel_relative':'panel.parquet',
+         'available_at':stamp,'volume_unit':'SHARES','currency':'HKD','price_basis':'RAW'}
+    ctx={'target_date':'20261102','cutoff':'2026-11-02T08:00:00+08:00'}
+    context=SimpleNamespace(source_sessions={'hk_price':date},target_date=ctx['target_date'],
+        cutoff=ctx['cutoff'],phase=SimpleNamespace(value='NEXT_DAY'),model_dump=lambda **kwargs:ctx)
+    adapter=native.NativeAdapters(SimpleNamespace(shared_root=tmp_path))
+    monkeypatch.setattr(adapter,'_binding',lambda *a,**k:pin)
+    monkeypatch.setattr(adapter,'_json',lambda *a,**k:(manifest,'a'*64))
+    monkeypatch.setattr(adapter,'_manifest',lambda *a,**k:({'artifact_relative':'master.csv','manifest_relative':'master.json'},master,'b'*64))
+    monkeypatch.setattr(adapter,'_ref',lambda owner,role,day,sha,path,available,**kw:
+        SimpleNamespace(evidence_id=role,owner=owner,role=role,sha256=sha,available_at=available))
+    monkeypatch.setattr(adapter,'membership',lambda context:(set(),None,[]))
+    monkeypatch.setattr(adapter,'_member',lambda record,*a:record)
+    monkeypatch.setattr(native,'batch',lambda context,lane,records,refs,scope,coverage=None,gaps=None,universe_ref=None:
+        SimpleNamespace(context=context,lane=lane,records=records,evidence_refs=refs,
+                        scope_description=scope,coverage=coverage,gaps=gaps or [],universe_ref=universe_ref))
+    class TestPolicy(Policy):
+        def check_panel(self,sha): assert sha==panel_sha
+        def encode_proof(self,proof): return 'fixture-proof'
+        def guard_frame(self,frame,**kwargs):
+            out=frame.copy();out.attrs['history_resolution_proof']={};out.attrs['history_resolution_holds']={};return out
+    monkeypatch.setattr(resolution_module,'policy_for_shared',lambda root:TestPolicy())
+    result=adapter.oversold(context,panel_only=True)
+    shaped=adapter._engine_shape(result).records[0]
+    assert shaped['volume_unit'] is None
+    with pytest.raises(ValueError):
+        engine.window_metrics(ctx,shaped)
+    assert result.records[0]['panel_window_gaps']
+    if unit_status:
+        assert result.records[0]['panel_field_window_evidence']['volume']['status']=='UNKNOWN'
+    else:
+        # An independent, hash-bound same-response basis remains usable; this
+        # exercises real shaping/window_metrics with a synthetic Futu witness.
+        request={'source':'FUTU','code':'HK.00001','request':{'ktype':'K_DAY','autype':'NONE'}}
+        basis={'source':'FUTU','security_symbol':'HK.00001','request':request,
+               'request_sha256':engine.owner_digest(request),'raw_sha256':'c'*64,
+               'receipt_sha256':'d'*64,'adjustment':'RAW',
+               'price_comparison':'SAME_SOURCE_SECURITY_REQUEST',
+               'volume_comparison':'SAME_SOURCE_SECURITY_REQUEST','available_at':stamp}
+        metadata={'code':'HK.00001','source':'FUTU','request':request,
+                  'raw_sha256':'c'*64,'receipt_sha256':'d'*64}
+        bars=[dict(date=day,close=75,high=100,volume=200 if day==date else 100,
+                   currency=None,volume_unit=None,price_basis='RAW',source_available_at=stamp,
+                   suspended=False,comparison_basis_sha256=engine.owner_digest(basis),
+                   source_metadata=metadata) for day in wanted]
+        ref=SimpleNamespace(evidence_id='FUTU_DAILY_HISTORY_RAW',owner='FUTU',
+                            role='FUTU_DAILY_HISTORY_RAW',sha256='c'*64,available_at=stamp)
+        pin['futu_history']=[{'symbol':'HK.00001'}]
+        monkeypatch.setattr(adapter,'_futu_history',lambda *args:('HK.00001',bars,basis,ref))
+        replacement=adapter.oversold(context,panel_only=False)
+        assert replacement.records[0]['window_origin']=='PANEL_OWNER_SUPPLEMENT'
+        valid=adapter._engine_shape(replacement).records[0]
+        measures=engine.window_metrics(ctx,valid)
+        assert measures['volume_ratio']=='2' and measures['volume_pass'] is True
+
+
+def test_scale_representations_are_both_checked():
+    rows=[bar('20261029'),bar('20261030')]
+    for row,scale in zip(rows,(1,100)):
+        row['native_fields']={'volume_unit':'SHARES'}
+        row['scale_applied']=scale
+    evidence=evaluate(rows,{'trade':['20261029','20261030']})
+    assert evidence['fields']['trade']['recorded_scales']==[1.0,100.0]
+    assert 'SCALE_MISMATCH' in evidence['reasons']
+    rows[1]['scale_applied']=1
+    rows[1]['native_fields']['scale_applied']=100
+    evidence=evaluate(rows,{'trade':['20261029','20261030']})
+    assert evidence['status']=='UNKNOWN'
+    assert 'SCALE_CONFLICT' in evidence['reasons']
+    rows[1]['native_fields']['scale_applied']='invalid'
+    assert 'SCALE_INVALID' in evaluate(rows,{'trade':['20261029','20261030']})['reasons']
+    del rows[1]['native_fields']['scale_applied'];del rows[1]['scale_applied']
+    assert 'SCALE_METADATA_INCOMPLETE' in evaluate(rows,{'trade':['20261029','20261030']})['reasons']
+
+
+@pytest.mark.parametrize('held_field',['high','trade'])
+def test_rebound_history_restores_only_the_unheld_field_from_held_code(held_field):
+    import pandas as pd
+    from v4.manager_research.workspace_plan import rebound_history_rows,rebound_history_sessions
+    sessions=rebound_history_sessions('20261102')
+    rows=[bar(day,high=100,trade=100) for day in sessions['prior60']]
+    original=pd.DataFrame(rows)
+    held_day=sessions['previous5'][-1]
+    guarded=original.iloc[0:0].copy()
+    guarded.attrs['history_resolution_holds']={'HK.00001':[{'date':held_day,'fields':[held_field]}]}
+    policy=Policy({('HK.00001',held_day,held_field)})
+    output=rebound_history_rows(guarded,['HK.00001'],sessions,
+                                source_frame=original,source_policy=policy)['HK.00001']
+    assert output['prior60_high']==(100 if held_field=='trade' else None)
+    assert output['previous5_mean']==(100 if held_field=='high' else None)
+    unexplained=guarded.copy();unexplained.attrs['history_resolution_holds']={}
+    result=rebound_history_rows(unexplained,['HK.00001'],sessions,
+                                source_frame=original,source_policy=Policy())['HK.00001']
+    assert result['prior60_high'] is None and result['previous5_mean'] is None
+
+
+@pytest.mark.parametrize('held_field',[None,'trade','high'],ids=['no-hold','trade-held','high-held'])
+def test_hk_history_reread_verifies_same_sources_and_unchanged_guard_sha(monkeypatch,tmp_path,held_field):
     import hashlib,json
     import pandas as pd
     from pathlib import Path
@@ -297,6 +432,7 @@ def test_hk_history_reread_verifies_same_sources_and_unchanged_guard_sha(monkeyp
     from upstreams.v3_shared_data.shared_data import hk_history_resolution as resolution_module, hk_panel_audit
     sessions=workspace_plan.rebound_history_sessions('20261102')
     rows=[bar(date,source='FUTU',history_source='FUTU') for date in sessions['prior60']]
+    rows.append(bar(sessions['panel_session'],code='HK.00700',source='FUTU',history_source='FUTU'))
     frame=pd.DataFrame(rows)
     root=tmp_path/'root';asset=root/'assets/hk_0_2';(asset/'panels/test').mkdir(parents=True)
     panel=asset/'panels/test/panel.parquet';frame.to_parquet(panel,index=False)
@@ -317,12 +453,23 @@ def test_hk_history_reread_verifies_same_sources_and_unchanged_guard_sha(monkeyp
     monkeypatch.setattr(consumer,'authority_binding',lambda root:{'fixture':True})
     monkeypatch.setattr(workspace_plan,'_screen_security_master_witness',lambda *a,**k:(master,{}))
     monkeypatch.setattr(workspace_plan,'rebound_native_evidence',lambda *a,**k:{})
-    policy=Policy();policy.check_panel=lambda value:None
+    held_day=sessions['previous5'][-1]
+    policy=Policy({('HK.00001',held_day,held_field)} if held_field else ())
+    policy.check_panel=lambda value:None
     monkeypatch.setattr(resolution_module,'policy_for_shared',lambda root:policy)
     def guard(frame,*a,**k):
-        out=frame.copy();out.attrs['history_resolution_proofs']=['fixture-proof'];out.attrs['history_resolution_holds']={};return out
+        out=frame.loc[frame.code_norm.ne('HK.00001')].copy() if held_field else frame.copy()
+        out.attrs['history_resolution_proofs']=['fixture-proof']
+        out.attrs['history_resolution_holds']=({'HK.00001':[{'date':held_day,'fields':[held_field]}]}
+                                                if held_field else {})
+        return out
     monkeypatch.setattr(resolution_module,'guard_rebound_frame',guard)
     symbols=workspace_plan.rebound_history_rows(frame,['HK.00001'],sessions,source_frame=frame,source_policy=policy)
+    if held_field:
+        guarded=guard(frame)
+        symbols=workspace_plan.rebound_history_rows(guarded,['HK.00001'],sessions,source_frame=frame,source_policy=policy)
+        assert symbols['HK.00001']['prior60_high']==(10 if held_field=='trade' else None)
+        assert symbols['HK.00001']['previous5_mean']==(100 if held_field=='high' else None)
     body={'authority_binding':{'fixture':True},'source_files':refs,'trade_date':'20261102',
           'sessions':sessions,'available_at':'2026-11-02T15:31:00+08:00',
           'read_started_at':'2026-11-02T15:30:00+08:00',
