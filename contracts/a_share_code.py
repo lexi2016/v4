@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-_SIX_DIGITS = re.compile(r"(?<!\d)(\d{6})(?:\.(?:SH|SZ|BJ))?", re.IGNORECASE)
+_SIX_DIGITS = re.compile(r"(?<!\d)(\d{6})(?:\.(?:SH|SZ|BJ))?(?!\d)", re.IGNORECASE)
 _EXACT = re.compile(r"(?:A\.)?(\d{6})", re.IGNORECASE)
 
 PREFIXES = frozenset({
@@ -34,11 +34,16 @@ def is_a_share_code(code: str) -> bool:
 def a_share_symbol(value: Any) -> str:
     """Return ``A.<code>`` for the first valid code in a value, else ``""``.
 
-    A value that contains no valid code yields no symbol: dropping an
-    unverifiable row is the intended behaviour, never inventing one.
+    Every six-digit token is considered, not just the first one: a title can
+    carry a date before the code ("更新261029 600519"). A token that is part of
+    a longer digit run is not a code, so "6005191" yields nothing. A value with
+    no valid code yields no symbol: dropping an unverifiable row is the
+    intended behaviour, never inventing one.
     """
-    match = _SIX_DIGITS.search(str(value or ""))
-    return f"A.{match.group(1)}" if match and is_a_share_code(match.group(1)) else ""
+    for match in _SIX_DIGITS.finditer(str(value or "")):
+        if is_a_share_code(match.group(1)):
+            return f"A.{match.group(1)}"
+    return ""
 
 
 def canonical_a_share_code(value: Any) -> str:

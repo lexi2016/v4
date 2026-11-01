@@ -68,3 +68,28 @@ def test_the_hourly_producer_uses_the_validated_code():
 
     assert canonical_stage_a_code("261029") == ""
     assert canonical_stage_a_code("300115") == "A.300115"
+
+
+# --- defects found in review of the first version ---------------------------
+
+
+def test_a_date_before_a_real_code_does_not_hide_it():
+    assert a_share_symbol("261029 600519") == "A.600519"
+    assert a_share_symbol("更新261029 贵州茅台600519") == "A.600519"
+    assert a_share_symbol("261029,261030,600519") == "A.600519"
+
+
+def test_a_code_must_not_be_a_prefix_of_a_longer_number():
+    assert a_share_symbol("6005191") == ""
+    assert a_share_symbol("x6005191y") == ""
+    assert a_share_symbol("1600519") == ""
+    assert a_share_symbol("600519") == "A.600519"
+
+
+def test_a_real_code_with_a_market_suffix_still_resolves():
+    assert a_share_symbol("600519.SH") == "A.600519"
+    assert a_share_symbol("000001.SZ") == "A.000001"
+
+
+def test_only_invalid_tokens_means_no_symbol():
+    assert a_share_symbol("261029 261030 251231") == ""
