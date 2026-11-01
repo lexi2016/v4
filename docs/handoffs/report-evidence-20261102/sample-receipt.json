@@ -1,0 +1,33 @@
+{
+  "status": "PASS_FROZEN_12_REAL_LOCAL_VECTOR",
+  "frozen_sha256": "f1719857e173980523c6ea8b3ec36594e8475e60caf2f799f57c59991e6c8a68",
+  "sqlite_sha256": "10612305a8d4dcc04e66ac867645f5560fad583cd11b1bf6a7f23c0071619d41",
+  "native_uri_set_sha256": "7acff86ab405059294133730450a04c44f5b519b0e789155671c109aeb7ebfc2",
+  "index_generation": "bfe7e1b8d0e10de7a3abf2c54309f0274a83ae35a5761ba5f59c180dc248da33",
+  "owner_module_sha256": "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde",
+  "coverage": {
+    "documents": 3,
+    "chunks": 60,
+    "vectors": 60,
+    "statuses": {
+      "INDEXED": 3
+    },
+    "generation": "bfe7e1b8d0e10de7a3abf2c54309f0274a83ae35a5761ba5f59c180dc248da33",
+    "chunk_version": "report-structure-bge512-max1024-overlap64-v1",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181"
+  },
+  "keyword_relevant": 5,
+  "hybrid_relevant": 8,
+  "synonym_improvement": 2,
+  "p95_seconds": {
+    "keyword": 0.08702324982732534,
+    "hybrid": 0.24096020800061524,
+    "vector": 0.23183854203671217
+  },
+  "errors": [],
+  "scope": "3 original PDFs/12 frozen questions only; all result page SHA verified; ACL path refusal checked",
+  "local_result_sha256": "c63358760cb33ff9d525cc43f3a776a5f54900c07960da34c7e50c52e63dca6f",
+  "independent_review": "PENDING",
+  "deployment": "NOT_RUN",
+  "full_corpus": "IN_PROGRESS"
+}

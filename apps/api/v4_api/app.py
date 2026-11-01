@@ -934,6 +934,8 @@ def create_app(
     # roots or the legacy router signature.  Missing archives remain typed
     # NOT_MATERIALIZED responses from the owned stores.
     app.include_router(create_baimao_router(store.root))
+    from apps.api.v4_api.report_evidence_router import create_report_evidence_router
+    app.include_router(create_report_evidence_router(resolved_research_root))
     app.include_router(
         # Only the GET-only research decision-desk lane consumes the explicit
         # producer root.  The legacy-compatible research router above keeps
