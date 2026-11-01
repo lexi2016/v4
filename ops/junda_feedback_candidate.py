@@ -22,6 +22,7 @@ from ops import render_original_formula_projection as renderer
 from ops.kb_hold_score import SUPPLEMENTAL_REASONS, project_single_history
 from ops.kb_action_authority import FIELDS as ACTION_FIELDS, INPUT_FIELDS as ACTION_INPUT_FIELDS, project_action
 from ops.kb_yidong_authority import FIELDS as YIDONG_FIELD_TYPES, INPUT_FIELDS as YIDONG_INPUT_FIELDS, project_yidong_history
+from ops.kb_confirmed_gap import INPUTS as GAP_INPUTS, prefix_hashes as gap_prefix_hashes, helper_sha256s as gap_helper_sha256s
 from infrastructure.research_workbench_host import checked_relocated_parquet
 
 REPO = Path(__file__).resolve().parents[1]
@@ -576,7 +577,311 @@ def rebind_display_candidate(previous, expected_sha, root):
             'display_columns':{role:item['columns'] for role,item in display_roles.items()}, 'concept_count':len(concepts)}
 
 
-if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-display':
+def rebind_confirmed_gap_candidate(previous, expected_sha, root, *, rebuild_ref, components_ref, diagnostics_ref,
+                                   rebuild_receipt_ref, components_receipt_ref, diagnostics_receipt_ref, source_gate_ref):
+    """Join the already calculated eight fields and rebuilt signal by exact stock/date keys."""
+    root = Path(root).resolve(strict=True)
+    prior = {'path': str(Path(previous).resolve(strict=True)), 'sha256': expected_sha}
+    old = json.loads(q._source(prior, owner='confirmed gap prior candidate').read_text())
+    binding = json.loads(q._source(old['binding'], owner='confirmed gap prior binding').read_text())
+    symbol = binding.get('symbol')
+    identity = dict(binding['candidate_identity'])
+    if (symbol not in {'002865.SZ', '301048.SZ'} or identity != old.get('candidate_identity')
+            or q.canonical_sha(identity) != old.get('candidate_generation')
+            or binding.get('candidate_generation') != old['candidate_generation']
+            or set(old['outputs']) != {'selector', 'backtest'}):
+        raise ValueError('CONFIRMED_GAP_PRIOR_IDENTITY_CONFLICT')
+    refs = [*old['outputs'].values(), *binding['assets'].values(), binding['source_gate_receipt'],
+            binding['source_relocation'], binding['admission'], binding['numeric_manifest'],
+            binding['hold_score_contract'], binding['supplemental_contract'], binding['action_contract'],
+            binding['yidong_contract'], binding['display_projection']['policy'], binding['display_projection']['f10_source']]
+    for ref in refs:
+        q._source(ref, owner='confirmed gap prior dependency')
+    gate = json.loads(q._source(binding['source_gate_receipt'], owner='confirmed gap frozen source gate').read_text())
+    if (gate.get('status') != 'PASS_RELOCATED_SOURCE_GATE'
+            or gate.get('canonical_input_sha256') != binding['source_input_sha256']
+            or gate.get('snapshot', {}).get('sha256') != identity.get('snapshot_sha256')
+            or gate.get('relocation_ref') != binding['source_relocation']):
+        raise ValueError('CONFIRMED_GAP_SOURCE_GATE_CONFLICT')
+    for name, ref in gate['source_code_refs'].items():
+        q._source(ref, owner='confirmed gap original gate source')
+        if name in identity['source_sha256'] and identity['source_sha256'][name] != ref['sha256']:
+            raise ValueError('CONFIRMED_GAP_ORIGINAL_GATE_IDENTITY_CONFLICT:' + name)
+    new_gate = json.loads(q._source(source_gate_ref, owner='confirmed gap current source gate').read_text())
+    required_gate_sources = {'ops/research_panel_qfq.py', 'ops/research_panel_factor_cache.py',
+        'ops/kb_signal_authority.py', 'ops/kb_confirmed_gap.py', 'contracts/a_share_kb_confirmed_gap_v1.json',
+        'ops/kb_panel_rebuild_brick.py', 'contracts/a_share_kb_rebuild_brick_v1.json',
+        'ops/kb_panel_signal_components.py', 'contracts/a_share_kb_signal_components_v1.json'}
+    if (new_gate.get('status') != 'PASS_RELOCATED_SOURCE_GATE' or not new_gate.get('matches_frozen_input_sha256')
+            or new_gate.get('prior_source_gate') != binding['source_gate_receipt']
+            or new_gate.get('canonical_input_sha256') != binding['source_input_sha256']
+            or new_gate.get('snapshot', {}).get('sha256') != identity.get('snapshot_sha256')
+            or new_gate.get('relocation_ref') != binding['source_relocation']
+            or not required_gate_sources.issubset(new_gate.get('source_code_refs', {}))):
+        raise ValueError('CONFIRMED_GAP_CURRENT_SOURCE_GATE_CONFLICT')
+    for name, ref in new_gate['source_code_refs'].items():
+        q._source(ref, owner='confirmed gap current gate source')
+        if q.sha(REPO / name) != ref['sha256']:
+            raise ValueError('CONFIRMED_GAP_CURRENT_GATE_CODE_DRIFT:' + name)
+
+    rb_receipt = json.loads(q._source(rebuild_receipt_ref, owner='confirmed gap rebuild receipt').read_text())
+    sc_receipt = json.loads(q._source(components_receipt_ref, owner='confirmed gap components receipt').read_text())
+    dc_receipt = json.loads(q._source(diagnostics_receipt_ref, owner='confirmed gap diagnostics receipt').read_text())
+    if (rb_receipt.get('parquet', {}).get('sha256') != rebuild_ref['sha256']
+            or sc_receipt.get('parquet', {}).get('sha256') != components_ref['sha256']
+            or dc_receipt.get('artifact', {}).get('sha256') != diagnostics_ref['sha256']
+            or dc_receipt.get('source_candidates') != {'rebuild_brick_sha256': rebuild_ref['sha256'],
+                                                       'signal_components_sha256': components_ref['sha256']}
+            or rb_receipt.get('inputs', {}).get(symbol, {}).get('candidate_sha256') != identity.get('display_prior_candidate_sha256')
+            or sc_receipt.get('inputs', {}).get(symbol, {}).get('candidate_sha256') != identity.get('display_prior_candidate_sha256')):
+        raise ValueError('CONFIRMED_GAP_REUSE_RECEIPT_CONFLICT')
+    for name, receipt in [('ops/kb_panel_rebuild_brick.py', rb_receipt), ('ops/kb_panel_signal_components.py', sc_receipt)]:
+        if receipt.get('module_sha256') != q.sha(REPO / name):
+            raise ValueError('CONFIRMED_GAP_HELPER_IDENTITY_CONFLICT:' + name)
+    for name, receipt in [('contracts/a_share_kb_rebuild_brick_v1.json', rb_receipt),
+                          ('contracts/a_share_kb_signal_components_v1.json', sc_receipt)]:
+        if receipt.get('contract_sha256') != q.sha(REPO / name):
+            raise ValueError('CONFIRMED_GAP_CONTRACT_IDENTITY_CONFLICT:' + name)
+    policy_path = REPO / 'contracts/a_share_kb_confirmed_gap_v1.json'
+    policy = json.loads(policy_path.read_text())
+    types = {'string': pa.string(), 'bool': pa.bool_(), 'double': pa.float64(), 'int32': pa.int32()}
+    new_fields = policy.get('new_fields', {})
+    if (policy.get('schema') != 'a_share_kb_confirmed_gap_v1' or len(new_fields) != 8
+            or len(policy.get('diagnostic_keys', [])) != 24 or any(policy.get(k) != v for k, v in q.FLAGS.items())):
+        raise ValueError('CONFIRMED_GAP_POLICY_INVALID')
+    policy_ref = immutable(root / ('a_share_kb_confirmed_gap_v1_' + q.sha(policy_path)[:16] + '.json'), policy_path.read_bytes())
+    source_contracts = {}
+    for name in policy['source_contracts']:
+        path = REPO / name
+        source_contracts[name] = immutable(root / (path.stem + '_' + q.sha(path)[:16] + '.json'), path.read_bytes())
+
+    rb = pq.read_table(q._source(rebuild_ref, owner='confirmed gap rebuild source')).to_pylist()
+    sc = pq.read_table(q._source(components_ref, owner='confirmed gap component source')).to_pylist()
+    dtable = pq.read_table(q._source(diagnostics_ref, owner='confirmed gap diagnostic source'))
+    diag_meta = json.loads((dtable.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+    if (diag_meta.get('freeze_snapshot_sha256') != identity.get('snapshot_sha256')
+            or diag_meta.get('source_generation') != binding['source_generation']
+            or diag_meta.get('source_input_sha256') != binding['source_input_sha256']
+            or diag_meta.get('price_basis') != 'QFQ_ASOF' or diag_meta.get('calendar_sha256') is not None
+            or diag_meta.get('calendar_status') != 'CANNOT_CONFIRM'
+            or set(diag_meta.get('diagnostic_keys', [])) != set(policy['diagnostic_keys'])
+            or diag_meta.get('source_candidates') != dc_receipt['source_candidates']):
+        raise ValueError('CONFIRMED_GAP_DIAGNOSTIC_IDENTITY_CONFLICT')
+
+    def keyed(rows, label):
+        result = {}
+        for row in rows:
+            key = (str(row['ts_code']), str(row['trade_date']))
+            if key in result or not key[1].isdigit() or len(key[1]) != 8:
+                raise ValueError('CONFIRMED_GAP_DUPLICATE_OR_INVALID_KEY:' + label)
+            result[key] = row
+        return result
+
+    rb_by, sc_by, dc_by = keyed(rb, 'rebuild'), keyed(sc, 'component'), keyed(dtable.to_pylist(), 'diagnostic')
+    if set(rb_by) != set(sc_by) or set(rb_by) != set(dc_by):
+        raise ValueError('CONFIRMED_GAP_GLOBAL_KEYS_CONFLICT')
+    prior_action = json.loads(q._source({'path': rb_receipt['inputs'][symbol]['candidate_path'],
+        'sha256': identity['display_prior_candidate_sha256']}, owner='confirmed gap original computed candidate').read_text())
+    full = {role: pq.read_table(q._source(ref, owner='confirmed gap prior full ' + role)) for role, ref in old['outputs'].items()}
+    keys = [(symbol, str(x)) for x in full['selector']['trade_date'].to_pylist()]
+    if (len(keys) != len(set(keys)) or keys != sorted(keys)
+            or set(keys) != {key for key in rb_by if key[0] == symbol}
+            or any(x != symbol for x in full['selector']['ts_code'].to_pylist())
+            or [(symbol, str(x)) for x in full['backtest']['trade_date'].to_pylist()] != keys
+            or any(x != symbol for x in full['backtest']['ts_code'].to_pylist())):
+        raise ValueError('CONFIRMED_GAP_ROLE_KEYS_CONFLICT')
+
+    def data_sha(table):
+        table = table.replace_schema_metadata(None).combine_chunks()
+        sink = pa.BufferOutputStream()
+        with pa.ipc.new_stream(sink, table.schema) as stream:
+            stream.write_table(table)
+        return hashlib.sha256(sink.getvalue().to_pybytes()).hexdigest()
+
+    for role in ('selector', 'backtest'):
+        original_ref = prior_action['outputs'][role]
+        if role == 'selector' and (original_ref['sha256'] != rb_receipt['inputs'][symbol]['selector_sha256']
+                                   or original_ref['sha256'] != sc_receipt['inputs'][symbol]['selector_sha256']):
+            raise ValueError('CONFIRMED_GAP_PRIOR_SELECTOR_BINDING_CONFLICT')
+        original = pq.read_table(q._source(original_ref, owner='confirmed gap original computed role ' + role))
+        if data_sha(original) != data_sha(full[role].select(original.column_names)):
+            raise ValueError('CONFIRMED_GAP_PRIOR_ROLE_VALUES_CHANGED:' + role)
+        if len(full[role].column_names) != (332 if role == 'selector' else 184):
+            raise ValueError('CONFIRMED_GAP_PRIOR_ROLE_SCHEMA_CONFLICT:' + role)
+        if set(new_fields) & set(full[role].column_names):
+            raise ValueError('CONFIRMED_GAP_FIELDS_ALREADY_PRESENT:' + role)
+
+    enriched, diagnostics = [], []
+    old_counts = full['selector']['kb_brick_consecutive'].to_pylist()
+    for i, key in enumerate(keys):
+        row = {name: (rb_by[key][name] if name in rb_by[key] else sc_by[key][name]) for name in new_fields}
+        row['kb_rebuild'] = rb_by[key]['kb_rebuild']
+        diag = json.loads(dc_by[key]['diagnostics_json'])
+        if (set(diag) != set(policy['diagnostic_keys'])
+                or diag.get('kb_rebuild_rule_id') != policy['rebuild_rule']
+                or (rb_by[key]['kb_brick_count'] is not None and rb_by[key]['kb_brick_count'] != old_counts[i])):
+            raise ValueError('CONFIRMED_GAP_DIAGNOSTIC_OR_BRICK_CONFLICT:' + str(key))
+        for name in policy['diagnostic_keys']:
+            expected = rb_by[key][name] if name in rb_by[key] else sc_by[key][name]
+            if diag[name] != expected:
+                raise ValueError('CONFIRMED_GAP_DIAGNOSTIC_VALUE_CONFLICT:' + name + ':' + str(key))
+        enriched.append(row)
+        diagnostics.append(diag)
+
+    # This equality proves the source's explicitly named bowl lines can be
+    # projected from the existing columns without adding two redundant fields.
+    for i, key in enumerate(keys):
+        if diagnostics[i]['kb_bowl_components_status'] == 'OBSERVED_SOURCE_LINES':
+            for source_name, selector_name, backtest_name in [('kb_bowl_upper','zge_white_line','white_line'),
+                                                              ('kb_bowl_lower','zge_yellow_line','yellow_line')]:
+                a = full['selector'][selector_name][i].as_py()
+                b = full['backtest'][backtest_name][i].as_py()
+                if a != b or round(float(a), 2) != sc_by[key][source_name]:
+                    raise ValueError('CONFIRMED_GAP_REUSED_BOWL_LINE_CONFLICT:' + str(key))
+
+    sources = dict(identity['source_sha256'])
+    changed = {'ops/junda_feedback_candidate.py', 'ops/research_panel_qfq.py',
+               'infrastructure/research_workbench_host.py', 'research-panel/workbench-host/kb-single-stock.mjs',
+               'research-panel/workbench-host/kb-signal-view.mjs'}
+    for name, digest in sources.items():
+        if name not in changed and q.sha(REPO / name) != digest:
+            raise ValueError('CONFIRMED_GAP_UNRELATED_SOURCE_DRIFT:' + name)
+    for name in changed | {'contracts/a_share_kb_confirmed_gap_v1.json', 'ops/kb_confirmed_gap.py', 'ops/kb_panel_rebuild_brick.py',
+                           'contracts/a_share_kb_rebuild_brick_v1.json', 'ops/kb_panel_signal_components.py',
+                           'contracts/a_share_kb_signal_components_v1.json'}:
+        sources[name] = q.sha(REPO / name)
+    inventory = dict(binding['field_inventory'])
+    inventory.update(confirmed_gap_fields=sorted(new_fields), replaced_fields=['kb_rebuild'],
+                     total_new_fields=inventory['total_new_fields'] + 8,
+                     total_derived_fields=inventory['total_derived_fields'] + 8)
+    identity.update(source_sha256=sources, field_inventory=inventory, confirmed_gap_contract_sha256=policy_ref['sha256'],
+                    source_gate_sha256=source_gate_ref['sha256'],
+                    confirmed_gap_source_sha256={'rebuild':rebuild_ref['sha256'], 'components':components_ref['sha256'],
+                                                 'diagnostics':diagnostics_ref['sha256']},
+                    confirmed_gap_prior_candidate_sha256=expected_sha,
+                    confirmed_gap_calendar_status='CANNOT_CONFIRM')
+    generation = q.canonical_sha(identity); short = generation[:16]
+    sidecar_meta = {**diag_meta, 'scope':[symbol], 'symbol':symbol, 'candidate_generation':generation,
+                    'confirmed_gap_contract_sha256':policy_ref['sha256'], 'status':'BOUND_SINGLE_CANDIDATE'}
+    sidecar_meta['helper_sha256'] = gap_helper_sha256s()
+    gap_frame = full['selector'].select([('volume' if name == 'vol' else name) for name in GAP_INPUTS]).to_pandas().rename(columns={'volume':'vol'})
+    prefix_hash = gap_prefix_hashes(gap_frame)
+    sidecar = pa.table({'ts_code':pa.array([symbol]*len(keys), type=pa.string()),
+                        'trade_date':pa.array([k[1] for k in keys], type=pa.string()),
+                        'diagnostics_json':pa.array([dc_by[k]['diagnostics_json'] for k in keys], type=pa.string()),
+                        'prefix_input_sha256':pa.array(prefix_hash, type=pa.string())})
+    sidecar = sidecar.replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(sidecar_meta, ensure_ascii=False, sort_keys=True).encode()})
+    sink = pa.BufferOutputStream(); pq.write_table(sidecar, sink, compression='zstd')
+    sidecar_ref = immutable(root / f'{symbol.replace(".", "_")}_GAP_DIAGNOSTICS_{short}.parquet', sink.getvalue().to_pybytes())
+
+    outputs, display_roles = {}, {}
+    excluded = json.loads(q._source(binding['display_projection']['policy'], owner='display projection policy').read_text())['excluded_from_display_projection']
+    for role in ('selector', 'backtest'):
+        before = full[role]
+        provenance = json.loads((before.schema.metadata or {})[b'kb_single_candidate_v1'])
+        if provenance.get('candidate_generation') != old['candidate_generation']:
+            raise ValueError('CONFIRMED_GAP_PRIOR_ROLE_GENERATION_CONFLICT:' + role)
+        provenance.update(candidate_generation=generation, confirmed_gap_contract_sha256=policy_ref['sha256'],
+                          field_inventory=inventory, confirmed_gap_enabled=True, source_gate_receipt=source_gate_ref)
+        metadata = dict(before.schema.metadata or {}); metadata[b'kb_single_candidate_v1'] = json.dumps(provenance, ensure_ascii=False, sort_keys=True).encode()
+        table = before.replace_schema_metadata(metadata)
+        at = table.schema.get_field_index('kb_rebuild')
+        table = table.set_column(at, table.schema.field(at), pa.array([x['kb_rebuild'] for x in enriched], type=pa.bool_()))
+        for name, kind in new_fields.items():
+            table = table.append_column(pa.field(name, types[kind], nullable=True), pa.array([x[name] for x in enriched], type=types[kind]))
+        sink = pa.BufferOutputStream(); pq.write_table(table, sink, compression='zstd')
+        ref = immutable(root / f'{symbol.replace(".", "_")}_{role.upper()}_GAP_FULL_{short}.parquet', sink.getvalue().to_pybytes())
+        reread = pq.read_table(q._source(ref, owner='confirmed gap role readback'))
+        unchanged = [name for name in before.column_names if name != 'kb_rebuild']
+        if (data_sha(before.select(unchanged)) != data_sha(reread.select(unchanged))
+                or len(reread.column_names) != (340 if role == 'selector' else 192)):
+            raise ValueError('CONFIRMED_GAP_OLD_ROLE_VALUES_CHANGED:' + role)
+        outputs[role] = {**ref, 'rows':len(reread), 'old_columns_equal_except_rebuild':True,
+                         'old_data_sha256_except_rebuild':data_sha(before.select(unchanged))}
+        old_display = pq.read_table(q._source(binding['display_projection']['roles'][role]['artifact'], owner='prior display role ' + role))
+        keep = [name for name in reread.column_names if name not in excluded]
+        projected = reread.select(keep)
+        projected = projected.append_column(old_display.schema.field('kb_concepts'), old_display['kb_concepts'])
+        projected = projected.append_column(old_display.schema.field('kb_concept_count'), old_display['kb_concept_count'])
+        context = json.loads((old_display.schema.metadata or {})[b'a_share_single_display_projection_v1'])
+        context.update(candidate_generation=generation, source_full_sha256=ref['sha256'], confirmed_gap_contract_sha256=policy_ref['sha256'])
+        projected = projected.replace_schema_metadata({b'a_share_single_display_projection_v1':json.dumps(context, ensure_ascii=False, sort_keys=True).encode()})
+        sink = pa.BufferOutputStream(); pq.write_table(projected, sink, compression='zstd')
+        display_ref = immutable(root / f'{symbol.replace(".", "_")}_{role.upper()}_GAP_DISPLAY_{short}.parquet', sink.getvalue().to_pybytes())
+        read = pq.read_table(q._source(display_ref, owner='confirmed gap display readback'))
+        old_keep = [name for name in old_display.column_names if name != 'kb_rebuild']
+        if (data_sha(old_display.select(old_keep)) != data_sha(read.select(old_keep))
+                or len(read.column_names) != (317 if role == 'selector' else 186)):
+            raise ValueError('CONFIRMED_GAP_OLD_DISPLAY_VALUES_CHANGED:' + role)
+        display_roles[role] = {'artifact':display_ref, 'source_full':ref, 'rows':len(read), 'columns':len(read.column_names),
+                               'removed_fields':sorted(set(excluded)&set(before.column_names))}
+
+    view = json.loads(gzip.decompress(q._source(binding['assets']['kb'], owner='confirmed gap old view').read_bytes()))
+    projection = json.loads(gzip.decompress(q._source(binding['assets']['projection'], owner='confirmed gap old chart projection').read_bytes()))
+    if (view.get('candidate_generation') != old['candidate_generation'] or projection.get('candidate_generation') != old['candidate_generation']
+            or len(view['rows']) != len(keys)):
+        raise ValueError('CONFIRMED_GAP_PRIOR_VIEW_CONFLICT')
+    rebuild_field = next((f for f in view['fields'] if f['name'] == 'kb_rebuild'), None)
+    if not rebuild_field:
+        raise ValueError('CONFIRMED_GAP_REBUILD_FIELD_MISSING')
+    rebuild_field.update(status='LOCAL_FULL_PREFIX_REPAIRED', unknown_reason='少于124根或输入无效时待核')
+    for i, (key, row, values, diag) in enumerate(zip(keys, view['rows'], enriched, diagnostics)):
+        if int(row['trade_date']) != int(key[1]) or row['kb']['kb_rebuild'] is not None:
+            raise ValueError('CONFIRMED_GAP_PRIOR_VIEW_KEY_OR_REBUILD_CONFLICT:' + str(key))
+        row['kb']['kb_rebuild'] = values['kb_rebuild']
+        row['confirmed_kb_fields'] = {name:values[name] for name in new_fields}
+        row['confirmed_kb_diagnostics'] = diag
+        lines = [full['selector'][name][i].as_py() for name in ('zge_white_line', 'zge_yellow_line')]
+        row['confirmed_kb_reused'] = {name: value if isinstance(value, (int, float)) and math.isfinite(value) else None
+                                      for name, value in zip(('bowl_white', 'bowl_yellow'), lines)}
+    view.update(candidate_generation=generation, candidate_identity_sha256=generation, field_inventory=inventory,
+                selector_candidate_sha256=outputs['selector']['sha256'], confirmed_gap_contract_sha256=policy_ref['sha256'],
+                confirmed_gap_diagnostics_sha256=sidecar_ref['sha256'], source_gate_receipt=source_gate_ref)
+    raw = json.dumps(view, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()
+    kb = immutable(root / f'{symbol.replace(".", "_")}_GAP_VIEW_{short}.json.gz', gzip.compress(raw, mtime=0))
+    kb.update(encoding='gzip', decoded_bytes=len(raw))
+    projection.update(candidate_generation=generation); projection['lineage']['candidate_generation'] = generation
+    projection['lineage']['selector_candidate'] = outputs['selector']
+    projection['lineage']['source_gate'] = source_gate_ref
+    raw = (json.dumps(projection, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False) + '\n').encode()
+    proj = immutable(root / f'{symbol.replace(".", "_")}_GAP_PROJECTION_{short}.json.gz', gzip.compress(raw, mtime=0))
+    proj.update(encoding='gzip', decoded_bytes=len(raw), row_count=len(keys), formula_sha256=renderer.FORMULA_SHA)
+    html = renderer.chart_html(Path(renderer.OWNER_RENDERER['path']).read_bytes(), projection, projection['lineage'], compress_payload=True)
+    html = html.replace('候选派生投影', '单股研究投影').replace('候选原式派生投影', '单股原式研究投影')
+    chart = immutable(root / f'{symbol.replace(".", "_")}_GAP_CHART_{short}.html', html.encode())
+    display = {**binding['display_projection'], 'roles':display_roles}
+    gap = {'contract':policy_ref, 'source_contracts':source_contracts, 'diagnostics':sidecar_ref,
+           'source_diagnostics':diagnostics_ref, 'source_candidates':{'rebuild':rebuild_ref, 'components':components_ref},
+           'source_receipts':{'rebuild':rebuild_receipt_ref, 'components':components_receipt_ref, 'diagnostics':diagnostics_receipt_ref},
+           'prior_source_gate':binding['source_gate_receipt'], 'calendar_status':'CANNOT_CONFIRM', 'calendar_sha256':None}
+    assets = {**binding['assets'], 'kb':kb, 'projection':proj, 'html':chart}
+    binding.update(candidate_identity=identity, candidate_generation=generation, field_inventory=inventory,
+                   confirmed_gap=gap, display_projection=display, assets=assets, source_gate_receipt=source_gate_ref)
+    binding_ref = write_json(root / f'{symbol.replace(".", "_")}_GAP_BINDING_{short}.json', binding)
+    result = dict(old)
+    result.update(candidate_generation=generation, candidate_identity=identity, field_inventory=inventory, outputs=outputs,
+                  binding=binding_ref, assets=assets, display_projection=display, confirmed_gap=gap,
+                  source_gate=source_gate_ref, confirmed_gap_rebound_from=prior, status='PREPARED_PENDING_UI_AND_INDEPENDENT_REVIEW')
+    result_ref = write_json(root / f'{symbol.replace(".", "_")}_GAP_CANDIDATE_{short}.json', result)
+    return {'candidate_generation':generation, 'candidate':result_ref, 'binding':binding_ref, 'symbol':symbol,
+            'full_columns':{r:len(pq.read_schema(x['path'])) for r,x in outputs.items()},
+            'display_columns':{r:x['columns'] for r,x in display_roles.items()}, 'diagnostics':sidecar_ref}
+
+
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-confirmed-gap':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('rebind-confirmed-gap')
+    parser.add_argument('--prior', type=Path, required=True); parser.add_argument('--prior-sha256', required=True)
+    parser.add_argument('--output-dir', type=Path, required=True)
+    for name in ('rebuild','components','diagnostics','rebuild-receipt','components-receipt','diagnostics-receipt','source-gate'):
+        parser.add_argument('--'+name, type=Path, required=True)
+        parser.add_argument('--'+name+'-sha256', required=True)
+    args = parser.parse_args()
+    refs = {name.replace('-','_')+'_ref':{'path':str(getattr(args,name.replace('-','_')).resolve(strict=True)),
+             'sha256':getattr(args,name.replace('-','_')+'_sha256')}
+            for name in ('rebuild','components','diagnostics','rebuild-receipt','components-receipt','diagnostics-receipt','source-gate')}
+    print(json.dumps(rebind_confirmed_gap_candidate(args.prior, args.prior_sha256, args.output_dir, **refs), ensure_ascii=False))
+elif __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-display':
     parser = argparse.ArgumentParser()
     parser.add_argument('rebind-display')
     parser.add_argument('--prior', required=True)

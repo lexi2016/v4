@@ -1,0 +1,54 @@
+{
+  "status": "REVIEWED_PASS_CODE_CANDIDATE_ONLY",
+  "reviewer": "/root/kb8_candidate_reviewer",
+  "source_handoff_sha256": "961d744f5bed2b90026d60947b71e94849b6874243c393acb5d6cd2ec7625dfa",
+  "python_tests": 31,
+  "javascript_tests": 7,
+  "material_findings": [],
+  "full_columns": {
+    "backtest": 192,
+    "selector": 340
+  },
+  "display_columns": {
+    "backtest": 186,
+    "selector": 317
+  },
+  "stocks": {
+    "002865.SZ": {
+      "old_brick_warmup_values_preserved": 7,
+      "rebuild_false": 2147,
+      "rebuild_true": 41,
+      "rebuild_unknown": 123,
+      "rows": 2311
+    },
+    "301048.SZ": {
+      "old_brick_warmup_values_preserved": 0,
+      "rebuild_false": 1085,
+      "rebuild_true": 50,
+      "rebuild_unknown": 123,
+      "rows": 1258
+    }
+  },
+  "replaced_field": "kb_rebuild",
+  "new_business_fields": [
+    "kb_brick_trend",
+    "kb_brick_action_desc",
+    "kb_yidong_above_60d",
+    "kb_double_gun_vol1",
+    "kb_double_gun_vol2",
+    "kb_double_gun_gap_days",
+    "kb_violence_k_type",
+    "kb_violence_k_body"
+  ],
+  "diagnostic_keys": 24,
+  "calendar_status": "CANNOT_CONFIRM; no cross-calendar reuse certified",
+  "live_8873": "NOT_DEPLOYED; remains 52b837fa",
+  "global_pointers": "UNCHANGED",
+  "natural_daily": "NOT_RUN",
+  "N_rule": "Separately confirmed on 2026-11-02; not implemented in this commit",
+  "five_disputed_rules": "N/volume/S123 remain separately documented; KB8 does not claim complete five-point scoring",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

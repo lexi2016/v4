@@ -1,0 +1,40 @@
+{
+  "schema": "a_share_kb_confirmed_gap_v1",
+  "owner": "existing A-share QFQ producer and single-stock candidate projection",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false,
+  "new_fields": {
+    "kb_brick_trend": "string",
+    "kb_brick_action_desc": "string",
+    "kb_yidong_above_60d": "bool",
+    "kb_double_gun_vol1": "double",
+    "kb_double_gun_vol2": "double",
+    "kb_double_gun_gap_days": "int32",
+    "kb_violence_k_type": "string",
+    "kb_violence_k_body": "double"
+  },
+  "replaced_existing_field": "kb_rebuild",
+  "rebuild_rule": "ZGE_REBUILD_FULL_PREFIX_124_LOCAL_V1",
+  "rebuild_source_limit": "The old copied five/ten-bar source remains defective; the repaired local rule has a distinct source, helper and contract identity and does not certify the complete prose strategy.",
+  "diagnostic_storage": "one same-security, same-trading-date sidecar and bound view; no diagnostic columns added to panel roles",
+  "diagnostic_keys": [
+    "kb_rebuild_reason", "kb_rebuild_required_bars", "kb_rebuild_available_bars", "kb_rebuild_rule_id",
+    "kb_brick_trend_reason", "kb_brick_count_reason", "kb_brick_action_desc_reason", "kb_brick_required_bars", "kb_brick_available_bars", "kb_brick_observed_run_lower_bound", "kb_brick_rule_id",
+    "kb_signal_components_rule_id", "kb_yidong_above_60d_status", "kb_yidong_above_60d_required_bars", "kb_yidong_above_60d_available_bars",
+    "kb_double_gun_components_status", "kb_double_gun_components_required_bars", "kb_double_gun_components_available_bars",
+    "kb_bowl_components_status", "kb_bowl_required_bars", "kb_bowl_available_bars",
+    "kb_violence_k_components_status", "kb_violence_k_required_bars", "kb_violence_k_available_bars"
+  ],
+  "reused_columns": {
+    "brick_count": "kb_brick_consecutive; retain every persisted value, including seven legacy warmup rows; display UNKNOWN when sidecar kb_brick_count_reason is present",
+    "bowl_white": "selector zge_white_line / backtest white_line, rounded to two decimals only when sidecar kb_bowl_components_status is OBSERVED_SOURCE_LINES",
+    "bowl_yellow": "selector zge_yellow_line / backtest yellow_line, rounded to two decimals only when sidecar kb_bowl_components_status is OBSERVED_SOURCE_LINES"
+  },
+  "source_contracts": ["contracts/a_share_kb_rebuild_brick_v1.json", "contracts/a_share_kb_signal_components_v1.json"],
+  "fixed_history": "Two previously computed same-symbol/date candidates may be joined only after exact SHA, unique complete key, source generation, price-basis and full-prefix binding checks; no old label or OHLCV recalculation.",
+  "incremental": "Reuse only with matching code/rule/price-basis/calendar and input prefix identity; otherwise calculate newly added, matured or affected revised rows using the same helper under the existing QFQ checkpoint and completion flow.",
+  "unknown": "Keep insufficient history, invalid inputs and not-applicable states separate; never default missing to zero or false. Do not infer non-quantified anchors."
+}

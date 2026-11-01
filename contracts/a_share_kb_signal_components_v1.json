@@ -1,0 +1,34 @@
+{
+  "schema": "v4.a_share.kb_source_signal_components.v1",
+  "rule_id": "ZGE_SOURCE_SIGNAL_COMPONENTS_LOCAL_V1",
+  "owner": "existing A-share daily KB producer; same security, source generation, prefix and indicator cache",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "historical_PIT": false,
+  "fields": {
+    "kb_yidong_above_60d": {
+      "type": "nullable_bool",
+      "source": "volume_patterns.py::detect_volume_anomaly; source SHA256 42141485be6b9f55ca6cf016e2160271e7d20287b2f7284f907b74c119bfc2ce",
+      "definition": "At >=65 bars, only after source volume ratio >=2 and pct_change>0, compare current close >= 0.95 times the unrounded mean of the latest 60 closes.",
+      "meaning": "Current source position component, not an inferred pre-rise anchor. Source precondition false is NOT_APPLICABLE, not evidence of a false position."
+    },
+    "kb_double_gun_vol1": {"type": "nullable_double", "source": "complex_patterns.py::detect_double_gun, returned double_gun_vol1, same invocation as kb_double_gun"},
+    "kb_double_gun_vol2": {"type": "nullable_double", "source": "complex_patterns.py::detect_double_gun, returned double_gun_vol2, same invocation as kb_double_gun"},
+    "kb_double_gun_gap_days": {"type": "nullable_int", "source": "complex_patterns.py::detect_double_gun, returned double_gun_gap_days, same invocation as kb_double_gun"},
+    "kb_bowl_upper": {"type": "nullable_double", "source": "complex_patterns.py::detect_golden_bowl, source white line, rounded to 2 decimals"},
+    "kb_bowl_lower": {"type": "nullable_double", "source": "complex_patterns.py::detect_golden_bowl, source yellow line, rounded to 2 decimals"},
+    "kb_violence_k_type": {"type": "nullable_string", "source": "key_candles.py::detect_violence_k, latest event type; SHA256 38a3b58212925ffd1c9827193dc357bf5a623c99a2820190a4acbf4fada3af4c"},
+    "kb_violence_k_body": {"type": "nullable_double", "source": "key_candles.py::detect_violence_k, latest event body_pct, source rounded to 1 decimal"}
+  },
+  "source_behavior": {
+    "double_gun": "Use the source result already computed for kb_double_gun. Its volume ratios/gap are meaningful only for an observed hit; non-hit is NOT_APPLICABLE with null components, never source defaults of zero. The existing owner guards 24 bars even though the source helper itself has a 15-bar early return.",
+    "bowl": "Read the same cached white/yellow source lines as kb_in_bowl, at >=120 bars with a valid close prefix. The source returns both lines even without a bowl hit and calls them upper/lower even if their numerical order is inverted.",
+    "violence": "Use the same list already computed for kb_violence_k and require exactly one is_latest source event on a hit. On known non-hit, type/body are NOT_APPLICABLE; never turn absent type or body into a zero. The existing owner guards 21 bars even though the source helper starts at 10.",
+    "source_identity": "Local helper code/contract have their own hashes. Do not assign the upstream source-file SHA as the hash of the modified local rule or certify source strategy validity."
+  },
+  "status_semantics": "Each component group retains status and required/available bars. INSUFFICIENT_HISTORY, INVALID_OR_UNBOUND_INPUT and NOT_APPLICABLE are distinct; None is never replaced by zero or False.",
+  "incremental": "On the first authorized two-stock field bootstrap evaluate the missing fields from already-bound daily prefixes; then compute newly added rows, newly matured rows after earlier history is restored, and only dates affected by actual input revisions. Persist rule and input/calendar/price-basis identities; do not add a producer, timer, unrelated full-history recalculation, or future data.",
+  "excluded": "Source two-30% return conflates a price-only proxy with the separate turnover requirement; B1 anchor and turnover acceptance are not settled. Six-phase anomaly anchors and thresholds also remain separate pending rules."
+}

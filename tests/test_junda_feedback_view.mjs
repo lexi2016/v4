@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {actionPresentation,signalSummary,chartEvents,signalExplanations} from '../research-panel/workbench-host/kb-signal-view.mjs';
+import {actionPresentation,signalSummary,chartEvents,signalExplanations,confirmedGapPresentation,brickCountPresentation} from '../research-panel/workbench-host/kb-signal-view.mjs';
 import {overlayMarkers} from '../research-panel/workbench-host/kb-chart-overlay.mjs';
 import {financialLines,financialDisclosureText,visibleSingleHistoryGroups} from '../research-panel/workbench-host/kb-single-stock.mjs';
 
@@ -70,4 +70,20 @@ test('KB chart events use the matching candle x coordinate and preserve distinct
   assert.deepEqual(marks.map(m=>m.key),['kb_b1','kb_violence_k','kb_fanbao']);
   assert.ok(marks.every(m=>m.date===20251212&&m.index===21&&m.x===210));
   assert.deepEqual(chartEvents({kb_b1:true,kb_sb1:true}).map(x=>x.label),['KB B1','KB SB1']);
+  assert.deepEqual(chartEvents({kb_rebuild:true}).map(x=>x.label),['KB 灾后重建']);
+});
+
+test('confirmed gap display distinguishes warmup, non-events and reused bowl lines',()=>{
+  const row={kb:{kb_brick_consecutive:4},confirmed_kb_fields:{kb_brick_trend:'RED',kb_brick_action_desc:null,
+    kb_yidong_above_60d:true,kb_double_gun_vol1:null,kb_double_gun_vol2:null,kb_double_gun_gap_days:null,
+    kb_violence_k_type:null,kb_violence_k_body:null},confirmed_kb_diagnostics:{kb_brick_count_reason:'BRICK_RUN_ORIGIN_IN_WARMUP',
+    kb_brick_action_desc_reason:'BRICK_RUN_ORIGIN_IN_WARMUP',kb_double_gun_components_status:'NOT_APPLICABLE_NO_SIGNAL',
+    kb_violence_k_components_status:'NOT_APPLICABLE_NO_SIGNAL',kb_bowl_components_status:'OBSERVED_SOURCE_LINES'},
+    confirmed_kb_reused:{bowl_white:35.1524,bowl_yellow:40.0624}};
+  const values=Object.fromEntries(confirmedGapPresentation(row).map(x=>[x.key,x.text]));
+  assert.equal(values.kb_brick_trend,'红砖');assert.match(values.kb_double_gun_vol1,/不适用 · 当日未命中/);
+  assert.equal(values.bowl_white,'35.15');assert.equal(values.bowl_yellow,'40.06');
+  assert.match(brickCountPresentation(row),/预热期/);assert.equal(row.kb.kb_brick_consecutive,4);
+  row.confirmed_kb_diagnostics.kb_bowl_components_status='INSUFFICIENT_HISTORY';
+  assert.match(Object.fromEntries(confirmedGapPresentation(row).map(x=>[x.key,x.text])).bowl_white,/待核/);
 });

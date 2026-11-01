@@ -12,10 +12,42 @@ export const KB_LABELS={
   kb_violence_k:'暴力K',kb_kirin_stage:'麒麟阶段',kb_kirin_position:'麒麟位置',kb_kirin_vol:'麒麟量态',kb_breath_phase:'呼吸阶段',
 };
 export const CHART_EVENTS=['kb_b1','kb_b2','kb_b3','kb_violence_k','kb_fanbao','kb_sb1','kb_sb1_detailed',
-  'kb_double_gun','kb_nana','kb_ready','kb_didi','kb_beidou','kb_needle_20','kb_needle_30','kb_brick_flip_green',
+  'kb_double_gun','kb_nana','kb_rebuild','kb_ready','kb_didi','kb_beidou','kb_needle_20','kb_needle_30','kb_brick_flip_green',
   'kb_macd_gold_cross','kb_macd_dead_cross','kb_white_cross_up','kb_white_cross_down'];
 const STATES={exhale:'呼气',inhale:'吸气',none:'无呼吸阶段'};
 const oldLabels={user_v1_level1_buy_signal:'原式一级买点',user_v1_level2_buy_signal:'原式二级买点',user_v1_sell_signal_daily:'原式卖点'};
+export const CONFIRMED_GAP_FIELDS=[
+  ['kb_brick_trend','砖型颜色'],['kb_brick_action_desc','砖型来源说明'],['kb_yidong_above_60d','异动位置相对60日线'],
+  ['kb_double_gun_vol1','双枪第一根量比'],['kb_double_gun_vol2','双枪第二根量比'],['kb_double_gun_gap_days','双枪间隔交易日'],
+  ['kb_violence_k_type','暴力K类型'],['kb_violence_k_body','暴力K实体幅度'],
+];
+
+export function confirmedGapPresentation(row){
+  const values=row.confirmed_kb_fields,diag=row.confirmed_kb_diagnostics,reused=row.confirmed_kb_reused;
+  if(!values||!diag||!reused)return null;
+  const status={kb_brick_trend:'kb_brick_trend_reason',kb_brick_action_desc:'kb_brick_action_desc_reason',
+    kb_yidong_above_60d:'kb_yidong_above_60d_status',kb_double_gun_vol1:'kb_double_gun_components_status',
+    kb_double_gun_vol2:'kb_double_gun_components_status',kb_double_gun_gap_days:'kb_double_gun_components_status',
+    kb_violence_k_type:'kb_violence_k_components_status',kb_violence_k_body:'kb_violence_k_components_status'};
+  const reason=value=>value==='NOT_APPLICABLE_NO_SIGNAL'?'当日未命中':value==='NOT_APPLICABLE_SOURCE_PRECONDITION'?'源前置条件未满足':
+    value==='INSUFFICIENT_HISTORY'?'历史预热不足':value?.includes('WARMUP')?'砖段起点处于预热期':'输入或来源待核';
+  const list=CONFIRMED_GAP_FIELDS.map(([key,title])=>{
+    const value=values[key],state=diag[status[key]];let text=value==null?(state?.startsWith('NOT_APPLICABLE')?'不适用 · ':'待核 · ')+reason(state):
+      value===true?'是':value===false?'否':value==='RED'?'红砖':value==='GREEN'?'绿砖':String(value);
+    if(key==='kb_brick_action_desc'&&value!=null)text+='（来源描述，仅供研究）';
+    return {key,title,text};
+  });
+  const bowl=diag.kb_bowl_components_status==='OBSERVED_SOURCE_LINES';
+  for(const [key,title] of [['bowl_white','金碗白线'],['bowl_yellow','金碗黄线']]){
+    const value=reused[key];list.push({key,title,text:bowl&&Number.isFinite(value)?value.toFixed(2):'待核 · '+reason(diag.kb_bowl_components_status)});
+  }
+  return list;
+}
+
+export function brickCountPresentation(row){
+  const reason=row.confirmed_kb_diagnostics?.kb_brick_count_reason;
+  return reason?'待核：'+(reason.includes('WARMUP')?'砖段起点处于预热期':'砖型输入或来源不足'):null;
+}
 
 export const SUPPLEMENTAL_UNKNOWN=[
   ['kb_s1','S1','正文与概念卡对阴阳范围存在冲突，高位和巨量尚未统一量化'],

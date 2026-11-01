@@ -104,6 +104,72 @@ def checked_single_display_projection(binding,identity):
             'kb_concept_count':display['kb_concept_count'],'historical_PIT':False}
 
 
+def checked_confirmed_gap(binding, identity):
+    """Verify the optional eight-field pair and its separate daily diagnostics."""
+    gap=binding.get('confirmed_gap')
+    if gap is None:return None
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    policy=checked(gap['contract']); fields=policy.get('new_fields',{}); keys=policy.get('diagnostic_keys',[])
+    if (policy.get('schema')!='a_share_kb_confirmed_gap_v1' or len(fields)!=8 or len(keys)!=24
+        or identity.get('confirmed_gap_contract_sha256')!=gap['contract']['sha256']
+        or gap.get('calendar_sha256') is not None or gap.get('calendar_status')!='CANNOT_CONFIRM'
+        or any(policy.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('SINGLE_CONFIRMED_GAP_CONTRACT_CONFLICT')
+    old_gate=checked(gap['prior_source_gate']);new_gate=checked(binding['source_gate_receipt'])
+    required_sources={'ops/research_panel_qfq.py','ops/kb_signal_authority.py','ops/kb_confirmed_gap.py',
+                      'ops/kb_panel_rebuild_brick.py','ops/kb_panel_signal_components.py'}
+    if (old_gate.get('status')!='PASS_RELOCATED_SOURCE_GATE' or new_gate.get('status')!='PASS_RELOCATED_SOURCE_GATE'
+        or new_gate.get('matches_frozen_input_sha256') is not True or not required_sources.issubset(new_gate.get('source_code_refs',{}))
+        or new_gate.get('prior_source_gate')!=gap['prior_source_gate']
+        or new_gate.get('canonical_input_sha256')!=binding['source_input_sha256']
+        or new_gate.get('snapshot',{}).get('sha256')!=identity.get('snapshot_sha256')
+        or new_gate.get('relocation_ref')!=binding.get('source_relocation')
+        or any(identity.get('source_sha256',{}).get(name)!=ref.get('sha256')
+               for name,ref in new_gate.get('source_code_refs',{}).items())):
+        raise ValueError('SINGLE_CONFIRMED_GAP_SOURCE_GATE_CONFLICT')
+    sources=gap.get('source_candidates',{})
+    if set(sources)!={'rebuild','components'} or set(gap.get('source_receipts',{}))!={'rebuild','components','diagnostics'}:
+        raise ValueError('SINGLE_CONFIRMED_GAP_SOURCE_SET_CONFLICT')
+    for ref in [*sources.values(),*gap['source_receipts'].values(),gap['source_diagnostics'],*gap['source_contracts'].values()]:checked_bytes(ref)
+    if identity.get('confirmed_gap_source_sha256')!={'rebuild':sources['rebuild']['sha256'],
+        'components':sources['components']['sha256'],'diagnostics':gap['source_diagnostics']['sha256']}:
+        raise ValueError('SINGLE_CONFIRMED_GAP_SOURCE_IDENTITY_CONFLICT')
+    if set(gap['source_contracts'])!=set(policy.get('source_contracts',[])) or any(
+        identity.get('source_sha256',{}).get(name)!=ref['sha256'] for name,ref in gap['source_contracts'].items()):
+        raise ValueError('SINGLE_CONFIRMED_GAP_SOURCE_CONTRACT_CONFLICT')
+    sidecar=pq.read_table(pa.BufferReader(checked_bytes(gap['diagnostics'])))
+    meta=json.loads((sidecar.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+    if (sidecar.column_names!=['ts_code','trade_date','diagnostics_json','prefix_input_sha256']
+        or len(sidecar)!=binding['rows'] or meta.get('candidate_generation')!=binding['candidate_generation']
+        or meta.get('symbol')!=binding['symbol'] or meta.get('confirmed_gap_contract_sha256')!=gap['contract']['sha256']
+        or meta.get('source_generation')!=binding['source_generation'] or meta.get('source_input_sha256')!=binding['source_input_sha256']
+        or meta.get('freeze_snapshot_sha256')!=identity.get('snapshot_sha256')
+        or meta.get('calendar_sha256') is not None or meta.get('calendar_status')!='CANNOT_CONFIRM'
+        or set(meta.get('diagnostic_keys',[]))!=set(keys)):
+        raise ValueError('SINGLE_CONFIRMED_GAP_DIAGNOSTIC_IDENTITY_CONFLICT')
+    rows=sidecar.to_pylist(); dates=[]; seen_dates=set()
+    for row in rows:
+        date=str(row['trade_date']);diag=json.loads(row['diagnostics_json']);prefix=row['prefix_input_sha256']
+        if (row['ts_code']!=binding['symbol'] or len(date)!=8 or not date.isdigit() or date in seen_dates
+            or set(diag)!=set(keys) or not isinstance(prefix,str) or not re.fullmatch(r'[0-9a-f]{64}',prefix)):
+            raise ValueError('SINGLE_CONFIRMED_GAP_DIAGNOSTIC_ROW_CONFLICT')
+        dates.append(date);seen_dates.add(date)
+    if dates!=sorted(dates):raise ValueError('SINGLE_CONFIRMED_GAP_DATES_NOT_ORDERED')
+    roles=binding['display_projection']['roles']; tables={}
+    for role in ('selector','backtest'):
+        table=pq.read_table(pa.BufferReader(checked_bytes(roles[role]['source_full'])))
+        if ([str(v) for v in table['trade_date'].to_pylist()]!=dates or any(v!=binding['symbol'] for v in table['ts_code'].to_pylist())
+            or set(fields)-set(table.column_names)):
+            raise ValueError('SINGLE_CONFIRMED_GAP_ROLE_KEYS_CONFLICT:'+role)
+        tables[role]=table
+    for name in [*fields,'kb_rebuild']:
+        if not tables['selector'][name].equals(tables['backtest'][name]):
+            raise ValueError('SINGLE_CONFIRMED_GAP_ROLE_VALUES_CONFLICT:'+name)
+    return {'contract_sha256':gap['contract']['sha256'],'diagnostics_sha256':gap['diagnostics']['sha256'],
+            'fields':sorted(fields),'calendar_status':'CANNOT_CONFIRM'}
+
+
 def checked_relocated_parquet(reference, relocation_ref):
     """Read one declared historical source only from its SHA-identical backup."""
     relocation=checked(relocation_ref)
@@ -194,6 +260,7 @@ class ResearchWorkbenchHost:
         identity=value.get('candidate_identity')
         if not isinstance(identity,dict) or hashlib.sha256(json.dumps(identity,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()!=value.get('candidate_generation'):
             raise ValueError('SINGLE_STOCK_GENERATION_CONFLICT')
+        confirmed_gap=checked_confirmed_gap(value,identity)
         gate=checked(value['source_gate_receipt']);relocation=checked(value['source_relocation'])
         if (gate.get('status')!='PASS_RELOCATED_SOURCE_GATE' or gate.get('canonical_input_sha256')!=value['source_input_sha256']
             or gate.get('relocation_ref')!=value['source_relocation'] or relocation.get('mode')!='ISOLATED_READ_ONLY'
@@ -246,14 +313,17 @@ class ResearchWorkbenchHost:
             declared_extra=[item['name'] for item in supplemental.get('fields',[])]
             declared_action=list(action.get('materialized_fields',{})) if action_ref is not None else []
             declared_yidong=list(yidong.get('materialized_fields',{})) if yidong_ref is not None else []
+            gap_fields=inventory.get('confirmed_gap_fields',[]) if isinstance(inventory,dict) else []
             if (inventory!=identity.get('field_inventory') or not isinstance(score_fields,list) or not isinstance(extra_fields,list)
                 or len(score_fields)!=len(set(score_fields)) or set(score_fields)!=set(declared_score)
                 or len(extra_fields)!=len(set(extra_fields)) or set(extra_fields)!=set(declared_extra)
                 or not isinstance(action_fields,list) or len(action_fields)!=len(set(action_fields)) or set(action_fields)!=set(declared_action)
                 or not isinstance(yidong_fields,list) or len(yidong_fields)!=len(set(yidong_fields)) or set(yidong_fields)!=set(declared_yidong)
+                or not isinstance(gap_fields,list) or len(gap_fields)!=len(set(gap_fields))
+                or set(gap_fields)!=(set(confirmed_gap['fields']) if confirmed_gap else set())
                 or inventory.get('base_kb_fields')!=value.get('fields_count')
-                or inventory.get('total_new_fields')!=len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)
-                or inventory.get('total_derived_fields')!=value['fields_count']+len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)):
+                or inventory.get('total_new_fields')!=len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)+len(gap_fields)
+                or inventory.get('total_derived_fields')!=value['fields_count']+len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)+len(gap_fields)):
                 raise ValueError('SINGLE_STOCK_FIELD_INVENTORY_CONFLICT')
         display_projection=checked_single_display_projection(value,identity)
         assets=value.get('assets',{})
@@ -279,6 +349,7 @@ class ResearchWorkbenchHost:
             candidate_generation=value['candidate_generation'],candidate_pool_member=pool_member,historical_PIT=False,
             fields_count=value['fields_count'],rows=value['rows'],source_gate='PASS_RELOCATED_SOURCE_GATE',
             field_inventory=value.get('field_inventory'),display_projection=display_projection,
+            confirmed_gap=confirmed_gap,
             hold_score_contract_sha256=score_sha,hold_score_engine_sha256=value.get('hold_score_engine_sha256'),
             supplemental_contract_sha256=supplemental_sha,action_contract_sha256=action_sha,yidong_contract_sha256=yidong_sha,
             reused_candidate_sha256=identity.get('feedback_reused_candidate_sha256') or identity.get('source_candidate_sha256'),
