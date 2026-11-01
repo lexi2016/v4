@@ -107,7 +107,7 @@ def patch_stage(text):
     return replace_once(text, before, after)
 
 
-MAIN_FILES = ("infrastructure/manager_input_attestation.py", "infrastructure/review_generation.py", "ops/build_a_share_close_review.py", "ops/build_close_review.py",
+MAIN_FILES = ("infrastructure/manager_input_attestation.py", "infrastructure/stage_completion_hooks.py", "ops/run_stage_center_milestone.py", "infrastructure/review_generation.py", "ops/build_a_share_close_review.py", "ops/build_close_review.py",
     "ops/collect_hkconnect_close_snapshot.py", "infrastructure/tdx_minute_replay_provider.py", "ops/consume_close_stage_completion.py",
     "ops/recover_stage_data.py", "ops/verify_tdx_trade_window_canary.py", "ops/build_runtime_governance_registry.py")
 API_FILES = ("infrastructure/operations_sop_reader.py", "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md")
@@ -166,7 +166,8 @@ def prepare(output, source, batch1):
         delta = [p for p in sorted(set(before) | set(after)) if before.get(p) != after.get(p)]
         allowed = set({"main": MAIN_FILES, "api": API_FILES, "stage": STAGE_FILES}[role]) | {
             "main": {"infrastructure/scheduling/dispatcher.py", "infrastructure/scheduling/execution_ledger.py", "ops/run_v4_macos_scheduler_due.py"}, "stage": {"ops/run_stage_center_nodes.py", "stage_center_tick_config.json"}, "api": {"config/api-v4_manual_collection_stage_config.json"}}[role]
-        if set(delta) - allowed: raise ValueError("UNOWNED_OVERLAY:" + repr(set(delta) - allowed))
+        base_cache_omissions = {p for p in delta if p in before and p not in after and "__pycache__" in Path(p).parts and p.endswith((".pyc", ".pyo"))}
+        if set(delta) - allowed - base_cache_omissions: raise ValueError("UNOWNED_OVERLAY:" + repr(set(delta) - allowed - base_cache_omissions))
         actual_delta = [p for p in sorted(set(actual_before) | set(after)) if actual_before.get(p) != after.get(p)]
         cache_omissions = {p for p in actual_delta if p in actual_before and p not in after and "__pycache__" in Path(p).parts and p.endswith((".pyc", ".pyo"))}
         if set(actual_delta) - allowed - cache_omissions:
@@ -182,6 +183,7 @@ def prepare(output, source, batch1):
             "actual_current_app": str(pins[role][1]), "actual_current_manifest_sha256": pins[role][2],
             "actual_current_delta": [{"path": p, "before": actual_before.get(p), "after": after.get(p)} for p in actual_delta],
             "actual_current_protected_files_unchanged": sum(after.get(p) == row for p, row in actual_before.items()),
+            "generated_cache_omissions": [{"path": p, "before": actual_before[p]} for p in sorted(cache_omissions)],
             "source_dependencies_preserved": ["current PDF owner", "current Main executor registry and 15:55 manager", "all unlisted runtime files"], "deployment_allowed": False}
         dump(root / "release-manifest.json", manifest)
         result[role] = {"app_root": str(app), "release_id": root.name, "manifest_sha256": sha((root / "release-manifest.json").read_bytes()), "inventory_sha256": inv.inventory_digest(entries), "delta": actual_delta,
