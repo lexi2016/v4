@@ -1,0 +1,686 @@
+{
+  "RESEARCH_ONLY": true,
+  "baseline_commit": "684afcc20be355513b52484430533fe8f2d95e53",
+  "branch": "codex/v4-stage-four-repairs-20261101",
+  "buy_gate_updated": false,
+  "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2",
+  "candidate_deltas": {
+    "a_precapture": [
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "contracts/a_share_code.py",
+          "sha256": "e390839713a1741477b50c8a3c77a0d67dc9efea701ed999490d2378fd50b36b",
+          "size": 2138
+        },
+        "before": null,
+        "path": "contracts/a_share_code.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "contracts/a_share_entity_filter.py",
+          "sha256": "9c43ad740c189409b047aa239ab29236b4a2aa89fea2e2e8855f2d38cd70f64f",
+          "size": 7060
+        },
+        "before": null,
+        "path": "contracts/a_share_entity_filter.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/stage_quote_provider.py",
+          "sha256": "8889d0fe4722c030de4aeb6b267e9e6fc38f88bca9ec601af0b3c36fa975c52e",
+          "size": 37902
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/stage_quote_provider.py",
+          "sha256": "1e8166771b2194629574d0073f058d4a138909f9553519e7843a536b0f82289c",
+          "size": 37686
+        },
+        "path": "infrastructure/stage_quote_provider.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+          "size": 23406
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "63e1a95386989a3f29e02e7935c05fef3f939aa03fde57895d88c87266a5c2ca",
+          "size": 22040
+        },
+        "path": "stage_center/candidate_input.py"
+      }
+    ],
+    "a_precapture_config_sha256": "43ddb83aad4efd40c7877ee28ac3e7765fb0bd8c6dde06de27d4431419be1ddf",
+    "api": [
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/SOP.md",
+          "sha256": "e70b9f8e50d021aaf9740f66d941bdb78379bf18c29e27cda4c451325b63f0ce",
+          "size": 919
+        },
+        "before": null,
+        "path": "docs/SOP.md"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/operations/STAGE_SELECTION_SOP.md",
+          "sha256": "3c0ec161aea582c9c0441746e8079cbd5fa6dff70b708e3b5bcb8fff384f169c",
+          "size": 23120
+        },
+        "before": null,
+        "path": "docs/operations/STAGE_SELECTION_SOP.md"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+          "sha256": "faca9693fb575f9faccca2ed5960d11f57ed88c8f060cfec338b90e9f643c02f",
+          "size": 26652
+        },
+        "before": null,
+        "path": "docs/operations/records/2026-10-28_29-stage-selection-repair.md"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/operations_sop_reader.py",
+          "sha256": "e1fbeadeaad9c42b1df5dd58dc5f6923006a964181c9eb03078d6ba02200774f",
+          "size": 3470
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/operations_sop_reader.py",
+          "sha256": "1938a0adb61e6880014caf49552e90f7e5c7d93bd5677070f6eea6452ece9827",
+          "size": 1639
+        },
+        "path": "infrastructure/operations_sop_reader.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+          "size": 23406
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "947dca238598380bd7fe0e50d67c9beca7542500dc8354542494c5c6d218c244",
+          "size": 17565
+        },
+        "path": "stage_center/candidate_input.py"
+      }
+    ],
+    "api_config_sha256": "a6dffc43d23d0ad9aa48fd70f66456d08d8736022371aadb5173e4b6ac771867",
+    "stage": [
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "contracts/a_share_code.py",
+          "sha256": "e390839713a1741477b50c8a3c77a0d67dc9efea701ed999490d2378fd50b36b",
+          "size": 2138
+        },
+        "before": null,
+        "path": "contracts/a_share_code.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "contracts/a_share_entity_filter.py",
+          "sha256": "9c43ad740c189409b047aa239ab29236b4a2aa89fea2e2e8855f2d38cd70f64f",
+          "size": 7060
+        },
+        "before": null,
+        "path": "contracts/a_share_entity_filter.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/stage_quote_provider.py",
+          "sha256": "8889d0fe4722c030de4aeb6b267e9e6fc38f88bca9ec601af0b3c36fa975c52e",
+          "size": 37902
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "infrastructure/stage_quote_provider.py",
+          "sha256": "1e8166771b2194629574d0073f058d4a138909f9553519e7843a536b0f82289c",
+          "size": 37686
+        },
+        "path": "infrastructure/stage_quote_provider.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "sha256": "7295aed0008e435d4fc99da0805c7bbf374344f320b760a5763f14f5d457ac6e",
+          "size": 56996
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "sha256": "bdaf5d6945f0fd795effa55b770b4b49fedb90cac1c3628ba959be1cba96aac8",
+          "size": 56708
+        },
+        "path": "ops/_run_stage_center_nodes_parts/stage_dispatch.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "ops/run_stage_center_nodes.py",
+          "sha256": "98ce6b0d07a51f04abc26f831b0b6c0a15f63dfa6080099ca2f5a0e913fddd85",
+          "size": 14651
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "ops/run_stage_center_nodes.py",
+          "sha256": "07484ab575e2290c469ef4be54f1958c069af872c47314527dda92c537690091",
+          "size": 14406
+        },
+        "path": "ops/run_stage_center_nodes.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "ops/stage_data_recovery.py",
+          "sha256": "0d800de8789cdbc3bae8a910058b63b8ff2fa5101bc582f981c53f0b1bf06069",
+          "size": 4441
+        },
+        "before": null,
+        "path": "ops/stage_data_recovery.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/_live_collectors_parts/shared_module_loading.py",
+          "sha256": "b4a50c1a38eb77a60b4cb084ed3b758680c461f1fa18f6530d34d5e17257121d",
+          "size": 3299
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/_live_collectors_parts/shared_module_loading.py",
+          "sha256": "a24bb9cfbc4449796df6d0abacb60a1766b4554357a58ca95520e25f1c154fc2",
+          "size": 3203
+        },
+        "path": "stage_center/_live_collectors_parts/shared_module_loading.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/_runner_parts/slot_execution.py",
+          "sha256": "9671f5225afedb29c16449fbbdfcead3fe3da84b0b9a17d1fbbee2ae677a27ef",
+          "size": 60369
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/_runner_parts/slot_execution.py",
+          "sha256": "3a6c717937fe61444a6402bfa1a52ba78a99ea62ace0dbe0f5f27988e2a93fc9",
+          "size": 60231
+        },
+        "path": "stage_center/_runner_parts/slot_execution.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+          "size": 23406
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/candidate_input.py",
+          "sha256": "63e1a95386989a3f29e02e7935c05fef3f939aa03fde57895d88c87266a5c2ca",
+          "size": 22040
+        },
+        "path": "stage_center/candidate_input.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/collector_capture.py",
+          "sha256": "dcd6253b9d3ab66cf9f2553b4e02b559fd35f60fe343c792f42738e4d43fdc44",
+          "size": 5614
+        },
+        "before": null,
+        "path": "stage_center/collector_capture.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/hk_stage8/rtdata.py",
+          "sha256": "ed83fb1290c887a681794a4a12043fe57271eb7259d1c8e0a0056bd298eac3b1",
+          "size": 27345
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/hk_stage8/rtdata.py",
+          "sha256": "8c850aaa3f919eb1f8d3995c96c074c1455a972eb45153c345e053d1f763933a",
+          "size": 26224
+        },
+        "path": "stage_center/hk_stage8/rtdata.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/market_retry.py",
+          "sha256": "7dde26b0148056630cb9bfedb49a26e341ed6ca7aeb6703d954419caf03f2ccc",
+          "size": 5848
+        },
+        "before": null,
+        "path": "stage_center/market_retry.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/snapshot_recovery.py",
+          "sha256": "0b66dea5b5f9fc93fd017159033a1a975ca27e412560a8b0fb54f64c6f2193c9",
+          "size": 22026
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/snapshot_recovery.py",
+          "sha256": "dc1104e049ece72a75b0cf0392a2f3722a41626612ad8c4b0d0071c4703448a3",
+          "size": 20247
+        },
+        "path": "stage_center/snapshot_recovery.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "afed75f8ad8aeb25fade6c945ea475d617170c5629b8eeb3ba5c8f8c982b120c",
+          "size": 4033
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "59e0fabb4cdb5137be1d40c94bfb6a1ea30a01758d336a08fc42056f712c6651",
+          "size": 4031
+        },
+        "path": "stage_center_tick_config.json"
+      }
+    ],
+    "stage_config_sha256": "afed75f8ad8aeb25fade6c945ea475d617170c5629b8eeb3ba5c8f8c982b120c"
+  },
+  "candidates": {
+    "a_precapture": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-a_precapture/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "stage_center/candidate_input.py"
+      ],
+      "inventory_sha256": "36c4f79831e0cdfa0f590980c05daefa3248983306d4e0d2724f06d3f94a3a95",
+      "manifest_sha256": "a4965b571858e19d47a5bacb450aa91cabf528531126be1e55f7949f80281f8b",
+      "release_id": "stage-four-repairs-20261101-r2-a_precapture",
+      "source_role": "A_OPENING_PRECAPTURE"
+    },
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-api/app",
+      "delta": [
+        "docs/SOP.md",
+        "docs/operations/STAGE_SELECTION_SOP.md",
+        "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+        "infrastructure/operations_sop_reader.py",
+        "stage_center/candidate_input.py"
+      ],
+      "inventory_sha256": "5deef1939c1ccaeaa8fbd23aa9be459e7fd91de285c9d073993f43c600591bf1",
+      "manifest_sha256": "20cbeddfcf8c49fcb5b391eaa8c640113518c9f17617e2e09d3fe41b3f6e8769",
+      "release_id": "stage-four-repairs-20261101-r2-api",
+      "source_role": "API_SOP_AND_EXECUTION_READER"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-stage/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/stage_data_recovery.py",
+        "stage_center/_live_collectors_parts/shared_module_loading.py",
+        "stage_center/_runner_parts/slot_execution.py",
+        "stage_center/candidate_input.py",
+        "stage_center/collector_capture.py",
+        "stage_center/hk_stage8/rtdata.py",
+        "stage_center/market_retry.py",
+        "stage_center/snapshot_recovery.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "ce4d808ffd27cb034befe1b882f9f679d47b2abacc78ec1b09e385402dcf3136",
+      "manifest_sha256": "1fa1cd9cdbdc51132ba533c4db1436b8646ee82d1d9cad6814b358440d4f3c33",
+      "release_id": "stage-four-repairs-20261101-r2-stage",
+      "source_role": "STAGE_PRIMARY_SCHEDULER"
+    }
+  },
+  "configuration_mode": "PREPARED_RUNTIME_NOT_EXECUTED",
+  "deployed": false,
+  "initial_failures_resolved": [
+    {
+      "fix": "fallback only to recorded owner write clock; no mtime; no historical rewrite",
+      "replacement_PASS": "regression-r3-retry.json and real-runner-r3.json",
+      "root_cause": "old SETTLED_PARTIAL receipt omitted retry_after/attempted_at; _retry_is_due returned false despite OWNER_WRITE_CLOCK_UTC recorded_at",
+      "test": "test_06"
+    },
+    {
+      "fix": "test fixture explicitly uses /private/tmp; no safety code relaxed",
+      "replacement_PASS": "regression-r2-incremental.json test07 and final-r2-incremental.json",
+      "root_cause": "test TemporaryDirectory used /var alias; SafeRoot correctly rejected symlink component",
+      "test": "test_07"
+    }
+  ],
+  "natural_verified": false,
+  "orders_sent": false,
+  "pass_reuse": {
+    "test_01": "regression-r2: passed individual test; final candidate_input/shared code SHA unchanged",
+    "test_02": "final-r2-incremental: PASS actual sealed final r2 owner/config/context",
+    "test_03": "regression-r2: passed individual test; final rtdata and snapshot code SHA unchanged",
+    "test_04": "regression-r2: passed individual test; final rtdata and snapshot code SHA unchanged",
+    "test_05": "regression-r2: passed individual test; final rtdata and snapshot code SHA unchanged",
+    "test_06": "regression-r3-retry: PASS; final market_retry/scoped runner SHA unchanged",
+    "test_07": "final-r2-incremental: PASS",
+    "test_08": "final-r2-incremental: PASS actual sealed final r2 SOP/identity",
+    "test_09": "real-runner-r3: PASS real raw->A Top10/HK immutable; final slot_execution/scoped runner/readers unchanged",
+    "test_10": "recovery-native-r4: PASS actual CAS recovery/Top10/WATCH_ONLY; final recovery/selection engine code SHA unchanged",
+    "test_11": "recovery-native-r4: PASS; final native provider/shared reader SHA unchanged",
+    "test_12": "final-r2-incremental: PASS raw process seam/timeout/context reset",
+    "test_13": "final-r2-SOP-endpoint: PASS actual API ASGI endpoint, final r2 manifest/doc; no listener"
+  },
+  "production_allowed": false,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-stage-four-repairs-20261101",
+  "source_sha256": {
+    "docs/SOP.md": "e70b9f8e50d021aaf9740f66d941bdb78379bf18c29e27cda4c451325b63f0ce",
+    "docs/handoffs/stage-four-repairs-20261101/WRITER_HANDOFF.md": "65458d7ae94fdf461e9d54901e5b9fbc302ca0fd3523ebc69e0f489332c47986",
+    "docs/operations/STAGE_SELECTION_SOP.md": "3c0ec161aea582c9c0441746e8079cbd5fa6dff70b708e3b5bcb8fff384f169c",
+    "docs/operations/records/2026-10-28_29-stage-selection-repair.md": "faca9693fb575f9faccca2ed5960d11f57ed88c8f060cfec338b90e9f643c02f",
+    "infrastructure/operations_sop_reader.py": "e1fbeadeaad9c42b1df5dd58dc5f6923006a964181c9eb03078d6ba02200774f",
+    "ops/prepare_stage_four_repairs.py": "5d969f8a6c573383bed8ef7e450920df4df1d595527a67589b6ae3b8957d96e0",
+    "ops/run_stage_center_nodes.py": "bc0d321392c0158499efe66497e0ad300719249153ea7c1a5309b6761fe0281b",
+    "ops/stage_data_recovery.py": "0d800de8789cdbc3bae8a910058b63b8ff2fa5101bc582f981c53f0b1bf06069",
+    "stage_center/candidate_input.py": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+    "stage_center/collector_capture.py": "dcd6253b9d3ab66cf9f2553b4e02b559fd35f60fe343c792f42738e4d43fdc44",
+    "stage_center/hk_stage8/rtdata.py": "ed83fb1290c887a681794a4a12043fe57271eb7259d1c8e0a0056bd298eac3b1",
+    "stage_center/market_retry.py": "7dde26b0148056630cb9bfedb49a26e341ed6ca7aeb6703d954419caf03f2ccc",
+    "stage_center/snapshot_recovery.py": "0b66dea5b5f9fc93fd017159033a1a975ca27e412560a8b0fb54f64c6f2193c9",
+    "tests/test_stage_four_repairs.py": "b070a3d94e97f03ff28be567b27a8dd517b98b0b7bb7e592328639a0c2910acc"
+  },
+  "source_sha256_note": "writer_evidence.json excludes its own recursive hash; final commit pins this file",
+  "status": "WRITER_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "test_artifacts": {
+    "final-r2-SOP-endpoint.json": {
+      "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2",
+      "cases": [
+        {
+          "bad_manifest_status": 503,
+          "endpoint": "/api/v4/operations/sop?doc=stage-selection",
+          "http_status": 200,
+          "identity": {
+            "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-api/app",
+            "release_id": "stage-four-repairs-20261101-r2-api",
+            "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2/stage-four-repairs-20261101-r2-api/release-manifest.json",
+            "release_manifest_sha256": "20cbeddfcf8c49fcb5b391eaa8c640113518c9f17617e2e09d3fe41b3f6e8769"
+          },
+          "listener_started": false,
+          "network_invocations": 0,
+          "sha256": "3c0ec161aea582c9c0441746e8079cbd5fa6dff70b708e3b5bcb8fff384f169c",
+          "state_root": "/private/tmp/stage-four-case-6057v0tl/api-state",
+          "status": "ASGI_ENDPOINT_VERIFIED",
+          "unknown_document_status": 422
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "outcome_by_test": {
+        "test_13_actual_API_SOP_endpoint_inprocess_isolated_state": "PASS"
+      },
+      "passed": true,
+      "tests_run": 1
+    },
+    "final-r2-incremental.json": {
+      "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r2",
+      "cases": [
+        {
+          "as_of": "2026-10-30T09:25:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "sop-closure",
+          "slot": "0900"
+        },
+        {
+          "as_of": "2026-10-30T10:30:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "name-zoom",
+          "slot": "1000"
+        },
+        {
+          "as_of": "2026-11-01T20:59:59+08:00",
+          "case": "real_hourly",
+          "date": "20261101",
+          "owner": "r6-main",
+          "slot": "2000"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "09:25:05",
+          "selected_slot": "0900"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "10:30:05",
+          "selected_slot": "1000"
+        },
+        {
+          "case": "synthetic_process_injection_seam",
+          "context_reset_verified": true,
+          "network_invocations": 0,
+          "process_calls_per_request": 1,
+          "stdout_before_aggregation_retained": true,
+          "timeout_partial_stdout_retained": true
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "passed": true,
+      "tests_run": 4
+    },
+    "real-runner-r3.json": {
+      "candidate_bundle": "/private/tmp/v4-stage-four-candidate-20261101-r3",
+      "cases": [
+        {
+          "A_selected_rows": 10,
+          "HK_immutable_files_verified": 6,
+          "case": "real_scoped_runner_raw_replay",
+          "natural_verified": false,
+          "provider_invocations": 0,
+          "result": "PARTIAL_WITH_ROWS"
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "passed": true,
+      "tests_run": 1
+    },
+    "recovery-native-r4.json": {
+      "candidate_bundle": "/private/tmp/v4-stage-four-candidate-20261101-r4",
+      "cases": [
+        {
+          "action": "WATCH_ONLY",
+          "captured_at": "2026-10-30T09:34:07.021281+08:00",
+          "case": "real_existing_observation_CAS_recovery_command",
+          "natural_verified": false,
+          "network_invocations": 0,
+          "original_receipt_sha256": "c01c9ba988aed03d72c68874000510b123815b8d627e99a51f8a6a3c26c37068",
+          "selected_rows": 10,
+          "status": "SNAPSHOT_RESELECTION_READY"
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "passed": true,
+      "tests_run": 2
+    },
+    "regression-r2-incremental.json": {
+      "candidate_bundle": "/private/tmp/v4-stage-four-candidate-20261101-r2",
+      "cases": [],
+      "errors": 0,
+      "failures": 1,
+      "natural_verified": false,
+      "passed": false,
+      "tests_run": 2
+    },
+    "regression-r2.json": {
+      "candidate_bundle": "/private/tmp/v4-stage-four-candidate-20261101-r2",
+      "cases": [
+        {
+          "case": "real_candidate",
+          "current_sha256": "c8a5023fff39c3d5b5b31363f53211137661fee9e6c60079c91ee5d9479b8d5e",
+          "effective": 531,
+          "original": 532
+        },
+        {
+          "as_of": "2026-10-30T09:25:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "sop-closure",
+          "slot": "0900"
+        },
+        {
+          "as_of": "2026-10-30T10:30:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "name-zoom",
+          "slot": "1000"
+        },
+        {
+          "as_of": "2026-11-01T20:59:59+08:00",
+          "case": "real_hourly",
+          "date": "20261101",
+          "owner": "r6-main",
+          "slot": "2000"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "09:25:05",
+          "selected_slot": "0900"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "10:30:05",
+          "selected_slot": "1000"
+        },
+        {
+          "date": "20261030",
+          "sha256": "af8736691b04a5a352d12ea8f3edcd16125d9b77a1a018a89c6fce5d93e7043e",
+          "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots_v2/20261030/STAGE_1545_1555/snapshot.json"
+        },
+        {
+          "case": "real_D30_partial_boundary",
+          "data_limitation": "NO_SEALED_D30_RTDATA; boundary probe only",
+          "excluded": "HK.02915",
+          "provider_received": 99,
+          "result": "CANNOT_CONFIRM"
+        },
+        {
+          "date": "20261029",
+          "sha256": "82c614e614f61e5a3e7185862eaec32a8fa828649149af54779991e226a54b09",
+          "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots_v2/20261029/STAGE_1545_1555/snapshot.json"
+        },
+        {
+          "case": "real_D29_sealed_replay",
+          "natural_verified": false,
+          "result": "READY",
+          "rows": 100,
+          "sha256": "951a4a6b04c135087fde8d5838032b0d901708db25ee3e2bbef9bc9e26933ddc",
+          "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_stage8_rtdata_captures/20261029/STAGE_1545_1555/951a4a6b04c135087fde8d5838032b0d901708db25ee3e2bbef9bc9e26933ddc.json"
+        },
+        {
+          "date": "20261030",
+          "sha256": "af8736691b04a5a352d12ea8f3edcd16125d9b77a1a018a89c6fce5d93e7043e",
+          "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots_v2/20261030/STAGE_1545_1555/snapshot.json"
+        }
+      ],
+      "errors": 1,
+      "failures": 1,
+      "natural_verified": false,
+      "passed": false,
+      "tests_run": 8
+    },
+    "regression-r3-retry.json": {
+      "candidate_bundle": "/private/tmp/v4-stage-four-candidate-20261101-r3",
+      "cases": [
+        {
+          "DUE_decision": "SYNTHETIC_SCOPE_REGRESSION_ONLY",
+          "HK_receipt_object_unchanged": true,
+          "case": "real_partial_receipt_synthetic_DUE_retry",
+          "late_decision": "LATE_CATCHUP_REPLAY_NO_FORMAL_CALL",
+          "markets_called": [
+            "A_SHARE"
+          ],
+          "sha256": "8b279ac31a6a32aaa8483884717837fbd9c2a901b6b43b8e4314ef9236c729dc",
+          "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261030/STAGE_0930_0935/receipt.json"
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "passed": true,
+      "tests_run": 1
+    }
+  },
+  "unresolved": [
+    "D30 Stage8 no original RT_DATA capture: CANNOT_CONFIRM_NO_SEALED_RTDATA; D30 provider99 test is offline boundary probe",
+    "NATURAL_VERIFIED/API_LISTENER/UI/DEPLOYMENT/EXTERNAL_SYNC NOT_RUN",
+    "writer handoff is not independent acceptance",
+    "collector boundary proves returned aggregate; raw child stdout/stderr proves returned process data, not upstream wire execution or PIT availability"
+  ]
+}

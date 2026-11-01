@@ -4,9 +4,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
-from typing import Any, Literal
+from types import MappingProxyType
+from typing import Any, Literal, Mapping
 
 from .calendar import TradingDayState, resolve_market_states
 
@@ -51,6 +52,33 @@ class CandidateInput:
     strict_schema: str | None = None
     source_pool_set_sha256: str | None = None
     current_bytes_sha256: str | None = None
+    source_pool_provenance: tuple[Mapping[str, Any], ...] = ()
+    source_pool_provenance_sha256: str | None = None
+    pool_diagnostics: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    cannot_confirm: tuple[str, ...] = ()
+    original_codes: tuple[str, ...] = ()
+    original_row_count: int = 0
+    effective_row_count: int = 0
+    quarantined_codes: tuple[str, ...] = ()
+    filter_rule_version: str | None = None
+
+
+def _effective_execution_input(candidate: CandidateInput) -> CandidateInput:
+    """Filter only after the original chain is verified; keep its bytes/SHA."""
+    from contracts.a_share_entity_filter import FILTER_RULE_VERSION, invalid_a_share_symbols
+    bad = tuple(invalid_a_share_symbols(candidate.codes))
+    kept = tuple(code for code in candidate.codes if code not in set(bad))
+    if not kept:
+        raise CandidateInputError("candidate execution input all quarantined: A_SHARE_CODE_INVALID")
+    evidence = (*candidate.source_evidence,
+        f"candidate_original_row_count={len(candidate.codes)}",
+        f"candidate_effective_row_count={len(kept)}",
+        f"candidate_filter_rule_version={FILTER_RULE_VERSION}",
+        *(f"candidate_quarantined_code={code}:A_SHARE_CODE_INVALID" for code in bad))
+    return replace(candidate, codes=kept, original_codes=candidate.codes,
+                   original_row_count=len(candidate.codes), effective_row_count=len(kept),
+                   quarantined_codes=bad, filter_rule_version=FILTER_RULE_VERSION,
+                   source_evidence=evidence)
 
 
 def _sha(path: Path) -> str:
@@ -61,10 +89,83 @@ def _sha(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _canonical_sha(payload: dict[str, Any]) -> str:
+def _canonical_sha(payload: Any) -> str:
     return hashlib.sha256(
         json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
+
+
+def _candidate_pool_evidence(
+    artifact: Mapping[str, Any], *, required: bool
+) -> tuple[
+    tuple[Mapping[str, Any], ...],
+    str | None,
+    tuple[tuple[str, tuple[str, ...]], ...],
+    tuple[str, ...],
+]:
+    """Validate and retain pool diagnostics already bound by the candidate."""
+    provenance = artifact.get("source_pool_provenance")
+    provenance_sha256 = artifact.get("source_pool_provenance_sha256")
+    pool_diagnostics = artifact.get("pool_diagnostics", {})
+    cannot_confirm = artifact.get("cannot_confirm", [])
+    if provenance is None and not required:
+        return (), None, (), ()
+
+    from stage_center.input_contracts import REQUIRED_A_STAGE_POOL_IDS
+
+    if not isinstance(provenance, list) or len(provenance) != len(REQUIRED_A_STAGE_POOL_IDS):
+        raise CandidateInputError("candidate source pool provenance is incomplete")
+    if not isinstance(pool_diagnostics, Mapping):
+        raise CandidateInputError("candidate pool_diagnostics must be an object")
+    if not isinstance(cannot_confirm, list) or any(
+        not isinstance(reason, str) for reason in cannot_confirm
+    ):
+        raise CandidateInputError("candidate cannot_confirm is invalid")
+    if not isinstance(provenance_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", provenance_sha256
+    ) or _canonical_sha(provenance) != provenance_sha256:
+        raise CandidateInputError("candidate source pool provenance SHA mismatch")
+
+    copied_provenance: list[Mapping[str, Any]] = []
+    normalized_diagnostics: list[tuple[str, tuple[str, ...]]] = []
+    flattened: list[str] = []
+    for pool_id, item in zip(REQUIRED_A_STAGE_POOL_IDS, provenance):
+        if not isinstance(item, Mapping) or item.get("pool_id") != pool_id:
+            raise CandidateInputError("candidate source pool provenance identity mismatch")
+        reasons = item.get("diagnostics", [])
+        if not isinstance(reasons, list) or any(
+            not isinstance(reason, str) for reason in reasons
+        ):
+            raise CandidateInputError(f"candidate source pool diagnostics invalid: {pool_id}")
+        if pool_id in pool_diagnostics:
+            bound_reasons = pool_diagnostics[pool_id]
+            if (
+                not isinstance(bound_reasons, list)
+                or any(not isinstance(reason, str) for reason in bound_reasons)
+                or any(reason not in reasons for reason in bound_reasons)
+            ):
+                raise CandidateInputError(f"candidate pool diagnostic binding mismatch: {pool_id}")
+        copied_provenance.append(
+            MappingProxyType({**item, "diagnostics": tuple(reasons)})
+        )
+        if reasons:
+            normalized_diagnostics.append((pool_id, tuple(reasons)))
+            flattened.extend(f"{pool_id}:{reason}" for reason in reasons)
+    if set(pool_diagnostics) - set(REQUIRED_A_STAGE_POOL_IDS):
+        raise CandidateInputError("candidate pool_diagnostics has an unknown A pool")
+    for pool_id, reasons in pool_diagnostics.items():
+        if not isinstance(pool_id, str) or not isinstance(reasons, list) or any(
+            not isinstance(reason, str) for reason in reasons
+        ):
+            raise CandidateInputError("candidate pool_diagnostics entry is invalid")
+    if not set(cannot_confirm).issubset(flattened):
+        raise CandidateInputError("candidate cannot_confirm is not bound to pool diagnostics")
+    return (
+        tuple(copied_provenance),
+        provenance_sha256,
+        tuple(normalized_diagnostics),
+        tuple(cannot_confirm),
+    )
 
 
 def _json(path: Path, label: str) -> dict[str, Any]:
@@ -131,6 +232,9 @@ def _read_strict(root: Path | str, trade_date: str, expected: str | None) -> Can
     if expected is not None and current_sha != expected.lower():
         raise CandidateInputError("current.json SHA mismatch")
     artifact = chain["artifact"]
+    pool_provenance, pool_provenance_sha256, pool_diagnostics, cannot_confirm = (
+        _candidate_pool_evidence(artifact, required=True)
+    )
     evidence_identity = EvidenceIdentity.from_mapping(artifact)
     root_path = Path(root).expanduser().resolve()
     return CandidateInput(
@@ -161,6 +265,10 @@ def _read_strict(root: Path | str, trade_date: str, expected: str | None) -> Can
         strict_schema="v3",
         source_pool_set_sha256=artifact.get("source_pool_provenance_sha256"),
         current_bytes_sha256=current_sha,
+        source_pool_provenance=pool_provenance,
+        source_pool_provenance_sha256=pool_provenance_sha256,
+        pool_diagnostics=pool_diagnostics,
+        cannot_confirm=cannot_confirm,
     )
 
 
@@ -218,6 +326,9 @@ def _read_legacy_v2(root: Path | str, trade_date: str, expected: str | None) -> 
             raise CandidateInputError(f"{label} identity/status mismatch")
         _false_flags(payload, label)
     _false_flags(artifact, "candidate artifact")
+    pool_provenance, pool_provenance_sha256, pool_diagnostics, cannot_confirm = (
+        _candidate_pool_evidence(artifact, required=False)
+    )
     codes = artifact.get("codes")
     if (
         not isinstance(codes, list)
@@ -323,6 +434,10 @@ def _read_legacy_v2(root: Path | str, trade_date: str, expected: str | None) -> 
         source_projection_sha256=projection_sha,
         source_evidence=(current_relative, expected_artifact_relative, expected_manifest_relative, expected_receipt_relative),
         commit_id=commit_id,
+        source_pool_provenance=pool_provenance,
+        source_pool_provenance_sha256=pool_provenance_sha256,
+        pool_diagnostics=pool_diagnostics,
+        cannot_confirm=cannot_confirm,
     )
 
 
@@ -339,9 +454,9 @@ def read_candidate_input(
         raise CandidateInputError("conflicting current SHA expectations")
     expected = expected_current_sha256 if expected_current_sha256 is not None else expected_current_bytes_sha256
     if compatibility_mode == "STRICT_B1":
-        return _read_strict(root, trade_date, expected)
+        return _effective_execution_input(_read_strict(root, trade_date, expected))
     if compatibility_mode == "LEGACY_V2":
-        return _read_legacy_v2(root, trade_date, expected)
+        return _effective_execution_input(_read_legacy_v2(root, trade_date, expected))
     raise CandidateInputError("unknown candidate compatibility mode")
 
 

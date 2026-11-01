@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -25,6 +27,44 @@ _STAGE8_CAPTURE_START_AT = "15:50:00"
 _STAGE8_CUTOFF_AT = "15:55:00"
 _STAGE8_RT_DATA_BATCH_SIZE = 30
 _STAGE8_NATURAL_SOURCE = "FUTU_RTDATA_NATURAL"
+
+
+def _persist_stage8_rtdata_capture(snapshot_root, *, trade_date, stage_id, codes,
+                                  fetched, provider_started_at, provider_finished_at):
+    """Preserve the existing provider response for independent readback."""
+    from infrastructure.owned_io import SafeRoot
+    if not re.fullmatch(r"\d{8}", trade_date) or stage_id != "STAGE_1545_1555":
+        raise ValueError("invalid Stage8 capture scope")
+    payload = {
+        "schema_version": "stage_center.hk_stage8_rtdata_capture.v1",
+        "source_role": "FUTU_RTDATA_NATURAL",
+        "trade_date": trade_date, "stage_id": stage_id, "market": "HK_CONNECT",
+        "codes": list(codes), "provider_started_at": provider_started_at,
+        "provider_finished_at": provider_finished_at, "captured_at": provider_finished_at,
+        "rows": list(fetched.get("rows") or ()), "errors": list(fetched.get("errors") or ()),
+        "cleanup_warnings": list(fetched.get("cleanup_warnings") or ()),
+        "missing_codes": list(fetched.get("missing_codes") or ()),
+        "batch_evidence": list(fetched.get("batch_evidence") or ()),
+        "provider_diagnostics": list(fetched.get("provider_diagnostics") or ()),
+        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+    }
+    raw = (json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"), allow_nan=False) + "\n").encode()
+    if len(raw) > 64 * 1024 * 1024:
+        raise ValueError("Stage8 capture exceeds bounded size")
+    digest = hashlib.sha256(raw).hexdigest()
+    relative = f".hk_stage8_rtdata_captures/{trade_date}/{stage_id}/{digest}.json"
+    root = Path(snapshot_root).expanduser().resolve()
+    owned = SafeRoot(root)
+    try:
+        owned.write_bytes(relative, raw, require_absent=True)
+    except FileExistsError:
+        if owned.read_bytes(relative, max_bytes=64 * 1024 * 1024) != raw:
+            raise ValueError("Stage8 capture immutable SHA conflict")
+    return (f"stage8_rtdata_capture_path={root / relative}",
+            f"stage8_rtdata_capture_sha256={digest}",
+            f"stage8_rtdata_provider_started_at={provider_started_at}",
+            f"stage8_rtdata_provider_finished_at={provider_finished_at}")
 
 def _stage8_market_timestamp(value: Any, trade_date: str) -> datetime | None:
     """Parse an RT_DATA timestamp and normalize explicit offsets to Shanghai."""
@@ -68,6 +108,7 @@ def _fetch_hk_stage8_rtdata(
     batch_size: int = _STAGE8_RT_DATA_BATCH_SIZE,
     quote_context_factory: Callable[..., Any] | None = None,
     futu_module: Any | None = None,
+    clock: Callable[[], float] = time.monotonic,
 ) -> dict[str, Any]:
     """Read exact-window RT_DATA in bounded subscribe/get/unsubscribe batches.
 
@@ -119,6 +160,7 @@ def _fetch_hk_stage8_rtdata(
     errors: list[str] = []
     cleanup_warnings: list[str] = []
     batch_evidence: list[str] = []
+    provider_diagnostics: list[dict[str, Any]] = []
     try:
         for offset in range(0, len(requested), batch_size):
             batch = list(requested[offset : offset + batch_size])
@@ -133,6 +175,9 @@ def _fetch_hk_stage8_rtdata(
                     subscribe_push=False,
                 )
                 subscribed = ret == ret_ok
+                subscribed_at = clock() if subscribed else None
+                provider_diagnostics.append({"batch":batch_no,"operation":"subscribe","codes":batch,
+                    "return_code":str(ret),"message":None if message is None else str(message)})
                 batch_evidence.append(
                     f"stage8_rtdata_batch={batch_no};requested={len(batch)};subscribe_ok={str(subscribed).lower()}"
                 )
@@ -144,9 +189,13 @@ def _fetch_hk_stage8_rtdata(
                     try:
                         row_ret, data = quote_ctx.get_rt_data(code)
                     except Exception as error:
+                        provider_diagnostics.append({"batch":batch_no,"operation":"get_rt_data","code":code,
+                            "exception_type":type(error).__name__,"message":str(error)})
                         errors.append(f"HK_STAGE8_RTDATA_GET_ERROR:{code}:{type(error).__name__}")
                         missing.add(code)
                         continue
+                    provider_diagnostics.append({"batch":batch_no,"operation":"get_rt_data","code":code,
+                        "return_code":str(row_ret),"message":None if row_ret == ret_ok else str(data)})
                     if row_ret != ret_ok:
                         errors.append(f"HK_STAGE8_RTDATA_GET_FAILED:{code}")
                         missing.add(code)
@@ -158,32 +207,43 @@ def _fetch_hk_stage8_rtdata(
                         continue
                     rows.extend(records)
             except Exception as error:
+                provider_diagnostics.append({"batch":batch_no,"operation":"subscribe_or_batch",
+                    "exception_type":type(error).__name__,"message":str(error)})
                 errors.append(f"HK_STAGE8_RTDATA_SUBSCRIBE_ERROR:batch={batch_no}:{type(error).__name__}")
                 missing.update(batch)
             finally:
                 if subscribed:
-                    try:
-                        unsub_ret = quote_ctx.unsubscribe(batch, [subtype])
-                        if unsub_ret is None:
-                            unsub_ok = True
-                        elif isinstance(unsub_ret, (tuple, list)):
-                            unsub_ok = not unsub_ret or unsub_ret[0] == ret_ok
-                        else:
-                            unsub_ok = unsub_ret == ret_ok or unsub_ret is True
-                        batch_evidence.append(
-                            f"stage8_rtdata_batch={batch_no};unsubscribe_ok={str(unsub_ok).lower()}"
-                        )
-                        if not unsub_ok:
-                            warning = f"HK_STAGE8_RTDATA_UNSUBSCRIBE_FAILED:batch={batch_no}"
-                            errors.append(warning)
-                            cleanup_warnings.append(warning)
-                    except Exception as error:
-                        warning = f"HK_STAGE8_RTDATA_UNSUBSCRIBE_ERROR:batch={batch_no}:{type(error).__name__}"
-                        errors.append(warning)
-                        cleanup_warnings.append(warning)
+                    age = clock() - subscribed_at
+                    # OpenD requires at least60s before unsubscribe. Never wait
+                    # across the original window or pretend close frees quota.
+                    if age < 60:
+                        provider_diagnostics.append({"batch":batch_no,"operation":"cleanup",
+                            "status":"DEFERRED_TO_CONTEXT_CLOSE","subscription_age_seconds":age,
+                            "server_quota_release_verified":False})
+                        batch_evidence.append(f"stage8_rtdata_batch={batch_no};unsubscribe_deferred=min_subscription_age_not_met")
+                    else:
+                        try:
+                            unsub_ret = quote_ctx.unsubscribe(batch, [subtype])
+                            provider_diagnostics.append({"batch":batch_no,"operation":"unsubscribe","return_value":repr(unsub_ret)})
+                            if unsub_ret is None:
+                                unsub_ok = True
+                            elif isinstance(unsub_ret, (tuple, list)):
+                                unsub_ok = not unsub_ret or unsub_ret[0] == ret_ok
+                            else:
+                                unsub_ok = unsub_ret == ret_ok or unsub_ret is True
+                            batch_evidence.append(f"stage8_rtdata_batch={batch_no};unsubscribe_ok={str(unsub_ok).lower()}")
+                            if not unsub_ok:
+                                warning = f"HK_STAGE8_RTDATA_UNSUBSCRIBE_FAILED:batch={batch_no}"
+                                errors.append(warning);cleanup_warnings.append(warning)
+                        except Exception as error:
+                            provider_diagnostics.append({"batch":batch_no,"operation":"unsubscribe",
+                                "exception_type":type(error).__name__,"message":str(error)})
+                            warning = f"HK_STAGE8_RTDATA_UNSUBSCRIBE_ERROR:batch={batch_no}:{type(error).__name__}"
+                            errors.append(warning);cleanup_warnings.append(warning)
     finally:
         try:
-            quote_ctx.close()
+            result = quote_ctx.close()
+            provider_diagnostics.append({"operation":"close","return_value":repr(result),"server_quota_release_verified":False})
         except Exception as error:
             warning = f"HK_STAGE8_RTDATA_CLOSE_ERROR:{type(error).__name__}"
             errors.append(warning)
@@ -200,6 +260,7 @@ def _fetch_hk_stage8_rtdata(
         "cleanup_warnings": tuple(dict.fromkeys(cleanup_warnings)),
         "missing_codes": tuple(sorted(missing)),
         "batch_evidence": tuple(batch_evidence),
+        "provider_diagnostics": tuple(provider_diagnostics),
         "requested_code_count": len(requested),
         "completed_code_count": len(rows_by_code),
     }
@@ -314,8 +375,8 @@ def _stage8_aggregate_rtdata_rows(
         "stage_cumulative_pct_chg": pct,
         "stage_replay_latest_time": last_time_text,
         "stage_replay_bar_count": len(ordered),
-        "candidate_lanes": ["LIVE_HKCONNECT_GAINER"],
-        "source_universe": "LIVE_HKCONNECT_GAINER",
+        "candidate_lanes": ["LIVE_HKCONNECT_GAINER"] if _stage8_active_snapshot_codes((active_snapshot_row,)) else [],
+        "source_universe": "HK_CONNECT_D1_TOP100",
         "active_gainer_pass": True,
         "stage_id": "STAGE_1545_1555",
         "trade_date": trade_date,
@@ -351,29 +412,65 @@ def _collect_hk_stage8_natural(
     )
     if cutoff is None or now.replace(tzinfo=None) < cutoff:
         return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), cannot_confirm=("HK_STAGE8_CUTOFF_NOT_REACHED",), source_evidence=evidence)
-    path = _snapshot_path(snapshot_root, plan.trade_date, plan.stage_id)
-    loaded = load_hk_active_snapshot(snapshot_root, trade_date=plan.trade_date, stage_id=plan.stage_id, codes=requested, cutoff_at=_STAGE8_CUTOFF_AT)
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
-        payload = {}
-    if loaded["status"] != "READY" or payload.get("source_role") != "FUTU_HKCONNECT_FULL_SCAN":
+    hk_binding = plan.universe_bindings.get("HK_CONNECT")
+    pool_artifact_sha256 = getattr(hk_binding, "sha256", None)
+    loaded = load_hk_active_snapshot(
+        snapshot_root,
+        trade_date=plan.trade_date,
+        stage_id=plan.stage_id,
+        codes=requested,
+        cutoff_at=_STAGE8_CUTOFF_AT,
+        pool_artifact_sha256=pool_artifact_sha256,
+    )
+    # The strict reader validates source_role and chooses the v1/v2 namespace.
+    # Reopening the old v1 path here incorrectly rejected valid sealed v2 data.
+    if loaded["status"] not in {"READY", "PARTIAL_WITH_ROWS"}:
         return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), cannot_confirm=tuple(dict.fromkeys((*loaded.get("cannot_confirm", ()), "HK_STAGE8_ACTIVE_SNAPSHOT_UNAVAILABLE"))), source_evidence=tuple(dict.fromkeys((*evidence, *loaded.get("source_evidence", ())))))
-    active_snapshot_rows = _stage8_active_snapshot_codes(loaded.get("rows", ()))
+    eligible_snapshot_rows = loaded.get("eligible_rows", loaded.get("rows", ()))
+    all_snapshot_rows = {_canonical_hk_code(row.get("code")): row for row in eligible_snapshot_rows
+                         if row.get("active_snapshot_eligible") is not False}
+    # Keep the original frozen pool identity/count; provider sees only rows
+    # validated by the snapshot reader. Quarantined rows never re-enter fetch.
+    eligible_codes = tuple(code for code in requested if code in all_snapshot_rows)
+    excluded_codes = tuple(code for code in requested if code not in all_snapshot_rows)
+    if not eligible_codes:
+        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM",
+            requested_rows=len(requested), missing_symbols=requested,
+            cannot_confirm=("HK_STAGE8_ACTIVE_SNAPSHOT_ALL_QUARANTINED",),
+            source_evidence=tuple(dict.fromkeys((*evidence, *loaded.get("source_evidence", ())))))
+    active_snapshot_rows = _stage8_active_snapshot_codes(tuple(all_snapshot_rows.values()))
     active_codes = tuple(sorted(active_snapshot_rows))
     active_codes_sha = _snapshot_codes_sha(active_codes)
     active_evidence = (
         f"stage8_active_snapshot_sha256={loaded.get('active_snapshot_sha256', '')}",
+        f"stage8_active_snapshot_pool_artifact_sha256={loaded.get('active_snapshot_pool_artifact_sha256', '')}",
         f"stage8_active_codes_sha256={active_codes_sha}",
         f"stage8_active_code_count={len(active_codes)}",
+        f"stage8_frozen_pool_code_count={len(requested)}",
+        f"stage8_eligible_snapshot_code_count={len(eligible_codes)}",
+        *(f"stage8_snapshot_quarantined_code={code}" for code in excluded_codes),
+        *loaded.get("source_evidence", ()),
     )
-    if not active_codes:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=0, cannot_confirm=("HK_STAGE8_ACTIVE_CODES_EMPTY",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
     provider = rtdata_provider or _fetch_hk_stage8_rtdata
     try:
-        fetched = dict(provider(active_codes, batch_size=_STAGE8_RT_DATA_BATCH_SIZE))
+        provider_started_at = datetime.now(_SHANGHAI).isoformat()
+        fetched = dict(provider(eligible_codes, batch_size=_STAGE8_RT_DATA_BATCH_SIZE))
+        provider_finished_at = datetime.now(_SHANGHAI).isoformat()
     except Exception as error:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(active_codes), cannot_confirm=(f"HK_STAGE8_RTDATA_PROVIDER_ERROR:{type(error).__name__}",), source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
+        provider_finished_at = datetime.now(_SHANGHAI).isoformat()
+        # Zero returned rows still have an immutable request/failure receipt.
+        fetched = {"rows": (), "errors": (f"HK_STAGE8_RTDATA_PROVIDER_ERROR:{type(error).__name__}:{error}",),
+                   "missing_codes": eligible_codes}
+    try:
+        capture_evidence = _persist_stage8_rtdata_capture(
+            snapshot_root, trade_date=plan.trade_date, stage_id=plan.stage_id,
+            codes=eligible_codes, fetched=fetched, provider_started_at=provider_started_at,
+            provider_finished_at=provider_finished_at,
+        )
+    except (OSError, ValueError, TypeError) as error:
+        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested),
+            cannot_confirm=(f"HK_STAGE8_RTDATA_CAPTURE_PERSIST_FAILED:{type(error).__name__}",),
+            source_evidence=tuple(dict.fromkeys((*evidence, *active_evidence))))
     stage_start = _exact_market_timestamp(f"{plan.trade_date[:4]}-{plan.trade_date[4:6]}-{plan.trade_date[6:]}T{_STAGE8_START_AT}", plan.trade_date)
     raw_by_code: dict[str, list[tuple[datetime, Mapping[str, Any]]]] = {}
     temporal_error = False
@@ -386,7 +483,7 @@ def _collect_hk_stage8_natural(
         if not isinstance(raw, Mapping):
             continue
         code = _canonical_hk_code(raw.get("code") or raw.get("symbol") or raw.get("stock_code"))
-        if code not in active_snapshot_rows:
+        if code not in all_snapshot_rows:
             continue
         when = _stage8_market_timestamp(raw.get("time") or raw.get("update_time"), plan.trade_date)
         if when is None:
@@ -414,7 +511,7 @@ def _collect_hk_stage8_natural(
             invalid_timestamp_count += 1
             continue
         raw_by_code.setdefault(code, []).append((when, dict(raw)))
-    missing = tuple(sorted(set(active_codes) - set(raw_by_code)))
+    missing = tuple(sorted(set(requested) - set(raw_by_code)))
     cleanup_warnings = tuple(str(item) for item in (fetched.get("cleanup_warnings") or ()) if str(item))
     provider_errors = tuple(
         str(item)
@@ -435,7 +532,8 @@ def _collect_hk_stage8_natural(
             (
                 *evidence,
                 *active_evidence,
-                f"stage8_rtdata_requested_code_count={len(active_codes)}",
+                *capture_evidence,
+                f"stage8_rtdata_requested_code_count={len(requested)}",
                 f"stage8_rtdata_completed_code_count={len(raw_by_code)}",
                 f"stage8_rtdata_missing_code_count={len(missing)}",
                 f"stage8_rtdata_outside_window_count={outside_window_count}",
@@ -451,10 +549,10 @@ def _collect_hk_stage8_natural(
         )
     )
     if temporal_error:
-        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(active_codes), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
+        return SourceResult("futu_hkconnect_stage8_natural_rtdata", "CANNOT_CONFIRM", requested_rows=len(requested), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
     rows = tuple(
-        _stage8_aggregate_rtdata_rows(raw_by_code[code], code=code, active_snapshot_row=active_snapshot_rows[code], trade_date=plan.trade_date, batch_index=index)
+        _stage8_aggregate_rtdata_rows(raw_by_code[code], code=code, active_snapshot_row=all_snapshot_rows[code], trade_date=plan.trade_date, batch_index=index)
         for index, code in enumerate(sorted(raw_by_code), start=1)
     )
     status = "READY" if not missing and not provider_errors else ("PARTIAL_WITH_ROWS" if rows else "CANNOT_CONFIRM")
-    return SourceResult("futu_hkconnect_stage8_natural_rtdata", status, rows=rows, requested_rows=len(active_codes), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)
+    return SourceResult("futu_hkconnect_stage8_natural_rtdata", status, rows=rows, requested_rows=len(requested), missing_symbols=missing, cannot_confirm=tuple(dict.fromkeys(cannot)), source_evidence=source_evidence)

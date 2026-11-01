@@ -257,6 +257,9 @@ def _node_attempt_count(receipt: Mapping[str, Any] | None) -> int:
 
 
 def _node_outcome(status: str, result: Mapping[str, Any]) -> str:
+    from stage_center.market_retry import failed_market_lanes
+    if failed_market_lanes(result):
+        return "TRANSIENT"
     if status == "PARTIAL_WITH_ROWS":
         return "SETTLED_PARTIAL" if result.get("write_performed") is not False else "TRANSIENT"
     if status in SETTLED_STATUSES:
@@ -336,6 +339,9 @@ def _node_due(node: Node, trade_date: str, evaluated_at: datetime) -> bool:
 
 
 def _stage_settled(receipt: Mapping[str, Any] | None) -> bool:
+    from stage_center.market_retry import failed_market_lanes
+    if failed_market_lanes(receipt):
+        return False
     if not receipt:
         return False
     status = str(receipt.get("status") or "")
