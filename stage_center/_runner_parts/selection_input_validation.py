@@ -7,40 +7,40 @@ def __validate_formal_input_body(_v4_scope, /, root, trade_date):
     csv_path, manifest_path = _v4_global(_v4_scope, '_required_formal_paths')(root, trade_date)
     try:
         manifest = _v4_global(_v4_scope, 'json').loads(manifest_path.read_text(encoding="utf-8-sig"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal manifest unreadable") from error
     if manifest.get("trade_date") != trade_date or manifest.get("status") not in {"FORMAL_CONFIRMED", "FORMAL_READY"}:
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool identity/status mismatch")
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        rows = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'csv').DictReader(stream))
-    eligible = [row for row in rows if _v4_global(_v4_scope, 'str')(row.get("eligible_for_formal_pool") or "").lower() in {"true", "1", "yes"}]
+        rows = list(_v4_global(_v4_scope, 'csv').DictReader(stream))
+    eligible = [row for row in rows if str(row.get("eligible_for_formal_pool") or "").lower() in {"true", "1", "yes"}]
     if not eligible:
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool has no eligible rows")
-    raw_codes = [_v4_global(_v4_scope, 'str')(row.get("ts_code") or row.get("stock_code") or "").strip().upper() for row in eligible]
+    raw_codes = [str(row.get("ts_code") or row.get("stock_code") or "").strip().upper() for row in eligible]
     normalized_codes = [f"A.{match.group(1)}" for raw in raw_codes if (match := _v4_global(_v4_scope, 're').search(r"(\d{6})", raw))]
-    if _v4_global(_v4_scope, 'len')(normalized_codes) != _v4_global(_v4_scope, 'len')(eligible) or _v4_global(_v4_scope, 'len')(_v4_global(_v4_scope, 'set')(normalized_codes)) != _v4_global(_v4_scope, 'len')(normalized_codes):
+    if len(normalized_codes) != len(eligible) or len(set(normalized_codes)) != len(normalized_codes):
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool eligible membership must be non-empty and unique")
-    if _v4_global(_v4_scope, 'int')(manifest.get("row_count", -1)) != _v4_global(_v4_scope, 'len')(rows):
+    if int(manifest.get("row_count", -1)) != len(rows):
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool manifest row_count mismatch")
     manifest_sha = manifest.get("csv_sha256")
-    if not _v4_global(_v4_scope, 'isinstance')(manifest_sha, _v4_global(_v4_scope, 'str')) or _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-fA-F]{64}", manifest_sha) is None:
+    if not isinstance(manifest_sha, str) or _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-fA-F]{64}", manifest_sha) is None:
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal csv_sha256 must be a 64-hex digest")
     actual_sha = _v4_global(_v4_scope, '_sha')(csv_path)
     if manifest_sha.lower() != actual_sha:
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool CSV SHA mismatch")
-    if _v4_global(_v4_scope, 'any')(manifest.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
+    if any(manifest.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
         raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool safety flag must be false")
     return csv_path, manifest_path, actual_sha
 
 
 def __formal_selection_codes_body(_v4_scope, /, root, trade_date):
     csv_path, _manifest_path, csv_sha = _v4_global(_v4_scope, '_validate_formal_input')(root, trade_date)
-    codes: set[str] = _v4_global(_v4_scope, 'set')()
+    codes: set[str] = set()
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         for row in _v4_global(_v4_scope, 'csv').DictReader(stream):
-            if _v4_global(_v4_scope, 'str')(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
+            if str(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
                 continue
-            raw = _v4_global(_v4_scope, 'str')(row.get("ts_code") or row.get("stock_code") or "").strip().upper()
+            raw = str(row.get("ts_code") or row.get("stock_code") or "").strip().upper()
             match = _v4_global(_v4_scope, 're').search(r"(\d{6})", raw)
             if match:
                 codes.add(f"A.{match.group(1)}")
@@ -76,11 +76,11 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
     """
     evidence: list[str] = []
     if config.injected_test_mode:
-        return _v4_global(_v4_scope, 'tuple')(evidence)
+        return tuple(evidence)
     requested = (market,) if market is not None else _v4_global(_v4_scope, '_stage_markets')(stage_id)
-    unknown = _v4_global(_v4_scope, 'set')(requested) - {"A_SHARE", "HK_CONNECT"}
+    unknown = set(requested) - {"A_SHARE", "HK_CONNECT"}
     if unknown:
-        raise _v4_global(_v4_scope, 'RunnerError')(f"unknown exact-input market(s): {_v4_global(_v4_scope, 'sorted')(unknown)!r}")
+        raise _v4_global(_v4_scope, 'RunnerError')(f"unknown exact-input market(s): {sorted(unknown)!r}")
     if "A_SHARE" in requested:
         if stage_id in _v4_global(_v4_scope, 'V3_RESEARCH_STAGES') and config.v4_research_data_root is None:
             raise _v4_global(_v4_scope, 'RunnerError')(
@@ -101,7 +101,7 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
             try:
                 formal_csv, formal_manifest, formal_sha = _v4_global(_v4_scope, '_validate_formal_input')(config.v3_formal_root, trade_date)
                 evidence.extend((f"formal_csv={formal_csv}", f"formal_manifest={formal_manifest}", f"formal_csv_sha256={formal_sha}"))
-            except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+            except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
                 evidence.append(f"a_formal_overlay_unavailable={error}")
         if config.a_research_panel_receipt_root is None:
             evidence.append("a_name_overlay_unavailable=ROOT_NOT_BOUND")
@@ -113,7 +113,7 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
                     trade_date=trade_date,
                 )
                 evidence.extend(panel_evidence)
-            except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+            except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
                 evidence.append(f"a_name_overlay_unavailable={error}")
     if "HK_CONNECT" in requested:
         if config.hk_d1_root is None:
@@ -143,18 +143,18 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
             if config.hk_stage_replay_root is None:
                 raise _v4_global(_v4_scope, 'RunnerError')("production HK Stage8 replay root is required for STAGE_1545_1555")
             evidence.append(f"hk_stage_replay_root={config.hk_stage_replay_root}")
-    return _v4_global(_v4_scope, 'tuple')(evidence)
+    return tuple(evidence)
 
 
 def __selection_source_body(_v4_scope, /, source, *, market, membership):
     if membership is None:
         return source
-    rows = _v4_global(_v4_scope, 'tuple')(row for row in source.rows if _v4_global(_v4_scope, '_normal_code')(market, _v4_global(_v4_scope, 'getattr')(row, "get", lambda *_: None)("code")) in membership)
+    rows = tuple(row for row in source.rows if _v4_global(_v4_scope, '_normal_code')(market, getattr(row, "get", lambda *_: None)("code")) in membership)
     observed = {_v4_global(_v4_scope, '_normal_code')(market, row.get("code")) for row in source.rows}
-    missing = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'sorted')(membership - observed))
+    missing = tuple(sorted(membership - observed))
     status = source.status
     if not rows:
         status = "CANNOT_CONFIRM"
-    elif status == "READY" and (missing or _v4_global(_v4_scope, 'len')(rows) < _v4_global(_v4_scope, 'len')(membership)):
+    elif status == "READY" and (missing or len(rows) < len(membership)):
         status = "PARTIAL_WITH_ROWS"
-    return _v4_global(_v4_scope, 'replace')(source, status=status, rows=rows, requested_rows=_v4_global(_v4_scope, 'len')(membership), missing_symbols=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.missing_symbols, *missing))), cannot_confirm=_v4_global(_v4_scope, 'tuple')(source.cannot_confirm) + (("SELECTION_MEMBERSHIP_INTERSECTION_EMPTY",) if not rows else ()))
+    return _v4_global(_v4_scope, 'replace')(source, status=status, rows=rows, requested_rows=len(membership), missing_symbols=tuple(dict.fromkeys((*source.missing_symbols, *missing))), cannot_confirm=tuple(source.cannot_confirm) + (("SELECTION_MEMBERSHIP_INTERSECTION_EMPTY",) if not rows else ()))

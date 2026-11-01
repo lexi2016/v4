@@ -127,3 +127,42 @@ def test_raw_store_validates_and_publishes(tmp_path: Path):
         rows=[{"symbol": "000001", "price": 1.0}],
     )
     assert isinstance(published, dict)
+
+
+PARTS_DIRS = [
+    "apps/api/v4_api/_research_lane_router_parts",
+    "domains/_preselection_parts",
+    "stage_center/_raw_store_parts",
+    "stage_center/_runner_parts",
+]
+
+
+def _parts_files():
+    for relative in PARTS_DIRS:
+        for path in sorted((ROOT / relative).glob("*.py")):
+            yield path
+
+
+def test_parts_modules_import():
+    import importlib
+
+    for path in _parts_files():
+        name = ".".join(path.relative_to(ROOT).with_suffix("").parts)
+        importlib.import_module(name)
+
+
+def test_builtins_are_not_read_through_the_facade_namespace():
+    import builtins
+
+    names = set(dir(builtins))
+    offenders = []
+    for path in _parts_files():
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+                continue
+            if node.func.id != "_v4_global" or len(node.args) != 2:
+                continue
+            argument = node.args[1]
+            if isinstance(argument, ast.Constant) and argument.value in names:
+                offenders.append(f"{path.relative_to(ROOT)}:{node.lineno} {argument.value!r}")
+    assert offenders == [], offenders

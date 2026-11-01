@@ -15,12 +15,12 @@ def _validate_rows_body(
     lower, upper = _v4_global(_v4_scope, '_window_bounds')(trade_date, stage_id, market)
     validated: list[dict[str, Any]] = []
     issues: list[str] = []
-    for index, source in _v4_global(_v4_scope, 'enumerate')(rows):
-        if not _v4_global(_v4_scope, 'isinstance')(source, _v4_global(_v4_scope, 'Mapping')) or _v4_global(_v4_scope, 'set')(source) != _v4_global(_v4_scope, 'set')(_v4_global(_v4_scope, 'RAW_FIELDS')):
+    for index, source in enumerate(rows):
+        if not isinstance(source, _v4_global(_v4_scope, 'Mapping')) or set(source) != set(_v4_global(_v4_scope, 'RAW_FIELDS')):
             issues.append(f"row {index}: raw row must contain exactly 19 fields")
             continue
-        row = _v4_global(_v4_scope, 'dict')(source)
-        code = _v4_global(_v4_scope, 'str')(row.get("code") or "").upper()
+        row = dict(source)
+        code = str(row.get("code") or "").upper()
         if not expected_market.fullmatch(code):
             issues.append(f"row {index}: invalid {market} code")
             continue
@@ -31,7 +31,7 @@ def _validate_rows_body(
         except _v4_global(_v4_scope, 'RawStoreError') as error:
             issues.append(f"row {index}: {error}")
             continue
-        if _v4_global(_v4_scope, 'any')(
+        if any(
             timestamp.strftime("%Y%m%d") != trade_date
             for timestamp in (update, window_start, window_end)
         ):

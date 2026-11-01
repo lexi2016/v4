@@ -13,7 +13,7 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
     artifact = _v4_global(_v4_scope, '_safe_relative')(self.root, f"{prefix}/artifact.csv")
     manifest_path = _v4_global(_v4_scope, '_safe_relative')(self.root, f"{prefix}/manifest.json")
     receipt_path = _v4_global(_v4_scope, '_safe_relative')(self.root, f"{prefix}/receipt.json")
-    if not run_dir.is_dir() or not _v4_global(_v4_scope, 'all')(path.is_file() for path in (artifact, manifest_path, receipt_path)):
+    if not run_dir.is_dir() or not all(path.is_file() for path in (artifact, manifest_path, receipt_path)):
         raise _v4_global(_v4_scope, 'RawStoreError')("run trio incomplete")
     manifest = _v4_global(_v4_scope, '_read_json')(manifest_path)
     receipt = _v4_global(_v4_scope, '_read_json')(receipt_path)
@@ -41,10 +41,10 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
         raise _v4_global(_v4_scope, 'RawStoreError')("artifact sha mismatch")
     with artifact.open("r", encoding="utf-8-sig", newline="") as stream:
         reader = _v4_global(_v4_scope, 'csv').DictReader(stream)
-        if _v4_global(_v4_scope, 'tuple')(reader.fieldnames or ()) != _v4_global(_v4_scope, 'ARTIFACT_FIELDS'):
+        if tuple(reader.fieldnames or ()) != _v4_global(_v4_scope, 'ARTIFACT_FIELDS'):
             raise _v4_global(_v4_scope, 'RawStoreError')("raw artifact fields mismatch")
-        rows = _v4_global(_v4_scope, 'list')(reader)
-    row_count = _v4_global(_v4_scope, 'len')(rows)
+        rows = list(reader)
+    row_count = len(rows)
     if manifest.get("row_count") != row_count or receipt.get("row_count") != row_count:
         raise _v4_global(_v4_scope, 'RawStoreError')("row_count mismatch")
     canonical_manifest_sha = _v4_global(_v4_scope, 'canonical_sha')(manifest)
@@ -78,10 +78,10 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
         "requested_rows": manifest.get("requested_rows", row_count),
         "source_rows": manifest.get("source_rows", row_count),
         "coverage_ratio": manifest.get("coverage_ratio", 1.0),
-        "missing_symbols": _v4_global(_v4_scope, 'list')(manifest.get("missing_symbols", [])),
-        "source_evidence": _v4_global(_v4_scope, 'list')(manifest.get("source_evidence", [])),
-        "cannot_confirm": _v4_global(_v4_scope, 'list')(manifest.get("cannot_confirm", [])),
-        "calendar": _v4_global(_v4_scope, 'dict')(manifest.get("calendar", _v4_global(_v4_scope, 'calendar_provenance')())),
+        "missing_symbols": list(manifest.get("missing_symbols", [])),
+        "source_evidence": list(manifest.get("source_evidence", [])),
+        "cannot_confirm": list(manifest.get("cannot_confirm", [])),
+        "calendar": dict(manifest.get("calendar", _v4_global(_v4_scope, 'calendar_provenance')())),
         "source_id": receipt.get("source_id"),
         "source_status": receipt.get("source_status"),
         "idempotency_key": receipt.get("idempotency_key"),
@@ -107,16 +107,16 @@ def _RawStore__verify_bundle_body(_v4_scope, /, self, trade_date, stage_id, bund
         if receipt.get(key) is not False:
             raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle receipt safety flag {key!r} must be false")
     markets = receipt.get("markets")
-    if not _v4_global(_v4_scope, 'isinstance')(markets, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(markets, _v4_global(_v4_scope, 'Mapping')):
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle markets missing")
-    expected_markets = _v4_global(_v4_scope, 'set')(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
-    if _v4_global(_v4_scope, 'set')(markets) != expected_markets:
+    expected_markets = set(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
+    if set(markets) != expected_markets:
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
-    observed_statuses: set[str] = _v4_global(_v4_scope, 'set')()
+    observed_statuses: set[str] = set()
     for market, entry in markets.items():
-        if not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
             raise _v4_global(_v4_scope, 'RawStoreError')("bundle market entry malformed")
-        verified = self.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(entry.get("run_id")))
+        verified = self.verify_run(trade_date, stage_id, market, str(entry.get("run_id")))
         if entry.get("receipt_sha256") != verified["receipt_sha256"] or entry.get("manifest_sha256") != verified["manifest_sha256"]:
             raise _v4_global(_v4_scope, 'RawStoreError')("bundle market SHA mismatch")
         observed_statuses.add(verified["status"])
@@ -124,8 +124,8 @@ def _RawStore__verify_bundle_body(_v4_scope, /, self, trade_date, stage_id, bund
         expected_status = "READY"
     elif observed_statuses == {"READY_EMPTY"}:
         expected_status = "READY_EMPTY"
-    elif observed_statuses == {"CANNOT_CONFIRM"} and _v4_global(_v4_scope, 'all')(
-        self.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(markets[market].get("run_id")))["row_count"] == 0
+    elif observed_statuses == {"CANNOT_CONFIRM"} and all(
+        self.verify_run(trade_date, stage_id, market, str(markets[market].get("run_id")))["row_count"] == 0
         for market in markets
     ):
         expected_status = "CANNOT_CONFIRM"

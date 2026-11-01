@@ -4,14 +4,14 @@ from ._namespace import read_global as _v4_global
 
 
 def __metadata_values_body(_v4_scope, /, value):
-    if _v4_global(_v4_scope, 'isinstance')(value, (_v4_global(_v4_scope, 'list'), _v4_global(_v4_scope, 'tuple'), _v4_global(_v4_scope, 'set'))):
+    if isinstance(value, (list, tuple, set)):
         values: list[str] = []
         for item in value:
             values.extend(_v4_global(_v4_scope, '_metadata_values')(item))
         return values
-    if _v4_global(_v4_scope, 'isinstance')(value, _v4_global(_v4_scope, 'dict')):
-        return _v4_global(_v4_scope, '_metadata_values')(_v4_global(_v4_scope, 'list')(value))
-    text = _v4_global(_v4_scope, 'str')(value or "").strip()
+    if isinstance(value, dict):
+        return _v4_global(_v4_scope, '_metadata_values')(list(value))
+    text = str(value or "").strip()
     if not text:
         return []
     text = _v4_global(_v4_scope, 're').sub(r"\s+(?:/|\|)\s+", "\n", text)
@@ -27,14 +27,14 @@ def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
     creates or binds a new producer artifact.
     """
     entries = []
-    for pool in pools if _v4_global(_v4_scope, 'isinstance')(pools, _v4_global(_v4_scope, 'list')) else []:
-        if not _v4_global(_v4_scope, 'isinstance')(pool, _v4_global(_v4_scope, 'Mapping')):
+    for pool in pools if isinstance(pools, list) else []:
+        if not isinstance(pool, _v4_global(_v4_scope, 'Mapping')):
             continue
         entries.append({
-            "pool_id": _v4_global(_v4_scope, 'str')(pool.get("pool_id") or ""),
-            "trade_date": _v4_global(_v4_scope, 'str')(pool.get("trade_date") or trade_date),
-            "source_sha256": _v4_global(_v4_scope, 'str')(pool.get("source_sha256") or ""),
-            "source_artifact_sha256": _v4_global(_v4_scope, 'str')(pool.get("source_artifact_sha256") or ""),
+            "pool_id": str(pool.get("pool_id") or ""),
+            "trade_date": str(pool.get("trade_date") or trade_date),
+            "source_sha256": str(pool.get("source_sha256") or ""),
+            "source_artifact_sha256": str(pool.get("source_artifact_sha256") or ""),
             "rows": pool.get("rows", []),
         })
     canonical = _v4_global(_v4_scope, 'json').dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -43,14 +43,14 @@ def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
 
 def __page_metadata_body(_v4_scope, /, rows, *, limit, offset, status):
     buckets = _v4_global(_v4_scope, '_market_buckets')(rows)
-    returned_rows = _v4_global(_v4_scope, 'sum')(
-        _v4_global(_v4_scope, 'len')(bucket[offset:offset + limit])
+    returned_rows = sum(
+        len(bucket[offset:offset + limit])
         for bucket in buckets.values()
     )
-    has_more = _v4_global(_v4_scope, 'any')(offset + limit < _v4_global(_v4_scope, 'len')(bucket) for bucket in buckets.values())
+    has_more = any(offset + limit < len(bucket) for bucket in buckets.values())
     incomplete_statuses = {"CANNOT_CONFIRM", "MISSING", "NOT_MATERIALIZED", "DATA_BLOCKED_EMPTY"}
     return {
-        "total_rows": _v4_global(_v4_scope, 'len')(rows),
+        "total_rows": len(rows),
         "offset": offset,
         "limit": limit,
         "returned_rows": returned_rows,
@@ -63,8 +63,8 @@ def __page_metadata_body(_v4_scope, /, rows, *, limit, offset, status):
 def __market_buckets_body(_v4_scope, /, rows):
     buckets = {"A": [], "HK": [], "OTHER": []}
     for row in rows:
-        market = _v4_global(_v4_scope, 'str')(row.get("market") or "").upper()
-        symbol = _v4_global(_v4_scope, 'str')(row.get("symbol") or "")
+        market = str(row.get("market") or "").upper()
+        symbol = str(row.get("symbol") or "")
         if market == "A" or symbol.startswith("A."):
             buckets["A"].append(row)
         elif market == "HK" or symbol.startswith("HK."):

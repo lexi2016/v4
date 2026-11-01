@@ -61,7 +61,7 @@ def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *
             for decision in due
         ]
         return {"status": "TICK_COMPLETE", "trade_date": trade_date, "stages": results, "pre_captures": precaptures, **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
-    decision = _v4_global(_v4_scope, 'next')((item for item in decisions if item.stage_id == stage_id), None)
+    decision = next((item for item in decisions if item.stage_id == stage_id), None)
     if decision is None:
         decision = _v4_global(_v4_scope, 'evaluate_due')(stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill)
     if decision.status not in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:

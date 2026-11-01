@@ -17,15 +17,15 @@ def _lane_status_bundle_body(_v4_scope, /, a_share, hk_connect):
             "status": binding.status,
             "trade_date": binding.trade_date,
             "role": binding.role,
-            "row_count": _v4_global(_v4_scope, 'len')(binding.codes),
+            "row_count": len(binding.codes),
             "source_run_id": binding.source_run_id,
             "sha256": binding.sha256,
-            "evidence": _v4_global(_v4_scope, 'list')(binding.evidence),
+            "evidence": list(binding.evidence),
             **({"error": binding.error} if binding.error else {}),
         }
-    if _v4_global(_v4_scope, 'all')(binding.status == "READY" for binding in lanes.values()):
+    if all(binding.status == "READY" for binding in lanes.values()):
         output["overall_status"] = "READY"
-    elif _v4_global(_v4_scope, 'any')(binding.status == "READY" and binding.codes for binding in lanes.values()):
+    elif any(binding.status == "READY" and binding.codes for binding in lanes.values()):
         output["overall_status"] = "PARTIAL_WITH_ROWS"
     else:
         output["overall_status"] = "CANNOT_CONFIRM"
@@ -37,7 +37,7 @@ def __atomic_json_body(_v4_scope, /, path, payload):
     fd, temporary = _v4_global(_v4_scope, 'tempfile').mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
         with _v4_global(_v4_scope, 'os').fdopen(fd, "w", encoding="utf-8") as stream:
-            _v4_global(_v4_scope, 'json').dump(_v4_global(_v4_scope, 'dict')(payload), stream, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            _v4_global(_v4_scope, 'json').dump(dict(payload), stream, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             stream.write("\n")
             stream.flush()
             _v4_global(_v4_scope, 'os').fsync(stream.fileno())
@@ -70,55 +70,55 @@ def __latest_entry_body(_v4_scope, /, root, filename, key):
         return None
     try:
         payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} is malformed") from error
     entries = payload.get("entries")
-    if not _v4_global(_v4_scope, 'isinstance')(entries, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entries, _v4_global(_v4_scope, 'Mapping')):
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entries are malformed")
     entry = entries.get(key)
     if entry is None:
         return None
-    if not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entry is malformed")
     return entry
 
 
 def __read_verified_raw_source_body(_v4_scope, /, root, verified):
     """Rehydrate a SourceResult from one already verified immutable raw run."""
-    artifact_path = root / _v4_global(_v4_scope, 'str')(verified["artifact_relative"])
+    artifact_path = root / str(verified["artifact_relative"])
     rows: list[dict[str, Any]] = []
     try:
         with artifact_path.open("r", encoding="utf-8-sig", newline="") as stream:
             reader = _v4_global(_v4_scope, 'csv').DictReader(stream)
-            if _v4_global(_v4_scope, 'tuple')(reader.fieldnames or ()) != ("trade_date", "bar_time", *_v4_global(_v4_scope, 'RAW_FIELDS')):
+            if tuple(reader.fieldnames or ()) != ("trade_date", "bar_time", *_v4_global(_v4_scope, 'RAW_FIELDS')):
                 raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact fields mismatch")
             for raw in reader:
                 decoded = {field: raw.get(field, "") for field in _v4_global(_v4_scope, 'RAW_FIELDS')}
                 for field in ("batch_index", "bar_count"):
                     try:
-                        decoded[field] = _v4_global(_v4_scope, 'int')(decoded[field])
-                    except (_v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                        decoded[field] = int(decoded[field])
+                    except (TypeError, ValueError) as error:
                         raise _v4_global(_v4_scope, 'RunnerError')(f"verified raw {field} is not an integer") from error
                 for field in ("last_price", "open_price", "high_price", "low_price", "prev_close_price", "turnover", "volume", "bid_price", "ask_price", "bid_vol", "ask_vol"):
                     if decoded[field] in (None, ""):
                         decoded[field] = ""
                     else:
                         try:
-                            decoded[field] = _v4_global(_v4_scope, 'float')(decoded[field])
-                        except (_v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                            decoded[field] = float(decoded[field])
+                        except (TypeError, ValueError) as error:
                             raise _v4_global(_v4_scope, 'RunnerError')(f"verified raw {field} is not numeric") from error
-                decoded["temporal_cutoff_safe"] = _v4_global(_v4_scope, 'str')(decoded["temporal_cutoff_safe"]).strip().lower() == "true"
+                decoded["temporal_cutoff_safe"] = str(decoded["temporal_cutoff_safe"]).strip().lower() == "true"
                 rows.append(decoded)
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'csv').Error) as error:
+    except (OSError, UnicodeError, _v4_global(_v4_scope, 'csv').Error) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact unreadable") from error
     return _v4_global(_v4_scope, 'SourceResult')(
-        source_id=_v4_global(_v4_scope, 'str')(verified.get("source_id") or "verified_raw"),
-        status=_v4_global(_v4_scope, 'str')(verified.get("status") or "CANNOT_CONFIRM"),
-        rows=_v4_global(_v4_scope, 'tuple')(rows),
-        cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'str')(item) for item in verified.get("cannot_confirm", ())),
-        requested_rows=_v4_global(_v4_scope, 'int')(verified.get("requested_rows", _v4_global(_v4_scope, 'len')(rows))),
-        missing_symbols=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'str')(item) for item in verified.get("missing_symbols", ())),
-        source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'str')(item) for item in verified.get("source_evidence", ())),
+        source_id=str(verified.get("source_id") or "verified_raw"),
+        status=str(verified.get("status") or "CANNOT_CONFIRM"),
+        rows=tuple(rows),
+        cannot_confirm=tuple(str(item) for item in verified.get("cannot_confirm", ())),
+        requested_rows=int(verified.get("requested_rows", len(rows))),
+        missing_symbols=tuple(str(item) for item in verified.get("missing_symbols", ())),
+        source_evidence=tuple(str(item) for item in verified.get("source_evidence", ())),
     )
 
 
@@ -130,12 +130,12 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
     lane must leave its candidate evidence absent instead of borrowing the
     other market's synthetic SHA.
     """
-    evidence = _v4_global(_v4_scope, 'list')(result.source_evidence)
+    evidence = list(result.source_evidence)
     pool_gaps: tuple[str, ...] = ()
     is_bound_a_candidate = (
         candidate_sha is not None
-        and candidate_sha == _v4_global(_v4_scope, 'getattr')(candidate, 'current_sha256', None)
-        and _v4_global(_v4_scope, 'getattr')(candidate, 'strict_schema', None) == "v3"
+        and candidate_sha == getattr(candidate, 'current_sha256', None)
+        and getattr(candidate, 'strict_schema', None) == "v3"
         and (candidate_run_id is None or candidate_run_id == candidate.run_id)
     )
     if candidate_sha is not None:
@@ -146,18 +146,18 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
             )
         )
     if is_bound_a_candidate:
-        provenance_sha256 = _v4_global(_v4_scope, 'getattr')(
+        provenance_sha256 = getattr(
             candidate, 'source_pool_provenance_sha256', None
         )
         if provenance_sha256:
             evidence.append(f"candidate_source_pool_provenance_sha256={provenance_sha256}")
-        pool_gaps = _v4_global(_v4_scope, 'tuple')(
-            _v4_global(_v4_scope, 'getattr')(candidate, 'cannot_confirm', ())
+        pool_gaps = tuple(
+            getattr(candidate, 'cannot_confirm', ())
         )
-        for pool in _v4_global(_v4_scope, 'getattr')(
+        for pool in getattr(
             candidate, 'source_pool_provenance', ()
         ):
-            pool_id = _v4_global(_v4_scope, 'str')(pool.get('pool_id') or '')
+            pool_id = str(pool.get('pool_id') or '')
             if not pool_id:
                 continue
             evidence.extend(
@@ -171,9 +171,9 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
             for reason in pool.get('diagnostics') or ():
                 evidence.append(f"candidate_source_pool_diagnostic={pool_id}:{reason}")
     evidence.extend(extra)
-    evidence = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys(evidence))
-    cannot_confirm = _v4_global(_v4_scope, 'tuple')(
-        _v4_global(_v4_scope, 'dict').fromkeys((*result.cannot_confirm, *pool_gaps))
+    evidence = tuple(dict.fromkeys(evidence))
+    cannot_confirm = tuple(
+        dict.fromkeys((*result.cannot_confirm, *pool_gaps))
     )
     status = "CANNOT_CONFIRM" if pool_gaps else result.status
     return _v4_global(_v4_scope, 'replace')(
@@ -197,10 +197,10 @@ def __project_raw_rows_body(
     rejected before ``RawStore.publish`` so a malformed row cannot advance a
     CANNOT_CONFIRM latest pointer or leave an incomplete bundle behind.
     """
-    projected = _v4_global(_v4_scope, 'tuple')(
+    projected = tuple(
         {field: row[field] for field in _v4_global(_v4_scope, 'RAW_FIELDS')}
-        if _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')) and _v4_global(_v4_scope, 'all')(field in row for field in _v4_global(_v4_scope, 'RAW_FIELDS'))
-        else _v4_global(_v4_scope, 'dict')(row)
+        if isinstance(row, _v4_global(_v4_scope, 'Mapping')) and all(field in row for field in _v4_global(_v4_scope, 'RAW_FIELDS'))
+        else dict(row)
         for row in rows
     )
     if research_observation_contract is not None:

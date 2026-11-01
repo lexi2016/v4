@@ -15,8 +15,8 @@ def __window_bounds_body(_v4_scope, /, trade_date, stage_id, market):
         )
     else:
         start, cutoff = stage.window.split("-")[0], stage.cutoff
-        start = start if _v4_global(_v4_scope, 'len')(start) == 8 else f"{start}:00"
-        cutoff = cutoff if _v4_global(_v4_scope, 'len')(cutoff) == 8 else f"{cutoff}:00"
+        start = start if len(start) == 8 else f"{start}:00"
+        cutoff = cutoff if len(cutoff) == 8 else f"{cutoff}:00"
     day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
     return (
         _v4_global(_v4_scope, '_parse_timestamp')(f"{day} {start}", "window start"),
@@ -54,7 +54,7 @@ def _RawStore__load_latest_body(_v4_scope, /, self):
     latest = _v4_global(_v4_scope, '_read_json')(self.latest_path)
     if latest.get("schema_version") != _v4_global(_v4_scope, 'RAW_LATEST_SCHEMA_VERSION') or latest.get("owner") != "stage_center":
         raise _v4_global(_v4_scope, 'RawStoreError')("latest.json schema/owner mismatch")
-    if not _v4_global(_v4_scope, 'isinstance')(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
         raise _v4_global(_v4_scope, 'RawStoreError')("latest.json entries missing")
     for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
         if latest.get(key) is not False:
@@ -74,7 +74,7 @@ def _RawStore__load_bundle_latest_body(_v4_scope, /, self):
     latest = _v4_global(_v4_scope, '_read_json')(path)
     if latest.get("schema_version") != _v4_global(_v4_scope, 'RAW_BUNDLE_LATEST_SCHEMA_VERSION') or latest.get("owner") != "stage_center":
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle_latest schema/owner mismatch")
-    if not _v4_global(_v4_scope, 'isinstance')(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle_latest entries missing")
     for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
         if latest.get(key) is not False:

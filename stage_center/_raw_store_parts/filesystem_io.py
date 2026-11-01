@@ -59,15 +59,15 @@ def __atomic_write_csv_body(_v4_scope, /, path, rows):
 
 def __safe_relative_body(_v4_scope, /, root, relative):
     if (
-        not _v4_global(_v4_scope, 'isinstance')(relative, _v4_global(_v4_scope, 'str'))
+        not isinstance(relative, str)
         or not relative
         or "\\" in relative
         or relative.startswith("/")
-        or (_v4_global(_v4_scope, 'len')(relative) > 1 and relative[1] == ":")
+        or (len(relative) > 1 and relative[1] == ":")
     ):
         raise _v4_global(_v4_scope, 'RawStoreError')("path must be normalized and relative")
     parsed = _v4_global(_v4_scope, 'PurePosixPath')(relative)
-    if parsed.as_posix() != relative or _v4_global(_v4_scope, 'any')(part in {"", ".", ".."} for part in parsed.parts):
+    if parsed.as_posix() != relative or any(part in {"", ".", ".."} for part in parsed.parts):
         raise _v4_global(_v4_scope, 'RawStoreError')("path must be normalized and relative")
     current = root
     for part in _v4_global(_v4_scope, 'Path')(relative).parts:
@@ -78,6 +78,6 @@ def __safe_relative_body(_v4_scope, /, root, relative):
     resolved_candidate = current.resolve()
     try:
         resolved_candidate.relative_to(resolved_root)
-    except _v4_global(_v4_scope, 'ValueError') as error:
+    except ValueError as error:
         raise _v4_global(_v4_scope, 'RawStoreError')("path escapes store root") from error
     return current

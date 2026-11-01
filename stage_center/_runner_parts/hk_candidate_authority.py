@@ -32,7 +32,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
     d1_rows = d1_payload.get("rows", d1_payload.get("data")) or []
     authority: dict[str, Mapping[str, Any]] = {}
     for row in d1_rows:
-        if not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
             continue
         code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
         authority[code] = row
@@ -64,7 +64,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         or d1_payload.get("selected_strategy")
         or ""
     )
-    payload_d1_status = _v4_global(_v4_scope, 'str')(d1_payload.get("status") or "")
+    payload_d1_status = str(d1_payload.get("status") or "")
 
     def _first_present(*values: Any) -> Any:
         for value in values:
@@ -74,7 +74,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
 
     for raw in source.rows:
         code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", raw.get("code"))
-        merged = _v4_global(_v4_scope, 'dict')(raw)
+        merged = dict(raw)
         base = authority.get(code)
         if base:
             for key, value in base.items():
@@ -85,7 +85,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
             # empty so the authority can replace it.  If the exact authority
             # row has no name, retain a genuinely useful quote name and only
             # fall back to the canonical code when no name exists anywhere.
-            authority_name = _v4_global(_v4_scope, 'next')(
+            authority_name = next(
                 (
                     base.get(key)
                     for key in ("name", "stock_name", "security_name", "display_name")
@@ -97,7 +97,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
                 merged["name"] = authority_name
                 merged["stock_name"] = authority_name
             else:
-                quote_name = _v4_global(_v4_scope, 'next')(
+                quote_name = next(
                     (
                         merged.get(key)
                         for key in ("name", "stock_name", "security_name", "display_name")
@@ -125,7 +125,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
             )
             merged["d1_rank"] = _first_present(base.get("pool_rank"), base.get("rank"), base.get("d1_rank"))
             merged["d1_score"] = _first_present(base.get("pool_score"), base.get("score"), base.get("d1_score"))
-            merged["d1_source_evidence"] = _v4_global(_v4_scope, 'list')(base.get("source_evidence") or ()) if _v4_global(_v4_scope, 'isinstance')(base.get("source_evidence"), (_v4_global(_v4_scope, 'list'), _v4_global(_v4_scope, 'tuple'))) else []
+            merged["d1_source_evidence"] = list(base.get("source_evidence") or ()) if isinstance(base.get("source_evidence"), (list, tuple)) else []
             if base.get("pool_version"):
                 merged["d1_source_evidence"].append(f"hk_d1_pool_version={base['pool_version']}")
             if d1_payload.get("source_sha256"):
@@ -133,7 +133,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         else:
             # A full-market quote row can legitimately have no D-1 metadata;
             # never leave the UI with an empty name in that case.
-            quote_name = _v4_global(_v4_scope, 'next')(
+            quote_name = next(
                 (
                     merged.get(key)
                     for key in ("name", "stock_name", "security_name", "display_name")
@@ -148,24 +148,24 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         # copying arbitrary adapter/static labels would recreate the old bug
         # where a static pool became a realtime recommendation.
         live_lanes = [
-            _v4_global(_v4_scope, 'str')(item)
+            str(item)
             for item in (raw.get("candidate_lanes") or ())
-            if _v4_global(_v4_scope, 'str')(item) == "LIVE_HKCONNECT_GAINER"
+            if str(item) == "LIVE_HKCONNECT_GAINER"
         ]
         static_lanes = [
-            _v4_global(_v4_scope, 'str')(item)
+            str(item)
             for item in (base.get("candidate_lanes") or ())
-            if _v4_global(_v4_scope, 'str')(item) in _v4_global(_v4_scope, 'HK_STATIC_LANES')
+            if str(item) in _v4_global(_v4_scope, 'HK_STATIC_LANES')
         ] if base else []
-        merged["candidate_lanes"] = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys([*live_lanes, *static_lanes]))
+        merged["candidate_lanes"] = list(dict.fromkeys([*live_lanes, *static_lanes]))
         if code in second:
             second_row = second[code]
             for key, value in second_row.items():
                 if key not in {"code", "ts_code", "stock_code"} and value not in (None, ""):
                     merged.setdefault(key, value)
-            merged["candidate_lanes"] = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys([*(merged.get("candidate_lanes") or ()), "PREOPEN_AUCTION_CONTINUATION"]))
+            merged["candidate_lanes"] = list(dict.fromkeys([*(merged.get("candidate_lanes") or ()), "PREOPEN_AUCTION_CONTINUATION"]))
         rows.append(merged)
-    evidence = _v4_global(_v4_scope, 'list')(source.source_evidence)
+    evidence = list(source.source_evidence)
     evidence.extend(
         (
             "hk_d1_status=STRICT_0_2_READY",
@@ -175,4 +175,4 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
     )
     if payload_model_id:
         evidence.append(f"hk_d1_model_id={payload_model_id}")
-    return _v4_global(_v4_scope, 'replace')(source, rows=_v4_global(_v4_scope, 'tuple')(rows), source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys(evidence)))
+    return _v4_global(_v4_scope, 'replace')(source, rows=tuple(rows), source_evidence=tuple(dict.fromkeys(evidence)))

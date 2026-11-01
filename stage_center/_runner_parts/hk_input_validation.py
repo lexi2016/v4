@@ -19,12 +19,12 @@ def __candidate_from_hk_binding_body(_v4_scope, /, *, root, trade_date, binding)
         current_relative=f"bindings/{trade_date}/HK_CONNECT/{binding.role}/current.json",
         current_sha256=binding.sha256,
         run_id=binding.source_run_id or f"hk-{binding.sha256[:16]}",
-        codes=_v4_global(_v4_scope, 'tuple')(binding.codes),
+        codes=tuple(binding.codes),
         artifact_sha256=binding.sha256,
         manifest_sha256=binding.sha256,
         receipt_sha256=binding.sha256,
         source_projection_sha256=binding.sha256,
-        source_evidence=_v4_global(_v4_scope, 'tuple')(binding.evidence),
+        source_evidence=tuple(binding.evidence),
     )
 
 
@@ -39,14 +39,14 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             resolved_snapshot = source_resolver.read_pool_snapshot(
                 trade_date, "hkconnect_d1_top100"
             )
-        except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+        except (OSError, ValueError) as error:
             raise _v4_global(_v4_scope, 'RunnerError')(f"HK D1 snapshot integrity invalid: {error}") from error
         path = _v4_global(_v4_scope, 'Path')(resolved_snapshot["physical_source_root"]) / resolved_snapshot["artifact_relative"]
     else:
         path = _v4_global(_v4_scope, '_find_exact_file')(root, trade_date, "hkconnect_d1_top100.json")
     try:
         payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 input unreadable") from error
     if resolved_snapshot is not None:
         if resolved_snapshot.get("artifact") != payload:
@@ -55,7 +55,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             current_snapshot = source_resolver.read_pool_snapshot(
                 trade_date, "hkconnect_d1_top100"
             )
-        except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+        except (OSError, ValueError) as error:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 resolved source identity changed during validation") from error
         for identity_key in (
             "pool_sha256", "artifact_raw_sha256", "manifest_raw_sha256",
@@ -85,8 +85,8 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
     ):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact-source producer/source identity mismatch")
     if partial_d1:
-        run_id = _v4_global(_v4_scope, 'str')(payload.get("source_run_id") or "")
-        source_sha = _v4_global(_v4_scope, 'str')(payload.get("source_sha256") or "").lower()
+        run_id = str(payload.get("source_run_id") or "")
+        source_sha = str(payload.get("source_sha256") or "").lower()
         reasons = payload.get("cannot_confirm")
         expected_source_path = (
             f"runs/{trade_date}/HK_CONNECT_D1_TOP100_0_2/{run_id}/artifact.csv"
@@ -96,8 +96,8 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             or payload.get("market") != "HK"
             or payload.get("target_date") != trade_date
             or payload.get("stage_selection_eligible") is not True
-            or payload.get("signal_date") != _v4_global(_v4_scope, 'str')(payload.get("signal_date") or "")
-            or _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", _v4_global(_v4_scope, 'str')(payload.get("signal_date") or "")) is None
+            or payload.get("signal_date") != str(payload.get("signal_date") or "")
+            or _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", str(payload.get("signal_date") or "")) is None
             or _v4_global(_v4_scope, 're').fullmatch(
                 _v4_global(_v4_scope, 're').escape(trade_date) + r"-hk-connect-d1-top100-0-2-[0-9a-f]{12}",
                 run_id,
@@ -108,21 +108,21 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             or payload.get("source_row_count") != len(payload.get("rows") or ())
             or not isinstance(reasons, list)
             or not reasons
-            or _v4_global(_v4_scope, 'any')(
-                not _v4_global(_v4_scope, 'str')(reason).startswith("HK_0_2_")
+            or any(
+                not str(reason).startswith("HK_0_2_")
                 for reason in reasons
             )
         ):
             raise _v4_global(_v4_scope, 'RunnerError')(
                 "HK D1 partial source provenance/diagnostics invalid"
             )
-    if _v4_global(_v4_scope, 'any')(payload.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
+    if any(payload.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 safety flags must be false")
     rows = payload.get("rows", payload.get("data"))
     if (
-        not _v4_global(_v4_scope, 'isinstance')(rows, _v4_global(_v4_scope, 'list'))
-        or (partial_d1 and not 1 <= _v4_global(_v4_scope, 'len')(rows) <= 100)
-        or (not partial_d1 and _v4_global(_v4_scope, 'len')(rows) != 100)
+        not isinstance(rows, list)
+        or (partial_d1 and not 1 <= len(rows) <= 100)
+        or (not partial_d1 and len(rows) != 100)
     ):
         raise _v4_global(_v4_scope, 'RunnerError')(
             "HK D1 partial input must contain 1..100 rows"
@@ -133,21 +133,21 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
         if envelope_date != trade_date:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 target_date mismatch")
     else:
-        row_dates = _v4_global(_v4_scope, 'set')()
+        row_dates = set()
         for row in rows:
-            if not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')):
+            if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row must be an object")
             row_date = row.get("target_date", row.get("trade_date"))
             if row_date is None:
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 target_date missing")
-            row_dates.add(_v4_global(_v4_scope, 'str')(row_date))
+            row_dates.add(str(row_date))
         if row_dates != {trade_date}:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 target_date mismatch")
     for row in rows:
-        if not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row must be an object")
         row_date = row.get("target_date", row.get("trade_date"))
-        if row_date is not None and _v4_global(_v4_scope, 'str')(row_date) != trade_date:
+        if row_date is not None and str(row_date) != trade_date:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row target_date mismatch")
     # Current authority rows identify the selected model as ``prob_active``
     # (some historical fixtures omit the optional field). When present, bind
@@ -157,15 +157,15 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
     for key in ("model_id", "model", "model_name", "selected_strategy", "weekly_tuning_selected_strategy"):
         value = payload.get(key)
         if value not in (None, ""):
-            model_values.append(_v4_global(_v4_scope, 'str')(value))
+            model_values.append(str(value))
     for row in rows:
-        if not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
             continue
         for key in ("model_id", "model", "model_name", "selected_strategy", "weekly_tuning_selected_strategy"):
             value = row.get(key)
             if value not in (None, ""):
-                model_values.append(_v4_global(_v4_scope, 'str')(value))
-    if model_values and _v4_global(_v4_scope, 'any')("prob_active" not in value.lower() for value in model_values):
+                model_values.append(str(value))
+    if model_values and any("prob_active" not in value.lower() for value in model_values):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 model identity must be prob_active")
     if payload.get("schema_version") == "v3_5.preselection_pool.v1":
         from infrastructure.preselection_pool_store import PreselectionPoolStore
@@ -179,7 +179,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             snapshot = PreselectionPoolStore(path.parent.parent.parent).read_pool_snapshot(
                 trade_date, "hkconnect_d1_top100"
             )
-        except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+        except (OSError, ValueError) as error:
             raise _v4_global(_v4_scope, 'RunnerError')(f"HK D1 snapshot integrity invalid: {error}") from error
         if snapshot.get("payload") != payload:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 snapshot changed during validation")
@@ -192,7 +192,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             cursor = _v4_global(_v4_scope, 'datetime').strptime(
                 trade_date, "%Y%m%d"
             )
-            for _ in _v4_global(_v4_scope, 'range')(15):
+            for _ in range(15):
                 cursor -= _v4_global(_v4_scope, 'timedelta')(days=1)
                 candidate = cursor.strftime("%Y%m%d")
                 state = _v4_global(_v4_scope, 'resolve_market_states')(candidate)[market]
@@ -217,7 +217,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 envelope signal_date mismatch")
         if price_signal_date != eligibility_source_date:
             provenance = payload.get("historical_provenance")
-            if not _v4_global(_v4_scope, 'isinstance')(provenance, _v4_global(_v4_scope, 'Mapping')):
+            if not isinstance(provenance, _v4_global(_v4_scope, 'Mapping')):
                 raise _v4_global(_v4_scope, 'RunnerError')(
                     "HK D1 split-date eligibility provenance missing"
                 )
@@ -234,7 +234,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
                 or provenance.get("eligibility_source_run_id") in (None, "")
                 or any(
                     not _v4_global(_v4_scope, 're').fullmatch(
-                        r"[0-9a-f]{64}", _v4_global(_v4_scope, 'str')(provenance.get(key) or "")
+                        r"[0-9a-f]{64}", str(provenance.get(key) or "")
                     )
                     for key in required_hashes
                 )
@@ -246,7 +246,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
                 raise _v4_global(_v4_scope, 'RunnerError')(
                     "HK D1 split-date provenance identity mismatch"
                 )
-            captured_at = _v4_global(_v4_scope, 'str')(
+            captured_at = str(
                 provenance.get("eligibility_source_captured_at") or ""
             )
             try:
@@ -270,15 +270,15 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             if row.get("market") != "HK" or row.get("signal_date") != price_signal_date:
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row market/signal_date mismatch")
             code = row.get("symbol", row.get("code"))
-            if not _v4_global(_v4_scope, 'isinstance')(code, _v4_global(_v4_scope, 'str')) or _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", code) is None:
+            if not isinstance(code, str) or _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", code) is None:
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row code invalid")
-            if _v4_global(_v4_scope, 'any')(row.get(key) not in (None, code) for key in ("code", "symbol")):
+            if any(row.get(key) not in (None, code) for key in ("code", "symbol")):
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row code/symbol identity mismatch")
-            if _v4_global(_v4_scope, 'any')(row.get(key) not in (None, trade_date) for key in ("trade_date", "target_date")):
+            if any(row.get(key) not in (None, trade_date) for key in ("trade_date", "target_date")):
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row trade/target_date mismatch")
             codes.append(code)
-        unique_count = _v4_global(_v4_scope, 'len')(_v4_global(_v4_scope, 'set')(codes))
-        if unique_count != _v4_global(_v4_scope, 'len')(rows) or (
+        unique_count = len(set(codes))
+        if unique_count != len(rows) or (
             partial_d1 and not 1 <= unique_count <= 100
         ) or (not partial_d1 and unique_count != 100):
             raise _v4_global(_v4_scope, 'RunnerError')(
@@ -289,7 +289,7 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
     if resolved_snapshot is not None and (
         digest != resolved_snapshot.get("artifact_raw_sha256")
         or source_resolver.root_for_date(trade_date)
-        != _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(resolved_snapshot["physical_source_root"]))
+        != _v4_global(_v4_scope, 'Path')(str(resolved_snapshot["physical_source_root"]))
     ):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 resolved source identity changed during validation")
     return path, digest
@@ -299,19 +299,19 @@ def __validate_hk_full_universe_body(_v4_scope, /, root, trade_date):
     path = _v4_global(_v4_scope, '_find_exact_file')(root, trade_date, "HK_CONNECT_FULL_MARKET.json")
     try:
         payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("HK full universe unreadable") from error
     if payload.get("trade_date") != trade_date or payload.get("market") != "HK_CONNECT" or payload.get("scope") != "FULL_MARKET":
         raise _v4_global(_v4_scope, 'RunnerError')("HK full universe identity/scope mismatch")
-    if _v4_global(_v4_scope, 'any')(payload.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
+    if any(payload.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
         raise _v4_global(_v4_scope, 'RunnerError')("HK full universe safety flag must be false")
     codes = payload.get("codes")
-    if not _v4_global(_v4_scope, 'isinstance')(codes, _v4_global(_v4_scope, 'list')) or _v4_global(_v4_scope, 'len')(codes) < 500 or _v4_global(_v4_scope, 'len')(_v4_global(_v4_scope, 'set')(codes)) != _v4_global(_v4_scope, 'len')(codes) or _v4_global(_v4_scope, 'any')(not _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", _v4_global(_v4_scope, 'str')(code)) for code in codes):
+    if not isinstance(codes, list) or len(codes) < 500 or len(set(codes)) != len(codes) or any(not _v4_global(_v4_scope, 're').fullmatch(r"HK\.\d{5}", str(code)) for code in codes):
         raise _v4_global(_v4_scope, 'RunnerError')("HK full universe must contain unique 500+ HK codes")
     digest = _v4_global(_v4_scope, 'hashlib').sha256(_v4_global(_v4_scope, 'json').dumps(codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     if payload.get("codes_sha256") != digest:
         raise _v4_global(_v4_scope, 'RunnerError')("HK full universe codes SHA mismatch")
-    return path, _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'str')(code) for code in codes), _v4_global(_v4_scope, '_sha')(path)
+    return path, tuple(str(code) for code in codes), _v4_global(_v4_scope, '_sha')(path)
 
 
 def __hk_selection_codes_body(_v4_scope, /, root, trade_date, *, preselection_source_root):
@@ -323,18 +323,18 @@ def __hk_selection_codes_body(_v4_scope, /, root, trade_date, *, preselection_so
         )
     payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
     rows = payload.get("rows", payload.get("data"))
-    codes: set[str] = _v4_global(_v4_scope, 'set')()
+    codes: set[str] = set()
     for row in rows:
-        if not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
             continue
-        raw = _v4_global(_v4_scope, 'str')(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
+        raw = str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
         match = _v4_global(_v4_scope, 're').search(r"(?:HK\.)?(\d{5})", raw)
         if match:
             codes.add(f"HK.{match.group(1)}")
     partial_d1 = payload.get("status") == "PARTIAL_WITH_ROWS"
-    if _v4_global(_v4_scope, 'len')(codes) != len(rows) or (
-        partial_d1 and not 1 <= _v4_global(_v4_scope, 'len')(codes) <= 100
-    ) or (not partial_d1 and _v4_global(_v4_scope, 'len')(codes) != 100):
+    if len(codes) != len(rows) or (
+        partial_d1 and not 1 <= len(codes) <= 100
+    ) or (not partial_d1 and len(codes) != 100):
         raise _v4_global(_v4_scope, 'RunnerError')(
             "HK D1 partial code set must contain 1..100 unique codes"
             if partial_d1 else "HK D1 selection code set must contain exactly 100 unique codes"
@@ -358,7 +358,7 @@ def __build_hk_d1_binding_body(_v4_scope, /, root, trade_date, *, preselection_s
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 membership SHA changed during binding")
     try:
         payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 binding status unreadable") from error
     if _v4_global(_v4_scope, '_sha')(path) != source_sha:
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 binding status changed during read")
@@ -373,7 +373,7 @@ def __build_hk_d1_binding_body(_v4_scope, /, root, trade_date, *, preselection_s
         market="HK_CONNECT",
         trade_date=trade_date,
         role="HK_CONNECT_D1_TOP100",
-        codes=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'sorted')(codes)),
+        codes=tuple(sorted(codes)),
         source_run_id=f"hk-d1-{source_sha[:16]}",
         sha256=source_sha,
         evidence=binding_evidence,
@@ -391,24 +391,24 @@ def __validate_hk_second_filter_body(_v4_scope, /, root, trade_date):
             root / trade_date,
             root / "hkconnect_0920_auction_second_filter",
         )
-        csv_path = _v4_global(_v4_scope, 'next')((item / f"{stem}.csv" for item in candidates if (item / f"{stem}.csv").is_file()), None)
-        acceptance_path = _v4_global(_v4_scope, 'next')((item / f"{stem}.acceptance.json" for item in candidates if (item / f"{stem}.acceptance.json").is_file()), None)
+        csv_path = next((item / f"{stem}.csv" for item in candidates if (item / f"{stem}.csv").is_file()), None)
+        acceptance_path = next((item / f"{stem}.acceptance.json" for item in candidates if (item / f"{stem}.acceptance.json").is_file()), None)
         if csv_path is None or acceptance_path is None:
             raise _v4_global(_v4_scope, 'RunnerError')("exact-date HK 09:20 second-filter CSV/acceptance missing")
     if not csv_path.is_file() or not acceptance_path.is_file():
         raise _v4_global(_v4_scope, 'RunnerError')("exact-date HK 09:20 second-filter pair incomplete")
     try:
         acceptance = _v4_global(_v4_scope, 'json').loads(acceptance_path.read_text(encoding="utf-8-sig"))
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+    except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter acceptance unreadable") from error
     if acceptance.get("target_date") != trade_date or acceptance.get("status") != "AUCTION_SECOND_FILTER_READY":
         raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter identity/status mismatch")
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        rows = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'csv').DictReader(stream))
-    if _v4_global(_v4_scope, 'int')(acceptance.get("row_count", -1)) != _v4_global(_v4_scope, 'len')(rows):
+        rows = list(_v4_global(_v4_scope, 'csv').DictReader(stream))
+    if int(acceptance.get("row_count", -1)) != len(rows):
         raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter row_count mismatch")
     declared_sha = acceptance.get("csv_sha256")
-    if not _v4_global(_v4_scope, 'isinstance')(declared_sha, _v4_global(_v4_scope, 'str')) or _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-fA-F]{64}", declared_sha) is None:
+    if not isinstance(declared_sha, str) or _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-fA-F]{64}", declared_sha) is None:
         raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter csv_sha256 must be a 64-hex digest")
     actual_sha = _v4_global(_v4_scope, '_sha')(csv_path)
     if declared_sha.lower() != actual_sha:
@@ -423,7 +423,7 @@ def __validate_hk_second_filter_body(_v4_scope, /, root, trade_date):
         raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter orders_sent must be false")
     gate_keys = [key for key in ("buy_gate_updated", "buy_gate_changed") if key in acceptance]
     if gate_keys:
-        if _v4_global(_v4_scope, 'any')(acceptance.get(key) is not False for key in gate_keys):
+        if any(acceptance.get(key) is not False for key in gate_keys):
             raise _v4_global(_v4_scope, 'RunnerError')("HK second-filter buy gate safety flag must be explicitly false")
     elif authority_v2:
         if acceptance.get("shadow_only") is not True:
@@ -435,10 +435,10 @@ def __validate_hk_second_filter_body(_v4_scope, /, root, trade_date):
 
 def __hk_second_filter_codes_body(_v4_scope, /, root, trade_date):
     csv_path, _acceptance_path, csv_sha = _v4_global(_v4_scope, '_validate_hk_second_filter')(root, trade_date)
-    codes: set[str] = _v4_global(_v4_scope, 'set')()
+    codes: set[str] = set()
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         for row in _v4_global(_v4_scope, 'csv').DictReader(stream):
-            raw = _v4_global(_v4_scope, 'str')(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
+            raw = str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
             match = _v4_global(_v4_scope, 're').search(r"(?:HK\.)?(\d{5})", raw)
             if match:
                 codes.add(f"HK.{match.group(1)}")

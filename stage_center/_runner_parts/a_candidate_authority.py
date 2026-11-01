@@ -15,16 +15,16 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
     authority: dict[str, Mapping[str, Any]] = {}
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         for row in _v4_global(_v4_scope, 'csv').DictReader(stream):
-            if _v4_global(_v4_scope, 'str')(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
+            if str(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
                 continue
-            match = _v4_global(_v4_scope, 're').search(r"(\d{6})", _v4_global(_v4_scope, 'str')(row.get("ts_code") or row.get("stock_code") or ""))
+            match = _v4_global(_v4_scope, 're').search(r"(\d{6})", str(row.get("ts_code") or row.get("stock_code") or ""))
             if not match:
                 continue
             authority[f"A.{match.group(1)}"] = row
     enriched: list[dict[str, Any]] = []
     for raw in source.rows:
         code = _v4_global(_v4_scope, '_normal_code')("A_SHARE", raw.get("code"))
-        merged = _v4_global(_v4_scope, 'dict')(raw)
+        merged = dict(raw)
         # This private marker is created only by this verified exact-date
         # overlay.  Remove any inherited value before assigning the result so
         # a collector row cannot self-authorize formal membership.
@@ -41,7 +41,7 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
             merged["candidate"] = {"score": merged["pool_score"]}
             merged["_formal_authority_overlay_verified"] = True
             merged["_formal_authority_overlay_proof"] = _v4_global(_v4_scope, '_FORMAL_AUTHORITY_OVERLAY_PROOF')
-            merged["lane_evidence"] = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys([*(merged.get("lane_evidence") or ()), "A_SHARE_FORMAL_POOL"]))
+            merged["lane_evidence"] = list(dict.fromkeys([*(merged.get("lane_evidence") or ()), "A_SHARE_FORMAL_POOL"]))
         else:
             # Formal membership is an authority overlay, never a default for
             # every exact-date acquisition row. Keep the raw row eligible for
@@ -56,15 +56,15 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
                 item for item in (merged.get("lane_evidence") or ())
                 if item != "A_SHARE_FORMAL_POOL"
             ]
-            merged["lane_evidence"] = _v4_global(_v4_scope, 'list')(
-                _v4_global(_v4_scope, 'dict').fromkeys([*lane_evidence, "STAGE_ACQUISITION_UNIVERSE"])
+            merged["lane_evidence"] = list(
+                dict.fromkeys([*lane_evidence, "STAGE_ACQUISITION_UNIVERSE"])
             )
         enriched.append(merged)
     return _v4_global(_v4_scope, 'replace')(
         source,
-        rows=_v4_global(_v4_scope, 'tuple')(enriched),
-        source_evidence=_v4_global(_v4_scope, 'tuple')(
-            _v4_global(_v4_scope, 'dict').fromkeys(
+        rows=tuple(enriched),
+        source_evidence=tuple(
+            dict.fromkeys(
                 (
                     *source.source_evidence,
                     "formal_metadata_overlay=exact_date_authority_only",

@@ -15,7 +15,7 @@ def _date_catalog_body(
     preselection_source_root,
 ):
     catalog = store.read_catalog()
-    persisted_system_date = _v4_global(_v4_scope, 'str')(catalog["system_date"])
+    persisted_system_date = str(catalog["system_date"])
     materialized = catalog.get("materialized_rows", {})
     independent_dates = _v4_global(
         _v4_scope,
@@ -27,38 +27,38 @@ def _date_catalog_body(
     )
     independent_dates, independent_pool_evidence = independent_dates
     stage_artifacts = _v4_global(_v4_scope, '_verified_stage_artifact_catalog')(stage_selection_root)
-    stage_artifact_dates = _v4_global(_v4_scope, 'tuple')(stage_artifacts)
+    stage_artifact_dates = tuple(stage_artifacts)
     wall_date = current_date or _v4_global(_v4_scope, 'datetime').now(_v4_global(_v4_scope, 'ZoneInfo')("Asia/Shanghai")).strftime("%Y%m%d")
     # The natural-day clock is a runtime fact, not a persisted producer state.
     # A stale catalog must not make an explicit/current date disappear from the
     # date family merely because today's pools are incomplete.
     system_date = wall_date
     candidate_dates = (
-        _v4_global(_v4_scope, 'list')(catalog["stage_dates"])
+        list(catalog["stage_dates"])
         + [date for date, rows in materialized.items() if rows > 0]
-        + _v4_global(_v4_scope, 'list')(independent_dates)
-        + _v4_global(_v4_scope, 'list')(stage_artifact_dates)
+        + list(independent_dates)
+        + list(stage_artifact_dates)
     )
     # Independent pool materialization and stage-center artifacts are separate
     # evidence lanes. A shared date must remain visible when either lane is
     # present; do not let an independent pool date hide an exact stage date.
-    evidence_stage = _v4_global(_v4_scope, 'sorted')(
+    evidence_stage = sorted(
         {
             date
             for date in (
-                _v4_global(_v4_scope, 'list')(catalog["stage_dates"])
+                list(catalog["stage_dates"])
                 + [date for date, rows in materialized.items() if rows > 0]
-                + _v4_global(_v4_scope, 'list')(stage_artifact_dates)
+                + list(stage_artifact_dates)
             )
             if date <= system_date and _v4_global(_v4_scope, '_is_trading_date')(date)
         }
     )
-    stage = _v4_global(_v4_scope, 'list')(evidence_stage)
-    future = _v4_global(_v4_scope, 'sorted')(
+    stage = list(evidence_stage)
+    future = sorted(
         {
             date
-            for date in _v4_global(_v4_scope, 'list')(catalog["future_target_dates"])
-            + _v4_global(_v4_scope, 'list')(independent_dates)
+            for date in list(catalog["future_target_dates"])
+            + list(independent_dates)
             # Producer target dates are relative to the persisted catalog
             # clock.  The wall date still controls current-date navigation;
             # retaining this distinction keeps a verified target visible when
@@ -74,7 +74,7 @@ def _date_catalog_body(
     # lane keeps producing, so the default is the newest date with materialized
     # pool rows or a verified stage artifact -- never the newest date of the
     # legacy lane alone, and never a stage-list date without rows or artifacts.
-    default_candidates = _v4_global(_v4_scope, 'sorted')(
+    default_candidates = sorted(
         {
             date
             for date, rows in materialized.items()
@@ -83,7 +83,7 @@ def _date_catalog_body(
         | {
             date
             for date, item in stage_artifacts.items()
-            if _v4_global(_v4_scope, 'str')(item.get("status")) in ("MATERIALIZED", "PARTIAL")
+            if str(item.get("status")) in ("MATERIALIZED", "PARTIAL")
             if date <= system_date and _v4_global(_v4_scope, '_is_trading_date')(date)
         }
     )
@@ -92,22 +92,22 @@ def _date_catalog_body(
         if default_candidates
         else (evidence_stage[-1] if evidence_stage else "")
     )
-    navigation_dates = _v4_global(_v4_scope, 'set')(stage + future + _v4_global(_v4_scope, 'list')(stage_artifact_dates))
+    navigation_dates = set(stage + future + list(stage_artifact_dates))
     hk_observation_only_dates = _v4_global(_v4_scope, '_hk_observation_only_dates')()
     if _v4_global(_v4_scope, '_is_navigation_trading_date')(system_date):
         # The wall-clock trading date is navigable so the UI can show an
         # explicit DATA_BLOCKED_EMPTY/CANNOT_CONFIRM page, but it is not added
         # to stage_dates or default_date without exact evidence.
         navigation_dates.add(system_date)
-    materialized_stage_dates = _v4_global(_v4_scope, 'sorted')(
+    materialized_stage_dates = sorted(
         date for date, item in stage_artifacts.items()
         if item.get("status") == "MATERIALIZED"
     )
-    partial_stage_dates = _v4_global(_v4_scope, 'sorted')(
+    partial_stage_dates = sorted(
         date for date, item in stage_artifacts.items()
         if item.get("status") == "PARTIAL"
     )
-    blocked_stage_dates = _v4_global(_v4_scope, 'sorted')(
+    blocked_stage_dates = sorted(
         date for date, item in stage_artifacts.items()
         if item.get("status") == "BLOCKED"
     )
@@ -119,7 +119,7 @@ def _date_catalog_body(
         "navigation_date": system_date if _v4_global(_v4_scope, '_is_navigation_trading_date')(system_date) else default,
         "navigation_timezone": "Asia/Shanghai",
         "navigation_policy": "A_SHARE_OR_HK_SECURITIES_TRADING_DAY_ELSE_EVIDENCE_DEFAULT",
-        "dates": _v4_global(_v4_scope, 'sorted')(navigation_dates, reverse=True),
+        "dates": sorted(navigation_dates, reverse=True),
         "stage_dates": stage,
         "future_target_dates": future,
         "independent_pool_evidence": independent_pool_evidence,
@@ -148,18 +148,18 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
     root = _v4_global(_v4_scope, 'Path')(stage_selection_root).expanduser()
     try:
         latest = _v4_global(_v4_scope, 'SelectionStore')(root)._latest()
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError')):
+    except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError):
         return {}
     entries = latest.get("entries")
-    if not _v4_global(_v4_scope, 'isinstance')(entries, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entries, _v4_global(_v4_scope, 'Mapping')):
         return {}
     by_date: dict[str, dict[str, Any]] = {}
     store = _v4_global(_v4_scope, 'SelectionStore')(root)
     for key, entry in entries.items():
-        if not _v4_global(_v4_scope, 'isinstance')(key, _v4_global(_v4_scope, 'str')) or not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(key, str) or not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
             continue
         parts = key.split("/")
-        if _v4_global(_v4_scope, 'len')(parts) != 3 or not _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", parts[0]):
+        if len(parts) != 3 or not _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", parts[0]):
             continue
         trade_date, stage_id, market = parts
         item = by_date.setdefault(
@@ -185,9 +185,9 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
             item["markets"].append(market)
         try:
             envelope = store.read_verified(trade_date, stage_id, market)
-        except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError')) as error:
+        except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError) as error:
             item["blocked_entries"] += 1
-            item["cannot_confirm"].append(f"STAGE_ARTIFACT_INVALID:{stage_id}:{market}:{_v4_global(_v4_scope, 'type')(error).__name__}")
+            item["cannot_confirm"].append(f"STAGE_ARTIFACT_INVALID:{stage_id}:{market}:{type(error).__name__}")
             continue
         item["verified_entries"] += 1
         item["verified_markets"].append(market)
@@ -196,30 +196,30 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
         )
         artifact_id = envelope.get("artifact_id")
         if artifact_id:
-            item["artifact_ids"].append(_v4_global(_v4_scope, 'str')(artifact_id))
-        selection_status = _v4_global(_v4_scope, 'str')(envelope.get("selection_status") or "CANNOT_CONFIRM")
+            item["artifact_ids"].append(str(artifact_id))
+        selection_status = str(envelope.get("selection_status") or "CANNOT_CONFIRM")
         if selection_status in {"CANNOT_CONFIRM", "PARTIAL_WITH_ROWS"}:
-            item["cannot_confirm"].extend(_v4_global(_v4_scope, 'str')(reason) for reason in envelope.get("cannot_confirm") or [])
+            item["cannot_confirm"].extend(str(reason) for reason in envelope.get("cannot_confirm") or [])
     for item in by_date.values():
         verified_by_stage: dict[str, set[str]] = {}
         for key, entry in entries.items():
-            if not _v4_global(_v4_scope, 'isinstance')(key, _v4_global(_v4_scope, 'str')) or not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
+            if not isinstance(key, str) or not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
                 continue
             parts = key.split("/")
-            if _v4_global(_v4_scope, 'len')(parts) != 3 or parts[0] != item["trade_date"]:
+            if len(parts) != 3 or parts[0] != item["trade_date"]:
                 continue
             stage_id, market = parts[1], parts[2]
             if stage_id not in _v4_global(_v4_scope, 'STAGE_BY_ID'):
                 continue
             try:
                 store.read_verified(item["trade_date"], stage_id, market)
-            except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError')):
+            except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError):
                 continue
-            verified_by_stage.setdefault(stage_id, _v4_global(_v4_scope, 'set')()).add(market)
+            verified_by_stage.setdefault(stage_id, set()).add(market)
         for stage_id in item["stage_ids"]:
-            expected = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'STAGE_BY_ID')[stage_id].markets) if stage_id in _v4_global(_v4_scope, 'STAGE_BY_ID') else ()
-            item["expected_markets"][stage_id] = _v4_global(_v4_scope, 'list')(expected)
-            missing = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(expected) - verified_by_stage.get(stage_id, _v4_global(_v4_scope, 'set')()))
+            expected = tuple(_v4_global(_v4_scope, 'STAGE_BY_ID')[stage_id].markets) if stage_id in _v4_global(_v4_scope, 'STAGE_BY_ID') else ()
+            item["expected_markets"][stage_id] = list(expected)
+            missing = sorted(set(expected) - verified_by_stage.get(stage_id, set()))
             for market in missing:
                 item["missing_markets"].append(f"{stage_id}:{market}")
                 item["cannot_confirm"].append(f"STAGE_MARKET_MISSING:{stage_id}:{market}")
@@ -229,18 +229,18 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
             item["status"] = "PARTIAL"
         else:
             item["status"] = "MATERIALIZED"
-        item["stage_ids"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["stage_ids"]))
-        item["markets"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["markets"]))
-        item["verified_markets"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["verified_markets"]))
+        item["stage_ids"] = sorted(set(item["stage_ids"]))
+        item["markets"] = sorted(set(item["markets"]))
+        item["verified_markets"] = sorted(set(item["verified_markets"]))
         item["expected_markets"] = {
-            stage_id: _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(markets))
+            stage_id: sorted(set(markets))
             for stage_id, markets in item["expected_markets"].items()
         }
-        item["missing_markets"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["missing_markets"]))
-        item["receipt_paths"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["receipt_paths"]))
-        item["artifact_ids"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["artifact_ids"]))
-        item["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(item["cannot_confirm"]))
-    return _v4_global(_v4_scope, 'dict')(_v4_global(_v4_scope, 'sorted')(by_date.items()))
+        item["missing_markets"] = sorted(set(item["missing_markets"]))
+        item["receipt_paths"] = sorted(set(item["receipt_paths"]))
+        item["artifact_ids"] = sorted(set(item["artifact_ids"]))
+        item["cannot_confirm"] = sorted(set(item["cannot_confirm"]))
+    return dict(sorted(by_date.items()))
 
 
 def __verified_independent_pool_dates_body(
@@ -275,27 +275,27 @@ def __verified_independent_pool_dates_body(
         root = pool_root / "preselection_pools"
         try:
             root_stat = root.lstat()
-        except _v4_global(_v4_scope, 'FileNotFoundError'):
+        except FileNotFoundError:
             continue
         if stat.S_ISLNK(root_stat.st_mode) or not stat.S_ISDIR(root_stat.st_mode):
-            raise _v4_global(_v4_scope, 'ValueError')(
+            raise ValueError(
                 "preselection pool root is not a safe directory"
             )
-        children = _v4_global(_v4_scope, 'tuple')(root.iterdir())
+        children = tuple(root.iterdir())
         for child in children:
             date = child.name
             try:
                 child_stat = child.lstat()
-            except _v4_global(_v4_scope, 'FileNotFoundError'):
+            except FileNotFoundError:
                 continue
             if stat.S_ISLNK(child_stat.st_mode):
-                raise _v4_global(_v4_scope, 'ValueError')(
+                raise ValueError(
                     "preselection pool date directory cannot be a symlink"
                 )
-            if _v4_global(_v4_scope, 'len')(date) != 8 or not date.isdigit():
+            if len(date) != 8 or not date.isdigit():
                 continue
             if not stat.S_ISDIR(child_stat.st_mode):
-                raise _v4_global(_v4_scope, 'ValueError')(
+                raise ValueError(
                     f"preselection pool date path is not a directory: {date}"
                 )
             snapshots, integrity_errors = pool_source_reader.read_all_with_quarantine(
@@ -311,7 +311,7 @@ def __verified_independent_pool_dates_body(
                 artifact = snapshot.get("artifact")
                 pool_id = artifact.get("pool_id") if isinstance(artifact, Mapping) else None
                 if pool_id not in pool_store_api.POOL_ORDER or pool_id in pools_by_id:
-                    raise _v4_global(_v4_scope, 'ValueError')(
+                    raise ValueError(
                         "date catalog pool snapshot identity is invalid"
                     )
                 pools_by_id[pool_id] = {
@@ -327,11 +327,11 @@ def __verified_independent_pool_dates_body(
                 }
             for error in integrity_errors:
                 if not isinstance(error, pool_store_api.PreselectionPoolIntegrityError):
-                    raise _v4_global(_v4_scope, 'ValueError')(
+                    raise ValueError(
                         "date catalog quarantine outcome is untyped"
                     )
                 if error.pool_id not in pool_store_api.POOL_ORDER or error.pool_id in pools_by_id:
-                    raise _v4_global(_v4_scope, 'ValueError')(
+                    raise ValueError(
                         "date catalog quarantine pool identity is invalid"
                     )
                 pools_by_id[error.pool_id] = {
@@ -363,8 +363,8 @@ def __verified_independent_pool_dates_body(
                 "physical_source_root": str(resolver.root_for_date(date)),
                 "pools": pools_by_id,
             }
-    normalized_dates = _v4_global(_v4_scope, 'tuple')(
-        _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(dates))
+    normalized_dates = tuple(
+        sorted(set(dates))
     )
     if include_evidence:
         return normalized_dates, evidence_by_date

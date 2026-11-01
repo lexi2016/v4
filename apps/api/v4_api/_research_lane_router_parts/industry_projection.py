@@ -14,15 +14,15 @@ _INDUSTRY_RESPONSE_SCHEMA_VERSION = "v3_5.global_industries.v2"
 def __global_industry_rows_body(_v4_scope, /, reason):
     return [
         {
-            "label": _v4_global(_v4_scope, 'str')(mapping["label"]),
-            "group": _v4_global(_v4_scope, 'str')(mapping["group"]),
-            "mapping_type": _v4_global(_v4_scope, 'str')(mapping["mapping_type"]),
-            "proxy_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
+            "label": str(mapping["label"]),
+            "group": str(mapping["group"]),
+            "mapping_type": str(mapping["mapping_type"]),
+            "proxy_symbols": list(mapping["proxy_symbols"]),
             "available_symbols": [],
-            "missing_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
-            "requested_symbol_count": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"]),
+            "missing_symbols": list(mapping["proxy_symbols"]),
+            "requested_symbol_count": len(mapping["proxy_symbols"]),
             "available_symbol_count": 0,
-            "coverage": {"available": 0, "requested": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"])},
+            "coverage": {"available": 0, "requested": len(mapping["proxy_symbols"])},
             "coverage_pct": 0.0,
             "change_pct": None,
             "pct_change": None,
@@ -53,13 +53,13 @@ def __global_industry_rows_body(_v4_scope, /, reason):
             "proxy_reference": {
                 "metric_kind": "ETF_REFERENCE" if "basket" not in str(mapping["mapping_type"]) else "STOCK_BASKET_REFERENCE",
                 "provider": "Tencent qt.gtimg.cn",
-                "mapping_type": _v4_global(_v4_scope, 'str')(mapping["mapping_type"]),
-                "proxy_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
+                "mapping_type": str(mapping["mapping_type"]),
+                "proxy_symbols": list(mapping["proxy_symbols"]),
                 "available_symbols": [],
-                "missing_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
-                "requested_symbol_count": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"]),
+                "missing_symbols": list(mapping["proxy_symbols"]),
+                "requested_symbol_count": len(mapping["proxy_symbols"]),
                 "available_symbol_count": 0,
-                "coverage": {"available": 0, "requested": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"])},
+                "coverage": {"available": 0, "requested": len(mapping["proxy_symbols"])},
                 "coverage_pct": 0.0,
                 "change_pct": None,
                 "direction": "CANNOT_CONFIRM",
@@ -101,14 +101,14 @@ def __global_industry_missing_body(_v4_scope, /, *, research_date, reason):
         "proxy_source_response_sha256": "",
         "requested_board_count": 24,
         "available_board_count": 0,
-        "proxy_requested_symbol_count": _v4_global(_v4_scope, 'len')({symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]}),
+        "proxy_requested_symbol_count": len({symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]}),
         "proxy_available_symbol_count": 0,
         "proxy_quotes": [],
         "capture_phase": "POST_CLOSE",
         "captured_at": "",
         "generated_at": "",
         "mapping_version": _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_MAPPING_VERSION'),
-        "requested_symbol_count": _v4_global(_v4_scope, 'len')({
+        "requested_symbol_count": len({
             symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]
         }),
         "available_symbol_count": 0,
@@ -131,13 +131,13 @@ def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
     artifact_path = store.root / "research" / "peripherals" / research_date / "external_finance.json"
     receipt_path = store.root / "receipts" / "research" / "peripherals" / research_date / "external_finance.json"
     manifest_path = store.root / "research" / "peripherals" / "manifest.json"
-    result: dict[str, Any] = {"path": _v4_global(_v4_scope, 'str')(artifact_path), "sha256": _v4_global(_v4_scope, '_sha256')(payload)}
+    result: dict[str, Any] = {"path": str(artifact_path), "sha256": _v4_global(_v4_scope, '_sha256')(payload)}
     try:
         receipt = _v4_global(_v4_scope, 'json').loads(receipt_path.read_text(encoding="utf-8"))
         manifest = _v4_global(_v4_scope, 'json').loads(manifest_path.read_text(encoding="utf-8"))
-        result["receipt"] = {"path": _v4_global(_v4_scope, 'str')(receipt_path), "sha256": _v4_global(_v4_scope, '_sha256')(receipt)}
-        result["manifest"] = {"path": _v4_global(_v4_scope, 'str')(manifest_path), "sha256": _v4_global(_v4_scope, '_sha256')(manifest)}
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError):
+        result["receipt"] = {"path": str(receipt_path), "sha256": _v4_global(_v4_scope, '_sha256')(receipt)}
+        result["manifest"] = {"path": str(manifest_path), "sha256": _v4_global(_v4_scope, '_sha256')(manifest)}
+    except (OSError, TypeError, ValueError, _v4_global(_v4_scope, 'json').JSONDecodeError):
         result["lineage_status"] = "CANNOT_CONFIRM"
     return result
 
@@ -145,10 +145,10 @@ def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
 def __project_global_industries_body(_v4_scope, /, *, store, research_date):
     try:
         payload = store.read_exact(research_date, "external_finance")
-    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError) as error:
+    except (OSError, TypeError, ValueError, _v4_global(_v4_scope, 'json').JSONDecodeError) as error:
         return _v4_global(_v4_scope, '_global_industry_missing')(
             research_date=research_date,
-            reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{_v4_global(_v4_scope, 'type')(error).__name__}",
+            reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{type(error).__name__}",
         )
     if payload is None:
         return _v4_global(_v4_scope, '_global_industry_missing')(
@@ -156,15 +156,15 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             reason="EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED",
         )
     snapshot = payload.get("market_snapshot")
-    if not _v4_global(_v4_scope, 'isinstance')(snapshot, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(snapshot, _v4_global(_v4_scope, 'Mapping')):
         result = _v4_global(_v4_scope, '_global_industry_missing')(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_NOT_MATERIALIZED",
         )
-        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
+        result["source_date"] = str(payload.get("trade_date") or "")
         result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
-        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(
-            _v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | _v4_global(_v4_scope, 'set')(payload.get("cannot_confirm") or [])
+        result["cannot_confirm"] = sorted(
+            set(result["cannot_confirm"]) | set(payload.get("cannot_confirm") or [])
         )
         return result
     if (
@@ -175,10 +175,10 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             research_date=research_date,
             reason="MARKET_SNAPSHOT_CANONICAL_VERSION_INVALID",
         )
-        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
+        result["source_date"] = str(payload.get("trade_date") or "")
         result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
         return result
-    if _v4_global(_v4_scope, 'any')(
+    if any(
         snapshot.get(field) != expected
         for field, expected in {
             "recommendation_status": "RESEARCH_ONLY",
@@ -192,7 +192,7 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             research_date=research_date,
             reason="MARKET_SNAPSHOT_SAFETY_BOUNDARY_INVALID",
         )
-        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
+        result["source_date"] = str(payload.get("trade_date") or "")
         result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
         return result
     capture, identity_error = _v4_global(_v4_scope, '_bound_capture_for_snapshot')(
@@ -208,27 +208,27 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             research_date=research_date,
             store=store,
         )
-    session_date = _v4_global(_v4_scope, 'str')(snapshot.get("capture_session_date") or "")
-    rows = _v4_global(_v4_scope, 'list')(snapshot.get("rows") or [])
-    canonical_rows = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP'))
-    if _v4_global(_v4_scope, 'len')(rows) != 24 or _v4_global(_v4_scope, 'any')(
-        not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping'))
+    session_date = str(snapshot.get("capture_session_date") or "")
+    rows = list(snapshot.get("rows") or [])
+    canonical_rows = list(_v4_global(_v4_scope, 'CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP'))
+    if len(rows) != 24 or any(
+        not isinstance(row, _v4_global(_v4_scope, 'Mapping'))
         or row.get("label") != mapping["label"]
         or row.get("group") != mapping["group"]
         or row.get("mapping_type") != mapping["mapping_type"]
-        or row.get("proxy_symbols") != _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"])
-        for row, mapping in _v4_global(_v4_scope, 'zip')(rows, canonical_rows)
+        or row.get("proxy_symbols") != list(mapping["proxy_symbols"])
+        for row, mapping in zip(rows, canonical_rows)
     ):
         result = _v4_global(_v4_scope, '_global_industry_missing')(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_ROW_COUNT_INVALID",
         )
-        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
+        result["source_date"] = str(payload.get("trade_date") or "")
         result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
         return result
     lineage = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
     futu_snapshot = snapshot.get("futu_board_snapshot")
-    if not _v4_global(_v4_scope, 'isinstance')(futu_snapshot, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(futu_snapshot, _v4_global(_v4_scope, 'Mapping')):
         futu_snapshot = None
     reviewed_relations = load_reviewed_business_relations()
     projected_rows = project_industry_rows(
@@ -237,21 +237,21 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         reviewed_evidence=reviewed_relations,
         capture_session_date=session_date,
     )
-    ready_boards = _v4_global(_v4_scope, 'sum')(row["status"] == "READY" for row in projected_rows)
+    ready_boards = sum(row["status"] == "READY" for row in projected_rows)
     industry_status = "READY" if ready_boards == 24 else "PARTIAL" if ready_boards else "CANNOT_CONFIRM"
-    futu_reasons = _v4_global(_v4_scope, 'set')(
+    futu_reasons = set(
         futu_snapshot.get("cannot_confirm") or [] if futu_snapshot is not None else ["FUTU_BOARD_SNAPSHOT_MISSING"]
     )
     futu_reasons.update(
         reason for row in projected_rows for reason in row.get("cannot_confirm") or []
     )
-    provider_dates = _v4_global(_v4_scope, 'sorted')({
-        _v4_global(_v4_scope, 'str')(row["official_board"].get("session_date"))
+    provider_dates = sorted({
+        str(row["official_board"].get("session_date"))
         for row in projected_rows
         if row["status"] == "READY"
     })
-    provider_times = _v4_global(_v4_scope, 'sorted')({
-        _v4_global(_v4_scope, 'str')(row["official_board"].get("update_time"))
+    provider_times = sorted({
+        str(row["official_board"].get("update_time"))
         for row in projected_rows
         if row["status"] == "READY" and row["official_board"].get("update_time")
     })
@@ -275,12 +275,12 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         "cannot_confirm": list(reviewed_relations.get("cannot_confirm") or []),
         "target_date_eligibility": "CANNOT_CONFIRM",
     }
-    proxy_status = _v4_global(_v4_scope, 'str')(snapshot.get("status") or "CANNOT_CONFIRM")
-    proxy_dates = _v4_global(_v4_scope, 'sorted')({
-        _v4_global(_v4_scope, 'str')(item) for item in snapshot.get("provider_session_dates") or [] if _v4_global(_v4_scope, 'str')(item).strip()
+    proxy_status = str(snapshot.get("status") or "CANNOT_CONFIRM")
+    proxy_dates = sorted({
+        str(item) for item in snapshot.get("provider_session_dates") or [] if str(item).strip()
     })
-    proxy_times = _v4_global(_v4_scope, 'sorted')({
-        _v4_global(_v4_scope, 'str')(item) for item in snapshot.get("provider_session_times") or [] if _v4_global(_v4_scope, 'str')(item).strip()
+    proxy_times = sorted({
+        str(item) for item in snapshot.get("provider_session_times") or [] if str(item).strip()
     })
     futu_metadata = {
         key: futu_snapshot.get(key)
@@ -316,17 +316,17 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         "target_trade_date": research_date,
         "research_date": research_date,
         "source_date": session_date,
-        "artifact_trade_date": _v4_global(_v4_scope, 'str')(payload.get("trade_date") or research_date),
+        "artifact_trade_date": str(payload.get("trade_date") or research_date),
         "us_session_date": session_date,
         "provider": "Futu OpenD",
-        "legacy_proxy_provider": _v4_global(_v4_scope, 'str')(snapshot.get("provider") or snapshot.get("source") or "Tencent qt.gtimg.cn"),
+        "legacy_proxy_provider": str(snapshot.get("provider") or snapshot.get("source") or "Tencent qt.gtimg.cn"),
         "provider_url": "",
         "provider_session_dates": provider_dates,
         "provider_session_times": provider_times,
-        "source_response_sha256": _v4_global(_v4_scope, 'str')((futu_snapshot or {}).get("source_response_sha256") or ""),
-        "proxy_source_response_sha256": _v4_global(_v4_scope, 'str')(snapshot.get("source_response_sha256") or ""),
+        "source_response_sha256": str((futu_snapshot or {}).get("source_response_sha256") or ""),
+        "proxy_source_response_sha256": str(snapshot.get("source_response_sha256") or ""),
         "quotes": [],
-        "proxy_quotes": _v4_global(_v4_scope, 'list')(snapshot.get("quotes") or []),
+        "proxy_quotes": list(snapshot.get("quotes") or []),
         "provider_receipt": None,
         "futu_board_snapshot": futu_metadata,
         "native_board_snapshot": native_board_snapshot,
@@ -336,22 +336,22 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         "a_share_relation_status": "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE",
         "a_share_relations": [],
         "target_date_eligibility": "CANNOT_CONFIRM",
-        "capture_phase": _v4_global(_v4_scope, 'str')(snapshot.get("capture_phase") or "POST_CLOSE"),
+        "capture_phase": str(snapshot.get("capture_phase") or "POST_CLOSE"),
         "capture_session_date": session_date,
-        "captured_at": _v4_global(_v4_scope, 'str')(snapshot.get("captured_at") or ""),
+        "captured_at": str(snapshot.get("captured_at") or ""),
         "bound_capture_captured_at": capture.get("captured_at"),
-        "generated_at": _v4_global(_v4_scope, 'str')(snapshot.get("generated_at") or snapshot.get("captured_at") or ""),
-        "mapping_version": _v4_global(_v4_scope, 'str')(snapshot.get("mapping_version") or ""),
+        "generated_at": str(snapshot.get("generated_at") or snapshot.get("captured_at") or ""),
+        "mapping_version": str(snapshot.get("mapping_version") or ""),
         "requested_symbol_count": 24,
         "available_symbol_count": ready_boards,
         "requested_board_count": 24,
         "available_board_count": ready_boards,
-        "proxy_requested_symbol_count": _v4_global(_v4_scope, 'int')(snapshot.get("requested_symbol_count") or 0),
-        "proxy_available_symbol_count": _v4_global(_v4_scope, 'int')(snapshot.get("available_symbol_count") or 0),
+        "proxy_requested_symbol_count": int(snapshot.get("requested_symbol_count") or 0),
+        "proxy_available_symbol_count": int(snapshot.get("available_symbol_count") or 0),
         "proxy_provider_session_dates": proxy_dates,
         "proxy_provider_session_times": proxy_times,
         "rows": projected_rows,
-        "cannot_confirm": _v4_global(_v4_scope, 'sorted')(futu_reasons),
+        "cannot_confirm": sorted(futu_reasons),
         "artifact": lineage,
         "manifest": lineage.get("manifest"),
         "receipt": lineage.get("receipt"),
@@ -383,10 +383,10 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             result[field] = capture[field]
     if result["capture_phase"] != "POST_CLOSE":
         result["status"] = "CANNOT_CONFIRM"
-        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(
-            _v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | {"MARKET_SNAPSHOT_NOT_POST_CLOSE"}
+        result["cannot_confirm"] = sorted(
+            set(result["cannot_confirm"]) | {"MARKET_SNAPSHOT_NOT_POST_CLOSE"}
         )
-    if result["status"] != "CANNOT_CONFIRM" and _v4_global(_v4_scope, 'len')(provider_dates) > 1:
+    if result["status"] != "CANNOT_CONFIRM" and len(provider_dates) > 1:
         result["status"] = "PARTIAL"
-        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | {"BOARD_SESSION_DATE_MIXED"})
+        result["cannot_confirm"] = sorted(set(result["cannot_confirm"]) | {"BOARD_SESSION_DATE_MIXED"})
     return result

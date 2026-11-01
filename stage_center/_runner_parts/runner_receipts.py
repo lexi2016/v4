@@ -99,7 +99,7 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
                 "hk_d1_source_signal_date": source_signal_date,
                 "hk_d1_source_sha256": loaded_binding.sha256,
                 "hk_observation_trade_date": trade_date,
-                "source_evidence": _v4_global(_v4_scope, 'list')(loaded_binding.evidence),
+                "source_evidence": list(loaded_binding.evidence),
             })
     return results
 
@@ -132,9 +132,9 @@ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_da
                 "latest_updated": False,
                 "current_updated": False,
                 "namespace": {
-                    "raw_root": _v4_global(_v4_scope, 'str')(self.config.raw_root),
-                    "selection_root": _v4_global(_v4_scope, 'str')(self.config.selection_root),
-                    "receipt_root": _v4_global(_v4_scope, 'str')(self.config.receipt_root),
+                    "raw_root": str(self.config.raw_root),
+                    "selection_root": str(self.config.selection_root),
+                    "receipt_root": str(self.config.receipt_root),
                 },
             }
         )

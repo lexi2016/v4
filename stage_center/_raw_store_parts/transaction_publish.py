@@ -12,7 +12,7 @@ def _RawStore_publish_body(
     _v4_global(_v4_scope, '_stage')(stage_id)
     if market not in _v4_global(_v4_scope, '_stage')(stage_id).markets:
         raise _v4_global(_v4_scope, 'RawStoreError')(f"market {market!r} is not scheduled for {stage_id!r}")
-    if not _v4_global(_v4_scope, 'isinstance')(source_id, _v4_global(_v4_scope, 'str')) or not source_id or "/" in source_id or "\\" in source_id:
+    if not isinstance(source_id, str) or not source_id or "/" in source_id or "\\" in source_id:
         raise _v4_global(_v4_scope, 'RawStoreError')("source_id is unsafe")
     allow_temporal_false_observation = _v4_global(
         _v4_scope, '_allows_temporal_false_observation'
@@ -42,13 +42,13 @@ def _RawStore_publish_body(
     )
     status = _v4_global(_v4_scope, '_status')(source_status, validated, issues, cannot_confirm)
     normalized_source_status = {"READ_OK": "READY", "READ_FAILED": "CANNOT_CONFIRM"}.get(source_status, source_status)
-    requested = _v4_global(_v4_scope, 'len')(rows) if requested_rows is None else _v4_global(_v4_scope, 'int')(requested_rows)
+    requested = len(rows) if requested_rows is None else int(requested_rows)
     if requested < 0:
         raise _v4_global(_v4_scope, 'RawStoreError')("requested_rows must be non-negative")
-    missing = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(_v4_global(_v4_scope, 'str')(item) for item in missing_symbols))
-    evidence = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(_v4_global(_v4_scope, 'str')(item) for item in (*source_evidence, *cannot_confirm, *issues)))
-    cannot = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(_v4_global(_v4_scope, 'str')(item) for item in (*cannot_confirm, *issues)))
-    source_rows = _v4_global(_v4_scope, 'len')(validated)
+    missing = list(dict.fromkeys(str(item) for item in missing_symbols))
+    evidence = list(dict.fromkeys(str(item) for item in (*source_evidence, *cannot_confirm, *issues)))
+    cannot = list(dict.fromkeys(str(item) for item in (*cannot_confirm, *issues)))
+    source_rows = len(validated)
     coverage = _v4_global(_v4_scope, '_coverage')(requested, source_rows)
     input_sha = _v4_global(_v4_scope, 'canonical_sha')(
         {
@@ -83,10 +83,10 @@ def _RawStore_publish_body(
         latest = self._load_latest()
         key = self._entry_key(trade_date, stage_id, market)
         existing = latest["entries"].get(key)
-        if _v4_global(_v4_scope, 'isinstance')(existing, _v4_global(_v4_scope, 'Mapping')):
+        if isinstance(existing, _v4_global(_v4_scope, 'Mapping')):
             if existing.get("idempotency_key") != idem_key:
                 raise _v4_global(_v4_scope, 'RawStoreError')(f"raw slot conflict: {key}")
-            verified = self.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(existing.get("run_id")))
+            verified = self.verify_run(trade_date, stage_id, market, str(existing.get("run_id")))
             for field in ("owner", "status", "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256"):
                 if existing.get(field) != verified.get(field):
                     raise _v4_global(_v4_scope, 'RawStoreError')(f"latest pointer {field} mismatch")
@@ -191,8 +191,8 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
     _v4_global(_v4_scope, '_stage')(stage_id)
     if status not in _v4_global(_v4_scope, 'RAW_STATUSES'):
         raise _v4_global(_v4_scope, 'RawStoreError')(f"unknown bundle status {status!r}")
-    expected_markets = _v4_global(_v4_scope, 'set')(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
-    if _v4_global(_v4_scope, 'set')(markets) != expected_markets:
+    expected_markets = set(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
+    if set(markets) != expected_markets:
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
     summary_seed = {
         "schema_version": _v4_global(_v4_scope, 'RAW_BUNDLE_SCHEMA_VERSION'),
@@ -200,7 +200,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         "trade_date": trade_date,
         "stage_id": stage_id,
         "status": status,
-        "markets": {key: _v4_global(_v4_scope, 'dict')(value) for key, value in _v4_global(_v4_scope, 'sorted')(markets.items())},
+        "markets": {key: dict(value) for key, value in sorted(markets.items())},
         "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
         **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
     }
@@ -211,7 +211,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
     with self._lock():
         latest = self._load_bundle_latest()
         existing = latest["entries"].get(key)
-        if _v4_global(_v4_scope, 'isinstance')(existing, _v4_global(_v4_scope, 'Mapping')):
+        if isinstance(existing, _v4_global(_v4_scope, 'Mapping')):
             if existing.get("bundle_id") != bundle_id:
                 raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle slot conflict: {key}")
             verified = self._verify_bundle(trade_date, stage_id, bundle_id)
@@ -224,7 +224,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
                 "bundle_id": bundle_id,
                 "receipt_relative": receipt_relative,
                 "receipt_sha256": verified["receipt_sha256"],
-                "markets": {key: _v4_global(_v4_scope, 'dict')(value) for key, value in markets.items()},
+                "markets": {key: dict(value) for key, value in markets.items()},
                 **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
             }
         receipt_path = _v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative)
@@ -232,7 +232,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
             raise _v4_global(_v4_scope, 'RawStoreError')("immutable bundle path already exists without latest pointer")
         _v4_global(_v4_scope, '_atomic_write_json')(receipt_path, receipt)
         verified = self._verify_bundle(trade_date, stage_id, bundle_id)
-        entries = _v4_global(_v4_scope, 'dict')(latest.get("entries", {}))
+        entries = dict(latest.get("entries", {}))
         entries[key] = {
             "owner": "stage_center",
             "trade_date": trade_date,
@@ -251,7 +251,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
             "bundle_id": bundle_id,
             "receipt_relative": receipt_relative,
             "receipt_sha256": verified["receipt_sha256"],
-            "markets": {key: _v4_global(_v4_scope, 'dict')(value) for key, value in markets.items()},
+            "markets": {key: dict(value) for key, value in markets.items()},
             **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
         }
 
