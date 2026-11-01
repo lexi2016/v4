@@ -7,14 +7,14 @@ from pathlib import Path
 BASE_COMMIT = '684afcc20be355513b52484430533fe8f2d95e53'
 LOCAL = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local')
 STAGE = LOCAL/'releases/a-stage-owner-compatibility-20261030-r2-stage/app'
-API = LOCAL/'candidates/date-history-fix-20261101-r1/app'
+API = LOCAL/'candidates/junda-single-20261101-8e342a6d64746507/app'
 MAIN = LOCAL/'releases/workbench-daily-chain-20261031-r6-main/app'
 PRECAPTURE = LOCAL/'releases/a-snapshot-recovery-20261029-r1-stage/app'
 MANUAL_CONFIG = LOCAL/'releases/v4-retirement-20261028-api/config/api-v4_manual_collection_stage_config.json'
 MANUAL_CONFIG_PIN = 'c6c3a1144d69b23714bdd432e1f228cc56c9f9e4a80fffec8df28f5c5ebb87ee'
 MANUAL_CONFIG_RELATIVE = 'config/api-v4_manual_collection_stage_config.json'
 PINS = {'stage':'9ef8f0bdebca08a7ac5cc04f42ef4a323d186d2d894ee29a8062908802361d35',
-        'api':'2bcd7c67bc27f515824eb1a861d534f1937e863e44505d8244a54780b694e247',
+        'api':'80ef9ab95df0eb2168051ec62c628dea0a6efe63173059fab85bbeda087b5c7b',
         'main':'f32d922fafcbf8c1e6f9958d5802eef80e58195502f16410a6d11f744e98ac74',
         'a_precapture':'8b9e9c22f4641c395e853dcfd2b0c7054f9fdcd416d9ed0bc86412da617a5694'}
 SHARED = ('stage_center/candidate_input.py', 'contracts/a_share_code.py',
@@ -24,6 +24,15 @@ STAGE_PATHS = (*SHARED, 'stage_center/hk_stage8/rtdata.py', 'stage_center/market
                'ops/stage_data_recovery.py')
 SOP_PATHS = ('infrastructure/operations_sop_reader.py','docs/SOP.md',
     'docs/operations/STAGE_SELECTION_SOP.md','docs/operations/records/2026-10-28_29-stage-selection-repair.md')
+REUSED_R3_PINS = {'stage':'ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115',
+                 'a_precapture':'e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b'}
+CURRENT_PANEL_ENV = {
+    'V4_RESEARCH_PANEL_ROOT':str(API.parent/'research-panel'),
+    'V4_RESEARCH_PANEL_ASSET_MANIFEST':str(API.parent/'research-panel-assets.json'),
+    'V4_WORKBENCH_HOST_BINDING':str(API.parent/'config/workbench-binding.json'),
+    'V4_WORKBENCH_HOST_BINDING_SHA256':'e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249',
+    'V4_MANAGER_WORKBENCH_CONFIG_PATH':str(LOCAL/'config/us-industry-observed-api-20261018-r1.json'),
+}
 
 def sha(raw): return hashlib.sha256(raw).hexdigest()
 def dump(path, payload): path.write_text(json.dumps(payload,ensure_ascii=False,sort_keys=True,indent=2)+'\n')
@@ -179,10 +188,88 @@ def prepare(output, source, *, prepared_runtime=False):
             'V4_APP_ROOT/release_id/PYTHONPATH are rebound by unchanged manual_collection.py',
     })
     return results
+
+
+def prepare_current_api(output, source, reused_bundle):
+    """One actual-loaded API rebase; preserve the accepted r3 Stage owners."""
+    no_alias(output);no_alias(source);no_alias(reused_bundle)
+    if output.parent!=LOCAL/'candidates' or output.exists():raise ValueError('NEW_STABLE_API_CANDIDATE_REQUIRED')
+    # The earlier audit's API baseline became stale after another valid
+    # release. Match the actual loaded tuple (now matching disk), then use
+    # the existing official inventory tool; never restore the stale baseline.
+    printed=subprocess.check_output(['launchctl','print',f'gui/{os.getuid()}/com.lexi.v4.api'],text=True)
+    loaded={}
+    for line in printed.splitlines():
+        if '=>' in line:
+            key,value=line.strip().split('=>',1)
+            if key.strip() in {*CURRENT_PANEL_ENV,'V4_APP_ROOT','V4_RELEASE_MANIFEST_SHA256'}:
+                loaded[key.strip()]=value.strip()
+    if loaded.get('V4_APP_ROOT')!=str(API) or loaded.get('V4_RELEASE_MANIFEST_SHA256')!=PINS['api']:
+        raise ValueError('ACTUAL_LOADED_API_BASELINE_CHANGED')
+    if any(loaded.get(key)!=value for key,value in CURRENT_PANEL_ENV.items()):
+        raise ValueError('ACTUAL_LOADED_PANEL_BINDING_CHANGED')
+    no_alias(API);base_raw=(API.parent/'release-manifest.json').read_bytes()
+    if sha(base_raw)!=PINS['api']:raise ValueError('ACTUAL_API_MANIFEST_CAS_CHANGED')
+    base=json.loads(base_raw);tools=inventory_tools();original=tools.inventory_tree(API)
+    if base['application_inventory']!={'entries':original,'entry_count':len(original),'aggregate_sha256':tools.inventory_digest(original)}:
+        raise ValueError('ACTUAL_API_INVENTORY_DRIFT')
+    reused=json.loads((reused_bundle/'candidates.json').read_bytes())
+    for role,pin in REUSED_R3_PINS.items():
+        row=reused[role];app=Path(row['app_root']);no_alias(app)
+        if row['manifest_sha256']!=pin or sha((app.parent/'release-manifest.json').read_bytes())!=pin:
+            raise ValueError('REUSED_ACCEPTED_STAGE_IDENTITY_CHANGED:'+role)
+    refs={key:{'path':value,'sha256':sha(Path(value).read_bytes())} for key,value in CURRENT_PANEL_ENV.items()
+          if key.endswith(('_BINDING','_MANIFEST','_CONFIG_PATH'))}
+    if refs['V4_WORKBENCH_HOST_BINDING']['sha256']!=CURRENT_PANEL_ENV['V4_WORKBENCH_HOST_BINDING_SHA256']:
+        raise ValueError('LOADED_HOST_BINDING_SHA_MISMATCH')
+    if refs['V4_RESEARCH_PANEL_ASSET_MANIFEST']['sha256']!=base['research_panel']['asset_manifest_sha256']:
+        raise ValueError('LOADED_PANEL_ASSET_MANIFEST_SHA_MISMATCH')
+    app=output/'app';shutil.copytree(API,app,symlinks=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc','*.pyo'))
+    for relative in SOP_PATHS:write(app,relative,(source/relative).read_bytes())
+    accepted_api=Path(reused['api']['app_root'])
+    manual=(accepted_api/MANUAL_CONFIG_RELATIVE).read_bytes()
+    if json.loads(manual)['stage_owner_root']!=reused['stage']['app_root']:
+        raise ValueError('REUSED_MANUAL_CONFIG_OWNER_MISMATCH')
+    write(app,MANUAL_CONFIG_RELATIVE,manual)
+    actual=tools.inventory_tree(app);before={row['path']:row for row in original};after={row['path']:row for row in actual}
+    delta=[p for p in sorted(set(before)|set(after)) if before.get(p)!=after.get(p)]
+    if set(delta)-set((*SOP_PATHS,MANUAL_CONFIG_RELATIVE)):
+        raise ValueError('API_ONLY_NON_ALLOWLIST_DELTA')
+    manifest=copy.deepcopy(base);manifest.update(app_root=str(app),release_id=output.name,
+        activation_status='PREPARED_NOT_ACTIVATED',deployment_status='NOT_DEPLOYED')
+    manifest['candidate'].update(root=str(output),app_root=str(app),release_id=output.name)
+    manifest['application_inventory']={'entries':actual,'entry_count':len(actual),'aggregate_sha256':tools.inventory_digest(actual)}
+    if 'app_files' in manifest:manifest['app_files']=actual
+    manifest['stage_four_api_rebase']={'source_baseline':'bee536e40b1e686e00602a09ac0ad70820a6c1a2',
+        'actual_loaded_base_app':str(API),'actual_loaded_base_manifest_sha256':PINS['api'],
+        'prior_audit_baseline_was_stale':True,'allowed_delta':delta,
+        'delta':[{'path':p,'before':before.get(p),'after':after.get(p)} for p in delta],
+        'reused_stage_pins':REUSED_R3_PINS,'preserved_panel_environment':CURRENT_PANEL_ENV}
+    dump(output/'release-manifest.json',manifest)
+    results={role:copy.deepcopy(reused[role]) for role in REUSED_R3_PINS}
+    results['api']={'app_root':str(app),'release_id':output.name,'manifest_sha256':sha((output/'release-manifest.json').read_bytes()),
+        'inventory_sha256':tools.inventory_digest(actual),'delta':delta,'source_role':'API_CURRENT_LOADED_JUNDA_REBASE'}
+    dump(output/'candidates.json',results)
+    plan=json.loads((reused_bundle/'activation-environment.json').read_bytes())
+    plan['api_environment']={**CURRENT_PANEL_ENV,'V4_APP_ROOT':str(app),'V4_RELEASE_ID':output.name,
+        'V4_RELEASE_MANIFEST_PATH':str(output/'release-manifest.json'),
+        'V4_RELEASE_MANIFEST_SHA256':results['api']['manifest_sha256'],
+        'V4_MANUAL_COLLECTION_STAGE_CONFIG':str(app/MANUAL_CONFIG_RELATIVE)}
+    plan['actual_loaded_base_manifest_sha256']=PINS['api'];plan['other_loaded_environment_must_be_preserved']=True
+    plan['preserved_external_binding_sha256']=refs
+    dump(output/'activation-environment.json',plan)
+    dump(output/'baseline-preservation.json',{'actual_loaded_base_app':str(API),'actual_loaded_base_manifest_sha256':PINS['api'],
+        'allowed_delta':delta,'external_bindings':refs,'panel_environment':CURRENT_PANEL_ENV,
+        'preserved_manifest_bindings':{key:base[key] for key in ('research_panel','prior_research_panel') if key in base},
+        'reused_owner_identities':{role:results[role] for role in REUSED_R3_PINS},
+        'existing_candidate_input_not_overlaid':True})
+    return results
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--source-root',type=Path,default=Path(__file__).resolve().parents[1])
     p.add_argument('--prepared-runtime',action='store_true',help='Preserve approved runtime data roots; do not run any scheduler')
+    p.add_argument('--reuse-stage-bundle',type=Path,help='API-only integration against current loaded owner; reuse accepted Stage/pre-capture')
     a=p.parse_args()
-    print(json.dumps(prepare(a.output,a.source_root,prepared_runtime=a.prepared_runtime),ensure_ascii=False,indent=2))
+    if not a.reuse_stage_bundle:raise ValueError('CURRENT_LOADED_BASELINE_REQUIRES_API_ONLY_REUSE_STAGE_BUNDLE')
+    print(json.dumps(prepare_current_api(a.output,a.source_root,a.reuse_stage_bundle),ensure_ascii=False,indent=2))
 if __name__=='__main__':main()

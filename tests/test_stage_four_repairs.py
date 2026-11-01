@@ -22,11 +22,14 @@ RESULTS=[]
 def sha(raw):return hashlib.sha256(raw).hexdigest()
 def runtime_env(role='stage'):
     row=IDENTITIES[role];app=Path(row['app_root'])
-    return {**os.environ,'PYTHONDONTWRITEBYTECODE':'1','PYTHONPATH':str(app),
+    result={**os.environ,'PYTHONDONTWRITEBYTECODE':'1','PYTHONPATH':str(app),
         'V4_APP_ROOT':str(app),'V4_RELEASE_ID':row['release_id'],
         'V4_RELEASE_MANIFEST_PATH':str(app.parent/'release-manifest.json'),
         'V4_RELEASE_MANIFEST_SHA256':row['manifest_sha256'],
         'STAGE_CENTER_CONFIG':str(app/'stage_center_tick_config.json')}
+    plan=BUNDLE/'activation-environment.json'
+    if role=='api' and plan.is_file():result.update(json.loads(plan.read_bytes())['api_environment'])
+    return result
 
 class FourRepairTests(unittest.TestCase):
     def setUp(self):
@@ -434,7 +437,8 @@ assert child['V4_RELEASE_MANIFEST_SHA256']==os.environ['V4_RELEASE_MANIFEST_SHA2
 assert 'historical_markets=("HK_CONNECT",)' in _OWNER_PROGRAM
 assert 'V4_RELEASE_MANIFEST' not in _OWNER_PROGRAM
 api=Path(os.environ['V4_APP_ROOT'])
-original=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/date-history-fix-20261101-r1/app/infrastructure/manual_collection.py')
+baseline=Path(os.environ.get('STAGE_FOUR_EXPECTED_API_BASE','/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/date-history-fix-20261101-r1/app'))
+original=baseline/'infrastructure/manual_collection.py'
 assert (api/'infrastructure/manual_collection.py').read_bytes()==original.read_bytes()
 print(json.dumps({'case':'F2_actual_manual_router_to_owner_parameter_probe','status':'PASS',
     'api_identity':validate_release_identity(),'manual_config_path':str(config_path),
@@ -447,8 +451,42 @@ print(json.dumps({'case':'F2_actual_manual_router_to_owner_parameter_probe','sta
     'inherited_API_manifest_env':'PRESENT_BUT_NOT_CONSUMED_BY_FIXED_HK_PROGRAM',
     'Popen_calls_intercepted':1,'Popen_executed':0,'provider_invocations':0,'state_writes':0}))
 '''
+        preservation=BUNDLE/'baseline-preservation.json'
+        if preservation.is_file():env['STAGE_FOUR_EXPECTED_API_BASE']=json.loads(preservation.read_bytes())['actual_loaded_base_app']
         result=subprocess.run([sys.executable,'-B','-c',code],cwd=app,env=env,capture_output=True,text=True,check=True)
         RESULTS.append(json.loads(result.stdout.strip().splitlines()[-1]))
+    def test_16_current_loaded_API_allowlist_and_panel_bindings(self):
+        import importlib.util
+        app=Path(IDENTITIES['api']['app_root']);preservation=json.loads((BUNDLE/'baseline-preservation.json').read_bytes())
+        base=Path(preservation['actual_loaded_base_app'])
+        spec=importlib.util.spec_from_file_location('api_rebase_inventory',app/'ops/api_release_integration.py')
+        tools=importlib.util.module_from_spec(spec);spec.loader.exec_module(tools)
+        before=tools.inventory_tree(base);after=tools.inventory_tree(app)
+        left={r['path']:r for r in before};right={r['path']:r for r in after}
+        changed=[p for p in sorted(set(left)|set(right)) if left.get(p)!=right.get(p)]
+        allowed={'infrastructure/operations_sop_reader.py','docs/SOP.md','docs/operations/STAGE_SELECTION_SOP.md',
+            'docs/operations/records/2026-10-28_29-stage-selection-repair.md','config/api-v4_manual_collection_stage_config.json'}
+        self.assertFalse(set(changed)-allowed);self.assertEqual(changed,preservation['allowed_delta'])
+        manifest=json.loads((app.parent/'release-manifest.json').read_bytes())
+        self.assertEqual(manifest['application_inventory'],{'entries':after,'entry_count':len(after),'aggregate_sha256':tools.inventory_digest(after)})
+        self.assertEqual(sha((base.parent/'release-manifest.json').read_bytes()),preservation['actual_loaded_base_manifest_sha256'])
+        for key,value in preservation['preserved_manifest_bindings'].items():self.assertEqual(manifest[key],value)
+        plan=json.loads((BUNDLE/'activation-environment.json').read_bytes())
+        for key,value in preservation['panel_environment'].items():self.assertEqual(plan['api_environment'][key],value)
+        for key,ref in preservation['external_bindings'].items():self.assertEqual(sha(Path(ref['path']).read_bytes()),ref['sha256'])
+        assets=json.loads(Path(preservation['panel_environment']['V4_RESEARCH_PANEL_ASSET_MANIFEST']).read_bytes())['files']
+        panel=Path(preservation['panel_environment']['V4_RESEARCH_PANEL_ROOT'])
+        from infrastructure.owned_io import SafeRoot
+        for entry in assets:self.assertEqual(sha(SafeRoot(panel).read_bytes(entry['path'],max_bytes=64*1024*1024)),entry['sha256'])
+        protected=[p for p in left if p.startswith('apps/web/') or ('research' in p or 'workbench' in p)
+                   and not p.startswith('docs/')]
+        for relative in protected:self.assertEqual(left[relative],right[relative])
+        self.assertEqual((app/'stage_center/candidate_input.py').read_bytes(),(base/'stage_center/candidate_input.py').read_bytes())
+        RESULTS.append({'case':'actual_loaded_API_rebase_allowlist','baseline':str(base),'delta':changed,
+            'full_inventory_entry_count':len(after),'preserved_app_web_research_workbench_paths':len(protected),
+            'external_panel_assets_checked':len(assets),'external_binding_hashes_unchanged':True,
+            'existing_API_candidate_reader_not_backported':True,'reused_Stage_and_precapture':preservation['reused_owner_identities'],
+            'loaded_panel_environment':preservation['panel_environment']})
 
 if __name__=='__main__':
     suite=(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name,FourRepairTests)

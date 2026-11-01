@@ -189,3 +189,16 @@ A分钟共享HQ/Futu子进程的原始响应另外保存在 raw 的 `.process_re
 验证使用真实router→ManualCollectionService→_invoke_owner，Popen在创建前截获参数，确认新Stage的cwd、PYTHONPATH、V4_APP_ROOT、release_id与固定HK程序一致；不创建子进程、不调用行情provider、不写线上state。API manual_collection.py业务字节保持原样。当前固定子程序仅HK Stage8，未消费继承的API manifest环境字段；这些字段不能冒称Stage manifest见证，也不为未调用的A研究链扩大本轮改动。原配置/回执和独审FAIL证据保留；仅凭配置文件存在不宣称手动补采或自然运行成功。
 
 Stage8 SDK import/context/close异常的原始message只写入既有capture的provider_diagnostics；对外的类型/状态码保持原有边界，不将原始SDK异常体回显到用户入口或Git。
+
+
+### 8.2 实际API基线更新后的配套（r4 API，复用r3 Stage）
+
+前次审查后实际API已由另一任务发布为`junda-single-20261101-8e342a6d64746507`，当前disk与loaded身份一致；此前本批API组装基线陈旧，不能把旧API覆盖新现役研究面板。本次只从该实际API完整复制并应用SOP reader/文档和manual配置，复用已验收r3 Stage与A pre-capture，不改其根或manifest pin。
+
+当前配套API候选为`stage-four-repairs-20261101-r4-api`。未来获准切换其API身份时，manual环境改为该候选中的配置（替代8.1旧API路径）：
+
+```
+V4_MANUAL_COLLECTION_STAGE_CONFIG=/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app/config/api-v4_manual_collection_stage_config.json
+```
+
+必须同时保留当前loaded的外置研究面板root、asset manifest、workbench host binding及manager config路径/对应SHA，不能从先前审查快照恢复旧值。具体tuple见r4 API根的`activation-environment.json`，其中研究面板仍指向Junda现役原目录；未复制、改造或改写外置面板及绑定。此次没有把Junda未包含的其它旧修复擅自回植；Stage执行修复继续由原r3身份提供。上线前再次核实际loaded与disk/API manifest的CAS；本批候选存在和隔离接口通过均不代表已经切换现役服务。
