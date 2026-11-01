@@ -70,8 +70,11 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
         original=self.owner.verified
         def concurrent_write(doc,day):
             # Model a concurrent index checkpoint while the source owner is read.
-            with sqlite3.connect(self.index.path,timeout=.05) as writer:
-                writer.execute('UPDATE ledger SET reason=? WHERE id=?',('checkpoint',doc))
+            writer=sqlite3.connect(self.index.path,timeout=.05)
+            try:
+                writer.execute('UPDATE ledger SET reason=? WHERE id=?',('checkpoint',doc));writer.commit()
+            finally:
+                writer.close()
             return original(doc,day)
         self.owner.verified=concurrent_write
         r=await self.service.search('测试',strategy='keyword')
