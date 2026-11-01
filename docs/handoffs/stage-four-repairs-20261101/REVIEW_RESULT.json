@@ -1,0 +1,55 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "release_blocked": false,
+  "decision": "READY_FOR_AUTHORIZED_DEPLOYMENT",
+  "source_baseline": "684afcc20be355513b52484430533fe8f2d95e53",
+  "reviewed_stage_business_commit": "d6f60ca5ad633cc18e6257f7c8f92f211e1d63f0",
+  "reviewed_api_integration_commit": "c311455620ef7b3149f15fbc4c5aa6d1f15addef",
+  "writer_handoff_commit": "a13d4232d2d11d8d310e64be4bd0fb214050141b",
+  "findings_remaining": {"P0": 0, "P1": 0, "P2": 0},
+  "independent_review": {
+    "initial": {
+      "verdict": "REVIEWED/FAIL",
+      "target": "a83b78201ee58fd592fd1cce6fcbd92c81e4152a",
+      "passed_checks": 10,
+      "findings": ["SDK original error message lost", "manual collection bound to old Stage"],
+      "receipt": "/private/tmp/stage-four-independent-review-a83b782.json"
+    },
+    "bounded_revision": {
+      "verdict": "REVIEWED/PASS",
+      "passed_checks": 5,
+      "receipt": "/private/tmp/stage-four-independent-incremental-r3.json",
+      "sha256": "f3eff7a9e88a2e6d9623ead69ba84a726ea610627315efa903c25851064e3adc"
+    },
+    "actual_api_baseline_integration": {
+      "verdict": "REVIEWED/PASS",
+      "passed_checks": 4,
+      "receipt": "/private/tmp/stage-four-independent-api-r4.json",
+      "sha256": "09a416f5bddb903417f5f90f0caefd6bb5bb071379a7aaff849c58241ec35f51"
+    }
+  },
+  "manifest_sha256": {
+    "api_r4": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a",
+    "stage_r3": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+    "a_precapture_r3": "e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b"
+  },
+  "activation_environment_sha256": "44ff66523c1d1024d82a818eec039e24b334d69dd6c021626556aa235f82f3a4",
+  "controller_protected_files_unchanged": 20,
+  "controller_proof": "/private/tmp/v4-stage-four-repairs-20261101/controller-final.json",
+  "actual_online_api": "junda-single-20261101-8e342a6d64746507",
+  "online_healthz": 200,
+  "baseline_note": "Current disk and loaded definitions agree. The original assembly used an API baseline from the previous audit; r4 preserves the actual Junda API and external panel bindings.",
+  "research_panel_changed_by_this_task": false,
+  "api_preserved_related_paths": 550,
+  "external_panel_assets_verified": 487,
+  "deployment": "NOT_RUN",
+  "listener_API_VERIFIED": "NOT_RUN",
+  "inprocess_API_VERIFIED": "PASS",
+  "UI_VERIFIED": "NOT_RUN",
+  "NATURAL_VERIFIED": "NOT_RUN",
+  "D30_original_RTDATA": "CANNOT_CONFIRM_NO_SEALED_RTDATA",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
