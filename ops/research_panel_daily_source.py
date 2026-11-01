@@ -19,7 +19,7 @@ def source_policy() -> dict:
     value = json.loads(POLICY_PATH.read_text())
     if (value.get("schema") != "a_daily_source_policy.v1" or value.get("enabled") is not True
             or value.get("source_kind") != "TDX_OFFICIAL_G4DAY"
-            or value.get("earliest_slot") != "1610" or value.get("RESEARCH_ONLY") is not True
+            or value.get("earliest_slot") != "1540" or value.get("RESEARCH_ONLY") is not True
             or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
         raise QfqGateError("A_DAILY_SOURCE_POLICY_UNBOUND")
     return value

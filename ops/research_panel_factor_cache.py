@@ -123,16 +123,40 @@ _ACCEPTED_SOP_LITERALS = frozenset({
 _CONTROLLER_FACT_SET_SHA = "910a49e7d62fa2b5ed0ef34fffcd39f50dc91eb208126359dd61ec381a3ecd1d"
 _CONTROLLER_PENDING_LITERAL = "INDEPENDENT_LINEAGE_AUDIT_RELAYED_BY_CONTROLLER; FINAL_CONSUMER_REVIEW_PENDING"
 _MIRROR_CAVEAT = "CONFIRMED_WITH_MIRROR_PROVENANCE_CAVEAT"
+_LIFECYCLE_ASSET_PATH = Path(__file__).with_name("a_share_lifecycle_notes.json")
+_CONTROLLER_ARTIFACTS = {
+    "000016.SZ": "000016_cninfo_delisting_pdf",
+    "688287.SH": "688287_sse_delisting",
+    "832317.BJ": "832317_cninfo_issuer_pdf",
+    "833874.BJ": "833874_cninfo_notice_pdf",
+    "833994.BJ": "833994_cninfo_notice_pdf",
+    "920680.BJ": "920680_issuer_mirror_pdf",
+    "920305.BJ": "920305_issuer_mirror",
+    "600193.SH": "600193_broker_notice_mirror_pdf",
+}
+_TWO_BROKERS_SHA = "ef8f665560db18168cd9c0f093394fc06f10503bf73260899d1b8eee7cf9cb47"
+
+
+def _fixed_lifecycle_fact(code: str, fact: dict) -> bool:
+    # Bind the complete original projection, including market/event identity,
+    # approval references and caveats. A matching pending literal is not proof.
+    asset = json.loads(_source(dict(path=str(_LIFECYCLE_ASSET_PATH), sha256=_LIFECYCLE_ASSET_SHA),
+                               owner="original lifecycle projection").read_text())
+    matches = [item for item in asset.get("verified_delistings", []) if item.get("ts_code") == code]
+    return len(matches) == 1 and matches[0] == fact
 
 
 def _controller_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
     # Consume the original controller-approved non-admission fact as-is. This
     # does not turn its mirror source or pending consumer review into PASS.
-    if (code != "600193.SH" or fact.get("old_market_only") is not True
-            or fact.get("price_chain_admitted") is not False or fact.get("event_type") != "DELISTING"
+    if (code not in _CONTROLLER_ARTIFACTS
+            or (code != "600193.SH" and not _fixed_lifecycle_fact(code, fact))
+            or fact.get("old_market_only") is not True
+            or fact.get("price_chain_admitted") is not False
             or fact.get("historical_PIT") is not False
-            or fact.get("accepted_review_literal") != _CONTROLLER_PENDING_LITERAL
-            or fact.get("source_quality") != _MIRROR_CAVEAT or not fact.get("source_caveat")):
+            or fact.get("accepted_review_literal") != _CONTROLLER_PENDING_LITERAL):
+        return False
+    if code == "600193.SH" and (fact.get("event_type") != "DELISTING" or not fact.get("source_caveat")):
         return False
     ref = fact.get("accepted_case_result_ref")
     if not isinstance(ref, dict) or ref.get("sha256") != _CONTROLLER_FACT_SET_SHA:
@@ -140,18 +164,47 @@ def _controller_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
     approved = json.loads(_source(ref, owner="original controller-approved lifecycle fact set").read_text())
     if (approved.get("schema") != "controller_relayed_lineage_fact_set.v1"
             or approved.get("delisting_facts", {}).get(code) != effective
-            or approved.get("quality_caveats", {}).get(code) != _MIRROR_CAVEAT
             or approved.get("consumer_independent_review") != "PENDING"):
         return False
-    bound = approved.get("bound_primary_artifacts", {}).get("600193_broker_notice_mirror_pdf")
-    mirrors = fact.get("issuer_or_broker_mirror_refs")
-    if not isinstance(bound, dict) or not isinstance(mirrors, list) or len(mirrors) != 1:
+    caveat = approved.get("quality_caveats", {}).get(code)
+    quality = caveat or "PRIMARY_SOURCE_BYTES_CAPTURED"
+    if fact.get("source_quality") != quality:
         return False
-    mirror = mirrors[0]
-    if (not isinstance(mirror, dict) or mirror.get("source_quality") != _MIRROR_CAVEAT
-            or any(mirror.get(k) != bound.get(k) for k in ("path", "sha256"))):
+    bound = approved.get("bound_primary_artifacts", {}).get(_CONTROLLER_ARTIFACTS[code])
+    refs = fact.get("issuer_or_broker_mirror_refs" if caveat else "official_source_refs")
+    if not isinstance(bound, dict) or not isinstance(refs, list) or len(refs) != 1:
         return False
-    _source(mirror, owner="original accepted broker mirror bytes")
+    ref = refs[0]
+    if (not isinstance(ref, dict) or ref.get("source_quality") != quality
+            or any(ref.get(k) != bound.get(k) for k in ("path", "sha256"))):
+        return False
+    _source(ref, owner="original controller-bound lifecycle source bytes")
+    return True
+
+
+def _two_brokers_quarantine_fact(code: str, fact: dict, effective: str) -> bool:
+    if (code not in ("601198.SH", "601059.SH") or not _fixed_lifecycle_fact(code, fact)
+            or fact.get("accepted_review_literal") != "EXISTING_ROOT_ACCEPTED_OFFICIAL_DELISTING_FACT_NO_REAUTHOR"):
+        return False
+    ref = fact.get("accepted_case_result_ref")
+    if not isinstance(ref, dict) or ref.get("sha256") != _TWO_BROKERS_SHA:
+        return False
+    approved = json.loads(_source(ref, owner="original accepted two-broker facts").read_text())
+    matches = [item for item in approved.get("facts", []) if item.get("ts_code") == code]
+    if len(matches) != 1:
+        return False
+    item = matches[0]
+    if (item.get("effective_delisting_date") != effective
+            or item.get("status") != "OFFICIAL_DELISTING_CONFIRMED"
+            or item.get("retry_policy_for_this_workflow") != "DO_NOT_FETCH_CURRENT_BARS_ON_OR_AFTER_EFFECTIVE_DATE"
+            or item.get("raw_or_qfq_price_changes") is not False
+            or item.get("historical_rows") != "RETAIN" or item.get("silent_code_remap") is not False):
+        return False
+    refs = fact.get("official_source_refs")
+    expected = dict(path=item["source_path"], sha256=item["source_sha256"], url=item["source_url"])
+    if refs != [expected]:
+        return False
+    _source(expected, owner="original accepted exchange termination bytes")
     return True
 
 
@@ -181,6 +234,36 @@ def _sync_prequery_rows(ref: dict | None, target: int) -> dict[str, dict]:
     return result
 
 
+def _reviewed_policy_lifecycle_fact(code: str, row: dict, fact: dict, effective: str) -> bool:
+    """Consume the exact reviewed addition; legacy fixed-asset routes stay separate."""
+    if (code != "301139.SZ" or effective != "20261028"
+            or fact.get("last_trading_date") != "20261027"
+            or fact.get("historical_PIT") is not False):
+        return False
+    ref = row.get("lifecycle_policy_ref")
+    if (not isinstance(ref, dict) or ref != fact.get("source_policy_ref")
+            or row.get("lifecycle_asset_sha256") != ref.get("sha256")):
+        return False
+    path = _source(ref, owner="reviewed lifecycle source policy")
+    current = Path(__file__).resolve().parents[1] / "contracts/a_share_daily_source_policy.json"
+    if sha(path) != sha(current):
+        return False
+    policy = json.loads(path.read_bytes())
+    if (policy.get("schema") != "a_daily_source_policy.v1"
+            or policy.get("RESEARCH_ONLY") is not True
+            or any(policy.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        return False
+    original = {k: v for k, v in fact.items() if k != "source_policy_ref"}
+    if policy.get("verified_delisting_additions") != [original]:
+        return False
+    notice = fact.get("official_notice", {})
+    if (notice.get("sha256") != "8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc"
+            or notice.get("url") != "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"):
+        return False
+    _source(notice, owner="301139 official delisting notice")
+    return True
+
+
 def _verified_sop_skip(code: str, row: dict | None, target: int, sync_ref: dict | None) -> dict | None:
     if not row or (row.get("classification"), row.get("quarantine"), row.get("target_date_ready"),
                    row.get("lifecycle_skip"), row.get("reason_code")) != (
@@ -189,22 +272,36 @@ def _verified_sop_skip(code: str, row: dict | None, target: int, sync_ref: dict 
     fact = row.get("lifecycle_fact")
     if (not isinstance(fact, dict) or fact.get("ts_code") != code or fact.get("verified") is not True
             or fact.get("requires_recent_listed_A_share_bars") is not False
-            or row.get("lifecycle_asset_sha256") != _LIFECYCLE_ASSET_SHA
             or row.get("records_written") != 0):
         return None
     try:
+        if fact.get("accepted_review_literal") not in _ACCEPTED_SOP_LITERALS and code != "600193.SH":
+            market = {0: "SZ", 1: "SH", 2: "BJ"}.get(row.get("market")) if type(row.get("market")) is int else None
+            if (code != str(row.get("symbol", "")).zfill(6) + "." + str(market)
+                    or Path(row["path"]).name != code[-2:].lower() + code[:6] + ".day"
+                    or row.get("source_sha256_before") != row.get("source_sha256_after")):
+                return None
         effective = fact["delisting_effective_date"]
         datetime.strptime(effective, "%Y%m%d")
         if int(effective) > target:
             return None
         raw = dict(path=row["path"], sha256=row["source_sha256_after"])
         _source(raw, owner="original lifecycle raw identity")
-        if fact.get("accepted_review_literal") in _ACCEPTED_SOP_LITERALS:
+        if row.get("lifecycle_policy_ref") is not None:
+            if not _reviewed_policy_lifecycle_fact(code, row, fact, effective):
+                return None
+            proof_route = "REVIEWED_SOURCE_POLICY_OFFICIAL_DELISTING"
+        elif row.get("lifecycle_asset_sha256") != _LIFECYCLE_ASSET_SHA:
+            return None
+        elif fact.get("accepted_review_literal") in _ACCEPTED_SOP_LITERALS:
             for name in ("accepted_review_ref", "accepted_case_result_ref"):
                 _source(fact[name], owner="accepted original lifecycle SOP")
             proof_route = "ORIGINAL_FIXED_ASSET_SOP_VARIANT"
         elif _controller_quarantine_fact(code, fact, effective):
-            proof_route = "ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_MIRROR_CAVEAT"
+            proof_route = ("ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_MIRROR_CAVEAT"
+                           if fact.get("issuer_or_broker_mirror_refs") else "ORIGINAL_CONTROLLER_QUARANTINE_ONLY_WITH_PRIMARY_BYTES")
+        elif _two_brokers_quarantine_fact(code, fact, effective):
+            proof_route = "ORIGINAL_ROOT_ACCEPTED_OFFICIAL_QUARANTINE_ONLY"
         else:
             return None
     except (KeyError, TypeError, ValueError, OSError, QfqGateError):
@@ -549,8 +646,152 @@ def research_cache_plan(codes: list[str], *, target: int, config_ref: dict) -> d
     return dict(symbols=plans, detector_binding=after["binding"], configuration=config_ref)
 
 
+_RELOCATION_GENERATION = "6f007eaffa671d7d3514866f72c153c19333fb53835da2d12be0dd642d17c70b"
+_RELOCATION_ROLES = {
+    "selector": ("/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261030_qfq_6f007eaffa671d7d/selector_ready_current_to_20261030.parquet", "93fad7108c8fb26e42431c8faee99eed497c0de95711e42da3e3650e350cb659"),
+    "backtest": ("/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/backtest_panels/data_layer_daily_formula_increment_update_v1/tdx_backtest_base_panel_5y_v3_current_to_20261030_qfq_6f007eaffa671d7d/panel/tdx_backtest_base_panel_5y_v3_current_to_20261030.parquet", "a1703b2389c6d033674e4129a9c993d4cc0e77b16aa6db80edebec7e4edef8d9"),
+}
+
+
+def _relocated_baseline_paths(relocation_ref: dict, descriptor_ref: dict, descriptor: dict, target: int) -> dict:
+    """Verify the two explicit archived byte-identical sources; no search."""
+    manifest = json.loads(_source(relocation_ref, owner="explicit isolated source relocation").read_text())
+    if (manifest.get("schema") != "qfq_same_asof_exact_archive_relocation_v1"
+            or manifest.get("mode") != "ISOLATED_READ_ONLY" or manifest.get("asof_date") != target
+            or target != 20261030 or manifest.get("baseline_generation") != _RELOCATION_GENERATION
+            or manifest.get("descriptor") != descriptor_ref or set(manifest.get("roles", {})) != set(_RELOCATION_ROLES)
+            or manifest.get("RESEARCH_ONLY") is not True
+            or any(manifest.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise QfqGateError("SOURCE_RELOCATION_MANIFEST_INVALID")
+    from ops.research_panel_qfq import panel_contract
+    resolved = {}
+    for role, (original, expected) in _RELOCATION_ROLES.items():
+        item = manifest["roles"][role]
+        bound = descriptor["baseline_roles"][role]
+        if (set(item) != {"original_path", "expected_sha256", "relocated_path"}
+                or item["original_path"] != original or item["expected_sha256"] != expected
+                or bound != {"path": original, "sha256": expected}):
+            raise QfqGateError("SOURCE_RELOCATION_ORIGINAL_BINDING_CONFLICT:" + role)
+        path = Path(item["relocated_path"])
+        if not path.is_absolute() or path.is_symlink() or not path.is_file() or path.resolve(strict=True) != path:
+            raise QfqGateError("SOURCE_RELOCATION_TARGET_INVALID:" + role)
+        before = path.stat()
+        actual = sha(path)
+        footer = panel_contract(path)
+        after = path.stat()
+        if ((before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+                != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+                or actual != expected or footer.get("generation_id") != _RELOCATION_GENERATION
+                or footer.get("asof_date") != target or footer.get("adjustment_snapshot") != descriptor["baseline_snapshot"]):
+            raise QfqGateError("SOURCE_RELOCATION_TARGET_CONFLICT:" + role)
+        resolved[role] = path
+    return resolved
+
+
+def _same_asof_metadata_records(ref: dict, codes: list[str], target: int, config_ref: dict,
+                                source_relocation_ref: dict | None = None) -> tuple[dict, dict]:
+    """Reference existing same-date observations; never change freshness or timestamps."""
+    value = json.loads(_source(ref, owner="same-asof metadata descriptor").read_text())
+    if (value.get("schema") != "qfq_same_asof_source_repair_v1" or value.get("asof_date") != target
+            or value.get("RESEARCH_ONLY") is not True
+            or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise QfqGateError("SAME_ASOF_METADATA_DESCRIPTOR_INVALID")
+    original = json.loads(_source(value["baseline_snapshot"], owner="committed same-date input").read_text())
+    metadata = original.get("research_factor_receipts", {})
+    baseline = json.loads(_source(value["baseline_receipt"], owner="committed paired metadata parent").read_text())
+    from ops.research_panel_qfq import panel_contract
+    relocated = (_relocated_baseline_paths(source_relocation_ref, ref, value, target)
+                 if source_relocation_ref is not None else {})
+    for role in ("selector", "backtest"):
+        bound = value["baseline_roles"][role]
+        footer = panel_contract(relocated.get(role, Path(bound["path"])))
+        if (baseline.get("candidates", {}).get(role) != bound["path"]
+                or baseline.get("candidate_sha256", {}).get(role) != bound["sha256"]
+                or footer.get("adjustment_snapshot") != value["baseline_snapshot"]
+                or footer.get("generation_id") != baseline.get("generation_id")
+                or footer.get("asof_date") != target):
+            raise QfqGateError("SAME_ASOF_METADATA_NOT_COMMITTED_PARENT")
+    old_config = json.loads(_source(metadata["configuration"], owner="original same-date metadata config").read_text())
+    current = json.loads(_source(config_ref, owner="current same-date metadata config").read_text())
+    if (original.get("asof_date") != target or metadata.get("asof_date") != target
+            or metadata.get("status") != "READY_RESEARCH_CACHE" or current.get("target_date") != target
+            or metadata.get("historical_PIT") is not False
+            or metadata.get("detector_binding") != canonical_sha(old_config["current_detector"])):
+        raise QfqGateError("SAME_ASOF_METADATA_PRIOR_NOT_CLOSED")
+    def semantic_detector(descriptor):
+        result = {}
+        for key, item in descriptor.items():
+            if isinstance(item, dict) and set(item) >= {"path", "sha256"}:
+                _source(item, owner="same-date detector " + key)
+                result[key] = {k: v for k, v in item.items() if k != "path"}
+            else:
+                result[key] = item
+        return result
+    if semantic_detector(old_config["current_detector"]) != semantic_detector(current["current_detector"]):
+        raise QfqGateError("SAME_ASOF_METADATA_DETECTOR_CHANGED")
+    old_ids = json.loads(_source(old_config["current_identities"], owner="old same-date identities").read_text())
+    ids = json.loads(_source(current["current_identities"], owner="current same-date identities").read_text())
+    evidence = json.loads(_source(value["metadata30_evidence"], owner="original D30 thirty responses").read_text())
+    wanted = set(codes);records = {};provenance = {}
+    if (evidence.get("baseline_snapshot") != value["baseline_snapshot"] or len(evidence.get("captures", [])) != 30
+            or len({r.get("symbol") for r in evidence["captures"]}) != 30):
+        raise QfqGateError("SAME_ASOF_METADATA_EXACT30_UNBOUND")
+    for captured in evidence["captures"]:
+        code = captured["symbol"];row = metadata.get("symbols", {}).get(code)
+        if (not isinstance(row, dict) or row.get("asof_date") != target or row.get("capture_date") != target
+                or old_ids.get("symbols", {}).get(code) != ids.get("symbols", {}).get(code)
+                or not ids.get("symbols", {}).get(code)
+                or any(captured.get(k) != row.get(k) for k in ("status", "asof_date", "capture_date", "queried_at", "response"))):
+            raise QfqGateError("SAME_ASOF_METADATA_RECORD_CHANGED:" + code)
+        _provider_original(row, code)
+        if code in wanted:
+            records[code] = dict(row)
+            provenance[code] = dict(kind="ORIGINAL_SAME_DATE_RESPONSE_UNMODIFIED",
+                                   source=value["baseline_snapshot"], record_sha256=canonical_sha(row))
+    capability_ref = value["sdk_capability"]
+    capability = json.loads(_source(capability_ref, owner="six exact SDK request rejections").read_text())
+    expected = {"920003.BJ", "920029.BJ", "920100.BJ", "920187.BJ", "920208.BJ", "920699.BJ"}
+    if (capability.get("schema") != "EXACT_SIX_FUTU_SDK_REQUEST_PACKER_CAPABILITY_V1"
+            or capability.get("research_target_date") != target or capability.get("sdk_validation_calls") != 6
+            or capability.get("source_api_family") != "Futu OpenD get_rehab"
+            or any(capability.get(k) != 0 for k in ("quote_contexts_created", "network_requests", "price_bars_fetched"))
+            or capability.get("historical_PIT") is not False
+            or {r.get("symbol") for r in capability.get("rows", [])} != expected
+            or len(capability.get("rows", [])) != 6):
+        raise QfqGateError("SAME_ASOF_METADATA_SDK_SCOPE_INVALID")
+    observed = datetime.fromisoformat(capability["observed_at"])
+    if observed.tzinfo is None or observed > datetime.now(timezone.utc) or int(observed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")) != capability["capture_date"]:
+        raise QfqGateError("SAME_ASOF_METADATA_SDK_TIME_INVALID")
+    from futu.quote import quote_query
+    from futu.common import utils, constant
+    expected_sources = {str(Path(module.__file__).resolve()): sha(Path(module.__file__))
+                        for module in (quote_query, utils, constant)}
+    if (len(capability.get("sdk_sources", [])) != 3
+            or {str(Path(source["path"]).resolve()): source["sha256"] for source in capability["sdk_sources"]} != expected_sources):
+        raise QfqGateError("SAME_ASOF_METADATA_INSTALLED_SDK_SOURCE_CHANGED")
+    for source in capability["sdk_sources"]:
+        _source(source, owner="installed SDK request validator")
+    for row in capability["rows"]:
+        code = row["symbol"]
+        if (row.get("request_code") != "BJ." + code[:6] or row.get("return_code") != -1
+                or row.get("packed_request_is_none") is not True
+                or row.get("remaining_return_values") != [0, 0]
+                or "format of code " + row["request_code"] + " is wrong" not in row.get("error", "")):
+            raise QfqGateError("SAME_ASOF_METADATA_SDK_DISPATCH_OR_IDENTITY_INVALID:" + code)
+        if code in wanted:
+            records[code] = dict(status="UNSUPPORTED_MARKET", reason="INSTALLED_SDK_REQUEST_REJECTED_BEFORE_DISPATCH",
+                asof_date=target, queried_at=None, capture_date=None, provider_invoked=False,
+                sdk_validation_observed_at=capability["observed_at"], sdk_validation_capture_date=capability["capture_date"],
+                sdk_capability=capability_ref, sdk_request_result=row, historical_PIT=False)
+            provenance[code] = dict(kind="LOCAL_INSTALLED_SDK_CAPABILITY_NOT_QUOTE_OR_PIT", source=capability_ref,
+                                   record_sha256=canonical_sha(records[code]))
+    return records, dict(input=ref, records=provenance, original_metadata30=value["metadata30_evidence"],
+                          sdk_capability=capability_ref, capture_dates_unchanged=True,
+                          invocation_network_requests=0, invocation_price_bars_fetched=0)
+
+
 def collect_research_metadata(codes: list[str], *, cache_root: Path, target: int,
-                              config_ref: dict, with_plan: bool = False, **options):
+                              config_ref: dict, with_plan: bool = False, same_asof_metadata_ref: dict | None = None, **options):
     """Separate research output; original collector sees only refresh identities.
 
     Uses the existing owner lock. Default collect_metadata and _fresh are
@@ -566,25 +807,32 @@ def collect_research_metadata(codes: list[str], *, cache_root: Path, target: int
             plan = research_cache_plan(codes, target=target, config_ref=config_ref)
             destination = cache_root / "research_carry" / str(target) / (canonical_sha(config_ref) + ".json")
             plan_sha = canonical_sha(plan)
+            same_rows, same_provenance = (_same_asof_metadata_records(same_asof_metadata_ref, codes, target, config_ref)
+                if same_asof_metadata_ref is not None else ({}, None))
             if destination.is_file():
                 existing = json.loads(destination.read_text())
                 if existing.get("plan_sha256") != plan_sha or existing.get("requested_codes") != sorted(set(codes)):
                     raise QfqGateError("CACHE_RESTART_PLAN_CONFLICT")
                 if existing.get("status") == "READY_RESEARCH_CACHE":
                     for code, row in existing["symbols"].items():
-                        if row.get("status") in ("OK", "EMPTY"):
+                        if code in same_rows:
+                            if row != same_rows[code]:
+                                raise QfqGateError("CACHE_RESTART_SAME_ASOF_RECORD_CHANGED:" + code)
+                        elif row.get("status") in ("OK", "EMPTY"):
                             _provider_original(row, code)
                         elif plan["symbols"][code].get("receipt") != {k: v for k, v in row.items() if k != "checked_at"}:
                             raise QfqGateError("CACHE_RESTART_PROOF_CONFLICT:" + code)
                     result = dict(existing, reused_completed_proof=True, invocation_provider_call_count=0,
                                   invocation_provider_identity_count=0)
                     return (result, plan) if with_plan else result
-            refresh = [c for c, p in plan["symbols"].items() if p["route"] == "REFRESH_REQUIRED"]
+            refresh = [c for c, p in plan["symbols"].items() if p["route"] == "REFRESH_REQUIRED" and c not in same_rows]
             # No detector error is caught here and no full-list fallback exists.
             actual = _collect_metadata_owned(refresh, cache_root=cache_root, target=target, **options) if refresh else {}
             symbols = {}
             for code, item in plan["symbols"].items():
-                symbols[code] = dict(actual["symbols"][code]) if item["route"] == "REFRESH_REQUIRED" else dict(item["receipt"], checked_at=_now())
+                symbols[code] = (dict(same_rows[code]) if code in same_rows and item["route"] == "REFRESH_REQUIRED"
+                    else dict(actual["symbols"][code]) if item["route"] == "REFRESH_REQUIRED"
+                    else dict(item["receipt"], checked_at=_now()))
             counts = {s: sum(r["status"] == s for r in symbols.values()) for s in sorted({r["status"] for r in symbols.values()})}
             ready = all(r["status"] in ("OK", "EMPTY", RESEARCH_CARRY_LABEL, "SOP_SKIPPED", "UNSUPPORTED_MARKET") for r in symbols.values())
             output = dict(schema=RESEARCH_CARRY_SCHEMA, asof_date=target, symbols=symbols,
@@ -598,6 +846,8 @@ def collect_research_metadata(codes: list[str], *, cache_root: Path, target: int
                 provider_revision_scope_limit=json.loads(_source(config_ref, owner="cache scope").read_text())["provider_only_exception_scope"],
                 finished_at=_now(), historical_PIT=False,
                 RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+            if same_provenance is not None:
+                output["same_asof_metadata_reuse"] = same_provenance
             _json(destination, output)
             return (output, plan) if with_plan else output
         finally:
