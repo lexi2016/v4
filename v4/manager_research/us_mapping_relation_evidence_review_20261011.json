@@ -1,0 +1,199 @@
+{
+  "CANNOT_CONFIRM": [
+    "Independent rehash of HTTP response-body bytes for source records included in the candidate artifact.",
+    "Target-date eligibility for 2026-10-09 of any newly captured relation or symbol assessment.",
+    "Sales, order, shipment, revenue, or economic materiality for DLR, EQIX, STX, VRT, AMD, or NVDA relationships.",
+    "Current identity join between Lenovo’s present WDC configuration label and Western Digital Corporation."
+  ],
+  "declared_artifact_sha256": "a19eeea91d08981a7c01e1c8a82174af1e61fb12442b05a10199328155f1d11e",
+  "evidence_file_sha256": "69e09810a8c5fcaa52cf1b16d339756b67a6ea6c8eb7837c440bea86fdaebfb0",
+  "evidence_path": "v4/manager_research/us_mapping_relation_evidence_20261011.json",
+  "http_body_rehash_status": "CANNOT_CONFIRM",
+  "limitations": [
+    "The four new primary-source relation claims are supported at the stated relationship type and direction, but none establishes sales, revenue, purchase volume, future deployment, or investment materiality.",
+    "The DLR relation page extraction exposed title and date only; the collaboration is therefore limited to the named strategic-collaboration claim, bridged through HKT’s official platform and issuer evidence.",
+    "The EQIX partnership announcement is dated 2017; current documentation establishes Hong Kong product availability but does not prove the original commercial arrangement remains active on identical terms.",
+    "The STX and VRT relation evidence is product-option/co-design evidence and does not establish Lenovo procurement quantities or current revenue contribution.",
+    "The artifact’s HTTP status/body SHA claims were not independently reproduced from saved response bytes during this review; HTTP body rehash remains CANNOT_CONFIRM.",
+    "The newly retrieved source evidence and this review are after the 2026-10-09 target date. The overlay must remain retrospective; target-date eligibility is CANNOT_CONFIRM.",
+    "MU is retained as ASSESSED_WITH_GAPS / CANNOT_CONFIRM because the official compatibility fact was only web-extracted and direct GET returned 429 without response bytes to hash. WDC is retained as ASSESSED_WITH_GAPS / CANNOT_CONFIRM because the current Lenovo table leaves WDC unexpanded; withdrawn historical Western Digital evidence does not resolve the current entity join."
+  ],
+  "recomputed_artifact_sha256": "a19eeea91d08981a7c01e1c8a82174af1e61fb12442b05a10199328155f1d11e",
+  "reviewed_at": "2026-10-11T10:33:23+08:00",
+  "reviewed_pairs": [
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "NVDA"
+    },
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "AMD"
+    },
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.09868",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "NVDA"
+    },
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.01810",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "NVDA"
+    },
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.01211",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "NVDA"
+    },
+    {
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_symbol": "HK.02015",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "us_symbol": "NVDA"
+    },
+    {
+      "direction": "US_COLLABORATION_PARTNER_TO_HK_GROUP_PLATFORM",
+      "hk_symbol": "HK.06823",
+      "relationship_type": "INDIRECT_STRATEGIC_PLATFORM_COLLABORATION",
+      "us_symbol": "DLR"
+    },
+    {
+      "direction": "US_CONNECTIVITY_PROVIDER_TO_HK_LISTED_GROUP_CLOUD_ARM",
+      "hk_symbol": "HK.09988",
+      "relationship_type": "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP",
+      "us_symbol": "EQIX"
+    },
+    {
+      "direction": "US_COMPONENT_VENDOR_TO_HK_LISTED_SYSTEM_CONFIGURATION",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "NAMED_COMPONENT_OPTION",
+      "us_symbol": "STX"
+    },
+    {
+      "direction": "JOINT_US_AND_HK_LISTED_PRODUCT_DESIGN",
+      "hk_symbol": "HK.00992",
+      "relationship_type": "CO_DESIGNED_PRODUCT_PARTNERSHIP",
+      "us_symbol": "VRT"
+    }
+  ],
+  "reviewed_scope": "Composite semantic review of the exact frozen ten-card relation artifact: six exact pairs carried forward from the previously PASS-reviewed R1 receipt; four new relation pairs independently reviewed against primary sources; both current symbol assessments bound as explicit CANNOT_CONFIRM gaps. This receipt is retrospective source-semantic acceptance only; it does not establish target-date eligibility, exposure, current commercial materiality, orders, or revenue.",
+  "reviewed_symbol_assessments": [
+    {
+      "assessment_sha256": "de4046dbae5e7c05d4e552881f22bab1fd1849a39774a61124eaeab390f5b7ee",
+      "candidate_hk_code": "00992",
+      "conclusion": "CANNOT_CONFIRM",
+      "status": "ASSESSED_WITH_GAPS",
+      "us_symbol": "MU"
+    },
+    {
+      "assessment_sha256": "2600deafc62ed36df5d45b20823351f1bfa41087843814beb3f36447a6d6d3d2",
+      "candidate_hk_code": "00992",
+      "conclusion": "CANNOT_CONFIRM",
+      "status": "ASSESSED_WITH_GAPS",
+      "us_symbol": "WDC"
+    }
+  ],
+  "reviewer_identity": "/root/us_mapping_completion_review",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.manager_research.us_mapping_relation_evidence_review.v2",
+  "semantic_basis": {
+    "carried_forward_pairs": [
+      "NVDA -> HK.00992",
+      "AMD -> HK.00992",
+      "NVDA -> HK.09868",
+      "NVDA -> HK.01810",
+      "NVDA -> HK.01211",
+      "NVDA -> HK.02015"
+    ],
+    "new_reviewed_pairs": [
+      {
+        "basis": "Digital Realty official release title/date names a strategic collaboration with Console Connect; HKT 2025 annual report identifies code 6823 and describes Console Connect as its automated on-demand platform. The direction is an indirect platform collaboration; the sources do not show contract value or revenue.",
+        "pair": "DLR -> HK.06823"
+      },
+      {
+        "basis": "Equinix official 2017 release explicitly states Nasdaq: EQIX, a collaboration with Alibaba Cloud (the cloud computing arm of Alibaba Group), and direct scalable access through its Hong Kong data centers. Current Equinix product documentation lists Hong Kong for Alibaba Cloud Express Connect; HKEX issuer source identifies Alibaba Group code 09988. The named partnership evidence is historical.",
+        "pair": "EQIX -> HK.09988"
+      },
+      {
+        "basis": "Lenovo official DSS-G D4390 guide lists Seagate HDDs as selectable configuration options (table 6, lines 889-912); HKEX filing identifies Lenovo Group code 00992. This supports an option/component relation, not purchases, shipments, or revenue.",
+        "pair": "STX -> HK.00992"
+      },
+      {
+        "basis": "Lenovo official PDU product guide explicitly says the PDUs were co-designed by Vertiv and Lenovo (abstract/introduction, lines 95-107); HKEX filing identifies Lenovo Group code 00992. This supports product co-design, not sales volume or revenue.",
+        "pair": "VRT -> HK.00992"
+      }
+    ],
+    "prior_review_receipt": {
+      "path": "reviewer/relation_evidence_review.json",
+      "reviewed_at": "2026-10-11T10:00:55+08:00",
+      "sha256": "ead62b9a5a4d9afd2dee5aa1d7c12c3322fda82a4aa3dbc77a1b9979b8a8cc4f",
+      "status": "PASS"
+    }
+  },
+  "status": "PASS",
+  "us_symbol_identity_evidence": [
+    {
+      "claim": "AMD Form 10-K/A identifies Common Stock trading symbol AMD on The NASDAQ Global Select Market.",
+      "exchange": "The NASDAQ Global Select Market",
+      "identity_status": "VERIFIED",
+      "issuer": "Advanced Micro Devices, Inc.",
+      "published_at": "2026-02-04",
+      "retrieved_at": "2026-10-11T10:00:55+08:00",
+      "source_body_sha256": null,
+      "source_body_sha256_status": "CANNOT_CONFIRM",
+      "source_locator": "Official AMD IR Form 10-K/A page, “Securities registered pursuant to Section 12(b)”: lines 57-60; filing posted February 4, 2026.",
+      "url": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000021/amd-20251227.htm",
+      "us_symbol": "AMD"
+    },
+    {
+      "exchange": "NYSE",
+      "identity_status": "VERIFIED",
+      "issuer": "Digital Realty",
+      "published_at": "2026-06-08",
+      "retrieved_at": "2026-10-11T10:33:23+08:00",
+      "source_body_sha256": null,
+      "source_body_sha256_status": "CANNOT_CONFIRM",
+      "source_capture_status": "WEB_EXTRACTED_PAGE_BODY_NOT_CAPTURED",
+      "source_locator": "Official Digital Realty IR release identifies Digital Realty (NYSE: DLR), lines 59-69.",
+      "url": "https://investor.digitalrealty.com/news-releases/news-release-details/digital-realty-launches-malaysia-operations-advance-southeast",
+      "us_symbol": "DLR"
+    },
+    {
+      "exchange": "NASDAQ",
+      "identity_status": "VERIFIED",
+      "issuer": "Seagate Technology Holdings plc",
+      "published_at": null,
+      "retrieved_at": "2026-10-11T10:33:23+08:00",
+      "source_body_sha256": null,
+      "source_body_sha256_status": "CANNOT_CONFIRM",
+      "source_capture_status": "WEB_EXTRACTED_PAGE_BODY_NOT_CAPTURED",
+      "source_locator": "Official Seagate IR stock data shows NASDAQ: STX; official IR FAQ names STX and NASDAQ.",
+      "url": "https://investors.seagate.com/stock-information/stock-data/default.aspx",
+      "us_symbol": "STX"
+    },
+    {
+      "exchange": "NYSE",
+      "identity_status": "VERIFIED",
+      "issuer": "Vertiv Holdings Co.",
+      "published_at": null,
+      "retrieved_at": "2026-10-11T10:33:23+08:00",
+      "source_body_sha256": null,
+      "source_body_sha256_status": "CANNOT_CONFIRM",
+      "source_capture_status": "WEB_EXTRACTED_PAGE_BODY_NOT_CAPTURED",
+      "source_locator": "Official Vertiv investor relations overview identifies NYSE: VRT.",
+      "url": "https://investors.vertiv.com/overview/default.aspx",
+      "us_symbol": "VRT"
+    }
+  ]
+}
