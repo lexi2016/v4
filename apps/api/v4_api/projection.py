@@ -25,7 +25,7 @@ class ProjectionContext:
     morning_selection_recovery_bindings: Mapping[Any, Any]
 
 
-def _stage_projection_status(ctx: ProjectionContext, 
+def _stage_projection_status(ctx: ProjectionContext,
     markets: Mapping[str, Mapping[str, Any]],
     fallback: Any,
 ) -> str:
@@ -60,7 +60,7 @@ def _legacy_hk_consumer_rows_match(ctx: ProjectionContext, rows: list[dict], bou
             return False
     return True
 
-def _legacy_hk_pit_observation(ctx: ProjectionContext, 
+def _legacy_hk_pit_observation(ctx: ProjectionContext,
     market_payload: Mapping[str, Any], rows: list[dict], *, trade_date: str, stage_id: str,
 ) -> bool:
     """Read-only compatibility for R1's PIT-only raw-status regression."""
@@ -106,7 +106,7 @@ def _legacy_hk_pit_observation(ctx: ProjectionContext,
     except Exception:
         return False
 
-def _hk_morning_selection_recovery_observation(ctx: ProjectionContext, 
+def _hk_morning_selection_recovery_observation(ctx: ProjectionContext,
     market_payload: Mapping[str, Any],
     rows: list[dict],
     *,
@@ -181,7 +181,7 @@ def _hk_morning_selection_recovery_observation(ctx: ProjectionContext,
         seen_ranks.add(rank)
     return "HK_ACTIVE_SNAPSHOT_UNAVAILABLE" in evidence
 
-def _hk_display_mode(ctx: ProjectionContext, 
+def _hk_display_mode(ctx: ProjectionContext,
     market_payload: Mapping[str, Any],
     rows: list[dict],
     execution_market: Mapping[str, Any] | None,
@@ -303,7 +303,7 @@ def _hk_display_mode(ctx: ProjectionContext,
         reasons.append(f"HK_SELECTION_STATUS_{status}")
     return ("OBSERVATION_UNVERIFIED" if rows else "CANNOT_CONFIRM"), list(dict.fromkeys(reasons))
 
-def project_shared_selection(ctx: ProjectionContext, 
+def project_shared_selection(ctx: ProjectionContext,
     payload: dict,
     limit: int = 50,
     *,
@@ -448,12 +448,12 @@ def project_shared_selection(ctx: ProjectionContext,
                 if selection_markets is canonical_markets:
                     selection_markets = dict(canonical_markets)
                 selection_markets[canonical_market] = {**market_payload, "rows": []}
-            display_mode, display_reasons = _hk_display_mode(ctx, 
+            display_mode, display_reasons = _hk_display_mode(ctx,
                 market_payload, rows, execution_markets.get(canonical_market),
-                legacy_pit_observation=_legacy_hk_pit_observation(ctx, 
+                legacy_pit_observation=_legacy_hk_pit_observation(ctx,
                     market_payload, rows, trade_date=str(payload.get("trade_date") or ""),
                     stage_id=str(payload.get("stage_id") or "")),
-                morning_selection_recovery=bool(history_observation) or _hk_morning_selection_recovery_observation(ctx, 
+                morning_selection_recovery=bool(history_observation) or _hk_morning_selection_recovery_observation(ctx,
                     market_payload,
                     rows,
                     trade_date=str(payload.get("trade_date") or ""),
