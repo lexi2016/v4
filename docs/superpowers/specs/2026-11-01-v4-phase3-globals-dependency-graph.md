@@ -163,7 +163,24 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
 每批仍按设计 §8.3:依赖图更新 → 改动 → 全量测试 → 基线一致 →
 `grep 'globals(),'` 计数下降。
 
-## 7. 复现
+## 7. 测试 monkeypatch 依赖
+
+设计 §8.1 要求先记录测试对这些名字的 monkeypatch 依赖。全量 `tests/` 扫描结果:
+
+- 对四个门面命名空间(`domains.preselection`、`stage_center.runner`、
+  `stage_center.raw_store`、`apps.api.v4_api.research_lane_router`)的直接
+  `setattr` / `patch`:**0 处**。
+- 唯一相关的一处是 `tests/test_v4_legacy_retirement.py` 打
+  `domains._preselection_parts.source_validation._display_name_date_role`。
+  该名字在同一个 parts 模块内被直接调用(`source_validation.py:124`),不经
+  `_v4_global`,所以这个 patch 是有效的,不是静默失效。
+- 另有若干 patch 打在无关对象上(`StageSelectionConsumer`、`repair`、`runtime`
+  等),不构成约束。
+
+**含义**:阶段 3 的搬迁不会被测试的 monkeypatch 绑死,这是好消息;
+但也意味着搬迁如果改变行为,测试不一定抓得到——所以为什么基线比对不能省。
+
+## 8. 复现
 
 依赖图由一次性只读脚本生成,脚本不入库(AST 扫描门面函数的 `_v4_impl(globals(), ...)`
 调用与 parts 模块的 `_v4_global(_v4_scope, '...')` 字面量)。
