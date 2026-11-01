@@ -1,0 +1,34 @@
+{
+  "canonical_fixture_root": "tests/fixtures/manager_current_observation_20261002",
+  "copy_mode": "byte-for-byte copy; source originals unchanged",
+  "files": {
+    "close_recapture.candidates.json": {
+      "bytes": 59817,
+      "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454"
+    },
+    "close_recapture.json": {
+      "bytes": 3296,
+      "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56"
+    },
+    "close_recapture.receipt.json": {
+      "bytes": 1303,
+      "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994"
+    },
+    "inputs/close_recapture_pytdx.json": {
+      "bytes": 47324,
+      "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3"
+    }
+  },
+  "purpose": "byte-for-byte derived test fixture for isolated read-only tests; not an authority or producer",
+  "schema_version": "v1.v4_manager_current_observation_test_fixture_binding",
+  "scope_notes": [
+    "The source pool remains HK_CONNECT_D1_TOP100_0_2; eligibility as HK securities is CANNOT_CONFIRM.",
+    "The fixture supports read-only display tests only; it cannot establish API, UI, natural-run, official-close, or production behavior."
+  ],
+  "source_fixture_binding_sha256": "5c8c28ce2f21119918dbbdeb7fcb4e18bcd334f4f462f52fff85befb0db53574",
+  "source_fixture_root": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_fix/fixtures/20261002",
+  "source_readback_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_hk_history_r5_acceptance_20261002/api_integration/hk_securities_observation_execution/INDEPENDENT_ACTUAL_CAPTURE_READBACK.json",
+    "sha256": "3f9639d850fa74f5db9c9ddc1d2b01773c7dad76befefd5ca2db852f4912087e"
+  }
+}

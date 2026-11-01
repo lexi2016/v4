@@ -1,0 +1,103 @@
+{
+  "schema": "v4.stage_overlay_test_fixture_provenance.v1",
+  "copied_at_local": "2026-09-27T16:34:13.516405+08:00",
+  "scope": "BUILD01 test fixtures only; not active runtime overlay sources",
+  "delta": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_migration_repair_r2_mac_20260927/architecture/migration_callchain_delta_20260927.json",
+    "sha256": "9678fcd5418fa1126d23bd351187d2c7d0423185caabf01a247b7022184cfa30"
+  },
+  "source_review_member": {
+    "archive": "/Users/lexi/Downloads/V4_MIGRATION_REPAIR_R2_20260927.zip",
+    "member": "V4_MIGRATION_REPAIR_R2_20260927/reference/evidence_C/builder/R3_INDEPENDENT_REVIEW.json",
+    "sha256": "0c84dfe18169cc0de993c246dfe80d1ea7654a3a609497c83e356ae9220db5cf"
+  },
+  "source_test": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_migration_execution_20260924/closeout_20260926/structure_stageclosure_candidate_r3/workspace/app/tests/test_stage_service_overlay_closure.py",
+    "sha256": "8b23b0ef84b0f8ab150941e2c0fac8113d11efdba926d8262b958901ba9a8bb4",
+    "expected_sha256": "8b23b0ef84b0f8ab150941e2c0fac8113d11efdba926d8262b958901ba9a8bb4"
+  },
+  "fixture_root_source": "/Users/lexi/Desktop/学习/agents调试/v4_migration_execution_20260924/closeout_20260926/structure_stageclosure_candidate_r3/inputs/stage_overlay",
+  "fixtures": [
+    {
+      "relative_path": "ops/run_stage_center_nodes.py",
+      "source_sha256": "af3de347834b1c9672d4752944d8aec7c641f23d1e3294a723e42add7bd0592d",
+      "expected_sha256": "af3de347834b1c9672d4752944d8aec7c641f23d1e3294a723e42add7bd0592d",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/ops/run_stage_center_nodes.py",
+      "destination_sha256": "af3de347834b1c9672d4752944d8aec7c641f23d1e3294a723e42add7bd0592d",
+      "bytes": 49336,
+      "matches": true
+    },
+    {
+      "relative_path": "ops/run_stage_center_worker.py",
+      "source_sha256": "1725efca47cac8b05431ec89b25ce9bb296606d8701ee0d533f42f3de0e87fbb",
+      "expected_sha256": "1725efca47cac8b05431ec89b25ce9bb296606d8701ee0d533f42f3de0e87fbb",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/ops/run_stage_center_worker.py",
+      "destination_sha256": "1725efca47cac8b05431ec89b25ce9bb296606d8701ee0d533f42f3de0e87fbb",
+      "bytes": 15268,
+      "matches": true
+    },
+    {
+      "relative_path": "stage_center/runner.py",
+      "source_sha256": "ef02879254cbbec56d18c5b2770fdf4495a89d239af1aed16b3bd561f3c9772e",
+      "expected_sha256": "ef02879254cbbec56d18c5b2770fdf4495a89d239af1aed16b3bd561f3c9772e",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/stage_center/runner.py",
+      "destination_sha256": "ef02879254cbbec56d18c5b2770fdf4495a89d239af1aed16b3bd561f3c9772e",
+      "bytes": 140135,
+      "matches": true
+    },
+    {
+      "relative_path": "stage_center/commit_store.py",
+      "source_sha256": "607b29428f6c6f8a9dea6ac43a54c4aacaaa737e842616f61d8baccf727628f7",
+      "expected_sha256": "607b29428f6c6f8a9dea6ac43a54c4aacaaa737e842616f61d8baccf727628f7",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/stage_center/commit_store.py",
+      "destination_sha256": "607b29428f6c6f8a9dea6ac43a54c4aacaaa737e842616f61d8baccf727628f7",
+      "bytes": 36283,
+      "matches": true
+    },
+    {
+      "relative_path": "stage_center/consumer.py",
+      "source_sha256": "e5533157b9a7d1ee1862b3133f81a04739336e28442207e79d5e271a7f42aa09",
+      "expected_sha256": "e5533157b9a7d1ee1862b3133f81a04739336e28442207e79d5e271a7f42aa09",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/stage_center/consumer.py",
+      "destination_sha256": "e5533157b9a7d1ee1862b3133f81a04739336e28442207e79d5e271a7f42aa09",
+      "bytes": 22829,
+      "matches": true
+    },
+    {
+      "relative_path": "ops/run_stage_center_tick.py",
+      "source_sha256": "c28037a9b1c8fdd078daab0e5446065188beda6544ddc8ade6208bb0a7a40394",
+      "expected_sha256": "c28037a9b1c8fdd078daab0e5446065188beda6544ddc8ade6208bb0a7a40394",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/ops/run_stage_center_tick.py",
+      "destination_sha256": "c28037a9b1c8fdd078daab0e5446065188beda6544ddc8ade6208bb0a7a40394",
+      "bytes": 29254,
+      "matches": true
+    },
+    {
+      "relative_path": "domains/preselection.py",
+      "source_sha256": "5f26e01e23d285a1e2a4b33c46a16943f77d74656f7482832289e7b83838eefd",
+      "expected_sha256": "5f26e01e23d285a1e2a4b33c46a16943f77d74656f7482832289e7b83838eefd",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/domains/preselection.py",
+      "destination_sha256": "5f26e01e23d285a1e2a4b33c46a16943f77d74656f7482832289e7b83838eefd",
+      "bytes": 50477,
+      "matches": true
+    },
+    {
+      "relative_path": "domains/task_status.py",
+      "source_sha256": "9dc31556675bd01103a807148ca615115cd4c9e976848f5578f62d6ed3355b09",
+      "expected_sha256": "9dc31556675bd01103a807148ca615115cd4c9e976848f5578f62d6ed3355b09",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/domains/task_status.py",
+      "destination_sha256": "9dc31556675bd01103a807148ca615115cd4c9e976848f5578f62d6ed3355b09",
+      "bytes": 22270,
+      "matches": true
+    },
+    {
+      "relative_path": "stage_center_tick_config.json",
+      "source_sha256": "b59d96204a7ff8e0056dcab9dc406493cfd36695f630c9c77f056b5eb7b2652c",
+      "expected_sha256": "b59d96204a7ff8e0056dcab9dc406493cfd36695f630c9c77f056b5eb7b2652c",
+      "destination": "/Users/lexi/Desktop/学习/v4_app/tests/fixtures/stage_overlay/stage_center_tick_config.json",
+      "destination_sha256": "b59d96204a7ff8e0056dcab9dc406493cfd36695f630c9c77f056b5eb7b2652c",
+      "bytes": 2862,
+      "matches": true
+    }
+  ]
+}
