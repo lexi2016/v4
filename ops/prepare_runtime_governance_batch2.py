@@ -6,6 +6,7 @@ the Batch1 Stage/API activation command does not publish this Main candidate.
 from __future__ import annotations
 
 import argparse
+import ast
 import copy
 import hashlib
 import importlib.util
@@ -51,7 +52,18 @@ def patch_dispatch(text):
     return replace_once(text, "                workload_ids=tuple(failed),\n", "                workload_ids=tuple(failed),\n                release_dispatch=not completion_workload_ids,\n")
 
 
-def patch_ledger(text):
+def patch_ledger(text, source_text):
+    def method_span(body, name):
+        tree = ast.parse(body)
+        node = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == name)
+        lines = body.splitlines(keepends=True)
+        return sum(map(len, lines[:node.lineno - 1])), sum(map(len, lines[:node.end_lineno]))
+    # The old live Main judged the aggregate FAILED status for every claim.
+    # Reuse the existing source contract's per-workload receipt verification;
+    # otherwise one busy completion would hide a successful hourly sibling.
+    old_start, old_end = method_span(text, "_has_completed_receipt")
+    source_start, source_end = method_span(source_text, "_has_completed_receipt")
+    text = text[:old_start] + source_text[source_start:source_end] + text[old_end:]
     text = replace_once(text, "    def write_receipt(self, relative: str, payload: Mapping[str, Any]) -> None:", '''    def write_receipt(self, relative: str, payload: Mapping[str, Any]) -> None:
         from infrastructure.interprocess_lock import owned_interprocess_lock
         with owned_interprocess_lock(self._path(relative).parent / ".receipt-publish.lock", timeout_seconds=10,
@@ -127,7 +139,7 @@ def prepare(output, source, batch1):
             write(app, relative, (source / relative).read_bytes())
         if role == "main":
             write(app, "infrastructure/scheduling/dispatcher.py", patch_dispatch((base / "infrastructure/scheduling/dispatcher.py").read_text()).encode())
-            write(app, "infrastructure/scheduling/execution_ledger.py", patch_ledger((base / "infrastructure/scheduling/execution_ledger.py").read_text()).encode())
+            write(app, "infrastructure/scheduling/execution_ledger.py", patch_ledger((base / "infrastructure/scheduling/execution_ledger.py").read_text(), (source / "infrastructure/scheduling/execution_ledger.py").read_text()).encode())
             write(app, "ops/run_v4_macos_scheduler_due.py", patch_due((base / "ops/run_v4_macos_scheduler_due.py").read_text()).encode())
         elif role == "stage":
             write(app, "ops/run_stage_center_nodes.py", patch_stage((base / "ops/run_stage_center_nodes.py").read_text()).encode())
