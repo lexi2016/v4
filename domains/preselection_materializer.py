@@ -11,6 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from contracts.a_share_code import a_share_symbol
 from infrastructure.isolated_package_loader import load_isolated_package_module
 from infrastructure.preselection_pool_store import PreselectionPoolStore
 from upstreams.v3_shared_data.shared_data.names import resolve_hk_name_for_date
@@ -71,8 +72,7 @@ def _artifact(
 
 
 def _a_symbol(value: Any) -> str:
-    match = re.search(r"(?<!\d)(\d{6})(?:\.(?:SH|SZ|BJ))?", str(value or ""), re.I)
-    return f"A.{match.group(1)}" if match else ""
+    return a_share_symbol(value)
 
 
 def _a_symbol_from_row(raw: Mapping[str, Any]) -> str:

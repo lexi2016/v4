@@ -10,6 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from contracts.a_share_code import canonical_a_share_code
+
 READ_ONLY_POLICY = "read_only"
 RESEARCH_ONLY = "RESEARCH_ONLY"
 NO_BUY_GATE = "none"
@@ -845,9 +847,7 @@ def validate_hourly_stage_source(
 
 def canonical_stage_a_code(value: Any) -> str:
     """Exact A-share identity only; never extract six digits from a HK/US code."""
-    text = str(value or "").strip().upper()
-    match = re.fullmatch(r"(?:A\.)?(\d{6})", text)
-    return "A." + match.group(1) if match else ""
+    return canonical_a_share_code(value)
 
 
 def _stage_item_identity(row: Mapping[str, Any], *, evidence: bool = False) -> tuple[Any, ...]:
