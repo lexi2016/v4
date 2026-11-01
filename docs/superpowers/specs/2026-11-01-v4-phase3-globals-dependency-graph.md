@@ -1,0 +1,170 @@
+# V4 阶段 3:`globals()` 依赖图(先证实)
+
+- 日期:2026-11-01
+- 状态:调查完成,**发现阻断项,未开始改造**
+- 对应设计:§8「阶段 3:去 globals()」的 8.1「先证实,再动手」
+- 范围:`apps/ domains/ infrastructure/ stage_center/ contracts/ ops/`(排除 `.venv`、`node_modules`、`tests`)
+
+## 1. 结论摘要
+
+| 项 | 数值 |
+| --- | --- |
+| `globals(),` 注入点 | **72**(与设计 §3.2 一致) |
+| 传 `globals()` 的门面函数 | 56,分布在 4 个模块 |
+| 能解析到实现模块的 | 38 个函数体 / 304 次名字读取 |
+| **解析不到实现模块的** | **18 个函数体,指向 12 个不存在的文件** |
+
+**阻断项**:`stage_center/runner.py` 和 `stage_center/raw_store.py` 里有 18 个门面函数,
+惰性导入的 parts 模块在本分支和线上 API release 中**都不存在**。线上 API 进程一旦
+调用这些函数就抛 `ModuleNotFoundError`。这不只是丑代码,是实际断链。
+
+在补齐之前,对这两个模块做「去 globals」没有意义——没有实现体可改。
+
+## 2. 机制
+
+不是「函数读全局变量」那么简单,是一套门面/实现分离:
+
+```
+domains/preselection.py（门面）
+    def date_catalog(store, *, current_date=None, ...):
+        from domains._preselection_parts.date_catalog import _date_catalog_body as _v4_impl
+        return _v4_impl(globals(), store, current_date=current_date, ...)
+```
+
+```
+domains/_preselection_parts/date_catalog.py（实现）
+    from ._namespace import read_global as _v4_global
+    ...
+    _v4_global(_v4_scope, 'OPTIONAL_DAILY_POOL_IDS')
+```
+
+`_v4_scope` 就是门面传进来的 `globals()`。`read_global`(`*_parts/_namespace.py`)
+先查该 dict,再退回 `__builtins__`,查不到抛 `NameError`。
+
+后果:实现在**运行期**才能确定门面里有哪些名字,静态分析、跳转、类型检查全部失效。
+这正是设计 §1 里「编辑器能跳转、类型检查能覆盖真实缺陷」目标要解决的。
+
+## 3. 名字分类(304 次读取)
+
+| 类别 | 次数 | 占比 | 处理方向 |
+| --- | --- | --- | --- |
+| `import`(门面里 import 的名字,如 `Path`、`Mapping`) | 65 | 21% | parts 直接 import |
+| `function`(门面里定义/转发的函数) | 54 | 18% | 真实依赖,需显式化 |
+| `builtin`(`str`、`dict`、`len`、`isinstance`…) | **159** | **52%** | **完全不需要 globals** |
+| `constant`(门面模块级常量) | 16 | 5% | 下沉到 `_common.py` |
+| `class` | 10 | 3% | 同函数,显式化 |
+
+最省力的一刀:**159 次 builtin 读取(52%)** 在 parts 模块里直接就能解析,
+`read_global` 的回落分支现在在做本可以省掉的事。这批改动没有语义风险。
+
+## 4. 按门面分布
+
+| 门面 | 函数体 | 注入点 | 名字读取 | 类别构成 |
+| --- | --- | --- | --- | --- |
+| `domains/preselection.py` | 19 | 19 | 135 | builtin 77 / function 31 / import 21 / constant 6 |
+| `stage_center/runner.py` | 7 | 7 | 82 | builtin 42 / import 24 / function 10 / class 6 |
+| `apps/api/v4_api/research_lane_router.py` | 5 | 5 | 50 | builtin 28 / import 9 / function 7 / constant 6 |
+| `stage_center/raw_store.py` | 7 | 7 | 37 | builtin 12 / import 11 / function 6 / class 4 |
+| **合计** | **38** | **38** | **304** | |
+
+`UNDEFINED` 名字:**0**。所有能解析的函数体,其读取的名字都在门面里确实存在——
+说明当前能跑的部分没有名字拼写错误。
+
+`dynamic` 读取(非字面量名字,如 `_v4_global(scope, some_expr)`):**0**。
+所有门面-实现契约都是静态字面量,可以机械提取。
+
+## 5. 阻断项证据
+
+### 5.1 缺失的 parts 文件(12 个)
+
+`stage_center/_runner_parts/`:分支 3 个文件,对照 release `a-stage-owner-compatibility-20261030-r2-stage` 有 14 个。缺:
+
+```
+a_candidate_authority.py   a_name_authority.py      configuration.py
+hk_candidate_authority.py  row_evidence.py          runner_receipts.py
+selection_input_validation.py  slot_execution.py    slot_idempotency.py
+slot_lock.py               tick_planning.py
+```
+
+`stage_center/_raw_store_parts/`:缺 `transaction_publish.py`(分支 6,对照 7)。
+
+### 5.2 依赖断裂的函数(18 个)
+
+```
+raw_store.py: publish_raw_artifact                    → _raw_store_parts.transaction_publish
+runner.py:    lane_status_bundle, _atomic_json, _existing_binding_matches,
+              _latest_entry, _read_verified_raw_source, _with_candidate_evidence,
+              _project_raw_rows                        → _runner_parts.row_evidence
+              build_production_config                  → _runner_parts.configuration
+              _validate_formal_input, _formal_selection_codes, _find_exact_file,
+              _validate_exact_selection_inputs, _selection_source
+                                                       → _runner_parts.selection_input_validation
+              _a_selector_name_map, _attach_a_name_authority
+                                                       → _runner_parts.a_name_authority
+              _attach_a_authority                      → _runner_parts.a_candidate_authority
+              _attach_hk_authority                     → _runner_parts.hk_candidate_authority
+```
+
+### 5.3 实测
+
+在分支工作树内:
+
+```
+importlib.import_module('stage_center._runner_parts.row_evidence')          → ModuleNotFoundError
+importlib.import_module('stage_center._runner_parts.configuration')         → ModuleNotFoundError
+importlib.import_module('stage_center._raw_store_parts.transaction_publish') → ModuleNotFoundError
+```
+
+在线上 API release(`candidates/perf-runtime-repair-20261101-r1/app`)内,同样三个全部失败。
+
+### 5.4 影响面
+
+- `build_production_config` 有真实调用方:`infrastructure/manual_collection.py`、
+  `ops/run_stage_center_tick.py`、`ops/run_stage_center_nodes.py`。
+- 但线上 stage 调度器(`com.lexi.stage-center.scheduler`)跑的是**另一个 release**
+  `a-stage-owner-compatibility-20261030-r2-stage`,那个 release 的 `_runner_parts`
+  是完整的 14 个文件,导入正常。
+- 所以现状是:**调度链能用,API release 里这条路径是断的**——只要 API 进程走到
+  `build_production_config` 或 `publish_raw_artifact`,就是 500。
+
+### 5.5 可恢复来源
+
+三个文件在 commit `2d1936518`(不在本分支祖先链上)中存在:
+
+| 文件 | 行数 | 与 stage release 比对 |
+| --- | --- | --- |
+| `_runner_parts/configuration.py` | 37 | **完全相同**(sha 前缀 `bbf325df58b1`) |
+| `_runner_parts/row_evidence.py` | 239 | **不同**(git `8529d4961bcf` / stage `13ab48fa5429`) |
+| `_raw_store_parts/transaction_publish.py` | 278 | 未比对 |
+
+`configuration.py` 两边一致,恢复无歧义;`row_evidence.py` 有两个版本,
+但两者读取的名字集合**完全相同**(28 个,且仅差实现细节),所以接口上二选一都兼容。
+
+### 5.6 缺失之外的第二个断点
+
+`row_evidence.py`(两个版本都是)读取 `HISTORICAL_OBSERVATION_CONTRACT_PREFIX`,
+而这个名字**在任何门面里都不存在**——分支、stage release 都只有读取处,没有定义处。
+即使按原样恢复文件,该代码路径仍然会 `NameError`。
+
+这正说明 `globals()` 间接层的问题:静态分析看不见,只能靠运行期抛错发现;
+而这一个至今没被发现,说明那条路径还没被跑到。
+
+## 6. 建议批次(阻断项解决后)
+
+| 批次 | 内容 | 判据 |
+| --- | --- | --- |
+| 0 | 补齐 12 个 parts 文件 + 让 18 个函数可用 | 三个 `import_module` 通过;`build_production_config` 实测可调用 |
+| 1 | 去掉 159 次 builtin 读取 | 每批次 `grep -c '_v4_global(_v4_scope'` 下降;全量测试不变 |
+| 2 | 65 个 `import` 类名字改为 parts 内直接 import | 同上;`globals()` 参数逐步改为按需 |
+| 3 | 16 个常量下沉 `_common.py` | 常量类读取归零 |
+| 4 | 54 函数 + 10 类显式化 | 按模块分批:preselection → raw_store → research_lane_router → runner |
+| 5 | 移除 `globals()` 参数与 `read_global` | `grep -c 'globals(),'` == 0;新增导入环检测测试 |
+
+每批仍按设计 §8.3:依赖图更新 → 改动 → 全量测试 → 基线一致 →
+`grep 'globals(),'` 计数下降。
+
+## 7. 复现
+
+依赖图由一次性只读脚本生成,脚本不入库(AST 扫描门面函数的 `_v4_impl(globals(), ...)`
+调用与 parts 模块的 `_v4_global(_v4_scope, '...')` 字面量)。
+表 3、表 4 的数字可直接从该输出核对;`UNDEFINED` 与 `dynamic` 为 0 是硬断言。
