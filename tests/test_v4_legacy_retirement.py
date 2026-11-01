@@ -157,3 +157,17 @@ def test_active_launcher_requires_v4_environment_without_legacy_fallback(tmp_pat
     p=subprocess.run(['/bin/bash',str(ROOT/'ops/launch_v4_macos_scheduler.sh')],env={'PATH':'/usr/bin:/bin','V35_RUNTIME_ROOT':str(old)},capture_output=True,text=True,timeout=5)
     assert p.returncode!=0 and 'V4_RUNTIME_ROOT is required' in p.stderr
     assert list(old.iterdir())==[]
+
+
+def test_actual_workbench_stage_ensure_invokes_consumer_once(actual_app,monkeypatch):
+    from stage_center.consumer import StageSelectionConsumer
+    original=StageSelectionConsumer.ensure;calls=[]
+    def counted(self,*args,**kwargs):calls.append((args,kwargs));return original(self,*args,**kwargs)
+    monkeypatch.setattr(StageSelectionConsumer,'ensure',counted)
+    c=TestClient(actual_app)
+    r=c.post('/api/v4/workbench/stage/ensure?date=20261028&stage=STAGE_0930_0935')
+    assert r.status_code==200
+    assert len(calls)==1
+    assert calls[0][1].get('force') is False
+    body=r.json()
+    assert body['production_allowed'] is False and body['buy_gate_updated'] is False and body['orders_sent'] is False
