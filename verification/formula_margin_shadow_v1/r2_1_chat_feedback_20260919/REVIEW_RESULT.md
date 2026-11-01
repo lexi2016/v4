@@ -1,0 +1,24 @@
+# R2.1 独立验收
+
+ENGINEERING_SCOPE PASS；OVERALL_R2.1 FAIL；REAL_AUTHORITY OWNER_PENDING；natural_sample_count=0。没有P0。新问题仅反馈Chat，没有后续源码修复。
+
+## 已验证
+独立复跑tests/test_formula_margin_shadow.py、stage_center/tests/test_selection_consumer_batch3.py、tests/test_stage_scoring.py、tests/test_stage_name_read_overlay.py：53 passed in0.93s。
+ENGINEERING_FIXTURE仅ENGINEERING_ONLY/hit_ready=false/counts_as_forward_day=false/natural_sample_count=0，evaluate_runs不计自然10N/20N。REAL build/capture/truth全部owner pending failclosed。runtime Shanghai日期及三个窗口前后/前后日/offset反例实际capture均拒绝且不生成baseline。operator captured_at/source不能覆盖runtime时间；CLI无clock参数。Top20跨边界tie拒绝，同内/外tie不一律拒绝。局部工件/receipt篡改被发现。selection.py及ops按锁定SHA未变。
+
+## P1：receipt不是独立真实invocation/run identity证明
+formula_margin_shadow.py约1006行，production_run_id取context.run_id或metadata.run_id；selection.py约1385的hook context来自调用方shadow_context深拷贝。
+反例1：metadata.run_id=CALLER_FORGED_RUN_ID，工程capture仍ENGINEERING_ONLY且receipt.production_run_id为该字符串，verify仍PASS。
+反例2：不调用select_hk_four_lane，直接调用私有_capture_time_receipt_payload后传给freeze_snapshot，也能FROZEN，verifyPASS。现有测试约617-646行亦直接构造该receipt。
+当前REAL gate已阻断，故没有误升自然READY；但不能宣称实际selector invocation identity合同已完成。
+
+## P2：缺独立source_artifact_sha256字段
+receipt约1010-1033有raw_artifact_sha256，无独立source_artifact_sha256。构造/验证确有raw与sourceSHA相等检查，所以这是合同schema和显式证据缺口，不是说source完全未校验。
+
+## P2：verify不复验外部provenance
+verify_frozen_artifacts约1826-1858只验run root内工件及receipt。工程capture后修改外部source/rule/D1/formula文件，verify仍PASS；它证明本地冻结工件完整，不能证明外部路径仍是原字节。
+
+## 未覆盖/不应宣称完成
+REAL authority cases3-6全部owner pending，不能把统一拒绝写成未来membership/close完整校验PASS。case8当前只能验证工程hit诊断保留而markout未知，不能证明真实hitREADY。capture动态baseline mismatch分支和每一种receipt SHA身份不匹配尚无直接focused case（静态SHA与整receipt文件tamper已有）。
+
+所有新问题交Chat裁决；本批无自然样本、无automation/BUY/交易/部署。

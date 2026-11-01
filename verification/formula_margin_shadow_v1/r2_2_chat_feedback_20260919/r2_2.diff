@@ -1,0 +1,1187 @@
+--- r2_1/stage_center/formula_margin_shadow.py
++++ r2_2/stage_center/formula_margin_shadow.py
+@@ -24,6 +24,7 @@
+ import os
+ import statistics
+ import tempfile
++import uuid
+ from datetime import date, datetime, time
+ from pathlib import Path
+ from typing import Any, Iterable, Mapping, Sequence
+@@ -45,8 +46,20 @@
+ ENGINEERING_FIXTURE = "ENGINEERING_FIXTURE"
+ REAL_AUTHORITY = "REAL_AUTHORITY"
+ ADMISSION_MODES = (ENGINEERING_FIXTURE, REAL_AUTHORITY)
+-CAPTURE_TIME_RECEIPT_SCHEMA_VERSION = "v4.formula_margin_shadow.capture_time_receipt.v1"
++CAPTURE_TIME_RECEIPT_SCHEMA_VERSION = "v4.formula_margin_shadow.capture_time_receipt.v2"
+ CAPTURE_TIME_SOURCE = "FORMULA_MARGIN_SHADOW_CAPTURE_RUNTIME_V1"
++INVOCATION_VERIFICATION_BASIS = "SELECTOR_RETURN_ENVELOPE_AND_CALLBACK_PARITY_V1"
++CAPTURE_ORIGIN_DIRECT = "DIRECT_ENGINEERING_FREEZE"
++CAPTURE_ORIGIN_SELECTOR = "SELECTOR_INVOCATION_CAPTURE"
++INVOCATION_STATUS_DIRECT = "NOT_VERIFIED_ENGINEERING_FREEZE"
++INVOCATION_STATUS_VERIFIED = "VERIFIED_SELECTOR_RETURN"
++PROVENANCE_FILES = {
++    "production_source": ("production_source.bin", "source_artifact"),
++    "production_rule": ("production_rule.bin", "rule_artifact"),
++    "d1_manifest": ("d1_manifest.bin", "d1_manifest_artifact"),
++    "formula_state": ("formula_state.bin", "formula_state_artifact"),
++    "formula_rule": ("formula_rule.bin", "formula_rule_artifact"),
++}
+ SHANGHAI = ZoneInfo("Asia/Shanghai")
+ SHA256_LENGTH = 64
+ 
+@@ -340,7 +353,12 @@
+     raise ShadowInvalid("real stage_score/production_score is required")
+ 
+ 
+-def _source_binding(metadata: Mapping[str, Any], *, require_artifacts: bool = False) -> dict[str, Any]:
++def _source_binding(
++    metadata: Mapping[str, Any],
++    *,
++    require_artifacts: bool = False,
++    require_run_id: bool = True,
++) -> dict[str, Any]:
+     source_version = str(metadata.get("source_version") or "").strip()
+     input_sha = metadata.get("input_sha256", metadata.get("input_sha"))
+     rule_sha = metadata.get("rule_sha256", metadata.get("rule_sha"))
+@@ -356,7 +374,7 @@
+         raise ShadowInvalid(
+             f"comparator_version must be {COMPARATOR_VERSION}, got {comparator_version!r}"
+         )
+-    if not run_id:
++    if require_run_id and not run_id:
+         raise ShadowInvalid("production run_id is required for baseline binding")
+     rule_artifact = _checked_file_artifact(
+         metadata.get("rule_artifact"),
+@@ -735,6 +753,44 @@
+         except FileNotFoundError:
+             pass
+     return sha256_bytes(encoded)
++
++
++def _immutable_bytes(path: Path, encoded: bytes) -> str:
++    """Publish exact consumed bytes once, without following symlinks."""
++
++    path.parent.mkdir(parents=True, exist_ok=True)
++    if path.exists() or path.is_symlink():
++        raise ShadowInvalid(f"refusing to overwrite immutable artifact: {path}")
++    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
++    temporary_path = Path(temporary)
++    try:
++        with os.fdopen(descriptor, "wb") as handle:
++            handle.write(encoded)
++            handle.flush()
++            os.fsync(handle.fileno())
++        try:
++            os.link(temporary_path, path)
++        except FileExistsError as error:
++            raise ShadowInvalid(f"immutable artifact raced with another writer: {path}") from error
++    finally:
++        try:
++            temporary_path.unlink()
++        except FileNotFoundError:
++            pass
++    return sha256_bytes(encoded)
++
++
++def _read_exact_artifact(artifact: Mapping[str, Any], label: str) -> bytes:
++    """Read and recheck the exact bytes named by an already-bound artifact."""
++
++    path = Path(str(artifact.get("path") or "")).expanduser()
++    declared = str(artifact.get("sha256") or "").lower()
++    if path.is_symlink() or not path.is_file() or not _is_sha(declared):
++        raise ShadowInvalid(f"{label} path/SHA is invalid")
++    encoded = path.read_bytes()
++    if sha256_bytes(encoded) != declared:
++        raise ShadowInvalid(f"{label} SHA mismatch")
++    return encoded
+ 
+ 
+ def _ensure_output_root(root: Path | str) -> Path:
+@@ -960,28 +1016,85 @@
+     return states, binding
+ 
+ 
++def _selector_result_codes(selector_result: Mapping[str, Any]) -> list[str]:
++    rows = selector_result.get("rows")
++    if not isinstance(rows, list):
++        raise ShadowInvalid("selector return rows are required")
++    codes: list[str] = []
++    for row in rows[:TOP_K]:
++        if not isinstance(row, Mapping):
++            raise ShadowInvalid("selector return rows must be objects")
++        codes.append(_canonical_code(row.get("security_id", row.get("code"))))
++    if len(codes) != TOP_K or len(set(codes)) != TOP_K:
++        raise ShadowInvalid("selector return Top10 is incomplete or duplicated")
++    return codes
++
++
++def _validate_selector_return(
++    selector_result: Mapping[str, Any],
++    metadata: Mapping[str, Any],
++    *,
++    expected_raw_artifact_sha: str,
++) -> dict[str, Any]:
++    """Validate the actual envelope returned by ``select_hk_four_lane``."""
++
++    if not isinstance(selector_result, Mapping):
++        raise ShadowInvalid("selector return envelope must be an object")
++    required = (
++        "run_id", "artifact_id", "algorithm_sha256", "raw_artifact_sha256",
++        "selection_status", "trade_date", "stage_id", "market", "rows",
++    )
++    for key in required:
++        if key not in selector_result or selector_result.get(key) in (None, ""):
++            raise ShadowInvalid(f"selector return {key} is required")
++    trade_date, stage_id, _, _ = _stage_contract(metadata)
++    if str(selector_result.get("trade_date") or "").replace("-", "") != trade_date:
++        raise ShadowInvalid("selector return trade_date mismatch")
++    if str(selector_result.get("stage_id") or "") != stage_id:
++        raise ShadowInvalid("selector return stage_id mismatch")
++    if str(selector_result.get("market") or "") != MARKET:
++        raise ShadowInvalid("selector return market mismatch")
++    if str(selector_result.get("raw_artifact_sha256") or "").lower() != str(expected_raw_artifact_sha).lower():
++        raise ShadowInvalid("selector return raw_artifact_sha256 mismatch")
++    if not _is_sha(selector_result.get("algorithm_sha256")):
++        raise ShadowInvalid("selector return algorithm_sha256 is invalid")
++    if not str(selector_result.get("run_id") or "").strip() or not str(selector_result.get("artifact_id") or "").strip():
++        raise ShadowInvalid("selector return identity is missing")
++    top10 = _selector_result_codes(selector_result)
++    return {
++        "run_id": str(selector_result["run_id"]).strip(),
++        "artifact_id": str(selector_result["artifact_id"]).strip(),
++        "algorithm_sha256": str(selector_result["algorithm_sha256"]).lower(),
++        "raw_artifact_sha256": str(selector_result["raw_artifact_sha256"]).lower(),
++        "selection_status": str(selector_result["selection_status"]),
++        "top10_codes": top10,
++        "sha256": sha256_bytes(canonical_json(dict(selector_result))),
++    }
++
++
+ def _capture_time_receipt_payload(
+     metadata: Mapping[str, Any],
+     *,
+-    captured_at: datetime,
+-    selector_status: str,
+-    context: Mapping[str, Any] | None = None,
++    selector_result: Mapping[str, Any],
++    selector_started_at: datetime,
++    selector_finished_at: datetime,
+ ) -> dict[str, Any]:
+-    """Build the runtime receipt for an actual selector invocation.
+-
+-    The receipt is made only from already verified artifact bindings.  It does
+-    not accept a caller supplied timestamp, source string, or hash as proof of
+-    a natural capture.  ``capture_selector_snapshot`` is the only production
+-    caller; tests may use the private runtime clock seam.
+-    """
++    """Build a v2 receipt from the actual post-selector return envelope."""
+ 
+     mode = _admission_mode(metadata, default=None)
+     trade_date, stage_id, cutoff_iso, _ = _stage_contract(metadata)
+-    runtime_at = _validate_runtime_capture_timestamp(captured_at, trade_date, stage_id)
++    started = _validate_runtime_capture_timestamp(selector_started_at, trade_date, stage_id)
++    finished = _validate_runtime_capture_timestamp(selector_finished_at, trade_date, stage_id)
++    if finished < started:
++        raise ShadowInvalid("selector runtime timestamps are out of order")
+     binding = _source_binding(metadata, require_artifacts=True)
+     source_artifact = _source_artifact_check(metadata, expected_sha=binding["input_sha256"], required=True)
+-    d1_manifest = metadata.get("d1_manifest")
+-    d1_binding = _verified_manifest_binding(d1_manifest, "d1_manifest", require_artifact=True)
++    actual = _validate_selector_return(
++        selector_result,
++        metadata,
++        expected_raw_artifact_sha=str(source_artifact["sha256"]),
++    )
++    d1_binding = _verified_manifest_binding(metadata.get("d1_manifest"), "d1_manifest", require_artifact=True)
+     formula_binding = metadata.get("formula_manifest_binding")
+     if not isinstance(formula_binding, Mapping):
+         raise ShadowInvalid("formula_manifest binding is required for capture_time_receipt")
+@@ -998,27 +1111,36 @@
+         required=True,
+     )
+     raw_artifact_sha = str(metadata.get("raw_artifact_sha256") or source_artifact["sha256"]).lower()
+-    if raw_artifact_sha != str(source_artifact["sha256"]).lower():
+-        raise ShadowInvalid("capture_time_receipt raw artifact is not source-bound")
++    if raw_artifact_sha != str(source_artifact["sha256"]).lower() or actual["raw_artifact_sha256"] != raw_artifact_sha:
++        raise ShadowInvalid("capture_time_receipt raw/source artifact binding mismatch")
+     raw_input_sha = str(metadata.get("raw_input_sha256") or "").lower()
+     if not _is_sha(raw_input_sha):
+         raise ShadowInvalid("capture_time_receipt raw input SHA is required")
+-    context_map = dict(context) if isinstance(context, Mapping) else {}
+-    production_run_id = str(context_map.get("run_id") or metadata.get("run_id") or "").strip()
+-    if not production_run_id:
+-        raise ShadowInvalid("capture_time_receipt production run_id is required")
+     return {
+         "schema_version": CAPTURE_TIME_RECEIPT_SCHEMA_VERSION,
+         "source": CAPTURE_TIME_SOURCE,
+         "experiment_id": EXPERIMENT_ID,
+         "admission_mode": mode,
++        "invocation_verified": True,
++        "invocation_verification_basis": INVOCATION_VERIFICATION_BASIS,
++        "capture_origin": CAPTURE_ORIGIN_SELECTOR,
++        "invocation_status": INVOCATION_STATUS_VERIFIED,
++        "counts_as_forward_day": False,
++        "natural_sample_count": 0,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+-        "captured_at": runtime_at.isoformat(),
+-        "production_run_id": production_run_id,
++        "captured_at": finished.isoformat(),
++        "selector_started_at": started.isoformat(),
++        "selector_finished_at": finished.isoformat(),
++        "production_run_id": actual["run_id"],
++        "production_artifact_id": actual["artifact_id"],
++        "production_algorithm_sha256": actual["algorithm_sha256"],
++        "selector_result_sha256": actual["sha256"],
++        "shadow_invocation_id": f"shadow-invocation-{uuid.uuid4().hex}",
+         "raw_input_sha256": raw_input_sha,
+         "raw_artifact_sha256": raw_artifact_sha,
++        "source_artifact_sha256": str(source_artifact["sha256"]).lower(),
+         "production_rule_sha256": binding["rule_sha256"],
+         "d1_manifest_sha256": str(d1_binding["sha256"]).lower(),
+         "formula_input_sha256": str(formula_binding.get("input_sha256") or "").lower(),
+@@ -1028,7 +1150,7 @@
+         "shadow_rule_version": RULE_VERSION,
+         "comparator_version": COMPARATOR_VERSION,
+         "selector_invocation": "stage_center.selection.select_hk_four_lane",
+-        "selector_invocation_status": str(selector_status),
++        "selector_invocation_status": "COMPLETED",
+         **SAFETY_FLAGS,
+     }
+ 
+@@ -1038,11 +1160,18 @@
+     metadata: Mapping[str, Any],
+     *,
+     require_runtime: bool = False,
++    allow_invocation_verified: bool = False,
++    selector_result: Mapping[str, Any] | None = None,
+ ) -> dict[str, Any]:
+-    """Validate an immutable capture receipt against its production bindings."""
++    """Validate a v2 receipt and keep direct freeze fail-closed."""
+ 
+     if not isinstance(receipt, Mapping):
+         raise ShadowInvalid("capture_time_receipt must be an object")
++    if not allow_invocation_verified and (
++        receipt.get("invocation_verified") is True
++        or receipt.get("selector_invocation_status") == "COMPLETED"
++    ):
++        raise ShadowInvalid("INVOCATION_VERIFIED_RECEIPT_REQUIRES_SELECTOR_CAPTURE")
+     if receipt.get("schema_version") != CAPTURE_TIME_RECEIPT_SCHEMA_VERSION:
+         raise ShadowInvalid("capture_time_receipt schema mismatch")
+     if receipt.get("source") != CAPTURE_TIME_SOURCE:
+@@ -1053,6 +1182,19 @@
+     metadata_mode = _admission_mode(metadata, default=None)
+     if mode != metadata_mode:
+         raise ShadowInvalid("capture_time_receipt admission_mode mismatch")
++    verified = receipt.get("invocation_verified") is True
++    if verified:
++        if not allow_invocation_verified:
++            raise ShadowInvalid("INVOCATION_VERIFIED_RECEIPT_REQUIRES_SELECTOR_CAPTURE")
++        if receipt.get("invocation_verification_basis") != INVOCATION_VERIFICATION_BASIS:
++            raise ShadowInvalid("capture_time_receipt verification basis mismatch")
++        if receipt.get("capture_origin") != CAPTURE_ORIGIN_SELECTOR or receipt.get("invocation_status") != INVOCATION_STATUS_VERIFIED:
++            raise ShadowInvalid("capture_time_receipt invocation status mismatch")
++    else:
++        if receipt.get("capture_origin") != CAPTURE_ORIGIN_DIRECT or receipt.get("invocation_status") != INVOCATION_STATUS_DIRECT:
++            raise ShadowInvalid("unverified capture_time_receipt origin/status mismatch")
++        if receipt.get("counts_as_forward_day") is not False or receipt.get("natural_sample_count") != 0:
++            raise ShadowInvalid("unverified capture_time_receipt natural flags changed")
+     trade_date, stage_id, cutoff_iso, _ = _stage_contract(metadata)
+     if str(receipt.get("trade_date") or "").replace("-", "") != trade_date:
+         raise ShadowInvalid("capture_time_receipt trade_date mismatch")
+@@ -1061,11 +1203,18 @@
+     captured_at = _parse_timestamp(receipt.get("captured_at"), trade_date, "capture_time_receipt.captured_at")
+     if require_runtime:
+         _validate_runtime_capture_timestamp(captured_at, trade_date, stage_id)
++    if verified:
++        started = _parse_timestamp(receipt.get("selector_started_at"), trade_date, "selector_started_at")
++        finished = _parse_timestamp(receipt.get("selector_finished_at"), trade_date, "selector_finished_at")
++        _validate_runtime_capture_timestamp(started, trade_date, stage_id)
++        _validate_runtime_capture_timestamp(finished, trade_date, stage_id)
++        if finished < started or finished != captured_at:
++            raise ShadowInvalid("capture_time_receipt runtime timestamps mismatch")
+     binding = _source_binding(metadata, require_artifacts=True)
+     source_artifact = _source_artifact_check(metadata, expected_sha=binding["input_sha256"], required=True)
+     expected = {
+-        "production_run_id": str(metadata.get("run_id") or "").strip(),
+         "raw_artifact_sha256": str(source_artifact["sha256"]).lower(),
++        "source_artifact_sha256": str(source_artifact["sha256"]).lower(),
+         "production_rule_sha256": binding["rule_sha256"],
+         "shadow_rule_version": RULE_VERSION,
+         "comparator_version": COMPARATOR_VERSION,
+@@ -1073,11 +1222,33 @@
+         "selector_invocation_status": "COMPLETED",
+     }
+     for key, expected_value in expected.items():
+-        if str(receipt.get(key) or "") != str(expected_value):
++        if str(receipt.get(key) or "").lower() != str(expected_value).lower():
+             raise ShadowInvalid(f"capture_time_receipt {key} mismatch")
+     raw_input_sha = metadata.get("raw_input_sha256")
+     if raw_input_sha not in (None, "") and str(receipt.get("raw_input_sha256") or "").lower() != str(raw_input_sha).lower():
+         raise ShadowInvalid("capture_time_receipt raw input SHA mismatch")
++    if verified:
++        if not str(receipt.get("production_run_id") or "").strip() or not str(receipt.get("production_artifact_id") or "").strip():
++            raise ShadowInvalid("capture_time_receipt selector identity is missing")
++        if not _is_sha(receipt.get("production_algorithm_sha256")) or not _is_sha(receipt.get("selector_result_sha256")):
++            raise ShadowInvalid("capture_time_receipt selector SHA is invalid")
++        if not str(receipt.get("shadow_invocation_id") or "").strip():
++            raise ShadowInvalid("capture_time_receipt shadow invocation id is missing")
++        if selector_result is not None:
++            actual = _validate_selector_return(
++                selector_result,
++                metadata,
++                expected_raw_artifact_sha=str(source_artifact["sha256"]),
++            )
++            for key, actual_key in (
++                ("production_run_id", "run_id"),
++                ("production_artifact_id", "artifact_id"),
++                ("production_algorithm_sha256", "algorithm_sha256"),
++            ):
++                if str(receipt.get(key) or "").lower() != str(actual[actual_key]).lower():
++                    raise ShadowInvalid(f"capture_time_receipt {key} mismatch")
++            if str(receipt.get("selector_result_sha256") or "").lower() != actual["sha256"]:
++                raise ShadowInvalid("capture_time_receipt selector_result_sha256 mismatch")
+     d1_manifest = _verified_manifest_binding(metadata.get("d1_manifest"), "d1_manifest", require_artifact=True)
+     if str(receipt.get("d1_manifest_sha256") or "").lower() != str(d1_manifest["sha256"]).lower():
+         raise ShadowInvalid("capture_time_receipt D1 manifest SHA mismatch")
+@@ -1360,7 +1531,7 @@
+         raise ShadowInvalid("capture raw D1 codes must be unique")
+     raw_code_set = set(raw_codes)
+ 
+-    binding = _source_binding(metadata, require_artifacts=True)
++    binding = _source_binding(metadata, require_artifacts=True, require_run_id=False)
+     source_artifact = _source_artifact_check(
+         metadata,
+         expected_sha=binding["input_sha256"],
+@@ -1459,6 +1630,7 @@
+     *,
+     require_full_pool: bool = False,
+     require_artifacts: bool = False,
++    allow_invocation_verified: bool = False,
+ ) -> dict[str, Any]:
+     """Validate one input and build the frozen B/F artifacts in memory.
+ 
+@@ -1485,6 +1657,12 @@
+             metadata["capture_time_receipt"],
+             metadata,
+             require_runtime=True,
++            allow_invocation_verified=allow_invocation_verified,
++            selector_result=(
++                metadata.get("selector_result")
++                if isinstance(metadata.get("selector_result"), Mapping)
++                else None
++            ),
+         )
+     captured_at = _parse_timestamp(metadata.get("captured_at"), trade_date, "captured_at")
+     if captured_at > cutoff:
+@@ -1514,6 +1692,17 @@
+     eligible = [row for row in normalised if row["eligible"]]
+     original_order = sorted(eligible, key=lambda item: int(item["production_rank"]))
+     candidate_order, candidate_details = _derive_candidate(eligible)
++    capture_receipt = metadata.get("capture_time_receipt")
++    invocation_verified = isinstance(capture_receipt, Mapping) and capture_receipt.get("invocation_verified") is True
++    capture_origin = CAPTURE_ORIGIN_SELECTOR if invocation_verified else CAPTURE_ORIGIN_DIRECT
++    invocation_status = INVOCATION_STATUS_VERIFIED if invocation_verified else INVOCATION_STATUS_DIRECT
++    provenance_flags = {
++        "capture_origin": capture_origin,
++        "invocation_verified": invocation_verified,
++        "invocation_status": invocation_status,
++        "counts_as_forward_day": False,
++        "natural_sample_count": 0,
++    }
+     # The B arm is always the original production order.  It must be taken
+     # before the formula-only reorder; using candidate_order here would make
+     # the baseline silently inherit the F arm.
+@@ -1544,6 +1733,7 @@
+         "arm": "B",
+         "codes": [str(row["security_id"]) for row in baseline],
+         "rows": [dict(row) for row in baseline],
++        **provenance_flags,
+         **SAFETY_FLAGS,
+     }
+     candidate_payload = {
+@@ -1559,6 +1749,7 @@
+         "rows": [dict(row) for row in candidate_order[:TOP_K]],
+         "selection_rule": RULE_VERSION,
+         "tau": candidate_details["tau"],
++        **provenance_flags,
+         **SAFETY_FLAGS,
+     }
+     members_payload = {
+@@ -1571,6 +1762,7 @@
+         "market": MARKET,
+         "d1_pool_count": len(full_rows),
+         "eligible_count": len(eligible),
++        **provenance_flags,
+         "rows": full_rows,
+         **SAFETY_FLAGS,
+     }
+@@ -1589,6 +1781,7 @@
+         "production_binding": binding,
+         "production_source_artifact": production_source_artifact,
+         "formula_provenance": formula,
++        **provenance_flags,
+         **(
+             {"capture_time_receipt": dict(metadata["capture_time_receipt"])}
+             if isinstance(metadata.get("capture_time_receipt"), Mapping)
+@@ -1619,7 +1812,24 @@
+             "cutoff_ts": cutoff_iso,
+             "market": MARKET,
+             "production_binding": binding,
++            "production_source_artifact": production_source_artifact,
+             "formula_provenance": formula,
++            **provenance_flags,
++            **(
++                {"selector_result": dict(metadata["selector_result"])}
++                if isinstance(metadata.get("selector_result"), Mapping)
++                else {}
++            ),
++            **(
++                {"d1_manifest": dict(metadata["d1_manifest"])}
++                if isinstance(metadata.get("d1_manifest"), Mapping)
++                else {}
++            ),
++            **(
++                {"formula_manifest_binding": dict(metadata["formula_manifest_binding"])}
++                if isinstance(metadata.get("formula_manifest_binding"), Mapping)
++                else {}
++            ),
+             **(
+                 {"capture_time_receipt": dict(metadata["capture_time_receipt"])}
+                 if isinstance(metadata.get("capture_time_receipt"), Mapping)
+@@ -1633,19 +1843,65 @@
+     }
+ 
+ 
+-def freeze_snapshot(
++def _provenance_material(built: Mapping[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, Any] | None]:
++    """Read all consumed source bytes before publishing an invocation freeze."""
++
++    receipt = built.get("receipt")
++    root_meta = built.get("root_metadata")
++    if not isinstance(receipt, Mapping) or not isinstance(root_meta, Mapping):
++        raise ShadowInvalid("built shadow metadata is incomplete")
++    capture_receipt = receipt.get("capture_time_receipt")
++    if not isinstance(capture_receipt, Mapping) or capture_receipt.get("invocation_verified") is not True:
++        return {}, None
++    source = root_meta.get("production_source_artifact")
++    binding = root_meta.get("production_binding")
++    d1 = root_meta.get("d1_manifest")
++    formula = root_meta.get("formula_manifest_binding")
++    if not isinstance(source, Mapping) or not isinstance(binding, Mapping) or not isinstance(d1, Mapping) or not isinstance(formula, Mapping):
++        raise ShadowInvalid("invocation-verified provenance bindings are incomplete")
++    artifacts: dict[str, Mapping[str, Any]] = {
++        "production_source": source,
++        "production_rule": binding.get("rule_artifact"),
++        "d1_manifest": d1.get("artifact"),
++        "formula_state": formula.get("artifact"),
++        "formula_rule": formula.get("rule_artifact"),
++    }
++    material: dict[str, dict[str, Any]] = {}
++    for name, artifact in artifacts.items():
++        if not isinstance(artifact, Mapping):
++            raise ShadowInvalid(f"{name} provenance artifact is missing")
++        encoded = _read_exact_artifact(artifact, f"{name} provenance artifact")
++        file_name, _ = PROVENANCE_FILES[name]
++        material[name] = {
++            "path": f"provenance/{file_name}",
++            "sha256": sha256_bytes(encoded),
++            "bytes": len(encoded),
++            "_encoded": encoded,
++            "external_path": str(artifact.get("path") or ""),
++        }
++    selector_result = root_meta.get("selector_result")
++    if not isinstance(selector_result, Mapping):
++        raise ShadowInvalid("invocation-verified selector result is missing")
++    selector_bytes = canonical_json(dict(selector_result))
++    selector_sha = sha256_bytes(selector_bytes)
++    if selector_sha != str(capture_receipt.get("selector_result_sha256") or "").lower():
++        raise ShadowInvalid("selector result hash does not match capture receipt")
++    material["selector_result"] = {
++        "path": "selector_result.json",
++        "sha256": selector_sha,
++        "bytes": len(selector_bytes),
++        "_encoded": selector_bytes,
++    }
++    return material, dict(selector_result)
++
++
++def _freeze_snapshot_internal(
+     payload: Mapping[str, Any],
+     output_root: Path | str,
+     *,
+     require_full_pool: bool = True,
++    allow_invocation_verified: bool = False,
+ ) -> dict[str, Any]:
+-    """Freeze a stage before any close label can be accepted.
+-
+-    Files are created with hard-link publication and never replaced.  A
+-    second call for the same date/stage therefore fails instead of silently
+-    superseding the first baseline.
+-    """
+-
+     if require_full_pool is not True:
+         raise ShadowInvalid("persistent freeze requires the complete 100-row D1 pool")
+     raw_rows = payload.get("rows") if isinstance(payload, Mapping) else None
+@@ -1655,8 +1911,13 @@
+         payload,
+         require_full_pool=True,
+         require_artifacts=True,
++        allow_invocation_verified=allow_invocation_verified,
+     )
+     root_meta = built["root_metadata"]
++    invocation_verified = bool(root_meta.get("invocation_verified"))
++    if invocation_verified and not allow_invocation_verified:
++        raise ShadowInvalid("INVOCATION_VERIFIED_RECEIPT_REQUIRES_SELECTOR_CAPTURE")
++    material, selector_result = _provenance_material(built)
+     output_path = _ensure_output_root(output_root)
+     date_root = output_path / root_meta["trade_date"]
+     if date_root.is_symlink():
+@@ -1665,20 +1926,17 @@
+     if run_root.is_symlink():
+         raise ShadowInvalid("shadow run root cannot be symlinked")
+     run_root.mkdir(parents=True, exist_ok=True)
++    built_receipt = built.get("receipt", {}).get("capture_time_receipt")
+     expected_paths = (
+         run_root / "members.json",
+         run_root / "baseline_top10.json",
+         run_root / "candidate_top10.json",
+         run_root / "selection_receipt.json",
+-        *(
+-            (run_root / "capture_time_receipt.json",)
+-            if isinstance(built_receipt := built.get("receipt", {}).get("capture_time_receipt"), Mapping)
+-            else ()
+-        ),
++        *((run_root / "capture_time_receipt.json",) if isinstance(built_receipt, Mapping) else ()),
++        *tuple(run_root / str(detail["path"]) for detail in material.values()),
+     )
+     if any(path.exists() or path.is_symlink() for path in expected_paths):
+         raise ShadowInvalid("refusing to overwrite an existing frozen run")
+-    # Do not create any file until all in-memory validation has passed.
+     members_sha = _immutable_json(run_root / "members.json", built["members"])
+     baseline_sha = _immutable_json(run_root / "baseline_top10.json", built["baseline"])
+     candidate_sha = _immutable_json(run_root / "candidate_top10.json", built["candidate"])
+@@ -1688,26 +1946,34 @@
+         "baseline": {"path": "baseline_top10.json", "sha256": baseline_sha},
+         "candidate": {"path": "candidate_top10.json", "sha256": candidate_sha},
+     }
++    artifact_result: dict[str, str] = {
++        "members": members_sha,
++        "baseline": baseline_sha,
++        "candidate": candidate_sha,
++    }
+     if isinstance(built_receipt, Mapping):
+-        capture_receipt_sha = _immutable_json(
+-            run_root / "capture_time_receipt.json",
+-            dict(built_receipt),
+-        )
++        capture_receipt_sha = _immutable_json(run_root / "capture_time_receipt.json", dict(built_receipt))
+         receipt["artifacts"]["capture_time_receipt"] = {
+             "path": "capture_time_receipt.json",
+             "sha256": capture_receipt_sha,
+         }
++        artifact_result["capture_time_receipt"] = capture_receipt_sha
++    if material:
++        provenance_receipt: dict[str, dict[str, Any]] = {}
++        for name, detail in material.items():
++            path = run_root / str(detail["path"])
++            sha = _immutable_bytes(path, detail["_encoded"])
++            if sha != detail["sha256"]:
++                raise ShadowInvalid(f"sealed {name} provenance SHA mismatch")
++            clean = {key: value for key, value in detail.items() if key not in {"_encoded"}}
++            provenance_receipt[name] = clean
++        receipt["provenance"] = provenance_receipt
++        receipt["artifacts"]["selector_result"] = provenance_receipt["selector_result"]
++        artifact_result["selector_result"] = provenance_receipt["selector_result"]["sha256"]
+     receipt_without_self_hash = dict(receipt)
+     receipt["receipt_payload_sha256"] = sha256_bytes(canonical_json(receipt_without_self_hash))
+     receipt_sha = _immutable_json(run_root / "selection_receipt.json", receipt)
+-    artifact_result = {
+-        "members": members_sha,
+-        "baseline": baseline_sha,
+-        "candidate": candidate_sha,
+-        "receipt": receipt_sha,
+-    }
+-    if isinstance(built_receipt, Mapping):
+-        artifact_result["capture_time_receipt"] = capture_receipt_sha
++    artifact_result["receipt"] = receipt_sha
+     return {
+         "status": "FROZEN",
+         "run_root": str(run_root),
+@@ -1716,8 +1982,26 @@
+         "candidate_codes": built["candidate"]["codes"],
+         "changed_in": built["receipt"]["selection"]["changed_in"],
+         "changed_out": built["receipt"]["selection"]["changed_out"],
++        "capture_origin": root_meta.get("capture_origin"),
++        "invocation_verified": invocation_verified,
+         "safety": dict(SAFETY_FLAGS),
+     }
++
++
++def freeze_snapshot(
++    payload: Mapping[str, Any],
++    output_root: Path | str,
++    *,
++    require_full_pool: bool = True,
++) -> dict[str, Any]:
++    """Direct engineering freeze; it cannot prove a selector invocation."""
++
++    return _freeze_snapshot_internal(
++        payload,
++        output_root,
++        require_full_pool=require_full_pool,
++        allow_invocation_verified=False,
++    )
+ 
+ 
+ def record_invalid_capture(
+@@ -1856,6 +2140,98 @@
+         for flag, expected in SAFETY_FLAGS.items():
+             if persisted_capture.get(flag) != expected:
+                 raise ShadowInvalid("capture_time_receipt safety flags changed")
++        if persisted_capture.get("invocation_verified") is True:
++            if persisted_capture.get("schema_version") != CAPTURE_TIME_RECEIPT_SCHEMA_VERSION:
++                raise ShadowInvalid("invocation-verified capture receipt schema mismatch")
++            if persisted_capture.get("capture_origin") != CAPTURE_ORIGIN_SELECTOR or persisted_capture.get("invocation_status") != INVOCATION_STATUS_VERIFIED:
++                raise ShadowInvalid("invocation-verified capture receipt origin/status mismatch")
++            if persisted_capture.get("invocation_verification_basis") != INVOCATION_VERIFICATION_BASIS:
++                raise ShadowInvalid("invocation-verified capture receipt basis mismatch")
++            capture_trade = _exact_date(persisted_capture.get("trade_date"), "capture receipt trade_date")
++            capture_stage = str(persisted_capture.get("stage") or "")
++            started = _parse_timestamp(persisted_capture.get("selector_started_at"), capture_trade, "selector_started_at")
++            finished = _parse_timestamp(persisted_capture.get("selector_finished_at"), capture_trade, "selector_finished_at")
++            _validate_runtime_capture_timestamp(started, capture_trade, capture_stage)
++            _validate_runtime_capture_timestamp(finished, capture_trade, capture_stage)
++            if finished < started:
++                raise ShadowInvalid("selector runtime timestamps are out of order")
++    invocation_verified = receipt.get("invocation_verified") is True
++    if isinstance(capture_record, Mapping) and capture_record.get("invocation_verified") is not invocation_verified:
++        raise ShadowInvalid("selection receipt/capture receipt invocation status mismatch")
++    if isinstance(capture_record, Mapping):
++        for key in ("capture_origin", "invocation_status", "counts_as_forward_day", "natural_sample_count"):
++            if capture_record.get(key) != receipt.get(key):
++                raise ShadowInvalid(f"selection receipt/capture receipt {key} mismatch")
++    if invocation_verified:
++        if receipt.get("capture_origin") != CAPTURE_ORIGIN_SELECTOR or receipt.get("invocation_status") != INVOCATION_STATUS_VERIFIED:
++            raise ShadowInvalid("invocation-verified frozen origin/status mismatch")
++        provenance = receipt.get("provenance")
++        required_provenance = set(PROVENANCE_FILES) | {"selector_result"}
++        if not isinstance(provenance, Mapping) or set(provenance) != required_provenance:
++            raise ShadowInvalid("sealed provenance set is incomplete")
++        selector_artifact = artifacts.get("selector_result")
++        if not isinstance(selector_artifact, Mapping) or dict(selector_artifact) != dict(provenance.get("selector_result") or {}):
++            raise ShadowInvalid("selection receipt selector_result artifact binding is missing")
++        for name, detail in provenance.items():
++            if not isinstance(detail, Mapping) or not _is_sha(detail.get("sha256")):
++                raise ShadowInvalid(f"sealed provenance {name} descriptor is invalid")
++            relative = str(detail.get("path") or "")
++            if name == "selector_result":
++                if relative != "selector_result.json":
++                    raise ShadowInvalid("selector_result provenance path is invalid")
++            elif relative != f"provenance/{PROVENANCE_FILES[name][0]}":
++                raise ShadowInvalid(f"sealed provenance {name} path is invalid")
++            local = root / relative
++            if not local.is_file() or local.is_symlink() or sha256_file(local) != str(detail["sha256"]).lower():
++                raise ShadowInvalid(f"sealed provenance {name} hash mismatch")
++        selector_detail = provenance["selector_result"]
++        selector_path = root / str(selector_detail["path"])
++        selector_result = _read_json(selector_path)
++        if not isinstance(selector_result, Mapping):
++            raise ShadowInvalid("sealed selector_result must be an object")
++        if sha256_bytes(canonical_json(selector_result)) != str(selector_detail["sha256"]).lower():
++            raise ShadowInvalid("sealed selector_result canonical hash mismatch")
++        identity_receipt: Mapping[str, Any] = capture_record if isinstance(capture_record, Mapping) else receipt
++        selector_checks = {
++            "production_run_id": selector_result.get("run_id"),
++            "production_artifact_id": selector_result.get("artifact_id"),
++            "production_algorithm_sha256": selector_result.get("algorithm_sha256"),
++            "raw_artifact_sha256": selector_result.get("raw_artifact_sha256"),
++        }
++        for receipt_key, actual_value in selector_checks.items():
++            if str(identity_receipt.get(receipt_key) or "").lower() != str(actual_value or "").lower():
++                raise ShadowInvalid(f"sealed selector identity {receipt_key} mismatch")
++        if str(identity_receipt.get("selector_result_sha256") or "").lower() != str(selector_detail["sha256"]).lower():
++            raise ShadowInvalid("selection receipt selector_result SHA mismatch")
++        source_detail = provenance["production_source"]
++        if str(identity_receipt.get("source_artifact_sha256") or "").lower() != str(source_detail["sha256"]).lower():
++            raise ShadowInvalid("sealed source_artifact_sha256 mismatch")
++        if str(identity_receipt.get("raw_artifact_sha256") or "").lower() != str(source_detail["sha256"]).lower():
++            raise ShadowInvalid("sealed raw_artifact_sha256 mismatch")
++        if str(identity_receipt.get("raw_artifact_sha256") or "").lower() != str(identity_receipt.get("source_artifact_sha256") or "").lower():
++            raise ShadowInvalid("raw/source artifact SHA equality mismatch")
++        provenance_sha_checks = {
++            "production_rule_sha256": "production_rule",
++            "d1_manifest_sha256": "d1_manifest",
++            "formula_state_artifact_sha256": "formula_state",
++            "formula_rule_artifact_sha256": "formula_rule",
++        }
++        for receipt_key, provenance_key in provenance_sha_checks.items():
++            if str(identity_receipt.get(receipt_key) or "").lower() != str(provenance[provenance_key]["sha256"]).lower():
++                raise ShadowInvalid(f"sealed provenance {provenance_key} SHA mismatch")
++        selector_top10 = _selector_result_codes(selector_result)
++        if list(baseline.get("codes", [])) != selector_top10:
++            raise ShadowInvalid("frozen baseline does not equal sealed selector Top10")
++    else:
++        for artifact in (members, baseline, candidate, receipt):
++            if artifact.get("capture_origin") != CAPTURE_ORIGIN_DIRECT:
++                raise ShadowInvalid("direct frozen capture_origin changed")
++            if artifact.get("invocation_verified") is not False:
++                raise ShadowInvalid("direct frozen invocation_verified changed")
++            if artifact.get("invocation_status") != INVOCATION_STATUS_DIRECT:
++                raise ShadowInvalid("direct frozen invocation_status changed")
++            if artifact.get("counts_as_forward_day") is not False or artifact.get("natural_sample_count") != 0:
++                raise ShadowInvalid("direct frozen natural flags changed")
+     for artifact in (members, baseline, candidate, receipt):
+         if any(artifact.get(flag) != expected for flag, expected in SAFETY_FLAGS.items()):
+             raise ShadowInvalid("safety flags changed in frozen artifact")
+@@ -1870,11 +2246,45 @@
+     return members, baseline, candidate, receipt
+ 
+ 
+-def verify_frozen_artifacts(run_root: Path | str) -> dict[str, Any]:
++def _external_source_revalidation(receipt: Mapping[str, Any], root: Path) -> str:
++    provenance = receipt.get("provenance")
++    if not isinstance(provenance, Mapping):
++        return "NOT_REQUESTED"
++    statuses: list[str] = []
++    for name in PROVENANCE_FILES:
++        detail = provenance.get(name)
++        if not isinstance(detail, Mapping):
++            return "MISSING"
++        external = str(detail.get("external_path") or "")
++        path = Path(external).expanduser()
++        if not external or not path.is_file() or path.is_symlink():
++            statuses.append("MISSING")
++        elif sha256_file(path) != str(detail.get("sha256") or "").lower():
++            statuses.append("DRIFTED")
++        else:
++            statuses.append("PASS")
++    if "MISSING" in statuses:
++        return "MISSING"
++    if "DRIFTED" in statuses:
++        return "DRIFTED"
++    return "PASS"
++
++
++def verify_frozen_artifacts(
++    run_root: Path | str,
++    *,
++    external_revalidate: bool = False,
++) -> dict[str, Any]:
+     members, baseline, candidate, receipt = _read_frozen(run_root)
++    root = Path(run_root).expanduser().resolve()
+     return {
+         "status": "PASS",
+-        "run_root": str(Path(run_root).expanduser().resolve()),
++        "frozen_integrity_status": "PASS",
++        "integrity_scope": "LOCAL_FROZEN_AND_SEALED_PROVENANCE",
++        "external_source_revalidation": (
++            _external_source_revalidation(receipt, root) if external_revalidate else "NOT_REQUESTED"
++        ),
++        "run_root": str(root),
+         "trade_date": receipt.get("trade_date"),
+         "stage": receipt.get("stage"),
+         "baseline_codes": list(baseline.get("codes", [])),
+@@ -2739,16 +3149,35 @@
+     try:
+         shadow_payload = dict(capture_state["shadow_payload"])
+         production_codes = list(capture_state["production_codes"])
++        expected_raw_sha = str(shadow_payload.get("raw_artifact_sha256") or raw_artifact_sha or "").lower()
++        actual_selector = _validate_selector_return(
++            selected,
++            shadow_payload,
++            expected_raw_artifact_sha=expected_raw_sha,
++        )
++        for key in ("run_id", "artifact_id"):
++            supplied = metadata.get(key)
++            if supplied not in (None, "") and str(supplied).strip() != actual_selector[key]:
++                raise ShadowInvalid(f"caller {key} does not match selector return envelope")
++        if actual_selector["top10_codes"] != production_codes:
++            raise ShadowInvalid("selector return Top10 does not match callback production Top10")
++        # Only the post-selector envelope is authoritative.  The callback's
++        # advisory context can never become a production identity.
++        shadow_payload["run_id"] = actual_selector["run_id"]
++        shadow_payload["artifact_id"] = actual_selector["artifact_id"]
++        shadow_payload["algorithm_sha256"] = actual_selector["algorithm_sha256"]
++        shadow_payload["raw_artifact_sha256"] = actual_selector["raw_artifact_sha256"]
++        shadow_payload["selector_result"] = dict(selected)
+         runtime_finished_at = _validate_runtime_capture_timestamp(
+             _runtime_capture_timestamp(), trade_date, stage_id
+         )
+-        # The production run id, raw/formula/D1 artifacts and selector
+-        # identity all come from the verified capture payload/context.
++        if runtime_started_at is None:
++            raise ShadowInvalid("selector runtime start receipt is missing")
+         shadow_payload["capture_time_receipt"] = _capture_time_receipt_payload(
+             shadow_payload,
+-            captured_at=runtime_finished_at,
+-            selector_status="COMPLETED",
+-            context=capture_state.get("context"),
++            selector_result=selected,
++            selector_started_at=runtime_started_at,
++            selector_finished_at=runtime_finished_at,
+         )
+         shadow_payload["captured_at"] = runtime_finished_at.isoformat()
+         shadow_payload["time_evidence"] = {
+@@ -2760,11 +3189,22 @@
+         }
+         # The start value is retained in the local diagnostic context for
+         # tests/logging only; the immutable receipt is the completion time.
+-        _ = runtime_started_at
+-        built = build_shadow(shadow_payload, require_full_pool=True, require_artifacts=True)
++        built = build_shadow(
++            shadow_payload,
++            require_full_pool=True,
++            require_artifacts=True,
++            allow_invocation_verified=True,
++        )
+         if built.get("baseline", {}).get("codes") != production_codes:
+             raise ShadowInvalid("frozen baseline does not equal the real selector Top10")
+-        frozen = freeze_snapshot(shadow_payload, output_root, require_full_pool=True)
++        if built.get("baseline", {}).get("codes") != actual_selector["top10_codes"]:
++            raise ShadowInvalid("frozen baseline does not equal returned selector Top10")
++        frozen = _freeze_snapshot_internal(
++            shadow_payload,
++            output_root,
++            require_full_pool=True,
++            allow_invocation_verified=True,
++        )
+         capture_status = "ENGINEERING_ONLY" if admission_mode == ENGINEERING_FIXTURE else "READY"
+         _record({
+             "status": capture_status,
+@@ -2817,6 +3257,7 @@
+     label.add_argument("--input", type=Path, required=True)
+     verify = sub.add_parser("verify")
+     verify.add_argument("--run-root", type=Path, required=True)
++    verify.add_argument("--external-revalidate", action="store_true")
+     evaluate = sub.add_parser("evaluate")
+     evaluate.add_argument("--run-root", type=Path, action="append", required=True)
+     args = parser.parse_args()
+@@ -2836,7 +3277,7 @@
+         elif args.command == "label":
+             result = append_labels(args.run_root, _read_json(args.input))
+         elif args.command == "verify":
+-            result = verify_frozen_artifacts(args.run_root)
++            result = verify_frozen_artifacts(args.run_root, external_revalidate=args.external_revalidate)
+         else:
+             result = evaluate_runs(args.run_root)
+     except ShadowInvalid as error:
+@@ -2855,6 +3296,11 @@
+     "ADMISSION_MODES",
+     "CAPTURE_TIME_RECEIPT_SCHEMA_VERSION",
+     "CAPTURE_TIME_SOURCE",
++    "INVOCATION_VERIFICATION_BASIS",
++    "CAPTURE_ORIGIN_DIRECT",
++    "CAPTURE_ORIGIN_SELECTOR",
++    "INVOCATION_STATUS_DIRECT",
++    "INVOCATION_STATUS_VERIFIED",
+     "COMPARATOR_KEY_NAMES",
+     "COMPARATOR_VERSION",
+     "EXPERIMENT_ID",
+--- r2_1/tests/test_formula_margin_shadow.py
++++ r2_2/tests/test_formula_margin_shadow.py
+@@ -29,6 +29,7 @@
+     preflight_capture_input,
+ )
+ from stage_center.selection import select_hk_four_lane
++import stage_center.selection as selection_module
+ 
+ 
+ def _metadata() -> dict:
+@@ -256,6 +257,12 @@
+     run_root = Path(frozen["run_root"])
+     verified = verify_frozen_artifacts(run_root)
+     assert verified["status"] == "PASS"
++    receipt = json.loads((run_root / "selection_receipt.json").read_text(encoding="utf-8"))
++    assert receipt["capture_origin"] == shadow_module.CAPTURE_ORIGIN_DIRECT
++    assert receipt["invocation_verified"] is False
++    assert receipt["invocation_status"] == shadow_module.INVOCATION_STATUS_DIRECT
++    assert receipt["counts_as_forward_day"] is False
++    assert receipt["natural_sample_count"] == 0
+     assert frozen["safety"]["production_allowed"] is False
+ 
+     with pytest.raises(ShadowInvalid, match="refusing to overwrite"):
+@@ -384,7 +391,6 @@
+             "input_sha256": source_sha,
+             "rule_sha256": rule_sha,
+             "comparator_version": COMPARATOR_VERSION,
+-            "run_id": "hk-selector-capture-20260921-093505",
+             "raw_artifact_sha256": source_sha,
+             "source_artifact": {"path": str(source_path), "sha256": source_sha},
+             "rule_artifact": {"path": str(rule_path), "sha256": rule_sha},
+@@ -475,6 +481,9 @@
+         d1_manifest=payload["d1_manifest"],
+         raw_artifact_sha256=payload["metadata"]["raw_artifact_sha256"],
+     )
++    # A direct in-memory builder still needs a fixture binding; the runtime
++    # capture path below obtains the authoritative ID from the selector return.
++    shadow_payload["run_id"] = "fixture-direct-run"
+     built = build_shadow(shadow_payload, require_full_pool=True, require_artifacts=True)
+     assert built["baseline"]["codes"] == [row["code"] for row in selected["rows"]]
+     assert sorted(row["production_rank"] for row in built["members"]["rows"]) == list(range(1, 101))
+@@ -494,6 +503,152 @@
+     assert runtime_receipt["captured_at"] == runtime.isoformat()
+     assert runtime_receipt["source"] == shadow_module.CAPTURE_TIME_SOURCE
+     assert runtime_receipt["selector_invocation_status"] == "COMPLETED"
++    assert runtime_receipt["invocation_verified"] is True
++    assert runtime_receipt["production_run_id"] == manual["selector"]["run_id"]
++    assert runtime_receipt["production_artifact_id"] == manual["selector"]["artifact_id"]
++    assert runtime_receipt["production_algorithm_sha256"] == manual["selector"]["algorithm_sha256"]
++    assert runtime_receipt["shadow_invocation_id"] != runtime_receipt["production_run_id"]
++    assert runtime_receipt["raw_artifact_sha256"] == runtime_receipt["source_artifact_sha256"]
++    run_root = Path(manual["capture"]["capture"]["run_root"])
++    selector_result = json.loads((run_root / "selector_result.json").read_text(encoding="utf-8"))
++    assert runtime_receipt["selector_result_sha256"] == hashlib.sha256(
++        canonical_json(selector_result)
++    ).hexdigest()
++    receipt = json.loads((run_root / "selection_receipt.json").read_text(encoding="utf-8"))
++    assert set(receipt["provenance"]) == {
++        "production_source", "production_rule", "d1_manifest", "formula_state", "formula_rule", "selector_result"
++    }
++    verified = verify_frozen_artifacts(run_root)
++    assert verified["frozen_integrity_status"] == "PASS"
++    assert verified["integrity_scope"] == "LOCAL_FROZEN_AND_SEALED_PROVENANCE"
++
++
++def test_selector_capture_rejects_caller_run_identity_mismatch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
++    payload = _selector_capture_input(tmp_path)
++    payload["metadata"]["run_id"] = "caller-forged-run"
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert any("caller run_id" in reason for reason in result["capture"]["invalid_reasons"])
++    assert not (tmp_path / "shadow-output" / "20260921" / "STAGE_0930_0935" / "baseline_top10.json").exists()
++
++
++def test_selector_capture_rejects_return_top10_that_differs_from_callback(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    original = selection_module.select_hk_four_lane
++
++    def altered(*args: object, **kwargs: object) -> dict:
++        result = copy.deepcopy(original(*args, **kwargs))
++        result["rows"][0], result["rows"][1] = result["rows"][1], result["rows"][0]
++        return result
++
++    monkeypatch.setattr(selection_module, "select_hk_four_lane", altered)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert any("Top10" in reason for reason in result["capture"]["invalid_reasons"])
++    assert not (tmp_path / "shadow-output" / "20260921" / "STAGE_0930_0935" / "baseline_top10.json").exists()
++
++
++def test_selector_capture_rejects_baseline_parity_failure(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    original = shadow_module.build_shadow
++
++    def altered(*args: object, **kwargs: object) -> dict:
++        built = original(*args, **kwargs)
++        if kwargs.get("allow_invocation_verified") is True:
++            built["baseline"]["codes"][0] = "HK.PARITY_FAILURE"
++        return built
++
++    monkeypatch.setattr(shadow_module, "build_shadow", altered)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert any("baseline" in reason for reason in result["capture"]["invalid_reasons"])
++
++
++@pytest.mark.parametrize(
++    "receipt_field",
++    ["production_run_id", "production_artifact_id", "source_artifact_sha256", "raw_artifact_sha256"],
++)
++def test_verified_receipt_identity_and_source_fields_are_tamper_evident(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, receipt_field: str
++) -> None:
++    payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    run_root = Path(result["capture"]["capture"]["run_root"])
++    receipt_path = run_root / "capture_time_receipt.json"
++    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
++    receipt[receipt_field] = "0" * 64 if receipt_field.endswith("sha256") else "tampered-identity"
++    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
++    with pytest.raises(ShadowInvalid, match="capture_time_receipt hash mismatch"):
++        verify_frozen_artifacts(run_root)
++
++
++def test_verified_provenance_is_locally_stable_when_external_source_drifts(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    run_root = Path(result["capture"]["capture"]["run_root"])
++    source_path = Path(payload["metadata"]["source_artifact"]["path"])
++    source_path.write_bytes(source_path.read_bytes() + b"external drift")
++    local = verify_frozen_artifacts(run_root)
++    assert local["frozen_integrity_status"] == "PASS"
++    assert local["external_source_revalidation"] == "NOT_REQUESTED"
++    assert verify_frozen_artifacts(run_root, external_revalidate=True)["external_source_revalidation"] == "DRIFTED"
++    source_path.unlink()
++    assert verify_frozen_artifacts(run_root, external_revalidate=True)["external_source_revalidation"] == "MISSING"
++
++
++def test_verified_provenance_tamper_and_removal_fail_local_verification(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
++    result = capture_selector_snapshot(payload, tmp_path / "shadow-output")
++    run_root = Path(result["capture"]["capture"]["run_root"])
++    sealed = run_root / "provenance" / "production_rule.bin"
++    sealed.write_bytes(sealed.read_bytes() + b"tamper")
++    with pytest.raises(ShadowInvalid, match="sealed provenance production_rule hash mismatch"):
++        verify_frozen_artifacts(run_root)
++
++    second_root = tmp_path / "second"
++    second_root.mkdir()
++    payload2 = _selector_capture_input(second_root)
++    runtime2 = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime2)
++    result2 = capture_selector_snapshot(payload2, tmp_path / "second-output")
++    run_root2 = Path(result2["capture"]["capture"]["run_root"])
++    (run_root2 / "provenance" / "d1_manifest.bin").unlink()
++    with pytest.raises(ShadowInvalid, match="sealed provenance d1_manifest hash mismatch"):
++        verify_frozen_artifacts(run_root2)
++
++    third_root = tmp_path / "third"
++    third_root.mkdir()
++    payload3 = _selector_capture_input(third_root)
++    runtime3 = shadow_module._parse_timestamp("2026-09-21T09:35:00+08:00", "20260921", "test")
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime3)
++    result3 = capture_selector_snapshot(payload3, tmp_path / "third-output")
++    run_root3 = Path(result3["capture"]["capture"]["run_root"])
++    selector_path = run_root3 / "selector_result.json"
++    selector_payload = json.loads(selector_path.read_text(encoding="utf-8"))
++    selector_payload["run_id"] = "tampered-run"
++    selector_path.write_text(json.dumps(selector_payload), encoding="utf-8")
++    with pytest.raises(ShadowInvalid, match="sealed provenance selector_result hash mismatch"):
++        verify_frozen_artifacts(run_root3)
+ 
+ 
+ def test_r2_capture_static_preflight_and_provenance_bindings(tmp_path: Path) -> None:
+@@ -614,41 +769,18 @@
+         )
+ 
+ 
+-def test_capture_time_receipt_is_persisted_and_tamper_evident(tmp_path: Path) -> None:
++def test_direct_freeze_rejects_caller_completed_receipt(tmp_path: Path) -> None:
+     payload = _persistent_payload(tmp_path)
+-    payload["raw_input_sha256"] = sha256_bytes(canonical_json(payload["rows"]))
+-    payload["d1_manifest"] = {
+-        "version": "hk-d1-manifest-v1",
+-        "manifest_sha256": hashlib.sha256(
+-            (tmp_path / "d1-STAGE_0930_0935.json").read_bytes()
+-        ).hexdigest(),
+-        "artifact": {
+-            "path": str(tmp_path / "d1-STAGE_0930_0935.json"),
+-            "sha256": hashlib.sha256(
+-                (tmp_path / "d1-STAGE_0930_0935.json").read_bytes()
+-            ).hexdigest(),
+-        },
++    payload["capture_time_receipt"] = {
++        "schema_version": shadow_module.CAPTURE_TIME_RECEIPT_SCHEMA_VERSION,
++        "source": shadow_module.CAPTURE_TIME_SOURCE,
++        "experiment_id": EXPERIMENT_ID,
++        "admission_mode": ENGINEERING_FIXTURE,
++        "invocation_verified": True,
++        "selector_invocation_status": "COMPLETED",
+     }
+-    payload["formula_manifest_binding"] = {
+-        "input_sha256": payload["formula_provenance"]["input_sha256"],
+-        "rule_sha256": payload["formula_provenance"]["rule_sha256"],
+-        "artifact": payload["formula_provenance"]["artifact"],
+-        "rule_artifact": payload["formula_provenance"]["rule_artifact"],
+-    }
+-    payload["capture_time_receipt"] = shadow_module._capture_time_receipt_payload(
+-        payload,
+-        captured_at=shadow_module._parse_timestamp(
+-            "2026-09-21T09:35:05+08:00", "20260921", "test"
+-        ),
+-        selector_status="COMPLETED",
+-        context=payload,
+-    )
+-    frozen = freeze_snapshot(payload, tmp_path)
+-    receipt_path = Path(frozen["run_root"]) / "capture_time_receipt.json"
+-    assert receipt_path.is_file()
+-    receipt_path.write_text(json.dumps({"tampered": True}), encoding="utf-8")
+-    with pytest.raises(ShadowInvalid, match="capture_time_receipt hash mismatch"):
+-        verify_frozen_artifacts(Path(frozen["run_root"]))
++    with pytest.raises(ShadowInvalid, match="INVOCATION_VERIFIED_RECEIPT_REQUIRES_SELECTOR_CAPTURE"):
++        freeze_snapshot(payload, tmp_path)
+ 
+ 
+ def test_persistent_freeze_requires_full_pool_and_real_artifact_binding(tmp_path: Path) -> None:
+--- r2_1/docs/formula_margin_shadow_v1.md
++++ r2_2/docs/formula_margin_shadow_v1.md
+@@ -112,6 +112,56 @@
+ This is an operator-invoked readback. No scheduler, service, or automatic
+ production integration calls it in this version.
+ 
++The capture receipt uses schema
++`v4.formula_margin_shadow.capture_time_receipt.v2`. It is created only after
++the selector returns its envelope. `production_run_id`, `production_artifact_id`,
++`production_algorithm_sha256`, `raw_artifact_sha256`, `selection_status`, and
++the Top10 come from that returned envelope. A caller supplied `run_id` or
++`artifact_id` is advisory; if it is present and differs from the returned
++identity, the capture is rejected. The callback Top10, returned Top10, and
++shadow B arm must be identical. `shadow_invocation_id` is a separate runtime
++capture event id and is never substituted for the deterministic production run
++id.
++
++`freeze_snapshot()` is a direct engineering freeze. It records
++`capture_origin=DIRECT_ENGINEERING_FREEZE`, `invocation_verified=false`,
++`invocation_status=NOT_VERIFIED_ENGINEERING_FREEZE`,
++`counts_as_forward_day=false`, and `natural_sample_count=0`. A hand-written
++receipt claiming `selector_invocation_status=COMPLETED` or
++`invocation_verified=true` is rejected by this path. Only the internal path
++that has observed the selector return may create an invocation-verified
++receipt.
++
++For an invocation-verified capture, the exact consumed source bytes are copied
++under the run root without symlinks:
++
++```text
++provenance/production_source.bin
++provenance/production_rule.bin
++provenance/d1_manifest.bin
++provenance/formula_state.bin
++provenance/formula_rule.bin
++selector_result.json
++```
++
++Their SHA-256 values are recorded in `selection_receipt.json`, together with
++the independent `source_artifact_sha256` field. `verify` reports
++`frozen_integrity_status=PASS` with
++`integrity_scope=LOCAL_FROZEN_AND_SEALED_PROVENANCE` only after it checks the
++sealed copies, selector result hash, identity bindings, and baseline parity.
++This is a local frozen-integrity result; it does not re-read external source
++paths. The optional external audit is explicit:
++
++```bash
++.venv/bin/python ops/run_formula_margin_shadow.py verify \
++  --run-root /abs/shadow_root/YYYYMMDD/STAGE_0930_0935 \
++  --external-revalidate
++```
++
++It reports `external_source_revalidation=NOT_REQUESTED`, `PASS`, `DRIFTED`,
++or `MISSING`. External drift or deletion does not invalidate a locally sealed
++run.
++
+ ## Frozen selection rule
+ 
+ The baseline is the first ten rows in the supplied production order. The

@@ -1,0 +1,587 @@
+--- checkpoint/stage_center/formula_margin_shadow.py
++++ r2/stage_center/formula_margin_shadow.py
+@@ -371,6 +371,12 @@
+         expected_sha=str(input_sha).lower(),
+         required=require_artifact,
+     )
++    rule_artifact_record = _checked_file_artifact(
++        raw.get("rule_artifact"),
++        "formula rule artifact",
++        expected_sha=str(rule_sha).lower(),
++        required=require_artifact,
++    )
+     return {
+         "source_version": source_version,
+         "input_sha256": str(input_sha).lower(),
+@@ -378,6 +384,7 @@
+         "source_asof": asof.isoformat(),
+         "frozen_at": frozen.isoformat(),
+         "artifact": artifact_record,
++        "rule_artifact": rule_artifact_record,
+     }
+ 
+ 
+@@ -798,13 +805,36 @@
+ def _formula_manifest_states(manifest: Mapping[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+     """Extract explicit per-code H/N/U states without calculating formulas."""
+ 
+-    binding = _verified_manifest_binding(manifest, "formula_manifest", require_artifact=True)
++    if not isinstance(manifest, Mapping):
++        raise ShadowInvalid("formula_manifest is required for a selector capture")
+     formula_input_sha = manifest.get("input_sha256", manifest.get("input_sha"))
+     formula_rule_sha = manifest.get("rule_sha256", manifest.get("rule_sha"))
+     if not _is_sha(formula_input_sha) or not _is_sha(formula_rule_sha):
+         raise ShadowInvalid("formula_manifest input_sha256/rule_sha256 are required")
++    # ``manifest_sha256`` may identify a surrounding manifest.  The formula
++    # state artifact itself must nevertheless be bound to input_sha256, and
++    # its rule bytes must be bound to rule_sha256.  Do not let a manifest
++    # descriptor SHA silently stand in for either artifact.
++    descriptor = dict(manifest)
++    descriptor.pop("artifact", None)
++    descriptor.pop("rule_artifact", None)
++    binding = _verified_manifest_binding(descriptor, "formula_manifest", require_artifact=False)
+     binding["input_sha256"] = str(formula_input_sha).lower()
+     binding["rule_sha256"] = str(formula_rule_sha).lower()
++    artifact_record = _checked_file_artifact(
++        manifest.get("artifact"),
++        "formula state artifact",
++        expected_sha=str(formula_input_sha).lower(),
++        required=True,
++    )
++    rule_artifact_record = _checked_file_artifact(
++        manifest.get("rule_artifact"),
++        "formula rule artifact",
++        expected_sha=str(formula_rule_sha).lower(),
++        required=True,
++    )
++    binding["artifact"] = artifact_record
++    binding["rule_artifact"] = rule_artifact_record
+     source: Any = manifest.get("states")
+     if source is None:
+         source = manifest.get("rows")
+@@ -898,6 +928,12 @@
+         raise ShadowInvalid("selector capture metadata is required")
+     if not isinstance(time_evidence, Mapping) or not time_evidence:
+         raise ShadowInvalid("verified time_evidence is required for a selector capture")
++    if not isinstance(raw_rows, Sequence) or isinstance(raw_rows, (str, bytes)):
++        raise ShadowInvalid("selector raw_rows must be a sequence")
++    if not isinstance(sorted_rows, Sequence) or isinstance(sorted_rows, (str, bytes)):
++        raise ShadowInvalid("selector sorted_rows must be a sequence")
++    if not isinstance(production_rows, Sequence) or isinstance(production_rows, (str, bytes)):
++        raise ShadowInvalid("selector production_rows must be a sequence")
+     d1_binding = _verified_manifest_binding(d1_manifest, "d1_manifest", require_artifact=True)
+     formula_states, formula_binding = _formula_manifest_states(formula_manifest)
+     metadata_copy = dict(metadata)
+@@ -905,6 +941,9 @@
+         raw_artifact_sha256 = metadata_copy.get("raw_artifact_sha256")
+     if not _is_sha(raw_artifact_sha256):
+         raise ShadowInvalid("raw_artifact_sha256 is required for a selector capture")
++    declared_raw_artifact_sha = metadata_copy.get("raw_artifact_sha256")
++    if declared_raw_artifact_sha not in (None, "") and str(declared_raw_artifact_sha).lower() != str(raw_artifact_sha256).lower():
++        raise ShadowInvalid("metadata raw_artifact_sha256 does not match selector raw artifact SHA")
+     source_record = _checked_file_artifact(
+         metadata_copy.get("source_artifact"),
+         "source_artifact",
+@@ -917,6 +956,8 @@
+         expected_sha=str(metadata_copy.get("rule_sha256") or "").lower(),
+         required=True,
+     )
++    if not isinstance(source_record, Mapping) or str(source_record["sha256"]).lower() != str(raw_artifact_sha256).lower():
++        raise ShadowInvalid("raw_artifact_sha256 is not bound to the verified source artifact")
+     metadata_copy["source_artifact"] = source_record
+     metadata_copy["rule_artifact"] = rule_record
+     formula_provenance = metadata_copy.get("formula_provenance")
+@@ -931,6 +972,7 @@
+     ):
+         raise ShadowInvalid("formula_manifest hashes do not match formula_provenance")
+     formula_provenance_copy["artifact"] = formula_binding["artifact"]
++    formula_provenance_copy["rule_artifact"] = formula_binding["rule_artifact"]
+     metadata_copy["formula_provenance"] = formula_provenance_copy
+     metadata_copy["d1_manifest"] = d1_binding
+     metadata_copy["time_evidence"] = dict(time_evidence)
+@@ -942,12 +984,6 @@
+     metadata_copy["raw_input_sha256"] = raw_input_sha
+     metadata_copy["raw_artifact_sha256"] = str(raw_artifact_sha256).lower()
+ 
+-    if not isinstance(raw_rows, Sequence) or isinstance(raw_rows, (str, bytes)):
+-        raise ShadowInvalid("selector raw_rows must be a sequence")
+-    if not isinstance(sorted_rows, Sequence) or isinstance(sorted_rows, (str, bytes)):
+-        raise ShadowInvalid("selector sorted_rows must be a sequence")
+-    if not isinstance(production_rows, Sequence) or isinstance(production_rows, (str, bytes)):
+-        raise ShadowInvalid("selector production_rows must be a sequence")
+     if len(sorted_rows) != POOL_LIMIT:
+         raise ShadowInvalid(f"full selector sorted rows are required; got {len(sorted_rows)}")
+     if len(production_rows) < TOP_K:
+@@ -986,6 +1022,8 @@
+     source_rows = source_payload.get("rows", source_payload.get("members"))
+     if not isinstance(source_rows, list):
+         raise ShadowInvalid("source_artifact rows are required")
++    if canonical_json(source_rows) != canonical_json(list(raw_rows)):
++        raise ShadowInvalid("source_artifact rows do not canonically match selector raw input")
+     source_codes = {
+         _canonical_code(row.get("security_id", row.get("code")))
+         for row in source_rows
+@@ -1059,6 +1097,134 @@
+         "selection_eligible_definition": "rows returned by select_hk_four_lane before public Top10 cap",
+     }
+     return {**metadata_copy, "rows": capture_rows}
++
++
++def _validate_capture_request_static(payload: Mapping[str, Any]) -> dict[str, Any]:
++    """Validate the raw selector capture contract before invoking production.
++
++    This gate deliberately stops before rank, baseline, or tau calculation.
++    It is shared by the capture-specific preflight and the manual capture
++    entrypoint so a preflight PASS means only that the selector may be called.
++    """
++
++    if not isinstance(payload, Mapping):
++        raise ShadowInvalid("capture input must be an object")
++    metadata = _metadata_from_input(payload)
++    if metadata.get("experiment_id", EXPERIMENT_ID) != EXPERIMENT_ID:
++        raise ShadowInvalid("experiment_id mismatch")
++    if metadata.get("observation_mode") not in ("FORWARD_NATURAL", "FORWARD_SHADOW"):
++        raise ShadowInvalid("observation_mode must be FORWARD_NATURAL/FORWARD_SHADOW")
++    _reject_archive_or_proxy_metadata(metadata)
++    trade_date, stage_id, cutoff_iso, cutoff = _stage_contract(metadata)
++    captured_at = _parse_timestamp(metadata.get("captured_at"), trade_date, "captured_at")
++    if captured_at > cutoff:
++        raise ShadowInvalid("captured_at is after the stage cutoff")
++
++    raw_rows = payload.get("rows")
++    if not isinstance(raw_rows, list):
++        raise ShadowInvalid("capture raw rows are required")
++    if len(raw_rows) != POOL_LIMIT:
++        raise ShadowInvalid(f"capture requires exactly {POOL_LIMIT} raw D1 rows; got {len(raw_rows)}")
++    raw_codes: list[str] = []
++    for raw in raw_rows:
++        if not isinstance(raw, Mapping):
++            raise ShadowInvalid("capture raw rows must be objects")
++        raw_codes.append(_canonical_code(raw.get("security_id", raw.get("code"))))
++    if len(set(raw_codes)) != POOL_LIMIT:
++        raise ShadowInvalid("capture raw D1 codes must be unique")
++    raw_code_set = set(raw_codes)
++
++    binding = _source_binding(metadata, require_artifacts=True)
++    source_artifact = _source_artifact_check(
++        metadata,
++        expected_sha=binding["input_sha256"],
++        required=True,
++    )
++    raw_artifact_sha = metadata.get("raw_artifact_sha256")
++    if not _is_sha(raw_artifact_sha) or str(raw_artifact_sha).lower() != str(source_artifact["sha256"]).lower():
++        raise ShadowInvalid("raw_artifact_sha256 is not bound to the verified source artifact")
++    raw_input_sha = sha256_bytes(canonical_json(raw_rows))
++    declared_raw_input_sha = metadata.get("raw_input_sha256")
++    if declared_raw_input_sha not in (None, "") and str(declared_raw_input_sha).lower() != raw_input_sha:
++        raise ShadowInvalid("raw_input_sha256 does not match selector input rows")
++    source_payload = _read_json(Path(str(source_artifact["path"])))
++    if not isinstance(source_payload, Mapping):
++        raise ShadowInvalid("source_artifact must contain an object")
++    source_rows = source_payload.get("rows", source_payload.get("members"))
++    if not isinstance(source_rows, list):
++        raise ShadowInvalid("source_artifact rows are required")
++    if canonical_json(source_rows) != canonical_json(raw_rows):
++        raise ShadowInvalid("source_artifact rows do not canonically match selector raw input")
++
++    d1_manifest = payload.get("d1_manifest", metadata.get("d1_manifest"))
++    d1_binding = _verified_manifest_binding(d1_manifest, "d1_manifest", require_artifact=True)
++    d1_artifact = d1_binding.get("artifact")
++    if not isinstance(d1_artifact, Mapping):
++        raise ShadowInvalid("d1_manifest actual artifact is required")
++    d1_payload = _read_json(Path(str(d1_artifact["path"])))
++    if not isinstance(d1_payload, Mapping):
++        raise ShadowInvalid("d1_manifest artifact must contain an object")
++    d1_rows = d1_payload.get("rows", d1_payload.get("members"))
++    if not isinstance(d1_rows, list) or len(d1_rows) != POOL_LIMIT:
++        raise ShadowInvalid("d1_manifest artifact must contain exactly 100 rows")
++    d1_codes: list[str] = []
++    for row in d1_rows:
++        if not isinstance(row, Mapping):
++            raise ShadowInvalid("d1_manifest artifact rows must be objects")
++        d1_codes.append(_canonical_code(row.get("security_id", row.get("code"))))
++    if len(set(d1_codes)) != POOL_LIMIT or set(d1_codes) != raw_code_set:
++        raise ShadowInvalid("d1_manifest artifact members do not match selector raw input")
++
++    formula_manifest = payload.get("formula_manifest", metadata.get("formula_manifest"))
++    formula_states, formula_binding = _formula_manifest_states(formula_manifest)
++    if len(formula_states) != POOL_LIMIT or set(formula_states) != raw_code_set:
++        raise ShadowInvalid("formula state artifact must cover exactly the 100 selector codes")
++    formula = _formula_provenance(
++        metadata,
++        trade_date,
++        cutoff,
++        require_artifact=True,
++    )
++    if (
++        formula["input_sha256"] != formula_binding["input_sha256"]
++        or formula["rule_sha256"] != formula_binding["rule_sha256"]
++    ):
++        raise ShadowInvalid("formula provenance hashes do not match the verified formula manifest")
++    if formula.get("artifact", {}).get("sha256") != formula_binding.get("artifact", {}).get("sha256"):
++        raise ShadowInvalid("formula provenance state artifact is not the verified manifest artifact")
++    if formula.get("rule_artifact", {}).get("sha256") != formula_binding.get("rule_artifact", {}).get("sha256"):
++        raise ShadowInvalid("formula provenance rule artifact is not the verified manifest rule artifact")
++
++    time_evidence = payload.get("time_evidence", metadata.get("time_evidence"))
++    if not isinstance(time_evidence, Mapping) or not time_evidence:
++        raise ShadowInvalid("verified time_evidence is required for selector capture")
++    evidence_captured = time_evidence.get("captured_at")
++    if not evidence_captured:
++        raise ShadowInvalid("time_evidence.captured_at is required")
++    evidence_at = _parse_timestamp(evidence_captured, trade_date, "time_evidence.captured_at")
++    if evidence_at > cutoff:
++        raise ShadowInvalid("time_evidence.captured_at is after the stage cutoff")
++    if evidence_at != captured_at:
++        raise ShadowInvalid("time_evidence.captured_at does not match metadata captured_at")
++    for key, expected in (("trade_date", trade_date), ("stage", stage_id)):
++        value = time_evidence.get(key)
++        if value not in (None, "") and str(value).replace("-", "") != expected:
++            raise ShadowInvalid(f"time_evidence {key} does not match capture metadata")
++    evidence_cutoff = time_evidence.get("cutoff_ts")
++    if evidence_cutoff not in (None, "") and _parse_timestamp(evidence_cutoff, trade_date, "time_evidence.cutoff_ts") != cutoff:
++        raise ShadowInvalid("time_evidence.cutoff_ts does not match capture metadata")
++
++    return {
++        "trade_date": trade_date,
++        "stage": stage_id,
++        "cutoff_ts": cutoff_iso,
++        "raw_input_sha256": raw_input_sha,
++        "raw_artifact_sha256": str(raw_artifact_sha).lower(),
++        "d1_manifest": d1_binding,
++        "formula_manifest": formula_binding,
++        "production_binding": binding,
++        "time_evidence": dict(time_evidence),
++    }
+ 
+ 
+ def build_shadow(
+@@ -1985,6 +2151,49 @@
+     }
+ 
+ 
++def preflight_capture_input(payload_or_path: Mapping[str, Any] | Path | str) -> dict[str, Any]:
++    """Run the static admission gate for a raw selector capture request.
++
++    ``READY_FOR_SELECTOR_CAPTURE`` authorizes only the subsequent selector
++    invocation.  It is never a frozen run and never increments a natural-day
++    counter.
++    """
++
++    payload = _read_json(payload_or_path) if isinstance(payload_or_path, (Path, str)) else payload_or_path
++    if not isinstance(payload, Mapping):
++        return {
++            "status": "REJECTED",
++            "capture_ready": False,
++            "reasons": ["INPUT_NOT_OBJECT"],
++            "natural_sample_count": 0,
++            "counts_as_forward_day": False,
++        }
++    try:
++        binding = _validate_capture_request_static(payload)
++    except ShadowInvalid as error:
++        return {
++            "status": "REJECTED",
++            "capture_ready": False,
++            "reasons": [str(error)],
++            "natural_sample_count": 0,
++            "counts_as_forward_day": False,
++            "observation_mode": str(_metadata_from_input(payload).get("observation_mode") or "").upper(),
++        }
++    return {
++        "status": "READY_FOR_SELECTOR_CAPTURE",
++        "capture_ready": True,
++        "reasons": [],
++        "trade_date": binding["trade_date"],
++        "stage": binding["stage"],
++        "cutoff_ts": binding["cutoff_ts"],
++        "raw_input_sha256": binding["raw_input_sha256"],
++        "natural_sample_count": 0,
++        "counts_as_forward_day": False,
++        "frozen": False,
++        **SAFETY_FLAGS,
++    }
++
++
+ def capture_selector_snapshot(
+     payload_or_path: Mapping[str, Any] | Path | str,
+     output_root: Path | str,
+@@ -2003,6 +2212,11 @@
+     if not isinstance(payload, Mapping):
+         return record_invalid_capture(output_root, {}, ["CAPTURE_INPUT_NOT_OBJECT"])
+     metadata = dict(_metadata_from_input(payload))
++    try:
++        _validate_capture_request_static(payload)
++    except ShadowInvalid as error:
++        invalid = record_invalid_capture(output_root, metadata, [str(error)])
++        return {"status": "CANNOT_CONFIRM", "capture": invalid, **SAFETY_FLAGS}
+     rows = payload.get("rows")
+     formula_manifest = payload.get("formula_manifest", metadata.get("formula_manifest"))
+     time_evidence = payload.get("time_evidence", metadata.get("time_evidence"))
+@@ -2132,6 +2346,8 @@
+     sub = parser.add_subparsers(dest="command", required=True)
+     preflight = sub.add_parser("preflight")
+     preflight.add_argument("--input", type=Path, required=True)
++    preflight_capture = sub.add_parser("preflight-capture")
++    preflight_capture.add_argument("--input", type=Path, required=True)
+     capture = sub.add_parser("capture")
+     capture.add_argument("--input", type=Path, required=True)
+     capture.add_argument("--output-root", type=Path, required=True)
+@@ -2149,6 +2365,8 @@
+     try:
+         if args.command == "preflight":
+             result = preflight_input(args.input)
++        elif args.command == "preflight-capture":
++            result = preflight_capture_input(args.input)
+         elif args.command == "capture":
+             result = capture_selector_snapshot(args.input, args.output_root)
+         elif args.command == "freeze":
+@@ -2202,6 +2420,7 @@
+     "freeze_snapshot",
+     "hk_legacy_stage_sort_key",
+     "preflight_input",
++    "preflight_capture_input",
+     "record_invalid_capture",
+     "sha256_file",
+     "verify_frozen_artifacts",
+--- checkpoint/tests/test_formula_margin_shadow.py
++++ r2/tests/test_formula_margin_shadow.py
+@@ -23,6 +23,7 @@
+     capture_selector_snapshot,
+     canonical_json,
+     sha256_bytes,
++    preflight_capture_input,
+ )
+ from stage_center.selection import select_hk_four_lane
+ 
+@@ -123,6 +124,9 @@
+     formula_path = tmp_path / f"formula-{stage}.json"
+     formula_path.write_text(json.dumps({"rows": formula_rows}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+     formula_sha = hashlib.sha256(formula_path.read_bytes()).hexdigest()
++    formula_rule_path = tmp_path / f"formula-rule-{stage}.txt"
++    formula_rule_path.write_text("verified-formula-rule-v1", encoding="utf-8")
++    formula_rule_sha = hashlib.sha256(formula_rule_path.read_bytes()).hexdigest()
+     d1_path = tmp_path / f"d1-{stage}.json"
+     d1_path.write_text(json.dumps({"rows": rows}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+     d1_sha = hashlib.sha256(d1_path.read_bytes()).hexdigest()
+@@ -133,10 +137,11 @@
+     payload["formula_provenance"] = {
+         "source_version": "hk-formula-state-v1",
+         "input_sha256": formula_sha,
+-        "rule_sha256": rule_sha,
++        "rule_sha256": formula_rule_sha,
+         "source_asof": "2026-09-20",
+         "frozen_at": "2026-09-20T18:00:00+08:00",
+         "artifact": {"path": str(formula_path), "sha256": formula_sha},
++        "rule_artifact": {"path": str(formula_rule_path), "sha256": formula_rule_sha},
+     }
+     payload["d1_manifest"] = {
+         "version": "hk-d1-manifest-v1",
+@@ -351,6 +356,9 @@
+     formula_path = tmp_path / "selector-formula.json"
+     formula_path.write_text(json.dumps({"rows": formula_rows}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+     formula_sha = hashlib.sha256(formula_path.read_bytes()).hexdigest()
++    formula_rule_path = tmp_path / "selector-formula-rule.txt"
++    formula_rule_path.write_text("verified-selector-formula-rule-v1", encoding="utf-8")
++    formula_rule_sha = hashlib.sha256(formula_rule_path.read_bytes()).hexdigest()
+     d1_path = tmp_path / "selector-d1.json"
+     d1_path.write_text(json.dumps({"rows": rows}, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+     d1_sha = hashlib.sha256(d1_path.read_bytes()).hexdigest()
+@@ -374,10 +382,11 @@
+             "formula_provenance": {
+                 "source_version": "hk-formula-state-v1",
+                 "input_sha256": formula_sha,
+-                "rule_sha256": rule_sha,
++                "rule_sha256": formula_rule_sha,
+                 "source_asof": "2026-09-20",
+                 "frozen_at": "2026-09-20T18:00:00+08:00",
+                 "artifact": {"path": str(formula_path), "sha256": formula_sha},
++                "rule_artifact": {"path": str(formula_rule_path), "sha256": formula_rule_sha},
+             },
+             "source_evidence": ["selection_contract=V3_TOP10_RECOMMENDATION"],
+             "requested_rows": 100,
+@@ -387,8 +396,9 @@
+             "version": "hk-formula-manifest-v1",
+             "manifest_sha256": formula_sha,
+             "input_sha256": formula_sha,
+-            "rule_sha256": rule_sha,
++            "rule_sha256": formula_rule_sha,
+             "artifact": {"path": str(formula_path), "sha256": formula_sha},
++            "rule_artifact": {"path": str(formula_rule_path), "sha256": formula_rule_sha},
+             "rows": formula_rows,
+         },
+         "time_evidence": {"source": "selector-test", "captured_at": "2026-09-21T09:35:00+08:00"},
+@@ -461,6 +471,71 @@
+     assert manual["capture"]["selector_top10_codes"] == [row["code"] for row in selected["rows"]]
+ 
+ 
++def test_r2_capture_static_preflight_and_provenance_bindings(tmp_path: Path) -> None:
++    payload = _selector_capture_input(tmp_path)
++    ready = preflight_capture_input(payload)
++    assert ready["status"] == "READY_FOR_SELECTOR_CAPTURE"
++    assert ready["capture_ready"] is True
++    assert ready["frozen"] is False
++    assert ready["natural_sample_count"] == 0
++
++    bad_raw_sha = copy.deepcopy(payload)
++    bad_raw_sha["metadata"]["raw_artifact_sha256"] = "e" * 64
++    rejected = preflight_capture_input(bad_raw_sha)
++    assert rejected["status"] == "REJECTED"
++    assert "raw_artifact_sha256" in rejected["reasons"][0]
++
++    bad_sequence = copy.deepcopy(payload)
++    bad_sequence["rows"][0], bad_sequence["rows"][1] = bad_sequence["rows"][1], bad_sequence["rows"][0]
++    rejected_sequence = preflight_capture_input(bad_sequence)
++    assert rejected_sequence["status"] == "REJECTED"
++    assert "canonically match" in rejected_sequence["reasons"][0]
++
++    bad_content = copy.deepcopy(payload)
++    bad_content["rows"][0]["name"] = "different-non-comparator-content"
++    rejected_content = preflight_capture_input(bad_content)
++    assert rejected_content["status"] == "REJECTED"
++    assert "canonically match" in rejected_content["reasons"][0]
++
++    bad_formula_rule = copy.deepcopy(payload)
++    bad_formula_rule["formula_manifest"].pop("rule_artifact")
++    rejected_formula_rule = preflight_capture_input(bad_formula_rule)
++    assert rejected_formula_rule["status"] == "REJECTED"
++    assert "formula rule artifact" in rejected_formula_rule["reasons"][0]
++
++    bad_formula_state = copy.deepcopy(payload)
++    bad_formula_state["formula_manifest"]["rows"][0]["f1_state"] = "H"
++    rejected_formula_state = preflight_capture_input(bad_formula_state)
++    assert rejected_formula_state["status"] == "REJECTED"
++    assert "states do not match" in rejected_formula_state["reasons"][0]
++
++    for count in (99, 101):
++        short_or_long = copy.deepcopy(payload)
++        if count == 99:
++            short_or_long["rows"] = short_or_long["rows"][:count]
++        else:
++            short_or_long["rows"].append(copy.deepcopy(short_or_long["rows"][0]))
++        rejected_size = preflight_capture_input(short_or_long)
++        assert rejected_size["status"] == "REJECTED"
++        assert "exactly 100" in rejected_size["reasons"][0]
++
++    rejected_empty = preflight_capture_input({"metadata": payload["metadata"], "rows": []})
++    assert rejected_empty["status"] == "REJECTED"
++    assert rejected_empty["capture_ready"] is False
++
++
++def test_r2_capture_static_gate_blocks_before_selector_and_no_artifact(tmp_path: Path) -> None:
++    payload = _selector_capture_input(tmp_path)
++    payload["metadata"]["raw_artifact_sha256"] = "f" * 64
++    output_root = tmp_path / "shadow-output"
++    result = capture_selector_snapshot(payload, output_root)
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert result["capture"]["status"] == "CANNOT_CONFIRM"
++    run_root = output_root / "20260921" / "STAGE_0930_0935"
++    assert (run_root / "invalid_ledger.json").is_file()
++    assert not (run_root / "baseline_top10.json").exists()
++
++
+ def test_persistent_freeze_requires_full_pool_and_real_artifact_binding(tmp_path: Path) -> None:
+     with pytest.raises(ShadowInvalid, match="complete 100-row D1 pool"):
+         freeze_snapshot(_payload(), tmp_path)
+@@ -481,6 +556,28 @@
+     assert result["status"] == "REJECTED"
+     assert result["forward_eligible"] is False
+     assert any(reason.startswith("INPUT_VALIDATION:") for reason in result["reasons"])
++
++
++def test_no_rank10_same_class_gap_invalidates_stage() -> None:
++    payload = _payload()
++    for row in payload["rows"]:
++        row["lane"] = ["LANE_MAIN"]
++    payload["rows"][9]["lane"] = ["LANE_RANK10_ONLY"]
++    with pytest.raises(ShadowInvalid, match="no valid rank6..15 score gap"):
++        build_shadow(payload)
++
++
++def test_tau_zero_allows_only_same_score_equivalence_reorder() -> None:
++    payload = _payload()
++    for row in payload["rows"]:
++        row["stage_score"] = 92.0
++    built = build_shadow(payload)
++    assert built["receipt"]["selection"]["tau"] == 0.0
++    assert built["receipt"]["selection"]["tau_zero_tie_only"] is True
++    assert all(
++        row["stage_score"] == payload["rows"][int(row["production_rank"]) - 1]["stage_score"]
++        for row in built["candidate"]["rows"]
++    )
+ 
+ 
+ def test_truth_is_computed_from_verified_full_universe_and_fake_top20_is_rejected(tmp_path: Path) -> None:
+--- checkpoint/docs/formula_margin_shadow_v1.md
++++ r2/docs/formula_margin_shadow_v1.md
+@@ -77,7 +77,7 @@
+     "formula_provenance": {"input_sha256": "...", "rule_sha256": "...", "source_asof": "...", "frozen_at": "..."}
+   },
+   "rows": ["the exact raw selector input rows"],
+-  "formula_manifest": {"version": "...", "input_sha256": "...", "rule_sha256": "...", "artifact": {"path": "/abs/formula.json", "sha256": "..."}, "states": ["per-code f1..f4 H/N/U"]},
++  "formula_manifest": {"version": "...", "input_sha256": "...", "rule_sha256": "...", "artifact": {"path": "/abs/formula.json", "sha256": "..."}, "rule_artifact": {"path": "/abs/formula-rule.json", "sha256": "..."}, "states": ["per-code f1..f4 H/N/U"]},
+   "d1_manifest": {"version": "...", "sha256": "...", "artifact": {"path": "/abs/d1.json", "sha256": "..."}},
+   "time_evidence": {"source": "selector capture", "captured_at": "..."}
+ }
+@@ -202,10 +202,15 @@
+ coverage ratio 1.0, a deterministic same-gain tie-break, and a gain
+ definition. The tool computes the Top20 from those full rows; a self-reported
+ `truth_top20_codes` list is only checked against the computed result and is
+-never trusted as the source. Every D1 member needs a close price and
+-semantics. Missing or late data is recorded in `invalid_ledger.json` and
+-makes that unit `CANNOT_CONFIRM`; missing prices are never treated as zero or
+-a loss.
++never trusted as the source. Missing or late member/gain coverage is recorded
++in `invalid_ledger.json` and makes the hit unit `CANNOT_CONFIRM`; missing
++gains are never treated as zero or a loss. D1 members outside the calculated
++Top20 are expected and do not produce `LABEL_NOT_IN_D1_POOL`.
++
++After hit truth is independently valid, missing close price, currency,
++adjustment mode, or close-price-source on a selected name affects only the
++stage-to-close markout. The label unit remains usable for hit counts and
++recall, while markout is reported as `CANNOT_CONFIRM`.
+ 
+ The close label rows contain:
+ 
+@@ -221,6 +226,14 @@
+ The label payload binds the frozen selection receipt SHA. A conditional
+ positive-market-cap Top20, a D1-only Top20, a full-HK-without-membership
+ snapshot, an old archive, or a legacy fixture cannot satisfy this scope.
++The source identity, exact-date membership schema, final-close/gain field,
++tie-break, and suspension policy must come from the existing V4 authority
++contract. Caller-provided counts, source-version strings, tie-break labels, or
++combined JSON do not establish that authority. Until that contract is bound,
++this R2 handoff keeps the truth adapter blocked and every truth unit is
++`CANNOT_CONFIRM`; no caller-supplied contract can upgrade it.
++The repository fixtures that exercise the arithmetic are engineering-only
++fixtures and do not provide this authority contract.
+ 
+ ## Metrics
+ 
+@@ -255,6 +268,10 @@
+ # Engineering preflight; this never creates a run and never counts a day.
+ .venv/bin/python ops/run_formula_margin_shadow.py preflight --input /abs/input.json
+ 
++# Raw selector-input preflight; this only authorizes invoking the selector.
++.venv/bin/python ops/run_formula_margin_shadow.py preflight-capture \
++  --input /abs/selector_capture_input.json
++
+ # Real run: exact D1 Top100 is required by default.
+ .venv/bin/python ops/run_formula_margin_shadow.py freeze \
+   --input /abs/real_v4_snapshot.json \
+@@ -271,6 +288,15 @@
+ .venv/bin/python ops/run_formula_margin_shadow.py evaluate \
+   --run-root /abs/shadow_root/YYYYMMDD/STAGE_0930_0935
+ ```
++
++`preflight-capture` validates exactly 100 unique raw D1 rows, the actual
++production source/rule bytes, the D1 manifest, the 100-code H/N/U formula
++state and rule artifacts, and bound time evidence. A successful response is
++`READY_FOR_SELECTOR_CAPTURE`; it is neither `FROZEN` nor a natural sample.
++Dynamic production rank, baseline parity, equivalent-class checks and `tau`
++are evaluated only when `capture` invokes the real selector hook. Static
++preflight and capture share the same admission helper, so an input cannot
++pass preflight through a weaker schema than the capture path.
+ 
+ The existing archive rejection canary is an engineering check only. It does
+ not start the five-day canary, the fixed twenty-day pilot, or the independent

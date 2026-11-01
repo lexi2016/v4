@@ -1,0 +1,354 @@
+{
+  "schema_version": "v1.v4_canonical_current_repairs_source_review",
+  "reviewer_identity": "/root/hk_pytdx_data_review",
+  "review_status": "PASS_SCOPED_CANONICAL_CURRENT_REPAIRS_SOURCE_FORWARD_PORT",
+  "scope": {
+    "goal": "Independently review only the canonical source forward-port of the previously reviewed request-day HK manual observation, compact observation display, and R2 rebound owner selector.",
+    "source_root": "/Users/lexi/Desktop/学习/v4_app",
+    "evidence_root": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery",
+    "comparison_rule": "Compared current canonical files only with batch-saved preimages and hash-bound reviewed candidate files; did not compare to Git HEAD.",
+    "changed_business_paths": [
+      "apps/api/v35_api/manager_workbench_router.py",
+      "v4/manager_research/workspace.py",
+      "v4/manager_research/workspace_projection.py",
+      "v4/manager_research/workspace_plan.py",
+      "apps/web/src/manager-selection/catalystObservationPanel.ts"
+    ],
+    "changed_test_paths": [
+      "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "tests/test_manager_current_observation.py",
+      "tests/test_manager_workspace_targeted_r2.py"
+    ],
+    "new_fixture_paths": [
+      "tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json",
+      "tests/fixtures/manager_current_observation_20261002/close_recapture.json",
+      "tests/fixtures/manager_current_observation_20261002/close_recapture.receipt.json",
+      "tests/fixtures/manager_current_observation_20261002/close_recapture.candidates.json",
+      "tests/fixtures/manager_current_observation_20261002/inputs/close_recapture_pytdx.json"
+    ],
+    "total_hash_bound_paths": 13
+  },
+  "evidence_bindings": {
+    "SOURCE_HASHES.json": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/SOURCE_HASHES.json",
+      "sha256": "f02f9457090616d0da8c65837f6f329d0b17a3f7b0050a01e7ecae80a81816bb",
+      "expected_sha256": "f02f9457090616d0da8c65837f6f329d0b17a3f7b0050a01e7ecae80a81816bb"
+    },
+    "CANONICAL_SOURCE_DELTA.diff": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/CANONICAL_SOURCE_DELTA.diff",
+      "sha256": "97bdf7f37e13a83b01c5924c5f05b471dabdc7c93ea678e2818cdac84d782cfe",
+      "expected_sha256": "97bdf7f37e13a83b01c5924c5f05b471dabdc7c93ea678e2818cdac84d782cfe"
+    },
+    "PREIMAGE_BINDING.json": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/PREIMAGE_BINDING.json",
+      "sha256": "a89016ce6fc578ce1a1a4e609d3c2e8998805d516d53fb92ccb017709504e37c",
+      "expected_sha256": "a89016ce6fc578ce1a1a4e609d3c2e8998805d516d53fb92ccb017709504e37c"
+    },
+    "WRITER_HANDOFF.md": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/WRITER_HANDOFF.md",
+      "sha256": "7b1baedae859bb528a2b7fd2334beff1329c94ad985e53916d6531b6690a7606",
+      "expected_sha256": "7b1baedae859bb528a2b7fd2334beff1329c94ad985e53916d6531b6690a7606"
+    },
+    "TEST_RECEIPT.json": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/TEST_RECEIPT.json",
+      "sha256": "4498a9d98013f7f9d61a1b49e34fe2ec2b5de1f03cd627c0bede405522e23fa1",
+      "expected_sha256": "4498a9d98013f7f9d61a1b49e34fe2ec2b5de1f03cd627c0bede405522e23fa1"
+    },
+    "previous_independent_review_receipts": [
+      {
+        "name": "current_observation_r2",
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_fix/INDEPENDENT_CURRENT_OBSERVATION_REVIEW_R2.json",
+        "review_status": "PASS_SCOPED",
+        "sha256": "94c70df31486274c41d1716e457b36137c250cbae807fcebf1853072d24c0d4e"
+      },
+      {
+        "name": "rebound_owner_selection_r2",
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/rebound_owner_selection_fix/INDEPENDENT_REBOUND_OWNER_SELECTION_REVIEW_R2.json",
+        "review_status": "PASS_SCOPED_REBOUND_OWNER_SELECTION_R2",
+        "sha256": "14c069a8700aca0a9ee33460aea6ef89c05deecec485787a2cffae0903bfe020"
+      },
+      {
+        "name": "current_observation_ui",
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_ui_fix/INDEPENDENT_CURRENT_OBSERVATION_UI_REVIEW.json",
+        "review_status": "PASS_SCOPED",
+        "sha256": "83da1e30e660677f236070edecd02e0fd53240c1b2d3af2a6a1d37e843982563"
+      }
+    ],
+    "preimage_files": [
+      {
+        "bytes": 51474,
+        "path": "apps/api/v35_api/manager_workbench_router.py",
+        "preimage_copy": "preimage/apps/api/v35_api/manager_workbench_router.py",
+        "sha256": "d202bace0da2fec3e59977240af31a52026e18639b6b08878ebbbd60d52fe88b"
+      },
+      {
+        "bytes": 40465,
+        "path": "v4/manager_research/workspace.py",
+        "preimage_copy": "preimage/v4/manager_research/workspace.py",
+        "sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168"
+      },
+      {
+        "bytes": 27450,
+        "path": "v4/manager_research/workspace_projection.py",
+        "preimage_copy": "preimage/v4/manager_research/workspace_projection.py",
+        "sha256": "f5003b4de58db760e3d864473c5ce62846bb0e8ae1acdc8a8e77544272f865b8"
+      },
+      {
+        "bytes": 86127,
+        "path": "v4/manager_research/workspace_plan.py",
+        "preimage_copy": "preimage/v4/manager_research/workspace_plan.py",
+        "sha256": "d3244ea2bf3ca3b6eedd79b53d5026eaf7f5358d833747ce22e9381e17d51e64"
+      },
+      {
+        "bytes": 54352,
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "preimage_copy": "preimage/apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "sha256": "4a0a693cc5715564ef095792907b386b31d8e1581394931750ce819f48c43f8a"
+      },
+      {
+        "bytes": 19545,
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "preimage_copy": "preimage/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645"
+      },
+      {
+        "bytes": 25030,
+        "path": "tests/test_manager_workspace_targeted_r2.py",
+        "preimage_copy": "preimage/tests/test_manager_workspace_targeted_r2.py",
+        "sha256": "77f7355fe97857db4598b607d72c088e913e5d0ee7439a5679965334fdde7e2f"
+      }
+    ],
+    "canonical_source_files": [
+      {
+        "bytes": 57619,
+        "path": "apps/api/v35_api/manager_workbench_router.py",
+        "preimage_sha256": "d202bace0da2fec3e59977240af31a52026e18639b6b08878ebbbd60d52fe88b",
+        "reviewed_candidate_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+        "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+      },
+      {
+        "bytes": 41770,
+        "path": "v4/manager_research/workspace.py",
+        "preimage_sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+        "reviewed_candidate_sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696",
+        "sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696"
+      },
+      {
+        "bytes": 30841,
+        "path": "v4/manager_research/workspace_projection.py",
+        "preimage_sha256": "f5003b4de58db760e3d864473c5ce62846bb0e8ae1acdc8a8e77544272f865b8",
+        "reviewed_candidate_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+        "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+      },
+      {
+        "bytes": 94204,
+        "path": "v4/manager_research/workspace_plan.py",
+        "preimage_sha256": "d3244ea2bf3ca3b6eedd79b53d5026eaf7f5358d833747ce22e9381e17d51e64",
+        "sha256": "e35d4d73e39293769856f9f4af75d9eb6bc75a5b552bb807779704f625a6a5c1"
+      },
+      {
+        "bytes": 56129,
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "preimage_sha256": "4a0a693cc5715564ef095792907b386b31d8e1581394931750ce819f48c43f8a",
+        "reviewed_candidate_sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186",
+        "sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186"
+      },
+      {
+        "bytes": 23248,
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+        "preimage_sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+        "sha256": "64a887d782b03b84d243c8ee08d852d97916f278326a7fe26195ea3c883144fd"
+      },
+      {
+        "bytes": 14048,
+        "path": "tests/test_manager_current_observation.py",
+        "preimage": "ABSENT",
+        "sha256": "a436d38f492f8d456ff2923df88f3b5ef0f165047330e3710f48915ebd490acb"
+      },
+      {
+        "bytes": 33077,
+        "path": "tests/test_manager_workspace_targeted_r2.py",
+        "preimage_sha256": "77f7355fe97857db4598b607d72c088e913e5d0ee7439a5679965334fdde7e2f",
+        "sha256": "6ba156e128d1e783b2b372330e8d18bb1d6d29859fbb3bdff7e064e756305f25"
+      },
+      {
+        "bytes": 1802,
+        "path": "tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json",
+        "preimage": "ABSENT",
+        "sha256": "9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c"
+      },
+      {
+        "bytes": 3296,
+        "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.json",
+        "preimage": "ABSENT",
+        "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56"
+      },
+      {
+        "bytes": 1303,
+        "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.receipt.json",
+        "preimage": "ABSENT",
+        "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994"
+      },
+      {
+        "bytes": 59817,
+        "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.candidates.json",
+        "preimage": "ABSENT",
+        "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454"
+      },
+      {
+        "bytes": 47324,
+        "path": "tests/fixtures/manager_current_observation_20261002/inputs/close_recapture_pytdx.json",
+        "preimage": "ABSENT",
+        "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3"
+      }
+    ]
+  },
+  "source_review": {
+    "exact_reviewed_candidate_matches": [
+      {
+        "path": "apps/api/v35_api/manager_workbench_router.py",
+        "canonical_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+        "reviewed_candidate_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+        "byte_identical": true
+      },
+      {
+        "path": "v4/manager_research/workspace.py",
+        "canonical_sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696",
+        "reviewed_candidate_sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696",
+        "byte_identical": true
+      },
+      {
+        "path": "v4/manager_research/workspace_projection.py",
+        "canonical_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+        "reviewed_candidate_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+        "byte_identical": true
+      },
+      {
+        "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+        "canonical_sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186",
+        "reviewed_candidate_sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186",
+        "byte_identical": true
+      }
+    ],
+    "workspace_plan_merge": {
+      "preimage_sha256": "d3244ea2bf3ca3b6eedd79b53d5026eaf7f5358d833747ce22e9381e17d51e64",
+      "canonical_sha256": "e35d4d73e39293769856f9f4af75d9eb6bc75a5b552bb807779704f625a6a5c1",
+      "reviewed_candidate_selector_function_matches_exactly": true,
+      "required_history_binding": "read_rebound_screen passes previous5_session_dates[-1] from the validated native rebound calendar to _read_hk02_panel_witness.",
+      "preservation_assertions": {
+        "bytes_before__read_hk02_panel_witness_unchanged": true,
+        "_read_hk02_daily_supplement_witness_byte_identical_to_preimage": true,
+        "read_rebound_screen_body_after_master_names_byte_identical_to_preimage": true,
+        "all_bytes_after_read_rebound_screen_byte_identical_to_preimage": true,
+        "existing_selector_test_dynamic_view_read_preserved": true
+      },
+      "daily_supplement_interaction": "The pre-existing body still adds bars only for missing history dates, fills only missing OHLC cells, retains duplicate-date checks, and does not mix supplement trade values with panel trade values.",
+      "reviewed_candidate_source_sha256": "6a6f39e8620fdbebfb45456f9f9f8250a4aa8b6d3b0aa8c836cad6aa1305cdf7"
+    },
+    "test_port_preservation": {
+      "test_manager_current_observation.py": "Matches the reviewed candidate except the fixture root points to this canonical checkout's byte-pinned fixture directory.",
+      "catalystObservationPanel.runtime.spec.ts": "Matches the reviewed candidate except fixture path resolution points to this canonical checkout's fixture directory.",
+      "test_manager_workspace_targeted_r2.py": "Starts from the bound canonical preimage; changes only the recovered-manifest fixture metadata and adds the eight focused observation/rebound selector cases in the source diff. Existing dynamic /api/v4/manager/research/workspace read is unchanged."
+    },
+    "default_planning_reader_and_pit": {
+      "default_reader": "read_close_recapture calls the strict PyTDX stage-observation contract; the manual HK observation is available only through read_requested_day_hk_observation.",
+      "isolation": "workspace reads the previous market-session artifact for planning and the requested-day manual observation separately; projection exposes manual data as close_recapture_evidence and the prior-session artifact as planning_close_recapture_evidence.",
+      "pit": "Requested-day display is gated by request.available_at versus research_cutoff; after-cutoff observations return CANNOT_CONFIRM with no visible rows.",
+      "decision_boundary": "Manual evidence is marked DISPLAY_ONLY_NOT_PLANNER_INPUT, planner_eligible_context=false, formal_recommendation_effect=NONE, buy_gate_effect=NONE; the rebound screen body and selection/BUY logic remain unchanged."
+    }
+  },
+  "fixture_integrity": {
+    "canonical_fixture_binding_sha256": "9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c",
+    "source_fixture_binding_sha256": "5c8c28ce2f21119918dbbdeb7fcb4e18bcd334f4f462f52fff85befb0db53574",
+    "source_readback_receipt_path": "/Users/lexi/Desktop/学习/agents调试/v4_hk_history_r5_acceptance_20261002/api_integration/hk_securities_observation_execution/INDEPENDENT_ACTUAL_CAPTURE_READBACK.json",
+    "source_readback_receipt_sha256": "3f9639d850fa74f5db9c9ddc1d2b01773c7dad76befefd5ca2db852f4912087e",
+    "copy_matches_source_fixture_bytes": true,
+    "payload_status": "READY",
+    "source_trade_date": "20261002",
+    "observation_type": "HK_SECURITIES_SESSION_MINUTE_OBSERVATION",
+    "requested_completed_observed": [
+      100,
+      100,
+      100
+    ],
+    "no_data_count": 0,
+    "snapshot_rows": 100,
+    "overlay_rows": 100,
+    "snapshot_code_sequence_equals_overlay_symbol_sequence": true,
+    "all_overlay_rows_observation_only": true,
+    "all_overlay_rows_source_trade_date_20261002": true,
+    "original_pool_role": "HK_CONNECT_D1_TOP100_0_2",
+    "pool_suitability_as_hk_securities": "CANNOT_CONFIRM",
+    "research_only": true,
+    "natural_run": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "four_payload_hashes": {
+      "close_recapture.candidates.json": {
+        "bytes": 59817,
+        "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454"
+      },
+      "close_recapture.json": {
+        "bytes": 3296,
+        "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56"
+      },
+      "close_recapture.receipt.json": {
+        "bytes": 1303,
+        "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994"
+      },
+      "inputs/close_recapture_pytdx.json": {
+        "bytes": 47324,
+        "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3"
+      }
+    },
+    "owner_readback_scope": "The separate R5 readback verifies one manual capture and artifact lineage only; it is not canonical API/UI/deployment acceptance."
+  },
+  "independent_verification": {
+    "reviewed": "PASS_SCOPED_CANONICAL_SOURCE_FORWARD_PORT",
+    "tested": "PASS_SCOPED",
+    "behavior_verified": "PASS_SCOPED_TARGETED_CANONICAL_SOURCE_TESTS",
+    "python_current_observation": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/current-repairs-observation-review tests/test_manager_current_observation.py",
+      "result": "6 passed in 0.18s"
+    },
+    "python_rebound_selector": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/current-repairs-selector-review tests/test_manager_workspace_targeted_r2.py -k 'hk02_panel or hk02_forward_pointer or rebound_screen_binds or exact_named_recovered_manifest'",
+      "result": "13 passed, 40 deselected in 0.09s"
+    },
+    "vitest": {
+      "command": "npm test -- --config /private/tmp/current-repairs-review.vite.config.mjs src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "config_wrapper": "/private/tmp/current-repairs-review.vite.config.mjs",
+      "cache_dir": "/private/tmp/current-repairs-review-vite-cache",
+      "result": "1 file passed, 11 tests passed"
+    },
+    "py_compile": {
+      "command": "PYTHONPYCACHEPREFIX=/private/tmp/current-repairs-review-pycache '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m py_compile apps/api/v35_api/manager_workbench_router.py v4/manager_research/workspace.py v4/manager_research/workspace_projection.py v4/manager_research/workspace_plan.py tests/test_manager_current_observation.py tests/test_manager_workspace_targeted_r2.py",
+      "result": "PASS"
+    }
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "summary": "No actionable findings in the frozen canonical source-port scope."
+  },
+  "status_layers": {
+    "IMPLEMENTED": "PASS_SOURCE_FORWARD_PORT_PRESENT",
+    "TESTED": "PASS_SCOPED",
+    "REVIEWED": "PASS_SCOPED_CANONICAL_CURRENT_REPAIRS_SOURCE_FORWARD_PORT",
+    "BEHAVIOR_VERIFIED": "PASS_SCOPED_TARGETED_CANONICAL_SOURCE_TESTS",
+    "INTEGRATED": "CANNOT_CONFIRM",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "limits": [
+    "The canonical API has not been called and canonical UI/browser rendering has not been inspected.",
+    "No service reload, deployment, or natural slot was performed.",
+    "The R5 deployment and its separate API/UI evidence are explicitly excluded from this canonical source verdict.",
+    "HK_CONNECT_D1_TOP100_0_2 suitability as an HK-securities pool remains CANNOT_CONFIRM.",
+    "No full suite or previously recorded 39-test set was rerun."
+  ]
+}

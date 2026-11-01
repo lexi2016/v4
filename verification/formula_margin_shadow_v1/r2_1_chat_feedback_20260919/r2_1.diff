@@ -1,0 +1,1270 @@
+--- r2/stage_center/formula_margin_shadow.py
++++ r2_1/stage_center/formula_margin_shadow.py
+@@ -42,6 +42,11 @@
+ TRUTH_K = 20
+ POOL_LIMIT = 100
+ FORMULA_STATES = ("H", "N", "U")
++ENGINEERING_FIXTURE = "ENGINEERING_FIXTURE"
++REAL_AUTHORITY = "REAL_AUTHORITY"
++ADMISSION_MODES = (ENGINEERING_FIXTURE, REAL_AUTHORITY)
++CAPTURE_TIME_RECEIPT_SCHEMA_VERSION = "v4.formula_margin_shadow.capture_time_receipt.v1"
++CAPTURE_TIME_SOURCE = "FORMULA_MARGIN_SHADOW_CAPTURE_RUNTIME_V1"
+ SHANGHAI = ZoneInfo("Asia/Shanghai")
+ SHA256_LENGTH = 64
+ 
+@@ -50,6 +55,12 @@
+     "STAGE_0930_0935": "09:35:05",
+     "STAGE_0945_1030": "10:30:00",
+     "STAGE_1445_1500": "15:00:00",
++}
++
++STAGE_CAPTURE_WINDOWS: dict[str, tuple[str, str]] = {
++    "STAGE_0930_0935": ("09:30:00", "09:35:05"),
++    "STAGE_0945_1030": ("09:45:00", "10:30:00"),
++    "STAGE_1445_1500": ("14:45:00", "15:00:00"),
+ }
+ 
+ # hk_legacy_stage_sort_key is a descending tuple.  The first two components
+@@ -76,6 +87,59 @@
+ 
+ class ShadowInvalid(ValueError):
+     """Raised when a snapshot or label cannot satisfy the frozen contract."""
++
++
++def _admission_mode(value: Mapping[str, Any] | None, *, default: str | None = ENGINEERING_FIXTURE) -> str:
++    """Return the explicit truth/capture admission mode.
++
++    The default is intentionally the engineering mode for the in-memory
++    shadow builder.  A caller that wants a forward or truth admission must
++    state ``REAL_AUTHORITY`` explicitly; that mode is still fail-closed until
++    the existing owner membership and final-close contracts are available.
++    """
++
++    raw = value.get("admission_mode", value.get("truth_admission_mode")) if isinstance(value, Mapping) else None
++    if raw in (None, ""):
++        if default is None:
++            raise ShadowInvalid("admission_mode is required")
++        raw = default
++    mode = str(raw).strip().upper()
++    if mode not in ADMISSION_MODES:
++        raise ShadowInvalid(f"admission_mode must be one of {ADMISSION_MODES}")
++    return mode
++
++
++def _runtime_capture_timestamp() -> datetime:
++    """Return the Shanghai runtime clock used by a real capture.
++
++    This private function is the only test seam.  It is deliberately not a
++    CLI/operator input, so a supplied ``captured_at`` cannot prove a natural
++    observation.
++    """
++
++    return datetime.now(SHANGHAI)
++
++
++def _validate_runtime_capture_timestamp(value: datetime | str, trade_date: str, stage_id: str) -> datetime:
++    """Validate a runtime timestamp against the exact Shanghai stage window."""
++
++    parsed = value if isinstance(value, datetime) else _parse_timestamp(value, trade_date, "runtime captured_at")
++    if parsed.tzinfo is None:
++        parsed = parsed.replace(tzinfo=SHANGHAI)
++    parsed = parsed.astimezone(SHANGHAI)
++    if parsed.strftime("%Y%m%d") != _exact_date(trade_date, "trade_date"):
++        raise ShadowInvalid("runtime capture date does not match trade_date")
++    window = STAGE_CAPTURE_WINDOWS.get(stage_id)
++    if window is None:
++        raise ShadowInvalid(f"stage must be one of {tuple(STAGE_CAPTURE_WINDOWS)}")
++    local_time = parsed.time().replace(tzinfo=None)
++    start = time.fromisoformat(window[0])
++    end = time.fromisoformat(window[1])
++    if local_time < start:
++        raise ShadowInvalid(f"runtime capture is before {stage_id} window")
++    if local_time > end:
++        raise ShadowInvalid(f"runtime capture is after {stage_id} cutoff")
++    return parsed
+ 
+ 
+ def canonical_json(value: Any) -> bytes:
+@@ -896,6 +960,157 @@
+     return states, binding
+ 
+ 
++def _capture_time_receipt_payload(
++    metadata: Mapping[str, Any],
++    *,
++    captured_at: datetime,
++    selector_status: str,
++    context: Mapping[str, Any] | None = None,
++) -> dict[str, Any]:
++    """Build the runtime receipt for an actual selector invocation.
++
++    The receipt is made only from already verified artifact bindings.  It does
++    not accept a caller supplied timestamp, source string, or hash as proof of
++    a natural capture.  ``capture_selector_snapshot`` is the only production
++    caller; tests may use the private runtime clock seam.
++    """
++
++    mode = _admission_mode(metadata, default=None)
++    trade_date, stage_id, cutoff_iso, _ = _stage_contract(metadata)
++    runtime_at = _validate_runtime_capture_timestamp(captured_at, trade_date, stage_id)
++    binding = _source_binding(metadata, require_artifacts=True)
++    source_artifact = _source_artifact_check(metadata, expected_sha=binding["input_sha256"], required=True)
++    d1_manifest = metadata.get("d1_manifest")
++    d1_binding = _verified_manifest_binding(d1_manifest, "d1_manifest", require_artifact=True)
++    formula_binding = metadata.get("formula_manifest_binding")
++    if not isinstance(formula_binding, Mapping):
++        raise ShadowInvalid("formula_manifest binding is required for capture_time_receipt")
++    formula_state = _checked_file_artifact(
++        formula_binding.get("artifact"),
++        "formula state artifact",
++        expected_sha=str(formula_binding.get("input_sha256") or "").lower(),
++        required=True,
++    )
++    formula_rule = _checked_file_artifact(
++        formula_binding.get("rule_artifact"),
++        "formula rule artifact",
++        expected_sha=str(formula_binding.get("rule_sha256") or "").lower(),
++        required=True,
++    )
++    raw_artifact_sha = str(metadata.get("raw_artifact_sha256") or source_artifact["sha256"]).lower()
++    if raw_artifact_sha != str(source_artifact["sha256"]).lower():
++        raise ShadowInvalid("capture_time_receipt raw artifact is not source-bound")
++    raw_input_sha = str(metadata.get("raw_input_sha256") or "").lower()
++    if not _is_sha(raw_input_sha):
++        raise ShadowInvalid("capture_time_receipt raw input SHA is required")
++    context_map = dict(context) if isinstance(context, Mapping) else {}
++    production_run_id = str(context_map.get("run_id") or metadata.get("run_id") or "").strip()
++    if not production_run_id:
++        raise ShadowInvalid("capture_time_receipt production run_id is required")
++    return {
++        "schema_version": CAPTURE_TIME_RECEIPT_SCHEMA_VERSION,
++        "source": CAPTURE_TIME_SOURCE,
++        "experiment_id": EXPERIMENT_ID,
++        "admission_mode": mode,
++        "trade_date": trade_date,
++        "stage": stage_id,
++        "cutoff_ts": cutoff_iso,
++        "captured_at": runtime_at.isoformat(),
++        "production_run_id": production_run_id,
++        "raw_input_sha256": raw_input_sha,
++        "raw_artifact_sha256": raw_artifact_sha,
++        "production_rule_sha256": binding["rule_sha256"],
++        "d1_manifest_sha256": str(d1_binding["sha256"]).lower(),
++        "formula_input_sha256": str(formula_binding.get("input_sha256") or "").lower(),
++        "formula_state_artifact_sha256": str(formula_state["sha256"]).lower(),
++        "formula_rule_sha256": str(formula_binding.get("rule_sha256") or "").lower(),
++        "formula_rule_artifact_sha256": str(formula_rule["sha256"]).lower(),
++        "shadow_rule_version": RULE_VERSION,
++        "comparator_version": COMPARATOR_VERSION,
++        "selector_invocation": "stage_center.selection.select_hk_four_lane",
++        "selector_invocation_status": str(selector_status),
++        **SAFETY_FLAGS,
++    }
++
++
++def _validate_capture_time_receipt(
++    receipt: Mapping[str, Any],
++    metadata: Mapping[str, Any],
++    *,
++    require_runtime: bool = False,
++) -> dict[str, Any]:
++    """Validate an immutable capture receipt against its production bindings."""
++
++    if not isinstance(receipt, Mapping):
++        raise ShadowInvalid("capture_time_receipt must be an object")
++    if receipt.get("schema_version") != CAPTURE_TIME_RECEIPT_SCHEMA_VERSION:
++        raise ShadowInvalid("capture_time_receipt schema mismatch")
++    if receipt.get("source") != CAPTURE_TIME_SOURCE:
++        raise ShadowInvalid("capture_time_receipt source mismatch")
++    if receipt.get("experiment_id") != EXPERIMENT_ID:
++        raise ShadowInvalid("capture_time_receipt experiment mismatch")
++    mode = _admission_mode(receipt, default=None)
++    metadata_mode = _admission_mode(metadata, default=None)
++    if mode != metadata_mode:
++        raise ShadowInvalid("capture_time_receipt admission_mode mismatch")
++    trade_date, stage_id, cutoff_iso, _ = _stage_contract(metadata)
++    if str(receipt.get("trade_date") or "").replace("-", "") != trade_date:
++        raise ShadowInvalid("capture_time_receipt trade_date mismatch")
++    if receipt.get("stage") != stage_id or str(receipt.get("cutoff_ts")) != cutoff_iso:
++        raise ShadowInvalid("capture_time_receipt stage/cutoff mismatch")
++    captured_at = _parse_timestamp(receipt.get("captured_at"), trade_date, "capture_time_receipt.captured_at")
++    if require_runtime:
++        _validate_runtime_capture_timestamp(captured_at, trade_date, stage_id)
++    binding = _source_binding(metadata, require_artifacts=True)
++    source_artifact = _source_artifact_check(metadata, expected_sha=binding["input_sha256"], required=True)
++    expected = {
++        "production_run_id": str(metadata.get("run_id") or "").strip(),
++        "raw_artifact_sha256": str(source_artifact["sha256"]).lower(),
++        "production_rule_sha256": binding["rule_sha256"],
++        "shadow_rule_version": RULE_VERSION,
++        "comparator_version": COMPARATOR_VERSION,
++        "selector_invocation": "stage_center.selection.select_hk_four_lane",
++        "selector_invocation_status": "COMPLETED",
++    }
++    for key, expected_value in expected.items():
++        if str(receipt.get(key) or "") != str(expected_value):
++            raise ShadowInvalid(f"capture_time_receipt {key} mismatch")
++    raw_input_sha = metadata.get("raw_input_sha256")
++    if raw_input_sha not in (None, "") and str(receipt.get("raw_input_sha256") or "").lower() != str(raw_input_sha).lower():
++        raise ShadowInvalid("capture_time_receipt raw input SHA mismatch")
++    d1_manifest = _verified_manifest_binding(metadata.get("d1_manifest"), "d1_manifest", require_artifact=True)
++    if str(receipt.get("d1_manifest_sha256") or "").lower() != str(d1_manifest["sha256"]).lower():
++        raise ShadowInvalid("capture_time_receipt D1 manifest SHA mismatch")
++    formula_binding = metadata.get("formula_manifest_binding")
++    if not isinstance(formula_binding, Mapping):
++        raise ShadowInvalid("capture_time_receipt formula binding is missing")
++    formula_state = _checked_file_artifact(
++        formula_binding.get("artifact"),
++        "formula state artifact",
++        expected_sha=str(formula_binding.get("input_sha256") or "").lower(),
++        required=True,
++    )
++    formula_rule = _checked_file_artifact(
++        formula_binding.get("rule_artifact"),
++        "formula rule artifact",
++        expected_sha=str(formula_binding.get("rule_sha256") or "").lower(),
++        required=True,
++    )
++    formula_expected = {
++        "formula_input_sha256": str(formula_binding.get("input_sha256") or "").lower(),
++        "formula_state_artifact_sha256": str(formula_state["sha256"]).lower(),
++        "formula_rule_sha256": str(formula_binding.get("rule_sha256") or "").lower(),
++        "formula_rule_artifact_sha256": str(formula_rule["sha256"]).lower(),
++    }
++    for key, expected_value in formula_expected.items():
++        if str(receipt.get(key) or "").lower() != expected_value:
++            raise ShadowInvalid(f"capture_time_receipt {key} mismatch")
++    for flag, expected_value in SAFETY_FLAGS.items():
++        if receipt.get(flag) != expected_value:
++            raise ShadowInvalid("capture_time_receipt safety flags changed")
++    return dict(receipt)
++
++
+ def _capture_price_alias(row: Mapping[str, Any], *names: str) -> Any:
+     for name in names:
+         if row.get(name) not in (None, ""):
+@@ -926,6 +1141,7 @@
+ 
+     if not isinstance(metadata, Mapping):
+         raise ShadowInvalid("selector capture metadata is required")
++    admission_mode = _admission_mode(metadata)
+     if not isinstance(time_evidence, Mapping) or not time_evidence:
+         raise ShadowInvalid("verified time_evidence is required for a selector capture")
+     if not isinstance(raw_rows, Sequence) or isinstance(raw_rows, (str, bytes)):
+@@ -937,6 +1153,7 @@
+     d1_binding = _verified_manifest_binding(d1_manifest, "d1_manifest", require_artifact=True)
+     formula_states, formula_binding = _formula_manifest_states(formula_manifest)
+     metadata_copy = dict(metadata)
++    metadata_copy["admission_mode"] = admission_mode
+     if raw_artifact_sha256 is None:
+         raw_artifact_sha256 = metadata_copy.get("raw_artifact_sha256")
+     if not _is_sha(raw_artifact_sha256):
+@@ -1112,8 +1329,17 @@
+     metadata = _metadata_from_input(payload)
+     if metadata.get("experiment_id", EXPERIMENT_ID) != EXPERIMENT_ID:
+         raise ShadowInvalid("experiment_id mismatch")
+-    if metadata.get("observation_mode") not in ("FORWARD_NATURAL", "FORWARD_SHADOW"):
++    admission_mode = _admission_mode(metadata, default=None)
++    if admission_mode == REAL_AUTHORITY:
++        # The owner has not supplied the exact membership manifest/receipt and
++        # same-membership-bound final-close contract in this workspace.  A
++        # caller assertion cannot turn a fixture into a real forward source.
++        raise ShadowInvalid("REAL_AUTHORITY_CAPTURE_BLOCKED_OWNER_CONTRACT_PENDING")
++    observation_mode = metadata.get("observation_mode")
++    if observation_mode not in ("FORWARD_NATURAL", "FORWARD_SHADOW"):
+         raise ShadowInvalid("observation_mode must be FORWARD_NATURAL/FORWARD_SHADOW")
++    if admission_mode == ENGINEERING_FIXTURE and observation_mode == "FORWARD_NATURAL":
++        raise ShadowInvalid("ENGINEERING_FIXTURE_CAPTURE_REQUIRES_FORWARD_SHADOW")
+     _reject_archive_or_proxy_metadata(metadata)
+     trade_date, stage_id, cutoff_iso, cutoff = _stage_contract(metadata)
+     captured_at = _parse_timestamp(metadata.get("captured_at"), trade_date, "captured_at")
+@@ -1215,6 +1441,7 @@
+         raise ShadowInvalid("time_evidence.cutoff_ts does not match capture metadata")
+ 
+     return {
++        "admission_mode": admission_mode,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+@@ -1245,10 +1472,20 @@
+     metadata = _metadata_from_input(payload)
+     if metadata.get("experiment_id", EXPERIMENT_ID) != EXPERIMENT_ID:
+         raise ShadowInvalid("experiment_id mismatch")
++    admission_mode = _admission_mode(metadata)
++    if admission_mode == REAL_AUTHORITY:
++        raise ShadowInvalid("REAL_AUTHORITY_BUILD_BLOCKED_OWNER_CONTRACT_PENDING")
++    metadata = {**dict(metadata), "admission_mode": admission_mode}
+     trade_date, stage_id, cutoff_iso, cutoff = _stage_contract(metadata)
+     if metadata.get("observation_mode") not in ("FORWARD_NATURAL", "FORWARD_SHADOW"):
+         raise ShadowInvalid("observation_mode must be FORWARD_NATURAL/FORWARD_SHADOW")
+     _reject_archive_or_proxy_metadata(metadata)
++    if isinstance(metadata.get("capture_time_receipt"), Mapping):
++        _validate_capture_time_receipt(
++            metadata["capture_time_receipt"],
++            metadata,
++            require_runtime=True,
++        )
+     captured_at = _parse_timestamp(metadata.get("captured_at"), trade_date, "captured_at")
+     if captured_at > cutoff:
+         raise ShadowInvalid("captured_at is after the stage cutoff")
+@@ -1299,6 +1536,7 @@
+     baseline_payload = {
+         "schema_version": SCHEMA_VERSION,
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": admission_mode,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+@@ -1311,6 +1549,7 @@
+     candidate_payload = {
+         "schema_version": SCHEMA_VERSION,
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": admission_mode,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+@@ -1325,6 +1564,7 @@
+     members_payload = {
+         "schema_version": SCHEMA_VERSION,
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": admission_mode,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+@@ -1337,6 +1577,7 @@
+     receipt = {
+         "schema_version": SCHEMA_VERSION,
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": admission_mode,
+         "trade_date": trade_date,
+         "stage": stage_id,
+         "cutoff_ts": cutoff_iso,
+@@ -1348,6 +1589,11 @@
+         "production_binding": binding,
+         "production_source_artifact": production_source_artifact,
+         "formula_provenance": formula,
++        **(
++            {"capture_time_receipt": dict(metadata["capture_time_receipt"])}
++            if isinstance(metadata.get("capture_time_receipt"), Mapping)
++            else {}
++        ),
+         **(
+             {"selector_capture_binding": dict(metadata["selector_capture_binding"])}
+             if isinstance(metadata.get("selector_capture_binding"), Mapping)
+@@ -1367,12 +1613,18 @@
+     }
+     return {
+         "root_metadata": {
++            "admission_mode": admission_mode,
+             "trade_date": trade_date,
+             "stage": stage_id,
+             "cutoff_ts": cutoff_iso,
+             "market": MARKET,
+             "production_binding": binding,
+             "formula_provenance": formula,
++            **(
++                {"capture_time_receipt": dict(metadata["capture_time_receipt"])}
++                if isinstance(metadata.get("capture_time_receipt"), Mapping)
++                else {}
++            ),
+         },
+         "members": members_payload,
+         "baseline": baseline_payload,
+@@ -1418,6 +1670,11 @@
+         run_root / "baseline_top10.json",
+         run_root / "candidate_top10.json",
+         run_root / "selection_receipt.json",
++        *(
++            (run_root / "capture_time_receipt.json",)
++            if isinstance(built_receipt := built.get("receipt", {}).get("capture_time_receipt"), Mapping)
++            else ()
++        ),
+     )
+     if any(path.exists() or path.is_symlink() for path in expected_paths):
+         raise ShadowInvalid("refusing to overwrite an existing frozen run")
+@@ -1431,18 +1688,30 @@
+         "baseline": {"path": "baseline_top10.json", "sha256": baseline_sha},
+         "candidate": {"path": "candidate_top10.json", "sha256": candidate_sha},
+     }
++    if isinstance(built_receipt, Mapping):
++        capture_receipt_sha = _immutable_json(
++            run_root / "capture_time_receipt.json",
++            dict(built_receipt),
++        )
++        receipt["artifacts"]["capture_time_receipt"] = {
++            "path": "capture_time_receipt.json",
++            "sha256": capture_receipt_sha,
++        }
+     receipt_without_self_hash = dict(receipt)
+     receipt["receipt_payload_sha256"] = sha256_bytes(canonical_json(receipt_without_self_hash))
+     receipt_sha = _immutable_json(run_root / "selection_receipt.json", receipt)
++    artifact_result = {
++        "members": members_sha,
++        "baseline": baseline_sha,
++        "candidate": candidate_sha,
++        "receipt": receipt_sha,
++    }
++    if isinstance(built_receipt, Mapping):
++        artifact_result["capture_time_receipt"] = capture_receipt_sha
+     return {
+         "status": "FROZEN",
+         "run_root": str(run_root),
+-        "artifacts": {
+-            "members": members_sha,
+-            "baseline": baseline_sha,
+-            "candidate": candidate_sha,
+-            "receipt": receipt_sha,
+-        },
++        "artifacts": artifact_result,
+         "baseline_codes": built["baseline"]["codes"],
+         "candidate_codes": built["candidate"]["codes"],
+         "changed_in": built["receipt"]["selection"]["changed_in"],
+@@ -1468,6 +1737,10 @@
+     """
+ 
+     raw_metadata = dict(metadata) if isinstance(metadata, Mapping) else {}
++    try:
++        admission_mode = _admission_mode(raw_metadata, default=None)
++    except ShadowInvalid:
++        admission_mode = None
+     trade_text = str(raw_metadata.get("trade_date") or "").replace("-", "")
+     trade_component = trade_text if len(trade_text) == 8 and trade_text.isdigit() else "unknown_date"
+     stage_text = str(raw_metadata.get("stage") or raw_metadata.get("stage_id") or "")
+@@ -1493,6 +1766,7 @@
+             "experiment_id": EXPERIMENT_ID,
+             "trade_date": trade_text or None,
+             "stage": stage_text or None,
++            "admission_mode": admission_mode,
+             "status": "CANNOT_CONFIRM",
+             "invalid_reasons": reason_list,
+             "source_version": raw_metadata.get("source_version"),
+@@ -1560,6 +1834,28 @@
+             raise ShadowInvalid(f"selection receipt {label} SHA is missing")
+         if sha256_file(path) != str(detail["sha256"]).lower():
+             raise ShadowInvalid(f"frozen {label} hash mismatch")
++    capture_detail = artifacts.get("capture_time_receipt")
++    capture_record = receipt.get("capture_time_receipt")
++    if capture_detail is not None or capture_record is not None:
++        if not isinstance(capture_detail, Mapping) or capture_detail.get("path") != "capture_time_receipt.json":
++            raise ShadowInvalid("selection receipt capture_time_receipt artifact is missing")
++        if not _is_sha(capture_detail.get("sha256")):
++            raise ShadowInvalid("selection receipt capture_time_receipt SHA is missing")
++        capture_path = root / "capture_time_receipt.json"
++        if not capture_path.is_file() or capture_path.is_symlink():
++            raise ShadowInvalid("frozen capture_time_receipt artifact is missing")
++        if sha256_file(capture_path) != str(capture_detail["sha256"]).lower():
++            raise ShadowInvalid("frozen capture_time_receipt hash mismatch")
++        persisted_capture = _read_json(capture_path)
++        if not isinstance(capture_record, Mapping) or persisted_capture != capture_record:
++            raise ShadowInvalid("capture_time_receipt payload mismatch")
++        if persisted_capture.get("schema_version") != CAPTURE_TIME_RECEIPT_SCHEMA_VERSION:
++            raise ShadowInvalid("capture_time_receipt schema mismatch")
++        if persisted_capture.get("source") != CAPTURE_TIME_SOURCE:
++            raise ShadowInvalid("capture_time_receipt source mismatch")
++        for flag, expected in SAFETY_FLAGS.items():
++            if persisted_capture.get(flag) != expected:
++                raise ShadowInvalid("capture_time_receipt safety flags changed")
+     for artifact in (members, baseline, candidate, receipt):
+         if any(artifact.get(flag) != expected for flag, expected in SAFETY_FLAGS.items()):
+             raise ShadowInvalid("safety flags changed in frozen artifact")
+@@ -1590,6 +1886,12 @@
+ 
+ 
+ def _truth_metadata(labels: Mapping[str, Any], trade_date: str, cutoff: datetime) -> tuple[dict[str, Any], list[Mapping[str, Any]], list[str]]:
++    admission_mode = _admission_mode(labels, default=None)
++    if admission_mode == REAL_AUTHORITY:
++        # The verified owner chain is not present in this workspace.  In
++        # particular, truth_top20_codes, coverage and source strings supplied
++        # by a caller are never authority evidence.
++        raise ShadowInvalid("REAL_AUTHORITY_TRUTH_BLOCKED_OWNER_CONTRACT_PENDING")
+     if labels.get("schema_version") not in (LABEL_SCHEMA_VERSION, None):
+         raise ShadowInvalid("label schema_version mismatch")
+     if labels.get("experiment_id", EXPERIMENT_ID) != EXPERIMENT_ID:
+@@ -1680,6 +1982,12 @@
+     ]
+     if len(top20_codes) != TRUTH_K:
+         raise ShadowInvalid("verified truth source produced fewer than twenty members")
++    ranked_truth = sorted(
++        canonical_truth_rows,
++        key=lambda row: (-float(row["close_gain"]), str(row["security_id"])),
++    )
++    if len(ranked_truth) > TRUTH_K and ranked_truth[TRUTH_K - 1]["close_gain"] == ranked_truth[TRUTH_K]["close_gain"]:
++        raise ShadowInvalid("truth Top20 boundary tie requires an authoritative source tie-break")
+     declared_top20 = labels.get("truth_top20_codes")
+     if declared_top20 is not None:
+         if not isinstance(declared_top20, list) or [_canonical_code(value) for value in declared_top20] != top20_codes:
+@@ -1691,6 +1999,11 @@
+         raise ShadowInvalid("close labels are late/expired for the stage trade date")
+     return (
+         {
++            "admission_mode": admission_mode,
++            "admission_status": "ENGINEERING_ONLY",
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
+             "truth_scope": TRUTH_SCOPE,
+             "truth_universe_version": truth_version,
+             "truth_source_version": truth_source_version,
+@@ -1826,6 +2139,10 @@
+     members, baseline, candidate, receipt = _read_frozen(run_root)
+     if not isinstance(labels, Mapping):
+         labels = {}
++    try:
++        admission_mode = _admission_mode(labels, default=None)
++    except ShadowInvalid:
++        admission_mode = None
+     cutoff = _parse_timestamp(receipt["cutoff_ts"], str(receipt["trade_date"]), "cutoff_ts")
+     run_root_path = Path(run_root).expanduser().resolve()
+     label_dir = run_root_path / "labels"
+@@ -1838,20 +2155,29 @@
+         label_rows, invalid_reasons, markout_invalid_reasons = _normalise_label_rows(raw_rows, members, top20_codes)
+     except ShadowInvalid as error:
+         truth = {
++            "admission_mode": admission_mode,
+             "truth_scope": labels.get("truth_scope"),
+             "status": "CANNOT_CONFIRM",
+         }
+         label_rows = []
+         invalid_reasons = [str(error)]
+         markout_invalid_reasons = []
+-    status = "READY" if not invalid_reasons else "CANNOT_CONFIRM"
++    status = (
++        "ENGINEERING_ONLY"
++        if not invalid_reasons and truth.get("admission_status") == "ENGINEERING_ONLY"
++        else ("READY" if not invalid_reasons else "CANNOT_CONFIRM")
++    )
+     label_payload = {
+         "schema_version": LABEL_SCHEMA_VERSION,
+         "experiment_id": EXPERIMENT_ID,
+         "trade_date": receipt["trade_date"],
+         "stage": receipt["stage"],
+         "cutoff_ts": receipt["cutoff_ts"],
++        "admission_mode": admission_mode,
+         "status": status,
++        "hit_ready": status == "READY",
++        "counts_as_forward_day": False,
++        "natural_sample_count": 0,
+         "truth": truth,
+         "rows": label_rows,
+         "invalid_reasons": invalid_reasons,
+@@ -1865,6 +2191,7 @@
+         "experiment_id": EXPERIMENT_ID,
+         "trade_date": receipt["trade_date"],
+         "stage": receipt["stage"],
++        "admission_mode": admission_mode,
+         "status": status,
+         "invalid_reasons": invalid_reasons,
+         "markout_invalid_reasons": markout_invalid_reasons,
+@@ -1961,7 +2288,8 @@
+             "stage": receipt.get("stage"),
+             "invalid_reasons": ["LABEL_SELECTION_RECEIPT_BINDING_MISMATCH"],
+         }
+-    if not isinstance(labels, Mapping) or labels.get("status") != "READY":
++    label_status = labels.get("status") if isinstance(labels, Mapping) else None
++    if not isinstance(labels, Mapping) or label_status not in {"READY", "ENGINEERING_ONLY"}:
+         return {
+             "status": "CANNOT_CONFIRM",
+             "trade_date": receipt.get("trade_date"),
+@@ -1985,7 +2313,11 @@
+     entered_markout, entered_invalid = _markout_for_codes(member_rows, label_by_code, entered)
+     exited_markout, exited_invalid = _markout_for_codes(member_rows, label_by_code, exited)
+     return {
+-        "status": "READY",
++        "status": str(label_status),
++        "admission_mode": labels.get("admission_mode"),
++        "hit_ready": label_status == "READY",
++        "counts_as_forward_day": False,
++        "natural_sample_count": 0,
+         "trade_date": receipt["trade_date"],
+         "stage": receipt["stage"],
+         "truth_scope": truth.get("truth_scope"),
+@@ -2012,7 +2344,8 @@
+ def evaluate_runs(run_roots: Iterable[Path | str]) -> dict[str, Any]:
+     units = [evaluate_run(root) for root in run_roots]
+     valid = [unit for unit in units if unit.get("status") == "READY"]
+-    invalid = [unit for unit in units if unit.get("status") != "READY"]
++    engineering = [unit for unit in units if unit.get("status") == "ENGINEERING_ONLY"]
++    invalid = [unit for unit in units if unit.get("status") not in {"READY", "ENGINEERING_ONLY"}]
+     planned = len(units)
+     valid_count = len(valid)
+     baseline_hits = sum(int(unit["baseline_hit_count"]) for unit in valid)
+@@ -2021,6 +2354,8 @@
+     recall_denominator = TRUTH_K * valid_count
+     changed_in = sum(len(unit.get("entered_codes", [])) for unit in valid)
+     changed_out = sum(len(unit.get("exited_codes", [])) for unit in valid)
++    engineering_changed_in = sum(len(unit.get("entered_codes", [])) for unit in engineering)
++    engineering_changed_out = sum(len(unit.get("exited_codes", [])) for unit in engineering)
+     required_capacity = math.ceil(0.05 * TOP_K * planned)
+     all_truth_hits = sum(int(unit.get("d1_pool_truth_count", 0)) for unit in valid)
+     result: dict[str, Any] = {
+@@ -2028,7 +2363,9 @@
+         "truth_scope": TRUTH_SCOPE,
+         "planned_units": planned,
+         "valid_units": valid_count,
++        "engineering_units": len(engineering),
+         "invalid_units": len(invalid),
++        "natural_sample_count": sum(int(unit.get("natural_sample_count", 0)) for unit in valid),
+         "invalid_reasons": [reason for unit in invalid for reason in unit.get("invalid_reasons", [])],
+         "fixed_p10_denominator": denominator if valid_count else None,
+         "fixed_recall20_denominator": recall_denominator if valid_count else None,
+@@ -2044,6 +2381,8 @@
+         "selection_ceiling_at_20": all_truth_hits / recall_denominator if recall_denominator else None,
+         "changed_in_count": changed_in,
+         "changed_out_count": changed_out,
++        "engineering_changed_in_count": engineering_changed_in,
++        "engineering_changed_out_count": engineering_changed_out,
+         "capacity_required_for_5pp": required_capacity,
+         "capacity_status": (
+             "INSUFFICIENT_INTERVENTION_CAPACITY_FOR_5PP"
+@@ -2053,7 +2392,10 @@
+         "units": units,
+         **SAFETY_FLAGS,
+     }
+-    result["evaluation_status"] = "CANNOT_CONFIRM" if not valid_count or invalid else "READY"
++    if invalid or not valid_count:
++        result["evaluation_status"] = "CANNOT_CONFIRM" if invalid or not engineering else "ENGINEERING_ONLY"
++    else:
++        result["evaluation_status"] = "READY"
+     # Stages are reported independently while the aggregate remains the only
+     # verdict; no best-stage selection is allowed.
+     by_stage: dict[str, list[dict[str, Any]]] = {}
+@@ -2095,6 +2437,11 @@
+     if not isinstance(payload, Mapping):
+         return {"status": "REJECTED", "forward_eligible": False, "reasons": ["INPUT_NOT_OBJECT"], "natural_sample_count": 0}
+     metadata = _metadata_from_input(payload)
++    try:
++        admission_mode = _admission_mode(metadata, default=None)
++    except ShadowInvalid as error:
++        admission_mode = None
++        reasons.append(str(error))
+     mode = str(metadata.get("observation_mode") or "").upper()
+     source_mode = str(metadata.get("source_mode") or metadata.get("source_kind") or "").upper()
+     if mode not in {"FORWARD_NATURAL", "FORWARD_SHADOW"}:
+@@ -2141,11 +2488,17 @@
+     except ShadowInvalid as error:
+         reasons.append(f"INPUT_VALIDATION:{error}")
+     return {
+-        "status": "PASS" if not reasons else "REJECTED",
+-        "forward_eligible": not reasons,
++        "status": (
++            "ENGINEERING_ONLY"
++            if not reasons and admission_mode == ENGINEERING_FIXTURE
++            else ("PASS" if not reasons else "REJECTED")
++        ),
++        "forward_eligible": not reasons and admission_mode == REAL_AUTHORITY,
++        "admission_mode": admission_mode,
+         "reasons": reasons,
+         "natural_sample_count": 0,
+         "counts_as_forward_day": False,
++        "hit_ready": False,
+         "observation_mode": mode,
+         "source_mode": source_mode,
+     }
+@@ -2154,7 +2507,7 @@
+ def preflight_capture_input(payload_or_path: Mapping[str, Any] | Path | str) -> dict[str, Any]:
+     """Run the static admission gate for a raw selector capture request.
+ 
+-    ``READY_FOR_SELECTOR_CAPTURE`` authorizes only the subsequent selector
++    ``READY_FOR_CAPTURE_INVOCATION`` authorizes only the subsequent selector
+     invocation.  It is never a frozen run and never increments a natural-day
+     counter.
+     """
+@@ -2180,8 +2533,9 @@
+             "observation_mode": str(_metadata_from_input(payload).get("observation_mode") or "").upper(),
+         }
+     return {
+-        "status": "READY_FOR_SELECTOR_CAPTURE",
++        "status": "READY_FOR_CAPTURE_INVOCATION",
+         "capture_ready": True,
++        "admission_mode": binding["admission_mode"],
+         "reasons": [],
+         "trade_date": binding["trade_date"],
+         "stage": binding["stage"],
+@@ -2189,6 +2543,7 @@
+         "raw_input_sha256": binding["raw_input_sha256"],
+         "natural_sample_count": 0,
+         "counts_as_forward_day": False,
++        "hit_ready": False,
+         "frozen": False,
+         **SAFETY_FLAGS,
+     }
+@@ -2210,13 +2565,29 @@
+ 
+     payload = _read_json(payload_or_path) if isinstance(payload_or_path, (Path, str)) else payload_or_path
+     if not isinstance(payload, Mapping):
+-        return record_invalid_capture(output_root, {}, ["CAPTURE_INPUT_NOT_OBJECT"])
++        invalid = record_invalid_capture(output_root, {}, ["CAPTURE_INPUT_NOT_OBJECT"])
++        return {
++            "status": "CANNOT_CONFIRM",
++            "capture": invalid,
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
++        }
+     metadata = dict(_metadata_from_input(payload))
+     try:
++        admission_mode = _admission_mode(metadata, default=None)
+         _validate_capture_request_static(payload)
+     except ShadowInvalid as error:
+         invalid = record_invalid_capture(output_root, metadata, [str(error)])
+-        return {"status": "CANNOT_CONFIRM", "capture": invalid, **SAFETY_FLAGS}
++        return {
++            "status": "CANNOT_CONFIRM",
++            "capture": invalid,
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
++        }
+     rows = payload.get("rows")
+     formula_manifest = payload.get("formula_manifest", metadata.get("formula_manifest"))
+     time_evidence = payload.get("time_evidence", metadata.get("time_evidence"))
+@@ -2225,6 +2596,7 @@
+     stage_id = str(metadata.get("stage") or metadata.get("stage_id") or "")
+     raw_artifact_sha = metadata.get("raw_artifact_sha256")
+     capture_result: dict[str, Any] = {}
++    capture_state: dict[str, Any] = {}
+ 
+     def _record(result: Mapping[str, Any]) -> None:
+         capture_result.clear()
+@@ -2253,15 +2625,12 @@
+                 for row in production_rows
+                 if isinstance(row, Mapping)
+             ][:TOP_K]
+-            built = build_shadow(shadow_payload, require_full_pool=True)
+-            if built.get("baseline", {}).get("codes") != production_codes:
+-                raise ShadowInvalid("frozen baseline does not equal the real selector Top10")
+-            frozen = freeze_snapshot(shadow_payload, output_root, require_full_pool=True)
+-            _record({
+-                "status": "FROZEN",
+-                "selector_top10_codes": production_codes,
+-                "capture": frozen,
+-            })
++            # Keep the production invocation and its full sorted evidence in
++            # memory until the selector returns.  Freezing in the callback
++            # would make an observer failure look like selector success.
++            capture_state["shadow_payload"] = shadow_payload
++            capture_state["production_codes"] = production_codes
++            capture_state["context"] = dict(context)
+         except ShadowInvalid as error:
+             _record(record_invalid_capture(
+                 output_root,
+@@ -2287,11 +2656,32 @@
+ 
+     if not isinstance(rows, list):
+         invalid = record_invalid_capture(output_root, metadata, ["CAPTURE_ROWS_REQUIRED"])
+-        return {"status": "CANNOT_CONFIRM", "capture": invalid}
++        return {
++            "status": "CANNOT_CONFIRM",
++            "capture": invalid,
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
++        }
+     if stage_id not in STAGE_CUTOFFS:
+         invalid = record_invalid_capture(output_root, metadata, [f"UNSUPPORTED_STAGE:{stage_id}"])
+-        return {"status": "CANNOT_CONFIRM", "capture": invalid}
++        return {
++            "status": "CANNOT_CONFIRM",
++            "capture": invalid,
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
++        }
++    runtime_started_at: datetime | None = None
+     try:
++        # The invocation itself, including engineering shadow captures, is
++        # stamped by the private runtime clock.  The input JSON timestamp is
++        # never used as natural-capture evidence.
++        runtime_started_at = _validate_runtime_capture_timestamp(
++            _runtime_capture_timestamp(), trade_date, stage_id
++        )
+         # Import lazily so the frozen shadow module remains a consumer of the
+         # selector hook rather than a second selector implementation.
+         from .selection import select_hk_four_lane
+@@ -2323,16 +2713,84 @@
+             "status": "CANNOT_CONFIRM",
+             "selector_error": str(error),
+             "capture": dict(capture_result),
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
+         }
+-    if not capture_result:
++    if not capture_state.get("shadow_payload"):
++        if not capture_result:
++            _record(record_invalid_capture(
++                output_root,
++                metadata,
++                ["SHADOW_CAPTURE_NOT_INVOKED"],
++                context={"stage": stage_id, "trade_date": trade_date},
++            ))
++        return {
++            "status": "CANNOT_CONFIRM",
++            "selector_status": selected.get("selection_status"),
++            "selector": selected,
++            "capture": dict(capture_result),
++            "hit_ready": False,
++            "counts_as_forward_day": False,
++            "natural_sample_count": 0,
++            **SAFETY_FLAGS,
++        }
++    try:
++        shadow_payload = dict(capture_state["shadow_payload"])
++        production_codes = list(capture_state["production_codes"])
++        runtime_finished_at = _validate_runtime_capture_timestamp(
++            _runtime_capture_timestamp(), trade_date, stage_id
++        )
++        # The production run id, raw/formula/D1 artifacts and selector
++        # identity all come from the verified capture payload/context.
++        shadow_payload["capture_time_receipt"] = _capture_time_receipt_payload(
++            shadow_payload,
++            captured_at=runtime_finished_at,
++            selector_status="COMPLETED",
++            context=capture_state.get("context"),
++        )
++        shadow_payload["captured_at"] = runtime_finished_at.isoformat()
++        shadow_payload["time_evidence"] = {
++            "source": CAPTURE_TIME_SOURCE,
++            "captured_at": runtime_finished_at.isoformat(),
++            "trade_date": trade_date,
++            "stage": stage_id,
++            "cutoff_ts": shadow_payload.get("cutoff_ts"),
++        }
++        # The start value is retained in the local diagnostic context for
++        # tests/logging only; the immutable receipt is the completion time.
++        _ = runtime_started_at
++        built = build_shadow(shadow_payload, require_full_pool=True, require_artifacts=True)
++        if built.get("baseline", {}).get("codes") != production_codes:
++            raise ShadowInvalid("frozen baseline does not equal the real selector Top10")
++        frozen = freeze_snapshot(shadow_payload, output_root, require_full_pool=True)
++        capture_status = "ENGINEERING_ONLY" if admission_mode == ENGINEERING_FIXTURE else "READY"
++        _record({
++            "status": capture_status,
++            "freeze_status": frozen.get("status"),
++            "selector_top10_codes": production_codes,
++            "capture": frozen,
++        })
++    except ShadowInvalid as error:
+         _record(record_invalid_capture(
+             output_root,
+             metadata,
+-            ["SHADOW_CAPTURE_NOT_INVOKED"],
+-            context={"stage": stage_id, "trade_date": trade_date},
++            [str(error)],
++            context={"hook_context": dict(capture_state.get("context") or {})},
++        ))
++    except Exception as error:  # pragma: no cover - external filesystem/runtime failures
++        _record(record_invalid_capture(
++            output_root,
++            metadata,
++            [f"CAPTURE_EXCEPTION:{error}"],
++            context={"hook_context": dict(capture_state.get("context") or {})},
+         ))
+     return {
+-        "status": "READY" if capture_result.get("status") == "FROZEN" else "CANNOT_CONFIRM",
++        "status": capture_result.get("status") if capture_result.get("status") in {"READY", "ENGINEERING_ONLY"} else "CANNOT_CONFIRM",
++        "hit_ready": capture_result.get("status") == "READY",
++        "counts_as_forward_day": capture_result.get("status") == "READY",
++        "natural_sample_count": 1 if capture_result.get("status") == "READY" else 0,
+         "selector_status": selected.get("selection_status"),
+         "production_top10_codes": [str(row.get("code")) for row in selected.get("rows", [])[:TOP_K]],
+         "selector": selected,
+@@ -2394,19 +2852,25 @@
+ 
+ 
+ __all__ = [
++    "ADMISSION_MODES",
++    "CAPTURE_TIME_RECEIPT_SCHEMA_VERSION",
++    "CAPTURE_TIME_SOURCE",
+     "COMPARATOR_KEY_NAMES",
+     "COMPARATOR_VERSION",
+     "EXPERIMENT_ID",
++    "ENGINEERING_FIXTURE",
+     "FORMULA_STATES",
+     "INPUT_SCHEMA_VERSION",
+     "LABEL_SCHEMA_VERSION",
+     "MARKET",
+     "POOL_LIMIT",
+     "RULE_VERSION",
++    "REAL_AUTHORITY",
+     "SAFETY_FLAGS",
+     "SCHEMA_VERSION",
+     "ShadowInvalid",
+     "STAGE_CUTOFFS",
++    "STAGE_CAPTURE_WINDOWS",
+     "TOP_K",
+     "TRUTH_K",
+     "TRUTH_SCOPE",
+--- r2/tests/test_formula_margin_shadow.py
++++ r2_1/tests/test_formula_margin_shadow.py
+@@ -7,9 +7,12 @@
+ 
+ import pytest
+ 
++import stage_center.formula_margin_shadow as shadow_module
+ from stage_center.formula_margin_shadow import (
+     COMPARATOR_VERSION,
++    ENGINEERING_FIXTURE,
+     EXPERIMENT_ID,
++    REAL_AUTHORITY,
+     ShadowInvalid,
+     TRUTH_SCOPE,
+     append_labels,
+@@ -31,6 +34,7 @@
+ def _metadata() -> dict:
+     return {
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": ENGINEERING_FIXTURE,
+         "observation_mode": "FORWARD_NATURAL",
+         "captured_at": "2026-09-21T09:35:05+08:00",
+         "trade_date": "20260921",
+@@ -188,6 +192,7 @@
+     return {
+         "schema_version": "v4.formula_margin_shadow.labels.v1",
+         "experiment_id": EXPERIMENT_ID,
++        "admission_mode": ENGINEERING_FIXTURE,
+         "trade_date": "20260921",
+         "truth_scope": TRUTH_SCOPE,
+         "truth_universe_version": "hk-connect-members-20260921-v1",
+@@ -257,18 +262,21 @@
+         freeze_snapshot(persistent, tmp_path)
+ 
+     labels = append_labels(run_root, _labels(tmp_path))
+-    assert labels["status"] == "READY"
++    assert labels["status"] == "ENGINEERING_ONLY"
+     result = evaluate_run(run_root)
+-    assert result["status"] == "READY"
++    assert result["status"] == "ENGINEERING_ONLY"
++    assert result["hit_ready"] is False
+     assert result["baseline_hit_count"] == 9
+     assert result["candidate_hit_count"] == 10
+     assert result["delta_hit_count"] == 1
+     assert result["d1_pool_recall"] == pytest.approx(1.0)
+     aggregate = evaluate_runs([run_root])
+-    assert aggregate["fixed_p10_denominator"] == 10
+-    assert aggregate["fixed_recall20_denominator"] == 20
+-    assert aggregate["delta_p_points"] == pytest.approx(0.1)
+-    assert aggregate["changed_in_count"] == 1
++    assert aggregate["fixed_p10_denominator"] is None
++    assert aggregate["fixed_recall20_denominator"] is None
++    assert aggregate["delta_p_points"] is None
++    assert aggregate["engineering_units"] == 1
++    assert aggregate["evaluation_status"] == "ENGINEERING_ONLY"
++    assert aggregate["changed_in_count"] == 0
+ 
+     invalid = _labels(tmp_path)
+     invalid["truth_scope"] = "CONDITIONAL_POSITIVE_CAP_TOP20_ONLY"
+@@ -303,7 +311,7 @@
+ def test_tampering_with_labels_is_cannot_confirm(tmp_path: Path) -> None:
+     frozen = freeze_snapshot(_persistent_payload(tmp_path), tmp_path)
+     run_root = Path(frozen["run_root"])
+-    assert append_labels(run_root, _labels(tmp_path))["status"] == "READY"
++    assert append_labels(run_root, _labels(tmp_path))["status"] == "ENGINEERING_ONLY"
+     labels_path = run_root / "labels" / "labels.json"
+     payload = json.loads(labels_path.read_text(encoding="utf-8"))
+     payload["rows"][0]["hit_top20"] = False
+@@ -365,7 +373,8 @@
+     return {
+         "metadata": {
+             "experiment_id": EXPERIMENT_ID,
+-            "observation_mode": "FORWARD_NATURAL",
++            "admission_mode": ENGINEERING_FIXTURE,
++            "observation_mode": "FORWARD_SHADOW",
+             "captured_at": "2026-09-21T09:35:00+08:00",
+             "trade_date": "20260921",
+             "stage": "STAGE_0930_0935",
+@@ -439,8 +448,12 @@
+     assert select_hk_four_lane(rows, "20260921", "STAGE_0930_0935", "a" * 64, shadow_capture=broken, **kwargs) == off
+ 
+ 
+-def test_real_selector_capture_assigns_ranks_and_freezes_baseline(tmp_path: Path) -> None:
++def test_real_selector_capture_assigns_ranks_and_freezes_baseline(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+     payload = _selector_capture_input(tmp_path)
++    runtime = shadow_module._parse_timestamp(
++        "2026-09-21T09:35:00+08:00", "20260921", "test"
++    )
++    monkeypatch.setattr(shadow_module, "_runtime_capture_timestamp", lambda: runtime)
+     captured: list[dict] = []
+     selected = select_hk_four_lane(
+         payload["rows"],
+@@ -465,16 +478,28 @@
+     built = build_shadow(shadow_payload, require_full_pool=True, require_artifacts=True)
+     assert built["baseline"]["codes"] == [row["code"] for row in selected["rows"]]
+     assert sorted(row["production_rank"] for row in built["members"]["rows"]) == list(range(1, 101))
++    payload["metadata"]["captured_at"] = "2026-09-21T09:30:00+08:00"
++    payload["time_evidence"]["captured_at"] = "2026-09-21T09:30:00+08:00"
++    payload["time_evidence"]["source"] = "operator-forged-source"
+     manual = capture_selector_snapshot(payload, tmp_path / "shadow-output")
+-    assert manual["status"] == "READY"
+-    assert manual["capture"]["status"] == "FROZEN"
++    assert manual["status"] == "ENGINEERING_ONLY"
++    assert manual["capture"]["status"] == "ENGINEERING_ONLY"
++    assert manual["capture"]["freeze_status"] == "FROZEN"
+     assert manual["capture"]["selector_top10_codes"] == [row["code"] for row in selected["rows"]]
++    runtime_receipt = json.loads(
++        (Path(manual["capture"]["capture"]["run_root"]) / "capture_time_receipt.json").read_text(
++            encoding="utf-8"
++        )
++    )
++    assert runtime_receipt["captured_at"] == runtime.isoformat()
++    assert runtime_receipt["source"] == shadow_module.CAPTURE_TIME_SOURCE
++    assert runtime_receipt["selector_invocation_status"] == "COMPLETED"
+ 
+ 
+ def test_r2_capture_static_preflight_and_provenance_bindings(tmp_path: Path) -> None:
+     payload = _selector_capture_input(tmp_path)
+     ready = preflight_capture_input(payload)
+-    assert ready["status"] == "READY_FOR_SELECTOR_CAPTURE"
++    assert ready["status"] == "READY_FOR_CAPTURE_INVOCATION"
+     assert ready["capture_ready"] is True
+     assert ready["frozen"] is False
+     assert ready["natural_sample_count"] == 0
+@@ -534,6 +559,96 @@
+     run_root = output_root / "20260921" / "STAGE_0930_0935"
+     assert (run_root / "invalid_ledger.json").is_file()
+     assert not (run_root / "baseline_top10.json").exists()
++
++
++def test_admission_modes_keep_self_reported_real_truth_blocked(tmp_path: Path) -> None:
++    fake_real = _persistent_payload(tmp_path)
++    fake_real["admission_mode"] = REAL_AUTHORITY
++    with pytest.raises(ShadowInvalid, match="REAL_AUTHORITY_BUILD_BLOCKED_OWNER_CONTRACT_PENDING"):
++        build_shadow(fake_real, require_full_pool=True, require_artifacts=True)
++    frozen = freeze_snapshot(_persistent_payload(tmp_path), tmp_path)
++    real_labels = _labels(tmp_path)
++    real_labels["admission_mode"] = REAL_AUTHORITY
++    rejected = append_labels(Path(frozen["run_root"]), real_labels)
++    assert rejected["status"] == "CANNOT_CONFIRM"
++    assert any("REAL_AUTHORITY_TRUTH_BLOCKED" in reason for reason in rejected["invalid_reasons"])
++
++    engineering = _labels(tmp_path)
++    accepted = append_labels(Path(freeze_snapshot(_persistent_payload(tmp_path, stage="STAGE_0945_1030"), tmp_path)["run_root"]), engineering)
++    assert accepted["status"] == "ENGINEERING_ONLY"
++    assert accepted["label_count"] > 0
++
++
++def test_real_capture_preflight_is_blocked_before_caller_time_evidence(tmp_path: Path) -> None:
++    payload = _selector_capture_input(tmp_path)
++    payload["metadata"]["admission_mode"] = REAL_AUTHORITY
++    payload["metadata"]["captured_at"] = "2026-09-21T09:34:59+08:00"
++    payload["time_evidence"]["source"] = "operator-forged-runtime-proof"
++    ready = preflight_capture_input(payload)
++    assert ready["status"] == "REJECTED"
++    assert "REAL_AUTHORITY_CAPTURE_BLOCKED_OWNER_CONTRACT_PENDING" in ready["reasons"]
++    captured = capture_selector_snapshot(payload, tmp_path / "blocked-real")
++    assert captured["status"] == "CANNOT_CONFIRM"
++    assert "REAL_AUTHORITY_CAPTURE_BLOCKED_OWNER_CONTRACT_PENDING" in captured["capture"]["invalid_reasons"]
++
++
++@pytest.mark.parametrize(
++    ("runtime_value", "message"),
++    [
++        ("2026-09-20T09:35:05+08:00", "date does not match"),
++        ("2026-09-22T09:35:05+08:00", "date does not match"),
++        ("2026-09-21T09:29:59+08:00", "before"),
++        ("2026-09-21T09:35:06+08:00", "after"),
++        ("2026-09-19T16:00:00-07:00", "date does not match"),
++    ],
++)
++def test_runtime_capture_clock_rejects_wrong_date_timezone_and_stage_window(
++    runtime_value: str,
++    message: str,
++) -> None:
++    with pytest.raises(ShadowInvalid, match=message):
++        shadow_module._validate_runtime_capture_timestamp(
++            runtime_value,
++            "20260921",
++            "STAGE_0930_0935",
++        )
++
++
++def test_capture_time_receipt_is_persisted_and_tamper_evident(tmp_path: Path) -> None:
++    payload = _persistent_payload(tmp_path)
++    payload["raw_input_sha256"] = sha256_bytes(canonical_json(payload["rows"]))
++    payload["d1_manifest"] = {
++        "version": "hk-d1-manifest-v1",
++        "manifest_sha256": hashlib.sha256(
++            (tmp_path / "d1-STAGE_0930_0935.json").read_bytes()
++        ).hexdigest(),
++        "artifact": {
++            "path": str(tmp_path / "d1-STAGE_0930_0935.json"),
++            "sha256": hashlib.sha256(
++                (tmp_path / "d1-STAGE_0930_0935.json").read_bytes()
++            ).hexdigest(),
++        },
++    }
++    payload["formula_manifest_binding"] = {
++        "input_sha256": payload["formula_provenance"]["input_sha256"],
++        "rule_sha256": payload["formula_provenance"]["rule_sha256"],
++        "artifact": payload["formula_provenance"]["artifact"],
++        "rule_artifact": payload["formula_provenance"]["rule_artifact"],
++    }
++    payload["capture_time_receipt"] = shadow_module._capture_time_receipt_payload(
++        payload,
++        captured_at=shadow_module._parse_timestamp(
++            "2026-09-21T09:35:05+08:00", "20260921", "test"
++        ),
++        selector_status="COMPLETED",
++        context=payload,
++    )
++    frozen = freeze_snapshot(payload, tmp_path)
++    receipt_path = Path(frozen["run_root"]) / "capture_time_receipt.json"
++    assert receipt_path.is_file()
++    receipt_path.write_text(json.dumps({"tampered": True}), encoding="utf-8")
++    with pytest.raises(ShadowInvalid, match="capture_time_receipt hash mismatch"):
++        verify_frozen_artifacts(Path(frozen["run_root"]))
+ 
+ 
+ def test_persistent_freeze_requires_full_pool_and_real_artifact_binding(tmp_path: Path) -> None:
+@@ -589,6 +704,34 @@
+     assert any("verified full-universe" in reason for reason in result["invalid_reasons"])
+ 
+ 
++def test_truth_boundary_tie_is_not_resolved_by_caller_tie_break(tmp_path: Path) -> None:
++    frozen = freeze_snapshot(_persistent_payload(tmp_path), tmp_path)
++    labels = _labels(tmp_path)
++    source_path = Path(labels["truth_source_artifact"]["path"])
++    source = json.loads(source_path.read_text(encoding="utf-8"))
++    for row in source["rows"]:
++        if row["security_id"] == "HK.C10":
++            row["close"] = 121.0
++            break
++    source_path.write_text(json.dumps(source, ensure_ascii=False, sort_keys=True), encoding="utf-8")
++    source_sha = hashlib.sha256(source_path.read_bytes()).hexdigest()
++    labels["truth_manifest_sha256"] = source_sha
++    labels["truth_source_artifact"]["sha256"] = source_sha
++    canonical_truth = [
++        {
++            "security_id": row["security_id"],
++            "close_price": float(row["close"]),
++            "pre_close_price": float(row["pre_close"]),
++            "close_gain": float(row["close"]) / float(row["pre_close"]) - 1.0,
++        }
++        for row in source["rows"]
++    ]
++    labels["truth_input_sha256"] = sha256_bytes(canonical_json(canonical_truth))
++    result = append_labels(Path(frozen["run_root"]), labels)
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert any("boundary tie" in reason for reason in result["invalid_reasons"])
++
++
+ def test_hit_evaluation_survives_missing_markout_semantics(tmp_path: Path) -> None:
+     frozen = freeze_snapshot(_persistent_payload(tmp_path), tmp_path)
+     labels = _labels(tmp_path)
+@@ -596,10 +739,10 @@
+     labels["rows"][0].pop("adjustment_mode")
+     labels["rows"][0].pop("close_price_source")
+     result = append_labels(Path(frozen["run_root"]), labels)
+-    assert result["status"] == "READY"
++    assert result["status"] == "ENGINEERING_ONLY"
+     assert result["markout_invalid_reasons"]
+     evaluation = evaluate_run(Path(frozen["run_root"]))
+-    assert evaluation["status"] == "READY"
++    assert evaluation["status"] == "ENGINEERING_ONLY"
+     assert evaluation["baseline_hit_count"] == 9
+     assert evaluation["candidate_hit_count"] == 10
+     assert evaluation["markout"]["status"] == "CANNOT_CONFIRM"
+@@ -607,12 +750,13 @@
+ 
+ def test_evaluate_runs_reports_planned_valid_invalid_without_zero_filling(tmp_path: Path) -> None:
+     first = freeze_snapshot(_persistent_payload(tmp_path), tmp_path)
+-    assert append_labels(Path(first["run_root"]), _labels(tmp_path))["status"] == "READY"
++    assert append_labels(Path(first["run_root"]), _labels(tmp_path))["status"] == "ENGINEERING_ONLY"
+     second = freeze_snapshot(_persistent_payload(tmp_path, stage="STAGE_0945_1030"), tmp_path)
+     aggregate = evaluate_runs([first["run_root"], second["run_root"]])
+     assert aggregate["planned_units"] == 2
+-    assert aggregate["valid_units"] == 1
++    assert aggregate["valid_units"] == 0
++    assert aggregate["engineering_units"] == 1
+     assert aggregate["invalid_units"] == 1
+     assert aggregate["evaluation_status"] == "CANNOT_CONFIRM"
+-    assert aggregate["fixed_p10_denominator"] == 10
+-    assert aggregate["changed_in_count"] == 1
++    assert aggregate["fixed_p10_denominator"] is None
++    assert aggregate["changed_in_count"] == 0
+--- r2/docs/formula_margin_shadow_v1.md
++++ r2_1/docs/formula_margin_shadow_v1.md
+@@ -13,6 +13,18 @@
+ and the only manual entry point is
+ [`ops/run_formula_margin_shadow.py`](../ops/run_formula_margin_shadow.py).
+ 
++Every input states one admission mode. `ENGINEERING_FIXTURE` is available for
++deterministic arithmetic, immutability, and selector-hook tests; its labels
++and evaluations are `ENGINEERING_ONLY`, with `hit_ready=false`,
++`counts_as_forward_day=false`, and `natural_sample_count=0`. It never enters a
++natural-day denominator. `REAL_AUTHORITY` is the intended forward mode, but
++this checkout keeps it fail-closed until the existing owner supplies the
++exact-date membership manifest/receipt chain and the same-membership-bound
++final-close contract. A caller supplied truth list, coverage value, source
++string, tie-break, or timestamp cannot upgrade either mode. Engineering
++selector captures use `FORWARD_SHADOW`; `FORWARD_NATURAL` is reserved for a
++runtime-authorized capture.
++
+ The three frozen natural stages and their exact Shanghai cutoffs are:
+ 
+ | stage | cutoff |
+@@ -64,7 +76,8 @@
+ ```json
+ {
+   "metadata": {
+-    "observation_mode": "FORWARD_NATURAL",
++    "admission_mode": "ENGINEERING_FIXTURE",
++    "observation_mode": "FORWARD_SHADOW",
+     "trade_date": "YYYYMMDD",
+     "stage": "STAGE_0930_0935",
+     "cutoff_ts": "YYYY-MM-DDT09:35:05+08:00",
+@@ -230,14 +243,26 @@
+ tie-break, and suspension policy must come from the existing V4 authority
+ contract. Caller-provided counts, source-version strings, tie-break labels, or
+ combined JSON do not establish that authority. Until that contract is bound,
+-this R2 handoff keeps the truth adapter blocked and every truth unit is
+-`CANNOT_CONFIRM`; no caller-supplied contract can upgrade it.
+-The repository fixtures that exercise the arithmetic are engineering-only
+-fixtures and do not provide this authority contract.
++`REAL_AUTHORITY` labels are rejected with an immutable invalid ledger and
++remain `CANNOT_CONFIRM`; no caller-supplied contract can upgrade them. The
++repository fixtures that exercise the arithmetic are explicitly
++`ENGINEERING_ONLY` and do not provide this authority contract. A Top20
++boundary tie is rejected when the source does not provide an authoritative
++tie-break. Suspended members are not deleted or imputed as zero; absent
++authoritative close/gain evidence invalidates the truth unit.
++
++The current owner evidence is still incomplete: the formal exact-date member
++manifest/receipt chain, a same-membership-bound final EOD close contract, an
++accepted adjustment/corporate-action definition, a source tie-break contract,
++and a suspension policy have not been delivered. A panel fallback or a
++collection-time payload cannot fill those gaps.
+ 
+ ## Metrics
+ 
+-`evaluate` reports planned, valid and invalid stage units. For `N` valid units,
++`evaluate` reports planned, valid, engineering-only, and invalid stage units.
++Engineering-only units retain diagnostic hit and markout separation but are
++excluded from all natural denominators; their diagnostic changed-in/out counts
++are reported separately. For `N` valid units,
+ P@10 uses exactly `10N` as its denominator. Recall@20 uses `20N` and is only
+ reported for complete truth units. It also reports the number of truth Top20
+ members present in the D1 pool (`d1_pool_recall_at20`), which is the selection
+@@ -292,7 +317,16 @@
+ `preflight-capture` validates exactly 100 unique raw D1 rows, the actual
+ production source/rule bytes, the D1 manifest, the 100-code H/N/U formula
+ state and rule artifacts, and bound time evidence. A successful response is
+-`READY_FOR_SELECTOR_CAPTURE`; it is neither `FROZEN` nor a natural sample.
++`READY_FOR_CAPTURE_INVOCATION`; it is neither `FROZEN` nor a natural sample.
++The static preflight cannot prove a natural timestamp. During a real capture,
++the private runtime clock is checked in Asia/Shanghai against the exact stage
++window and the caller's `captured_at` and `time_evidence.source` are ignored
++as proof. The capture writes an immutable `capture_time_receipt.json` bound
++to the production run id, raw/source/rule SHA, D1 manifest, formula state and
++rule artifact SHA, shadow rule, comparator, and the real
++`stage_center.selection.select_hk_four_lane` invocation. Receipt and selector
++parity failures are invalid ledger entries; the production selector result is
++left unchanged.
+ Dynamic production rank, baseline parity, equivalent-class checks and `tau`
+ are evaluated only when `capture` invokes the real selector hook. Static
+ preflight and capture share the same admission helper, so an input cannot

@@ -1,0 +1,156 @@
+{
+  "canonical_delta": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/CANONICAL_SOURCE_DELTA.diff",
+    "sha256": "97bdf7f37e13a83b01c5924c5f05b471dabdc7c93ea678e2818cdac84d782cfe"
+  },
+  "canonical_selector_test_preservation": {
+    "final_sha256": "6ba156e128d1e783b2b372330e8d18bb1d6d29859fbb3bdff7e064e756305f25",
+    "only_reviewed_additions": [
+      "recovery manifest new_dates/new_row_count fixture metadata",
+      "8 current-observation/rebound R1-R2 selector tests"
+    ],
+    "preimage_sha256": "77f7355fe97857db4598b607d72c088e913e5d0ee7439a5679965334fdde7e2f",
+    "preserved_existing_read": "read=await c.get(/api/v4/manager/research/workspace?date=DATE&view=dynamic)"
+  },
+  "canonical_workspace_plan_preservation": {
+    "byte_identical_preserved_regions": [
+      "all bytes before _read_hk02_panel_witness",
+      "_read_hk02_daily_supplement_witness",
+      "screen body after master_names binding",
+      "all code after read_rebound_screen"
+    ],
+    "exactly_reviewed_regions": [
+      "_read_hk02_panel_witness",
+      "read_rebound_screen preamble through master_names binding"
+    ],
+    "final_sha256": "e35d4d73e39293769856f9f4af75d9eb6bc75a5b552bb807779704f625a6a5c1",
+    "original_preimage_sha256": "d3244ea2bf3ca3b6eedd79b53d5026eaf7f5358d833747ce22e9381e17d51e64"
+  },
+  "files": [
+    {
+      "bytes": 57619,
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "preimage_sha256": "d202bace0da2fec3e59977240af31a52026e18639b6b08878ebbbd60d52fe88b",
+      "reviewed_candidate_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    },
+    {
+      "bytes": 41770,
+      "path": "v4/manager_research/workspace.py",
+      "preimage_sha256": "35c9292d3b422c9d5a744590cc472de5bfa2da8a62d12c6382ca0d1a9b3a6168",
+      "reviewed_candidate_sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696",
+      "sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696"
+    },
+    {
+      "bytes": 30841,
+      "path": "v4/manager_research/workspace_projection.py",
+      "preimage_sha256": "f5003b4de58db760e3d864473c5ce62846bb0e8ae1acdc8a8e77544272f865b8",
+      "reviewed_candidate_sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200"
+    },
+    {
+      "bytes": 94204,
+      "path": "v4/manager_research/workspace_plan.py",
+      "preimage_sha256": "d3244ea2bf3ca3b6eedd79b53d5026eaf7f5358d833747ce22e9381e17d51e64",
+      "sha256": "e35d4d73e39293769856f9f4af75d9eb6bc75a5b552bb807779704f625a6a5c1"
+    },
+    {
+      "bytes": 56129,
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "preimage_sha256": "4a0a693cc5715564ef095792907b386b31d8e1581394931750ce819f48c43f8a",
+      "reviewed_candidate_sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186",
+      "sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186"
+    },
+    {
+      "bytes": 23248,
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "preimage_sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+      "sha256": "64a887d782b03b84d243c8ee08d852d97916f278326a7fe26195ea3c883144fd"
+    },
+    {
+      "bytes": 14048,
+      "path": "tests/test_manager_current_observation.py",
+      "preimage": "ABSENT",
+      "sha256": "a436d38f492f8d456ff2923df88f3b5ef0f165047330e3710f48915ebd490acb"
+    },
+    {
+      "bytes": 33077,
+      "path": "tests/test_manager_workspace_targeted_r2.py",
+      "preimage_sha256": "77f7355fe97857db4598b607d72c088e913e5d0ee7439a5679965334fdde7e2f",
+      "sha256": "6ba156e128d1e783b2b372330e8d18bb1d6d29859fbb3bdff7e064e756305f25"
+    },
+    {
+      "bytes": 1802,
+      "path": "tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json",
+      "preimage": "ABSENT",
+      "sha256": "9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c"
+    },
+    {
+      "bytes": 3296,
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.json",
+      "preimage": "ABSENT",
+      "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56"
+    },
+    {
+      "bytes": 1303,
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.receipt.json",
+      "preimage": "ABSENT",
+      "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994"
+    },
+    {
+      "bytes": 59817,
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.candidates.json",
+      "preimage": "ABSENT",
+      "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454"
+    },
+    {
+      "bytes": 47324,
+      "path": "tests/fixtures/manager_current_observation_20261002/inputs/close_recapture_pytdx.json",
+      "preimage": "ABSENT",
+      "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3"
+    }
+  ],
+  "fixture_binding": {
+    "copy_mode": "byte-for-byte copy; no source or authority writes",
+    "path": "tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json",
+    "sha256": "9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c",
+    "source_readback_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_hk_history_r5_acceptance_20261002/api_integration/hk_securities_observation_execution/INDEPENDENT_ACTUAL_CAPTURE_READBACK.json",
+      "sha256": "3f9639d850fa74f5db9c9ddc1d2b01773c7dad76befefd5ca2db852f4912087e"
+    }
+  },
+  "limitations": {
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "DEPLOYED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "formal_TESTED": "PENDING_INDEPENDENT_REVIEWER"
+  },
+  "reviewed_candidate_receipts": [
+    {
+      "name": "current_observation_r2",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_fix/INDEPENDENT_CURRENT_OBSERVATION_REVIEW_R2.json",
+      "review_status": "PASS_SCOPED",
+      "sha256": "94c70df31486274c41d1716e457b36137c250cbae807fcebf1853072d24c0d4e"
+    },
+    {
+      "name": "rebound_owner_selection_r2",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/rebound_owner_selection_fix/INDEPENDENT_REBOUND_OWNER_SELECTION_REVIEW_R2.json",
+      "review_status": "PASS_SCOPED_REBOUND_OWNER_SELECTION_R2",
+      "sha256": "14c069a8700aca0a9ee33460aea6ef89c05deecec485787a2cffae0903bfe020"
+    },
+    {
+      "name": "current_observation_ui",
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_ui_fix/INDEPENDENT_CURRENT_OBSERVATION_UI_REVIEW.json",
+      "review_status": "PASS_SCOPED",
+      "sha256": "83da1e30e660677f236070edecd02e0fd53240c1b2d3af2a6a1d37e843982563"
+    }
+  ],
+  "schema_version": "v1.v4.current_repairs_source_delivery_hashes",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "writer_test_receipt": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/api_integration/current_repairs_source_delivery/TEST_RECEIPT.json",
+    "sha256": "4498a9d98013f7f9d61a1b49e34fe2ec2b5de1f03cd627c0bede405522e23fa1",
+    "status": "PASS_SCOPED"
+  }
+}

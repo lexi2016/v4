@@ -1,0 +1,72 @@
+{
+  "status": "WRITER_HANDOFF_HASH_VERIFIED_REVIEW_PENDING",
+  "verified_at": "2026-10-02T12:35:05.371756+00:00",
+  "source_binding_sha256": "f02f9457090616d0da8c65837f6f329d0b17a3f7b0050a01e7ecae80a81816bb",
+  "checks": [
+    {
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "matched": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "sha256": "7317cb717f4eede473375a9251feb772a959ccf85f4e52492f759d5f1b739696",
+      "matched": true
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "sha256": "027d855613e675e1f569b401b9a8344e40766b88c31e987e791d05a0b3a2f200",
+      "matched": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256": "e35d4d73e39293769856f9f4af75d9eb6bc75a5b552bb807779704f625a6a5c1",
+      "matched": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "cd381c047572ae8e7cb0f4b8b959de72b692b6390a4f9281f637c9ae5402a186",
+      "matched": true
+    },
+    {
+      "path": "apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "sha256": "64a887d782b03b84d243c8ee08d852d97916f278326a7fe26195ea3c883144fd",
+      "matched": true
+    },
+    {
+      "path": "tests/test_manager_current_observation.py",
+      "sha256": "a436d38f492f8d456ff2923df88f3b5ef0f165047330e3710f48915ebd490acb",
+      "matched": true
+    },
+    {
+      "path": "tests/test_manager_workspace_targeted_r2.py",
+      "sha256": "6ba156e128d1e783b2b372330e8d18bb1d6d29859fbb3bdff7e064e756305f25",
+      "matched": true
+    },
+    {
+      "path": "tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json",
+      "sha256": "9e5fd49a35fa70aa8d2a85b4b06547fecaae5af9f9248fbffa99e5aa48b28c0c",
+      "matched": true
+    },
+    {
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.json",
+      "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56",
+      "matched": true
+    },
+    {
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.receipt.json",
+      "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994",
+      "matched": true
+    },
+    {
+      "path": "tests/fixtures/manager_current_observation_20261002/close_recapture.candidates.json",
+      "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454",
+      "matched": true
+    },
+    {
+      "path": "tests/fixtures/manager_current_observation_20261002/inputs/close_recapture_pytdx.json",
+      "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3",
+      "matched": true
+    }
+  ]
+}

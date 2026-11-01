@@ -1,0 +1,32 @@
+{
+  "schema_version": "v4.formula_margin_shadow.engineering_canary.v1",
+  "experiment_id": "V4_FORMULA_MARGIN_SHADOW_V1",
+  "status": "ENGINEERING_CANARY_PASS",
+  "natural_sample_count": 0,
+  "counts_as_forward_day": false,
+  "focused_tests": {
+    "command": ".venv/bin/python -m pytest -q tests/test_formula_margin_shadow.py tests/test_stage_scoring.py --basetemp <mktemp-dir> --tb=short",
+    "result": "10 passed",
+    "baselined_comparator": "hk_legacy_stage_sort_key tuple parity",
+    "strict_top100_in_memory": "100 members, 10 B rows, 10 F rows"
+  },
+  "archive_preflight": {
+    "status": "REJECTED",
+    "evidence": "preflight_archive_rejection.json"
+  },
+  "safety": {
+    "research_only": true,
+    "shadow_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "automation_created": false
+  },
+  "implementation_sha256": {
+    "stage_center/formula_margin_shadow.py": "f8fa416dcbaf220ff0f871b4875d26c822db5bcc13867ac32c0f849e71aef735",
+    "ops/run_formula_margin_shadow.py": "affbec2af77f7a0d45214afc2c1f687e38d50882697e1ddb657cb49f466b5110",
+    "tests/test_formula_margin_shadow.py": "79fbbf70b2d0be792aa3b52084cb77142b7bf7cae5063d69eb1833d8be4c8199",
+    "docs/formula_margin_shadow_v1.md": "3617d7f29aa01001ca2c3156e4bfa7ff6847d93ae7df51ea0db2aa0bf8a4e848"
+  },
+  "note": "This receipt records engineering verification only. No real 20260919 natural stage was run and no five-day, twenty-day, or forty-day result is claimed."
+}

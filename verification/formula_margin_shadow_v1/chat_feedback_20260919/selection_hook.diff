@@ -1,0 +1,164 @@
+diff --git a/stage_center/selection.py b/stage_center/selection.py
+index 9bf2553..132aad5 100644
+--- a/stage_center/selection.py
++++ b/stage_center/selection.py
+@@ -7,6 +7,7 @@ compute deterministic observations and never authorize a trade.
+ from __future__ import annotations
+ 
+ import csv
++import copy
+ import hashlib
+ import json
+ import math
+@@ -18,7 +19,7 @@ from infrastructure.interprocess_lock import owned_interprocess_lock
+ from contextlib import contextmanager
+ from datetime import datetime
+ from pathlib import Path, PurePosixPath
+-from typing import Any, Iterator, Mapping, Sequence
++from typing import Any, Callable, Iterator, Mapping, Sequence
+ from uuid import uuid4
+ 
+ from .calendar import calendar_provenance
+@@ -78,6 +79,19 @@ _ROLE_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?$")
+ _LOCK_TIMEOUT_SECONDS = 10.0
+ _LOCK_STALE_SECONDS = 30.0
+ 
++# The formula-margin shadow is an explicitly opt-in observation hook.  Keeping
++# the stage allowlist here makes it impossible for a caller to accidentally
++# capture the 09:25 auction contract or an unrelated selector through this
++# hook.  The callback is side-effect-only: the selector never consumes its
++# return value and callback failures are isolated below.
++HK_FORMULA_MARGIN_SHADOW_STAGES = frozenset(
++    {
++        "STAGE_0930_0935",
++        "STAGE_0945_1030",
++        "STAGE_1445_1500",
++    }
++)
++
+ # This is an explicit version manifest, rather than a caller-provided label.
+ # The digest is consequently stable across processes and binds the coefficients
+ # and status mapping used by this module.
+@@ -1336,6 +1350,78 @@ def hk_0925_pool_rank(row: Mapping[str, Any]) -> int:
+     return _live_rank_int(row.get("pool_rank") or row.get("preopen_rank") or row.get("hk_stage_rank"))
+ 
+ 
++def _invoke_hk_formula_margin_shadow(
++    callback: Callable[..., Any],
++    *,
++    raw_rows: Sequence[Mapping[str, Any]],
++    sorted_rows: Sequence[Mapping[str, Any]],
++    production_rows: Sequence[Mapping[str, Any]],
++    trade_date: str,
++    stage_id: str,
++    raw_artifact_sha256: str,
++    source_status: str,
++    requested_rows: int | None,
++    source_evidence: Sequence[str],
++    shadow_context: Mapping[str, Any] | None,
++    error_callback: Callable[..., Any] | None,
++) -> None:
++    """Call the opt-in shadow observer with isolated copies of selector data.
++
++    ``sorted_rows`` is copied immediately after the real comparator has run and
++    before the public recommendation cap.  ``production_rows`` is the exact
++    capped slice which the selector is about to return.  A callback therefore
++    gets both the full rank source and the production Top10 without changing
++    the selector envelope.  The copies also prevent an observer from mutating
++    the rows subsequently returned by the production selector.
++
++    This boundary intentionally swallows observer failures.  A research
++    capture or its disk cannot change a production selection result.  Callers
++    that want an immutable invalid ledger can provide ``error_callback``;
++    errors from that callback are isolated as well.
++    """
++
++    if stage_id not in HK_FORMULA_MARGIN_SHADOW_STAGES:
++        return
++    context: dict[str, Any] = {}
++    if isinstance(shadow_context, Mapping):
++        try:
++            context = copy.deepcopy(dict(shadow_context))
++        except Exception:
++            context = {}
++    context.update(
++        {
++            "trade_date": trade_date,
++            "stage": stage_id,
++            "raw_artifact_sha256": raw_artifact_sha256,
++            "source_status": source_status,
++            "requested_rows": requested_rows,
++            "source_evidence": list(source_evidence),
++            "selector_hook": "HK_FORMULA_MARGIN_SHADOW_V1",
++        }
++    )
++    try:
++        copied_sorted = copy.deepcopy(list(sorted_rows))
++        # Every row passed through the real four-lane selector participates in
++        # the selector ranking.  This is an acquisition fact and is kept
++        # separate from the public ``formal_eligible`` research overlay.
++        for row in copied_sorted:
++            if isinstance(row, dict):
++                row["selection_eligible"] = True
++        callback(
++            raw_rows=copy.deepcopy(list(raw_rows)),
++            sorted_rows=copied_sorted,
++            production_rows=copy.deepcopy(list(production_rows)),
++            context=context,
++        )
++    except Exception as error:  # pragma: no cover - the callback is external
++        if error_callback is None:
++            return
++        try:
++            error_callback(error=error, context=context)
++        except Exception:
++            return
++
++
+ def select_hk_four_lane(
+     rows: Sequence[Mapping[str, Any]],
+     trade_date: str,
+@@ -1348,6 +1434,9 @@ def select_hk_four_lane(
+     cannot_confirm: Sequence[str] = (),
+     source_evidence: Sequence[str] = (),
+     cap_limit_yi: float = 100.0,
++    shadow_capture: Callable[..., Any] | None = None,
++    shadow_context: Mapping[str, Any] | None = None,
++    shadow_capture_error: Callable[..., Any] | None = None,
+ ) -> dict[str, Any]:
+     _validate_date(trade_date)
+     _validate_market(stage_id, "HK_CONNECT")
+@@ -1425,12 +1514,32 @@ def select_hk_four_lane(
+         selected.sort(key=hk_0925_pool_rank)
+     else:
+         selected.sort(key=hk_legacy_stage_sort_key, reverse=True)
++    # Keep a copy of the full, genuinely sorted selector result before the
++    # public Top10 truncation.  The hook is opt-in and side-effect-only; with
++    # its default ``None`` value this block performs no work and the existing
++    # selector return remains byte-for-byte unchanged.
++    sorted_for_shadow = selected
+     top10 = _top10_contract(source_evidence)
+     legacy = _legacy_backfill(source_evidence) and not top10
+-    selected = _cap_recommendations(selected, preserve_legacy=legacy)
++    selected = _cap_recommendations(sorted_for_shadow, preserve_legacy=legacy)
+     algorithm_sha = (
+         ALGORITHM_SHA256 if top10 else LEGACY_ALGORITHM_SHA256
+     )
++    if shadow_capture is not None:
++        _invoke_hk_formula_margin_shadow(
++            shadow_capture,
++            raw_rows=rows,
++            sorted_rows=sorted_for_shadow,
++            production_rows=selected,
++            trade_date=trade_date,
++            stage_id=stage_id,
++            raw_artifact_sha256=raw_artifact_sha256,
++            source_status=source_status,
++            requested_rows=requested_rows,
++            source_evidence=source_evidence,
++            shadow_context=shadow_context,
++            error_callback=shadow_capture_error,
++        )
+     return _selection_envelope(
+         trade_date=trade_date,
+         stage_id=stage_id,

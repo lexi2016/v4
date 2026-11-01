@@ -1,0 +1,104 @@
+{
+  "goal": "Implement isolated V4_FORMULA_MARGIN_SHADOW_V1 with immutable selection and separate labels; preserve existing selection and no automation",
+  "writer": "/root/formula_shadow_writer",
+  "reviewer": "/root/formula_shadow_review",
+  "dispatch_time": "2026-09-19T23:16:06.591793+08:00",
+  "expected_terminal_type": "bounded implementation handoff then independent behavior verdict",
+  "lifecycle_status": "R2_2_AWAITING_CHAT_SINGLE_P1",
+  "final_received": true,
+  "final_consumed": true,
+  "receipt_verified": true,
+  "forbidden": [
+    "existing production outputs",
+    "scheduler",
+    "BUY gate",
+    "trading",
+    "unrelated dirty files"
+  ],
+  "pass_signal": "baseline parity, comparator constraints, PIT and immutable label separation, explicit missing-data gates, correct paired metrics",
+  "stop_rule": "No trusted full source means invalid natural sample; no proxy fallback",
+  "automation_created": false,
+  "decision_lock": {
+    "truth_scope": "HK_CONNECT_FULL_UNIVERSE_CLOSE_GAIN_TOP20",
+    "selection_universe": "ORIGINAL_D1_TOP100",
+    "market_cap_filter": false,
+    "exclude_already_large_gainers": false,
+    "historical_conditional_top20_comparable": false,
+    "definition_source": "User explicitly clarified full HK Stock Connect close gain Top20 during implementation"
+  },
+  "milestone": "Actual selector return identity and local sealed provenance",
+  "first_handoff_received": true,
+  "first_handoff_consumed": true,
+  "first_handoff_identity": {
+    "stage_center/formula_margin_shadow.py": {
+      "expected": "f8fa416dcbaf220ff0f871b4875d26c822db5bcc13867ac32c0f849e71aef735",
+      "actual": "f8fa416dcbaf220ff0f871b4875d26c822db5bcc13867ac32c0f849e71aef735"
+    },
+    "ops/run_formula_margin_shadow.py": {
+      "expected": "affbec2af77f7a0d45214afc2c1f687e38d50882697e1ddb657cb49f466b5110",
+      "actual": "affbec2af77f7a0d45214afc2c1f687e38d50882697e1ddb657cb49f466b5110"
+    }
+  },
+  "review_round_1": {
+    "verdict": "FAIL",
+    "focused_tests": "10 passed",
+    "issues": [
+      "full universe truth not verified",
+      "source and formula hashes not bound",
+      "missing price semantics suppresses hit metrics",
+      "comparator alias drift",
+      "persistent short pool bypass",
+      "preflight false pass"
+    ],
+    "final_received": true,
+    "final_consumed": true
+  },
+  "writer_checkpoint_received": true,
+  "writer_checkpoint_consumed": true,
+  "user_workflow": "Execute and test, report findings to Chat; no autonomous repair",
+  "chat_delivery_receipt": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/chat_feedback_20260919/chat_delivery_receipt.json",
+  "r2_spec_sha256": "c10c8dcffab5b46bd69710a6e3089ad8dc8d5e76d54561245f0e3b907f927d33",
+  "r2_allowed_paths": [
+    "stage_center/formula_margin_shadow.py",
+    "tests/test_formula_margin_shadow.py",
+    "docs/formula_margin_shadow_v1.md"
+  ],
+  "r2_frozen_selection_sha256": "1f93525ced647bfdc8fbf53ad3efb157a112206997003ade3f06dcfb91919549",
+  "r2_stop_rule": "Unspecified authority/rule defects return to Chat; no autonomous expansion",
+  "r2_writer_handoff_received": true,
+  "r2_writer_handoff_consumed": true,
+  "r2_source_audit_received": true,
+  "r2_source_audit_consumed": true,
+  "authority_facts": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/r2_chat_feedback_20260919/SOURCE_AUTHORITY_FACTS.md",
+  "r2_review_verdict": "FAIL_2_P1",
+  "r2_review_report": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/r2_chat_feedback_20260919/REVIEW_RESULT.md",
+  "r2_chat_delivery_receipt": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/r2_chat_feedback_20260919/chat_delivery_receipt.json",
+  "natural_sample_count": 0,
+  "r2_1_contract_path": "/Users/lexi/.codex/attachments/fd869387-c79b-48a0-b965-c7fc2452c6e9/已粘贴的文本.txt",
+  "r2_1_contract_sha256": "9e0680201ea43462b25270f5172596870eb90b22780d85630354adced34ccd9c",
+  "r2_1_downloaded_contract_verified": false,
+  "r2_1_stop_rule": "New issues and unprovided owner semantics return to Chat; no autonomous source fixes",
+  "r2_1_writer_handoff_received": true,
+  "r2_1_writer_handoff_consumed": true,
+  "r2_1_writer_hashes": {
+    "stage_center/formula_margin_shadow.py": "40b44bfe3e6186e08e1781bb614a9cd62a56603c39ba4a54b98b829fe784a80d",
+    "tests/test_formula_margin_shadow.py": "2db7a10d3e3dadcb7592ad4a056ed0ed2a9273d7f4590aaa53a5a75c3b906161",
+    "docs/formula_margin_shadow_v1.md": "3dbb0cd0235de48e4229d29b28f5a0bd291ce6aaea5cf3d5736c0794b03261ce"
+  },
+  "r2_1_writer_tests": "53 passed, pending independent review",
+  "r2_1_review_verdict": "ENGINEERING_PASS_OVERALL_FAIL",
+  "r2_1_chat_receipt": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/r2_1_chat_feedback_20260919/chat_delivery_receipt.json",
+  "r2_2_contract": "/Users/lexi/Downloads/V4_FORMULA_MARGIN_SHADOW_V1_R2_2_FROZEN_CONTRACT.md",
+  "r2_2_contract_sha256": "9f44abb148a5c7c9d68667a810351f1a52591abca028b85171c7df91b578b9a1",
+  "r2_2_pass_signal": "Engineering identity and sealed provenance verified; REAL owner pending is separate",
+  "r2_2_writer_handoff_received": true,
+  "r2_2_writer_handoff_consumed": true,
+  "r2_2_writer_hashes": {
+    "stage_center/formula_margin_shadow.py": "0691e8050ce9145590e3678c729ca993f7138f4cfb52218f0f931fedec2fbdee",
+    "tests/test_formula_margin_shadow.py": "0c0e4e1f40dbe38d21e12d76bdd63b5dc25a2e3111816f822d867d14ae12b9c8",
+    "docs/formula_margin_shadow_v1.md": "e5dff23cfdcc339b893a5eb2788103b9ae274b6d070f5d665f800767184cd9b9"
+  },
+  "r2_2_writer_tests": "62 passed, independent verification pending",
+  "r2_2_review_verdict": "ENGINEERING_FAIL_SINGLE_SYMLINK_P1",
+  "r2_2_chat_receipt": "/Users/lexi/Desktop/学习/v4_app/verification/formula_margin_shadow_v1/r2_2_chat_feedback_20260919/chat_delivery_receipt.json"
+}

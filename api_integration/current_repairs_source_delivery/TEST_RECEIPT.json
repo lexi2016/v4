@@ -1,0 +1,42 @@
+{
+  "runs": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/current-repairs-observation-final tests/test_manager_current_observation.py",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "exit_code": 0,
+      "log": "api_integration/current_repairs_source_delivery/logs/python_current_observation.log",
+      "log_sha256": "ea1e061c27e6d298c1d2880db333e777f6b97cea348da885a5aca09ce6f354a2",
+      "name": "python_current_observation.log",
+      "output": "......                                                                   [100%]\n6 passed in 0.16s"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/current-repairs-rebound-final tests/test_manager_workspace_targeted_r2.py -k 'hk02_panel or hk02_forward_pointer or rebound_screen_binds or exact_named_recovered_manifest'",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "exit_code": 0,
+      "log": "api_integration/current_repairs_source_delivery/logs/python_rebound_selector.log",
+      "log_sha256": "a78199d227eba09f0339ce2082029dbf3f18396cfea0582a8c245d06f2e5f36c",
+      "name": "python_rebound_selector.log",
+      "output": ".............                                                            [100%]\n13 passed, 40 deselected in 0.08s"
+    },
+    {
+      "command": "PYTHONPYCACHEPREFIX=/private/tmp/current-repairs-pycache-final '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m py_compile apps/api/v35_api/manager_workbench_router.py v4/manager_research/workspace.py v4/manager_research/workspace_projection.py v4/manager_research/workspace_plan.py tests/test_manager_current_observation.py tests/test_manager_workspace_targeted_r2.py",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app",
+      "exit_code": 0,
+      "log": "api_integration/current_repairs_source_delivery/logs/python_compile.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "python_compile.log",
+      "output": ""
+    },
+    {
+      "command": "npm test -- src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "cwd": "/Users/lexi/Desktop/学习/v4_app/apps/web",
+      "exit_code": 0,
+      "log": "api_integration/current_repairs_source_delivery/logs/vitest_catalyst_panel.log",
+      "log_sha256": "4d442675cc71d450da87a4c5597e417296290df7cb8b6c40b9e6de39dcdc0b92",
+      "name": "vitest_catalyst_panel.log",
+      "output": "> v3-5-web@0.1.0 test\n> vitest run src/manager-selection/catalystObservationPanel.runtime.spec.ts\n\n\n RUN  v4.1.10 /Users/lexi/Desktop/学习/v4_app/apps/web\n\n\n Test Files  1 passed (1)\n      Tests  11 passed (11)\n   Start at  20:31:23\n   Duration  563ms (transform 70ms, setup 0ms, import 134ms, tests 200ms, environment 172ms)"
+    }
+  ],
+  "schema_version": "v1.v4_manager_current_repairs_canonical_writer_test_receipt",
+  "status": "PASS_SCOPED"
+}

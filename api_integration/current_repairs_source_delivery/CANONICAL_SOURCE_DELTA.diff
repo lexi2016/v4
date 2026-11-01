@@ -1,0 +1,1274 @@
+# Unified source/test diff. The four byte-copied JSON fixture payloads are pinned in SOURCE_HASHES.json.
+--- a/apps/api/v35_api/manager_workbench_router.py
++++ b/apps/api/v35_api/manager_workbench_router.py
+@@ -6,7 +6,7 @@
+ """
+ from __future__ import annotations
+ 
+-from datetime import datetime, timezone
++from datetime import datetime, time, timezone
+ import json
+ import math
+ from pathlib import Path
+@@ -53,6 +53,19 @@
+     "buy_gate_updated": False,
+     "orders_sent": False,
+ }
++_MANUAL_HK_SECURITIES_EXECUTION = "MANUAL_HK_SECURITIES_SESSION_OBSERVATION"
++_MANUAL_HK_SECURITIES_OBSERVATION = "HK_SECURITIES_SESSION_MINUTE_OBSERVATION"
++_MANUAL_HK_SECURITIES_METADATA = {
++    "execution_kind": _MANUAL_HK_SECURITIES_EXECUTION,
++    "observation_type": _MANUAL_HK_SECURITIES_OBSERVATION,
++    "observation_market": "HK_SECURITIES",
++    "observation_market_state": "FULL_TRADING_DAY",
++    "connect_market_state": "NON_TRADING_DAY",
++    "official_close_status": "CANNOT_CONFIRM",
++    "natural_run": False,
++    "pool_eligibility_for_observation_market": "CANNOT_CONFIRM",
++    **_CLOSE_RECAPTURE_FLAGS,
++}
+ # B1 does not define B2 rules.  A producer may only mark a row qualified when
+ # every predicate it declares as required is present, versioned, and true.
+ QUALIFIED_PREDICATE_POLICY = "ALL_DECLARED_PREDICATES"
+@@ -67,6 +80,26 @@
+ 
+ class WorkbenchResearchContractError(ValueError):
+     pass
++
++
++def _has_manual_hk_securities_markers(value: Mapping[str, Any]) -> bool:
++    return (value.get("execution_kind") == _MANUAL_HK_SECURITIES_EXECUTION
++            or value.get("observation_type") == _MANUAL_HK_SECURITIES_OBSERVATION
++            or value.get("observation_market") == "HK_SECURITIES")
++
++
++def _matches_manual_hk_securities_metadata(
++    value: Mapping[str, Any], trade_date: str, target_trade_date: str | None = None,
++) -> bool:
++    for key, expected in _MANUAL_HK_SECURITIES_METADATA.items():
++        actual = value.get(key)
++        if isinstance(expected, bool):
++            if actual is not expected:
++                return False
++        elif actual != expected:
++            return False
++    return (value.get("source_trade_date") == trade_date
++            and (target_trade_date is None or value.get("target_trade_date") == target_trade_date))
+ 
+ 
+ def _strict_date(value: str | None) -> str:
+@@ -670,22 +703,50 @@
+                 "candidate_overlay": {"count": 0, "rows": []},
+                 "cannot_confirm": [reason], **_CLOSE_RECAPTURE_FLAGS}
+ 
++    def _requested_day_observation_empty(self, trade_date: str, status: str, reason: str) -> dict[str, Any]:
++        return {"schema_version": _CLOSE_RECAPTURE_SCHEMA, "status": status,
++                "source_trade_date": None, "requested_trade_date": trade_date,
++                "target_trade_date": None, "plan_trade_date": None,
++                "market": MARKET, "capture_mode": "LATE_OBSERVATION",
++                "execution_kind": _MANUAL_HK_SECURITIES_EXECUTION,
++                "observation_type": _MANUAL_HK_SECURITIES_OBSERVATION,
++                "observation_market": "HK_SECURITIES", "observation_market_state": "UNKNOWN",
++                "connect_market_state": "UNKNOWN", "official_close_status": "CANNOT_CONFIRM",
++                "pool_eligibility_for_observation_market": "CANNOT_CONFIRM",
++                "candidate_overlay": {"count": 0, "rows": []},
++                "planner_availability": "DISPLAY_ONLY_NOT_PLANNER_INPUT",
++                "planner_eligible_context": False,
++                "formal_recommendation_effect": "NONE", "buy_gate_effect": "NONE",
++                "cannot_confirm": [reason], **_CLOSE_RECAPTURE_FLAGS}
++
+     def read_close_recapture(self, trade_date: str) -> dict[str, Any]:
+-        """Read the separate late PyTDX minute artifact; never reads or writes 1530."""
++        """Read the planner's exact-date PyTDX minute artifact; never reads or writes 1530."""
++        return self._read_close_recapture(trade_date, manual_hk_observation=False)
++
++    def read_requested_day_hk_observation(self, trade_date: str) -> dict[str, Any]:
++        """Read a verified manual HK-securities observation for request-day display only."""
++        return self._read_close_recapture(trade_date, manual_hk_observation=True)
++
++    def _read_close_recapture(self, trade_date: str, *, manual_hk_observation: bool) -> dict[str, Any]:
++        """Read one explicit late observation contract without changing planner defaults."""
++        empty = (self._requested_day_observation_empty if manual_hk_observation
++                 else self._close_recapture_empty)
+         if _DATE_RE.fullmatch(str(trade_date)) is None:
+-            return self._close_recapture_empty(str(trade_date), "FAILED", "CLOSE_RECAPTURE_DATE_INVALID")
++            return empty(str(trade_date), "FAILED", "CLOSE_RECAPTURE_DATE_INVALID")
+         directory = self.artifact_root / trade_date
+         path = directory / "close_recapture.json"
+         try:
+             raw = path.read_bytes()
+         except FileNotFoundError:
++            if manual_hk_observation:
++                return empty(trade_date, "NOT_RUN", "REQUESTED_DAY_HK_OBSERVATION_NOT_MATERIALIZED")
+             status_path = directory / "close_recapture.status.json"
+             try:
+                 status_raw = status_path.read_bytes()
+             except FileNotFoundError:
+-                return self._close_recapture_empty(trade_date, "NOT_RUN", "CLOSE_RECAPTURE_NOT_MATERIALIZED")
++                return empty(trade_date, "NOT_RUN", "CLOSE_RECAPTURE_NOT_MATERIALIZED")
+             except OSError:
+-                return self._close_recapture_empty(trade_date, "FAILED", "CLOSE_RECAPTURE_STATUS_READ_FAILED")
++                return empty(trade_date, "FAILED", "CLOSE_RECAPTURE_STATUS_READ_FAILED")
+             try:
+                 status_value = json.loads(status_raw.decode("utf-8"))
+                 if (not isinstance(status_value, dict) or status_value.get("schema_version") != _CLOSE_RECAPTURE_SCHEMA
+@@ -695,9 +756,9 @@
+                     raise ValueError("status contract")
+                 return status_value
+             except (UnicodeError, json.JSONDecodeError, ValueError, TypeError):
+-                return self._close_recapture_empty(trade_date, "FAILED", "CLOSE_RECAPTURE_STATUS_INVALID")
++                return empty(trade_date, "FAILED", "CLOSE_RECAPTURE_STATUS_INVALID")
+         except OSError:
+-            return self._close_recapture_empty(trade_date, "FAILED", "CLOSE_RECAPTURE_ARTIFACT_READ_FAILED")
++            return empty(trade_date, "FAILED", "CLOSE_RECAPTURE_ARTIFACT_READ_FAILED")
+         try:
+             from infrastructure.manager_input_attestation import digest, load, resolve
+             value = json.loads(raw.decode("utf-8"))
+@@ -709,10 +770,17 @@
+                     or value.get("plan_trade_date") <= trade_date
+                     or value.get("market") != MARKET
+                     or value.get("capture_mode") != "LATE_OBSERVATION"
+-                    or value.get("observation_type") != "PYTDX_EXHQ_MINUTE_STAGE_OBSERVATION"
++                    or value.get("observation_type") != (_MANUAL_HK_SECURITIES_OBSERVATION if manual_hk_observation
++                                                          else "PYTDX_EXHQ_MINUTE_STAGE_OBSERVATION")
+                     or value.get("received_not_historical_1530") is not True
+                     or any(value.get(key) is not expected for key, expected in _CLOSE_RECAPTURE_FLAGS.items())):
+                 raise WorkbenchResearchContractError("close recapture envelope invalid")
++            if manual_hk_observation:
++                if (value.get("status") != "READY"
++                        or not _matches_manual_hk_securities_metadata(value, trade_date, value.get("plan_trade_date"))):
++                    raise WorkbenchResearchContractError("requested-day HK securities observation labels invalid")
++            elif _has_manual_hk_securities_markers(value):
++                raise WorkbenchResearchContractError("manual HK securities observation requires display-only reader")
+             request = value.get("request")
+             pool = value.get("pool")
+             source = value.get("source")
+@@ -756,6 +824,11 @@
+                     or not isinstance(coverage.get("ratio"), (int, float))
+                     or not math.isfinite(float(coverage["ratio"]))):
+                 raise WorkbenchResearchContractError("close recapture coverage invalid")
++            if manual_hk_observation and (
++                    coverage.get("requested_count") != 100 or coverage.get("completed_count") != 100
++                    or coverage.get("observed_count") != 100 or coverage.get("no_data_count") != 0
++                    or coverage.get("no_data_symbols") != [] or float(coverage.get("ratio")) != 1.0):
++                raise WorkbenchResearchContractError("requested-day HK observation coverage is incomplete")
+             expected_snapshot = f"workbench_research/{trade_date}/inputs/close_recapture_pytdx.json"
+             expected_overlay = f"workbench_research/{trade_date}/close_recapture.candidates.json"
+             if (snapshot.get("artifact_ref") != expected_snapshot or overlay_ref.get("artifact_ref") != expected_overlay
+@@ -787,6 +860,11 @@
+                     or not isinstance(rows, list) or len(rows) != overlay_ref["count"]
+                     or len(rows) != coverage["observed_count"] or not rows):
+                 raise WorkbenchResearchContractError("close recapture snapshot/overlay contract invalid")
++            if manual_hk_observation and (
++                    not _matches_manual_hk_securities_metadata(snapshot_value, trade_date)
++                    or not _matches_manual_hk_securities_metadata(overlay, trade_date, value.get("plan_trade_date"))
++                    or len(snapshot_value.get("source_rows", [])) != 100 or len(rows) != 100):
++                raise WorkbenchResearchContractError("requested-day HK observation source lineage invalid")
+             allowed_codes = set()
+             for row in snapshot_value.get("source_rows", []):
+                 if isinstance(row, Mapping) and _SYMBOL_RE.fullmatch(str(row.get("code") or "")):
+@@ -807,6 +885,12 @@
+                         or _utc_instant(available, "candidate.available_at")
+                         > _utc_instant(request["available_at"], "request.available_at")):
+                     raise WorkbenchResearchContractError("close recapture candidate times invalid")
++                if manual_hk_observation:
++                    observed_local = _utc_instant(observed, "candidate.observed_at").astimezone(_HK_TZ)
++                    clock_time = observed_local.timetz().replace(tzinfo=None)
++                    if (observed_local.strftime("%Y%m%d") != trade_date
++                            or not time.fromisoformat(window["start_at"]) <= clock_time < time.fromisoformat(window["end_before"])):
++                        raise WorkbenchResearchContractError("requested-day HK observation source date/window invalid")
+             receipt_path = directory / "close_recapture.receipt.json"
+             receipt = load(receipt_path)
+             if (receipt.get("schema_version") != "v4.manager_close_recapture_receipt.v1"
+@@ -819,11 +903,20 @@
+                     or receipt.get("candidate_overlay_sha256") != overlay_ref["sha256"]
+                     or any(receipt.get(key) is not expected for key, expected in _CLOSE_RECAPTURE_FLAGS.items())):
+                 raise WorkbenchResearchContractError("close recapture receipt invalid")
+-            return {**value, "candidate_overlay": {**dict(overlay_ref), "rows": rows},
+-                    "receipt": {key: receipt.get(key) for key in ("artifact_sha256", "captured_at", "available_at", "candidate_count")},
++            if manual_hk_observation and (
++                    not _matches_manual_hk_securities_metadata(receipt, trade_date, value.get("plan_trade_date"))
++                    or receipt.get("candidate_count") != 100
++                    or receipt.get("pool_manifest_sha256") != pool.get("manifest_sha256")
++                    or receipt.get("captured_at") != request.get("captured_at")
++                    or receipt.get("available_at") != request.get("available_at")):
++                raise WorkbenchResearchContractError("requested-day HK observation receipt binding invalid")
++            return {**value, "requested_trade_date": trade_date,
++                    "candidate_overlay": {**dict(overlay_ref), "rows": rows},
++                    "receipt": {key: receipt.get(key) for key in ("artifact_sha256", "captured_at", "available_at", "candidate_count",
++                        "execution_kind", "observation_type", "observation_market", "official_close_status")},
+                     "snapshot_verified": True, "candidate_overlay_verified": True}
+         except (OSError, UnicodeError, json.JSONDecodeError, ValueError, TypeError, KeyError):
+-            return self._close_recapture_empty(trade_date, "FAILED", "CLOSE_RECAPTURE_ARTIFACT_INVALID")
++            return empty(trade_date, "FAILED", "CLOSE_RECAPTURE_ARTIFACT_INVALID")
+ 
+     def read(self, trade_date: str) -> dict[str, Any]:
+         now = _now_hk()
+--- a/v4/manager_research/workspace.py
++++ b/v4/manager_research/workspace.py
+@@ -288,6 +288,39 @@
+     return result
+ 
+ 
++def _read_close_recapture_inputs(reader: Any, requested_date: str, context: Mapping[str, Any]) -> tuple[dict, dict]:
++    """Keep the prior-session planner read and requested-date display read separate."""
++    from .workspace_projection import FLAGS
++
++    plan_source_date=str(context.get('market_session') or '')
++    if plan_source_date and hasattr(reader,'read_close_recapture'):
++        try:
++            planning=reader.read_close_recapture(plan_source_date)
++        except _ERROR_TYPES as exc:
++            planning=dict(status='FAILED',source_trade_date=plan_source_date,
++                cannot_confirm=['CLOSE_RECAPTURE_ORIGINAL_READER_FAILED:'+type(exc).__name__])
++    else:
++        planning=dict(status='NOT_RUN',source_trade_date=plan_source_date or None,
++            cannot_confirm=['CLOSE_RECAPTURE_ORIGINAL_READER_NOT_BOUND'])
++
++    requested_reader=getattr(reader,'read_requested_day_hk_observation',None)
++    if callable(requested_reader):
++        try:
++            requested=requested_reader(requested_date)
++        except _ERROR_TYPES as exc:
++            requested=dict(status='FAILED',source_trade_date=None,requested_trade_date=requested_date,
++                observation_type='HK_SECURITIES_SESSION_MINUTE_OBSERVATION',
++                candidate_overlay={'count':0,'rows':[]},
++                cannot_confirm=['REQUESTED_DAY_HK_OBSERVATION_ORIGINAL_READER_FAILED:'+type(exc).__name__],
++                **FLAGS)
++    else:
++        requested=dict(status='NOT_RUN',source_trade_date=None,requested_trade_date=requested_date,
++            observation_type='HK_SECURITIES_SESSION_MINUTE_OBSERVATION',
++            candidate_overlay={'count':0,'rows':[]},
++            cannot_confirm=['REQUESTED_DAY_HK_OBSERVATION_READER_NOT_BOUND'],**FLAGS)
++    return planning,requested
++
++
+ def _compute_workspace(service: Any, date: str, *, include_saved: bool = True, context: dict) -> dict:
+     from copy import deepcopy
+     context = deepcopy(context)
+@@ -301,17 +334,8 @@
+     with phase('close_owner'):
+         close=_reader_value(service._close_observation_reader,date,'CLOSE')
+     with phase('close_recapture_owner'):
+-        recapture_date=str(context.get('market_session') or '')
+-        reader=service._close_observation_reader
+-        if recapture_date and hasattr(reader,'read_close_recapture'):
+-            try:
+-                close_recapture=reader.read_close_recapture(recapture_date)
+-            except _ERROR_TYPES as exc:
+-                close_recapture=dict(status='FAILED',source_trade_date=recapture_date,
+-                    cannot_confirm=['CLOSE_RECAPTURE_ORIGINAL_READER_FAILED:'+type(exc).__name__])
+-        else:
+-            close_recapture=dict(status='NOT_RUN',source_trade_date=recapture_date or None,
+-                cannot_confirm=['CLOSE_RECAPTURE_ORIGINAL_READER_NOT_BOUND'])
++        close_recapture,requested_day_close_recapture=_read_close_recapture_inputs(
++            service._close_observation_reader,date,context)
+     with phase('existing_material_owners'):
+         existing=_materials(service,date,context)
+     with phase('discovery_owner'):
+@@ -378,6 +402,7 @@
+     committed_archive_ids={c.get('card_id') for c in catalyst.get('cards',[]) if isinstance(c,Mapping) and c.get('research_role')=='ARCHIVE_ISSUER_RESEARCH_OBSERVATION_ONLY'}
+     discovery_cards=[c for c in [*discovery['cards'],*material_discovery['cards']] if c.get('card_id') not in committed_archive_ids]
+     inputs = dict(catalyst=catalyst, stage=stage, close=close, close_recapture=close_recapture,
++        requested_day_close_recapture=requested_day_close_recapture,
+         materials=selection_materials,
+         discovered_cards=discovery_cards, plan_context=context,
+         price_quotes=quote_evidence['quotes'], discovery_rejections=material_discovery.get('rejected_relations',[]),
+--- a/v4/manager_research/workspace_projection.py
++++ b/v4/manager_research/workspace_projection.py
+@@ -195,6 +195,7 @@
+ def build_workspace(date: str, *, catalyst: Mapping[str, Any], materials: Sequence[Mapping[str, Any]] = (),
+                     stage: Mapping[str, Any] | None = None, close: Mapping[str, Any] | None = None,
+                     close_recapture: Mapping[str, Any] | None = None,
++                    requested_day_close_recapture: Mapping[str, Any] | None = None,
+                     attempts: Mapping[str, Any] | None = None, plans: Mapping[str, Any] | None = None,
+                     source_gaps: Sequence[str] = (), previous: Mapping[str, Any] | None = None,
+                     discovered_cards: Sequence[Mapping[str, Any]] = (),
+@@ -215,7 +216,60 @@
+     close_recapture_projection.setdefault('cannot_confirm', ['CLOSE_RECAPTURE_NOT_MATERIALIZED'])
+     close_recapture_projection.setdefault('planner_availability', 'SOURCE_NOT_AVAILABLE')
+     close_recapture_projection['planner_eligible_context'] = False
++    requested_day_projection = deepcopy(dict(requested_day_close_recapture or {}))
++    requested_day_projection.setdefault('status', 'NOT_RUN')
++    requested_day_projection.setdefault('source_trade_date', None)
++    requested_day_projection.setdefault('requested_trade_date', date)
++    requested_day_projection.setdefault('target_trade_date', None)
++    requested_day_projection.setdefault('plan_trade_date', None)
++    requested_day_projection.setdefault('observation_type', 'HK_SECURITIES_SESSION_MINUTE_OBSERVATION')
++    requested_day_projection.setdefault('candidate_overlay', {'count': 0, 'rows': []})
++    requested_day_projection.setdefault('cannot_confirm', ['REQUESTED_DAY_HK_OBSERVATION_NOT_MATERIALIZED'])
++    requested_day_projection['planner_availability'] = 'DISPLAY_ONLY_NOT_PLANNER_INPUT'
++    requested_day_projection['planner_eligible_context'] = False
++    requested_day_projection['formal_recommendation_effect'] = 'NONE'
++    requested_day_projection['buy_gate_effect'] = 'NONE'
+     cutoff = timestamp(context.get('research_cutoff'))
++    requested_overlay = requested_day_projection.get('candidate_overlay')
++    requested_overlay = requested_overlay if isinstance(requested_overlay, Mapping) else {}
++    requested_rows = requested_overlay.get('rows')
++    requested_rows = requested_rows if isinstance(requested_rows, list) else []
++    requested_request = requested_day_projection.get('request')
++    requested_request = requested_request if isinstance(requested_request, Mapping) else {}
++    requested_available = timestamp(requested_request.get('available_at'))
++    if requested_day_projection.get('status') in {'READY', 'PARTIAL'}:
++        cutoff_reason = None
++        if cutoff is None:
++            cutoff_status = 'CANNOT_CONFIRM'
++            cutoff_reason = 'REQUESTED_DAY_OBSERVATION_RESEARCH_CUTOFF_UNAVAILABLE'
++        elif requested_available is None:
++            cutoff_status = 'CANNOT_CONFIRM'
++            cutoff_reason = 'REQUESTED_DAY_OBSERVATION_AVAILABLE_AT_UNVERIFIED'
++        elif requested_available > cutoff:
++            cutoff_status = 'AFTER_CUTOFF'
++            cutoff_reason = 'REQUESTED_DAY_OBSERVATION_AFTER_RESEARCH_CUTOFF'
++        else:
++            cutoff_status = 'AVAILABLE_AT_CUTOFF'
++        requested_day_projection['availability_gate'] = {
++            'status': cutoff_status,
++            'source_status': requested_day_projection.get('status'),
++            'research_cutoff': context.get('research_cutoff'),
++            'available_at': requested_request.get('available_at'),
++            'verified_source_row_count': len(requested_rows),
++            'artifact_ref': requested_overlay.get('artifact_ref'),
++            'artifact_sha256': requested_overlay.get('sha256'),
++            'reason': cutoff_reason,
++        }
++        if cutoff_reason:
++            requested_day_projection['status'] = 'CANNOT_CONFIRM'
++            reasons = requested_day_projection.get('cannot_confirm')
++            reasons = list(reasons) if isinstance(reasons, list) else []
++            if cutoff_reason not in reasons:
++                reasons.append(cutoff_reason)
++            requested_day_projection['cannot_confirm'] = reasons
++            requested_day_projection['candidate_overlay'] = {
++                **dict(requested_overlay), 'count': 0, 'rows': [],
++            }
+     request = close_recapture_projection.get('request')
+     request = request if isinstance(request, Mapping) else {}
+     available = timestamp(request.get('available_at'))
+@@ -425,7 +479,8 @@
+         target_trade_date=date,stocks=ordered_stocks,themes=theme_rows,lanes=lanes,
+         briefing=briefing['briefing'],company_events=briefing['company_events'],focus_symbols=briefing['focus_symbols'],
+         materials=accepted_materials, gaps=sorted(set(gaps)),
+-        close_recapture_evidence=close_recapture_projection,
++        close_recapture_evidence=requested_day_projection,
++        planning_close_recapture_evidence=close_recapture_projection,
+         summary=dict(stock_count=len(stocks),relation_count=len(candidate_cards),theme_count=len(theme_rows),
+                      reused_material_count=len(accepted_materials),formal_recommendation_count=0,
+                      focus_count=len(briefing['focus_symbols']),input_relation_count=len(original_candidate_cards),
+--- a/v4/manager_research/workspace_plan.py
++++ b/v4/manager_research/workspace_plan.py
+@@ -148,7 +148,8 @@
+ 
+ 
+ def _read_hk02_panel_witness(authority_root: Path | None, day: str, *,
+-                             research_cutoff: str | None = None) -> tuple[dict | None, list[str]]:
++                             research_cutoff: str | None = None,
++                             required_history_date: str | None = None) -> tuple[dict | None, list[str]]:
+     """Read the existing owner's immutable exact-date panel, never later prices.
+ 
+     The original owner's panel_latest pointer may identify a same-target
+@@ -173,23 +174,33 @@
+             cutoff = timestamp(research_cutoff)
+             if cutoff is None:
+                 return None, ['PLAN_HK_02_RESEARCH_CUTOFF_INVALID']
++        if (required_history_date is not None
++                and (not re.fullmatch(r'\d{8}', required_history_date)
++                     or required_history_date >= day)):
++            return None, ['PLAN_HK_02_HISTORY_REQUIRED_DATE_INVALID']
+         root = Path(authority_root).expanduser().absolute()
+         asset_root = root / 'assets' / 'hk_0_2'
+         io = SafeRoot(asset_root)
+         candidates = []
++        same_day_directories = []
+         try:
+             with io.directory('panels') as fd:
+                 with os.scandir(fd) as entries:
+                     for index, entry in enumerate(entries):
+                         if index >= 4096:
+                             return None, ['PLAN_HK_02_PANEL_DIRECTORY_BOUND_EXCEEDED']
+-                        if re.fullmatch(day+r'-[0-9a-f]{12}', entry.name):
++                        if entry.name.startswith(day+'-'):
+                             if not entry.is_dir(follow_symlinks=False):
+                                 return None, ['PLAN_HK_02_PANEL_PATH_UNSAFE']
+-                            candidates.append('panels/'+entry.name+'/manifest.json')
++                            relative = 'panels/'+entry.name+'/manifest.json'
++                            same_day_directories.append(relative)
++                            if re.fullmatch(day+r'-[0-9a-f]{12}', entry.name):
++                                candidates.append(relative)
+         except FileNotFoundError:
+             pass
+-        if len(candidates)>1:
++        candidates.sort()
++        same_day_directories.sort()
++        if required_history_date is None and len(candidates)>1:
+             return None, ['PLAN_HK_02_EXACT_DATE_PANEL_AMBIGUOUS']
+         legacy_contract = 'tdx_vipdoc_71_day+verified_zero_trade_repairs'
+         recovered_contract = legacy_contract+'+futu_history_gapfill'
+@@ -217,13 +228,21 @@
+                 received_at = timestamp(recovery.get('received_at')) if isinstance(recovery, Mapping) else None
+                 requested_at = timestamp(recovery.get('requested_at')) if isinstance(recovery, Mapping) else None
+                 inputs = recovery.get('source_input_sha256') if isinstance(recovery, Mapping) else None
++                new_dates = manifest.get('new_dates')
++                new_row_count = manifest.get('new_row_count')
++                source_date = str(recovery.get('source_date') or '') if isinstance(recovery, Mapping) else ''
+                 if (not isinstance(recovery, Mapping)
+                         or recovery.get('schema_version') != 'v4.hk_history_price_recovery.v1'
+-                        or not re.fullmatch(r'\d{8}', str(recovery.get('source_date') or ''))
+-                        or not str(recovery.get('source_date')) < day
++                        or not re.fullmatch(r'\d{8}', source_date)
++                        or not source_date < day
+                         or type(recovery.get('row_count')) is not int
+                         or type(recovery.get('requested_code_count')) is not int
+                         or recovery.get('row_count') != recovery.get('requested_code_count')
++                        or type(new_row_count) is not int or new_row_count != recovery.get('row_count')
++                        or not isinstance(new_dates, list) or not new_dates
++                        or any(not isinstance(value, str) or not re.fullmatch(r'\d{8}', value)
++                               or value >= day for value in new_dates)
++                        or len(set(new_dates)) != len(new_dates) or source_date not in new_dates
+                         or recovery.get('coverage_rate') != 1.0
+                         or recovery.get('provider') != 'MIXED_PYTDX_HQ_DAILY_AND_FUTU_OPEND_HISTORY_KLINE'
+                         or recovery.get('adjustment') != 'NONE'
+@@ -282,10 +301,102 @@
+                 panel_available_at=(manifest.get('manifest_prepared_at') if prepared_at else None),
+                 history_source_date=(manifest.get('history_recovery').get('source_date')
+                     if isinstance(manifest.get('history_recovery'), Mapping) else None),
++                history_parent_panel_sha256=(manifest.get('parent_panel_sha256')
++                    if isinstance(manifest.get('history_recovery'), Mapping) else None),
+                 price_currency='HKD', price_basis='RAW', session_kind='FULL_DAY_CLOSE', amount_unit='HKD',
+                 resolution=resolution, semantics='RAW_HK_0_2_VIPDOC_DAILY_PANEL_NO_ADJUSTMENT'), []
+ 
+         exact_relative = candidates[0] if candidates else None
++
++        def resolve_required_history() -> tuple[dict | None, list[str]]:
++            """Select a verified same-target recovery for the requested history session."""
++            legacy_candidates = []
++            recovered_candidates = []
++            classified_manifest_sha256 = {}
++            for relative in same_day_directories:
++                raw = io.read_bytes(relative, max_bytes=1024*1024)
++                manifest = json.loads(raw)
++                if not isinstance(manifest, Mapping) or str(manifest.get('panel_max_date') or '') != day:
++                    return None, ['PLAN_HK_02_PANEL_TARGET_MISMATCH']
++                contract = manifest.get('source_contract')
++                if contract == legacy_contract:
++                    legacy_candidates.append(relative)
++                elif contract == recovered_contract:
++                    recovered_candidates.append(relative)
++                else:
++                    return None, ['PLAN_HK_02_PANEL_AUTHORITY_CONTRACT_INVALID']
++                classified_manifest_sha256[relative] = hashlib.sha256(raw).hexdigest()
++            if len(legacy_candidates) > 1:
++                return None, ['PLAN_HK_02_EXACT_DATE_PANEL_AMBIGUOUS']
++
++            base_witness = None
++            base_before_cutoff = True
++            base_available_at = None
++            base_relative = legacy_candidates[0] if legacy_candidates else None
++            if base_relative is not None:
++                base_witness, base_gaps = verified_manifest(
++                    base_relative, 'EXACT_DATE_IMMUTABLE_OWNER_ASSET')
++                if base_witness is None:
++                    return None, base_gaps
++                if base_witness.get('panel_manifest_sha256') != classified_manifest_sha256[base_relative]:
++                    return None, ['PLAN_HK_02_MANIFEST_CHANGED_DURING_READ']
++                base_available_at = timestamp(base_witness.get('panel_available_at'))
++                if cutoff is not None and base_available_at is None:
++                    return None, ['PLAN_HK_02_PANEL_AVAILABLE_AT_UNVERIFIED']
++                if cutoff is not None and base_available_at > cutoff:
++                    base_before_cutoff = False
++
++            eligible_recoveries = []
++            future_matching_recovery = False
++            future_other_history = False
++            for recovery_relative in recovered_candidates:
++                recovery_witness, recovery_gaps = verified_manifest(
++                    recovery_relative, 'SAME_DATE_HISTORY_RECOVERY_IMMUTABLE_OWNER_ASSET')
++                if recovery_witness is None:
++                    return None, recovery_gaps
++                if (recovery_witness.get('source_contract') != recovered_contract
++                        or recovery_witness.get('panel_manifest_sha256')
++                        != classified_manifest_sha256[recovery_relative]):
++                    return None, ['PLAN_HK_02_MANIFEST_CHANGED_DURING_READ']
++                recovery_available_at = timestamp(recovery_witness.get('panel_available_at'))
++                if cutoff is not None and recovery_available_at is None:
++                    return None, ['PLAN_HK_02_PANEL_AVAILABLE_AT_UNVERIFIED']
++                is_before_cutoff = cutoff is None or recovery_available_at <= cutoff
++                matches_history = recovery_witness.get('history_source_date') == required_history_date
++                if not matches_history:
++                    if is_before_cutoff:
++                        return None, ['PLAN_HK_02_PANEL_RECOVERY_SESSION_MISMATCH']
++                    future_other_history = True
++                    continue
++                if base_witness is None:
++                    return None, ['PLAN_HK_02_PANEL_RECOVERY_PARENT_UNVERIFIED']
++                if (base_witness.get('source_contract') != legacy_contract
++                        or recovery_witness.get('history_parent_panel_sha256')
++                        != base_witness.get('panel_sha256')):
++                    return None, ['PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH']
++                if (base_available_at is not None and recovery_available_at is not None
++                        and recovery_available_at < base_available_at):
++                    return None, ['PLAN_HK_02_PANEL_RECOVERY_AVAILABILITY_INVALID']
++                if matches_history and not is_before_cutoff:
++                    future_matching_recovery = True
++                elif matches_history:
++                    eligible_recoveries.append(recovery_witness)
++
++            if len(eligible_recoveries) > 1:
++                return None, ['PLAN_HK_02_PANEL_RECOVERY_AMBIGUOUS']
++            if eligible_recoveries:
++                return eligible_recoveries[0], []
++            # An as-of query before the recovery existed keeps the exact base
++            # revision. This preserves historical point-in-time behavior.
++            if future_matching_recovery and base_witness is not None and base_before_cutoff:
++                base_witness['resolution'] = 'EXACT_DATE_IMMUTABLE_OWNER_ASSET_BEFORE_CUTOFF'
++                return base_witness, []
++            if base_witness is not None and base_before_cutoff:
++                return base_witness, []
++            if base_relative is None and not future_other_history:
++                return None, ['PLAN_HK_02_EXACT_DATE_PANEL_MISSING']
++            return None, ['PLAN_HK_02_PANEL_AFTER_RESEARCH_CUTOFF']
++
+         pointer_missing = False
+         try:
+             pointer = json.loads(io.read_bytes('panel_latest.json', max_bytes=1024*1024))
+@@ -307,6 +418,22 @@
+                 return None, ['PLAN_HK_02_PANEL_LATEST_MANIFEST_UNREADABLE']
+             if not isinstance(pointed_manifest, Mapping):
+                 return None, ['PLAN_HK_02_PANEL_LATEST_MANIFEST_INVALID']
++            if required_history_date is not None:
++                # Historical rebound plans are keyed by their exact target
++                # date, while panel_latest can have moved to a later trading
++                # date. Resolve only an immutable same-target revision whose
++                # verified recovery manifest names the calendar-required
++                # history session and whose parent digest matches the exact
++                # legacy target panel. The pointer is still parsed and path
++                # bounded above, but it is not a historical revision index.
++                if str(pointed_manifest.get('panel_max_date') or '') == day:
++                    pointed_witness, pointed_gaps = verified_manifest(
++                        relative_manifest, 'PANEL_LATEST_TARGET_OWNER_ASSET')
++                    if pointed_witness is None:
++                        return None, pointed_gaps
++                    if hashlib.sha256(pointed_raw).hexdigest() != pointed_witness.get('panel_manifest_sha256'):
++                        return None, ['PLAN_HK_02_MANIFEST_CHANGED_DURING_READ']
++                return resolve_required_history()
+             if str(pointed_manifest.get('panel_max_date') or '') == day:
+                 witness, gaps = verified_manifest(relative_manifest, 'PANEL_LATEST_TARGET_OWNER_ASSET')
+                 if witness is None:
+@@ -344,6 +471,8 @@
+                             or parent_witness.get('panel_sha256') != declared_parent_sha):
+                         return None, ['PLAN_HK_02_PANEL_RECOVERY_PARENT_MISMATCH']
+                 return witness, []
++        if required_history_date is not None:
++            return resolve_required_history()
+         if exact_relative is not None:
+             witness, gaps = verified_manifest(exact_relative, 'EXACT_DATE_IMMUTABLE_OWNER_ASSET')
+             if witness is None:
+@@ -716,14 +845,6 @@
+         return _screen_empty(context, ['SCREEN_AUTHORITY_ROOT_NOT_BOUND'])
+     try:
+         root = Path(authority_root).expanduser().resolve()
+-        panel, panel_gaps = _read_hk02_panel_witness(
+-            root, day, research_cutoff=context.get('research_cutoff'))
+-        if panel is None:
+-            return _screen_empty(context, ['SCREEN_PANEL_AUTHORITY_UNVERIFIED', *panel_gaps])
+-        try:
+-            master, master_manifest = _screen_security_master_witness(root, day)
+-        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+-            return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
+         try:
+             history_sessions = rebound_history_sessions(day)
+             prior60_session_dates = list(history_sessions.get('prior60') or [])
+@@ -736,6 +857,15 @@
+                 return _screen_empty(context, ['SCREEN_HISTORY_CALENDAR_SESSIONS_INVALID'])
+         except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+             return _screen_empty(context, ['SCREEN_HISTORY_CALENDAR_UNVERIFIED:' + type(exc).__name__])
++        panel, panel_gaps = _read_hk02_panel_witness(
++            root, day, research_cutoff=context.get('research_cutoff'),
++            required_history_date=previous5_session_dates[-1])
++        if panel is None:
++            return _screen_empty(context, ['SCREEN_PANEL_AUTHORITY_UNVERIFIED', *panel_gaps])
++        try:
++            master, master_manifest = _screen_security_master_witness(root, day)
++        except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
++            return _screen_empty(context, ['SCREEN_SECURITY_MASTER_READ_FAILED:' + type(exc).__name__])
+         master_names = master.get('names') or {}
+         try:
+             import pandas as pd
+--- a/apps/web/src/manager-selection/catalystObservationPanel.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.ts
+@@ -269,17 +269,24 @@
+       const request=asRecord(evidence.request),coverage=asRecord(evidence.coverage);
+       const snapshot=asRecord(evidence.snapshot),overlay=asRecord(evidence.candidate_overlay);
+       const candidateRows=candidates.length?candidates:rows(overlay.rows);
++      const manualSecurityObservation=evidence.observation_type==='HK_SECURITIES_SESSION_MINUTE_OBSERVATION';
+       const section=el('article','','manager-close-recapture-evidence');
+       section.append(el('h4',title));
+       const planDate=text(evidence.plan_trade_date,text(evidence.target_trade_date,'未提供'));
+       const sourceDate=text(evidence.source_trade_date,text(evidence.target_trade_date,'未提供'));
+       const timing=text(request.available_at,text(evidence.available_at,text(evidence.generated_at,'未提供')));
+-      section.append(el('p',`状态 ${text(evidence.status,'未核实')}；计划日 ${planDate}；来源日 ${sourceDate}；真实可用时间 ${timing}。`));
+-      if(Object.keys(source).length || Object.keys(pool).length || Object.keys(bar).length){
++      if(manualSecurityObservation){
++        section.append(el('p',`手工港股证券盘后研究观察 · 状态 ${text(evidence.status,'未核实')} · 来源日 ${sourceDate} · 计划日 ${planDate}。`),
++          el('p',`真实 available_at ${timing} · 观察类型 ${text(evidence.observation_type)} · 可展示观察行 ${candidateRows.length}/${scalarText(overlay.count,'未知')}。`),
++          el('p',`来源产物市场标签 ${text(evidence.market,'未提供')}；实际观察市场 ${text(evidence.observation_market,'未提供')}。仅研究观察，不表示港股通可交易资格或官方收盘价。`));
++      }else{
++        section.append(el('p',`状态 ${text(evidence.status,'未核实')}；计划日 ${planDate}；来源日 ${sourceDate}；真实可用时间 ${timing}。`));
++      }
++      if(!manualSecurityObservation && (Object.keys(source).length || Object.keys(pool).length || Object.keys(bar).length)){
+         const poolIdentity=`交易日 ${text(pool.trade_date,sourceDate)}；信号日 ${text(pool.signal_date,'未提供')}；来源 ${text(pool.source_id,'未提供')}；run_id ${text(pool.run_id,'未提供')}；池行数 ${scalarText(pool.row_count)}`;
+         section.append(el('p',`采集类型 ${text(evidence.capture_mode,'未提供')}／${text(evidence.observation_type,'未提供')}；市场 ${text(evidence.market,'未提供')}；行情来源 ${text(source.provider,'未提供')}（${text(source.source_id,'未提供')}）；权威池 ${poolIdentity}。`));
+         if(pool.artifact_sha256 || pool.manifest_sha256) section.append(el('p',`池产物 SHA-256 ${text(pool.artifact_sha256,'未提供')}；manifest SHA-256 ${text(pool.manifest_sha256,'未提供')}。`));
+-        section.append(el('p',`观察阶段 ${text(bar.stage_id,text(evidence.observation_type,'未提供'))}；窗口 ${text(bar.start_at,'未提供')}—${text(bar.max_at,'未提供')}；bar实际时间 ${text(bar.observed_at_min,'未提供')}—${text(bar.observed_at_max,'未提供')}。`));
++        section.append(el('p',`观察阶段 ${text(bar.stage_id,text(evidence.observation_type,'未提供'))}；窗口 ${text(bar.start_at,'未提供')}—${text(bar.max_at,text(bar.end_before,'未提供'))}；bar实际时间 ${text(bar.observed_at_min,'未提供')}—${text(bar.observed_at_max,'未提供')}。`));
+         section.append(el('p',`请求开始 ${text(request.started_at,'未提供')}；采集完成 ${text(request.captured_at,'未提供')}；可用时间 ${text(request.available_at,'未提供')}。`));
+         section.append(el('p',`覆盖 eligible/requested/completed/observed/no-data：${scalarText(coverage.eligible_count)}/${scalarText(coverage.requested_count)}/${scalarText(coverage.completed_count)}/${scalarText(coverage.observed_count)}/${scalarText(coverage.no_data_count)}；比例 ${scalarText(coverage.ratio)}。`));
+         if(snapshot.artifact_ref || overlay.artifact_ref) section.append(el('p',`原始快照 ${text(snapshot.artifact_ref,'未提供')}（SHA ${text(snapshot.sha256,'未提供')}，${scalarText(snapshot.row_count)}行）；候选观察 ${text(overlay.artifact_ref,'未提供')}（SHA ${text(overlay.sha256,'未提供')}，${scalarText(overlay.count)}只）。`));
+@@ -289,11 +296,10 @@
+         const availabilityText=availability==='AVAILABLE_BEFORE_CUTOFF'?'计划截止前已可用；是否消费仍按原owner/PIT校验。':
+           availability==='AFTER_CUTOFF'?'晚于本次研究截止，本次计划不消费该观察。':'可用时点未核实，本次计划不将其作为已可用输入。';
+         section.append(el('p',`研究截止 ${text(evidence.research_cutoff,'未提供')}；来源可用性 ${availability}。${availabilityText}`));
+-      }else{
++      }else if(!manualSecurityObservation){
+         section.append(el('p',`观察模式 ${text(evidence.mode,'CLOSE_RECAPTURE')}；采集开始 ${text(evidence.started_at,'未提供')}；最近可用 ${text(evidence.available_at,'未提供')}。`));
+       }
+-      if(candidateRows.length){
+-        for(const row of candidateRows){
++      const candidateCard=(row:JsonObject):HTMLElement=>{
+           const card=el('div','','manager-close-recapture-candidate');
+           const symbol=text(row.symbol,'标的未知');
+           card.dataset.symbol=symbol;
+@@ -304,18 +310,37 @@
+           const missing=Array.isArray(row.missing_evidence)?row.missing_evidence.map(item=>typeof item==='string'?item:
+             item&&typeof item==='object'&&!Array.isArray(item)?text((item as JsonObject).code,text((item as JsonObject).reason,JSON.stringify(item))):'未识别缺项'):[];
+           if(missing.length)card.append(el('p',`缺失证据：${missing.join('；')||'详见原始记录'}`));
+-          card.append(details('原始行情与来源引用',row));section.append(card);
++          card.append(details('原始行情与来源引用',row));
++          return card;
++      };
++      if(candidateRows.length){
++        if(manualSecurityObservation){
++          const rowDetails=el('details','','manager-close-recapture-rows');
++          rowDetails.dataset.observationRows='true';
++          rowDetails.append(el('summary',`展开全部 ${candidateRows.length} 条观察行`));
++          let rowsLoaded=false;
++          rowDetails.addEventListener('toggle',()=>{
++            if(!rowDetails.open || rowsLoaded)return;
++            rowsLoaded=true;
++            for(const row of candidateRows)rowDetails.append(candidateCard(row));
++          });
++          section.append(rowDetails);
++        }else{
++          for(const row of candidateRows)section.append(candidateCard(row));
+         }
+       }else{
+         const reasons=Array.isArray(evidence.cannot_confirm)?evidence.cannot_confirm.filter(x=>typeof x==='string').join('；'):'未提供候选行';
+         section.append(el('p',`当前没有可显示的补采候选；状态/缺项：${reasons||'未提供'}`));
+       }
+-      section.append(details('补采产物、覆盖与原owner证据',evidence));
++      section.append(details(manualSecurityObservation?'原始产物、来源路径、SHA与完整覆盖证据':'补采产物、覆盖与原owner证据',evidence));
+       closeRecapture.append(section);
+     };
+     const current=root.close_recapture_evidence;
+     const planned=root.planning_close_recapture_evidence;
+-    if(current&&typeof current==='object'&&!Array.isArray(current))renderEvidence('请求日独立盘后补采产物',current,false);
++    if(current&&typeof current==='object'&&!Array.isArray(current)){
++      const manual=asRecord(current).observation_type==='HK_SECURITIES_SESSION_MINUTE_OBSERVATION';
++      renderEvidence(manual?'请求日独立港股证券盘后观察':'请求日独立盘后补采产物',current,false);
++    }
+     else closeRecapture.append(el('p','请求日没有独立盘后补采产物读回；这不改变原15:30尾盘记录。'));
+     if(planned&&typeof planned==='object'&&!Array.isArray(planned))renderEvidence('本次计划关联的前一交易日盘后观察',planned,true);
+     else closeRecapture.append(el('p','本次计划没有返回前一交易日盘后观察；不以当前页面时间补造历史数据。'));
+--- a/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
++++ b/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts
+@@ -1,6 +1,9 @@
+ import { fireEvent, waitFor } from "@testing-library/vue";
+ import { afterEach, describe, expect, it, vi } from "vitest";
++import { createHash } from "node:crypto";
+ import { readFileSync } from "node:fs";
++import { dirname, resolve } from "node:path";
++import { fileURLToPath } from "node:url";
+ 
+ const workspaceMocks = vi.hoisted(() => ({
+   request: vi.fn(),
+@@ -73,6 +76,14 @@
+ const workspaceWithScreen = (): ManagerWorkspace => ({
+   ...workspaceBase, market_screen: twoGateScreen,
+ }) as unknown as ManagerWorkspace;
++
++const readPinnedManualObservationFixture = (name: "close_recapture.json" | "close_recapture.candidates.json"): JsonObject => {
++  const fixtureRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../tests/fixtures/manager_current_observation_20261002");
++  const binding = JSON.parse(readFileSync(resolve(fixtureRoot, "FIXTURE_BINDING.json"), "utf8"));
++  const bytes = readFileSync(resolve(fixtureRoot, name));
++  expect(createHash("sha256").update(bytes).digest("hex")).toBe(binding.files[name].sha256);
++  return JSON.parse(bytes.toString("utf8")) as JsonObject;
++};
+ 
+ afterEach(() => {
+   vi.useRealTimers();
+@@ -241,6 +252,57 @@
+     expect(rendered).toContain("bar观察时间 2026-09-28T15:55:05+08:00");
+     expect(rendered).toContain("候选观察 workbench_research/20260928/close_recapture_candidates.json");
+     expect(rendered).toContain("不是正式收盘价");
++    expect(host.querySelectorAll(".decision-stock")).toHaveLength(0);
++    dispose();
++  });
++
++  it("keeps the requested-day manual HK observation compact until all 100 rows are expanded", async () => {
++    const payload = readPinnedManualObservationFixture("close_recapture.json");
++    const overlay = readPinnedManualObservationFixture("close_recapture.candidates.json");
++    const candidateOverlay = payload.candidate_overlay as JsonObject;
++    const observedRows = overlay.rows as JsonObject[];
++    expect(observedRows).toHaveLength(100);
++    const evidence = {
++      ...payload,
++      candidate_overlay: { ...candidateOverlay, rows: observedRows },
++    } as JsonObject;
++    const planningEvidence = {
++      plan_trade_date: "20261002", research_cutoff: "2026-10-02T09:20:00+08:00",
++      source_trade_date: "20260930", available_at: "2026-09-30T23:10:00+08:00",
++      planner_availability: "CANNOT_CONFIRM", candidates: [],
++    };
++    workspaceMocks.request.mockResolvedValue({
++      ...workspaceBase,
++      close_recapture_evidence: evidence,
++      planning_close_recapture_evidence: planningEvidence,
++    });
++
++    const host = document.createElement("div");
++    document.body.append(host);
++    const dispose = mountCatalystObservations(host, "20261002");
++    await waitFor(() => expect(host.textContent).toContain("可展示观察行 100/100"));
++
++    const sections = [...host.querySelectorAll(".manager-close-recapture-evidence")];
++    const manual = sections[0] as HTMLElement;
++    const priorPlanContext = sections[1] as HTMLElement;
++    expect(manual.querySelector("h4")?.textContent).toBe("请求日独立港股证券盘后观察");
++    expect(manual.textContent).toContain("状态 READY · 来源日 20261002 · 计划日 20261008");
++    expect(manual.textContent).toContain("真实 available_at 2026-10-02T17:55:22.905209+08:00");
++    expect(manual.textContent).toContain("HK_SECURITIES_SESSION_MINUTE_OBSERVATION");
++    expect(manual.textContent).toContain("来源产物市场标签 HK_CONNECT；实际观察市场 HK_SECURITIES");
++    expect(manual.textContent).toContain("不表示港股通可交易资格或官方收盘价");
++    expect(priorPlanContext.textContent).toContain("来源日 20260930");
++
++    const rowDetails = manual.querySelector("details[data-observation-rows='true']") as HTMLDetailsElement;
++    expect(rowDetails.open).toBe(false);
++    expect(rowDetails.querySelectorAll(":scope > .manager-close-recapture-candidate")).toHaveLength(0);
++    expect(host.querySelectorAll(".decision-stock")).toHaveLength(0);
++
++    await fireEvent.click(rowDetails.querySelector("summary") as HTMLElement);
++    await waitFor(() => expect(rowDetails.querySelectorAll(":scope > .manager-close-recapture-candidate")).toHaveLength(100));
++    expect([...rowDetails.querySelectorAll<HTMLElement>(":scope > .manager-close-recapture-candidate")]
++      .map(card => card.dataset.symbol)).toEqual(observedRows.map(row => row.symbol));
++    expect(rowDetails.textContent).toContain("HK.02723");
+     expect(host.querySelectorAll(".decision-stock")).toHaveLength(0);
+     dispose();
+   });
+--- a/tests/test_manager_workspace_targeted_r2.py
++++ b/tests/test_manager_workspace_targeted_r2.py
+@@ -274,7 +274,8 @@
+     }
+     if recovery is not None:
+         manifest.update(source_contract='tdx_vipdoc_71_day+verified_zero_trade_repairs+futu_history_gapfill',
+-                        history_recovery=recovery,parent_panel_sha256=parent_panel_sha256)
++                        history_recovery=recovery,parent_panel_sha256=parent_panel_sha256,
++                        new_dates=[recovery['source_date']],new_row_count=recovery['row_count'])
+     manifest_path=panel_dir/'manifest.json'
+     manifest_path.write_text(json.dumps(manifest))
+     return str(manifest_path.relative_to(asset)),panel_sha
+@@ -314,6 +315,160 @@
+     assert historical['resolution']=='EXACT_DATE_IMMUTABLE_OWNER_ASSET_BEFORE_CUTOFF'
+ 
+ 
++
++def _write_forward_latest(asset):
++    latest_relative,_=_write_hk02_revision(
++        asset,'20261002','20261002',b'newer current panel','2026-10-02T10:41:09+08:00')
++    (asset/'panel_latest.json').write_text(json.dumps({'manifest_relative':latest_relative}))
++
++
++def test_hk02_forward_pointer_keeps_verified_same_day_history_recovery_for_prior_screen(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    _recovery_relative,recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929',b'completed prior-session recovery panel',
++        '2026-10-02T06:04:00+00:00',recovery=_valid_history_recovery(),parent_panel_sha256=base_sha)
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert not gaps and witness['panel_sha256']==recovery_sha
++    assert witness['panel_manifest_sha256']
++    assert witness['history_source_date']=='20260929'
++    assert witness['resolution']=='SAME_DATE_HISTORY_RECOVERY_IMMUTABLE_OWNER_ASSET'
++
++
++def test_hk02_forward_pointer_uses_exact_panel_when_recovery_is_after_cutoff(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    _recovery_relative,_recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929',b'future recovery panel',
++        '2026-10-02T14:05:01+08:00',recovery=_valid_history_recovery(),parent_panel_sha256=base_sha)
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert not gaps and witness['panel_sha256']==base_sha
++    assert witness['history_source_date'] is None
++    assert witness['resolution']=='EXACT_DATE_IMMUTABLE_OWNER_ASSET_BEFORE_CUTOFF'
++
++
++def test_hk02_forward_pointer_rejects_recovery_for_wrong_history_session(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    wrong_session={**_valid_history_recovery(),'source_date':'20260926'}
++    _recovery_relative,_recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260926',b'wrong history session panel',
++        '2026-10-02T06:04:00+00:00',recovery=wrong_session,parent_panel_sha256=base_sha)
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert witness is None and gaps==['PLAN_HK_02_PANEL_RECOVERY_SESSION_MISMATCH']
++
++
++def test_hk02_exact_named_recovered_manifest_cannot_bypass_history_session_check(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    wrong_history={**_valid_history_recovery(),'source_date':'20260926'}
++    _recovery_relative,_recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'wrong-session recovered panel',
++        '2026-10-02T06:04:00+00:00',recovery=wrong_history,parent_panel_sha256='b'*64)
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert witness is None
++    assert gaps==['PLAN_HK_02_PANEL_RECOVERY_SESSION_MISMATCH']
++
++
++def test_hk02_forward_pointer_fails_closed_for_ambiguous_same_session_recoveries(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    recovery=_valid_history_recovery()
++    recovery_relative,_first_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929',b'first prior-session recovery panel',
++        '2026-10-02T06:04:00+00:00',recovery=recovery,parent_panel_sha256=base_sha)
++    _second_relative,_second_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929-retry',b'competing prior-session recovery panel',
++        '2026-10-02T06:05:00+00:00',recovery=recovery,parent_panel_sha256=base_sha)
++    assert recovery_relative
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert witness is None and gaps==['PLAN_HK_02_PANEL_RECOVERY_AMBIGUOUS']
++
++
++def test_hk02_forward_pointer_rejects_corrupt_recovery_payload_even_with_valid_base(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    recovery_relative,_recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929',b'completed recovery panel',
++        '2026-10-02T06:04:00+00:00',recovery=_valid_history_recovery(),parent_panel_sha256=base_sha)
++    (asset/recovery_relative).parent.joinpath('hkconnect_vipdoc_daily_panel.parquet').write_bytes(b'corrupt')
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert witness is None and gaps==['PLAN_HK_02_PANEL_AUTHORITY_CHECKSUM_MISMATCH']
++
++
++def test_hk02_forward_pointer_rejects_incomplete_recovery_instead_of_silently_using_base(tmp_path):
++    asset=tmp_path/'assets'/'hk_0_2'
++    asset.mkdir(parents=True)
++    _base_relative,base_sha=_write_hk02_revision(
++        asset,'20260930','20260930',b'exact target-session panel','2026-09-30T09:20:05+08:00')
++    incomplete={**_valid_history_recovery(),'coverage_rate':0.99}
++    _recovery_relative,_recovery_sha=_write_hk02_revision(
++        asset,'20260930','20260930-history-20260929',b'incomplete recovery panel',
++        '2026-10-02T06:04:00+00:00',recovery=incomplete,parent_panel_sha256=base_sha)
++    _write_forward_latest(asset)
++
++    witness,gaps=planner()._read_hk02_panel_witness(
++        tmp_path,'20260930',research_cutoff='2026-10-02T14:05:00+08:00',
++        required_history_date='20260929')
++    assert witness is None and gaps==['PLAN_HK_02_PANEL_RECOVERY_LINEAGE_INVALID']
++
++
++def test_rebound_screen_binds_panel_recovery_to_latest_native_previous5_session(tmp_path, monkeypatch):
++    from datetime import date, timedelta
++    module=planner()
++    previous5=['20260923','20260924','20260925','20260928','20260929']
++    prior60=[(date(2026,7,1)+timedelta(days=offset)).strftime('%Y%m%d') for offset in range(55)]
++    prior60.extend(previous5)
++    monkeypatch.setattr(module,'rebound_history_sessions',lambda _day: {
++        'prior60':prior60,'previous5':previous5,'calendar_sha256':'c'*64})
++    observed={}
++    def missing_panel(root, day, **kwargs):
++        observed.update(root=root,day=day,**kwargs)
++        return None,['TEST_PANEL_NOT_AVAILABLE']
++    monkeypatch.setattr(module,'_read_hk02_panel_witness',missing_panel)
++
++    result=module.read_rebound_screen(tmp_path,{
++        'plan_trade_date':'20261002','market_session':'20260930',
++        'research_cutoff':'2026-10-02T19:23:44.825944+08:00'})
++
++    assert observed['day']=='20260930'
++    assert observed['required_history_date']==previous5[-1]=='20260929'
++    assert result['status']=='CANNOT_CONFIRM'
++    assert 'TEST_PANEL_NOT_AVAILABLE' in result['gaps']
+ def test_hk02_panel_rejects_recovery_manifest_pinned_to_the_wrong_parent(tmp_path):
+     asset=tmp_path/'assets'/'hk_0_2'
+     asset.mkdir(parents=True)
+--- /dev/null
++++ b/tests/test_manager_current_observation.py
+@@ -0,0 +1,295 @@
++"""Read-only request-day HK observation tests bound to the captured 2026-10-02 artifacts."""
++from datetime import datetime
++import hashlib
++import json
++from pathlib import Path
++import shutil
++
++from apps.api.v35_api.manager_workbench_router import ManagerWorkbenchResearchReader
++from v4.manager_research import workspace, workspace_plan, workspace_projection
++
++
++DATE = "20261002"
++APP_ROOT = Path(__file__).resolve().parents[1]
++FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures" / "manager_current_observation_20261002"
++FIXTURE_SHAS = {
++    "close_recapture.json": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56",
++    "close_recapture.receipt.json": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994",
++    "close_recapture.candidates.json": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454",
++    "inputs/close_recapture_pytdx.json": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3",
++}
++SAFETY = {
++    "RESEARCH_ONLY": True,
++    "production_allowed": False,
++    "buy_gate_updated": False,
++    "orders_sent": False,
++    "natural_run": False,
++    "observation_market": "HK_SECURITIES",
++    "observation_market_state": "FULL_TRADING_DAY",
++    "connect_market_state": "NON_TRADING_DAY",
++    "official_close_status": "CANNOT_CONFIRM",
++    "pool_eligibility_for_observation_market": "CANNOT_CONFIRM",
++}
++
++
++def _seed_state(root: Path) -> Path:
++    state_root = root / "manager_auto_research"
++    day = state_root / "workbench_research" / DATE
++    for rel, expected_sha in FIXTURE_SHAS.items():
++        source = FIXTURE_ROOT / rel
++        assert hashlib.sha256(source.read_bytes()).hexdigest() == expected_sha, f"fixture SHA changed: {rel}"
++        target = day / rel
++        target.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(source, target)
++    return state_root
++
++
++def _mutate_artifact(state_root: Path, rel: str, mutate) -> None:
++    path = state_root / "workbench_research" / DATE / rel
++    value = json.loads(path.read_text())
++    mutate(value)
++    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
++
++
++def _reseal_candidate_with_late_availability(state_root: Path) -> None:
++    day = state_root / "workbench_research" / DATE
++    overlay_path = day / "close_recapture.candidates.json"
++    overlay = json.loads(overlay_path.read_text())
++    overlay["rows"][0]["available_at"] = "2026-10-02T17:55:30+08:00"
++    overlay_raw = (json.dumps(overlay, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
++    overlay_path.write_bytes(overlay_raw)
++    overlay_sha = hashlib.sha256(overlay_raw).hexdigest()
++
++    artifact_path = day / "close_recapture.json"
++    artifact = json.loads(artifact_path.read_text())
++    artifact["candidate_overlay"]["sha256"] = overlay_sha
++    artifact_raw = (json.dumps(artifact, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
++    artifact_path.write_bytes(artifact_raw)
++
++    receipt_path = day / "close_recapture.receipt.json"
++    receipt = json.loads(receipt_path.read_text())
++    receipt["candidate_overlay_sha256"] = overlay_sha
++    receipt["artifact_sha256"] = hashlib.sha256(artifact_raw).hexdigest()
++    receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n")
++
++
++def test_explicit_requested_day_reader_displays_verified_manual_rows_and_default_stays_closed(tmp_path):
++    reader = ManagerWorkbenchResearchReader(_seed_state(tmp_path))
++
++    default = reader.read_close_recapture(DATE)
++    assert default["status"] == "FAILED"
++    assert default["candidate_overlay"]["rows"] == []
++
++    display = reader.read_requested_day_hk_observation(DATE)
++    assert display["status"] == "READY"
++    assert display["source_trade_date"] == DATE
++    assert display["requested_trade_date"] == DATE
++    assert display["target_trade_date"] == "20261008"
++    assert display["plan_trade_date"] == "20261008"
++    assert display["capture_mode"] == "LATE_OBSERVATION"
++    assert display["execution_kind"] == "MANUAL_HK_SECURITIES_SESSION_OBSERVATION"
++    assert display["observation_type"] == "HK_SECURITIES_SESSION_MINUTE_OBSERVATION"
++    assert display["candidate_overlay_verified"] is True
++    assert display["snapshot_verified"] is True
++    assert display["candidate_overlay"]["count"] == 100
++    assert len(display["candidate_overlay"]["rows"]) == 100
++    assert display["pool"]["role"] == "HK_CONNECT_D1_TOP100_0_2"
++    assert display["pool_eligibility_for_observation_market"] == "CANNOT_CONFIRM"
++    for key, expected in SAFETY.items():
++        if isinstance(expected, bool):
++            assert display[key] is expected
++        else:
++            assert display[key] == expected
++
++
++def test_workspace_keeps_20260930_planning_read_separate_from_20261002_display(tmp_path):
++    class RecordingReader(ManagerWorkbenchResearchReader):
++        calls = []
++
++        def read_close_recapture(self, trade_date):
++            self.calls.append(("planning-default", trade_date))
++            return super().read_close_recapture(trade_date)
++
++        def read_requested_day_hk_observation(self, trade_date):
++            self.calls.append(("requested-day-display", trade_date))
++            return super().read_requested_day_hk_observation(trade_date)
++
++    reader = RecordingReader(_seed_state(tmp_path))
++    context = workspace_plan.plan_context(
++        DATE, now=datetime.fromisoformat("2026-10-02T18:00:00+08:00")
++    )
++    assert context["plan_trade_date"] == DATE
++    assert context["market_session"] == "20260930"
++
++    planning, requested = workspace._read_close_recapture_inputs(reader, DATE, context)
++    assert reader.calls == [("planning-default", "20260930"), ("requested-day-display", DATE)]
++    assert planning["status"] == "NOT_RUN"
++    assert planning["source_trade_date"] == "20260930"
++    assert requested["status"] == "READY"
++    assert requested["source_trade_date"] == DATE
++
++    result = workspace_projection.build_workspace(
++        DATE,
++        catalyst={"status": "NOT_RUN", "target_trade_date": DATE, "cards": []},
++        close_recapture=planning,
++        requested_day_close_recapture=requested,
++        plan_context=context,
++    )
++    displayed = result["close_recapture_evidence"]
++    planner_input = result["planning_close_recapture_evidence"]
++    assert displayed["source_trade_date"] == DATE
++    assert displayed["observation_type"] == "HK_SECURITIES_SESSION_MINUTE_OBSERVATION"
++    assert displayed["candidate_overlay"]["count"] == 100
++    assert displayed["planner_availability"] == "DISPLAY_ONLY_NOT_PLANNER_INPUT"
++    assert displayed["planner_eligible_context"] is False
++    assert displayed["formal_recommendation_effect"] == "NONE"
++    assert displayed["buy_gate_effect"] == "NONE"
++    assert planner_input["source_trade_date"] == "20260930"
++    assert planner_input["status"] == "NOT_RUN"
++    assert planner_input["planner_eligible_context"] is False
++    assert result["summary"]["stock_count"] == 0
++    assert result["summary"]["formal_recommendation_count"] == 0
++    assert result["focus_symbols"] == []
++
++
++def test_requested_day_reader_rejects_wrong_date_pit_sha_and_manual_label_mutations(tmp_path):
++    state = _seed_state(tmp_path)
++    _mutate_artifact(state, "close_recapture.json", lambda value: value.update(source_trade_date="20261001"))
++    assert ManagerWorkbenchResearchReader(state).read_requested_day_hk_observation(DATE)["status"] == "FAILED"
++
++    state = _seed_state(tmp_path / "pit")
++    _mutate_artifact(state, "close_recapture.json", lambda value: value.update(
++        target_trade_date="20260930", plan_trade_date="20260930"))
++    assert ManagerWorkbenchResearchReader(state).read_requested_day_hk_observation(DATE)["status"] == "FAILED"
++
++    state = _seed_state(tmp_path / "sha")
++    _mutate_artifact(state, "close_recapture.receipt.json", lambda value: value.update(artifact_sha256="0" * 64))
++    assert ManagerWorkbenchResearchReader(state).read_requested_day_hk_observation(DATE)["status"] == "FAILED"
++
++    state = _seed_state(tmp_path / "label")
++    _mutate_artifact(state, "close_recapture.json", lambda value: value.update(
++        observation_type="PYTDX_EXHQ_MINUTE_STAGE_OBSERVATION"))
++    reader = ManagerWorkbenchResearchReader(state)
++    assert reader.read_requested_day_hk_observation(DATE)["status"] == "FAILED"
++    assert reader.read_close_recapture(DATE)["status"] == "FAILED"
++
++
++def test_requested_day_reader_does_not_reuse_artifact_for_another_day(tmp_path):
++    reader = ManagerWorkbenchResearchReader(_seed_state(tmp_path))
++    other_date = reader.read_requested_day_hk_observation("20261003")
++    assert other_date["status"] == "NOT_RUN"
++    assert other_date["source_trade_date"] is None
++    assert other_date["requested_trade_date"] == "20261003"
++    assert other_date["candidate_overlay"]["rows"] == []
++
++
++def test_read_only_workspace_service_get_displays_requested_day_without_planning_rows(tmp_path):
++    from v4.manager_research import ManagerResearchJobService
++    from v4.manager_research.store import ManagerResearchStore
++
++    class EmptyStageReader:
++        def read(self, trade_date):
++            return {"status": "NOT_RUN", "target_trade_date": trade_date, "rows": []}
++
++    state_root = _seed_state(tmp_path)
++    reader = ManagerWorkbenchResearchReader(state_root)
++    service = ManagerResearchJobService(
++        ManagerResearchStore(tmp_path / "manager-store"),
++        EmptyStageReader(),
++        None,
++        close_observation_reader=reader,
++        catalyst_data_root=tmp_path / "catalysts",
++        workspace_ledger_root=tmp_path / "ledger",
++        workspace_security_master_root=tmp_path / "security-master",
++        workspace_screen_authority_root=tmp_path / "screen-authority",
++    )
++    try:
++        result = service.get_workspace(
++            DATE,
++            view="dynamic",
++            now=datetime.fromisoformat("2026-10-02T18:00:00+08:00"),
++        )
++    finally:
++        service.close()
++
++    displayed = result["close_recapture_evidence"]
++    planning = result["planning_close_recapture_evidence"]
++    assert displayed["status"] == "READY"
++    assert displayed["source_trade_date"] == DATE
++    assert displayed["requested_trade_date"] == DATE
++    assert displayed["observation_type"] == "HK_SECURITIES_SESSION_MINUTE_OBSERVATION"
++    assert displayed["candidate_overlay"]["count"] == 100
++    assert displayed["planner_eligible_context"] is False
++    assert displayed["formal_recommendation_effect"] == "NONE"
++    assert displayed["buy_gate_effect"] == "NONE"
++    assert planning["status"] == "NOT_RUN"
++    assert planning["source_trade_date"] == "20260930"
++    assert result["summary"]["stock_count"] == 0
++    assert result["focus_symbols"] == []
++    assert result["run_accounting"]["natural_run_verified"] is False
++
++
++def test_requested_day_display_obeys_workspace_as_of_cutoff(tmp_path):
++    from v4.manager_research import ManagerResearchJobService
++    from v4.manager_research.store import ManagerResearchStore
++
++    class EmptyStageReader:
++        def read(self, trade_date):
++            return {"status": "NOT_RUN", "target_trade_date": trade_date, "rows": []}
++
++    state_root = _seed_state(tmp_path)
++    service = ManagerResearchJobService(
++        ManagerResearchStore(tmp_path / "manager-store"),
++        EmptyStageReader(),
++        None,
++        close_observation_reader=ManagerWorkbenchResearchReader(state_root),
++        catalyst_data_root=tmp_path / "catalysts",
++        workspace_ledger_root=tmp_path / "ledger",
++        workspace_security_master_root=tmp_path / "security-master",
++        workspace_screen_authority_root=tmp_path / "screen-authority",
++    )
++    try:
++        early = service.get_workspace(
++            DATE,
++            view="dynamic",
++            now=datetime.fromisoformat("2026-10-02T16:00:00+08:00"),
++        )
++        after_close = service.get_workspace(
++            DATE,
++            view="dynamic",
++            now=datetime.fromisoformat("2026-10-02T18:00:00+08:00"),
++        )
++    finally:
++        service.close()
++
++    early_display = early["close_recapture_evidence"]
++    assert early["read_context"]["as_of"] == "2026-10-02T16:00:00+08:00"
++    assert early_display["status"] == "CANNOT_CONFIRM"
++    assert early_display["candidate_overlay"]["count"] == 0
++    assert early_display["candidate_overlay"]["rows"] == []
++    assert early_display["availability_gate"]["status"] == "AFTER_CUTOFF"
++    assert early_display["availability_gate"]["source_status"] == "READY"
++    assert early_display["availability_gate"]["research_cutoff"] == "2026-10-02T16:00:00+08:00"
++    assert early_display["availability_gate"]["available_at"] == "2026-10-02T17:55:22.905209+08:00"
++    assert early_display["availability_gate"]["verified_source_row_count"] == 100
++    assert early_display["candidate_overlay"]["sha256"] == FIXTURE_SHAS["close_recapture.candidates.json"]
++    assert "REQUESTED_DAY_OBSERVATION_AFTER_RESEARCH_CUTOFF" in early_display["cannot_confirm"]
++    assert early["planning_close_recapture_evidence"]["source_trade_date"] == "20260930"
++    assert early["planning_close_recapture_evidence"]["status"] == "NOT_RUN"
++
++    after_close_display = after_close["close_recapture_evidence"]
++    assert after_close["read_context"]["as_of"] == "2026-10-02T18:00:00+08:00"
++    assert after_close_display["status"] == "READY"
++    assert after_close_display["candidate_overlay"]["count"] == 100
++    assert len(after_close_display["candidate_overlay"]["rows"]) == 100
++    assert after_close_display["availability_gate"]["status"] == "AVAILABLE_AT_CUTOFF"
++    assert after_close["planning_close_recapture_evidence"]["source_trade_date"] == "20260930"
++    assert after_close["summary"]["stock_count"] == 0
++    assert after_close["focus_symbols"] == []
++    assert after_close["run_accounting"]["natural_run_verified"] is False
++
++    late_candidate_state = _seed_state(tmp_path / "late-candidate")
++    _reseal_candidate_with_late_availability(late_candidate_state)
++    late_candidate = ManagerWorkbenchResearchReader(late_candidate_state).read_requested_day_hk_observation(DATE)
++    assert late_candidate["status"] == "FAILED"
++    assert late_candidate["candidate_overlay"]["rows"] == []
+--- /dev/null
++++ b/tests/fixtures/manager_current_observation_20261002/FIXTURE_BINDING.json
+@@ -0,0 +1,34 @@
++{
++  "canonical_fixture_root": "tests/fixtures/manager_current_observation_20261002",
++  "copy_mode": "byte-for-byte copy; source originals unchanged",
++  "files": {
++    "close_recapture.candidates.json": {
++      "bytes": 59817,
++      "sha256": "548804c308701e694f575deca2a3a361203bfaf3255aac4edca53ac065d4e454"
++    },
++    "close_recapture.json": {
++      "bytes": 3296,
++      "sha256": "3b5a84bbaae7d2b04f758691506f0665878b62bfb7f769f7c1746f13a2c3ec56"
++    },
++    "close_recapture.receipt.json": {
++      "bytes": 1303,
++      "sha256": "540a7818a50ccf516658bd38f5df14a1abd5c84dc3f73d068d626094bea50994"
++    },
++    "inputs/close_recapture_pytdx.json": {
++      "bytes": 47324,
++      "sha256": "a5b1484f0411529c8accaac0c7eeed56d1b9c35cdf335a009061c601e86ca3e3"
++    }
++  },
++  "purpose": "byte-for-byte derived test fixture for isolated read-only tests; not an authority or producer",
++  "schema_version": "v1.v4_manager_current_observation_test_fixture_binding",
++  "scope_notes": [
++    "The source pool remains HK_CONNECT_D1_TOP100_0_2; eligibility as HK securities is CANNOT_CONFIRM.",
++    "The fixture supports read-only display tests only; it cannot establish API, UI, natural-run, official-close, or production behavior."
++  ],
++  "source_fixture_binding_sha256": "5c8c28ce2f21119918dbbdeb7fcb4e18bcd334f4f462f52fff85befb0db53574",
++  "source_fixture_root": "/Users/lexi/Desktop/学习/agents调试/v4_manager_workbench_acceptance_20261002/api_integration/manager_current_observation_fix/fixtures/20261002",
++  "source_readback_receipt": {
++    "path": "/Users/lexi/Desktop/学习/agents调试/v4_hk_history_r5_acceptance_20261002/api_integration/hk_securities_observation_execution/INDEPENDENT_ACTUAL_CAPTURE_READBACK.json",
++    "sha256": "3f9639d850fa74f5db9c9ddc1d2b01773c7dad76befefd5ca2db852f4912087e"
++  }
++}

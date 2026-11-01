@@ -1,0 +1,25 @@
+{
+  "baseline": "canonical workspace files before implementation; test additions and copied fixtures were already present",
+  "runs": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --tb=short --basetemp=/private/tmp/current-repairs-pre-fix-observation tests/test_manager_current_observation.py",
+      "failure_summary": [
+        "read_requested_day_hk_observation missing",
+        "_read_close_recapture_inputs missing",
+        "planning_close_recapture_evidence absent",
+        "request-day observation omitted/NOT_RUN before cutoff"
+      ],
+      "result": "6 failed in 0.20s"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --tb=short --basetemp=/private/tmp/current-repairs-pre-fix-selector tests/test_manager_workspace_targeted_r2.py -k 'hk02_panel or hk02_forward_pointer or rebound_screen_binds or exact_named_recovered_manifest'",
+      "failure_summary": [
+        "required_history_date keyword rejected by selector",
+        "read_rebound_screen did not bind previous5[-1]"
+      ],
+      "result": "8 failed, 5 passed, 40 deselected in 0.14s"
+    }
+  ],
+  "schema_version": "v1.v4.current_repairs_source_delivery_pre_fix_reproduction",
+  "status": "REPRODUCED_BEFORE_SOURCE_CHANGE"
+}

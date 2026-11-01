@@ -1,0 +1,16 @@
+{
+  "experiment_id": "V4_FORMULA_MARGIN_SHADOW_V1",
+  "input": "old-data/preselection_pools/20260911/a_d1_fupan_watchlist_pool.json",
+  "input_sha256": "0cde3511a632ed0c207d19c824ba3fa8e1442febc608575890974d7b72922d71",
+  "status": "REJECTED",
+  "forward_eligible": false,
+  "counts_as_forward_day": false,
+  "natural_sample_count": 0,
+  "reasons": [
+    "FORWARD_OBSERVATION_MODE_REQUIRED",
+    "stage must be one of ('STAGE_0930_0935', 'STAGE_0945_1030', 'STAGE_1445_1500')",
+    "production source_version is required",
+    "CAPTURED_AT_REQUIRED"
+  ],
+  "note": "Engineering rejection canary only; this archive is not a forward observation or truth input."
+}
