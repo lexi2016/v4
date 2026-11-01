@@ -1,0 +1,161 @@
+{
+  "API_HTTP": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "UI": "NOT_RUN",
+  "branch": "codex/v4-f10-stage-binding-20261102",
+  "buy_gate_updated": false,
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1",
+  "deployment": "NOT_RUN",
+  "evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_f10_stage_binding_20261102_r1/writer",
+  "independent_review": "PENDING",
+  "natural_F10_hourly": "NOT_RUN_NO_ORIGINAL_RECEIPT_FOUND",
+  "orders_sent": false,
+  "production_allowed": false,
+  "release_plan": {
+    "activation_executed": false,
+    "direct_old_activation_command_usable": false,
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/two-role-release-plan.json",
+    "sha256": "cd6563c70864cb55ef158c749ee50a14a131082489f77d68a08bb5d756084cf4"
+  },
+  "roles": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-api/app",
+      "delta": [
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json"
+      ],
+      "generated_cache_omissions": [
+        {
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+            "sha256": "12875f1cd96f2cae1ee64bd6139846719b0cb5af57fce48da760880583916bca",
+            "size": 36179
+          },
+          "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc"
+        }
+      ],
+      "inventory_sha256": "db70f0a47e6763cc586f65fd15e53e599f0a94de1481c871aad8af012e43acaa",
+      "manifest_sha256": "c724f07e10c7c5ba17d599d7ead6ce28a6dbfadb82bebcafa858c1c7f231a3a1",
+      "protected_files_unchanged": 1329,
+      "release_id": "f10-stage-binding-20261102-r1-api"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-stage/app",
+      "delta": [
+        "infrastructure/manager_input_attestation.py",
+        "stage_center_tick_config.json"
+      ],
+      "generated_cache_omissions": [],
+      "inventory_sha256": "98110340e15c70203d220b8be4529b646fa5ee3ea9877807c7aa2cc02f61467a",
+      "manifest_sha256": "df06194b880f72cf64ccc7e2c331dbfab45bc80a37f14694d72071ed8a7e4817",
+      "protected_files_unchanged": 989,
+      "release_id": "f10-stage-binding-20261102-r1-stage"
+    }
+  },
+  "schema_version": "v4.f10_stage_binding_writer_receipt.v1",
+  "source_baseline": "ca20c4edf4f715cf075da0eb9c309aec055bf0d7",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-f10-stage-binding-20261102",
+  "source_sha256": [
+    {
+      "after_sha256": "dc73158cf1cb5f6f47fdbaa2efdcd852c8d752d5423962324961cf7829bfb1cc",
+      "before_sha256": "1bd90a3493d52be163e8fce85dec2abc327c7dd42efd1f11c0bea648dc1bc52a",
+      "path": "infrastructure/manager_input_attestation.py"
+    },
+    {
+      "after_sha256": "0f9cdee16e3aa4056066d95fba9044d660c8ad6c224b8973289c5c0c30a61c3f",
+      "before_sha256": null,
+      "path": "ops/prepare_f10_stage_binding.py"
+    },
+    {
+      "after_sha256": "ad663255b432d63515c13db8b8a9af5992303095cbda909f8092df026e5403ef",
+      "before_sha256": null,
+      "path": "tests/test_f10_stage_binding.py"
+    },
+    {
+      "after_sha256": "f8300b5958c02cd2c6e8effcc103a49992860cf2d96698630194cd9e5ab47d54",
+      "before_sha256": null,
+      "path": "docs/handoffs/f10-stage-binding-20261102/replay_real.py"
+    },
+    {
+      "after_sha256": "3262c70c7d814f51849cd75c021689ab5356cd6e5b568097de2dd83b700304e5",
+      "before_sha256": null,
+      "path": "docs/handoffs/f10-stage-binding-20261102/verify_manual_transport.py"
+    },
+    {
+      "after_sha256": "d55ddfe52c52672e5ec1941493372f456d76a8d0f6833fd35cd4452f6c3518df",
+      "before_sha256": null,
+      "path": "docs/handoffs/f10-stage-binding-20261102/verify_protection.py"
+    }
+  ],
+  "status": "WRITER_CHECKS_PASSED_REVIEW_PENDING",
+  "verification": {
+    "historical_replays": [
+      {
+        "date": "20261101",
+        "receipt_sha256": "8429e517df8fdaee6b4094456cf729c6b5af83c30cb9f1db438d08652c430c76",
+        "release_id": "workbench-daily-chain-20261031-r6-main",
+        "slot": "2300",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      },
+      {
+        "date": "20261030",
+        "receipt_sha256": "b3500246ac9a6f5d716ae25c0289b4b13c742f2291704982c73a12ced7316108",
+        "release_id": "a-daily-name-zoom-20261030-r1-main",
+        "slot": "1000",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      },
+      {
+        "date": "20261029",
+        "receipt_sha256": "fdcbd62cec56950ea725626b94ca91cca5ceb8e5d5ddc0b1e66aa73557053c19",
+        "release_id": "a-daily-sop-closure-20261029-r1-main",
+        "slot": "2300",
+        "status": "PASS_READ_ONLY_HISTORICAL_REPLAY"
+      }
+    ],
+    "manual_transport": "PASS_CONFIG_AND_REAL_CHILD_TRANSPORT_FIXTURE_ONLY",
+    "paired_old_binding_reproduction": "REJECTED_THEN_F10_FIXTURE_ACCEPTED",
+    "protection": {
+      "candidate_bytecode_cache_count": 0,
+      "data_written": false,
+      "external_panel_file_count": 491,
+      "generated_cache_omissions": [
+        {
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+            "sha256": "12875f1cd96f2cae1ee64bd6139846719b0cb5af57fce48da760880583916bca",
+            "size": 36179
+          },
+          "path": "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc"
+        }
+      ],
+      "loaded_baselines_and_plists_unchanged": true,
+      "manifest_listed_assets_sha_verified": 488,
+      "protected_label_count": 12,
+      "protected_original_dispatch_receipts": 3,
+      "protected_source_data_files": 27,
+      "review_only_release_proposals_verified": true,
+      "roles": {
+        "api": {
+          "entries": 1330,
+          "inventory_sha256": "db70f0a47e6763cc586f65fd15e53e599f0a94de1481c871aad8af012e43acaa",
+          "manifest_sha256": "c724f07e10c7c5ba17d599d7ead6ce28a6dbfadb82bebcafa858c1c7f231a3a1",
+          "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-api"
+        },
+        "stage": {
+          "entries": 991,
+          "inventory_sha256": "98110340e15c70203d220b8be4529b646fa5ee3ea9877807c7aa2cc02f61467a",
+          "manifest_sha256": "df06194b880f72cf64ccc7e2c331dbfab45bc80a37f14694d72071ed8a7e4817",
+          "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-stage-binding-20261102-r1/f10-stage-binding-20261102-r1-stage"
+        }
+      },
+      "services_activated": false,
+      "status": "PASS_READ_ONLY_PROTECTION_AUDIT",
+      "web_panel_and_other_app_bytes_unchanged": true
+    },
+    "regression": "13 passed in 1.48s"
+  }
+}
