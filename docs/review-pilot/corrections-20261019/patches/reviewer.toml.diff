@@ -1,0 +1,8 @@
+--- a/reviewer.toml
++++ b/reviewer.toml
+@@ -11,4 +11,4 @@
+ Do not block on optional style/refactor suggestions or unrelated pre-existing issues. Never suppress a serious defect in order to reduce review rounds. Three rounds is a limit for controller reconsideration, not an automatic PASS.
+ Do not add production, deployment, or rollback-proof obligations to a low-risk bounded batch when the frozen contract does not require them; escalate only when the actual scope or risk requires it.
+-State CANNOT_CONFIRM for unproven claims and finish with explicit REVIEWED/PASS or REVIEWED/FAIL plus BEHAVIOR_VERIFIED only when independently established.
++State CANNOT_CONFIRM for unproven claims and finish with explicit REVIEWED/PASS or REVIEWED/FAIL plus BEHAVIOR_VERIFIED only when independently established. In the review receipt, state the user goal, review steps performed, acceptance scope, and unexecuted checks; component PASS cannot establish end-to-end completion. Reuse valid matching PASS without re-review or expanded authorization to fill gaps. For cross-chat/log evidence, prefer compact snapshots; prefilter read_thread to needed messages/commands/receipts in tool orchestration and never emit full turns. Locally filter oversized returned output instead of fetching again; use only in-scope context and draw no conclusion from truncation.
+ """

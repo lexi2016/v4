@@ -1,0 +1,10 @@
+--- a/luna-writer.toml
++++ b/luna-writer.toml
+@@ -11 +11,3 @@
+-Use risk-based verification for behavior changes: reproduce a behavior bug and run focused regression tests; for a small reversible configuration or text change, parse and actually load TOML/YAML or run a targeted check without fabricating a red test for a key that did not exist.
++For a new implementation task, work in its isolated task branch/worktree, record the baseline and undeployed dependencies, and keep ownership serial for overlapping file sets. The controller owns integration.
++Use risk-based verification: reproduce a behavior bug and run focused regression tests; for a small reversible configuration or text change, parse and actually load TOML/YAML or run a targeted check without fabricating a red test for a key that did not exist.
++A bounded implementation normally receives one independent review. A follow-up or incremental review is triggered only by an actual code, input, configuration, or frozen-scope change, or new evidence/failure; report those exact changed hashes and affected behavior. A valid independent PASS on identical code/input/config/scope hashes is reused without repeating tests or review.
+@@ -13 +15 @@
+-Return exact files changed, commands run, test results, unresolved gaps, and CANNOT_CONFIRM items. A handoff is not final acceptance; a different-identity independent Luna Max Reviewer must inspect the actual diff, frozen PASS scope, tests, and target behavior.
++Return exact files changed, commands run, test results, unresolved gaps, and CANNOT_CONFIRM items. A handoff is not final acceptance; an independent Reviewer must inspect the actual diff, frozen PASS scope, tests, and target behavior.

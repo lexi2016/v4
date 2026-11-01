@@ -1,0 +1,175 @@
+{
+  "schema": "V4_R7_DOCS_WRITER_AUDIT_RECEIPT_V2",
+  "status": "MECHANICAL_PARTITION_PASS",
+  "source_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "input_artifact_sha256": {
+    "pool_audit/REPORT.md": "556b6bbf89c232f26f0c2fb6040ec68f7918878b2dd512b88c72d3938c14c8c1",
+    "pool_audit/FILE_INVENTORY.json": "9ae16f4eba95251b3c1d4e3db41623441e4d8365158024d2bb3f198dee1aca19",
+    "pool_audit/LINE_ACTIONS.json": "5939aa29e0e4f1f6781379fd0f97910d3273a8408bfacd860ec0ccd01fe64191",
+    "pool_audit/RECEIPT.json": "dcb2b838b20421ee79499b793cc8625e4c9dc8c15eca00d56507ae64dc491cd9",
+    "ui_audit/REPORT.md": "4971b77b3d919ca41c9c5259e1f4da14debda048150042f7c7215fa1dacce7a4",
+    "ui_audit/FILE_INVENTORY.json": "54a3ac419d845f3025ad9f7d5a1043345046eb4e1271214a9a00da41dcaf1c1c",
+    "ui_audit/LINE_ACTIONS.json": "168228c5f7d5df3b32370d5763776c29540ea930428807307e3661f66db30295",
+    "ui_audit/RECEIPT.json": "eb660da247fe6b28e29132629e42cb56b5dd6aae5ac1ee2156b81c96f0114de8",
+    "stage_audit/REPORT.md": "a5ade66c2871bc46607750a22d985f255e37f645d18ade53af3dc1318e4b2b1e",
+    "stage_audit/FILE_INVENTORY.json": "f42014c63085c2920b0dfdc1080c6e8de5d1bd3322576c1ceca6012f3a42affb",
+    "stage_audit/LINE_ACTIONS.json": "40f82713b7ebaa19bdf36fc8023b8d3040a76376eb979dc6f12915997e46440f",
+    "stage_audit/RECEIPT.json": "14ff992b44478f825f5edb4181e3d3138c5c9e3d670243054e2e7444c67794dc",
+    "close_audit/REPORT.md": "47d090a585930c94390e9643de2aa648166728cdf8d03e39a90d3ac48df191c8",
+    "close_audit/FILE_INVENTORY.json": "9b20784eb2d5347465fc75c588af0ea90a575882dbd4532d8d2343a2256e38fc",
+    "close_audit/LINE_ACTIONS.json": "39d4fb88fb22ac9c9b8ff9d6f778273e95f52379ddf896aff4fc7eefd5780e1b",
+    "close_audit/RECEIPT.json": "5a07f0ee676fe4cf3fcc5b54125b583a63136f63b3ad7533a1baebd8fe59db6a",
+    "SOURCE_UNIVERSE_AFTER_AUDITS_R7.json": "d89d0b26efc9411c49cbad3fbf1e408685c9474ab8f38a898743160bc4da3848"
+  },
+  "audit_summaries": [
+    {
+      "audit": "pool_audit",
+      "intervals": 1009,
+      "mapped_lines": 8661,
+      "action_counts": {
+        "DEFER": 838,
+        "REMOVE_CANDIDATE": 9,
+        "KEEP": 162
+      },
+      "disposition_intervals": {
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 838,
+        "REMOVE_CANDIDATE": 9,
+        "KEEP": 162
+      },
+      "disposition_lines": {
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 7271,
+        "REMOVE_CANDIDATE": 123,
+        "KEEP": 1267
+      },
+      "receipt_status": "REVIEWED_READ_ONLY_AUDIT_COMPLETE_IMPLEMENTATION_NOT_PERFORMED"
+    },
+    {
+      "audit": "ui_audit",
+      "intervals": 62,
+      "mapped_lines": 6244,
+      "action_counts": {
+        "KEEP": 52,
+        "REMOVE_CANDIDATE": 4,
+        "MERGE": 2,
+        "MOVE": 1,
+        "DEFER": 2,
+        "SIMPLIFY": 1
+      },
+      "disposition_intervals": {
+        "KEEP": 52,
+        "REMOVE_CANDIDATE": 4,
+        "MERGE": 2,
+        "MOVE": 1,
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 2,
+        "SIMPLIFY": 1
+      },
+      "disposition_lines": {
+        "KEEP": 5410,
+        "REMOVE_CANDIDATE": 30,
+        "MERGE": 150,
+        "MOVE": 29,
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 363,
+        "SIMPLIFY": 262
+      },
+      "receipt_status": "UI_EVIDENCE_CAPTURED"
+    },
+    {
+      "audit": "stage_audit",
+      "intervals": 137,
+      "mapped_lines": 31995,
+      "action_counts": {
+        "DEFER": 6,
+        "KEEP": 130,
+        "SIMPLIFY": 1
+      },
+      "disposition_intervals": {
+        "UNREAD_OUT_OF_SCOPE": 6,
+        "KEEP": 130,
+        "SIMPLIFY": 1
+      },
+      "disposition_lines": {
+        "UNREAD_OUT_OF_SCOPE": 4898,
+        "KEEP": 27093,
+        "SIMPLIFY": 4
+      },
+      "receipt_status": "DELIVERED_WITH_OUT_OF_SCOPE_DEFERRED_LINES"
+    },
+    {
+      "audit": "close_audit",
+      "intervals": 152,
+      "mapped_lines": 6620,
+      "action_counts": {
+        "KEEP": 110,
+        "SIMPLIFY": 5,
+        "DEFER": 37
+      },
+      "disposition_intervals": {
+        "KEEP": 110,
+        "SIMPLIFY": 5,
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 13,
+        "REVIEWED_OUT_OF_SCOPE": 6,
+        "UNREAD_OUT_OF_SCOPE": 18
+      },
+      "disposition_lines": {
+        "KEEP": 2772,
+        "SIMPLIFY": 184,
+        "REVIEWED_DEFER_AWAITING_IMPLEMENTATION": 464,
+        "REVIEWED_OUT_OF_SCOPE": 1422,
+        "UNREAD_OUT_OF_SCOPE": 1778
+      },
+      "receipt_status": "SOURCE_AUDIT_COMPLETE_WITH_EXPLICIT_OUT_OF_SCOPE"
+    }
+  ],
+  "total_intervals": 1360,
+  "total_mapped_interval_lines": 53520,
+  "coverage_errors": [],
+  "tests_run": [],
+  "business_sources_modified_by_writer": false,
+  "business_tests_run": false,
+  "canonical_source_identity_check": {
+    "checked_files": 178,
+    "mismatches": []
+  },
+  "post_audit_source_universe": {
+    "checked_utc": "2026-10-12T14:32:09.288108+00:00",
+    "source_files_checked": 752,
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "changed_paths": [
+      {
+        "path": "infrastructure/_research_store_parts/hourly_publish.py",
+        "before_sha256": "f1685ae5018494ec5bb89e3f1ec3713b4a52a6757d7602bb3a91018c7e3d77c2",
+        "after_sha256": "861fe156c242993e262c28effec3303733bc3598a6d9396170e1d3d9b9e92d8b"
+      },
+      {
+        "path": "infrastructure/_research_store_parts/hourly_sources.py",
+        "before_sha256": "49fdc1cb077dac279788458e0a92c33fc63bb698aed734912f6ae2bbaae41500",
+        "after_sha256": "2e8289bfd9db458a1c8c5c3c46c7054a84c2b195ee6bebedfbf12e530b25bcf1"
+      },
+      {
+        "path": "ops/collect_hourly_research_input.py",
+        "before_sha256": "070ae9d3617b96649288d2ef7971d51f92b8a6dfde62810bad75fa49d193488e",
+        "after_sha256": "829fc02d18d102f30d7d346512a486a88160903c2d93c7c7c9c8917630b722a6"
+      }
+    ],
+    "changed_paths_in_audit_inventory": [],
+    "interpretation": "Mechanical source SHA comparison only; source-universe index is not review coverage. Existing dirty worktree retained, business source writes not part of R7."
+  },
+  "normalization": {
+    "schema": "V4_R7_LINE_AUDIT_BUNDLE_V2",
+    "source_count": 199,
+    "context_count": 790,
+    "symbol_count": 469,
+    "evidence_count": 784,
+    "target_count": 261,
+    "test_ids_count": 51,
+    "blocker_count": 14,
+    "reason_count": 588,
+    "ui_source_equivalence_alias_count": 11,
+    "ui_alias_round_trip": "PASS",
+    "lossless_json_round_trip": "PASS",
+    "lossless_csv_round_trip": "PASS",
+    "expanded_interval_semantics_sha256": "249a14de2f7eb5bf4d6dd272fc85d4a4e855f6d4d392ca6c365cf5ea186ecb34",
+    "ui_alias_semantics_sha256": "38054d772d56eb51378c3141939d1575620936f31a012868786f37bf77742fa0",
+    "in_scope_unread_intervals": 0
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "FUTU_PROFILE_SCOPED_ACCEPTANCE_SUMMARY_V1",
+  "recorded_at": "2026-10-24T13:29:48.797644+08:00",
+  "goal": "Correct the explicit Zge/Futu chart read profile using the unchanged user formula and existing RAW selector source.",
+  "state": "BEHAVIOR_VERIFIED_INSTALLED_READER_TWO_STOCK_D23_ONLY",
+  "code_local_commit": "e22d0119dd2467821b743ad75673e5f9e4941085",
+  "original_formula_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6",
+  "formula_producer_sha256": "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258",
+  "source_panel_sha256": "e113730242fcc146d2915c44ce0078eff62a9001070ce9f1cec1b35c89bf4039",
+  "profile_id": "FUTU_QFQ_ASOF",
+  "asof": "20261023",
+  "observed_factors_at": "2026-10-24T12:48:57.559182+08:00",
+  "root_cause": "RAW selector close versus Futu forward-adjusted close;001283 also needs actual Futu A/B rather than inferred old TDX event factors.",
+  "installed_qfq_display_3dp": {
+    "001283.SZ": {
+      "BBI": 50.758,
+      "ma60": 46.29,
+      "white": 48.892,
+      "yellow": 48.321
+    },
+    "002612.SZ": {
+      "BBI": 15.818,
+      "ma60": 15.735,
+      "white": 16.064,
+      "yellow": 15.648
+    }
+  },
+  "raw_default_display_3dp": {
+    "001283.SZ": {
+      "yellow": 48.783
+    },
+    "002612.SZ": {
+      "yellow": 15.679
+    }
+  },
+  "verification": {
+    "focused_tests": 12,
+    "independent_code_review": "PASS",
+    "independent_code_receipt_sha256": "affb02db485226e37da80d74b375332d427b09e3d0d20397df2a98e45f14a45c",
+    "installed_original_reader_review": "PASS",
+    "installed_reader_receipt_sha256": "e919cda43415393a7377efbee98b31c34b28423594f9621ade0a206b15e9f0f4",
+    "installer_exit": 0,
+    "installed_targets": 7,
+    "preexisting_backups": 3,
+    "network_attempts_during_reads": 0
+  },
+  "limitations": [
+    "Only002612.SZ and001283.SZ at20261023 chart core fields covered",
+    "RAW selector/backtest and other consumers remain unchanged; explicit profile required",
+    "No fullmarket, other-date, J/B/volume parity, historical PIT, UI/API or natural-update certification",
+    "No return/ranking/backtest/performance or trading claim"
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "v4.governance.custody-closure.v1",
+  "recorded_at": "2026-10-19T02:40:27.898654+00:00",
+  "status": "GOVERNANCE_DISPOSITION_COMPLETE_FOR_FROZEN_INVENTORY",
+  "decision_source": "Explicit user reply: 采用历史保留标准，继续完成治理",
+  "decision": "治理接管、历史保留、未验收",
+  "supersedes": "Pending custody decision only in acceptance.json and prior frozen inventory summaries; original evidence is preserved",
+  "scope": "Frozen V4 primary and registered worktree difference inventory from this pilot; future changes require their own task ownership",
+  "snapshot_entries": 32377,
+  "decision_groups": 6818,
+  "counts": {
+    "GOVERNANCE_CUSTODY_HISTORICAL_PRESERVED_UNACCEPTED": 31793,
+    "CURRENT_GOVERNANCE_BATCH": 1,
+    "PRESERVE_EXISTING_TASK_OWNER_AND_RECEIPTS": 583
+  },
+  "unresolved_disposition_rows": 0,
+  "unresolved_original_authorship": "Retained UNKNOWN; governance custody is not authorship or technical acceptance",
+  "historical_acceptance": "UNACCEPTED",
+  "original_paths_and_bytes_preserved": true,
+  "runtime_effect": "None; this registration grants no new reuse or runtime authorization and changes no current service state",
+  "existing_dependencies_and_peer_tasks": "Preserved; existing exact-scope receipts reused",
+  "future_reuse_requirement": "Bind source/date/market/dependency identity and obtain only necessary scoped acceptance before new reuse",
+  "input_sha256": {
+    "inventory/v4_existing_worktrees.jsonl": "37bf14d55f144b0af6a399655c719ab738be4e73adb565e01ce0d67519a307d9",
+    "inventory/ownership_decision_groups.json": "34863d2269a67f0ac6c5e6b6e3a0787daacebddbabf25e4d8d6fc5b9ca61f8d6",
+    "inventory/owner_decision_overlay.json": "2d33e2fb9e38bff0af35ccc86bd6717e49c1d650684be21b45e67e3a73a66528",
+    "orchestration/current_batch_owner_overlay.json": "9901a733ce94ca0fa1ef6fbc5beb555b4eea462ad24a15174fee4c29aaa35b4f"
+  },
+  "local_output_sha256": {
+    "custody_disposition.jsonl": "58b49b34a2d74b23d000417c827e3dfa0ba22143e1ef72654003d306199fa807",
+    "custody_group_closure.json": "2f592028bcdec48a3e769b1fba7b38e2b28f1b0d45b903151609a3e8d3223b70"
+  },
+  "checks": {
+    "all_rows_accounted_once": true,
+    "all_groups_covered": true,
+    "frozen_inputs_unchanged": true,
+    "existing_tests_or_reviews_repeated": false
+  },
+  "prior_rules_review_install_and_native_receipts": "Reused unchanged from acceptance.json",
+  "original_hash_gaps": "Preserved CANNOT_CONFIRM where snapshot has no regular-file SHA; custody does not fabricate bytes",
+  "raw_inventory_uploaded": false,
+  "code_config_hook_permission_or_service_changes": false,
+  "merge_or_deploy": false
+}

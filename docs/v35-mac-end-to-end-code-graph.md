@@ -1,34 +1,38 @@
 # V4 代码定位图谱（含 V3.5 历史链路）
 
-本页沿用原图谱路径，不新增图谱服务或第二份调度配置。当前索引更新于 **2026-10-30**，业务取证样本固定为 **2026-10-29**；覆盖桌面阶段加载、A 股阶段输入/补选和研究面板日更三条主链，不声称是全仓完整调用图。
+本页沿用原图谱路径，不新增图谱服务或第二份调度配置。当前索引更新于 **2026-10-30**，业务取证样本覆盖 **2026-10-29** 已有结果和 **2026-10-30 10:29/10:30** 默认运行；覆盖桌面阶段加载、A 股阶段输入/补选和研究面板日更三条主链，不声称是全仓完整调用图。
 
 ## 先分清源码、运行包与历史合同
 
 - 工作区源码根为 `/Users/lexi/Desktop/学习/v4_app`。本次读取的工作区基线是 `claude/v4-typecheck-budget-20261029@7ed00ca916a55a55a0bea95944c004cb6570b6f1`；这是定位快照，不是固定分支要求，也不是整包已部署证明。
-- 下表中的现役绑定观测于 **2026-10-30 00:38:25 +08:00**。新任务必须重新读取目标 label 的配置、实际 PID/cwd 和 manifest；不要复用本文 PID，也不要把 idle 定时任务没有 PID 判成故障。
+- 下表API/Main/Stage绑定更新于 **2026-10-30 10:09 +08:00**；HK一项保留00:38历史观测。新任务必须重新读取目标 label 的配置、实际 PID/cwd 和 manifest；不要复用本文 PID，也不要把 idle 定时任务没有 PID 判成故障。
 - `R` 表示 `/Users/lexi/Library/Application Support/com.lexi.v4.local/releases`。表中 app 根均为 `R/<release>/app`。
 
 | 角色 | launchd label | 观测到的 release | 本次确认范围 |
 | --- | --- | --- | --- |
-| API / 8873 | `com.lexi.v4.api` | `v4-desktop-navigation-20261029-r1-api` | 配置与实际进程 cwd 一致 |
-| Main 调度 | `com.lexi.v4.scheduler` | `a-daily-sop-closure-20261029-r1-main` | 配置与实际进程 cwd 一致 |
-| Stage 调度 | `com.lexi.stage-center.scheduler` | `a-snapshot-recovery-20261029-r1-stage` | label 已加载、配置 app 根已读；当时 idle，无实际执行 PID |
-| HK deadline | `com.lexi.stage-center.hk-deadline` | `v4-retirement-20261028-stage-deadline` | label 已加载、配置 app 根已读；当时 idle，无实际执行 PID |
+| API / 8873 | `com.lexi.v4.api` | `a-daily-name-zoom-20261030-r1-api` | loaded身份核回；阶段源码/七阶段合同与已验r2一致，当前09:25实点通过 |
+| Main 调度 | `com.lexi.v4.scheduler` | `a-daily-name-zoom-20261030-r1-main` | loaded显式pin、14文件及10:00真实成功见证核回；本轮未改 |
+| Stage 调度 | `com.lexi.stage-center.scheduler` | `a-stage-owner-compatibility-20261030-r2-stage` | 10:08切换；10:29默认运行产出4×522→10补选，原严格节点失败仍保留 |
+| HK deadline | `com.lexi.stage-center.hk-deadline` | `v4-retirement-20261028-stage-deadline` | 00:38历史观测；本轮未改、未重新认证 |
 
-当前 API manifest 的直接父本是 `a-daily-sop-closure-20261029-r1-api`。其中 `source_root` 指向工作区内 `.task_worktrees/a-daily-sop-closure-20261029`，桌面导航增量的 `p7_desktop_navigation.source_root` 指向 `/Users/lexi/.codex/worktrees/v4-formal-fixes-20261029/v4_app`。这些是分层来源字段，不等于任一目录与整包完全同源；实际修改前仍须按目标文件核 SHA 和当前 owner。
+当前 API manifest 的直接父本是 `a-daily-dashboard-c6-20261030-r1-api`。不同增量分别沿各自source字段溯源，桌面导航增量的 `p7_desktop_navigation.source_root` 指向 `/Users/lexi/.codex/worktrees/v4-formal-fixes-20261029/v4_app`。这些是分层来源字段，不等于任一目录与整包完全同源；实际修改前仍须按目标文件核 SHA 和当前 owner。
 
 工作区的 API 文件在 [`apps/api/v35_api/app.py`](../apps/api/v35_api/app.py)，当前运行包的对应入口名是 `apps/api/v4_api/app.py`。**工作区没有同名 `v4_api/app.py`，也没有本次运行包中的 `stage_center/snapshot_recovery.py`；不要因此新建占位实现，或把运行包整体覆盖回工作区。** 先回到对应集成来源核对目标文件；包名、目录名中的 `v35` 本身不证明正在运行旧服务。
 
 ### 本批修复源码与验收位置
 
-本批实施不写回冷主工作区。可编辑源码位于 `.task_worktrees/claude-v4-stage-loading-20261030`，当前源码提交为 `f5bc8cee8c876fe42adef6d93f167b1e4360d251`。阶段首屏提交 `e0a6cac25f0eb406fa6848b32e5a9591dcaf709c` 的父提交 `ee4a0ff6` 已整合 P29 补选展示与两项去重；后续 `f5bc8cee` 增加已审 owner 读取修复与精简验收结果。定位增量时优先读此工作树对应文件，而不是在冷副本新造实现。
+本批业务实现不写回冷主工作区。Claude可编辑源码位于 `.task_worktrees/claude-v4-stage-loading-20261030`，原交付源码提交为 `f5bc8cee8c876fe42adef6d93f167b1e4360d251`。阶段首屏提交 `e0a6cac25f0eb406fa6848b32e5a9591dcaf709c` 的父提交 `ee4a0ff6` 已整合 P29 补选展示与两项去重；后续 `f5bc8cee` 增加已审 owner 读取修复与精简验收结果。定位增量时优先读此工作树对应文件，而不是在冷副本新造实现。
 
 - `apps/web/src/app_shell/useAppShell.ts::loadStageTimeline`：复用已取得的同日同阶段当前 payload，详情请求由每次 9 个减为 8 个；后台其余 7 个完整详情仍存在。
 - `domains/_preselection_parts/date_catalog.py::__verified_stage_artifact_catalog_body`：复用首次验证结果，删除同请求内第二轮重复 `read_verified`。三个交替真实 GET 对照中位数由 2754.64ms 降为 2261.82ms，九个目录投影相同；不是日间 p95，目录仍约 2.38MB。
 - `apps/web/src/App.vue`：地图原生折叠、展开才挂载；血缘详情与原始报价表默认折叠，补选 Top10、原失败及真实时钟保持可见。14 个定向前端测试及构建通过，typecheck 保留同 26 条基线诊断。
-- API 候选为 `v4-stage-performance-supplementary-20261030-r2-api`，manifest SHA `3d61dac217dec804042ae9b03eb446be5d2e6f075ec46528708a2bfb8ba7e637`。它经过原完整集成 helper，1289 个非 delta 条目和 455 个研究面板资产保留；**未激活正式 8873**。
+- API 候选为 `v4-stage-performance-supplementary-20261030-r2-api`，manifest SHA `3d61dac217dec804042ae9b03eb446be5d2e6f075ec46528708a2bfb8ba7e637`。它经过原完整集成 helper，1289 个非 delta 条目和 455 个研究面板资产保留；09:15已实际激活正式8873。后续NameZoom版保留相关源码与结果，当前版本身份另行核回。
 - 真实隔离 Chrome 已验收 13:15 原 A10，以及 09:25、09:35、15:00 各补选10条；报价56行可展开，地图仅展开后读取现有接口、收起即卸载。测试服务为 18874，不冒充正式入口或自然时段验收。
 - 既有五份补选只读消费已通过；没有重跑评分或采集。Stage owner 兼容问题的复现见下文，修复与激活状态单独记载，不因 API 候选通过而一并升格。
+
+当前Stage集成工作树为 `/Users/lexi/.codex/worktrees/v4-formal-fixes-20261029/v4_app`，分支 `codex/v4-stage-formal-auto-20261030`，已精确导入CC九份末态并保留SOP。当前API/Main另含日更看板任务增量，禁止用该工作树整包覆盖现役。Stage封存/配置/实装/自然状态见同分支 `docs/handoffs/20261030-stage-formal-auto/RESULT.json`；正式29日五段各10已完成接口及电脑点击验收，默认自动补选已在真实10:29运行产出四个到期早段，不能据此认证原自然选股/PIT或未到的15:00。
+
+P32源码提交`a59af2db7e45318ce322bd34be08539334cc2414`仅修App的补选空卡说明及对应测试，8/8与构建、独审通过；该源码是候选，当前NameZoom API仍使用旧空卡。唯一原生管理员入口读取Desktop脚本EPERM，切换前已停止，未动Main/Stage。不能用P31补选表的代表点击代替P32卡片与锚点的正式验收。
 
 ## 按症状定位
 
@@ -61,7 +65,7 @@
 2. Stage 的研究读取器按小时 publication 与 completion witness 核对密封 `research_owner_binding`。03:57 的真实只读对照已确认：现役 Stage 仍钉 `a-chain-natural-repair-20261029-r3-main`，因此拒绝 23:00 已成功的 `a-daily-sop-closure-20261029-r1-main` 完成回执；同一原 reader 使用经 inventory 核验的当前 Main pin 则通过。阻断在完成回执的 `release_id` 匹配，不是缺行情，也不能只按 materializer 代码 SHA 区分同字节 owner。修复必须同时保留显式旧 owner provenance；不得动态发现 `latest` 或绕过原见证。该对照不解释此前 15:00 code/config drift。
 3. 原引擎完成评分、排序与 Top10 后，由 `SelectionStore` 保存可追溯结果；API 再读取正式选择产物。某股没有进入 Top10 与某阶段根本没有正式产物必须分开诊断。
 4. 快照补选沿 [`STAGE_SELECTION_SOP.md`](operations/STAGE_SELECTION_SOP.md) 复用现有 Stage tick。运行包中的 `stage_center/snapshot_recovery.py` 与 `consumer.py` 是补选接入定位点。快照观察只是输入；只有原引擎已消费并产出结果，才能称补选完成。迟到结果必须保留真实时间、标明“事后快照补选”并保持 `WATCH_ONLY`，不得覆盖原自然失败或回填成历史 PIT 成功。
-5. 本批 owner 修复仅修改 `infrastructure/manager_input_attestation.py::read_stage_hourly_attestation`：最多 current + 两个历史显式 pin，同代码 SHA 只作筛选，完整原成功 dispatch 见证才能选定 owner；除精确见证缺失外的来源/时钟等错误立即传播。隔离 Stage reader/config 两项 delta 已通过26项定向测试及一次独立审查。三份真实只读样本：13:00旧成功保留、23:00新成功通过、09:00原代码身份错误保留。未改正式绑定，未认证未来自然执行。
+5. 本批 owner 修复仅修改 `infrastructure/manager_input_attestation.py::read_stage_hourly_attestation`：最多 current + 两个历史显式 pin，同代码 SHA 只作筛选，完整原成功 dispatch 见证才能选定 owner；除精确见证缺失外的来源/时钟等错误立即传播。隔离 Stage reader/config 两项 delta 已通过26项定向测试及一次独立审查。三份真实只读样本：13:00旧成功保留、23:00新成功通过、09:00原代码身份错误保留。以上是CC隔离阶段的原验收。10:08已实装Stage R2，current=NameZoom、history=C6/SOP，真实新Main10:00见证通过；更老R3已退新窗口但原文件及D29产物保留，10:29默认调度已产4份各10补选，Stage/API读取及桌面代表实点通过，原严格输入版本错误/partial仍保留。
 6. 以后 Main 换版的既有依赖顺序应是 Main封存 → Stage显式 pin更新 → Stage封存 → 核实际launcher绑定；必须用一份换版后真实 publication检验完整 completion witness。这里只记录发布依赖与定位规则，不宣称已新增程序化发布阻断器。不能再次仅切Main、遗留Stage旧pin，也不能把隔离候选直接当正式发布计划。
 
 ### 3. 研究面板日更链
@@ -75,6 +79,8 @@
 - 已有数据层到“每日数值结果及索引，再由原页面按日期读取”的边目前是待接入边，不是本文宣称已经运行的调用。接入不得新增 producer、面板或闹钟，不应每天改 HTML/JS 再打包；保留“先数值筛选，用户确认后再新增图审/生成图”的冻结决定。
 - 数值依赖定位：因子工厂原 `five_group_completion_r1/run.py::derive` 使用**同目标日过滤前描述符**和已接受的原公式结果，`assemble.py::run` 产出 `ALL5808_GROUP_MEMBERSHIP.json`，再交 `numeric_filters_v1_r1/run.py::compute` 与 R5 `d3_terminal.py::check`。`old` 不是昨日名单；原 `run.py` 固定 D28 并校验输入 prefix，`assemble.py` 固定保留原157及D28账本，不能直接挂为每日任务或把日期标签改成D29。
 - 日期化接入仍缺同日原公式/描述符、base membership、随 generation 滚动的交易所日历/PRIOR10及原始 reference_prev_close 合同。现 QFQ `pre_close` 不能替代原始参考昨收，`user_v1_*` 也未经等价认证成为原云公式。保留 UNKNOWN、D28历史及来源/PIT未认证，不据行情日已更新就发布新日数值名单。
+
+> 上述研究面板日更段保留04:39的定位结论。随后另一任务已安装NameZoom API/Main；本轮保留其名称、图表和日更增量，仅核其Main完成见证，未重新认证该任务的日更语义或15:40自然执行。当前状态以原 `因子工厂/research/a_share_local_panel_completion_20261024/SOP_SINGLE_STOCK_REPAIR.md` 及实际回执为准，不能把旧“未实现”当作新版本结论。
 
 ## 图谱维护与证据
 

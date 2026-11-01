@@ -1,0 +1,182 @@
+{
+  "schema_version": "v4.manager_workbench.requirements_source_manifest.v1",
+  "captured_date": "2026-10-13",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_branch": "codex/system-consolidation-20260912",
+  "working_tree_has_parallel_changes": true,
+  "requirements_github_base": "b22836ef3f8fcc6b9218f3422a9bcd7aa61152e9",
+  "requirements_base_is_complete_app": false,
+  "runtime_identity": "CANNOT_CONFIRM",
+  "business_code_changed": false,
+  "deployment": "NOT_RUN",
+  "model_canary": "NOT_RUN",
+  "natural_acceptance": "NATURAL_SLOT_UNVERIFIED",
+  "source_files": [
+    {
+      "path": "contracts/trading_calendar.py",
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "bytes": 10239,
+      "git_status": "M contracts/trading_calendar.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "bytes": 9354,
+      "git_status": "M infrastructure/owned_io.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "bytes": 15114,
+      "git_status": "M infrastructure/research_peripheral_store.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "sha256": "395067424d5e8b8016a239f80091f3c951452cc25cf6278089a54729a85f3be6",
+      "bytes": 35637,
+      "git_status": "M stage_center/consumer.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "sha256": "2bd3c2391be79d1331b40d50e5aaeedb2cfb280bcef4b70cabf2993dbe579c48",
+      "bytes": 97518,
+      "git_status": "?? v4/manager_research/workspace_plan.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "sha256": "ccc65ccb6eaf3be948652e6fc318305d9b87908826d15e98f208e122441ad5b0",
+      "bytes": 13644,
+      "git_status": "?? v4/manager_research/connect_selection.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "bytes": 20097,
+      "git_status": "?? v4/manager_research/workspace_daily_channels.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "sha256": "886178f1e4b90b4e5e68f94cfeddc808f39e596740b295550edb6b8cd60b5e84",
+      "bytes": 68048,
+      "git_status": "?? v4/manager_research/us_mapping_research.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "adacf42be83a53c3472de65426d2269904e1ab33151887b921e8af11b0b1c4dc",
+      "bytes": 76731,
+      "git_status": "?? v4/manager_research/announcement_source.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "domains/manager_close_discovery.py",
+      "sha256": "f983b5e2bea03d1d5309467e75c2e2da0157636813183221035fac5ef2704b6b",
+      "bytes": 16974,
+      "git_status": "?? domains/manager_close_discovery.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "ops/run_manager_daily_announcement.py",
+      "sha256": "c4e1b0969580922f98da3ef894677b82a80f86b381b9ecad22e4e5b95f2cf399",
+      "bytes": 93026,
+      "git_status": "?? ops/run_manager_daily_announcement.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "bytes": 19988,
+      "git_status": "M v4/manager_research/store.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/web/src/manager-selection/main.ts",
+      "sha256": "769df8d97df6c27785cbaa248b80fb6cc447cfe3afbd627e32fe925d2065b843",
+      "bytes": 166,
+      "git_status": "TRACKED_UNCHANGED",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "bytes": 491,
+      "git_status": "TRACKED_UNCHANGED",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "d6632563997987f7b98519709c6111ee8fc114bed69711bdb768b31c7fd732a7",
+      "bytes": 344355,
+      "git_status": "M apps/api/v35_api/app.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "7e3ead4e646a599981878e7b5eca66ecde01217de83f0f3039637a411cfa1f5c",
+      "bytes": 46094,
+      "git_status": "?? ops/run_v35_macos_scheduler_daemon.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "infrastructure/scheduling/manager_announcement_supervisor.py",
+      "sha256": "7dbc1bb34010e9288e563f5cc7aed733c558893c2e64cbbb6f0e49e10893973f",
+      "bytes": 29393,
+      "git_status": "?? infrastructure/scheduling/manager_announcement_supervisor.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/announcement_processing.py",
+      "sha256": "8a66c5b53814567c9209070c8b62b490ce7f8c194cbfa551a0d32450e7654c3a",
+      "bytes": 63405,
+      "git_status": "?? v4/manager_research/announcement_processing.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "v4/manager_research/announcement_selection.py",
+      "sha256": "6cc3e4ddfc4848e684770b5bfc360abb585d112a311bc2a98978a5b56952b697",
+      "bytes": 21889,
+      "git_status": "?? v4/manager_research/announcement_selection.py",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "4f792160e360aa7947e20e2f8456a5136558dff43356ce89e529cbdef561492e",
+      "bytes": 625,
+      "git_status": "M pyproject.toml",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "bytes": 492,
+      "git_status": "TRACKED_UNCHANGED",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "bytes": 258,
+      "git_status": "TRACKED_UNCHANGED",
+      "role": "LEARNING_REFERENCE_ONLY"
+    },
+    {
+      "path": "apps/web/manager-selection/index.html",
+      "sha256": "dde06bee12772b83d670ca1d86569d7a2da6476e7972e24ade20dee3f3fcba2f",
+      "bytes": 397,
+      "git_status": "TRACKED_UNCHANGED",
+      "role": "LEARNING_REFERENCE_ONLY"
+    }
+  ],
+  "new_target_roots": {
+    "v4/manager_workbench": "ABSENT",
+    "apps/web/src/manager-workbench": "ABSENT"
+  }
+}
