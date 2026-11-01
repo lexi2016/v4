@@ -19,7 +19,7 @@ def indexed_documents(tmp_path, monkeypatch):
         ("b", "20261024", "华泰-钧达股份(002865).pdf", "研究", "b"),
         ("f", "20261027", "ordinary.pdf", "研究", "f"),
         ("e", "20261027", "fake-1002865x.pdf", "研究", "e"),
-        ("d", "20261027", "short-HK-02-AI.pdf", "研究", "d"),
+        ("d", "20261027", "short-HK-02-AI-12元-000001.SZ.pdf", "研究", "d"),
         ("c", "20261027", "ordinary-c.pdf", "研究", "c"),
         ("9", "20261026", "ordinary-9.pdf", "金鹰纪要", "9"),
     ]
@@ -38,7 +38,8 @@ def indexed_documents(tmp_path, monkeypatch):
         fingerprint, _, _ = search._fingerprint(index, doc_id)
         # The contiguous code ensures a Bloom candidate but is not itself
         # evidence returned by the fake owner detail for noise records.
-        bloom = search._text_bits([filename, title, "002865 ordinary OCR"])
+        ocr = "002865 ordinary OCR" + (" 理邦仪器" if digit == "c" else "")
+        bloom = search._text_bits([filename, title, ocr])
         days[day][doc_id] = {
             "fingerprint": fingerprint,
             "verified_pdf_sha256": digest * 64,
@@ -66,8 +67,20 @@ def test_exact_filename_priority_preserves_stable_order_and_ignores_short_noise(
 
 def test_no_full_metadata_match_keeps_original_date_and_id_order(indexed_documents):
     root, _ = indexed_documents
-    result = search.query(root, {"A.002865": ["02", "HK", "AI"]})
+    result = search.query(root, {"A.002865": ["02", "HK", "AI", "12元", "000001.SZ"]})
     assert [row["document_id"][0] for row in result["candidates"]] == ["f", "e", "d", "c", "9", "b", "a"]
+
+
+def test_name_bloom_priority_follows_exact_metadata_without_claiming_a_match(indexed_documents):
+    root, _ = indexed_documents
+    result = search.query(root, {"A.002865": ["002865", "理邦仪器"]})
+    assert [row["document_id"][0] for row in result["candidates"]] == ["b", "a", "c", "f", "e", "d", "9"]
+
+
+def test_code_only_query_has_no_name_bloom_priority(indexed_documents):
+    root, _ = indexed_documents
+    result = search.query(root, {"A.002865": ["002865"]})
+    assert [row["document_id"][0] for row in result["candidates"]] == ["b", "a", "f", "e", "d", "c", "9"]
 
 
 def test_exact_topic_title_accepts_two_character_chinese_name(indexed_documents):
@@ -80,14 +93,15 @@ def test_checkpoint_invalidates_a_cursor_from_the_old_order(indexed_documents, m
     root, _ = indexed_documents
     result = search.query(root, {"A.002865": ["002865", "钧达股份"]})
     assert result["checkpoint_sha256"] == search.query(root, {})["checkpoint_sha256"]
-    legacy_checkpoint = search._sha(search._canonical({
+    checkpoint_inputs = {
         "ledgers": result["day_sha256"], "inventory": result["inventory_sha256"],
         "source_bindings": result["source_bindings_sha256"],
-    }))
+    }
     cursors = CursorStore()
-    old_cursor = cursors.issue(legacy_checkpoint, "fixture-signature", 1, ())
-    with pytest.raises(ValueError, match="SEARCH_CURSOR_STALE"):
-        cursors.resolve(old_cursor, result["checkpoint_sha256"], "fixture-signature", len(result["candidates"]))
+    for old_inputs in (checkpoint_inputs, {**checkpoint_inputs, "candidate_order": "EXACT_SOURCE_TERM_V1"}):
+        old_cursor = cursors.issue(search._sha(search._canonical(old_inputs)), "fixture-signature", 1, ())
+        with pytest.raises(ValueError, match="SEARCH_CURSOR_STALE"):
+            cursors.resolve(old_cursor, result["checkpoint_sha256"], "fixture-signature", len(result["candidates"]))
     monkeypatch.setattr(search, "METADATA_PRIORITY_SORT_VERSION", "future-test-order")
     changed = search.query(root, {"A.002865": ["002865", "钧达股份"]})
     assert changed["checkpoint_sha256"] != result["checkpoint_sha256"]
