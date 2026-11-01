@@ -891,17 +891,17 @@ def _allows_temporal_false_observation(
 
 def _atomic_write_bytes(path: Path, data: bytes) -> None:
     from stage_center._raw_store_parts.filesystem_io import __atomic_write_bytes_body as _v4_impl
-    return _v4_impl(globals(), path, data)
+    return _v4_impl(path, data)
 
 
 def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
     from stage_center._raw_store_parts.filesystem_io import __atomic_write_json_body as _v4_impl
-    return _v4_impl(globals(), path, payload)
+    return _v4_impl(path, payload)
 
 
 def _atomic_write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     from stage_center._raw_store_parts.filesystem_io import __atomic_write_csv_body as _v4_impl
-    return _v4_impl(globals(), path, rows)
+    return _v4_impl(path, rows)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -916,7 +916,7 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _safe_relative(root: Path, relative: str) -> Path:
     from stage_center._raw_store_parts.filesystem_io import __safe_relative_body as _v4_impl
-    return _v4_impl(globals(), root, relative)
+    return _v4_impl(root, relative)
 
 
 def _validate_date(value: str) -> str:
@@ -980,7 +980,7 @@ def _parse_timestamp(value: Any, label: str) -> datetime:
 
 def _window_bounds(trade_date: str, stage_id: str, market: str) -> tuple[datetime, datetime]:
     from stage_center._raw_store_parts.codec import __window_bounds_body as _v4_impl
-    return _v4_impl(globals(), trade_date, stage_id, market)
+    return _v4_impl(trade_date, stage_id, market)
 
 
 def validate_rows(
@@ -994,7 +994,7 @@ def validate_rows(
     """Validate the frozen 19-field raw shape without dropping evidence."""
     from stage_center._raw_store_parts.receipt_identity import _validate_rows_body as _v4_impl
     return _v4_impl(
-        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
+        rows, trade_date=trade_date, stage_id=stage_id, market=market,
         allow_temporal_false_observation=allow_temporal_false_observation,
     )
 
@@ -1006,7 +1006,7 @@ def _status(
     cannot_confirm: Sequence[str],
 ) -> str:
     from stage_center._raw_store_parts.codec import __status_body as _v4_impl
-    return _v4_impl(globals(), source_status, rows, issues, cannot_confirm)
+    return _v4_impl(source_status, rows, issues, cannot_confirm)
 
 
 def _coverage(requested_rows: int, source_rows: int) -> float:
@@ -1034,7 +1034,7 @@ class RawStore:
 
     def _load_latest(self) -> dict[str, Any]:
         from stage_center._raw_store_parts.codec import _RawStore__load_latest_body as _v4_impl
-        return _v4_impl(globals(), self)
+        return _v4_impl(self)
 
     @staticmethod
     def _role(stage_id: str, market: str) -> str:
@@ -1055,7 +1055,7 @@ class RawStore:
         expected_owner: str = "stage_center",
     ) -> dict[str, Any]:
         from stage_center._raw_store_parts.transaction_read import _RawStore__verify_run_paths_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, run_id=run_id, expected_owner=expected_owner)
+        return _v4_impl(self, trade_date=trade_date, stage_id=stage_id, market=market, run_id=run_id, expected_owner=expected_owner)
 
     def verify_run(self, trade_date: str, stage_id: str, market: str, run_id: str) -> dict[str, Any]:
         return self._verify_run_paths(
@@ -1099,15 +1099,15 @@ class RawStore:
         research_observation_contract: str | None = None,
     ) -> dict[str, Any]:
         from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
+        return _v4_impl(self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
 
     def _load_bundle_latest(self) -> dict[str, Any]:
         from stage_center._raw_store_parts.codec import _RawStore__load_bundle_latest_body as _v4_impl
-        return _v4_impl(globals(), self)
+        return _v4_impl(self)
 
     def _verify_bundle(self, trade_date: str, stage_id: str, bundle_id: str) -> dict[str, Any]:
         from stage_center._raw_store_parts.transaction_read import _RawStore__verify_bundle_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date, stage_id, bundle_id)
+        return _v4_impl(self, trade_date, stage_id, bundle_id)
 
     def publish_bundle(
         self,
@@ -1118,7 +1118,7 @@ class RawStore:
         markets: Mapping[str, Mapping[str, Any]],
     ) -> dict[str, Any]:
         from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_bundle_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, status=status, markets=markets)
+        return _v4_impl(self, trade_date=trade_date, stage_id=stage_id, status=status, markets=markets)
 
     def read_verified_bundle(self, trade_date: str, stage_id: str) -> dict[str, Any]:
         latest = self._load_bundle_latest()
@@ -1150,4 +1150,4 @@ def publish_raw_artifact(
     research_observation_contract: str | None = None,
 ) -> dict[str, Any]:
     from stage_center._raw_store_parts.transaction_publish import _publish_raw_artifact_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
+    return _v4_impl(root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)

@@ -1,6 +1,5 @@
 """stage_center.runner: slot_execution (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from inspect import signature as _helper_signature
 from stage_center import end_to_end_deadline as _deadline
@@ -13,18 +12,22 @@ from stage_center.contracts import EIGHT_STAGES
 from stage_center.raw_store import HK_0930_TDX_RESEARCH_CONTRACT
 from stage_center.raw_store import RawStore
 from stage_center.raw_store import RawStoreError
+from stage_center.runner import RunnerError
+from stage_center.selection import SelectionError
+from stage_center.raw_store import RawStoreError
 from stage_center.raw_store import publish_raw_artifact
 from stage_center.selection import SelectionStore
 from uuid import uuid4
 import re
+from stage_center.runner import HK_CONTINUATION_STAGES, RunnerError, _attach_a_authority, _attach_a_name_authority, _attach_hk_authority, _attach_stage_research_roots, _build_hk_stage_binding, _candidate_from_hk_binding, _evidence_has, _evidence_value, _hk_second_filter_codes, _latest_entry, _project_raw_rows, _read_verified_raw_source, _resolve_stage_market_scope, _selection_source, _stage_markets_for_date, _validate_exact_selection_inputs, _validated_hk_binding_evidence, _with_candidate_evidence
 
 
-def _signature_supported_kwargs(_v4_scope, /, target, **optional_kwargs):
+def _signature_supported_kwargs(target, **optional_kwargs):
     parameters = _helper_signature(target).parameters
     return {name: value for name, value in optional_kwargs.items() if name in parameters}
 
 
-def _optional_temporal_observation_authorization(_v4_scope, /, source, plan, **kwargs):
+def _optional_temporal_observation_authorization(source, plan, **kwargs):
     authorizer = _v4_scope.get('_authorize_hk_0930_tdx_temporal_false_observation')
     if authorizer is None:
         # Legacy runners have no after-fact authorization hook. Keep the
@@ -33,11 +36,11 @@ def _optional_temporal_observation_authorization(_v4_scope, /, source, plan, **k
     return authorizer(source, plan, **kwargs)
 
 
-def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical_backfill, backfill_run_id, historical_markets):
+def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, backfill_run_id, historical_markets):
     execution_scope = getattr(self, "_execution_scope", None)
     if historical_backfill and backfill_run_id is None:
         if execution_scope is not None:
-            raise _v4_global(_v4_scope, 'RunnerError')("scoped recovery cannot run historical backfill")
+            raise RunnerError("scoped recovery cannot run historical backfill")
         run_id = uuid4().hex
         return self._backfill_runner(run_id)._run_one(
             decision,
@@ -46,7 +49,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             historical_markets=historical_markets,
         )
     trade_date, stage_id = decision.trade_date, decision.stage_id
-    markets = _v4_global(_v4_scope, '_resolve_stage_market_scope')(
+    markets = _resolve_stage_market_scope(
         stage_id,
         trade_date,
         historical_backfill=historical_backfill,
@@ -59,10 +62,10 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             or execution_scope.prior.get("stage_id") != stage_id
             or not set(execution_scope.markets).issubset(markets)
         ):
-            raise _v4_global(_v4_scope, 'RunnerError')("scoped recovery slot or market lane changed")
+            raise RunnerError("scoped recovery slot or market lane changed")
         markets = execution_scope.markets
     if not markets:
-        raise _v4_global(_v4_scope, 'RunnerError')("no securities market is open for this stage date")
+        raise RunnerError("no securities market is open for this stage date")
     candidate_error = ""
     hk_binding: StageUniverseBinding | None = None
     hk_binding_error = ""
@@ -75,13 +78,13 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         candidate_error = str(error)
         try:
             if "HK_CONNECT" not in markets or self.config.hk_d1_root is None:
-                raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
-            hk_binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+                raise RunnerError("production HK D1 root is required")
+            hk_binding = _build_hk_stage_binding(
                 self.config.hk_d1_root,
                 trade_date,
                 preselection_source_root=self.config.preselection_source_root,
             )
-        except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as hk_error:
+        except (RunnerError, OSError, ValueError) as hk_error:
             errors = {"A_SHARE": candidate_error, "HK_CONNECT": str(hk_error)}
             return self._write_receipt({
                 "status": "CANNOT_CONFIRM", "due_status": decision.status,
@@ -91,7 +94,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                             "cannot_confirm": [errors[market]], "write_performed": False}
                             for market in markets}, "write_performed": False,
             }, trade_date, stage_id)
-        candidate = _v4_global(_v4_scope, '_candidate_from_hk_binding')(
+        candidate = _candidate_from_hk_binding(
             root=self.config.candidate_acquisition_root,
             trade_date=trade_date,
             binding=hk_binding,
@@ -104,13 +107,13 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
     ):
         try:
             if self.config.hk_d1_root is None:
-                raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
-            hk_binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+                raise RunnerError("production HK D1 root is required")
+            hk_binding = _build_hk_stage_binding(
                 self.config.hk_d1_root,
                 trade_date,
                 preselection_source_root=self.config.preselection_source_root,
             )
-        except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+        except (RunnerError, OSError, ValueError) as error:
             # Keep the HK authority failure lane-local.  A valid A
             # candidate may still be planned and collected independently.
             hk_binding_error = str(error)
@@ -166,16 +169,16 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             if "HK_CONNECT" in markets and not self.config.injected_test_mode:
                 try:
                     if self.config.hk_d1_root is None:
-                        raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
-                    current_hk = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+                        raise RunnerError("production HK D1 root is required")
+                    current_hk = _build_hk_stage_binding(
                         self.config.hk_d1_root,
                         trade_date,
                         preselection_source_root=self.config.preselection_source_root,
                     )
                     raw_hk = existing["raw_verified"].get("HK_CONNECT") or {}
-                    if not _v4_global(_v4_scope, '_evidence_has')(raw_hk.get("source_evidence", ()), "hk_d1_sha256", current_hk.sha256):
-                        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 source SHA differs from verified slot")
-                except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+                    if not _evidence_has(raw_hk.get("source_evidence", ()), "hk_d1_sha256", current_hk.sha256):
+                        raise RunnerError("HK D1 source SHA differs from verified slot")
+                except (RunnerError, OSError, ValueError) as error:
                     published = dict(existing["selections"])
                     published["HK_CONNECT"] = {"status": "CANNOT_CONFIRM", "selection_status": "CANNOT_CONFIRM",
                         "selected_rows": 0, "cannot_confirm": [str(error)], "write_performed": False}
@@ -203,14 +206,14 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             if market == "A_SHARE" and market in exact_input_errors:
                 continue
             try:
-                exact_evidence_by_market[market] = _v4_global(_v4_scope, '_validate_exact_selection_inputs')(
+                exact_evidence_by_market[market] = _validate_exact_selection_inputs(
                     self.config,
                     trade_date,
                     stage_id,
                     market=market,
                     hk_binding=universe_bindings.get(market),
                 )
-            except _v4_global(_v4_scope, 'RunnerError') as error:
+            except RunnerError as error:
                 # Exact-input failures are lane-local. Preserve the
                 # reason for that market while allowing the other lane to
                 # continue through collection and publication.
@@ -235,7 +238,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             collectors = self.collectors
         else:
             if self.config.shared_data_root is None or self.config.python_path is None:
-                raise _v4_global(_v4_scope, 'RunnerError')("production shared_data_root and python_path are required")
+                raise RunnerError("production shared_data_root and python_path are required")
             from stage_center.live_collectors import production_collectors
             production_snapshot_root_kwargs = _signature_supported_kwargs(
                 _v4_scope, production_collectors, snapshot_root=self.config.raw_root
@@ -288,16 +291,16 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 )
         missing_raw_markets = tuple(market for market in markets if market not in existing_raw_verified)
         if not set(missing_raw_markets).issubset(set(collectors)):
-            raise _v4_global(_v4_scope, 'RunnerError')(f"collectors are missing required markets {missing_raw_markets!r}")
+            raise RunnerError(f"collectors are missing required markets {missing_raw_markets!r}")
         builders = self.config.selection_builders
         if builders is None and not self.config.injected_test_mode:
             from stage_center.live_collectors import production_selection_builders
             builders = production_selection_builders(stage_id)
         if builders is None:
-            raise _v4_global(_v4_scope, 'RunnerError')("production selection builders are not installed")
+            raise RunnerError("production selection builders are not installed")
         missing_builders = tuple(market for market in markets if market not in builders)
         if missing_builders:
-            raise _v4_global(_v4_scope, 'RunnerError')(
+            raise RunnerError(
                 f"selection builders are missing required markets {missing_builders!r}"
             )
         # The stage calendar decides which lanes can run today. Keep the
@@ -310,8 +313,8 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 try:
                     hk_d1_binding = universe_bindings.get("HK_CONNECT")
                     if hk_d1_binding is None:
-                        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 binding is unavailable after exact-input validation")
-                    _v4_global(_v4_scope, '_validated_hk_binding_evidence')(hk_d1_binding, trade_date)
+                        raise RunnerError("HK D1 binding is unavailable after exact-input validation")
+                    _validated_hk_binding_evidence(hk_d1_binding, trade_date)
                     hk_d1_codes = set(hk_d1_binding.codes)
                     # Acquisition and selection share the same exact D-1
                     # Top100 binding already validated above. This binding is required for every HK stage,
@@ -322,9 +325,9 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     # universe; no current/previous-stage rows can fill it.
                     if stage_id == "STAGE_0925":
                         assert self.config.hk_second_filter_root is not None
-                        second_codes, _second_sha = _v4_global(_v4_scope, '_hk_second_filter_codes')(self.config.hk_second_filter_root, trade_date)
+                        second_codes, _second_sha = _hk_second_filter_codes(self.config.hk_second_filter_root, trade_date)
                         selection_membership["HK_CONNECT"] = hk_d1_codes & second_codes
-                except _v4_global(_v4_scope, 'RunnerError') as error:
+                except RunnerError as error:
                     exact_input_errors["HK_CONNECT"] = str(error)
         plan = build_plan(
             self.config.candidate_acquisition_root,
@@ -349,7 +352,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     source_evidence=(f"exact_input_error={error}",),
                 )
             elif market in existing_raw_verified:
-                result = _v4_global(_v4_scope, '_read_verified_raw_source')(self.config.raw_root, existing_raw_verified[market])
+                result = _read_verified_raw_source(self.config.raw_root, existing_raw_verified[market])
             else:
                 try:
                     _deadline.checkpoint("COLLECTOR_START", market=market, stage_id=stage_id, trade_date=trade_date)
@@ -357,7 +360,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     _deadline.checkpoint("COLLECTOR_END", market=market, stage_id=stage_id, trade_date=trade_date,
                                          source_observation=_deadline.source_observation(result))
                     if not isinstance(result, SourceResult):
-                        raise _v4_global(_v4_scope, 'RunnerError')(f"collector {market} did not return SourceResult")
+                        raise RunnerError(f"collector {market} did not return SourceResult")
                 except _deadline.DeadlineExceeded:
                     raise
                 except Exception as error:
@@ -389,7 +392,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     temporal_false_observation_contracts[market] = (
                         HK_FUTU_RTDATA_OBSERVATION_CONTRACT
                     )
-            except _v4_global(_v4_scope, 'RunnerError') as error:
+            except RunnerError as error:
                 exact_input_errors[market] = str(error)
                 result = replace(
                     result,
@@ -416,7 +419,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 and not self.config.injected_test_mode
             ):
                 if self.config.hk_stage_replay_root is None:
-                    raise _v4_global(_v4_scope, 'RunnerError')("HK Stage8 selection recovery requires explicit replay root")
+                    raise RunnerError("HK Stage8 selection recovery requires explicit replay root")
                 _deadline.checkpoint("COLLECTOR_START", market=market, stage_id=stage_id, trade_date=trade_date)
                 result = collectors[market](plan, market)
                 _deadline.checkpoint("COLLECTOR_END", market=market, stage_id=stage_id, trade_date=trade_date,
@@ -434,31 +437,31 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 and market not in exact_input_errors
                 and not self.config.injected_test_mode
             ):
-                previous_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_sha256")
-                previous_codes_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_codes_sha256")
-                previous_pool_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_pool_artifact_sha256")
+                previous_sha = _evidence_value(result.source_evidence, "active_snapshot_sha256")
+                previous_codes_sha = _evidence_value(result.source_evidence, "active_snapshot_codes_sha256")
+                previous_pool_sha = _evidence_value(result.source_evidence, "active_snapshot_pool_artifact_sha256")
                 hk_binding = universe_bindings.get("HK_CONNECT")
                 expected_pool_sha = getattr(hk_binding, "sha256", None)
                 expected_cutoff = next(
                     stage.cutoff for stage in EIGHT_STAGES if stage.stage_id == stage_id
                 )
-                previous_status = _v4_global(_v4_scope, '_evidence_value')(
+                previous_status = _evidence_value(
                     result.source_evidence, "active_snapshot_status"
                 )
-                previous_trade_date = _v4_global(_v4_scope, '_evidence_value')(
+                previous_trade_date = _evidence_value(
                     result.source_evidence, "active_snapshot_trade_date"
                 )
-                previous_cutoff = _v4_global(_v4_scope, '_evidence_value')(
+                previous_cutoff = _evidence_value(
                     result.source_evidence, "active_snapshot_cutoff"
                 )
-                previous_temporal = _v4_global(_v4_scope, '_evidence_value')(
+                previous_temporal = _evidence_value(
                     result.source_evidence, "active_snapshot_temporal_cutoff_safe"
                 )
                 reuse_degraded_observation = (
                     result.status == "PARTIAL_WITH_ROWS"
                     and bool(result.rows)
                     and previous_temporal == "false"
-                    and _v4_global(_v4_scope, '_evidence_value')(
+                    and _evidence_value(
                         result.source_evidence,
                         "active_snapshot_degraded_to_pytdx_observation",
                     )
@@ -513,7 +516,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 else:
                     try:
                         if not plan.codes_for("HK_CONNECT") or self.config.shared_data_root is None or self.config.python_path is None:
-                            raise _v4_global(_v4_scope, 'RunnerError')("HK active-lane recovery requires explicit fixed D1 bridge roots")
+                            raise RunnerError("HK active-lane recovery requires explicit fixed D1 bridge roots")
                         from stage_center.live_collectors import refresh_hk_active_lanes
                         recovery_optional_kwargs = _signature_supported_kwargs(
                             _v4_scope,
@@ -531,9 +534,9 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                             stage_id=stage_id,
                             cutoff_at=expected_cutoff,
                         )
-                        current_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_sha256")
-                        current_codes_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_codes_sha256")
-                        current_pool_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_pool_artifact_sha256")
+                        current_sha = _evidence_value(refreshed.source_evidence, "active_snapshot_sha256")
+                        current_codes_sha = _evidence_value(refreshed.source_evidence, "active_snapshot_codes_sha256")
+                        current_pool_sha = _evidence_value(refreshed.source_evidence, "active_snapshot_pool_artifact_sha256")
                         if not previous_sha or previous_sha != current_sha or not previous_codes_sha or previous_codes_sha != current_codes_sha or not previous_pool_sha or previous_pool_sha != current_pool_sha or current_pool_sha != expected_pool_sha:
                             recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_CHANGED"
                         elif "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in refreshed.cannot_confirm:
@@ -567,7 +570,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                         )
                     ),
                 )
-            sources[market] = _v4_global(_v4_scope, '_with_candidate_evidence')(
+            sources[market] = _with_candidate_evidence(
                 result,
                 candidate,
                 (
@@ -582,15 +585,15 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 selected_source = sources[market]
                 if self.config.v3_formal_root is not None:
                     try:
-                        selected_source = _v4_global(_v4_scope, '_attach_a_authority')(selected_source, formal_root=self.config.v3_formal_root, trade_date=trade_date)
-                    except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+                        selected_source = _attach_a_authority(selected_source, formal_root=self.config.v3_formal_root, trade_date=trade_date)
+                    except (RunnerError, OSError, ValueError) as error:
                         selected_source = replace(selected_source, source_evidence=(*selected_source.source_evidence, f"a_formal_overlay_unavailable={error}"))
                 if self.config.a_research_panel_receipt_root is not None:
                     try:
-                        selected_source = _v4_global(_v4_scope, '_attach_a_name_authority')(
+                        selected_source = _attach_a_name_authority(
                             selected_source, candidate_root=self.config.candidate_acquisition_root,
                             research_panel_receipt_root=self.config.a_research_panel_receipt_root, trade_date=trade_date)
-                    except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+                    except (RunnerError, OSError, ValueError) as error:
                         selected_source = replace(selected_source, source_evidence=(*selected_source.source_evidence, f"a_name_overlay_unavailable={error}"))
                 selection_sources[market] = selected_source
             if (
@@ -600,12 +603,12 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 and market not in exact_input_errors
             ):
                 try:
-                    authorized_selection_source = _v4_global(_v4_scope, '_attach_hk_authority')(
+                    authorized_selection_source = _attach_hk_authority(
                         sources[market],
                         d1_root=self.config.hk_d1_root,
                         second_root=(
                             self.config.hk_second_filter_root
-                            if stage_id == "STAGE_0925" or stage_id in _v4_global(_v4_scope, 'HK_CONTINUATION_STAGES')
+                            if stage_id == "STAGE_0925" or stage_id in HK_CONTINUATION_STAGES
                             else None
                         ),
                         trade_date=trade_date,
@@ -635,7 +638,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                             ),
                         )
                     selection_sources[market] = authorized_selection_source
-                except _v4_global(_v4_scope, 'RunnerError') as error:
+                except RunnerError as error:
                     exact_input_errors[market] = str(error)
             if market in exact_input_errors and market not in selection_sources:
                 sources[market] = replace(
@@ -644,7 +647,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     rows=(),
                     cannot_confirm=tuple(dict.fromkeys((*sources[market].cannot_confirm, exact_input_errors[market]))),
                 )
-            selection_sources[market] = _v4_global(_v4_scope, '_selection_source')(
+            selection_sources[market] = _selection_source(
                 selection_sources.get(market, sources[market]),
                 market=market,
                 membership=selection_membership.get(market),
@@ -665,14 +668,14 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             binding = universe_bindings["HK_CONNECT"]
             if binding.status == "READY" and self.config.hk_d1_root is not None:
                 try:
-                    fresh = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+                    fresh = _build_hk_stage_binding(
                         self.config.hk_d1_root,
                         trade_date,
                         preselection_source_root=self.config.preselection_source_root,
                     )
                     if fresh.sha256 != binding.sha256 or fresh.codes != binding.codes:
-                        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 source SHA changed before publication")
-                except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+                        raise RunnerError("HK D1 source SHA changed before publication")
+                except (RunnerError, OSError, ValueError) as error:
                     # Reject this lane's old acquisition, not a valid A
                     # aggregate. No HK raw/selection/latest is published.
                     exact_input_errors["HK_CONNECT"] = str(error)
@@ -698,7 +701,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 # contracts. RawStore separately permits these two exact
                 # Futu row projections by their frozen SHA identity.
                 projection_contract = None
-            project_raw_rows = _v4_global(_v4_scope, '_project_raw_rows')
+            project_raw_rows = _project_raw_rows
             projection_optional_kwargs = _signature_supported_kwargs(
                 _v4_scope, project_raw_rows,
                 research_observation_contract=projection_contract,
@@ -743,9 +746,9 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             _deadline.end_write("RAW_PUBLISH", market=market, artifact_sha256=raw_markets[market].get("artifact_sha256"))
         raw_bundle: dict[str, Any] = {"markets": raw_markets}
         if not raw_markets:
-            raise _v4_global(_v4_scope, 'RunnerError')("all market collectors returned zero-row CANNOT_CONFIRM")
+            raise RunnerError("all market collectors returned zero-row CANNOT_CONFIRM")
         bundle_markets = dict(raw_markets)
-        bundle_required = set(_v4_global(_v4_scope, '_stage_markets_for_date')(stage_id, trade_date))
+        bundle_required = set(_stage_markets_for_date(stage_id, trade_date))
         if execution_scope is not None:
             # Complete the ORIGINAL stage bundle from verified preserved raw;
             # never recollect/re-publish a sibling or infer a new authority.
@@ -754,13 +757,13 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 preserved_sha = preserved.get("raw_artifact_sha256")
                 if not preserved_sha:
                     continue
-                latest = _v4_global(_v4_scope, '_latest_entry')(
+                latest = _latest_entry(
                     self.config.raw_root, "latest.json", f"{trade_date}/{stage_id}/{sibling}")
                 if latest is None:
-                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw pointer is missing")
+                    raise RunnerError("preserved raw pointer is missing")
                 verified = raw_store.verify_run(trade_date, stage_id, sibling, str(latest.get("run_id")))
                 if verified.get("artifact_sha256") != preserved_sha:
-                    raise _v4_global(_v4_scope, 'RunnerError')("preserved raw identity changed")
+                    raise RunnerError("preserved raw identity changed")
                 bundle_markets[sibling] = verified
         single_market_research_bundle_evidence: str | None = None
         if set(bundle_markets) == bundle_required or historical_backfill:
@@ -855,7 +858,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             builder_raw = dict(raw_bundle["markets"][market])
             # These roots have distinct owners and must remain separate in
             # the exact-date selection context.
-            _v4_global(_v4_scope, '_attach_stage_research_roots')(
+            _attach_stage_research_roots(
                 builder_raw,
                 self.config,
                 stage_id,
@@ -894,8 +897,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             source_evidence.append(decision.status)
         return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), **({"raw_bundle_publication_status": "OMITTED_HK_ONLY_RESEARCH_BACKFILL"} if single_market_research_bundle_evidence else {}), "markets": published, "source_evidence": list(dict.fromkeys((*source_evidence, *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ())))), "write_performed": True}, trade_date, stage_id)
     except Exception as error:
-        known_errors = tuple(_v4_global(_v4_scope, name) for name in
-            ("RunnerError", "RawStoreError", "SelectionError", "CandidateInputError", "OSError", "ValueError"))
+        known_errors = (RunnerError, RawStoreError, SelectionError, CandidateInputError, OSError, ValueError)
         if "HK_CONNECT" not in markets and not isinstance(error, known_errors):
             raise
         lane_failures = {}

@@ -1,15 +1,15 @@
 """stage_center.runner: runner_receipts (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from pathlib import Path
 from stage_center import end_to_end_deadline as _deadline
 from stage_center.acquisition import StageUniverseBinding
 from stage_center.calendar import TradingDayState
 from stage_center.calendar import resolve_market_states
 from stage_center.contracts import SAFETY_FLAGS
+from stage_center.runner import RunnerError, _atomic_json, _build_hk_stage_binding, _evidence_value
 
 
-def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, trade_date, evaluated_at, *, stage_id, historical_backfill):
+def _StageCenterRunner__prepare_hk_active_snapshots_body(self, trade_date, evaluated_at, *, stage_id, historical_backfill):
     """Prepare the exact stage-scoped HK snapshot inside its frozen window.
 
     The universe loader uses the existing V4 verified D1-pool validator.
@@ -22,13 +22,13 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
     def universe_loader() -> tuple[Path, tuple[str, ...], str]:
         nonlocal loaded_binding
         if self.config.hk_d1_root is None:
-            raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 Top100 root is required for Stage 8 pre-capture")
+            raise RunnerError("production HK D1 Top100 root is required for Stage 8 pre-capture")
         try:
-            binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+            binding = _build_hk_stage_binding(
                 self.config.hk_d1_root, trade_date,
                 preselection_source_root=self.config.preselection_source_root,
             )
-        except (OSError, ValueError, _v4_global(_v4_scope, 'RunnerError')):
+        except (OSError, ValueError, RunnerError):
             store = self.config.hk_snapshot_shared_store_root
             if store is None:
                 raise
@@ -71,7 +71,7 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
                 ))
         loaded_binding = binding
         return (
-            Path(_v4_global(_v4_scope, '_evidence_value')(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
+            Path(_evidence_value(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
             binding.codes,
             binding.sha256,
         )
@@ -93,10 +93,10 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
         snapshot_preparer=snapshot_preparer,
     )
     if loaded_binding is not None:
-        source_trade_date = _v4_global(_v4_scope, '_evidence_value')(
+        source_trade_date = _evidence_value(
             loaded_binding.evidence, "hk_d1_source_trade_date"
         ) or trade_date
-        source_signal_date = _v4_global(_v4_scope, '_evidence_value')(
+        source_signal_date = _evidence_value(
             loaded_binding.evidence, "hk_d1_source_signal_date"
         )
         for item in results:
@@ -110,8 +110,8 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
     return results
 
 
-def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_date, stage_id):
-    runner_error = _v4_global(_v4_scope, 'RunnerError')
+def _StageCenterRunner__write_receipt_body(self, payload, trade_date, stage_id):
+    runner_error = RunnerError
     if "RESEARCH_ONLY" in payload and payload["RESEARCH_ONLY"] is not True:
         raise runner_error("runner receipt RESEARCH_ONLY contract conflict")
     result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_deadline.before_receipt(payload), **SAFETY_FLAGS}
@@ -148,6 +148,6 @@ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_da
     result = bind_owner_receipt(result, receipt_root=self.config.receipt_root,
                                 selection_root=self.config.selection_root, trade_date=trade_date, stage_id=stage_id)
     receipt_path = self._receipt_path(trade_date, stage_id)
-    _v4_global(_v4_scope, '_atomic_json')(receipt_path, result)
+    _atomic_json(receipt_path, result)
     _deadline.receipt_written(receipt_path, result)
     return result

@@ -1,6 +1,5 @@
 """stage_center.raw_store: filesystem_io (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from pathlib import Path
 from pathlib import PurePosixPath
 from uuid import uuid4
@@ -8,9 +7,10 @@ import csv
 import json
 import os
 import tempfile
+from stage_center.raw_store import ARTIFACT_FIELDS, RawStoreError, _atomic_write_bytes
 
 
-def __atomic_write_bytes_body(_v4_scope, /, path, data):
+def __atomic_write_bytes_body(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
         prefix=f".{path.name}.{uuid4().hex}.", suffix=".tmp", dir=path.parent
@@ -26,8 +26,8 @@ def __atomic_write_bytes_body(_v4_scope, /, path, data):
             os.unlink(temporary)
 
 
-def __atomic_write_json_body(_v4_scope, /, path, payload):
-    _v4_global(_v4_scope, '_atomic_write_bytes')(
+def __atomic_write_json_body(path, payload):
+    _atomic_write_bytes(
         path,
         (
             json.dumps(
@@ -41,7 +41,7 @@ def __atomic_write_json_body(_v4_scope, /, path, payload):
     )
 
 
-def __atomic_write_csv_body(_v4_scope, /, path, rows):
+def __atomic_write_csv_body(path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
         prefix=f".{path.name}.{uuid4().hex}.", suffix=".tmp", dir=path.parent
@@ -50,7 +50,7 @@ def __atomic_write_csv_body(_v4_scope, /, path, rows):
         with os.fdopen(fd, "w", encoding="utf-8-sig", newline="") as stream:
             writer = csv.DictWriter(
                 stream,
-                fieldnames=_v4_global(_v4_scope, 'ARTIFACT_FIELDS'),
+                fieldnames=ARTIFACT_FIELDS,
                 extrasaction="raise",
                 lineterminator="\n",
             )
@@ -64,7 +64,7 @@ def __atomic_write_csv_body(_v4_scope, /, path, rows):
             os.unlink(temporary)
 
 
-def __safe_relative_body(_v4_scope, /, root, relative):
+def __safe_relative_body(root, relative):
     if (
         not isinstance(relative, str)
         or not relative
@@ -72,19 +72,19 @@ def __safe_relative_body(_v4_scope, /, root, relative):
         or relative.startswith("/")
         or (len(relative) > 1 and relative[1] == ":")
     ):
-        raise _v4_global(_v4_scope, 'RawStoreError')("path must be normalized and relative")
+        raise RawStoreError("path must be normalized and relative")
     parsed = PurePosixPath(relative)
     if parsed.as_posix() != relative or any(part in {"", ".", ".."} for part in parsed.parts):
-        raise _v4_global(_v4_scope, 'RawStoreError')("path must be normalized and relative")
+        raise RawStoreError("path must be normalized and relative")
     current = root
     for part in Path(relative).parts:
         current = current / part
         if current.is_symlink():
-            raise _v4_global(_v4_scope, 'RawStoreError')("symlink component is forbidden")
+            raise RawStoreError("symlink component is forbidden")
     resolved_root = root.resolve()
     resolved_candidate = current.resolve()
     try:
         resolved_candidate.relative_to(resolved_root)
     except ValueError as error:
-        raise _v4_global(_v4_scope, 'RawStoreError')("path escapes store root") from error
+        raise RawStoreError("path escapes store root") from error
     return current

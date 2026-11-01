@@ -42,9 +42,9 @@ def _count_body_calls(monkeypatch) -> dict[str, int]:
     calls = {"n": 0}
     original = body_module._date_catalog_body
 
-    def counted(scope, store, **kwargs):
+    def counted(store, **kwargs):
         calls["n"] += 1
-        return original(scope, store, **kwargs)
+        return original(store, **kwargs)
 
     monkeypatch.setattr(body_module, "_date_catalog_body", counted)
     return calls

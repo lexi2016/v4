@@ -1,6 +1,5 @@
 """stage_center.runner: row_evidence (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from stage_center.acquisition import SourceResult
 from stage_center.raw_store import HISTORICAL_OBSERVATION_CONTRACT_PREFIX
@@ -13,9 +12,10 @@ import json
 import os
 import re
 import tempfile
+from stage_center.runner import RunnerError, _evidence_has
 
 
-def _lane_status_bundle_body(_v4_scope, /, a_share, hk_connect):
+def _lane_status_bundle_body(a_share, hk_connect):
     """Summarize independent A/HK universe readiness.
 
     This is deliberately a pure boundary helper.  It is used by the runner
@@ -44,7 +44,7 @@ def _lane_status_bundle_body(_v4_scope, /, a_share, hk_connect):
     return output
 
 
-def __atomic_json_body(_v4_scope, /, path, payload):
+def __atomic_json_body(path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
@@ -59,7 +59,7 @@ def __atomic_json_body(_v4_scope, /, path, payload):
             os.unlink(temporary)
 
 
-def __existing_binding_matches_body(_v4_scope, /, evidence, *, market, expected_sha):
+def __existing_binding_matches_body(evidence, *, market, expected_sha):
     """Accept only this lane's candidate proof (or its exact HK authority).
 
     HK receipts written before the per-market binding fix may carry the A
@@ -69,33 +69,33 @@ def __existing_binding_matches_body(_v4_scope, /, evidence, *, market, expected_
     """
     if expected_sha is None:
         return False
-    if _v4_global(_v4_scope, '_evidence_has')(evidence, "candidate_current_sha256", expected_sha):
+    if _evidence_has(evidence, "candidate_current_sha256", expected_sha):
         return True
-    return market == "HK_CONNECT" and _v4_global(_v4_scope, '_evidence_has')(
+    return market == "HK_CONNECT" and _evidence_has(
         evidence, "hk_d1_json_sha256", expected_sha
     )
 
 
-def __latest_entry_body(_v4_scope, /, root, filename, key):
+def __latest_entry_body(root, filename, key):
     path = root / filename
     if not path.is_file():
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, ValueError) as error:
-        raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} is malformed") from error
+        raise RunnerError(f"{filename} is malformed") from error
     entries = payload.get("entries")
     if not isinstance(entries, Mapping):
-        raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entries are malformed")
+        raise RunnerError(f"{filename} entries are malformed")
     entry = entries.get(key)
     if entry is None:
         return None
     if not isinstance(entry, Mapping):
-        raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entry is malformed")
+        raise RunnerError(f"{filename} entry is malformed")
     return entry
 
 
-def __read_verified_raw_source_body(_v4_scope, /, root, verified):
+def __read_verified_raw_source_body(root, verified):
     """Rehydrate a SourceResult from one already verified immutable raw run."""
     artifact_path = root / str(verified["artifact_relative"])
     rows: list[dict[str, Any]] = []
@@ -103,14 +103,14 @@ def __read_verified_raw_source_body(_v4_scope, /, root, verified):
         with artifact_path.open("r", encoding="utf-8-sig", newline="") as stream:
             reader = csv.DictReader(stream)
             if tuple(reader.fieldnames or ()) != ("trade_date", "bar_time", *RAW_FIELDS):
-                raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact fields mismatch")
+                raise RunnerError("verified raw artifact fields mismatch")
             for raw in reader:
                 decoded = {field: raw.get(field, "") for field in RAW_FIELDS}
                 for field in ("batch_index", "bar_count"):
                     try:
                         decoded[field] = int(decoded[field])
                     except (TypeError, ValueError) as error:
-                        raise _v4_global(_v4_scope, 'RunnerError')(f"verified raw {field} is not an integer") from error
+                        raise RunnerError(f"verified raw {field} is not an integer") from error
                 for field in ("last_price", "open_price", "high_price", "low_price", "prev_close_price", "turnover", "volume", "bid_price", "ask_price", "bid_vol", "ask_vol"):
                     if decoded[field] in (None, ""):
                         decoded[field] = ""
@@ -118,11 +118,11 @@ def __read_verified_raw_source_body(_v4_scope, /, root, verified):
                         try:
                             decoded[field] = float(decoded[field])
                         except (TypeError, ValueError) as error:
-                            raise _v4_global(_v4_scope, 'RunnerError')(f"verified raw {field} is not numeric") from error
+                            raise RunnerError(f"verified raw {field} is not numeric") from error
                 decoded["temporal_cutoff_safe"] = str(decoded["temporal_cutoff_safe"]).strip().lower() == "true"
                 rows.append(decoded)
     except (OSError, UnicodeError, csv.Error) as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact unreadable") from error
+        raise RunnerError("verified raw artifact unreadable") from error
     return SourceResult(
         source_id=str(verified.get("source_id") or "verified_raw"),
         status=str(verified.get("status") or "CANNOT_CONFIRM"),
@@ -134,7 +134,7 @@ def __read_verified_raw_source_body(_v4_scope, /, root, verified):
     )
 
 
-def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, candidate_sha, candidate_run_id):
+def __with_candidate_evidence_body(result, candidate, extra, *, candidate_sha, candidate_run_id):
     """Bind a source to the candidate authority for its own market lane.
 
     ``CandidateInput`` is retained as the historical plan carrier, but A and
@@ -196,8 +196,7 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
     )
 
 
-def __project_raw_rows_body(
-    _v4_scope, /, rows, *, trade_date, stage_id, market,
+def __project_raw_rows_body(rows, *, trade_date, stage_id, market,
     research_observation_contract=None,
 ):
     """Project collector rows to the immutable SafeRootStore 19-field shape.
@@ -230,7 +229,7 @@ def __project_raw_rows_body(
             ) is not None
         )
         if not (legacy_contract or manifest_contract):
-            raise _v4_global(_v4_scope, 'RunnerError')(
+            raise RunnerError(
                 "unknown temporal-false research projection contract"
             )
     validation_kwargs = (
@@ -245,5 +244,5 @@ def __project_raw_rows_body(
         **validation_kwargs,
     )
     if issues:
-        raise _v4_global(_v4_scope, 'RunnerError')(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
+        raise RunnerError(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
     return projected

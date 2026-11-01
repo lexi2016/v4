@@ -1,6 +1,5 @@
 """domains.preselection: date_catalog (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 import stat
 from typing import Mapping
 from datetime import datetime
@@ -11,12 +10,10 @@ from stage_center.selection import SelectionError
 from stage_center.selection import SelectionStore
 from zoneinfo import ZoneInfo
 import re
+from domains.preselection import _hk_observation_only_dates, _is_navigation_trading_date, _is_trading_date, _verified_independent_pool_dates, _verified_stage_artifact_catalog
 
 
-def _date_catalog_body(
-    _v4_scope,
-    /,
-    store,
+def _date_catalog_body(store,
     *,
     current_date,
     stage_selection_root,
@@ -25,16 +22,13 @@ def _date_catalog_body(
     catalog = store.read_catalog()
     persisted_system_date = str(catalog["system_date"])
     materialized = catalog.get("materialized_rows", {})
-    independent_dates = _v4_global(
-        _v4_scope,
-        '_verified_independent_pool_dates',
-    )(
+    independent_dates = _verified_independent_pool_dates(
         store,
         preselection_source_root=preselection_source_root,
         include_evidence=True,
     )
     independent_dates, independent_pool_evidence = independent_dates
-    stage_artifacts = _v4_global(_v4_scope, '_verified_stage_artifact_catalog')(stage_selection_root)
+    stage_artifacts = _verified_stage_artifact_catalog(stage_selection_root)
     stage_artifact_dates = tuple(stage_artifacts)
     wall_date = current_date or datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
     # The natural-day clock is a runtime fact, not a persisted producer state.
@@ -58,7 +52,7 @@ def _date_catalog_body(
                 + [date for date, rows in materialized.items() if rows > 0]
                 + list(stage_artifact_dates)
             )
-            if date <= system_date and _v4_global(_v4_scope, '_is_trading_date')(date)
+            if date <= system_date and _is_trading_date(date)
         }
     )
     stage = list(evidence_stage)
@@ -72,7 +66,7 @@ def _date_catalog_body(
             # retaining this distinction keeps a verified target visible when
             # the catalog itself is stale by one or more days.
             if date > persisted_system_date
-            if _v4_global(_v4_scope, '_is_trading_date')(date)
+            if _is_trading_date(date)
         }
     )
     # ``stage_dates`` and ``default_date`` are evidence projections only.  The
@@ -86,13 +80,13 @@ def _date_catalog_body(
         {
             date
             for date, rows in materialized.items()
-            if rows > 0 and date <= system_date and _v4_global(_v4_scope, '_is_trading_date')(date)
+            if rows > 0 and date <= system_date and _is_trading_date(date)
         }
         | {
             date
             for date, item in stage_artifacts.items()
             if str(item.get("status")) in ("MATERIALIZED", "PARTIAL")
-            if date <= system_date and _v4_global(_v4_scope, '_is_trading_date')(date)
+            if date <= system_date and _is_trading_date(date)
         }
     )
     default = (
@@ -101,8 +95,8 @@ def _date_catalog_body(
         else (evidence_stage[-1] if evidence_stage else "")
     )
     navigation_dates = set(stage + future + list(stage_artifact_dates))
-    hk_observation_only_dates = _v4_global(_v4_scope, '_hk_observation_only_dates')()
-    if _v4_global(_v4_scope, '_is_navigation_trading_date')(system_date):
+    hk_observation_only_dates = _hk_observation_only_dates()
+    if _is_navigation_trading_date(system_date):
         # The wall-clock trading date is navigable so the UI can show an
         # explicit DATA_BLOCKED_EMPTY/CANNOT_CONFIRM page, but it is not added
         # to stage_dates or default_date without exact evidence.
@@ -124,7 +118,7 @@ def _date_catalog_body(
         "default_date": default,
         # Navigation is not artifact evidence. Keep the original default_date
         # contract while allowing the current A-share or HK securities day to be empty.
-        "navigation_date": system_date if _v4_global(_v4_scope, '_is_navigation_trading_date')(system_date) else default,
+        "navigation_date": system_date if _is_navigation_trading_date(system_date) else default,
         "navigation_timezone": "Asia/Shanghai",
         "navigation_policy": "A_SHARE_OR_HK_SECURITIES_TRADING_DAY_ELSE_EVIDENCE_DEFAULT",
         "dates": sorted(navigation_dates, reverse=True),
@@ -143,7 +137,7 @@ def _date_catalog_body(
     }
 
 
-def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
+def __verified_stage_artifact_catalog_body(stage_selection_root):
     """Project exact-date stage artifacts from the existing selection root.
 
     This is deliberately a read-only view of the stage-center latest pointer.
@@ -251,10 +245,7 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
     return dict(sorted(by_date.items()))
 
 
-def __verified_independent_pool_dates_body(
-    _v4_scope,
-    /,
-    store,
+def __verified_independent_pool_dates_body(store,
     *,
     preselection_source_root=None,
     include_evidence=False,

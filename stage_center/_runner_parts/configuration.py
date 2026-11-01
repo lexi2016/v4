@@ -1,10 +1,10 @@
 """stage_center.runner: configuration (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from pathlib import Path
+from stage_center.runner import RunnerConfig
 
 
-def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path):
+def _build_production_config_body(*, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path):
     """Construct a production-shaped config without starting any collector.
 
     ``v4_research_data_root`` is the explicit V4-owned hourly archive root for
@@ -15,7 +15,7 @@ def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, r
     runner uses them to construct the packaged read-only collectors at tick
     time.
     """
-    return _v4_global(_v4_scope, 'RunnerConfig')(
+    return RunnerConfig(
         candidate_acquisition_root=Path(candidate_acquisition_root),
         raw_root=Path(raw_root),
         selection_root=Path(selection_root),

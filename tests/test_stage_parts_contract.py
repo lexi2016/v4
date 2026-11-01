@@ -92,7 +92,7 @@ def test_delegation_signature_matches(facade, line, name, target, body):
     named = {a.arg for a in params + args.kwonlyargs}
     unknown = {kw.arg for kw in call.keywords if kw.arg} - named
     assert not unknown, f"{facade}:{line} {name} passes unknown keyword(s) {sorted(unknown)}"
-    assert args.vararg or len(call.args) - 1 <= len(params[1:]), (
+    assert args.vararg or len(call.args) <= len(params), (
         f"{facade}:{line} {name} passes too many positional arguments"
     )
 
@@ -151,20 +151,14 @@ def test_parts_modules_import():
         importlib.import_module(name)
 
 
-def test_builtins_are_not_read_through_the_facade_namespace():
-    import builtins
-
-    names = set(dir(builtins))
+def test_parts_no_longer_read_through_the_facade_namespace():
     offenders = []
     for path in _parts_files():
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
-                continue
-            if node.func.id != "_v4_global" or len(node.args) != 2:
-                continue
-            argument = node.args[1]
-            if isinstance(argument, ast.Constant) and argument.value in names:
-                offenders.append(f"{path.relative_to(ROOT)}:{node.lineno} {argument.value!r}")
+        if path.name == "_namespace.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "_v4_global" in text or "read_global" in text:
+            offenders.append(str(path.relative_to(ROOT)))
     assert offenders == [], offenders
 
 
@@ -192,24 +186,72 @@ def _facade_defined_names(relative: str) -> set[str]:
     return names
 
 
-def test_parts_only_read_names_the_facade_defines():
-    import builtins
-
-    builtin_names = set(dir(builtins))
+def test_no_facade_hands_its_globals_to_an_implementation():
     offenders = []
-    for directory, facade in FACADE_FOR_PARTS.items():
-        defined = _facade_defined_names(facade)
-        for path in sorted((ROOT / directory).glob("*.py")):
-            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-                if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
-                    continue
-                if node.func.id != "_v4_global" or len(node.args) != 2:
-                    continue
-                argument = node.args[1]
-                if not (isinstance(argument, ast.Constant) and isinstance(argument.value, str)):
-                    continue
-                name = argument.value
-                if name in builtin_names or name in defined:
-                    continue
-                offenders.append(f"{path.relative_to(ROOT)}:{node.lineno} {name!r}")
+    for relative in FACADES:
+        tree = ast.parse((ROOT / relative).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                    and node.func.id == "_v4_impl"
+                    and any(isinstance(arg, ast.Call) and isinstance(arg.func, ast.Name)
+                            and arg.func.id == "globals" for arg in node.args)):
+                offenders.append(f"{relative}:{node.lineno}")
     assert offenders == [], offenders
+
+
+def _module_name(path: Path) -> str:
+    return ".".join(path.relative_to(ROOT).with_suffix("").parts)
+
+
+def _local_imports(path: Path) -> set[str]:
+    """Internal modules imported at module level (imports inside functions do not count)."""
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    package = _module_name(path).rsplit(".", 1)[0] if path.name != "__init__.py" else _module_name(path)
+    found: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom):
+            if node.level:
+                parts = package.split(".")
+                if node.level > 1:
+                    parts = parts[: len(parts) - (node.level - 1)]
+                base = ".".join(parts)
+                target = f"{base}.{node.module}" if node.module else base
+            else:
+                target = node.module or ""
+            if target.startswith(("apps", "domains", "infrastructure", "stage_center", "contracts", "ops")):
+                found.add(target)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith(("apps", "domains", "infrastructure", "stage_center", "contracts", "ops")):
+                    found.add(alias.name)
+    return found
+
+
+def _resolve_module(name: str) -> Path | None:
+    relative = name.replace(".", "/")
+    for candidate in (ROOT / f"{relative}.py", ROOT / relative / "__init__.py"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def test_facades_and_parts_form_no_module_level_cycle():
+    seeds = [ROOT / relative for relative in FACADES]
+    for relative in FACADE_FOR_PARTS:
+        seeds.extend(sorted((ROOT / relative).glob("*.py")))
+    graph: dict[str, set[str]] = {}
+    for path in seeds:
+        name = _module_name(path)
+        graph[name] = _local_imports(path)
+
+    def visit(name: str, stack: tuple[str, ...]) -> None:
+        if name in stack:
+            raise AssertionError("import cycle: " + " -> ".join(stack + (name,)))
+        target = _resolve_module(name)
+        if target is None or name not in graph:
+            return
+        for dependency in graph[name]:
+            visit(dependency, stack + (name,))
+
+    for name in list(graph):
+        visit(name, ())

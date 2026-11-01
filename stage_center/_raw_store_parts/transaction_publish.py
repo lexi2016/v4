@@ -1,25 +1,22 @@
 """stage_center.raw_store: transaction_publish (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from stage_center.calendar import calendar_provenance
 from stage_center.contracts import SAFETY_FLAGS
 from typing import Mapping
+from stage_center.raw_store import RAW_BUNDLE_SCHEMA_VERSION, RAW_MANIFEST_SCHEMA_VERSION, RAW_RECEIPT_SCHEMA_VERSION, RAW_STATUSES, RawStore, RawStoreError, _allows_temporal_false_observation, _artifact_row, _atomic_write_csv, _atomic_write_json, _coverage, _expected_bundle_markets, _safe_relative, _sha_file, _stage, _status, _validate_date, canonical_sha, validate_rows
 
 
-def _RawStore_publish_body(
-    _v4_scope, /, self, *, trade_date, stage_id, market, source_id,
+def _RawStore_publish_body(self, *, trade_date, stage_id, market, source_id,
     source_status, rows, cannot_confirm, source_evidence, requested_rows,
     missing_symbols, window, cutoff_at, research_observation_contract=None,
 ):
-    _v4_global(_v4_scope, '_validate_date')(trade_date)
-    _v4_global(_v4_scope, '_stage')(stage_id)
-    if market not in _v4_global(_v4_scope, '_stage')(stage_id).markets:
-        raise _v4_global(_v4_scope, 'RawStoreError')(f"market {market!r} is not scheduled for {stage_id!r}")
+    _validate_date(trade_date)
+    _stage(stage_id)
+    if market not in _stage(stage_id).markets:
+        raise RawStoreError(f"market {market!r} is not scheduled for {stage_id!r}")
     if not isinstance(source_id, str) or not source_id or "/" in source_id or "\\" in source_id:
-        raise _v4_global(_v4_scope, 'RawStoreError')("source_id is unsafe")
-    allow_temporal_false_observation = _v4_global(
-        _v4_scope, '_allows_temporal_false_observation'
-    )(
+        raise RawStoreError("source_id is unsafe")
+    allow_temporal_false_observation = _allows_temporal_false_observation(
         contract=research_observation_contract,
         trade_date=trade_date,
         stage_id=stage_id,
@@ -33,27 +30,27 @@ def _RawStore_publish_body(
         source_evidence=source_evidence,
     )
     if research_observation_contract is not None and not allow_temporal_false_observation:
-        raise _v4_global(_v4_scope, 'RawStoreError')(
+        raise RawStoreError(
             "explicit HK research temporal-false publication contract mismatch"
         )
-    validated, issues = _v4_global(_v4_scope, 'validate_rows')(
+    validated, issues = validate_rows(
         rows,
         trade_date=trade_date,
         stage_id=stage_id,
         market=market,
         allow_temporal_false_observation=allow_temporal_false_observation,
     )
-    status = _v4_global(_v4_scope, '_status')(source_status, validated, issues, cannot_confirm)
+    status = _status(source_status, validated, issues, cannot_confirm)
     normalized_source_status = {"READ_OK": "READY", "READ_FAILED": "CANNOT_CONFIRM"}.get(source_status, source_status)
     requested = len(rows) if requested_rows is None else int(requested_rows)
     if requested < 0:
-        raise _v4_global(_v4_scope, 'RawStoreError')("requested_rows must be non-negative")
+        raise RawStoreError("requested_rows must be non-negative")
     missing = list(dict.fromkeys(str(item) for item in missing_symbols))
     evidence = list(dict.fromkeys(str(item) for item in (*source_evidence, *cannot_confirm, *issues)))
     cannot = list(dict.fromkeys(str(item) for item in (*cannot_confirm, *issues)))
     source_rows = len(validated)
-    coverage = _v4_global(_v4_scope, '_coverage')(requested, source_rows)
-    input_sha = _v4_global(_v4_scope, 'canonical_sha')(
+    coverage = _coverage(requested, source_rows)
+    input_sha = canonical_sha(
         {
             "source_id": source_id,
             "source_status": normalized_source_status,
@@ -64,7 +61,7 @@ def _RawStore_publish_body(
             "missing_symbols": missing,
         }
     )
-    idem_key = _v4_global(_v4_scope, 'canonical_sha')(
+    idem_key = canonical_sha(
         {
             "owner": "stage_center",
             "trade_date": trade_date,
@@ -88,24 +85,24 @@ def _RawStore_publish_body(
         existing = latest["entries"].get(key)
         if isinstance(existing, Mapping):
             if existing.get("idempotency_key") != idem_key:
-                raise _v4_global(_v4_scope, 'RawStoreError')(f"raw slot conflict: {key}")
+                raise RawStoreError(f"raw slot conflict: {key}")
             verified = self.verify_run(trade_date, stage_id, market, str(existing.get("run_id")))
             for field in ("owner", "status", "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256"):
                 if existing.get(field) != verified.get(field):
-                    raise _v4_global(_v4_scope, 'RawStoreError')(f"latest pointer {field} mismatch")
+                    raise RawStoreError(f"latest pointer {field} mismatch")
             return {"ok": True, "already_exists": True, **verified}
-        run_dir = _v4_global(_v4_scope, '_safe_relative')(self.root, prefix)
+        run_dir = _safe_relative(self.root, prefix)
         if run_dir.exists():
-            raise _v4_global(_v4_scope, 'RawStoreError')("immutable run path already exists without latest pointer")
+            raise RawStoreError("immutable run path already exists without latest pointer")
         run_dir.mkdir(parents=True, exist_ok=False)
-        artifact_path = _v4_global(_v4_scope, '_safe_relative')(self.root, artifact_relative)
-        _v4_global(_v4_scope, '_atomic_write_csv')(
+        artifact_path = _safe_relative(self.root, artifact_relative)
+        _atomic_write_csv(
             artifact_path,
-            [_v4_global(_v4_scope, '_artifact_row')(trade_date, row) for row in validated],
+            [_artifact_row(trade_date, row) for row in validated],
         )
-        artifact_sha = _v4_global(_v4_scope, '_sha_file')(artifact_path)
+        artifact_sha = _sha_file(artifact_path)
         manifest = {
-            "schema_version": _v4_global(_v4_scope, 'RAW_MANIFEST_SCHEMA_VERSION'),
+            "schema_version": RAW_MANIFEST_SCHEMA_VERSION,
             "owner": "stage_center",
             "trade_date": trade_date,
             "stage_id": stage_id,
@@ -130,7 +127,7 @@ def _RawStore_publish_body(
             **SAFETY_FLAGS,
         }
         receipt = {
-            "schema_version": _v4_global(_v4_scope, 'RAW_RECEIPT_SCHEMA_VERSION'),
+            "schema_version": RAW_RECEIPT_SCHEMA_VERSION,
             "owner": "stage_center",
             "trade_date": trade_date,
             "stage_id": stage_id,
@@ -142,7 +139,7 @@ def _RawStore_publish_body(
             "source_status": normalized_source_status,
             "artifact_relative": artifact_relative,
             "artifact_sha256": artifact_sha,
-            "manifest_sha256": _v4_global(_v4_scope, 'canonical_sha')(manifest),
+            "manifest_sha256": canonical_sha(manifest),
             "row_count": source_rows,
             "temporal_cutoff_safe": status == "READY",
             "requested_rows": requested,
@@ -158,8 +155,8 @@ def _RawStore_publish_body(
             "calendar": calendar_provenance(),
             **SAFETY_FLAGS,
         }
-        _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, manifest_relative), manifest)
-        _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative), receipt)
+        _atomic_write_json(_safe_relative(self.root, manifest_relative), manifest)
+        _atomic_write_json(_safe_relative(self.root, receipt_relative), receipt)
         verified = self._verify_run_paths(
             trade_date=trade_date,
             stage_id=stage_id,
@@ -185,20 +182,20 @@ def _RawStore_publish_body(
             **SAFETY_FLAGS,
         }
         self._merge_latest(latest, key, entry)
-        _v4_global(_v4_scope, '_atomic_write_json')(self.latest_path, latest)
+        _atomic_write_json(self.latest_path, latest)
         return {"ok": True, **verified}
 
 
-def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, status, markets):
-    _v4_global(_v4_scope, '_validate_date')(trade_date)
-    _v4_global(_v4_scope, '_stage')(stage_id)
-    if status not in _v4_global(_v4_scope, 'RAW_STATUSES'):
-        raise _v4_global(_v4_scope, 'RawStoreError')(f"unknown bundle status {status!r}")
-    expected_markets = set(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
+def _RawStore_publish_bundle_body(self, *, trade_date, stage_id, status, markets):
+    _validate_date(trade_date)
+    _stage(stage_id)
+    if status not in RAW_STATUSES:
+        raise RawStoreError(f"unknown bundle status {status!r}")
+    expected_markets = set(_expected_bundle_markets(stage_id, trade_date))
     if set(markets) != expected_markets:
-        raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
+        raise RawStoreError("bundle market set mismatch")
     summary_seed = {
-        "schema_version": _v4_global(_v4_scope, 'RAW_BUNDLE_SCHEMA_VERSION'),
+        "schema_version": RAW_BUNDLE_SCHEMA_VERSION,
         "owner": "stage_center",
         "trade_date": trade_date,
         "stage_id": stage_id,
@@ -207,7 +204,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         "calendar": calendar_provenance(),
         **SAFETY_FLAGS,
     }
-    bundle_id = f"{trade_date}-{stage_id.lower()}-{_v4_global(_v4_scope, 'canonical_sha')(summary_seed)[:16]}"
+    bundle_id = f"{trade_date}-{stage_id.lower()}-{canonical_sha(summary_seed)[:16]}"
     receipt_relative = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}/receipt.json"
     key = f"{trade_date}/{stage_id}"
     receipt = {**summary_seed, "bundle_id": bundle_id, "receipt_relative": receipt_relative}
@@ -216,10 +213,10 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         existing = latest["entries"].get(key)
         if isinstance(existing, Mapping):
             if existing.get("bundle_id") != bundle_id:
-                raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle slot conflict: {key}")
+                raise RawStoreError(f"bundle slot conflict: {key}")
             verified = self._verify_bundle(trade_date, stage_id, bundle_id)
             if existing.get("receipt_sha256") != verified["receipt_sha256"]:
-                raise _v4_global(_v4_scope, 'RawStoreError')("bundle latest SHA mismatch")
+                raise RawStoreError("bundle latest SHA mismatch")
             return {
                 "ok": True,
                 "already_exists": True,
@@ -230,10 +227,10 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
                 "markets": {key: dict(value) for key, value in markets.items()},
                 **SAFETY_FLAGS,
             }
-        receipt_path = _v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative)
+        receipt_path = _safe_relative(self.root, receipt_relative)
         if receipt_path.exists():
-            raise _v4_global(_v4_scope, 'RawStoreError')("immutable bundle path already exists without latest pointer")
-        _v4_global(_v4_scope, '_atomic_write_json')(receipt_path, receipt)
+            raise RawStoreError("immutable bundle path already exists without latest pointer")
+        _atomic_write_json(receipt_path, receipt)
         verified = self._verify_bundle(trade_date, stage_id, bundle_id)
         entries = dict(latest.get("entries", {}))
         entries[key] = {
@@ -247,7 +244,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
             **SAFETY_FLAGS,
         }
         latest["entries"] = entries
-        _v4_global(_v4_scope, '_atomic_write_json')(self.root / "bundle_latest.json", latest)
+        _atomic_write_json(self.root / "bundle_latest.json", latest)
         return {
             "ok": status in {"READY", "PARTIAL_WITH_ROWS", "READY_EMPTY"},
             "status": status,
@@ -259,12 +256,11 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         }
 
 
-def _publish_raw_artifact_body(
-    _v4_scope, /, root, *, trade_date, stage_id, market, source_id,
+def _publish_raw_artifact_body(root, *, trade_date, stage_id, market, source_id,
     source_status, rows, cannot_confirm, source_evidence, requested_rows,
     missing_symbols, window, cutoff_at, research_observation_contract=None,
 ):
-    return _v4_global(_v4_scope, 'RawStore')(root).publish(
+    return RawStore(root).publish(
         trade_date=trade_date,
         stage_id=stage_id,
         market=market,

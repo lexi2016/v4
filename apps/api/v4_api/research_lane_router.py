@@ -217,13 +217,13 @@ def _bound_capture_for_snapshot(
 
 def _global_industry_rows(reason: str) -> list[dict[str, Any]]:
     from apps.api.v4_api._research_lane_router_parts.industry_projection import __global_industry_rows_body as _v4_impl
-    return _v4_impl(globals(), reason)
+    return _v4_impl(reason)
 
 
 
 def _global_industry_missing(*, research_date: str, reason: str) -> dict[str, Any]:
     from apps.api.v4_api._research_lane_router_parts.industry_projection import __global_industry_missing_body as _v4_impl
-    return _v4_impl(globals(), research_date=research_date, reason=reason)
+    return _v4_impl(research_date=research_date, reason=reason)
 
 
 
@@ -233,7 +233,7 @@ def _global_industry_lineage(
     payload: Mapping[str, Any],
 ) -> dict[str, Any]:
     from apps.api.v4_api._research_lane_router_parts.industry_projection import __global_industry_lineage_body as _v4_impl
-    return _v4_impl(globals(), store, research_date, payload)
+    return _v4_impl(store, research_date, payload)
 
 
 
@@ -243,7 +243,7 @@ def _project_global_industries(
     research_date: str,
 ) -> dict[str, Any]:
     from apps.api.v4_api._research_lane_router_parts.industry_projection import __project_global_industries_body as _v4_impl
-    return _v4_impl(globals(), store=store, research_date=research_date)
+    return _v4_impl(store=store, research_date=research_date)
 
 
 
@@ -398,7 +398,7 @@ def _with_us_market_freshness(
 ) -> dict[str, Any]:
     """Separate stored quality from read-time freshness using the owned NYSE calendar."""
     from apps.api.v4_api._research_lane_router_parts.market_freshness import __with_us_market_freshness_body as _v4_impl
-    return _v4_impl(globals(), projection, observed=observed)
+    return _v4_impl(projection, observed=observed)
 
 def _missing(*, research_date: str, reason: str, identity: str, endpoint_mode: str) -> dict:
     return {

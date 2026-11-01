@@ -1,20 +1,20 @@
 """domains.preselection: pagination_metadata (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from typing import Mapping
 import hashlib
 import json
 import re
+from domains.preselection import _market_buckets, _metadata_values
 
 
-def __metadata_values_body(_v4_scope, /, value):
+def __metadata_values_body(value):
     if isinstance(value, (list, tuple, set)):
         values: list[str] = []
         for item in value:
-            values.extend(_v4_global(_v4_scope, '_metadata_values')(item))
+            values.extend(_metadata_values(item))
         return values
     if isinstance(value, dict):
-        return _v4_global(_v4_scope, '_metadata_values')(list(value))
+        return _metadata_values(list(value))
     text = str(value or "").strip()
     if not text:
         return []
@@ -22,7 +22,7 @@ def __metadata_values_body(_v4_scope, /, value):
     return [item.strip() for item in text.splitlines() if item.strip()]
 
 
-def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
+def __input_fingerprint_body(pools, trade_date):
     """Hash the read-only pool inputs so paged reads cannot mix snapshots.
 
     The fingerprint reuses each artifact's source digest and includes the
@@ -45,8 +45,8 @@ def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def __page_metadata_body(_v4_scope, /, rows, *, limit, offset, status):
-    buckets = _v4_global(_v4_scope, '_market_buckets')(rows)
+def __page_metadata_body(rows, *, limit, offset, status):
+    buckets = _market_buckets(rows)
     returned_rows = sum(
         len(bucket[offset:offset + limit])
         for bucket in buckets.values()
@@ -64,7 +64,7 @@ def __page_metadata_body(_v4_scope, /, rows, *, limit, offset, status):
     }
 
 
-def __market_buckets_body(_v4_scope, /, rows):
+def __market_buckets_body(rows):
     buckets = {"A": [], "HK": [], "OTHER": []}
     for row in rows:
         market = str(row.get("market") or "").upper()

@@ -1,45 +1,45 @@
 """stage_center.runner: selection_input_validation (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from stage_center.contracts import SAFETY_FLAGS
 import csv
 import json
 import re
+from stage_center.runner import RunnerError, V3_RESEARCH_STAGES, _a_selector_name_map, _normal_code, _required_formal_paths, _sha, _stage_markets, _validate_formal_input, _validate_hk_d1, _validate_hk_second_filter, _validated_hk_binding_evidence
 
 
-def __validate_formal_input_body(_v4_scope, /, root, trade_date):
-    csv_path, manifest_path = _v4_global(_v4_scope, '_required_formal_paths')(root, trade_date)
+def __validate_formal_input_body(root, trade_date):
+    csv_path, manifest_path = _required_formal_paths(root, trade_date)
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
     except (OSError, UnicodeError, ValueError) as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal manifest unreadable") from error
+        raise RunnerError("V3 formal manifest unreadable") from error
     if manifest.get("trade_date") != trade_date or manifest.get("status") not in {"FORMAL_CONFIRMED", "FORMAL_READY"}:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool identity/status mismatch")
+        raise RunnerError("V3 formal pool identity/status mismatch")
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         rows = list(csv.DictReader(stream))
     eligible = [row for row in rows if str(row.get("eligible_for_formal_pool") or "").lower() in {"true", "1", "yes"}]
     if not eligible:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool has no eligible rows")
+        raise RunnerError("V3 formal pool has no eligible rows")
     raw_codes = [str(row.get("ts_code") or row.get("stock_code") or "").strip().upper() for row in eligible]
     normalized_codes = [f"A.{match.group(1)}" for raw in raw_codes if (match := re.search(r"(\d{6})", raw))]
     if len(normalized_codes) != len(eligible) or len(set(normalized_codes)) != len(normalized_codes):
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool eligible membership must be non-empty and unique")
+        raise RunnerError("V3 formal pool eligible membership must be non-empty and unique")
     if int(manifest.get("row_count", -1)) != len(rows):
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool manifest row_count mismatch")
+        raise RunnerError("V3 formal pool manifest row_count mismatch")
     manifest_sha = manifest.get("csv_sha256")
     if not isinstance(manifest_sha, str) or re.fullmatch(r"[0-9a-fA-F]{64}", manifest_sha) is None:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal csv_sha256 must be a 64-hex digest")
-    actual_sha = _v4_global(_v4_scope, '_sha')(csv_path)
+        raise RunnerError("V3 formal csv_sha256 must be a 64-hex digest")
+    actual_sha = _sha(csv_path)
     if manifest_sha.lower() != actual_sha:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool CSV SHA mismatch")
+        raise RunnerError("V3 formal pool CSV SHA mismatch")
     if any(manifest.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal pool safety flag must be false")
+        raise RunnerError("V3 formal pool safety flag must be false")
     return csv_path, manifest_path, actual_sha
 
 
-def __formal_selection_codes_body(_v4_scope, /, root, trade_date):
-    csv_path, _manifest_path, csv_sha = _v4_global(_v4_scope, '_validate_formal_input')(root, trade_date)
+def __formal_selection_codes_body(root, trade_date):
+    csv_path, _manifest_path, csv_sha = _validate_formal_input(root, trade_date)
     codes: set[str] = set()
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         for row in csv.DictReader(stream):
@@ -50,11 +50,11 @@ def __formal_selection_codes_body(_v4_scope, /, root, trade_date):
             if match:
                 codes.add(f"A.{match.group(1)}")
     if not codes:
-        raise _v4_global(_v4_scope, 'RunnerError')("V3 formal selection code set is empty")
+        raise RunnerError("V3 formal selection code set is empty")
     return codes, csv_sha
 
 
-def __find_exact_file_body(_v4_scope, /, root, trade_date, basename):
+def __find_exact_file_body(root, trade_date, basename):
     if root.is_file():
         return root
     candidates = (
@@ -67,10 +67,10 @@ def __find_exact_file_body(_v4_scope, /, root, trade_date, basename):
     for candidate in candidates:
         if candidate.is_file():
             return candidate
-    raise _v4_global(_v4_scope, 'RunnerError')(f"exact-date input missing: {basename}")
+    raise RunnerError(f"exact-date input missing: {basename}")
 
 
-def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, stage_id, *, market, hk_binding):
+def __validate_exact_selection_inputs_body(config, trade_date, stage_id, *, market, hk_binding):
     """Validate only the exact inputs owned by one market lane.
 
     The stage has one shared candidate clock but two independently publishable
@@ -82,18 +82,18 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
     evidence: list[str] = []
     if config.injected_test_mode:
         return tuple(evidence)
-    requested = (market,) if market is not None else _v4_global(_v4_scope, '_stage_markets')(stage_id)
+    requested = (market,) if market is not None else _stage_markets(stage_id)
     unknown = set(requested) - {"A_SHARE", "HK_CONNECT"}
     if unknown:
-        raise _v4_global(_v4_scope, 'RunnerError')(f"unknown exact-input market(s): {sorted(unknown)!r}")
+        raise RunnerError(f"unknown exact-input market(s): {sorted(unknown)!r}")
     if "A_SHARE" in requested:
-        if stage_id in _v4_global(_v4_scope, 'V3_RESEARCH_STAGES') and config.v4_research_data_root is None:
-            raise _v4_global(_v4_scope, 'RunnerError')(
+        if stage_id in V3_RESEARCH_STAGES and config.v4_research_data_root is None:
+            raise RunnerError(
                 f"V4 research data root is required for {stage_id} A_SHARE"
             )
-        if stage_id in _v4_global(_v4_scope, 'V3_RESEARCH_STAGES'):
+        if stage_id in V3_RESEARCH_STAGES:
             if config.v4_morning_news_root is None:
-                raise _v4_global(_v4_scope, 'RunnerError')(
+                raise RunnerError(
                     f"V4 morning-news root is required for {stage_id} A_SHARE"
                 )
             evidence.append(f"v4_research_data_root={config.v4_research_data_root}")
@@ -104,27 +104,27 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
             evidence.append("a_formal_overlay_unavailable=ROOT_NOT_BOUND")
         else:
             try:
-                formal_csv, formal_manifest, formal_sha = _v4_global(_v4_scope, '_validate_formal_input')(config.v3_formal_root, trade_date)
+                formal_csv, formal_manifest, formal_sha = _validate_formal_input(config.v3_formal_root, trade_date)
                 evidence.extend((f"formal_csv={formal_csv}", f"formal_manifest={formal_manifest}", f"formal_csv_sha256={formal_sha}"))
-            except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+            except (RunnerError, OSError, ValueError) as error:
                 evidence.append(f"a_formal_overlay_unavailable={error}")
         if config.a_research_panel_receipt_root is None:
             evidence.append("a_name_overlay_unavailable=ROOT_NOT_BOUND")
         else:
             try:
-                _mapping, panel_evidence = _v4_global(_v4_scope, '_a_selector_name_map')(
+                _mapping, panel_evidence = _a_selector_name_map(
                     candidate_root=config.candidate_acquisition_root,
                     research_panel_receipt_root=config.a_research_panel_receipt_root,
                     trade_date=trade_date,
                 )
                 evidence.extend(panel_evidence)
-            except (_v4_global(_v4_scope, 'RunnerError'), OSError, ValueError) as error:
+            except (RunnerError, OSError, ValueError) as error:
                 evidence.append(f"a_name_overlay_unavailable={error}")
     if "HK_CONNECT" in requested:
         if config.hk_d1_root is None:
-            raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 root is required")
+            raise RunnerError("production HK D1 root is required")
         if hk_binding is None:
-            d1_path, d1_sha = _v4_global(_v4_scope, '_validate_hk_d1')(
+            d1_path, d1_sha = _validate_hk_d1(
                 config.hk_d1_root,
                 trade_date,
                 preselection_source_root=config.preselection_source_root,
@@ -132,7 +132,7 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
             evidence.extend((f"hk_d1_json={d1_path}", f"hk_d1_sha256={d1_sha}"))
         else:
             evidence.extend(
-                _v4_global(_v4_scope, '_validated_hk_binding_evidence')(hk_binding, trade_date)
+                _validated_hk_binding_evidence(hk_binding, trade_date)
             )
         evidence.append("hk_acquisition_scope=EXACT_D1_TOP100")
         # The opening auction is the only stage whose membership is bound to
@@ -141,21 +141,21 @@ def __validate_exact_selection_inputs_body(_v4_scope, /, config, trade_date, sta
         # blocked by a missing pre-open artifact.
         if stage_id == "STAGE_0925":
             if config.hk_second_filter_root is None:
-                raise _v4_global(_v4_scope, 'RunnerError')("production HK second-filter root is required for STAGE_0925")
-            second_csv, second_acceptance, second_sha = _v4_global(_v4_scope, '_validate_hk_second_filter')(config.hk_second_filter_root, trade_date)
+                raise RunnerError("production HK second-filter root is required for STAGE_0925")
+            second_csv, second_acceptance, second_sha = _validate_hk_second_filter(config.hk_second_filter_root, trade_date)
             evidence.extend((f"hk_second_filter_csv={second_csv}", f"hk_second_filter_acceptance={second_acceptance}", f"hk_second_filter_csv_sha256={second_sha}"))
         if stage_id == "STAGE_1545_1555":
             if config.hk_stage_replay_root is None:
-                raise _v4_global(_v4_scope, 'RunnerError')("production HK Stage8 replay root is required for STAGE_1545_1555")
+                raise RunnerError("production HK Stage8 replay root is required for STAGE_1545_1555")
             evidence.append(f"hk_stage_replay_root={config.hk_stage_replay_root}")
     return tuple(evidence)
 
 
-def __selection_source_body(_v4_scope, /, source, *, market, membership):
+def __selection_source_body(source, *, market, membership):
     if membership is None:
         return source
-    rows = tuple(row for row in source.rows if _v4_global(_v4_scope, '_normal_code')(market, getattr(row, "get", lambda *_: None)("code")) in membership)
-    observed = {_v4_global(_v4_scope, '_normal_code')(market, row.get("code")) for row in source.rows}
+    rows = tuple(row for row in source.rows if _normal_code(market, getattr(row, "get", lambda *_: None)("code")) in membership)
+    observed = {_normal_code(market, row.get("code")) for row in source.rows}
     missing = tuple(sorted(membership - observed))
     status = source.status
     if not rows:

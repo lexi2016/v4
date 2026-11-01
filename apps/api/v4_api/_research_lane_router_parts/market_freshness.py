@@ -1,29 +1,28 @@
 """apps.api.v4_api.research_lane_router: market_freshness (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from datetime import datetime
 from datetime import time
 from datetime import timedelta
 from typing import Mapping
 from zoneinfo import ZoneInfo
+from apps.api.v4_api.research_lane_router import LATE_CAPTURE_MODE, _is_late_capture_identity, _is_verifiable_close_snapshot, _project_global_industries
 
 
-def __verifiable_market_snapshot_dates_body(_v4_scope, /, store):
+def __verifiable_market_snapshot_dates_body(store):
     """List exact external-finance dates with a verifiable close snapshot."""
 
     eligible: list[str] = []
     for trade_date in store.list_dates("external_finance"):
-        projection = _v4_global(_v4_scope, '_project_global_industries')(
+        projection = _project_global_industries(
             store=store,
             research_date=trade_date,
         )
-        if _v4_global(_v4_scope, '_is_verifiable_close_snapshot')(projection):
+        if _is_verifiable_close_snapshot(projection):
             eligible.append(trade_date)
     return sorted(set(eligible), reverse=True)
 
 
-def __futu_board_freshness_error_body(
-    _v4_scope, /, projection, *, source_date, captured_at, ny_zone,
+def __futu_board_freshness_error_body(projection, *, source_date, captured_at, ny_zone,
 ):
     """Validate the official Futu rows used by the industry projection.
 
@@ -126,8 +125,7 @@ def __futu_board_freshness_error_body(
     return None
 
 
-def __futu_native_board_freshness_error_body(
-    _v4_scope, /, projection, *, source_date, captured_at, ny_zone,
+def __futu_native_board_freshness_error_body(projection, *, source_date, captured_at, ny_zone,
 ):
     """Keep native-board freshness bound to its own frozen registry and session."""
     snapshot = projection.get("native_board_snapshot")
@@ -172,7 +170,7 @@ def __futu_native_board_freshness_error_body(
     return None
 
 
-def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
+def __with_us_market_freshness_body(projection, *, observed):
     """Separate stored quality from read-time freshness using the owned 2026 NYSE calendar.
 
     This remains read-only and keeps the existing capture-window, provider-date,
@@ -200,7 +198,7 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
             "state": "CANNOT_CONFIRM",
             "cannot_confirm": ["VERIFIABLE_CLOSE_SNAPSHOT_REQUIRED"],
         }
-    if not _v4_global(_v4_scope, '_is_verifiable_close_snapshot')(projection):
+    if not _is_verifiable_close_snapshot(projection):
         diagnostic["cannot_confirm"] = ["VERIFIABLE_CLOSE_SNAPSHOT_REQUIRED"]
         return result
 
@@ -234,10 +232,10 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
         if (timestamp(projection.get("capture_window_start")) != start
                 or timestamp(projection.get("capture_window_end")) != end):
             raise ValueError("CAPTURE_WINDOW_BINDING_MISMATCH")
-        if _v4_global(_v4_scope, '_is_late_capture_identity')(projection):
+        if _is_late_capture_identity(projection):
             recovery_end = start + timedelta(hours=24)
             if (projection.get("late") is not True
-                    or projection.get("capture_mode") != _v4_global(_v4_scope, 'LATE_CAPTURE_MODE')
+                    or projection.get("capture_mode") != LATE_CAPTURE_MODE
                     or timestamp(projection.get("allowed_recovery_window_start")) != start
                     or timestamp(projection.get("allowed_recovery_window_end")) != recovery_end):
                 raise ValueError("LATE_CAPTURE_WINDOW_BINDING_MISMATCH")

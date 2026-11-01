@@ -1,6 +1,5 @@
 """apps.api.v4_api.research_lane_router: industry_projection (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from contracts.futu_industry import load_reviewed_business_relations, project_industry_rows
 from contracts.futu_us_boards import (
     empty_futu_us_board_snapshot,
@@ -10,12 +9,13 @@ from infrastructure.data_store import _sha256
 from infrastructure.research_peripheral_store import CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP
 from typing import Mapping
 import json
+from apps.api.v4_api.research_lane_router import GLOBAL_INDUSTRY_MAPPING_VERSION, GLOBAL_INDUSTRY_PROXY_MAP, MARKET_SNAPSHOT_SCHEMA_VERSION, _bound_capture_for_snapshot, _capture_identity_failure, _global_industry_lineage, _global_industry_missing, _global_industry_rows
 
 
 _INDUSTRY_RESPONSE_SCHEMA_VERSION = "v3_5.global_industries.v2"
 
 
-def __global_industry_rows_body(_v4_scope, /, reason):
+def __global_industry_rows_body(reason):
     return [
         {
             "label": str(mapping["label"]),
@@ -73,11 +73,11 @@ def __global_industry_rows_body(_v4_scope, /, reason):
                 "cannot_confirm": [reason],
             },
         }
-        for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP')
+        for mapping in GLOBAL_INDUSTRY_PROXY_MAP
     ]
 
 
-def __global_industry_missing_body(_v4_scope, /, *, research_date, reason):
+def __global_industry_missing_body(*, research_date, reason):
     return {
         "schema_version": _INDUSTRY_RESPONSE_SCHEMA_VERSION,
         "status": "CANNOT_CONFIRM",
@@ -105,18 +105,18 @@ def __global_industry_missing_body(_v4_scope, /, *, research_date, reason):
         "proxy_source_response_sha256": "",
         "requested_board_count": 24,
         "available_board_count": 0,
-        "proxy_requested_symbol_count": len({symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]}),
+        "proxy_requested_symbol_count": len({symbol for mapping in GLOBAL_INDUSTRY_PROXY_MAP for symbol in mapping["proxy_symbols"]}),
         "proxy_available_symbol_count": 0,
         "proxy_quotes": [],
         "capture_phase": "POST_CLOSE",
         "captured_at": "",
         "generated_at": "",
-        "mapping_version": _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_MAPPING_VERSION'),
+        "mapping_version": GLOBAL_INDUSTRY_MAPPING_VERSION,
         "requested_symbol_count": len({
-            symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]
+            symbol for mapping in GLOBAL_INDUSTRY_PROXY_MAP for symbol in mapping["proxy_symbols"]
         }),
         "available_symbol_count": 0,
-        "rows": _v4_global(_v4_scope, '_global_industry_rows')(reason),
+        "rows": _global_industry_rows(reason),
         "quotes": [],
         "cannot_confirm": [reason],
         "artifact": None,
@@ -131,7 +131,7 @@ def __global_industry_missing_body(_v4_scope, /, *, research_date, reason):
     }
 
 
-def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
+def __global_industry_lineage_body(store, research_date, payload):
     artifact_path = store.root / "research" / "peripherals" / research_date / "external_finance.json"
     receipt_path = store.root / "receipts" / "research" / "peripherals" / research_date / "external_finance.json"
     manifest_path = store.root / "research" / "peripherals" / "manifest.json"
@@ -146,41 +146,41 @@ def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
     return result
 
 
-def __project_global_industries_body(_v4_scope, /, *, store, research_date):
+def __project_global_industries_body(*, store, research_date):
     try:
         payload = store.read_exact(research_date, "external_finance")
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
-        return _v4_global(_v4_scope, '_global_industry_missing')(
+        return _global_industry_missing(
             research_date=research_date,
             reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{type(error).__name__}",
         )
     if payload is None:
-        return _v4_global(_v4_scope, '_global_industry_missing')(
+        return _global_industry_missing(
             research_date=research_date,
             reason="EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED",
         )
     snapshot = payload.get("market_snapshot")
     if not isinstance(snapshot, Mapping):
-        result = _v4_global(_v4_scope, '_global_industry_missing')(
+        result = _global_industry_missing(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_NOT_MATERIALIZED",
         )
         result["source_date"] = str(payload.get("trade_date") or "")
-        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
+        result["artifact"] = _global_industry_lineage(store, research_date, payload)
         result["cannot_confirm"] = sorted(
             set(result["cannot_confirm"]) | set(payload.get("cannot_confirm") or [])
         )
         return result
     if (
-        snapshot.get("schema_version") != _v4_global(_v4_scope, 'MARKET_SNAPSHOT_SCHEMA_VERSION')
-        or snapshot.get("mapping_version") != _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_MAPPING_VERSION')
+        snapshot.get("schema_version") != MARKET_SNAPSHOT_SCHEMA_VERSION
+        or snapshot.get("mapping_version") != GLOBAL_INDUSTRY_MAPPING_VERSION
     ):
-        result = _v4_global(_v4_scope, '_global_industry_missing')(
+        result = _global_industry_missing(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_CANONICAL_VERSION_INVALID",
         )
         result["source_date"] = str(payload.get("trade_date") or "")
-        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
+        result["artifact"] = _global_industry_lineage(store, research_date, payload)
         return result
     if any(
         snapshot.get(field) != expected
@@ -192,20 +192,20 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             "RESEARCH_ONLY": True,
         }.items()
     ):
-        result = _v4_global(_v4_scope, '_global_industry_missing')(
+        result = _global_industry_missing(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_SAFETY_BOUNDARY_INVALID",
         )
         result["source_date"] = str(payload.get("trade_date") or "")
-        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
+        result["artifact"] = _global_industry_lineage(store, research_date, payload)
         return result
-    capture, identity_error = _v4_global(_v4_scope, '_bound_capture_for_snapshot')(
+    capture, identity_error = _bound_capture_for_snapshot(
         payload=payload,
         snapshot=snapshot,
         research_date=research_date,
     )
     if identity_error is not None or capture is None:
-        return _v4_global(_v4_scope, '_capture_identity_failure')(
+        return _capture_identity_failure(
             payload=payload,
             snapshot=snapshot,
             reason=identity_error or "MARKET_SNAPSHOT_CAPTURE_IDENTITY_UNBOUND",
@@ -223,14 +223,14 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         or row.get("proxy_symbols") != list(mapping["proxy_symbols"])
         for row, mapping in zip(rows, canonical_rows)
     ):
-        result = _v4_global(_v4_scope, '_global_industry_missing')(
+        result = _global_industry_missing(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_ROW_COUNT_INVALID",
         )
         result["source_date"] = str(payload.get("trade_date") or "")
-        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
+        result["artifact"] = _global_industry_lineage(store, research_date, payload)
         return result
-    lineage = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
+    lineage = _global_industry_lineage(store, research_date, payload)
     futu_snapshot = snapshot.get("futu_board_snapshot")
     if not isinstance(futu_snapshot, Mapping):
         futu_snapshot = None

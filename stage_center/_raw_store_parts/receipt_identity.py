@@ -1,23 +1,22 @@
 """stage_center.raw_store: receipt_identity (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from typing import Mapping
+from stage_center.raw_store import RAW_FIELDS, RawStoreError, _MARKET_CODE, _parse_timestamp, _validate_date, _window_bounds
 
 
-def _validate_rows_body(
-    _v4_scope, /, rows, *, trade_date, stage_id, market,
+def _validate_rows_body(rows, *, trade_date, stage_id, market,
     allow_temporal_false_observation=False,
 ):
     """Validate the frozen 19-field raw shape without dropping evidence."""
-    _v4_global(_v4_scope, '_validate_date')(trade_date)
-    expected_market = _v4_global(_v4_scope, '_MARKET_CODE').get(market)
+    _validate_date(trade_date)
+    expected_market = _MARKET_CODE.get(market)
     if expected_market is None:
-        raise _v4_global(_v4_scope, 'RawStoreError')(f"unknown market {market!r}")
-    lower, upper = _v4_global(_v4_scope, '_window_bounds')(trade_date, stage_id, market)
+        raise RawStoreError(f"unknown market {market!r}")
+    lower, upper = _window_bounds(trade_date, stage_id, market)
     validated: list[dict[str, Any]] = []
     issues: list[str] = []
     for index, source in enumerate(rows):
-        if not isinstance(source, Mapping) or set(source) != set(_v4_global(_v4_scope, 'RAW_FIELDS')):
+        if not isinstance(source, Mapping) or set(source) != set(RAW_FIELDS):
             issues.append(f"row {index}: raw row must contain exactly 19 fields")
             continue
         row = dict(source)
@@ -26,10 +25,10 @@ def _validate_rows_body(
             issues.append(f"row {index}: invalid {market} code")
             continue
         try:
-            update = _v4_global(_v4_scope, '_parse_timestamp')(row.get("update_time"), "update_time")
-            window_start = _v4_global(_v4_scope, '_parse_timestamp')(row.get("window_start"), "window_start")
-            window_end = _v4_global(_v4_scope, '_parse_timestamp')(row.get("window_end"), "window_end")
-        except _v4_global(_v4_scope, 'RawStoreError') as error:
+            update = _parse_timestamp(row.get("update_time"), "update_time")
+            window_start = _parse_timestamp(row.get("window_start"), "window_start")
+            window_end = _parse_timestamp(row.get("window_end"), "window_end")
+        except RawStoreError as error:
             issues.append(f"row {index}: {error}")
             continue
         if any(

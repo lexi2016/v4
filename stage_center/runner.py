@@ -413,7 +413,7 @@ def lane_status_bundle(
     a verified result from the other lane.
     """
     from stage_center._runner_parts.row_evidence import _lane_status_bundle_body as _v4_impl
-    return _v4_impl(globals(), a_share, hk_connect)
+    return _v4_impl(a_share, hk_connect)
 
 
 Collector = Callable[[AcquisitionPlan, str], SourceResult]
@@ -476,12 +476,12 @@ def _candidate_from_hk_binding(
     an A-share selection appear ready.
     """
     from stage_center._runner_parts.hk_input_validation import __candidate_from_hk_binding_body as _v4_impl
-    return _v4_impl(globals(), root=root, trade_date=trade_date, binding=binding)
+    return _v4_impl(root=root, trade_date=trade_date, binding=binding)
 
 
 def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
     from stage_center._runner_parts.row_evidence import __atomic_json_body as _v4_impl
-    return _v4_impl(globals(), path, payload)
+    return _v4_impl(path, payload)
 
 
 def _date_prefix(trade_date: str) -> str:
@@ -509,7 +509,7 @@ def _existing_binding_matches(
     still requires the current expected HK binding.
     """
     from stage_center._runner_parts.row_evidence import __existing_binding_matches_body as _v4_impl
-    return _v4_impl(globals(), evidence, market=market, expected_sha=expected_sha)
+    return _v4_impl(evidence, market=market, expected_sha=expected_sha)
 
 
 def _evidence_value(evidence: Sequence[Any], key: str) -> str | None:
@@ -765,7 +765,7 @@ def build_production_config(
     time.
     """
     from stage_center._runner_parts.configuration import _build_production_config_body as _v4_impl
-    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
+    return _v4_impl(candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
 
 
 class SlotLock:
@@ -781,11 +781,11 @@ class SlotLock:
 
     def acquire(self) -> bool:
         from stage_center._runner_parts.slot_lock import _SlotLock_acquire_body as _v4_impl
-        return _v4_impl(globals(), self)
+        return _v4_impl(self)
 
     def release(self) -> None:
         from stage_center._runner_parts.slot_lock import _SlotLock_release_body as _v4_impl
-        _v4_impl(globals(), self)
+        _v4_impl(self)
 
     def __enter__(self) -> "SlotLock":
         if not self.acquire():
@@ -847,13 +847,13 @@ def _resolve_stage_market_scope(
 
 def _latest_entry(root: Path, filename: str, key: str) -> Mapping[str, Any] | None:
     from stage_center._runner_parts.row_evidence import __latest_entry_body as _v4_impl
-    return _v4_impl(globals(), root, filename, key)
+    return _v4_impl(root, filename, key)
 
 
 def _read_verified_raw_source(root: Path, verified: Mapping[str, Any]) -> SourceResult:
     """Rehydrate a SourceResult from one already verified immutable raw run."""
     from stage_center._runner_parts.row_evidence import __read_verified_raw_source_body as _v4_impl
-    return _v4_impl(globals(), root, verified)
+    return _v4_impl(root, verified)
 
 
 def _required_formal_paths(root: Path, trade_date: str) -> tuple[Path, Path]:
@@ -869,17 +869,17 @@ def _required_formal_paths(root: Path, trade_date: str) -> tuple[Path, Path]:
 
 def _validate_formal_input(root: Path, trade_date: str) -> tuple[Path, Path, str]:
     from stage_center._runner_parts.selection_input_validation import __validate_formal_input_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date)
+    return _v4_impl(root, trade_date)
 
 
 def _formal_selection_codes(root: Path, trade_date: str) -> tuple[set[str], str]:
     from stage_center._runner_parts.selection_input_validation import __formal_selection_codes_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date)
+    return _v4_impl(root, trade_date)
 
 
 def _find_exact_file(root: Path, trade_date: str, basename: str) -> Path:
     from stage_center._runner_parts.selection_input_validation import __find_exact_file_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date, basename)
+    return _v4_impl(root, trade_date, basename)
 
 
 def _validate_hk_d1(
@@ -889,12 +889,12 @@ def _validate_hk_d1(
     preselection_source_root: Path | str | None = None,
 ) -> tuple[Path, str]:
     from stage_center._runner_parts.hk_input_validation import __validate_hk_d1_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
+    return _v4_impl(root, trade_date, preselection_source_root=preselection_source_root)
 
 
 def _validate_hk_full_universe(root: Path, trade_date: str) -> tuple[Path, tuple[str, ...], str]:
     from stage_center._runner_parts.hk_input_validation import __validate_hk_full_universe_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date)
+    return _v4_impl(root, trade_date)
 
 
 def _hk_selection_codes(
@@ -904,7 +904,7 @@ def _hk_selection_codes(
     preselection_source_root: Path | str | None = None,
 ) -> tuple[set[str], str]:
     from stage_center._runner_parts.hk_input_validation import __hk_selection_codes_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
+    return _v4_impl(root, trade_date, preselection_source_root=preselection_source_root)
 
 
 def _build_hk_d1_binding(
@@ -915,7 +915,7 @@ def _build_hk_d1_binding(
 ) -> StageUniverseBinding:
     """Create the exact fixed D-1 membership shared by acquisition and selection."""
     from stage_center._runner_parts.hk_input_validation import __build_hk_d1_binding_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
+    return _v4_impl(root, trade_date, preselection_source_root=preselection_source_root)
 
 
 def _build_hk_stage_binding(
@@ -1148,12 +1148,12 @@ def _build_hk_stage_binding(
 
 def _validate_hk_second_filter(root: Path, trade_date: str) -> tuple[Path, Path, str]:
     from stage_center._runner_parts.hk_input_validation import __validate_hk_second_filter_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date)
+    return _v4_impl(root, trade_date)
 
 
 def _hk_second_filter_codes(root: Path, trade_date: str) -> tuple[set[str], str]:
     from stage_center._runner_parts.hk_input_validation import __hk_second_filter_codes_body as _v4_impl
-    return _v4_impl(globals(), root, trade_date)
+    return _v4_impl(root, trade_date)
 
 
 def _validate_exact_selection_inputs(
@@ -1173,7 +1173,7 @@ def _validate_exact_selection_inputs(
     aggregate validation; the runner itself always validates per market.
     """
     from stage_center._runner_parts.selection_input_validation import __validate_exact_selection_inputs_body as _v4_impl
-    return _v4_impl(globals(), config, trade_date, stage_id, market=market, hk_binding=hk_binding)
+    return _v4_impl(config, trade_date, stage_id, market=market, hk_binding=hk_binding)
 
 
 def _attach_stage_research_roots(
@@ -1218,7 +1218,7 @@ def _selection_source(
     membership: set[str] | None,
 ) -> SourceResult:
     from stage_center._runner_parts.selection_input_validation import __selection_source_body as _v4_impl
-    return _v4_impl(globals(), source, market=market, membership=membership)
+    return _v4_impl(source, market=market, membership=membership)
 
 
 def _a_d1_premarket_pool_path(candidate_root: Path, trade_date: str) -> Path:
@@ -1252,7 +1252,7 @@ def _a_selector_name_map(
 ) -> tuple[dict[str, str], tuple[str, ...]]:
     """Read the exact signal-date A selector panel, fail-closed on drift."""
     from stage_center._runner_parts.a_name_authority import __a_selector_name_map_body as _v4_impl
-    return _v4_impl(globals(), candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
+    return _v4_impl(candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
 
 
 def _attach_a_name_authority(
@@ -1263,7 +1263,7 @@ def _attach_a_name_authority(
     trade_date: str,
 ) -> SourceResult:
     from stage_center._runner_parts.a_name_authority import __attach_a_name_authority_body as _v4_impl
-    return _v4_impl(globals(), source, candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
+    return _v4_impl(source, candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
 
 
 def _attach_a_authority(source: SourceResult, *, formal_root: Path, trade_date: str) -> SourceResult:
@@ -1275,7 +1275,7 @@ def _attach_a_authority(source: SourceResult, *, formal_root: Path, trade_date: 
     universe or defaulted to zero.
     """
     from stage_center._runner_parts.a_candidate_authority import __attach_a_authority_body as _v4_impl
-    return _v4_impl(globals(), source, formal_root=formal_root, trade_date=trade_date)
+    return _v4_impl(source, formal_root=formal_root, trade_date=trade_date)
 
 
 def _attach_hk_authority(
@@ -1296,7 +1296,7 @@ def _attach_hk_authority(
     pre-open lane source.
     """
     from stage_center._runner_parts.hk_candidate_authority import __attach_hk_authority_body as _v4_impl
-    return _v4_impl(globals(), source, d1_root=d1_root, second_root=second_root, preselection_source_root=preselection_source_root, trade_date=trade_date, stage_id=stage_id, hk_binding=hk_binding)
+    return _v4_impl(source, d1_root=d1_root, second_root=second_root, preselection_source_root=preselection_source_root, trade_date=trade_date, stage_id=stage_id, hk_binding=hk_binding)
 
 
 def _with_candidate_evidence(
@@ -1315,7 +1315,7 @@ def _with_candidate_evidence(
     other market's synthetic SHA.
     """
     from stage_center._runner_parts.row_evidence import __with_candidate_evidence_body as _v4_impl
-    return _v4_impl(globals(), result, candidate, extra, candidate_sha=candidate_sha, candidate_run_id=candidate_run_id)
+    return _v4_impl(result, candidate, extra, candidate_sha=candidate_sha, candidate_run_id=candidate_run_id)
 
 
 def _project_raw_rows(
@@ -1333,7 +1333,7 @@ def _project_raw_rows(
     """
     from stage_center._runner_parts.row_evidence import __project_raw_rows_body as _v4_impl
     return _v4_impl(
-        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
+        rows, trade_date=trade_date, stage_id=stage_id, market=market,
         research_observation_contract=research_observation_contract,
     )
 
@@ -1367,21 +1367,21 @@ class StageCenterRunner:
         and SHA; quotes remain exact to the observation date.
         """
         from stage_center._runner_parts.runner_receipts import _StageCenterRunner__prepare_hk_active_snapshots_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill)
+        return _v4_impl(self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill)
 
     def due_decisions(self, trade_date: str, evaluated_at: datetime, *, historical_backfill: bool = False) -> tuple[DueDecision, ...]:
         return tuple(evaluate_due(stage.stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill) for stage in EIGHT_STAGES)
 
     def _backfill_runner(self, run_id: str) -> "StageCenterRunner":
         from stage_center._runner_parts.tick_planning import _StageCenterRunner__backfill_runner_body as _v4_impl
-        return _v4_impl(globals(), self, run_id)
+        return _v4_impl(self, run_id)
 
     def _receipt_path(self, trade_date: str, stage_id: str) -> Path:
         return self.config.receipt_root / trade_date / stage_id / "receipt.json"
 
     def _write_receipt(self, payload: Mapping[str, Any], trade_date: str, stage_id: str) -> dict[str, Any]:
         from stage_center._runner_parts.runner_receipts import _StageCenterRunner__write_receipt_body as _v4_impl
-        return _v4_impl(globals(), self, payload, trade_date, stage_id)
+        return _v4_impl(self, payload, trade_date, stage_id)
 
     def _existing_slot(
         self,
@@ -1399,7 +1399,7 @@ class StageCenterRunner:
         cache miss so the other market can be reused safely.
         """
         from stage_center._runner_parts.slot_idempotency import _StageCenterRunner__existing_slot_body as _v4_impl
-        return _v4_impl(globals(), self, trade_date, stage_id, markets, candidate_sha_by_market)
+        return _v4_impl(self, trade_date, stage_id, markets, candidate_sha_by_market)
 
     def _run_one(
         self,
@@ -1412,8 +1412,8 @@ class StageCenterRunner:
         from stage_center._runner_parts.slot_execution import _StageCenterRunner__run_one_body as _v4_impl
         # R1 lacks this keyword; never discard an explicit market allowlist.
         if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
-            return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id)
-        return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id, historical_markets=historical_markets)
+            return _v4_impl(self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id)
+        return _v4_impl(self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id, historical_markets=historical_markets)
 
     def tick(
         self,
@@ -1458,8 +1458,8 @@ class StageCenterRunner:
             from stage_center._runner_parts.tick_planning import _StageCenterRunner_tick_body as _v4_impl
             # R1 lacks this keyword; never discard an explicit market allowlist.
             if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
-                return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
-            return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
+                return _v4_impl(self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
+            return _v4_impl(self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
         finally:
             _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.reset(observation_context_token)
             _HK_HISTORICAL_RESEARCH_CONTRACT.reset(context_token)

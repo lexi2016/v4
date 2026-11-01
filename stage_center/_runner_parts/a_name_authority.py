@@ -1,30 +1,30 @@
 """stage_center.runner: a_name_authority (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from pathlib import Path
 from stage_center.contracts import SAFETY_FLAGS
 from typing import Mapping
 import json
 import re
+from stage_center.runner import RunnerError, _a_d1_premarket_pool_path, _a_research_receipt_path, _a_selector_name_map, _normal_code, _sha
 
 
-def __a_selector_name_map_body(_v4_scope, /, *, candidate_root, research_panel_receipt_root, trade_date):
+def __a_selector_name_map_body(*, candidate_root, research_panel_receipt_root, trade_date):
     """Read the exact signal-date A selector panel, fail-closed on drift."""
-    pool_path = _v4_global(_v4_scope, '_a_d1_premarket_pool_path')(candidate_root, trade_date)
+    pool_path = _a_d1_premarket_pool_path(candidate_root, trade_date)
     try:
         pool = json.loads(pool_path.read_text(encoding="utf-8-sig"))
     except (OSError, UnicodeError, ValueError) as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool unreadable") from error
+        raise RunnerError("A D-1 premarket pool unreadable") from error
     if not isinstance(pool, Mapping) or pool.get("target_date") != trade_date:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool target_date mismatch")
+        raise RunnerError("A D-1 premarket pool target_date mismatch")
     if pool.get("status") != "V192_CANDIDATE_READY" or pool.get("stage_selection_eligible") is not True:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool status/eligibility mismatch")
+        raise RunnerError("A D-1 premarket pool status/eligibility mismatch")
     if any(pool.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool safety flags must be false")
+        raise RunnerError("A D-1 premarket pool safety flags must be false")
     pool_rows = pool.get("rows", pool.get("data"))
     if not isinstance(pool_rows, list) or not pool_rows:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool rows missing")
+        raise RunnerError("A D-1 premarket pool rows missing")
     signal_dates = {
         str(row.get("signal_date") or row.get("trade_date") or "").replace("-", "")
         for row in pool_rows
@@ -32,48 +32,48 @@ def __a_selector_name_map_body(_v4_scope, /, *, candidate_root, research_panel_r
     }
     signal_dates.discard("")
     if len(signal_dates) != 1:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool signal_date is ambiguous")
+        raise RunnerError("A D-1 premarket pool signal_date is ambiguous")
     signal_date = next(iter(signal_dates))
     if not re.fullmatch(r"\d{8}", signal_date) or signal_date >= trade_date:
-        raise _v4_global(_v4_scope, 'RunnerError')("A D-1 premarket pool signal_date is not prior to target")
-    receipt_path = _v4_global(_v4_scope, '_a_research_receipt_path')(research_panel_receipt_root, signal_date)
+        raise RunnerError("A D-1 premarket pool signal_date is not prior to target")
+    receipt_path = _a_research_receipt_path(research_panel_receipt_root, signal_date)
     try:
         receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
     except (OSError, UnicodeError, ValueError) as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt unreadable") from error
+        raise RunnerError("A research-panel receipt unreadable") from error
     if not isinstance(receipt, Mapping):
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt status must be READY")
+        raise RunnerError("A research-panel receipt status must be READY")
     if receipt.get("status") == "READY":
         receipt_payload: Mapping[str, Any] = receipt
         receipt_date = str(receipt.get("target_date") or "").replace("-", "")
         if receipt_date != signal_date:
-            raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt target_date mismatch")
+            raise RunnerError("A research-panel receipt target_date mismatch")
     elif receipt.get("status") == "ATTEMPTED":
         receipt_date = str(receipt.get("target_date") or "").replace("-", "")
         if receipt_date != signal_date:
-            raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt target_date mismatch")
+            raise RunnerError("A research-panel receipt target_date mismatch")
         lanes = receipt.get("lanes")
         receipt_payload = lanes.get("A") if isinstance(lanes, Mapping) else None
         if not isinstance(receipt_payload, Mapping) or receipt_payload.get("status") != "READY":
-            raise _v4_global(_v4_scope, 'RunnerError')("A research-panel A lane status must be READY")
+            raise RunnerError("A research-panel A lane status must be READY")
         lane_date = str(receipt_payload.get("target_date") or "").replace("-", "")
         if lane_date != signal_date:
-            raise _v4_global(_v4_scope, 'RunnerError')("A research-panel A lane target_date mismatch")
+            raise RunnerError("A research-panel A lane target_date mismatch")
     else:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt status must be READY")
+        raise RunnerError("A research-panel receipt status must be READY")
     if any(receipt.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel receipt safety flags must be false")
+        raise RunnerError("A research-panel receipt safety flags must be false")
     if any(receipt_payload.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel A lane safety flags must be false")
+        raise RunnerError("A research-panel A lane safety flags must be false")
     formula = receipt_payload.get("formula")
     if not isinstance(formula, Mapping) or formula.get("status") != "READY":
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel formula status must be READY")
+        raise RunnerError("A research-panel formula status must be READY")
     formula_date = str(formula.get("target_date") or "").replace("-", "")
     if formula_date != signal_date:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel formula target_date mismatch")
+        raise RunnerError("A research-panel formula target_date mismatch")
     selector_value = formula.get("selector")
     if not isinstance(selector_value, str) or not selector_value.startswith("/"):
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet path missing")
+        raise RunnerError("A research-panel selector parquet path missing")
     selector_path = Path(selector_value).expanduser().resolve()
     receipt_root = Path(research_panel_receipt_root).expanduser().resolve()
     if receipt_root.name == "receipts" and receipt_root.parent.name == "research_panel_daily":
@@ -83,9 +83,9 @@ def __a_selector_name_map_body(_v4_scope, /, *, candidate_root, research_panel_r
     try:
         selector_path.relative_to(authority_root)
     except ValueError as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet outside authority root") from error
+        raise RunnerError("A research-panel selector parquet outside authority root") from error
     if not selector_path.is_file():
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet missing")
+        raise RunnerError("A research-panel selector parquet missing")
     declared_sha = str(
         formula.get("selector_sha256")
         or receipt_payload.get("selector_sha256")
@@ -93,18 +93,18 @@ def __a_selector_name_map_body(_v4_scope, /, *, candidate_root, research_panel_r
         or ""
     )
     if declared_sha:
-        if not re.fullmatch(r"[0-9a-fA-F]{64}", declared_sha) or _v4_global(_v4_scope, '_sha')(selector_path).lower() != declared_sha.lower():
-            raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet SHA mismatch")
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", declared_sha) or _sha(selector_path).lower() != declared_sha.lower():
+            raise RunnerError("A research-panel selector parquet SHA mismatch")
     try:
         import pyarrow.parquet as parquet
 
         schema = parquet.read_schema(selector_path)
     except Exception as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet unreadable") from error
+        raise RunnerError("A research-panel selector parquet unreadable") from error
     required = {"trade_date", "name"}
     column_names = set(schema.names)
     if not required.issubset(column_names) or not ({"ts_code", "raw_code"} & column_names):
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet name schema missing")
+        raise RunnerError("A research-panel selector parquet name schema missing")
     code_columns = [column for column in ("ts_code", "raw_code") if column in column_names]
     read_columns = ["trade_date", *code_columns, "name"]
     if "stock_name" in column_names:
@@ -117,42 +117,42 @@ def __a_selector_name_map_body(_v4_scope, /, *, candidate_root, research_panel_r
         )
         records = table.to_pylist()
     except Exception as error:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet unreadable") from error
+        raise RunnerError("A research-panel selector parquet unreadable") from error
     if not records:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet is empty")
+        raise RunnerError("A research-panel selector parquet is empty")
     panel_dates = {str(row.get("trade_date") or "").replace("-", "") for row in records}
     if panel_dates != {signal_date}:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector parquet max trade_date mismatch")
+        raise RunnerError("A research-panel selector parquet max trade_date mismatch")
     mapping: dict[str, str] = {}
     for row in records:
         row_date = str(row.get("trade_date") or "").replace("-", "")
         if row_date != signal_date:
             continue
         raw_code = row.get("ts_code") or row.get("raw_code")
-        code = _v4_global(_v4_scope, '_normal_code')("A_SHARE", raw_code)
+        code = _normal_code("A_SHARE", raw_code)
         name = str(row.get("name") or row.get("stock_name") or "").strip()
         if not code or not name or name == code or name == str(raw_code or "").strip():
             continue
         previous = mapping.get(code)
         if previous is not None and previous != name:
-            raise _v4_global(_v4_scope, 'RunnerError')(f"A research-panel selector name conflict: {code}")
+            raise RunnerError(f"A research-panel selector name conflict: {code}")
         mapping[code] = name
     if not mapping:
-        raise _v4_global(_v4_scope, 'RunnerError')("A research-panel selector code-name map is empty")
+        raise RunnerError("A research-panel selector code-name map is empty")
     evidence = (
         f"a_d1_premarket_pool_json={pool_path}",
-        f"a_d1_premarket_pool_sha256={_v4_global(_v4_scope, '_sha')(pool_path)}",
+        f"a_d1_premarket_pool_sha256={_sha(pool_path)}",
         f"a_research_panel_receipt={receipt_path}",
-        f"a_research_panel_receipt_sha256={_v4_global(_v4_scope, '_sha')(receipt_path)}",
+        f"a_research_panel_receipt_sha256={_sha(receipt_path)}",
         f"a_research_panel_signal_date={signal_date}",
         f"a_research_panel_selector={selector_path}",
-        f"a_research_panel_selector_sha256={_v4_global(_v4_scope, '_sha')(selector_path)}",
+        f"a_research_panel_selector_sha256={_sha(selector_path)}",
     )
     return mapping, evidence
 
 
-def __attach_a_name_authority_body(_v4_scope, /, source, *, candidate_root, research_panel_receipt_root, trade_date):
-    mapping, evidence = _v4_global(_v4_scope, '_a_selector_name_map')(
+def __attach_a_name_authority_body(source, *, candidate_root, research_panel_receipt_root, trade_date):
+    mapping, evidence = _a_selector_name_map(
         candidate_root=Path(candidate_root),
         research_panel_receipt_root=Path(research_panel_receipt_root),
         trade_date=trade_date,
@@ -161,7 +161,7 @@ def __attach_a_name_authority_body(_v4_scope, /, source, *, candidate_root, rese
     fallback_codes: list[str] = []
     for raw in source.rows:
         merged = dict(raw)
-        code = _v4_global(_v4_scope, '_normal_code')("A_SHARE", raw.get("code"))
+        code = _normal_code("A_SHARE", raw.get("code"))
         name = mapping.get(code)
         if not name:
             # A missing authority label is not a display name. Keep the

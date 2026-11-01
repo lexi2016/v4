@@ -1,16 +1,16 @@
 """stage_center.runner: tick_planning (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from stage_center.contracts import SAFETY_FLAGS
 from stage_center.scheduler import evaluate_due
 from uuid import uuid4
 import re
+from stage_center.runner import RunnerError, SlotLock, StageCenterRunner, _resolve_stage_market_scope, _slot_lock_path
 
 
-def _StageCenterRunner__backfill_runner_body(_v4_scope, /, self, run_id):
+def _StageCenterRunner__backfill_runner_body(self, run_id):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", run_id):
-        raise _v4_global(_v4_scope, 'RunnerError')("historical backfill run id is unsafe")
+        raise RunnerError("historical backfill run id is unsafe")
     base = self.config
     scoped = replace(
         base,
@@ -19,21 +19,21 @@ def _StageCenterRunner__backfill_runner_body(_v4_scope, /, self, run_id):
         receipt_root=base.receipt_root / "backfill" / run_id,
         backfill_run_id=run_id,
     )
-    return _v4_global(_v4_scope, 'StageCenterRunner')(scoped, collectors=self.collectors)
+    return StageCenterRunner(scoped, collectors=self.collectors)
 
 
-def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *, stage_id, historical_backfill, historical_markets, _skip_precapture):
+def _StageCenterRunner_tick_body(self, trade_date, evaluated_at, *, stage_id, historical_backfill, historical_markets, _skip_precapture):
     if historical_markets is not None:
         if not historical_backfill:
-            raise _v4_global(_v4_scope, 'RunnerError')(
+            raise RunnerError(
                 "historical market allowlist requires historical_backfill"
             )
         if stage_id is None:
-            raise _v4_global(_v4_scope, 'RunnerError')(
+            raise RunnerError(
                 "historical market allowlist requires one explicit stage"
             )
         # Validate before Stage-8 pre-capture or any other producer can run.
-        _v4_global(_v4_scope, '_resolve_stage_market_scope')(
+        _resolve_stage_market_scope(
             stage_id,
             trade_date,
             historical_backfill=historical_backfill,
@@ -89,7 +89,7 @@ def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *
     if historical_backfill:
         backfill_run_id = uuid4().hex
         runner = self._backfill_runner(backfill_run_id)
-    lock = _v4_global(_v4_scope, 'SlotLock')(_v4_global(_v4_scope, '_slot_lock_path')(runner.config, trade_date, stage_id))
+    lock = SlotLock(_slot_lock_path(runner.config, trade_date, stage_id))
     if not lock.acquire():
         return runner._write_receipt({"status": "SKIPPED_SLOT_LOCKED", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "write_performed": False}, trade_date, stage_id)
     try:

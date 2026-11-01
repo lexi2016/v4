@@ -1,12 +1,12 @@
 """domains.preselection: review_fupan (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from infrastructure.preselection_pool_store import POOL_ORDER
 from infrastructure.review_core_fupan_pool_source import load_review_core_fupan_pool
 from typing import Mapping
+from domains.preselection import _dedupe_by_symbol, _market, _market_totals, _project_independent_pools, _replace_review_core_fupan_pool, _usable_review_core_fupan_pool
 
 
-def __replace_review_core_fupan_pool_body(_v4_scope, /, pools, trade_date):
+def __replace_review_core_fupan_pool_body(pools, trade_date):
     """Replace the V4-local fupan artifact with the exact Review Core DTO."""
 
     if not any(pool.get("pool_id") == "a_d1_fupan_watchlist_pool" for pool in pools):
@@ -16,7 +16,7 @@ def __replace_review_core_fupan_pool_body(_v4_scope, /, pools, trade_date):
     # zero-row response must not erase an already verified native observation
     # pool.  Only an exact-date, safety-clean READY/PARTIAL response with rows
     # may supersede the local artifact.
-    if not _v4_global(_v4_scope, '_usable_review_core_fupan_pool')(review_core_pool, trade_date):
+    if not _usable_review_core_fupan_pool(review_core_pool, trade_date):
         return pools
     return [
         review_core_pool if pool.get("pool_id") == "a_d1_fupan_watchlist_pool" else pool
@@ -24,7 +24,7 @@ def __replace_review_core_fupan_pool_body(_v4_scope, /, pools, trade_date):
     ]
 
 
-def __usable_review_core_fupan_pool_body(_v4_scope, /, pool, trade_date):
+def __usable_review_core_fupan_pool_body(pool, trade_date):
     if not isinstance(pool, Mapping):
         return False
     if pool.get("pool_id") != "a_d1_fupan_watchlist_pool":
@@ -59,7 +59,7 @@ def __usable_review_core_fupan_pool_body(_v4_scope, /, pool, trade_date):
     return True
 
 
-def __replace_payload_review_core_fupan_pool_body(_v4_scope, /, payload, trade_date):
+def __replace_payload_review_core_fupan_pool_body(payload, trade_date):
     """Apply the same exact-date replacement to a legacy payload projection."""
 
     pools = payload.get("pools")
@@ -68,17 +68,17 @@ def __replace_payload_review_core_fupan_pool_body(_v4_scope, /, payload, trade_d
         for pool in pools
     ):
         return payload
-    replaced = _v4_global(_v4_scope, '_replace_review_core_fupan_pool')([dict(pool) for pool in pools], trade_date)
+    replaced = _replace_review_core_fupan_pool([dict(pool) for pool in pools], trade_date)
     if [pool.get("pool_id") for pool in replaced] == list(POOL_ORDER):
-        projected = _v4_global(_v4_scope, '_project_independent_pools')(replaced, trade_date)
+        projected = _project_independent_pools(replaced, trade_date)
         restored = dict(payload)
         restored.update(projected)
         return restored
     restored = dict(payload)
     restored["pools"] = replaced
     restored["rows"] = [row for pool in replaced for row in pool.get("rows", [])]
-    restored["a_all_pool_rows"] = _v4_global(_v4_scope, '_dedupe_by_symbol')(
-        row for row in restored["rows"] if _v4_global(_v4_scope, '_market')(row) == "A"
+    restored["a_all_pool_rows"] = _dedupe_by_symbol(
+        row for row in restored["rows"] if _market(row) == "A"
     )
     main = next(
         (pool for pool in replaced if pool.get("pool_id") == "a_d1_premarket_pool"),
@@ -90,5 +90,5 @@ def __replace_payload_review_core_fupan_pool_body(_v4_scope, /, payload, trade_d
         row for row in restored["a_all_pool_rows"]
         if str(row.get("symbol") or row.get("code") or "") not in main_symbols
     ]
-    restored["market_totals"] = _v4_global(_v4_scope, '_market_totals')(restored["rows"])
+    restored["market_totals"] = _market_totals(restored["rows"])
     return restored

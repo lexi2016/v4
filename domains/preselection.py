@@ -153,7 +153,6 @@ def date_catalog(
             # caller; nested projections are treated as read-only.
             return dict(cached[1])
     value = _v4_impl(
-        globals(),
         store,
         current_date=current_date,
         stage_selection_root=stage_selection_root,
@@ -177,7 +176,7 @@ def _verified_stage_artifact_catalog(
     No date or stage artifact is copied into the data store.
     """
     from domains._preselection_parts.date_catalog import __verified_stage_artifact_catalog_body as _v4_impl
-    return _v4_impl(globals(), stage_selection_root)
+    return _v4_impl(stage_selection_root)
 
 
 def _verified_independent_pool_dates(
@@ -194,7 +193,6 @@ def _verified_independent_pool_dates(
     """
     from domains._preselection_parts.date_catalog import __verified_independent_pool_dates_body as _v4_impl
     return _v4_impl(
-        globals(),
         store,
         preselection_source_root=preselection_source_root,
         include_evidence=include_evidence,
@@ -214,7 +212,6 @@ def preselection(
     from infrastructure import preselection_pool_sources as pool_source_reader
     import infrastructure.preselection_pool_store as pool_store_api
 
-    scope = globals()
     pool_read_evidence: dict[str, Any] = {}
 
     class _ResolvedPoolStore:
@@ -363,14 +360,13 @@ def preselection(
                 raise FileNotFoundError(date)
             return pools
 
-    scope = {**scope, "PreselectionPoolStore": _ResolvedPoolStore}
     response = _v4_impl(
-        scope,
         store,
         date,
         limit,
         offset=offset,
         allow_legacy_flat=allow_legacy_flat,
+        pool_store_class=_ResolvedPoolStore,
     )
     evidence = pool_read_evidence.get(str(date))
     if evidence is not None:
@@ -451,7 +447,7 @@ def _complete_independent_pool_set(
     verified lane cannot hide the other lanes or force a cross-date fallback.
     """
     from domains._preselection_parts.independent_projection import __complete_independent_pool_set_body as _v4_impl
-    return _v4_impl(globals(), pools, trade_date)
+    return _v4_impl(pools, trade_date)
 
 
 def _replace_review_core_fupan_pool(
@@ -459,12 +455,12 @@ def _replace_review_core_fupan_pool(
 ) -> list[dict[str, Any]]:
     """Replace the V4-local fupan artifact with the exact Review Core DTO."""
     from domains._preselection_parts.review_fupan import __replace_review_core_fupan_pool_body as _v4_impl
-    return _v4_impl(globals(), pools, trade_date)
+    return _v4_impl(pools, trade_date)
 
 
 def _usable_review_core_fupan_pool(pool: Mapping[str, Any], trade_date: str) -> bool:
     from domains._preselection_parts.review_fupan import __usable_review_core_fupan_pool_body as _v4_impl
-    return _v4_impl(globals(), pool, trade_date)
+    return _v4_impl(pool, trade_date)
 
 
 def _replace_payload_review_core_fupan_pool(
@@ -472,7 +468,7 @@ def _replace_payload_review_core_fupan_pool(
 ) -> dict[str, Any]:
     """Apply the same exact-date replacement to a legacy payload projection."""
     from domains._preselection_parts.review_fupan import __replace_payload_review_core_fupan_pool_body as _v4_impl
-    return _v4_impl(globals(), payload, trade_date)
+    return _v4_impl(payload, trade_date)
 
 
 def _replace_review_core_stage7_pool(
@@ -480,13 +476,13 @@ def _replace_review_core_stage7_pool(
 ) -> list[dict[str, Any]]:
     """Replace the native Stage7 artifact only with a verified external DTO."""
     from domains._preselection_parts.review_stage7 import __replace_review_core_stage7_pool_body as _v4_impl
-    return _v4_impl(globals(), pools, trade_date)
+    return _v4_impl(pools, trade_date)
 
 
 def _usable_review_core_stage7_pool(pool: Mapping[str, Any], trade_date: str) -> bool:
     """Accept only an exact, safety-clean, non-empty Review Core Stage7 DTO."""
     from domains._preselection_parts.review_stage7 import __usable_review_core_stage7_pool_body as _v4_impl
-    return _v4_impl(globals(), pool, trade_date)
+    return _v4_impl(pool, trade_date)
 
 
 def _replace_payload_review_core_stage7_pool(
@@ -494,12 +490,12 @@ def _replace_payload_review_core_stage7_pool(
 ) -> dict[str, Any]:
     """Apply the same exact-date Stage7 replacement to a legacy payload."""
     from domains._preselection_parts.review_stage7 import __replace_payload_review_core_stage7_pool_body as _v4_impl
-    return _v4_impl(globals(), payload, trade_date)
+    return _v4_impl(payload, trade_date)
 
 
 def _project_independent_pools(pools: list[dict[str, Any]], trade_date: str) -> dict[str, Any]:
     from domains._preselection_parts.independent_projection import __project_independent_pools_body as _v4_impl
-    return _v4_impl(globals(), pools, trade_date)
+    return _v4_impl(pools, trade_date)
 
 
 _POOL_ORDER = (
@@ -536,7 +532,7 @@ def _restore_flat_migration_contract(payload: dict[str, Any]) -> dict[str, Any]:
     partial migration is canonical and it never fabricates candidate rows.
     """
     from domains._preselection_parts.source_validation import __restore_flat_migration_contract_body as _v4_impl
-    return _v4_impl(globals(), payload)
+    return _v4_impl(payload)
 
 
 def _canonical_a_code(value: Any) -> str:
@@ -574,19 +570,19 @@ def _market(row: dict[str, Any]) -> str:
 
 def _dedupe_by_symbol(rows: Any) -> list[dict[str, Any]]:
     from domains._preselection_parts.pool_assembly import __dedupe_by_symbol_body as _v4_impl
-    return _v4_impl(globals(), rows)
+    return _v4_impl(rows)
 
 
 def _ensure_source_contract(row: dict[str, Any]) -> None:
     """Fill the evidenced old-V3 source fields without changing row values."""
     from domains._preselection_parts.source_validation import __ensure_source_contract_body as _v4_impl
-    return _v4_impl(globals(), row)
+    return _v4_impl(row)
 
 
 def _merge_source_contract(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     """Merge provenance while keeping the first row's rank, score, and name."""
     from domains._preselection_parts.source_validation import __merge_source_contract_body as _v4_impl
-    return _v4_impl(globals(), target, incoming)
+    return _v4_impl(target, incoming)
 
 
 def _pool_source_metadata(row: dict[str, Any]) -> tuple[str, str, str]:
@@ -596,7 +592,7 @@ def _pool_source_metadata(row: dict[str, Any]) -> tuple[str, str, str]:
 
 def _metadata_values(value: Any) -> list[str]:
     from domains._preselection_parts.pagination_metadata import __metadata_values_body as _v4_impl
-    return _v4_impl(globals(), value)
+    return _v4_impl(value)
 
 
 def _ordered_metadata_values(values: Any) -> list[str]:
@@ -624,7 +620,7 @@ def _input_fingerprint(pools: Any, trade_date: str) -> str:
     creates or binds a new producer artifact.
     """
     from domains._preselection_parts.pagination_metadata import __input_fingerprint_body as _v4_impl
-    return _v4_impl(globals(), pools, trade_date)
+    return _v4_impl(pools, trade_date)
 
 
 def _blocked(date: str, reason: str) -> dict[str, Any]:
@@ -685,12 +681,12 @@ def _page_metadata(
     status: str = "",
 ) -> dict[str, Any]:
     from domains._preselection_parts.pagination_metadata import __page_metadata_body as _v4_impl
-    return _v4_impl(globals(), rows, limit=limit, offset=offset, status=status)
+    return _v4_impl(rows, limit=limit, offset=offset, status=status)
 
 
 def _market_buckets(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     from domains._preselection_parts.pagination_metadata import __market_buckets_body as _v4_impl
-    return _v4_impl(globals(), rows)
+    return _v4_impl(rows)
 
 
 def _page_per_market(rows: list[dict[str, Any]], limit: int, offset: int = 0) -> list[dict[str, Any]]:

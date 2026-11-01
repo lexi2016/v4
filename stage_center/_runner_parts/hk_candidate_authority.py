@@ -1,13 +1,13 @@
 """stage_center.runner: hk_candidate_authority (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 from typing import Mapping
 import csv
 import json
+from stage_center.runner import HK_CONTINUATION_STAGES, HK_STATIC_LANES, RunnerError, _is_code_display_name, _normal_code, _read_bound_prior_hk_d1_payload, _validate_hk_d1, _validate_hk_second_filter, _validated_hk_binding_evidence
 
 
-def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, preselection_source_root, trade_date, stage_id, hk_binding):
+def __attach_hk_authority_body(source, *, d1_root, second_root, preselection_source_root, trade_date, stage_id, hk_binding):
     """Overlay only exact D-1/second-filter fields onto acquired HK rows.
 
     Fixed-pool acquisition rows alone do not prove a V3 lane.  D-1 contributes
@@ -19,36 +19,36 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         hk_binding is not None
         and hk_binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION"
     ):
-        d1_path, d1_payload, d1_sha = _v4_global(_v4_scope, '_read_bound_prior_hk_d1_payload')(
+        d1_path, d1_payload, d1_sha = _read_bound_prior_hk_d1_payload(
             hk_binding,
             d1_root=d1_root,
             preselection_source_root=preselection_source_root,
         )
     else:
         if hk_binding is not None:
-            _v4_global(_v4_scope, '_validated_hk_binding_evidence')(hk_binding, trade_date)
-        d1_path, d1_sha = _v4_global(_v4_scope, '_validate_hk_d1')(
+            _validated_hk_binding_evidence(hk_binding, trade_date)
+        d1_path, d1_sha = _validate_hk_d1(
             d1_root, trade_date, preselection_source_root=preselection_source_root
         )
         if hk_binding is not None and d1_sha != hk_binding.sha256:
-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact binding SHA changed before authority overlay")
+            raise RunnerError("HK D1 exact binding SHA changed before authority overlay")
         d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
     d1_rows = d1_payload.get("rows", d1_payload.get("data")) or []
     authority: dict[str, Mapping[str, Any]] = {}
     for row in d1_rows:
         if not isinstance(row, Mapping):
             continue
-        code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
+        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
         authority[code] = row
     second: dict[str, Mapping[str, Any]] = {}
-    if stage_id == "STAGE_0925" or stage_id in _v4_global(_v4_scope, 'HK_CONTINUATION_STAGES'):
+    if stage_id == "STAGE_0925" or stage_id in HK_CONTINUATION_STAGES:
         if second_root is None:
             if stage_id == "STAGE_0925":
-                raise _v4_global(_v4_scope, 'RunnerError')("HK 09:25 second-filter root is required")
+                raise RunnerError("HK 09:25 second-filter root is required")
         else:
             try:
-                csv_path, _acceptance, _sha_value = _v4_global(_v4_scope, '_validate_hk_second_filter')(second_root, trade_date)
-            except _v4_global(_v4_scope, 'RunnerError'):
+                csv_path, _acceptance, _sha_value = _validate_hk_second_filter(second_root, trade_date)
+            except RunnerError:
                 # The continuation lane is an optional overlay for ordinary
                 # stages.  A missing/stale exact-date artifact must not make
                 # the live stage unusable, and it must never be replaced by
@@ -58,7 +58,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
             else:
                 with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
                     for row in csv.DictReader(stream):
-                        code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
+                        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
                         second[code] = row
     rows: list[dict[str, Any]] = []
     payload_model_id = (
@@ -77,7 +77,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         return ""
 
     for raw in source.rows:
-        code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", raw.get("code"))
+        code = _normal_code("HK_CONNECT", raw.get("code"))
         merged = dict(raw)
         base = authority.get(code)
         if base:
@@ -93,11 +93,11 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
                 (
                     base.get(key)
                     for key in ("name", "stock_name", "security_name", "display_name")
-                    if not _v4_global(_v4_scope, '_is_code_display_name')(base.get(key), code)
+                    if not _is_code_display_name(base.get(key), code)
                 ),
                 None,
             )
-            if not _v4_global(_v4_scope, '_is_code_display_name')(authority_name, code):
+            if not _is_code_display_name(authority_name, code):
                 merged["name"] = authority_name
                 merged["stock_name"] = authority_name
             else:
@@ -105,7 +105,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
                     (
                         merged.get(key)
                         for key in ("name", "stock_name", "security_name", "display_name")
-                        if not _v4_global(_v4_scope, '_is_code_display_name')(merged.get(key), code)
+                        if not _is_code_display_name(merged.get(key), code)
                     ),
                     code,
                 )
@@ -141,7 +141,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
                 (
                     merged.get(key)
                     for key in ("name", "stock_name", "security_name", "display_name")
-                    if not _v4_global(_v4_scope, '_is_code_display_name')(merged.get(key), code)
+                    if not _is_code_display_name(merged.get(key), code)
                 ),
                 code,
             )
@@ -159,7 +159,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         static_lanes = [
             str(item)
             for item in (base.get("candidate_lanes") or ())
-            if str(item) in _v4_global(_v4_scope, 'HK_STATIC_LANES')
+            if str(item) in HK_STATIC_LANES
         ] if base else []
         merged["candidate_lanes"] = list(dict.fromkeys([*live_lanes, *static_lanes]))
         if code in second:

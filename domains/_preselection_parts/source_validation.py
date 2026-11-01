@@ -1,9 +1,9 @@
 """domains.preselection: source_validation (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
+from domains.preselection import _POOL_NAMES, _POOL_ORDER, _dedupe_by_symbol, _ensure_source_contract, _market, _metadata_values, _ordered_metadata_values, _pool_source_metadata
 
 
-def __restore_flat_migration_contract_body(_v4_scope, /, payload):
+def __restore_flat_migration_contract_body(payload):
     """Project the one-time flat import back into the old V3 pool contract.
 
     This is a read-only compatibility projection.  It does not claim that a
@@ -21,14 +21,14 @@ def __restore_flat_migration_contract_body(_v4_scope, /, payload):
             grouped.setdefault(pool_id, []).append(row)
 
     restored_pools = []
-    pool_ids = [pool_id for pool_id in _v4_global(_v4_scope, '_POOL_ORDER') if grouped.get(pool_id)]
+    pool_ids = [pool_id for pool_id in _POOL_ORDER if grouped.get(pool_id)]
     pool_ids.extend(sorted(set(grouped) - set(pool_ids)))
     for pool_id in pool_ids:
         pool_rows = grouped[pool_id]
-        markets = {_v4_global(_v4_scope, '_market')(row) for row in pool_rows}
+        markets = {_market(row) for row in pool_rows}
         restored_pools.append({
             "pool_id": pool_id,
-            "display_name": _v4_global(_v4_scope, '_POOL_NAMES').get(pool_id, pool_id),
+            "display_name": _POOL_NAMES.get(pool_id, pool_id),
             "market": markets.pop() if len(markets) == 1 else "MIXED",
             "pool_size": len(pool_rows),
             "returned_rows": len(pool_rows),
@@ -36,17 +36,17 @@ def __restore_flat_migration_contract_body(_v4_scope, /, payload):
         })
 
     main_rows = grouped.get("a_d1_premarket_pool", [])
-    all_a_rows = _v4_global(_v4_scope, '_dedupe_by_symbol')(
+    all_a_rows = _dedupe_by_symbol(
         row for pool_id in pool_ids if pool_id != "hkconnect_d1_top100"
         for row in grouped.get(pool_id, [])
-        if _v4_global(_v4_scope, '_market')(row) == "A"
+        if _market(row) == "A"
     )
     main_symbols = {str(row.get("symbol") or row.get("code") or "") for row in main_rows}
     source_only_rows = [
         row for row in all_a_rows
         if str(row.get("symbol") or row.get("code") or "") not in main_symbols
     ]
-    hk_rows = _v4_global(_v4_scope, '_dedupe_by_symbol')(row for row in rows if _v4_global(_v4_scope, '_market')(row) == "HK")
+    hk_rows = _dedupe_by_symbol(row for row in rows if _market(row) == "HK")
 
     restored = dict(payload)
     restored.update({
@@ -61,30 +61,30 @@ def __restore_flat_migration_contract_body(_v4_scope, /, payload):
     return restored
 
 
-def __ensure_source_contract_body(_v4_scope, /, row):
+def __ensure_source_contract_body(row):
     """Fill the evidenced old-V3 source fields without changing row values."""
 
-    source_tag, source_suffix, source_lane = _v4_global(_v4_scope, '_pool_source_metadata')(row)
+    source_tag, source_suffix, source_lane = _pool_source_metadata(row)
     if not row.get("display_name") and source_suffix:
         stock_name = str(row.get("stock_name") or row.get("name") or row.get("symbol") or "")
         row["display_name"] = f"{stock_name}{source_suffix}"
-    if not _v4_global(_v4_scope, '_metadata_values')(row.get("source_tag")) and source_tag:
+    if not _metadata_values(row.get("source_tag")) and source_tag:
         row["source_tag"] = source_tag
-    if not _v4_global(_v4_scope, '_metadata_values')(row.get("source_tags")) and source_suffix:
+    if not _metadata_values(row.get("source_tags")) and source_suffix:
         row["source_tags"] = source_suffix
-    if not _v4_global(_v4_scope, '_metadata_values')(row.get("source_lanes")) and source_lane:
+    if not _metadata_values(row.get("source_lanes")) and source_lane:
         row["source_lanes"] = source_lane
 
 
-def __merge_source_contract_body(_v4_scope, /, target, incoming):
+def __merge_source_contract_body(target, incoming):
     """Merge provenance while keeping the first row's rank, score, and name."""
 
-    _v4_global(_v4_scope, '_ensure_source_contract')(target)
+    _ensure_source_contract(target)
     incoming_row = dict(incoming)
-    _v4_global(_v4_scope, '_ensure_source_contract')(incoming_row)
+    _ensure_source_contract(incoming_row)
     for field in ("source_tags", "source_lanes", "source_trace"):
-        values = _v4_global(_v4_scope, '_ordered_metadata_values')(
-            [*_v4_global(_v4_scope, '_metadata_values')(target.get(field)), *_v4_global(_v4_scope, '_metadata_values')(incoming_row.get(field))]
+        values = _ordered_metadata_values(
+            [*_metadata_values(target.get(field)), *_metadata_values(incoming_row.get(field))]
         )
         if values:
             target[field] = " / ".join(values)

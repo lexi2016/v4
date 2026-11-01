@@ -1,12 +1,12 @@
 """stage_center.runner: a_candidate_authority (review candidate, not deployment)."""
 from __future__ import annotations
-from ._namespace import read_global as _v4_global
 from dataclasses import replace
 import csv
 import re
+from stage_center.runner import _FORMAL_AUTHORITY_OVERLAY_PROOF, _normal_code, _validate_formal_input
 
 
-def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
+def __attach_a_authority_body(source, *, formal_root, trade_date):
     """Overlay exact formal-pool metadata onto a selection-only copy.
 
     The acquisition artifact remains untouched.  ``pool_score`` and
@@ -14,7 +14,7 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
     verified formal CSV instead of inferred from the 125-code acquisition
     universe or defaulted to zero.
     """
-    csv_path, _manifest_path, _csv_sha = _v4_global(_v4_scope, '_validate_formal_input')(formal_root, trade_date)
+    csv_path, _manifest_path, _csv_sha = _validate_formal_input(formal_root, trade_date)
     authority: dict[str, Mapping[str, Any]] = {}
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
         for row in csv.DictReader(stream):
@@ -26,7 +26,7 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
             authority[f"A.{match.group(1)}"] = row
     enriched: list[dict[str, Any]] = []
     for raw in source.rows:
-        code = _v4_global(_v4_scope, '_normal_code')("A_SHARE", raw.get("code"))
+        code = _normal_code("A_SHARE", raw.get("code"))
         merged = dict(raw)
         # This private marker is created only by this verified exact-date
         # overlay.  Remove any inherited value before assigning the result so
@@ -43,7 +43,7 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
             merged["pool_score"] = metadata.get("score") or metadata.get("pool_score") or 0.0
             merged["candidate"] = {"score": merged["pool_score"]}
             merged["_formal_authority_overlay_verified"] = True
-            merged["_formal_authority_overlay_proof"] = _v4_global(_v4_scope, '_FORMAL_AUTHORITY_OVERLAY_PROOF')
+            merged["_formal_authority_overlay_proof"] = _FORMAL_AUTHORITY_OVERLAY_PROOF
             merged["lane_evidence"] = list(dict.fromkeys([*(merged.get("lane_evidence") or ()), "A_SHARE_FORMAL_POOL"]))
         else:
             # Formal membership is an authority overlay, never a default for
