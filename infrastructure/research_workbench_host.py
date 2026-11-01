@@ -111,7 +111,27 @@ def checked_confirmed_gap(binding, identity):
     import pyarrow as pa
     import pyarrow.parquet as pq
     policy=checked(gap['contract']); fields=policy.get('new_fields',{}); keys=policy.get('diagnostic_keys',[])
-    if (policy.get('schema')!='a_share_kb_confirmed_gap_v1' or len(fields)!=8 or len(keys)!=24
+    n_binding=binding.get('n_structure')
+    if n_binding is not None:
+        contract=checked(n_binding['contract']);receipt=checked(n_binding['receipt'])
+        checkpoint=checked(n_binding['checkpoint']);checked_bytes(n_binding['values'])
+        item=receipt.get('symbols',{}).get(binding['symbol'],{})
+        if (contract.get('schema')!='a_share_kb_n_structure_v1' or contract.get('research_only') is not True
+            or any(contract.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
+            or identity.get('n_structure_contract_sha256')!=n_binding['contract']['sha256']
+            or identity.get('n_structure_helper_sha256')!=receipt.get('helper_sha256')
+            or receipt.get('contract_sha256')!=n_binding['contract']['sha256']
+            or receipt.get('source_generation')!=binding['source_generation']
+            or receipt.get('source_input_sha256')!=binding['source_input_sha256']
+            or receipt.get('snapshot_file_sha256')!=identity.get('snapshot_sha256')
+            or item.get('source_candidate_generation')!=identity.get('n_structure_prior_candidate_generation')
+            or item.get('n_values_sha256')!=n_binding['values']['sha256']
+            or item.get('checkpoint_file_sha256')!=n_binding['checkpoint']['sha256']
+            or checkpoint.get('checkpoint_sha256')!=item.get('checkpoint_state_sha256')
+            or checkpoint.get('symbol')!=binding['symbol']):
+            raise ValueError('SINGLE_N_SOURCE_IDENTITY_CONFLICT')
+        keys=[*keys,'kb_n_structure']
+    if (policy.get('schema')!='a_share_kb_confirmed_gap_v1' or len(fields)!=8 or len(keys)!=(25 if n_binding else 24)
         or identity.get('confirmed_gap_contract_sha256')!=gap['contract']['sha256']
         or gap.get('calendar_sha256') is not None or gap.get('calendar_status')!='CANNOT_CONFIRM'
         or any(policy.get(k)!=v for k,v in FLAGS.items())):
@@ -119,6 +139,9 @@ def checked_confirmed_gap(binding, identity):
     old_gate=checked(gap['prior_source_gate']);new_gate=checked(binding['source_gate_receipt'])
     required_sources={'ops/research_panel_qfq.py','ops/kb_signal_authority.py','ops/kb_confirmed_gap.py',
                       'ops/kb_panel_rebuild_brick.py','ops/kb_panel_signal_components.py'}
+    if n_binding:
+        required_sources.update({'ops/kb_hold_score.py','contracts/a_share_kb_hold_score_v1.json',
+                                 'ops/kb_n_structure.py','contracts/a_share_kb_n_structure_v1.json'})
     if (old_gate.get('status')!='PASS_RELOCATED_SOURCE_GATE' or new_gate.get('status')!='PASS_RELOCATED_SOURCE_GATE'
         or new_gate.get('matches_frozen_input_sha256') is not True or not required_sources.issubset(new_gate.get('source_code_refs',{}))
         or new_gate.get('prior_source_gate')!=gap['prior_source_gate']
@@ -148,12 +171,29 @@ def checked_confirmed_gap(binding, identity):
         or meta.get('calendar_sha256') is not None or meta.get('calendar_status')!='CANNOT_CONFIRM'
         or set(meta.get('diagnostic_keys',[]))!=set(keys)):
         raise ValueError('SINGLE_CONFIRMED_GAP_DIAGNOSTIC_IDENTITY_CONFLICT')
+    if n_binding and (meta.get('n_structure_enabled') is not True
+        or meta.get('n_structure_contract_sha256')!=n_binding['contract']['sha256']
+        or meta.get('n_structure_helper_sha256')!=identity.get('n_structure_helper_sha256')):
+        raise ValueError('SINGLE_N_DIAGNOSTIC_IDENTITY_CONFLICT')
+    n_values=pq.read_table(pa.BufferReader(checked_bytes(n_binding['values']))).to_pylist() if n_binding else None
+    if n_values is not None and len(n_values)!=len(sidecar):
+        raise ValueError('SINGLE_N_VALUES_LENGTH_CONFLICT')
     rows=sidecar.to_pylist(); dates=[]; seen_dates=set()
-    for row in rows:
+    for i,row in enumerate(rows):
         date=str(row['trade_date']);diag=json.loads(row['diagnostics_json']);prefix=row['prefix_input_sha256']
         if (row['ts_code']!=binding['symbol'] or len(date)!=8 or not date.isdigit() or date in seen_dates
             or set(diag)!=set(keys) or not isinstance(prefix,str) or not re.fullmatch(r'[0-9a-f]{64}',prefix)):
             raise ValueError('SINGLE_CONFIRMED_GAP_DIAGNOSTIC_ROW_CONFLICT')
+        if n_values is not None:
+            source=n_values[i];n=diag['kb_n_structure']
+            if (source.get('ts_code')!=binding['symbol'] or str(source.get('trade_date'))!=date
+                or json.loads(source['kb_n_structure_json'])!=n
+                or n.get('rule_sha256')!=n_binding['contract']['sha256']
+                or n.get('helper_sha256')!=identity['n_structure_helper_sha256']
+                or n.get('input_sha256')!=binding['source_input_sha256']
+                or n.get('generation_id')!=binding['source_generation']
+                or n.get('prefix_input_sha256')!=source.get('prefix_input_sha256')):
+                raise ValueError('SINGLE_N_DIAGNOSTIC_ROW_CONFLICT')
         dates.append(date);seen_dates.add(date)
     if dates!=sorted(dates):raise ValueError('SINGLE_CONFIRMED_GAP_DATES_NOT_ORDERED')
     roles=binding['display_projection']['roles']; tables={}
@@ -166,8 +206,24 @@ def checked_confirmed_gap(binding, identity):
     for name in [*fields,'kb_rebuild']:
         if not tables['selector'][name].equals(tables['backtest'][name]):
             raise ValueError('SINGLE_CONFIRMED_GAP_ROLE_VALUES_CONFLICT:'+name)
+    if n_values is not None:
+        score_names=['kb_hold_close_up','kb_hold_above_bbi','kb_hold_volume_ok','kb_hold_trend_up','kb_hold_j_not_dead',
+                     'kb_hold_trend_up_reason','kb_hold_score','kb_hold_score_min','kb_hold_score_max','kb_hold_score_status']
+        for name in score_names:
+            if not tables['selector'][name].equals(tables['backtest'][name]):
+                raise ValueError('SINGLE_N_ROLE_SCORE_CONFLICT:'+name)
+        scored=tables['selector'].select(score_names).to_pylist()
+        for source,score in zip(n_values,scored):
+            values=[score[name] for name in score_names[:5]];lo=sum(v is True for v in values);unknown=sum(v is None for v in values)
+            if (score['kb_hold_trend_up']!=source['kb_hold_trend_up']
+                or score['kb_hold_trend_up_reason']!=source['kb_hold_trend_up_reason']
+                or score['kb_hold_score_min']!=lo or score['kb_hold_score_max']!=lo+unknown
+                or score['kb_hold_score']!=(lo if not unknown else None)
+                or score['kb_hold_score_status']!=('COMPLETE' if not unknown else 'PARTIAL_UNKNOWN')):
+                raise ValueError('SINGLE_N_SCORE_VALUE_CONFLICT')
     return {'contract_sha256':gap['contract']['sha256'],'diagnostics_sha256':gap['diagnostics']['sha256'],
-            'fields':sorted(fields),'calendar_status':'CANNOT_CONFIRM'}
+            'fields':sorted(fields),'calendar_status':'CANNOT_CONFIRM',
+            'n_structure_contract_sha256':n_binding['contract']['sha256'] if n_binding else None}
 
 
 def checked_relocated_parquet(reference, relocation_ref):
@@ -243,7 +299,13 @@ class ResearchWorkbenchHost:
 
     def single_stock_research(self,source_date,symbol,revision=None):
         """A separately bound, precomputed single-stock research artifact."""
-        if source_date!='2026-10-30' or symbol not in {'002865.SZ','301048.SZ'}:raise KeyError('SINGLE_STOCK_NOT_BOUND')
+        if (source_date=='2026-10-30' and symbol not in {'002865.SZ','301048.SZ','300206.SZ'}
+                and self.binding.get('top200_research_panel_r3')):
+            from infrastructure.research_workbench_top200 import metadata as scoped_metadata
+            p=self._view(source_date,revision)
+            scoped=scoped_metadata(self.binding,p,self.top200(source_date,revision),source_date,symbol,self._observation_date(source_date))
+            if scoped is not None:return scoped
+        if source_date!='2026-10-30' or symbol not in {'002865.SZ','301048.SZ','300206.SZ'}:raise KeyError('SINGLE_STOCK_NOT_BOUND')
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         ref=self.binding.get('single_stock_research_by_symbol',{}).get(symbol)
         if not ref and symbol=='002865.SZ':ref=self.binding.get('single_stock_research')
@@ -356,8 +418,13 @@ class ResearchWorkbenchHost:
             signal_component_facts_sha256=identity.get('signal_component_facts_sha256'),
             assets=rendered,**FLAGS)
 
-    def single_stock_asset(self,source_date,symbol,kind,digest,revision=None):
+    def single_stock_asset(self,source_date,symbol,kind,digest,revision=None,panel_revision=None):
         metadata=self.single_stock_research(source_date,symbol,revision)
+        if metadata.get('schema')=='v4.workbench.scoped_kb_research.v1':
+            if panel_revision!=metadata['panel_generation']:raise ValueError('SCOPED_PANEL_REVISION_CONFLICT')
+            from infrastructure.research_workbench_top200 import asset as scoped_asset
+            return scoped_asset(self.binding,self._view(source_date,revision),self.top200(source_date,revision),source_date,symbol,kind,digest)
+        if panel_revision is not None:raise ValueError('SCOPED_PANEL_REVISION_CONFLICT')
         if kind not in {'kb','projection','html','history','company'}:raise KeyError('SINGLE_STOCK_ASSET_NOT_BOUND')
         bound=self.binding.get('single_stock_research_by_symbol',{}).get(symbol)
         if not bound and symbol=='002865.SZ':bound=self.binding['single_stock_research']
@@ -756,8 +823,8 @@ def create_workbench_router(source):
     @router.get('/days/{source_date}/single-research/{symbol}')
     def single_research(source_date:str,symbol:str,revision:str|None=None):return call('single_stock_research',source_date,symbol,revision)
     @router.get('/days/{source_date}/single-research/{symbol}/assets/{kind}')
-    def single_research_asset(source_date:str,symbol:str,kind:str,sha256:str,revision:str|None=None):
-        content,media=call('single_stock_asset',source_date,symbol,kind,sha256,revision)
+    def single_research_asset(source_date:str,symbol:str,kind:str,sha256:str,revision:str|None=None,panel_revision:str|None=None):
+        content,media=call('single_stock_asset',source_date,symbol,kind,sha256,revision,panel_revision)
         headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}
         if kind=='html':headers['Content-Security-Policy']="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
         return Response(content,media_type=media,headers=headers)

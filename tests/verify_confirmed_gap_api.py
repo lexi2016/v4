@@ -65,7 +65,18 @@ def verify(candidates):
                     view=json.loads(gzip.decompress(asset.content));last=view['rows'][-1]
                     assert view['candidate_generation']==meta['candidate_generation']
                     assert view['confirmed_gap_diagnostics_sha256']==meta['confirmed_gap']['diagnostics_sha256']
-                    assert len(last['confirmed_kb_fields'])==8 and len(last['confirmed_kb_diagnostics'])==24
+                    n_contract=meta['confirmed_gap'].get('n_structure_contract_sha256')
+                    assert len(last['confirmed_kb_fields'])==8 and len(last['confirmed_kb_diagnostics'])==(25 if n_contract else 24)
+                    if n_contract:
+                        assert view['n_structure_contract_sha256']==n_contract
+                        n=last['confirmed_kb_diagnostics']['kb_n_structure'];score=last['hold_score']
+                        assert n['rule_sha256']==n_contract
+                        if code=='002865.SZ':
+                            assert score['kb_hold_score']==score['kb_hold_score_min']==score['kb_hold_score_max']==4
+                            assert score['kb_hold_trend_up'] is False and n['state']=='STRUCTURE_NOT_RISING'
+                        else:
+                            assert score['kb_hold_score'] is None and (score['kb_hold_score_min'],score['kb_hold_score_max'])==(1,2)
+                            assert score['kb_hold_trend_up'] is None and n['state']=='AMBIGUOUS_SAME_BAR_PIVOT'
                     assert last['kb']['kb_rebuild'] is (code=='301048.SZ')
                     if code=='002865.SZ':
                         warm=next(x for x in view['rows'] if x['trade_date']==20170515)
@@ -73,7 +84,8 @@ def verify(candidates):
                         assert warm['confirmed_kb_diagnostics']['kb_brick_count_reason']=='BRICK_RUN_ORIGIN_IN_WARMUP'
                     results[code]={'candidate_generation':meta['candidate_generation'],'rows':meta['rows'],
                         'candidate_pool_member':meta['candidate_pool_member'],'kb_asset_sha256':ref['sha256'],
-                        'latest_rebuild':last['kb']['kb_rebuild'],'latest_confirmed_fields':last['confirmed_kb_fields']}
+                        'latest_rebuild':last['kb']['kb_rebuild'],'latest_confirmed_fields':last['confirmed_kb_fields'],
+                        'n_structure_contract_sha256':n_contract,'latest_hold_score':last['hold_score']}
     finally:
         wb.ResearchWorkbenchHost=original
     after=live_day()

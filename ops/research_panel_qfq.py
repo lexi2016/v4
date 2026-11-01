@@ -41,7 +41,8 @@ CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 from ops.research_panel_factor_cache import QfqGateError
 from ops.kb_signal_authority import append_kb_signals, _field_spec
-from ops.kb_hold_score import project_single_history, SUPPLEMENTAL_REASONS, SINGLE_STOCKS
+from ops.kb_hold_score import project_single_history, apply_n_score, SUPPLEMENTAL_REASONS, SINGLE_STOCKS
+from ops.kb_n_structure import project_n_history
 from ops.kb_action_authority import FIELDS as SINGLE_ACTION_FIELDS, INPUT_FIELDS as SINGLE_ACTION_INPUTS, project_action, action_rule_sha256
 from ops.kb_yidong_authority import FIELDS as SINGLE_YIDONG_FIELD_TYPES, INPUT_FIELDS as SINGLE_YIDONG_INPUTS, project_yidong_history, rule_sha256 as yidong_rule_sha256
 from ops.kb_confirmed_gap import (FIELDS as SINGLE_GAP_FIELDS, FIELD_TYPES as SINGLE_GAP_FIELD_TYPES,
@@ -233,6 +234,65 @@ def _single_gap_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
     return modes.pop()
 
 
+def _single_n_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
+    """N is opt-in metadata: its score columns also exist in legacy panels."""
+    if set(schemas) != {'selector', 'backtest'}:
+        raise QfqGateError('SINGLE_N_ROLE_SET_INVALID')
+    modes = []
+    for schema in schemas.values():
+        declarations = []
+        for key in (META_KEY, b'kb_single_candidate_v1'):
+            if key not in (schema.metadata or {}):
+                continue
+            try:
+                metadata = json.loads(schema.metadata[key])
+            except (TypeError, ValueError) as exc:
+                raise QfqGateError('SINGLE_N_METADATA_INVALID') from exc
+            if not isinstance(metadata, dict):
+                raise QfqGateError('SINGLE_N_METADATA_INVALID')
+            if 'n_structure_enabled' in metadata:
+                if not isinstance(metadata['n_structure_enabled'], bool):
+                    raise QfqGateError('SINGLE_N_MODE_INVALID')
+                declarations.append(metadata['n_structure_enabled'])
+        if len(set(declarations)) > 1:
+            raise QfqGateError('SINGLE_N_MODE_CONFLICT')
+        modes.append(declarations[0] if declarations else False)
+    if len(set(modes)) != 1:
+        raise QfqGateError('SINGLE_N_ROLE_MODE_MISMATCH')
+    if modes[0] and (not _single_feedback_pair_mode(schemas) or not _single_gap_pair_mode(schemas)):
+        raise QfqGateError('SINGLE_N_REQUIRES_FEEDBACK_AND_GAP')
+    return modes[0]
+
+
+def _n_sha256s() -> dict:
+    root = Path(__file__).resolve().parents[1]
+    return dict(n_structure_helper_sha256=sha(root / 'ops/kb_n_structure.py'),
+                n_structure_contract_sha256=sha(root / 'contracts/a_share_kb_n_structure_v1.json'))
+
+
+def _revalidate_build_identity(snapshot_file, target, source_relocation_ref, driver_path, formula_path, contract_csv,
+                               source_identity, identity, confirmed_gap_enabled, n_structure_enabled, confirmed_gap_reuse_ref):
+    if generation_identity(load_snapshot(snapshot_file, target, source_relocation_ref), driver_path, formula_path,
+                           contract_csv, source_relocation_ref) != source_identity:
+        raise QfqGateError('INPUT_CHANGED_DURING_BUILD')
+    root = Path(__file__).resolve().parents[1]
+    if confirmed_gap_enabled and (identity['confirmed_gap_contract_sha256'] != gap_rule_sha256()
+            or identity['confirmed_gap_helper_sha256'] != gap_helper_sha256s()
+            or identity['confirmed_gap_snapshot_file_sha256'] != sha(snapshot_file)
+            or identity['confirmed_gap_rebuild_contract_sha256'] != sha(root / 'contracts/a_share_kb_rebuild_brick_v1.json')
+            or identity['confirmed_gap_components_contract_sha256'] != sha(root / 'contracts/a_share_kb_signal_components_v1.json')):
+        raise QfqGateError('SINGLE_GAP_INPUT_CHANGED_DURING_BUILD')
+    if n_structure_enabled and any(identity.get(k) != v for k, v in _n_sha256s().items()):
+        raise QfqGateError('SINGLE_N_INPUT_CHANGED_DURING_BUILD')
+    if identity.get('confirmed_gap_calendar_ref'):
+        _source(identity['confirmed_gap_calendar_ref'], owner='confirmed gap final exchange calendar')
+    if confirmed_gap_reuse_ref is not None:
+        _source(confirmed_gap_reuse_ref, owner='confirmed gap final reuse descriptor')
+    for refs in identity.get('confirmed_gap_reuse_refs', {}).values():
+        for role, ref in refs.items():
+            _source(ref, owner='confirmed gap final reused ' + role)
+
+
 def sha(path: Path) -> str:
     digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
@@ -384,7 +444,7 @@ _GENERATION_TUPLE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "
     "single_score_contract_sha256", "single_supplemental_contract_sha256")
 
 
-def _release_tuple_bound(include_action: bool = False, include_yidong: bool = False, include_gap: bool = False) -> bool:
+def _release_tuple_bound(include_action: bool = False, include_yidong: bool = False, include_gap: bool = False, include_n: bool = False) -> bool:
     """Exact release inventory binds current modules/policies without a self-SHA cycle."""
     manifest = json.loads(_source(dict(path=os.environ["V4_RELEASE_MANIFEST_PATH"],
         sha256=os.environ["V4_RELEASE_MANIFEST_SHA256"]), owner="Main release inventory").read_text())
@@ -406,6 +466,8 @@ def _release_tuple_bound(include_action: bool = False, include_yidong: bool = Fa
         paths += ['ops/kb_confirmed_gap.py', 'contracts/a_share_kb_confirmed_gap_v1.json',
                   'ops/kb_panel_rebuild_brick.py', 'contracts/a_share_kb_rebuild_brick_v1.json',
                   'ops/kb_panel_signal_components.py', 'contracts/a_share_kb_signal_components_v1.json']
+    if include_n:
+        paths += ['ops/kb_n_structure.py', 'contracts/a_share_kb_n_structure_v1.json']
     return all(inventory.get(p) == sha(root / p) for p in paths)
 
 
@@ -447,14 +509,21 @@ def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
                          confirmed_gap_components_contract_sha256=sha(Path(__file__).resolve().parents[1] / 'contracts/a_share_kb_signal_components_v1.json'))
         current.update(gap_tuple)
         actual.update({key:contract.get(key) for key in gap_tuple})
+    n_enabled = contract.get('n_structure_enabled') is True
+    if n_enabled:
+        if not gap_enabled or contract.get('single_feedback_enabled') is not True:
+            return False
+        n_tuple = _n_sha256s()
+        current.update(n_tuple)
+        actual.update({key:contract.get(key) for key in n_tuple})
     if (refs[0]["sha256"] != DRIVER_SHA or refs[1]["sha256"] != FORMULA_SHA
             or actual["field_contract_sha256"] != refs[2]["sha256"]):
         return False
     if actual == current:
-        return _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled)
+        return _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled, include_n=n_enabled)
     policy_path = Path(__file__).resolve().parents[1] / "contracts/a_share_generation_compatibility.json"
     policy = json.loads(policy_path.read_text())
-    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled):
+    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled, include_gap=gap_enabled, include_n=n_enabled):
         return False
     for old in policy["accepted_old_generations"]:
         if (actual == old["module_tuple"] and contract.get("generation_id") == old["generation_id"]
@@ -2495,7 +2564,7 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
     return {**value, "binding_ref": ref}
 
 
-def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
+def _single_feedback_daily(code: str, computed: pd.DataFrame, n_rows=None) -> pd.DataFrame:
     """Append the separately bound single-stock fields on this QFQ prefix."""
     if code not in SINGLE_STOCKS:
         return computed
@@ -2503,7 +2572,13 @@ def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     if any(name not in computed for name in required):
         raise QfqGateError("SINGLE_FEEDBACK_PREFIX_MISSING_FIELDS")
     try:
-        projected = project_single_history(code, computed[required].to_dict("records"))
+        source_rows = computed[required].to_dict("records")
+        projected = project_single_history(code, source_rows)
+        if n_rows is not None:
+            identities = _n_sha256s()
+            projected = apply_n_score(code, source_rows, projected, n_rows,
+                rule_sha256=identities['n_structure_contract_sha256'],
+                helper_sha256=identities['n_structure_helper_sha256'])
     except ValueError as exc:
         raise QfqGateError("SINGLE_FEEDBACK_PREFIX_CONFLICT:" + str(exc)) from exc
     if not projected or set(projected[0]) != SINGLE_FEEDBACK_FIELDS:
@@ -2512,6 +2587,24 @@ def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     for name in SINGLE_FEEDBACK_FIELDS:
         output[name] = [row[name] for row in projected]
     return output
+
+
+def _single_n_daily(code: str, computed: pd.DataFrame, identity: dict, generation_id: str):
+    """Calculate only a registered affected stock on its complete bound prefix."""
+    if code not in SINGLE_STOCKS or any(k not in computed for k in ('trade_date', 'high', 'low', 'close')):
+        raise QfqGateError('SINGLE_N_PREFIX_MISSING:' + code)
+    hashes = _n_sha256s()
+    if any(identity.get(k) != v for k, v in hashes.items()):
+        raise QfqGateError('SINGLE_N_SOURCE_IDENTITY_CONFLICT:' + code)
+    source_identity = dict(generation_id=generation_id, input_sha256=identity['input_sha256'],
+        rule_sha256=hashes['n_structure_contract_sha256'], helper_sha256=hashes['n_structure_helper_sha256'],
+        calendar_sha256=identity.get('confirmed_gap_calendar_sha256'), price_basis_sha256=None,
+        price_basis='QFQ_ASOF')
+    try:
+        return project_n_history(code, computed[['trade_date', 'high', 'low', 'close']].to_dict('records'),
+                                 identity=source_identity)
+    except ValueError as exc:
+        raise QfqGateError('SINGLE_N_PREFIX_CONFLICT:' + code + ':' + str(exc)) from exc
 
 
 def _single_action_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
@@ -2544,7 +2637,7 @@ def _single_yidong_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     return output
 
 
-def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_root: Path, fingerprint: str, generation_id: str):
+def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_root: Path, fingerprint: str, generation_id: str, n_rows=None):
     """Write the selected stock's eight values and a separately bound sidecar."""
     if bool(identity.get('confirmed_gap_calendar_sha256')) != bool(identity.get('confirmed_gap_calendar_ref')):
         raise QfqGateError('SINGLE_GAP_CALENDAR_REFERENCE_INCOMPLETE:' + code)
@@ -2585,7 +2678,18 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
         if 'volume' not in panel.column_names or 'vol' not in backtest.column_names or not panel['volume'].equals(backtest['vol']):
             raise QfqGateError('SINGLE_GAP_REUSE_ROLE_VALUES_CONFLICT:' + code + ':volume')
         prior = panel.to_pandas().rename(columns={'volume':'vol'})
-        previous = {'frame':prior, 'sidecar':sidecar.to_pylist(), 'metadata':metadata}
+        sidecar_rows = sidecar.to_pylist()
+        if metadata.get('n_structure_enabled') is True:
+            if any(metadata.get(k) != v for k, v in _n_sha256s().items()):
+                raise QfqGateError('SINGLE_N_REUSED_SIDECAR_IDENTITY_CONFLICT:' + code)
+            for row in sidecar_rows:
+                diagnostics = json.loads(row['diagnostics_json'])
+                n = diagnostics.pop('kb_n_structure', None)
+                if (not isinstance(n, dict) or n.get('rule_sha256') != metadata['n_structure_contract_sha256']
+                        or n.get('helper_sha256') != metadata['n_structure_helper_sha256']):
+                    raise QfqGateError('SINGLE_N_REUSED_SIDECAR_VALUE_CONFLICT:' + code)
+                row['diagnostics_json'] = json.dumps(diagnostics, sort_keys=True, separators=(',', ':'))
+        previous = {'frame':prior, 'sidecar':sidecar_rows, 'metadata':metadata}
     calculation = computed.rename(columns={'volume':'vol'}) if 'vol' not in computed.columns and 'volume' in computed.columns else computed
     try:
         projected, prefix_hashes, counts = project_gap_with_reuse(calculation, prior=previous,
@@ -2595,7 +2699,12 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
     output = computed.copy()
     for name in sorted(SINGLE_GAP_FIELDS | {'kb_rebuild'}):
         output[name] = [projected[i][0][name] for i in range(len(output))]
-    records = [json.dumps(projected[i][1], ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    if n_rows is not None and (len(n_rows) != len(output) or any(
+            row.get('ts_code') != code or str(row.get('trade_date')) != str(output.trade_date.iloc[i])
+            for i, row in enumerate(n_rows))):
+        raise QfqGateError('SINGLE_N_SIDECAR_KEY_CONFLICT:' + code)
+    records = [json.dumps({**projected[i][1], **({'kb_n_structure': n_rows[i]['kb_n_structure']} if n_rows is not None else {})},
+                          ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
                for i in range(len(output))]
     table = pa.table({'ts_code':pa.array([code]*len(output), type=pa.string()),
                       'trade_date':pa.array([str(x) for x in output.trade_date], type=pa.string()),
@@ -2605,7 +2714,10 @@ def _single_gap_daily(code: str, computed: pd.DataFrame, identity: dict, parts_r
         source_input_sha256=identity['input_sha256'], freeze_snapshot_sha256=identity['confirmed_gap_snapshot_file_sha256'],
         confirmed_gap_contract_sha256=gap_rule_sha256(), helper_sha256=gap_helper_sha256s(),
         calendar_sha256=identity.get('confirmed_gap_calendar_sha256'), calendar_status=counts['calendar_status'],
-        price_basis='QFQ_ASOF', volume_basis='QFQ_EVENT_VOLUME', diagnostic_keys=list(SINGLE_GAP_DIAGNOSTICS), **FLAGS)
+        price_basis='QFQ_ASOF', volume_basis='QFQ_EVENT_VOLUME',
+        diagnostic_keys=list(SINGLE_GAP_DIAGNOSTICS) + (['kb_n_structure'] if n_rows is not None else []), **FLAGS)
+    if n_rows is not None:
+        metadata.update(n_structure_enabled=True, **_n_sha256s())
     table = table.replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(metadata, sort_keys=True).encode()})
     destination = parts_root / (code + '.gap_diagnostics.parquet')
     temporary = destination.with_suffix('.pending')
@@ -2636,6 +2748,20 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
                         or metadata.get('helper_sha256') != gap_helper_sha256s()
                         or metadata.get('freeze_snapshot_sha256') != identity.get('confirmed_gap_snapshot_file_sha256')):
                     raise QfqGateError('SINGLE_GAP_CHECKPOINT_IDENTITY_CONFLICT:' + code)
+                if identity.get('n_structure_enabled') is True:
+                    saved_n = bound.get('n_structure_checkpoint')
+                    if not saved_n or saved_n.get('checkpoint_id') != fingerprint:
+                        raise QfqGateError('SINGLE_N_CHECKPOINT_MISSING:' + code)
+                    n_checkpoint = json.loads(_source(saved_n, owner='N structure checkpoint').read_text())
+                    expected = _n_sha256s()
+                    if (metadata.get('n_structure_enabled') is not True
+                            or any(metadata.get(k) != v for k, v in expected.items())
+                            or n_checkpoint.get('symbol') != code
+                            or n_checkpoint.get('identity', {}).get('generation_id') != confirmed_gap_generation_id
+                            or n_checkpoint.get('identity', {}).get('input_sha256') != identity['input_sha256']
+                            or n_checkpoint.get('identity', {}).get('rule_sha256') != expected['n_structure_contract_sha256']
+                            or n_checkpoint.get('identity', {}).get('helper_sha256') != expected['n_structure_helper_sha256']):
+                        raise QfqGateError('SINGLE_N_CHECKPOINT_IDENTITY_CONFLICT:' + code)
             return code, checkpoint
     if code in recovered:
         ref = recovered[code]["artifact"]
@@ -2644,9 +2770,16 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
             raise QfqGateError("CHECKPOINT_RECOVERY_ROW_CODE_CONFLICT:" + code)
     else:
         computed = rebuild_symbol(code, item, target, driver)
+    n_rows = n_checkpoint = None
+    if identity.get('n_structure_enabled') is True and code in SINGLE_STOCKS:
+        if not single_feedback_enabled or identity.get('confirmed_gap_enabled') is not True:
+            raise QfqGateError('SINGLE_N_REQUIRES_FEEDBACK_AND_GAP:' + code)
+        if not isinstance(confirmed_gap_generation_id, str) or not re.fullmatch('[0-9a-f]{64}', confirmed_gap_generation_id):
+            raise QfqGateError('SINGLE_N_GENERATION_ID_MISSING:' + code)
+        n_rows, n_checkpoint = _single_n_daily(code, computed, identity, confirmed_gap_generation_id)
     if single_feedback_enabled:
         if code in SINGLE_STOCKS:
-            computed = _single_feedback_daily(code, computed)
+            computed = _single_feedback_daily(code, computed, n_rows)
         else:
             computed = computed.copy()
             for name in SINGLE_FEEDBACK_FIELDS:
@@ -2680,7 +2813,7 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
         if code in SINGLE_STOCKS:
             if not isinstance(confirmed_gap_generation_id,str) or not re.fullmatch('[0-9a-f]{64}',confirmed_gap_generation_id):
                 raise QfqGateError('SINGLE_GAP_GENERATION_ID_MISSING:' + code)
-            computed, gap_sidecar = _single_gap_daily(code, computed, identity, parts_root, fingerprint, confirmed_gap_generation_id)
+            computed, gap_sidecar = _single_gap_daily(code, computed, identity, parts_root, fingerprint, confirmed_gap_generation_id, n_rows)
         else:
             computed = computed.copy()
             for name in SINGLE_GAP_FIELDS:
@@ -2692,7 +2825,13 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     temporary = checkpoint.with_suffix(".pending")
     pq.write_table(table, temporary, compression="zstd")
     os.replace(temporary, checkpoint)
-    _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint), confirmed_gap_sidecar=gap_sidecar))
+    n_ref = None
+    if n_checkpoint is not None:
+        n_path = parts_root / (code + '.n_structure.checkpoint.json')
+        _json(n_path, n_checkpoint)
+        n_ref = dict(path=str(n_path), sha256=sha(n_path), checkpoint_id=fingerprint)
+    _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint), confirmed_gap_sidecar=gap_sidecar,
+                                   n_structure_checkpoint=n_ref))
     return code, checkpoint
 
 _PROCESS_DRIVER = None
@@ -3116,6 +3255,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         from ops.research_panel_turnover import load_daily
         turnover = load_daily(data_root, tdx_root, target)
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv, source_relocation_ref)
+        source_identity = dict(identity)
         identity["turnover_input_sha256"] = turnover.identity
         # The existing paired baseline enables this single-stock extension only
         # when both role schemas already bind every optional field.
@@ -3126,6 +3266,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         single_action_enabled = _single_action_pair_mode(current_schemas)
         single_yidong_enabled = _single_yidong_pair_mode(current_schemas)
         confirmed_gap_enabled = _single_gap_pair_mode(current_schemas)
+        n_structure_enabled = _single_n_pair_mode(current_schemas)
         if single_action_enabled and not single_feedback_enabled:
             raise QfqGateError("SINGLE_ACTION_REQUIRES_FEEDBACK")
         if single_feedback_enabled:
@@ -3144,6 +3285,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 confirmed_gap_snapshot_file_sha256=sha(snapshot_file))
         elif confirmed_gap_reuse_ref is not None:
             raise QfqGateError('SINGLE_GAP_REUSE_WITHOUT_SCHEMA')
+        if n_structure_enabled:
+            identity.update(n_structure_enabled=True, **_n_sha256s())
         if confirmed_gap_reuse_ref is not None:
             reuse=json.loads(_source(confirmed_gap_reuse_ref, owner='confirmed gap reuse descriptor').read_text())
             calendar_ref=reuse.get('calendar')
@@ -3379,6 +3522,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CHANGED")
         if _single_gap_pair_mode(schemas) != confirmed_gap_enabled:
             raise QfqGateError('SINGLE_GAP_SCHEMA_MODE_CHANGED')
+        if _single_n_pair_mode(schemas) != n_structure_enabled:
+            raise QfqGateError('SINGLE_N_SCHEMA_MODE_CHANGED')
         if kb_upgrade:
             for role, path in currents.items():
                 original = pq.ParquetFile(path).schema_arrow
@@ -3458,6 +3603,19 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     _source(ref, owner='confirmed gap generation sidecar ' + code)
                     gap_sidecars[code] = ref
                 meta['confirmed_gap_sidecars'] = gap_sidecars
+                if n_structure_enabled:
+                    prior_n = contracts['selector'].get('n_structure_checkpoints', {})
+                    if prior_n != contracts['backtest'].get('n_structure_checkpoints', {}):
+                        raise QfqGateError('SINGLE_N_PRIOR_CHECKPOINT_ROLE_CONFLICT')
+                    n_checkpoints = {}
+                    for code in gap_sidecars:
+                        receipt = json.loads((parts_root / (code + '.receipt.json')).read_text()) if code in codes else None
+                        ref = receipt.get('n_structure_checkpoint') if receipt else prior_n.get(code)
+                        if not ref:
+                            raise QfqGateError('SINGLE_N_REQUIRED_CHECKPOINT_MISSING:' + code)
+                        _source(ref, owner='N structure generation checkpoint ' + code)
+                        n_checkpoints[code] = ref
+                    meta['n_structure_checkpoints'] = n_checkpoints
             # Check all old key sets before either role is written. A key absent
             # from raw is a concrete source gap, not permission to drop a row.
             if old_spools is None:
@@ -3627,8 +3785,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
                     unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
             # Revalidate source bytes before CURRENT can change.
-            if generation_identity(load_snapshot(snapshot_file, target, source_relocation_ref), driver_path, formula_path, contract_csv, source_relocation_ref) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
-                raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
+            _revalidate_build_identity(snapshot_file, target, source_relocation_ref, driver_path, formula_path, contract_csv,
+                                       source_identity, identity, confirmed_gap_enabled, n_structure_enabled, confirmed_gap_reuse_ref)
             turnover.verify_binding()
             if not turnover_watch_unchanged(readiness["turnover_watch"]):
                 raise QfqGateError("TURNOVER_INPUT_STATUS_CHANGED_DURING_BUILD")

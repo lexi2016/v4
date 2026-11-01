@@ -24,7 +24,8 @@ import time
 import urllib.request
 
 REPO = Path(__file__).resolve().parents[1]
-EVIDENCE = Path('/Users/lexi/Desktop/学习/agents调试/DOT_TO_LOCAL_QWEN_MIGRATION_V1_20261101/kb_panel_upgrade_20261101/f10_daily_jinying_20261101_r1')
+EVIDENCE = Path('/Users/lexi/Desktop/学习/agents调试/DOT_TO_LOCAL_QWEN_MIGRATION_V1_20261101/kb_panel_upgrade_20261101/libang_300206_20261102_r1')
+PRIOR_N_ROOT = Path('/Users/lexi/Desktop/学习/v4_app/.task_worktrees/kb-hold-n-integration-20261102')
 STAGE = None
 STAGE_SHA = None
 OWNER = Path('/Users/lexi/Desktop/学习/v4_app/.task_worktrees/perf-runtime-repair-20261101/docs/handoffs/perf-runtime-repair-20261101/release_repair.py')
@@ -70,8 +71,10 @@ def configure(stage_path, stage_sha):
         raise ValueError('STAGE_ARGUMENT_INVALID')
     payload = json.loads(checked(path, stage_sha).read_text())
     generation = payload.get('candidate_generation', '')
-    if (not re.fullmatch('[0-9a-f]{64}', generation)
-            or path != EVIDENCE / f'activation_stage_{generation[:16]}/STAGED_DELTA.json'):
+    stage_name = path.parent.name
+    if (not re.fullmatch('[0-9a-f]{64}', generation) or path.name != 'STAGED_DELTA.json'
+            or path.parent.parent != EVIDENCE
+            or not re.fullmatch('activation_stage_' + generation[:16] + r'(?:_r[0-9]+)?', stage_name)):
         raise ValueError('STAGE_PATH_OR_GENERATION_INVALID')
     baseline = json.loads(ref_checked(payload['baseline']).read_text())
     env = baseline['env']
@@ -86,7 +89,7 @@ def configure(stage_path, stage_sha):
         raise ValueError('STAGED_BASE_IDENTITY_INVALID')
     BASE, BASE_PID, PLIST_SHA, BASE_MANIFEST_SHA = base, baseline['pid'], plist_sha, manifest_sha
     STAGE, STAGE_SHA, CANDIDATE_GENERATION = path, stage_sha, generation
-    TARGET = LOCAL / 'candidates' / f'junda-single-20261101-{generation[:16]}'
+    TARGET = LOCAL / 'candidates' / f'edan-single-20261102-{generation[:16]}'
     RECEIPT = TARGET / 'preparation.json'
     ACTIVE_RECEIPT = TARGET / 'activation.json'
     STAGED_PLIST = TARGET / 'config/com.lexi.v4.api.plist'
@@ -174,6 +177,14 @@ def release_lock():
                                    timeout_seconds=2, timeout_message='API_RELEASE_SHARED_LOCK_BUSY')
 
 
+def frozen_host():
+    """Avoid resolving the active owner's older host after acquiring its lock."""
+    spec = importlib.util.spec_from_file_location('frozen_single_research_host', REPO / 'infrastructure/research_workbench_host.py')
+    host = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(host)
+    return host
+
+
 def load_stage():
     checked(OWNER, OWNER_SHA)
     stage = json.loads(checked(STAGE, STAGE_SHA).read_text())
@@ -183,14 +194,13 @@ def load_stage():
         raise ValueError('STAGE_IDENTITY_MISMATCH')
     for key in ('old_asset_manifest', 'old_binding', 'new_asset_manifest', 'new_binding'):
         ref_checked(stage[key])
+    if stage.get('operator_sha256') != file_sha(__file__):
+        raise ValueError('STAGED_OPERATOR_CHANGED')
     if stage.get('base_inventory_drift'):
         ref_checked(stage['base_inventory_drift'])
-        if stage.get('operator_sha256') != file_sha(__file__):
-            raise ValueError('STAGED_OPERATOR_CHANGED')
     expected = [('api', 'infrastructure/research_workbench_host.py'),
-                ('site', 'workbench.html'), ('site', 'workbench-host/bootstrap.mjs'),
-                ('site', 'workbench-host/kb-single-stock.mjs'),
-                ('site', 'workbench-host/kb-signal-view.mjs'), ('site', 'related-reports.js')]
+                ('site', 'workbench.html'), ('site', 'workbench-host/kb-single-stock.mjs'),
+                ('site', 'workbench-host/kb-signal-view.mjs')]
     if [(item['kind'], item['path']) for item in stage['changes']] != expected:
         raise ValueError('STAGE_DELTA_SET_CHANGED')
     for item in stage['changes']:
@@ -202,9 +212,9 @@ def load_stage():
             ref_checked(item['rollback'])
     outer=json.loads(ref_checked(stage['new_binding']).read_text())
     by_symbol=outer.get('single_stock_research_by_symbol',{})
-    if set(by_symbol)!={'002865.SZ','301048.SZ'} or outer.get('single_stock_research')!=by_symbol['002865.SZ']:
+    if set(by_symbol)!={'002865.SZ','301048.SZ','300206.SZ'} or outer.get('single_stock_research')!=by_symbol['002865.SZ']:
         raise ValueError('SINGLE_BINDING_SYMBOL_SET_CHANGED')
-    bindings={}
+    bindings={}; host=frozen_host()
     for symbol,ref in by_symbol.items():
         binding=json.loads(ref_checked(ref).read_text());bindings[symbol]=binding
         if binding['candidate_generation']!=stage['stocks'][symbol]['candidate_generation'] or binding['symbol']!=symbol:
@@ -218,7 +228,14 @@ def load_stage():
         if binding.get('history_source_relocation'):ref_checked(binding['history_source_relocation'])
         for ref in binding.get('source_implementation_defects', {}).values():ref_checked(ref)
         for ref in binding['assets'].values():ref_checked(ref)
-        for path, digest in binding['candidate_identity']['source_sha256'].items():checked(REPO / path, digest)
+        source_root = REPO if symbol == '300206.SZ' else PRIOR_N_ROOT
+        if stage['stocks'][symbol].get('source_root') != str(source_root.resolve(strict=True)):
+            raise ValueError('SINGLE_SOURCE_ROOT_CHANGED:' + symbol)
+        for path, digest in binding['candidate_identity']['source_sha256'].items():checked(source_root / path, digest)
+        if symbol == '300206.SZ':
+            ref_checked(binding['candidate_identity']['navigation_rebind_ref'])
+        host.checked_confirmed_gap(binding, binding['candidate_identity'])
+        host.checked_single_display_projection(binding, binding['candidate_identity'])
     for path, digest in POINTERS.items():
         checked(path, digest)
     return stage, baseline, bindings
@@ -336,6 +353,17 @@ def verify_http(port, *, release_id, manifest_sha, single):
         raise ValueError('WORKBENCH_DATE_OR_POOL_CHANGED')
     result = {'pool_rows': len(day['rows']), 'pool_rows_sha256': canonical_sha(day['rows']),
               'source_date': '2026-10-30', 'observation_date': versions['observation_date']}
+    top200 = fetch_json(port, base + '/top200')
+    top_rows = top200.get('top200')
+    if not isinstance(top_rows, list) or len(top_rows) != 200 or top200.get('top200_count') != 200:
+        raise ValueError('TOP200_ROWS_CHANGED')
+    scoped = fetch_json(port, base + '/single-research/000410.SZ?revision=' + SOURCE_GENERATION)
+    scoped_keys = ('schema', 'status', 'symbol', 'rows', 'panel_generation', 'source_date',
+                   'observation_date', 'generation', 'input_sha256')
+    if scoped.get('schema') != 'v4.workbench.scoped_kb_research.v1' or scoped.get('status') != 'READY_FOR_RESEARCH_REVIEW':
+        raise ValueError('TOP200_REPRESENTATIVE_CHANGED')
+    result.update(top200_rows_sha256=canonical_sha(top_rows),
+                  top200_representative={key: scoped.get(key) for key in scoped_keys})
     if single:
         stage=json.loads(checked(STAGE, STAGE_SHA).read_text())
         readbacks={}
@@ -350,11 +378,12 @@ def verify_http(port, *, release_id, manifest_sha, single):
             inventory=item.get('field_inventory') or {}
             if (inventory.get('base_kb_fields')!=57 or len(inventory.get('hold_score_fields',[]))!=17
                     or len(inventory.get('supplemental_fields',[]))!=4 or len(inventory.get('action_fields',[]))!=6
-                    or len(inventory.get('yidong_fields',[]))!=15 or inventory.get('total_new_fields')!=42
-                    or inventory.get('total_derived_fields')!=99):raise ValueError('SINGLE_FIELD_INVENTORY_INVALID:'+symbol)
+                    or len(inventory.get('yidong_fields',[]))!=15 or len(inventory.get('confirmed_gap_fields',[]))!=8
+                    or inventory.get('total_new_fields')!=50
+                    or inventory.get('total_derived_fields')!=107):raise ValueError('SINGLE_FIELD_INVENTORY_INVALID:'+symbol)
             display=item.get('display_projection') or {}
-            if (display.get('selector_columns')!=309 or display.get('backtest_columns')!=178
-                    or display.get('kb_concept_count')!=(6 if symbol=='002865.SZ' else 3)
+            if (display.get('selector_columns')!=317 or display.get('backtest_columns')!=186
+                    or display.get('kb_concept_count')!=expected['concept_count']
                     or display.get('historical_PIT') is not False):raise ValueError('SINGLE_DISPLAY_PROJECTION_INVALID:'+symbol)
             if set(item['assets'])!={'kb','projection','html','history','company'}:raise ValueError('SINGLE_ASSET_SET_INVALID:'+symbol)
             for kind,ref in item['assets'].items():
@@ -362,17 +391,17 @@ def verify_http(port, *, release_id, manifest_sha, single):
                 if sha(data)!=ref['sha256']:raise ValueError('SINGLE_ASSET_HTTP_SHA_MISMATCH:'+symbol+':'+kind)
                 if kind=='kb':
                     view=json.loads(gzip.decompress(data));field=next((f for f in view['fields'] if f['name']=='kb_rebuild'),{})
-                    if field.get('status')!='SOURCE_IMPLEMENTATION_DEFECT' or not field.get('unknown_reason') or any(row['kb']['kb_rebuild'] is not None for row in view['rows']):raise ValueError('SOURCE_DEFECT_NOT_UNKNOWN:'+symbol)
+                    if any(row['kb']['kb_rebuild'] is not None for row in view['rows'][:123]):raise ValueError('REBUILD_WARMUP_INVALID:'+symbol)
                     latest=view['rows'][-1];score=latest['hold_score']
                     if (view.get('field_inventory')!=inventory or view.get('action_contract_sha256')!=item.get('action_contract_sha256')
                             or not item.get('action_contract_sha256') or latest.get('trade_date')!=20261030
                             or [score.get('kb_hold_score'),score.get('kb_hold_score_min'),score.get('kb_hold_score_max')]!=expected['score']
-                            or score.get('kb_hold_trend_up') is not None
+                            or score.get('kb_hold_trend_up') is not expected['trend']
                             or any(latest['supplemental'].get(name) is not None for name in inventory['supplemental_fields'])):
                         raise ValueError('SINGLE_SCORE_READBACK_INVALID:'+symbol)
                     if (latest.get('action',{}).get('kb_action_rule_sha256')!=item['action_contract_sha256']
-                            or latest['action'].get('kb_action_no_position')!='等回调'
-                            or latest['action'].get('kb_action_with_position')!=('持有' if symbol=='002865.SZ' else '卖出')):
+                            or latest['action'].get('kb_action_no_position')!=expected['action_no_position']
+                            or latest['action'].get('kb_action_with_position')!=expected['action_with_position']):
                         raise ValueError('SINGLE_ACTION_READBACK_INVALID:'+symbol)
                     if (view.get('yidong_contract_sha256')!=item.get('yidong_contract_sha256')
                             or latest.get('yidong',{}).get('kb_yidong_rule_sha256')!=item.get('yidong_contract_sha256')
@@ -605,7 +634,7 @@ def prepare():
                                  'release_id': TARGET.name, 'module_role': 'api'}
         base_source = {key: manifest.get(key) for key in ('source_root', 'source_commit', 'source_provenance')}
         manifest.update(release_id=TARGET.name, app_root=str(TARGET / 'app'),
-                        source_root=str(REPO), source_commit='a7264952c1190bb2de6373a296c02d543fb499da',
+                        source_root=str(REPO), source_commit='1b8b2bb572ee179b357417f495f8e5ecaa697177',
                         source_provenance={'state': 'REVIEWED_UNCOMMITTED_DELTA', 'base_manifest_sha256': BASE_MANIFEST_SHA,
                                            'base_source_identity': base_source,
                                            'stage_sha256': STAGE_SHA, 'candidate_generation': CANDIDATE_GENERATION})
@@ -658,6 +687,9 @@ def prepare():
         receipt['smoke'] = isolated_smoke(payload, manifest_sha)
         if receipt['smoke']['pool_rows_sha256'] != live['pool_rows_sha256']:
             raise ValueError('POOL_ROWS_DIFFER_BETWEEN_LIVE_AND_SMOKE')
+        if (receipt['smoke']['top200_rows_sha256'] != live['top200_rows_sha256']
+                or receipt['smoke']['top200_representative'] != live['top200_representative']):
+            raise ValueError('TOP200_DIFFERS_BETWEEN_LIVE_AND_SMOKE')
         if live_process() != process:
             raise ValueError('BASE_PROCESS_CHANGED_DURING_PREPARATION')
         load_stage()
@@ -782,6 +814,12 @@ def recover_previous(*, previous, desired, expected_process, tracking, previous_
     return process, result
 
 
+def assert_top200_unchanged(observed, baseline, phase):
+    for key in ('top200_rows_sha256', 'top200_representative'):
+        if key not in baseline or observed.get(key) != baseline[key]:
+            raise ValueError('TOP200_CHANGED_' + phase + ':' + key)
+
+
 def switch(*, receipt_sha, rollback=False, activation_sha=None):
     with release_lock():
         stage, _, _ = load_stage()
@@ -806,6 +844,7 @@ def switch(*, receipt_sha, rollback=False, activation_sha=None):
         before = verify_http(8873, release_id=env['V4_RELEASE_ID'], manifest_sha=env['V4_RELEASE_MANIFEST_SHA256'], single=rollback)
         if before['pool_rows_sha256'] != receipt['base_live']['pool_rows_sha256']:
             raise ValueError('LIVE_POOL_CHANGED_BEFORE_SWITCH')
+        assert_top200_unchanged(before, receipt['base_live'], 'BEFORE_SWITCH')
         desired, previous = (old, new) if rollback else (new, old)
         tracking = {}
         capture = None
@@ -838,6 +877,7 @@ def switch(*, receipt_sha, rollback=False, activation_sha=None):
             process, result = bootstrap_validate(desired, single=not rollback, tracking=tracking, capture=capture)
             if result['pool_rows_sha256'] != receipt['base_live']['pool_rows_sha256']:
                 raise ValueError('LIVE_POOL_CHANGED_AFTER_SWITCH')
+            assert_top200_unchanged(result, receipt['base_live'], 'AFTER_SWITCH')
             for path, digest in POINTERS.items():
                 checked(path, digest)
             if not rollback:
@@ -848,9 +888,10 @@ def switch(*, receipt_sha, rollback=False, activation_sha=None):
                 json_write(TARGET / 'rollback.json', {'status': 'ROLLBACK_VERIFIED', 'process': process, 'http': result})
         except BaseException as primary:
             try:
-                recover_previous(previous=previous, desired=desired, expected_process=expected_process,
-                                 tracking=tracking, previous_single=rollback,
-                                 expected_pool=receipt['base_live']['pool_rows_sha256'])
+                _, restored = recover_previous(previous=previous, desired=desired, expected_process=expected_process,
+                                               tracking=tracking, previous_single=rollback,
+                                               expected_pool=receipt['base_live']['pool_rows_sha256'])
+                assert_top200_unchanged(restored, receipt['base_live'], 'AFTER_RECOVERY')
             except BaseException as recovery:
                 raise RuntimeError(f'CUTOVER_FAILED:{primary!r}; AUTOMATIC_ROLLBACK_FAILED:{recovery!r}') from primary
             raise RuntimeError(f'CUTOVER_FAILED:{primary!r}; AUTOMATIC_ROLLBACK_VERIFIED') from primary
@@ -886,9 +927,11 @@ def recover_interrupted(*, receipt_sha, attempt_sha):
                                    manifest_sha=env['V4_RELEASE_MANIFEST_SHA256'], single=True)
             if observed['pool_rows_sha256'] != receipt['base_live']['pool_rows_sha256']:
                 raise ValueError('RECOVERY_CANDIDATE_POOL_CHANGED')
+            assert_top200_unchanged(observed, receipt['base_live'], 'BEFORE_RECOVERY')
         process, result = recover_previous(previous=old, desired=new, expected_process=attempt['before_process'],
                                            tracking={'process': attempt.get('candidate_process')}, previous_single=False,
                                            expected_pool=receipt['base_live']['pool_rows_sha256'])
+        assert_top200_unchanged(result, receipt['base_live'], 'AFTER_RECOVERY')
         json_write(TARGET / 'interrupted-recovery.json', {'status': 'INTERRUPTED_ACTIVATION_ROLLED_BACK',
                    'attempt_sha256': attempt_sha, 'preparation_sha256': receipt_sha, 'process': process, 'http': result})
         print(json.dumps({'status': 'INTERRUPTED_ACTIVATION_ROLLED_BACK', 'process': process}))
@@ -901,6 +944,13 @@ def check(receipt_sha):
         verify_candidate(receipt, stage, require_base_plist=True)
         assert_switch_identity(current_plist_sha=file_sha(PLIST), expected_plist_sha=PLIST_SHA,
                                current_process=live_process(), expected_process=receipt['base_process'])
+        env=plistlib.loads(checked(PLIST,PLIST_SHA).read_bytes())['EnvironmentVariables']
+        current=verify_http(8873,release_id=env['V4_RELEASE_ID'],manifest_sha=env['V4_RELEASE_MANIFEST_SHA256'],single=False)
+        if current['pool_rows_sha256']!=receipt['base_live']['pool_rows_sha256']:
+            raise ValueError('LIVE_POOL_CHANGED_BEFORE_CHECK')
+        assert_top200_unchanged(current,receipt['base_live'],'BEFORE_CHECK')
+        assert_switch_identity(current_plist_sha=file_sha(PLIST),expected_plist_sha=PLIST_SHA,
+                               current_process=live_process(),expected_process=receipt['base_process'])
         print(json.dumps({'status': 'PREPARED_PREFLIGHT_PASS', 'receipt': str(RECEIPT),
                           'manifest_sha256': receipt['manifest_sha256']}))
 

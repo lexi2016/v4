@@ -37,7 +37,7 @@ def materialize_bound_single_company(*, candidate_ref, received_ref, output_root
  candidate=json.loads(checked(candidate_ref).read_text());binding=json.loads(checked(candidate['binding']).read_text())
  received=json.loads(checked(received_ref).read_text())
  symbol=binding.get('symbol')
- if (symbol not in {'002865.SZ','301048.SZ'} or binding.get('source_date')!='2026-10-30'
+ if (symbol not in {'002865.SZ','301048.SZ','300206.SZ'} or binding.get('source_date')!='2026-10-30'
      or binding.get('observation_date')!='2026-11-02' or not isinstance(binding.get('candidate_pool_member'),bool)
      or binding.get('candidate_generation')!=candidate.get('candidate_generation')
      or received.get('symbol')!=symbol or received.get('asof')!='2026-10-30'

@@ -1,8 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {actionPresentation,signalSummary,chartEvents,signalExplanations,confirmedGapPresentation,brickCountPresentation} from '../research-panel/workbench-host/kb-signal-view.mjs';
+import {gzipSync} from 'node:zlib';
+import {actionPresentation,signalSummary,chartEvents,signalExplanations,confirmedGapPresentation,brickCountPresentation,nStructurePresentation} from '../research-panel/workbench-host/kb-signal-view.mjs';
 import {overlayMarkers} from '../research-panel/workbench-host/kb-chart-overlay.mjs';
-import {financialLines,financialDisclosureText,visibleSingleHistoryGroups} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {financialLines,financialDisclosureText,visibleSingleHistoryGroups,decodeBoundGzip,singleSelectionHref} from '../research-panel/workbench-host/kb-single-stock.mjs';
+
+test('single-stock route keeps source date separate from symbol and historical date',()=>{
+  const base='http://127.0.0.1:8873/research-panel/workbench.html?date=2026-10-30&symbol=300206.SZ#chart';
+  const historical=new URL(singleSelectionHref(base,'301048.SZ','2025-12-12'));
+  assert.equal(historical.searchParams.get('date'),'2026-10-30');
+  assert.equal(historical.searchParams.get('symbol'),'301048.SZ');
+  assert.equal(historical.searchParams.get('stock_date'),'2025-12-12');
+  assert.equal(historical.hash,'#chart');
+  const latest=new URL(singleSelectionHref(historical.href,'002865.SZ'));
+  assert.equal(latest.searchParams.get('symbol'),'002865.SZ');
+  assert.equal(latest.searchParams.has('stock_date'),false);
+  assert.equal(latest.searchParams.get('date'),'2026-10-30');
+  const pinned=new URL(singleSelectionHref(base,'300206.SZ','2025-12-12',{key:'candidate_generation',value:'a'.repeat(64)}));
+  assert.equal(pinned.searchParams.get('candidate_generation'),'a'.repeat(64));
+  const same=new URL(singleSelectionHref(pinned.href,'300206.SZ','2025-12-15'));
+  assert.equal(same.searchParams.get('candidate_generation'),'a'.repeat(64));
+  const switched=new URL(singleSelectionHref(same.href,'301048.SZ'));
+  assert.equal(switched.searchParams.has('candidate_generation'),false);
+  const scoped=new URL(singleSelectionHref(switched.href,'000410.SZ',null,{key:'panel_generation',value:'b'.repeat(64)}));
+  assert.equal(scoped.searchParams.get('panel_generation'),'b'.repeat(64));
+  assert.equal(scoped.searchParams.has('candidate_generation'),false);
+  assert.throws(()=>singleSelectionHref(base,'bad','2025-12-12'),/证券无效/);
+  assert.throws(()=>singleSelectionHref(base,'301048.SZ','20251212'),/日期无效/);
+  assert.throws(()=>singleSelectionHref(base,'300206.SZ',null,{key:'candidate_generation',value:'old'}),/版本无效/);
+});
 
 test('stored action values require the bound contract and are only formatted',()=>{
   const sha='a'.repeat(64),stored={kb_action_no_position:'等回调',kb_action_no_position_status:'OBSERVED_BLOCKER_CONDITIONAL',kb_action_with_position:'持有',kb_action_with_position_status:'CONFLICTING_OBSERVATIONS',kb_action_reasons:JSON.stringify(['已存条件']),kb_action_rule_sha256:sha};
@@ -86,4 +112,25 @@ test('confirmed gap display distinguishes warmup, non-events and reused bowl lin
   assert.match(brickCountPresentation(row),/预热期/);assert.equal(row.kb.kb_brick_consecutive,4);
   row.confirmed_kb_diagnostics.kb_bowl_components_status='INSUFFICIENT_HISTORY';
   assert.match(Object.fromEntries(confirmedGapPresentation(row).map(x=>[x.key,x.text])).bowl_white,/待核/);
+});
+
+test('N score distinguishes false and ambiguous unknown and dates confirmation',()=>{
+  const n={L1:{price:32,event_date:'20261015',confirmed_at:'20261022'}};
+  const row={hold_score:{kb_hold_trend_up:false,kb_hold_trend_up_reason:'STRUCTURE_NOT_RISING'},
+             confirmed_kb_diagnostics:{kb_n_structure:n}};
+  const lines=nStructurePresentation(row);
+  assert.match(lines[0],/0分.*高点或低点未同时抬高/);
+  assert.match(lines[1],/20261015 形成，20261022 确认/);
+  row.hold_score={kb_hold_trend_up:null,kb_hold_trend_up_reason:'AMBIGUOUS_SAME_BAR_PIVOT'};
+  assert.match(nStructurePresentation(row)[0],/待核.*先后次序待核/);
+  assert.equal(nStructurePresentation({hold_score:{}}),null);
+});
+
+test('bounded gzip accepts the real-size long-history view and rejects size mismatch or overflow',async()=>{
+  const length=24*1024*1024, compressed=gzipSync(Buffer.alloc(length,65));
+  const decoded=await decodeBoundGzip(compressed,length);
+  assert.equal(decoded.byteLength,length);assert.equal(decoded[0],65);assert.equal(decoded.at(-1),65);
+  await assert.rejects(()=>decodeBoundGzip(compressed,length-1),/解压长度不符/);
+  await assert.rejects(()=>decodeBoundGzip(compressed,length+1),/解压长度不符/);
+  await assert.rejects(()=>decodeBoundGzip(compressed,32*1024*1024+1),/解压长度不符/);
 });

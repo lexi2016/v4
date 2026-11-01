@@ -52,7 +52,7 @@ export function brickCountPresentation(row){
 export const SUPPLEMENTAL_UNKNOWN=[
   ['kb_s1','S1','正文与概念卡对阴阳范围存在冲突，高位和巨量尚未统一量化'],
   ['kb_s2','S2','需要已确认的 S1 锚点及顶背离量化定义'],
-  ['kb_s3','S3','需要已确认的 S1/S2 锚点及反抽下沿量化定义'],
+  ['kb_s3','S3','需要已确认的 S1 或 S2 锚点，先跌离再反抽；数值条件待核'],
 ];
 
 export function signalSummary(fields,kb,original,supplemental={},yidong=null){
@@ -109,10 +109,23 @@ export function signalExplanations(row,facts={}){
 }
 
 export const HOLD_ITEMS=[
-  ['kb_hold_close_up','收盘上涨'],['kb_hold_above_bbi','收盘在BBI之上'],['kb_hold_volume_ok','非放量阴线（阳线分支）'],
+  ['kb_hold_close_up','收盘上涨'],['kb_hold_above_bbi','收盘在BBI之上'],['kb_hold_volume_ok','持仓评分·量能项（阳线分支）'],
   ['kb_hold_trend_up','N型趋势向上'],['kb_hold_j_not_dead','J未处于死叉状态'],
 ];
 export const HOLD_REASONS={RULE_NOT_QUANTIFIED:'规则待量化',INSUFFICIENT_PRIOR_BAR:'前一日行情不足',INVALID_CLOSE_INPUT:'收盘行情无效',
   INVALID_OHLC_INPUT:'开高低收行情缺失或无效',INVALID_VOLUME_INPUT:'当日成交量缺失或无效',
   INSUFFICIENT_BBI_HISTORY:'BBI预热不足',INVALID_CLOSE_WINDOW:'收盘行情不足',BBI_EQUALITY_UNRESOLVED:'BBI相等边界待核',
-  INSUFFICIENT_KDJ_HISTORY:'KDJ预热不足',INVALID_HLC_PREFIX:'KDJ行情前缀无效'};
+  INSUFFICIENT_KDJ_HISTORY:'KDJ预热不足',INVALID_HLC_PREFIX:'KDJ行情前缀无效',
+  INSUFFICIENT_CONFIRMED_SWINGS:'尚不足四个已确认转折点',INVALID_INPUT:'当日行情无效',
+  AMBIGUOUS_SAME_BAR_PIVOT:'同一日同时出现高低转折，先后次序待核',
+  STRUCTURE_NOT_RISING:'高点或低点未同时抬高',BROKEN_BY_CLOSE:'收盘跌破最近确认低点'};
+
+export function nStructurePresentation(row){
+  const score=row.hold_score,n=row.confirmed_kb_diagnostics?.kb_n_structure;
+  if(!n||!score)return null;
+  const state=score.kb_hold_trend_up,reason=score.kb_hold_trend_up_reason;
+  const status=state===true?'趋势向上 · 1分':state===false?'趋势不向上 · 0分':'待核';
+  const explanation=HOLD_REASONS[reason];
+  const points=['L1','H1','L2','H2'].map(key=>{const p=n[key];return p?.event_date&&p?.confirmed_at?`${key} ${p.price}（${p.event_date} 形成，${p.confirmed_at} 确认）`:null}).filter(Boolean);
+  return [`N型趋势：${status}${explanation?' · '+explanation:''}`,...(points.length?[points.join('；')]:[])];
+}

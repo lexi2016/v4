@@ -1,17 +1,18 @@
 {
   "schema": "a_share_kb_hold_score_v1",
   "scope": "EXPLICIT_A_SHARE_SINGLE_STOCK_RESEARCH_ONLY",
-  "authorized_symbols": ["002865.SZ", "301048.SZ"],
+  "authorized_symbols": ["002865.SZ", "301048.SZ", "300206.SZ"],
   "components": [
     {"name": "kb_hold_close_up", "meaning": "本日收盘价严格大于同前复权前一日收盘价", "unknown": "前一日或当日有效收盘缺失"},
     {"name": "kb_hold_above_bbi", "meaning": "收盘在KB BBI之上", "unknown": "不足24根、数据无效或收盘恰等于BBI时正文表述不一致"},
     {"name": "kb_hold_volume_ok", "meaning": "有效阳线（收盘严格高于开盘）且当日成交量有限并大于零，可确认非放量阴线的阳线分支得1；不将上涨或前收比较当成阳线", "unknown": "阴线/平线其他量能分支的近期量比较未量化，或OHLC/当日成交量无效"},
-    {"name": "kb_hold_trend_up", "meaning": "N型低点抬高且高点突破", "unknown": "N型的观察窗口及突破条件未量化"},
+    {"name": "kb_hold_trend_up", "meaning": "用户确认的 N V1：以完整同股前缀确认相邻高低点并判断趋势", "unknown": "确认点不足、同根高低点次序不明或输入无效；按 N V1 来源状态保留"},
     {"name": "kb_hold_j_not_dead", "meaning": "J未同时低于K和D；判定当前状态而非仅下穿瞬间", "unknown": "不足9根或KDJ递推输入无效"}
   ],
   "total": "各确定true得1；任一分项未知时总分为null，最小值为已确认得分，最大值加未知分项数",
   "reason_fields": "每项对应 _reason 字段：RULE_NOT_QUANTIFIED 表示规则待量化；INSUFFICIENT_* 或 INVALID_* 表示行情或预热不足；BBI_EQUALITY_UNRESOLVED 表示源文相等边界歧义；已确定分项为 null",
   "indicator_basis": "KB core.py BBI=(MA3+MA6+MA12+MA24)/4 round2; KDJ RSV9 with K=D=50 initialization and round2; no source defaults used for insufficient history",
+  "n_structure": {"contract": "contracts/a_share_kb_n_structure_v1.json", "contract_sha256": "b00de5a156225b4843c18c988e09b8a0b708496cdd61b475fd6d9cb92a26633f", "rule_id": "ZGE_N_TREND_CONFIRMED_5X5_CLOSE_BREAK_LOCAL_V1", "default_when_unbound": "UNKNOWN", "structure_diagnostics": "same-symbol/date sidecar and view; no extra wide panel column"},
   "materialized_fields": {
     "components": ["kb_hold_close_up", "kb_hold_above_bbi", "kb_hold_volume_ok", "kb_hold_trend_up", "kb_hold_j_not_dead"],
     "component_reasons": ["kb_hold_close_up_reason", "kb_hold_above_bbi_reason", "kb_hold_volume_ok_reason", "kb_hold_trend_up_reason", "kb_hold_j_not_dead_reason"],

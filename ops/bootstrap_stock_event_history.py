@@ -704,7 +704,7 @@ def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, his
     binding = load(candidate['binding'])
     symbol = binding.get('symbol')
     if (candidate.get('candidate_generation') != binding.get('candidate_generation')
-            or symbol not in {'002865.SZ', '301048.SZ'} or binding.get('source_date') != '2026-10-30'
+            or symbol not in {'002865.SZ', '301048.SZ', '300206.SZ'} or binding.get('source_date') != '2026-10-30'
             or binding.get('observation_date') != '2026-11-02' or binding.get('historical_PIT') is not False
             or any(binding.get(k) != v for k, v in FLAGS.items())):
         raise ValueError('RETAINED_SINGLE_IDENTITY_CONFLICT')

@@ -3,6 +3,8 @@ import importlib.util
 import json
 from pathlib import Path
 import plistlib
+import sys
+import types
 
 import pytest
 
@@ -11,6 +13,15 @@ PATH = Path(__file__).resolve().parents[1] / 'ops/junda_single_release.py'
 SPEC = importlib.util.spec_from_file_location('junda_single_release', PATH)
 operator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(operator)
+
+
+def test_frozen_host_ignores_already_loaded_active_owner(monkeypatch, tmp_path):
+    host = tmp_path / 'infrastructure/research_workbench_host.py'
+    host.parent.mkdir()
+    host.write_text("def checked_confirmed_gap(*args): return 'frozen'\n")
+    monkeypatch.setattr(operator, 'REPO', tmp_path)
+    monkeypatch.setitem(sys.modules, 'infrastructure.research_workbench_host', types.SimpleNamespace())
+    assert operator.frozen_host().checked_confirmed_gap() == 'frozen'
 
 
 def test_exact_observed_cache_addition_keeps_all_other_inventory_cas(monkeypatch, tmp_path):
@@ -164,14 +175,16 @@ def transaction(monkeypatch, tmp_path):
     monkeypatch.setattr(operator, 'BASE_MANIFEST_SHA', 'a' * 64)
     monkeypatch.setattr(operator, 'STAGE_SHA', 'c' * 64)
     monkeypatch.setattr(operator, 'POINTERS', {})
+    live_rows = {'pool_rows_sha256': 'pool', 'top200_rows_sha256': 'top',
+                 'top200_representative': {'symbol': '000410.SZ', 'panel_generation': 'gen'}}
     receipt = {'status': 'PREPARED_NOT_ACTIVATED', 'smoke': {'status': 'PASS'},
                'candidate_plist_sha256': operator.sha(new), 'manifest_sha256': 'b' * 64,
-               'base_process': old_process, 'base_live': {'pool_rows_sha256': 'pool'}}
+               'base_process': old_process, 'base_live': live_rows}
     files['RECEIPT'].write_text(json.dumps(receipt))
     monkeypatch.setattr(operator, 'release_lock', lambda: contextlib.nullcontext())
     monkeypatch.setattr(operator, 'load_stage', lambda: ({}, {}, {}))
     monkeypatch.setattr(operator, 'verify_candidate', lambda *args, **kwargs: None)
-    monkeypatch.setattr(operator, 'verify_http', lambda *args, **kwargs: {'pool_rows_sha256': 'pool'})
+    monkeypatch.setattr(operator, 'verify_http', lambda *args, **kwargs: dict(live_rows))
     monkeypatch.setattr(operator, 'assert_live_root', lambda *args, **kwargs: None)
     return files, receipt, old, new, old_process, new_process
 
@@ -188,7 +201,7 @@ def test_unload_timeout_after_job_stopped_restores_previous(monkeypatch, transac
     restored = []
     def bootstrap(raw, *, single, **kwargs):
         restored.append(raw)
-        return old_process, {'pool_rows_sha256': 'pool'}
+        return old_process, dict(transaction[1]['base_live'])
     monkeypatch.setattr(operator, 'bootstrap_validate', bootstrap)
     with pytest.raises(RuntimeError, match='AUTOMATIC_ROLLBACK_VERIFIED'):
         operator.switch(receipt_sha=operator.file_sha(files['RECEIPT']))
@@ -207,7 +220,7 @@ def test_drift_during_http_check_never_unloads(monkeypatch, transaction, drift):
             state['process'] = {'pid': 303, 'start_and_command': 'new owner'}
         else:
             files['PLIST'].write_bytes(b'external plist')
-        return {'pool_rows_sha256': 'pool'}
+        return dict(transaction[1]['base_live'])
     monkeypatch.setattr(operator, 'verify_http', verify_then_drift)
     called = []
     monkeypatch.setattr(operator, 'unload', lambda: called.append(True))
@@ -234,7 +247,7 @@ def test_recover_health_verified_candidate_without_activation_receipt(monkeypatc
     monkeypatch.setattr(operator, 'service_state', lambda: ('running', new_process) if state['running'] else ('stopped', None))
     monkeypatch.setattr(operator, 'unload', lambda: state.update(running=False))
     monkeypatch.setattr(operator, 'atomic_plist', lambda raw: files['PLIST'].write_bytes(raw))
-    monkeypatch.setattr(operator, 'bootstrap_validate', lambda raw, **kw: (old_process, {'pool_rows_sha256': 'pool'}))
+    monkeypatch.setattr(operator, 'bootstrap_validate', lambda raw, **kw: (old_process, dict(receipt['base_live'])))
     operator.recover_interrupted(receipt_sha=operator.file_sha(files['RECEIPT']), attempt_sha=operator.file_sha(files['ATTEMPT']))
     assert files['PLIST'].read_bytes() == old
     assert json.loads((files['TARGET'] / 'interrupted-recovery.json').read_text())['status'] == 'INTERRUPTED_ACTIVATION_ROLLED_BACK'
@@ -253,3 +266,33 @@ def test_recover_refuses_external_change_before_unload(monkeypatch, transaction,
     with pytest.raises(ValueError, match='RECOVERY_CANDIDATE_PROCESS_CHANGED|RECOVERY_PLIST_CAS_CONFLICT'):
         operator.recover_interrupted(receipt_sha=operator.file_sha(files['RECEIPT']), attempt_sha=operator.file_sha(files['ATTEMPT']))
     assert called == [] and files['PLIST'].read_bytes() == before
+
+
+@pytest.mark.parametrize('drift', ['top200_rows_sha256', 'top200_representative'])
+def test_top200_drift_before_switch_never_unloads(monkeypatch, transaction, drift):
+    files, receipt, _, _, old_process, _ = transaction
+    monkeypatch.setattr(operator, 'live_process', lambda: old_process)
+    changed = dict(receipt['base_live']); changed[drift] = 'external change'
+    monkeypatch.setattr(operator, 'verify_http', lambda *a, **kw: changed)
+    called=[];monkeypatch.setattr(operator, 'unload', lambda: called.append(True))
+    with pytest.raises(ValueError, match='TOP200_CHANGED_BEFORE_SWITCH'):
+        operator.switch(receipt_sha=operator.file_sha(files['RECEIPT']))
+    assert called == [] and not files['ATTEMPT'].exists()
+
+
+@pytest.mark.parametrize('drift', ['top200_rows_sha256', 'top200_representative'])
+def test_top200_drift_after_switch_restores_previous(monkeypatch, transaction, drift):
+    files, receipt, old, _, old_process, new_process = transaction
+    monkeypatch.setattr(operator, 'live_process', lambda: old_process)
+    monkeypatch.setattr(operator, 'unload', lambda: None)
+    monkeypatch.setattr(operator, 'atomic_plist', lambda raw: files['PLIST'].write_bytes(raw))
+    changed = dict(receipt['base_live']); changed[drift] = 'external change'
+    monkeypatch.setattr(operator, 'bootstrap_validate', lambda *a, **kw: (new_process, changed))
+    restored=[]
+    def recover(**kwargs):
+        restored.append(True);files['PLIST'].write_bytes(old)
+        return old_process, dict(receipt['base_live'])
+    monkeypatch.setattr(operator, 'recover_previous', recover)
+    with pytest.raises(RuntimeError, match='TOP200_CHANGED_AFTER_SWITCH.*AUTOMATIC_ROLLBACK_VERIFIED'):
+        operator.switch(receipt_sha=operator.file_sha(files['RECEIPT']))
+    assert restored == [True] and files['PLIST'].read_bytes() == old

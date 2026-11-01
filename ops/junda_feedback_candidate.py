@@ -19,8 +19,9 @@ import pyarrow.parquet as pq
 
 from ops import research_panel_qfq as q
 from ops import render_original_formula_projection as renderer
-from ops.kb_hold_score import SUPPLEMENTAL_REASONS, project_single_history
+from ops.kb_hold_score import SUPPLEMENTAL_REASONS, project_single_history, apply_n_score
 from ops.kb_action_authority import FIELDS as ACTION_FIELDS, INPUT_FIELDS as ACTION_INPUT_FIELDS, project_action
+from ops.kb_n_structure import _bar as n_bar, _next_digest as n_next_digest, _EMPTY_DIGEST as N_EMPTY_DIGEST
 from ops.kb_yidong_authority import FIELDS as YIDONG_FIELD_TYPES, INPUT_FIELDS as YIDONG_INPUT_FIELDS, project_yidong_history
 from ops.kb_confirmed_gap import INPUTS as GAP_INPUTS, prefix_hashes as gap_prefix_hashes, helper_sha256s as gap_helper_sha256s
 from infrastructure.research_workbench_host import checked_relocated_parquet
@@ -290,7 +291,7 @@ def rebind_action_candidate(previous, expected_sha, root, source_gate_ref):
     previous_ref = {'path': str(Path(previous).resolve(strict=True)), 'sha256': expected_sha}
     old = json.loads(q._source(previous_ref, owner='accepted action source candidate').read_text())
     binding = json.loads(q._source(old['binding'], owner='accepted action source binding').read_text())
-    if (binding.get('symbol') not in {'002865.SZ', '301048.SZ'}
+    if (binding.get('symbol') not in q.SINGLE_STOCKS
             or binding.get('candidate_generation') != old.get('candidate_generation')
             or q.canonical_sha(binding.get('candidate_identity')) != old.get('candidate_generation')
             or old.get('candidate_identity') != binding.get('candidate_identity')
@@ -448,7 +449,7 @@ def rebind_display_candidate(previous, expected_sha, root):
     prior = {'path': str(Path(previous).resolve(strict=True)), 'sha256': expected_sha}
     old = json.loads(q._source(prior, owner='accepted display source candidate').read_text())
     binding = json.loads(q._source(old['binding'], owner='accepted display source binding').read_text())
-    if (binding.get('symbol') not in {'002865.SZ', '301048.SZ'} or old.get('candidate_identity') != binding.get('candidate_identity')
+    if (binding.get('symbol') not in q.SINGLE_STOCKS or old.get('candidate_identity') != binding.get('candidate_identity')
             or binding.get('candidate_generation') != old.get('candidate_generation')
             or q.canonical_sha(binding.get('candidate_identity')) != old.get('candidate_generation')
             or set(old['outputs']) != {'selector', 'backtest'}):
@@ -586,7 +587,7 @@ def rebind_confirmed_gap_candidate(previous, expected_sha, root, *, rebuild_ref,
     binding = json.loads(q._source(old['binding'], owner='confirmed gap prior binding').read_text())
     symbol = binding.get('symbol')
     identity = dict(binding['candidate_identity'])
-    if (symbol not in {'002865.SZ', '301048.SZ'} or identity != old.get('candidate_identity')
+    if (symbol not in q.SINGLE_STOCKS or identity != old.get('candidate_identity')
             or q.canonical_sha(identity) != old.get('candidate_generation')
             or binding.get('candidate_generation') != old['candidate_generation']
             or set(old['outputs']) != {'selector', 'backtest'}):
@@ -868,7 +869,221 @@ def rebind_confirmed_gap_candidate(previous, expected_sha, root, *, rebuild_ref,
             'display_columns':{r:x['columns'] for r,x in display_roles.items()}, 'diagnostics':sidecar_ref}
 
 
-if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-confirmed-gap':
+def rebind_n_candidate(previous, expected_sha, root, *, receipt_ref, source_gate_ref):
+    """Join already materialized N rows into the same paired single-stock producer."""
+    root = Path(root).resolve(strict=True)
+    prior = {'path':str(Path(previous).resolve(strict=True)), 'sha256':expected_sha}
+    old = json.loads(q._source(prior, owner='N prior candidate').read_text())
+    binding = json.loads(q._source(old['binding'], owner='N prior binding').read_text())
+    symbol = binding.get('symbol'); identity = dict(binding['candidate_identity'])
+    if (symbol not in q.SINGLE_STOCKS or identity != old.get('candidate_identity')
+            or q.canonical_sha(identity) != old.get('candidate_generation')
+            or binding.get('candidate_generation') != old['candidate_generation']
+            or set(old['outputs']) != {'selector','backtest'} or not binding.get('confirmed_gap')):
+        raise ValueError('N_PRIOR_CANDIDATE_IDENTITY_CONFLICT')
+    for ref in [*old['outputs'].values(), *binding['assets'].values(), binding['source_gate_receipt'],
+                binding['hold_score_contract'], binding['confirmed_gap']['diagnostics']]:
+        q._source(ref, owner='N prior dependency')
+    gate = json.loads(q._source(source_gate_ref, owner='N current source gate').read_text())
+    required = {'ops/research_panel_qfq.py','ops/research_panel_factor_cache.py','ops/kb_signal_authority.py',
+                'ops/kb_confirmed_gap.py','ops/kb_panel_rebuild_brick.py','ops/kb_panel_signal_components.py',
+                'ops/kb_hold_score.py','contracts/a_share_kb_hold_score_v1.json',
+                'ops/kb_n_structure.py','contracts/a_share_kb_n_structure_v1.json'}
+    if (gate.get('status')!='PASS_RELOCATED_SOURCE_GATE' or gate.get('matches_frozen_input_sha256') is not True
+            or gate.get('prior_source_gate')!=binding['source_gate_receipt']
+            or gate.get('canonical_input_sha256')!=binding['source_input_sha256']
+            or gate.get('snapshot',{}).get('sha256')!=identity.get('snapshot_sha256')
+            or gate.get('relocation_ref')!=binding['source_relocation']
+            or not required.issubset(gate.get('source_code_refs',{}))):
+        raise ValueError('N_SOURCE_GATE_CONFLICT')
+    for name,ref in gate['source_code_refs'].items():
+        q._source(ref, owner='N current source code')
+        if q.sha(REPO / name)!=ref['sha256']:
+            raise ValueError('N_SOURCE_GATE_CODE_DRIFT:' + name)
+    receipt = json.loads(q._source(receipt_ref, owner='N prepared receipt').read_text())
+    item = receipt.get('symbols',{}).get(symbol,{})
+    n_hashes = q._n_sha256s()
+    if (receipt.get('schema')!='n_structure_v1_prepared_receipt_v1'
+            or receipt.get('source_generation')!=binding['source_generation']
+            or receipt.get('source_input_sha256')!=binding['source_input_sha256']
+            or receipt.get('snapshot_file_sha256')!=identity['snapshot_sha256']
+            or receipt.get('contract_sha256')!=n_hashes['n_structure_contract_sha256']
+            or receipt.get('helper_sha256')!=n_hashes['n_structure_helper_sha256']
+            or receipt.get('calendar_sha256') is not None or receipt.get('price_basis_sha256') is not None
+            or receipt.get('price_basis')!='QFQ_ASOF' or any(receipt.get(k)!=v for k,v in q.FLAGS.items())
+            or item.get('source_candidate_generation')!=old['candidate_generation']
+            or item.get('source_selector_sha256')!=old['outputs']['selector']['sha256']):
+        raise ValueError('N_PREPARED_RECEIPT_CONFLICT')
+    values_ref = {'path':item['n_values_path'], 'sha256':item['n_values_sha256']}
+    checkpoint_ref = {'path':item['checkpoint_path'], 'sha256':item['checkpoint_file_sha256']}
+    n_values = pq.read_table(q._source(values_ref, owner='N prepared values')).to_pylist()
+    checkpoint = json.loads(q._source(checkpoint_ref, owner='N prepared checkpoint').read_text())
+    if (checkpoint.get('checkpoint_sha256')!=item['checkpoint_state_sha256']
+            or checkpoint.get('symbol')!=symbol or checkpoint.get('prefix_sha256')!=item['prefix_input_sha256']
+            or checkpoint.get('history_bar_count')!=item['rows']):
+        raise ValueError('N_CHECKPOINT_CONFLICT')
+    tables = {role:pq.read_table(q._source(ref, owner='N prior role '+role)) for role,ref in old['outputs'].items()}
+    selector = tables['selector']; backtest = tables['backtest']
+    keys = [(symbol,str(v)) for v in selector['trade_date'].to_pylist()]
+    if (len(keys)!=item['rows'] or len(keys)!=len(n_values) or len(set(keys))!=len(keys) or keys!=sorted(keys)
+            or any(v!=symbol for v in selector['ts_code'].to_pylist())
+            or [(v,str(d)) for v,d in zip(backtest['ts_code'].to_pylist(),backtest['trade_date'].to_pylist())]!=keys):
+        raise ValueError('N_ROLE_KEY_CONFLICT')
+    for name in ('high','low','close'):
+        if not selector[name].equals(backtest[name]):
+            raise ValueError('N_ROLE_HLC_CONFLICT:' + name)
+    score_fields = set(q.SINGLE_FEEDBACK_FIELDS)
+    for name in score_fields | ACTION_FIELDS:
+        if not selector[name].equals(backtest[name]):
+            raise ValueError('N_PRIOR_ROLE_VALUE_CONFLICT:' + name)
+    n_rows=[];digest=N_EMPTY_DIGEST
+    for key,source,n in zip(keys,selector.select(['trade_date','high','low','close']).to_pylist(),n_values):
+        digest=n_next_digest(digest,n_bar(symbol,source))
+        structure=json.loads(n['kb_n_structure_json'])
+        if ((n['ts_code'],str(n['trade_date']))!=key or n['prefix_input_sha256']!=digest
+                or structure.get('prefix_input_sha256')!=digest or structure.get('generation_id')!=binding['source_generation']
+                or structure.get('input_sha256')!=binding['source_input_sha256']
+                or structure.get('rule_sha256')!=n_hashes['n_structure_contract_sha256']
+                or structure.get('helper_sha256')!=n_hashes['n_structure_helper_sha256']
+                or structure.get('price_basis')!='QFQ_ASOF' or structure.get('first_breakout_at') is not None):
+            raise ValueError('N_VALUE_SOURCE_CONFLICT:' + key[1])
+        for point_name in ('L1','H1','L2','H2'):
+            point=structure.get(point_name,{})
+            if point.get('confirmed_at') and not (point.get('event_date')<=point['confirmed_at']<=key[1]):
+                raise ValueError('N_FUTURE_PIVOT_CONFLICT:' + key[1])
+        n_rows.append(dict(ts_code=symbol, trade_date=key[1], kb_hold_trend_up=n['kb_hold_trend_up'],
+                           kb_hold_trend_up_reason=n['kb_hold_trend_up_reason'], kb_n_structure=structure))
+    if digest!=item['prefix_input_sha256'] or n_rows[-1]!=item['last_result']:
+        raise ValueError('N_PREFIX_OR_FINAL_VALUE_CONFLICT')
+    source_rows=selector.to_pylist()
+    score_rows=apply_n_score(symbol, source_rows, source_rows, n_rows,
+        rule_sha256=n_hashes['n_structure_contract_sha256'], helper_sha256=n_hashes['n_structure_helper_sha256'])
+    changed_score={'kb_hold_trend_up','kb_hold_trend_up_reason','kb_hold_score','kb_hold_score_min',
+                   'kb_hold_score_max','kb_hold_score_status'}
+    changes=[];action_rows=[]
+    for before,after in zip(source_rows,score_rows):
+        changed=any(before[name]!=after[name] for name in ('kb_hold_score','kb_hold_score_min','kb_hold_score_max'))
+        changes.append(changed)
+        action_rows.append(project_action(after,rule_sha256=identity['action_contract_sha256']) if changed
+                           else {name:before[name] for name in ACTION_FIELDS})
+    sources=dict(identity['source_sha256'])
+    changed_sources={'ops/junda_feedback_candidate.py','ops/research_panel_qfq.py','ops/kb_hold_score.py',
+        'contracts/a_share_kb_hold_score_v1.json','infrastructure/research_workbench_host.py',
+        'research-panel/workbench-host/kb-single-stock.mjs','research-panel/workbench-host/kb-signal-view.mjs',
+        'ops/kb_n_structure.py','contracts/a_share_kb_n_structure_v1.json'}
+    for name,digest_before in sources.items():
+        if name not in changed_sources and q.sha(REPO / name)!=digest_before:
+            raise ValueError('N_UNRELATED_SOURCE_DRIFT:' + name)
+    for name in changed_sources:
+        sources[name]=q.sha(REPO / name)
+    score_path=REPO/'contracts/a_share_kb_hold_score_v1.json';n_path=REPO/'contracts/a_share_kb_n_structure_v1.json'
+    score_ref=immutable(root / ('a_share_kb_hold_score_v1_'+q.sha(score_path)[:16]+'.json'),score_path.read_bytes())
+    n_contract_ref=immutable(root / ('a_share_kb_n_structure_v1_'+q.sha(n_path)[:16]+'.json'),n_path.read_bytes())
+    identity.update(source_sha256=sources, source_gate_sha256=source_gate_ref['sha256'],
+        score_contract_sha256=score_ref['sha256'], score_engine_sha256=q.sha(REPO/'ops/kb_hold_score.py'),
+        n_structure_enabled=True, n_structure_contract_sha256=n_contract_ref['sha256'],
+        n_structure_helper_sha256=n_hashes['n_structure_helper_sha256'],
+        n_structure_values_sha256=values_ref['sha256'], n_structure_checkpoint_sha256=checkpoint_ref['sha256'],
+        n_structure_receipt_sha256=receipt_ref['sha256'], n_structure_prior_candidate_sha256=expected_sha,
+        n_structure_prior_candidate_generation=old['candidate_generation'])
+    generation=q.canonical_sha(identity);short=generation[:16];prefix=symbol.replace('.','_')
+    old_gap=binding['confirmed_gap']
+    sidecar=pq.read_table(q._source(old_gap['diagnostics'],owner='N prior diagnostics'))
+    meta=json.loads((sidecar.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
+    old_diag=sidecar.to_pylist()
+    if len(old_diag)!=len(keys):raise ValueError('N_PRIOR_DIAGNOSTIC_LENGTH_CONFLICT')
+    encoded=[]
+    for key,d,n in zip(keys,old_diag,n_rows):
+        diag=json.loads(d['diagnostics_json'])
+        if (d['ts_code'],str(d['trade_date']))!=key or len(diag)!=24 or 'kb_n_structure' in diag:
+            raise ValueError('N_PRIOR_DIAGNOSTIC_KEY_CONFLICT:' + key[1])
+        diag['kb_n_structure']=n['kb_n_structure']
+        encoded.append(json.dumps(diag,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False))
+    sidecar=sidecar.set_column(sidecar.schema.get_field_index('diagnostics_json'),'diagnostics_json',pa.array(encoded,type=pa.string()))
+    meta.update(candidate_generation=generation,n_structure_enabled=True,**n_hashes,
+                diagnostic_keys=[*meta['diagnostic_keys'],'kb_n_structure'])
+    sidecar=sidecar.replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(meta,ensure_ascii=False,sort_keys=True).encode()})
+    sink=pa.BufferOutputStream();pq.write_table(sidecar,sink,compression='zstd')
+    sidecar_ref=immutable(root/f'{prefix}_N_DIAGNOSTICS_{short}.parquet',sink.getvalue().to_pybytes())
+    outputs={};display_roles={}; changed_fields=changed_score|ACTION_FIELDS
+    for role,before in tables.items():
+        provenance=json.loads((before.schema.metadata or {})[b'kb_single_candidate_v1'])
+        if provenance.get('candidate_generation')!=old['candidate_generation']:
+            raise ValueError('N_PRIOR_ROLE_GENERATION_CONFLICT:' + role)
+        provenance.update(candidate_generation=generation,n_structure_enabled=True,**n_hashes,source_gate_receipt=source_gate_ref)
+        metadata=dict(before.schema.metadata or {});metadata[b'kb_single_candidate_v1']=json.dumps(provenance,sort_keys=True).encode()
+        table=before.replace_schema_metadata(metadata)
+        for name in changed_fields:
+            values=[r[name] for r in (action_rows if name in ACTION_FIELDS else score_rows)]
+            index=table.schema.get_field_index(name)
+            table=table.set_column(index,table.schema.field(index),pa.array(values,type=table.schema.field(index).type))
+        sink=pa.BufferOutputStream();pq.write_table(table,sink,compression='zstd')
+        ref=immutable(root/f'{prefix}_{role.upper()}_N_FULL_{short}.parquet',sink.getvalue().to_pybytes())
+        read=pq.read_table(q._source(ref,owner='N role readback'))
+        unchanged=[name for name in before.column_names if name not in changed_fields]
+        if (read.column_names!=before.column_names or any(not same(read[name],before[name]) for name in unchanged)):
+            raise ValueError('N_UNCHANGED_ROLE_VALUE_CONFLICT:' + role)
+        outputs[role]={**ref,'rows':len(read),'old_columns_equal_except_n_score_action':True}
+        old_display=pq.read_table(q._source(binding['display_projection']['roles'][role]['artifact'],owner='N prior display'))
+        display=old_display
+        for name in changed_fields & set(display.column_names):
+            i=display.schema.get_field_index(name);display=display.set_column(i,display.schema.field(i),read[name])
+        context=json.loads((display.schema.metadata or {})[b'a_share_single_display_projection_v1'])
+        context.update(candidate_generation=generation,source_full_sha256=ref['sha256'],n_structure_contract_sha256=n_contract_ref['sha256'])
+        display=display.replace_schema_metadata({b'a_share_single_display_projection_v1':json.dumps(context,sort_keys=True).encode()})
+        sink=pa.BufferOutputStream();pq.write_table(display,sink,compression='zstd')
+        display_ref=immutable(root/f'{prefix}_{role.upper()}_N_DISPLAY_{short}.parquet',sink.getvalue().to_pybytes())
+        display_roles[role]={**binding['display_projection']['roles'][role], 'artifact':display_ref,'source_full':ref}
+    view=json.loads(gzip.decompress(q._source(binding['assets']['kb'],owner='N prior view').read_bytes()))
+    projection=json.loads(gzip.decompress(q._source(binding['assets']['projection'],owner='N prior chart').read_bytes()))
+    if view.get('candidate_generation')!=old['candidate_generation'] or projection.get('candidate_generation')!=old['candidate_generation'] or len(view['rows'])!=len(keys):
+        raise ValueError('N_PRIOR_VIEW_CONFLICT')
+    for key,row,score,action,n,d in zip(keys,view['rows'],score_rows,action_rows,n_rows,encoded):
+        if str(row['trade_date'])!=key[1]:raise ValueError('N_VIEW_KEY_CONFLICT')
+        for name in changed_score:row['hold_score'][name]=score[name]
+        row['action']=action;row['confirmed_kb_diagnostics']=json.loads(d)
+    view.update(candidate_generation=generation,candidate_identity_sha256=generation,selector_candidate_sha256=outputs['selector']['sha256'],
+        hold_score_contract_sha256=score_ref['sha256'],hold_score_engine_sha256=identity['score_engine_sha256'],
+        n_structure_contract_sha256=n_contract_ref['sha256'],confirmed_gap_diagnostics_sha256=sidecar_ref['sha256'],source_gate_receipt=source_gate_ref)
+    raw=json.dumps(view,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+    kb=immutable(root/f'{prefix}_N_VIEW_{short}.json.gz',gzip.compress(raw,mtime=0));kb.update(encoding='gzip',decoded_bytes=len(raw))
+    projection.update(candidate_generation=generation);projection['lineage']['candidate_generation']=generation
+    projection['lineage']['selector_candidate']=outputs['selector'];projection['lineage']['source_gate']=source_gate_ref
+    raw=(json.dumps(projection,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode()
+    proj=immutable(root/f'{prefix}_N_PROJECTION_{short}.json.gz',gzip.compress(raw,mtime=0))
+    proj.update(encoding='gzip',decoded_bytes=len(raw),row_count=len(keys),formula_sha256=renderer.FORMULA_SHA)
+    html=renderer.chart_html(Path(renderer.OWNER_RENDERER['path']).read_bytes(),projection,projection['lineage'],compress_payload=True)
+    html=html.replace('候选派生投影','单股研究投影').replace('候选原式派生投影','单股原式研究投影')
+    chart=immutable(root/f'{prefix}_N_CHART_{short}.html',html.encode())
+    display={**binding['display_projection'],'roles':display_roles}
+    gap={**old_gap,'diagnostics':sidecar_ref,'prior_source_gate':binding['source_gate_receipt']}
+    n_binding={'contract':n_contract_ref,'receipt':receipt_ref,'values':values_ref,'checkpoint':checkpoint_ref}
+    assets={**binding['assets'],'kb':kb,'projection':proj,'html':chart}
+    binding.update(candidate_identity=identity,candidate_generation=generation,confirmed_gap=gap,n_structure=n_binding,
+        display_projection=display,assets=assets,source_gate_receipt=source_gate_ref,
+        hold_score_contract=score_ref,hold_score_engine_sha256=identity['score_engine_sha256'])
+    binding_ref=write_json(root/f'{prefix}_N_BINDING_{short}.json',binding)
+    result=dict(old)
+    result.update(candidate_generation=generation,candidate_identity=identity,outputs=outputs,binding=binding_ref,assets=assets,
+        display_projection=display,confirmed_gap=gap,n_structure=n_binding,hold_score_contract=score_ref,
+        source_gate=source_gate_ref,n_rebound_from=prior,n_score_changed_rows=sum(changes),
+        last_hold_score={name:score_rows[-1][name] for name in changed_score},status='PREPARED_PENDING_UI_AND_INDEPENDENT_REVIEW')
+    result_ref=write_json(root/f'{prefix}_N_CANDIDATE_{short}.json',result)
+    return {'symbol':symbol,'candidate_generation':generation,'candidate':result_ref,'binding':binding_ref,
+            'diagnostics':sidecar_ref,'rows':len(keys),'score_changed_rows':sum(changes),
+            'last_score':result['last_hold_score'],'full_columns':{role:len(table.column_names) for role,table in tables.items()},
+            'display_columns':{role:ref['columns'] for role,ref in display_roles.items()}}
+
+
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-n':
+    parser=argparse.ArgumentParser();parser.add_argument('rebind-n')
+    for name in ('prior','prior-sha256','output-dir','receipt','receipt-sha256','source-gate','source-gate-sha256'):
+        parser.add_argument('--'+name,required=True)
+    args=parser.parse_args()
+    receipt_ref={'path':str(Path(args.receipt).resolve(strict=True)),'sha256':args.receipt_sha256}
+    gate_ref={'path':str(Path(args.source_gate).resolve(strict=True)),'sha256':args.source_gate_sha256}
+    print(json.dumps(rebind_n_candidate(args.prior,args.prior_sha256,args.output_dir,receipt_ref=receipt_ref,source_gate_ref=gate_ref),ensure_ascii=False,sort_keys=True))
+elif __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] == 'rebind-confirmed-gap':
     parser = argparse.ArgumentParser()
     parser.add_argument('rebind-confirmed-gap')
     parser.add_argument('--prior', type=Path, required=True); parser.add_argument('--prior-sha256', required=True)
