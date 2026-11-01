@@ -132,6 +132,8 @@ def test_raw_store_validates_and_publishes(tmp_path: Path):
 PARTS_DIRS = [
     "apps/api/v4_api/_research_lane_router_parts",
     "domains/_preselection_parts",
+    "ops/_us_market_digest_parts",
+    "stage_center/_live_collectors_parts",
     "stage_center/_raw_store_parts",
     "stage_center/_runner_parts",
 ]
@@ -165,6 +167,8 @@ def test_parts_no_longer_read_through_the_facade_namespace():
 FACADE_FOR_PARTS = {
     "apps/api/v4_api/_research_lane_router_parts": "apps/api/v4_api/research_lane_router.py",
     "domains/_preselection_parts": "domains/preselection.py",
+    "ops/_us_market_digest_parts": "ops/us_market_digest.py",
+    "stage_center/_live_collectors_parts": "stage_center/live_collectors.py",
     "stage_center/_raw_store_parts": "stage_center/raw_store.py",
     "stage_center/_runner_parts": "stage_center/runner.py",
 }

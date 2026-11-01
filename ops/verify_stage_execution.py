@@ -359,7 +359,7 @@ def _auction_sources(evidence, second_root, shared_root, trade_date, stage_id, d
         if (projected.get("row_count") != 20 or _csv_bytes(projected["rows"]) != csv_raw
                 or [row["code"] for row in projected["rows"]] != [row["code"] for row in frozen]):
             raise ValueError("auction persisted Top20 projection")
-        source = _collect_hk_auction_body(live.__dict__, SimpleNamespace(trade_date=trade_date, stage_id=stage_id),
+        source = _collect_hk_auction_body(SimpleNamespace(trade_date=trade_date, stage_id=stage_id),
             codes=tuple(d1["codes"]), python_path=None, shared_root=None, auction_root=csv_path,
             process_runner=None, replay_provider=None)
         aggregated = [dict(row) for row in source.rows if row["code"] in set(d1["codes"])]

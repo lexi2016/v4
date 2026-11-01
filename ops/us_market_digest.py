@@ -890,7 +890,7 @@ def build_us_market_snapshot(
                 or manual_quote_scope is None):
             raise ValueError("US_MANUAL_QUOTE_SCOPE_MODE_INVALID")
         from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_snapshot_body as _manual
-        return _manual(globals(), us_session_date, scope=manual_quote_scope, captured_at=captured_at,
+        return _manual(us_session_date, scope=manual_quote_scope, captured_at=captured_at,
                        fetch_quotes=fetch_quotes, fetch_quote=fetch_quote, transport=transport,
                        timeout=timeout, universe_contract=universe_contract)
     if fetch_quotes is not None and fetch_quote is not None:
@@ -1379,7 +1379,7 @@ def _build_manual_quote_scope_payload(
     timeout: int = 20,
 ) -> dict[str, Any]:
     from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_payload_body as _impl
-    return _impl(globals(), trade_date, session_date=session_date, scope=scope, now=now,
+    return _impl(trade_date, session_date=session_date, scope=scope, now=now,
                  fetch_quotes=fetch_quotes, fetch_quote=fetch_quote, transport=transport, timeout=timeout)
 
 
@@ -1389,7 +1389,7 @@ def build_manual_quote_scope_canary(
     transport: ProxyAwareHTTPTransport | None = None, timeout: int = 20,
 ) -> dict[str, Any]:
     from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_canary_body as _impl
-    return _impl(globals(), session_date=session_date, scope=scope, now=now,
+    return _impl(session_date=session_date, scope=scope, now=now,
                  fetch_quotes=fetch_quotes, fetch_quote=fetch_quote, transport=transport, timeout=timeout)
 
 
@@ -1400,7 +1400,7 @@ def materialize_us_manual_quote_scope_backfill(
     timeout: int = 20,
 ) -> dict[str, Any]:
     from ops._us_market_digest_parts.manual_quote_scope import _materialize_manual_quote_scope_backfill_body as _impl
-    return _impl(globals(), data_root=data_root, trade_date=trade_date, session_date=session_date,
+    return _impl(data_root=data_root, trade_date=trade_date, session_date=session_date,
                  scope=scope, now=now, fetch_quotes=fetch_quotes, fetch_quote=fetch_quote,
                  transport=transport, timeout=timeout)
 
