@@ -76,3 +76,14 @@ def test_zero_omitted_owner_proof_and_later_matching_receipt_refusal(tmp_path,mo
 def test_three_role_scope_rejects_pre_or_wrong_forward_order(tmp_path):
     path=tmp_path/'plan.json';path.write_text(json.dumps({'roles':{'main':{},'stage':{},'api':{},'pre':{}},'forward_order':['main','stage','api'],'rollback_order':['api','stage','main']}))
     with pytest.raises(ValueError,match='EXACT_MAIN_STAGE_API_ROLES_REQUIRED'):main.configure(path,tmp_path/'evidence')
+
+
+def test_delayed_rollback_refuses_new_main_receipts_before_any_unload(tmp_path,monkeypatch,fixed):
+    records=setup_switch(tmp_path,monkeypatch,fixed);calls=[]
+    for role,row in records.items(): Path(row['path']).write_bytes(role.encode()+b'new')
+    ledger=tmp_path/'ledger';folder=ledger/'receipts/live/20261101/1500';folder.mkdir(parents=True)
+    (folder/'new-main.dispatch-receipt.json').write_text(json.dumps({'release_id':'new-main','app_root':'/candidate/new-main/app','status':'SUCCEEDED'}))
+    plan={'omitted_main_owner_zero_proof':{'ledger_root':str(ledger)},'roles':{'main':{'candidate':{'release_id':'new-main','app_root':'/candidate/new-main/app'}}}}
+    monkeypatch.setattr(fixed,'unload',lambda *a:calls.append(a))
+    with pytest.raises(ValueError,match='ROLLBACK_NEW_MAIN_RECEIPTS_EXIST'):main.switch('fixture',plan,rollback=True)
+    assert not calls and all(Path(row['path']).read_bytes()==role.encode()+b'new' for role,row in records.items())
