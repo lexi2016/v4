@@ -71,6 +71,31 @@ def test_bulk_disk_gate_and_interrupted_immutable_write_can_resume(tmp_path,monk
     assert view._write_immutable(tmp_path,'STOCK_RESULT','.json',b'valid')==result
 
 
+def test_generic_refresh_keeps_display_exclusions_without_dropping_source_fields(tmp_path):
+    policy=json.loads((Path(__file__).resolve().parents[1]/'contracts/a_share_single_display_projection_v1.json').read_text())
+    excluded=set(policy['excluded_from_display_projection'])
+    assert len(excluded)==25
+    assert not excluded.intersection(view._fields())
+    # The original B labels remain in the original-formula payload; presentation
+    # excludes them while retaining the original formula/chart identity.
+    assert excluded.intersection(view.ORIGINAL_FIELDS)=={'B1','B2','B3'}
+    left,right,diag,identity=fixture_data()
+    for name in excluded:
+        if name not in left.column_names:
+            left=left.append_column(name,pa.array([True]*left.num_rows))
+    selector_columns=list(left.column_names);backtest_columns=list(right.column_names)
+    first=view.build_from_verified_tables(symbol=identity['symbol'],selector=left,backtest=right,diagnostics=diag,
+                                         identity=identity,output_root=tmp_path)
+    refresh=view.build_from_verified_tables(symbol=identity['symbol'],selector=left,backtest=right,diagnostics=diag,
+                                           identity=identity,output_root=tmp_path)
+    assert first==refresh
+    assert left.column_names==selector_columns and right.column_names==backtest_columns
+    binding=json.loads(Path(first['path']).read_bytes())
+    assert not excluded.intersection(binding['field_names'])
+    assert not excluded.intersection(item['name'] for item in binding['base_fields'])
+    assert {'B1','B2','B3'}<=set(binding['original_fields'])
+
+
 def test_bulk_reuses_old_n_checkpoint_only_with_frozen_source_and_no_resume(tmp_path):
     code='002865.SZ';checkpoint=tmp_path/(code+'.parquet');checkpoint.write_bytes(b'checkpoint')
     gap={'path':'/gap','sha256':S('a'),'checkpoint_id':S('b')}
@@ -161,6 +186,14 @@ def test_host_binds_panel_and_per_stock_view_and_rejects_drift(tmp_path,monkeypa
         endpoint='/api/v4/research/workbench/days/'+identity['source_date']+'/single-research/'+identity['symbol']
         reply=client.get(endpoint,params={'revision':identity['generation']})
         assert reply.status_code==200 and reply.json()['view_generation']==stock['sha256']
+        policy=json.loads((Path(__file__).resolve().parents[1]/'contracts/a_share_single_display_projection_v1.json').read_text())
+        excluded=set(policy['excluded_from_display_projection'])
+        refresh=client.get(endpoint,params={'revision':identity['generation'],
+            'panel_revision':reply.json()['panel_generation'],'view_revision':reply.json()['view_generation']})
+        assert refresh.status_code==200 and refresh.json()['view_generation']==stock['sha256']
+        assert refresh.json()['field_names']==reply.json()['field_names']
+        assert not excluded.intersection(refresh.json()['field_names'])
+        assert not excluded.intersection(field['name'] for field in refresh.json()['base_fields'])
         assert client.get(reply.json()['assets']['chunk-0']['url']).content==raw
         assert client.get(endpoint,params={'revision':identity['generation'],'panel_revision':S('9')}).status_code==409
         assert client.get(endpoint,params={'revision':identity['generation'],'view_revision':S('9')}).status_code==409

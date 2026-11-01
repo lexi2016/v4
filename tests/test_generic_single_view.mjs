@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {decodeGenericChunk,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
 
@@ -77,6 +79,22 @@ test('symbol changes clear both versions and same symbol keeps date/version',()=
   assert.equal(other.searchParams.get('symbol'),'HK.00700');assert.equal(other.searchParams.has('panel_generation'),false);
   assert.equal(other.searchParams.has('view_generation'),false);assert.equal(other.searchParams.has('stock_date'),false);
   assert.throws(()=>singleSelectionHref(url,'HK.700'),/证券无效/);
+});
+
+test('refresh does not revive excluded display fields while original and KB signals remain distinct',()=>{
+  const policy=JSON.parse(readFileSync(new URL('../contracts/a_share_single_display_projection_v1.json',import.meta.url),'utf8'));
+  const excluded=new Set(policy.excluded_from_display_projection);
+  assert.equal(excluded.size,25);
+  const original=Object.fromEntries([...excluded].map(name=>[name,true]));
+  original.user_v1_level1_buy_signal=true;
+  const fields=[...excluded].map(name=>({name,arrow_type:'bool',group:'信号'}));
+  fields.push({name:'kb_b1',arrow_type:'bool',group:'信号'});
+  const values=Object.fromEntries(fields.map(({name})=>[name,true]));
+  const first=signalSummary(fields,values,original),refresh=signalSummary(fields,values,original);
+  assert.deepEqual(refresh,first);
+  assert.ok(first.chips.every(({key})=>!excluded.has(key)));
+  assert.ok(first.chips.some(({key})=>key==='user_v1_level1_buy_signal'));
+  assert.ok(first.chips.some(({key})=>key==='kb_b1'));
 });
 
 test('verified company fields survive an unrelated missing document',()=>{
