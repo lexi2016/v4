@@ -1,0 +1,18 @@
+{
+  "schema_version": "v4.baseline_ignore.v1",
+  "applies_to": "canary comparison only: live release vs a candidate running from a different app root",
+  "note": "Extends ops/baseline_ignore.json with the instance identity that necessarily differs across roots. Release and frontend identity are still asserted by the capture tool; this file only removes them from the body diff.",
+  "paths": [
+    {"path": "display_name_authority.display_as_of", "reason": "clock-derived display timestamp"},
+    {"path": "collection_age_seconds", "reason": "runtime age counter"},
+    {"path": "observed_at", "reason": "SOP document read timestamp"},
+    {"path": "monitor.last_success_at", "reason": "runtime monitor timestamp"},
+    {"path": "groups.logical[].next_due", "reason": "clock-derived next slot"},
+    {"path": "groups.logical[].next_due_slot", "reason": "clock-derived next slot label"},
+    {"path": "runtime_identity.release_id", "reason": "differs per candidate"},
+    {"path": "runtime_identity.manifest_sha256", "reason": "differs per candidate"},
+    {"path": "runtime_identity", "reason": "cross-instance canary: app root, cwd, module paths and identity digest necessarily differ; identity status is asserted separately"},
+    {"path": "api_release_id", "reason": "frontend build identity, differs per candidate"},
+    {"path": "api_manifest_sha256", "reason": "frontend build identity, differs per candidate"}
+  ]
+}

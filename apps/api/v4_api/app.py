@@ -40,6 +40,7 @@ from infrastructure.stage_store import StageStore
 from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
 from stage_center.consumer import StageSelectionConsumer
 from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+from apps.api.v4_api.evidence.loader import tuple_keyed as _evidence_tuple_keyed
 
 _STAGE_RESEARCH_READER_SHA256 = "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
 
@@ -1018,23 +1019,7 @@ _HK_R8_POOL_EVIDENCE = {
         "page_set_sha256": "fb71c5f844c94d85ccbf0348d570f35fdfe20de30a798e1985fb2d127f49d0c4",
     },
 }
-_HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE = {
-    ("20260924", "STAGE_1445_1500"): "d0c64a11d1b833ace8ae0a6105ea04e27d15bb2cf694f7dfdc08900f56213753",
-    ("20260930", "STAGE_0930_0935"): "ca23560921e64600f616d1db1a69feb504e63d0ccdd578232babe5212c149cc4",
-    ("20260930", "STAGE_0935_0940"): "522d6515dd35add084793c1f01d1c8bb1fd62b3d263e7d54359590549ef4db59",
-    ("20260930", "STAGE_0940_0945"): "6cf31b1fdb49737a73e8a9657b94c6f1ff4de9b8f3c398eccb59e37db42b0194",
-    ("20260930", "STAGE_0945_1030"): "3316c2abe88388e6faf59c314b2801a2fc8d93b11cbe68826303e18a13600a92",
-    ("20260930", "STAGE_1300_1315"): "42ad12f2953b2cbae8fcc9594067af54b01e15a7af2134ecc761246c7ae656fe",
-    ("20260930", "STAGE_1445_1500"): "2821b24a4be12d0aa199d1e8e60d8cc7a5a1367211e67cbb9c677da72b4a8888",
-    ("20260930", "STAGE_1545_1555"): "6e63ea8d3ebf1839a53e3c738f494a6ba9d622447d6d86d6b2cfdda5fa2c33d8",
-    ("20261005", "STAGE_0930_0935"): "e9318ba27b8fa90b2f0d03c0fa52f6171676ee88b4e42607ed8567740ceb572d",
-    ("20261005", "STAGE_0935_0940"): "84ef7159af547b908f220c2f8dddeb226a61c2f882c504e0f79b9629e3857d86",
-    ("20261005", "STAGE_0940_0945"): "843f65f610dff7be1c223d7e6a8ff4e6bb7d90b7a42f99c671946667b750c68b",
-    ("20261005", "STAGE_0945_1030"): "cd50cd6c9492de8d5e0bc9893e1dc8639a4b05ffc4164f7818d935c354b158b8",
-    ("20261005", "STAGE_1300_1315"): "c010adbfd20d70a8e742af04b19f819ac96edcfe8b936fd529f7a6d40e94e8c9",
-    ("20261005", "STAGE_1445_1500"): "1665f1e3d7bc06efa1cfc88844e8ca777ed262aa11b6c1353cd35e0464f97ff1",
-    ("20261005", "STAGE_1545_1555"): "d71ab63d6a1059b6ca23561c1c042a5c833c7f82fe64f74abefaca4ffc0f37e6",
-}
+_HK_R8_OBSERVATION_MODE_SHA256_BY_DATE_STAGE = _evidence_tuple_keyed("hk_r8_observation_mode")
 _HK_R8_COMMON_REQUIRED_EVIDENCE = (
     "historical_provider=pytdx_exhq",
     "historical_capture_after_target_cutoff=true",

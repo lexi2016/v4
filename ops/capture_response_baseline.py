@@ -172,6 +172,10 @@ def capture(base_url: str, samples_path: Path, ignore_paths: Sequence[str]) -> d
             continue
         if status == 200:
             _assert_read_only(sample["id"], body)
+        if sample["id"] == "date_list" and isinstance(body, Mapping):
+            entry["identity"] = body.get("runtime_identity")
+        if sample["id"] == "rg_frontend_build" and isinstance(body, Mapping):
+            entry["frontend_status"] = body.get("status")
         normalized = _normalize(body, ignore_paths)
         entry.update({
             "status": status,
@@ -206,16 +210,15 @@ def _load_ignore(path: Path) -> list[str]:
 
 def _require_identity(samples: Sequence[Mapping[str, Any]]) -> None:
     by_id = {sample["id"]: sample for sample in samples}
-    release = by_id.get("date_list", {}).get("body") or {}
-    identity = release.get("runtime_identity") or {}
+    identity = by_id.get("date_list", {}).get("identity") or {}
     if identity.get("status") != "MANIFEST_EXECUTION_FILES_VERIFIED":
         raise BaselineError(
             "release identity is not verified: " + str(identity.get("status") or "MISSING")
         )
-    frontend = by_id.get("rg_frontend_build", {}).get("body") or {}
-    if frontend.get("status") != "VERIFIED":
+    frontend_status = by_id.get("rg_frontend_build", {}).get("frontend_status")
+    if frontend_status != "VERIFIED":
         raise BaselineError(
-            "frontend build identity is not verified: " + str(frontend.get("status") or "MISSING")
+            "frontend build identity is not verified: " + str(frontend_status or "MISSING")
         )
 
 
