@@ -37,8 +37,17 @@ def timestamp(value: Any) -> datetime | None:
 class PdfOwner:
     def __init__(self, data_root: Path | str):
         self.root = Path(data_root)
-        from infrastructure import zsxq_pdf_ingestion
-        self.owner = zsxq_pdf_ingestion
+        try:
+            from infrastructure import zsxq_pdf_ingestion
+        except ImportError:
+            from infrastructure import report_evidence_pdf_owner as zsxq_pdf_ingestion
+        # Current API retains its canonical owner. Older Main/Stage readers use
+        # only the fixed, byte-pinned read-contract alias, never a caller path.
+        owner=zsxq_pdf_ingestion
+        if 'verified_pdf_sha256' not in repr(getattr(getattr(getattr(owner,'_verified_document_detail',None),'__code__',None),'co_consts',())):
+            from infrastructure import report_evidence_pdf_owner
+            owner=report_evidence_pdf_owner
+        self.owner = owner
         self.store = self.owner.NativeDataStore(self.root)
         self._query_index = None
         self._index_signature = None
