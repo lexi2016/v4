@@ -245,6 +245,52 @@ def validate_required_columns(
     return result
 
 
+_SCHEMA_CACHE: dict[str, object] = {}
+
+
+def _panel_schema(path):
+    key = str(path)
+    cached = _SCHEMA_CACHE.get(key)
+    if cached is None:
+        import pyarrow.parquet as pq
+        cached = pq.ParquetFile(path).schema_arrow
+        _SCHEMA_CACHE[key] = cached
+    return cached
+
+
+def _coerce_filter_literals(filters, path):
+    """Align filter literals with the parquet column types.
+
+    pyarrow refuses e.g. ``trade_date`` (string) compared to an int literal and
+    raises ArrowNotImplementedError before any row is read, which aborted the
+    daily chain in the past. Callers should not have to know the stored dtype.
+    """
+    if not filters:
+        return filters
+    import pyarrow as pa
+    schema = _panel_schema(path)
+    coerced = []
+    for item in filters:
+        try:
+            column, operator, value = item
+        except (TypeError, ValueError):
+            coerced.append(item)
+            continue
+        if column in schema.names and not isinstance(value, bool):
+            field_type = schema.field(column).type
+            if pa.types.is_string(field_type) or pa.types.is_large_string(field_type):
+                if isinstance(value, int):
+                    value = str(value)
+                elif isinstance(value, float) and value.is_integer():
+                    value = str(int(value))
+            elif pa.types.is_integer(field_type) and isinstance(value, str):
+                stripped = value.strip().lstrip("-")
+                if stripped.isdigit():
+                    value = int(value)
+        coerced.append((column, operator, value))
+    return coerced
+
+
 def load_selector_ready(
     columns: Optional[Sequence[str]] = None,
     start_date: Optional[str] = None,
@@ -276,6 +322,7 @@ def load_selector_ready(
         read_columns = None
     else:
         read_columns = list(dict.fromkeys(["trade_date", "ts_code", *columns]))
+    filters = _coerce_filter_literals(filters, path)
     df = pd.read_parquet(path, columns=read_columns, filters=filters)
     if start_date is not None:
         df = df[df["trade_date"].astype(str) >= str(start_date)]
