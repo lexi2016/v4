@@ -24,7 +24,7 @@ import time
 import urllib.request
 
 REPO = Path(__file__).resolve().parents[1]
-EVIDENCE = Path('/Users/lexi/Desktop/学习/agents调试/DOT_TO_LOCAL_QWEN_MIGRATION_V1_20261101/kb_panel_upgrade_20261101')
+EVIDENCE = Path('/Users/lexi/Desktop/学习/agents调试/DOT_TO_LOCAL_QWEN_MIGRATION_V1_20261101/kb_panel_upgrade_20261101/junda_feedback_20261101_r1')
 STAGE = None
 STAGE_SHA = None
 OWNER = Path('/Users/lexi/Desktop/学习/v4_app/.task_worktrees/perf-runtime-repair-20261101/docs/handoffs/perf-runtime-repair-20261101/release_repair.py')
@@ -178,7 +178,8 @@ def load_stage():
         ref_checked(stage[key])
     expected = [('api', 'infrastructure/research_workbench_host.py'),
                 ('site', 'workbench.html'), ('site', 'workbench-host/bootstrap.mjs'),
-                ('site', 'workbench-host/kb-single-stock.mjs')]
+                ('site', 'workbench-host/kb-single-stock.mjs'), ('site', 'workbench-host/dot/shell/workbench.local.mjs'),
+                ('site', 'workbench-host/kb-chart-overlay.mjs'), ('site', 'workbench-host/kb-signal-view.mjs')]
     if [(item['kind'], item['path']) for item in stage['changes']] != expected:
         raise ValueError('STAGE_DELTA_SET_CHANGED')
     for item in stage['changes']:
@@ -191,7 +192,7 @@ def load_stage():
     binding = json.loads(ref_checked(json.loads(ref_checked(stage['new_binding']).read_text())['single_stock_research']).read_text())
     if binding['candidate_generation'] != CANDIDATE_GENERATION:
         raise ValueError('SINGLE_BINDING_GENERATION_CHANGED')
-    for key in ('admission', 'numeric_manifest', 'source_gate_receipt', 'source_relocation'):
+    for key in ('admission', 'numeric_manifest', 'source_gate_receipt', 'source_relocation', 'hold_score_contract', 'supplemental_contract'):
         ref_checked(binding[key])
     for ref in binding.get('source_implementation_defects', {}).values():
         ref_checked(ref)
@@ -303,6 +304,13 @@ def verify_http(port, *, release_id, manifest_sha, single):
                 or item.get('rows') != 2311 or item.get('candidate_pool_member') is not False
                 or item.get('observation_date') != '2026-11-02'):
             raise ValueError('SINGLE_RESEARCH_IDENTITY_INVALID')
+        inventory = item.get('field_inventory') or {}
+        if (inventory.get('base_kb_fields') != item['fields_count']
+                or len(inventory.get('hold_score_fields', [])) != 17
+                or len(inventory.get('supplemental_fields', [])) != 4
+                or inventory.get('total_new_fields') != 21
+                or inventory.get('total_derived_fields') != item['fields_count'] + 21):
+            raise ValueError('SINGLE_FIELD_INVENTORY_INVALID')
         for kind, ref in item['assets'].items():
             data = fetch(port, ref['url'])
             if sha(data) != ref['sha256']:
@@ -313,10 +321,20 @@ def verify_http(port, *, release_id, manifest_sha, single):
                 if (field.get('status') != 'SOURCE_IMPLEMENTATION_DEFECT' or not field.get('unknown_reason')
                         or any(row['kb']['kb_rebuild'] is not None for row in view['rows'])):
                     raise ValueError('SOURCE_DEFECT_NOT_UNKNOWN')
+                latest = view['rows'][-1]
+                scores = latest['hold_score']
+                if (view.get('field_inventory') != inventory or latest.get('trade_date') != 20261030
+                        or (scores.get('kb_hold_score'), scores.get('kb_hold_score_min'), scores.get('kb_hold_score_max')) != (None, 3, 5)
+                        or any(latest['supplemental'].get(name) is not None for name in inventory['supplemental_fields'])
+                        or not any(row['trade_date'] == 20251212 and row['kb']['kb_violence_k'] is True
+                                   and row['kb']['kb_fanbao'] is True for row in view['rows'])):
+                    raise ValueError('SINGLE_SCORE_OR_EVENT_READBACK_INVALID')
         for route in ('/research-panel/workbench.html', '/research-panel/workbench-host/bootstrap.mjs',
-                      '/research-panel/workbench-host/kb-single-stock.mjs'):
+                      '/research-panel/workbench-host/kb-single-stock.mjs', '/research-panel/workbench-host/kb-chart-overlay.mjs',
+                      '/research-panel/workbench-host/kb-signal-view.mjs', '/research-panel/workbench-host/dot/shell/workbench.local.mjs'):
             fetch(port, route)
-        result.update(single_fields=57, single_rows=2311, asset_http_sha='PASS', rebuild_unknown='PASS')
+        result.update(single_field_inventory=inventory, single_rows=2311, asset_http_sha='PASS', rebuild_unknown='PASS',
+                      score_and_event_readback='PASS')
     return result
 
 
@@ -519,7 +537,7 @@ def prepare():
                                  'release_id': TARGET.name, 'module_role': 'api'}
         base_source = {key: manifest.get(key) for key in ('source_root', 'source_commit', 'source_provenance')}
         manifest.update(release_id=TARGET.name, app_root=str(TARGET / 'app'),
-                        source_root=str(REPO), source_commit='69d31e8971f38a00b4e76f84c48b45f08a3e4cb2',
+                        source_root=str(REPO), source_commit='58be0d42e6c6befb15a822350df72d74dfa68814',
                         source_provenance={'state': 'REVIEWED_UNCOMMITTED_DELTA', 'base_manifest_sha256': BASE_MANIFEST_SHA,
                                            'base_source_identity': base_source,
                                            'stage_sha256': STAGE_SHA, 'candidate_generation': CANDIDATE_GENERATION})
@@ -530,6 +548,8 @@ def prepare():
             manifest['prior_repair_integration'] = manifest.pop('repair_integration')
         if 'research_panel' in manifest:
             manifest['prior_research_panel'] = manifest['research_panel']
+        if 'junda_single_integration' in manifest:
+            manifest['prior_junda_single_integration'] = manifest['junda_single_integration']
         panel = dict(manifest.get('research_panel', {}))
         old_assets = json.loads(Path(stage['old_asset_manifest']['path']).read_text())['files']
         new_assets = json.loads(Path(stage['new_asset_manifest']['path']).read_text())['files']

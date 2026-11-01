@@ -41,8 +41,15 @@ CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 from ops.research_panel_factor_cache import QfqGateError
 from ops.kb_signal_authority import append_kb_signals, _field_spec
+from ops.kb_hold_score import project_single_history, SUPPLEMENTAL_REASONS
 
 KB_FIELDS = frozenset(field["name"] for field in _field_spec()["fields"])
+SINGLE_FEEDBACK_FIELDS = frozenset({
+    "kb_hold_close_up", "kb_hold_above_bbi", "kb_hold_volume_ok", "kb_hold_trend_up", "kb_hold_j_not_dead",
+    "kb_hold_close_up_reason", "kb_hold_above_bbi_reason", "kb_hold_volume_ok_reason", "kb_hold_trend_up_reason", "kb_hold_j_not_dead_reason",
+    "kb_hold_score", "kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status", "kb_hold_bbi", "kb_hold_k", "kb_hold_d",
+    *SUPPLEMENTAL_REASONS,
+})
 KB_BASELINE_ADAPTER_SHA = "05e8aa7aa19c1ae998481360d80fb99a39498ffd31c5945caedd5c791daa1fad"
 KB_BASELINE_FACTOR_CACHE_SHA = "158f1d26b1a803c280b27139cb8b2f3ab0d9c9fe418bff91f6a0bfc9ef1f04f9"
 
@@ -65,6 +72,57 @@ def kb_schema(schema: pa.Schema) -> pa.Schema:
     if spec["drop_fields"]:
         raise QfqGateError("KB_DROP_FIELDS_WITHOUT_BOUND_CONSUMER_EVIDENCE")
     return pa.schema(fields, metadata=schema.metadata)
+
+
+def _validate_single_feedback_schema(schema: pa.Schema, *, required: bool = False) -> pa.Schema:
+    """The single-stock fields are inherited only from an explicit baseline."""
+    present = SINGLE_FEEDBACK_FIELDS & set(schema.names)
+    if not present:
+        if required:
+            raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MISSING")
+        return schema
+    if present != SINGLE_FEEDBACK_FIELDS:
+        raise QfqGateError("SINGLE_FEEDBACK_PARTIAL_SCHEMA")
+    for name in SINGLE_FEEDBACK_FIELDS:
+        typ = (pa.string() if name.endswith("_reason") or name == "kb_hold_score_status" else
+               pa.int8() if name in {"kb_hold_score", "kb_hold_score_min", "kb_hold_score_max"} else
+               pa.float64() if name in {"kb_hold_bbi", "kb_hold_k", "kb_hold_d"} else pa.bool_())
+        field = schema.field(name)
+        if field.type != typ or not field.nullable:
+            raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MISMATCH:" + name)
+    return schema
+
+
+def _single_feedback_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
+    """Both panel roles must inherit the same complete optional schema."""
+    if set(schemas) != {"selector", "backtest"}:
+        raise QfqGateError("SINGLE_FEEDBACK_ROLE_SET_INVALID")
+    for schema in schemas.values():
+        metadata = schema.metadata or {}
+        declarations = []
+        for key in (META_KEY, b"kb_single_candidate_v1"):
+            if key not in metadata:
+                continue
+            try:
+                value = json.loads(metadata[key])
+            except (TypeError, ValueError) as exc:
+                raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_METADATA_INVALID") from exc
+            if not isinstance(value, dict):
+                raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_METADATA_INVALID")
+            if "single_feedback_enabled" in value:
+                if not isinstance(value["single_feedback_enabled"], bool):
+                    raise QfqGateError("SINGLE_FEEDBACK_MODE_METADATA_INVALID")
+                declarations.append(value["single_feedback_enabled"])
+        if len(set(declarations)) > 1:
+            raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CONFLICT")
+        declared = declarations[0] if declarations else None
+        _validate_single_feedback_schema(schema, required=declared is True)
+        if declared is False and SINGLE_FEEDBACK_FIELDS & set(schema.names):
+            raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CONFLICT")
+    enabled = {bool(SINGLE_FEEDBACK_FIELDS & set(schema.names)) for schema in schemas.values()}
+    if len(enabled) != 1:
+        raise QfqGateError("SINGLE_FEEDBACK_ROLE_SCHEMA_MISMATCH")
+    return enabled.pop()
 
 
 def sha(path: Path) -> str:
@@ -214,7 +272,8 @@ def _research_cache_semantics(snapshot: dict, target: int, source_relocation_ref
 
 _GENERATION_TUPLE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "input_adapter_sha256",
     "factor_cache_sha256", "tdx_adapter_sha256", "user_formula_sha256", "field_contract_sha256",
-    "kb_authority_sha256", "kb_field_contract_sha256")
+    "kb_authority_sha256", "kb_field_contract_sha256", "single_score_authority_sha256",
+    "single_score_contract_sha256", "single_supplemental_contract_sha256")
 
 
 def _release_tuple_bound() -> bool:
@@ -229,7 +288,8 @@ def _release_tuple_bound() -> bool:
         "ops/research_panel_adjustment_inputs.py", "ops/research_panel_tdx_adjustment_inputs.py",
         "ops/research_panel_daily_source.py", "contracts/a_share_generation_compatibility.json",
         "contracts/a_share_daily_source_policy.json", "ops/kb_signal_authority.py",
-        "contracts/a_share_kb_fields_v1.json"]
+        "contracts/a_share_kb_fields_v1.json", "ops/kb_hold_score.py", "contracts/a_share_kb_hold_score_v1.json",
+        "contracts/a_share_kb_supplemental_signals_v1.json"]
     return all(inventory.get(p) == sha(root / p) for p in paths)
 
 
@@ -246,7 +306,10 @@ def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
         tdx_adapter_sha256=sha(Path(__file__).with_name("research_panel_tdx_adjustment_inputs.py")),
         user_formula_sha256=USER_FORMULA_SHA, field_contract_sha256=refs[2]["sha256"],
         kb_authority_sha256=sha(Path(__file__).with_name("kb_signal_authority.py")),
-        kb_field_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_fields_v1.json"))
+        kb_field_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_fields_v1.json"),
+        single_score_authority_sha256=sha(Path(__file__).with_name("kb_hold_score.py")),
+        single_score_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_hold_score_v1.json"),
+        single_supplemental_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_supplemental_signals_v1.json"))
     actual = {key: contract.get(key) for key in _GENERATION_TUPLE_KEYS}
     if (refs[0]["sha256"] != DRIVER_SHA or refs[1]["sha256"] != FORMULA_SHA
             or actual["field_contract_sha256"] != refs[2]["sha256"]):
@@ -708,9 +771,24 @@ def _panel_symbols(path: Path) -> set[str]:
     return values
 
 
-def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history_extension: bool = False) -> pa.Table:
+def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history_extension: bool = False,
+           single_feedback_enabled: bool = False) -> pa.Table:
     # No original formula field is silently default-filled with zero.
-    missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS]
+    present = SINGLE_FEEDBACK_FIELDS & set(frame.columns)
+    if present - set(schema.names):
+        raise QfqGateError("SINGLE_FEEDBACK_OUTPUT_WOULD_DROP_FIELDS:" + role)
+    if single_feedback_enabled:
+        _validate_single_feedback_schema(schema, required=True)
+        if "ts_code" not in frame:
+            raise QfqGateError("SINGLE_FEEDBACK_SYMBOL_UNBOUND:" + role)
+        target = frame.ts_code.astype(str).eq("002865.SZ")
+        if target.any() and present != SINGLE_FEEDBACK_FIELDS:
+            raise QfqGateError("SINGLE_FEEDBACK_TARGET_FIELDS_MISSING:" + role)
+        if target.any() and frame.loc[target, ["kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status"]].isna().any().any():
+            raise QfqGateError("SINGLE_FEEDBACK_TARGET_SCORE_MISSING:" + role)
+    elif SINGLE_FEEDBACK_FIELDS & set(schema.names):
+        raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CONFLICT:" + role)
+    missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS | SINGLE_FEEDBACK_FIELDS]
     if missing:
         raise QfqGateError(f"UNCOMPUTED_FORMULA_FIELDS:{role}:{missing}")
     nullable_context = LEGACY_AUX_FIELDS | ({"bars_since_list"} if history_extension else set())
@@ -719,11 +797,16 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             if history_extension and values.isna().any() and not field.nullable:
                 raise QfqGateError(f"HISTORY_CONTEXT_NOT_NULLABLE:{role}:{field.name}")
+    feedback_missing = [f.name for f in schema if f.name in SINGLE_FEEDBACK_FIELDS and f.name not in frame]
+    if feedback_missing:
+        frame = frame.copy()
+        for name in feedback_missing:
+            frame[name] = None
     table = driver.build_table_for_schema(frame, schema, role)[0]
     # The legacy driver fills nullable ints/bools with 0/False. That would
     # fabricate auxiliary context on new dates; preserve its explicit nulls.
     for field in schema:
-        if field.name in nullable_context | KB_FIELDS:
+        if field.name in nullable_context | KB_FIELDS | SINGLE_FEEDBACK_FIELDS:
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             table = table.set_column(schema.get_field_index(field.name), field, pa.Array.from_pandas(values, type=field.type))
     return table
@@ -1004,6 +1087,9 @@ def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, c
                 field_contract_sha256=sha(contract_csv), user_formula_sha256=USER_FORMULA_SHA,
                 kb_authority_sha256=sha(Path(__file__).with_name("kb_signal_authority.py")),
                 kb_field_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_fields_v1.json"),
+                single_score_authority_sha256=sha(Path(__file__).with_name("kb_hold_score.py")),
+                single_score_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_hold_score_v1.json"),
+                single_supplemental_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_supplemental_signals_v1.json"),
                 source_relocation_sha256=source_relocation_ref["sha256"] if source_relocation_ref else None)
 
 
@@ -2220,7 +2306,28 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
     return {**value, "binding_ref": ref}
 
 
-def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driver):
+def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
+    """Append the separately bound single-stock fields on this QFQ prefix."""
+    if code != "002865.SZ":
+        return computed
+    required = ["trade_date", "high", "low", "close", "kb_b1_j"]
+    if any(name not in computed for name in required):
+        raise QfqGateError("SINGLE_FEEDBACK_PREFIX_MISSING_FIELDS")
+    try:
+        projected = project_single_history(code, computed[required].to_dict("records"))
+    except ValueError as exc:
+        raise QfqGateError("SINGLE_FEEDBACK_PREFIX_CONFLICT:" + str(exc)) from exc
+    if not projected or set(projected[0]) != SINGLE_FEEDBACK_FIELDS:
+        raise QfqGateError("SINGLE_FEEDBACK_FIELD_INVENTORY_MISMATCH")
+    output = computed.copy()
+    for name in SINGLE_FEEDBACK_FIELDS:
+        output[name] = [row[name] for row in projected]
+    return output
+
+
+def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driver, single_feedback_enabled=False):
+    if (identity.get("single_feedback_enabled") is True) != single_feedback_enabled:
+        raise QfqGateError("SINGLE_FEEDBACK_CHECKPOINT_MODE_CONFLICT:" + code)
     checkpoint = parts_root / (code + ".parquet")
     checkpoint_receipt = parts_root / (code + ".receipt.json")
     fingerprint = canonical_sha(dict(code=code, item=item, **identity))
@@ -2236,6 +2343,15 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
             raise QfqGateError("CHECKPOINT_RECOVERY_ROW_CODE_CONFLICT:" + code)
     else:
         computed = rebuild_symbol(code, item, target, driver)
+    if single_feedback_enabled:
+        if code == "002865.SZ":
+            computed = _single_feedback_daily(code, computed)
+        else:
+            computed = computed.copy()
+            for name in SINGLE_FEEDBACK_FIELDS:
+                computed[name] = None
+    elif SINGLE_FEEDBACK_FIELDS & set(computed.columns):
+        raise QfqGateError("SINGLE_FEEDBACK_DISABLED_WITH_COMPUTED_FIELDS:" + code)
     table = pa.Table.from_pandas(computed, preserve_index=False)
     table = table.replace_schema_metadata({META_KEY: json.dumps(dict(checkpoint_id=fingerprint)).encode()})
     temporary = checkpoint.with_suffix(".pending")
@@ -2255,9 +2371,10 @@ def _initialize_symbol_process(driver_path: str, formula_path: str):
 
 
 def _symbol_process_task(payload):
-    code, item, target, identity, parts_root, recovered = payload
+    code, item, target, identity, parts_root, recovered, *mode = payload
     try:
-        code, path = _symbol_checkpoint(code, item, target, identity, Path(parts_root), recovered, _PROCESS_DRIVER)
+        code, path = _symbol_checkpoint(code, item, target, identity, Path(parts_root), recovered, _PROCESS_DRIVER,
+                                        mode[0] if mode else False)
         return code, str(path), None
     except QfqGateError as exc:
         # Parent owns the quarantine decision and the shared receipt dictionary.
@@ -2662,6 +2779,14 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         turnover = load_daily(data_root, tdx_root, target)
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv, source_relocation_ref)
         identity["turnover_input_sha256"] = turnover.identity
+        # The existing paired baseline enables this single-stock extension only
+        # when both role schemas already bind every optional field.
+        expected = {role: path.read_bytes() for role, path in pointers.items()}
+        currents = {role: Path(value.decode("utf-8-sig").strip()) for role, value in expected.items()}
+        single_feedback_enabled = _single_feedback_pair_mode({role: pq.ParquetFile(path).schema_arrow
+                                                               for role, path in currents.items()})
+        if single_feedback_enabled:
+            identity["single_feedback_enabled"] = True
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
                                    target=target, retained_history=retained_history)
         addition = archive_addition_binding(archive_additions, snapshot=snapshot, pointers=pointers, identity=identity,
@@ -2669,14 +2794,14 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         incremental = delta or addition
         # One fixed journal owned by the original entry covers crashes between
         # replacing the original two files, even after a new input revision.
-        expected = {role: path.read_bytes() for role, path in pointers.items()}
-        currents = {role: Path(value.decode("utf-8-sig").strip()) for role, value in expected.items()}
         contracts = {role: panel_contract(path) for role, path in currents.items()}
         existing_kb = {role: KB_FIELDS & set(pq.ParquetFile(path).schema_arrow.names) for role, path in currents.items()}
         if any(fields and fields != KB_FIELDS for fields in existing_kb.values()) or bool(existing_kb["selector"]) != bool(existing_kb["backtest"]):
             raise QfqGateError("KB_PARTIAL_BASELINE_SCHEMA")
         kb_upgrade = not any(existing_kb.values())
         if kb_upgrade:
+            if single_feedback_enabled:
+                raise QfqGateError("SINGLE_FEEDBACK_REQUIRES_EXISTING_KB_SCHEMA")
             if publish or refresh_inputs or any(x is not None for x in (tail_delta, archive_additions, history_extension, checkpoint_resume, same_asof_ref)):
                 raise QfqGateError("KB_INITIAL_UPGRADE_ISOLATED_SAME_ASOF_ONLY")
             if len({c.get("generation_id") for c in contracts.values()}) != 1:
@@ -2695,7 +2820,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 if (contract.get("asof_date") != target or contract.get("adapter_sha256") != KB_BASELINE_ADAPTER_SHA
                         or contract.get("factor_cache_sha256") != KB_BASELINE_FACTOR_CACHE_SHA
                         or any(contract.get(k) != v for k, v in identity.items()
-                               if k not in {"adapter_sha256", "factor_cache_sha256", "kb_authority_sha256", "kb_field_contract_sha256", "source_relocation_sha256"})):
+                               if k not in {"adapter_sha256", "factor_cache_sha256", "kb_authority_sha256", "kb_field_contract_sha256", "source_relocation_sha256",
+                                            "single_score_authority_sha256", "single_score_contract_sha256", "single_supplemental_contract_sha256"})):
                     raise QfqGateError("KB_BASELINE_IDENTITY_MISMATCH:" + role)
                 receipt = json.loads(Path(contract["generation_manifest_path"]).read_text())
                 if (receipt.get("generation_id") != contract["generation_id"]
@@ -2868,7 +2994,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         # these fields from the accepted schema and recompute them from prefix.
         if history is not None:
             schemas = {role: user_formula_schema(schema) for role, schema in schemas.items()}
-        schemas = {role: kb_schema(schema) for role, schema in schemas.items()}
+        schemas = {role: _validate_single_feedback_schema(kb_schema(schema)) for role, schema in schemas.items()}
+        if _single_feedback_pair_mode(schemas) != single_feedback_enabled:
+            raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CHANGED")
         if kb_upgrade:
             for role, path in currents.items():
                 original = pq.ParquetFile(path).schema_arrow
@@ -2881,7 +3009,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         # Submit only one small batch at a time: memory is bounded by workers x
         # one stock history and two output tables, not the full market frame.
         def one(code: str):
-            return _symbol_checkpoint(code, snapshot["symbols"][code], target, identity, parts_root, recovered, driver)
+            return _symbol_checkpoint(code, snapshot["symbols"][code], target, identity, parts_root, recovered, driver,
+                                      single_feedback_enabled)
         codes = [] if kb_upgrade else sorted(incremental["codes"] if incremental else available)
         unchanged_codes = ((expected_codes & available) - set(codes) - foreign - legacy_codes
                                   - set(quarantined) - retained_history_codes) if incremental or kb_upgrade else set()
@@ -2917,7 +3046,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     if compute_backend == "process":
                         futures = [executor.submit(_symbol_process_task,
                             (c, snapshot["symbols"][c], target, identity, str(parts_root),
-                             {c: recovered[c]} if c in recovered else {})) for c in batch]
+                             {c: recovered[c]} if c in recovered else {}, single_feedback_enabled)) for c in batch]
                     else:
                         futures = [executor.submit(compute_or_quarantine, c) for c in batch]
                     for future in futures:
@@ -3048,7 +3177,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                 gate = driver.validate_new_selector_rows(frame.loc[frame.trade_date.eq(target)], schemas[role], target)
                                 if gate["status"] != "PASS":
                                     raise QfqGateError(f"ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:{code}:{gate}")
-                            table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None)
+                            table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None,
+                                           single_feedback_enabled=single_feedback_enabled)
                             if delta:
                                 original = old_table.take(pa.array(old_groups[code]))
                                 delta_prefix_changes[role].extend(tail_delta_prefix(original, table, delta["codes"][code]["added_dates"], code))

@@ -2,7 +2,7 @@ import {installSingleResearch} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
-import {setCompanyContext,renderCompanyStatus} from './company-local.mjs';
+import {setCompanyContext,renderCompanyStatus,explanationFacts} from './company-local.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
 const el=id=>document.getElementById(id),add=(host,tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;host.append(n);return n};
@@ -13,7 +13,7 @@ const stat=add(el('interactivePanel'),'section');stat.className='panel';stat.id=
 let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null;
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
-const singleResearch=installSingleResearch();
+const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
 const original=bridge.OriginalFullChart;
 window.OriginalFullChart={...original,clear(){cancelOriginalReady();++r2Serial;r2Controller?.abort();r2Controller=null;if(skillReviewCleanup){skillReviewCleanup();skillReviewCleanup=null}original.clear();current=null;context=null;++contextSerial;stat.replaceChildren();el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
@@ -83,6 +83,52 @@ function showStatistics(bundle){
   }
   add(stat,'small','非历史PIT认证；仅描述已接受事件，不预测未来。');
 }
+function paintCompanyReports(value,target=el('companyEvidence')){
+  const box=add(target,'details');add(box,'summary','研报来源与缺口');
+  if(!value.reports?.catalog?.length)add(box,'p','研报元数据未接入 · CANNOT_CONFIRM');
+  for(const report of value.reports?.catalog??[]){const row=add(box,'p');add(row,'span',`${report.published_at??'日期未知'} · ${report.title??'标题缺失'} · ${report.full_text_status??report.evidence_status??'全文状态未知'} `);try{const url=new URL(report.report_url||report.metadata_source_url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(row,'a',report.report_url?'原始报告入口':'元数据来源');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{add(row,'small','来源链接未接入');}}
+  add(box,'p',value.reports?.stored_report?'有已存研报引用；文件可读性与事实验收需另核。':'未绑定已存研报；不把元数据当全文。');
+}
+async function loadSingleDetails(day,meta,signal){
+  const history=el('kbSingleHistory'),company=el('kbSingleCompany'),finance=el('kbSingleFinancial'),reports=el('kbSingleReports');
+  history.textContent=company.textContent=finance.textContent=reports.textContent='正在核对同股、同日期资料…';
+  const query=new URLSearchParams({date:day.source_date.replaceAll('-',''),symbol:meta.symbol,generation:day.generation,input_sha256:day.input_sha256});
+  const current=()=>!signal.aborted;
+  const read=async url=>{const response=await fetch(url,{signal,credentials:'same-origin',redirect:'error',cache:'no-store'});if(!response.ok)throw Error('HTTP_'+response.status);return response.json()};
+  const historyTask=async()=>{
+    try{
+      const [detail,cases]=await Promise.all([read('/api/v4/research/a-share/daily-product?'+query),read('/api/v4/research/a-share/event-cases?'+new URLSearchParams({date:day.source_date.replaceAll('-',''),symbol:meta.symbol,group:'original',horizon:'d2'}))]);
+      if(!current())return;
+      if(detail.status!=='READY'||detail.row?.symbol!==meta.symbol||detail.data_date!==day.source_date.replaceAll('-','')||detail.source_generation!==day.generation||detail.source_identity?.input_sha256!==day.input_sha256||detail.manifest?.sha256!==day.numeric_manifest.sha256||detail.manifest?.path!==day.numeric_manifest.path||detail.research_only!==true||['production_allowed','buy_gate_updated','orders_sent'].some(k=>detail[k]!==false))throw Error('HISTORY_IDENTITY_CONFLICT');
+      history.replaceChildren();const coverage=detail.row.historical_coverage??{};
+      add(history,'p',`原式历史覆盖 ${coverage.evaluated_count??'未知'}/${coverage.available_prefix_dates??'未知'} 个日期；当前单股不在172候选名单。`);
+      const group=detail.row.statistics?.groups?.find(item=>item.group_id==='original');
+      if(group?.identity_status==='BOUND'&&group.source_identity?.generation===day.generation&&group.source_identity?.input===day.input_sha256){
+        for(const key of ['d2','d5']){const item=group.horizons?.[key];add(history,'p',`原式 ${key.toUpperCase()} · 有效 ${item?.valid??'未知'} · 未成熟 ${item?.not_matured??'未知'} · ${item?.valid>0&&Number.isFinite(item.positive_fraction)?(item.positive_fraction*100).toFixed(2)+'%':'样本不足'}`)}
+        const position=detail.row._daily_cached_groups?.original?.d2?.conditional;
+        if(position&&Number.isFinite(position.current_price_percentile)&&position.lookback===250)add(history,'p',`原式同位置 ${position.bucket_label??'分位待核'} · 当前250日分位 ${(position.current_price_percentile*100).toFixed(1)}% · 有效 ${position.valid??'未知'}；不是KB成功率。`);
+        else add(history,'p','同位置统计未物化 · CANNOT_CONFIRM');
+      }else add(history,'p','原式同买点统计身份未绑定 · CANNOT_CONFIRM');
+      if(cases.status==='READY'){
+        if(cases.symbol!==meta.symbol||cases.data_date!==day.source_date.replaceAll('-','')||cases.group!=='original'||cases.horizon!=='d2'||cases.source_generation!==day.generation||cases.source_identity?.input_sha256!==day.input_sha256||cases.numeric_manifest?.sha256!==day.numeric_manifest.sha256||cases.numeric_manifest?.path!==day.numeric_manifest.path||!Array.isArray(cases.cases))throw Error('EVENT_CASE_IDENTITY_CONFLICT');
+        const details=add(history,'details');add(details,'summary',`原式同买点事件 · ${cases.cases.length} 项`);
+        for(const item of cases.cases){const button=add(details,'button',`${item.event_date} · ${item.return_pct==null?item.status:item.return_pct+'%'}`);button.type='button';button.onclick=()=>{const date=String(item.event_date).replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3');el('kbSingleDate').value=date;el('kbSingleDate').dispatchEvent(new Event('change'))};}
+      }else add(history,'p',cases.status==='NOT_MATERIALIZED'?'同买点事件明细未物化；不能推断全历史无命中。':cases.status==='IN_PROGRESS'?'同买点事件明细补齐中。':'事件明细状态：'+cases.status);
+      add(history,'p','KB同定义历史收益与相同位置研究未物化，不复用原式成功率。');
+    }catch(error){if(current())history.textContent='同股历史来源待核 · CANNOT_CONFIRM：'+error.message;}
+  };
+  const companyTask=async()=>{
+    try{
+      const value=await read('/api/v4/research/workbench/days/'+day.source_date+'/company/'+meta.symbol+'?'+new URLSearchParams({revision:day.generation}));
+      if(!current())return;
+      if(!value||value.schema!=='V4_RECEIVED_COMPANY_VIEW_V1'||value.symbol!==meta.symbol||value.source_date!==day.source_date||value.observation_date!==day.observation_date||value.generation!==day.generation||value.input_sha256!==day.input_sha256||value.numeric_manifest?.sha256!==day.numeric_manifest.sha256||value.numeric_manifest?.path!==day.numeric_manifest.path||value.RESEARCH_ONLY!==true||['production_allowed','buy_gate_updated','orders_sent'].some(k=>value[k]!==false))throw Error('COMPANY_IDENTITY_UNBOUND');
+      company.replaceChildren();add(company,'p',value.business?.summary?.value??'主营资料待核');
+      finance.replaceChildren();for(const [title,fact] of explanationFacts(value).filter(([title])=>title!=='主营业务'))add(finance,'p',`${title}：${fact.value??'待核'} ${fact.unit??''}`);
+      reports.replaceChildren();paintCompanyReports(value,reports);
+    }catch(error){if(!current())return;company.textContent='本股当日公司材料未绑定 · CANNOT_CONFIRM';finance.textContent='本股当日财务及股东材料未绑定 · CANNOT_CONFIRM';reports.textContent='本股当日研报材料未绑定 · CANNOT_CONFIRM';}
+  };
+  await Promise.all([historyTask(),companyTask()]);
+}
 function cancelOriginalReady(){originalReadyObserver?.disconnect();originalReadyObserver=null;}
 function whenOriginalReady(callback){
   cancelOriginalReady();if(!current||frame.hidden)return;
@@ -129,12 +175,7 @@ window.StockPanelHost={
   paintContext,
   paintClassificationCoverage(day){let line=el('macClassificationCoverage');if(!line){line=document.createElement('p');line.id='macClassificationCoverage';line.className='counts';document.querySelector('.source-note').append(line);}const counts=day.classification_identity_counts??{};line.textContent='分类代码+名称 '+(counts.BOUND_EXACT_CODE_NAME??0)+'/'+day.scope_count+' · 冲突 '+(counts.IDENTITY_CONFLICT_NAME??0)+' · '+day.classification_status;},
   paintClassification(row,day){renderClassification(el('classificationSummary'),row,day)},
-  paintCompanyReports(value){
-    const target=el('companyEvidence'),box=add(target,'details');add(box,'summary','研报来源与缺口');
-    if(!value.reports?.catalog?.length)add(box,'p','研报元数据未接入 · CANNOT_CONFIRM');
-    for(const report of value.reports?.catalog??[]){const row=add(box,'p');add(row,'span',`${report.published_at??'日期未知'} · ${report.title??'标题缺失'} · ${report.full_text_status??report.evidence_status??'全文状态未知'} `);try{const url=new URL(report.report_url||report.metadata_source_url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(row,'a',report.report_url?'原始报告入口':'元数据来源');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{add(row,'small','来源链接未接入');}}
-    add(box,'p',value.reports?.stored_report?'有已存研报引用；文件可读性与事实验收需另核。':'未绑定已存研报；不把元数据当全文。');
-  },
+  paintCompanyReports,
   paintWorkflow(contract){
     const labels={DEFERRED_USER:'用户后置',COMPLETED:'已完成（见回执）',PARTIAL:'部分交付',BLOCKED:'上游阻塞',MISSED:'漏过原时点',NOT_DUE:'未来节点',CANNOT_CONFIRM_NO_RECEIPT:'执行回执缺失',CANNOT_CONFIRM_BAD_RECEIPT:'回执校验失败'};
     for(const item of contract?.time_contract?.nodes??[]){const d=document.querySelector(`.timetable-item[data-node-id="${item.id}"]`);if(!d)continue;const host=d.querySelector('.node-materials');if(!host)continue;host.replaceChildren();add(host,'strong',labels[item.execution_status]??item.execution_status);if(item.recorded_at)add(host,'p','实际记录 '+item.recorded_at);if(item.source_asof)add(host,'p','来源时点 '+item.source_asof);for(const reason of item.missing??[])add(host,'p','缺口：'+reason);if(item.error)add(host,'p','错误：'+item.error);for(const material of item.materials??[]){try{const u=new URL(material.url,location.href);if(!['https:','http:'].includes(u.protocol)||u.username||u.password)continue;const a=add(host,'a',material.label??'来源材料');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{add(host,'p','材料链接待核');}}}

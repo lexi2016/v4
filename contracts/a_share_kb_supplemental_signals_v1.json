@@ -1,0 +1,32 @@
+{
+  "schema": "a_share_kb_supplemental_signals_v1",
+  "scope": "EXPLICIT_A_SHARE_SINGLE_STOCK_RESEARCH_ONLY",
+  "fields": [
+    {"name": "kb_s1", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "SOURCE_VERSION_CONFLICT_AND_UNQUANTIFIED", "description": "正文为流畅上涨后高位巨量大阴且假阴真阳亦算；独立概念卡为高位巨量不限阴阳，且高位与巨量均未统一量化。"},
+    {"name": "kb_s2", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_ANCHOR_AND_RULE_UNCONFIRMED", "description": "正文需先有S1锚点，再挑战S1前高且MACD顶背离；未认证的简化实现不替代正文。"},
+    {"name": "kb_s3", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "S1_S2_ANCHOR_AND_RULE_UNCONFIRMED", "description": "正文需先有S1/S2锚点并反抽到其下沿；未认证的简化实现不替代正文。"},
+    {"name": "kb_didi_1455", "type": "nullable_bool", "value": null, "status": "UNKNOWN", "reason": "BOUND_1455_MINUTE_INPUT_UNAVAILABLE", "description": "14:55跌破昨低的时间口径；未绑定分钟行情，不由日线收盘价推定。"}
+  ],
+  "reused_fields": {
+    "kb_didi": "高位双阴下台阶的日线源实现，和14:55口径分开；其实现参数与完整正文等价尚未经认证",
+    "kb_brick_trend_up": "命值斜率与运值/命值关系，不等于砖颜色",
+    "kb_fanbao": "既有整数分严格边界反包",
+    "kb_brick_flip_green": "四块砖源实现的红砖翻绿",
+    "kb_brick_action": "四块砖源状态，原文标签不是交易指令",
+    "kb_brick_value": "砖值组件",
+    "kb_brick_consecutive": "四块砖体系连续数组件"
+  },
+  "brick_gaps": {"brick_trend": "独立红绿颜色未收录在57列；不从状态名称猜测", "brick_count": "字典中的独立brick_count未收录；不可与连续数贸然互换", "brick_action_desc": "源动作描述未收录；不新增判断或交易指令"},
+  "source_sha256": {
+    "exit_strategies_md": "d9f49ec951268ea5e1735e5b658cb8754b6849052f57d30a11c3d1b49e161b53",
+    "s1_concept_md": "ea33a7adee6d74b040e0d3034fbd10e32ba7967ba00066c7146af5119f6007ab",
+    "sell_signals_py_reference_only": "ac0a5216aa0c9ac14dcf9487854961ea5c3166c6ce6e53a2ef35dd0e467445d4",
+    "trading_core_md": "d69f7a5e59c33c18be3c7316b27d7338752b39716323e57af8de533688aa1d22",
+    "sell_discipline_md": "6c145a9f073d85948891d867a99fbe870db19b6432030688aa3f9fcbe28c0740",
+    "signal_dictionary_md": "5ccf9e16657cf82f11ec11fed0cc5f575a674132c623e36b9fc43fd756337d32"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

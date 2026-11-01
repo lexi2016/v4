@@ -126,6 +126,37 @@ class ResearchWorkbenchHost:
             or identity.get('relocation_sha256')!=value['source_relocation']['sha256']
             or identity.get('source_gate_sha256')!=value['source_gate_receipt']['sha256']):
             raise ValueError('SINGLE_STOCK_SOURCE_GATE_CONFLICT')
+        score_ref=value.get('hold_score_contract')
+        score_sha=None
+        if score_ref is not None:
+            score_contract=checked(score_ref);score_sha=score_ref['sha256']
+            if (score_contract.get('schema')!='a_share_kb_hold_score_v1'
+                or score_contract.get('RESEARCH_ONLY') is not True
+                or any(score_contract.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
+                or identity.get('score_contract_sha256')!=score_sha
+                or identity.get('score_engine_sha256')!=value.get('hold_score_engine_sha256')):
+                raise ValueError('SINGLE_STOCK_HOLD_SCORE_IDENTITY_CONFLICT')
+        supplemental_ref=value.get('supplemental_contract')
+        supplemental_sha=None
+        if supplemental_ref is not None:
+            supplemental=checked(supplemental_ref);supplemental_sha=supplemental_ref['sha256']
+            if (supplemental.get('schema')!='a_share_kb_supplemental_signals_v1'
+                or supplemental.get('RESEARCH_ONLY') is not True
+                or any(supplemental.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
+                or identity.get('supplemental_contract_sha256')!=supplemental_sha):
+                raise ValueError('SINGLE_STOCK_SUPPLEMENTAL_IDENTITY_CONFLICT')
+        if score_ref is not None and supplemental_ref is not None:
+            inventory=value.get('field_inventory');score_fields=inventory.get('hold_score_fields') if isinstance(inventory,dict) else None
+            extra_fields=inventory.get('supplemental_fields') if isinstance(inventory,dict) else None
+            declared_score=[name for names in score_contract.get('materialized_fields',{}).values() for name in names]
+            declared_extra=[item['name'] for item in supplemental.get('fields',[])]
+            if (inventory!=identity.get('field_inventory') or not isinstance(score_fields,list) or not isinstance(extra_fields,list)
+                or len(score_fields)!=len(set(score_fields)) or set(score_fields)!=set(declared_score)
+                or len(extra_fields)!=len(set(extra_fields)) or set(extra_fields)!=set(declared_extra)
+                or inventory.get('base_kb_fields')!=value.get('fields_count')
+                or inventory.get('total_new_fields')!=len(score_fields)+len(extra_fields)
+                or inventory.get('total_derived_fields')!=value['fields_count']+len(score_fields)+len(extra_fields)):
+                raise ValueError('SINGLE_STOCK_FIELD_INVENTORY_CONFLICT')
         assets=value.get('assets',{})
         if set(assets)!={'kb','projection','html'}:raise ValueError('SINGLE_STOCK_ASSET_SET_INVALID')
         base=f'/api/v4/research/workbench/days/{source_date}/single-research/{symbol}/assets/'
@@ -140,6 +171,9 @@ class ResearchWorkbenchHost:
             generation=p['source_generation'],input_sha256=value['source_input_sha256'],numeric_manifest=p['manifest'],
             candidate_generation=value['candidate_generation'],candidate_pool_member=False,historical_PIT=False,
             fields_count=value['fields_count'],rows=value['rows'],source_gate='PASS_RELOCATED_SOURCE_GATE',
+            field_inventory=value.get('field_inventory'),
+            hold_score_contract_sha256=score_sha,hold_score_engine_sha256=value.get('hold_score_engine_sha256'),
+            supplemental_contract_sha256=supplemental_sha,
             assets=rendered,**FLAGS)
 
     def single_stock_asset(self,source_date,symbol,kind,digest,revision=None):

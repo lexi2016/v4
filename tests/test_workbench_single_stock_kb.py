@@ -59,3 +59,50 @@ def test_single_stock_http_endpoints_and_asset_headers(fixture,tmp_path,monkeypa
         assert response.status_code==200 and response.content==b'html test'
         assert "frame-ancestors 'self'" in response.headers['content-security-policy']
         assert client.get(root,params={'revision':'f'*64}).status_code==409
+
+
+def test_single_stock_score_contract_is_sha_bound(fixture,tmp_path):
+    host,value,binding=fixture
+    contract=_ref(tmp_path/'score.json',{'schema':'a_share_kb_hold_score_v1',**wb.FLAGS})
+    value['hold_score_contract']=contract;value['hold_score_engine_sha256']='e'*64
+    value['candidate_identity']['score_contract_sha256']=contract['sha256']
+    value['candidate_identity']['score_engine_sha256']='e'*64
+    value['candidate_generation']=hashlib.sha256(json.dumps(value['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    new_binding=_ref(Path(binding['path']),value);host.binding['single_stock_research']=new_binding
+    result=host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
+    assert result['hold_score_contract_sha256']==contract['sha256']
+    assert result['hold_score_engine_sha256']=='e'*64
+    Path(contract['path']).write_text('{}')
+    with pytest.raises(ValueError,match='SOURCE_SHA_DRIFT'):
+        host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
+
+
+def test_single_stock_supplemental_contract_is_sha_bound(fixture,tmp_path):
+    host,value,binding=fixture
+    contract=_ref(tmp_path/'supplemental.json',{'schema':'a_share_kb_supplemental_signals_v1',**wb.FLAGS})
+    value['supplemental_contract']=contract
+    value['candidate_identity']['supplemental_contract_sha256']=contract['sha256']
+    value['candidate_generation']=hashlib.sha256(json.dumps(value['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    host.binding['single_stock_research']=_ref(Path(binding['path']),value)
+    assert host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])['supplemental_contract_sha256']==contract['sha256']
+    Path(contract['path']).write_text('{}')
+    with pytest.raises(ValueError,match='SOURCE_SHA_DRIFT'):
+        host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
+
+
+def test_field_inventory_is_bound_to_contracts_and_candidate(fixture,tmp_path):
+    host,value,binding=fixture
+    score=_ref(tmp_path/'score.json',{'schema':'a_share_kb_hold_score_v1','materialized_fields':{'score':['kb_hold_score']},**wb.FLAGS})
+    extra=_ref(tmp_path/'supplemental.json',{'schema':'a_share_kb_supplemental_signals_v1','fields':[{'name':'kb_s1'}],**wb.FLAGS})
+    inventory={'base_kb_fields':57,'hold_score_fields':['kb_hold_score'],'supplemental_fields':['kb_s1'],
+               'total_new_fields':2,'total_derived_fields':59,'display_only_metadata':[]}
+    value.update(hold_score_contract=score,hold_score_engine_sha256='e'*64,supplemental_contract=extra,field_inventory=inventory)
+    value['candidate_identity'].update(score_contract_sha256=score['sha256'],score_engine_sha256='e'*64,
+                                       supplemental_contract_sha256=extra['sha256'],field_inventory=inventory.copy())
+    value['candidate_generation']=hashlib.sha256(json.dumps(value['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    host.binding['single_stock_research']=_ref(Path(binding['path']),value)
+    assert host.single_stock_research('2026-10-30','002865.SZ')['field_inventory']==inventory
+    value['field_inventory']={**inventory,'total_derived_fields':57}
+    host.binding['single_stock_research']=_ref(Path(binding['path']),value)
+    with pytest.raises(ValueError,match='SINGLE_STOCK_FIELD_INVENTORY_CONFLICT'):
+        host.single_stock_research('2026-10-30','002865.SZ')
