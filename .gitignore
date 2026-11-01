@@ -13,3 +13,13 @@ artifacts/
 .env.*
 !.env.example
 .superpowers/
+
+# Worktree container: worktrees are registered in .git/worktrees, not tracked.
+.task_worktrees/
+
+# Process evidence trees hold per-task release snapshots and large payloads.
+docs/handoffs/
+
+# Runtime research payloads, not source.
+v4/manager_workbench/research_data/
+
