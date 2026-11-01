@@ -1,0 +1,252 @@
+{
+  "schema_version": "v4.unified_runtime_writer_final.v1",
+  "status": "WRITER_INCREMENTAL_PASS_PENDING_INDEPENDENT_REVIEW",
+  "runtime_source_commit": "61cb77f0a9e83521789c1d27b7a4ba2b9b2e97f0",
+  "integration_business_commit": "935040cb0b7da8e00d0f178812a215518fb35dd4",
+  "report_source_commit": "7862ef3e871e80a10a1ce78cca4285609bc3b894",
+  "delivery_commit": "Separate later docs/tests commit; exact remote SHA and critical-byte readback are in integration/DELIVERY_READBACK.json",
+  "candidate": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r3/candidate_receipt.json",
+    "sha256": "ec76d6c0f395048e51a02937a1bab92d6db65ebcc667eeb46e8f11d5de97fc6c"
+  },
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r3",
+  "roles": {
+    "api": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/edan-single-20261102-b843699e8d3371ea/app",
+      "actual_current_manifest_sha256": "f10179c1b8028d088ae8e00e9de60d068550e9441a41febaa76569a5c2c2fcb1",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r3/v4-unified-implementation-20261102-r3-api/app",
+      "delta": [
+        "apps/api/v4_api/app.py",
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md",
+        "domains/report_evidence.py",
+        "infrastructure/operations_sop_reader.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/verify_report_evidence_canary.py"
+      ],
+      "inventory_sha256": "1e55ad884c54649884b4f3b32317457b90b31c4c30c5df1da62a9eb4629d745a",
+      "manifest_sha256": "2bb2e50ad8ecb233f72ae7c329692eadafb2dbc256de8a15179130a313cc69a6",
+      "protected_current_files_unchanged": 1328,
+      "release_id": "v4-unified-implementation-20261102-r3-api"
+    },
+    "main": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app",
+      "actual_current_manifest_sha256": "3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r3/v4-unified-implementation-20261102-r3-main/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/review_generation.py",
+        "infrastructure/scheduling/dispatcher.py",
+        "infrastructure/scheduling/execution_ledger.py",
+        "infrastructure/stage_completion_hooks.py",
+        "infrastructure/tdx_minute_replay_provider.py",
+        "ops/build_a_share_close_review.py",
+        "ops/build_close_review.py",
+        "ops/build_runtime_governance_registry.py",
+        "ops/collect_hkconnect_close_snapshot.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_milestone.py",
+        "ops/run_v4_macos_scheduler_due.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py"
+      ],
+      "inventory_sha256": "572a22f9650ff5c77f839253ed479c717d3c27d0c565200662699d181a4261c3",
+      "manifest_sha256": "dee76f0969d1fde8657d505b580af4f60374b8d67a5c4505dba7273fad34a404",
+      "protected_current_files_unchanged": 990,
+      "release_id": "v4-unified-implementation-20261102-r3-main"
+    },
+    "stage": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+      "actual_current_manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r3/v4-unified-implementation-20261102-r3-stage/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "domains/report_subjects.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/stage_completion_hooks.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "a4b7b411f6e08e25454c749f7fe358a42202680731a92c78c7abe08e36a14c62",
+      "manifest_sha256": "5c12f7a84b97c508ef5e2ed1e0f7a66572fbabe1a1790d004235852bb83d7e2d",
+      "protected_current_files_unchanged": 988,
+      "release_id": "v4-unified-implementation-20261102-r3-stage"
+    }
+  },
+  "report_files": {
+    "apps/api/v4_api/report_evidence_mcp.py": {
+      "bytes": 1429,
+      "sha256": "507a0e6657a1ec69e8f0fed34f57e5ce78002906a3bb975763b3c90a69ad8462"
+    },
+    "apps/api/v4_api/report_evidence_router.py": {
+      "bytes": 2097,
+      "sha256": "a93b1830a655c48ee97ea8da1e10e59f89ab7c85f153cd81492d5f2f871afb47"
+    },
+    "domains/report_evidence.py": {
+      "bytes": 13886,
+      "sha256": "75d9846f7bebe61f842c9843f5e884cfcc1e906b67e8c37845204f52a7291673"
+    },
+    "infrastructure/report_evidence_index.py": {
+      "bytes": 15555,
+      "sha256": "f345a3055ef17fff399141df749011b31c0833df499b0d127361384135bea720"
+    },
+    "infrastructure/report_evidence_native.py": {
+      "bytes": 2886,
+      "sha256": "e977f65524c1bf8ef8946f6c823a867618d37d3fb4c53aa1e6dd9fc091aa9255"
+    },
+    "infrastructure/report_evidence_pdf_owner.py": {
+      "bytes": 119873,
+      "sha256": "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde"
+    },
+    "infrastructure/report_evidence_sidecar.py": {
+      "bytes": 18014,
+      "sha256": "37745f94c532f804251935905ccc9252e54b053f697b3ecdd5ee6e486f9903aa"
+    },
+    "ops/report_evidence_index.py": {
+      "bytes": 10782,
+      "sha256": "cd4834089f241c36fdd80716973cd08f70cce2157b9f22a3248b9ff1af0c17fd"
+    },
+    "ops/run_report_evidence_sidecar_job.py": {
+      "bytes": 569,
+      "sha256": "677feafcb090a5d13e16116e7b68823f6263eecba6ebe25d80b94c200f356c59"
+    },
+    "ops/verify_report_evidence_canary.py": {
+      "bytes": 5638,
+      "sha256": "87a4ad7c435f534e129ae3cf05eedb8b273debc27d3b0e876979cfe3b78595b2"
+    }
+  },
+  "actual_current_delta": "Full before/after file hashes in each role release-manifest.json; no undeclared source differences",
+  "inventory": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/inventory-r3.json",
+    "sha256": "4e0e8349fbac6b9b781b43610629def5dc90e55c0794fa6fbe4829e359a5de62"
+  },
+  "race_increment": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/state-r3/RESULT.json",
+    "sha256": "f16f699ac3a497c2aa18878633de6f42712350078e6a30695436fa004ecdfaf7"
+  },
+  "api_tcp_increment": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/tcp-r3/RESULT.json",
+    "sha256": "34a7c179bab4c5db392ad9302f2d525b3e8fa39f292abd343a7a92be6aed3312"
+  },
+  "publication": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/publication-r3/publication-plan.json",
+    "sha256": "2f2109955f73cf12810cc6365cbe3a2d88673c44335e89203a806137e6dbe5f3",
+    "status": "PREPARED_NOT_AUTHORIZED_TO_ACTIVATE",
+    "forward_order": [
+      "main",
+      "stage",
+      "api"
+    ],
+    "rollback_order": [
+      "api",
+      "stage",
+      "main"
+    ],
+    "omitted_f10_matches": 0,
+    "protected_panel_inventory": {
+      "aggregate_sha256": "f68fb99e3c8aeafb99422e9d381fe21283cb44cdc675eafd3fda7db8c1d43206",
+      "entry_count": 491
+    },
+    "live_mutations_run": false
+  },
+  "prior_independent": {
+    "BATCH1_REVIEW.json": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/review/BATCH1_REVIEW.json",
+      "sha256": "877872ee071c5cc6eca6dfe7a9e584684a50c7e2f2caee90c70bcf0f786b8d87",
+      "verdict": "REVIEWED/PASS"
+    },
+    "BATCH2_REVIEW.json": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/review/BATCH2_REVIEW.json",
+      "sha256": "05d527b7dede9d100767db73a2b469099c08ed8c41036ec18cd7e8500e837827",
+      "verdict": "REVIEWED/PASS"
+    }
+  },
+  "reused_scope": {
+    "actual_main_stage_off_on_reuse_failure": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/actual-entry-r1/RESULT.json",
+      "sha256": "08daaba70ddacb1ddf58b6bcf0cc4bd272f4ea5445d9a4c7bcc0893f08a372cd",
+      "status": "3 PASS; Main/Stage each off/on/reuse/independent failure; actual ASGI API",
+      "main_callback_submit_seconds": 0.014565750025212765,
+      "stage_callback_submit_seconds": 0.011382583994418383,
+      "source_files_unchanged": 7,
+      "index_scope": "3 original PDFs only; full-corpus latency not certified"
+    },
+    "API575": "14 targeted API/MCP/native boundaries independently reviewed; unchanged API report logic reused",
+    "runtime_batch2": "12 source,4 actual events,7 wrapper+1 rollback negative,6 real Stage witness and3 real histories independently passed; unchanged scope reused"
+  },
+  "dependency_closure": {
+    "read_only_pdf_alias_sha256": "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde",
+    "Main_canonical_pdf_data_store_report_subjects_preserved": true,
+    "Stage_missing_report_subjects_added_only": true,
+    "default_report_hook": "OFF",
+    "hook_execution": "Existing Stage/Main completion callbacks submit a fixed derived job using sys.executable; no new service or cron",
+    "worker_failure": "Independent sidecar receipt only; original selection and runner bytes preserved",
+    "worker_latency": "Asynchronous; no arbitrary timeout kill of healthy full-scope worker",
+    "state_race": "Shared consumer lock guards terminal orphan transition; unknown process state is BUSY, terminal jobs never reopen"
+  },
+  "states": {
+    "SOURCE": "IMPLEMENTED",
+    "BATCH1": "INDEPENDENT_PASS_HISTORICAL_PREIMAGE_STALE",
+    "BATCH2": "INDEPENDENT_PASS_R10",
+    "UNIFIED": "WRITER_INCREMENTAL_PASS_PENDING_INDEPENDENT_REVIEW",
+    "DEPLOYMENT": "NOT_DEPLOYED",
+    "UI": "NOT_RUN",
+    "NATURAL": "NOT_RUN",
+    "TDX_THREE_MARKET_LIVE_CANARY": "CANNOT_CONFIRM_OUTSIDE_REAL_TRADING_WINDOW",
+    "FULL_CORPUS_NATIVE": "IN_PROGRESS_EXTERNAL_OWNER_NOT_CERTIFIED"
+  },
+  "snapshot_rule": "Edan current snapshot matched at r3 build/publication/inventory. Any subsequent drift marks this snapshot STALE and future guarded preflight must reject; no instruction to freeze other owners.",
+  "known_failures": [
+    "Unified r2/425 race fix FAILED independent review; retained and superseded by7862/r3",
+    "r1/r2 old API CAS became stale after independent Edan update; no live mutation was attempted",
+    "Historical runtime r8 old API copy base failed; r9 declared legacy pyc omission failed; retained failures are not overwritten"
+  ],
+  "scope_limits": [
+    "Actual on/off hooks used complete D30 two-market runner and frozen3PDF native index; not full-corpus latency certification",
+    "No production prepare/activate/rollback, launchctl mutation, UI or natural-window acceptance",
+    "No claim of panel stability across the whole session; each candidate protects its actual fresh baseline",
+    "Live TDX window unavailable: CANNOT_CONFIRM, no invented fields or next-window blocking"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "commands": [
+    "PANEL_PYTHON -B -m ops.prepare_unified_runtime_candidate --runtime <runtime-r10> --report-ref 7862ef3e871e80a10a1ce78cca4285609bc3b894 --api-snapshot <integration/edan-api-snapshot.json> --output <unified-r3>",
+    "PANEL_PYTHON -B docs/handoffs/runtime-governance-20261102/verify_unified_state.py --candidate <unified-r3> --evidence <integration/state-r3> (4 new state regressions PASS on actual candidate)",
+    "PANEL_PYTHON -B docs/handoffs/runtime-governance-20261102/verify_unified_tcp.py --candidate <unified-r3> --evidence <integration/tcp-r3> --index <retrieval/canary-r2-index> --data-root <read-only-existing-owner> --sidecars <isolated-prior-fixture> --bridge <existing-native> (TCP/manifest/hybrid3hits PASS; own process+port closed)",
+    "PANEL_PYTHON -B -m ops.prepare_runtime_governance_publication --candidate <unified-r3> --output <integration/publication-r3> --batch1 <runtime-r1> (parameters only; PREPARED_NOT_AUTHORIZED_TO_ACTIVATE)",
+    "Official inventory + full actual-current exact delta + fresh loaded preimage readback (3roles PASS, zero pyc, protected990/988/1328)"
+  ]
+}
