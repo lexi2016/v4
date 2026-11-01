@@ -4,12 +4,14 @@ The deployed shared-data store is deliberately small in this package: an
 immutable ``runs/<date>/<role>/<run_id>`` directory contains a CSV artifact,
 manifest, and receipt.  A verified ``latest.json`` pointer is advanced under
 one lock only after the complete trio has been checked.  The stage center owns
-this namespace; V3 and V4 remain read-only consumers.
+this namespace; V3 and V3.5 remain read-only consumers.
 """
 from __future__ import annotations
 
 import csv
+import base64
 import hashlib
+import io
 import json
 import os
 import re
@@ -17,12 +19,17 @@ import tempfile
 import time
 from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterator, Mapping, Sequence
 from uuid import uuid4
 
-from .calendar import calendar_provenance, eligible_stage_markets
+from .calendar import (
+    TradingDayState,
+    calendar_provenance,
+    eligible_stage_markets,
+    resolve_market_states,
+)
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
 
 RAW_FIELDS = (
@@ -57,6 +64,39 @@ RAW_LATEST_SCHEMA_VERSION = "v3_shared_data.latest.v1"
 RAW_BUNDLE_SCHEMA_VERSION = "stage_center.raw_bundle.v1"
 RAW_BUNDLE_LATEST_SCHEMA_VERSION = "stage_center.raw_bundle_latest.v1"
 RAW_STATUSES = frozenset(("READY", "PARTIAL_WITH_ROWS", "READY_EMPTY", "CANNOT_CONFIRM"))
+HK_FUTU_RTDATA_OBSERVATION_CONTRACT = "HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
+HK_FUTU_RTDATA_SOURCE_ID = "futu_rt_data_afterfact"
+HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256 = "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
+HK_FUTU_RTDATA_POOL_SOURCE_SHA256 = "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d"
+HK_FUTU_RTDATA_CODE_SET_SHA256 = "5e7ad70ddcd6bcf1ab5007ef8c5f365258e77d6e8d52ade5be2177cb24ae1223"
+HK_FUTU_RTDATA_CAPTURE_SHA256_1300 = "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0"
+HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300 = "018175c4cd1e7d2278033da39d79d09e3856468400ea384f104584551e304ad9"
+HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300 = "54770c58c801f21a61363abee5db5a1eaf015e99a117be75eca758f229ba431b"
+HK_FUTU_RTDATA_CAPTURE_SHA256_1445 = "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0"
+HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445 = "0517c61ca85c25e2213a3ff787509d2c7285ec26b473e2a07daa579dab358f05"
+HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445 = "66e27894b45c5e9b15f25d3e0edf2a3d0a437ac80c12bd228017bc01c9c92132"
+_HK_FUTU_RTDATA_STAGE_PROFILES = {
+    "STAGE_1300_1315": (
+        "13:00-13:15", "13:15:00", "13:00:00", "13:14:00", 14, 1400,
+        HK_FUTU_RTDATA_CAPTURE_SHA256_1300,
+        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300,
+        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300,
+        "3b3cc0a321c1a45abc973d88a73c2c5d9c03731a1f5ac5746ce7c48ea8ae1b73",
+    ),
+    "STAGE_1445_1500": (
+        "14:45-15:00", "15:00:00", "14:45:00", "14:59:00", 15, 1500,
+        HK_FUTU_RTDATA_CAPTURE_SHA256_1445,
+        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445,
+        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445,
+        "c49ebb533922769b78c7c7d94b7e6b0e3e06ba8fc3961c0611b0ca326ad77d15",
+    ),
+}
+_HK_FUTU_RTDATA_CANNOT_CONFIRM = (
+    "FUTU_RT_DATA_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT",
+    "FUTU_RT_DATA_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "FUTU_RT_DATA_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+    "FUTU_RT_DATA_OHLC_AND_ORDERBOOK_UNAVAILABLE",
+)
 HK_0930_TDX_RESEARCH_CONTRACT = "HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
 HK_0930_TDX_RESEARCH_MODE_EVIDENCE = (
     "stage_center_observation_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
@@ -125,6 +165,32 @@ _HK_0930_TDX_RESEARCH_CANNOT_CONFIRM = (
     "HISTORICAL_D1_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
     "HISTORICAL_D1_INPUT_GAP_CANNOT_CONFIRM:HK.02915:rank=45",
 )
+HISTORICAL_OBSERVATION_MANIFEST_SCHEMA = "stage_center.historical_observation_manifest.v1"
+HISTORICAL_OBSERVATION_CONTRACT_ID = "STAGE_CENTER_AFTERFACT_OBSERVATION_R1"
+HISTORICAL_OBSERVATION_CONTRACT_PREFIX = HISTORICAL_OBSERVATION_CONTRACT_ID + ":"
+HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX = "historical_observation_manifest_b64="
+HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX = "stage_center_observation_mode="
+_HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM = (
+    "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
+    "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+)
+HK_MORNING_CACHED_AFTERFACT_SOURCE_ID = "futu_cached_minute_capture"
+HK_MORNING_CACHED_AFTERFACT_DATE = "20261015"
+HK_MORNING_CACHED_AFTERFACT_D1_SHA256 = "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
+HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID = "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
+HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256 = "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455"
+HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH = (
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
+    ".futu_minute_captures/20261015/STAGE_0945_1030/"
+    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
+)
+HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT = "2026-10-15T10:31:03.491290+08:00"
+_HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES = {
+    "STAGE_0930_0935": ("09:30:00", "09:35:05", "09:31:00", "09:35:00"),
+    "STAGE_0935_0940": ("09:35:00", "09:40:05", "09:36:00", "09:40:00"),
+    "STAGE_0940_0945": ("09:40:00", "09:45:05", "09:41:00", "09:45:00"),
+}
 _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _LOCK_TIMEOUT_SECONDS = 10.0
@@ -134,6 +200,146 @@ _MARKET_CODE = {
     "A_SHARE": re.compile(r"^(?:A|SH|SZ|BJ)\.\d{6}$"),
     "HK_CONNECT": re.compile(r"^HK\.\d{5}$"),
 }
+
+
+def _futu_rtd_observation_markers(stage_id: str, capture_sha256: str) -> tuple[str, ...]:
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if profile is None:
+        return ()
+    window, cutoff, start, end, observations_per_code, observation_count, _, provider_sha, projection_sha, _ = profile
+    return (
+        f"futu_observation_contract={HK_FUTU_RTDATA_OBSERVATION_CONTRACT}",
+        "futu_afterfact_target_date=20261012",
+        f"futu_afterfact_stage_id={stage_id}",
+        "futu_afterfact_market=HK_CONNECT",
+        f"futu_afterfact_source_id={HK_FUTU_RTDATA_SOURCE_ID}",
+        f"futu_afterfact_window={window}",
+        f"futu_afterfact_cutoff={cutoff}",
+        f"futu_afterfact_row_window_start={start}",
+        f"futu_afterfact_row_window_end={end}",
+        f"futu_afterfact_pool_artifact_sha256={HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256}",
+        f"futu_afterfact_pool_source_sha256={HK_FUTU_RTDATA_POOL_SOURCE_SHA256}",
+        f"futu_afterfact_code_set_sha256={HK_FUTU_RTDATA_CODE_SET_SHA256}",
+        "futu_afterfact_requested_code_count=100",
+        "futu_afterfact_completed_code_count=100",
+        f"futu_afterfact_observations_per_code={observations_per_code}",
+        f"futu_afterfact_nonblank_observation_count={observation_count}",
+        f"futu_afterfact_capture_sha256={capture_sha256}",
+        "futu_afterfact_temporal_cutoff_safe=false",
+        "futu_afterfact_pit_safe=false",
+        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
+        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
+        "futu_afterfact_selection_action_boundary=NO_BUY",
+        f"futu_afterfact_target_provider_rows_sha256={provider_sha}",
+        f"futu_afterfact_raw_projection_sha256={projection_sha}",
+        "research_only=true",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+    )
+
+
+def _futu_rtd_raw_projection_sha256(
+    rows: Sequence[Mapping[str, Any]], *, omit_name: bool = False
+) -> str:
+    fields = tuple(field for field in RAW_FIELDS if not (omit_name and field == "name"))
+    projected = [
+        {
+            field: ("" if row.get(field) in (None, "") else str(row.get(field)))
+            for field in fields
+        }
+        for row in sorted(rows, key=lambda item: str(item.get("code") or "").upper())
+    ]
+    return hashlib.sha256(
+        json.dumps(projected, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _futu_rtd_rows_match_frozen_projection(
+    rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str, market: str
+) -> bool:
+    """Permit only the two exact false-temporal Futu raw projections at this boundary."""
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if trade_date != "20261012" or market != "HK_CONNECT" or profile is None or len(rows) != 100:
+        return False
+    codes = [str(row.get("code") or "").upper() for row in rows]
+    code_set_sha = hashlib.sha256(
+        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    if (
+        len(set(codes)) != 100
+        or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes)
+        or code_set_sha != HK_FUTU_RTDATA_CODE_SET_SHA256
+        or _futu_rtd_raw_projection_sha256(rows) != profile[8]
+    ):
+        return False
+    row_start = f"2026-10-12 {profile[2]}"
+    row_end = f"2026-10-12 {profile[3]}"
+    for row in rows:
+        if set(row) != set(RAW_FIELDS) or (
+            row.get("temporal_cutoff_safe") is not False
+            or row.get("window_start") != row_start
+            or row.get("window_end") != row_end
+            or row.get("update_time") != row_end
+            or row.get("bar_count") not in (profile[4], str(profile[4]))
+            or row.get("last_price") in (None, "")
+            or row.get("prev_close_price") in (None, "")
+            or any(row.get(field) not in (None, "") for field in (
+                "open_price", "high_price", "low_price", "bid_price", "ask_price", "bid_vol", "ask_vol"
+            ))
+        ):
+            return False
+    return True
+
+
+def _allows_hk_futu_rtd_temporal_false_observation(
+    *,
+    enabled: bool,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+    window: str | None,
+    cutoff_at: str | None,
+    manifest_temporal_cutoff_safe: bool | None = False,
+) -> bool:
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if (
+        enabled is not True
+        or manifest_temporal_cutoff_safe is not False
+        or trade_date != "20261012"
+        or market != "HK_CONNECT"
+        or source_id != HK_FUTU_RTDATA_SOURCE_ID
+        or source_status != "PARTIAL_WITH_ROWS"
+        or profile is None
+        or (window, cutoff_at) != profile[:2]
+        or requested_rows != 100
+        or bool(missing_symbols)
+        or len(rows) != 100
+        or not set(_HK_FUTU_RTDATA_CANNOT_CONFIRM).issubset(
+            {str(item) for item in cannot_confirm}
+        )
+        or not _futu_rtd_rows_match_frozen_projection(
+            rows, trade_date=trade_date, stage_id=stage_id, market=market
+        )
+    ):
+        return False
+    evidence = {str(item) for item in source_evidence}
+    capture_sha = next(
+        (item.split("=", 1)[1] for item in evidence if item.startswith("futu_afterfact_capture_sha256=")),
+        "",
+    )
+    return (
+        capture_sha == profile[6]
+        and _SHA_RE.fullmatch(capture_sha) is not None
+        and set(_futu_rtd_observation_markers(stage_id, capture_sha)).issubset(evidence)
+    )
 
 
 class RawStoreError(ValueError):
@@ -216,6 +422,471 @@ def _allows_hk_0930_tdx_temporal_false_observation(
         json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     return code_set_sha == HK_0930_TDX_D1_CODE_SET_SHA256
+
+
+def historical_observation_manifest_markers(
+    manifest: Mapping[str, Any],
+) -> tuple[str, str, str]:
+    """Return the token and two self-contained evidence markers for a manifest.
+
+    The manifest is carried in the raw source evidence so a later raw-store
+    read can revalidate the same date, pool, source, row coverage, and bytes
+    without relying on an external mutable path.
+    """
+    payload = json.dumps(
+        dict(manifest), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    digest = hashlib.sha256(payload).hexdigest()
+    encoded = base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+    token = f"{HISTORICAL_OBSERVATION_CONTRACT_PREFIX}{digest}"
+    return (
+        token,
+        f"{HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX}{encoded}",
+        f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}",
+    )
+
+
+def _historical_observation_manifest(
+    source_evidence: Sequence[str],
+    *,
+    contract: str | None,
+) -> tuple[dict[str, Any], str] | None:
+    evidence = tuple(str(item) for item in source_evidence)
+    encoded_values = [
+        item[len(HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX):]
+        for item in evidence
+        if item.startswith(HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX)
+    ]
+    if len(encoded_values) != 1 or len(encoded_values[0]) > 180_000:
+        return None
+    encoded = encoded_values[0]
+    try:
+        raw = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+        payload = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeError, json.JSONDecodeError):
+        return None
+    if base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=") != encoded:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    canonical = json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    if raw != canonical:
+        return None
+    digest = hashlib.sha256(raw).hexdigest()
+    token = f"{HISTORICAL_OBSERVATION_CONTRACT_PREFIX}{digest}"
+    if contract is not None and contract != token:
+        return None
+    mode_marker = f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}"
+    if evidence.count(mode_marker) != 1:
+        return None
+    return payload, token
+
+
+def _raw_artifact_csv_sha256(
+    trade_date: str,
+    rows: Sequence[Mapping[str, Any]],
+) -> str | None:
+    """Recreate the frozen CSV bytes so a contract can pin the raw artifact."""
+    try:
+        stream = io.StringIO(newline="")
+        writer = csv.DictWriter(
+            stream,
+            fieldnames=ARTIFACT_FIELDS,
+            extrasaction="raise",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(
+            _artifact_row(
+                trade_date,
+                {field: row[field] for field in RAW_FIELDS},
+            )
+            for row in rows
+        )
+        return hashlib.sha256(b"\xef\xbb\xbf" + stream.getvalue().encode("utf-8")).hexdigest()
+    except (KeyError, TypeError, ValueError, csv.Error):
+        return None
+
+
+def _allows_hk_morning_cached_afterfact_observation(
+    *,
+    trade_date: str,
+    stage_id: str,
+    source_id: str,
+    target: Mapping[str, Any],
+    pool: Mapping[str, Any],
+    observation: Mapping[str, Any],
+    safety: Mapping[str, Any],
+    rows: Sequence[Mapping[str, Any]],
+    source_evidence: Sequence[str],
+    required_evidence: Sequence[Any],
+) -> bool:
+    """Admit only the pinned 2026-10-15 capture and its three exact HK windows."""
+    profile = _HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES.get(stage_id)
+    if profile is None:
+        return False
+    stage_start, cutoff, row_start, row_end = profile
+    target_day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
+    capture_path_text = str(observation.get("capture_path") or "")
+    capture_path = Path(capture_path_text)
+    evidence = {str(item) for item in source_evidence}
+    capture_window_sha = str(observation.get("capture_window_provider_rows_sha256") or "")
+    capture_window = f"{stage_id}:{stage_start}-{cutoff}"
+    window_label = f"{stage_start[:5]}-{cutoff[:5]}"
+    expected_markers = {
+        f"historical_provider={HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}",
+        "historical_capture_after_target_cutoff=true",
+        "historical_temporal_cutoff_safe=false",
+        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+        "historical_natural_time_capture=CANNOT_CONFIRM",
+        "historical_pit_safe=false",
+        "historical_price_signal_date=20261014",
+        f"historical_source_page_set_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        f"futu_capture_path={HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH}",
+        f"futu_capture_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        "futu_capture_stage_id=STAGE_0945_1030",
+        f"futu_capture_captured_at={HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT}",
+        "futu_capture_market=HK_CONNECT",
+        "futu_capture_adjustment=NONE",
+        f"futu_capture_window={capture_window}",
+        f"futu_capture_window_provider_rows_sha256={capture_window_sha}",
+        "futu_capture_window_input_rows=500",
+        "futu_capture_window_codes=100",
+        "futu_capture_window_bars_per_code=5",
+        "futu_capture_orderbook_available=false",
+        f"futu_afterfact_dataset_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        f"futu_afterfact_stage_id={stage_id}",
+        f"futu_afterfact_window={window_label}",
+        f"futu_afterfact_window_start={target_day} {row_start}",
+        f"futu_afterfact_window_end_exclusive={target_day} {cutoff}",
+        f"futu_afterfact_last_bar={target_day} {row_end}",
+        f"futu_afterfact_provider_rows_sha256={capture_window_sha}",
+        f"futu_afterfact_raw_artifact_sha256={observation.get('raw_artifact_sha256')}",
+        "futu_afterfact_temporal_cutoff_safe=false",
+        "futu_afterfact_pit_safe=false",
+        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
+        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
+        "futu_afterfact_orderbook_unavailable=true",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+    }
+    try:
+        capture_file_sha = _sha_file(capture_path) if (
+            capture_path_text == HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
+            and not capture_path.is_symlink()
+            and capture_path.is_file()
+        ) else ""
+    except OSError:
+        capture_file_sha = ""
+    if (
+        trade_date != HK_MORNING_CACHED_AFTERFACT_DATE
+        or source_id != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
+        or target.get("source_id") != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
+        or target.get("historical_backfill") is not True
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or pool.get("source_date") != HK_MORNING_CACHED_AFTERFACT_DATE
+        or pool.get("signal_date") != "20261014"
+        or pool.get("source_run_id") != HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID
+        or pool.get("artifact_sha256") != HK_MORNING_CACHED_AFTERFACT_D1_SHA256
+        or observation.get("capture_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("source_page_set_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("capture_path") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
+        or observation.get("capture_stage_id") != "STAGE_0945_1030"
+        or observation.get("capture_captured_at") != HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT
+        or observation.get("capture_market") != "HK_CONNECT"
+        or observation.get("capture_adjustment") != "NONE"
+        or observation.get("capture_window") != capture_window
+        or observation.get("capture_window_input_rows") != 500
+        or observation.get("capture_window_codes") != 100
+        or observation.get("capture_window_bars_per_code") != 5
+        or observation.get("raw_window_start") != f"{target_day} {row_start}"
+        or observation.get("raw_window_end") != f"{target_day} {row_end}"
+        or not isinstance(required_evidence, list)
+        or not _SHA_RE.fullmatch(capture_window_sha)
+        or capture_file_sha != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("capture_after_target_cutoff") is not True
+        or observation.get("temporal_cutoff_safe") is not False
+        or observation.get("formal_stage_eligibility") != "CANNOT_CONFIRM"
+        or observation.get("natural_time_capture") != "CANNOT_CONFIRM"
+        or observation.get("pit_safe") is not False
+        or safety.get("production_allowed") is not False
+        or safety.get("buy_gate_updated") is not False
+        or safety.get("orders_sent") is not False
+        or len(rows) != 100
+        or not expected_markers.issubset(evidence)
+        or not expected_markers.issubset({str(item) for item in required_evidence})
+    ):
+        return False
+    codes = [str(row.get("code") or "").upper() for row in rows]
+    if len(set(codes)) != 100 or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes):
+        return False
+    for row in rows:
+        if (
+            row.get("temporal_cutoff_safe") is not False
+            or row.get("window_start") != f"{target_day} {row_start}"
+            or row.get("window_end") != f"{target_day} {row_end}"
+            or row.get("update_time") != f"{target_day} {row_end}"
+            or row.get("bar_count") not in (5, "5")
+            or any(row.get(field) not in (None, "") for field in (
+                "bid_price", "ask_price", "bid_vol", "ask_vol"
+            ))
+        ):
+            return False
+    return True
+
+
+def _allows_manifest_bound_afterfact_observation(
+    *,
+    contract: str | None,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+    raw_artifact_sha256: str | None = None,
+) -> bool:
+    parsed = _historical_observation_manifest(source_evidence, contract=contract)
+    if parsed is None:
+        return False
+    manifest, token = parsed
+    target = manifest.get("target")
+    pool = manifest.get("pool")
+    observation = manifest.get("observation")
+    safety = manifest.get("safety")
+    required_evidence = manifest.get("required_source_evidence")
+    if not all(isinstance(item, Mapping) for item in (target, pool, observation, safety)):
+        return False
+    price_signal_date = str(observation.get("price_signal_date") or "")
+    try:
+        signal_cursor = datetime.strptime(trade_date, "%Y%m%d")
+    except ValueError:
+        return False
+    expected_price_signal_date = None
+    open_states = {
+        TradingDayState.FULL_TRADING_DAY,
+        TradingDayState.HALF_TRADING_DAY_AM,
+    }
+    for _ in range(45):
+        signal_cursor -= timedelta(days=1)
+        candidate_date = signal_cursor.strftime("%Y%m%d")
+        market_state = resolve_market_states(candidate_date)["hk_securities"]
+        if market_state is TradingDayState.UNKNOWN:
+            return False
+        if market_state in open_states:
+            expected_price_signal_date = candidate_date
+            break
+    if (
+        manifest.get("schema_version") != HISTORICAL_OBSERVATION_MANIFEST_SCHEMA
+        or manifest.get("contract_id") != HISTORICAL_OBSERVATION_CONTRACT_ID
+        or target.get("trade_date") != trade_date
+        or target.get("stage_id") != stage_id
+        or target.get("market") != market
+        or target.get("source_id") != source_id
+        or target.get("source_status") != source_status
+        or target.get("historical_backfill") is not True
+        or market != "HK_CONNECT"
+        or source_id not in {"pytdx_exhq", HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}
+        or source_status != "PARTIAL_WITH_ROWS"
+        or not rows
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or observation.get("capture_after_target_cutoff") is not True
+        or observation.get("temporal_cutoff_safe") is not False
+        or observation.get("formal_stage_eligibility") != "CANNOT_CONFIRM"
+        or observation.get("natural_time_capture") != "CANNOT_CONFIRM"
+        or observation.get("pit_safe") is not False
+        or not re.fullmatch(r"\d{8}", price_signal_date)
+        or price_signal_date != expected_price_signal_date
+        or safety.get("production_allowed") is not False
+        or safety.get("buy_gate_updated") is not False
+        or safety.get("orders_sent") is not False
+        or not re.fullmatch(r"\d{8}", str(pool.get("source_date") or ""))
+        or not re.fullmatch(r"\d{8}", str(pool.get("signal_date") or ""))
+        or pool.get("source_run_id") in (None, "")
+    ):
+        return False
+    for value in (
+        pool.get("artifact_sha256"),
+        pool.get("code_set_sha256"),
+        observation.get("source_page_set_sha256"),
+        observation.get("raw_artifact_sha256"),
+        observation.get("required_source_evidence_sha256"),
+    ):
+        if not isinstance(value, str) or not _SHA_RE.fullmatch(value):
+            return False
+    pool_codes = pool.get("codes")
+    observed_codes = observation.get("observed_codes")
+    missing_codes = observation.get("missing_codes")
+    if not all(isinstance(value, list) for value in (pool_codes, observed_codes, missing_codes)):
+        return False
+    pool_codes = [str(code).upper() for code in pool_codes]
+    observed_codes = [str(code).upper() for code in observed_codes]
+    missing_codes = [str(code).upper() for code in missing_codes]
+    if (
+        len(pool_codes) != 100
+        or pool_codes != sorted(set(pool_codes))
+        or observed_codes != sorted(set(observed_codes))
+        or missing_codes != sorted(set(missing_codes))
+        or any(not _MARKET_CODE[market].fullmatch(code) for code in pool_codes)
+        or canonical_sha(pool_codes) != pool.get("code_set_sha256")
+        or type(target.get("requested_rows")) is not int
+        or target.get("requested_rows") != len(pool_codes)
+        or requested_rows != len(pool_codes)
+        or type(observation.get("requested_rows")) is not int
+        or observation.get("requested_rows") != len(pool_codes)
+        or type(observation.get("observed_rows")) is not int
+        or observation.get("observed_rows") != len(rows)
+        or type(observation.get("missing_count")) is not int
+        or observation.get("missing_count") != len(missing_codes)
+        or len(rows) + len(missing_codes) != len(pool_codes)
+        or set(observed_codes).intersection(missing_codes)
+        or set(observed_codes).union(missing_codes) != set(pool_codes)
+    ):
+        return False
+    if source_id == HK_MORNING_CACHED_AFTERFACT_SOURCE_ID and not _allows_hk_morning_cached_afterfact_observation(
+        trade_date=trade_date,
+        stage_id=stage_id,
+        source_id=source_id,
+        target=target,
+        pool=pool,
+        observation=observation,
+        safety=safety,
+        rows=rows,
+        source_evidence=source_evidence,
+        required_evidence=required_evidence,
+    ):
+        return False
+    row_codes = [str(row.get("code") or "").upper() for row in rows]
+    missing = [str(code).upper() for code in missing_symbols]
+    if (
+        len(row_codes) != len(set(row_codes))
+        or sorted(row_codes) != observed_codes
+        or sorted(missing) != missing_codes
+        or any(row.get("temporal_cutoff_safe") is not False for row in rows)
+    ):
+        return False
+    # Selection runs after the runner attaches exact D1 display metadata.
+    # That overlay may legitimately replace a missing/code-placeholder name,
+    # so the enriched selection rows are not byte-identical to the rows that
+    # RawStore published.  In that consumer path, bind the already-verified
+    # RawStore artifact SHA supplied by the runner; producer/publish/read
+    # callers omit this argument and continue to reconstruct the CSV bytes
+    # from the original rows.
+    observed_raw_sha256 = (
+        raw_artifact_sha256
+        if raw_artifact_sha256 is not None
+        else _raw_artifact_csv_sha256(trade_date, rows)
+    )
+    if observed_raw_sha256 != observation.get("raw_artifact_sha256"):
+        return False
+    evidence = tuple(str(item) for item in source_evidence)
+    required_markers = {
+        f"historical_provider={source_id}",
+        "historical_capture_after_target_cutoff=true",
+        "historical_temporal_cutoff_safe=false",
+        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+        "historical_natural_time_capture=CANNOT_CONFIRM",
+        "historical_pit_safe=false",
+        f"historical_price_signal_date={price_signal_date}",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+        f"historical_source_page_set_sha256={observation['source_page_set_sha256']}",
+    }
+    if (
+        not isinstance(required_evidence, list)
+        or not all(isinstance(item, str) for item in required_evidence)
+        or required_evidence != sorted(set(required_evidence))
+        or canonical_sha(required_evidence) != observation.get("required_source_evidence_sha256")
+        or not required_markers.issubset(set(required_evidence))
+        or not set(required_evidence).issubset(set(evidence))
+        or f"hk_d1_binding_sha256={pool['artifact_sha256']}" not in evidence
+        or f"hk_d1_sha256={pool['artifact_sha256']}" not in evidence
+        or f"hk_d1_source_trade_date={pool['source_date']}" not in evidence
+        or f"hk_d1_source_signal_date={pool['signal_date']}" not in evidence
+        or f"historical_source_page_set_sha256={observation['source_page_set_sha256']}" not in evidence
+        or f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}" not in evidence
+    ):
+        return False
+    return set(_HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM).issubset(
+        {str(item) for item in cannot_confirm}
+    )
+
+
+def _allows_temporal_false_observation(
+    *,
+    contract: str | None,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+) -> bool:
+    evidence = {str(item) for item in source_evidence}
+    futu_marker = f"futu_observation_contract={HK_FUTU_RTDATA_OBSERVATION_CONTRACT}"
+    if contract == HK_FUTU_RTDATA_OBSERVATION_CONTRACT or (
+        contract is None and futu_marker in evidence
+    ):
+        profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+        if profile is None:
+            return False
+        return _allows_hk_futu_rtd_temporal_false_observation(
+            enabled=True,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+            window=profile[0],
+            cutoff_at=profile[1],
+            manifest_temporal_cutoff_safe=False,
+        )
+    if contract == HK_0930_TDX_RESEARCH_CONTRACT:
+        return _allows_hk_0930_tdx_temporal_false_observation(
+            enabled=True,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+        )
+    if isinstance(contract, str) and contract.startswith(HISTORICAL_OBSERVATION_CONTRACT_PREFIX):
+        return _allows_manifest_bound_afterfact_observation(
+            contract=contract,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+        )
+    return False
 
 
 def _atomic_write_bytes(path: Path, data: bytes) -> None:

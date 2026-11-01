@@ -3,7 +3,7 @@
 The runner is deliberately an orchestration boundary, not another market data
 implementation.  A deployed caller supplies already-reviewed, read-only
 collector bridges and selection builders.  The runner owns the things that
-must not be duplicated by V3/V4: one explicit candidate pointer, one slot
+must not be duplicated by V3/V3.5: one explicit candidate pointer, one slot
 lock, immutable raw publication before selection publication, and fail-closed
 receipts for calendar/input/integrity failures.
 """
@@ -36,12 +36,20 @@ from .calendar import (
 )
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
 from .raw_store import (
+    HISTORICAL_OBSERVATION_CONTRACT_ID,
+    HISTORICAL_OBSERVATION_CONTRACT_PREFIX,
+    HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX,
+    HISTORICAL_OBSERVATION_MANIFEST_SCHEMA,
     HK_0930_TDX_RESEARCH_CONTRACT,
     HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
     RAW_FIELDS,
     RawStore,
     RawStoreError,
+    _allows_manifest_bound_afterfact_observation,
+    _historical_observation_manifest,
+    _raw_artifact_csv_sha256,
     _allows_hk_0930_tdx_temporal_false_observation,
+    _allows_temporal_false_observation,
     publish_raw_artifact,
     validate_rows,
 )
@@ -201,6 +209,197 @@ def _authorize_hk_0930_tdx_temporal_false_observation(
     ):
         raise RunnerError("HK 09:30 TDX evidence or safety contract is incomplete")
     return authorized_source, HK_0930_TDX_RESEARCH_CONTRACT
+
+
+def _authorize_manifest_bound_afterfact_observation(
+    source: SourceResult,
+    plan: AcquisitionPlan,
+    *,
+    binding: StageUniverseBinding | None,
+    market: str,
+    historical_backfill: bool,
+    contract: str,
+) -> tuple[SourceResult, str]:
+    """Validate an immutable source manifest before the shared raw/selection route."""
+    def reject(reason: str) -> None:
+        raise RunnerError(reason)
+
+    if (
+        not isinstance(contract, str)
+        or not re.fullmatch(re.escape(HISTORICAL_OBSERVATION_CONTRACT_PREFIX) + r"[0-9a-f]{64}", contract)
+        or not historical_backfill
+        or market != "HK_CONNECT"
+        or source.source_id not in {"pytdx_exhq", "futu_cached_minute_capture"}
+        or source.status != "PARTIAL_WITH_ROWS"
+        or binding is None
+        or binding.status != "READY"
+        or binding.market != market
+        or binding.trade_date != plan.trade_date
+        or binding.role not in {
+            "HK_CONNECT_D1_TOP100",
+            "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+        }
+    ):
+        reject("historical observation identity, source, or D1 binding is invalid")
+
+    parsed = _historical_observation_manifest(source.source_evidence, contract=contract)
+    if parsed is None:
+        reject("historical observation manifest is missing or has a mismatched SHA")
+    manifest, _token = parsed
+    target = manifest.get("target")
+    pool = manifest.get("pool")
+    if not isinstance(target, Mapping) or not isinstance(pool, Mapping):
+        reject("historical observation target or pool manifest is invalid")
+    if (
+        manifest.get("schema_version") != HISTORICAL_OBSERVATION_MANIFEST_SCHEMA
+        or manifest.get("contract_id") != HISTORICAL_OBSERVATION_CONTRACT_ID
+        or target.get("trade_date") != plan.trade_date
+        or target.get("stage_id") != plan.stage_id
+        or target.get("market") != market
+        or target.get("source_id") != source.source_id
+        or target.get("source_status") != source.status
+        or target.get("historical_backfill") is not True
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or binding.sha256 != pool.get("artifact_sha256")
+        or (
+            source.source_id == "pytdx_exhq"
+            and binding.source_run_id != pool.get("source_run_id")
+        )
+        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+        or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
+    ):
+        reject("historical observation target or full D1 artifact identity mismatch")
+
+    d1_path_text = _evidence_value(binding.evidence, "hk_d1_json")
+    if not d1_path_text:
+        reject("historical observation D1 artifact path is absent")
+    d1_path = Path(d1_path_text)
+    if not d1_path.is_file() or _sha(d1_path) != binding.sha256:
+        reject("historical observation D1 artifact SHA changed")
+    try:
+        d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        raise RunnerError("historical observation D1 artifact is unreadable") from error
+    d1_rows = (
+        d1_payload.get("rows", d1_payload.get("data", ()))
+        if isinstance(d1_payload, Mapping)
+        else ()
+    )
+    if (
+        source.source_id == "futu_cached_minute_capture"
+        and (
+            not isinstance(d1_payload, Mapping)
+            or d1_payload.get("source_run_id") != pool.get("source_run_id")
+        )
+    ):
+        reject("historical observation producer run does not match the pinned D1 artifact")
+    if not isinstance(d1_rows, list):
+        reject("historical observation D1 rows are invalid")
+    d1_codes = tuple(sorted(
+        str(row.get("code") or row.get("symbol") or row.get("ts_code") or row.get("stock_code") or "").upper()
+        for row in d1_rows
+        if isinstance(row, Mapping)
+    ))
+    d1_signal_dates = {
+        str(row.get("signal_date") or "") for row in d1_rows if isinstance(row, Mapping)
+    }
+    pool_source_date = (
+        _evidence_value(binding.evidence, "hk_d1_source_trade_date")
+        or str(d1_payload.get("trade_date") or d1_path.parent.name)
+    )
+    pool_signal_date = (
+        _evidence_value(binding.evidence, "hk_d1_source_signal_date")
+        or (next(iter(d1_signal_dates)) if len(d1_signal_dates) == 1 else "")
+    )
+    d1_code_sha = hashlib.sha256(
+        json.dumps(d1_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    manifest_pool_codes = pool.get("codes")
+    if not isinstance(manifest_pool_codes, list):
+        reject("historical observation D1 code list is absent")
+    manifest_pool_codes = tuple(sorted(str(code).upper() for code in manifest_pool_codes))
+    if (
+        d1_codes != tuple(sorted(set(binding.codes)))
+        or d1_codes != manifest_pool_codes
+        or pool.get("source_date") != pool_source_date
+        or pool.get("signal_date") != pool_signal_date
+        or pool.get("code_set_sha256") != d1_code_sha
+        or pool.get("code_set_sha256") != hashlib.sha256(
+            json.dumps(manifest_pool_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        or len(d1_codes) != 100
+        or len(set(d1_codes)) != 100
+        or not re.fullmatch(r"HK\.\d{5}", d1_codes[0])
+    ):
+        reject("historical observation D1 pool code set or source date mismatch")
+
+    requested = source.requested_rows
+    if target.get("requested_rows") != len(d1_codes) or requested != len(d1_codes):
+        reject("historical observation requested count does not match D1 pool")
+    source_codes = [str(row.get("code") or "").upper() for row in source.rows]
+    manifest_observation = manifest.get("observation")
+    if not isinstance(manifest_observation, Mapping):
+        reject("historical observation details are absent")
+    observed_codes = manifest_observation.get("observed_codes")
+    missing_codes = manifest_observation.get("missing_codes")
+    if not isinstance(observed_codes, list) or not isinstance(missing_codes, list):
+        reject("historical observation row membership is absent")
+    observed_codes = tuple(sorted(str(code).upper() for code in observed_codes))
+    missing_codes = tuple(sorted(str(code).upper() for code in missing_codes))
+    source_missing = tuple(sorted(str(code).upper() for code in source.missing_symbols))
+    if (
+        len(source_codes) != len(set(source_codes))
+        or tuple(sorted(source_codes)) != observed_codes
+        or source_missing != missing_codes
+        or set(observed_codes).intersection(missing_codes)
+        or set(observed_codes).union(missing_codes) != set(d1_codes)
+        or len(source.rows) != manifest_observation.get("observed_rows")
+        or len(missing_codes) != manifest_observation.get("missing_count")
+        or any(row.get("temporal_cutoff_safe") is not False for row in source.rows)
+        or any(row.get("candidate_lanes") for row in source.rows)
+    ):
+        reject("historical observation row count, missing count, or D1 membership mismatch")
+    raw_sha = _raw_artifact_csv_sha256(plan.trade_date, source.rows)
+    if raw_sha is None or raw_sha != manifest_observation.get("raw_artifact_sha256"):
+        reject("historical observation raw artifact SHA mismatch")
+
+    expected_cannot_confirm = (
+        "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
+        "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+        "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+    )
+    evidence = tuple(dict.fromkeys(
+        (
+            *source.source_evidence,
+            f"due_status=HISTORICAL_BACKFILL",
+            "historical_observation_contract=STAGE_CENTER_AFTERFACT_OBSERVATION_R1",
+            f"hk_d1_source_trade_date={pool_source_date}",
+            f"hk_d1_source_signal_date={pool_signal_date}",
+            f"hk_d1_binding_sha256={binding.sha256}",
+            f"hk_d1_sha256={binding.sha256}",
+        )
+    ))
+    cannot_confirm = tuple(dict.fromkeys((*source.cannot_confirm, *expected_cannot_confirm)))
+    authorized_source = replace(
+        source,
+        source_evidence=evidence,
+        cannot_confirm=cannot_confirm,
+    )
+    if not _allows_manifest_bound_afterfact_observation(
+        contract=contract,
+        trade_date=plan.trade_date,
+        stage_id=plan.stage_id,
+        market=market,
+        source_id=authorized_source.source_id,
+        source_status=authorized_source.status,
+        rows=authorized_source.rows,
+        requested_rows=authorized_source.requested_rows,
+        missing_symbols=authorized_source.missing_symbols,
+        cannot_confirm=authorized_source.cannot_confirm,
+        source_evidence=authorized_source.source_evidence,
+    ):
+        reject("historical observation safety, provenance, or raw SHA contract mismatch")
+    return authorized_source, contract
 
 
 def lane_status_bundle(

@@ -3,7 +3,10 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def _validate_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market):
+def _validate_rows_body(
+    _v4_scope, /, rows, *, trade_date, stage_id, market,
+    allow_temporal_false_observation=False,
+):
     """Validate the frozen 19-field raw shape without dropping evidence."""
     _v4_global(_v4_scope, '_validate_date')(trade_date)
     expected_market = _v4_global(_v4_scope, '_MARKET_CODE').get(market)
@@ -37,7 +40,10 @@ def _validate_rows_body(_v4_scope, /, rows, *, trade_date, stage_id, market):
         if not lower <= window_start <= window_end <= upper or update != window_end:
             issues.append(f"row {index}: temporal cutoff/window violation")
             continue
-        if row.get("temporal_cutoff_safe") is not True:
+        if row.get("temporal_cutoff_safe") is not True and not (
+            allow_temporal_false_observation is True
+            and row.get("temporal_cutoff_safe") is False
+        ):
             issues.append(f"row {index}: temporal_cutoff_safe must be true")
             continue
         validated.append(row)

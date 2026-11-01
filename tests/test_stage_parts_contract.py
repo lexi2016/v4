@@ -1,0 +1,129 @@
+"""Contract tests for the facade -> parts delegation.
+
+The stage-center facades pass their own globals() into a ``*_parts``
+implementation. That indirection hides both the target and its signature from
+ordinary import checks: a renamed or missing parts module, or a facade passing
+a keyword the body never accepted, only surfaces when that exact path runs.
+
+These tests read the same calls statically and exercise the two entry points
+that a scheduled tick would use.
+"""
+from __future__ import annotations
+
+import ast
+import tempfile
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+FACADES = [
+    "apps/api/v4_api/research_lane_router.py",
+    "domains/preselection.py",
+    "stage_center/raw_store.py",
+    "stage_center/runner.py",
+]
+
+
+def _resolve(module: str) -> Path | None:
+    relative = module.replace(".", "/")
+    for candidate in (ROOT / f"{relative}.py", ROOT / relative / "__init__.py"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _delegations() -> list[tuple[str, int, str, Path, str]]:
+    """Yield (facade path, line, facade function, parts path, body name)."""
+    found = []
+    for relative in FACADES:
+        path = ROOT / relative
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for func in [n for n in tree.body if isinstance(n, ast.FunctionDef)]:
+            imports: dict[int, tuple[str, str]] = {}
+            for node in ast.walk(func):
+                if isinstance(node, ast.ImportFrom) and node.module:
+                    for alias in node.names:
+                        if alias.asname == "_v4_impl":
+                            imports[node.lineno] = (node.module, alias.name)
+            if not imports:
+                continue
+            for call in [n for n in ast.walk(func) if isinstance(n, ast.Call)
+                         and isinstance(n.func, ast.Name) and n.func.id == "_v4_impl"]:
+                prior = [line for line in imports if line < call.lineno]
+                if not prior:
+                    continue
+                module, body_name = imports[max(prior)]
+                target = _resolve(module)
+                found.append((relative, call.lineno, func.name, target, body_name))
+    return found
+
+
+DELEGATIONS = _delegations()
+
+
+def test_the_delegation_scan_sees_the_expected_surface():
+    assert len(DELEGATIONS) >= 50
+
+
+@pytest.mark.parametrize("facade,line,name,target,body", DELEGATIONS,
+                         ids=[f"{d[2]}:{d[1]}" for d in DELEGATIONS])
+def test_delegation_target_exists(facade, line, name, target, body):
+    assert target is not None, f"{facade}:{line} {name} -> missing parts module"
+    tree = ast.parse(target.read_text(encoding="utf-8"))
+    assert any(isinstance(node, ast.FunctionDef) and node.name == body for node in tree.body), (
+        f"{facade}:{line} {name} -> {target.name}.{body} not found"
+    )
+
+
+@pytest.mark.parametrize("facade,line,name,target,body", DELEGATIONS,
+                         ids=[f"{d[2]}:{d[1]}" for d in DELEGATIONS])
+def test_delegation_signature_matches(facade, line, name, target, body):
+    tree = ast.parse((ROOT / facade).read_text(encoding="utf-8"))
+    func = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
+    call = next(n for n in ast.walk(func) if isinstance(n, ast.Call)
+                and isinstance(n.func, ast.Name) and n.func.id == "_v4_impl"
+                and n.lineno == line)
+    assert target is not None
+    body_tree = ast.parse(target.read_text(encoding="utf-8"))
+    body_def = next(n for n in body_tree.body if isinstance(n, ast.FunctionDef) and n.name == body)
+    args = body_def.args
+    params = args.posonlyargs + args.args
+    named = {a.arg for a in params + args.kwonlyargs}
+    unknown = {kw.arg for kw in call.keywords if kw.arg} - named
+    assert not unknown, f"{facade}:{line} {name} passes unknown keyword(s) {sorted(unknown)}"
+    assert args.vararg or len(call.args) - 1 <= len(params[1:]), (
+        f"{facade}:{line} {name} passes too many positional arguments"
+    )
+
+
+def test_build_production_config_yields_a_runner_config(tmp_path: Path):
+    from stage_center.runner import StageCenterRunner, build_production_config
+
+    config = build_production_config(
+        candidate_acquisition_root=tmp_path / "candidate",
+        raw_root=tmp_path / "raw",
+        selection_root=tmp_path / "selection",
+        receipt_root=tmp_path / "receipt",
+    )
+    assert type(config).__name__ == "RunnerConfig"
+    assert config.raw_root == tmp_path / "raw"
+    assert type(StageCenterRunner(config)).__name__ == "StageCenterRunner"
+
+
+def test_raw_store_validates_and_publishes(tmp_path: Path):
+    from stage_center.raw_store import publish_raw_artifact, validate_rows
+
+    validated = validate_rows([], trade_date="20261030", stage_id="STAGE_0930_0935", market="A_SHARE")
+    assert isinstance(validated, tuple) and len(validated) == 2
+
+    published = publish_raw_artifact(
+        tmp_path / "raw",
+        trade_date="20261030",
+        stage_id="STAGE_0930_0935",
+        market="A_SHARE",
+        source_id="contract-test",
+        source_status="READY",
+        rows=[{"symbol": "000001", "price": 1.0}],
+    )
+    assert isinstance(published, dict)
