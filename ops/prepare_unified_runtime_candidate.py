@@ -22,7 +22,7 @@ ALIAS = "infrastructure/report_evidence_pdf_owner.py"
 OWNER_SHA = "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde"
 
 
-def prepare(*, source, runtime, report_ref, output):
+def prepare(*, source, runtime, report_ref, output, api_snapshot=None):
     if output.exists(): raise ValueError("UNIFIED_OUTPUT_MUST_BE_NEW")
     if not re.fullmatch("[0-9a-f]{40}", report_ref): raise ValueError("EXACT_FROZEN_REPORT_COMMIT_REQUIRED")
     base = json.loads((runtime / "candidate_receipt.json").read_bytes())
@@ -31,7 +31,9 @@ def prepare(*, source, runtime, report_ref, output):
         raw = subprocess.check_output(["git", "show", report_ref + ":" + relative], cwd=source)
         if (source / relative).read_bytes() != raw: raise ValueError("REPORT_SOURCE_NOT_FROZEN:" + relative)
         frozen[relative] = {"sha256": sha(raw), "bytes": len(raw)}
-    actual = base["live_preimages"]
+    actual = copy.deepcopy(base["live_preimages"])
+    if api_snapshot is not None:
+        actual["api"] = json.loads(Path(api_snapshot).read_bytes())
     current_api = Path(actual["api"]["environment"]["V4_APP_ROOT"])
     alias = (source / ALIAS).read_bytes()
     if sha(alias) != OWNER_SHA or (current_api / "infrastructure/zsxq_pdf_ingestion.py").read_bytes() != alias:
@@ -45,12 +47,22 @@ def prepare(*, source, runtime, report_ref, output):
         verified_baseline(Path(env["V4_APP_ROOT"]), env["V4_RELEASE_MANIFEST_SHA256"], inv)
     output.mkdir(); roles = {}
     for role in ("main", "stage", "api"):
-        before_app = Path(base["roles"][role]["app_root"])
-        verified_baseline(before_app, base["roles"][role]["manifest_sha256"], inv)
+        fresh_api = role == "api" and api_snapshot is not None
+        before_app = current_api if fresh_api else Path(base["roles"][role]["app_root"])
+        before_pin = actual["api"]["environment"]["V4_RELEASE_MANIFEST_SHA256"] if fresh_api else base["roles"][role]["manifest_sha256"]
+        verified_baseline(before_app, before_pin, inv)
         root = output / (output.name + "-" + role); app = root / "app"
         shutil.copytree(before_app, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
         for relative in REPORT_FILES: write(app, relative, (source / relative).read_bytes())
         additions = set(REPORT_FILES)
+        if fresh_api:
+            write(app, "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md", (source / "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md").read_bytes())
+            reader = (app / "infrastructure/operations_sop_reader.py").read_text()
+            if "'runtime-data-recovery':" not in reader:
+                if reader.count("DOCUMENTS={\n") != 1: raise ValueError("SOP_READER_PREIMAGE_CHANGED")
+                reader = reader.replace("DOCUMENTS={\n", "DOCUMENTS={\n    'runtime-data-recovery':('运行链补数据与复用规程','docs/operations/RUNTIME_DATA_RECOVERY_SOP.md'),\n", 1)
+                write(app, "infrastructure/operations_sop_reader.py", reader.encode())
+            additions |= {"docs/operations/RUNTIME_DATA_RECOVERY_SOP.md", "infrastructure/operations_sop_reader.py"}
         if role in {"main", "stage"}:
             write(app, ALIAS, alias); additions.add(ALIAS)
         if role == "stage":
@@ -69,13 +81,15 @@ def prepare(*, source, runtime, report_ref, output):
             if body.count(anchor) != 1 or "create_report_evidence_router" in body: raise ValueError("API_REGISTRATION_PREIMAGE_CHANGED")
             body = body.replace(anchor, anchor + "    from apps.api.v4_api.report_evidence_router import create_report_evidence_router\n    app.include_router(create_report_evidence_router(resolved_research_root))\n")
             write(app, "apps/api/v4_api/app.py", body.encode()); additions.add("apps/api/v4_api/app.py")
-            manual = json.loads((app / "config/api-v4_manual_collection_stage_config.json").read_bytes())
+            manual_path = Path(actual["api"]["environment"]["V4_MANUAL_COLLECTION_STAGE_CONFIG"]) if fresh_api else app / "config/api-v4_manual_collection_stage_config.json"
+            manual = json.loads(manual_path.read_bytes())
             manual["stage_owner_root"] = roles["stage"]["app_root"]
             dump(app / "config/api-v4_manual_collection_stage_config.json", manual); additions.add("config/api-v4_manual_collection_stage_config.json")
         entries = inv.inventory_tree(app); after = {r["path"]: r for r in entries}
         runtime_before = {r["path"]: r for r in inv.inventory_tree(before_app)}
         added_delta = {p for p in set(runtime_before) | set(after) if runtime_before.get(p) != after.get(p)}
-        if added_delta - additions: raise ValueError("UNOWNED_UNIFIED_DELTA:" + repr(added_delta - additions))
+        cache_omissions = {p for p in added_delta if p in runtime_before and p not in after and "__pycache__" in Path(p).parts and p.endswith((".pyc", ".pyo"))}
+        if added_delta - additions - cache_omissions: raise ValueError("UNOWNED_UNIFIED_DELTA:" + repr(added_delta - additions - cache_omissions))
         current_app = Path(actual[role]["environment"]["V4_APP_ROOT"])
         current = {r["path"]: r for r in inv.inventory_tree(current_app)}
         delta = sorted(p for p in set(current) | set(after) if current.get(p) != after.get(p))
@@ -108,6 +122,7 @@ def prepare(*, source, runtime, report_ref, output):
     from ops.build_runtime_governance_registry import publication_checks
     dependencies = publication_checks(stage_app=Path(roles["stage"]["app_root"]), api_manual=Path(roles["api"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json", inventory_module=current_api / "ops/api_release_integration.py")
     receipt = {**base, "schema_version": "v4.unified_runtime_candidate.v1", "roles": roles, "report_source_ref": report_ref,
+        "live_preimages": actual,
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(), "publication_dependencies": dependencies,
         "report_source_files": frozen, "activated": False, "DEPLOYMENT": "NOT_DEPLOYED", "NATURAL_VERIFIED": "NOT_RUN"}
     dump(output / "candidate_receipt.json", receipt)
@@ -118,6 +133,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("runtime", "output"): parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--report-ref", required=True)
+    parser.add_argument("--api-snapshot", type=Path, help="Explicit fresh API snapshot; any later live drift rejects the build")
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
-    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output)
+    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output, api_snapshot=args.api_snapshot)
     print(json.dumps(result["roles"], ensure_ascii=False))
