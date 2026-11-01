@@ -122,7 +122,7 @@ def _slot_blocks_retry(
             return True
         if not isinstance(payload, dict):
             return True
-        observed.append(payload)
+        if not payload.get("completion_only"): observed.append(payload)
     if not observed:
         return False
     if any(str(payload.get("status") or "") != "FAILED" for payload in observed):
@@ -247,7 +247,7 @@ def _slot_has_retryable_failure(
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError):
             continue
-        if not isinstance(payload, dict) or str(payload.get("status") or "") != "FAILED":
+        if not isinstance(payload, dict) or payload.get("completion_only") or str(payload.get("status") or "") != "FAILED":
             continue
         if upstream_fingerprint is not None and str(
             payload.get("upstream_fingerprint") or ""

@@ -591,6 +591,11 @@ def _dispatch_stage(
         # the base runner's schema and safety flags.  The final write adds the
         # node cap metadata atomically through the same per-stage lock.
         persisted = runner._write_receipt(result, trade_date, stage_id)
+        # Consumers observe the already committed envelope; they cannot change
+        # the selection, source receipt, retry eligibility or Stage verdict.
+        from infrastructure.stage_completion_hooks import deliver
+        deliver(config=config, trade_date=trade_date, stage_id=stage_id, receipt=persisted,
+                settled=_stage_settled(persisted), mode=mode)
         return persisted
     finally:
         lock.release()

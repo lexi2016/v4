@@ -282,7 +282,7 @@ def _manual_recovery_context(context: dict[str, Any], trade_date: str) -> dict[s
     return {**context, "recovered_at": datetime.now(ZoneInfo("Asia/Shanghai")).isoformat()}
 
 
-def build_close_review(
+def _build_close_review(
     data_root: Path,
     trade_date: str,
     *,
@@ -370,6 +370,24 @@ def build_close_review(
                 evidence["cannot_confirm"].append(marker)
     publication = review_store.publish_native(review, expected_sha256=expected_sha)
     return {"review": review, "publication": publication}
+
+
+def build_close_review(data_root: Path, trade_date: str, *, stage_selection_root=None, manual_recovery=None) -> dict[str, Any]:
+    from infrastructure.review_generation import builder_sha, materialize_once
+    source = Path(__file__).resolve().parents[1]
+    def inputs():
+        snapshot, digest = CloseSnapshotStore(Path(data_root)).read_snapshot(trade_date)
+        try:
+            pool = PreselectionPoolStore(Path(data_root)).read_pool(trade_date, "hkconnect_d1_top100")
+        except FileNotFoundError as error:
+            if error.filename is not None or error.args != ("hkconnect_d1_top100",): raise
+            pool = {}
+        rows, evidence = _stage_rows_with_evidence(stage_selection_root, trade_date)
+        return {"snapshot_sha256": digest, "pool": pool, "stage_rows": rows, "stage_evidence": evidence, "manual_recovery": manual_recovery}
+    return materialize_once(root=Path(data_root), market="HK", date=trade_date,
+        builder=builder_sha([Path(__file__), source / "domains/close_review.py", source / "infrastructure/review_generation.py"]),
+        inputs=inputs, read_current=lambda: ReviewStore(Path(data_root)).read_reference(trade_date),
+        build=lambda current: _build_close_review(Path(data_root), trade_date, stage_selection_root=stage_selection_root, manual_recovery=manual_recovery))
 
 
 def main() -> None:

@@ -52,7 +52,7 @@ def _scenario_rows(model: dict[str, Any], trade_date: str) -> list[dict[str, Any
     return result
 
 
-def build_review_from_panel(
+def _build_review_from_panel(
     data_root: Path,
     trade_date: str,
     *,
@@ -161,6 +161,22 @@ def build_review_from_panel(
     return {"review": review, "publication": publication}
 
 
+def build_review_from_panel(data_root: Path, trade_date: str, *, panel_pointer: Path, **kwargs) -> dict[str, Any]:
+    from infrastructure.review_generation import builder_sha, materialize_once
+    source = Path(__file__).resolve().parents[1]
+    def inputs():
+        panel = _panel_path(panel_pointer)
+        return {"panel_sha256": _file_sha256(panel), "arguments": kwargs}
+    def build(current):
+        arguments = dict(kwargs)
+        if current is not None and arguments.get("replace_previous_sha") is None:
+            arguments["replace_previous_sha"] = _sha256(current)
+        return _build_review_from_panel(Path(data_root), trade_date, panel_pointer=panel_pointer, **arguments)
+    return materialize_once(root=Path(data_root), market="A", date=trade_date,
+        builder=builder_sha([Path(__file__), source / "domains/a_share_close_model.py", source / "domains/a_share_review.py", source / "domains/close_review_chain.py", source / "infrastructure/review_generation.py"]),
+        inputs=inputs, read_current=lambda: AShareReviewStore(Path(data_root)).read_review(trade_date), build=build)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build the V4 deterministic A-share close review"
@@ -213,6 +229,8 @@ def main() -> None:
         "role_rows": len(result["review"]["observation_pool"]),
         "close_chain_status": result["review"]["close_chain"]["status"],
         "publication": result["publication"],
+        "generation_status": result["status"],
+        "generation": result["generation"],
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,

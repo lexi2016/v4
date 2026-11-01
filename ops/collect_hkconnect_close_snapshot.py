@@ -65,6 +65,7 @@ def _reusable_snapshot(
     rows = payload.get("rows")
     if (
         payload.get("trade_date") != trade_date
+        or payload.get("source_mode") != "FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT"
         or payload.get("status") != "READY"
         or not isinstance(rows, list)
         or any(payload.get(flag) is not False for flag in (
@@ -85,8 +86,7 @@ def _reusable_snapshot(
         and same_date_count == len(rows)
         and coverage + 1e-12 >= float(required_coverage_ratio)
         and (
-            payload.get("source_mode") != "FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT"
-            or futu_close_capture_time_gap(payload, trade_date) is None
+            futu_close_capture_time_gap(payload, trade_date) is None
         )
     )
 

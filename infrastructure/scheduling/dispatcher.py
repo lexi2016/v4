@@ -335,7 +335,14 @@ def dispatch_due(
     *,
     ledger: ExecutionLedger | None = None,
     dry_run: bool = False,
+    completion_workload_ids: tuple[str, ...] = (),
 ) -> DispatchReceipt:
+    # Completion notifications and cron share the exact workload claims. A
+    # notification must not claim the entire 15:00 slot (hourly siblings).
+    if completion_workload_ids and completion_workload_ids != {
+        "1500": ("fupan_close_materials",), "1555": ("fupan_review_start",),
+    }.get(request.slot):
+        raise ValueError("COMPLETION_WORKLOAD_SCOPE_INVALID")
     if catalog.safety.production_allowed or catalog.safety.buy_gate_updated or catalog.safety.orders_sent:
         raise ValueError("unsafe runtime catalog")
     try:
@@ -358,15 +365,15 @@ def dispatch_due(
             )
             if str(item.get("slot") or "") == request.slot
         )
-        claim = ledger.try_claim_dispatch(request)
-        if not claim.acquired:
+        claim = None if completion_workload_ids else ledger.try_claim_dispatch(request)
+        if claim is not None and not claim.acquired:
             return _receipt(
                 request,
                 status="CONCURRENCY_SKIPPED",
                 run_id=claim.run_id,
                 **identity,
             )
-        run_id = claim.run_id
+        run_id = claim.run_id if claim is not None else uuid4().hex
     else:
         run_id = uuid4().hex
         prior_attempts = 0
@@ -374,6 +381,7 @@ def dispatch_due(
         workload
         for workload in catalog.workloads
         if workload.enabled and request.slot in workload.slots
+        and (not completion_workload_ids or workload.workload_id in completion_workload_ids)
     )
     decisions: dict[str, RunDecision] = {
         workload.workload_id: evaluate_run_policy(
@@ -441,6 +449,7 @@ def dispatch_due(
     started: list[str] = []
     results: list[dict[str, Any]] = []
     failed: list[str] = []
+    busy: list[str] = []
     if selected_workloads and not dry_run:
         for workload in selected_workloads:
             if ledger is not None:
@@ -450,6 +459,11 @@ def dispatch_due(
                     run_id=run_id,
                 )
                 if not workload_claim.acquired:
+                    if not ledger.claim_completed(workload_claim.relative_path):
+                        busy.append(workload.workload_id)
+                        results.append({"status": "FAILED", "workload_id": workload.workload_id,
+                            "failure_class": "UPSTREAM_NOT_READY", "reason": "EXISTING_WORKLOAD_IN_PROGRESS",
+                            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False})
                     continue
             try:
                 if ledger is not None:
@@ -524,7 +538,7 @@ def dispatch_due(
                     }
                 )
                 failed.append(workload.workload_id)
-        if failed:
+        if failed or busy:
             status = "FAILED"
         elif len(started) != len(selected_workloads):
             status = "DUPLICATE_WORKLOAD_SKIPPED"
@@ -561,6 +575,7 @@ def dispatch_due(
     )
     if ledger is not None:
         payload = receipt.to_dict()
+        payload["completion_only"] = bool(completion_workload_ids)
         payload["finished_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         ledger.write_receipt(receipt_path, payload)
         if status == "FAILED":
@@ -568,5 +583,6 @@ def dispatch_due(
                 request,
                 run_id=run_id,
                 workload_ids=tuple(failed),
+                release_dispatch=not completion_workload_ids,
             )
     return receipt

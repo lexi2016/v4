@@ -8,6 +8,7 @@ CANONICAL_ROOT=Path('/Users/lexi/Desktop/学习/v4_app')
 DOCUMENTS={
     'overview':('SOP 总览','docs/SOP.md'),
     'stage-selection':('阶段选股运行规程','docs/operations/STAGE_SELECTION_SOP.md'),
+    'runtime-data-recovery':('运行链补数据与复用规程','docs/operations/RUNTIME_DATA_RECOVERY_SOP.md'),
     'repair-20261028-29':('2026-10-28／29 阶段修复记录','docs/operations/records/2026-10-28_29-stage-selection-repair.md'),
 }
 

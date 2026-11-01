@@ -353,12 +353,16 @@ class ExecutionLedger:
         except FileNotFoundError:
             pass
 
+    def claim_completed(self, relative: str) -> bool:
+        return self._has_completed_receipt(_read_existing_claim(self._path(relative)))
+
     def release_failed_request(
         self,
         request: DispatchRequest,
         *,
         run_id: str,
         workload_ids: tuple[str, ...],
+        release_dispatch: bool = True,
     ) -> None:
         """Release this request's dispatch and workload claims after a failure.
 
@@ -398,16 +402,17 @@ class ExecutionLedger:
             )
             if reason is not None:
                 raise ValueError(reason)
-        reason = self._claim_identity_mismatch(
-            dispatch_relative,
-            expected_run_id=run_id,
-            identity=identity,
-        )
-        if reason is not None:
-            raise ValueError(reason)
+        if release_dispatch:
+            reason = self._claim_identity_mismatch(
+                dispatch_relative,
+                expected_run_id=run_id,
+                identity=identity,
+            )
+            if reason is not None:
+                raise ValueError(reason)
         for relative in workload_relatives:
             self._unlink_claim(relative)
-        self._unlink_claim(dispatch_relative)
+        if release_dispatch: self._unlink_claim(dispatch_relative)
 
     def receipt_relative(self, request: DispatchRequest, *, run_id: str) -> str:
         _segment(run_id)
@@ -417,6 +422,12 @@ class ExecutionLedger:
         )
 
     def write_receipt(self, relative: str, payload: Mapping[str, Any]) -> None:
+        from infrastructure.interprocess_lock import owned_interprocess_lock
+        with owned_interprocess_lock(self._path(relative).parent / ".receipt-publish.lock", timeout_seconds=10,
+                                     timeout_message="DISPATCH_RECEIPT_PUBLICATION_BUSY"):
+            self._write_receipt_unlocked(relative, payload)
+
+    def _write_receipt_unlocked(self, relative: str, payload: Mapping[str, Any]) -> None:
         destination = self._path(relative)
         destination.parent.mkdir(parents=True, exist_ok=True)
         body = dict(payload)

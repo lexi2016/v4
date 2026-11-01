@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+import copy
+import hashlib
+import json
 from typing import Any, Callable, Sequence
 
 from contracts.stages import STAGE_BAR_WINDOWS
@@ -40,6 +43,7 @@ class TdxMinuteReplayProvider:
 
     def __init__(self, *, api_factory: Callable[[], Any] | None = None) -> None:
         self._api_factory = api_factory or _connected_api
+        self._request_cache: dict[tuple, tuple[str, list]] = {}
 
     def snapshot(
         self,
@@ -66,12 +70,27 @@ class TdxMinuteReplayProvider:
             value for value in all_times
             if window_start <= value <= window_end and value <= cutoff_time
         ]
-        api = self._api_factory()
+        api = None
         rows: list[dict[str, Any]] = []
         empty_symbols: list[str] = []
         try:
             for symbol, market, code in identities:
-                raw_rows = api.get_history_minute_time_data(market, code, int(trade_date)) or []
+                # Reuse is scoped to the identical source/date/stage/cutoff.
+                # Never substitute cumulative quote amount for minute-window
+                # amount, or share an unfinished earlier window with a later one.
+                key = ("PYTDX_A_SHARE_1MIN_REPLAY", market, code, trade_date, stage_id, cutoff.isoformat(), window_start, window_end)
+                cached = self._request_cache.get(key)
+                if cached is not None:
+                    digest, cached_rows = cached
+                    if hashlib.sha256(json.dumps(cached_rows, sort_keys=True).encode()).hexdigest() != digest:
+                        raise ValueError("PYTDX_RAW_CACHE_SHA_CHANGED")
+                    raw_rows = copy.deepcopy(cached_rows)
+                else:
+                    api = api or self._api_factory()
+                    raw_rows = api.get_history_minute_time_data(market, code, int(trade_date)) or []
+                    if raw_rows:
+                        digest = hashlib.sha256(json.dumps(raw_rows, sort_keys=True).encode()).hexdigest()
+                        self._request_cache[key] = (digest, copy.deepcopy(raw_rows))
                 if not raw_rows:
                     empty_symbols.append(symbol)
                     continue
@@ -91,7 +110,7 @@ class TdxMinuteReplayProvider:
                     stage_window=f"{window_start}-{window_end}",
                 ))
         finally:
-            api.disconnect()
+            if api is not None: api.disconnect()
         if empty_symbols and not rows:
             raise ValueError(
                 "pytdx returned no minute rows for: " + ", ".join(sorted(empty_symbols))
