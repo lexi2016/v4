@@ -137,6 +137,8 @@ def _fetch_hk_stage8_rtdata(
                 "cleanup_warnings": (),
                 "missing_codes": requested,
                 "batch_evidence": (),
+                "provider_diagnostics": ({"operation": "futu_import", "exception_type": type(error).__name__,
+                                          "message": str(error)},),
             }
     factory = quote_context_factory or futu_module.OpenQuoteContext
     try:
@@ -151,6 +153,8 @@ def _fetch_hk_stage8_rtdata(
             "cleanup_warnings": (),
             "missing_codes": requested,
             "batch_evidence": (),
+            "provider_diagnostics": ({"operation": "context", "exception_type": type(error).__name__,
+                                      "message": str(error)},),
         }
 
     ret_ok = getattr(futu_module, "RET_OK", 0)
@@ -245,6 +249,8 @@ def _fetch_hk_stage8_rtdata(
             result = quote_ctx.close()
             provider_diagnostics.append({"operation":"close","return_value":repr(result),"server_quota_release_verified":False})
         except Exception as error:
+            provider_diagnostics.append({"operation": "close", "exception_type": type(error).__name__,
+                                         "message": str(error), "server_quota_release_verified": False})
             warning = f"HK_STAGE8_RTDATA_CLOSE_ERROR:{type(error).__name__}"
             errors.append(warning)
             cleanup_warnings.append(warning)

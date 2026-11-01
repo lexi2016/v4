@@ -348,6 +348,45 @@ asyncio.run(main())
         env['STAGE_FOUR_HTTP_STATE']=str(self.root/'api-state')
         result=subprocess.run([sys.executable,'-B','-c',code],cwd=app,env=env,capture_output=True,text=True,check=True)
         record=json.loads(result.stdout.strip().splitlines()[-1]);RESULTS.append(record)
+    def test_14_SDK_original_errors_retained_in_actual_capture(self):
+        import builtins
+        from stage_center.hk_stage8.rtdata import _fetch_hk_stage8_rtdata,_persist_stage8_rtdata_capture
+        markers={phase:'SYNTHETIC_ORIGINAL_'+phase.upper()+'_FAILURE_59f9'
+                 for phase in ('import','context','get','close','unsubscribe')}
+        for phase,marker in markers.items():
+            class Context:
+                def subscribe(self,*a,**k):return 0,None
+                def get_rt_data(self,*a):
+                    if phase=='get':raise RuntimeError(marker)
+                    return 0,[{'code':'HK.00001','time':'2026-10-30 15:54:00','cur_price':12,'volume':1}]
+                def close(self):
+                    if phase=='close':raise RuntimeError(marker)
+                def unsubscribe(self,*a):
+                    if phase=='unsubscribe':raise RuntimeError(marker)
+                    return 0,None
+            module=SimpleNamespace(RET_OK=0,OpenQuoteContext=lambda **k:Context())
+            if phase=='import':
+                original_import=builtins.__import__
+                def inject(name,*a,**k):
+                    if name=='futu':raise RuntimeError(marker)
+                    return original_import(name,*a,**k)
+                with patch('builtins.__import__',side_effect=inject):
+                    fetched=_fetch_hk_stage8_rtdata(['HK.00001'])
+            elif phase=='context':
+                def fail_context(**kwargs):raise RuntimeError(marker)
+                fetched=_fetch_hk_stage8_rtdata(['HK.00001'],futu_module=module,quote_context_factory=fail_context)
+            else:
+                ticks=iter((0,61))
+                fetched=_fetch_hk_stage8_rtdata(['HK.00001'],futu_module=module,clock=lambda:next(ticks))
+            self.assertTrue(any(d.get('message')==marker for d in fetched['provider_diagnostics']),phase)
+            if phase in {'import','context','get'}:self.assertFalse(fetched['rows'])
+            evidence=_persist_stage8_rtdata_capture(self.root,trade_date='20261030',stage_id='STAGE_1545_1555',
+                codes=('HK.00001',),fetched=fetched,provider_started_at='2026-10-30T15:55:00+08:00',
+                provider_finished_at='2026-10-30T15:55:00+08:00')
+            path=Path(next(e.partition('=')[2] for e in evidence if e.startswith('stage8_rtdata_capture_path=')))
+            raw=path.read_bytes();self.assertIn(marker,raw.decode())
+        RESULTS.append({'case':'F1_SDK_error_retention','phases':list(markers),'original_messages_retained':True,
+            'actual_capture_reader_checked':True,'provider_network_invocations':0})
 
 if __name__=='__main__':
     suite=(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name,FourRepairTests)
