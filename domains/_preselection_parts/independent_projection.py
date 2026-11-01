@@ -1,6 +1,7 @@
 """domains.preselection: independent_projection (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from infrastructure.preselection_pool_store import POOL_ORDER
 
 
 def __complete_independent_pool_set_body(_v4_scope, /, pools, trade_date):
@@ -16,7 +17,7 @@ def __complete_independent_pool_set_body(_v4_scope, /, pools, trade_date):
         if str(pool.get("pool_id") or "")
     }
     completed: list[dict[str, Any]] = []
-    for pool_id in _v4_global(_v4_scope, 'POOL_ORDER'):
+    for pool_id in POOL_ORDER:
         if pool_id in by_id:
             existing = by_id[pool_id]
             existing["optional"] = pool_id in _v4_global(_v4_scope, 'OPTIONAL_DAILY_POOL_IDS')

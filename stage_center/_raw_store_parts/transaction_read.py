@@ -1,6 +1,10 @@
 """stage_center.raw_store: transaction_read (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from stage_center.calendar import calendar_provenance
+from stage_center.contracts import SAFETY_FLAGS
+from typing import Mapping
+import csv
 
 
 def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id, market, run_id, expected_owner):
@@ -28,7 +32,7 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
             raise _v4_global(_v4_scope, 'RawStoreError')(f"{label} identity mismatch")
         if payload.get("run_id") != run_id:
             raise _v4_global(_v4_scope, 'RawStoreError')(f"{label} run_id mismatch")
-        for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
+        for key in SAFETY_FLAGS:
             if payload.get(key) is not False:
                 raise _v4_global(_v4_scope, 'RawStoreError')(f"{label} safety flag {key!r} must be false")
     expected_artifact = f"{prefix}/artifact.csv"
@@ -40,7 +44,7 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
     if manifest.get("artifact_sha256") != actual_artifact_sha or receipt.get("artifact_sha256") != actual_artifact_sha:
         raise _v4_global(_v4_scope, 'RawStoreError')("artifact sha mismatch")
     with artifact.open("r", encoding="utf-8-sig", newline="") as stream:
-        reader = _v4_global(_v4_scope, 'csv').DictReader(stream)
+        reader = csv.DictReader(stream)
         if tuple(reader.fieldnames or ()) != _v4_global(_v4_scope, 'ARTIFACT_FIELDS'):
             raise _v4_global(_v4_scope, 'RawStoreError')("raw artifact fields mismatch")
         rows = list(reader)
@@ -81,7 +85,7 @@ def _RawStore__verify_run_paths_body(_v4_scope, /, self, *, trade_date, stage_id
         "missing_symbols": list(manifest.get("missing_symbols", [])),
         "source_evidence": list(manifest.get("source_evidence", [])),
         "cannot_confirm": list(manifest.get("cannot_confirm", [])),
-        "calendar": dict(manifest.get("calendar", _v4_global(_v4_scope, 'calendar_provenance')())),
+        "calendar": dict(manifest.get("calendar", calendar_provenance())),
         "source_id": receipt.get("source_id"),
         "source_status": receipt.get("source_status"),
         "idempotency_key": receipt.get("idempotency_key"),
@@ -103,18 +107,18 @@ def _RawStore__verify_bundle_body(_v4_scope, /, self, trade_date, stage_id, bund
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle receipt identity mismatch")
     if receipt.get("receipt_relative") != receipt_relative:
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle receipt path mismatch")
-    for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
+    for key in SAFETY_FLAGS:
         if receipt.get(key) is not False:
             raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle receipt safety flag {key!r} must be false")
     markets = receipt.get("markets")
-    if not isinstance(markets, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(markets, Mapping):
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle markets missing")
     expected_markets = set(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
     if set(markets) != expected_markets:
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
     observed_statuses: set[str] = set()
     for market, entry in markets.items():
-        if not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(entry, Mapping):
             raise _v4_global(_v4_scope, 'RawStoreError')("bundle market entry malformed")
         verified = self.verify_run(trade_date, stage_id, market, str(entry.get("run_id")))
         if entry.get("receipt_sha256") != verified["receipt_sha256"] or entry.get("manifest_sha256") != verified["manifest_sha256"]:
@@ -133,7 +137,7 @@ def _RawStore__verify_bundle_body(_v4_scope, /, self, trade_date, stage_id, bund
         expected_status = "PARTIAL_WITH_ROWS"
     if receipt.get("status") != expected_status:
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle status summary mismatch")
-    if receipt.get("calendar") != _v4_global(_v4_scope, 'calendar_provenance')():
+    if receipt.get("calendar") != calendar_provenance():
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle calendar provenance mismatch")
     return {
         "receipt": receipt,

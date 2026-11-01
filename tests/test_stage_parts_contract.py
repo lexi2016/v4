@@ -166,3 +166,50 @@ def test_builtins_are_not_read_through_the_facade_namespace():
             if isinstance(argument, ast.Constant) and argument.value in names:
                 offenders.append(f"{path.relative_to(ROOT)}:{node.lineno} {argument.value!r}")
     assert offenders == [], offenders
+
+
+FACADE_FOR_PARTS = {
+    "apps/api/v4_api/_research_lane_router_parts": "apps/api/v4_api/research_lane_router.py",
+    "domains/_preselection_parts": "domains/preselection.py",
+    "stage_center/_raw_store_parts": "stage_center/raw_store.py",
+    "stage_center/_runner_parts": "stage_center/runner.py",
+}
+
+
+def _facade_defined_names(relative: str) -> set[str]:
+    """Names the facade defines itself, excluding anything it merely imports."""
+    tree = ast.parse((ROOT / relative).read_text(encoding="utf-8"))
+    names: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                for sub in ast.walk(target):
+                    if isinstance(sub, ast.Name):
+                        names.add(sub.id)
+    return names
+
+
+def test_parts_only_read_names_the_facade_defines():
+    import builtins
+
+    builtin_names = set(dir(builtins))
+    offenders = []
+    for directory, facade in FACADE_FOR_PARTS.items():
+        defined = _facade_defined_names(facade)
+        for path in sorted((ROOT / directory).glob("*.py")):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name):
+                    continue
+                if node.func.id != "_v4_global" or len(node.args) != 2:
+                    continue
+                argument = node.args[1]
+                if not (isinstance(argument, ast.Constant) and isinstance(argument.value, str)):
+                    continue
+                name = argument.value
+                if name in builtin_names or name in defined:
+                    continue
+                offenders.append(f"{path.relative_to(ROOT)}:{node.lineno} {name!r}")
+    assert offenders == [], offenders

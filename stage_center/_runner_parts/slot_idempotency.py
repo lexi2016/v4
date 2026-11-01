@@ -1,6 +1,10 @@
 """stage_center.runner: slot_idempotency (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from stage_center.raw_store import RawStore
+from stage_center.raw_store import RawStoreError
+from stage_center.selection import SelectionError
+from stage_center.selection import SelectionStore
 
 
 def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage_id, markets, candidate_sha_by_market):
@@ -25,8 +29,8 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
     present = raw_bundle_entry is not None or raw_market_present or any(value is not None for value in selection_entries.values())
     if not present:
         return "ABSENT", None
-    raw_store = _v4_global(_v4_scope, 'RawStore')(self.config.raw_root)
-    selection_store = _v4_global(_v4_scope, 'SelectionStore')(self.config.selection_root)
+    raw_store = RawStore(self.config.raw_root)
+    selection_store = SelectionStore(self.config.selection_root)
     raw_verified: dict[str, Mapping[str, Any]] = {}
     selections: dict[str, Mapping[str, Any]] = {}
     candidate_binding_errors: dict[str, str] = {}
@@ -35,7 +39,7 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
         if raw_entry is not None:
             try:
                 verified = raw_store.verify_run(trade_date, stage_id, market, str(raw_entry.get("run_id")))
-            except (_v4_global(_v4_scope, 'RawStoreError'), ValueError) as error:
+            except (RawStoreError, ValueError) as error:
                 raise _v4_global(_v4_scope, 'RunnerError')(f"existing raw market integrity failure: {market}") from error
             expected = expected_sha.get(market)
             if expected is None:
@@ -52,7 +56,7 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
         if selection_entry is not None:
             try:
                 envelope = selection_store.read_verified(trade_date, stage_id, market)
-            except (_v4_global(_v4_scope, 'SelectionError'), ValueError) as error:
+            except (SelectionError, ValueError) as error:
                 raise _v4_global(_v4_scope, 'RunnerError')(f"existing selection integrity failure: {market}") from error
             expected = expected_sha.get(market)
             if expected is None:
@@ -68,7 +72,7 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
     if raw_bundle_entry is not None and len(raw_verified) == len(markets):
         try:
             raw = raw_store.read_verified_bundle(trade_date, stage_id)
-        except (_v4_global(_v4_scope, 'RawStoreError'), ValueError) as error:
+        except (RawStoreError, ValueError) as error:
             raise _v4_global(_v4_scope, 'RunnerError')("existing raw bundle integrity failure") from error
     else:
         raw = {"receipt": {"markets": {market: dict(entry) for market, entry in raw_verified.items()}}}

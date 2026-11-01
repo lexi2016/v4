@@ -1,6 +1,9 @@
 """domains.preselection: review_stage7 (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from infrastructure.preselection_pool_store import POOL_ORDER
+from infrastructure.review_core_stage7_pool_source import load_review_core_stage7_pool
+from typing import Mapping
 
 
 def __replace_review_core_stage7_pool_body(_v4_scope, /, pools, trade_date):
@@ -8,7 +11,7 @@ def __replace_review_core_stage7_pool_body(_v4_scope, /, pools, trade_date):
 
     if not any(pool.get("pool_id") == "a_d1_stage7_fenshi_review_pool" for pool in pools):
         return pools
-    review_core_pool = _v4_global(_v4_scope, 'load_review_core_stage7_pool')(trade_date)
+    review_core_pool = load_review_core_stage7_pool(trade_date)
     if not _v4_global(_v4_scope, '_usable_review_core_stage7_pool')(review_core_pool, trade_date):
         return pools
     return [
@@ -20,7 +23,7 @@ def __replace_review_core_stage7_pool_body(_v4_scope, /, pools, trade_date):
 def __usable_review_core_stage7_pool_body(_v4_scope, /, pool, trade_date):
     """Accept only an exact, safety-clean, non-empty Review Core Stage7 DTO."""
 
-    if not isinstance(pool, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(pool, Mapping):
         return False
     if pool.get("pool_id") != "a_d1_stage7_fenshi_review_pool":
         return False
@@ -36,12 +39,12 @@ def __usable_review_core_stage7_pool_body(_v4_scope, /, pool, trade_date):
     if any(pool.get(name) is not False for name in ("production_allowed", "buy_gate_updated", "orders_sent")):
         return False
     flags = pool.get("safety_flags")
-    if not isinstance(flags, _v4_global(_v4_scope, 'Mapping')) or any(
+    if not isinstance(flags, Mapping) or any(
         flags.get(name) is not False for name in ("production_allowed", "buy_gate_updated", "orders_sent")
     ):
         return False
     for row in rows:
-        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, Mapping):
             return False
         if row.get("source_merge_role") != "SOURCE_ONLY" or row.get("stage_selection_eligible") is not False:
             return False
@@ -49,7 +52,7 @@ def __usable_review_core_stage7_pool_body(_v4_scope, /, pool, trade_date):
             return False
         row_flags = row.get("safety_flags")
         if row_flags is not None and (
-            not isinstance(row_flags, _v4_global(_v4_scope, 'Mapping'))
+            not isinstance(row_flags, Mapping)
             or any(
                 row_flags.get(name) is not False
                 for name in ("production_allowed", "buy_gate_updated", "orders_sent")
@@ -69,7 +72,7 @@ def __replace_payload_review_core_stage7_pool_body(_v4_scope, /, payload, trade_
     ):
         return payload
     replaced = _v4_global(_v4_scope, '_replace_review_core_stage7_pool')([dict(pool) for pool in pools], trade_date)
-    if [pool.get("pool_id") for pool in replaced] == list(_v4_global(_v4_scope, 'POOL_ORDER')):
+    if [pool.get("pool_id") for pool in replaced] == list(POOL_ORDER):
         projected = _v4_global(_v4_scope, '_project_independent_pools')(replaced, trade_date)
         restored = dict(payload)
         restored.update(projected)

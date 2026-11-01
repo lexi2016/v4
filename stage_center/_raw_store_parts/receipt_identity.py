@@ -1,6 +1,7 @@
 """stage_center.raw_store: receipt_identity (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from typing import Mapping
 
 
 def _validate_rows_body(
@@ -16,7 +17,7 @@ def _validate_rows_body(
     validated: list[dict[str, Any]] = []
     issues: list[str] = []
     for index, source in enumerate(rows):
-        if not isinstance(source, _v4_global(_v4_scope, 'Mapping')) or set(source) != set(_v4_global(_v4_scope, 'RAW_FIELDS')):
+        if not isinstance(source, Mapping) or set(source) != set(_v4_global(_v4_scope, 'RAW_FIELDS')):
             issues.append(f"row {index}: raw row must contain exactly 19 fields")
             continue
         row = dict(source)

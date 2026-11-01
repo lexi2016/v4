@@ -1,6 +1,9 @@
 """stage_center.runner: a_candidate_authority (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from dataclasses import replace
+import csv
+import re
 
 
 def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
@@ -14,10 +17,10 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
     csv_path, _manifest_path, _csv_sha = _v4_global(_v4_scope, '_validate_formal_input')(formal_root, trade_date)
     authority: dict[str, Mapping[str, Any]] = {}
     with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        for row in _v4_global(_v4_scope, 'csv').DictReader(stream):
+        for row in csv.DictReader(stream):
             if str(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
                 continue
-            match = _v4_global(_v4_scope, 're').search(r"(\d{6})", str(row.get("ts_code") or row.get("stock_code") or ""))
+            match = re.search(r"(\d{6})", str(row.get("ts_code") or row.get("stock_code") or ""))
             if not match:
                 continue
             authority[f"A.{match.group(1)}"] = row
@@ -60,7 +63,7 @@ def __attach_a_authority_body(_v4_scope, /, source, *, formal_root, trade_date):
                 dict.fromkeys([*lane_evidence, "STAGE_ACQUISITION_UNIVERSE"])
             )
         enriched.append(merged)
-    return _v4_global(_v4_scope, 'replace')(
+    return replace(
         source,
         rows=tuple(enriched),
         source_evidence=tuple(

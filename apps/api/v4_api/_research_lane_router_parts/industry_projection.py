@@ -6,6 +6,10 @@ from contracts.futu_us_boards import (
     empty_futu_us_board_snapshot,
     validate_futu_us_board_snapshot,
 )
+from infrastructure.data_store import _sha256
+from infrastructure.research_peripheral_store import CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP
+from typing import Mapping
+import json
 
 
 _INDUSTRY_RESPONSE_SCHEMA_VERSION = "v3_5.global_industries.v2"
@@ -131,13 +135,13 @@ def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
     artifact_path = store.root / "research" / "peripherals" / research_date / "external_finance.json"
     receipt_path = store.root / "receipts" / "research" / "peripherals" / research_date / "external_finance.json"
     manifest_path = store.root / "research" / "peripherals" / "manifest.json"
-    result: dict[str, Any] = {"path": str(artifact_path), "sha256": _v4_global(_v4_scope, '_sha256')(payload)}
+    result: dict[str, Any] = {"path": str(artifact_path), "sha256": _sha256(payload)}
     try:
-        receipt = _v4_global(_v4_scope, 'json').loads(receipt_path.read_text(encoding="utf-8"))
-        manifest = _v4_global(_v4_scope, 'json').loads(manifest_path.read_text(encoding="utf-8"))
-        result["receipt"] = {"path": str(receipt_path), "sha256": _v4_global(_v4_scope, '_sha256')(receipt)}
-        result["manifest"] = {"path": str(manifest_path), "sha256": _v4_global(_v4_scope, '_sha256')(manifest)}
-    except (OSError, TypeError, ValueError, _v4_global(_v4_scope, 'json').JSONDecodeError):
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        result["receipt"] = {"path": str(receipt_path), "sha256": _sha256(receipt)}
+        result["manifest"] = {"path": str(manifest_path), "sha256": _sha256(manifest)}
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
         result["lineage_status"] = "CANNOT_CONFIRM"
     return result
 
@@ -145,7 +149,7 @@ def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
 def __project_global_industries_body(_v4_scope, /, *, store, research_date):
     try:
         payload = store.read_exact(research_date, "external_finance")
-    except (OSError, TypeError, ValueError, _v4_global(_v4_scope, 'json').JSONDecodeError) as error:
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         return _v4_global(_v4_scope, '_global_industry_missing')(
             research_date=research_date,
             reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{type(error).__name__}",
@@ -156,7 +160,7 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
             reason="EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED",
         )
     snapshot = payload.get("market_snapshot")
-    if not isinstance(snapshot, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(snapshot, Mapping):
         result = _v4_global(_v4_scope, '_global_industry_missing')(
             research_date=research_date,
             reason="MARKET_SNAPSHOT_NOT_MATERIALIZED",
@@ -210,9 +214,9 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         )
     session_date = str(snapshot.get("capture_session_date") or "")
     rows = list(snapshot.get("rows") or [])
-    canonical_rows = list(_v4_global(_v4_scope, 'CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP'))
+    canonical_rows = list(CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP)
     if len(rows) != 24 or any(
-        not isinstance(row, _v4_global(_v4_scope, 'Mapping'))
+        not isinstance(row, Mapping)
         or row.get("label") != mapping["label"]
         or row.get("group") != mapping["group"]
         or row.get("mapping_type") != mapping["mapping_type"]
@@ -228,7 +232,7 @@ def __project_global_industries_body(_v4_scope, /, *, store, research_date):
         return result
     lineage = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
     futu_snapshot = snapshot.get("futu_board_snapshot")
-    if not isinstance(futu_snapshot, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(futu_snapshot, Mapping):
         futu_snapshot = None
     reviewed_relations = load_reviewed_business_relations()
     projected_rows = project_industry_rows(

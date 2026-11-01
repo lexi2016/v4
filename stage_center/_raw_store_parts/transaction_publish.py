@@ -1,6 +1,9 @@
 """stage_center.raw_store: transaction_publish (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from stage_center.calendar import calendar_provenance
+from stage_center.contracts import SAFETY_FLAGS
+from typing import Mapping
 
 
 def _RawStore_publish_body(
@@ -83,7 +86,7 @@ def _RawStore_publish_body(
         latest = self._load_latest()
         key = self._entry_key(trade_date, stage_id, market)
         existing = latest["entries"].get(key)
-        if isinstance(existing, _v4_global(_v4_scope, 'Mapping')):
+        if isinstance(existing, Mapping):
             if existing.get("idempotency_key") != idem_key:
                 raise _v4_global(_v4_scope, 'RawStoreError')(f"raw slot conflict: {key}")
             verified = self.verify_run(trade_date, stage_id, market, str(existing.get("run_id")))
@@ -123,8 +126,8 @@ def _RawStore_publish_body(
             "source_evidence": evidence,
             "cannot_confirm": cannot,
             "input_sha256": input_sha,
-            "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            "calendar": calendar_provenance(),
+            **SAFETY_FLAGS,
         }
         receipt = {
             "schema_version": _v4_global(_v4_scope, 'RAW_RECEIPT_SCHEMA_VERSION'),
@@ -152,8 +155,8 @@ def _RawStore_publish_body(
             "idempotency_key": idem_key,
             "window": window,
             "cutoff_at": cutoff_at,
-            "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            "calendar": calendar_provenance(),
+            **SAFETY_FLAGS,
         }
         _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, manifest_relative), manifest)
         _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative), receipt)
@@ -179,7 +182,7 @@ def _RawStore_publish_body(
             "manifest_sha256": verified["manifest_sha256"],
             "receipt_sha256": verified["receipt_sha256"],
             "row_count": source_rows,
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            **SAFETY_FLAGS,
         }
         self._merge_latest(latest, key, entry)
         _v4_global(_v4_scope, '_atomic_write_json')(self.latest_path, latest)
@@ -201,8 +204,8 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
         "stage_id": stage_id,
         "status": status,
         "markets": {key: dict(value) for key, value in sorted(markets.items())},
-        "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
-        **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+        "calendar": calendar_provenance(),
+        **SAFETY_FLAGS,
     }
     bundle_id = f"{trade_date}-{stage_id.lower()}-{_v4_global(_v4_scope, 'canonical_sha')(summary_seed)[:16]}"
     receipt_relative = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}/receipt.json"
@@ -211,7 +214,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
     with self._lock():
         latest = self._load_bundle_latest()
         existing = latest["entries"].get(key)
-        if isinstance(existing, _v4_global(_v4_scope, 'Mapping')):
+        if isinstance(existing, Mapping):
             if existing.get("bundle_id") != bundle_id:
                 raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle slot conflict: {key}")
             verified = self._verify_bundle(trade_date, stage_id, bundle_id)
@@ -225,7 +228,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
                 "receipt_relative": receipt_relative,
                 "receipt_sha256": verified["receipt_sha256"],
                 "markets": {key: dict(value) for key, value in markets.items()},
-                **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+                **SAFETY_FLAGS,
             }
         receipt_path = _v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative)
         if receipt_path.exists():
@@ -241,7 +244,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
             "status": status,
             "receipt_relative": receipt_relative,
             "receipt_sha256": verified["receipt_sha256"],
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            **SAFETY_FLAGS,
         }
         latest["entries"] = entries
         _v4_global(_v4_scope, '_atomic_write_json')(self.root / "bundle_latest.json", latest)
@@ -252,7 +255,7 @@ def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, s
             "receipt_relative": receipt_relative,
             "receipt_sha256": verified["receipt_sha256"],
             "markets": {key: dict(value) for key, value in markets.items()},
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            **SAFETY_FLAGS,
         }
 
 

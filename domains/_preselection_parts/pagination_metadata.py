@@ -1,6 +1,10 @@
 """domains.preselection: pagination_metadata (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from typing import Mapping
+import hashlib
+import json
+import re
 
 
 def __metadata_values_body(_v4_scope, /, value):
@@ -14,7 +18,7 @@ def __metadata_values_body(_v4_scope, /, value):
     text = str(value or "").strip()
     if not text:
         return []
-    text = _v4_global(_v4_scope, 're').sub(r"\s+(?:/|\|)\s+", "\n", text)
+    text = re.sub(r"\s+(?:/|\|)\s+", "\n", text)
     return [item.strip() for item in text.splitlines() if item.strip()]
 
 
@@ -28,7 +32,7 @@ def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
     """
     entries = []
     for pool in pools if isinstance(pools, list) else []:
-        if not isinstance(pool, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(pool, Mapping):
             continue
         entries.append({
             "pool_id": str(pool.get("pool_id") or ""),
@@ -37,8 +41,8 @@ def __input_fingerprint_body(_v4_scope, /, pools, trade_date):
             "source_artifact_sha256": str(pool.get("source_artifact_sha256") or ""),
             "rows": pool.get("rows", []),
         })
-    canonical = _v4_global(_v4_scope, 'json').dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return _v4_global(_v4_scope, 'hashlib').sha256(canonical.encode("utf-8")).hexdigest()
+    canonical = json.dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def __page_metadata_body(_v4_scope, /, rows, *, limit, offset, status):

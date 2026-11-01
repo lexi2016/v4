@@ -1,6 +1,18 @@
 """stage_center.runner: row_evidence (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from dataclasses import replace
+from stage_center.acquisition import SourceResult
+from stage_center.raw_store import HISTORICAL_OBSERVATION_CONTRACT_PREFIX
+from stage_center.raw_store import HK_0930_TDX_RESEARCH_CONTRACT
+from stage_center.raw_store import RAW_FIELDS
+from stage_center.raw_store import validate_rows
+from typing import Mapping
+import csv
+import json
+import os
+import re
+import tempfile
 
 
 def _lane_status_bundle_body(_v4_scope, /, a_share, hk_connect):
@@ -34,17 +46,17 @@ def _lane_status_bundle_body(_v4_scope, /, a_share, hk_connect):
 
 def __atomic_json_body(_v4_scope, /, path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = _v4_global(_v4_scope, 'tempfile').mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
-        with _v4_global(_v4_scope, 'os').fdopen(fd, "w", encoding="utf-8") as stream:
-            _v4_global(_v4_scope, 'json').dump(dict(payload), stream, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(dict(payload), stream, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
             stream.write("\n")
             stream.flush()
-            _v4_global(_v4_scope, 'os').fsync(stream.fileno())
-        _v4_global(_v4_scope, 'os').replace(temporary, path)
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
     finally:
-        if _v4_global(_v4_scope, 'os').path.exists(temporary):
-            _v4_global(_v4_scope, 'os').unlink(temporary)
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 
 def __existing_binding_matches_body(_v4_scope, /, evidence, *, market, expected_sha):
@@ -69,16 +81,16 @@ def __latest_entry_body(_v4_scope, /, root, filename, key):
     if not path.is_file():
         return None
     try:
-        payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, ValueError) as error:
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} is malformed") from error
     entries = payload.get("entries")
-    if not isinstance(entries, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entries, Mapping):
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entries are malformed")
     entry = entries.get(key)
     if entry is None:
         return None
-    if not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entry, Mapping):
         raise _v4_global(_v4_scope, 'RunnerError')(f"{filename} entry is malformed")
     return entry
 
@@ -89,11 +101,11 @@ def __read_verified_raw_source_body(_v4_scope, /, root, verified):
     rows: list[dict[str, Any]] = []
     try:
         with artifact_path.open("r", encoding="utf-8-sig", newline="") as stream:
-            reader = _v4_global(_v4_scope, 'csv').DictReader(stream)
-            if tuple(reader.fieldnames or ()) != ("trade_date", "bar_time", *_v4_global(_v4_scope, 'RAW_FIELDS')):
+            reader = csv.DictReader(stream)
+            if tuple(reader.fieldnames or ()) != ("trade_date", "bar_time", *RAW_FIELDS):
                 raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact fields mismatch")
             for raw in reader:
-                decoded = {field: raw.get(field, "") for field in _v4_global(_v4_scope, 'RAW_FIELDS')}
+                decoded = {field: raw.get(field, "") for field in RAW_FIELDS}
                 for field in ("batch_index", "bar_count"):
                     try:
                         decoded[field] = int(decoded[field])
@@ -109,9 +121,9 @@ def __read_verified_raw_source_body(_v4_scope, /, root, verified):
                             raise _v4_global(_v4_scope, 'RunnerError')(f"verified raw {field} is not numeric") from error
                 decoded["temporal_cutoff_safe"] = str(decoded["temporal_cutoff_safe"]).strip().lower() == "true"
                 rows.append(decoded)
-    except (OSError, UnicodeError, _v4_global(_v4_scope, 'csv').Error) as error:
+    except (OSError, UnicodeError, csv.Error) as error:
         raise _v4_global(_v4_scope, 'RunnerError')("verified raw artifact unreadable") from error
-    return _v4_global(_v4_scope, 'SourceResult')(
+    return SourceResult(
         source_id=str(verified.get("source_id") or "verified_raw"),
         status=str(verified.get("status") or "CANNOT_CONFIRM"),
         rows=tuple(rows),
@@ -176,7 +188,7 @@ def __with_candidate_evidence_body(_v4_scope, /, result, candidate, extra, *, ca
         dict.fromkeys((*result.cannot_confirm, *pool_gaps))
     )
     status = "CANNOT_CONFIRM" if pool_gaps else result.status
-    return _v4_global(_v4_scope, 'replace')(
+    return replace(
         result,
         status=status,
         cannot_confirm=cannot_confirm,
@@ -198,23 +210,21 @@ def __project_raw_rows_body(
     CANNOT_CONFIRM latest pointer or leave an incomplete bundle behind.
     """
     projected = tuple(
-        {field: row[field] for field in _v4_global(_v4_scope, 'RAW_FIELDS')}
-        if isinstance(row, _v4_global(_v4_scope, 'Mapping')) and all(field in row for field in _v4_global(_v4_scope, 'RAW_FIELDS'))
+        {field: row[field] for field in RAW_FIELDS}
+        if isinstance(row, Mapping) and all(field in row for field in RAW_FIELDS)
         else dict(row)
         for row in rows
     )
     if research_observation_contract is not None:
-        legacy_contract = research_observation_contract == _v4_global(
-            _v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT'
-        )
+        legacy_contract = research_observation_contract == HK_0930_TDX_RESEARCH_CONTRACT
         manifest_contract = (
             isinstance(research_observation_contract, str)
             and research_observation_contract.startswith(
-                _v4_global(_v4_scope, 'HISTORICAL_OBSERVATION_CONTRACT_PREFIX')
+                HISTORICAL_OBSERVATION_CONTRACT_PREFIX
             )
-            and _v4_global(_v4_scope, 're').fullmatch(
-                _v4_global(_v4_scope, 're').escape(
-                    _v4_global(_v4_scope, 'HISTORICAL_OBSERVATION_CONTRACT_PREFIX')
+            and re.fullmatch(
+                re.escape(
+                    HISTORICAL_OBSERVATION_CONTRACT_PREFIX
                 ) + r"[0-9a-f]{64}",
                 research_observation_contract,
             ) is not None
@@ -227,7 +237,7 @@ def __project_raw_rows_body(
         {"allow_temporal_false_observation": True}
         if research_observation_contract is not None else {}
     )
-    _validated, issues = _v4_global(_v4_scope, 'validate_rows')(
+    _validated, issues = validate_rows(
         projected,
         trade_date=trade_date,
         stage_id=stage_id,

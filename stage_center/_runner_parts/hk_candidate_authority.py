@@ -1,6 +1,10 @@
 """stage_center.runner: hk_candidate_authority (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from dataclasses import replace
+from typing import Mapping
+import csv
+import json
 
 
 def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, preselection_source_root, trade_date, stage_id, hk_binding):
@@ -28,11 +32,11 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
         )
         if hk_binding is not None and d1_sha != hk_binding.sha256:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact binding SHA changed before authority overlay")
-        d1_payload = _v4_global(_v4_scope, 'json').loads(d1_path.read_text(encoding="utf-8"))
+        d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
     d1_rows = d1_payload.get("rows", d1_payload.get("data")) or []
     authority: dict[str, Mapping[str, Any]] = {}
     for row in d1_rows:
-        if not isinstance(row, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(row, Mapping):
             continue
         code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
         authority[code] = row
@@ -53,7 +57,7 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
                     raise
             else:
                 with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-                    for row in _v4_global(_v4_scope, 'csv').DictReader(stream):
+                    for row in csv.DictReader(stream):
                         code = _v4_global(_v4_scope, '_normal_code')("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
                         second[code] = row
     rows: list[dict[str, Any]] = []
@@ -175,4 +179,4 @@ def __attach_hk_authority_body(_v4_scope, /, source, *, d1_root, second_root, pr
     )
     if payload_model_id:
         evidence.append(f"hk_d1_model_id={payload_model_id}")
-    return _v4_global(_v4_scope, 'replace')(source, rows=tuple(rows), source_evidence=tuple(dict.fromkeys(evidence)))
+    return replace(source, rows=tuple(rows), source_evidence=tuple(dict.fromkeys(evidence)))

@@ -1,6 +1,11 @@
 """apps.api.v4_api.research_lane_router: market_freshness (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from datetime import datetime
+from datetime import time
+from datetime import timedelta
+from typing import Mapping
+from zoneinfo import ZoneInfo
 
 
 def __verifiable_market_snapshot_dates_body(_v4_scope, /, store):
@@ -31,7 +36,7 @@ def __futu_board_freshness_error_body(
     from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
 
     metadata = projection.get("futu_board_snapshot")
-    if not isinstance(metadata, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(metadata, Mapping):
         return "FUTU_BOARD_SNAPSHOT_MISSING"
     if any(metadata.get(key) != value for key, value in {
         "schema_version": "v3_5.futu_us_industry_snapshot.v1",
@@ -56,7 +61,7 @@ def __futu_board_freshness_error_body(
     if (
         not isinstance(rows, list)
         or len(rows) != len(FUTU_BOARD_MAP)
-        or [row.get("label") for row in rows if isinstance(row, _v4_global(_v4_scope, 'Mapping'))]
+        or [row.get("label") for row in rows if isinstance(row, Mapping)]
         != [mapping["label"] for mapping in FUTU_BOARD_MAP]
     ):
         return "FUTU_BOARD_SNAPSHOT_ROWS_INVALID"
@@ -69,7 +74,7 @@ def __futu_board_freshness_error_body(
     update_times: set[str] = set()
     for row in rows:
         board = row.get("official_board")
-        if not isinstance(board, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(board, Mapping):
             return "FUTU_BOARD_ROW_INVALID"
         row_status = row.get("status")
         if row_status != board.get("status"):
@@ -92,7 +97,7 @@ def __futu_board_freshness_error_body(
         if not isinstance(raw_update_time, str):
             return "FUTU_BOARD_UPDATE_TIME_MISSING"
         try:
-            update_at = _v4_global(_v4_scope, 'datetime').strptime(
+            update_at = datetime.strptime(
                 raw_update_time, "%Y-%m-%d %H:%M:%S"
             ).replace(tzinfo=ny_zone)
         except ValueError:
@@ -128,7 +133,7 @@ def __futu_native_board_freshness_error_body(
     snapshot = projection.get("native_board_snapshot")
     if snapshot is None:
         return None
-    if not isinstance(snapshot, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(snapshot, Mapping):
         return "FUTU_NATIVE_BOARD_SNAPSHOT_INVALID"
     from contracts.futu_us_boards import validate_futu_us_board_snapshot
     try:
@@ -153,7 +158,7 @@ def __futu_native_board_freshness_error_body(
         if not isinstance(raw_update_time, str):
             return "FUTU_NATIVE_BOARD_UPDATE_TIME_MISSING"
         try:
-            update_at = _v4_global(_v4_scope, 'datetime').strptime(
+            update_at = datetime.strptime(
                 raw_update_time, "%Y-%m-%d %H:%M:%S"
             ).replace(tzinfo=ny_zone)
         except ValueError:
@@ -203,7 +208,7 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
         if not isinstance(value, str) or not value:
             raise ValueError("CAPTURE_TIMESTAMP_MISSING")
         try:
-            parsed = _v4_global(_v4_scope, 'datetime').fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError as error:
             raise ValueError("CAPTURE_TIMESTAMP_INVALID") from error
         if parsed.tzinfo is None or parsed.utcoffset() is None:
@@ -214,9 +219,9 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
         if observed.tzinfo is None or observed.utcoffset() is None:
             raise ValueError("OBSERVATION_TIMEZONE_REQUIRED")
         from contracts.us_equity_calendar import latest_completed_session
-        ny_zone = _v4_global(_v4_scope, 'ZoneInfo')("America/New_York")
+        ny_zone = ZoneInfo("America/New_York")
         official_latest = latest_completed_session(observed)
-        session = _v4_global(_v4_scope, 'datetime').strptime(str(projection["source_date"]), "%Y%m%d").date()
+        session = datetime.strptime(str(projection["source_date"]), "%Y%m%d").date()
         captured = timestamp(projection.get("captured_at"))
         bound = timestamp(projection.get("bound_capture_captured_at"))
         generated = timestamp(projection.get("generated_at"))
@@ -224,13 +229,13 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
             raise ValueError("SNAPSHOT_CAPTURE_TIME_BINDING_MISMATCH")
         if captured > observed or generated > observed or generated < captured:
             raise ValueError("SNAPSHOT_CAPTURE_OR_GENERATION_TIME_INVALID")
-        start = _v4_global(_v4_scope, 'datetime').combine(session, _v4_global(_v4_scope, 'time')(16, 15), tzinfo=ny_zone)
-        end = _v4_global(_v4_scope, 'datetime').combine(session, _v4_global(_v4_scope, 'time')(16, 20), tzinfo=ny_zone)
+        start = datetime.combine(session, time(16, 15), tzinfo=ny_zone)
+        end = datetime.combine(session, time(16, 20), tzinfo=ny_zone)
         if (timestamp(projection.get("capture_window_start")) != start
                 or timestamp(projection.get("capture_window_end")) != end):
             raise ValueError("CAPTURE_WINDOW_BINDING_MISMATCH")
         if _v4_global(_v4_scope, '_is_late_capture_identity')(projection):
-            recovery_end = start + _v4_global(_v4_scope, 'timedelta')(hours=24)
+            recovery_end = start + timedelta(hours=24)
             if (projection.get("late") is not True
                     or projection.get("capture_mode") != _v4_global(_v4_scope, 'LATE_CAPTURE_MODE')
                     or timestamp(projection.get("allowed_recovery_window_start")) != start
@@ -239,7 +244,7 @@ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
             end = recovery_end
         if not start <= captured < end:
             raise ValueError("CAPTURE_OUTSIDE_ORIGINAL_BOUND_WINDOW")
-        latest_date = _v4_global(_v4_scope, 'datetime').strptime(official_latest.session_date, "%Y%m%d").date()
+        latest_date = datetime.strptime(official_latest.session_date, "%Y%m%d").date()
         diagnostic.update(
             latest_exchange_session=official_latest.session_date,
             latest_scheduled_capture_date=official_latest.session_date,

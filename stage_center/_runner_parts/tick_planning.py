@@ -1,13 +1,18 @@
 """stage_center.runner: tick_planning (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from dataclasses import replace
+from stage_center.contracts import SAFETY_FLAGS
+from stage_center.scheduler import evaluate_due
+from uuid import uuid4
+import re
 
 
 def _StageCenterRunner__backfill_runner_body(_v4_scope, /, self, run_id):
-    if not _v4_global(_v4_scope, 're').fullmatch(r"[A-Za-z0-9_.-]+", run_id):
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", run_id):
         raise _v4_global(_v4_scope, 'RunnerError')("historical backfill run id is unsafe")
     base = self.config
-    scoped = _v4_global(_v4_scope, 'replace')(
+    scoped = replace(
         base,
         raw_root=base.raw_root / "backfill" / run_id,
         selection_root=base.selection_root / "backfill" / run_id,
@@ -48,7 +53,7 @@ def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *
     if stage_id is None:
         due = [decision for decision in decisions if decision.status in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}]
         if not due:
-            return {"status": decisions[0].status if decisions else "CANNOT_CONFIRM", "trade_date": trade_date, "stages": [decision.status for decision in decisions], "pre_captures": precaptures, **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
+            return {"status": decisions[0].status if decisions else "CANNOT_CONFIRM", "trade_date": trade_date, "stages": [decision.status for decision in decisions], "pre_captures": precaptures, **SAFETY_FLAGS}
         results = [
             self.tick(
                 trade_date,
@@ -60,13 +65,13 @@ def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *
             )
             for decision in due
         ]
-        return {"status": "TICK_COMPLETE", "trade_date": trade_date, "stages": results, "pre_captures": precaptures, **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
+        return {"status": "TICK_COMPLETE", "trade_date": trade_date, "stages": results, "pre_captures": precaptures, **SAFETY_FLAGS}
     decision = next((item for item in decisions if item.stage_id == stage_id), None)
     if decision is None:
-        decision = _v4_global(_v4_scope, 'evaluate_due')(stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill)
+        decision = evaluate_due(stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill)
     if decision.status not in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
         if historical_backfill:
-            scoped = self._backfill_runner(_v4_global(_v4_scope, 'uuid4')().hex)
+            scoped = self._backfill_runner(uuid4().hex)
             return scoped._write_receipt(
                 {
                     "status": decision.status,
@@ -82,7 +87,7 @@ def _StageCenterRunner_tick_body(_v4_scope, /, self, trade_date, evaluated_at, *
     runner = self
     backfill_run_id: str | None = None
     if historical_backfill:
-        backfill_run_id = _v4_global(_v4_scope, 'uuid4')().hex
+        backfill_run_id = uuid4().hex
         runner = self._backfill_runner(backfill_run_id)
     lock = _v4_global(_v4_scope, 'SlotLock')(_v4_global(_v4_scope, '_slot_lock_path')(runner.config, trade_date, stage_id))
     if not lock.acquire():

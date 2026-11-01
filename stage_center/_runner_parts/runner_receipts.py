@@ -1,6 +1,12 @@
 """stage_center.runner: runner_receipts (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from pathlib import Path
+from stage_center import end_to_end_deadline as _deadline
+from stage_center.acquisition import StageUniverseBinding
+from stage_center.calendar import TradingDayState
+from stage_center.calendar import resolve_market_states
+from stage_center.contracts import SAFETY_FLAGS
 
 
 def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, trade_date, evaluated_at, *, stage_id, historical_backfill):
@@ -30,9 +36,9 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
             # shared producer. Selection still requires its original local binding.
             from datetime import datetime, timedelta
             from domains.preselection_materializer import build_shared_hk_0_2_pool
-            states = _v4_global(_v4_scope, 'resolve_market_states')
-            open_states = {_v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY,
-                           _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM}
+            states = resolve_market_states
+            open_states = {TradingDayState.FULL_TRADING_DAY,
+                           TradingDayState.HALF_TRADING_DAY_AM}
             if states(trade_date)["hk_connect"] not in open_states:
                 raise ValueError("capture-only shared membership requires an open exact Connect target")
             cursor = datetime.strptime(trade_date, "%Y%m%d")
@@ -40,7 +46,7 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
             for _ in range(45):
                 cursor -= timedelta(days=1)
                 prior = states(cursor.strftime("%Y%m%d"))
-                if any(prior[k] is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN for k in ("hk_securities", "hk_connect")):
+                if any(prior[k] is TradingDayState.UNKNOWN for k in ("hk_securities", "hk_connect")):
                     raise ValueError("capture-only shared signal calendar CANNOT_CONFIRM")
                 if prior["hk_securities"] in open_states or prior["hk_connect"] in open_states:
                     if not all(prior[k] in open_states for k in ("hk_securities", "hk_connect")):
@@ -54,7 +60,7 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
             if payload.get("status") != "STRICT_0_2_READY" or len(payload.get("rows") or ()) != 100:
                 raise ValueError("capture-only shared exact membership is not strict Top100")
             digest = payload["source_sha256"]
-            binding = _v4_global(_v4_scope, 'StageUniverseBinding').ready(
+            binding = StageUniverseBinding.ready(
                 market="HK_CONNECT", trade_date=trade_date, role="HK_CAPTURE_ONLY_SHARED_VERIFIED_D1",
                 codes=tuple(row["symbol"] for row in payload["rows"]), sha256=digest,
                 source_run_id=payload["source_run_id"], evidence=(
@@ -65,7 +71,7 @@ def _StageCenterRunner__prepare_hk_active_snapshots_body(_v4_scope, /, self, tra
                 ))
         loaded_binding = binding
         return (
-            _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, '_evidence_value')(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
+            Path(_v4_global(_v4_scope, '_evidence_value')(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
             binding.codes,
             binding.sha256,
         )
@@ -108,7 +114,7 @@ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_da
     runner_error = _v4_global(_v4_scope, 'RunnerError')
     if "RESEARCH_ONLY" in payload and payload["RESEARCH_ONLY"] is not True:
         raise runner_error("runner receipt RESEARCH_ONLY contract conflict")
-    result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_v4_global(_v4_scope, '_deadline').before_receipt(payload), **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
+    result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_deadline.before_receipt(payload), **SAFETY_FLAGS}
     from stage_center.contracts import HK_SNAPSHOT_SCHEDULE
     if stage_id in HK_SNAPSHOT_SCHEDULE and not self.config.backfill_run_id:
         from stage_center.hk_stage8.snapshot import hk_snapshot_capture_receipt
@@ -143,5 +149,5 @@ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_da
                                 selection_root=self.config.selection_root, trade_date=trade_date, stage_id=stage_id)
     receipt_path = self._receipt_path(trade_date, stage_id)
     _v4_global(_v4_scope, '_atomic_json')(receipt_path, result)
-    _v4_global(_v4_scope, '_deadline').receipt_written(receipt_path, result)
+    _deadline.receipt_written(receipt_path, result)
     return result

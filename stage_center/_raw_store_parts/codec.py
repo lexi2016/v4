@@ -1,6 +1,8 @@
 """stage_center.raw_store: codec (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from stage_center.contracts import SAFETY_FLAGS
+from typing import Mapping
 
 
 def __window_bounds_body(_v4_scope, /, trade_date, stage_id, market):
@@ -49,14 +51,14 @@ def _RawStore__load_latest_body(_v4_scope, /, self):
             "schema_version": _v4_global(_v4_scope, 'RAW_LATEST_SCHEMA_VERSION'),
             "owner": "stage_center",
             "entries": {},
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            **SAFETY_FLAGS,
         }
     latest = _v4_global(_v4_scope, '_read_json')(self.latest_path)
     if latest.get("schema_version") != _v4_global(_v4_scope, 'RAW_LATEST_SCHEMA_VERSION') or latest.get("owner") != "stage_center":
         raise _v4_global(_v4_scope, 'RawStoreError')("latest.json schema/owner mismatch")
-    if not isinstance(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(latest.get("entries"), Mapping):
         raise _v4_global(_v4_scope, 'RawStoreError')("latest.json entries missing")
-    for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
+    for key in SAFETY_FLAGS:
         if latest.get(key) is not False:
             raise _v4_global(_v4_scope, 'RawStoreError')(f"latest safety flag {key!r} must be false")
     return latest
@@ -69,14 +71,14 @@ def _RawStore__load_bundle_latest_body(_v4_scope, /, self):
             "schema_version": _v4_global(_v4_scope, 'RAW_BUNDLE_LATEST_SCHEMA_VERSION'),
             "owner": "stage_center",
             "entries": {},
-            **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+            **SAFETY_FLAGS,
         }
     latest = _v4_global(_v4_scope, '_read_json')(path)
     if latest.get("schema_version") != _v4_global(_v4_scope, 'RAW_BUNDLE_LATEST_SCHEMA_VERSION') or latest.get("owner") != "stage_center":
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle_latest schema/owner mismatch")
-    if not isinstance(latest.get("entries"), _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(latest.get("entries"), Mapping):
         raise _v4_global(_v4_scope, 'RawStoreError')("bundle_latest entries missing")
-    for key in _v4_global(_v4_scope, 'SAFETY_FLAGS'):
+    for key in SAFETY_FLAGS:
         if latest.get(key) is not False:
             raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle_latest safety flag {key!r} must be false")
     return latest

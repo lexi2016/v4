@@ -3,6 +3,14 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 import stat
 from typing import Mapping
+from datetime import datetime
+from infrastructure.preselection_pool_store import PreselectionSourceResolver
+from pathlib import Path
+from stage_center.contracts import STAGE_BY_ID
+from stage_center.selection import SelectionError
+from stage_center.selection import SelectionStore
+from zoneinfo import ZoneInfo
+import re
 
 
 def _date_catalog_body(
@@ -28,7 +36,7 @@ def _date_catalog_body(
     independent_dates, independent_pool_evidence = independent_dates
     stage_artifacts = _v4_global(_v4_scope, '_verified_stage_artifact_catalog')(stage_selection_root)
     stage_artifact_dates = tuple(stage_artifacts)
-    wall_date = current_date or _v4_global(_v4_scope, 'datetime').now(_v4_global(_v4_scope, 'ZoneInfo')("Asia/Shanghai")).strftime("%Y%m%d")
+    wall_date = current_date or datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
     # The natural-day clock is a runtime fact, not a persisted producer state.
     # A stale catalog must not make an explicit/current date disappear from the
     # date family merely because today's pools are incomplete.
@@ -145,21 +153,21 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
     """
     if stage_selection_root is None:
         return {}
-    root = _v4_global(_v4_scope, 'Path')(stage_selection_root).expanduser()
+    root = Path(stage_selection_root).expanduser()
     try:
-        latest = _v4_global(_v4_scope, 'SelectionStore')(root)._latest()
-    except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError):
+        latest = SelectionStore(root)._latest()
+    except (OSError, SelectionError, ValueError, TypeError):
         return {}
     entries = latest.get("entries")
-    if not isinstance(entries, _v4_global(_v4_scope, 'Mapping')):
+    if not isinstance(entries, Mapping):
         return {}
     by_date: dict[str, dict[str, Any]] = {}
-    store = _v4_global(_v4_scope, 'SelectionStore')(root)
+    store = SelectionStore(root)
     for key, entry in entries.items():
-        if not isinstance(key, str) or not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
+        if not isinstance(key, str) or not isinstance(entry, Mapping):
             continue
         parts = key.split("/")
-        if len(parts) != 3 or not _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", parts[0]):
+        if len(parts) != 3 or not re.fullmatch(r"\d{8}", parts[0]):
             continue
         trade_date, stage_id, market = parts
         item = by_date.setdefault(
@@ -185,7 +193,7 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
             item["markets"].append(market)
         try:
             envelope = store.read_verified(trade_date, stage_id, market)
-        except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError) as error:
+        except (OSError, SelectionError, ValueError, TypeError) as error:
             item["blocked_entries"] += 1
             item["cannot_confirm"].append(f"STAGE_ARTIFACT_INVALID:{stage_id}:{market}:{type(error).__name__}")
             continue
@@ -203,21 +211,21 @@ def __verified_stage_artifact_catalog_body(_v4_scope, /, stage_selection_root):
     for item in by_date.values():
         verified_by_stage: dict[str, set[str]] = {}
         for key, entry in entries.items():
-            if not isinstance(key, str) or not isinstance(entry, _v4_global(_v4_scope, 'Mapping')):
+            if not isinstance(key, str) or not isinstance(entry, Mapping):
                 continue
             parts = key.split("/")
             if len(parts) != 3 or parts[0] != item["trade_date"]:
                 continue
             stage_id, market = parts[1], parts[2]
-            if stage_id not in _v4_global(_v4_scope, 'STAGE_BY_ID'):
+            if stage_id not in STAGE_BY_ID:
                 continue
             try:
                 store.read_verified(item["trade_date"], stage_id, market)
-            except (OSError, _v4_global(_v4_scope, 'SelectionError'), ValueError, TypeError):
+            except (OSError, SelectionError, ValueError, TypeError):
                 continue
             verified_by_stage.setdefault(stage_id, set()).add(market)
         for stage_id in item["stage_ids"]:
-            expected = tuple(_v4_global(_v4_scope, 'STAGE_BY_ID')[stage_id].markets) if stage_id in _v4_global(_v4_scope, 'STAGE_BY_ID') else ()
+            expected = tuple(STAGE_BY_ID[stage_id].markets) if stage_id in STAGE_BY_ID else ()
             item["expected_markets"][stage_id] = list(expected)
             missing = sorted(set(expected) - verified_by_stage.get(stage_id, set()))
             for market in missing:
@@ -257,12 +265,12 @@ def __verified_independent_pool_dates_body(
     made one missing optional pool hide a target date whose other artifact
     trio was already complete.
     """
-    roots = [_v4_global(_v4_scope, 'Path')(store.root)]
+    roots = [Path(store.root)]
     if preselection_source_root is not None:
-        source_root = _v4_global(_v4_scope, 'Path')(preselection_source_root).expanduser()
+        source_root = Path(preselection_source_root).expanduser()
         if source_root not in roots:
             roots.append(source_root)
-    resolver = _v4_global(_v4_scope, 'PreselectionSourceResolver')(
+    resolver = PreselectionSourceResolver(
         store.root,
         source_root=preselection_source_root,
     )

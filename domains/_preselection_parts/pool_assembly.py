@@ -1,6 +1,7 @@
 """domains.preselection: pool_assembly (review candidate, not deployment)."""
 from __future__ import annotations
 from ._namespace import read_global as _v4_global
+from infrastructure.preselection_pool_store import PreselectionPoolStore
 
 
 def _preselection_body(_v4_scope, /, store, date, limit, *, offset, allow_legacy_flat):
@@ -8,7 +9,7 @@ def _preselection_body(_v4_scope, /, store, date, limit, *, offset, allow_legacy
         raise ValueError("preselection page limit must be positive")
     if offset < 0:
         raise ValueError("preselection page offset cannot be negative")
-    independent_store = _v4_global(_v4_scope, 'PreselectionPoolStore')(store.root)
+    independent_store = PreselectionPoolStore(store.root)
     try:
         independent_pools = independent_store.read_all(date)
     except FileNotFoundError:
