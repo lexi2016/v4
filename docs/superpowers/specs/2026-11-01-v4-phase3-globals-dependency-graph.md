@@ -249,6 +249,44 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
    `domains/preselection.py` 与 `apps/api/v4_api/research_lane_router.py`
    两个完整门面上做。
 
-工作区现状:12 个 parts 文件已放入工作树(未提交),`configuration.py` 有上述一处改动;
-全量测试仍 134 通过、1 个既有失败。
+工作区现状:12 个 parts 文件已放入工作树,`configuration.py` 有上述一处改动;
+全量测试仍 134 通过、1 个既有失败。**后续执行见 §10。**
+
+## 10. 选择性补齐的执行结果(2026-11-01,已提交)
+
+选定方案 1(选择性补齐),commit `3d4abc991`。
+
+### 10.1 做了什么
+
+- **12 个 parts 文件**从 `2d1936518` 恢复:11 个 `_runner_parts` + `transaction_publish.py`。
+- **两个门面**以该提交的文件为底,但**保留本分支的 6 个定义**:
+  `RunnerConfig`、`StageCenterRunner`、`build_production_config`、
+  `validate_rows`、`_authorize_hk_0930_tdx_temporal_false_observation`、
+  `_build_hk_stage_binding`。净增 51 个模块级定义。
+- **`receipt_identity.py` 一并更新**:本分支这一版比门面旧,
+  `validate_rows` 在本次改动**之前就已经是坏的**(门面传的关键字它的实现体不认)。
+- **一处适配**:`configuration.py` 去掉 `hk_snapshot_shared_store_root`
+  (本分支已退役的 `RunnerConfig` 字段)。
+
+### 10.2 验证
+
+| 项 | 结果 |
+| --- | --- |
+| `build_production_config(...)` | 返回 `RunnerConfig`,路径正确 |
+| `StageCenterRunner(config)` | 构造成功 |
+| `validate_rows([], ...)` | 返回 `(rows, cannot_confirm)` |
+| `publish_raw_artifact(临时根, ...)` | 返回 dict |
+| 57 处门面→实现委托签名 | **0 问题**(模块存在性 + 关键字 + 位置参数) |
+| 全量测试 | **251 通过**,1 个既有失败(线上 plist 回执) |
+
+`tests/test_stage_parts_contract.py` 把上述静态检查固化:任何一次
+「实现模块不存在」或「门面传了实现不收的关键字」都会立即失败,
+而不是等到运行期。
+
+### 10.3 仍然存在的差异
+
+`RunnerConfig` 少一个可选字段、`StageCenterRunner` 与 `validate_rows`
+的实现体仍是本分支版本(与该提交不同但接口一致)。这是选择方案 1 的
+既定取舍:保住现役行为,不把一次结构修复变成功能回迁。
+
 
