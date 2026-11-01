@@ -72,6 +72,46 @@ def _read_dataset(entry: Mapping[str, Any]) -> Mapping[str, Any]:
     return payload
 
 
+def row_dicts(name: str) -> tuple[dict[str, Any], ...]:
+    """Return a ``tuple[dict]`` table for a pinned ``row_dicts`` dataset.
+
+    Columns named in ``tuple_columns`` are restored to tuples; JSON can only
+    carry arrays there and the callers compare tuples.
+    """
+    entry = _manifest().get(name)
+    if entry is None:
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:not_in_manifest")
+    if entry.get("key_type") != "row_dicts":
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:key_type")
+    payload = _read_dataset(entry)
+    columns = payload.get("columns")
+    tuple_columns = payload.get("tuple_columns") or []
+    rows = payload.get("rows")
+    if not isinstance(columns, list) or not columns or len(set(columns)) != len(columns):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:columns")
+    if not isinstance(tuple_columns, list) or not set(tuple_columns) <= set(columns):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:tuple_columns")
+    if not isinstance(rows, list):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:rows")
+    if entry.get("entry_count") != len(rows):
+        raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:entry_count")
+    tuple_names = set(tuple_columns)
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, Mapping) or set(row) != set(columns):
+            raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:row_columns")
+        item: dict[str, Any] = {}
+        for column in columns:
+            value = row[column]
+            if column in tuple_names:
+                if not isinstance(value, list):
+                    raise EvidenceDatasetError(f"EVIDENCE_DATASET_INVALID:{name}:tuple_column")
+                value = tuple(value)
+            item[column] = value
+        result.append(item)
+    return tuple(result)
+
+
 def tuple_keyed(name: str) -> dict[tuple[str, ...], str]:
     """Return a ``{tuple_key: str}`` map for a pinned ``tuple2`` dataset."""
     entry = _manifest().get(name)

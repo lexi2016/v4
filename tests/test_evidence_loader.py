@@ -87,3 +87,76 @@ def test_entry_count_mismatch_is_rejected(tmp_path: Path, monkeypatch):
     with pytest.raises(loader.EvidenceDatasetError) as error:
         loader.tuple_keyed("hk_r8_observation_mode")
     assert "entry_count" in str(error.value)
+
+
+# --- C2: HK afterfact R9 stage rows -----------------------------------------
+
+ORACLE_PATH = Path("tests/fixtures/evidence_oracle/hk_afterfact_r9_stage_rows.json")
+
+
+def _untag(value):
+    if isinstance(value, dict) and value.get("__type__") == "tuple":
+        return tuple(_untag(item) for item in value["items"])
+    if isinstance(value, dict) and value.get("__type__") == "list":
+        return [_untag(item) for item in value["items"]]
+    if isinstance(value, dict) and value.get("__type__") == "dict":
+        return {key: _untag(item) for key, item in value["items"].items()}
+    return value
+
+
+def _assert_same_types(left, right, path="") -> None:
+    assert type(left) is type(right), f"{path}: {type(left)} != {type(right)}"
+    if isinstance(left, dict):
+        assert set(left) == set(right), path
+        for key in left:
+            _assert_same_types(left[key], right[key], f"{path}.{key}")
+    elif isinstance(left, (tuple, list)):
+        assert len(left) == len(right), path
+        for index, (a, b) in enumerate(zip(left, right)):
+            _assert_same_types(a, b, f"{path}[{index}]")
+
+
+def test_r9_stage_rows_match_the_type_tagged_oracle():
+    oracle = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
+    expected = tuple(_untag(row) for row in oracle["rows"])
+    loaded = loader.row_dicts("hk_afterfact_r9_stage_rows")
+    assert loaded == expected
+    _assert_same_types(loaded, expected)
+
+
+def test_r9_stage_rows_restore_tuple_and_dict_columns():
+    loaded = loader.row_dicts("hk_afterfact_r9_stage_rows")
+    assert len(loaded) == 87
+    assert len(loaded[0]) == 26
+    for row in loaded:
+        assert isinstance(row["missing_codes"], tuple)
+        assert isinstance(row["missing_evidence_markers"], tuple)
+        assert isinstance(row["missing_reason_by_code"], dict)
+
+
+def test_r9_stage_rows_reject_unexpected_column(tmp_path: Path, monkeypatch):
+    def mutate(manifest, data):
+        data["rows"][0]["__extra__"] = "x"
+        data["rows"] = [data["rows"][0]]
+
+    _staged_rows(tmp_path, mutate)
+    _point_at(tmp_path, monkeypatch)
+    with pytest.raises(loader.EvidenceDatasetError) as error:
+        loader.row_dicts("hk_afterfact_r9_stage_rows")
+    assert "row_columns" in str(error.value)
+
+
+def _staged_rows(tmp_path: Path, mutate) -> None:
+    source = loader.EVIDENCE_DIR
+    manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+    data = json.loads((source / "hk_afterfact_r9_stage_rows.json").read_text(encoding="utf-8"))
+    mutate(manifest, data)
+    (tmp_path / "hk_afterfact_r9_stage_rows.json").write_text(
+        json.dumps(data, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    digest = hashlib.sha256((tmp_path / "hk_afterfact_r9_stage_rows.json").read_bytes()).hexdigest()
+    for entry in manifest["datasets"]:
+        if entry["name"] == "hk_afterfact_r9_stage_rows":
+            entry["sha256"] = digest
+            entry["entry_count"] = len(data["rows"])
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
