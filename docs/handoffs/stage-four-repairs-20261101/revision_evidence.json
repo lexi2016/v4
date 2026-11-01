@@ -1,0 +1,461 @@
+{
+  "F1_commit": "207af9ad1",
+  "F2_commit": "d6f60ca5ad633cc18e6257f7c8f92f211e1d63f0",
+  "RESEARCH_ONLY": true,
+  "accepted_business_commit": "d6f60ca5ad633cc18e6257f7c8f92f211e1d63f0",
+  "activation_environment": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/activation-environment.json",
+    "sha256": "a4f8049ca67f8732ef27026a89be02a77d0bb6a7ec2d7e7b6d9b1ba22124c17f",
+    "tuple": {
+      "api_environment": {
+        "V4_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+        "V4_MANUAL_COLLECTION_STAGE_CONFIG": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app/config/api-v4_manual_collection_stage_config.json",
+        "V4_RELEASE_ID": "stage-four-repairs-20261101-r3-api",
+        "V4_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/release-manifest.json",
+        "V4_RELEASE_MANIFEST_SHA256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48"
+      },
+      "manual_HK_child_manifest_environment": "Existing fixed HK-only owner program does not consume inherited API manifest variables; V4_APP_ROOT/release_id/PYTHONPATH are rebound by unchanged manual_collection.py",
+      "manual_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+      "runtime_state_roots_changed": false,
+      "stage_authority_config_sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+      "stage_owner_identity": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "delta": [
+          "contracts/a_share_code.py",
+          "contracts/a_share_entity_filter.py",
+          "infrastructure/stage_quote_provider.py",
+          "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "ops/run_stage_center_nodes.py",
+          "ops/stage_data_recovery.py",
+          "stage_center/_live_collectors_parts/shared_module_loading.py",
+          "stage_center/_runner_parts/slot_execution.py",
+          "stage_center/candidate_input.py",
+          "stage_center/collector_capture.py",
+          "stage_center/hk_stage8/rtdata.py",
+          "stage_center/market_retry.py",
+          "stage_center/snapshot_recovery.py",
+          "stage_center_tick_config.json"
+        ],
+        "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+        "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+        "release_id": "stage-four-repairs-20261101-r3-stage",
+        "source_role": "STAGE_PRIMARY_SCHEDULER"
+      },
+      "status": "PREPARED_NOT_APPLIED"
+    }
+  },
+  "buy_gate_updated": false,
+  "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3",
+  "candidate_delta_from_r2": {
+    "a_precapture": [],
+    "api": [
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "config/api-v4_manual_collection_stage_config.json",
+          "sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+          "size": 1817
+        },
+        "before": null,
+        "path": "config/api-v4_manual_collection_stage_config.json"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/operations/STAGE_SELECTION_SOP.md",
+          "sha256": "b9f0e5849b0f96e7726e6dcb5361378cbde947278eb73b8a952fb12c2187781f",
+          "size": 25237
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "docs/operations/STAGE_SELECTION_SOP.md",
+          "sha256": "3c0ec161aea582c9c0441746e8079cbd5fa6dff70b708e3b5bcb8fff384f169c",
+          "size": 23120
+        },
+        "path": "docs/operations/STAGE_SELECTION_SOP.md"
+      }
+    ],
+    "stage": [
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/hk_stage8/rtdata.py",
+          "sha256": "d3769751317edec43021ea688236e30f043733f8f33fe1e88053c14e44ec03e0",
+          "size": 27897
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center/hk_stage8/rtdata.py",
+          "sha256": "ed83fb1290c887a681794a4a12043fe57271eb7259d1c8e0a0056bd298eac3b1",
+          "size": 27345
+        },
+        "path": "stage_center/hk_stage8/rtdata.py"
+      },
+      {
+        "after": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+          "size": 4024
+        },
+        "before": {
+          "kind": "file",
+          "mode": "0644",
+          "path": "stage_center_tick_config.json",
+          "sha256": "afed75f8ad8aeb25fade6c945ea475d617170c5629b8eeb3ba5c8f8c982b120c",
+          "size": 4033
+        },
+        "path": "stage_center_tick_config.json"
+      }
+    ]
+  },
+  "candidates": {
+    "a_precapture": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-a_precapture/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "stage_center/candidate_input.py"
+      ],
+      "inventory_sha256": "36c4f79831e0cdfa0f590980c05daefa3248983306d4e0d2724f06d3f94a3a95",
+      "manifest_sha256": "e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b",
+      "release_id": "stage-four-repairs-20261101-r3-a_precapture",
+      "source_role": "A_OPENING_PRECAPTURE"
+    },
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+      "delta": [
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/SOP.md",
+        "docs/operations/STAGE_SELECTION_SOP.md",
+        "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+        "infrastructure/operations_sop_reader.py",
+        "stage_center/candidate_input.py"
+      ],
+      "inventory_sha256": "b5009830d9e6f43cec7fd02797a99c662c22532801ccaa56b80de970a83f7cc7",
+      "manifest_sha256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48",
+      "release_id": "stage-four-repairs-20261101-r3-api",
+      "source_role": "API_SOP_AND_EXECUTION_READER"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/stage_data_recovery.py",
+        "stage_center/_live_collectors_parts/shared_module_loading.py",
+        "stage_center/_runner_parts/slot_execution.py",
+        "stage_center/candidate_input.py",
+        "stage_center/collector_capture.py",
+        "stage_center/hk_stage8/rtdata.py",
+        "stage_center/market_retry.py",
+        "stage_center/snapshot_recovery.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+      "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+      "release_id": "stage-four-repairs-20261101-r3-stage",
+      "source_role": "STAGE_PRIMARY_SCHEDULER"
+    }
+  },
+  "deployment_status": "PREPARED_NOT_APPLIED",
+  "incremental_writer_results": {
+    "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3",
+    "cases": [
+      {
+        "actual_capture_reader_checked": true,
+        "case": "F1_SDK_error_retention",
+        "original_messages_retained": true,
+        "phases": [
+          "import",
+          "context",
+          "get",
+          "close",
+          "unsubscribe"
+        ],
+        "provider_network_invocations": 0
+      },
+      {
+        "Popen_calls_intercepted": 1,
+        "Popen_executed": 0,
+        "api_business_bytes_unchanged": true,
+        "api_identity": {
+          "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+          "release_id": "stage-four-repairs-20261101-r3-api",
+          "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/release-manifest.json",
+          "release_manifest_sha256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48"
+        },
+        "case": "F2_actual_manual_router_to_owner_parameter_probe",
+        "child_command_shape": [
+          "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+          "-c",
+          "UNCHANGED_FIXED_HK_OWNER_PROGRAM"
+        ],
+        "child_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "child_program_sha256": "3db17e41375a7fa7eb60688708316150c3602ac6eb8d8e1bc6648115fb853af7",
+        "child_pythonpath": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "child_release_id": "stage-four-repairs-20261101-r3-stage",
+        "inherited_API_manifest_env": "PRESENT_BUT_NOT_CONSUMED_BY_FIXED_HK_PROGRAM",
+        "manual_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app/config/api-v4_manual_collection_stage_config.json",
+        "manual_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+        "owner_authority_config_sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+        "owner_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "provider_invocations": 0,
+        "state_writes": 0,
+        "status": "PASS"
+      },
+      {
+        "as_of": "2026-10-30T09:25:05+08:00",
+        "case": "real_hourly",
+        "date": "20261030",
+        "owner": "sop-closure",
+        "slot": "0900"
+      },
+      {
+        "as_of": "2026-10-30T10:30:05+08:00",
+        "case": "real_hourly",
+        "date": "20261030",
+        "owner": "name-zoom",
+        "slot": "1000"
+      },
+      {
+        "as_of": "2026-11-01T20:59:59+08:00",
+        "case": "real_hourly",
+        "date": "20261101",
+        "owner": "r6-main",
+        "slot": "2000"
+      },
+      {
+        "case": "real_stage_context",
+        "cutoff": "09:25:05",
+        "selected_slot": "0900"
+      },
+      {
+        "case": "real_stage_context",
+        "cutoff": "10:30:05",
+        "selected_slot": "1000"
+      },
+      {
+        "bad_manifest_status": 503,
+        "endpoint": "/api/v4/operations/sop?doc=stage-selection",
+        "http_status": 200,
+        "identity": {
+          "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+          "release_id": "stage-four-repairs-20261101-r3-api",
+          "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/release-manifest.json",
+          "release_manifest_sha256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48"
+        },
+        "listener_started": false,
+        "network_invocations": 0,
+        "sha256": "b9f0e5849b0f96e7726e6dcb5361378cbde947278eb73b8a952fb12c2187781f",
+        "state_root": "/private/tmp/stage-four-case-vz2clxim/api-state",
+        "status": "ASGI_ENDPOINT_VERIFIED",
+        "unknown_document_status": 422
+      }
+    ],
+    "errors": 0,
+    "failures": 0,
+    "natural_verified": false,
+    "outcome_by_test": {
+      "test_02_real_hourly_owner_and_cutoff": "PASS",
+      "test_08_sealed_SOP_and_API_identity": "PASS",
+      "test_13_actual_API_SOP_endpoint_inprocess_isolated_state": "PASS",
+      "test_14_SDK_original_errors_retained_in_actual_capture": "PASS",
+      "test_15_actual_manual_router_owner_parameters_without_spawn": "PASS"
+    },
+    "passed": true,
+    "tests_run": 5
+  },
+  "independent_review": {
+    "controller_reported_checks": [
+      "5/5 affected regressions",
+      "wrong Stage release_id negative",
+      "three full inventories",
+      "20 protected source/runtime/data SHAs unchanged"
+    ],
+    "controller_reported_verdict": "PASS",
+    "path": "/private/tmp/stage-four-independent-incremental-r3.json",
+    "receipt": {
+      "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3",
+      "cases": [
+        {
+          "actual_capture_reader_checked": true,
+          "case": "F1_SDK_error_retention",
+          "original_messages_retained": true,
+          "phases": [
+            "import",
+            "context",
+            "get",
+            "close",
+            "unsubscribe"
+          ],
+          "provider_network_invocations": 0
+        },
+        {
+          "Popen_calls_intercepted": 1,
+          "Popen_executed": 0,
+          "api_business_bytes_unchanged": true,
+          "api_identity": {
+            "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+            "release_id": "stage-four-repairs-20261101-r3-api",
+            "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/release-manifest.json",
+            "release_manifest_sha256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48"
+          },
+          "case": "F2_actual_manual_router_to_owner_parameter_probe",
+          "child_command_shape": [
+            "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+            "-c",
+            "UNCHANGED_FIXED_HK_OWNER_PROGRAM"
+          ],
+          "child_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "child_program_sha256": "3db17e41375a7fa7eb60688708316150c3602ac6eb8d8e1bc6648115fb853af7",
+          "child_pythonpath": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "child_release_id": "stage-four-repairs-20261101-r3-stage",
+          "inherited_API_manifest_env": "PRESENT_BUT_NOT_CONSUMED_BY_FIXED_HK_PROGRAM",
+          "manual_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app/config/api-v4_manual_collection_stage_config.json",
+          "manual_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+          "owner_authority_config_sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+          "owner_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "provider_invocations": 0,
+          "state_writes": 0,
+          "status": "PASS"
+        },
+        {
+          "as_of": "2026-10-30T09:25:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "sop-closure",
+          "slot": "0900"
+        },
+        {
+          "as_of": "2026-10-30T10:30:05+08:00",
+          "case": "real_hourly",
+          "date": "20261030",
+          "owner": "name-zoom",
+          "slot": "1000"
+        },
+        {
+          "as_of": "2026-11-01T20:59:59+08:00",
+          "case": "real_hourly",
+          "date": "20261101",
+          "owner": "r6-main",
+          "slot": "2000"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "09:25:05",
+          "selected_slot": "0900"
+        },
+        {
+          "case": "real_stage_context",
+          "cutoff": "10:30:05",
+          "selected_slot": "1000"
+        },
+        {
+          "bad_manifest_status": 503,
+          "endpoint": "/api/v4/operations/sop?doc=stage-selection",
+          "http_status": 200,
+          "identity": {
+            "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/app",
+            "release_id": "stage-four-repairs-20261101-r3-api",
+            "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-api/release-manifest.json",
+            "release_manifest_sha256": "94adf623a468990427d4ceae79385108f68e7216d9ab4a3ca8e07e5282083f48"
+          },
+          "listener_started": false,
+          "network_invocations": 0,
+          "sha256": "b9f0e5849b0f96e7726e6dcb5361378cbde947278eb73b8a952fb12c2187781f",
+          "state_root": "/private/tmp/stage-four-case-gf4ql8lk/api-state",
+          "status": "ASGI_ENDPOINT_VERIFIED",
+          "unknown_document_status": 422
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "outcome_by_test": {
+        "test_02_real_hourly_owner_and_cutoff": "PASS",
+        "test_08_sealed_SOP_and_API_identity": "PASS",
+        "test_13_actual_API_SOP_endpoint_inprocess_isolated_state": "PASS",
+        "test_14_SDK_original_errors_retained_in_actual_capture": "PASS",
+        "test_15_actual_manual_router_owner_parameters_without_spawn": "PASS"
+      },
+      "passed": true,
+      "tests_run": 5
+    },
+    "sha256": "f3eff7a9e88a2e6d9623ead69ba84a726ea610627315efa903c25851064e3adc"
+  },
+  "limitations": [
+    "No deployed env/config/plist/service change",
+    "No Popen/provider execution in F2 probe",
+    "Inherited API manifest fields in fixed HK-only child are not consumed and are not Stage attestation",
+    "D30 original RT_DATA remains missing",
+    "Remote push/readback is controller-owned"
+  ],
+  "natural_verified": false,
+  "orders_sent": false,
+  "prior_review_preserved": {
+    "controller_reported_verdict": "REVIEWED/FAIL: two P2 findings F1/F2",
+    "path": "/private/tmp/stage-four-independent-review-a83b782.json",
+    "sha256": "7abae5149d342a32518c0ec46309927e1423cec76c998b2ad783a950c70cd22f",
+    "test_json_pass_is_not_overall_review_verdict": true
+  },
+  "production_allowed": false,
+  "remaining_P0_P1_P2": 0,
+  "source_sha256": {
+    "docs/operations/STAGE_SELECTION_SOP.md": "b9f0e5849b0f96e7726e6dcb5361378cbde947278eb73b8a952fb12c2187781f",
+    "ops/prepare_stage_four_repairs.py": "6964b63439b72667b4d5970928247c976faef2d794d903549a8ebceb87023559",
+    "stage_center/hk_stage8/rtdata.py": "d3769751317edec43021ea688236e30f043733f8f33fe1e88053c14e44ec03e0",
+    "tests/test_stage_four_repairs.py": "5fc69f3686dac843386ade80e04d36fb4b363cc0bf7de5ffaeb1bd89726dfa70"
+  },
+  "status": "INDEPENDENT_REVIEW_PASS_CONTROLLER_REPORTED",
+  "unchanged_critical_dependencies": {
+    "a_precapture": {
+      "stage_center/_runner_parts/slot_execution.py": "3a6c717937fe61444a6402bfa1a52ba78a99ea62ace0dbe0f5f27988e2a93fc9",
+      "stage_center/candidate_input.py": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+      "stage_center/hk_stage8/snapshot.py": "0d50895524d9da92a358d089c2ebd8482797b9a99d907e9845dcad82c9dae65e",
+      "stage_center/snapshot_recovery.py": "6e994c62612b9a34a874bc8249d446b77ccc68d9242e3e29ec94e8e82e3ea6b5"
+    },
+    "api": {
+      "apps/api/v4_api/manual_collection_router.py": "e451f135da97751bd54057dae07dc9100f4aee74fad425c7242e81fd92c5bc71",
+      "infrastructure/manual_collection.py": "1c55963777b7ac0c1be3cd3dd7eda138891c9690c74354fad8554a659f98272a",
+      "stage_center/candidate_input.py": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+      "stage_center/hk_stage8/snapshot.py": "00bb691124522fc5a5d104243049b44872885039fcc06372a5d4d21b2f696d0f",
+      "stage_center/snapshot_recovery.py": "6e994c62612b9a34a874bc8249d446b77ccc68d9242e3e29ec94e8e82e3ea6b5"
+    },
+    "stage": {
+      "stage_center/_runner_parts/slot_execution.py": "9671f5225afedb29c16449fbbdfcead3fe3da84b0b9a17d1fbbee2ae677a27ef",
+      "stage_center/candidate_input.py": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+      "stage_center/collector_capture.py": "dcd6253b9d3ab66cf9f2553b4e02b559fd35f60fe343c792f42738e4d43fdc44",
+      "stage_center/hk_stage8/snapshot.py": "0d50895524d9da92a358d089c2ebd8482797b9a99d907e9845dcad82c9dae65e",
+      "stage_center/market_retry.py": "7dde26b0148056630cb9bfedb49a26e341ed6ca7aeb6703d954419caf03f2ccc",
+      "stage_center/snapshot_recovery.py": "0b66dea5b5f9fc93fd017159033a1a975ca27e412560a8b0fb54f64c6f2193c9"
+    }
+  },
+  "unchanged_rtdata_function_SHA": {
+    "_collect_hk_stage8_natural": {
+      "matching": true,
+      "r2": "8a6c9f6509219486f6cffebee80b336b6602838a35bc965d76200a3dfc228522",
+      "r3": "8a6c9f6509219486f6cffebee80b336b6602838a35bc965d76200a3dfc228522"
+    },
+    "_persist_stage8_rtdata_capture": {
+      "matching": true,
+      "r2": "a6db2979fb14bb2e0bbe891f795e41d2224fcd75a11ec8cfc1078011fa1677fc",
+      "r3": "a6db2979fb14bb2e0bbe891f795e41d2224fcd75a11ec8cfc1078011fa1677fc"
+    },
+    "_stage8_aggregate_rtdata_rows": {
+      "matching": true,
+      "r2": "5ebc68860a3aee530023f3776c12b211cf75c0cfaa36424e5ccb067d566c66fe",
+      "r3": "5ebc68860a3aee530023f3776c12b211cf75c0cfaa36424e5ccb067d566c66fe"
+    }
+  }
+}

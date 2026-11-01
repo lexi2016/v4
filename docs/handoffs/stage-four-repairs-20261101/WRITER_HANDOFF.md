@@ -1,5 +1,7 @@
 # Stage four repairs — Writer handoff
 
+Current revision: [F1/F2 bounded repair, sealed r3](REVISION_F1_F2.md). The r2 record below is retained as the prior handoff; it is superseded for activation identity and independent acceptance.
+
 Status: `WRITER_TESTED_PENDING_INDEPENDENT_REVIEW`. This is not deployment or independent acceptance.
 
 Baseline `684afcc20be355513b52484430533fe8f2d95e53`; branch `codex/v4-stage-four-repairs-20261101`; source root `/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-stage-four-repairs-20261101`.
