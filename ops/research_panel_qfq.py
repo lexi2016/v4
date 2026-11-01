@@ -41,9 +41,12 @@ CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 from ops.research_panel_factor_cache import QfqGateError
 from ops.kb_signal_authority import append_kb_signals, _field_spec
-from ops.kb_hold_score import project_single_history, SUPPLEMENTAL_REASONS
+from ops.kb_hold_score import project_single_history, SUPPLEMENTAL_REASONS, SINGLE_STOCKS
+from ops.kb_action_authority import FIELDS as SINGLE_ACTION_FIELDS, INPUT_FIELDS as SINGLE_ACTION_INPUTS, project_action, action_rule_sha256
+from ops.kb_yidong_authority import FIELDS as SINGLE_YIDONG_FIELD_TYPES, INPUT_FIELDS as SINGLE_YIDONG_INPUTS, project_yidong_history, rule_sha256 as yidong_rule_sha256
 
 KB_FIELDS = frozenset(field["name"] for field in _field_spec()["fields"])
+SINGLE_YIDONG_FIELDS = frozenset(SINGLE_YIDONG_FIELD_TYPES)
 SINGLE_FEEDBACK_FIELDS = frozenset({
     "kb_hold_close_up", "kb_hold_above_bbi", "kb_hold_volume_ok", "kb_hold_trend_up", "kb_hold_j_not_dead",
     "kb_hold_close_up_reason", "kb_hold_above_bbi_reason", "kb_hold_volume_ok_reason", "kb_hold_trend_up_reason", "kb_hold_j_not_dead_reason",
@@ -122,6 +125,72 @@ def _single_feedback_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
     enabled = {bool(SINGLE_FEEDBACK_FIELDS & set(schema.names)) for schema in schemas.values()}
     if len(enabled) != 1:
         raise QfqGateError("SINGLE_FEEDBACK_ROLE_SCHEMA_MISMATCH")
+    return enabled.pop()
+
+
+def _single_action_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
+    """The optional action extension must be complete and paired, never silently dropped."""
+    if set(schemas) != {"selector", "backtest"}:
+        raise QfqGateError("SINGLE_ACTION_ROLE_SET_INVALID")
+    enabled = set()
+    for schema in schemas.values():
+        present = SINGLE_ACTION_FIELDS & set(schema.names)
+        declarations = []
+        for key in (META_KEY, b"kb_single_candidate_v1"):
+            if key in (schema.metadata or {}):
+                try:
+                    metadata = json.loads(schema.metadata[key])
+                except (TypeError, ValueError) as exc:
+                    raise QfqGateError("SINGLE_ACTION_METADATA_INVALID") from exc
+                if not isinstance(metadata, dict):
+                    raise QfqGateError("SINGLE_ACTION_METADATA_INVALID")
+                if "single_action_enabled" in metadata:
+                    if not isinstance(metadata["single_action_enabled"], bool):
+                        raise QfqGateError("SINGLE_ACTION_MODE_INVALID")
+                    declarations.append(metadata["single_action_enabled"])
+        if len(set(declarations)) > 1 or declarations and declarations[0] != bool(present):
+            raise QfqGateError("SINGLE_ACTION_SCHEMA_MODE_CONFLICT")
+        if present and present != SINGLE_ACTION_FIELDS:
+            raise QfqGateError("SINGLE_ACTION_PARTIAL_SCHEMA")
+        for name in present:
+            if schema.field(name).type != pa.string() or not schema.field(name).nullable:
+                raise QfqGateError("SINGLE_ACTION_SCHEMA_MISMATCH:" + name)
+        enabled.add(bool(present))
+    if len(enabled) != 1:
+        raise QfqGateError("SINGLE_ACTION_ROLE_SCHEMA_MISMATCH")
+    return enabled.pop()
+
+
+def _single_yidong_pair_mode(schemas: dict[str, pa.Schema]) -> bool:
+    if set(schemas) != {"selector", "backtest"}:
+        raise QfqGateError("SINGLE_YIDONG_ROLE_SET_INVALID")
+    types = {"string": pa.string(), "bool": pa.bool_(), "double": pa.float64(), "int8": pa.int8(), "int32": pa.int32()}
+    enabled = set()
+    for schema in schemas.values():
+        present = SINGLE_YIDONG_FIELDS & set(schema.names)
+        declarations = []
+        for key in (META_KEY, b"kb_single_candidate_v1"):
+            if key in (schema.metadata or {}):
+                try:
+                    metadata = json.loads(schema.metadata[key])
+                except (TypeError, ValueError) as exc:
+                    raise QfqGateError("SINGLE_YIDONG_METADATA_INVALID") from exc
+                if not isinstance(metadata, dict):
+                    raise QfqGateError("SINGLE_YIDONG_METADATA_INVALID")
+                if "single_yidong_enabled" in metadata:
+                    if not isinstance(metadata["single_yidong_enabled"], bool):
+                        raise QfqGateError("SINGLE_YIDONG_MODE_INVALID")
+                    declarations.append(metadata["single_yidong_enabled"])
+        if len(set(declarations)) > 1 or declarations and declarations[0] != bool(present):
+            raise QfqGateError("SINGLE_YIDONG_SCHEMA_MODE_CONFLICT")
+        if present and present != SINGLE_YIDONG_FIELDS:
+            raise QfqGateError("SINGLE_YIDONG_PARTIAL_SCHEMA")
+        for name in present:
+            if schema.field(name).type != types[SINGLE_YIDONG_FIELD_TYPES[name]] or not schema.field(name).nullable:
+                raise QfqGateError("SINGLE_YIDONG_SCHEMA_MISMATCH:" + name)
+        enabled.add(bool(present))
+    if len(enabled) != 1:
+        raise QfqGateError("SINGLE_YIDONG_ROLE_SCHEMA_MISMATCH")
     return enabled.pop()
 
 
@@ -276,7 +345,7 @@ _GENERATION_TUPLE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "
     "single_score_contract_sha256", "single_supplemental_contract_sha256")
 
 
-def _release_tuple_bound() -> bool:
+def _release_tuple_bound(include_action: bool = False, include_yidong: bool = False) -> bool:
     """Exact release inventory binds current modules/policies without a self-SHA cycle."""
     manifest = json.loads(_source(dict(path=os.environ["V4_RELEASE_MANIFEST_PATH"],
         sha256=os.environ["V4_RELEASE_MANIFEST_SHA256"]), owner="Main release inventory").read_text())
@@ -290,6 +359,10 @@ def _release_tuple_bound() -> bool:
         "contracts/a_share_daily_source_policy.json", "ops/kb_signal_authority.py",
         "contracts/a_share_kb_fields_v1.json", "ops/kb_hold_score.py", "contracts/a_share_kb_hold_score_v1.json",
         "contracts/a_share_kb_supplemental_signals_v1.json"]
+    if include_action:
+        paths += ["ops/kb_action_authority.py", "contracts/a_share_kb_action_v1.json"]
+    if include_yidong:
+        paths += ["ops/kb_yidong_authority.py", "contracts/a_share_kb_yidong_v1.json"]
     return all(inventory.get(p) == sha(root / p) for p in paths)
 
 
@@ -311,14 +384,26 @@ def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
         single_score_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_hold_score_v1.json"),
         single_supplemental_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_supplemental_signals_v1.json"))
     actual = {key: contract.get(key) for key in _GENERATION_TUPLE_KEYS}
+    action_enabled = contract.get("single_action_enabled") is True
+    if action_enabled:
+        action_tuple = dict(single_action_authority_sha256=sha(Path(__file__).with_name("kb_action_authority.py")),
+                            single_action_contract_sha256=action_rule_sha256())
+        current.update(action_tuple)
+        actual.update({key: contract.get(key) for key in action_tuple})
+    yidong_enabled = contract.get("single_yidong_enabled") is True
+    if yidong_enabled:
+        yidong_tuple = dict(single_yidong_authority_sha256=sha(Path(__file__).with_name("kb_yidong_authority.py")),
+                            single_yidong_contract_sha256=yidong_rule_sha256())
+        current.update(yidong_tuple)
+        actual.update({key: contract.get(key) for key in yidong_tuple})
     if (refs[0]["sha256"] != DRIVER_SHA or refs[1]["sha256"] != FORMULA_SHA
             or actual["field_contract_sha256"] != refs[2]["sha256"]):
         return False
     if actual == current:
-        return _release_tuple_bound()
+        return _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled)
     policy_path = Path(__file__).resolve().parents[1] / "contracts/a_share_generation_compatibility.json"
     policy = json.loads(policy_path.read_text())
-    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound():
+    if policy.get("schema") != "a_daily_generation_compatibility.v1" or not _release_tuple_bound(include_action=action_enabled, include_yidong=yidong_enabled):
         return False
     for old in policy["accepted_old_generations"]:
         if (actual == old["module_tuple"] and contract.get("generation_id") == old["generation_id"]
@@ -772,7 +857,8 @@ def _panel_symbols(path: Path) -> set[str]:
 
 
 def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history_extension: bool = False,
-           single_feedback_enabled: bool = False) -> pa.Table:
+           single_feedback_enabled: bool = False, single_action_enabled: bool = False,
+           single_yidong_enabled: bool = False) -> pa.Table:
     # No original formula field is silently default-filled with zero.
     present = SINGLE_FEEDBACK_FIELDS & set(frame.columns)
     if present - set(schema.names):
@@ -781,14 +867,46 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
         _validate_single_feedback_schema(schema, required=True)
         if "ts_code" not in frame:
             raise QfqGateError("SINGLE_FEEDBACK_SYMBOL_UNBOUND:" + role)
-        target = frame.ts_code.astype(str).eq("002865.SZ")
+        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
         if target.any() and present != SINGLE_FEEDBACK_FIELDS:
             raise QfqGateError("SINGLE_FEEDBACK_TARGET_FIELDS_MISSING:" + role)
         if target.any() and frame.loc[target, ["kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status"]].isna().any().any():
             raise QfqGateError("SINGLE_FEEDBACK_TARGET_SCORE_MISSING:" + role)
     elif SINGLE_FEEDBACK_FIELDS & set(schema.names):
         raise QfqGateError("SINGLE_FEEDBACK_SCHEMA_MODE_CONFLICT:" + role)
-    missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS | SINGLE_FEEDBACK_FIELDS]
+    present_action = SINGLE_ACTION_FIELDS & set(frame.columns)
+    if present_action - set(schema.names):
+        raise QfqGateError("SINGLE_ACTION_OUTPUT_WOULD_DROP_FIELDS:" + role)
+    _single_action_pair_mode({"selector": schema, "backtest": schema})
+    if single_action_enabled:
+        if not single_feedback_enabled or SINGLE_ACTION_FIELDS - set(schema.names):
+            raise QfqGateError("SINGLE_ACTION_SCHEMA_MISSING:" + role)
+        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        required_action = {"kb_action_no_position_status", "kb_action_with_position_status", "kb_action_reasons", "kb_action_rule_sha256"}
+        if target.any() and (present_action != SINGLE_ACTION_FIELDS or
+                frame.loc[target, sorted(required_action)].isna().any().any()):
+            raise QfqGateError("SINGLE_ACTION_TARGET_FIELDS_MISSING:" + role)
+        if target.any() and not frame.loc[target, "kb_action_rule_sha256"].eq(action_rule_sha256()).all():
+            raise QfqGateError("SINGLE_ACTION_RULE_SHA_MISMATCH:" + role)
+    elif SINGLE_ACTION_FIELDS & set(schema.names):
+        raise QfqGateError("SINGLE_ACTION_SCHEMA_MODE_CONFLICT:" + role)
+    present_yidong = SINGLE_YIDONG_FIELDS & set(frame.columns)
+    if present_yidong - set(schema.names):
+        raise QfqGateError("SINGLE_YIDONG_OUTPUT_WOULD_DROP_FIELDS:" + role)
+    _single_yidong_pair_mode({"selector": schema, "backtest": schema})
+    if single_yidong_enabled:
+        if SINGLE_YIDONG_FIELDS - set(schema.names):
+            raise QfqGateError("SINGLE_YIDONG_SCHEMA_MISSING:" + role)
+        target = frame.ts_code.astype(str).isin(SINGLE_STOCKS)
+        required_yidong = {"kb_yidong_status", "kb_yidong_phase_status", "kb_yidong_rule_sha256"}
+        if target.any() and (present_yidong != SINGLE_YIDONG_FIELDS or
+                frame.loc[target, sorted(required_yidong)].isna().any().any()):
+            raise QfqGateError("SINGLE_YIDONG_TARGET_FIELDS_MISSING:" + role)
+        if target.any() and not frame.loc[target, "kb_yidong_rule_sha256"].eq(yidong_rule_sha256()).all():
+            raise QfqGateError("SINGLE_YIDONG_RULE_SHA_MISMATCH:" + role)
+    elif SINGLE_YIDONG_FIELDS & set(schema.names):
+        raise QfqGateError("SINGLE_YIDONG_SCHEMA_MODE_CONFLICT:" + role)
+    missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS | SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS]
     if missing:
         raise QfqGateError(f"UNCOMPUTED_FORMULA_FIELDS:{role}:{missing}")
     nullable_context = LEGACY_AUX_FIELDS | ({"bars_since_list"} if history_extension else set())
@@ -797,7 +915,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             if history_extension and values.isna().any() and not field.nullable:
                 raise QfqGateError(f"HISTORY_CONTEXT_NOT_NULLABLE:{role}:{field.name}")
-    feedback_missing = [f.name for f in schema if f.name in SINGLE_FEEDBACK_FIELDS and f.name not in frame]
+    feedback_missing = [f.name for f in schema if f.name in SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS and f.name not in frame]
     if feedback_missing:
         frame = frame.copy()
         for name in feedback_missing:
@@ -806,7 +924,7 @@ def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history
     # The legacy driver fills nullable ints/bools with 0/False. That would
     # fabricate auxiliary context on new dates; preserve its explicit nulls.
     for field in schema:
-        if field.name in nullable_context | KB_FIELDS | SINGLE_FEEDBACK_FIELDS:
+        if field.name in nullable_context | KB_FIELDS | SINGLE_FEEDBACK_FIELDS | SINGLE_ACTION_FIELDS | SINGLE_YIDONG_FIELDS:
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             table = table.set_column(schema.get_field_index(field.name), field, pa.Array.from_pandas(values, type=field.type))
     return table
@@ -1090,6 +1208,10 @@ def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, c
                 single_score_authority_sha256=sha(Path(__file__).with_name("kb_hold_score.py")),
                 single_score_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_hold_score_v1.json"),
                 single_supplemental_contract_sha256=sha(Path(__file__).resolve().parents[1] / "contracts/a_share_kb_supplemental_signals_v1.json"),
+                single_action_authority_sha256=sha(Path(__file__).with_name("kb_action_authority.py")),
+                single_action_contract_sha256=action_rule_sha256(),
+                single_yidong_authority_sha256=sha(Path(__file__).with_name("kb_yidong_authority.py")),
+                single_yidong_contract_sha256=yidong_rule_sha256(),
                 source_relocation_sha256=source_relocation_ref["sha256"] if source_relocation_ref else None)
 
 
@@ -2308,9 +2430,9 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
 
 def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
     """Append the separately bound single-stock fields on this QFQ prefix."""
-    if code != "002865.SZ":
+    if code not in SINGLE_STOCKS:
         return computed
-    required = ["trade_date", "high", "low", "close", "kb_b1_j"]
+    required = ["trade_date", "open", "high", "low", "close", "volume", "kb_b1_j"]
     if any(name not in computed for name in required):
         raise QfqGateError("SINGLE_FEEDBACK_PREFIX_MISSING_FIELDS")
     try:
@@ -2321,6 +2443,36 @@ def _single_feedback_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
         raise QfqGateError("SINGLE_FEEDBACK_FIELD_INVENTORY_MISMATCH")
     output = computed.copy()
     for name in SINGLE_FEEDBACK_FIELDS:
+        output[name] = [row[name] for row in projected]
+    return output
+
+
+def _single_action_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
+    if code not in SINGLE_STOCKS:
+        return computed
+    missing = SINGLE_ACTION_INPUTS - set(computed.columns)
+    if missing:
+        raise QfqGateError("SINGLE_ACTION_PREFIX_MISSING_FIELDS:" + ",".join(sorted(missing)))
+    digest = action_rule_sha256()
+    projected = [project_action(row, rule_sha256=digest) for row in computed[sorted(SINGLE_ACTION_INPUTS)].to_dict("records")]
+    output = computed.copy()
+    for name in SINGLE_ACTION_FIELDS:
+        output[name] = [row[name] for row in projected]
+    return output
+
+
+def _single_yidong_daily(code: str, computed: pd.DataFrame) -> pd.DataFrame:
+    if code not in SINGLE_STOCKS:
+        return computed
+    missing = SINGLE_YIDONG_INPUTS - set(computed.columns)
+    if missing:
+        raise QfqGateError("SINGLE_YIDONG_PREFIX_MISSING_FIELDS:" + ",".join(sorted(missing)))
+    try:
+        projected = project_yidong_history(computed[sorted(SINGLE_YIDONG_INPUTS)].to_dict("records"))
+    except ValueError as exc:
+        raise QfqGateError("SINGLE_YIDONG_PREFIX_CONFLICT:" + str(exc)) from exc
+    output = computed.copy()
+    for name in SINGLE_YIDONG_FIELDS:
         output[name] = [row[name] for row in projected]
     return output
 
@@ -2344,7 +2496,7 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
     else:
         computed = rebuild_symbol(code, item, target, driver)
     if single_feedback_enabled:
-        if code == "002865.SZ":
+        if code in SINGLE_STOCKS:
             computed = _single_feedback_daily(code, computed)
         else:
             computed = computed.copy()
@@ -2352,6 +2504,26 @@ def _symbol_checkpoint(code, item, target, identity, parts_root, recovered, driv
                 computed[name] = None
     elif SINGLE_FEEDBACK_FIELDS & set(computed.columns):
         raise QfqGateError("SINGLE_FEEDBACK_DISABLED_WITH_COMPUTED_FIELDS:" + code)
+    if identity.get("single_action_enabled") is True:
+        if not single_feedback_enabled:
+            raise QfqGateError("SINGLE_ACTION_REQUIRES_FEEDBACK:" + code)
+        if code in SINGLE_STOCKS:
+            computed = _single_action_daily(code, computed)
+        else:
+            computed = computed.copy()
+            for name in SINGLE_ACTION_FIELDS:
+                computed[name] = None
+    elif SINGLE_ACTION_FIELDS & set(computed.columns):
+        raise QfqGateError("SINGLE_ACTION_DISABLED_WITH_COMPUTED_FIELDS:" + code)
+    if identity.get("single_yidong_enabled") is True:
+        if code in SINGLE_STOCKS:
+            computed = _single_yidong_daily(code, computed)
+        else:
+            computed = computed.copy()
+            for name in SINGLE_YIDONG_FIELDS:
+                computed[name] = None
+    elif SINGLE_YIDONG_FIELDS & set(computed.columns):
+        raise QfqGateError("SINGLE_YIDONG_DISABLED_WITH_COMPUTED_FIELDS:" + code)
     table = pa.Table.from_pandas(computed, preserve_index=False)
     table = table.replace_schema_metadata({META_KEY: json.dumps(dict(checkpoint_id=fingerprint)).encode()})
     temporary = checkpoint.with_suffix(".pending")
@@ -2783,10 +2955,18 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         # when both role schemas already bind every optional field.
         expected = {role: path.read_bytes() for role, path in pointers.items()}
         currents = {role: Path(value.decode("utf-8-sig").strip()) for role, value in expected.items()}
-        single_feedback_enabled = _single_feedback_pair_mode({role: pq.ParquetFile(path).schema_arrow
-                                                               for role, path in currents.items()})
+        current_schemas = {role: pq.ParquetFile(path).schema_arrow for role, path in currents.items()}
+        single_feedback_enabled = _single_feedback_pair_mode(current_schemas)
+        single_action_enabled = _single_action_pair_mode(current_schemas)
+        single_yidong_enabled = _single_yidong_pair_mode(current_schemas)
+        if single_action_enabled and not single_feedback_enabled:
+            raise QfqGateError("SINGLE_ACTION_REQUIRES_FEEDBACK")
         if single_feedback_enabled:
             identity["single_feedback_enabled"] = True
+        if single_action_enabled:
+            identity["single_action_enabled"] = True
+        if single_yidong_enabled:
+            identity["single_yidong_enabled"] = True
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
                                    target=target, retained_history=retained_history)
         addition = archive_addition_binding(archive_additions, snapshot=snapshot, pointers=pointers, identity=identity,
@@ -2821,7 +3001,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         or contract.get("factor_cache_sha256") != KB_BASELINE_FACTOR_CACHE_SHA
                         or any(contract.get(k) != v for k, v in identity.items()
                                if k not in {"adapter_sha256", "factor_cache_sha256", "kb_authority_sha256", "kb_field_contract_sha256", "source_relocation_sha256",
-                                            "single_score_authority_sha256", "single_score_contract_sha256", "single_supplemental_contract_sha256"})):
+                                            "single_score_authority_sha256", "single_score_contract_sha256", "single_supplemental_contract_sha256",
+                                            "single_action_authority_sha256", "single_action_contract_sha256",
+                                            "single_yidong_authority_sha256", "single_yidong_contract_sha256"})):
                     raise QfqGateError("KB_BASELINE_IDENTITY_MISMATCH:" + role)
                 receipt = json.loads(Path(contract["generation_manifest_path"]).read_text())
                 if (receipt.get("generation_id") != contract["generation_id"]
@@ -3178,7 +3360,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                 if gate["status"] != "PASS":
                                     raise QfqGateError(f"ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:{code}:{gate}")
                             table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None,
-                                           single_feedback_enabled=single_feedback_enabled)
+                                           single_feedback_enabled=single_feedback_enabled, single_action_enabled=single_action_enabled,
+                                           single_yidong_enabled=single_yidong_enabled)
                             if delta:
                                 original = old_table.take(pa.array(old_groups[code]))
                                 delta_prefix_changes[role].extend(tail_delta_prefix(original, table, delta["codes"][code]["added_dates"], code))

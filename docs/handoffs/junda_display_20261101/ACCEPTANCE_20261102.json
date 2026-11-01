@@ -1,0 +1,50 @@
+{
+  "status": "LOCAL_API_AND_UI_VERIFIED",
+  "api_release": "junda-single-20261101-52b837fa7688cb5d",
+  "stage_sha256": "e80d5585ff7d0665b3bb6bc31d798efadd3fd44aba26fd423aedb25226de170c",
+  "activation_sha256": "6f769e869d1cef1c816c9cec502b61372f1ae57a9183f01bf3fa90727ba868c1",
+  "api_pid": 28823,
+  "source_date": "2026-10-30",
+  "observation_date": "2026-11-02",
+  "single_stock_display_columns": {
+    "selector": 309,
+    "backtest": 178
+  },
+  "stocks": {
+    "301048.SZ": {
+      "rows": 1258,
+      "no_position": "等回调",
+      "with_position": "卖出",
+      "score_range": [
+        1,
+        2
+      ]
+    },
+    "002865.SZ": {
+      "rows": 2311,
+      "no_position": "等回调",
+      "with_position": "持有",
+      "score_range": [
+        4,
+        5
+      ]
+    }
+  },
+  "ui_verified": [
+    "actual 8873 Jinying",
+    "switch to Junda and return",
+    "reload remains Jinying",
+    "materialized KB action/score card",
+    "original B123 duplicate history rows removed",
+    "existing F10 snapshot displayed"
+  ],
+  "reviewed": "Luna business/projections plus independent Terra drift/control-plane PASS",
+  "f10_publication": "two already captured stock samples, original product owner index/event CAS; no new finance columns",
+  "global_pointers_unchanged": true,
+  "natural_next_day": "NOT_RUN",
+  "newly_confirmed_11_KB_fields": "NOT_IN_THIS_RELEASE",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

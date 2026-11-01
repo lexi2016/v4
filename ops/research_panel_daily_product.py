@@ -31,6 +31,39 @@ def save(p,v,immutable=False):
  tmp=p.with_name('.'+p.name+f'.{os.getpid()}.pending')
  with tmp.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
  os.replace(tmp,p);return reference(p)
+
+def materialize_bound_single_company(*, candidate_ref, received_ref, output_root):
+ """Save received company facts for the admitted single stock, without publishing an index."""
+ candidate=json.loads(checked(candidate_ref).read_text());binding=json.loads(checked(candidate['binding']).read_text())
+ received=json.loads(checked(received_ref).read_text())
+ symbol=binding.get('symbol')
+ if (symbol not in {'002865.SZ','301048.SZ'} or binding.get('source_date')!='2026-10-30'
+     or binding.get('observation_date')!='2026-11-02' or not isinstance(binding.get('candidate_pool_member'),bool)
+     or binding.get('candidate_generation')!=candidate.get('candidate_generation')
+     or received.get('symbol')!=symbol or received.get('asof')!='2026-10-30'
+     or any(binding.get(k)!=v for k,v in FLAGS.items())):raise ValueError('SINGLE_COMPANY_IDENTITY_CONFLICT')
+ sources=received.get('sources',{})
+ if 'tdx_f10' not in sources or set(sources)-{'official_quarterly','tdx_f10'}:raise ValueError('SINGLE_COMPANY_SOURCES_INCOMPLETE')
+ f10=json.loads(checked(sources['tdx_f10']['file']).read_text())
+ if (sources['tdx_f10'].get('kind')!='TDX_F10_CURRENT_SNAPSHOT' or f10.get('symbol')!=symbol
+     or f10.get('status')!='OBSERVED' or f10.get('historical_PIT') is not False
+     or any(f10.get(k)!=v for k,v in FLAGS.items())
+     or hashlib.sha256(f10.get('source_text','').encode()).hexdigest()!=f10.get('source_text_sha256')):raise ValueError('SINGLE_F10_SOURCE_INVALID')
+ if 'official_quarterly' in sources:
+  item=sources['official_quarterly'];path=checked(item['file']);day=item.get('available_date','')
+  if (item.get('kind')!='COMPANY_FILING' or not path.read_bytes().startswith(b'%PDF-')
+      or not item.get('url','').startswith('https://') or len(day)!=10 or day>'2026-10-30' or day<'1900-01-01'):raise ValueError('SINGLE_COMPANY_SOURCE_INVALID')
+  datetime.strptime(day,'%Y-%m-%d')
+ shard=dict(schema_version='v4.a_share.company_materials.v1',symbol=symbol,data_date='20261030',
+  observation_date='2026-11-02',source_generation=binding['source_generation'],input_sha256=binding['source_input_sha256'],
+  numeric_manifest=binding['numeric_manifest'],source_candidate_generation=binding['candidate_generation'],
+  source_candidate=candidate_ref,source_refs=sources,received_ref=received_ref,
+  business_reported=received['business_reported'],financials_reported=received['financials_reported'],
+  shareholders_reported=received['shareholders_reported'],report_catalog=received['report_catalog'],
+  stored_report=received['stored_report'],f10={k:f10.get(k) for k in ('captured_at','source_updated_date','finance_updated_date','concepts','concept_status','industry','financials','source_text_sha256')},
+  historical_PIT=False,producer_sha256=sha(__file__),**FLAGS)
+ target=Path(output_root)/'daily_products/a_share/company_materials/20261030'/digest(shard)/(symbol+'.json')
+ return save(target,shard,immutable=True)
 def module(r,name):
  p=checked(r);raw=p.read_bytes();spec=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;exec(compile(raw,str(p),'exec'),m.__dict__);return m
 

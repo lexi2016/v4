@@ -642,6 +642,124 @@ def run(output, authorization, phase):
     print(json.dumps({key: value for key, value in summary.items() if key not in {'rows', 'event_cases', 'results', 'symbols'}}, ensure_ascii=False), flush=True)
 
 
+def retained_single_stock_statistics(rows, close_rows, calendar, identity):
+    """Describe already materialized chart/KB labels for one stock, not R5 groups.
+
+    The existing statistics authority supplies exact exchange-session outcomes
+    and prefix-only position buckets. A label is never inferred from an UNKNOWN.
+    Caller must validate the immutable source refs before calling this function.
+    """
+    from domains.research_daily_statistics import build_daily_event_statistics, stratify_event_cases_by_prefix_percentile
+
+    definitions = (
+        ('original_level1', '原式一级买点', 'original', 'user_v1_level1_buy_signal'),
+        ('original_level2', '原式二级买点', 'original', 'user_v1_level2_buy_signal'),
+        ('original_b1', '原式B1', 'original', 'user_v1_B1'),
+        ('original_b2', '原式B2', 'original', 'user_v1_B2'),
+        ('original_b3', '原式B3', 'original', 'user_v1_B3'),
+        ('kb_b1', 'KB B1', 'kb', 'kb_b1'), ('kb_b2', 'KB B2', 'kb', 'kb_b2'),
+        ('kb_b3', 'KB B3', 'kb', 'kb_b3'), ('kb_violence_k', 'KB暴力K', 'kb', 'kb_violence_k'),
+        ('kb_fanbao', 'KB反包', 'kb', 'kb_fanbao'),
+    )
+    grouped, coverage = [], {}
+    for group_id, label, namespace, field in definitions:
+        dates, known, unknown = [], 0, 0
+        for row in rows:
+            value = row[namespace].get(field)
+            if value is None:
+                unknown += 1
+            elif value is True or type(value) is int and value == 1:
+                known += 1
+                dates.append(str(row['trade_date'])[:4]+'-'+str(row['trade_date'])[4:6]+'-'+str(row['trade_date'])[6:])
+            elif value is False or type(value) is int and value == 0:
+                known += 1
+            else:
+                raise ValueError('RETAINED_SIGNAL_TRISTATE_INVALID:' + field)
+        rule = hashlib.sha256(canonical({'namespace': namespace, 'field': field,
+            'source_view_sha256': identity['source_view_sha256']})).hexdigest()
+        group_identity = {'generation': identity['source_generation'], 'input': identity['input_sha256'],
+            'formula': identity['formula_sha256'] if namespace == 'original' else identity['kb_contract_sha256'],
+            'rule_sha256': rule, 'asof': identity['asof'], 'market': 'SZ',
+            'basis': 'QFQ', 'pit_status': 'NONPIT'}
+        grouped.append({'group_id': group_id, 'rule_sha256': rule, 'source_identity': group_identity, 'event_dates': dates})
+        coverage[group_id] = {'label': label, 'namespace': namespace, 'field': field,
+                              'known_dates': known, 'unknown_dates': unknown, 'event_dates': len(dates)}
+    stats = build_daily_event_statistics(close_rows=close_rows, market_calendar=calendar,
+        asof=identity['asof'], event_groups=grouped, case_limit=len(rows))
+    for group in stats['groups']:
+        horizons = group['horizons']
+        stratified = stratify_event_cases_by_prefix_percentile(close_rows=close_rows,
+            event_cases={key: horizons[key]['cases'] for key in ('d2', 'd5')}, asof=identity['asof'])
+        group['coverage'] = coverage[group['group_id']]
+        group['same_position'] = stratified
+    return stats
+
+
+def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, history_relocation_ref=None):
+    """Bootstrap isolated single-stock event shard from the accepted projection."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    candidate = load(candidate_ref)
+    binding = load(candidate['binding'])
+    symbol = binding.get('symbol')
+    if (candidate.get('candidate_generation') != binding.get('candidate_generation')
+            or symbol not in {'002865.SZ', '301048.SZ'} or binding.get('source_date') != '2026-10-30'
+            or binding.get('observation_date') != '2026-11-02' or binding.get('historical_PIT') is not False
+            or any(binding.get(k) != v for k, v in FLAGS.items())):
+        raise ValueError('RETAINED_SINGLE_IDENTITY_CONFLICT')
+    view_ref, selector_ref = binding['assets']['kb'], candidate['outputs']['selector']
+    view, cal = load(view_ref), load(calendar_ref)
+    if history_relocation_ref:
+        from infrastructure.research_workbench_host import checked_relocated_parquet
+        selector_input = pa.BufferReader(checked_relocated_parquet(selector_ref, history_relocation_ref))
+    else:
+        selector_input = load_path(selector_ref)
+    selector = pq.read_table(selector_input, columns=['trade_date', 'ts_code', 'close'])
+    prices = selector.to_pylist()
+    if (cal.get('exchange') != 'SZ' or cal.get('asof') != '2026-10-30'
+            or cal.get('source_panel_sha256') != binding['candidate_identity']['baseline_panel_sha256']['selector']
+            or view.get('candidate_generation') != binding['candidate_generation']
+            or view.get('source_generation') != binding['source_generation']
+            or view.get('source_input_sha256') != binding['source_input_sha256']
+            or len(view['rows']) != len(prices) or len(prices) != binding.get('rows') or not prices):
+        raise ValueError('RETAINED_SINGLE_INPUT_CONFLICT')
+    close_rows = []
+    for row, price in zip(view['rows'], prices):
+        day = str(price['trade_date'])
+        if price['ts_code'] != symbol or int(day) != row['trade_date']:
+            raise ValueError('RETAINED_SINGLE_PREFIX_CONFLICT')
+        close_rows.append({'date': day[:4]+'-'+day[4:6]+'-'+day[6:], 'close': price['close']})
+    identity = {'source_generation': binding['source_generation'], 'input_sha256': binding['source_input_sha256'],
+        'source_view_sha256': view_ref['sha256'], 'formula_sha256': binding['candidate_identity']['formula_sha256'],
+        'kb_contract_sha256': binding['candidate_identity']['source_sha256']['contracts/a_share_kb_fields_v1.json'],
+        'asof': '2026-10-30'}
+    stats = retained_single_stock_statistics(view['rows'], close_rows, cal['days'], identity)
+    shard = {'schema_version': 'v4.a_share.event_cases.single_research.v1', 'symbol': symbol,
+        'data_date': '20261030', 'observation_date': '2026-11-02', 'source_generation': identity['source_generation'],
+        'input_sha256': identity['input_sha256'], 'numeric_manifest': binding['numeric_manifest'],
+        'source_candidate_generation': binding['candidate_generation'], 'source_candidate': candidate_ref,
+        'source_selector': selector_ref, 'source_view': view_ref, 'market_calendar': calendar_ref,
+        'history_source_relocation': history_relocation_ref,
+        'producer_sha256': sha(__file__), 'statistics': stats, 'historical_PIT': False,
+        'qualification': 'DESCRIPTIVE_RETAINED_LABELS_NONPIT_NOT_FORECAST', **FLAGS}
+    digest = hashlib.sha256(canonical(shard)).hexdigest()
+    path = Path(output_root) / 'daily_products/a_share/event_cases/20261030' / digest / (symbol + '.json')
+    if path.exists():
+        if load(ref(path)) != shard:
+            raise ValueError('RETAINED_SINGLE_OUTPUT_CONFLICT')
+        return ref(path)
+    return save(path, shard)
+
+
+def load_path(reference):
+    """Return a validated non-symlink reference for a binary source."""
+    path = Path(reference['path'])
+    if not path.is_absolute() or path.is_symlink() or sha(path) != reference['sha256']:
+        raise ValueError('FROZEN_REFERENCE_DRIFT:' + str(path))
+    return path
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, default=DEFAULT_OUTPUT)

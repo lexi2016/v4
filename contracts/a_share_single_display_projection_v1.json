@@ -1,0 +1,27 @@
+{
+  "schema": "a_share_single_display_projection_v1",
+  "scope": "TWO_SINGLE_STOCK_DISPLAY_ONLY_NOT_DRIVER_OR_MODEL_INPUT",
+  "authorized_symbols": ["002865.SZ", "301048.SZ"],
+  "excluded_from_display_projection": [
+    "B1", "B2", "B3", "brick_buy", "brick_exist_b", "brick_resonance_context",
+    "didi_break_prev_low", "fd_volume_yin", "macd_above_zero_second_gold",
+    "macd_below_zero_second_gold", "macd_bottom_divergence", "macd_top_divergence",
+    "ref_score_close_up", "single_needle_under20", "strong_volume_up",
+    "user_v1_break_yesterday_keyline_daily", "user_v1_breakout", "user_v1_breakout_cross_star",
+    "user_v1_first_fly", "user_v1_hold_yesterday_keyline_daily", "user_v1_second_fly",
+    "user_v1_three_quarter_yin_volume_line", "user_v1_under_yellow", "volume_up", "white_yellow_death_cross"
+  ],
+  "retained_from_plan": {
+    "kb_hold_volume_ok_reason": "Required by the hold-score contract and the single-stock explanation to distinguish unknown volume from a negative score."
+  },
+  "concept_fields": {
+    "kb_concepts": "nullable string: exact names joined by 、 from the bound observed F10 snapshot",
+    "kb_concept_count": "nullable int8: count of those exact names; unknown collection remains null"
+  },
+  "concept_time": "Only the latest bound source-date row receives the current F10 snapshot; all earlier rows remain null. Capture time and source hash are recorded separately; this is observation-time context and is not historical PIT data.",
+  "preservation": "The full same-generation paired selector/backtest, all original formula fields, original 22 drawing results, and history audit assets remain intact. The display projection is never a driver, model, trading or global-current input.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

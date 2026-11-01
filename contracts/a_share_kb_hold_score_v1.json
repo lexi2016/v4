@@ -1,10 +1,11 @@
 {
   "schema": "a_share_kb_hold_score_v1",
   "scope": "EXPLICIT_A_SHARE_SINGLE_STOCK_RESEARCH_ONLY",
+  "authorized_symbols": ["002865.SZ", "301048.SZ"],
   "components": [
     {"name": "kb_hold_close_up", "meaning": "本日收盘价严格大于同前复权前一日收盘价", "unknown": "前一日或当日有效收盘缺失"},
     {"name": "kb_hold_above_bbi", "meaning": "收盘在KB BBI之上", "unknown": "不足24根、数据无效或收盘恰等于BBI时正文表述不一致"},
-    {"name": "kb_hold_volume_ok", "meaning": "量能非出货形态", "unknown": "相对近期量能与阴线的主观判定未量化"},
+    {"name": "kb_hold_volume_ok", "meaning": "有效阳线（收盘严格高于开盘）且当日成交量有限并大于零，可确认非放量阴线的阳线分支得1；不将上涨或前收比较当成阳线", "unknown": "阴线/平线其他量能分支的近期量比较未量化，或OHLC/当日成交量无效"},
     {"name": "kb_hold_trend_up", "meaning": "N型低点抬高且高点突破", "unknown": "N型的观察窗口及突破条件未量化"},
     {"name": "kb_hold_j_not_dead", "meaning": "J未同时低于K和D；判定当前状态而非仅下穿瞬间", "unknown": "不足9根或KDJ递推输入无效"}
   ],

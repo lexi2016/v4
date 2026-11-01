@@ -13,6 +13,68 @@ operator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(operator)
 
 
+def test_exact_observed_cache_addition_keeps_all_other_inventory_cas(monkeypatch, tmp_path):
+    base = tmp_path / 'base'
+    (base / 'app').mkdir(parents=True)
+    original = [{'path': 'source.py', 'kind': 'file', 'mode': '0644',
+                 'size': 1, 'sha256': 'a' * 64}]
+    addition = dict(operator.BASE_CACHE_ADDITION)
+    observed = sorted(original + [addition], key=lambda row: row['path'])
+
+    class Tools:
+        entries = observed
+        @staticmethod
+        def inventory_digest(entries):
+            return operator.canonical_sha(entries)
+        def inventory_tree(self, root):
+            assert root == base / 'app'
+            return self.entries
+
+    tools = Tools()
+    manifest = {'schema_version': 'v4.release_candidate.v1',
+                'candidate': {'root': str(base), 'app_root': str(base / 'app'),
+                              'release_id': base.name, 'module_role': 'api'},
+                'application_inventory': {'entries': original, 'entry_count': len(original),
+                                          'aggregate_sha256': tools.inventory_digest(original)},
+                'app_files': original}
+    manifest_path = base / 'release-manifest.json'
+    manifest_path.write_text(json.dumps(manifest))
+    monkeypatch.setattr(operator, 'BASE', base)
+    monkeypatch.setattr(operator, 'BASE_MANIFEST_SHA', operator.file_sha(manifest_path))
+    drift = {'schema': 'v4.api_base_inventory_drift.v1', 'base_root': str(base),
+             'base_manifest_sha256': operator.BASE_MANIFEST_SHA,
+             'manifest_pinned_sha256': operator.BASE_MANIFEST_SHA,
+             'manifest_inventory_count': len(original),
+             'manifest_inventory_digest': tools.inventory_digest(original),
+             'changes': [{'path': addition['path'], 'before': None, 'after': addition}],
+             'delta_overlap': [], 'actual_inventory_count': len(observed),
+             'actual_inventory_digest': tools.inventory_digest(observed)}
+    path = tmp_path / 'drift.json'
+    path.write_text(json.dumps(drift))
+    stage = {'base_inventory_drift': {'path': str(path), 'sha256': operator.file_sha(path)}}
+
+    assert operator.base_inventory(tools, stage)[1] == observed
+    with pytest.raises(ValueError, match='BASE_APPLICATION_INVENTORY_CHANGED'):
+        operator.base_inventory(tools, {})
+    for changed in (
+        original,  # The pinned addition disappeared.
+        sorted(original + [{**addition, 'sha256': 'b' * 64}], key=lambda row: row['path']),
+        sorted([addition, {**original[0], 'sha256': 'c' * 64}], key=lambda row: row['path']),
+        sorted(observed + [{'path': 'other.pyc', 'kind': 'file', 'mode': '0644',
+                            'size': 1, 'sha256': 'd' * 64}], key=lambda row: row['path']),
+    ):
+        tools.entries = changed
+        with pytest.raises(ValueError, match='BASE_APPLICATION_INVENTORY_CHANGED'):
+            operator.base_inventory(tools, stage)
+    tools.entries = observed
+    path.write_text(json.dumps({**drift, 'delta_overlap': [addition['path']]}))
+    with pytest.raises(ValueError, match='PIN_CHANGED'):
+        operator.base_inventory(tools, stage)
+    stage['base_inventory_drift']['sha256'] = operator.file_sha(path)
+    with pytest.raises(ValueError, match='BASE_APPLICATION_INVENTORY_CHANGED'):
+        operator.base_inventory(tools, stage)
+
+
 def test_plist_preserves_unrelated_settings(monkeypatch, tmp_path):
     monkeypatch.setattr(operator, 'TARGET', tmp_path / 'candidate')
     original = {'Label': 'com.lexi.v4.api', 'WorkingDirectory': '/old/app',

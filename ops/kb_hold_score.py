@@ -1,6 +1,6 @@
 """Knowledge-body five-part holding-score projection for one ordered A-share.
 
-The source's subjective volume and N-shape trend are intentionally unknown.
+The source's unquantified volume branches and N-shape trend remain unknown.
 This module does not change the 57 KB fields or issue trading instructions.
 """
 from __future__ import annotations
@@ -10,6 +10,7 @@ import math
 
 COMPONENTS = ('kb_hold_close_up', 'kb_hold_above_bbi', 'kb_hold_volume_ok',
               'kb_hold_trend_up', 'kb_hold_j_not_dead')
+SINGLE_STOCKS = frozenset({'002865.SZ', '301048.SZ'})
 SUPPLEMENTAL_REASONS = {
     'kb_s1': 'SOURCE_VERSION_CONFLICT_AND_UNQUANTIFIED',
     'kb_s2': 'S1_ANCHOR_AND_RULE_UNCONFIRMED',
@@ -43,8 +44,9 @@ def score_history(rows):
         if date <= previous_date:
             raise ValueError('HOLD_SCORE_DATES_NOT_UNIQUE_SORTED')
         previous_date = date
-        close, high, low = (_number(source.get(key)) for key in ('close', 'high', 'low'))
+        open_, close, high, low, volume = (_number(source.get(key)) for key in ('open', 'close', 'high', 'low', 'volume'))
         valid_hlc = close is not None and high is not None and low is not None and low <= close <= high
+        valid_ohlc = valid_hlc and open_ is not None and low <= open_ <= high
         closes.append(close)
         highs.append(high)
         lows.append(low)
@@ -65,7 +67,11 @@ def score_history(rows):
             d = (2 / 3) * d + (1 / 3) * k
             k_value, d_value, j_value = round(k, 2), round(d, 2), round(3 * k - 2 * d, 2)
             j_not_dead = not (j_value < k_value and j_value < d_value)
-        components = (close_up, above_bbi, None, None, j_not_dead)
+        # The knowledge-body rule explicitly awards 阳量; a valid up candle
+        # establishes that branch without guessing a subjective volume limit.
+        # A down or flat candle alone cannot decide the remaining branches.
+        volume_ok = True if valid_ohlc and volume is not None and close > open_ else None
+        components = (close_up, above_bbi, volume_ok, None, j_not_dead)
         lower = sum(value is True for value in components)
         unknown = sum(value is None for value in components)
         row = dict(zip(COMPONENTS, components))
@@ -78,7 +84,10 @@ def score_history(rows):
                    kb_hold_score_status='COMPLETE' if unknown == 0 else 'PARTIAL_UNKNOWN',
                    kb_hold_bbi=bbi, kb_hold_k=k_value, kb_hold_d=d_value, kb_hold_j=j_value,
                    kb_hold_close_up_reason=close_reason, kb_hold_above_bbi_reason=bbi_reason,
-                   kb_hold_volume_ok_reason='RULE_NOT_QUANTIFIED', kb_hold_trend_up_reason='RULE_NOT_QUANTIFIED',
+                   kb_hold_volume_ok_reason=(None if volume_ok is True else
+                                             'INVALID_OHLC_INPUT' if not valid_ohlc else
+                                             'INVALID_VOLUME_INPUT' if volume is None else 'RULE_NOT_QUANTIFIED'),
+                   kb_hold_trend_up_reason='RULE_NOT_QUANTIFIED',
                    kb_hold_j_not_dead_reason=j_reason)
         result.append(row)
     return result
@@ -91,7 +100,7 @@ def project_single_history(code, rows):
     used for a fresh build, next day, and correction. It does not obtain bars,
     select a pool, change pointers, or compute any of the accepted 57 fields.
     """
-    if code != '002865.SZ':
+    if code not in SINGLE_STOCKS:
         raise ValueError('SINGLE_STOCK_SCOPE_CONFLICT')
     output = score_history(rows)
     for source, row in zip(rows, output):

@@ -7,7 +7,7 @@ from ops.kb_signal_authority import DailyData, _source_kdj
 
 
 def bars(closes):
-    return [{'trade_date': 20200000 + i, 'close': value, 'high': value + 1, 'low': value - 1}
+    return [{'trade_date': 20200000 + i, 'open': value - 0.2, 'close': value, 'high': value + 1, 'low': value - 1, 'volume': 100}
             for i, value in enumerate(closes, 1)]
 
 
@@ -17,11 +17,35 @@ def test_partial_score_preserves_subjective_components_and_existing_rows():
     answer = score_history(source)[-1]
     assert source == before
     assert answer['kb_hold_close_up'] is True and answer['kb_hold_above_bbi'] is True
-    assert answer['kb_hold_volume_ok'] is None and answer['kb_hold_trend_up'] is None
-    assert answer['kb_hold_volume_ok_reason'] == answer['kb_hold_trend_up_reason'] == 'RULE_NOT_QUANTIFIED'
+    assert answer['kb_hold_volume_ok'] is True and answer['kb_hold_trend_up'] is None
+    assert answer['kb_hold_volume_ok_reason'] is None and answer['kb_hold_trend_up_reason'] == 'RULE_NOT_QUANTIFIED'
     assert answer['kb_hold_j_not_dead'] is True
-    assert (answer['kb_hold_score'], answer['kb_hold_score_min'], answer['kb_hold_score_max']) == (None, 3, 5)
+    assert (answer['kb_hold_score'], answer['kb_hold_score_min'], answer['kb_hold_score_max']) == (None, 4, 5)
     assert answer['kb_hold_score_status'] == 'PARTIAL_UNKNOWN'
+
+
+def test_volume_component_only_awards_a_valid_bullish_candle():
+    source = bars([20, 21, 20, 20, 20])
+    source[1]['open'] = 21.5  # higher close than previous, but a bearish candle
+    source[2]['open'] = 19.5  # lower close than previous, but a bullish candle
+    source[3]['open'] = 20.0  # flat is not an established bullish candle
+    source[4]['open'] = None
+    answer = score_history(source)
+    assert answer[1]['kb_hold_close_up'] is True and answer[1]['kb_hold_volume_ok'] is None
+    assert answer[1]['kb_hold_volume_ok_reason'] == 'RULE_NOT_QUANTIFIED'
+    assert answer[2]['kb_hold_close_up'] is False and answer[2]['kb_hold_volume_ok'] is True
+    assert answer[2]['kb_hold_volume_ok_reason'] is None
+    assert answer[3]['kb_hold_volume_ok'] is None
+    assert answer[4]['kb_hold_volume_ok'] is None and answer[4]['kb_hold_volume_ok_reason'] == 'INVALID_OHLC_INPUT'
+
+
+@pytest.mark.parametrize('volume', [None, 0, -1, float('nan'), float('inf')])
+def test_bullish_candle_needs_valid_positive_volume(volume):
+    source = bars([20, 21])
+    source[-1]['volume'] = volume
+    result = score_history(source)[-1]
+    assert result['kb_hold_volume_ok'] is None
+    assert result['kb_hold_volume_ok_reason'] == 'INVALID_VOLUME_INPUT'
 
 
 def test_j_state_matches_pinned_source_and_is_not_one_bar_cross():

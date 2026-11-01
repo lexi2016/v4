@@ -1,6 +1,7 @@
 """Read-only shape adapter for the fixed Dot visual shell, no financial producer."""
 from __future__ import annotations
 import copy
+import gzip
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 import hashlib
@@ -55,6 +56,77 @@ def checked(reference):
     return json.loads(checked_bytes(reference))
 
 
+def checked_single_display_projection(binding,identity):
+    """Check the narrow display-only pair and its observed F10 source."""
+    display=binding.get('display_projection')
+    if display is None:return None
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    policy=checked(display['policy']);f10=checked(display['f10_source']);roles=display.get('roles',{})
+    excluded=policy.get('excluded_from_display_projection')
+    if (policy.get('schema')!='a_share_single_display_projection_v1' or not isinstance(excluded,list)
+        or len(excluded)!=25 or len(set(excluded))!=25 or binding['symbol'] not in policy.get('authorized_symbols',[])
+        or any(policy.get(k)!=v for k,v in FLAGS.items()) or identity.get('display_policy_sha256')!=display['policy']['sha256']
+        or identity.get('display_f10_sha256')!=display['f10_source']['sha256'] or set(roles)!={'selector','backtest'}
+        or f10.get('symbol')!=binding['symbol'] or f10.get('status')!='OBSERVED' or f10.get('concept_status')!='OBSERVED'
+        or display.get('captured_at')!=f10.get('captured_at') or display.get('historical_PIT') is not False):
+        raise ValueError('SINGLE_DISPLAY_PROJECTION_IDENTITY_CONFLICT')
+    concepts=f10.get('concepts')
+    if (not isinstance(concepts,list) or not 0<len(concepts)<=127 or not all(isinstance(x,dict) and isinstance(x.get('name'),str) and x['name'] for x in concepts)
+        or display.get('kb_concepts')!='、'.join(x['name'] for x in concepts) or display.get('kb_concept_count')!=len(concepts)):
+        raise ValueError('SINGLE_DISPLAY_CONCEPT_SOURCE_CONFLICT')
+    result={}
+    for role,item in roles.items():
+        full=pq.ParquetFile(pa.BufferReader(checked_bytes(item['source_full'])))
+        projected=pq.ParquetFile(pa.BufferReader(checked_bytes(item['artifact'])))
+        source_schema,projected_schema=full.schema_arrow,projected.schema_arrow
+        source_meta=json.loads((source_schema.metadata or {})[b'kb_single_candidate_v1'])
+        meta=json.loads((projected_schema.metadata or {})[b'a_share_single_display_projection_v1'])
+        expected=[name for name in source_schema.names if name not in excluded]+['kb_concepts','kb_concept_count']
+        if (source_meta.get('candidate_generation')!=binding['candidate_generation']
+            or meta.get('candidate_generation')!=binding['candidate_generation'] or meta.get('symbol')!=binding['symbol']
+            or meta.get('role')!=role or meta.get('source_full_sha256')!=item['source_full']['sha256']
+            or meta.get('policy_sha256')!=display['policy']['sha256'] or meta.get('f10_sha256')!=display['f10_source']['sha256']
+            or meta.get('captured_at')!=display['captured_at'] or meta.get('historical_PIT') is not False
+            or any(meta.get(k)!=v for k,v in FLAGS.items()) or projected_schema.names!=expected
+            or 'kb_hold_volume_ok_reason' not in expected or projected_schema.field('kb_concepts').type!=pa.string()
+            or projected_schema.field('kb_concept_count').type!=pa.int8()
+            or full.metadata.num_rows!=projected.metadata.num_rows or projected.metadata.num_rows!=item.get('rows')
+            or len(projected_schema)!=item.get('columns')):
+            raise ValueError('SINGLE_DISPLAY_PROJECTION_SCHEMA_CONFLICT:'+role)
+        values=projected.read(columns=['kb_concepts','kb_concept_count']).to_pylist()
+        if (not values or any(x['kb_concepts'] is not None or x['kb_concept_count'] is not None for x in values[:-1])
+            or values[-1]!={'kb_concepts':display['kb_concepts'],'kb_concept_count':display['kb_concept_count']}):
+            raise ValueError('SINGLE_DISPLAY_CONCEPT_HISTORY_CONFLICT:'+role)
+        result[role+'_columns']=len(projected_schema)
+    return {**result,'f10_source_sha256':display['f10_source']['sha256'],
+            'captured_at':display['captured_at'],'kb_concepts':display['kb_concepts'],
+            'kb_concept_count':display['kb_concept_count'],'historical_PIT':False}
+
+
+def checked_relocated_parquet(reference, relocation_ref):
+    """Read one declared historical source only from its SHA-identical backup."""
+    relocation=checked(relocation_ref)
+    mappings=relocation.get('mappings')
+    if (relocation.get('schema')!='v4.single_stock_history_source_relocation.v1'
+        or relocation.get('mode')!='EXPLICIT_SHA_BOUND_READ_ONLY' or relocation.get('SEARCH_FALLBACK') is not False
+        or any(relocation.get(k)!=v for k,v in FLAGS.items()) or not isinstance(mappings,list) or len(mappings)!=1):
+        raise ValueError('SINGLE_HISTORY_RELOCATION_INVALID')
+    item=mappings[0]
+    if (item.get('original_path')!=reference.get('path') or item.get('expected_sha256')!=reference.get('sha256')
+        or item.get('physical_sha256')!=reference.get('sha256')):
+        raise ValueError('SINGLE_HISTORY_RELOCATION_SOURCE_MISMATCH')
+    raw=checked_bytes({'path':item['physical_path'],'sha256':item['physical_sha256']})
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    schema=pq.read_schema(pa.BufferReader(raw))
+    metadata=json.loads((schema.metadata or {})[b'kb_single_candidate_v1'])
+    if (len(schema)!=item.get('parquet_columns') or metadata.get('candidate_generation')!=item.get('candidate_generation')
+        or metadata.get('source_generation')!=item.get('source_generation')):
+        raise ValueError('SINGLE_HISTORY_RELOCATION_FOOTER_MISMATCH')
+    return raw
+
+
 class ResearchWorkbenchHost:
     """Compact view cache keys follow the actual current numeric manifest."""
     def __init__(self,source,binding,clock=None):
@@ -105,16 +177,18 @@ class ResearchWorkbenchHost:
 
     def single_stock_research(self,source_date,symbol,revision=None):
         """A separately bound, precomputed single-stock research artifact."""
-        if source_date!='2026-10-30' or symbol!='002865.SZ':raise KeyError('SINGLE_STOCK_NOT_BOUND')
+        if source_date!='2026-10-30' or symbol not in {'002865.SZ','301048.SZ'}:raise KeyError('SINGLE_STOCK_NOT_BOUND')
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
-        ref=self.binding.get('single_stock_research')
+        ref=self.binding.get('single_stock_research_by_symbol',{}).get(symbol)
+        if not ref and symbol=='002865.SZ':ref=self.binding.get('single_stock_research')
         if not ref:raise KeyError('SINGLE_STOCK_NOT_BOUND')
         value=checked(ref)
+        pool_member=any(row.get('symbol')==symbol for row in p.get('rows',[]))
         if (value.get('schema')!='v4.workbench.single_kb_binding.v1' or value.get('symbol')!=symbol
             or value.get('source_date')!=source_date or value.get('observation_date')!=observation
             or observation!='2026-11-02' or value.get('source_generation')!=p['source_generation']
             or value.get('source_input_sha256')!=p['source_identity']['input_sha256']
-            or value.get('numeric_manifest')!=p['manifest'] or value.get('candidate_pool_member') is not False
+            or value.get('numeric_manifest')!=p['manifest'] or value.get('candidate_pool_member') is not pool_member
             or value.get('historical_PIT') is not False or any(value.get(k)!=v for k,v in FLAGS.items())):
             raise ValueError('SINGLE_STOCK_SOURCE_IDENTITY_CONFLICT')
         identity=value.get('candidate_identity')
@@ -145,20 +219,53 @@ class ResearchWorkbenchHost:
                 or any(supplemental.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
                 or identity.get('supplemental_contract_sha256')!=supplemental_sha):
                 raise ValueError('SINGLE_STOCK_SUPPLEMENTAL_IDENTITY_CONFLICT')
+        action_ref=value.get('action_contract')
+        action_sha=None
+        if action_ref is not None:
+            action=checked(action_ref);action_sha=action_ref['sha256']
+            if (action.get('schema')!='a_share_kb_action_v1'
+                or action.get('RESEARCH_ONLY') is not True
+                or any(action.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
+                or identity.get('action_contract_sha256')!=action_sha):
+                raise ValueError('SINGLE_STOCK_ACTION_IDENTITY_CONFLICT')
+        yidong_ref=value.get('yidong_contract')
+        yidong_sha=None
+        if yidong_ref is not None:
+            yidong=checked(yidong_ref);yidong_sha=yidong_ref['sha256']
+            if (yidong.get('schema')!='a_share_kb_yidong_v1'
+                or yidong.get('RESEARCH_ONLY') is not True
+                or any(yidong.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))
+                or identity.get('yidong_contract_sha256')!=yidong_sha):
+                raise ValueError('SINGLE_STOCK_YIDONG_IDENTITY_CONFLICT')
         if score_ref is not None and supplemental_ref is not None:
             inventory=value.get('field_inventory');score_fields=inventory.get('hold_score_fields') if isinstance(inventory,dict) else None
             extra_fields=inventory.get('supplemental_fields') if isinstance(inventory,dict) else None
+            action_fields=inventory.get('action_fields',[]) if isinstance(inventory,dict) else []
+            yidong_fields=inventory.get('yidong_fields',[]) if isinstance(inventory,dict) else []
             declared_score=[name for names in score_contract.get('materialized_fields',{}).values() for name in names]
             declared_extra=[item['name'] for item in supplemental.get('fields',[])]
+            declared_action=list(action.get('materialized_fields',{})) if action_ref is not None else []
+            declared_yidong=list(yidong.get('materialized_fields',{})) if yidong_ref is not None else []
             if (inventory!=identity.get('field_inventory') or not isinstance(score_fields,list) or not isinstance(extra_fields,list)
                 or len(score_fields)!=len(set(score_fields)) or set(score_fields)!=set(declared_score)
                 or len(extra_fields)!=len(set(extra_fields)) or set(extra_fields)!=set(declared_extra)
+                or not isinstance(action_fields,list) or len(action_fields)!=len(set(action_fields)) or set(action_fields)!=set(declared_action)
+                or not isinstance(yidong_fields,list) or len(yidong_fields)!=len(set(yidong_fields)) or set(yidong_fields)!=set(declared_yidong)
                 or inventory.get('base_kb_fields')!=value.get('fields_count')
-                or inventory.get('total_new_fields')!=len(score_fields)+len(extra_fields)
-                or inventory.get('total_derived_fields')!=value['fields_count']+len(score_fields)+len(extra_fields)):
+                or inventory.get('total_new_fields')!=len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)
+                or inventory.get('total_derived_fields')!=value['fields_count']+len(score_fields)+len(extra_fields)+len(action_fields)+len(yidong_fields)):
                 raise ValueError('SINGLE_STOCK_FIELD_INVENTORY_CONFLICT')
+        display_projection=checked_single_display_projection(value,identity)
         assets=value.get('assets',{})
-        if set(assets)!={'kb','projection','html'}:raise ValueError('SINGLE_STOCK_ASSET_SET_INVALID')
+        if set(assets) not in ({'kb','projection','html'}, {'kb','projection','html','history','company'}):raise ValueError('SINGLE_STOCK_ASSET_SET_INVALID')
+        for kind in ('history','company'):
+            if kind in assets and identity.get(kind+'_asset_sha256')!=assets[kind].get('sha256'):
+                raise ValueError('SINGLE_STOCK_RESEARCH_ASSET_IDENTITY_CONFLICT')
+        relocation_ref=value.get('history_source_relocation')
+        if relocation_ref:
+            checked(relocation_ref)
+            if identity.get('history_source_relocation_sha256')!=relocation_ref['sha256']:
+                raise ValueError('SINGLE_HISTORY_RELOCATION_IDENTITY_CONFLICT')
         base=f'/api/v4/research/workbench/days/{source_date}/single-research/{symbol}/assets/'
         rendered={}
         for kind,item in assets.items():
@@ -169,21 +276,69 @@ class ResearchWorkbenchHost:
         return dict(schema='v4.workbench.single_kb_research.v1',status='READY_FOR_RESEARCH_REVIEW',
             source_date=source_date,observation_date=observation,symbol=symbol,name=value['name'],
             generation=p['source_generation'],input_sha256=value['source_input_sha256'],numeric_manifest=p['manifest'],
-            candidate_generation=value['candidate_generation'],candidate_pool_member=False,historical_PIT=False,
+            candidate_generation=value['candidate_generation'],candidate_pool_member=pool_member,historical_PIT=False,
             fields_count=value['fields_count'],rows=value['rows'],source_gate='PASS_RELOCATED_SOURCE_GATE',
-            field_inventory=value.get('field_inventory'),
+            field_inventory=value.get('field_inventory'),display_projection=display_projection,
             hold_score_contract_sha256=score_sha,hold_score_engine_sha256=value.get('hold_score_engine_sha256'),
-            supplemental_contract_sha256=supplemental_sha,
+            supplemental_contract_sha256=supplemental_sha,action_contract_sha256=action_sha,yidong_contract_sha256=yidong_sha,
+            reused_candidate_sha256=identity.get('feedback_reused_candidate_sha256') or identity.get('source_candidate_sha256'),
+            signal_component_facts_sha256=identity.get('signal_component_facts_sha256'),
             assets=rendered,**FLAGS)
 
     def single_stock_asset(self,source_date,symbol,kind,digest,revision=None):
         metadata=self.single_stock_research(source_date,symbol,revision)
-        if kind not in {'kb','projection','html'}:raise KeyError('SINGLE_STOCK_ASSET_NOT_BOUND')
-        binding=checked(self.binding['single_stock_research']);ref=binding['assets'][kind]
+        if kind not in {'kb','projection','html','history','company'}:raise KeyError('SINGLE_STOCK_ASSET_NOT_BOUND')
+        bound=self.binding.get('single_stock_research_by_symbol',{}).get(symbol)
+        if not bound and symbol=='002865.SZ':bound=self.binding['single_stock_research']
+        binding=checked(bound);ref=binding['assets'][kind]
         if digest!=ref['sha256']:raise ValueError('SINGLE_STOCK_ASSET_SHA_CONFLICT')
         raw=checked_bytes(ref)
         if len(raw)!=ref['bytes']:raise ValueError('SINGLE_STOCK_ASSET_SIZE_CONFLICT')
-        return raw,{'kb':'application/octet-stream','projection':'application/octet-stream','html':'text/html; charset=utf-8'}[kind]
+        if kind in {'history','company'}:
+            payload=gzip.decompress(raw)
+            if len(payload)!=ref.get('decoded_bytes') or len(payload)>8*1024*1024:raise ValueError('SINGLE_STOCK_RESEARCH_ASSET_SIZE_CONFLICT')
+            data=json.loads(payload)
+            if (data.get('symbol')!=symbol or data.get('data_date')!=compact(source_date)
+                or data.get('source_generation')!=metadata['generation'] or data.get('input_sha256')!=metadata['input_sha256']
+                or data.get('numeric_manifest')!=metadata['numeric_manifest'] or data.get('historical_PIT') is not False
+                or data.get('source_candidate',{}).get('sha256')!=metadata['reused_candidate_sha256']
+                or any(data.get(k)!=v for k,v in FLAGS.items())):
+                raise ValueError('SINGLE_STOCK_RESEARCH_ASSET_SOURCE_CONFLICT')
+            refs=[data['source_candidate']]
+            if kind=='history':
+                relocation=binding.get('history_source_relocation')
+                if data.get('history_source_relocation')!=relocation:raise ValueError('SINGLE_HISTORY_RELOCATION_BINDING_CONFLICT')
+                if relocation:checked_relocated_parquet(data['source_selector'],relocation)
+                else:checked_bytes(data['source_selector'])
+                refs.extend([data['source_view'],data['market_calendar']])
+            else:refs.extend([data['received_ref'],*[x['file'] for x in data['source_refs'].values()]])
+            for source in refs:checked_bytes(source)
+        return raw,{'kb':'application/octet-stream','projection':'application/octet-stream','html':'text/html; charset=utf-8','history':'application/octet-stream','company':'application/octet-stream'}[kind]
+
+    def f10(self,source_date,symbol,revision=None):
+        """Read the existing completion-index F10 snapshot, never acquire it on GET."""
+        p=self._view(source_date,revision)
+        if not any(row.get('symbol')==symbol for row in p.get('rows',[])):
+            self.single_stock_research(source_date,symbol,revision)
+        root=self.source._a_product_root()
+        if root is None:raise ValueError('F10_PRODUCT_ROOT_UNBOUND')
+        index=json.loads((root/'index.json').read_bytes());day=compact(source_date);ref=index.get('f10',{}).get(day)
+        common=dict(symbol=symbol,data_date=day,source_generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],historical_PIT=False,**FLAGS)
+        if not ref:return dict(status='NOT_MATERIALIZED',**common)
+        receipt=self.source._a_product_reference(ref)
+        if (receipt.get('schema')!='v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date')!=day
+            or receipt.get('source_generation')!=p['source_generation'] or receipt.get('input_sha256')!=p['source_identity']['input_sha256']
+            or receipt.get('status') not in {'COMPLETE','PARTIAL'}):raise ValueError('F10_RECEIPT_SOURCE_CONFLICT')
+        checkpoint=self.source._a_product_reference(receipt['checkpoint']);identity=checkpoint.get('identity',{})
+        if (identity.get('data_date')!=day or identity.get('source_generation')!=p['source_generation']
+            or identity.get('input_sha256')!=p['source_identity']['input_sha256']):raise ValueError('F10_CHECKPOINT_SOURCE_CONFLICT')
+        stock_ref=checkpoint.get('items',{}).get(symbol)
+        if not stock_ref:return dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,**common)
+        stock=self.source._a_product_reference(stock_ref)
+        if stock.get('symbol')!=symbol or stock.get('status')!='OBSERVED' or stock.get('historical_PIT') is not False:
+            raise ValueError('F10_STOCK_SOURCE_CONFLICT')
+        return dict(status='OBSERVED',receipt=ref,stock_ref=stock_ref,
+            f10={k:stock.get(k) for k in ('captured_at','source_updated_date','finance_updated_date','concepts','concept_status','industry','financials','source_text_sha256')},**common)
 
     def _observation_date(self,source_date):
         item=self.binding.get('observation_dates',{}).get(source_date)
@@ -541,6 +696,8 @@ def create_workbench_router(source):
         return Response(content,media_type=media,headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
     @router.get('/days/{source_date}/company/{symbol}')
     def company(source_date:str,symbol:str,revision:str|None=None):return call('company',source_date,symbol,revision)
+    @router.get('/days/{source_date}/f10/{symbol}')
+    def f10(source_date:str,symbol:str,revision:str|None=None):return call('f10',source_date,symbol,revision)
     @router.get('/days/{source_date}/observations')
     def observations(source_date:str,observation_date:str,revision:str|None=None):return call('observations',source_date,observation_date,revision)
     @router.get('/days/{source_date}/context')

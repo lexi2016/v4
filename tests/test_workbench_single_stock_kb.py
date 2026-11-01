@@ -90,6 +90,67 @@ def test_single_stock_supplemental_contract_is_sha_bound(fixture,tmp_path):
         host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
 
 
+def test_single_stock_action_contract_is_sha_bound(fixture,tmp_path):
+    host,value,binding=fixture
+    contract=_ref(tmp_path/'action.json',{'schema':'a_share_kb_action_v1',**wb.FLAGS})
+    value['action_contract']=contract
+    value['candidate_identity']['action_contract_sha256']=contract['sha256']
+    value['candidate_generation']=hashlib.sha256(json.dumps(value['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    host.binding['single_stock_research']=_ref(Path(binding['path']),value)
+    assert host.single_stock_research('2026-10-30','002865.SZ')['action_contract_sha256']==contract['sha256']
+    Path(contract['path']).write_text('{}')
+    with pytest.raises(ValueError,match='SOURCE_SHA_DRIFT'):
+        host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
+
+
+def test_single_stock_yidong_contract_is_sha_bound(fixture,tmp_path):
+    host,value,binding=fixture
+    contract=_ref(tmp_path/'yidong.json',{'schema':'a_share_kb_yidong_v1',**wb.FLAGS})
+    value['yidong_contract']=contract
+    value['candidate_identity']['yidong_contract_sha256']=contract['sha256']
+    value['candidate_generation']=hashlib.sha256(json.dumps(value['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    host.binding['single_stock_research']=_ref(Path(binding['path']),value)
+    assert host.single_stock_research('2026-10-30','002865.SZ')['yidong_contract_sha256']==contract['sha256']
+    Path(contract['path']).write_text('{}')
+    with pytest.raises(ValueError,match='SOURCE_SHA_DRIFT'):
+        host.single_stock_research('2026-10-30','002865.SZ',value['source_generation'])
+
+
+def test_display_projection_binds_f10_and_does_not_fill_history(tmp_path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    exclusions=['B1']+['excluded_'+str(i) for i in range(24)]
+    policy=_ref(tmp_path/'policy.json',{'schema':'a_share_single_display_projection_v1',
+        'authorized_symbols':['002865.SZ'],'excluded_from_display_projection':exclusions,**wb.FLAGS})
+    f10=_ref(tmp_path/'f10.json',{'symbol':'002865.SZ','status':'OBSERVED','concept_status':'OBSERVED',
+        'captured_at':'2026-11-01T14:27:02+00:00','concepts':[{'name':'光伏'}]})
+    generation='a'*64;roles={}
+    def file_ref(path):return {'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+    for role in ('selector','backtest'):
+        full=pa.table({'trade_date':[20261029,20261030],'B1':[0,1],
+                       'kb_hold_volume_ok_reason':['RULE_NOT_QUANTIFIED',None]})
+        full=full.replace_schema_metadata({b'kb_single_candidate_v1':json.dumps({'candidate_generation':generation}).encode()})
+        full_path=tmp_path/(role+'_full.parquet');pq.write_table(full,full_path);source_ref=file_ref(full_path)
+        metadata={'candidate_generation':generation,'symbol':'002865.SZ','role':role,'source_full_sha256':source_ref['sha256'],
+            'policy_sha256':policy['sha256'],'f10_sha256':f10['sha256'],'captured_at':'2026-11-01T14:27:02+00:00',
+            'historical_PIT':False,**wb.FLAGS}
+        projected=pa.table({'trade_date':[20261029,20261030],'kb_hold_volume_ok_reason':['RULE_NOT_QUANTIFIED',None],
+                            'kb_concepts':pa.array([None,'光伏'],type=pa.string()),'kb_concept_count':pa.array([None,1],type=pa.int8())})
+        projected=projected.replace_schema_metadata({b'a_share_single_display_projection_v1':json.dumps(metadata).encode()})
+        path=tmp_path/(role+'_display.parquet');pq.write_table(projected,path)
+        roles[role]={'artifact':file_ref(path),'source_full':source_ref,'rows':2,'columns':4}
+    display={'policy':policy,'f10_source':f10,'captured_at':'2026-11-01T14:27:02+00:00',
+             'kb_concepts':'光伏','kb_concept_count':1,'historical_PIT':False,'roles':roles}
+    binding={'symbol':'002865.SZ','candidate_generation':generation,'display_projection':display}
+    identity={'display_policy_sha256':policy['sha256'],'display_f10_sha256':f10['sha256']}
+    assert wb.checked_single_display_projection(binding,identity)['selector_columns']==4
+    path=Path(roles['selector']['artifact']['path']);changed=pq.read_table(path)
+    changed=changed.set_column(2,changed.schema.field(2),pa.array(['光伏','光伏']))
+    pq.write_table(changed,path);roles['selector']['artifact']=file_ref(path)
+    with pytest.raises(ValueError,match='SINGLE_DISPLAY_CONCEPT_HISTORY_CONFLICT'):
+        wb.checked_single_display_projection(binding,identity)
+
+
 def test_field_inventory_is_bound_to_contracts_and_candidate(fixture,tmp_path):
     host,value,binding=fixture
     score=_ref(tmp_path/'score.json',{'schema':'a_share_kb_hold_score_v1','materialized_fields':{'score':['kb_hold_score']},**wb.FLAGS})
@@ -106,3 +167,38 @@ def test_field_inventory_is_bound_to_contracts_and_candidate(fixture,tmp_path):
     host.binding['single_stock_research']=_ref(Path(binding['path']),value)
     with pytest.raises(ValueError,match='SINGLE_STOCK_FIELD_INVENTORY_CONFLICT'):
         host.single_stock_research('2026-10-30','002865.SZ')
+
+
+def test_history_relocation_only_reads_declared_sha_and_footer(tmp_path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    backup=tmp_path/'frozen.parquet.bak';table=pa.table({'trade_date':['20261030']})
+    table=table.replace_schema_metadata({b'kb_single_candidate_v1':json.dumps({'candidate_generation':'a'*64,'source_generation':'b'*64}).encode()})
+    pq.write_table(table,backup)
+    digest=hashlib.sha256(backup.read_bytes()).hexdigest();original={'path':str(tmp_path/'original.parquet'),'sha256':digest}
+    mapping={'original_path':original['path'],'expected_sha256':digest,'physical_path':str(backup),'physical_sha256':digest,
+             'candidate_generation':'a'*64,'source_generation':'b'*64,'parquet_columns':1}
+    manifest=_ref(tmp_path/'relocation.json',{'schema':'v4.single_stock_history_source_relocation.v1',
+        'mode':'EXPLICIT_SHA_BOUND_READ_ONLY','SEARCH_FALLBACK':False,'mappings':[mapping],**wb.FLAGS})
+    assert wb.checked_relocated_parquet(original,manifest)==backup.read_bytes()
+    with pytest.raises(ValueError,match='RELOCATION_SOURCE_MISMATCH'):
+        wb.checked_relocated_parquet({**original,'path':str(tmp_path/'other.parquet')},manifest)
+    backup.write_bytes(b'changed')
+    with pytest.raises(ValueError,match='SOURCE_SHA_DRIFT'):
+        wb.checked_relocated_parquet(original,manifest)
+
+
+def test_two_bound_stocks_keep_actual_pool_membership(fixture,tmp_path):
+    host,junda,_=fixture
+    gold={**junda,'symbol':'301048.SZ','name':'金鹰重工','candidate_pool_member':True}
+    gold['candidate_identity']={**junda['candidate_identity'],'symbol':'301048.SZ'}
+    gold['candidate_generation']=hashlib.sha256(json.dumps(gold['candidate_identity'],sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+    host.binding['single_stock_research_by_symbol']={'301048.SZ':_ref(tmp_path/'gold.json',gold)}
+    old_view=host._view
+    host._view=lambda date,revision=None:{**old_view(date,revision),'rows':[{'symbol':'301048.SZ'}]+[{'symbol':str(i)} for i in range(171)]}
+    assert host.single_stock_research('2026-10-30','301048.SZ')['candidate_pool_member'] is True
+    assert host.single_stock_research('2026-10-30','002865.SZ')['candidate_pool_member'] is False
+    gold['candidate_pool_member']=False
+    host.binding['single_stock_research_by_symbol']['301048.SZ']=_ref(tmp_path/'gold.json',gold)
+    with pytest.raises(ValueError,match='SINGLE_STOCK_SOURCE_IDENTITY_CONFLICT'):
+        host.single_stock_research('2026-10-30','301048.SZ')
