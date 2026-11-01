@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import ast
+
 from pathlib import Path
 
 import pytest
 
 from ops.apply_tech_debt_overlay import (
     CONSTANTS,
+    HV_NAMES,
+    HV_REWIRE,
     NESTED,
     OverlayError,
     _rewrite_app,
+    _split_hk_verify,
     _split_stage_workbench,
 )
 
@@ -159,6 +164,7 @@ def test_split_moves_the_three_branches_and_delegates(tmp_path: Path):
     text = app.read_text(encoding="utf-8")
     assert "morning_binding = " not in text
     assert "return read_stage_workbench(\n            stage_workbench_ctx" in text
+    assert "return stage_runner.read_workbench" not in text
     lines = text.splitlines()
     route = lines.index('    @app.get("/api/v4/workbench/stage")')
     assert lines[route - 1] == "    )"
@@ -201,3 +207,133 @@ def test_split_requires_the_recursive_call(tmp_path: Path):
 ''', ""), encoding="utf-8")
     with pytest.raises(OverlayError, match="recursive self-call"):
         _split_stage_workbench(app, None, tmp_path / "out.py")
+
+
+HK_VERIFY_APP = '''\
+from typing import Any, Mapping
+
+from apps.api.v4_api.stage_workbench import StageWorkbenchContext, read_stage_workbench
+
+_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE = {}
+_HK_R8_BINDING_BY_DATE_STAGE = {}
+_HK_R8_POOL_EVIDENCE = {}
+_HK_R9_BINDING_BY_DATE_STAGE = {}
+_HK_R9_LEGACY_STALE_LANE_IDENTITIES = {}
+_HK_R9_LEGACY_STALE_POOL_CONTRACTS = {}
+_HK_R9_POOL_EVIDENCE = {}
+
+
+def create_app():
+    configured_selection_root = None
+    shared_selection_consumer = None
+    approved_research_reader = None
+    stage_runner = None
+
+    def _quarantine_known_hk_auction_pool_mismatch(
+        payload: dict, trade_date: str, stage_id: str
+    ) -> dict:
+        if shared_selection_consumer is None:
+            return payload
+        return payload
+
+    def _read_exact_target_hk_override(
+        payload: dict,
+        trade_date: str,
+        stage_id: str,
+        limit: int,
+        binding: Mapping[str, Any],
+        *,
+        source_label: str,
+    ) -> dict:
+        exact = stage_workbench(
+            date=trade_date,
+            stage=stage_id,
+            limit=limit,
+            market="HK_CONNECT",
+            backfill_run_id=binding["backfill_run_id"],
+        )
+        return {"exact": exact, "pool": _HK_R8_POOL_EVIDENCE, "label": source_label}
+
+    def _read_r8_exact_target_hk_override(payload: dict, trade_date: str, stage_id: str, limit: int):
+        return _read_exact_target_hk_override(payload, trade_date, stage_id, limit, {}, source_label="r8")
+
+    def _read_r9_exact_target_hk_override(payload: dict, trade_date: str, stage_id: str, limit: int):
+        return _read_exact_target_hk_override(payload, trade_date, stage_id, limit, {}, source_label="r9")
+
+    def _read_hk_morning_selection_recovery_override(payload: dict, trade_date: str, stage_id: str, limit: int):
+        if configured_selection_root is None:
+            return None
+        return {"pool": _HK_R9_POOL_EVIDENCE}
+
+    stage_workbench_ctx = StageWorkbenchContext(
+        quarantine_hk_auction_pool_mismatch=_quarantine_known_hk_auction_pool_mismatch,
+        hk_morning_override=_read_hk_morning_selection_recovery_override,
+        r8_override=_read_r8_exact_target_hk_override,
+        r9_override=_read_r9_exact_target_hk_override,
+    )
+
+    @app.get("/api/v4/workbench/stage")
+    def stage_workbench(date=None, stage="S", limit=10, market=None, backfill_run_id=None):
+        selected = date or "20261001"
+        return read_stage_workbench(
+            stage_workbench_ctx, selected, stage, limit, market, backfill_run_id
+        )
+
+    @app.post("/api/v4/workbench/stage/ensure")
+    def stage_workbench_ensure():
+        return {}
+'''
+
+
+def _write_hk_app(tmp_path: Path) -> Path:
+    app = tmp_path / "app.py"
+    app.write_text(HK_VERIFY_APP, encoding="utf-8")
+    return app
+
+
+def test_hk_verify_moves_the_readers_and_rewires_the_context(tmp_path: Path):
+    app = _write_hk_app(tmp_path)
+    module_path = tmp_path / "hk_verify.py"
+    receipt = _split_hk_verify(app, None, module_path)
+
+    text = app.read_text(encoding="utf-8")
+    for old, _ in HV_NAMES:
+        assert f"def {old}(" not in text
+        assert f"{old}," not in text
+    assert "    hk_verify_ctx = HkVerifyContext(" in text
+    assert "from functools import partial" in text
+    assert text.count("partial(") == len(HV_REWIRE)
+    assert "from apps.api.v4_api.hk_verify import (" in text
+    lines = text.splitlines()
+    route = lines.index('    @app.get("/api/v4/workbench/stage")')
+    assert any(line == "    hk_verify_ctx = HkVerifyContext(" for line in lines[route:])
+
+    module = module_path.read_text(encoding="utf-8")
+    compile(module, str(module_path), "exec")
+    parsed = ast.parse(module)
+    defs = {node.name: node for node in parsed.body if isinstance(node, ast.FunctionDef)}
+    for _, new in HV_NAMES:
+        assert new in defs, new
+        first = defs[new].args.args[0]
+        assert first.arg == "ctx" and ast.unparse(first.annotation) == "HkVerifyContext", new
+    assert "read_exact_target_hk_override(ctx, payload" in module
+    assert "ctx.read_workbench(" in module
+    assert "ctx.shared_selection_consumer is None" in module
+    assert "ctx.configured_selection_root is None" in module
+    assert receipt["hk_module_lines"] == len(module.splitlines())
+
+
+def test_hk_verify_rejects_a_drifted_reviewed_module(tmp_path: Path):
+    app = _write_hk_app(tmp_path)
+    reviewed = tmp_path / "reviewed.py"
+    reviewed.write_text("# drifted\n", encoding="utf-8")
+    with pytest.raises(OverlayError, match="differs from the reviewed file"):
+        _split_hk_verify(app, reviewed, tmp_path / "out.py")
+
+
+def test_hk_verify_requires_complete_rewiring(tmp_path: Path):
+    app = _write_hk_app(tmp_path)
+    text = app.read_text(encoding="utf-8")
+    app.write_text(text.replace("        r9_override=_read_r9_exact_target_hk_override,\n", ""), encoding="utf-8")
+    with pytest.raises(OverlayError, match="rewiring incomplete"):
+        _split_hk_verify(app, None, tmp_path / "out.py")

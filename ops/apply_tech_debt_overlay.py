@@ -310,7 +310,7 @@ def _split_stage_workbench(
         "            stage_workbench_ctx, selected, stage, limit, market, backfill_run_id",
         "        )",
     ]
-    new_lines = lines[:block1] + delegation + lines[fallback:]
+    new_lines = lines[:block1] + delegation + lines[fallback + 1:]
     route = _index(new_lines, SW_ROUTE_ANCHOR)
     new_lines[route:route] = SW_CTX_BLOCK
     projection_import = _index(new_lines, "from apps.api.v4_api.projection import ProjectionContext, project_shared_selection")
@@ -322,6 +322,186 @@ def _split_stage_workbench(
     return {"module_lines": len(module.splitlines()), "app_lines": len(new_lines)}
 
 
+HV_NAMES = [
+    ("_quarantine_known_hk_auction_pool_mismatch", "quarantine_known_hk_auction_pool_mismatch"),
+    ("_read_exact_target_hk_override", "read_exact_target_hk_override"),
+    ("_read_r8_exact_target_hk_override", "read_r8_exact_target_hk_override"),
+    ("_read_r9_exact_target_hk_override", "read_r9_exact_target_hk_override"),
+    ("_read_hk_morning_selection_recovery_override", "read_hk_morning_selection_recovery_override"),
+]
+HV_CTX_MAP = [
+    (r"\bconfigured_selection_root\b", "ctx.configured_selection_root"),
+    (r"\bshared_selection_consumer\b", "ctx.shared_selection_consumer"),
+    (r"\bstage_workbench\(", "ctx.read_workbench("),
+    (r"\b_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE\b", "ctx.morning_binding_by_date_stage"),
+    (r"\b_HK_R8_BINDING_BY_DATE_STAGE\b", "ctx.r8_binding_by_date_stage"),
+    (r"\b_HK_R8_POOL_EVIDENCE\b", "ctx.r8_pool_evidence"),
+    (r"\b_HK_R9_BINDING_BY_DATE_STAGE\b", "ctx.r9_binding_by_date_stage"),
+    (r"\b_HK_R9_LEGACY_STALE_LANE_IDENTITIES\b", "ctx.r9_legacy_stale_lane_identities"),
+    (r"\b_HK_R9_LEGACY_STALE_POOL_CONTRACTS\b", "ctx.r9_legacy_stale_pool_contracts"),
+    (r"\b_HK_R9_POOL_EVIDENCE\b", "ctx.r9_pool_evidence"),
+]
+HV_MODULE_HEAD = '''"""Exact HK override and observation reads.
+
+These five readers were closures inside ``create_app``. They now take an
+explicit ``HkVerifyContext`` so their store, consumer and evidence
+dependencies are visible at the call site.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Callable, Mapping
+
+from fastapi import HTTPException
+
+
+@dataclass(frozen=True)
+class HkVerifyContext:
+    configured_selection_root: Any
+    shared_selection_consumer: Any
+    read_workbench: Callable[..., dict]
+    morning_binding_by_date_stage: Mapping[Any, Any]
+    r8_binding_by_date_stage: Mapping[Any, Any]
+    r8_pool_evidence: Any
+    r9_binding_by_date_stage: Mapping[Any, Any]
+    r9_legacy_stale_lane_identities: Any
+    r9_legacy_stale_pool_contracts: Any
+    r9_pool_evidence: Any
+
+
+'''
+
+HV_IMPORT = (
+    "from apps.api.v4_api.hk_verify import (\n"
+    "    HkVerifyContext,\n"
+    "    quarantine_known_hk_auction_pool_mismatch,\n"
+    "    read_exact_target_hk_override,\n"
+    "    read_hk_morning_selection_recovery_override,\n"
+    "    read_r8_exact_target_hk_override,\n"
+    "    read_r9_exact_target_hk_override,\n"
+    ")\n"
+)
+HV_CTX_BLOCK = [
+    "    hk_verify_ctx = HkVerifyContext(",
+    "        configured_selection_root=configured_selection_root,",
+    "        shared_selection_consumer=shared_selection_consumer,",
+    "        read_workbench=stage_workbench,",
+    "        morning_binding_by_date_stage=_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE,",
+    "        r8_binding_by_date_stage=_HK_R8_BINDING_BY_DATE_STAGE,",
+    "        r8_pool_evidence=_HK_R8_POOL_EVIDENCE,",
+    "        r9_binding_by_date_stage=_HK_R9_BINDING_BY_DATE_STAGE,",
+    "        r9_legacy_stale_lane_identities=_HK_R9_LEGACY_STALE_LANE_IDENTITIES,",
+    "        r9_legacy_stale_pool_contracts=_HK_R9_LEGACY_STALE_POOL_CONTRACTS,",
+    "        r9_pool_evidence=_HK_R9_POOL_EVIDENCE,",
+    "    )",
+]
+HV_REWIRE = [
+    ("        quarantine_hk_auction_pool_mismatch=_quarantine_known_hk_auction_pool_mismatch,",
+     "        quarantine_hk_auction_pool_mismatch=partial(quarantine_known_hk_auction_pool_mismatch, hk_verify_ctx),"),
+    ("        hk_morning_override=_read_hk_morning_selection_recovery_override,",
+     "        hk_morning_override=partial(read_hk_morning_selection_recovery_override, hk_verify_ctx),"),
+    ("        r8_override=_read_r8_exact_target_hk_override,",
+     "        r8_override=partial(read_r8_exact_target_hk_override, hk_verify_ctx),"),
+    ("        r9_override=_read_r9_exact_target_hk_override,",
+     "        r9_override=partial(read_r9_exact_target_hk_override, hk_verify_ctx),"),
+]
+HV_ROUTE_DELEGATION = [
+    "        return read_stage_workbench(",
+    "            stage_workbench_ctx, selected, stage, limit, market, backfill_run_id",
+    "        )",
+]
+
+
+def _insert_ctx_parameter(text: str, name: str) -> str:
+    """Put ``ctx: HkVerifyContext`` in front of the function's first parameter."""
+    head = f"def {name}("
+    index = text.index(head) + len(head)
+    gap_start = index
+    while index < len(text) and text[index] in " \t\n":
+        index += 1
+    multiline = "\n" in text[gap_start:index]
+    separator = "\n    " if multiline else ""
+    return (
+        text[:gap_start] + separator + "ctx: HkVerifyContext,"
+        + ("\n    " if multiline else " ") + text[index:]
+    )
+
+
+def _split_hk_verify(path: Path, reviewed_module: Path | None, out_module: Path) -> dict[str, int]:
+    """Move the five HK override readers into hk_verify.py."""
+    src = path.read_text(encoding="utf-8")
+    lines = src.splitlines()
+    tree = ast.parse(src)
+    create = next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "create_app"), None)
+    if create is None:
+        raise OverlayError("create_app not found")
+    old_names = dict(HV_NAMES)
+    found = {n.name: n for n in ast.walk(create) if isinstance(n, ast.FunctionDef) and n.name in old_names}
+    missing = set(old_names) - set(found)
+    if missing:
+        raise OverlayError(f"hk verify anchors missing: {sorted(missing)}")
+
+    ranges: list[tuple[int, int]] = []
+    bodies: dict[str, str] = {}
+    for old, new in HV_NAMES:
+        node = found[old]
+        start = node.lineno - 1
+        while start > 0 and lines[start - 1].strip().startswith("#"):
+            start -= 1
+        end = node.end_lineno
+        while end < len(lines) and lines[end].strip() == "":
+            end += 1
+        ranges.append((start, end))
+        text = "\n".join(line[4:] if line.startswith("    ") else line for line in lines[start:end])
+        text = text.replace(f"def {old}(", f"def {new}(")
+        text = _insert_ctx_parameter(text, new)
+        for other_old, other_new in HV_NAMES:
+            text = re.sub(rf"\b{re.escape(other_old)}\(", f"{other_new}(ctx, ", text)
+        for pattern, replacement in HV_CTX_MAP:
+            text = re.sub(pattern, replacement, text)
+        bodies[new] = "\n".join(line.rstrip() for line in text.splitlines()).rstrip("\n")
+
+    module = HV_MODULE_HEAD + "\n\n\n".join(bodies[new] for _, new in HV_NAMES) + "\n"
+    ast.parse(module)
+    if reviewed_module is not None and module != reviewed_module.read_text(encoding="utf-8"):
+        raise OverlayError("generated hk_verify module differs from the reviewed file")
+
+    new_lines = list(lines)
+    for start, end in sorted(ranges, reverse=True):
+        del new_lines[start:end]
+
+    ctx_start = new_lines.index("    stage_workbench_ctx = StageWorkbenchContext(")
+    ctx_end = new_lines.index("    )", ctx_start)
+    stage_block = new_lines[ctx_start:ctx_end + 1]
+    del new_lines[ctx_start:ctx_end + 1]
+    for index, line in enumerate(stage_block):
+        for before, after in HV_REWIRE:
+            if line == before:
+                stage_block[index] = after
+    if sum(1 for line in stage_block if line.startswith("        ") and "partial(" in line) != len(HV_REWIRE):
+        raise OverlayError("stage_workbench context rewiring incomplete")
+
+    delegation = next(
+        (i for i in range(len(new_lines) - 2) if new_lines[i:i + 3] == HV_ROUTE_DELEGATION), None
+    )
+    if delegation is None:
+        raise OverlayError("stage_workbench route delegation not found")
+    insert_at = delegation + 3
+    new_lines[insert_at:insert_at] = [""] + HV_CTX_BLOCK + [""] + stage_block + [""]
+
+    typing_import = new_lines.index("from typing import Any, Mapping")
+    new_lines.insert(typing_import + 1, "from functools import partial")
+    stage_import = next(i for i, line in enumerate(new_lines)
+                        if line.startswith("from apps.api.v4_api.stage_workbench import"))
+    new_lines.insert(stage_import + 1, HV_IMPORT.rstrip("\n"))
+
+    text = "\n".join(new_lines) + "\n"
+    ast.parse(text)
+    path.write_text(text, encoding="utf-8")
+    out_module.write_text(module, encoding="utf-8")
+    return {"hk_module_lines": len(module.splitlines()), "hk_app_lines": len(new_lines)}
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app-root", type=Path, required=True, help="copy of the release app to modify")
@@ -329,6 +509,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--stage-workbench", action="store_true",
         help="also move stage_workbench's three branches into stage_workbench.py",
+    )
+    parser.add_argument(
+        "--hk-verify", action="store_true",
+        help="also move the five HK override readers into hk_verify.py (needs --stage-workbench)",
     )
     args = parser.parse_args(argv)
     app = args.app_root.resolve()
@@ -347,6 +531,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 app / "apps/api/v4_api/app.py",
                 source / "apps/api/v4_api/stage_workbench.py",
                 app / "apps/api/v4_api/stage_workbench.py",
+            )
+        )
+    if args.hk_verify:
+        if not args.stage_workbench:
+            raise OverlayError("--hk-verify needs --stage-workbench")
+        receipt.update(
+            _split_hk_verify(
+                app / "apps/api/v4_api/app.py",
+                source / "apps/api/v4_api/hk_verify.py",
+                app / "apps/api/v4_api/hk_verify.py",
             )
         )
     receipt["app_root"] = str(app)
