@@ -1,5 +1,7 @@
 # F1/F2 bounded revision — sealed r3
 
+Latest API integration: [actual Junda baseline, r4 API](API_REBASE_R4.md). R3 Stage and A-pre-capture roots/bytes/pins below remain unchanged; only the r3 API companion has been superseded after the actual API baseline changed.
+
 Current: **r3 independently reviewed PASS**, business source `d6f60ca5ad633cc18e6257f7c8f92f211e1d63f0`; remaining P0/P1/P2=0 per controller's independent Reviewer receipt. The five affected cases, wrong Stage release_id negative, three inventories and twenty protected SHAs passed. Formal incremental evidence: `/private/tmp/stage-four-independent-incremental-r3.json`, SHA `f3eff7a9e88a2e6d9623ead69ba84a726ea610627315efa903c25851064e3adc`. This document-only follow-up does not change business code, config or candidate bytes and does not claim deployment/natural/manual-provider execution.
 
 The prior r2 controller review was `REVIEWED/FAIL` for two P2 findings; no P0/P1 was reported. Its original evidence is preserved at `/private/tmp/stage-four-independent-review-a83b782.json`, SHA `7abae5149d342a32518c0ec46309927e1423cec76c998b2ad783a950c70cd22f`. That JSON records ten passing regression cases; those test passes are distinct from the controller's two-finding review verdict and are not rewritten here.

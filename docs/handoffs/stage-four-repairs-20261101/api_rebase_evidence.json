@@ -1,0 +1,463 @@
+{
+  "RESEARCH_ONLY": true,
+  "accepted_api_integration_source": "c311455620ef7b3149f15fbc4c5aa6d1f15addef",
+  "accepted_stage_business_source": "d6f60ca5ad633cc18e6257f7c8f92f211e1d63f0",
+  "activation_environment": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/activation-environment.json",
+    "sha256": "44ff66523c1d1024d82a818eec039e24b334d69dd6c021626556aa235f82f3a4",
+    "tuple": {
+      "actual_loaded_base_manifest_sha256": "80ef9ab95df0eb2168051ec62c628dea0a6efe63173059fab85bbeda087b5c7b",
+      "api_environment": {
+        "V4_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app",
+        "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+        "V4_MANUAL_COLLECTION_STAGE_CONFIG": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app/config/api-v4_manual_collection_stage_config.json",
+        "V4_RELEASE_ID": "stage-four-repairs-20261101-r4-api",
+        "V4_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/release-manifest.json",
+        "V4_RELEASE_MANIFEST_SHA256": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a",
+        "V4_RESEARCH_PANEL_ASSET_MANIFEST": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+        "V4_RESEARCH_PANEL_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel",
+        "V4_WORKBENCH_HOST_BINDING": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/config/workbench-binding.json",
+        "V4_WORKBENCH_HOST_BINDING_SHA256": "e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249"
+      },
+      "manual_HK_child_manifest_environment": "Existing fixed HK-only owner program does not consume inherited API manifest variables; V4_APP_ROOT/release_id/PYTHONPATH are rebound by unchanged manual_collection.py",
+      "manual_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+      "other_loaded_environment_must_be_preserved": true,
+      "preserved_external_binding_sha256": {
+        "V4_MANAGER_WORKBENCH_CONFIG_PATH": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+          "sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+        },
+        "V4_RESEARCH_PANEL_ASSET_MANIFEST": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+          "sha256": "0296a5755aaa7eae60e31e8b89a647bd1aab78b2a71033127d013e5211b023e9"
+        },
+        "V4_WORKBENCH_HOST_BINDING": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/config/workbench-binding.json",
+          "sha256": "e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249"
+        }
+      },
+      "runtime_state_roots_changed": false,
+      "stage_authority_config_sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+      "stage_owner_identity": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "delta": [
+          "contracts/a_share_code.py",
+          "contracts/a_share_entity_filter.py",
+          "infrastructure/stage_quote_provider.py",
+          "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "ops/run_stage_center_nodes.py",
+          "ops/stage_data_recovery.py",
+          "stage_center/_live_collectors_parts/shared_module_loading.py",
+          "stage_center/_runner_parts/slot_execution.py",
+          "stage_center/candidate_input.py",
+          "stage_center/collector_capture.py",
+          "stage_center/hk_stage8/rtdata.py",
+          "stage_center/market_retry.py",
+          "stage_center/snapshot_recovery.py",
+          "stage_center_tick_config.json"
+        ],
+        "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+        "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+        "release_id": "stage-four-repairs-20261101-r3-stage",
+        "source_role": "STAGE_PRIMARY_SCHEDULER"
+      },
+      "status": "PREPARED_NOT_APPLIED"
+    }
+  },
+  "actual_loaded_api_base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/app",
+  "actual_loaded_api_base_manifest_sha256": "80ef9ab95df0eb2168051ec62c628dea0a6efe63173059fab85bbeda087b5c7b",
+  "allowed_api_delta": [
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "config/api-v4_manual_collection_stage_config.json",
+        "sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+        "size": 1817
+      },
+      "before": null,
+      "path": "config/api-v4_manual_collection_stage_config.json"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "docs/SOP.md",
+        "sha256": "e70b9f8e50d021aaf9740f66d941bdb78379bf18c29e27cda4c451325b63f0ce",
+        "size": 919
+      },
+      "before": null,
+      "path": "docs/SOP.md"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "docs/operations/STAGE_SELECTION_SOP.md",
+        "sha256": "e7b8ac64ba04c37067869a4660a6313569b4571036762633836a62af97050b58",
+        "size": 26625
+      },
+      "before": null,
+      "path": "docs/operations/STAGE_SELECTION_SOP.md"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+        "sha256": "faca9693fb575f9faccca2ed5960d11f57ed88c8f060cfec338b90e9f643c02f",
+        "size": 26652
+      },
+      "before": null,
+      "path": "docs/operations/records/2026-10-28_29-stage-selection-repair.md"
+    },
+    {
+      "after": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "infrastructure/operations_sop_reader.py",
+        "sha256": "e1fbeadeaad9c42b1df5dd58dc5f6923006a964181c9eb03078d6ba02200774f",
+        "size": 3470
+      },
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "infrastructure/operations_sop_reader.py",
+        "sha256": "1938a0adb61e6880014caf49552e90f7e5c7d93bd5677070f6eea6452ece9827",
+        "size": 1639
+      },
+      "path": "infrastructure/operations_sop_reader.py"
+    }
+  ],
+  "api_rebase_reason": "Actual API changed after prior audit; earlier controller assembly used stale date-history baseline. Current disk and loaded V4 environment agree.",
+  "baseline_preservation": {
+    "actual_loaded_base_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/app",
+    "actual_loaded_base_manifest_sha256": "80ef9ab95df0eb2168051ec62c628dea0a6efe63173059fab85bbeda087b5c7b",
+    "allowed_delta": [
+      "config/api-v4_manual_collection_stage_config.json",
+      "docs/SOP.md",
+      "docs/operations/STAGE_SELECTION_SOP.md",
+      "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+      "infrastructure/operations_sop_reader.py"
+    ],
+    "existing_candidate_input_not_overlaid": true,
+    "external_bindings": {
+      "V4_MANAGER_WORKBENCH_CONFIG_PATH": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+        "sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+      },
+      "V4_RESEARCH_PANEL_ASSET_MANIFEST": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+        "sha256": "0296a5755aaa7eae60e31e8b89a647bd1aab78b2a71033127d013e5211b023e9"
+      },
+      "V4_WORKBENCH_HOST_BINDING": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/config/workbench-binding.json",
+        "sha256": "e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249"
+      }
+    },
+    "panel_environment": {
+      "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+      "V4_RESEARCH_PANEL_ASSET_MANIFEST": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+      "V4_RESEARCH_PANEL_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel",
+      "V4_WORKBENCH_HOST_BINDING": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/config/workbench-binding.json",
+      "V4_WORKBENCH_HOST_BINDING_SHA256": "e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249"
+    },
+    "preserved_manifest_bindings": {
+      "prior_research_panel": {
+        "asset_count": 485,
+        "asset_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-310e64e55bd17d85/research-panel-assets.json",
+        "asset_manifest_sha256": "7b73ed878bb8f43ff73f75850b23d301a04d42af04d25169f590bedca1198dd1",
+        "base_asset_manifest_sha256": "0fe50fb67017e0f354217d0a153fa281896fba6f5713d4b0dcf7ccb46464a03f",
+        "non_delta_asset_count": 482,
+        "non_delta_bytes_preserved": true,
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-310e64e55bd17d85/research-panel"
+      },
+      "research_panel": {
+        "asset_count": 487,
+        "asset_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+        "asset_manifest_sha256": "0296a5755aaa7eae60e31e8b89a647bd1aab78b2a71033127d013e5211b023e9",
+        "base_asset_manifest_sha256": "7b73ed878bb8f43ff73f75850b23d301a04d42af04d25169f590bedca1198dd1",
+        "non_delta_asset_count": 481,
+        "non_delta_bytes_preserved": true,
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel"
+      }
+    },
+    "reused_owner_identities": {
+      "a_precapture": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-a_precapture/app",
+        "delta": [
+          "contracts/a_share_code.py",
+          "contracts/a_share_entity_filter.py",
+          "infrastructure/stage_quote_provider.py",
+          "stage_center/candidate_input.py"
+        ],
+        "inventory_sha256": "36c4f79831e0cdfa0f590980c05daefa3248983306d4e0d2724f06d3f94a3a95",
+        "manifest_sha256": "e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b",
+        "release_id": "stage-four-repairs-20261101-r3-a_precapture",
+        "source_role": "A_OPENING_PRECAPTURE"
+      },
+      "stage": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+        "delta": [
+          "contracts/a_share_code.py",
+          "contracts/a_share_entity_filter.py",
+          "infrastructure/stage_quote_provider.py",
+          "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+          "ops/run_stage_center_nodes.py",
+          "ops/stage_data_recovery.py",
+          "stage_center/_live_collectors_parts/shared_module_loading.py",
+          "stage_center/_runner_parts/slot_execution.py",
+          "stage_center/candidate_input.py",
+          "stage_center/collector_capture.py",
+          "stage_center/hk_stage8/rtdata.py",
+          "stage_center/market_retry.py",
+          "stage_center/snapshot_recovery.py",
+          "stage_center_tick_config.json"
+        ],
+        "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+        "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+        "release_id": "stage-four-repairs-20261101-r3-stage",
+        "source_role": "STAGE_PRIMARY_SCHEDULER"
+      }
+    }
+  },
+  "buy_gate_updated": false,
+  "current_combination": {
+    "a_precapture": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-a_precapture/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "stage_center/candidate_input.py"
+      ],
+      "inventory_sha256": "36c4f79831e0cdfa0f590980c05daefa3248983306d4e0d2724f06d3f94a3a95",
+      "manifest_sha256": "e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b",
+      "release_id": "stage-four-repairs-20261101-r3-a_precapture",
+      "source_role": "A_OPENING_PRECAPTURE"
+    },
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app",
+      "delta": [
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/SOP.md",
+        "docs/operations/STAGE_SELECTION_SOP.md",
+        "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+        "infrastructure/operations_sop_reader.py"
+      ],
+      "inventory_sha256": "935360ad58add98cfa0cb1f3d5260f75eb4adca388a39656b281c644e42542fa",
+      "manifest_sha256": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a",
+      "release_id": "stage-four-repairs-20261101-r4-api",
+      "source_role": "API_CURRENT_LOADED_JUNDA_REBASE"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+      "delta": [
+        "contracts/a_share_code.py",
+        "contracts/a_share_entity_filter.py",
+        "infrastructure/stage_quote_provider.py",
+        "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/stage_data_recovery.py",
+        "stage_center/_live_collectors_parts/shared_module_loading.py",
+        "stage_center/_runner_parts/slot_execution.py",
+        "stage_center/candidate_input.py",
+        "stage_center/collector_capture.py",
+        "stage_center/hk_stage8/rtdata.py",
+        "stage_center/market_retry.py",
+        "stage_center/snapshot_recovery.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+      "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+      "release_id": "stage-four-repairs-20261101-r3-stage",
+      "source_role": "STAGE_PRIMARY_SCHEDULER"
+    }
+  },
+  "independent_review": {
+    "checks": [
+      "4/4 actual API incremental cases",
+      "loaded Junda root/manifest pin",
+      "5-file allowlist only",
+      "550 apps/web/research/workbench paths unchanged",
+      "487 external panel assets unchanged",
+      "loaded external bindings/env preserved",
+      "stage ensure producer_called=false",
+      "manual invoke_owner mandatory; no fallback"
+    ],
+    "controller_reported_verdict": "PASS",
+    "formal_receipt_owner": "controller",
+    "source": "c311455620ef7b3149f15fbc4c5aa6d1f15addef"
+  },
+  "limits": [
+    "No actual API/Stage/pre-capture activation",
+    "No service/plist/env/live data changes",
+    "No panel copy or alteration",
+    "No unrelated old API candidate-input fix backport",
+    "No Popen/provider execution in manual parameter probe",
+    "No remote push by Writer",
+    "Original D30 RT_DATA and natural-verification limitations remain"
+  ],
+  "natural_verified": false,
+  "orders_sent": false,
+  "preserved_manifest_panel_bindings": {
+    "prior_research_panel": {
+      "asset_count": 485,
+      "asset_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-310e64e55bd17d85/research-panel-assets.json",
+      "asset_manifest_sha256": "7b73ed878bb8f43ff73f75850b23d301a04d42af04d25169f590bedca1198dd1",
+      "base_asset_manifest_sha256": "0fe50fb67017e0f354217d0a153fa281896fba6f5713d4b0dcf7ccb46464a03f",
+      "non_delta_asset_count": 482,
+      "non_delta_bytes_preserved": true,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-310e64e55bd17d85/research-panel"
+    },
+    "research_panel": {
+      "asset_count": 487,
+      "asset_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+      "asset_manifest_sha256": "0296a5755aaa7eae60e31e8b89a647bd1aab78b2a71033127d013e5211b023e9",
+      "base_asset_manifest_sha256": "7b73ed878bb8f43ff73f75850b23d301a04d42af04d25169f590bedca1198dd1",
+      "non_delta_asset_count": 481,
+      "non_delta_bytes_preserved": true,
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel"
+    }
+  },
+  "previous_handoff_source": "bee536e40b1e686e00602a09ac0ad70820a6c1a2",
+  "production_allowed": false,
+  "source_sha256": {
+    "docs/operations/STAGE_SELECTION_SOP.md": "e7b8ac64ba04c37067869a4660a6313569b4571036762633836a62af97050b58",
+    "ops/prepare_stage_four_repairs.py": "ebe7128f9e2949e6d3e585936447d79ed1a530f2d2a827fc16660ece488d3d46",
+    "tests/test_stage_four_repairs.py": "701af0282becf8dc8124b69f3ab864b0304fd6cbd5bf617a96f949b5226fb5d9"
+  },
+  "status": "INDEPENDENT_INCREMENTAL_REVIEW_PASS_CONTROLLER_REPORTED",
+  "unchanged_API_candidate_reader": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app/stage_center/candidate_input.py",
+    "sha256": "947dca238598380bd7fe0e50d67c9beca7542500dc8354542494c5c6d218c244",
+    "status": "PRESERVED_CURRENT_JUNDA_BYTES_NOT_BACKPORTED"
+  },
+  "writer_results": {
+    "path": "/private/tmp/v4-stage-four-repairs-20261101/rebase-r4-api-identity-SOP-manual-preservation.json",
+    "receipt": {
+      "candidate_bundle": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api",
+      "cases": [
+        {
+          "bad_manifest_status": 503,
+          "endpoint": "/api/v4/operations/sop?doc=stage-selection",
+          "http_status": 200,
+          "identity": {
+            "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app",
+            "release_id": "stage-four-repairs-20261101-r4-api",
+            "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/release-manifest.json",
+            "release_manifest_sha256": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a"
+          },
+          "listener_started": false,
+          "network_invocations": 0,
+          "sha256": "e7b8ac64ba04c37067869a4660a6313569b4571036762633836a62af97050b58",
+          "state_root": "/private/tmp/stage-four-case-rwkkd6s8/api-state",
+          "status": "ASGI_ENDPOINT_VERIFIED",
+          "unknown_document_status": 422
+        },
+        {
+          "Popen_calls_intercepted": 1,
+          "Popen_executed": 0,
+          "api_business_bytes_unchanged": true,
+          "api_identity": {
+            "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app",
+            "release_id": "stage-four-repairs-20261101-r4-api",
+            "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/release-manifest.json",
+            "release_manifest_sha256": "21fb1a6b8c272ae29441b5d5af1814be78e9d4dbd8615d1c5d880a752131107a"
+          },
+          "case": "F2_actual_manual_router_to_owner_parameter_probe",
+          "child_command_shape": [
+            "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+            "-c",
+            "UNCHANGED_FIXED_HK_OWNER_PROGRAM"
+          ],
+          "child_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "child_program_sha256": "3db17e41375a7fa7eb60688708316150c3602ac6eb8d8e1bc6648115fb853af7",
+          "child_pythonpath": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "child_release_id": "stage-four-repairs-20261101-r3-stage",
+          "inherited_API_manifest_env": "PRESENT_BUT_NOT_CONSUMED_BY_FIXED_HK_PROGRAM",
+          "manual_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r4-api/app/config/api-v4_manual_collection_stage_config.json",
+          "manual_config_sha256": "1fade05041d43e60e253c00f82dbe8a5e8a5815b669dbba62d6e985a11c9a9b9",
+          "owner_authority_config_sha256": "6601d5e66a063dc7d17af4387d15d19ae833c10dd099aeaa5a1c3d4011365be4",
+          "owner_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+          "provider_invocations": 0,
+          "state_writes": 0,
+          "status": "PASS"
+        },
+        {
+          "baseline": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/app",
+          "case": "actual_loaded_API_rebase_allowlist",
+          "delta": [
+            "config/api-v4_manual_collection_stage_config.json",
+            "docs/SOP.md",
+            "docs/operations/STAGE_SELECTION_SOP.md",
+            "docs/operations/records/2026-10-28_29-stage-selection-repair.md",
+            "infrastructure/operations_sop_reader.py"
+          ],
+          "existing_API_candidate_reader_not_backported": true,
+          "external_binding_hashes_unchanged": true,
+          "external_panel_assets_checked": 487,
+          "full_inventory_entry_count": 1330,
+          "loaded_panel_environment": {
+            "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+            "V4_RESEARCH_PANEL_ASSET_MANIFEST": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel-assets.json",
+            "V4_RESEARCH_PANEL_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/research-panel",
+            "V4_WORKBENCH_HOST_BINDING": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/junda-single-20261101-8e342a6d64746507/config/workbench-binding.json",
+            "V4_WORKBENCH_HOST_BINDING_SHA256": "e2ab06e46919b85ac292fa066d33ac2ffeb4be96e69d82ed7981d39c68152249"
+          },
+          "preserved_app_web_research_workbench_paths": 550,
+          "reused_Stage_and_precapture": {
+            "a_precapture": {
+              "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-a_precapture/app",
+              "delta": [
+                "contracts/a_share_code.py",
+                "contracts/a_share_entity_filter.py",
+                "infrastructure/stage_quote_provider.py",
+                "stage_center/candidate_input.py"
+              ],
+              "inventory_sha256": "36c4f79831e0cdfa0f590980c05daefa3248983306d4e0d2724f06d3f94a3a95",
+              "manifest_sha256": "e497fcb246747269cf8d6b4911c4a89d7ffd85fd56d53fb27e54dbb754c56b3b",
+              "release_id": "stage-four-repairs-20261101-r3-a_precapture",
+              "source_role": "A_OPENING_PRECAPTURE"
+            },
+            "stage": {
+              "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+              "delta": [
+                "contracts/a_share_code.py",
+                "contracts/a_share_entity_filter.py",
+                "infrastructure/stage_quote_provider.py",
+                "ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+                "ops/run_stage_center_nodes.py",
+                "ops/stage_data_recovery.py",
+                "stage_center/_live_collectors_parts/shared_module_loading.py",
+                "stage_center/_runner_parts/slot_execution.py",
+                "stage_center/candidate_input.py",
+                "stage_center/collector_capture.py",
+                "stage_center/hk_stage8/rtdata.py",
+                "stage_center/market_retry.py",
+                "stage_center/snapshot_recovery.py",
+                "stage_center_tick_config.json"
+              ],
+              "inventory_sha256": "9c101eaa6cbab638862f10b90e31ed96161ed33740ae880e9986bbaaf9bd2af6",
+              "manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+              "release_id": "stage-four-repairs-20261101-r3-stage",
+              "source_role": "STAGE_PRIMARY_SCHEDULER"
+            }
+          }
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "natural_verified": false,
+      "outcome_by_test": {
+        "test_08_sealed_SOP_and_API_identity": "PASS",
+        "test_13_actual_API_SOP_endpoint_inprocess_isolated_state": "PASS",
+        "test_15_actual_manual_router_owner_parameters_without_spawn": "PASS",
+        "test_16_current_loaded_API_allowlist_and_panel_bindings": "PASS"
+      },
+      "passed": true,
+      "tests_run": 4
+    },
+    "sha256": "b9f39ecb9fd2b26b633514f1387c9c1550ec771de98267bac63b2f4d9ffb0a49"
+  }
+}

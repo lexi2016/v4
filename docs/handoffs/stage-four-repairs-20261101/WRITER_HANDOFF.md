@@ -1,6 +1,6 @@
 # Stage four repairs — Writer handoff
 
-Current revision: [F1/F2 bounded repair, sealed r3](REVISION_F1_F2.md). The r2 record below is retained as the prior handoff; it is superseded for activation identity and independent acceptance.
+Current integration: [API r4 on actual Junda baseline + unchanged accepted r3 Stage/pre-capture](API_REBASE_R4.md). The [F1/F2 r3 repair](REVISION_F1_F2.md) remains the accepted Stage/pre-capture source; its API companion is superseded. The r2 record below is retained as a prior handoff and is superseded for activation identity and independent acceptance.
 
 Status: `WRITER_TESTED_PENDING_INDEPENDENT_REVIEW`. This is not deployment or independent acceptance.
 
