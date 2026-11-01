@@ -86,16 +86,25 @@
 
 | 消费面 | 改动位置 | 产出 |
 | --- | --- | --- |
-| 预选池 API | `apps/api/v4_api/preselection_service.py` 的 `_preselection_response_from_pools`,在 `_project_independent_pools` 之前调用 `filter_pool_rows` | `original_row_count` / `effective_row_count` / `quarantined_row_count` / `quarantined[]` / `filter_rule_version`;`row_count` 仍为发布行数;每池在被隔离时附 `original_pool_size`、`quarantined_row_count` |
-| 研报决策台 | `domains/research.py` 的 `build_research_archive`,`stock_pool` 循环按 `is_a_share_code`/`canonical_a_share_code` 判定 | `stock_pool_count` 为有效数;`stock_pool_original_count`、`stock_pool_quarantined[]`、`quarantined_row_count`、`filter_rule_version` 只在确有隔离时写入(其余产物的 payload 身份不变,`contracts/research.py` 新增 `_OPTIONAL_TOP_LEVEL_FIELDS` 以兼容旧档案) |
+| 预选池 API(普通读取) | `domains/_preselection_parts/pool_assembly.py` 的 `_preselection_body`:`_project_independent_pools` 之后、分页之前调 `filter_pool_rows`,返回前 `summarize_pool_quarantine` | 逐池剔除非 A 股实体后重新投影,`row_count`/各数组计数即有效数;`original_row_count`、`effective_row_count`、`quarantined_row_count`、`quarantined[]`、`filter_rule_version`;每池附 `original_pool_size`、`quarantined_row_count`、`quarantined_rows` |
+| 预选池 API(隔离恢复分支) | `apps/api/v4_api/preselection_service.py` 的 `_preselection_response_from_pools` | 同上三计数;`row_count` 与 `effective_row_count` 一致 |
+| 研报决策台(生成) | `domains/research.py` 的 `build_research_archive`,按 `row_market` 先分市场,仅 A 股行判 `is_a_share_code`/`canonical_a_share_code` | HK 行永不进入判定;`stock_pool_original_count`、`stock_pool_quarantined[]`、`quarantined_row_count`、`filter_rule_version` 只在确有隔离时写入(`contracts/research.py` 新增 `_OPTIONAL_TOP_LEVEL_FIELDS` 以兼容旧档案) |
+| 研报决策台(存量读取) | `apps/api/v4_api/research_lane_router.py` 的 `_lane_response` 与 `apps/api/v4_api/research_router.py` 的 `_hourly_response` | 已存档案与小时源在响应边界过滤,存储内容不动;附 `stock_pool_original_count`、`stock_pool_quarantined[]`、`quarantined_row_count`、`filter_rule_version` |
 | 已保存阶段结果 | `stage_center/consumer.py` 的 `_project_market` | 行与 `missing_symbols` 原样保留;新增 `historical_invalid_entity_count`、`historical_invalid_entities`、`display_note` 与 `cannot_confirm` 条目 |
 
-共享判定与隔离记录在 `contracts/a_share_entity_filter.py`(规则版本 `a_share_code.v1`)。
+共享判定与隔离记录在 `contracts/a_share_entity_filter.py`(规则版本 `a_share_code.v1`),市场识别由 `row_market` 统一提供:先看 `market`/`market_id`/`stock_market`/池市场,再看 `HK.`/`A.`/`SZ.`/`SH.`/`BJ.` 符号前缀,判定为 HK 的行一律保留。
 
-**真实数据核对**(只读,活服务 `:8873` 旧代码):
+**空结果口径**:发布行数 > 0 且全部被隔离时不再抛异常,返回 `data_status = ALL_ROWS_QUARANTINED`、`ok = true`、三计数齐全、`blocking_reasons = [ALL_ROWS_QUARANTINED_AS_INVALID_A_SHARE]`;只有发布行数本就为 0 才保留原异常语义。
 
-- `GET /api/v4/preselection-pools?date=20261030`,分页取全 643 行,套用读取侧过滤:
-  643 → 642,恰好隔离 1 行(`a_share_research_recommendation_pool` / `261029` / `A.261029` / `申昊科技`);
-  HK 100 行全部保留,A 股 543 → 542。
-- `tests/test_a_share_entity_filter.py` 9 条:三个消费面各覆盖"合法行不受影响""非法行被隔离而非丢弃""计数三件套齐全",并验证 `pool_rank` 不被重排。
-- 全量 `pytest`:313 passed,1 failed(`test_real_pinned_live_manifest_preflight`,因活动 plist 已变,与本批无关,前批即为已知失败)。
+**真实数据核对**(只读,对本机活动池根调用工作树代码的普通读取路径):
+
+- `preselection(NativeDataStore(v35 state/data), "20261030", 300)`:643 → 642,
+  `row_count = effective_row_count = 642`、`original_row_count = 643`、`quarantined_row_count = 1`;
+  隔离行 `a_share_research_recommendation_pool / 261029 / A.261029 / 申昊科技`,
+  该池 `original_pool_size = 518` → `pool_size = 517`;HK 100 行全部保留。
+- `tests/test_a_share_entity_filter.py` 16 条:三个消费面 + 两条读取路径,覆盖合法行不受影响、
+  非法行被隔离而非丢弃、三计数齐全、`pool_rank` 不重排、A/HK 混合输入保留 HK 行、
+  全隔离返回显式空结果。
+- 全量 `pytest`:320 passed,1 failed(`test_real_pinned_live_manifest_preflight`,因活动 plist 已变,与本批无关,前批即为已知失败)。
+
+**复审补正(2026-11-01)**:首版有三处缺陷——决策台未先分市场会误隔离 `HK.00700`、过滤只挂在投影 helper 而普通 `read()` 路径可绕过、全部行被隔离时抛 `ValueError`。上表已按这三处改写,并补上"存量档案读取"这一此前只改了生成路径的缺口。

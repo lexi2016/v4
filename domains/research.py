@@ -11,7 +11,7 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from contracts.a_share_code import canonical_a_share_code, is_a_share_code
-from contracts.a_share_entity_filter import FILTER_RULE_VERSION
+from contracts.a_share_entity_filter import FILTER_RULE_VERSION, row_market
 from contracts.research import (
     DEDUPE_KEY_FIELDS,
     SCHEMA_VERSION,
@@ -374,7 +374,7 @@ def build_research_archive(
         code = _text(source_row.get("stock_code"))
         if not code:
             continue
-        if not is_a_share_code(code) and not canonical_a_share_code(code):
+        if row_market(source_row) != "HK" and not is_a_share_code(code) and not canonical_a_share_code(code):
             quarantined_entities.append({
                 "stock_code": code,
                 "stock_name": _text(source_row.get("stock_name")),

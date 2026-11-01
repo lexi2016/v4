@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from fastapi import APIRouter, HTTPException, Query, Response
 
 from apps.api.v4_api.wechat_research_router import create_wechat_research_router
+from contracts.a_share_entity_filter import FILTER_RULE_VERSION, quarantine_research_stock_rows
 from infrastructure.wechat_research_archive import WechatResearchArchive
 
 from contracts.research_day_product import (
@@ -369,6 +370,7 @@ def _hourly_response(
 ) -> dict:
     rows = payload.get("evidence_rows") or payload.get("articles") or payload.get("rows") or []
     stock_rows = payload.get("stock_pool") or payload.get("stock_research_daily") or []
+    stock_rows, quarantined = quarantine_research_stock_rows(stock_rows)
     return {
         "schema_version": "v3_5.research_hourly_product.v1",
         "status": "READY",
@@ -382,6 +384,10 @@ def _hourly_response(
         "stock_count": len(stock_rows),
         "rows": rows,
         "stock_pool": stock_rows,
+        "stock_pool_original_count": len(stock_rows) + len(quarantined),
+        "stock_pool_quarantined": quarantined,
+        "quarantined_row_count": len(quarantined),
+        "filter_rule_version": FILTER_RULE_VERSION,
         "source_input_sha256": payload.get("source_input_sha256"),
         "cannot_confirm": [],
         "loading_complete": True,

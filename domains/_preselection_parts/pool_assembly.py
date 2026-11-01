@@ -1,5 +1,12 @@
 """domains.preselection: pool_assembly (review candidate, not deployment)."""
 from __future__ import annotations
+from typing import Any, Mapping
+
+from contracts.a_share_entity_filter import (
+    FILTER_RULE_VERSION,
+    filter_pool_rows,
+    summarize_pool_quarantine,
+)
 from domains.preselection import OPTIONAL_DAILY_POOL_IDS, _blocked, _canonical_a_symbol, _complete_independent_pool_set, _ensure_source_contract, _input_fingerprint, _market_totals, _merge_source_contract, _page_metadata, _page_per_market, _project_independent_pools, _replace_payload_review_core_fupan_pool, _replace_payload_review_core_stage7_pool, _replace_review_core_fupan_pool, _replace_review_core_stage7_pool
 
 
@@ -36,9 +43,19 @@ def _preselection_body(store, date, limit, *, offset, allow_legacy_flat, pool_st
         payload = _replace_payload_review_core_stage7_pool(payload, date)
         if any(pool.get("pool_id") == "legacy_partial_migration" for pool in payload.get("pools", [])):
             return _blocked(date, "LEGACY_PARTIAL_MIGRATION_REJECTED: final-output imports are oracle-only.")
+    # Storage is write-once and its digest was verified when the pools were
+    # read; this quarantine only decides which rows a consumer may treat as
+    # A-share entities. Stored rows, ranks and counts are never rewritten.
+    quarantine: list = []
+    if isinstance(payload, Mapping) and isinstance(payload.get("pools"), list):
+        filtered_pools, quarantine = filter_pool_rows(payload["pools"])
+        if quarantine:
+            payload = {**payload, **_project_independent_pools(filtered_pools, date)}
     rows = payload["rows"]
     status = "READY_WITH_ROWS" if payload.get("producer_status") == "CANONICAL_COMPLETE" else "PARTIAL_WITH_ROWS"
     if not rows:
+        if quarantine:
+            return _all_rows_quarantined(date, quarantine)
         return _blocked(date, "Empty output is not promoted to VALID_EMPTY without complete producer evidence.")
     response = {key: payload.get(key, [] if key.endswith("rows") or key == "pools" or key == "cannot_confirm" else {}) for key in ("pools", "unified_rows", "a_source_only_rows", "a_all_pool_rows", "startup_ensure", "strict_0_2_status", "evidence_paths", "cannot_confirm")}
     response.update({"ok": True, "data_status": status, "blocking_reasons": list(payload.get("blocking_reasons", [])), "schema_version": "v3_preselection_pools.v1", "trade_date": date, "module_id": "unified_preselection_pools", "write_policy": "read_only", "production_allowed": False, "buy_gate_updated": False, "orders_sent": False, "recommendation_status": "WATCH_ONLY_BACKTEST_GATED", "pool_count": len(payload.get("pools", [])), "row_count": len(rows), "unified_row_count": len(payload.get("unified_rows", rows)), "a_source_only_row_count": len(payload.get("a_source_only_rows", [])), "a_all_pool_row_count": len(payload.get("a_all_pool_rows", rows)), "rows": [], "daily_readiness_status": payload.get("daily_readiness_status", status), "mandatory_pool_ids": list(payload.get("mandatory_pool_ids", ())), "optional_pool_ids": list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS))})
@@ -119,7 +136,42 @@ def _preselection_body(store, date, limit, *, offset, allow_legacy_flat, pool_st
     )
     response["mandatory_pool_ids"] = list(payload.get("mandatory_pool_ids", ()))
     response["optional_pool_ids"] = list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS))
-    return response
+    return summarize_pool_quarantine(response)
+
+
+def _all_rows_quarantined(date, quarantine) -> dict[str, Any]:
+    """Report a pool set whose every published row was an invalid A-share entity.
+
+    This is not an empty product: the producer published rows, the read side
+    withheld all of them, and the caller must be able to tell the two apart.
+    """
+    return {
+        "ok": True,
+        "status": "ALL_ROWS_QUARANTINED",
+        "data_status": "ALL_ROWS_QUARANTINED",
+        "schema_version": "v3_preselection_pools.v1",
+        "trade_date": date,
+        "module_id": "unified_preselection_pools",
+        "write_policy": "read_only",
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+        "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
+        "pool_count": 0,
+        "row_count": 0,
+        "original_row_count": len(quarantine),
+        "effective_row_count": 0,
+        "quarantined_row_count": len(quarantine),
+        "quarantined": list(quarantine),
+        "filter_rule_version": FILTER_RULE_VERSION,
+        "blocking_reasons": ["ALL_ROWS_QUARANTINED_AS_INVALID_A_SHARE"],
+        "cannot_confirm": ["ALL_ROWS_QUARANTINED_AS_INVALID_A_SHARE"],
+        "rows": [],
+        "pools": [],
+        "unified_rows": [],
+        "a_source_only_rows": [],
+        "a_all_pool_rows": [],
+    }
 
 
 def __dedupe_by_symbol_body(rows):

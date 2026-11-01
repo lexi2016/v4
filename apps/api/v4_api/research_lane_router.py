@@ -18,6 +18,10 @@ from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
+from contracts.a_share_entity_filter import (
+    FILTER_RULE_VERSION,
+    quarantine_research_stock_rows,
+)
 from domains.report_subjects import project_report_roles
 from domains.research_day_product import consume_authoritative_research_day
 from infrastructure.data_store import _date, _sha256
@@ -576,6 +580,7 @@ def _lane_response(
         for article in articles
     ]
     pool = list(archive["stock_pool"])
+    pool, pool_quarantined = quarantine_research_stock_rows(pool)
     cannot_confirm = list(archive["cannot_confirm"])
     zsxq_articles = [
         article
@@ -654,6 +659,10 @@ def _lane_response(
         "stock_research_daily": pool,
         "stock_research_timeline": timeline,
         "research_pool_bridge": pool,
+        "stock_pool_original_count": len(pool) + len(pool_quarantined),
+        "stock_pool_quarantined": pool_quarantined,
+        "quarantined_row_count": len(pool_quarantined),
+        "filter_rule_version": FILTER_RULE_VERSION,
         "research_quality_summary": _quality_summary(archive),
         "morning_news": _morning_news_response(morning_news),
         "zsxq_hourly": zsxq_hourly,

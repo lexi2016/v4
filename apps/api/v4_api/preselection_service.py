@@ -214,7 +214,28 @@ def _preselection_response_from_pools(
     rows = payload["rows"]
     status = "READY_WITH_ROWS" if payload.get("producer_status") == "CANONICAL_COMPLETE" else "PARTIAL_WITH_ROWS"
     if not rows:
-        raise ValueError("exact-date pool projection has no rows")
+        if published_row_count == 0:
+            raise ValueError("exact-date pool projection has no rows")
+        # The producer published rows and the read side withheld all of them.
+        # That is not an empty product and must stay distinguishable from one.
+        return {
+            "ok": True, "status": "ALL_ROWS_QUARANTINED", "data_status": "ALL_ROWS_QUARANTINED",
+            "blocking_reasons": ["ALL_ROWS_QUARANTINED_AS_INVALID_A_SHARE"],
+            "cannot_confirm": ["ALL_ROWS_QUARANTINED_AS_INVALID_A_SHARE"],
+            "schema_version": "v3_preselection_pools.v1", "trade_date": trade_date,
+            "module_id": "unified_preselection_pools", "write_policy": "read_only",
+            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+            "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
+            "pool_count": 0, "row_count": 0,
+            "unified_row_count": 0, "a_source_only_row_count": 0, "a_all_pool_row_count": 0,
+            "original_row_count": published_row_count,
+            "effective_row_count": 0,
+            "quarantined_row_count": len(quarantined),
+            "quarantined": list(quarantined),
+            "filter_rule_version": FILTER_RULE_VERSION,
+            "rows": [], "pools": [], "unified_rows": [],
+            "a_source_only_rows": [], "a_all_pool_rows": [],
+        }
     response = {
         key: payload.get(key, [] if key.endswith("rows") or key == "pools" or key == "cannot_confirm" else {})
         for key in ("pools", "unified_rows", "a_source_only_rows", "a_all_pool_rows", "startup_ensure", "strict_0_2_status", "evidence_paths", "cannot_confirm")
@@ -232,7 +253,7 @@ def _preselection_response_from_pools(
         "orders_sent": False,
         "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
         "pool_count": len(payload.get("pools", [])),
-        "row_count": published_row_count,
+        "row_count": len(rows),
         "original_row_count": published_row_count,
         "effective_row_count": len(rows),
         "quarantined_row_count": len(quarantined),
@@ -522,7 +543,7 @@ def _recover_legacy_sha_block(
             # source-bound pools with a separate Review Core authority.
             apply_review_sources=owner == resolver.root, name_pool_root=owner,
         )
-        if recovered.get("a_all_pool_row_count", 0) < 1:
+        if recovered.get("a_all_pool_row_count", 0) < 1 and recovered.get("data_status") != "ALL_ROWS_QUARANTINED":
             return response
     except (OSError, ValueError) as error:
         # Preserve the original blocked result and expose why recovery declined;
