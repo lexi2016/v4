@@ -122,6 +122,16 @@ def zero_admission(plan):
     return fresh
 
 
+def rollback_zero_admission(plan):
+    # Restoring the original Stage removes the new Main identity. A delayed
+    # rollback is therefore inadmissible once that Main has any receipt.
+    proof = plan["omitted_main_owner_zero_proof"]
+    candidate = plan["roles"]["main"]["candidate"]
+    fresh = omitted_owner_proof(proof["ledger_root"], candidate["release_id"], candidate["app_root"], first_date="00000000")
+    fixed.require(not fresh["matching_receipts"], "ROLLBACK_NEW_MAIN_RECEIPTS_EXIST_COMPATIBILITY_REQUIRED")
+    return fresh
+
+
 def admit(role, job):
     if role == "main":
         fixed.require(job["state"] == "running", "MAIN_DAEMON_NOT_RUNNING"); assert_main_idle(job["pid"])
@@ -168,7 +178,9 @@ def switch(preparation_sha, plan, *, rollback=False):
             current = raws[role][1 if rollback else 0]; fixed.cas(row, current); job = fixed.loaded(row["label"], current); admit(role, job)
             if not rollback: fixed.require(job == row["loaded"], "LOADED_ROLE_CHANGED:" + role)
             ownership[role] = job
-        fixed.assert_idle(ownership["api"]["pid"]); zero_admission(plan)
+        fixed.assert_idle(ownership["api"]["pid"])
+        if rollback: rollback_zero_admission(plan)
+        else: zero_admission(plan)
         protection = fixed.external_protection(); data = fixed.data_protection()
         fixed.require(protection == prepared["protection"], "PROTECTED_BASELINE_CHANGED")
         if not rollback: fixed.require(data == prepared["data_protection"], "STAGE_DATA_CHANGED_SINCE_PREPARE")

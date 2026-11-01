@@ -139,6 +139,7 @@ def prepare(output, source, batch1):
         root = output / (output.name + "-" + role); app = root / "app"
         shutil.copytree(base, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
         before = {r["path"]: r for r in inv.inventory_tree(base)}
+        actual_before = {r["path"]: r for r in inv.inventory_tree(pins[role][1])}
         for relative in {"main": MAIN_FILES, "api": API_FILES, "stage": STAGE_FILES}[role]:
             write(app, relative, (source / relative).read_bytes())
         if role == "main":
@@ -166,6 +167,10 @@ def prepare(output, source, batch1):
         allowed = set({"main": MAIN_FILES, "api": API_FILES, "stage": STAGE_FILES}[role]) | {
             "main": {"infrastructure/scheduling/dispatcher.py", "infrastructure/scheduling/execution_ledger.py", "ops/run_v4_macos_scheduler_due.py"}, "stage": {"ops/run_stage_center_nodes.py", "stage_center_tick_config.json"}, "api": {"config/api-v4_manual_collection_stage_config.json"}}[role]
         if set(delta) - allowed: raise ValueError("UNOWNED_OVERLAY:" + repr(set(delta) - allowed))
+        actual_delta = [p for p in sorted(set(actual_before) | set(after)) if actual_before.get(p) != after.get(p)]
+        cache_omissions = {p for p in actual_delta if p in actual_before and p not in after and "__pycache__" in Path(p).parts and p.endswith((".pyc", ".pyo"))}
+        if set(actual_delta) - allowed - cache_omissions:
+            raise ValueError("NON_BATCH_DELTA_AGAINST_ACTUAL_CURRENT:" + repr(set(actual_delta) - allowed - cache_omissions))
         manifest = copy.deepcopy(base_manifest)
         manifest.update(app_root=str(app), release_id=root.name, activation_status="PREPARED_NOT_ACTIVATED", deployment_status="NOT_DEPLOYED")
         manifest["candidate"].update(root=str(root), app_root=str(app), release_id=root.name)
@@ -174,9 +179,14 @@ def prepare(output, source, batch1):
         manifest["runtime_governance_overlay"] = {"source_root": str(source), "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(),
             "base_app": str(base), "base_manifest_sha256": sha((base.parent / "release-manifest.json").read_bytes()),
             "delta": [{"path": p, "before": before.get(p), "after": after.get(p)} for p in delta],
+            "actual_current_app": str(pins[role][1]), "actual_current_manifest_sha256": pins[role][2],
+            "actual_current_delta": [{"path": p, "before": actual_before.get(p), "after": after.get(p)} for p in actual_delta],
+            "actual_current_protected_files_unchanged": sum(after.get(p) == row for p, row in actual_before.items()),
             "source_dependencies_preserved": ["current PDF owner", "current Main executor registry and 15:55 manager", "all unlisted runtime files"], "deployment_allowed": False}
         dump(root / "release-manifest.json", manifest)
-        result[role] = {"app_root": str(app), "release_id": root.name, "manifest_sha256": sha((root / "release-manifest.json").read_bytes()), "inventory_sha256": inv.inventory_digest(entries), "delta": delta}
+        result[role] = {"app_root": str(app), "release_id": root.name, "manifest_sha256": sha((root / "release-manifest.json").read_bytes()), "inventory_sha256": inv.inventory_digest(entries), "delta": actual_delta,
+            "actual_current_app": str(pins[role][1]), "actual_current_manifest_sha256": pins[role][2],
+            "actual_current_protected_files_unchanged": manifest["runtime_governance_overlay"]["actual_current_protected_files_unchanged"]}
     for role, pin in pins.items():
         if loaded_role(*pin) != live[role]: raise ValueError("LIVE_ROLE_CHANGED_DURING_OVERLAY")
         verified_baseline(pin[1], pin[2], inv)
