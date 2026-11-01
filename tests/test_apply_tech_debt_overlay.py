@@ -10,10 +10,12 @@ from ops.apply_tech_debt_overlay import (
     CONSTANTS,
     HV_NAMES,
     HV_REWIRE,
+    RT_ROUTES,
     NESTED,
     OverlayError,
     _rewrite_app,
     _split_hk_verify,
+    _split_routes,
     _split_stage_workbench,
 )
 
@@ -337,3 +339,107 @@ def test_hk_verify_requires_complete_rewiring(tmp_path: Path):
     app.write_text(text.replace("        r9_override=_read_r9_exact_target_hk_override,\n", ""), encoding="utf-8")
     with pytest.raises(OverlayError, match="rewiring incomplete"):
         _split_hk_verify(app, None, tmp_path / "out.py")
+
+
+ROUTES_HEAD = '''\
+from apps.api.v4_api.stage_workbench import StageWorkbenchContext, read_stage_workbench
+
+_TRIVIAL = None
+
+
+def create_app():
+    projection_ctx = object()
+    review_store = object()
+    research_source = object()
+    shared_selection_consumer = None
+    stage_runner = None
+
+    def shared_selection_unconfigured(trade_date: str, stage_id: str) -> dict:
+        return {"cannot_confirm": ["SHARED_STAGE_CENTER_NOT_CONFIGURED"]}
+
+    def _catalog() -> dict:
+        return {"default_date": "20261001"}
+
+    @app.get("/healthz")
+    def healthz() -> dict:
+        return {"status": "ok"}
+
+    @app.get("/api/v4/stage-center/selection")
+    def shared_stage_selection(date=None, stage="S"):
+        selected = _strict_date(date) if date is not None else _catalog()["default_date"]
+        if shared_selection_consumer is None:
+            return shared_selection_unconfigured(selected, stage)
+        return projection_ctx
+'''
+
+ROUTES_TAIL = '''
+    stage_workbench_ctx = StageWorkbenchContext(
+        approved_research_reader=None,
+    )
+
+    @app.get("/api/v4/workbench/stage")
+    def stage_workbench(date=None, stage="S", limit=10, market=None, backfill_run_id=None):
+        return read_stage_workbench(
+            stage_workbench_ctx, date, stage, limit, market, backfill_run_id
+        )
+'''
+
+
+def _routes_app_text() -> str:
+    trivial = ""
+    for name in RT_ROUTES:
+        if name in {"healthz", "shared_stage_selection"}:
+            continue
+        trivial += '\n    @app.post("/x/' + name + '")\n    def ' + name + '(date=None):\n'
+        trivial += '        return {"route": "' + name + '"}\n'
+    return ROUTES_HEAD + trivial + ROUTES_TAIL
+
+
+def _write_routes_app(tmp_path: Path) -> Path:
+    app = tmp_path / "app.py"
+    app.write_text(_routes_app_text(), encoding="utf-8")
+    return app
+
+
+def test_routes_moves_the_decorators_and_wires_the_context(tmp_path: Path):
+    app = _write_routes_app(tmp_path)
+    module_path = tmp_path / "routes.py"
+    receipt = _split_routes(app, None, module_path)
+
+    text = app.read_text(encoding="utf-8")
+    for name in RT_ROUTES:
+        assert f"def {name}(" not in text, name
+    assert '    @app.get("/healthz")' not in text
+    assert "    route_ctx = RouteContext(" in text
+    assert "    register_routes(route_ctx)" in text
+    assert "from apps.api.v4_api.routes import RouteContext, register_routes" in text
+    assert '    @app.get("/api/v4/workbench/stage")' in text
+    assert "def stage_workbench(" in text
+
+    module = module_path.read_text(encoding="utf-8")
+    compile(module, str(module_path), "exec")
+    assert "def unconfigured_selection(" in module
+    assert "def shared_selection_unconfigured(" not in module
+    assert "def register_routes(ctx: RouteContext) -> None:" in module
+    assert "    app = ctx.app" in module
+    assert '    @app.get("/healthz")' in module
+    assert "ctx.catalog()" in module
+    assert "ctx.strict_date(" in module
+    assert "ctx.shared_selection_consumer is None" in module
+    assert "unconfigured_selection(selected, stage)" in module
+    assert receipt["routes_module_lines"] == len(module.splitlines())
+
+
+def test_routes_rejects_a_drifted_reviewed_module(tmp_path: Path):
+    app = _write_routes_app(tmp_path)
+    reviewed = tmp_path / "reviewed.py"
+    reviewed.write_text("# drifted\n", encoding="utf-8")
+    with pytest.raises(OverlayError, match="differs from the reviewed file"):
+        _split_routes(app, reviewed, tmp_path / "out.py")
+
+
+def test_routes_requires_every_anchor(tmp_path: Path):
+    app = tmp_path / "app.py"
+    app.write_text("def create_app():\n    pass\n", encoding="utf-8")
+    with pytest.raises(OverlayError, match="route anchors missing"):
+        _split_routes(app, None, tmp_path / "out.py")

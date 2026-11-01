@@ -502,6 +502,164 @@ def _split_hk_verify(path: Path, reviewed_module: Path | None, out_module: Path)
     return {"hk_module_lines": len(module.splitlines()), "hk_app_lines": len(new_lines)}
 
 
+RT_ROUTES = [
+    "healthz", "readyz", "stage_metadata", "run_date_list",
+    "stage_workbench_ensure", "stage_workbench_batch", "shared_stage_selection",
+    "manager_stage_selection", "shared_stage_selection_ensure",
+]
+RT_HELPER = "shared_selection_unconfigured"
+RT_HELPER_NEW = "unconfigured_selection"
+RT_CTX_MAP = [
+    (r"\b_catalog\(", "ctx.catalog("),
+    (r"\b_strict_date\(", "ctx.strict_date("),
+    (r"\breview_store\.", "ctx.review_store."),
+    (r"\bresearch_source\.", "ctx.research_source."),
+    (r"\bprojection_ctx\b", "ctx.projection"),
+    (r"\bshared_selection_consumer\b", "ctx.shared_selection_consumer"),
+    (r"\bstage_runner\b", "ctx.stage_runner"),
+    (r"\bstage_workbench\(", "ctx.read_stage_workbench("),
+    (rf"\b{RT_HELPER}\(", f"{RT_HELPER_NEW}("),
+    (r"\b_project_stage_timeline_summary\(", "ctx.stage_timeline_summary("),
+    (r"\b_bounded_stage_summaries\(", "ctx.bounded_summaries("),
+    (r"\b_STAGE_BATCH_CAPACITY\b", "ctx.batch_capacity"),
+]
+RT_MODULE_HEAD = '''"""HTTP routes moved out of ``create_app``.
+
+Each route reads its stores and the projection context through an explicit
+``RouteContext``. ``stage_workbench`` itself stays beside the three
+contexts it assembles.
+"""
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from typing import Any, Callable
+
+from fastapi import FastAPI, HTTPException, Query
+
+from apps.api.v4_api.projection import ProjectionContext, project_shared_selection
+from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS
+from contracts.trading_safety import TRADING_SAFETY_FLAGS
+
+
+@dataclass(frozen=True)
+class RouteContext:
+    app: FastAPI
+    catalog: Callable[[], dict]
+    strict_date: Callable[[str], str]
+    review_store: Any
+    research_source: Any
+    projection: ProjectionContext
+    shared_selection_consumer: Any
+    stage_runner: Any
+    read_stage_workbench: Callable[..., dict]
+    stage_timeline_summary: Callable[[Any], dict]
+    bounded_summaries: Callable[..., dict]
+    batch_capacity: int
+
+'''
+
+RT_REGISTER_HEAD = '''def register_routes(ctx: RouteContext) -> None:
+    app = ctx.app
+
+'''
+
+RT_WIRING = [
+    "    route_ctx = RouteContext(",
+    "        app=app,",
+    "        catalog=_catalog,",
+    "        strict_date=_strict_date,",
+    "        review_store=review_store,",
+    "        research_source=research_source,",
+    "        projection=projection_ctx,",
+    "        shared_selection_consumer=shared_selection_consumer,",
+    "        stage_runner=stage_runner,",
+    "        read_stage_workbench=stage_workbench,",
+    "        stage_timeline_summary=_project_stage_timeline_summary,",
+    "        bounded_summaries=_bounded_stage_summaries,",
+    "        batch_capacity=_STAGE_BATCH_CAPACITY,",
+    "    )",
+    "    register_routes(route_ctx)",
+]
+RT_IMPORT = "from apps.api.v4_api.routes import RouteContext, register_routes"
+
+
+def _dedent_block(lines: Sequence[str], start: int, end: int) -> str:
+    text = "\n".join(line[4:] if line.startswith("    ") else line for line in lines[start:end])
+    return "\n".join(line.rstrip() for line in text.splitlines()).rstrip("\n")
+
+
+def _split_routes(path: Path, reviewed_module: Path | None, out_module: Path) -> dict[str, int]:
+    """Move the HTTP route closures out of create_app into routes.py."""
+    src = path.read_text(encoding="utf-8")
+    lines = src.splitlines()
+    tree = ast.parse(src)
+    create = next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "create_app"), None)
+    if create is None:
+        raise OverlayError("create_app not found")
+    wanted = set(RT_ROUTES) | {RT_HELPER}
+    found = {n.name: n for n in ast.walk(create) if isinstance(n, ast.FunctionDef) and n.name in wanted}
+    missing = wanted - set(found)
+    if missing:
+        raise OverlayError(f"route anchors missing: {sorted(missing)}")
+
+    bodies: dict[str, str] = {}
+    ranges: list[tuple[int, int]] = []
+    for name in [RT_HELPER] + RT_ROUTES:
+        node = found[name]
+        start = min([node.lineno] + [d.lineno for d in node.decorator_list]) - 1
+        end = node.end_lineno
+        while end < len(lines) and lines[end].strip() == "":
+            end += 1
+        ranges.append((start, end))
+        text = _dedent_block(lines, start, end)
+        if name == RT_HELPER:
+            text = text.replace(f"def {RT_HELPER}(", f"def {RT_HELPER_NEW}(")
+        for pattern, replacement in RT_CTX_MAP:
+            text = re.sub(pattern, replacement, text)
+        bodies[name] = text
+
+    routed = [
+        "\n".join(("    " + line) if line.strip() else "" for line in bodies[name].splitlines())
+        for name in RT_ROUTES
+    ]
+    module = (
+        RT_MODULE_HEAD
+        + bodies[RT_HELPER] + "\n\n\n"
+        + RT_REGISTER_HEAD
+        + "\n\n".join(routed) + "\n"
+    )
+    ast.parse(module)
+    if reviewed_module is not None and module != reviewed_module.read_text(encoding="utf-8"):
+        raise OverlayError("generated routes module differs from the reviewed file")
+
+    new_lines = list(lines)
+    for start, end in sorted(ranges, reverse=True):
+        del new_lines[start:end]
+
+    stage_ctx = new_lines.index("    stage_workbench_ctx = StageWorkbenchContext(")
+    close = new_lines.index("    )", stage_ctx)
+    new_lines[close + 1:close + 1] = [""] + RT_WIRING
+
+    import_anchor = next(
+        (i for i, line in enumerate(new_lines) if line.startswith("from apps.api.v4_api.hk_verify import")),
+        None,
+    )
+    if import_anchor is not None:
+        while new_lines[import_anchor] != ")":
+            import_anchor += 1
+    else:
+        import_anchor = max(i for i, line in enumerate(new_lines[:20])
+                            if line.startswith(("import ", "from ")))
+    new_lines.insert(import_anchor + 1, RT_IMPORT)
+
+    text = "\n".join(new_lines) + "\n"
+    ast.parse(text)
+    path.write_text(text, encoding="utf-8")
+    out_module.write_text(module, encoding="utf-8")
+    return {"routes_module_lines": len(module.splitlines()), "routes_app_lines": len(new_lines)}
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app-root", type=Path, required=True, help="copy of the release app to modify")
@@ -513,6 +671,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--hk-verify", action="store_true",
         help="also move the five HK override readers into hk_verify.py (needs --stage-workbench)",
+    )
+    parser.add_argument(
+        "--routes", action="store_true",
+        help="also move the HTTP route closures into routes.py (needs --stage-workbench --hk-verify)",
     )
     args = parser.parse_args(argv)
     app = args.app_root.resolve()
@@ -541,6 +703,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 app / "apps/api/v4_api/app.py",
                 source / "apps/api/v4_api/hk_verify.py",
                 app / "apps/api/v4_api/hk_verify.py",
+            )
+        )
+    if args.routes:
+        if not (args.stage_workbench and args.hk_verify):
+            raise OverlayError("--routes needs --stage-workbench and --hk-verify")
+        receipt.update(
+            _split_routes(
+                app / "apps/api/v4_api/app.py",
+                source / "apps/api/v4_api/routes.py",
+                app / "apps/api/v4_api/routes.py",
             )
         )
     receipt["app_root"] = str(app)
