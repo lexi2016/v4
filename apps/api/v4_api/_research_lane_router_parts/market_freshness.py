@@ -270,7 +270,6 @@ def __with_us_market_freshness_body(projection, *, observed):
             # verification never upgrades data quality by itself.
             result["display_status"] = projection["status"]
             futu_error = __futu_board_freshness_error_body(
-                _v4_scope,
                 projection,
                 source_date=projection.get("source_date"),
                 captured_at=captured,
@@ -282,7 +281,6 @@ def __with_us_market_freshness_body(projection, *, observed):
                 diagnostic["cannot_confirm"] = [futu_error]
             if result.get("native_board_snapshot") is not None:
                 native_error = __futu_native_board_freshness_error_body(
-                    _v4_scope,
                     projection,
                     source_date=projection.get("source_date"),
                     captured_at=captured,

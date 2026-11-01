@@ -12,20 +12,20 @@ _CANARY_MODE = "MANUAL_QUOTE_SCOPE_CANARY"
 _CANARY_EXTRA_SYMBOLS = ("AAGIY", "MDLZ", "SHEL", "KIE", "XLU")
 
 
-def _canonical_digest(_v4_scope, value):
+def _canonical_digest(value):
     encoded = json.dumps(
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _validated_scope(_v4_scope, scope):
+def _validated_scope(scope):
     if not isinstance(scope, Mapping):
         raise ValueError("US_MANUAL_QUOTE_SCOPE_OBJECT_REQUIRED")
     unhashed = {key: value for key, value in scope.items() if key != "scope_sha256"}
     if (scope.get("schema_version") != _SCOPE_SCHEMA
             or scope.get("scope_sha256") != _SCOPE_SHA256
-            or _canonical_digest(_v4_scope, unhashed) != _SCOPE_SHA256):
+            or _canonical_digest(unhashed) != _SCOPE_SHA256):
         raise ValueError("US_MANUAL_QUOTE_SCOPE_IDENTITY_INVALID")
     symbols = scope.get("symbols")
     if (not isinstance(symbols, list)
@@ -44,7 +44,7 @@ def _build_manual_quote_scope_snapshot_body(session_date, *, scope, captured_at,
     """Capture exact-scope quotes, isolating provider failures per symbol."""
     from contracts.us_equity_calendar import latest_completed_session, session
 
-    full_symbols = _validated_scope(_v4_scope, scope)
+    full_symbols = _validated_scope(scope)
     symbols = full_symbols if symbols_override is None else list(symbols_override)
     if (not symbols or symbols != sorted(set(symbols))
             or not set(symbols).issubset(full_symbols)
@@ -199,7 +199,7 @@ def _build_manual_quote_scope_snapshot_body(session_date, *, scope, captured_at,
             "scope_sha256": active_scope_sha,
             "parent_scope_sha256": _SCOPE_SHA256,
             "scope_mode": "CANARY" if capture_mode == _CANARY_MODE else "FULL",
-            "symbols_sha256": _canonical_digest(_v4_scope, symbols),
+            "symbols_sha256": _canonical_digest(symbols),
             "symbols": symbols,
             "requested_symbol_count": len(symbols),
             "available_symbol_count": len(valid_quotes),
@@ -231,7 +231,7 @@ def _build_manual_quote_scope_payload_body(trade_date, *, session_date, scope, n
     selected_session = _date(session_date)
     if latest_completed_session(captured).session_date != selected_session:
         raise ValueError("US_MANUAL_QUOTE_SESSION_NOT_LATEST_COMPLETED")
-    symbols = _validated_scope(_v4_scope, scope)
+    symbols = _validated_scope(scope)
     fetched_iso = isoformat_utc(captured)
     payload = build_external_finance_payload(
         selected_trade_date, fetched_at=fetched_iso, subscriptions=(), timeout=timeout
@@ -276,7 +276,7 @@ def _build_manual_quote_scope_canary_body(*, session_date, scope, now=None, fetc
     selected_session = _date(session_date)
     if latest_completed_session(captured).session_date != selected_session:
         raise ValueError("US_MANUAL_QUOTE_SESSION_NOT_LATEST_COMPLETED")
-    full_symbols = _validated_scope(_v4_scope, scope)
+    full_symbols = _validated_scope(scope)
     # Keep this canary fixed to the frozen 48-symbol V3 scope plus five names,
     # even when an unconfigured developer caller uses the 33-symbol fallback.
     base = build_us_universe_contract()["symbols"]
@@ -288,12 +288,12 @@ def _build_manual_quote_scope_canary_body(*, session_date, scope, now=None, fetc
         "parent_scope_sha256": _SCOPE_SHA256,
         "symbols": selected,
     }
-    child_sha = _canonical_digest(_v4_scope, child_scope)
+    child_sha = _canonical_digest(child_scope)
     contract = build_us_universe_contract(
         sorted(set(selected) - set(base))
     )
     return _build_manual_quote_scope_snapshot_body(
-        _v4_scope, selected_session, scope=scope,
+        selected_session, scope=scope,
         captured_at=isoformat_utc(captured),
         fetch_quotes=fetch_quotes, fetch_quote=fetch_quote,
         transport=transport, timeout=timeout, universe_contract=contract,
@@ -311,7 +311,7 @@ def _materialize_manual_quote_scope_backfill_body(*, data_root, trade_date, sess
     if not Path(data_root).is_absolute():
         raise ValueError("US_OWNED_DATA_ROOT_MUST_BE_ABSOLUTE")
     selected_trade_date = _date(trade_date)
-    _validated_scope(_v4_scope, scope)
+    _validated_scope(scope)
     store = ResearchPeripheralStore(data_root)
     relative = store._historical_backfill_relative(selected_trade_date, "external_finance")
     receipt_relative = store._historical_backfill_receipt_relative(selected_trade_date, "external_finance")

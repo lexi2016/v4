@@ -289,4 +289,54 @@ importlib.import_module('stage_center._raw_store_parts.transaction_publish') →
 的实现体仍是本分支版本(与该提交不同但接口一致)。这是选择方案 1 的
 既定取舍:保住现役行为,不把一次结构修复变成功能回迁。
 
+## 11. 去 globals 的执行结果(2026-11-01,已提交)
 
+| commit | 内容 |
+| --- | --- |
+| `e34dcd8c7` | 批次 1:746 处 builtin 读取改为直接引用 |
+| `dfc027c0d` | 批次 2:287 处 import 类名字改为直接导入 |
+| `1c8d4f148` | 批次 3-4:四个门面移除 `_v4_scope` 与 `globals()` |
+| `8f70b8f55` | 另外两处仍有活调用方的注入点 |
+
+### 11.1 现在的状态
+
+| 指标 | 起点 | 现在 |
+| --- | --- | --- |
+| `_v4_scope` 引用 | 1,221 行 | **0** |
+| `_v4_global` 读取 | 827 | **0** |
+| `read_global` 引用 | 13 个 `_namespace.py` | **0** |
+| `globals(),` | 72 | **1**(非注入,见下) |
+
+76 个实现体去掉了 `_v4_scope` 参数,六个有实际调用关系的门面/调用方
+不再传命名空间。所有 parts 模块改为正常 import。
+
+`globals(),` 仅剩 `ops/run_v4_macos_scheduler.py:82`:那是
+`FunctionType(code, globals(), ...)` 把 `_due` 模块的函数重新绑定到本模块命名空间,
+属于另一套机制,不是门面→实现的注入;改动它等于重写调度器的绑定方式,不在本次范围。
+
+### 11.2 期间发现并修掉的真实问题
+
+1. **`preselection` 的运行期覆盖**。门面构造 `{**scope, "PreselectionPoolStore": _ResolvedPoolStore}`
+   覆盖一个名字;机械替换会把它换回基类,静默改变行为。已改为显式参数 `pool_store_class`。
+2. **`slot_execution.py` 的动态异常元组**。从元组里动态取 6 个异常类名,已改为字面量元组加导入。
+3. **内部辅助函数的参数**。`_signature_supported_kwargs` 等辅助函数的首参数也被去掉,
+   但文件内调用点还在传——会在运行期 `TypeError`/`NameError`。已逐处修正
+   (`slot_execution.py` 6 处、`manual_quote_scope.py` 9 处、`market_freshness.py` 2 处)。
+   这类问题测试覆盖不到,靠逐文件核对。
+
+### 11.3 死代码清理
+
+拆分中途留下了 13 个没有任何引用的 parts 模块(外加一个只含不可达函数的模块)。
+按"没用的代码挪到待删除"处理:整目录归档到
+`~/Desktop/待删除/v4-dead-parts-20261101/`(保持原路径),再从仓库移除。
+
+删除前做了三重核对:全仓(含 `components/`、`research_panel_delta/`、`upstreams/`、`v4/`、`docs/`)
+无名字引用、无 `getattr` 字符串取用、对应模块无导入方。
+共移除 14 个死模块 + 12 个已无引用的 `_namespace.py`。
+
+### 11.4 验收
+
+- `tests/test_stage_parts_contract.py`:57 处委托的模块存在性与签名匹配、parts 可导入、
+  无 builtin / import 类名字读取、无 `globals()` 传参、门面与 parts 无模块级环。**121 项**。
+- 全量测试 **255 通过**,1 个既有失败(线上 plist 回执,与本次无关)。
+- 12 个关键模块逐一 import 通过。

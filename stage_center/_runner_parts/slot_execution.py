@@ -12,14 +12,13 @@ from stage_center.contracts import EIGHT_STAGES
 from stage_center.raw_store import HK_0930_TDX_RESEARCH_CONTRACT
 from stage_center.raw_store import RawStore
 from stage_center.raw_store import RawStoreError
-from stage_center.runner import RunnerError
 from stage_center.selection import SelectionError
 from stage_center.raw_store import RawStoreError
 from stage_center.raw_store import publish_raw_artifact
 from stage_center.selection import SelectionStore
 from uuid import uuid4
 import re
-from stage_center.runner import HK_CONTINUATION_STAGES, RunnerError, _attach_a_authority, _attach_a_name_authority, _attach_hk_authority, _attach_stage_research_roots, _build_hk_stage_binding, _candidate_from_hk_binding, _evidence_has, _evidence_value, _hk_second_filter_codes, _latest_entry, _project_raw_rows, _read_verified_raw_source, _resolve_stage_market_scope, _selection_source, _stage_markets_for_date, _validate_exact_selection_inputs, _validated_hk_binding_evidence, _with_candidate_evidence
+from stage_center.runner import HK_CONTINUATION_STAGES, RunnerError, _attach_a_authority, _authorize_hk_0930_tdx_temporal_false_observation, _attach_a_name_authority, _attach_hk_authority, _attach_stage_research_roots, _build_hk_stage_binding, _candidate_from_hk_binding, _evidence_has, _evidence_value, _hk_second_filter_codes, _latest_entry, _project_raw_rows, _read_verified_raw_source, _resolve_stage_market_scope, _selection_source, _stage_markets_for_date, _validate_exact_selection_inputs, _validated_hk_binding_evidence, _with_candidate_evidence
 
 
 def _signature_supported_kwargs(target, **optional_kwargs):
@@ -28,7 +27,7 @@ def _signature_supported_kwargs(target, **optional_kwargs):
 
 
 def _optional_temporal_observation_authorization(source, plan, **kwargs):
-    authorizer = _v4_scope.get('_authorize_hk_0930_tdx_temporal_false_observation')
+    authorizer = _authorize_hk_0930_tdx_temporal_false_observation
     if authorizer is None:
         # Legacy runners have no after-fact authorization hook. Keep the
         # original source and grant no observation contract.
@@ -241,7 +240,7 @@ def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, bac
                 raise RunnerError("production shared_data_root and python_path are required")
             from stage_center.live_collectors import production_collectors
             production_snapshot_root_kwargs = _signature_supported_kwargs(
-                _v4_scope, production_collectors, snapshot_root=self.config.raw_root
+                production_collectors, snapshot_root=self.config.raw_root
             )
             if self.collectors:
                 collectors = self.collectors
@@ -372,7 +371,6 @@ def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, bac
             observation_contract: str | None = None
             try:
                 result, observation_contract = _optional_temporal_observation_authorization(
-                    _v4_scope,
                     result,
                     plan,
                     binding=universe_bindings.get("HK_CONNECT") if market == "HK_CONNECT" else None,
@@ -519,7 +517,6 @@ def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, bac
                             raise RunnerError("HK active-lane recovery requires explicit fixed D1 bridge roots")
                         from stage_center.live_collectors import refresh_hk_active_lanes
                         recovery_optional_kwargs = _signature_supported_kwargs(
-                            _v4_scope,
                             refresh_hk_active_lanes,
                             snapshot_root=self.config.raw_root,
                             pool_artifact_sha256=expected_pool_sha,
@@ -703,7 +700,7 @@ def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, bac
                 projection_contract = None
             project_raw_rows = _project_raw_rows
             projection_optional_kwargs = _signature_supported_kwargs(
-                _v4_scope, project_raw_rows,
+                project_raw_rows,
                 research_observation_contract=projection_contract,
             )
             projected_rows[market] = project_raw_rows(
@@ -774,7 +771,7 @@ def _StageCenterRunner__run_one_body(self, decision, *, historical_backfill, bac
                 and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
                 and tuple(markets) == ("HK_CONNECT",)
                 and tuple(raw_markets) == ("HK_CONNECT",)
-                and _v4_scope.get('HK_0930_TDX_RESEARCH_CONTRACT') is not None
+                and HK_0930_TDX_RESEARCH_CONTRACT is not None
                 and temporal_false_observation_contracts.get("HK_CONNECT")
                 == HK_0930_TDX_RESEARCH_CONTRACT
             )
