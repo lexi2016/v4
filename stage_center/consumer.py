@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 from typing import Any, Iterable, Mapping, Sequence
 
+from contracts.a_share_entity_filter import invalid_a_share_symbols
 from infrastructure.preselection_pool_store import (
     POOL_ORDER,
     PreselectionPoolArtifactMissing,
@@ -353,6 +354,17 @@ def _project_market(market: str, envelope: Mapping[str, Any], *, trade_date: str
         "rows": projected_rows,
         "cannot_confirm": list(envelope.get("cannot_confirm") or []),
     }
+    if market != "HK_CONNECT":
+        # A saved result is never recomputed here; the entity that should not
+        # have entered the pool is surfaced as a labelled historical record.
+        historical_invalid = invalid_a_share_symbols(projected["missing_symbols"])
+        projected["historical_invalid_entity_count"] = len(historical_invalid)
+        projected["historical_invalid_entities"] = historical_invalid
+        if historical_invalid:
+            projected["cannot_confirm"].append(
+                f"HISTORICAL_INVALID_A_SHARE_ENTITY:{len(historical_invalid)}"
+            )
+            projected["display_note"] = f"含 {len(historical_invalid)} 条历史非法实体记录"
     evidence = set(projected["source_evidence"])
     if market == "HK_CONNECT" and (
         "selection_mode=BACKFILL" in evidence or bool(_BACKFILL_MARKERS & evidence)

@@ -1,7 +1,7 @@
 # 非法 A 股实体的读取侧过滤合同
 
 - 日期:2026-11-01
-- 状态:**设计草案,未实施**
+- 状态:**已实施(三个消费面)**
 - 起因:`a_share_research_recommendation_pool` 里出现 `code=261029` / `symbol=A.261029`
   (实体名显示为申昊科技),`261029` 实为日期 2026-10-29。阶段选股因此把
   `SZ.261029` 计入隔离,是 `522/532` 覆盖缺口的一部分。
@@ -81,3 +81,21 @@
 - 阶段结果:不重算,展示层标注"含 N 条历史非法实体记录"。
 - 全量测试与基线比对方式见 `2026-11-01-v4-phase3-globals-dependency-graph.md`
   §10 的固定命令与诊断集合。
+
+## 8. 实施记录(2026-11-01)
+
+| 消费面 | 改动位置 | 产出 |
+| --- | --- | --- |
+| 预选池 API | `apps/api/v4_api/preselection_service.py` 的 `_preselection_response_from_pools`,在 `_project_independent_pools` 之前调用 `filter_pool_rows` | `original_row_count` / `effective_row_count` / `quarantined_row_count` / `quarantined[]` / `filter_rule_version`;`row_count` 仍为发布行数;每池在被隔离时附 `original_pool_size`、`quarantined_row_count` |
+| 研报决策台 | `domains/research.py` 的 `build_research_archive`,`stock_pool` 循环按 `is_a_share_code`/`canonical_a_share_code` 判定 | `stock_pool_count` 为有效数;`stock_pool_original_count`、`stock_pool_quarantined[]`、`quarantined_row_count`、`filter_rule_version` 只在确有隔离时写入(其余产物的 payload 身份不变,`contracts/research.py` 新增 `_OPTIONAL_TOP_LEVEL_FIELDS` 以兼容旧档案) |
+| 已保存阶段结果 | `stage_center/consumer.py` 的 `_project_market` | 行与 `missing_symbols` 原样保留;新增 `historical_invalid_entity_count`、`historical_invalid_entities`、`display_note` 与 `cannot_confirm` 条目 |
+
+共享判定与隔离记录在 `contracts/a_share_entity_filter.py`(规则版本 `a_share_code.v1`)。
+
+**真实数据核对**(只读,活服务 `:8873` 旧代码):
+
+- `GET /api/v4/preselection-pools?date=20261030`,分页取全 643 行,套用读取侧过滤:
+  643 → 642,恰好隔离 1 行(`a_share_research_recommendation_pool` / `261029` / `A.261029` / `申昊科技`);
+  HK 100 行全部保留,A 股 543 → 542。
+- `tests/test_a_share_entity_filter.py` 9 条:三个消费面各覆盖"合法行不受影响""非法行被隔离而非丢弃""计数三件套齐全",并验证 `pool_rank` 不被重排。
+- 全量 `pytest`:313 passed,1 failed(`test_real_pinned_live_manifest_preflight`,因活动 plist 已变,与本批无关,前批即为已知失败)。

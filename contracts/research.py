@@ -83,6 +83,15 @@ _TOP_LEVEL_FIELDS = {
     "buy_gate_updated",
     "orders_sent",
 }
+# Additive read-side quarantine record. Present only when a produced archive
+# had to withhold an entity that is not an A-share code; older archives do not
+# carry it and must keep validating.
+_OPTIONAL_TOP_LEVEL_FIELDS = {
+    "stock_pool_original_count",
+    "stock_pool_quarantined",
+    "quarantined_row_count",
+    "filter_rule_version",
+}
 _STAGE_EVIDENCE_FIELDS = {
     "schema_version",
     "trade_date",
@@ -308,7 +317,7 @@ def _ready_empty_evidence(
 
 
 def validate_research_archive(payload: Mapping[str, Any]) -> str:
-    if not isinstance(payload, Mapping) or not set(payload).issubset(_TOP_LEVEL_FIELDS | {"stage_evidence_v1", "ready_empty_evidence_v1"}) or not _TOP_LEVEL_FIELDS.issubset(payload):
+    if not isinstance(payload, Mapping) or not set(payload).issubset(_TOP_LEVEL_FIELDS | _OPTIONAL_TOP_LEVEL_FIELDS | {"stage_evidence_v1", "ready_empty_evidence_v1"}) or not _TOP_LEVEL_FIELDS.issubset(payload):
         raise ValueError("invalid research archive fields")
     if payload.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("invalid research archive schema")

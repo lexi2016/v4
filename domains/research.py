@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
+from contracts.a_share_code import canonical_a_share_code, is_a_share_code
+from contracts.a_share_entity_filter import FILTER_RULE_VERSION
 from contracts.research import (
     DEDUPE_KEY_FIELDS,
     SCHEMA_VERSION,
@@ -365,11 +367,21 @@ def build_research_archive(
         if isinstance(row, Mapping) and row.get("stock_code")
     }
     stock_pool: list[dict[str, Any]] = []
+    quarantined_entities: list[dict[str, Any]] = []
     for source_row in source["stock_research_daily"]:
         if not isinstance(source_row, Mapping):
             continue
         code = _text(source_row.get("stock_code"))
         if not code:
+            continue
+        if not is_a_share_code(code) and not canonical_a_share_code(code):
+            quarantined_entities.append({
+                "stock_code": code,
+                "stock_name": _text(source_row.get("stock_name")),
+                "archive_date": archive_date,
+                "reason": "A_SHARE_CODE_INVALID",
+                "rule_version": FILTER_RULE_VERSION,
+            })
             continue
         matching = articles_by_stock.get(code, [])
         first_fallback = min((row["first_seen_at"] for row in matching), default=generated_at)
@@ -412,6 +424,8 @@ def build_research_archive(
     cannot_confirm.extend(project_legacy_source_gaps(source))
     if path_redactions:
         cannot_confirm.append(f"LEGACY_RUNTIME_PATHS_REDACTED:{path_redactions}")
+    if quarantined_entities:
+        cannot_confirm.append(f"A_SHARE_ENTITY_QUARANTINED:{len(quarantined_entities)}")
     payload = {
         "schema_version": SCHEMA_VERSION,
         "archive_date": archive_date,
@@ -433,6 +447,13 @@ def build_research_archive(
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+    if quarantined_entities:
+        # Only an archive that actually withheld something carries the record,
+        # so every other archive keeps its existing payload identity.
+        payload["stock_pool_original_count"] = len(stock_pool) + len(quarantined_entities)
+        payload["stock_pool_quarantined"] = quarantined_entities
+        payload["quarantined_row_count"] = len(quarantined_entities)
+        payload["filter_rule_version"] = FILTER_RULE_VERSION
     source_ready_empty_proof = manifest.get("ready_empty_source_proof")
     if isinstance(source_ready_empty_proof, Mapping):
         payload["ready_empty_evidence_v1"] = {

@@ -40,6 +40,7 @@ def _project_wechat_input_gap(response, source_root, trade_date):
         result['pools'].append(pool)
     return result
 
+from contracts.a_share_entity_filter import FILTER_RULE_VERSION, filter_pool_rows
 from contracts.trading_safety import TRADING_SAFETY_FLAGS
 from domains import preselection as preselection_domain
 from domains.preselection import OPTIONAL_DAILY_POOL_IDS, preselection
@@ -204,6 +205,11 @@ def _preselection_response_from_pools(
         pools = preselection_domain._replace_review_core_fupan_pool(pools, trade_date)
         pools = preselection_domain._replace_review_core_stage7_pool(pools, trade_date)
     pools = preselection_domain._complete_independent_pool_set(pools, trade_date)
+    # Storage is write-once and already verified when it was read; the
+    # quarantine below only decides what a consumer may treat as an A-share
+    # entity. It never rewrites a stored row, rank or count.
+    published_row_count = len(preselection_domain._project_independent_pools(pools, trade_date)["rows"])
+    pools, quarantined = filter_pool_rows(pools)
     payload = preselection_domain._project_independent_pools(pools, trade_date)
     rows = payload["rows"]
     status = "READY_WITH_ROWS" if payload.get("producer_status") == "CANONICAL_COMPLETE" else "PARTIAL_WITH_ROWS"
@@ -226,7 +232,12 @@ def _preselection_response_from_pools(
         "orders_sent": False,
         "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
         "pool_count": len(payload.get("pools", [])),
-        "row_count": len(rows),
+        "row_count": published_row_count,
+        "original_row_count": published_row_count,
+        "effective_row_count": len(rows),
+        "quarantined_row_count": len(quarantined),
+        "quarantined": list(quarantined),
+        "filter_rule_version": FILTER_RULE_VERSION,
         "unified_row_count": len(payload.get("unified_rows", rows)),
         "a_source_only_row_count": len(payload.get("a_source_only_rows", [])),
         "a_all_pool_row_count": len(payload.get("a_all_pool_rows", rows)),
