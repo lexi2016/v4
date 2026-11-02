@@ -20,6 +20,10 @@ REPORT_FILES = (
 )
 ALIAS = "infrastructure/report_evidence_pdf_owner.py"
 OWNER_SHA = "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde"
+SCHEDULE_REPAIRS = {
+    "main": ("ops/run_stage_center_milestone.py", "1e72438420cdff455bb181ad63b4b78ea47981d43c3524c100cbc25d8db1dac6"),
+    "api": ("domains/task_status.py", "24d52d7258bb4421810c6116dc54366df9f1363f3fa62850f1a828bd67011ae6"),
+}
 
 
 def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecessor_date=None):
@@ -33,6 +37,11 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         raw = subprocess.check_output(["git", "show", report_ref + ":" + relative], cwd=source)
         if (source / relative).read_bytes() != raw: raise ValueError("REPORT_SOURCE_NOT_FROZEN:" + relative)
         frozen[relative] = {"sha256": sha(raw), "bytes": len(raw)}
+    schedule_frozen = {}
+    for role, (relative, _) in SCHEDULE_REPAIRS.items():
+        raw = subprocess.check_output(["git", "show", report_ref + ":" + relative], cwd=source)
+        if (source / relative).read_bytes() != raw: raise ValueError("SCHEDULE_SOURCE_NOT_FROZEN:" + relative)
+        schedule_frozen[role] = {"path": relative, "sha256": sha(raw), "bytes": len(raw)}
     actual = copy.deepcopy(base["live_preimages"])
     if api_snapshot is not None:
         actual["api"] = json.loads(Path(api_snapshot).read_bytes())
@@ -57,6 +66,11 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         shutil.copytree(before_app, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
         for relative in REPORT_FILES: write(app, relative, (source / relative).read_bytes())
         additions = set(REPORT_FILES)
+        if role in SCHEDULE_REPAIRS:
+            relative, preimage = SCHEDULE_REPAIRS[role]
+            if sha((before_app / relative).read_bytes()) != preimage:
+                raise ValueError("SCHEDULE_PREIMAGE_CHANGED:" + role)
+            write(app, relative, (source / relative).read_bytes()); additions.add(relative)
         if fresh_api:
             write(app, "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md", (source / "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md").read_bytes())
             reader = (app / "infrastructure/operations_sop_reader.py").read_text()
@@ -116,6 +130,7 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         manifest["app_files"] = entries
         manifest["unified_implementation"] = {"source_root": str(source), "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(),
             "runtime_base": str(runtime), "report_source_ref": report_ref, "report_files": frozen,
+            "schedule_repair": schedule_frozen.get(role),
             "actual_current_app": str(current_app), "actual_current_manifest_sha256": actual[role]["environment"]["V4_RELEASE_MANIFEST_SHA256"],
             "actual_current_delta": [{"path": p, "before": current.get(p), "after": after.get(p)} for p in delta],
             "protected_current_files_unchanged": sum(after.get(p) == row for p, row in current.items()),
@@ -146,7 +161,8 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
     receipt = {**base, "schema_version": "v4.unified_runtime_candidate.v1", "roles": roles, "report_source_ref": report_ref,
         "live_preimages": actual,
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(), "publication_dependencies": dependencies,
-        "report_source_files": frozen, "activated": False, "DEPLOYMENT": "NOT_DEPLOYED", "NATURAL_VERIFIED": "NOT_RUN"}
+        "report_source_files": frozen, "schedule_source_files": schedule_frozen,
+        "activated": False, "DEPLOYMENT": "NOT_DEPLOYED", "NATURAL_VERIFIED": "NOT_RUN"}
     dump(output / "candidate_receipt.json", receipt)
     return receipt
 
