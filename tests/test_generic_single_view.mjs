@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,verifiedInitialCompanyF10,bindSingleSymbolSearch,f10SourceKind,actionStatusHint,holdUnknownSummary,holderLines,financialLines,financialDisclosureText,companyBusinessText,observedCompanyNameState,historyGapText,selectCompanyFinancials,officialSourceDates,registeredDispositionNotice} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,verifiedInitialCompanyF10,bindSingleSymbolSearch,f10SourceKind,actionStatusHint,holdUnknownSummary,holderLines,financialLines,financialDisclosureText,companyBusinessText,observedCompanyNameState,historyGapText,renderSingleHistoryTable,selectCompanyFinancials,officialSourceDates,registeredDispositionNotice} from '../research-panel/workbench-host/kb-single-stock.mjs';
 import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
@@ -168,6 +168,25 @@ test('history shows saved excluded price reasons and unknown positions without f
   assert.match(historyGapText(h,{conditional:{unknown_percentile_events:76}}),/未成熟 0.*缺价 1.*非有限价格 0.*非正价格 12.*收益非有限 0.*位置待核事件 76/);
   assert.match(historyGapText({},{}),/缺价 待核.*位置待核事件 待核/);
   assert.match(historyGapText({missing_price:-1},{conditional:{unknown_percentile_events:null}}),/缺价 待核.*位置待核事件 待核/);
+});
+
+test('history table keeps saved numerators, denominators and collapsed gap explanations',()=>{
+  class Element{constructor(tag){this.tag=tag;this.children=[];this.attributes={}}append(child){this.children.push(child)}setAttribute(k,v){this.attributes[k]=v}}
+  const doc={createElement:tag=>new Element(tag)},host=new Element('div');
+  const d2={positive:31,valid:64,positive_fraction:.484375,not_matured:0,missing_price:1,nonfinite_price:0,nonpositive_price:12,nonfinite_return:0};
+  const d5={positive:25,valid:50,positive_fraction:.5,not_matured:1,missing_price:2,nonfinite_price:0,nonpositive_price:3,nonfinite_return:0};
+  const p2={conditional:{positive:2,valid:6,positive_fraction:1/3,unknown_percentile_events:22}};
+  const p5={conditional:{positive:0,valid:0,positive_fraction:null,unknown_percentile_events:4}};
+  const group={identity_status:'BOUND',coverage:{label:'原式一级买点',unknown_dates:13},eligible_event_count:77,
+    horizons:{d2,d5},same_position:{horizons:{d2:p2,d5:p5}}};
+  renderSingleHistoryTable(doc,host,[group]);
+  const table=host.children[0].children[0],header=table.children[1].children[0],row=table.children[2].children[0],detail=host.children[1];
+  assert.equal(table.tag,'table');assert.deepEqual(header.children.map(x=>x.textContent),['信号','命中','D+2 正收益/有效','D+5 正收益/有效','同位置 D+2','同位置 D+5']);
+  assert.deepEqual(row.children.map(x=>x.textContent),['原式一级买点','77','31/64（48.4%）','25/50（50.0%）','2/6（33.3%）','0/0（无有效样本）']);
+  assert.equal(detail.tag,'details');assert.equal(detail.open,undefined);assert.match(detail.children[1].textContent,/未知标签 13.*缺价 1.*非正价格 12.*位置待核事件 22/);
+  const absent=new Element('div');renderSingleHistoryTable(doc,absent,[{...group,horizons:{d2:{},d5},same_position:{horizons:{d2:{},d5:p5}}}]);
+  assert.match(absent.children[0].children[0].children[2].children[0].children[2].textContent,/有效 待核/);
+  assert.throws(()=>renderSingleHistoryTable(doc,new Element('div'),[{...group,identity_status:'UNKNOWN'}]),/身份未绑定/);
 });
 
 test('generic initial company F10 must pass its source check before rendering',()=>{

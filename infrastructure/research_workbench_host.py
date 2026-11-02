@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -63,6 +64,54 @@ def checked_bytes(reference):
 
 def checked(reference):
     return json.loads(checked_bytes(reference))
+
+
+def _daily_archive_quotes(value,product,source_date,reference):
+    """Project only identity-matched source-day prices; never an observation snapshot."""
+    coverage=value.get('coverage')
+    source_flags_ok=value.get('historical_PIT') is False and all(value.get(key) is flag for key,flag in FLAGS.items())
+    by_symbol={};duplicates=set()
+    if isinstance(coverage,list):
+        for item in coverage:
+            if not isinstance(item,dict) or not isinstance(item.get('symbol'),str):continue
+            symbol=item['symbol']
+            if symbol in by_symbol:duplicates.add(symbol)
+            else:by_symbol[symbol]=item
+    def number(raw,*,positive=False,nonnegative=False):
+        if isinstance(raw,bool) or not isinstance(raw,(int,float)):return None
+        try:
+            if not math.isfinite(raw):return None
+        except OverflowError:return None
+        if positive and raw<=0 or nonnegative and raw<0:return None
+        return raw
+    rows=[]
+    for candidate in product['rows']:
+        symbol=candidate['symbol'];source=by_symbol.get(symbol);reason=None
+        if not source_flags_ok:reason='ARCHIVE_SOURCE_FLAGS_UNCONFIRMED'
+        elif not isinstance(coverage,list):reason='ARCHIVE_COVERAGE_UNAVAILABLE'
+        elif symbol in duplicates:reason='ARCHIVE_DUPLICATE_IDENTITY'
+        elif source is None:reason='ARCHIVE_COVERAGE_MISSING'
+        elif source.get('identity_status')!='EXACT_CODE_NAME' or source.get('directory_name')!=source.get('name'):reason='ARCHIVE_IDENTITY_CONFLICT'
+        elif not candidate.get('display_name') or candidate['display_name']!=source.get('name'):reason='CANDIDATE_NAME_CONFLICT'
+        elif source.get('source_date')!=source_date or source.get('source_time')!='UNKNOWN_DATE_ONLY':reason='ARCHIVE_DATE_CONFLICT'
+        elif source.get('price_status')!='VALID':reason='ARCHIVE_PRICE_UNAVAILABLE'
+        identity=dict(candidate_name=candidate.get('display_name'),archive_name=source.get('name') if source else None,
+                      directory_name=source.get('directory_name') if source else None,
+                      archive_identity_status=source.get('identity_status') if source else None)
+        if reason:
+            rows.append(dict(symbol=symbol,status='UNKNOWN',reason=reason,source_date=source_date,
+                             price=None,change_percent_source=None,amount_source=None,currency='CNY',**identity))
+            continue
+        price=number(source.get('close'),positive=True)
+        change=number(source.get('change_pct'))
+        amount=number(source.get('amount_cny'),nonnegative=True)
+        rows.append(dict(symbol=symbol,status='READY' if all(v is not None for v in (price,change,amount)) else 'PARTIAL',
+                         reason=None,source_date=source_date,price=price,change_percent_source=change,
+                         amount_source=amount,currency='CNY',**identity))
+    return dict(schema='V4_WORKBENCH_SOURCE_DAY_ARCHIVE_V1',source_date=source_date,
+                source_time='UNKNOWN_DATE_ONLY',generation=product['source_generation'],
+                input_sha256=product['source_identity']['input_sha256'],numeric_manifest=product['manifest'],
+                artifact=reference,rows=rows,historical_PIT=False,**FLAGS)
 
 
 def checked_bounded_bytes(reference,maximum):
@@ -1759,7 +1808,8 @@ class ResearchWorkbenchHost:
             value.get('input_sha256')!=p['source_identity']['input_sha256'] or len(value.get('top200',[]))!=value.get('top200_count') or
             len({row['symbol']for row in value.get('top200',[])})!=value.get('top200_count')):
             raise ValueError('WORKBENCH_TOP200_SOURCE_CONFLICT')
-        return {key:item for key,item in value.items() if key!='coverage'}|dict(artifact=reference)
+        archive=_daily_archive_quotes(value,p,source_date,reference)
+        return {key:item for key,item in value.items() if key!='coverage'}|dict(artifact=reference,source_day_archive=archive)
 
     def day(self,source_date,revision=None):
         if self._is_skill_date(source_date):

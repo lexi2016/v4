@@ -1,4 +1,4 @@
-import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,holderLines,companyBusinessText,verifiedCompanyPart,verifiedInitialCompanyF10,visibleSingleHistoryGroups,historyGapText,selectCompanyFinancials,officialSourceDates} from './kb-single-stock.mjs';
+import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,holderLines,companyBusinessText,verifiedCompanyPart,verifiedInitialCompanyF10,visibleSingleHistoryGroups,renderSingleHistoryTable,selectCompanyFinancials,officialSourceDates} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
@@ -103,13 +103,7 @@ function loadSingleDetails(day,meta,signal,assets){
   if(groups){
   if(!groups.length)throw Error('单股历史统计缺失');
   add(history,'p',`截至 ${day.source_date} · 已存${meta.rows}日标签；按同证券所属交易所日历计算。原式一级/二级买点与KB各自统计，历史PIT未认证，不预测未来。${generic?' 来源为已核对的既有历史版本 '+meta.detail_status.history.source_candidate_generation.slice(0,12)+'。':''}`);
-  const text=v=>v?.valid>0&&Number.isFinite(v.positive_fraction)?`${v.positive}/${v.valid}（${(v.positive_fraction*100).toFixed(1)}%）`:`有效 ${v?.valid??0}，样本不足`;
-  for(const group of groups){
-    const h=group.horizons,p=group.same_position?.horizons;
-    if(!h||!p||group.identity_status!=='BOUND')throw Error('单股历史统计身份未绑定');
-    add(history,'p',`${group.coverage.label} · 命中 ${group.eligible_event_count} · D+2 正收益 ${text(h.d2)}，D+5 ${text(h.d5)} · 同位置 D+2 ${text(p.d2.conditional)}，D+5 ${text(p.d5.conditional)} · 未成熟 ${h.d2.not_matured}/${h.d5.not_matured} · 未知标签 ${group.coverage.unknown_dates}`);
-    add(history,'p',`D+2 ${historyGapText(h.d2,p.d2)}；D+5 ${historyGapText(h.d5,p.d5)}。`);
-  }
+  renderSingleHistoryTable(document,history,groups);
   const position=groups[0].same_position;
   add(history,'p',`同位置：以${day.source_date}的过去250个有效收盘价分位 ${position.current_price_percentile==null?'待核':(position.current_price_percentile*100).toFixed(1)+'%'} 所在20%区间比较；未成熟和缺失价格不计入有效分母。`);
   const cases=add(history,'details');add(cases,'summary','查看同股历史事件并定位图表');const groupChoice=add(cases,'select');groupChoice.setAttribute('aria-label','选择历史信号');
@@ -208,19 +202,21 @@ window.StockPanelHost={
     let box=el('macTop200');if(!box){box=document.createElement('details');box.id='macTop200';box.className='evidence-panel';document.querySelector('.source-note').after(box);}
     box.replaceChildren();add(box,'summary','收盘 Top200 · 行业 / 结构分组');
     try{
-      const response=await fetch('/api/v4/research/workbench/days/'+bound.source_date+'/top200');
+      const response=await fetch('/api/v4/research/workbench/days/'+bound.source_date+'/top200?'+new URLSearchParams({revision:bound.generation}));
       const value=await response.json();if(mine!==moduleSerial||activeDay!==bound)return;
       if(!response.ok)throw Error('读取失败');
+      completionCallback?.sourceDayArchive?.(value.source_day_archive??null,bound,value.artifact);
       if(!Array.isArray(value.top200)||!value.top200.length){add(box,'p','本日 Top200 尚未物化 · CANNOT_CONFIRM');return;}
       add(box,'p',`源日 ${bound.source_date} · 目录 ${value.directory_count} · 正价记录 ${value.positive_price_record_count??value.valid_quote_count} · 当日可排名 ${value.valid_daily_gain_rank_record_count??'待确认'} · 无成交或无有效bar ${value.excluded_nontrading_or_invalid_bar_count??'未知'} · 缺报价 ${value.missing_quote_count} · Top200 ${value.top200_count}。数值结构描述；逐股图审未完成。`);
       for(const [key,title]of [['previous_session','前一交易日冻结候选覆盖'],['same_day','同日事后对照']]){const c=value.comparison?.[key];if(c)add(box,'p',`${title} · ${c.source_date} · ${c.hits??'待核'}/${c.candidate_count??'待核'}候选，Top榜 ${c.hits??'待核'}/${c.top_count}。事前可得性待证；图审名单未完成。`);}
       for(const [axis,title] of [['industry','行业'],['structure','结构'],['theme','题材（多标签）']]){const group=add(box,'details');add(group,'summary',title);for(const row of value.statistics?.[axis]??[])add(group,'p',`${row.label} · Top200 ${row.top200_count} · 同范围可计算 ${row.members_with_valid_quote}`);}
       const all=add(box,'details');add(all,'summary',`查看 ${value.top200.length} 只描述性名单`);
       for(const row of value.top200){const button=add(all,'button',`${row.rank} · ${row.symbol} ${row.name??''} · ${Number(row.change_pct).toFixed(2)}% · ${row.official_major??'行业待核'} · ${row.structure??'结构待核'}`);button.type='button';button.style.display='block';button.onclick=()=>singleResearch.openSymbol(row.symbol,row.name)}
-    }catch(error){if(mine===moduleSerial&&activeDay===bound)add(box,'p','本日 Top200 待确认：'+error.message);}
+    }catch(error){if(mine===moduleSerial&&activeDay===bound){completionCallback?.sourceDayArchive?.(null,bound);add(box,'p','本日 Top200 待确认：'+error.message);}}
   },
   paintContext,
   paintClassificationCoverage(day){let line=el('macClassificationCoverage');if(!line){line=document.createElement('p');line.id='macClassificationCoverage';line.className='counts';document.querySelector('.source-note').append(line);}const counts=day.classification_identity_counts??{};line.textContent='分类代码+名称 '+(counts.BOUND_EXACT_CODE_NAME??0)+'/'+day.scope_count+' · 冲突 '+(counts.IDENTITY_CONFLICT_NAME??0)+' · '+day.classification_status;},
+  refreshClassificationDay(day){activeDay=day;this.paintClassificationCoverage(day);this.paintTop200();},
   paintClassification(row,day){renderClassification(el('classificationSummary'),row,day)},
   paintCompanyReports,
   paintWorkflow(contract){
@@ -231,7 +227,7 @@ window.StockPanelHost={
   unbindDay(){reviewSamples.unbindDay();singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;},
   bindDay(day){
     activeDay=day;singleResearch.bindDay(day);reviewSamples.bindDay(day);this.paintClassificationCoverage(day);sourceContext(day,true);
-    const key=day.source_date;if(moduleEvents?.key===key)return;
+    const key=day.source_date;if(moduleEvents?.key===key){this.paintTop200();return;}
     moduleEvents?.close();const mine=++moduleSerial;let previous=null;this.paintTop200();
     moduleEvents=new EventSource('/api/v4/research/workbench/days/'+key+'/events');moduleEvents.key=key;
     moduleEvents.addEventListener('workbench_completed',event=>{try{const e=JSON.parse(event.data);if(mine!==moduleSerial||activeDay?.source_date!==key||e.source_date!==key||e.RESEARCH_ONLY!==true||['production_allowed','buy_gate_updated','orders_sent'].some(k=>e[k]!==false))return;

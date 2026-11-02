@@ -627,6 +627,32 @@ export function historyGapText(horizon={},position={}){
   return `未成熟 ${n(horizon?.not_matured)} · 收益统计排除：缺价 ${n(horizon?.missing_price)}、非有限价格 ${n(horizon?.nonfinite_price)}、非正价格 ${n(horizon?.nonpositive_price)}、收益非有限 ${n(horizon?.nonfinite_return)} · 位置待核事件 ${n(position?.conditional?.unknown_percentile_events)}`;
 }
 
+export function renderSingleHistoryTable(doc,host,groups){
+  for(const group of groups)if(!group.horizons||!group.same_position?.horizons||group.identity_status!=='BOUND')
+    throw Error('单股历史统计身份未绑定');
+  const add=(parent,tag,text)=>{const el=doc.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el};
+  const rate=value=>{
+    if(Number.isSafeInteger(value?.valid)&&value.valid>0&&Number.isSafeInteger(value?.positive)&&Number.isFinite(value?.positive_fraction))
+      return `${value.positive}/${value.valid}（${(value.positive_fraction*100).toFixed(1)}%）`;
+    if(value?.valid===0)return value?.positive===0?'0/0（无有效样本）':'有效 0（无有效样本）';
+    return `有效 ${Number.isSafeInteger(value?.valid)&&value.valid>=0?value.valid:'待核'}（样本不足）`;
+  };
+  const wrap=add(host,'div');wrap.className='kb-history-table-wrap';
+  const table=add(wrap,'table');table.className='kb-history-table';add(table,'caption','同证券历史事件统计');
+  const head=add(add(table,'thead'),'tr');
+  for(const title of ['信号','命中','D+2 正收益/有效','D+5 正收益/有效','同位置 D+2','同位置 D+5']){
+    const th=add(head,'th',title);th.setAttribute('scope','col');
+  }
+  const body=add(table,'tbody'),detail=add(host,'details');add(detail,'summary','查看未成熟、排除和未知情况');
+  for(const group of groups){
+    const h=group.horizons,p=group.same_position.horizons,row=add(body,'tr');
+    const label=add(row,'th',group.coverage?.label??'信号待核');label.setAttribute('scope','row');
+    for(const value of [group.eligible_event_count??'待核',rate(h.d2),rate(h.d5),rate(p.d2?.conditional),rate(p.d5?.conditional)])
+      add(row,'td',String(value));
+    add(detail,'p',`${group.coverage?.label??'信号待核'} · 未知标签 ${group.coverage?.unknown_dates??'待核'}；D+2 ${historyGapText(h.d2,p.d2)}；D+5 ${historyGapText(h.d5,p.d5)}。`);
+  }
+}
+
 export function selectCompanyFinancials(official={},f10={},allowScoped=false){
   if(official?.evidence_status==='OFFICIAL_FILING')return official;
   const candidate=f10?.official_observation?.financials;
