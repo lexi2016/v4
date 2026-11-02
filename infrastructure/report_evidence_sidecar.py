@@ -144,6 +144,15 @@ def _write_job_receipt(io,job_id,status,**fields):
     return value
 
 
+def _read_job_receipt(io,job_id):
+    value=json.loads(io.read_bytes(job_id+'.receipt.json'))
+    if not isinstance(value,dict) or value.get('job_id')!=job_id:
+        raise ValueError('JOB_IDENTITY_MISMATCH')
+    if value.get('status') not in ('SUBMITTED','RUNNING','COMPLETED','FAILED'):
+        raise ValueError('JOB_STATE_UNKNOWN')
+    return value
+
+
 def _running_worker(active):
     """True=matching live worker, False=observed dead/other, None=unknown."""
     if not active:return False
@@ -187,7 +196,7 @@ def on_stage_completed(*, config, trade_date, stage_id, receipt):
             raise ValueError('PERSISTED_RUNNER_RECEIPT_MISMATCH')
         io=_job_io(root)
         with owned_interprocess_lock(root/'jobs/submit.lock',timeout_seconds=.05,timeout_message='SIDECAR_SUBMIT_BUSY'):
-            try:previous=json.loads(io.read_bytes(job_id+'.receipt.json'))
+            try:previous=_read_job_receipt(io,job_id)
             except FileNotFoundError:previous={}
             if previous.get('status')=='COMPLETED':
                 return dict(status='REUSED',job_id=job_id,job_status='COMPLETED',callback_seconds=time.perf_counter()-started,**SAFETY)
@@ -205,7 +214,7 @@ def on_stage_completed(*, config, trade_date, stage_id, receipt):
                 # Same lock as the worker's RUNNING -> terminal writes. Never
                 # wait on healthy materialization while holding Stage's lock.
                 with owned_interprocess_lock(root/'jobs/consumer.lock',timeout_seconds=0,timeout_message='SIDECAR_CONSUMER_BUSY'):
-                    previous=json.loads(io.read_bytes(job_id+'.receipt.json'))
+                    previous=_read_job_receipt(io,job_id)
                     if previous.get('status')=='COMPLETED':
                         return dict(status='REUSED',job_id=job_id,job_status='COMPLETED',callback_seconds=time.perf_counter()-started,**SAFETY)
                     if previous.get('status')=='FAILED':
@@ -244,7 +253,7 @@ def consume_sidecar_job(job_id):
     started=time.perf_counter()
     try:
         with owned_interprocess_lock(root/'jobs/consumer.lock',timeout_seconds=.05,timeout_message='SIDECAR_CONSUMER_BUSY'):
-            previous=json.loads(io.read_bytes(job_id+'.receipt.json'))
+            previous=_read_job_receipt(io,job_id)
             if previous.get('status')=='COMPLETED':return dict(status='REUSED',job_id=job_id,**SAFETY)
             if previous.get('status')=='FAILED':return previous
             _write_job_receipt(io,job_id,'RUNNING',worker_pid=os.getpid())

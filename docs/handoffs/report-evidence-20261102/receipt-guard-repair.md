@@ -1,0 +1,9 @@
+# Explicitly authorized receipt integrity repair
+
+Baseline: `7862ef3e871e80a10a1ce78cca4285609bc3b894`. Scope is only the controller's two reopened defects: unknown existing receipt state and a stored job ID differing from the expected job ID. This freeze is PREPARED_NOT_ACCEPTED pending the single combined source/candidate incremental review.
+
+The same `_read_job_receipt` guard now precedes parent reuse/processing, the consumer-lock re-read and worker processing. Existing invalid receipts are refused without replacement, spawn or materialization. Worker validation occurs before its materialization exception handler, so refusal does not become an overwriting FAILED receipt. The four existing states, existing locks and normal first submission remain unchanged.
+
+Command: `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -B -m unittest tests.test_report_evidence_sidecar -v` — 12 tests PASS. The two new methods are `test_unknown_existing_receipt_is_preserved_at_all_read_boundaries` and `test_mismatched_receipt_job_id_is_refused_at_all_read_boundaries`; each checks initial read, locked re-read and worker entry, exact invalid receipt bytes, original runner bytes, no extra spawn and no materialization. Wrong-ID coverage includes SUBMITTED, RUNNING, COMPLETED and FAILED. Existing ten regressions, including the shared-lock completion race, remain PASS. Original failing output remains local at `retrieval/P4_RECEIPT_GUARD_PRE_FIX_FAILURE.txt` under the unified implementation evidence root.
+
+Standalone API acceptance and prior actual Main/Stage normal hooks are reused only at their unchanged scope. The candidate will be assembled from this exact freeze by the runtime Writer and reviewed together with this source diff. No deployment, natural-run or final full-corpus performance claim is made. Native bootstrap continues with the original PID/checkpoint and unchanged batch configuration.
