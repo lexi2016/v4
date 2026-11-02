@@ -48,6 +48,8 @@ MAX_CHUNK_DECODED = 8 * 1024 * 1024
 MAX_CHUNK_COMPRESSED = 2 * 1024 * 1024
 MAX_PROJECTION_DECODED = 64 * 1024 * 1024
 MAX_PROJECTION_COMPRESSED = 8 * 1024 * 1024
+MAX_HISTORY_SOURCE_DECODED = 32 * 1024 * 1024
+MAX_HISTORY_SOURCE_COMPRESSED = 8 * 1024 * 1024
 MAX_HTML_BYTES = 16 * 1024 * 1024
 MAX_BATCH_SYMBOLS = 64
 CODE = re.compile(r'^\d{6}\.(?:SH|SZ|BJ)$')
@@ -97,7 +99,10 @@ def _checked(ref, *, maximum=None):
 
 def _bounded_gzip(ref, *, maximum, compressed_maximum):
     path = _checked(ref, maximum=compressed_maximum)
-    raw = path.read_bytes()
+    with path.open('rb') as handle:
+        raw = handle.read(compressed_maximum + 1)
+    _require(len(raw) <= compressed_maximum, 'GENERIC_REFERENCE_TOO_LARGE')
+    _require(hashlib.sha256(raw).hexdigest() == ref['sha256'], 'GENERIC_REFERENCE_SHA_DRIFT')
     if 'bytes' in ref:
         _require(len(raw) == ref['bytes'], 'GENERIC_ASSET_COMPRESSED_SIZE_CONFLICT')
     with gzip.GzipFile(fileobj=io.BytesIO(raw), mode='rb') as stream:
@@ -796,7 +801,22 @@ def bind_retained_pair_history(*, index_ref, history_refs, history_producer_ref,
             selected=index['symbols'][symbol]
             _require(selected.get('status')=='READY','GENERIC_HISTORY_BINDING_MISSING')
             prior_ref=selected['binding'];binding=json.loads(_checked(prior_ref,maximum=4*1024*1024).read_bytes())
-            shard_path=_checked(shard_ref,maximum=8*1024*1024);raw=shard_path.read_bytes();shard=json.loads(raw)
+            if shard_ref.get('encoding')=='gzip':
+                _require(type(shard_ref.get('bytes')) is int and 0<shard_ref['bytes']<=MAX_HISTORY_SOURCE_COMPRESSED
+                         and type(shard_ref.get('decoded_bytes')) is int and 0<shard_ref['decoded_bytes']<=MAX_HISTORY_SOURCE_DECODED
+                         and isinstance(shard_ref.get('decoded_sha256'),str) and SHA.fullmatch(shard_ref['decoded_sha256']),
+                         'GENERIC_HISTORY_GZIP_REFERENCE_INVALID')
+                try:
+                    raw=_bounded_gzip(shard_ref,maximum=MAX_HISTORY_SOURCE_DECODED,
+                                      compressed_maximum=MAX_HISTORY_SOURCE_COMPRESSED)
+                except (OSError,EOFError,zlib.error) as exc:
+                    raise ValueError('GENERIC_HISTORY_GZIP_INVALID') from exc
+                _require(hashlib.sha256(raw).hexdigest()==shard_ref['decoded_sha256'],
+                         'GENERIC_HISTORY_DECODED_SHA_CONFLICT')
+            else:
+                _require(shard_ref.get('encoding') is None,'GENERIC_HISTORY_ENCODING_UNSUPPORTED')
+                shard_path=_checked(shard_ref,maximum=8*1024*1024);raw=shard_path.read_bytes()
+            shard=json.loads(raw)
             expected={'symbol':symbol,'data_date':index['source_date'].replace('-',''),
                 'observation_date':index['observation_date'],'source_generation':index['source_generation'],
                 'input_sha256':index['input_sha256'],'source_candidate_generation':index['candidate_generation'],

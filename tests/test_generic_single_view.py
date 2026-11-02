@@ -465,6 +465,29 @@ def test_pair_completion_and_single_batch_have_required_identity(tmp_path):
     assert amended_binding['chunks']==old_binding['chunks'] and amended_binding['chart']==old_binding['chart']
     assert amended_binding['details']['history']['source_candidate_generation']==identity['generation']
     assert json.loads(Path(idx['path']).read_bytes())['symbols'][identity['symbol']]['binding']==old_binding_ref
+    raw=Path(shard_ref['path']).read_bytes();gzip_path=tmp_path/'history-shard.json.gz'
+    gzip_path.write_bytes(gzip.compress(raw,mtime=0))
+    gzip_ref={**ref(gzip_path),'encoding':'gzip','decoded_bytes':len(raw),
+              'decoded_sha256':hashlib.sha256(raw).hexdigest()}
+    compressed_index,compressed_outcomes=view.bind_retained_pair_history(index_ref=idx,
+        history_refs={identity['symbol']:gzip_ref},history_producer_ref=owner,output_root=out)
+    assert compressed_outcomes[identity['symbol']]['status']=='READY'
+    compressed_value=json.loads(Path(compressed_index['path']).read_bytes())
+    compressed_binding=json.loads(Path(compressed_value['symbols'][identity['symbol']]['binding']['path']).read_bytes())
+    assert compressed_binding['details']['history']['history_shard']==gzip_ref
+    assert compressed_binding['details']['history']['asset']==amended_binding['details']['history']['asset']
+    truncated=tmp_path/'truncated.json.gz';truncated.write_bytes(gzip_path.read_bytes()[:-5])
+    bad_refs=[({**gzip_ref,'decoded_sha256':S('f')},'HISTORY_DECODED_SHA_CONFLICT'),
+        ({k:v for k,v in gzip_ref.items() if k!='decoded_sha256'},'HISTORY_GZIP_REFERENCE_INVALID'),
+        ({**gzip_ref,'decoded_bytes':len(raw)+1},'ASSET_DECODED_SIZE_CONFLICT'),
+        ({**gzip_ref,'decoded_bytes':view.MAX_HISTORY_SOURCE_DECODED+1},'HISTORY_GZIP_REFERENCE_INVALID'),
+        ({**gzip_ref,'bytes':gzip_ref['bytes']+1},'ASSET_COMPRESSED_SIZE_CONFLICT'),
+        ({**gzip_ref,**ref(truncated)},'HISTORY_GZIP_INVALID')]
+    for bad_ref,reason in bad_refs:
+        _,bad_outcomes=view.bind_retained_pair_history(index_ref=idx,history_refs={identity['symbol']:bad_ref},
+            history_producer_ref=owner,output_root=out)
+        assert bad_outcomes[identity['symbol']]['status']=='UNKNOWN'
+        assert reason in bad_outcomes[identity['symbol']]['reason']
     base_value=json.loads(Path(amended['path']).read_bytes());base_value['symbols'][identity['symbol']]={'status':'UNKNOWN','reason':'RETRY'}
     base_ref=put_json(tmp_path/'merge-base.json',base_value)
     repair_value=json.loads(Path(idx['path']).read_bytes());repair_value['symbols']={identity['symbol']:repair_value['symbols'][identity['symbol']]}
@@ -505,6 +528,16 @@ def test_gzip_decoding_is_bounded(tmp_path):
     compressed=tmp_path/'large.gz';compressed.write_bytes(gzip.compress(b'x'*1025,mtime=0))
     with pytest.raises(ValueError,match='DECODED_SIZE_LIMIT'):
         view._bounded_gzip(ref(compressed),maximum=1024,compressed_maximum=2048)
+
+
+def test_gzip_rejects_a_file_changed_after_reference_check(tmp_path,monkeypatch):
+    compressed=tmp_path/'changing.gz';compressed.write_bytes(gzip.compress(b'first',mtime=0));source=ref(compressed)
+    original=view._checked
+    def changed_after_check(item,**kwargs):
+        path=original(item,**kwargs);path.write_bytes(gzip.compress(b'other',mtime=0));return path
+    monkeypatch.setattr(view,'_checked',changed_after_check)
+    with pytest.raises(ValueError,match='REFERENCE_SHA_DRIFT'):
+        view._bounded_gzip(source,maximum=1024,compressed_maximum=2048)
 
 
 def test_reused_n_keeps_original_identity_and_requires_same_sidecar(tmp_path):
