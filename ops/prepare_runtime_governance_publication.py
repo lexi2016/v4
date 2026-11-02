@@ -166,6 +166,8 @@ def prepare(candidate, output, batch1):
         transition_proof = transition_owner_proof(candidate_receipt, as_of=cutoff)
         if proof['matching_receipts'] != transition_proof['matching_receipts']:
             raise ValueError('TRANSITION_RECEIPT_SET_CHANGED_DURING_PREPARE')
+        proof['admission'] = 'TRANSITION_OWNER_RETAINED_NOT_ZERO'
+        proof['reason'] = 'Retained for legacy rollback ledger reference; forward admission uses exact transition_owner_proof.'
     elif proof['matching_receipts']:
         raise ValueError('OMITTED_MAIN_HAS_RECEIPTS_COMPATIBILITY_REQUIRED')
     protected = []
