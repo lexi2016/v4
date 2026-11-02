@@ -93,9 +93,6 @@ def _next_due(workload: WorkloadDefinition, business_date: str, now: datetime) -
     return None
 
 
-_RECEIPT_DATE_FIELDS = ("business_date", "scheduled_date", "target_date")
-
-
 def _receipt_matches_business_date(
     receipt: dict[str, Any], business_date: str, workload_id: str | None = None,
 ) -> bool:
@@ -104,10 +101,14 @@ def _receipt_matches_business_date(
         return False
     if workload_id != "hourly_research":
         return True
-    return all(
-        str(receipt.get(field) or "") == business_date
-        for field in _RECEIPT_DATE_FIELDS
-    )
+    from ops.run_scheduled_slot import NEXT_TARGET_SLOTS, next_trade_day
+    from contracts.trading_calendar import load_market_calendar
+    slot = receipt.get("slot")
+    # Slot/target semantics come from the fixed owner slot set + frozen calendar, never a >= heuristic.
+    expected = next_trade_day(business_date, calendar=load_market_calendar()) if isinstance(slot, str) and slot in NEXT_TARGET_SLOTS else business_date
+    return (isinstance(slot, str) and re.fullmatch(r"[0-9]{4}", slot) is not None
+            and str(receipt.get("scheduled_date") or "") == business_date
+            and str(receipt.get("target_date") or "") == expected)
 
 
 def _latest_receipt(
