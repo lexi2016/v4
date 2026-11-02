@@ -5,6 +5,8 @@ import {installKbOverlay} from './kb-chart-overlay.mjs';
 const $=id=>document.getElementById(id);
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const sha64=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
+const A20_HOLD_SYMBOLS=new Set(['600000.SH','600519.SH','601318.SH','000001.SZ','600036.SH','000301.SZ',
+  '688981.SH','301686.SZ','920000.BJ','920001.BJ','603281.SH','920187.BJ']);
 export const ACTION_REBIND_FIELDS=['kb_action_no_position','kb_action_no_position_status',
   'kb_action_with_position','kb_action_with_position_status','kb_action_reasons','kb_action_rule_sha256'];
 export const validSymbol=s=>typeof s==='string'&&/^(?:\d{6}\.(?:SH|SZ|BJ)|HK\.\d{5})$/.test(s);
@@ -79,7 +81,10 @@ export function decodeActionPatch(meta,payload){
 
 // Unpack persisted values only; no KB or score formula runs in the browser.
 export function decodeGenericChunk(meta,chunk,ref,patch=null){
-  const assetGeneration=meta.asset_candidate_generation??meta.panel_generation;
+  if(meta.chunk_candidate_generation!==undefined&&
+    (!A20_HOLD_SYMBOLS.has(meta.symbol)||!sha64(meta.score_candidate_generation)||
+     meta.chunk_candidate_generation!==meta.score_candidate_generation||meta.action_rebound!==false))throw Error('单股评分修订身份冲突');
+  const assetGeneration=meta.chunk_candidate_generation??meta.asset_candidate_generation??meta.panel_generation;
   const assetInput=meta.asset_candidate_input_sha256??meta.candidate_input_sha256;
   if(chunk?.schema!=='v4.workbench.generic_single_chunk.v1'||chunk.symbol!==meta.symbol||
     chunk.candidate_generation!==assetGeneration||chunk.candidate_input_sha256!==assetInput||
@@ -120,11 +125,22 @@ export function actionStatusHint(status){
   return '';
 }
 
+export function holdUnknownSummary(score){
+  if(!score)return [];
+  const short={kb_hold_close_up:'收盘上涨',kb_hold_above_bbi:'BBI',kb_hold_volume_ok:'阳线得分',
+    kb_hold_trend_up:'N型',kb_hold_j_not_dead:'J'};
+  return HOLD_ITEMS.filter(([key])=>score[key]===null||score[key]===undefined).map(([key])=>{
+    const reason=score[key+'_reason'];
+    const text=reason==='BOUND_KB_J_UNAVAILABLE'?'原 J 来源缺失':(HOLD_REASONS[reason]??'来源或规则待核');
+    return `${short[key]}：${text}`;
+  });
+}
+
 export function installSingleResearch({loadDetails=()=>{}}={}){
   const host=$('kbSingleResearch'),body=$('kbSingleBody'),status=$('kbSingleStatus'),frame=$('kbSingleChart'),select=$('kbSingleDate');
   const stocks={'002865.SZ':'钧达股份','301048.SZ':'金鹰重工','300206.SZ':'理邦仪器'};
   let day=null,active=null,request=null,serial=0,dateSerial=0,observer=null,overlayCleanup=null,symbol='002865.SZ';
-  const dailyIds=['kbSingleScore','kbSingleScoreItems','kbSingleActions','kbSingleActionReasons','kbSingleChips','kbSingleGroups','kbSingleSignalReasons','kbSingleUnknownItems'];
+  const dailyIds=['kbSingleScore','kbSingleScoreUnknown','kbSingleScoreItems','kbSingleActions','kbSingleActionReasons','kbSingleChips','kbSingleGroups','kbSingleSignalReasons','kbSingleUnknownItems'];
   const clearDaily=()=>{for(const id of dailyIds)$(id)?.replaceChildren();$('kbSingleVolume').textContent='';$('kbSingleSelected').textContent='';$('kbSingleUnknown').hidden=true;};
   const clear=()=>{++serial;++dateSerial;request?.abort();request=null;observer?.disconnect();observer=null;overlayCleanup?.();overlayCleanup=null;active=null;frame.src='about:blank';frame.hidden=true;body.hidden=true;clearDaily();for(const id of ['kbSingleHistory','kbSingleCompany','kbSingleFinancial'])$(id)?.replaceChildren();select.value='';$('kbSingleDateStatus').textContent='';$('kbSingleVersionLatest').hidden=true;document.body.classList.remove('kb-single-focus');window.RelatedReports?.clear();if($('relatedReports'))$('relatedReports').hidden=true;};
   function marketChrome(hk){
@@ -182,6 +198,8 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
     $('kbSingleVolume').textContent=`成交量较昨量：${Number.isFinite(volumeRatio)?volumeRatio.toFixed(2)+' 倍':'待核'} · 较前5日均量：${Number.isFinite(volume5)?volume5.toFixed(2)+' 倍':'待核'}（比较基准不同）`;
     $('kbSingleSignalReasons').replaceChildren(...signalExplanations(row,active.view.signal_component_facts).map(text=>node('p',text)));
     const score=row.hold_score,scoreText=$('kbSingleScore'),scoreItems=$('kbSingleScoreItems');scoreItems.replaceChildren();
+    let scoreUnknown=$('kbSingleScoreUnknown');if(!scoreUnknown){scoreUnknown=node('p');scoreUnknown.id='kbSingleScoreUnknown';scoreText.after(scoreUnknown)}
+    const unknownItems=holdUnknownSummary(score);scoreUnknown.textContent=unknownItems.length?'待核分项：'+unknownItems.join('；'):'';scoreUnknown.hidden=!unknownItems.length;
     if(!score){scoreText.textContent='持股评分：数据待核';}
     else{
       const missing=HOLD_ITEMS.filter(([key])=>score[key]===null).length;
@@ -301,7 +319,11 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
       body.hidden=true;frame.hidden=true;$('kbSingleVersionLatest').hidden=false;status.textContent='所选研究版本已变或不可用，请主动查看最新版本。';return;
     }
     if(meta.status==='UNKNOWN_SOURCE_ADMISSION'){
-      status.textContent='该股票来源或资产待核 · '+(meta.reason??'UNKNOWN');frame.hidden=true;
+      const gap=meta.source_gap;
+      if(gap&&requested==='688496.SH'&&gap.asof_date===bound.source_date&&gap.source_status==='MISSING_ASOF_BAR'&&
+        gap.trading_status==='CANNOT_CONFIRM'&&/^\d{4}-\d{2}-\d{2}$/.test(gap.last_saved_date??'')&&sha64(gap.checkpoint_sha256))
+        status.textContent=`目标日无准入行情；最近已存 ${gap.last_saved_date}，后续交易状态待核。`;
+      else status.textContent='该股票来源或资产待核 · '+(meta.reason??'UNKNOWN');frame.hidden=true;
       $('kbSingleScore').textContent='行情与评分待核';$('kbSingleActions').replaceChildren(node('p','当日行情未准入；信号和持仓提示待核。'));
       const heading=select.closest?.('.section-head')?.querySelector('h3');if(heading)heading.textContent='原式图待核';
       if(frame.previousElementSibling?.classList.contains('chart-toolbar'))frame.previousElementSibling.hidden=true;
@@ -438,7 +460,8 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
       const count=Math.min(120,state.rows.length),end=index===state.rows.length-1?state.rows.length:Math.min(state.rows.length,index+Math.floor(count*.7));
       frame.hidden=false;w.setOriginalWindow?.(count,end);w.choose?.(index);w.paint?.();
       selectDate(state.rows[index].trade_date,{move:false,latest:!selected});
-      status.textContent=`来源 ${day.source_date} · 观察 ${day.observation_date} · ${stocks[symbol]??symbol}单股研究`;
+      status.textContent=`来源 ${day.source_date} · 观察 ${day.observation_date} · ${stocks[symbol]??symbol}单股研究`+
+        (active?.meta?.score_candidate_generation?` · 单股评分修订 ${active.meta.score_candidate_generation.slice(0,12)}`:'');
     };
     observer=new MutationObserver(ready);observer.observe(doc.documentElement,{attributes:true,attributeFilter:['data-loaded']});ready();
   }
@@ -490,7 +513,18 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
   select.onchange=()=>selectDate(select.value.replaceAll('-',''));
   $('kbSingleLatest').onclick=()=>{if(active)selectDate(active.hk?active.meta.source_date:active.scoped?active.meta.last_date:active.view.rows.at(-1).trade_date,{latest:true})};
   for(const button of host.querySelectorAll('[data-kb-window]'))button.onclick=()=>{const w=frame.contentWindow,s=w?.RESEARCH_PANEL_STATE;if(!active||!s?.rows?.length)return;const value=button.dataset.kbWindow==='all'?s.rows.length:Number(button.dataset.kbWindow),count=Math.min(value,s.rows.length),chosen=Number(select.value.replaceAll('-','')),i=s.rows.findIndex(row=>row.trade_date===chosen),end=i<0||i===s.rows.length-1?s.rows.length:Math.min(s.rows.length,i+Math.floor(count*.7));w.setOriginalWindow?.(count,end);if(i>=0)w.choose?.(i);w.paint?.()};
-  return {openSymbol,clear,refresh(){if(active&&!active.hk&&day&&!request?.signal.aborted)loadDetails(day,active.meta,request.signal,active.assets)},bindDay(value){const same=day?.source_date===value?.source_date,focused=document.body.classList.contains('kb-single-focus');day=value;host.hidden=!value?.source_date;if(!host.hidden&&(!same||focused)){if(!same){const wanted=new URLSearchParams(location.search).get('symbol');symbol=validSymbol(wanted)?wanted:'002865.SZ';if(!stocks[symbol])stocks[symbol]=symbol}open()}},unbindDay(){clear();day=null;host.hidden=true}};
+  return {openSymbol,clear,setObservedName(requested,name,signal){
+    const update=observedCompanyNameState({requested,current:symbol,name,knownName:stocks[requested],signal,currentSignal:request?.signal,
+      status:status.textContent,sourceDate:day?.source_date,observationDate:day?.observation_date});
+    if(!update)return;stocks[requested]=update.name;$('kbSingleName').textContent=update.name;
+    frame.title=update.name+'原式研究图';status.textContent=update.status;
+  },refresh(){if(active&&!active.hk&&day&&!request?.signal.aborted)loadDetails(day,active.meta,request.signal,active.assets)},bindDay(value){const same=day?.source_date===value?.source_date,focused=document.body.classList.contains('kb-single-focus');day=value;host.hidden=!value?.source_date;if(!host.hidden&&(!same||focused)){if(!same){const wanted=new URLSearchParams(location.search).get('symbol');symbol=validSymbol(wanted)?wanted:'002865.SZ';if(!stocks[symbol])stocks[symbol]=symbol}open()}},unbindDay(){clear();day=null;host.hidden=true}};
+}
+export function observedCompanyNameState({requested,current,name,knownName,signal,currentSignal,status,sourceDate,observationDate}){
+  if(requested!==current||!signal||signal!==currentSignal||signal.aborted||knownName&&knownName!==requested||
+    typeof name!=='string'||!name.trim()||name.length>80||/[\x00-\x1f\x7f]/.test(name)||name===requested)return null;
+  const clean=name.trim(),prefix=`来源 ${sourceDate} · 观察 ${observationDate} · ${requested}单股研究`;
+  return {name:clean,status:status.startsWith(prefix)?`来源 ${sourceDate} · 观察 ${observationDate} · ${clean}单股研究`+status.slice(prefix.length):status};
 }
 export function f10SourceKind(value,day,meta){
   if(!value||value.symbol!==meta.symbol||value.data_date!==day.source_date.replaceAll('-','')||value.historical_PIT!==false||
@@ -500,7 +534,9 @@ export function f10SourceKind(value,day,meta){
     value.lineage==='REGISTERED_ISOLATED_PAIRED_CANDIDATE'&&value.source_generation===meta.panel_generation&&
     value.input_sha256===meta.candidate_input_sha256&&value.bound_source_generation===day.generation&&
     value.bound_source_input_sha256===day.input_sha256)return 'CANDIDATE';
-  if(meta.schema==='v4.workbench.generic_single_research.v1'&&meta.action_rebound===true&&value.status==='OBSERVED_CANDIDATE'&&
+  if(meta.schema==='v4.workbench.generic_single_research.v1'&&
+    (meta.action_rebound===true||A20_HOLD_SYMBOLS.has(meta.symbol)&&meta.action_rebound===false&&
+      sha64(meta.score_candidate_generation)&&meta.chunk_candidate_generation===meta.score_candidate_generation)&&value.status==='OBSERVED_CANDIDATE'&&
     value.lineage==='REGISTERED_ISOLATED_PAIRED_CANDIDATE_REUSED'&&value.source_generation===meta.asset_candidate_generation&&
     value.input_sha256===meta.asset_candidate_input_sha256&&value.logical_candidate_generation===meta.panel_generation&&
     sha64(meta.action_rebind_equivalence_sha256)&&value.reuse_equivalence_sha256===meta.action_rebind_equivalence_sha256&&
@@ -517,21 +553,57 @@ export function financialLines(official={},f10={}){
   const money=value=>typeof value==='string'&&/^-?\d+(?:\.\d+)?(?:亿|万|元)$/.test(value)?(value.endsWith('元')?value:value+'元'):null;
   const value=(number,raw,label,fallback)=>Number.isFinite(number)?`${label}：${(number/100000000).toFixed(2)}亿元`:
     money(raw)?`${fallback}（TDX F10 · 报告期 ${period}）：${money(raw)}`:`${label}：待核`;
+  const cashConfirmed=Number.isFinite(official.operating_cash_flow)&&
+    /^\d{4}-\d{2}-\d{2}$/.test(official.latest_report_period??'')&&
+    ['CNY','元'].includes(official.monetary_unit)&&official.operating_cash_flow_basis==='NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES';
   return [value(official.latest_revenue,report.revenue_text,'营业收入','营业总收入'),
     value(official.latest_net_profit_parent,report.net_profit_text,'归母净利润','净利润'),
-    value(official.operating_cash_flow,null,'经营现金流净额','经营现金流净额')];
+    cashConfirmed?value(official.operating_cash_flow,null,'经营现金流净额','经营现金流净额'):
+      '经营现金流净额：待核（净额口径、单位或报告期未确认）'];
+}
+
+export function holderLines(official={},f10={}){
+  const lines=[],h=f10.reported_holders;
+  if(official.holder_count!==null&&official.holder_count!==undefined&&official.holder_count!==''&&Number.isFinite(Number(official.holder_count)))
+    lines.push(`${official.holder_asof?'报告期末股东':'股东户数'} ${official.holder_count} 户（${official.holder_asof??'统计截止日待核'}）${official.note?'；'+official.note:''}`);
+  if(Number.isSafeInteger(h?.count)&&h.count>0&&/^\d{4}-\d{2}-\d{2}$/.test(h.asof_date??''))
+    lines.push(`TDX F10 股东户数 ${h.count} 户（统计截止 ${h.asof_date}；采集 ${f10.captured_at??'时间待核'}；非历史PIT）`);
+  const native=f10.financials?.holder_count;
+  if(Number.isFinite(native)&&native!==h?.count)
+    lines.push(`TDX 财务源股东户数 ${native} 户（源更新 ${f10.finance_updated_date??'待核'}；统计截止日未绑定）`);
+  return lines.length?lines:['股东户数 待核 户（统计截止日待核）'];
+}
+
+export function companyBusinessText(official={},f10={}){
+  if(typeof official.value==='string'&&official.value.trim())return official.value;
+  const value=f10?.reported_business;
+  return typeof value==='string'&&value.trim()&&value.length<=1000?
+    `TDX F10 主营业务：${value}（实际采集 ${f10.captured_at??'时间待核'}；非历史PIT）`:'主营资料待核';
+}
+
+export function verifiedInitialCompanyF10(value,generic,checks={}){
+  return generic&&checks.tdx_f10!=='VERIFIED'?null:value??null;
 }
 
 export function financialDisclosureText(official={},f10={},sources={}){
   const disclosed=official.evidence_status==='OFFICIAL_FILING'&&sources.official_quarterly?.available_date===official.latest_disclosed_at;
-  return `${official.latest_period_kind??'报告资料待核'} · 报告期 ${official.latest_report_period??'待核'} · 披露 ${disclosed?official.latest_disclosed_at:'待核'}${disclosed?'':` · F10更新 ${f10.finance_updated_date??'待核'}`}`;
+  const f10Period=f10?.financials?.report_period;
+  const knownF10Period=/^\d{4}-\d{2}-\d{2}$/.test(f10Period??'');
+  const period=official.latest_report_period??(knownF10Period?`${f10Period}（TDX F10）`:'待核');
+  const kind=official.latest_period_kind??(knownF10Period?'TDX F10财务快照':'报告资料待核');
+  return `${kind} · 报告期 ${period} · 披露 ${disclosed?official.latest_disclosed_at:'待核'}${disclosed?'':` · F10更新 ${f10?.finance_updated_date??'待核'}`}`;
 }
 
 export function verifiedCompanyPart(value,checks={},sources={}){
   if(!value||typeof value!=='object')return {};
   if(value.evidence_status==='OFFICIAL_FILING'){
     const url=value.source_url??value.latest_financial_source_url??value.holder_source_url;
-    return checks.official_quarterly==='VERIFIED'&&typeof url==='string'&&url===sources.official_quarterly?.url?value:{};
+    if(checks.official_quarterly!=='VERIFIED'||typeof url!=='string'||url!==sources.official_quarterly?.url)return {};
+    // Legacy 002865 asset omitted the basis, but its bound official filing explicitly reports this exact net figure in CNY.
+    if(sources.official_quarterly?.file?.sha256==='93465671bf989f73f201d7838d4cda9651786d622ee20d1bff0eddcf69b29a02'&&
+      value.latest_report_period==='2026-09-30'&&value.monetary_unit==='元'&&value.operating_cash_flow===-141711300.48&&
+      value.operating_cash_flow_basis===undefined)return {...value,operating_cash_flow_basis:'NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES'};
+    return value;
   }
   return checks.tdx_f10==='VERIFIED'?value:{};
 }

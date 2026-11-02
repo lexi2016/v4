@@ -1,4 +1,4 @@
-import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,verifiedCompanyPart,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
+import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,holderLines,companyBusinessText,verifiedCompanyPart,verifiedInitialCompanyF10,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
@@ -118,12 +118,14 @@ function loadSingleDetails(day,meta,signal,assets){
   const trusted=value=>generic?verifiedCompanyPart(value,checks,m.source_refs):value??{};
   const b=trusted(m.business_reported),f=trusted(m.financials_reported),holders=trusted(m.shareholders_reported);
   if(generic&&assets?.company)add(company,'p','已存公司资料来源版本 '+meta.detail_status.company.source_candidate_generation.slice(0,12)+'；各项来源分别核验。');
-  add(company,'p',b.value??'主营资料待核');if(b.source_url){const source=add(company,'a','官方三季报原件');source.href=b.source_url;source.target='_blank';source.rel='noopener noreferrer';}
-  add(finance,'p',financialDisclosureText(f,m.f10,m.source_refs));
+  const businessLine=add(company,'p');if(b.source_url){const source=add(company,'a','官方三季报原件');source.href=b.source_url;source.target='_blank';source.rel='noopener noreferrer';}
+  const disclosureLine=add(finance,'p');
   const financeLines=[add(finance,'p'),add(finance,'p'),add(finance,'p')];
-  add(finance,'p',`${holders.holder_asof?'报告期末股东':'股东户数'} ${holders.holder_count??'待核'} 户（${holders.holder_asof??'统计截止日待核'}）${holders.note?'；'+holders.note:''}`);
+  const holderBox=add(finance,'div');
+  const paintHolders=f10=>{holderBox.replaceChildren();for(const text of holderLines(holders,f10))add(holderBox,'p',text)};
   const f10Box=add(company,'div');
-  const paintF10=(f10,source)=>{f10Box.replaceChildren();financialLines(f,f10).forEach((text,i)=>{financeLines[i].textContent=text});if(!f10)return;
+  const paintF10=(f10,source)=>{f10Box.replaceChildren();businessLine.textContent=companyBusinessText(b,f10);
+    disclosureLine.textContent=financialDisclosureText(f,f10,m.source_refs);financialLines(f,f10??{}).forEach((text,i)=>{financeLines[i].textContent=text});paintHolders(f10??{});if(!f10)return;
     add(f10Box,'p',`TDX F10 概念（采集时快照）：${f10.concepts?.map(c=>c.name).join('、')||'待核'}`);
     const provenance=add(f10Box,'p',`${source} · 实际采集 ${f10.captured_at??'时间待核'}，来源更新 ${f10.source_updated_date??'待核'}；概念不回填历史。`);
     provenance.title=`TDX行业源代码 ${f10.industry?.tdx_finance_industry_code??'未知'}；映射状态 ${f10.industry?.status??'未知'}`;
@@ -138,7 +140,7 @@ function loadSingleDetails(day,meta,signal,assets){
       const details=add(finance,'details');add(details,'summary','查看已核对的财务源原始字段（单位及报告期待核）');add(details,'pre',JSON.stringify(raw.finance_native_raw,null,2));
     }else add(finance,'p','财务源分项待核：'+(raw?.reason??'来源缺失'));
   };
-  paintF10(m.f10,'单股已绑定快照');
+  paintF10(verifiedInitialCompanyF10(m.f10,generic,checks),'单股已绑定快照');
   fetch('/api/v4/research/workbench/days/'+day.source_date+'/f10/'+meta.symbol+'?'+new URLSearchParams({revision:day.generation}),{signal,credentials:'same-origin',redirect:'error',cache:'no-store'})
     .then(response=>response.ok?response.json():null).then(value=>{
       if(signal.aborted)return;const kind=f10SourceKind(value,day,meta);
@@ -146,11 +148,11 @@ function loadSingleDetails(day,meta,signal,assets){
       else if(kind==='CANONICAL'&&generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
       else if(kind==='CANDIDATE'){
         paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12));
-        if((!meta.name||meta.name===meta.symbol)&&typeof value.f10?.name==='string'&&value.f10.name)el('kbSingleName').textContent=value.f10.name;
+        singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
       else if(kind==='INDEPENDENT'){
         paintF10(value.f10,'独立公司资料 · 行情仍未准入');
-        if((!meta.name||meta.name===meta.symbol)&&typeof value.f10?.name==='string'&&value.f10.name)el('kbSingleName').textContent=value.f10.name;
+        singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
     }).catch(()=>{});
   const reports=el('relatedReports');reports.hidden=true;reports.dataset.identityDate=day.source_date.replaceAll('-','');reports.dataset.generation=day.generation;

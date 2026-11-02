@@ -20,6 +20,9 @@ FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,or
 ACTION_REBIND_FIELDS=('kb_action_no_position','kb_action_no_position_status',
                       'kb_action_with_position','kb_action_with_position_status',
                       'kb_action_reasons','kb_action_rule_sha256')
+A20_HOLD_SYMBOLS=frozenset({'600000.SH','600519.SH','601318.SH','000001.SZ','600036.SH','000301.SZ',
+                            '688981.SH','301686.SZ','920000.BJ','920001.BJ','603281.SH','920187.BJ'})
+A20_HISTORY_SYMBOLS=frozenset({'600036.SH','603281.SH','000020.SZ','000301.SZ','920187.BJ'})
 
 
 def compact(value):
@@ -258,6 +261,48 @@ def checked_action_rebind_stock(index,reuse,symbol,wrapper):
     return stock,delta
 
 
+def _observed_f10_business(text):
+    """Extract one complete table field from a SHA-checked F10 snapshot."""
+    lines=text.splitlines()
+    heading=re.compile(r'^\s*｜\s*★主营业务[:：]')
+    starts=[i for i,line in enumerate(lines) if heading.match(line)]
+    if len(starts)!=1:return None
+    start=starts[0];parts=[];terminated=False
+    for i,line in enumerate(lines[start:]):
+        if i and (re.match(r'^\s*[└├┌─]',line) or heading.match(line)):
+            terminated=True;break
+        if not re.match(r'^\s*｜.*｜\s*$',line):break
+        inner=line.strip()[1:-1].strip()
+        if i==0:inner=heading.sub('',line).strip().removesuffix('｜').strip()
+        elif inner.startswith('★') or re.match(r'^[^:：]{1,20}[:：]',inner):
+            terminated=True;break
+        if not inner:break
+        parts.append(inner)
+        if sum(map(len,parts))>1000:return None
+    value=''.join(parts)
+    return value if terminated and 0<len(value)<=1000 else None
+
+
+def _observed_f10_holders(text):
+    """Use the dated holder line of the already SHA-checked F10 text."""
+    pattern=(r'股东户数变化[:：]\s*截止(\d{4}-\d{2}-\d{2}),公司股东数([\d,]+),'
+             r'比上期\((\d{4}-\d{2}-\d{2})\)(增加|减少)([\d,]+)户')
+    parsed=[]
+    for asof,count,previous,direction,delta in re.findall(pattern,text):
+        try:
+            current_date=date.fromisoformat(asof);prior_date=date.fromisoformat(previous)
+            current=int(count.replace(',',''));change=int(delta.replace(',',''))
+        except ValueError:continue
+        if prior_date>=current_date or current<=0 or change<0:continue
+        prior=current-change if direction=='增加' else current+change
+        if prior<0:continue
+        parsed.append({'asof_date':asof,'count':current,'prior_asof_date':previous,
+                       'reported_change':change if direction=='增加' else -change,
+                       'prior_count':prior,'prior_count_basis':'DERIVED_FROM_REPORTED_CHANGE'})
+    distinct={json.dumps(x,sort_keys=True,ensure_ascii=False) for x in parsed}
+    return json.loads(next(iter(distinct))) if len(distinct)==1 else None
+
+
 def checked_company_snapshot(stock,witness,name_table,symbol):
     """Validate the captured source identity; capture time is not a PIT claim."""
     name_bytes=checked_bounded_bytes(name_table,256*1024)
@@ -278,8 +323,11 @@ def checked_company_snapshot(stock,witness,name_table,symbol):
         or hashlib.sha256(text.encode()).hexdigest()!=stock.get('source_text_sha256')
         or stock.get('historical_PIT') is not False or any(stock.get(k) is not v for k,v in FLAGS.items())):
         raise ValueError('F10_CANDIDATE_STOCK_IDENTITY_CONFLICT')
-    return {k:stock.get(k) for k in ('name','captured_at','source_updated_date','finance_updated_date','concepts',
-                                     'concept_status','industry','financials','source_text_sha256')}
+    result={k:stock.get(k) for k in ('name','captured_at','source_updated_date','finance_updated_date','concepts',
+                                      'concept_status','industry','financials','source_text_sha256')}
+    result['reported_holders']=_observed_f10_holders(text)
+    result['reported_business']=_observed_f10_business(text)
+    return result
 
 
 def checked_single_display_projection(binding,identity):
@@ -523,6 +571,61 @@ class ResearchWorkbenchHost:
             raise ValueError('WORKBENCH_SOURCE_REVISION_CONFLICT')
         return view
 
+    def _a20_history_stock(self,source_date,symbol,stock,wrapper):
+        """Attach a verified saved history binding without changing its G2 parent."""
+        refs=self.binding.get('a20_history_indexes')
+        if refs is not None and (not isinstance(refs,dict) or not set(refs)<=A20_HISTORY_SYMBOLS):
+            raise ValueError('A20_HISTORY_SCOPE_CONFLICT')
+        ref=(refs or {}).get(symbol) if source_date=='2026-10-30' and symbol in A20_HISTORY_SYMBOLS else None
+        if ref is None:return stock,None
+        new_index=checked_bounded(ref,8*1024*1024);link=new_index.get('retained_history_binding') or {}
+        source_ref=link.get('source_index')
+        if not _same_reference(source_ref,wrapper.get('origin_projection_source_index')):
+            raise ValueError('A20_HISTORY_SOURCE_INDEX_CONFLICT')
+        prior=checked_bounded(source_ref,8*1024*1024)
+        new_entry=new_index.get('symbols',{}).get(symbol);old_entry=prior.get('symbols',{}).get(symbol)
+        if (not isinstance(new_entry,dict) or new_entry.get('status')!='READY' or not isinstance(old_entry,dict)
+            or not _same_reference(old_entry.get('binding'),wrapper.get('origin_binding'))
+            or any(new_index.get(k)!=prior.get(k) for k in set(prior)-{'symbols'})
+            or any(new_index.get('symbols',{}).get(k)!=v for k,v in prior['symbols'].items() if k!=symbol)
+            or set(new_index.get('symbols',{}))!=set(prior['symbols'])):
+            raise ValueError('A20_HISTORY_INDEX_CONFLICT')
+        upgraded=checked_bounded(new_entry['binding'],4*1024*1024)
+        detail=upgraded.get('details',{}).get('history');baseline=copy.deepcopy(stock)
+        if not isinstance(detail,dict):raise ValueError('A20_HISTORY_DETAIL_CONFLICT')
+        baseline['details']['history']=detail
+        if (upgraded!=baseline or detail.get('status')!='READY'
+            or detail.get('validation')!='PAIRED_HISTORY_OWNER_SHA_BOUND'
+            or not _same_reference(detail.get('source_index'),source_ref)
+            or not _same_reference(detail.get('history_owner'),link.get('history_owner'))
+            or detail.get('source_candidate_generation')!=stock['candidate_generation']
+            or detail.get('candidate_generation')!=stock['candidate_generation']):
+            raise ValueError('A20_HISTORY_DETAIL_CONFLICT')
+        checked_bounded_bytes(detail['history_owner'],2*1024*1024)
+        checked_bounded_bytes(detail['history_shard'],8*1024*1024)
+        return upgraded,{'index_sha256':ref['sha256'],'binding_sha256':new_entry['binding']['sha256']}
+
+    def _a20_missing_asof(self,p,source_date,symbol,reason):
+        if symbol!='688496.SH' or source_date!='2026-10-30' or reason!='GENERIC_TARGET_DATE_MISSING':return None
+        product=checked_bounded(p['artifact'],8*1024*1024)
+        if (product.get('data_date')!=compact(source_date) or product.get('source_generation')!=p['source_generation']
+            or product.get('source_identity',{}).get('input_sha256')!=p['source_identity']['input_sha256']
+            or any(product.get(k) is not v for k,v in FLAGS.items())):
+            raise ValueError('A20_MISSING_ASOF_PRODUCT_CONFLICT')
+        ref=product.get('row_refs',{}).get(symbol);row=checked_bounded(ref,1024*1024)
+        prices=row.get('statistics',{}).get('price_distribution',{});history=prices.get('all_history',{})
+        last=history.get('end_date')
+        try:valid_last=isinstance(last,str) and date.fromisoformat(last)<date.fromisoformat(source_date)
+        except ValueError:valid_last=False
+        if (row.get('symbol')!=symbol or row.get('data_date')!=compact(source_date)
+            or row.get('qualification',{}).get('reason')!='CURRENT_SYMBOL_HISTORY_END_MISMATCH'
+            or prices.get('asof')!=source_date or prices.get('status')!='MISSING_ASOF_BAR'
+            or prices.get('current_close') is not None or not valid_last
+            or any(row.get(k) is not v for k,v in FLAGS.items())):
+            raise ValueError('A20_MISSING_ASOF_CHECKPOINT_CONFLICT')
+        return {'last_saved_date':last,'asof_date':source_date,'checkpoint_sha256':ref['sha256'],
+                'source_status':'MISSING_ASOF_BAR','trading_status':'CANNOT_CONFIRM'}
+
     def _generic_single(self,source_date,symbol,revision=None,panel_revision=None,view_revision=None):
         """Read an owner-completed index; never calculate on a request."""
         ref=self.binding.get('generic_single_index')
@@ -561,12 +664,12 @@ class ResearchWorkbenchHost:
         if not isinstance(selected,dict):raise ValueError('GENERIC_SYMBOL_INDEX_INVALID')
         if selected.get('status')=='UNKNOWN':
             if view_revision is not None:raise ValueError('GENERIC_VIEW_REVISION_CONFLICT')
-            return dict(status='UNKNOWN_SOURCE_ADMISSION',reason=str(selected.get('reason') or 'NOT_BOUND'),**common)
+            reason=str(selected.get('reason') or 'NOT_BOUND')
+            return dict(status='UNKNOWN_SOURCE_ADMISSION',reason=reason,
+                        source_gap=self._a20_missing_asof(p,source_date,symbol,reason),**common)
         if selected.get('status')!='READY' or not isinstance(selected.get('binding'),dict):
             raise ValueError('GENERIC_SYMBOL_INDEX_INVALID')
         stock_ref=selected['binding']
-        if view_revision is not None and view_revision!=stock_ref.get('sha256'):
-            raise ValueError('GENERIC_VIEW_REVISION_CONFLICT')
         selected_binding=checked_bounded(stock_ref,4*1024*1024)
         rebound=selected_binding.get('schema')=='v4.workbench.generic_action_rebind.v1'
         if rebound:
@@ -576,6 +679,11 @@ class ResearchWorkbenchHost:
         else:
             if reuse is not None:raise ValueError('ACTION_REBIND_WRAPPER_REQUIRED')
             stock=selected_binding;action_delta=None;asset_index=index
+        stock,history_token=self._a20_history_stock(source_date,symbol,stock,selected_binding)
+        view_generation=(hashlib.sha256(json.dumps({'parent_view_sha256':stock_ref['sha256'],**history_token},
+                         sort_keys=True,separators=(',',':')).encode()).hexdigest() if history_token else stock_ref['sha256'])
+        if view_revision is not None and view_revision!=view_generation:
+            raise ValueError('GENERIC_VIEW_REVISION_CONFLICT')
         dates=stock.get('dates');names=stock.get('field_names');groups=stock.get('field_groups')
         base_fields=stock.get('base_fields');original=stock.get('original_fields');chunks=stock.get('chunks')
         n_generation=stock.get('n_generation_id',stock.get('candidate_generation'))
@@ -662,7 +770,7 @@ class ResearchWorkbenchHost:
         base=f'/api/v4/research/workbench/days/{source_date}/single-research/{symbol}/assets/'
         assets={kind:{k:v for k,v in item.items() if k!='path'} | {'url':base+kind+'?'+urlencode(
                 dict(revision=p['source_generation'],panel_revision=index['candidate_generation'],
-                     view_revision=stock_ref['sha256'],sha256=item['sha256']))} for kind,item in items.items()}
+                     view_revision=view_generation,sha256=item['sha256']))} for kind,item in items.items()}
         rebound_metadata={}
         if rebound:
             rebound_metadata=dict(action_rebound=True,asset_candidate_generation=asset_index['candidate_generation'],
@@ -671,13 +779,14 @@ class ResearchWorkbenchHost:
                 action_rebind_equivalence_sha256=index['action_rebind']['equivalence']['sha256'],
                 action_source_overlay_sha256=(selected_binding['source_overlay']['sha256'] if action_delta['affected_rows'] else None),
                 action_patch_rows=action_delta['affected_rows'])
-        return dict(status='READY_FOR_RESEARCH_REVIEW',view_generation=stock_ref['sha256'],
+        return dict(status='READY_FOR_RESEARCH_REVIEW',view_generation=view_generation,
                     name=stock.get('name') or symbol,rows=len(dates),first_date=dates[0],last_date=dates[-1],
                     dates=dates,field_names=names,field_groups=groups,base_fields=base_fields,original_fields=original,
                     n_rule_sha256=stock['n_rule_sha256'],n_helper_sha256=stock['n_helper_sha256'],
                     n_generation_id=n_generation,n_input_sha256=n_input,n_identity_kind=stock.get('n_identity_kind','CANDIDATE'),
                     action_contract_sha256=stock['action_contract_sha256'],yidong_contract_sha256=stock['yidong_contract_sha256'],
                     chart_status=chart['status'],chart_reason=chart.get('reason'),detail_status=detail_status,assets=assets,
+                    **({'base_view_generation':stock_ref['sha256'],'history_binding':history_token} if history_token else {}),
                     **rebound_metadata,**common)
 
     def _hk_single_observation(self,source_date,symbol,revision=None,panel_revision=None,view_revision=None):
@@ -713,6 +822,75 @@ class ResearchWorkbenchHost:
         return dict(status='READY_RAW_OBSERVATION_ONLY',view_generation=asset['sha256'],
                     assets={'observation':{k:v for k,v in asset.items() if k!='path'} | {'url':url}},**common)
 
+    def _hold_a20_ref(self,source_date,symbol):
+        refs=self.binding.get('hold_a20_candidates')
+        if refs is not None and (not isinstance(refs,dict) or not set(refs)<=A20_HOLD_SYMBOLS):
+            raise ValueError('HOLD_CHILD_BINDING_SCOPE_CONFLICT')
+        if source_date!='2026-10-30' or symbol not in A20_HOLD_SYMBOLS:return None
+        return (refs or {}).get(symbol) or (self.binding.get('hold_600000_candidate') if symbol=='600000.SH' else None)
+
+    def _hold_600000_candidate(self,source_date,symbol,revision=None,panel_revision=None,view_revision=None):
+        """Read only expressly bound affected A20 children of the proven G2 view."""
+        ref=self._hold_a20_ref(source_date,symbol)
+        if ref is None:return None
+        base=self._generic_single(source_date,symbol,revision,panel_revision,None)
+        if base is None or base.get('status')!='READY_FOR_RESEARCH_REVIEW':
+            raise ValueError('HOLD_CHILD_PARENT_NOT_READY')
+        child=checked_bounded(ref,4*1024*1024);identity=child.get('identity')
+        parent=self.binding.get('generic_single_index')
+        index=checked_bounded(parent,8*1024*1024);old_ref=index['symbols'][symbol]['binding']
+        canonical=lambda value:json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+        schemas={'v4.workbench.a20_hold_score_candidate.v1'}
+        if symbol=='600000.SH':schemas.add('v4.workbench.600000_hold_score_candidate.v1')
+        if (not isinstance(identity,dict) or child.get('schema') not in schemas
+            or hashlib.sha256(canonical(identity)).hexdigest()!=child.get('candidate_generation')
+            or child.get('parent_index')!=parent or child.get('parent_binding')!=old_ref
+            or identity.get('symbol')!=symbol or identity.get('source_date')!=source_date
+            or identity.get('parent_index_sha256')!=parent['sha256']
+            or identity.get('parent_generation')!=base['panel_generation']
+            or identity.get('parent_binding_sha256')!=base.get('base_view_generation',base['view_generation'])
+            or identity.get('origin_binding_sha256')!=child.get('origin_binding',{}).get('sha256')
+            or identity.get('origin_binding_sha256')!=base.get('origin_binding_sha256')
+            or identity.get('origin_chart_sha256')!=base['assets']['projection']['sha256']
+            or identity.get('source_score_projection_sha256')!=child.get('score_projection',{}).get('sha256')
+            or child.get('schema')=='v4.workbench.a20_hold_score_candidate.v1' and
+               identity.get('score_contract_sha256')!=child.get('score_contract',{}).get('sha256')
+            or any(not re.fullmatch(r'[0-9a-f]{64}',str(identity.get(k,''))) for k in
+                   ('score_engine_sha256','score_caller_sha256','action_engine_sha256'))
+            or child.get('unchanged_scope')!='ALL_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES'
+            or child.get('rows')!=base['rows'] or child.get('historical_PIT') is not False
+            or any(child.get(k) is not v for k,v in FLAGS.items())):
+            raise ValueError('HOLD_CHILD_IDENTITY_CONFLICT')
+        checked_bounded_bytes(child['score_projection'],2*1024*1024)
+        if child.get('schema')=='v4.workbench.a20_hold_score_candidate.v1':
+            contract=checked_bounded(child['score_contract'],1024*1024)
+            if (contract.get('schema')!='a_share_kb_hold_score_v1'
+                or contract.get('user_rule_decision',{}).get('date')!='2026-11-02'
+                or any(contract.get(k) is not v for k,v in FLAGS.items())):
+                raise ValueError('HOLD_CHILD_SCORE_CONTRACT_CONFLICT')
+        child_view=(hashlib.sha256(canonical({'score_binding_sha256':ref['sha256'],
+                     'history_view_generation':base['view_generation']})).hexdigest()
+                    if base.get('history_binding') else ref['sha256'])
+        if view_revision is not None and view_revision!=child_view:raise ValueError('HOLD_CHILD_VIEW_REVISION_CONFLICT')
+        chunks=child.get('chunks')
+        if not isinstance(chunks,list) or not chunks or len(chunks)!=sum(k.startswith('chunk-') for k in base['assets']):
+            raise ValueError('HOLD_CHILD_CHUNK_CONFLICT')
+        source_chunks=[base['assets'][f'chunk-{i}'] for i in range(len(chunks))]
+        if (any(not isinstance(item,dict) or not re.fullmatch(r'[0-9a-f]{64}',str(item.get('sha256','')))
+                   or item.get('encoding')!='gzip' or type(item.get('bytes')) is not int or not 0<item['bytes']<=2*1024*1024
+                   or type(item.get('decoded_bytes')) is not int or not 0<item['decoded_bytes']<=8*1024*1024
+                   or any(item.get(k)!=old.get(k) for k in ('first_date','last_date','row_count'))
+                   for item,old in zip(chunks,source_chunks))):
+            raise ValueError('HOLD_CHILD_CHUNK_CONFLICT')
+        assets={k:v for k,v in base['assets'].items() if k!='action_patch' and not k.startswith('chunk-')}
+        assets.update({f'chunk-{i}':{k:v for k,v in item.items() if k!='path'} for i,item in enumerate(chunks)})
+        route=f'/api/v4/research/workbench/days/{source_date}/single-research/{symbol}/assets/'
+        for kind,item in assets.items():
+            item['url']=route+kind+'?'+urlencode(dict(revision=base['generation'],panel_revision=base['panel_generation'],
+                                                      view_revision=child_view,sha256=item['sha256']))
+        return {**base,'view_generation':child_view,'score_candidate_generation':child['candidate_generation'],
+                'chunk_candidate_generation':child['candidate_generation'],'action_rebound':False,'assets':assets}
+
     def single_stock_research(self,source_date,symbol,revision=None,panel_revision=None,view_revision=None):
         """A separately bound, precomputed single-stock research artifact."""
         if not isinstance(symbol,str) or not (re.fullmatch(r'\d{6}\.(?:SH|SZ|BJ)',symbol) or re.fullmatch(r'HK\.\d{5}',symbol)):
@@ -720,6 +898,8 @@ class ResearchWorkbenchHost:
         if symbol.startswith('HK.'):
             observation=self._hk_single_observation(source_date,symbol,revision,panel_revision,view_revision)
             if observation is not None:return observation
+        child=self._hold_600000_candidate(source_date,symbol,revision,panel_revision,view_revision)
+        if child is not None:return child
         generic=self._generic_single(source_date,symbol,revision,panel_revision,view_revision)
         if generic is not None:return generic
         if (source_date=='2026-10-30' and symbol not in {'002865.SZ','301048.SZ','300206.SZ'}
@@ -859,7 +1039,13 @@ class ResearchWorkbenchHost:
             chosen=checked_bounded(selected['binding'],4*1024*1024)
             rebound=chosen.get('schema')=='v4.workbench.generic_action_rebind.v1'
             stock=checked_bounded(chosen['origin_binding'],4*1024*1024) if rebound else chosen
-            if kind=='action_patch' and rebound and chosen.get('action_patch') is not None:
+            stock,_=self._a20_history_stock(source_date,symbol,stock,chosen)
+            child_ref=self._hold_a20_ref(source_date,symbol) if metadata.get('score_candidate_generation') else None
+            if child_ref is not None and re.fullmatch(r'chunk-(?:0|[1-9]\d*)',kind):
+                child=checked_bounded(child_ref,4*1024*1024);index=int(kind[6:])
+                if index>=len(child['chunks']):raise KeyError('GENERIC_CHUNK_NOT_BOUND')
+                ref=child['chunks'][index];maximum=2*1024*1024
+            elif kind=='action_patch' and rebound and child_ref is None and chosen.get('action_patch') is not None:
                 ref=chosen['action_patch'];maximum=2*1024*1024
             elif kind=='overlay':ref=stock['overlay'];maximum=2*1024*1024
             elif kind in {'history','company'} and stock['details'][kind]['status']=='READY':ref=stock['details'][kind]['asset'];maximum=2*1024*1024

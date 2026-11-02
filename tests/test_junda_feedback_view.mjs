@@ -44,7 +44,7 @@ test('financial values use the bound source units and period without duplicate u
   const gold=financialLines({},f10);
   assert.match(gold[0],/营业总收入.*TDX F10.*2026-09-30.*23\.5136亿元/);
   assert.match(gold[1],/^净利润.*1\.7169亿元/);assert.doesNotMatch(gold[1],/归母/);
-  assert.equal(gold[2],'经营现金流净额：待核');
+  assert.match(gold[2],/经营现金流净额：待核.*口径.*单位.*报告期/);
   const official=financialLines({latest_revenue:5222744068.83,latest_net_profit_parent:-428296532.32},f10);
   assert.deepEqual(official.slice(0,2),['营业收入：52.23亿元','归母净利润：-4.28亿元']);
   assert.match(financialLines({}, {financials:{revenue_text:'bad'}})[0],/待核/);

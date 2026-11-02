@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind,actionStatusHint} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,verifiedInitialCompanyF10,bindSingleSymbolSearch,f10SourceKind,actionStatusHint,holdUnknownSummary,holderLines,financialLines,financialDisclosureText,companyBusinessText,observedCompanyNameState} from '../research-panel/workbench-host/kb-single-stock.mjs';
 import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
@@ -32,6 +32,10 @@ test('F10 canonical and registered candidate retain distinct identities',()=>{
   assert.equal(f10SourceKind(reused,day,rebound),'CANDIDATE');
   assert.equal(f10SourceKind({...reused,reuse_equivalence_sha256:sha('9')},day,rebound),null);
   assert.equal(f10SourceKind({...reused,source_generation:rebound.panel_generation},day,rebound),null);
+  const child={...rebound,symbol:'600000.SH',action_rebound:false,score_candidate_generation:sha('4'),chunk_candidate_generation:sha('4')};
+  const childReused={...reused,symbol:'600000.SH'};
+  assert.equal(f10SourceKind(childReused,day,child),'CANDIDATE');
+  assert.equal(f10SourceKind(childReused,day,{...child,chunk_candidate_generation:sha('5')}),null);
   const quarantine={...meta,symbol:'688496.SH',status:'UNKNOWN_SOURCE_ADMISSION'};
   const independent={...common,symbol:quarantine.symbol,status:'OBSERVED_INDEPENDENT_COMPANY',source_generation:null,input_sha256:null,
     bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,price_panel_admission:'NOT_ASSERTED',
@@ -68,6 +72,81 @@ test('generic chunk restores persisted data and keeps null separate from false',
   assert.equal(rows.length,2);assert.equal(rows[0].trade_date,20261029);assert.equal(rows[0].kb.kb_b1,true);
   assert.equal(rows[0].hold_score.kb_hold_trend_up,null);assert.equal(rows[0].confirmed_kb_reused.bowl_white,10.123);
   assert.equal(rows[1].action.kb_action_no_position,null);
+});
+
+test('only the explicitly bound A20 children can use a different score chunk generation',()=>{
+  const {meta,chunk,ref}=sample();
+  meta.asset_candidate_generation=meta.panel_generation;meta.asset_candidate_input_sha256=meta.candidate_input_sha256;
+  meta.score_candidate_generation=sha('7');meta.chunk_candidate_generation=sha('7');meta.action_rebound=false;
+  chunk.candidate_generation=sha('7');
+  assert.equal(decodeGenericChunk(meta,chunk,ref).length,2);
+  assert.throws(()=>decodeGenericChunk({...meta,symbol:'000002.SZ'},chunk,ref),/评分修订身份冲突/);
+  assert.throws(()=>decodeGenericChunk({...meta,score_candidate_generation:sha('6')},chunk,ref),/评分修订身份冲突/);
+  assert.throws(()=>decodeGenericChunk(meta,{...chunk,candidate_generation:sha('9')},ref),/身份冲突/);
+  assert.throws(()=>decodeGenericChunk({...meta,action_rebound:true},chunk,ref),/评分修订身份冲突/);
+});
+
+test('unknown score reasons are visible without inventing values',()=>{
+  const score={kb_hold_close_up:true,kb_hold_above_bbi:null,kb_hold_above_bbi_reason:'INSUFFICIENT_BBI_HISTORY',
+    kb_hold_volume_ok:null,kb_hold_volume_ok_reason:'RULE_NOT_QUANTIFIED',kb_hold_trend_up:null,
+    kb_hold_trend_up_reason:'AMBIGUOUS_SAME_BAR_PIVOT',kb_hold_j_not_dead:null,kb_hold_j_not_dead_reason:'BOUND_KB_J_UNAVAILABLE'};
+  assert.deepEqual(holdUnknownSummary(score),['BBI：BBI预热不足','阳线得分：旧版结果待按现规则更新',
+    'N型：同一日同时出现高低转折，先后次序待核','J：原 J 来源缺失']);
+  score.kb_hold_volume_ok_reason='INVALID_OPEN_CLOSE_INPUT';
+  assert.equal(holdUnknownSummary(score)[1],'阳线得分：开盘或收盘缺失或无效');
+});
+
+test('dated F10 holder observations preserve native dates and uncertain net cash flow',()=>{
+  const f10={captured_at:'2026-11-02T06:57:52+08:00',finance_updated_date:'20260828',
+    financials:{holder_count:163327},reported_holders:{count:151330,asof_date:'2026-09-30'}};
+  const lines=holderLines({},f10);
+  assert.match(lines[0],/151330.*2026-09-30/);assert.match(lines[1],/163327.*统计截止日未绑定/);
+  assert.match(financialLines({operating_cash_flow:4043040000000},f10)[2],/待核.*口径.*单位.*报告期/);
+});
+
+test('F10 business and period update when the verified snapshot arrives',()=>{
+  const f10={captured_at:'2026-11-01T22:57:52Z',finance_updated_date:'20260828',
+    financials:{report_period:'2026-09-30'},reported_business:'商业银行业务及资产管理业务。'};
+  assert.equal(companyBusinessText({},null),'主营资料待核');
+  assert.match(companyBusinessText({},f10),/TDX F10.*商业银行业务.*2026-11-01T22:57:52Z.*非历史PIT/);
+  assert.equal(companyBusinessText({value:'已核官方主营'},f10),'已核官方主营');
+  assert.match(financialDisclosureText({},f10),/TDX F10财务快照.*报告期 2026-09-30（TDX F10）.*披露 待核.*F10更新 20260828/);
+  assert.match(financialDisclosureText({},{}),/报告期 待核/);
+  assert.match(financialDisclosureText({latest_report_period:'2026-06-30'},f10),/报告期 2026-06-30/);
+});
+
+test('generic initial company F10 must pass its source check before rendering',()=>{
+  const f10={reported_business:'UNVERIFIED_EXAMPLE',financials:{report_period:'2026-09-30'}};
+  const missing=verifiedInitialCompanyF10(f10,true,{tdx_f10:'UNKNOWN'});
+  assert.equal(missing,null);assert.equal(companyBusinessText({},missing),'主营资料待核');
+  assert.match(financialDisclosureText({},missing),/报告期 待核/);
+  assert.equal(verifiedInitialCompanyF10(f10,true,{tdx_f10:'VERIFIED'}),f10);
+  assert.equal(verifiedInitialCompanyF10(f10,true,{}),null);
+  assert.equal(verifiedInitialCompanyF10(f10,false,{}),f10);
+});
+
+test('verified F10 name updates same active code and ready status, never stale responses',()=>{
+  const signal={aborted:false},input={requested:'301686.SZ',current:'301686.SZ',name:'中塑股份',knownName:'301686.SZ',signal,currentSignal:signal,
+    status:'来源 2026-10-30 · 观察 2026-11-02 · 301686.SZ单股研究 · 单股评分修订 123',sourceDate:'2026-10-30',observationDate:'2026-11-02'};
+  assert.deepEqual(observedCompanyNameState(input),{name:'中塑股份',status:'来源 2026-10-30 · 观察 2026-11-02 · 中塑股份单股研究 · 单股评分修订 123'});
+  assert.equal(observedCompanyNameState({...input,current:'600000.SH'}),null);
+  assert.equal(observedCompanyNameState({...input,currentSignal:{aborted:false}}),null);
+  assert.equal(observedCompanyNameState({...input,signal:{aborted:true}}),null);
+  assert.equal(observedCompanyNameState({...input,knownName:'已核名称'}),null);
+  assert.equal(observedCompanyNameState({...input,status:'原式图载入中…'}).status,'原式图载入中…');
+});
+
+test('verified official operating cash flow is retained while unbound native values remain unknown',()=>{
+  const source={evidence_status:'OFFICIAL_FILING',latest_report_period:'2026-09-30',monetary_unit:'元',
+    operating_cash_flow:-141711300.48,latest_financial_source_url:'https://example.test/report.pdf'};
+  const checks={official_quarterly:'VERIFIED'},refs={official_quarterly:{url:'https://example.test/report.pdf',file:{sha256:'93465671bf989f73f201d7838d4cda9651786d622ee20d1bff0eddcf69b29a02'}}};
+  assert.equal(financialLines(verifiedCompanyPart(source,checks,refs),{})[2],'经营现金流净额：-1.42亿元');
+  assert.match(financialLines(verifiedCompanyPart(source,{official_quarterly:'UNKNOWN'},refs),{})[2],/待核/);
+  assert.match(financialLines(verifiedCompanyPart(source,checks,{official_quarterly:{...refs.official_quarterly,file:{sha256:'a'.repeat(64)}}}),{})[2],/待核/);
+  assert.match(financialLines(verifiedCompanyPart({...source,operating_cash_flow:-141711300.49},checks,refs),{})[2],/待核/);
+  assert.match(financialLines(verifiedCompanyPart({...source,latest_report_period:'2026-06-30'},checks,refs),{})[2],/待核/);
+  assert.match(financialLines({...source,evidence_status:'TDX'},{} )[2],/待核/);
+  assert.match(financialLines(verifiedCompanyPart({...source,monetary_unit:null},checks,refs),{} )[2],/待核/);
 });
 
 test('generic chunk rejects wrong source, day and N rule identity',()=>{

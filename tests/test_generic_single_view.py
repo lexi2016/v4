@@ -2,6 +2,7 @@
 import gzip
 import hashlib
 import json
+import copy
 from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -206,6 +207,140 @@ def test_action_rebind_preserves_origin_assets_and_serves_new_logical_version(tm
             research_workbench_host.checked_action_rebind_stock(index,context['reuse'],symbol,bad)
     with pytest.raises(ValueError,match='ACTION_REBIND_STOCK_SCOPE_CONFLICT'):
         research_workbench_host.checked_action_rebind_index({**index,'symbols':{}})
+
+
+def test_validator_compatibility_keeps_original_g2_evidence_and_strict_checks(tmp_path):
+    context,identity,_=fixture_action_rebind(tmp_path)
+    result=view.materialize_action_rebind_stock(context,identity['symbol'])
+    old_dir=tmp_path/'old-logical';old_dir.mkdir();out=tmp_path/'compat';out.mkdir()
+    previous=old_dir/'old-validator.py';previous.write_text('# old frozen validator\n')
+    old={**context['index'],'symbols':{identity['symbol']:{'status':'READY','binding':result['binding']}},
+         'action_rebind':{**context['index']['action_rebind'],'validator':ref(previous)}}
+    old_ref=put_json(old_dir/'index.json',old)
+    with pytest.raises(ValueError,match='VALIDATOR_VERSION_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index(old)
+    new_ref,proof_ref=view.rebind_action_validator_for_runtime(index_ref=old_ref,output_root=out)
+    new=json.loads(Path(new_ref['path']).read_bytes());proof=json.loads(Path(proof_ref['path']).read_bytes())
+    assert proof['all_symbol_entries_identical'] is True and new['symbols']==old['symbols']
+    assert {k:v for k,v in new['action_rebind'].items() if k!='validator'}=={k:v for k,v in old['action_rebind'].items() if k!='validator'}
+    research_workbench_host.checked_action_rebind_index(new)
+    with pytest.raises(ValueError,match='EQUIVALENCE_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index({**new,'pair_sha256':{**new['pair_sha256'],'selector':S('0')}})
+
+
+def test_600000_child_binding_is_exact_and_rejects_changed_version(tmp_path):
+    old_binding={'path':'/old-binding','sha256':S('a')}
+    parent=put_json(tmp_path/'index.json',{'symbols':{'600000.SH':{'binding':old_binding}}})
+    projection=tmp_path/'result.gz';projection.write_bytes(gzip.compress(b'{}',mtime=0));projection_ref=ref(projection)
+    base={'status':'READY_FOR_RESEARCH_REVIEW','panel_generation':S('b'),'view_generation':S('a'),'origin_binding_sha256':S('1'),
+          'generation':S('c'),'rows':1,'assets':{
+              'chunk-0':{'sha256':S('d'),'first_date':20261030,'last_date':20261030,'row_count':1},
+              'projection':{'sha256':S('e')},'overlay':{'sha256':S('f')}}}
+    identity={'symbol':'600000.SH','source_date':'2026-10-30','parent_index_sha256':parent['sha256'],
+              'parent_generation':S('b'),'parent_binding_sha256':S('a'),'origin_binding_sha256':S('1'),
+              'origin_chart_sha256':S('e'),'source_score_projection_sha256':projection_ref['sha256'],
+              'score_engine_sha256':S('3'),'score_caller_sha256':S('4'),'action_engine_sha256':S('5')}
+    canonical=lambda x:json.dumps(x,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+    chunk={'path':'/child-chunk','sha256':S('2'),'bytes':10,'decoded_bytes':20,'encoding':'gzip',
+           'first_date':20261030,'last_date':20261030,'row_count':1}
+    child={'schema':'v4.workbench.600000_hold_score_candidate.v1','identity':identity,
+           'candidate_generation':hashlib.sha256(canonical(identity)).hexdigest(),'parent_index':parent,
+           'parent_binding':old_binding,'origin_binding':{'sha256':S('1')},'score_projection':projection_ref,
+           'rows':1,'chunks':[chunk],'unchanged_scope':'ALL_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES',
+           'historical_PIT':False,**view.FLAGS}
+    child_ref=put_json(tmp_path/'child.json',child)
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={'generic_single_index':parent,'hold_600000_candidate':child_ref}
+    host._generic_single=lambda *_:copy.deepcopy(base)
+    meta=host._hold_600000_candidate('2026-10-30','600000.SH')
+    assert meta['panel_generation']==S('b') and meta['view_generation']==child_ref['sha256']
+    assert meta['chunk_candidate_generation']==child['candidate_generation'] and meta['action_rebound'] is False
+    assert meta['assets']['projection']['sha256']==S('e') and meta['assets']['chunk-0']['sha256']==S('2')
+    assert host._hold_600000_candidate('2026-10-30','603039.SH') is None
+    with pytest.raises(ValueError,match='VIEW_REVISION_CONFLICT'):
+        host._hold_600000_candidate('2026-10-30','600000.SH',view_revision=S('a'))
+    contract=put_json(tmp_path/'score-contract.json',{'schema':'a_share_kb_hold_score_v1',
+        'user_rule_decision':{'date':'2026-11-02'},**view.FLAGS})
+    identity2={**identity,'score_contract_sha256':contract['sha256']}
+    child2={**child,'schema':'v4.workbench.a20_hold_score_candidate.v1','identity':identity2,'score_contract':contract,
+            'candidate_generation':hashlib.sha256(canonical(identity2)).hexdigest()}
+    host.binding['hold_600000_candidate']=put_json(tmp_path/'new-child.json',child2)
+    assert host._hold_600000_candidate('2026-10-30','600000.SH')['chunk_candidate_generation']==child2['candidate_generation']
+    host.binding['hold_600000_candidate']=put_json(tmp_path/'bad-contract-child.json',
+        {**child2,'score_contract':{**contract,'sha256':S('9')}})
+    with pytest.raises(ValueError,match='HOLD_CHILD_IDENTITY_CONFLICT'):
+        host._hold_600000_candidate('2026-10-30','600000.SH')
+    bad={**child,'identity':{**identity,'parent_generation':S('9')}}
+    host.binding['hold_600000_candidate']=put_json(tmp_path/'bad-child.json',bad)
+    with pytest.raises(ValueError,match='HOLD_CHILD_IDENTITY_CONFLICT'):
+        host._hold_600000_candidate('2026-10-30','600000.SH')
+
+
+def test_dated_f10_holder_line_is_independent_from_native_value():
+    parse=research_workbench_host._observed_f10_holders
+    text='★股东户数变化:截止2026-09-30,公司股东数151330,比上期(2026-06-30)减少11997户,幅度-7.35%'
+    assert parse(text)=={'asof_date':'2026-09-30','count':151330,'prior_asof_date':'2026-06-30',
+                        'reported_change':-11997,'prior_count':163327,'prior_count_basis':'DERIVED_FROM_REPORTED_CHANGE'}
+    assert parse(text.replace('2026-09-30','2026-99-30')) is None
+    assert parse(text+'\n'+text.replace('151330','151331')) is None
+
+
+def test_f10_business_uses_complete_unambiguous_bounded_table_section():
+    parse=research_workbench_host._observed_f10_business
+    text=('｜★主营业务:经批准的商业银行业务以及经香港证券及期 ｜\r\n'
+          '｜货事务监察委员会颁发的相关牌照所规定的投资银行业务。 ｜\r\n'
+          '└────────────────────────────────────────┘')
+    assert parse(text)=='经批准的商业银行业务以及经香港证券及期货事务监察委员会颁发的相关牌照所规定的投资银行业务。'
+    assert parse(text+'\n'+text) is None
+    assert parse(text.splitlines()[0]) is None
+    assert parse('｜★主营业务:'+'甲'*1001+'｜\n└────┘') is None
+
+
+def test_history_overlay_requires_exact_source_and_preserves_nonhistory(tmp_path):
+    symbol='600036.SH';base={'symbol':symbol,'candidate_generation':S('a'),'chunks':[{'sha256':S('b')}],
+                             'details':{'history':{'status':'UNKNOWN'},'company':{'status':'UNKNOWN'}}}
+    base_ref=put_json(tmp_path/'base.json',base)
+    previous={'schema':'v4.workbench.generic_single_index.v1','symbols':{symbol:{'status':'READY','binding':base_ref}}}
+    prior_ref=put_json(tmp_path/'prior.json',previous)
+    owner=put_json(tmp_path/'owner.json',{'owner':'fixture'});shard=put_json(tmp_path/'shard.json',{'symbol':symbol})
+    detail={'status':'READY','validation':'PAIRED_HISTORY_OWNER_SHA_BOUND','source_index':prior_ref,'history_owner':owner,
+            'history_shard':shard,'source_candidate_generation':S('a'),'candidate_generation':S('a')}
+    upgraded=copy.deepcopy(base);upgraded['details']['history']=detail
+    upgraded_ref=put_json(tmp_path/'upgraded.json',upgraded)
+    new={**previous,'symbols':{symbol:{'status':'READY','binding':upgraded_ref}},
+         'retained_history_binding':{'source_index':prior_ref,'history_owner':owner}}
+    new_ref=put_json(tmp_path/'history-index.json',new)
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost);host.binding={'a20_history_indexes':{symbol:new_ref}}
+    wrapper={'origin_binding':base_ref,'origin_projection_source_index':prior_ref}
+    got,token=host._a20_history_stock('2026-10-30',symbol,base,wrapper)
+    assert got['details']['history']['status']=='READY' and got['chunks']==base['chunks']
+    assert token['binding_sha256']==upgraded_ref['sha256']
+    tampered=copy.deepcopy(upgraded);tampered['chunks']=[{'sha256':S('9')}]
+    bad_ref=put_json(tmp_path/'bad-upgraded.json',tampered)
+    bad_index={**new,'symbols':{symbol:{'status':'READY','binding':bad_ref}}}
+    host.binding['a20_history_indexes'][symbol]=put_json(tmp_path/'bad-index.json',bad_index)
+    with pytest.raises(ValueError,match='A20_HISTORY_DETAIL_CONFLICT'):
+        host._a20_history_stock('2026-10-30',symbol,base,wrapper)
+
+
+def test_missing_asof_explains_only_bound_checkpoint_without_claiming_suspension(tmp_path):
+    row={'symbol':'688496.SH','data_date':'20261030','qualification':{'reason':'CURRENT_SYMBOL_HISTORY_END_MISMATCH'},
+         'statistics':{'price_distribution':{'asof':'2026-10-30','status':'MISSING_ASOF_BAR','current_close':None,
+                         'all_history':{'end_date':'2026-09-10'}}},**view.FLAGS}
+    row_ref=put_json(tmp_path/'checkpoint.json',row)
+    product={'data_date':'20261030','source_generation':S('a'),'source_identity':{'input_sha256':S('b')},
+             'row_refs':{'688496.SH':row_ref},**view.FLAGS}
+    product_ref=put_json(tmp_path/'product.json',product)
+    p={'artifact':product_ref,'source_generation':S('a'),'source_identity':{'input_sha256':S('b')}}
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    gap=host._a20_missing_asof(p,'2026-10-30','688496.SH','GENERIC_TARGET_DATE_MISSING')
+    assert gap['last_saved_date']=='2026-09-10' and gap['trading_status']=='CANNOT_CONFIRM'
+    assert host._a20_missing_asof(p,'2026-10-30','688496.SH','OTHER') is None
+    row['statistics']['price_distribution']['current_close']=1
+    row_ref=put_json(tmp_path/'wrong-checkpoint.json',row);product['row_refs']['688496.SH']=row_ref
+    p['artifact']=put_json(tmp_path/'wrong-product.json',product)
+    with pytest.raises(ValueError,match='A20_MISSING_ASOF_CHECKPOINT_CONFLICT'):
+        host._a20_missing_asof(p,'2026-10-30','688496.SH','GENERIC_TARGET_DATE_MISSING')
 
 
 @pytest.mark.parametrize(('kwargs','reason'),[
@@ -465,6 +600,16 @@ def test_pair_completion_and_single_batch_have_required_identity(tmp_path):
     assert amended_binding['chunks']==old_binding['chunks'] and amended_binding['chart']==old_binding['chart']
     assert amended_binding['details']['history']['source_candidate_generation']==identity['generation']
     assert json.loads(Path(idx['path']).read_bytes())['symbols'][identity['symbol']]['binding']==old_binding_ref
+    # Some owner shards omit the optional byte count on an otherwise identical reference.
+    gzip_shard={**shard,'projection_binding':{k:v for k,v in old_binding_ref.items() if k!='bytes'}}
+    raw=json.dumps(gzip_shard,ensure_ascii=False).encode();gz=tmp_path/'history-shard.json.gz';gz.write_bytes(gzip.compress(raw,mtime=0))
+    gzref={**ref(gz),'encoding':'gzip','decoded_bytes':len(raw),'decoded_sha256':hashlib.sha256(raw).hexdigest()}
+    _,gzip_outcomes=view.bind_retained_pair_history(index_ref=idx,history_refs={identity['symbol']:gzref},
+        history_producer_ref=owner,output_root=out)
+    assert gzip_outcomes[identity['symbol']]['status']=='READY'
+    _,bad_gzip=view.bind_retained_pair_history(index_ref=idx,history_refs={identity['symbol']:{**gzref,'decoded_sha256':S('0')}},
+        history_producer_ref=owner,output_root=out)
+    assert bad_gzip[identity['symbol']]['status']=='UNKNOWN' and 'DECODED_SHA_CONFLICT' in bad_gzip[identity['symbol']]['reason']
     base_value=json.loads(Path(amended['path']).read_bytes());base_value['symbols'][identity['symbol']]={'status':'UNKNOWN','reason':'RETRY'}
     base_ref=put_json(tmp_path/'merge-base.json',base_value)
     repair_value=json.loads(Path(idx['path']).read_bytes());repair_value['symbols']={identity['symbol']:repair_value['symbols'][identity['symbol']]}
@@ -635,7 +780,8 @@ def candidate_f10_fixture(root, *, outside=False, wrong_name=False):
     daily=root/'daily_owner.py';daily.write_text('# pinned daily\n');daily_ref=ref(daily)
     config=put_json(root/'config.json',{'source':'fixture'})
     names=root/'names.csv';names.write_text('market,symbol,name\nBJ,920196.BJ,南方乳业\n');name_ref=ref(names)
-    text=f'◇920196 {name} 更新日期：2026-10-30◇'
+    text=(f'◇920196 {name} 更新日期：2026-10-30◇\n'
+          '｜★主营业务:已核原文的跨行｜\n｜业务内容。｜\n└────┘')
     stock={'symbol':symbol,'name':name,'exchange':'BJ','status':'OBSERVED','captured_at':'2026-11-02T01:02:03+00:00',
         'source_updated_date':'2026-10-30','finance_updated_date':'20261030','source_text':text,
         'source_text_sha256':hashlib.sha256(text.encode()).hexdigest(),'endpoint_markets':{'text':0,'finance':2},
@@ -697,6 +843,7 @@ def test_candidate_f10_keeps_lineage_and_rejects_unregistered_paths_and_names(tm
     host,p,symbol,stock_ref=candidate_f10_fixture(tmp_path/'ok')
     answer=host.f10('2026-10-30',symbol,p['source_generation'])
     assert answer['status']=='OBSERVED_CANDIDATE' and answer['f10']['name']=='南方乳业'
+    assert answer['f10']['reported_business']=='已核原文的跨行业务内容。'
     assert answer['source_generation']==S('c') and answer['bound_source_generation']==S('a')
     assert answer['input_sha256']==S('d') and answer['bound_source_input_sha256']==S('b')
     assert host.f10('2026-10-29',symbol,S('a'))['status']=='NOT_MATERIALIZED'

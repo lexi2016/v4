@@ -109,10 +109,10 @@ export function signalExplanations(row,facts={}){
 }
 
 export const HOLD_ITEMS=[
-  ['kb_hold_close_up','收盘上涨'],['kb_hold_above_bbi','收盘在BBI之上'],['kb_hold_volume_ok','持仓评分·量能项（阳线分支）'],
+  ['kb_hold_close_up','收盘上涨'],['kb_hold_above_bbi','收盘在BBI之上'],['kb_hold_volume_ok','阳线得分（收盘>开盘）'],
   ['kb_hold_trend_up','N型趋势向上'],['kb_hold_j_not_dead','J未处于死叉状态'],
 ];
-export const HOLD_REASONS={RULE_NOT_QUANTIFIED:'规则待量化',INSUFFICIENT_PRIOR_BAR:'前一日行情不足',INVALID_CLOSE_INPUT:'收盘行情无效',
+export const HOLD_REASONS={RULE_NOT_QUANTIFIED:'旧版结果待按现规则更新',INVALID_OPEN_CLOSE_INPUT:'开盘或收盘缺失或无效',INSUFFICIENT_PRIOR_BAR:'前一日行情不足',INVALID_CLOSE_INPUT:'收盘行情无效',
   INVALID_OHLC_INPUT:'开高低收行情缺失或无效',INVALID_VOLUME_INPUT:'当日成交量缺失或无效',
   INSUFFICIENT_BBI_HISTORY:'BBI预热不足',INVALID_CLOSE_WINDOW:'收盘行情不足',BBI_EQUALITY_UNRESOLVED:'BBI相等边界待核',
   INSUFFICIENT_KDJ_HISTORY:'KDJ预热不足',INVALID_HLC_PREFIX:'KDJ行情前缀无效',
