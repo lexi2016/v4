@@ -1,4 +1,4 @@
-"""Frozen r7 -> r8 task-status patch, API only; never call legacy release CLIs.
+"""Frozen r7 -> r9 task-status patch, API only; never call legacy release CLIs.
 
 build copies only the verified live API app. prepare captures fresh evidence.
 activate/rollback require the same preparation SHA and explicit authorization.
@@ -25,7 +25,7 @@ if str(SOURCE) not in sys.path:
 from ops import activate_stage_four_repairs as fixed
 
 BASE = fixed.LOCAL / "candidates/v4-unified-release-20261102-r7/v4-unified-release-20261102-r7-api"
-CANDIDATE = fixed.LOCAL / "candidates/v4-task-status-date-20261102-r8-api"
+CANDIDATE = fixed.LOCAL / "candidates/v4-task-status-date-20261102-r9-api"
 STAGE_APP = BASE.parent / "v4-unified-release-20261102-r7-stage/app"
 ARTIFACT_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/v4_unified_recovery_20261102_terra/task-status-closeout")
 BASE_PLIST_SHA = "d24718c96d862beac226e937faca43bbebc019fdfe41810ae7bc2d3a015e7086"
@@ -152,7 +152,7 @@ def proposed_plist(original, candidate, digest):
     if "PYTHONPATH" in env:
         env["PYTHONPATH"] = ":".join(new_app + p[len(old_app):] if p == old_app or p.startswith(old_app + "/") else p
                                     for p in env["PYTHONPATH"].split(":"))
-    # In particular, never re-point V4_MANUAL_COLLECTION_STAGE_CONFIG into r8.
+    # In particular, never re-point V4_MANUAL_COLLECTION_STAGE_CONFIG into r9.
     return plistlib.dumps(payload, sort_keys=True)
 
 
@@ -345,7 +345,7 @@ def protection(original, inv):
         "non_api_plists": [protected_plist(path) for path in sorted(fixed.LA.glob("*.plist")) if path.name != LABEL + ".plist"]}
 
 
-# Separate fresh interpreter avoids import-cache mixing between r7, r8 and the
+# Separate fresh interpreter avoids import-cache mixing between r7, r9 and the
 # source checkout. Only existing ledger read APIs and the actual matcher run.
 PROBE_CODE = r'''
 import hashlib, json, pathlib, sys
@@ -453,6 +453,33 @@ def read_prepared(plan_path, evidence, preparation_sha):
     return prepared, plan, original, proposed
 
 
+def require_owned_api(running, owned):
+    """A PID-less placeholder is not ownership of a confirmed loaded definition."""
+    fixed.require(owned is not None and "pid" in owned and running["pid"] == owned["pid"],
+                  "ROLLBACK_EXTERNAL_PID_CONFLICT")
+    fields = ("plist_sha256", "loaded_definition_sha256", "release_id")
+    fixed.require(all(owned.get(key) is not None and running.get(key) == owned[key] for key in fields),
+                  "ROLLBACK_OWNED_DEFINITION_UNCONFIRMED")
+
+
+def retire_pidless_api(record, raw, owned):
+    """Boot out only the exact confirmed PID-less job, then require it absent.
+
+    fixed.unload accepts any PID for oldjob['pid'] == None. Do not pass that
+    permissive token: recheck the full ownership here, boot out the PID-less
+    definition via the fixed transport, then let fixed.unload/restore_touched
+    wait for the missing job/socket with oldjob=None (rejects any new job).
+    """
+    fixed.cas(record, raw)
+    running = fixed.loaded(LABEL, raw, missing=True)
+    if running is not None:
+        require_owned_api(running, owned)
+        fixed.require(running["pid"] is None, "ROLLBACK_EXTERNAL_PID_CONFLICT")
+        result = fixed.lc("bootout", fixed.DOMAIN + "/" + LABEL)
+        fixed.require(result.returncode == 0, "BOOTOUT_FAILED:" + result.stderr)
+    return None
+
+
 def switch(*, plan_path, evidence, preparation_sha, authorized, rollback=False):
     interpreter()
     fixed.require(authorized and bool(preparation_sha), "EXPLICIT_AUTHORIZATION_AND_PREPARATION_SHA_REQUIRED")
@@ -460,16 +487,30 @@ def switch(*, plan_path, evidence, preparation_sha, authorized, rollback=False):
     evidence = artifact_path(evidence)
     def event(name, **fields):
         fixed.write_json(evidence / ("event-" + str(time.time_ns()) + ".json"), {"event": name, **fields})
+    audit_failures = []
+    def diagnostic(name, **fields):
+        # A failed audit sink must never interrupt ownership-checked recovery.
+        # Forward/admission events remain required and can fail the cutover.
+        try:
+            event(name, **fields)
+        except BaseException as error:
+            audit_failures.append({"event": name, "error": repr(error)})
+    def note_audit_failure(error):
+        if audit_failures:
+            error.add_note("RECOVERY_AUDIT_UNAVAILABLE:" + json.dumps(audit_failures))
     with fixed.guards():
         prepared, plan, old, new = read_prepared(plan_path, evidence, preparation_sha)
         record = prepared["records"]["api"]
         previous, desired = (new, old) if rollback else (old, new)
         fixed.cas(record, previous)
-        job = fixed.loaded(LABEL, previous)
+        job = fixed.loaded(LABEL, previous, missing=rollback)
         if not rollback:
             fixed.require(job == record["loaded"], "LOADED_API_CHANGED_SINCE_PREPARATION")
-        fixed.assert_idle(job["pid"])
-        fixed.live_api(previous)
+        # Rollback admission proves the installed candidate definition/CAS,
+        # not its health. A failed candidate may be absent or PID-less.
+        fixed.assert_idle((job or {}).get("pid"))
+        if not rollback:
+            fixed.live_api(previous)
         protected = protection(old, fixed.tools())
         fixed.require(protected == prepared["protection"], "PROTECTED_BASELINE_CHANGED")
         ownership = {"api": job}
@@ -479,8 +520,10 @@ def switch(*, plan_path, evidence, preparation_sha, authorized, rollback=False):
             # Track before bootout, including a bootout that succeeds but times
             # out waiting for the old process/socket. No other role is owned.
             fixed.cas(record, previous)
-            fixed.assert_idle(ownership["api"]["pid"])
+            fixed.assert_idle((ownership["api"] or {}).get("pid"))
             touched.append("api")
+            if (ownership["api"] or {}).get("pid") is None:
+                ownership["api"] = retire_pidless_api(record, previous, ownership["api"])
             fixed.unload("api", previous, ownership["api"])
             fixed.replace(record, previous, desired)
             result = fixed.start("api", desired, ownership)
@@ -493,27 +536,31 @@ def switch(*, plan_path, evidence, preparation_sha, authorized, rollback=False):
             event("ROLLBACK_VERIFIED" if rollback else "ACTIVATED_API_VERIFIED", verification=verified)
             return verified
         except BaseException as primary:
-            event("CUTOVER_FAILED", error=repr(primary), touched=touched)
+            diagnostic("CUTOVER_FAILED", error=repr(primary), touched=touched)
             try:
                 current = Path(record["path"]).read_bytes()
                 fixed.require(current in (previous, desired), "ROLLBACK_EXTERNAL_CAS_CONFLICT")
                 fixed.cas(record, current)
                 running = fixed.loaded(LABEL, current, missing=True)
                 if running is not None:
-                    owned = ownership.get("api", {})
-                    fixed.require(type(owned.get("pid")) is int and running["pid"] == owned["pid"], "ROLLBACK_EXTERNAL_PID_CONFLICT")
+                    require_owned_api(running, ownership.get("api"))
                 # No successful bootout/replacement: do not restart a pristine API.
                 if current == previous and running == job:
-                    event("NO_LIVE_CHANGE_TO_RESTORE")
+                    diagnostic("NO_LIVE_CHANGE_TO_RESTORE")
                 else:
-                    restored, failures = fixed.restore_touched(touched, {"api": record}, {"api": (old, new)}, ownership, event, rollback=rollback)
+                    if running is None or running["pid"] is None:
+                        ownership["api"] = retire_pidless_api(record, current, ownership.get("api"))
+                    restored, failures = fixed.restore_touched(touched, {"api": record}, {"api": (old, new)}, ownership, diagnostic, rollback=rollback)
                     fixed.require(not failures, "RECOVERY_FAILURES:" + json.dumps(failures))
                     verification = verify_result(previous, CANDIDATE, rollback=not rollback)
                     fixed.require(protection(old, fixed.tools()) == protected, "RECOVERY_PROTECTION_CHANGED")
-                    event("AUTOMATIC_ROLLBACK_VERIFIED", restored=restored, verification=verification)
+                    diagnostic("AUTOMATIC_ROLLBACK_VERIFIED", restored=restored, verification=verification)
             except BaseException as recovery:
-                event("AUTOMATIC_ROLLBACK_FAILED", primary_error=repr(primary), recovery_error=repr(recovery))
-                raise RuntimeError("CUTOVER_FAILED:" + repr(primary) + "; RECOVERY_FAILED:" + repr(recovery)) from primary
+                diagnostic("AUTOMATIC_ROLLBACK_FAILED", primary_error=repr(primary), recovery_error=repr(recovery))
+                error = RuntimeError("CUTOVER_FAILED:" + repr(primary) + "; RECOVERY_FAILED:" + repr(recovery))
+                note_audit_failure(error)
+                raise error from primary
+            note_audit_failure(primary)
             raise
 
 

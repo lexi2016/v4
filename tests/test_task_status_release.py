@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "docs/handoffs/unified-release-20261102/task_status_release.py"
 REF = "a" * 40
 PATCH = ("domains/task_status.py", "tests/test_task_status_dates.py")
+REAL_LOADED = fixed_module.loaded
 
 
 @pytest.fixture
@@ -38,7 +39,7 @@ def batch(tmp_path, monkeypatch, release):
     t = release
     local = tmp_path / "local"
     base = local / "candidates/r7/r7-api"
-    candidate = local / "candidates/v4-task-status-date-20261102-r8-api"
+    candidate = local / "candidates/v4-task-status-date-20261102-r9-api"
     app = base / "app"
     source = tmp_path / "source"
     evidence_root = tmp_path / "evidence"
@@ -456,6 +457,209 @@ def test_receipt_probe_checks_actual_namespace_without_writing_or_relabeling(tmp
     invalid = run()
     assert invalid["receipt_count"] == 1 and invalid["date_valid_count"] == 0
     assert invalid["chain_valid"] is False
+
+
+@pytest.fixture
+def lifecycle(batch, monkeypatch):
+    """Real loaded/start/unload/CAS/restore helpers; only launchd/socket/health mocked."""
+    f = batch
+    t = f.t
+    state = {"raw": f.raw, "pid": 101, "mode": "healthy", "mutate": None}
+    calls, events = [], []
+    clock = {"now": 0}
+    def monotonic():
+        clock["now"] += 20
+        return clock["now"]
+    def lc(*args):
+        if args[0] == "print":
+            assert args == ("print", t.fixed.DOMAIN + "/com.lexi.v4.api")
+            if state["raw"] is None:
+                return SimpleNamespace(returncode=1, stderr="Could not find service", stdout="")
+            payload = plistlib.loads(state["raw"])
+            text = ("path = " + str(f.plist) + "\nprogram = " + payload["ProgramArguments"][0]
+                    + "\nworking directory = " + payload["WorkingDirectory"]
+                    + "\n\targuments = {\n" + "".join("\t\t" + arg + "\n" for arg in payload["ProgramArguments"])
+                    + "\t}\n\tenvironment = {\n" + "".join("\t\t" + key + " => " + str(value) + "\n"
+                      for key, value in payload["EnvironmentVariables"].items()) + "\t}\n\tstate = "
+                    + ("running" if state["pid"] is not None else "throttled") + "\n")
+            if state["pid"] is not None:
+                text += "pid = " + str(state["pid"]) + "\n"
+            return SimpleNamespace(returncode=0, stderr="", stdout=text)
+        if args[0] == "bootout":
+            assert args == ("bootout", t.fixed.DOMAIN + "/com.lexi.v4.api")
+            calls.append(("bootout", state["pid"]))
+            state.update(raw=None, pid=None)
+            return SimpleNamespace(returncode=0, stderr="")
+        assert args == ("bootstrap", t.fixed.DOMAIN, str(f.plist))
+        raw = f.plist.read_bytes()
+        candidate = raw != f.raw
+        calls.append(("bootstrap", "candidate" if candidate else "baseline"))
+        if candidate and state["mode"] == "bootstrap_failure":
+            return SimpleNamespace(returncode=1, stderr="fixture bootstrap rejected")
+        state.update(raw=raw, pid=(None if state["mode"] == "pidless" else 202) if candidate else 303)
+        if candidate and state["mode"] == "bootstrap_timeout":
+            raise t.fixed.subprocess.TimeoutExpired(["mock_launchctl", "bootstrap"], 12)
+        return SimpleNamespace(returncode=0, stderr="")
+    class NoListener:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def settimeout(self, value): pass
+        def connect_ex(self, address):
+            assert address == ("127.0.0.1", 8873)
+            return 1
+    def health(raw):
+        job = t.fixed.loaded("com.lexi.v4.api", raw)
+        t.fixed.require(job["pid"] is not None, "API_PID_ABSENT")
+        if raw != f.raw and state["mode"] == "unavailable":
+            raise ValueError("fixture unhealthy candidate")
+        return {"job": job, "runtime_identity": {"status": "MANIFEST_EXECUTION_FILES_VERIFIED"}}
+    real_write = t.fixed.write_json
+    def write(path, obj):
+        if obj.get("event"):
+            events.append(obj["event"])
+            if obj["event"] == "CUTOVER_FAILED" and state["mutate"]:
+                state["mutate"]()
+        return real_write(path, obj)
+    monkeypatch.setattr(t.fixed, "loaded", REAL_LOADED)
+    monkeypatch.setattr(t.fixed, "lc", lc)
+    monkeypatch.setattr(t.fixed, "live_api", health)
+    monkeypatch.setattr(t.fixed, "pid_alive", lambda pid: False)
+    monkeypatch.setattr(t.fixed.socket, "socket", lambda *a, **k: NoListener())
+    monkeypatch.setattr(t.fixed.time, "monotonic", monotonic)
+    monkeypatch.setattr(t.fixed.time, "sleep", lambda _: None)
+    monkeypatch.setattr(t.fixed, "write_json", write)
+    f.job.update(t.fixed.loaded("com.lexi.v4.api", f.raw))
+    f.state, f.calls, f.events = state, calls, events
+    return f
+
+
+@pytest.mark.parametrize("conflict", [None, "foreign_cas", "foreign_pid"])
+def test_audit_sink_failure_never_prevents_owned_recovery(lifecycle, monkeypatch, conflict):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    desired = (evidence / "api.staged.plist").read_bytes()
+    real_write = f.t.fixed.write_json
+    failed_events = []
+    def write(path, obj):
+        name = obj.get("event")
+        if name and name != "ADMISSION_PASS":
+            failed_events.append(name)
+            if name == "API_STARTED":
+                if conflict == "foreign_cas": f.plist.write_bytes(b"foreign owner")
+                if conflict == "foreign_pid": f.state["pid"] = 999
+            raise OSError("MOCK_EVIDENCE_STORAGE_UNWRITABLE:" + name)
+        return real_write(path, obj)
+    monkeypatch.setattr(f.t.fixed, "write_json", write)
+    with pytest.raises((OSError, RuntimeError), match="MOCK_EVIDENCE_STORAGE_UNWRITABLE:API_STARTED") as failure:
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True)
+    assert failed_events[:2] == ["API_STARTED", "CUTOVER_FAILED"]
+    assert f.protected.read_bytes() == b"unchanged Main plist"
+    if conflict:
+        assert f.calls == [("bootout", 101), ("bootstrap", "candidate")]
+        assert f.plist.read_bytes() == (b"foreign owner" if conflict == "foreign_cas" else desired)
+        assert f.state["pid"] == (999 if conflict == "foreign_pid" else 202)
+        assert "RECOVERY_FAILED" in str(failure.value)
+    else:
+        assert f.plist.read_bytes() == f.raw
+        assert f.state["raw"] == f.raw and f.state["pid"] == 303
+        assert f.calls == [("bootout", 101), ("bootstrap", "candidate"), ("bootout", 202), ("bootstrap", "baseline")]
+        assert "AUTOMATIC_ROLLBACK_VERIFIED" in failed_events
+        assert type(failure.value) is OSError  # Logging did not replace the primary error.
+    assert not list(evidence.glob("event-*.json")) or all(
+        json.loads(path.read_bytes())["event"] == "ADMISSION_PASS" for path in evidence.glob("event-*.json"))
+
+
+def test_admission_audit_failure_is_before_any_live_mutation(lifecycle, monkeypatch):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    def unwritable(*args): raise OSError("fixture admission audit failure")
+    monkeypatch.setattr(f.t.fixed, "write_json", unwritable)
+    with pytest.raises(OSError, match="fixture admission audit failure"):
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True)
+    assert f.plist.read_bytes() == f.raw and f.state["pid"] == 101
+    assert f.calls == []
+
+
+@pytest.mark.parametrize("mode", ["pidless", "bootstrap_failure"])
+def test_failed_bootstrap_or_pidless_timeout_restores_previous_api(lifecycle, mode):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    f.state["mode"] = mode
+    with pytest.raises((ValueError, RuntimeError), match="START_READINESS_TIMEOUT|BOOTSTRAP_FAILED"):
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True)
+    assert f.plist.read_bytes() == f.raw
+    assert f.state["raw"] == f.raw and f.state["pid"] == 303
+    assert f.calls == ([("bootout", 101), ("bootstrap", "candidate")]
+                       + ([("bootout", None)] if mode == "pidless" else []) + [("bootstrap", "baseline")])
+    assert "AUTOMATIC_ROLLBACK_VERIFIED" in f.events
+    assert f.protected.read_bytes() == b"unchanged Main plist"
+
+
+@pytest.mark.parametrize("state", ["pidless", "unavailable", "missing"])
+def test_explicit_same_plan_rollback_does_not_require_candidate_health(lifecycle, state):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    desired = (evidence / "api.staged.plist").read_bytes()
+    f.plist.write_bytes(desired)
+    f.state.update(raw=None if state == "missing" else desired,
+                   pid=202 if state == "unavailable" else None, mode=state)
+    result = f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True, rollback=True)
+    assert f.plist.read_bytes() == f.raw
+    assert f.state["raw"] == f.raw and f.state["pid"] == 303
+    assert result["restored_r7_projection_defect"] is True
+    assert f.calls == ([] if state == "missing" else [("bootout", 202 if state == "unavailable" else None)]) + [("bootstrap", "baseline")]
+    assert f.protected.read_bytes() == b"unchanged Main plist"
+
+
+@pytest.mark.parametrize("conflict", ["pid", "argv", "cwd", "env", "cas"])
+def test_pidless_timeout_never_recovers_over_foreign_identity(lifecycle, conflict):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    desired = (evidence / "api.staged.plist").read_bytes()
+    def mutate():
+        if conflict == "pid": f.state["pid"] = 999
+        elif conflict == "cas": f.plist.write_bytes(b"foreign owner")
+        else:
+            payload = plistlib.loads(desired)
+            if conflict == "argv": payload["ProgramArguments"].append("--foreign")
+            elif conflict == "cwd": payload["WorkingDirectory"] += "-foreign"
+            else: payload["EnvironmentVariables"]["V4_RELEASE_ID"] = "foreign"
+            f.state["raw"] = plistlib.dumps(payload)
+    f.state.update(mode="pidless", mutate=mutate)
+    with pytest.raises(RuntimeError, match="RECOVERY_FAILED"):
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True)
+    assert f.calls == [("bootout", 101), ("bootstrap", "candidate")]
+    assert f.plist.read_bytes() == (b"foreign owner" if conflict == "cas" else desired)
+    assert f.state["pid"] == (999 if conflict == "pid" else None)
+    assert "AUTOMATIC_ROLLBACK_VERIFIED" not in f.events
+
+
+@pytest.mark.parametrize("conflict", ["argv", "cwd", "env", "cas"])
+def test_explicit_rollback_rejects_foreign_candidate_definition(lifecycle, conflict):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    desired = (evidence / "api.staged.plist").read_bytes()
+    payload = plistlib.loads(desired)
+    if conflict == "argv": payload["ProgramArguments"].append("--foreign")
+    elif conflict == "cwd": payload["WorkingDirectory"] += "-foreign"
+    elif conflict == "env": payload["EnvironmentVariables"]["V4_RELEASE_ID"] = "foreign"
+    f.state.update(raw=plistlib.dumps(payload), pid=None)
+    f.plist.write_bytes(b"foreign owner" if conflict == "cas" else desired)
+    with pytest.raises(ValueError):
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True, rollback=True)
+    assert f.calls == []
+    assert f.plist.read_bytes() == (b"foreign owner" if conflict == "cas" else desired)
+
+
+def test_bootstrap_timeout_with_unconfirmed_pid_never_adopts_external_process(lifecycle):
+    f = lifecycle
+    plan, evidence, digest = prepared(f)
+    desired = (evidence / "api.staged.plist").read_bytes()
+    f.state["mode"] = "bootstrap_timeout"
+    with pytest.raises(RuntimeError, match="RECOVERY_FAILED"):
+        f.t.switch(plan_path=plan, evidence=evidence, preparation_sha=digest, authorized=True)
+    assert f.plist.read_bytes() == desired and f.state["pid"] == 202
+    assert f.calls == [("bootout", 101), ("bootstrap", "candidate")]
 
 
 def test_result_requires_real_date_valid_chain_without_relabeling_business_failures(batch, monkeypatch):
