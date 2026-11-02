@@ -24,7 +24,7 @@
     showState(message);
     output.replaceChildren();
     if (section.dataset.hideEmpty === 'true') {
-      if (current) { current.nextCursor = null; current.nextOffset = null; current.signature = null; }
+      if (current) { current.nextCursor = null; current.continuation = null; }
       section.hidden = false;
       section.open = true;
       document.getElementById('relatedReportsRefresh').textContent = '重新读取首页';
@@ -80,15 +80,15 @@
   function safety(data) {
     return data?.research_only === true && data.production_allowed === false && data.buy_gate_updated === false && data.orders_sent === false;
   }
-  async function jsonFrom(url, controller) {
+  async function jsonFrom(url, controller, timeoutMs = 60000) {
     let expired = false;
-    const timer = setTimeout(() => { expired = true; controller.abort(); }, 60000);
+    const timer = setTimeout(() => { expired = true; controller.abort(); }, timeoutMs);
     try {
       const response = await fetch(url, { cache: 'no-store', credentials: 'same-origin', mode: 'same-origin', redirect: 'error', signal: controller.signal });
       if (!response.ok) throw new HttpError(response.status);
       try { return await response.json(); } catch (_) { throw new Error('响应不是有效 JSON'); }
     } catch (error) {
-      if (expired) throw new Error('请求超时（60 秒）');
+      if (expired) throw new Error(`请求超时（${timeoutMs / 1000} 秒）`);
       throw error;
     } finally { clearTimeout(timer); }
   }
@@ -220,7 +220,8 @@
     const keys = ['scope', 'indexed_dates_seen', 'cache_dates_seen', 'dates_considered', 'dates_scanned', 'owner_documents',
       'indexed_documents', 'unindexed_ready', 'stale_documents', 'unavailable_documents', 'removed_documents',
       'malformed_documents', 'index_updates', 'search_method', 'historical_sources_complete', 'candidate_documents',
-      'indexed_content_time', 'legacy_max_dates_ignored', 'large_ready_pending', 'large_verification_error'];
+      'indexed_content_time', 'legacy_max_dates_ignored', 'large_ready_pending', 'large_verification_error',
+      'bloom_candidates', 'ocr_prefilter_checked', 'ocr_prefilter_matches', 'ocr_prefilter_unknown', 'search_checkpoint_sha256'];
     const fixedCoverage = Object.fromEntries(keys.map(key => [key, coverage[key] ?? null]));
     const sourceGaps = coverage.gaps.filter(gap => gap && typeof gap === 'object' && gap.source_run_id && !gap.document_id)
       .map(canonical).sort();
@@ -261,6 +262,8 @@
         !Number.isInteger(coverage.candidate_documents) || coverage.candidate_documents < expectedOffset + attempts ||
         coverage.limits?.documents !== PAGE_SIZE || coverage.pagination_required !== (next !== null) ||
         (coverage.pagination_incomplete !== undefined && typeof coverage.pagination_incomplete !== 'boolean') ||
+        (coverage.pagination_window_reset !== undefined && typeof coverage.pagination_window_reset !== 'boolean') ||
+        (coverage.pagination_window_reset === true && next === null) ||
         (next !== null && (attempts === 0 || backendIncomplete)) ||
         (next === null && !backendIncomplete && coverage.candidate_documents !== expectedOffset + attempts)) {
       throw new SnapshotChanged('续页范围、候选数量或页大小不一致');
@@ -269,13 +272,15 @@
   }
   async function readPages(symbol, day, query, controller, token, resume = null) {
     const expected = 'A.' + symbol.slice(0, 6);
-    const acc = { reports: [], bySha: new Map(), sourcesByKey: new Map(), gaps: [], verified: 0, attempts: 0 };
-    const seen = new Set();
-    let cursor = resume?.cursor || null, signature = resume?.signature || null, base = null, mode = null, offset = resume?.offset || 0, pages = 0;
+    const previousWindows = resume?.previousWindows || [];
+    const acc = (!resume?.resetWindow && resume?.acc) || { reports: [], bySha: new Map(), sourcesByKey: new Map(), gaps: [], verified: 0, attempts: 0 };
+    const seen = resume?.seen || new Set();
+    let cursor = resume?.cursor || null, signature = resume?.signature || null, base = resume?.resetWindow ? null : resume?.base || null,
+      mode = resume?.mode || null, offset = resume?.offset || 0, pages = resume?.resetWindow ? 0 : resume?.pages || 0, requestedPages = 0;
     for (;;) {
       if (cursor) query.set('cursor', cursor); else query.delete('cursor');
       let data;
-      try { data = await jsonFrom('/api/v4/research/pdf-relations?' + query, controller); }
+      try { data = await jsonFrom('/api/v4/research/pdf-relations?' + query, controller, 180000); }
       catch (error) {
         if (error instanceof HttpError && (error.status === 409 || (cursor && error.status === 422))) {
           throw new SnapshotChanged(`HTTP ${error.status}：续页索引或身份可能已变化`);
@@ -300,69 +305,29 @@
         acc.attempts += data.coverage.detail_attempts;
         acc.verified += data.coverage.verified_documents;
       }
-      pages++;
+      pages++; requestedPages++;
       if (!base) base = data;
       appendReports(acc, data.stocks[0]);
       for (const gap of data.coverage.gaps) acc.gaps.push({ page: pages, detail: gap });
-      if (info.next === null || pages >= MAX_PAGES) {
+      if (info.next === null || requestedPages >= MAX_PAGES) {
         const stock = { ...base.stocks[0], reports: acc.reports };
-        const incompleteReason = info.backendIncomplete ? 'backend_limit' : info.next !== null ? 'page_limit' : null;
-        return { data: base, stock, mode, pages, gaps: acc.gaps, verified: acc.verified, attempts: acc.attempts, incomplete: !!incompleteReason, incompleteReason, nextCursor:info.next, nextOffset:offset, signature };
+        const incompleteReason = info.backendIncomplete ? 'backend_limit' : info.next !== null ? 'page_limit'
+          : data.coverage.ocr_prefilter_unknown > 0 ? 'ocr_prefilter_incomplete' : null;
+        const resetWindow = data.coverage.pagination_window_reset === true;
+        const archive = { stock, pages, verified:acc.verified, attempts:acc.attempts,
+          checkpoint:base.coverage.search_checkpoint_sha256 || null, observedAt:new Date().toISOString() };
+        const continuation = info.next ? { cursor:info.next, offset, signature, acc, seen, base, mode, pages, resetWindow,
+          previousWindows:resetWindow ? [...previousWindows, archive] : previousWindows } : null;
+        return { data: base, stock, mode, pages, gaps: acc.gaps, verified: acc.verified, attempts: acc.attempts,
+          incomplete: !!incompleteReason, incompleteReason, nextCursor:info.next, continuation, previousWindows, resetWindow };
       }
       cursor = info.next;
       showState(`${symbol}：正在读取全文索引候选，已读取 ${pages} 页（PARTIAL）；请等待续页。`);
     }
   }
-  function render(result, token) {
-    const { data, stock, mode, pages, gaps, verified, attempts, incomplete, incompleteReason } = result;
-    if(section.dataset.hideEmpty==='true'){
-      // Exhausting this indexed query does not certify coverage of the whole archive.
-      const indexedCandidatesExhausted = mode === 'FULLTEXT_INDEX' && !result.nextCursor && !incomplete && verified === attempts;
-      section.hidden=!stock.reports.length && indexedCandidatesExhausted;
-      if(section.hidden)return;
-      if(!stock.reports.length){
-        output.replaceChildren();
-        append(output,'p',result.nextCursor?'当前已读范围无匹配；可继续读取下一页，资料覆盖尚未完成。':'当前覆盖未认证完整，不能判断没有研报。');
-        return;
-      }
-    }
-    const coverage = data.coverage;
-    output.replaceChildren();
-    const diagnostics=append(output,"details");append(diagnostics,"summary","检索覆盖、来源与技术状态");
-    append(diagnostics, 'p', `接口状态 ${data.status}；身份日期 ${data.identity_date}。资料为当前知识补充，非历史 PIT，不能认为在研究日盘中已可用。`);
-    if (mode === 'NOT_MATERIALIZED') {
-      append(diagnostics, 'p', '预建研报关系索引未就绪。本次只返回索引状态；未启动全量索引、历史来源扫描、OCR 或公式计算。');
-    } else if (mode === 'FULLTEXT_INDEX') {
-      const ending = incompleteReason === 'backend_limit' ? '；达到后端复验资源上限，续页未完成'
-        : incomplete ? '；达到页数上限，续页未完成' : '；本次查询的游标已结束';
-      append(diagnostics, 'p', `全文索引已读取 ${pages} 页${ending}。仍为 PARTIAL，未覆盖全部历史资料。`);
-      append(diagnostics, 'p', `已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；索引文档 ${printable(coverage.indexed_documents)}；候选文档 ${printable(coverage.candidate_documents)}；本次尝试 ${attempts} / 已校验 ${verified}；每页最多 ${PAGE_SIZE} 篇。`);
-      append(diagnostics, 'p', `未入索引 ${printable(coverage.unindexed_ready)}；索引过期 ${printable(coverage.stale_documents)}；不可用 ${printable(coverage.unavailable_documents)}；已移除 ${printable(coverage.removed_documents)}。返回候选在各自分页时重新核验，未返回原件以最近索引时的校验为准；文字提及不是已认证主体。`);
-      if (coverage.index_updates && typeof coverage.index_updates === 'object' && !Array.isArray(coverage.index_updates)) {
-        const updates = append(diagnostics, 'details'); append(updates, 'summary', '各日期索引更新状态');
-        for (const day of Object.keys(coverage.index_updates).sort()) {
-          const value = coverage.index_updates[day] || {};
-          append(updates, 'p', `${day} · 最近成功 ${printable(value.last_success_at)} · 最近尝试 ${printable(value.last_attempt_at)} · 状态 ${printable(value.last_update_status)}`);
-        }
-      }
-    } else {
-      append(diagnostics, 'p', `首尾片段有限检索：已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；已校验文档 ${printable(coverage.verified_documents)}；上限 ${printable(coverage.limits?.dates)} 日 / ${printable(coverage.limits?.documents)} 篇。`);
-      append(diagnostics, 'p', '仅筛标题、文件名及首尾片段，可能漏掉中间页和历史文档；该结果不是全文检索，文本提及不等于确认研报主体。');
-    }
-    if (mode !== 'NOT_MATERIALIZED') {
-      const large = largeCounts(coverage, mode);
-      append(diagnostics, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料待索引：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量。`);
-    }
-    append(diagnostics, 'p', nameSourceText());
-    append(diagnostics, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
-    if (stock.search_hint?.status === 'CALLER_PROVIDED_UNVERIFIED') {
-      append(diagnostics, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
-    } else {
-      append(diagnostics, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
-    }
-    if (!stock.reports.length) append(output, 'p', '已读取范围未返回匹配；覆盖不完整或续页未完成，不能据此判断没有研报。');
+  function appendReportSections(parent, stock, token) {
     stock.reports.forEach((report, index) => {
-      const article = append(output, 'article');
+      const article = append(parent, 'article');
       append(article, 'h4', `相关候选 ${index + 1}`);
       append(article, 'p', `关联状态：${printable(report.relation_status)}；来源去重状态：${printable(report.dedup_status)}；原件 SHA256：${printable(report.verified_pdf_sha256)}。${verifiedReportSha(report) ? '本页按已核摘要合并。' : '摘要未认证，本页不跨记录合并。'}`);
       if (!report.sources.length) append(article, 'p', '来源未返回，候选待核。');
@@ -380,6 +345,64 @@
         const detail = append(box, 'div'); button.onclick = () => openDocument(source, report, detail, button, token);
       });
     });
+  }
+  function render(result, token) {
+    const { data, stock, mode, pages, gaps, verified, attempts, incomplete, incompleteReason } = result;
+    if(section.dataset.hideEmpty==='true'){
+      // Exhausting this indexed query does not certify coverage of the whole archive.
+      const indexedCandidatesExhausted = mode === 'FULLTEXT_INDEX' && !result.nextCursor && !incomplete && verified === attempts
+        && data.coverage.historical_sources_complete === true;
+      section.hidden=!stock.reports.length && !(result.previousWindows || []).some(window => window.stock.reports.length) && indexedCandidatesExhausted;
+      if(section.hidden)return;
+      if(!stock.reports.length){
+        output.replaceChildren();
+        append(output,'p',result.nextCursor?'当前已读范围无匹配；可继续读取下一页，资料覆盖尚未完成。':'当前覆盖未认证完整，不能判断没有研报。');
+      }
+    }
+    const coverage = data.coverage;
+    output.replaceChildren();
+    const diagnostics=append(output,"details");append(diagnostics,"summary","检索覆盖、来源与技术状态");
+    append(diagnostics, 'p', `接口状态 ${data.status}；身份日期 ${data.identity_date}。资料为当前知识补充，非历史 PIT，不能认为在研究日盘中已可用。`);
+    if (mode === 'NOT_MATERIALIZED') {
+      append(diagnostics, 'p', '预建研报关系索引未就绪。本次只返回索引状态；未启动全量索引、历史来源扫描、OCR 或公式计算。');
+    } else if (mode === 'FULLTEXT_INDEX') {
+      const ending = incompleteReason === 'backend_limit' ? '；达到后端复验资源上限，续页未完成'
+        : incompleteReason === 'ocr_prefilter_incomplete' ? '；部分候选未能完成 OCR 预筛'
+        : incomplete ? '；达到页数上限，续页未完成' : '；本次查询的游标已结束';
+      append(diagnostics, 'p', `全文索引已读取 ${pages} 页${ending}。仍为 PARTIAL，未覆盖全部历史资料。`);
+      append(diagnostics, 'p', `已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；索引文档 ${printable(coverage.indexed_documents)}；候选文档 ${printable(coverage.candidate_documents)}；本次尝试 ${attempts} / 已校验 ${verified}；每页最多 ${PAGE_SIZE} 篇。`);
+      if (Number.isSafeInteger(coverage.bloom_candidates)) append(diagnostics, 'p', `索引粗筛 ${coverage.bloom_candidates} 篇；已核来源和 OCR 文字 ${printable(coverage.ocr_prefilter_checked)} 篇，文字命中 ${printable(coverage.ocr_prefilter_matches)} 篇，预筛待核 ${printable(coverage.ocr_prefilter_unknown)} 篇。仅对命中文档逐页校验 PDF。`);
+      append(diagnostics, 'p', `未入索引 ${printable(coverage.unindexed_ready)}；索引过期 ${printable(coverage.stale_documents)}；不可用 ${printable(coverage.unavailable_documents)}；已移除 ${printable(coverage.removed_documents)}。返回候选在各自分页时重新核验，未返回原件以最近索引时的校验为准；文字提及不是已认证主体。`);
+      if (coverage.index_updates && typeof coverage.index_updates === 'object' && !Array.isArray(coverage.index_updates)) {
+        const updates = append(diagnostics, 'details'); append(updates, 'summary', '各日期索引更新状态');
+        for (const day of Object.keys(coverage.index_updates).sort()) {
+          const value = coverage.index_updates[day] || {};
+          append(updates, 'p', `${day} · 最近成功 ${printable(value.last_success_at)} · 最近尝试 ${printable(value.last_attempt_at)} · 状态 ${printable(value.last_update_status)}`);
+        }
+      }
+    } else {
+      append(diagnostics, 'p', `首尾片段有限检索：已索引日期 ${printable(coverage.indexed_dates_seen)}；本次扫描 ${Array.isArray(coverage.dates_scanned) ? (coverage.dates_scanned.join('、') || '无') : '未提供'}；已校验文档 ${printable(coverage.verified_documents)}；上限 ${printable(coverage.limits?.dates)} 日 / ${printable(coverage.limits?.documents)} 篇。`);
+      append(diagnostics, 'p', '仅筛标题、文件名及首尾片段，可能漏掉中间页和历史文档；该结果不是全文检索，文本提及不等于确认研报主体。');
+    }
+    if (mode !== 'NOT_MATERIALIZED') {
+      const large = largeCounts(coverage, mode);
+      append(diagnostics, 'p', `大小已知且大于 4 MiB、至多 64 MiB 的 READY 资料尚未具备可验证检索条件：${printable(large.pending)} 篇；其中校验失败：${printable(large.errors)} 篇。统计依据来源元数据与派生索引，非当前股票匹配数量，与不可用数不能直接相加。`);
+    }
+    append(diagnostics, 'p', nameSourceText());
+    append(diagnostics, 'p', `研报接口证券目录状态：${printable(stock.identity?.status)}；研报文本关联继续按各篇关联状态展示。`);
+    if (stock.search_hint?.status === 'CALLER_PROVIDED_UNVERIFIED') {
+      append(diagnostics, 'p', `名称“${printable(stock.search_hint.name)}”用于文字检索；文字匹配不等于确认研报主体。`);
+    } else {
+      append(diagnostics, 'p', `名称提示状态：${printable(stock.search_hint?.status)}。`);
+    }
+    if (!stock.reports.length) append(output, 'p', '已读取范围未返回匹配；覆盖不完整或续页未完成，不能据此判断没有研报。');
+    appendReportSections(output, stock, token);
+    for (const [index, window] of (result.previousWindows || []).entries()) {
+      const archive = append(output, 'details');
+      append(archive, 'summary', `查看已读取窗口 ${index + 1}（${window.stock.reports.length} 篇）`);
+      append(archive, 'p', `该窗口读取时刻 ${printable(window.observedAt)}；索引快照 SHA256 ${printable(window.checkpoint)}。本次窗口切换未重新核验这些原件；查看正文时会再次核对原件。`);
+      appendReportSections(archive, window.stock, token);
+    }
     const details = append(output, 'details');
     append(details, 'summary', `查看逐页覆盖缺口（${gaps.length} 条）`);
     const pre = append(details, 'pre', JSON.stringify(gaps, null, 2)); pre.style.whiteSpace = 'pre-wrap';
@@ -402,8 +425,13 @@
     const hintAccepted = /^[\u3400-\u9fffA-Za-z0-9·* .&-]{2,32}$/.test(hint) && /[\u3400-\u9fffA-Za-z]/.test(hint);
     if (hintAccepted) query.append('hints', `${symbol}:${hint}`);
     query.set('max_documents', String(PAGE_SIZE));
+    query.set('allow_window_reset', 'true');
     const controller = new AbortController(); requestController = controller;
-    showState(`${symbol}：正在查询研报候选。${nameSourceText()}${hintAccepted ? '同时按名称检索文字；研报主体关联仍见各篇状态。' : '仅查代码。'}`);
+    showState(`${symbol}：正在核对研报索引和缓存文字，首次查询可能需要一至两分钟。${nameSourceText()}${hintAccepted ? '同时按名称检索文字；研报主体关联仍见各篇状态。' : '仅查代码。'}`);
+    const started = Date.now();
+    const waitTimer = setInterval(() => {
+      if (token === sequence) showState(`${symbol}：正在核对索引、已有文字与命中原件，已等待 ${Math.floor((Date.now() - started) / 1000)} 秒；具体进度待接口返回。`);
+    }, 5000);
     try {
       let result;
       for (let restart = 0; restart <= MAX_RESTARTS; restart++) {
@@ -420,16 +448,18 @@
         successfulQueries.set(queryKey(current), { observedAt: new Date().toISOString(), indexAt: latestIndexSuccess(result.data.coverage) });
         if (successfulQueries.size > 512) successfulQueries.delete(successfulQueries.keys().next().value);
       }
-      current.nextCursor=result.nextCursor;current.nextOffset=result.nextOffset;current.signature=result.signature;
-      const refresh=document.getElementById('relatedReportsRefresh');refresh.textContent=result.nextCursor?'继续读取下一页5篇候选':'重新读取首页';
-      showState(`${symbol}：本页已取 ${result.attempts} 篇候选，返回 ${result.stock.reports.length} 篇匹配；${result.nextCursor?'仍有续页（PARTIAL），未覆盖全部资料。':'当前游标已结束；覆盖仍以返回范围为准。'}`);
+      current.nextCursor=result.nextCursor;current.continuation=result.continuation;
+      const refresh=document.getElementById('relatedReportsRefresh');refresh.textContent=result.nextCursor?(result.resetWindow?'继续下一核验窗口（保留旧窗口）':'继续读取下一页5篇候选'):'重新读取首页';
+      showState(`${symbol}：本窗口累计已取 ${result.attempts} 篇候选，返回 ${result.stock.reports.length} 篇匹配；${result.nextCursor?'仍有续页（PARTIAL），未覆盖全部资料。':result.incomplete?'本次查询未完成；覆盖未认证完整。':'当前游标已结束；覆盖仍以返回范围为准。'}`);
       render(result, token);
     } catch (error) {
       if (token !== sequence) return;
       showFailure(`${symbol}：相关研报未完整或读取失败：${error?.message || '网络不可达'}；已丢弃本次页面，不能据此判断没有研报。`);
+    } finally {
+      clearInterval(waitTimer);
     }
   }
   function prepareSelection(symbol,name,nameBinding=null){clear();current={symbol,name,nameBinding,day:String(section.dataset.identityDate||''),generation:String(section.dataset.generation||'')};showState('已有研报目录在上方。正文库尚未查询；可按需先读5篇候选，覆盖为PARTIAL。');document.getElementById('relatedReportsRefresh').textContent='检索正文库（先读5篇）';}
-  document.getElementById('relatedReportsRefresh').onclick=()=>{if(current)select(current.symbol,current.name,true,current.nameBinding,current.nextCursor?{cursor:current.nextCursor,offset:current.nextOffset,signature:current.signature}:null);};
+  document.getElementById('relatedReportsRefresh').onclick=()=>{if(current)select(current.symbol,current.name,true,current.nameBinding,current.continuation||null);};
   window.RelatedReports={select,clear,prepareSelection,openStoredDocument:(source,report,target,button)=>openDocument(source,report,target,button,sequence)};
 })();

@@ -1,4 +1,4 @@
-import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,holderLines,companyBusinessText,verifiedCompanyPart,verifiedInitialCompanyF10,visibleSingleHistoryGroups} from './kb-single-stock.mjs';
+import {installSingleResearch,bindSingleSymbolSearch,f10SourceKind,financialLines,financialDisclosureText,holderLines,companyBusinessText,verifiedCompanyPart,verifiedInitialCompanyF10,visibleSingleHistoryGroups,historyGapText,selectCompanyFinancials,officialSourceDates} from './kb-single-stock.mjs';
 import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
@@ -105,6 +105,7 @@ function loadSingleDetails(day,meta,signal,assets){
     const h=group.horizons,p=group.same_position?.horizons;
     if(!h||!p||group.identity_status!=='BOUND')throw Error('单股历史统计身份未绑定');
     add(history,'p',`${group.coverage.label} · 命中 ${group.eligible_event_count} · D+2 正收益 ${text(h.d2)}，D+5 ${text(h.d5)} · 同位置 D+2 ${text(p.d2.conditional)}，D+5 ${text(p.d5.conditional)} · 未成熟 ${h.d2.not_matured}/${h.d5.not_matured} · 未知标签 ${group.coverage.unknown_dates}`);
+    add(history,'p',`D+2 ${historyGapText(h.d2,p.d2)}；D+5 ${historyGapText(h.d5,p.d5)}。`);
   }
   const position=groups[0].same_position;
   add(history,'p',`同位置：以${day.source_date}的过去250个有效收盘价分位 ${position.current_price_percentile==null?'待核':(position.current_price_percentile*100).toFixed(1)+'%'} 所在20%区间比较；未成熟和缺失价格不计入有效分母。`);
@@ -121,13 +122,17 @@ function loadSingleDetails(day,meta,signal,assets){
   const businessLine=add(company,'p');if(b.source_url){const source=add(company,'a','官方三季报原件');source.href=b.source_url;source.target='_blank';source.rel='noopener noreferrer';}
   const disclosureLine=add(finance,'p');
   const financeLines=[add(finance,'p'),add(finance,'p'),add(finance,'p')];
+  const officialEvidence=add(finance,'div');
   const holderBox=add(finance,'div');
   const paintHolders=f10=>{holderBox.replaceChildren();for(const text of holderLines(holders,f10))add(holderBox,'p',text)};
   const f10Box=add(company,'div');
-  const paintF10=(f10,source)=>{f10Box.replaceChildren();businessLine.textContent=companyBusinessText(b,f10);
-    disclosureLine.textContent=financialDisclosureText(f,f10,m.source_refs);financialLines(f,f10??{}).forEach((text,i)=>{financeLines[i].textContent=text});paintHolders(f10??{});if(!f10)return;
+  const paintF10=(f10,source,allowScopedOfficial=false)=>{f10Box.replaceChildren();officialEvidence.replaceChildren();businessLine.textContent=companyBusinessText(b,f10);
+    const official=selectCompanyFinancials(f,f10,allowScopedOfficial),dates=officialSourceDates(f10,allowScopedOfficial);
+    disclosureLine.textContent=financialDisclosureText(official,f10,m.source_refs);financialLines(official,f10??{}).forEach((text,i)=>{financeLines[i].textContent=text});paintHolders(f10??{});
+    if(dates){add(officialEvidence,'p',dates);try{const url=new URL(f10.official_observation.source_url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(officialEvidence,'a','发行人季度报告原件');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{}}
+    if(!f10)return;
     add(f10Box,'p',`TDX F10 概念（采集时快照）：${f10.concepts?.map(c=>c.name).join('、')||'待核'}`);
-    const provenance=add(f10Box,'p',`${source} · 实际采集 ${f10.captured_at??'时间待核'}，来源更新 ${f10.source_updated_date??'待核'}；概念不回填历史。`);
+    const provenance=add(f10Box,'p',`${source} · 实际采集 ${f10.captured_at??'时间待核'}，F10正文更新 ${f10.source_updated_date??'待核'}；概念不回填历史。`);
     provenance.title=`TDX行业源代码 ${f10.industry?.tdx_finance_industry_code??'未知'}；映射状态 ${f10.industry?.status??'未知'}`;
   };
   const paintPartialF10=value=>{
@@ -146,8 +151,16 @@ function loadSingleDetails(day,meta,signal,assets){
       if(signal.aborted)return;const kind=f10SourceKind(value,day,meta);
       if(kind==='CANONICAL'&&value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照');
       else if(kind==='CANONICAL'&&generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
+      else if(kind==='RESEARCH'){
+        paintF10(value.f10,'研究范围 F10 采集快照（未发布，非历史PIT）');
+        singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
+      }
       else if(kind==='CANDIDATE'){
-        paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12));
+        paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12),true);
+        singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
+      }
+      else if(kind==='SCOPED_A20'){
+        paintF10(value.f10,'本批限定证券F10采集快照（未发布，非历史PIT）');
         singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
       else if(kind==='INDEPENDENT'){

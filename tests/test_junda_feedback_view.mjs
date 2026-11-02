@@ -48,9 +48,9 @@ test('financial values use the bound source units and period without duplicate u
   const official=financialLines({latest_revenue:5222744068.83,latest_net_profit_parent:-428296532.32},f10);
   assert.deepEqual(official.slice(0,2),['营业收入：52.23亿元','归母净利润：-4.28亿元']);
   assert.match(financialLines({}, {financials:{revenue_text:'bad'}})[0],/待核/);
-  assert.match(financialDisclosureText({latest_period_kind:'三季报',latest_report_period:'2026-09-30',latest_disclosed_at:'2026-10-22',evidence_status:'OFFICIAL_FILING'}, {}, {official_quarterly:{available_date:'2026-10-22'}}),/披露 2026-10-22/);
+  assert.match(financialDisclosureText({latest_period_kind:'三季报',latest_report_period:'2026-09-30',latest_disclosed_at:'2026-10-22',evidence_status:'OFFICIAL_FILING'}, {}, {official_quarterly:{available_date:'2026-10-22'}}),/官方索引日期 2026-10-22/);
   const goldTime=financialDisclosureText({latest_report_period:'2026-09-30',latest_disclosed_at:'20261027'}, {finance_updated_date:'20261027'});
-  assert.match(goldTime,/披露 待核/);assert.match(goldTime,/F10更新 20261027/);
+  assert.match(goldTime,/披露日期待核/);assert.match(goldTime,/财务接口更新 20261027/);
 });
 
 test('single-stock history hides only old B1/B2/B3 display and keeps original level signals',()=>{
@@ -70,8 +70,15 @@ test('only confirmed signals and readable states are chips; diagnostics and fals
     {user_v1_level1_buy_signal:1,user_v1_level2_buy_signal:0});
   assert.deepEqual(result.chips.map(item=>item.label),['原式一级买点','KB 倍量','KB MACD日线风险条件','KB 呼吸阶段 · 呼气']);
   assert.deepEqual(result.unknown.map(item=>item.key),['kb_rebuild','kb_s1','kb_s2','kb_s3']);
+  assert.match(result.unknown.find(item=>item.key==='kb_s1').reason,/已有方法描述.*二手整理.*量化待核/);
+  assert.match(result.unknown.find(item=>item.key==='kb_s2').reason,/已有方法描述.*锚点.*量化待核/);
   const anomaly=signalSummary([],{}, {}, {},{kb_yidong_is:true,kb_yidong_type:'徐杰级'});
   assert.deepEqual(anomaly.chips.map(item=>item.label),['KB 异动 · 徐杰级']);
+});
+
+test('MACD display labels the stored daily computation as an approximation',()=>{
+  const text=signalExplanations({kb:{kb_macd_veto:false},trade_date:20261030})[0];
+  assert.match(text,/程序日线60日近似/);assert.match(text,/不等同.*周\/月/);
 });
 
 test('missing signals cite the right comparison and never reuse another day',()=>{

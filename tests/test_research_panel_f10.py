@@ -20,11 +20,35 @@ def test_f10_uses_exchange_mapping_and_missing_source_is_not_empty_success():
     value=fetch_one('301048.SZ','SZ',api_factory=API,vendor=vendor)
     assert value['status']=='FAILED' and 'F10_CATEGORY_MISSING' in value['reason']
     assert calls==[(0,'301048')]
-    assert fetch_one('920123.BJ','BJ',api_factory=API,vendor=vendor)['status']=='UNSUPPORTED_EXCHANGE'
+    bj=fetch_one('920123.BJ','BJ',api_factory=API,vendor=vendor)
+    assert bj['status']=='FAILED' and bj['reason']=='F10_COMPONENTS_INCOMPLETE'
+    assert calls[-1]==(0,'920123')
     absent=fetch_one('920123.BJ',None,api_factory=API,vendor=vendor)
     assert absent['status']=='SOURCE_IDENTITY_UNAVAILABLE' and absent['reason']=='BOUND_PANEL_EXCHANGE_MISSING'
     text='【3.概念板块】\n｜高端装备｜内容｜\n【4.风险提示】\n｜旧风险｜不能算概念｜'
     assert '旧风险' not in _concept_section(text)
+
+
+def test_f10_content_ranges_reassemble_before_strict_gbk_decode():
+    import base64
+    from ops.research_panel_f10 import _read_company_text,F10_CONTENT_CHUNK_BYTES
+    raw=b'a'*(F10_CONTENT_CHUNK_BYTES-1)+'汉'.encode('gbk')+b'z'
+    calls=[]
+    class Command:
+        def __init__(self,client,lock=None):pass
+        def setParams(self,market,code,filename,start,length):self.start=start;self.length=length;calls.append((start,length))
+        def call_api(self):return raw[self.start:self.start+self.length]
+    api=SimpleNamespace(client=object(),lock=None)
+    text,proof=_read_company_text(api,0,'000408',{'start':0,'length':len(raw),'filename':'000408.txt'},command_factory=Command)
+    assert text.endswith('汉z') and calls==[(0,F10_CONTENT_CHUNK_BYTES),(F10_CONTENT_CHUNK_BYTES,2)]
+    assert proof['declared_bytes']==proof['received_bytes']==len(raw) and base64.b64decode(proof['raw_base64'])==raw
+    class Short(Command):
+        def call_api(self):return super().call_api()[:-1]
+    with pytest.raises(ValueError,match='F10_CONTENT_SHORT_READ'):
+        _read_company_text(api,0,'000408',{'start':0,'length':len(raw),'filename':'000408.txt'},command_factory=Short)
+    raw=b'\x81'
+    with pytest.raises(ValueError,match='F10_CONTENT_GBK_INVALID'):
+        _read_company_text(api,0,'000408',{'start':0,'length':1,'filename':'000408.txt'},command_factory=Command)
 
 
 def test_f10_completion_is_receipt_bound_and_resume_reuses_success(tmp_path):
@@ -94,6 +118,7 @@ def test_f10_completion_publishes_bound_reference_without_mutating_upstream(tmp_
     assert index['existing']==event['existing']=='preserved' and event['event_id']!='old'
     assert hashlib.sha256(Path(upstream['path']).read_bytes()).hexdigest()==upstream['sha256']
     host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={}
     host._view=lambda *_:{'rows':[{'symbol':'301048.SZ'}],'source_generation':context.generation,'source_identity':context.identity}
     def read_ref(ref):
         raw=Path(ref['path']).read_bytes()
@@ -115,3 +140,38 @@ def test_f10_completion_publishes_bound_reference_without_mutating_upstream(tmp_
     context.identity['input_sha256']='d'*64
     with pytest.raises(ValueError,match='F10_PUBLICATION_RECEIPT_CONFLICT'):
         publish_f10_completion(context,root,result['receipt'])
+
+
+def test_existing_f10_source_reuse_requires_symbol_market_sha_and_origin(tmp_path):
+    from ops.research_panel_f10 import verified_reuse_sources
+    def save(name,value):
+        path=tmp_path/name;path.write_text(json.dumps(value,ensure_ascii=False));return {'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+    text='◇000001 平安银行 更新日期：2026-10-30◇'
+    stock={'symbol':'000001.SZ','exchange':'SZ','status':'OBSERVED','captured_at':'2026-11-02T00:00:00Z',
+           'source_text':text,'source_text_sha256':hashlib.sha256(text.encode()).hexdigest(),
+           'finance_native_raw':{'code':'000001','market':0},'historical_PIT':False,**FLAGS}
+    stock_ref=save('stock.json',stock);origin=save('origin.json',{'stock':stock_ref})
+    item={'symbol':'000001.SZ','ref':stock_ref,'origin':origin}
+    seed=save('seed.json',{'schema':'v4.a_share.f10_reuse_inputs.v1','items':[item],'historical_PIT':False,**FLAGS})
+    selected,lineage=verified_reuse_sources({'000001.SZ':'SZ'},seed)
+    assert selected=={'000001.SZ':stock_ref} and lineage=={'000001.SZ':[origin]}
+    with pytest.raises(ValueError,match='SCOPE_CONFLICT'):
+        verified_reuse_sources({'000002.SZ':'SZ'},seed)
+    wrong_origin=save('other-origin.json',{'stock':{'path':'/not-this-source','sha256':'a'*64}})
+    bad_seed=save('bad-origin-seed.json',{'schema':'v4.a_share.f10_reuse_inputs.v1',
+        'items':[{**item,'origin':wrong_origin}],'historical_PIT':False,**FLAGS})
+    with pytest.raises(ValueError,match='ORIGIN_UNBOUND'):
+        verified_reuse_sources({'000001.SZ':'SZ'},bad_seed)
+    bad_ref=save('wrong-market.json',{**stock,'finance_native_raw':{'code':'000001','market':1}})
+    bad_origin=save('bad-stock-origin.json',{'stock':bad_ref})
+    bad_seed=save('bad-stock-seed.json',{'schema':'v4.a_share.f10_reuse_inputs.v1',
+        'items':[{'symbol':'000001.SZ','ref':bad_ref,'origin':bad_origin}],'historical_PIT':False,**FLAGS})
+    with pytest.raises(ValueError,match='SOURCE_IDENTITY_CONFLICT'):
+        verified_reuse_sources({'000001.SZ':'SZ'},bad_seed)
+    second=save('different-snapshot.json',{**stock,'captured_at':'2026-11-02T01:00:00Z'})
+    second_origin=save('different-origin.json',{'stock':second})
+    conflicting=save('conflicting-seed.json',{'schema':'v4.a_share.f10_reuse_inputs.v1',
+        'items':[item,{'symbol':'000001.SZ','ref':second,'origin':second_origin}],
+        'historical_PIT':False,**FLAGS})
+    with pytest.raises(ValueError,match='F10_REUSE_SOURCE_CONFLICT'):
+        verified_reuse_sources({'000001.SZ':'SZ'},conflicting)

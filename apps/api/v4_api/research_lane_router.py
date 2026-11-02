@@ -6,6 +6,10 @@ V4-owned event artifact under ``data_root``. No V3 research-module or
 assistant-run-log read exists here, and no event is ever synthesized.
 """
 from __future__ import annotations
+from contracts.a_share_entity_filter import (
+    FILTER_RULE_VERSION,
+    quarantine_research_stock_rows,
+)
 from domains.related_pdf_reports import read_related_pdf_reports
 
 import asyncio
@@ -660,6 +664,7 @@ def _lane_response(
         for article in articles
     ]
     pool = list(archive["stock_pool"])
+    pool, pool_quarantined = quarantine_research_stock_rows(pool)
     cannot_confirm = list(archive["cannot_confirm"])
     zsxq_articles = [
         article
@@ -738,6 +743,10 @@ def _lane_response(
         "stock_research_daily": pool,
         "stock_research_timeline": timeline,
         "research_pool_bridge": pool,
+        "stock_pool_original_count": len(pool) + len(pool_quarantined),
+        "stock_pool_quarantined": pool_quarantined,
+        "quarantined_row_count": len(pool_quarantined),
+        "filter_rule_version": FILTER_RULE_VERSION,
         "research_quality_summary": _quality_summary(archive),
         "morning_news": _morning_news_response(morning_news),
         "zsxq_hourly": zsxq_hourly,
@@ -1071,6 +1080,7 @@ def create_research_lane_router(
         max_dates: int = Query(default=1, ge=1, le=2),
         max_documents: int = Query(default=5, ge=1, le=10),
         cursor: str | None = Query(default=None, max_length=1024),
+        allow_window_reset: bool = Query(default=False),
         response: Response = None,
     ) -> dict:
         """Batch candidate evidence; does not alter the selected stock rows."""
@@ -1079,7 +1089,8 @@ def create_research_lane_router(
         authority_root = os.environ.get("V4_MANAGER_SECURITY_MASTER_ROOT") or shared_data_root
         try:
             return read_related_pdf_reports(data_root, authority_root, identity_date=identity_date, symbols=symbols,
-                                            hints=hints, max_dates=max_dates, max_documents=max_documents, cursor=cursor)
+                                            hints=hints, max_dates=max_dates, max_documents=max_documents, cursor=cursor,
+                                            allow_window_reset=allow_window_reset)
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 

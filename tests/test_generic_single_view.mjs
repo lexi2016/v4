@@ -1,10 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,verifiedInitialCompanyF10,bindSingleSymbolSearch,f10SourceKind,actionStatusHint,holdUnknownSummary,holderLines,financialLines,financialDisclosureText,companyBusinessText,observedCompanyNameState} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,verifiedInitialCompanyF10,bindSingleSymbolSearch,f10SourceKind,actionStatusHint,holdUnknownSummary,holderLines,financialLines,financialDisclosureText,companyBusinessText,observedCompanyNameState,historyGapText,selectCompanyFinancials,officialSourceDates,registeredDispositionNotice} from '../research-panel/workbench-host/kb-single-stock.mjs';
 import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
+
+test('registered exceptions distinguish aliases, delistings and unconfirmed trading status',()=>{
+  const date='2026-10-30',base={observation_date:date,registry_sha256:sha('a')};
+  const notice=d=>registeredDispositionNotice({sop_disposition:{...base,...d}},date);
+  assert.equal(notice({kind:'alias_skips',replacement_symbol:'920779.BJ',replacement_status:'READY'}).replacement,'920779.BJ');
+  assert.match(notice({kind:'alias_skips',replacement_symbol:'920305.BJ',replacement_status:'UNKNOWN',replacement_disposition:'VERIFIED_DELISTED'}).text,/已登记退市/);
+  assert.match(notice({kind:'lifecycle_skips',effective_date:'20260714'}).text,/2026-07-14/);
+  assert.match(notice({kind:'expected_no_current_bar'}).text,/观察日期.*状态待核/);
+  assert.match(notice({kind:'status_verification_skips',effective_date:'20260911',status_verified_through:'20261027'}).text,/2026-09-11.*2026-10-27.*待核/);
+  assert.equal(registeredDispositionNotice({sop_disposition:{...base,observation_date:'2026-10-29',kind:'expected_no_current_bar'}},date),null);
+});
 
 test('persisted action status makes conflicts and unknown filters visible without changing an observed action',()=>{
   assert.equal(actionStatusHint('CONFLICTING_OBSERVATIONS'),'信号冲突，待核');
@@ -19,6 +30,11 @@ test('F10 canonical and registered candidate retain distinct identities',()=>{
   const common={symbol:meta.symbol,data_date:'20261030',historical_PIT:false,RESEARCH_ONLY:true,
     production_allowed:false,buy_gate_updated:false,orders_sent:false,stock_ref:{sha256:sha('e')}};
   const canonical={...common,status:'OBSERVED',source_generation:day.generation,input_sha256:day.input_sha256};
+  const research={...common,status:'OBSERVED_RESEARCH_SCOPE',lineage:'BOUND_F10_OWNER_CURRENT_OBSERVATION',
+    source_generation:day.generation,input_sha256:day.input_sha256,receipt:{sha256:sha('f')}};
+  assert.equal(f10SourceKind(research,day,{...meta,status:'READY_FOR_RESEARCH_REVIEW'}),'RESEARCH');
+  assert.equal(f10SourceKind({...research,input_sha256:sha('9')},day,{...meta,status:'READY_FOR_RESEARCH_REVIEW'}),null);
+  assert.equal(f10SourceKind(research,day,{...meta,status:'UNKNOWN_SOURCE_ADMISSION'}),null);
   const candidate={...common,status:'OBSERVED_CANDIDATE',source_generation:meta.panel_generation,input_sha256:meta.candidate_input_sha256,
     bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,lineage:'REGISTERED_ISOLATED_PAIRED_CANDIDATE'};
   assert.equal(f10SourceKind(canonical,day,meta),'CANONICAL');assert.equal(f10SourceKind(candidate,day,meta),'CANDIDATE');
@@ -43,6 +59,14 @@ test('F10 canonical and registered candidate retain distinct identities',()=>{
   assert.equal(f10SourceKind(independent,day,quarantine),'INDEPENDENT');
   assert.equal(f10SourceKind(independent,day,{...quarantine,status:'READY_FOR_RESEARCH_REVIEW'}),null);
   assert.equal(f10SourceKind({...independent,price_panel_admission:'PASS'},day,quarantine),null);
+  const scopedMeta={...meta,symbol:'600036.SH',status:'READY_FOR_RESEARCH_REVIEW'};
+  const scoped={...common,symbol:scopedMeta.symbol,status:'OBSERVED_SCOPED_A20',source_generation:null,input_sha256:null,
+    bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,capture_receipt:{sha256:sha('f')},
+    lineage:'A20_EXPLICIT_SCOPED_CAPTURE_NO_PUBLICATION'};
+  assert.equal(f10SourceKind(scoped,day,scopedMeta),'SCOPED_A20');
+  assert.equal(f10SourceKind({...scoped,symbol:'600000.SH'},day,{...scopedMeta,symbol:'600000.SH'}),null);
+  assert.equal(f10SourceKind({...scoped,capture_receipt:{sha256:'bad'}},day,scopedMeta),null);
+  assert.equal(f10SourceKind({...scoped,bound_source_input_sha256:sha('9')},day,scopedMeta),null);
 });
 
 function sample(){
@@ -74,13 +98,14 @@ test('generic chunk restores persisted data and keeps null separate from false',
   assert.equal(rows[1].action.kb_action_no_position,null);
 });
 
-test('only the explicitly bound A20 children can use a different score chunk generation',()=>{
+test('verified A-share score children keep symbol and chunk generation bound',()=>{
   const {meta,chunk,ref}=sample();
   meta.asset_candidate_generation=meta.panel_generation;meta.asset_candidate_input_sha256=meta.candidate_input_sha256;
   meta.score_candidate_generation=sha('7');meta.chunk_candidate_generation=sha('7');meta.action_rebound=false;
   chunk.candidate_generation=sha('7');
   assert.equal(decodeGenericChunk(meta,chunk,ref).length,2);
-  assert.throws(()=>decodeGenericChunk({...meta,symbol:'000002.SZ'},chunk,ref),/评分修订身份冲突/);
+  assert.throws(()=>decodeGenericChunk({...meta,symbol:'000002.SZ'},chunk,ref),/身份冲突/);
+  assert.equal(decodeGenericChunk({...meta,symbol:'000002.SZ'},{...chunk,symbol:'000002.SZ'},ref).length,2);
   assert.throws(()=>decodeGenericChunk({...meta,score_candidate_generation:sha('6')},chunk,ref),/评分修订身份冲突/);
   assert.throws(()=>decodeGenericChunk(meta,{...chunk,candidate_generation:sha('9')},ref),/身份冲突/);
   assert.throws(()=>decodeGenericChunk({...meta,action_rebound:true},chunk,ref),/评分修订身份冲突/);
@@ -91,9 +116,11 @@ test('unknown score reasons are visible without inventing values',()=>{
     kb_hold_volume_ok:null,kb_hold_volume_ok_reason:'RULE_NOT_QUANTIFIED',kb_hold_trend_up:null,
     kb_hold_trend_up_reason:'AMBIGUOUS_SAME_BAR_PIVOT',kb_hold_j_not_dead:null,kb_hold_j_not_dead_reason:'BOUND_KB_J_UNAVAILABLE'};
   assert.deepEqual(holdUnknownSummary(score),['BBI：BBI预热不足','阳线得分：旧版结果待按现规则更新',
-    'N型：同一日同时出现高低转折，先后次序待核','J：原 J 来源缺失']);
+    'N型：同一日同时出现高低转折，先后次序待核','J：原 J 未生成，上游行情或规则门待核']);
   score.kb_hold_volume_ok_reason='INVALID_OPEN_CLOSE_INPUT';
   assert.equal(holdUnknownSummary(score)[1],'阳线得分：开盘或收盘缺失或无效');
+  score.kb_hold_above_bbi_reason='BBI_EQUALITY_UNRESOLVED';
+  assert.equal(holdUnknownSummary(score)[0],'BBI：收盘等于保留两位小数的BBI，等号规则待核');
 });
 
 test('dated F10 holder observations preserve native dates and uncertain net cash flow',()=>{
@@ -110,9 +137,16 @@ test('F10 business and period update when the verified snapshot arrives',()=>{
   assert.equal(companyBusinessText({},null),'主营资料待核');
   assert.match(companyBusinessText({},f10),/TDX F10.*商业银行业务.*2026-11-01T22:57:52Z.*非历史PIT/);
   assert.equal(companyBusinessText({value:'已核官方主营'},f10),'已核官方主营');
-  assert.match(financialDisclosureText({},f10),/TDX F10财务快照.*报告期 2026-09-30（TDX F10）.*披露 待核.*F10更新 20260828/);
+  assert.match(financialDisclosureText({},f10),/TDX F10财务快照.*报告期 2026-09-30（TDX F10）.*披露日期待核.*财务接口更新 20260828/);
   assert.match(financialDisclosureText({},{}),/报告期 待核/);
   assert.match(financialDisclosureText({latest_report_period:'2026-06-30'},f10),/报告期 2026-06-30/);
+});
+
+test('history shows saved excluded price reasons and unknown positions without filling gaps with zero',()=>{
+  const h={not_matured:0,missing_price:1,nonfinite_price:0,nonpositive_price:12,nonfinite_return:0};
+  assert.match(historyGapText(h,{conditional:{unknown_percentile_events:76}}),/未成熟 0.*缺价 1.*非有限价格 0.*非正价格 12.*收益非有限 0.*位置待核事件 76/);
+  assert.match(historyGapText({},{}),/缺价 待核.*位置待核事件 待核/);
+  assert.match(historyGapText({missing_price:-1},{conditional:{unknown_percentile_events:null}}),/缺价 待核.*位置待核事件 待核/);
 });
 
 test('generic initial company F10 must pass its source check before rendering',()=>{
@@ -140,13 +174,37 @@ test('verified official operating cash flow is retained while unbound native val
   const source={evidence_status:'OFFICIAL_FILING',latest_report_period:'2026-09-30',monetary_unit:'元',
     operating_cash_flow:-141711300.48,latest_financial_source_url:'https://example.test/report.pdf'};
   const checks={official_quarterly:'VERIFIED'},refs={official_quarterly:{url:'https://example.test/report.pdf',file:{sha256:'93465671bf989f73f201d7838d4cda9651786d622ee20d1bff0eddcf69b29a02'}}};
-  assert.equal(financialLines(verifiedCompanyPart(source,checks,refs),{})[2],'经营现金流净额：-1.42亿元');
+  assert.match(financialLines(verifiedCompanyPart(source,checks,refs),{})[2],/经营现金流净额.*官方财报.*-1\.42亿元/);
   assert.match(financialLines(verifiedCompanyPart(source,{official_quarterly:'UNKNOWN'},refs),{})[2],/待核/);
   assert.match(financialLines(verifiedCompanyPart(source,checks,{official_quarterly:{...refs.official_quarterly,file:{sha256:'a'.repeat(64)}}}),{})[2],/待核/);
   assert.match(financialLines(verifiedCompanyPart({...source,operating_cash_flow:-141711300.49},checks,refs),{})[2],/待核/);
   assert.match(financialLines(verifiedCompanyPart({...source,latest_report_period:'2026-06-30'},checks,refs),{})[2],/待核/);
   assert.match(financialLines({...source,evidence_status:'TDX'},{} )[2],/待核/);
   assert.match(financialLines(verifiedCompanyPart({...source,monetary_unit:null},checks,refs),{} )[2],/待核/);
+});
+
+test('scoped official quarterly data stays source-bound and dates remain distinct',()=>{
+  const financials={evidence_status:'OFFICIAL_FILING',latest_report_period:'2026-09-30',monetary_unit:'元',
+    operating_cash_flow_basis:'NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES',operating_cash_flow:268604000000};
+  const f10={official_observation:{financials,issuer_index_date:'2026-10-30',sse_notice_date:'2026-10-31',
+    availability_asof_20261030_market_close:'CANNOT_CONFIRM'}};
+  assert.match(financialLines(selectCompanyFinancials({},f10,false),{})[2],/待核/);
+  assert.match(financialLines(selectCompanyFinancials({},f10,true),{})[2],/经营现金流净额.*官方财报.*2686\.04亿元/);
+  assert.match(officialSourceDates(f10,true),/发行人官网列表.*2026-10-30.*上交所披露.*2026-10-31.*盘中可得性待核/);
+  assert.equal(officialSourceDates(f10,false),'');
+  assert.match(financialDisclosureText(financials,{},{}),/披露日期待核/);
+});
+
+test('secondary cash values retain provider period and unverified legacy raw scope',()=>{
+  const fresh={evidence_status:'SECONDARY_REPORTED',latest_report_period:'2026-09-30',monetary_unit:'元',currency:'CNY',
+    latest_financial_source_url:'https://example.test/source',source_captured_at:'2026-11-02T00:00:00Z',
+    operating_cash_flow:'-2222350971.84',operating_cash_flow_basis:'NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES'};
+  const refs={secondary_finance:{url:fresh.latest_financial_source_url},secondary_card:{url:fresh.latest_financial_source_url}};
+  assert.match(financialLines(verifiedCompanyPart(fresh,{secondary_finance:'VERIFIED'},refs),{})[2],/二级来源.*合并口径待核.*-22\.22亿元/);
+  assert.match(financialDisclosureText(fresh,{},{}),/二级.*2026-09-30.*实际采集.*非历史PIT/);
+  const old={...fresh,source_raw_status:'NOT_AVAILABLE_IN_BOUND_MATERIAL',operating_cash_flow_basis:'PROVIDER_REPORTED_UNCONFIRMED_SCOPE'};
+  assert.match(financialLines(verifiedCompanyPart(old,{secondary_card:'VERIFIED'},refs),{})[2],/已报值.*原响应及合并口径待核.*-22\.22亿元/);
+  assert.match(financialLines(verifiedCompanyPart(old,{secondary_card:'UNKNOWN'},refs),{})[2],/待核/);
 });
 
 test('generic chunk rejects wrong source, day and N rule identity',()=>{

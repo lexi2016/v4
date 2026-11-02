@@ -4,7 +4,7 @@ No acquisition or GET execution. Historical bootstrap is explicit and bounded;
 the normal daily path evaluates only its target date and reuses validated history.
 """
 from __future__ import annotations
-import ast,hashlib,importlib.util,json,math,os,struct,sys,time,zipfile
+import ast,csv,gzip,hashlib,importlib.util,io,json,math,os,re,struct,sys,time,urllib.parse,urllib.request,zipfile
 from collections import Counter
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal
@@ -14,6 +14,11 @@ FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,or
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
 CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
 SCHEMA='v4.a_share.daily_product.v1'
+A20_PUFA_PARENT_GENERATION='bfd455c86915918360d9f15c907b72e435b9e46cd8f931db3d6b8f6f7d67ab0b'
+A20_PUFA_SOURCE_GENERATION='d22220537892215832f0c01faeaadd11e282b4d65debf979152597a00d1829b5'
+A20_PUFA_SOURCE_INPUT='9eef2834994e6156561efc9666182a2528734adb2a086dfd602c7b7c5f4ef774'
+A20_PUFA_OFFICIAL_PDF_SHA='ad5b1f547e6308db38c7b613e2b2c02595b43b6a03755304589a077e8af9a7fc'
+A20_PUFA_OFFICIAL_EVIDENCE_SHA='2a89b96cfaf74a28659c7a23b875d9423a7a7aa607bf1933ea47c90b4795037b'
 
 def canonical(v):return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False,default=lambda x:str(x) if isinstance(x,Decimal) else (_ for _ in ()).throw(TypeError(type(x).__name__))).encode()
 def digest(v):return hashlib.sha256(canonical(v)).hexdigest()
@@ -32,13 +37,64 @@ def save(p,v,immutable=False):
  with tmp.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
  os.replace(tmp,p);return reference(p)
 
+def _a20_pufa_company_binding(candidate):
+ """Reuse the existing score-child and its exact G2 origin as company identity."""
+ identity=candidate.get('identity') or {};parent_ref=candidate.get('parent_index');wrapper_ref=candidate.get('parent_binding');origin_ref=candidate.get('origin_binding')
+ index=json.loads(checked(parent_ref).read_text());wrapper=json.loads(checked(wrapper_ref).read_text());origin=json.loads(checked(origin_ref).read_text())
+ if (candidate.get('schema')!='v4.workbench.a20_hold_score_candidate.v1' or identity.get('symbol')!='600000.SH'
+     or identity.get('source_date')!='2026-10-30' or identity.get('parent_generation')!=A20_PUFA_PARENT_GENERATION
+     or candidate.get('candidate_generation')!=digest(identity)
+     or identity.get('parent_index_sha256')!=parent_ref.get('sha256') or identity.get('parent_binding_sha256')!=wrapper_ref.get('sha256')
+     or identity.get('origin_binding_sha256')!=origin_ref.get('sha256')
+     or index.get('candidate_generation')!=A20_PUFA_PARENT_GENERATION or index.get('source_generation')!=A20_PUFA_SOURCE_GENERATION
+     or index.get('input_sha256')!=A20_PUFA_SOURCE_INPUT or index.get('source_date')!='2026-10-30' or index.get('observation_date')!='2026-11-02'
+     or index.get('symbols',{}).get('600000.SH',{}).get('status')!='READY'
+     or index['symbols']['600000.SH'].get('binding')!=wrapper_ref or wrapper.get('symbol')!='600000.SH'
+     or wrapper.get('candidate_generation')!=A20_PUFA_PARENT_GENERATION or wrapper.get('origin_binding')!=origin_ref
+     or origin.get('symbol')!='600000.SH' or origin.get('generation')!=index['source_generation']
+     or origin.get('input_sha256')!=index['input_sha256'] or origin.get('numeric_manifest')!=index.get('numeric_manifest')
+     or origin.get('source_date')!=index['source_date'] or origin.get('observation_date')!=index['observation_date']
+     or any(v.get('historical_PIT') is not False or any(v.get(k) is not value for k,value in FLAGS.items()) for v in (candidate,index,origin))):
+  raise ValueError('SINGLE_COMPANY_IDENTITY_CONFLICT')
+ return dict(symbol='600000.SH',source_date=index['source_date'],observation_date=index['observation_date'],
+             source_generation=index['source_generation'],source_input_sha256=index['input_sha256'],
+             numeric_manifest=index['numeric_manifest'],candidate_generation=candidate['candidate_generation'],**FLAGS)
+
+
+def _check_a20_pufa_official(received,sources):
+ proof_ref=received.get('official_evidence') or {}
+ if proof_ref.get('sha256')!=A20_PUFA_OFFICIAL_EVIDENCE_SHA:raise ValueError('SINGLE_PUFA_EVIDENCE_CONFLICT')
+ proof=json.loads(checked(proof_ref).read_text());item=sources.get('official_quarterly') or {};finance=received.get('financials_reported') or {}
+ values=proof.get('normalized_values_yuan') or {};original=proof.get('original_values_million_cny') or {}
+ fields={'latest_revenue':'revenue','latest_net_profit_parent':'net_profit_parent','operating_cash_flow':'net_cash_flow_from_operating_activities'}
+ if (proof.get('schema')!='v4.a20.official_quarterly_evidence.v1' or proof.get('status')!='ISSUER_SOURCE_VERIFIED_NOT_BOUND'
+     or proof.get('symbol')!='600000.SH' or proof.get('report_period_end')!='2026-09-30' or proof.get('period_start')!='2026-01-01'
+     or proof.get('statement_scope')!='CONSOLIDATED_GROUP' or proof.get('currency')!='CNY' or proof.get('original_unit')!='CNY_MILLION'
+     or proof.get('operating_cash_flow_basis')!='NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES'
+     or proof.get('availability_asof_20261030_market_close')!='CANNOT_CONFIRM'
+     or proof.get('historical_PIT') is not False or any(proof.get(k) is not v for k,v in FLAGS.items())
+     or item.get('kind')!='COMPANY_FILING' or item.get('file')!=proof.get('source') or item.get('url')!=proof.get('source_url')
+     or item.get('file',{}).get('sha256')!=A20_PUFA_OFFICIAL_PDF_SHA or not str(item.get('url','')).startswith('https://')
+     or finance.get('latest_report_period')!='2026-09-30' or finance.get('monetary_unit')!='元'
+     or finance.get('operating_cash_flow_basis')!='NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES' or finance.get('evidence_status')!='OFFICIAL_FILING'
+     or any(type(original.get(source)) is not int or values.get(target)!=original[source]*1000000 or finance.get(target)!=values[target]
+            for target,source in fields.items())
+     or proof.get('issuer_index',{}).get('display_date')!='2026-10-30'
+     or proof.get('issuer_sse_notice',{}).get('stated_sse_disclosure_date')!='2026-10-31'):
+  raise ValueError('SINGLE_PUFA_EVIDENCE_CONFLICT')
+ if not checked(item['file']).read_bytes().startswith(b'%PDF-'):raise ValueError('SINGLE_PUFA_EVIDENCE_CONFLICT')
+ checked(proof['issuer_index']['ref']);checked(proof['issuer_sse_notice']['ref'])
+ return proof_ref
+
+
 def materialize_bound_single_company(*, candidate_ref, received_ref, output_root):
  """Save received company facts for the admitted single stock, without publishing an index."""
- candidate=json.loads(checked(candidate_ref).read_text());binding=json.loads(checked(candidate['binding']).read_text())
+ candidate=json.loads(checked(candidate_ref).read_text());is_pufa=candidate.get('schema')=='v4.workbench.a20_hold_score_candidate.v1'
+ binding=_a20_pufa_company_binding(candidate) if is_pufa else json.loads(checked(candidate['binding']).read_text())
  received=json.loads(checked(received_ref).read_text())
  symbol=binding.get('symbol')
- if (symbol not in {'002865.SZ','301048.SZ','300206.SZ'} or binding.get('source_date')!='2026-10-30'
-     or binding.get('observation_date')!='2026-11-02' or not isinstance(binding.get('candidate_pool_member'),bool)
+ if (symbol not in ({'600000.SH'} if is_pufa else {'002865.SZ','301048.SZ','300206.SZ'}) or binding.get('source_date')!='2026-10-30'
+     or binding.get('observation_date')!='2026-11-02' or not is_pufa and not isinstance(binding.get('candidate_pool_member'),bool)
      or binding.get('candidate_generation')!=candidate.get('candidate_generation')
      or received.get('symbol')!=symbol or received.get('asof')!='2026-10-30'
      or any(binding.get(k)!=v for k,v in FLAGS.items())):raise ValueError('SINGLE_COMPANY_IDENTITY_CONFLICT')
@@ -49,7 +105,8 @@ def materialize_bound_single_company(*, candidate_ref, received_ref, output_root
      or f10.get('status')!='OBSERVED' or f10.get('historical_PIT') is not False
      or any(f10.get(k)!=v for k,v in FLAGS.items())
      or hashlib.sha256(f10.get('source_text','').encode()).hexdigest()!=f10.get('source_text_sha256')):raise ValueError('SINGLE_F10_SOURCE_INVALID')
- if 'official_quarterly' in sources:
+ proof_ref=_check_a20_pufa_official(received,sources) if is_pufa else None
+ if 'official_quarterly' in sources and not is_pufa:
   item=sources['official_quarterly'];path=checked(item['file']);day=item.get('available_date','')
   if (item.get('kind')!='COMPANY_FILING' or not path.read_bytes().startswith(b'%PDF-')
       or not item.get('url','').startswith('https://') or len(day)!=10 or day>'2026-10-30' or day<'1900-01-01'):raise ValueError('SINGLE_COMPANY_SOURCE_INVALID')
@@ -62,8 +119,358 @@ def materialize_bound_single_company(*, candidate_ref, received_ref, output_root
   shareholders_reported=received['shareholders_reported'],report_catalog=received['report_catalog'],
   stored_report=received['stored_report'],f10={k:f10.get(k) for k in ('captured_at','source_updated_date','finance_updated_date','concepts','concept_status','industry','financials','source_text_sha256')},
   historical_PIT=False,producer_sha256=sha(__file__),**FLAGS)
+ if is_pufa:shard['official_evidence']=proof_ref
  target=Path(output_root)/'daily_products/a_share/company_materials/20261030'/digest(shard)/(symbol+'.json')
  return save(target,shard,immutable=True)
+
+
+def secondary_financial_page(symbols, page, *, output_root, observation_date, timeout=20):
+ """Fetch one bounded provider page for the existing received-materials owner."""
+ if (not isinstance(symbols,list) or not 1<=len(symbols)<=40 or len(set(symbols))!=len(symbols)
+     or any(not isinstance(x,str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',x) for x in symbols)
+     or len({x[:6] for x in symbols})!=len(symbols) or type(page) is not int or page<1):
+  raise ValueError('SECONDARY_FINANCIAL_REQUEST_SCOPE_INVALID')
+ try:observed=datetime.strptime(observation_date,'%Y-%m-%d')
+ except (TypeError,ValueError):raise ValueError('SECONDARY_FINANCIAL_OBSERVATION_DATE_INVALID') from None
+ codes=','.join('"'+x[:6]+'"' for x in symbols)
+ params={'reportName':'RPT_F10_FINANCE_MAINFINADATA','columns':'ALL',
+         'filter':'(SECURITY_CODE in ('+codes+'))(REPORT_DATE>=\''+str(observed.year-3)+'-12-31\')',
+         'pageSize':'5000','pageNumber':str(page),'sortColumns':'REPORT_DATE','sortTypes':'-1','source':'WEB','client':'WEB'}
+ url='https://datacenter-web.eastmoney.com/api/data/v1/get?'+urllib.parse.urlencode(params)
+ started=datetime.now(timezone.utc).isoformat()
+ request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://data.eastmoney.com/'})
+ with urllib.request.urlopen(request,timeout=timeout) as response:
+  if response.status!=200:raise ValueError('SECONDARY_FINANCIAL_HTTP_STATUS:'+str(response.status))
+  raw=response.read(16*1024*1024+1)
+ if len(raw)>16*1024*1024:raise ValueError('SECONDARY_FINANCIAL_RESPONSE_TOO_LARGE')
+ digest_raw=hashlib.sha256(raw).hexdigest();root=Path(output_root).resolve(strict=True);target=root/(digest_raw+'.bin')
+ try:
+  with target.open('xb') as out:out.write(raw);out.flush();os.fsync(out.fileno())
+ except FileExistsError:
+  if target.read_bytes()!=raw:raise ValueError('SECONDARY_FINANCIAL_RAW_CONFLICT')
+ return {'page':page,'url':url,'symbols':symbols,'captured_at':started,
+         'raw_ref':{'path':str(target),'sha256':digest_raw,'bytes':len(raw)}}
+
+
+def normalize_secondary_financial_batch(symbols, pages, *, observation_date, normalizer_ref):
+ """Read each provider page once and project each requested, source-bound stock."""
+ if (not isinstance(symbols,list) or not symbols or len(set(symbols))!=len(symbols)
+     or any(not isinstance(x,str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',x) for x in symbols)):
+  raise ValueError('SECONDARY_FINANCIAL_SYMBOL_INVALID')
+ if normalizer_ref.get('sha256')!='fc3fd75cbbcb6d873726bb0d7ba5eebe3eeb5b46928bf51f33a0bef93cbc6e96':
+  raise ValueError('SECONDARY_FINANCIAL_NORMALIZER_CONFLICT')
+ checked(normalizer_ref)
+ try:observation=datetime.strptime(observation_date,'%Y-%m-%d').date()
+ except (TypeError,ValueError):raise ValueError('SECONDARY_FINANCIAL_OBSERVATION_DATE_INVALID') from None
+ if not isinstance(pages,list) or not pages:raise ValueError('SECONDARY_FINANCIAL_PAGES_MISSING')
+ def day(value):
+  try:return datetime.strptime(str(value)[:10],'%Y-%m-%d').date()
+  except (TypeError,ValueError):return None
+ page_numbers=[];declared=None;declared_count=None;received_count=0;records={x:[] for x in symbols};request_scope=None
+ for page in pages:
+  number=page.get('page');raw_ref=page.get('raw_ref') or {};url=page.get('url') or ''
+  parsed=urllib.parse.urlparse(url);params=urllib.parse.parse_qs(parsed.query)
+  try:captured=datetime.fromisoformat(page.get('captured_at',''))
+  except (TypeError,ValueError):captured=None
+  page_symbols=page.get('symbols');codes=set(re.findall(r'"(\d{6})"',(params.get('filter') or [''])[0]))
+  if (type(number) is not int or number<1 or not isinstance(page_symbols,list)
+      or not set(symbols)<=set(page_symbols) or len(page_symbols)!=len(set(page_symbols))
+      or codes!={x[:6] for x in page_symbols} or request_scope not in (None,set(page_symbols))
+      or parsed.scheme!='https' or parsed.hostname!='datacenter-web.eastmoney.com'
+      or params.get('reportName')!=['RPT_F10_FINANCE_MAINFINADATA'] or params.get('pageNumber')!=[str(number)]
+      or not captured or captured.tzinfo is None or captured.utcoffset() is None):
+   raise ValueError('SECONDARY_FINANCIAL_PAGE_IDENTITY_CONFLICT')
+  request_scope=set(page_symbols)
+  raw=checked(raw_ref).read_bytes();obj=json.loads(raw,parse_float=Decimal)
+  result=obj.get('result')
+  if obj.get('success') is not True:raise ValueError('SECONDARY_FINANCIAL_PROVIDER_FAILED')
+  if result is None:result={'pages':1,'count':0,'data':[]}
+  count=result.get('pages');total=result.get('count');data=result.get('data')
+  if (type(count) is not int or count<1 or type(total) is not int or total<0 or not isinstance(data,list)
+      or declared not in (None,count) or declared_count not in (None,total)):
+   raise ValueError('SECONDARY_FINANCIAL_PAGINATION_CONFLICT')
+  declared=count;declared_count=total;received_count+=len(data);page_numbers.append(number)
+  for item in data:
+   symbol=item.get('SECUCODE')
+   if symbol not in request_scope:raise ValueError('SECONDARY_FINANCIAL_UNREQUESTED_SYMBOL')
+   if str(item.get('SECURITY_CODE') or '')!=symbol[:6]:raise ValueError('SECONDARY_FINANCIAL_STOCK_CONFLICT')
+   period=day(item.get('REPORT_DATE'))
+   if symbol in records and period is not None and period<=observation:records[symbol].append((period,item,page))
+ if sorted(page_numbers)!=list(range(1,declared+1)) or received_count!=declared_count:
+  raise ValueError('SECONDARY_FINANCIAL_PAGES_INCOMPLETE')
+ result={}
+ for symbol in symbols:
+  try:result[symbol]=_normalize_secondary_financial_rows(symbol,records[symbol],pages,normalizer_ref,day)
+  except ValueError as error:result[symbol]={'symbol':symbol,'status':'CANNOT_CONFIRM','reason':str(error),
+                                             'source_refs':[p['raw_ref'] for p in pages],'historical_PIT':False,**FLAGS}
+ return result
+
+
+def _normalize_secondary_financial_rows(symbol, records, pages, normalizer_ref, day):
+ if not records:return {'symbol':symbol,'status':'NO_REPORTED_FINANCIALS','reason':'NO_MATCHED_PERIOD_IN_PROVIDER_RESPONSE',
+                        'source_refs':[p['raw_ref'] for p in pages],'historical_PIT':False,**FLAGS}
+ latest=max(x[0] for x in records);candidates=[x for x in records if x[0]==latest]
+ fields=('TOTALOPERATEREVE','PARENTNETPROFIT','NETCASH_OPERATE_PK','CURRENCY','REPORT_TYPE')
+ if len({canonical({k:item.get(k) for k in fields}) for _,item,_ in candidates})!=1:
+  raise ValueError('SECONDARY_FINANCIAL_PERIOD_CONFLICT:'+symbol)
+ _,row,page=candidates[0]
+ def amount(key):
+  value=row.get(key)
+  if value is None:return None
+  if isinstance(value,bool):raise ValueError('SECONDARY_FINANCIAL_NUMBER_INVALID:'+key)
+  try:number=Decimal(str(value))
+  except Exception:raise ValueError('SECONDARY_FINANCIAL_NUMBER_INVALID:'+key) from None
+  if not number.is_finite():raise ValueError('SECONDARY_FINANCIAL_NUMBER_INVALID:'+key)
+  return str(number)
+ notices={str(day(item.get('NOTICE_DATE'))) for _,item,_ in candidates if day(item.get('NOTICE_DATE')) is not None}
+ disclosed=next(iter(notices)) if len(notices)==1 else None
+ finance={'evidence_status':'SECONDARY_REPORTED','latest_report_period':str(latest),'latest_period_kind':row.get('REPORT_TYPE'),
+          'latest_disclosed_at':disclosed,'disclosure_date_precision':'DAY_PROVIDER_NOTICE_DATE_NOT_FIRST_PUBLICATION_CERTIFIED',
+          'latest_revenue':amount('TOTALOPERATEREVE'),'latest_revenue_label':'营业总收入',
+          'latest_net_profit_parent':amount('PARENTNETPROFIT'),'operating_cash_flow':amount('NETCASH_OPERATE_PK'),
+          'operating_cash_flow_basis':'NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES','monetary_unit':'元',
+          'currency':row.get('CURRENCY') or None,'latest_financial_source_url':page['url'],
+          'source_captured_at':page['captured_at'],'source_sha256':page['raw_ref']['sha256'],
+          'source_field':'NETCASH_OPERATE_PK','field_semantics_ref':normalizer_ref,'historical_PIT':False}
+ return {'symbol':symbol,'status':'OBSERVED','financials_reported':finance,
+         'source_refs':{'secondary_finance':{'kind':'SECONDARY_PUBLIC_STRUCTURED','file':page['raw_ref'],'url':page['url']}},
+         'source_pages':[{'page':p['page'],'raw_ref':p['raw_ref'],'url':p['url'],'captured_at':p['captured_at']} for p in pages],
+         'historical_PIT':False,**FLAGS}
+
+
+def normalize_secondary_financials(symbol, pages, *, observation_date, normalizer_ref):
+ result=normalize_secondary_financial_batch([symbol],pages,observation_date=observation_date,normalizer_ref=normalizer_ref)[symbol]
+ if result['status']=='CANNOT_CONFIRM':raise ValueError(result['reason'])
+ return result
+
+
+def _company_decimal(value):
+ if isinstance(value,bool) or value is None:raise ValueError('COMPANY_REPORTED_NUMBER_INVALID')
+ try:number=Decimal(str(value).replace(',',''))
+ except Exception:raise ValueError('COMPANY_REPORTED_NUMBER_INVALID') from None
+ if not number.is_finite():raise ValueError('COMPANY_REPORTED_NUMBER_INVALID')
+ return number
+
+
+def _legacy_company_observation(index,symbol,ref):
+ """Rebind a prior-generation secondary card without claiming its raw response."""
+ card=json.loads(checked(ref).read_bytes());finance=card.get('financials_reported') or {}
+ if (card.get('schema_version')!='v4.a_share.company_materials.v1' or card.get('symbol')!=symbol
+     or card.get('data_date')!=index.get('data_date') or card.get('source_generation')!=index.get('source_generation')
+     or card.get('input_sha256')!=index.get('input_sha256') or card.get('numeric_manifest')!=index.get('source_numeric_manifest')
+     or card.get('source_refs')!=index.get('source_refs') or any(card.get(k) is not v for k,v in FLAGS.items())):
+  raise ValueError('COMPANY_LEGACY_CARD_IDENTITY_CONFLICT:'+symbol)
+ period=finance.get('latest_report_period');periods=card.get('provenance_details',{}).get('financial_periods') or []
+ matches=[x for x in periods if x.get('report_period')==period]
+ metric=matches[0].get('metrics',{}).get('operating_cashflow') if len(matches)==1 else None
+ if (not isinstance(metric,dict) or metric.get('evidence_status')!='SECONDARY_REPORTED'
+     or metric.get('asof_date')!=period or metric.get('unit')!='元' or finance.get('monetary_unit')!='元'
+     or _company_decimal(metric.get('value'))!=_company_decimal(finance.get('latest_operating_cashflow'))
+     or not re.fullmatch(r'[a-f0-9]{64}',str(metric.get('source_sha256','')))
+     or not isinstance(metric.get('source_url'),str) or not metric['source_url'].startswith('https://')
+     or metric.get('source_url')!=finance.get('latest_financial_source_url')
+     or 'NETCASH_OPERATE_PK' not in str(metric.get('page_or_section',''))):
+  raise ValueError('COMPANY_LEGACY_FINANCIAL_PROVENANCE_CONFLICT:'+symbol)
+ result={**finance,'evidence_status':'SECONDARY_REPORTED','operating_cash_flow':finance['latest_operating_cashflow'],
+         'operating_cash_flow_basis':'PROVIDER_REPORTED_UNCONFIRMED_SCOPE','source_captured_at':metric.get('queried_at'),
+         'source_sha256':metric['source_sha256'],'source_raw_status':'NOT_AVAILABLE_IN_BOUND_MATERIAL',
+         'historical_PIT':False}
+ for key,provenance_key in (('latest_revenue','revenue'),('latest_net_profit_parent','net_profit_parent')):
+  evidence=matches[0].get('metrics',{}).get(provenance_key) or {};reported=finance.get(key)
+  try:consistent=(reported is not None and evidence.get('asof_date')==period and evidence.get('unit')=='元'
+                  and _company_decimal(evidence.get('value'))==_company_decimal(reported))
+  except ValueError:consistent=False
+  if not consistent:result[key]=None
+  elif key=='latest_revenue':
+   result['latest_revenue_label']=('营业总收入' if 'TOTALOPERATEREVE' in str(evidence.get('page_or_section',''))
+                                    else '营收已报值（具体口径待核）')
+ holders=card.get('shareholders_reported') or {};history=card.get('provenance_details',{}).get('shareholder_count_history') or []
+ rows=[x for x in history if x.get('asof_date')==holders.get('holder_asof')]
+ if holders.get('holder_count') is not None and len(rows)==1:
+  evidence=rows[0].get('holder_count') or {}
+  if (evidence.get('unit')=='户' and evidence.get('asof_date')==holders.get('holder_asof')
+      and _company_decimal(evidence.get('value'))==_company_decimal(holders['holder_count'])
+      and evidence.get('source_url')==holders.get('holder_source_url')):
+   holders={**holders,'evidence_status':'SECONDARY_REPORTED','source_raw_status':'NOT_AVAILABLE_IN_BOUND_MATERIAL'}
+  else:holders={}
+ else:holders={}
+ sources={'secondary_card':{'kind':'SECONDARY_CARD_REPORTED_RAW_UNAVAILABLE','file':ref,'url':metric['source_url']}}
+ if holders:sources['secondary_holders']={'kind':'SECONDARY_CARD_REPORTED_RAW_UNAVAILABLE','file':ref,'url':holders['holder_source_url']}
+ return result,holders,sources
+
+
+def _official_company_observation(symbol,item):
+ """Bind the captured filing and its independently extracted exact cash value."""
+ source_ref=item.get('source_ref') or {};pdf=checked(source_ref).read_bytes()
+ if not pdf.startswith(b'%PDF-') or not str(item.get('source_url','')).startswith('https://'):
+  raise ValueError('COMPANY_OFFICIAL_SOURCE_INVALID:'+symbol)
+ period=item.get('report_period_end');start=item.get('period_start');unit=item.get('original_unit')
+ try:
+  period_date=datetime.strptime(period,'%Y-%m-%d').date();start_date=datetime.strptime(start,'%Y-%m-%d').date()
+ except (TypeError,ValueError):raise ValueError('COMPANY_OFFICIAL_PERIOD_INVALID:'+symbol) from None
+ factors={'YUAN_AS_STATED':1,'CNY_YUAN':1,'CNY_THOUSAND':1000,'CNY_MILLION':1000000}
+ if (item.get('symbol')!=symbol or item.get('statement_scope')!='CONSOLIDATED_GROUP' or unit not in factors
+     or start_date!=period_date.replace(month=1,day=1) or item.get('historical_PIT') is not False
+     or _company_decimal(item.get('original_value'))*factors[unit]!=_company_decimal(item.get('normalized_yuan_exact'))):
+  raise ValueError('COMPANY_OFFICIAL_EVIDENCE_CONFLICT:'+symbol)
+ facts_ref=item.get('facts_ref')
+ if facts_ref:
+  facts=json.loads(checked(facts_ref).read_bytes());values=facts.get('normalized_values_yuan') or {}
+  if (facts.get('symbol')!=symbol or facts.get('source')!=source_ref or facts.get('report_period_end')!=period
+      or facts.get('statement_scope')!='CONSOLIDATED_GROUP' or facts.get('original_unit')!=unit
+      or facts.get('operating_cash_flow_basis')!='NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES'
+      or _company_decimal(values.get('operating_cash_flow'))!=_company_decimal(item['normalized_yuan_exact'])):
+   raise ValueError('COMPANY_OFFICIAL_FACTS_CONFLICT:'+symbol)
+  revenue=values.get('latest_revenue');net=values.get('latest_net_profit_parent')
+ else:
+  received=json.loads(checked(item['existing_received_company_ref']).read_bytes());old=received.get('financials_reported') or {}
+  if (received.get('symbol')!=symbol or old.get('latest_report_period')!=period
+      or _company_decimal(old.get('operating_cash_flow'))!=_company_decimal(item['normalized_yuan_exact'])):
+   raise ValueError('COMPANY_OFFICIAL_EXISTING_CONFLICT:'+symbol)
+  revenue=old.get('latest_revenue');net=old.get('latest_net_profit_parent')
+ finance={'evidence_status':'OFFICIAL_FILING','latest_report_period':period,'latest_period_kind':item.get('period_kind') or '官方财务报告',
+          'latest_disclosed_at':item.get('disclosure_date'),'disclosure_date_precision':'SOURCE_INDEX_DATE_ONLY',
+          'latest_revenue':revenue,'latest_net_profit_parent':net,'operating_cash_flow':item['normalized_yuan_exact'],
+          'operating_cash_flow_basis':'NET_CASH_FLOW_FROM_OPERATING_ACTIVITIES','monetary_unit':'元',
+          'currency':item.get('currency'),'latest_financial_source_url':item['source_url'],
+          'source_captured_at':item.get('source_capture_at_utc') or item.get('original_capture_time'),
+          'source_date_evidence':item.get('disclosure_date_evidence') or [],'historical_PIT':False}
+ source={'kind':'COMPANY_FILING','file':source_ref,'url':item['source_url'],'available_date':item.get('disclosure_date')}
+ return finance,source
+
+
+def materialize_research_company_scope(context, *, listing_ref, exception_ref, secondary_checkpoint_ref,
+                                       old_company_index_ref, official_batch_ref, output_root, requested=None):
+ """Project verified received company observations through the existing daily owner."""
+ from ops.research_panel_f10 import bound_research_universe
+ context.unchanged()
+ universe,scope=bound_research_universe(context,listing_ref=listing_ref,exception_ref=exception_ref)
+ context.unchanged()
+ root=Path(output_root).resolve(strict=True)
+ if root.is_relative_to(context.data_root.resolve()):raise ValueError('COMPANY_RESEARCH_OUTPUT_NOT_ISOLATED')
+ checkpoint=json.loads(checked(secondary_checkpoint_ref).read_bytes());run=checkpoint.get('identity') or {}
+ if (run.get('source_scope')!=scope or run.get('old_company_index')!=old_company_index_ref
+     or run.get('official_batch')!=official_batch_ref
+     or run.get('source_date')!=datetime.strptime(str(context.target),'%Y%m%d').strftime('%Y-%m-%d')
+     or not isinstance(checkpoint.get('items'),dict) or checkpoint.get('failures')):
+  raise ValueError('COMPANY_RESEARCH_CHECKPOINT_CONFLICT')
+ checked(run['owner']);normalizer_ref=run['normalizer'];checked(normalizer_ref)
+ old=json.loads(checked(old_company_index_ref).read_bytes());batch=json.loads(checked(official_batch_ref).read_bytes())
+ if (old.get('schema_version')!='v4.a_share.company_materials_index.v1' or not isinstance(old.get('items'),dict)
+     or batch.get('schema')!='v4.a20.g02_bounded_official_evidence_batch.v1'
+     or batch.get('historical_PIT') is not False or any(batch.get(k) is not v for k,v in FLAGS.items())):
+  raise ValueError('COMPANY_RESEARCH_SOURCE_INDEX_CONFLICT')
+ parent=json.loads(checked(scope['parent_index']).read_bytes());ready=set(universe)
+ selected=ready if requested is None else set(requested)
+ if not selected or not selected<=ready:raise ValueError('COMPANY_RESEARCH_REQUEST_OUTSIDE_SCOPE')
+ matrix=list(csv.DictReader(io.StringIO(checked(run['source_matrix']).read_text(encoding='utf-8-sig'))))
+ prior_symbols={row['symbol'] for row in matrix if row.get('company_status')=='READY'} & selected
+ priors={}
+ for symbol in prior_symbols:
+  wrapper=json.loads(checked(parent['symbols'][symbol]['binding']).read_bytes())
+  stock=json.loads(checked(wrapper['origin_binding']).read_bytes());detail=stock.get('details',{}).get('company') or {}
+  asset=detail.get('asset') or {};compressed=checked(asset).read_bytes()
+  if len(compressed)>2*1024*1024:raise ValueError('COMPANY_PRIOR_ASSET_TOO_LARGE')
+  raw=gzip.decompress(compressed)
+  if len(raw)>8*1024*1024 or len(raw)!=asset.get('decoded_bytes'):raise ValueError('COMPANY_PRIOR_ASSET_SIZE_CONFLICT')
+  value=json.loads(raw)
+  if (stock.get('symbol')!=symbol or detail.get('status')!='READY' or value.get('symbol')!=symbol
+      or value.get('data_date')!=str(context.target) or value.get('source_generation')!=context.generation
+      or value.get('input_sha256')!=context.identity['input_sha256'] or value.get('numeric_manifest')!=parent['numeric_manifest']
+      or value.get('historical_PIT') is not False or any(value.get(k) is not v for k,v in FLAGS.items())):
+   raise ValueError('COMPANY_PRIOR_ASSET_IDENTITY_CONFLICT:'+symbol)
+  priors[symbol]=(value,detail.get('source_checks') or {},asset)
+ official={x['symbol']:x for x in batch.get('data',[]) if x.get('source_ref') and x.get('symbol') in ready}
+ old_symbols=set(old['items'])&ready;new=set(checkpoint['items'])
+ if new!=(ready-old_symbols-set(official)):
+  raise ValueError('COMPANY_RESEARCH_SOURCE_COVERAGE_CONFLICT')
+ # Verify each shared provider response exactly once, then compare every saved projection.
+ observations={};groups={};by_code={symbol[:6]:symbol for symbol in ready}
+ if len(by_code)!=len(ready):raise ValueError('COMPANY_RESEARCH_DUPLICATE_CODE')
+ for symbol,ref in checkpoint['items'].items():
+  if symbol not in selected:continue
+  value=json.loads(checked(ref).read_bytes());pages=value.get('source_pages') or []
+  if value.get('symbol')!=symbol or not pages:raise ValueError('COMPANY_RESEARCH_OBSERVATION_INVALID:'+symbol)
+  key=hashlib.sha256(canonical(pages)).hexdigest();groups.setdefault(key,{'pages':pages,'symbols':[]})['symbols'].append(symbol)
+  observations[symbol]=value
+ for group in groups.values():
+  pages=[]
+  for item in group['pages']:
+   query=urllib.parse.parse_qs(urllib.parse.urlparse(item['url']).query)
+   codes=re.findall(r'"(\d{6})"',(query.get('filter') or [''])[0])
+   if not codes or any(code not in by_code for code in codes):raise ValueError('COMPANY_RESEARCH_QUERY_SCOPE_CONFLICT')
+   pages.append({**item,'symbols':[by_code[code] for code in codes]})
+  verified=normalize_secondary_financial_batch(group['symbols'],pages,observation_date=run['observation_date'],normalizer_ref=normalizer_ref)
+  if any(canonical(verified[s])!=canonical(observations[s]) for s in group['symbols']):
+   raise ValueError('COMPANY_RESEARCH_SOURCE_PROJECTION_CONFLICT')
+ for ref in old.get('source_refs',{}).values():checked(ref)
+ assets=root/'assets';assets.mkdir(exist_ok=True);entries={};issues={};counts=Counter()
+ for symbol in sorted(selected):
+  sources={};checks={};finance={};holders={};business={};stored=None;catalog=[]
+  try:
+   if symbol in priors:
+    prior,prior_checks,prior_ref=priors[symbol];business=prior.get('business_reported') or {}
+    holders=prior.get('shareholders_reported') or {};catalog=prior.get('report_catalog') or [];stored=prior.get('stored_report')
+    for key,item in (prior.get('source_refs') or {}).items():
+     try:checked(item['file']);sources[key]=item;checks[key]='VERIFIED' if prior_checks.get(key)=='VERIFIED' else 'UNKNOWN'
+     except (KeyError,ValueError,OSError):checks[key]='UNKNOWN'
+   if symbol in old_symbols:
+    finance,old_holders,old_sources=_legacy_company_observation(old,symbol,old['items'][symbol])
+    if old_holders:holders=old_holders
+    sources.update(old_sources);checks.update({k:'VERIFIED' for k in old_sources})
+   if symbol in observations:
+    value=observations[symbol]
+    if value.get('status')!='OBSERVED':raise ValueError('COMPANY_SECONDARY_NOT_OBSERVED')
+    finance={**value['financials_reported'],'statement_scope':'PROVIDER_REPORTED_CONSOLIDATION_UNCONFIRMED'}
+    sources.update(value['source_refs']);checks['secondary_finance']='VERIFIED'
+   if symbol in official:
+    verified,source=_official_company_observation(symbol,official[symbol])
+    if finance and finance.get('latest_report_period')==verified['latest_report_period'] and finance.get('operating_cash_flow') is not None:
+     if _company_decimal(finance['operating_cash_flow'])!=_company_decimal(verified['operating_cash_flow']):
+      raise ValueError('COMPANY_OFFICIAL_SECONDARY_CONFLICT')
+    finance=verified;sources['official_quarterly']=source;checks['official_quarterly']='VERIFIED'
+   if not finance:raise ValueError('COMPANY_FINANCIAL_SOURCE_UNAVAILABLE')
+   payload={'schema_version':'v4.a_share.company_materials.v1','symbol':symbol,'data_date':str(context.target),
+       'observation_date':run['observation_date'],'source_generation':context.generation,
+       'input_sha256':context.identity['input_sha256'],'numeric_manifest':parent['numeric_manifest'],
+       'source_candidate_generation':parent['candidate_generation'],'business_reported':business,
+       'financials_reported':finance,'shareholders_reported':holders,'report_catalog':catalog,'stored_report':stored,
+       'f10':prior.get('f10') if symbol in priors else None,
+       'source_refs':sources,'source_lineage':{'scope':scope,'secondary_checkpoint':secondary_checkpoint_ref,
+            'prior_company_asset':prior_ref if symbol in priors else None,
+            'old_company_index':old_company_index_ref if symbol in old_symbols else None,
+            'official_batch':official_batch_ref if symbol in official else None},
+       'historical_PIT':False,**FLAGS}
+   raw=canonical(payload);compressed=gzip.compress(raw,mtime=0);digest_raw=hashlib.sha256(compressed).hexdigest()
+   path=assets/(symbol+'_'+digest_raw[:16]+'.json.gz')
+   if path.exists():
+    if path.read_bytes()!=compressed:raise ValueError('COMPANY_IMMUTABLE_CONFLICT')
+   else:
+    with path.open('xb') as handle:handle.write(compressed);handle.flush();os.fsync(handle.fileno())
+   asset={'path':str(path),'sha256':digest_raw,'bytes':len(compressed),'decoded_bytes':len(raw),'encoding':'gzip'}
+   entries[symbol]={'status':'READY','asset':asset,'source_candidate_generation':parent['candidate_generation'],'source_checks':checks}
+   counts[finance['evidence_status']]+=1
+  except (ValueError,KeyError,TypeError,OSError) as error:
+   entries[symbol]={'status':'UNKNOWN','reason':type(error).__name__+': '+str(error)};issues[symbol]=entries[symbol]['reason']
+ index={'schema_version':'v4.a_share.company_materials_index.v1','status':'COMPLETE' if not issues else 'PARTIAL',
+        'data_date':str(context.target),'source_generation':context.generation,'input_sha256':context.identity['input_sha256'],
+        'numeric_manifest':parent['numeric_manifest'],'source_candidate_generation':parent['candidate_generation'],
+        'scope_kind':'G2_RESEARCH_TARGET_READY' if requested is None else 'EXPLICIT_SYMBOLS_RESEARCH',
+        'research_scope':scope,'secondary_checkpoint':secondary_checkpoint_ref,'old_company_index':old_company_index_ref,
+        'official_batch':official_batch_ref,'items':entries,'counts':dict(counts),'issues':issues,
+        'historical_PIT':False,**FLAGS}
+ context.unchanged()
+ producer=Path(__file__).resolve(strict=True);producer_raw=producer.read_bytes();producer_sha=hashlib.sha256(producer_raw).hexdigest()
+ frozen=root/('COMPANY_DAILY_OWNER_'+producer_sha+'.py')
+ if frozen.exists():
+  if frozen.read_bytes()!=producer_raw:raise ValueError('COMPANY_RESEARCH_OWNER_CONFLICT')
+ else:frozen.write_bytes(producer_raw)
+ index['producer']={'path':str(frozen),'sha256':producer_sha}
+ index_ref=save(root/'index.json',index,immutable=True)
+ return {'status':index['status'],'index':index_ref,'ready':sum(x['status']=='READY' for x in entries.values()),
+         'unknown':len(issues),'counts':dict(counts),'issues':issues}
+
+
 def module(r,name):
  p=checked(r);raw=p.read_bytes();spec=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;exec(compile(raw,str(p),'exec'),m.__dict__);return m
 

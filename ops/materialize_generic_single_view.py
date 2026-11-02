@@ -13,6 +13,7 @@ from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from datetime import datetime
 import gzip
 import hashlib
+import importlib.util
 import io
 import json
 import math
@@ -35,6 +36,7 @@ import pyarrow.parquet as pq
 
 from ops import research_panel_qfq as q
 from ops import render_original_formula_projection as renderer
+from ops import kb_signal_authority as kb_authority
 from ops.kb_hold_score import SUPPLEMENTAL_REASONS
 from infrastructure import research_workbench_host as action_host
 from infrastructure.research_workbench_host import (
@@ -143,6 +145,187 @@ def _packed(root, stem, value):
     return _write_immutable(root, stem, '.json.gz', compressed, decoded_bytes=len(raw))
 
 
+def prepare_hold_score_projection(*, parent_index_ref, output_root, include_j_authority=False):
+    """Freeze the existing owners and verified parent for score-only projection."""
+    index=json.loads(_checked(parent_index_ref,maximum=8*1024*1024).read_bytes())
+    reuse=checked_action_rebind_index(index)
+    _require(reuse is not None, 'HOLD_PROJECTION_PARENT_UNVERIFIED')
+    root=Path(output_root).resolve(strict=True)
+    _require(root.is_dir() and root!=Path(parent_index_ref['path']).parent
+             and not root.is_relative_to(Path(parent_index_ref['path']).parent),
+             'HOLD_PROJECTION_OUTPUT_NOT_ISOLATED')
+    score_path=Path(sys.modules['ops.kb_hold_score'].__file__).resolve(strict=True)
+    caller_path=Path(q.__file__).resolve(strict=True)
+    action_path=_checked(reuse['summary']['action_authority'],maximum=4*1024*1024)
+    contract_path=Path(q.__file__).resolve().parents[1]/'contracts/a_share_kb_hold_score_v1.json'
+    refs={}
+    for key,path in (('score_engine',score_path),('score_caller',caller_path),('action_engine',action_path),
+                     ('score_contract',contract_path)):
+        refs[key]=_write_immutable(root,'HOLD_'+key.upper(),path.suffix,path.read_bytes(),full_hash=True)
+    if include_j_authority:
+        path=Path(kb_authority.__file__).resolve(strict=True)
+        refs['j_authority']=_write_immutable(root,'HOLD_J_AUTHORITY',path.suffix,path.read_bytes(),full_hash=True)
+    _require(refs['action_engine']['sha256']==reuse['summary']['action_authority']['sha256'],
+             'HOLD_PROJECTION_ACTION_SOURCE_CONFLICT')
+    return {'parent_index_ref':parent_index_ref,'parent_index_stat':_stat(parent_index_ref['path']),
+            'index':index,'reuse':reuse,'output_root':str(root),**refs}
+
+
+def _hold_number(value):
+    if isinstance(value,bool):return None
+    try:value=float(value)
+    except (TypeError,ValueError,OverflowError):return None
+    return value if math.isfinite(value) else None
+
+
+def project_hold_score_action(context, symbol, *, j_reuse_ref=None):
+    """Project score/actions from saved QFQ, N and bound J; no other field is calculated."""
+    _require(isinstance(symbol,str) and CODE.fullmatch(symbol), 'HOLD_PROJECTION_SYMBOL_INVALID')
+    index=context['index'];reuse=context['reuse'];root=Path(context['output_root'])
+    _require(index.get('symbols',{}).get(symbol,{}).get('status')=='READY', 'HOLD_PROJECTION_SYMBOL_NOT_READY')
+    wrapper_ref=index['symbols'][symbol]['binding']
+    wrapper=json.loads(_checked(wrapper_ref,maximum=4*1024*1024).read_bytes())
+    stock,delta=checked_action_rebind_stock(index,reuse,symbol,wrapper)
+    for key,path in (('score_engine',Path(sys.modules['ops.kb_hold_score'].__file__)),
+                     ('score_caller',Path(q.__file__))):
+        _require(q.sha(path)==context[key]['sha256'], 'HOLD_PROJECTION_ENGINE_MOVED')
+    action_path=_checked(context['action_engine'],maximum=4*1024*1024)
+    spec=importlib.util.spec_from_file_location('bound_hold_action_authority',action_path)
+    engine=importlib.util.module_from_spec(spec);spec.loader.exec_module(engine)
+    _require(engine.FIELDS==set(ACTION_REBIND_FIELDS), 'HOLD_PROJECTION_ACTION_FIELDS_CONFLICT')
+    projection=json.loads(_bounded_gzip(stock['chart']['projection'],maximum=MAX_PROJECTION_DECODED,
+                                       compressed_maximum=MAX_PROJECTION_COMPRESSED))
+    chart=projection.get('formula_result',{}).get('rows');source=projection.get('source',{})
+    _require(projection.get('symbol')==symbol and str(projection.get('data_date'))==index['source_date'].replace('-','')
+             and projection.get('historical_PIT') is False and all(projection.get(k) is v for k,v in FLAGS.items())
+             and source.get('price_basis')=='QFQ_ASOF' and source.get('volume_basis')=='QFQ_EVENT_VOLUME'
+             and isinstance(chart,list) and len(chart)==stock['rows'], 'HOLD_PROJECTION_CHART_CONFLICT')
+    if delta['affected_rows']:
+        patch=json.loads(_bounded_gzip(wrapper['action_patch'],maximum=MAX_CHUNK_DECODED,
+                                       compressed_maximum=MAX_CHUNK_COMPRESSED))
+        _require(patch.get('schema')=='v4.workbench.generic_action_patch.v1' and patch.get('symbol')==symbol
+                 and patch.get('origin_candidate_generation')==reuse['origin']['candidate_generation']
+                 and patch.get('candidate_generation')==index['candidate_generation']
+                 and patch.get('origin_binding_sha256')==wrapper['origin_binding']['sha256']
+                 and patch.get('source_overlay_sha256')==wrapper['source_overlay']['sha256']
+                 and patch.get('equivalence_sha256')==index['action_rebind']['equivalence']['sha256']
+                 and patch.get('field_names')==list(ACTION_REBIND_FIELDS)
+                 and patch.get('historical_PIT') is False and all(patch.get(k) is v for k,v in FLAGS.items())
+                 and len(patch.get('rows',[]))==delta['affected_rows'], 'HOLD_PROJECTION_ACTION_PATCH_CONFLICT')
+    else:patch={'field_names':list(ACTION_REBIND_FIELDS),'rows':[]}
+    patch_by_date={item[0]:(item[1],item[2]) for item in patch['rows']}
+    _require(len(patch_by_date)==len(patch['rows']), 'HOLD_PROJECTION_ACTION_DATE_CONFLICT')
+    source_rows=[];prior_rows=[];n_rows=[];seen_patch=set()
+    names=stock['field_names']
+    for ref in stock['chunks']:
+        chunk=json.loads(_bounded_gzip(ref,maximum=MAX_CHUNK_DECODED,compressed_maximum=MAX_CHUNK_COMPRESSED))
+        _require(chunk.get('schema')=='v4.workbench.generic_single_chunk.v1' and chunk.get('symbol')==symbol
+                 and chunk.get('candidate_generation')==stock['candidate_generation']
+                 and chunk.get('candidate_input_sha256')==stock['candidate_input_sha256']
+                 and chunk.get('source_input_sha256')==stock['input_sha256']
+                 and len(chunk.get('rows',[]))==ref['row_count'], 'HOLD_PROJECTION_CHUNK_CONFLICT')
+        for item in chunk['rows']:
+            i=len(source_rows)
+            _require(i<len(chart) and isinstance(item,list) and len(item)==5 and len(item[1])==len(names)
+                     and int(item[0])==int(chart[i]['trade_date'])==int(stock['dates'][i]),
+                     'HOLD_PROJECTION_DATE_CONFLICT')
+            row=dict(zip(names,item[1])); change=patch_by_date.get(item[0])
+            if change:
+                _require([row[k] for k in ACTION_REBIND_FIELDS]==change[0], 'HOLD_PROJECTION_OLD_ACTION_CONFLICT')
+                row.update(zip(ACTION_REBIND_FIELDS,change[1]));seen_patch.add(item[0])
+            row.update(zip(stock['original_fields'],item[2]));ohlcv=chart[i].get('ohlcv')
+            _require(isinstance(ohlcv,dict) and int(ohlcv.get('trade_date',0))==int(item[0]),
+                     'HOLD_PROJECTION_OHLCV_CONFLICT')
+            source_rows.append({'ts_code':symbol,'trade_date':item[0],
+                **{k:_hold_number(ohlcv.get(k)) for k in ('open','high','low','close')},
+                'volume':_hold_number(ohlcv.get('vol')),'kb_b1_j':row['kb_b1_j']})
+            n_rows.append({'ts_code':symbol,'trade_date':item[0],'kb_hold_trend_up':row['kb_hold_trend_up'],
+                           'kb_hold_trend_up_reason':row['kb_hold_trend_up_reason'],
+                           'kb_n_structure':item[3].get('kb_n_structure')})
+            prior_rows.append(row)
+    _require(len(source_rows)==stock['rows'] and seen_patch==set(patch_by_date), 'HOLD_PROJECTION_ROWS_CONFLICT')
+    j_input_sha=hashlib.sha256(_canonical([{k:r[k] for k in ('trade_date','high','low','close')}
+                                           for r in source_rows])).hexdigest()
+    if context.get('j_authority'):
+        j_ref=context['j_authority'];_checked(j_ref,maximum=4*1024*1024)
+        _require(q.sha(kb_authority.__file__)==j_ref['sha256'], 'HOLD_PROJECTION_J_AUTHORITY_MOVED')
+        if j_reuse_ref is not None:
+            previous=json.loads(_checked(j_reuse_ref,maximum=4*1024*1024).read_bytes())
+            previous_identity=previous.get('identity') or {}
+            previous_parent=json.loads(_checked(previous.get('parent_index'),maximum=8*1024*1024).read_bytes())
+            _require(previous.get('schema')=='v4.workbench.hold_score_candidate.v1'
+                and previous.get('unchanged_scope')=='KB_J_SCORE_ACTION_ONLY_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES'
+                and previous.get('candidate_generation')==hashlib.sha256(_canonical(previous_identity)).hexdigest()
+                and previous_identity.get('symbol')==symbol and previous_identity.get('source_date')==index['source_date']
+                and previous.get('parent_binding')==wrapper_ref and previous.get('origin_binding')==wrapper['origin_binding']
+                and action_host._indices_equal_except_validator(previous_parent,index)
+                and previous.get('j_source_mode')=='KB_PINNED_HLC_PREFIX'
+                and previous.get('j_authority',{}).get('sha256')==j_ref['sha256']
+                and previous.get('j_input_sha256')==previous_identity.get('j_input_sha256')==j_input_sha
+                and previous_identity.get('j_authority_sha256')==j_ref['sha256']
+                and previous.get('historical_PIT') is False and all(previous.get(k) is v for k,v in FLAGS.items()),
+                'HOLD_PROJECTION_J_REUSE_CONFLICT')
+            _checked(previous['j_authority'],maximum=4*1024*1024)
+            j_rows=[];position=names.index('kb_b1_j')
+            for child_ref in previous['chunks']:
+                chunk=json.loads(_bounded_gzip(child_ref,maximum=MAX_CHUNK_DECODED,compressed_maximum=MAX_CHUNK_COMPRESSED))
+                _require(chunk.get('symbol')==symbol and chunk.get('candidate_generation')==previous['candidate_generation'],
+                         'HOLD_PROJECTION_J_REUSE_CHUNK_CONFLICT')
+                j_rows.extend({'trade_date':item[0],'kb_b1_j':item[1][position]} for item in chunk['rows'])
+        else:
+            j_rows=kb_authority.project_bound_kb_j(symbol,source_rows)
+        _require(len(j_rows)==len(source_rows), 'HOLD_PROJECTION_J_ROW_COUNT_CONFLICT')
+        for source,j in zip(source_rows,j_rows):
+            _require(source['trade_date']==j['trade_date'], 'HOLD_PROJECTION_J_DATE_CONFLICT')
+            old=source['kb_b1_j'];new=j['kb_b1_j']
+            _require(old is None or _same(old,new), 'HOLD_PROJECTION_EXISTING_J_MISMATCH')
+            if old is None:source['kb_b1_j']=new
+    else:
+        _require(j_reuse_ref is None, 'HOLD_PROJECTION_J_REUSE_UNBOUND')
+    projected=q._bulk_feedback_projection(symbol,source_rows)
+    projected=q.apply_n_score(symbol,source_rows,projected,n_rows,rule_sha256=stock['n_rule_sha256'],
+                              helper_sha256=stock['n_helper_sha256'],scope='ADMITTED_A_SHARE')
+    score_fields=stock['field_groups']['hold_score'];action_fields=stock['field_groups']['action']
+    allowed={'kb_hold_k','kb_hold_d','kb_hold_j_not_dead','kb_hold_j_not_dead_reason',
+             'kb_hold_close_up','kb_hold_close_up_reason','kb_hold_above_bbi','kb_hold_above_bbi_reason','kb_hold_bbi',
+             'kb_hold_volume_ok','kb_hold_volume_ok_reason','kb_hold_score','kb_hold_score_min',
+             'kb_hold_score_max','kb_hold_score_status'}
+    rows=[];changed=defaultdict(int)
+    for src,old,score in zip(source_rows,prior_rows,projected):
+        if context.get('j_authority') and not _same(old['kb_b1_j'],src['kb_b1_j']):changed['kb_b1_j']+=1
+        for key in score_fields:
+            if not _same(old[key],score[key]):
+                _require(key in allowed,'HOLD_PROJECTION_UNRELATED_SCORE_CHANGED:'+key);changed[key]+=1
+        action=engine.project_action(old | {'kb_b1_j':src['kb_b1_j']} | score,rule_sha256=stock['action_contract_sha256'])
+        for key in action_fields:
+            if not _same(old[key],action[key]):changed[key]+=1
+        row={'trade_date':src['trade_date'],'hold_score':{k:score[k] for k in score_fields},
+             'action':{k:action[k] for k in action_fields}}
+        if context.get('j_authority'):row['kb_b1_j']=src['kb_b1_j']
+        rows.append(row)
+    _require(bool(rows) and str(rows[-1]['trade_date'])==index['source_date'].replace('-',''),
+             'HOLD_PROJECTION_TARGET_CONFLICT')
+    result={'schema':'v4.research.single_hold_score_action_projection.v1','symbol':symbol,
+            'parent_binding_sha256':wrapper_ref['sha256'],'origin_binding_sha256':wrapper['origin_binding']['sha256'],
+            'projection_sha256':stock['chart']['projection']['sha256'],
+            'action_patch_sha256':(wrapper.get('action_patch') or {}).get('sha256'),
+            **{k:context[k] for k in ('score_contract','score_engine','score_caller','action_engine')},
+            **{k+'_sha256':context[k]['sha256'] for k in ('score_engine','score_caller','action_engine')},
+            'action_contract_sha256':stock['action_contract_sha256'],'n_rule_sha256':stock['n_rule_sha256'],
+            'n_helper_sha256':stock['n_helper_sha256'],'row_count':len(rows),'changed_fields':dict(changed),
+            'bound_j_unavailable_rows':sum(r['hold_score']['kb_hold_j_not_dead_reason']=='BOUND_KB_J_UNAVAILABLE' for r in rows),
+            'target':rows[-1],'rows':rows,'historical_PIT':False,**FLAGS}
+    if context.get('j_authority'):
+        result.update(j_authority=context['j_authority'],j_authority_sha256=context['j_authority']['sha256'],
+                      j_input_sha256=j_input_sha,
+                      j_source_mode='KB_PINNED_HLC_PREFIX')
+        if j_reuse_ref is not None:result['j_reused_child']=j_reuse_ref
+    raw=_canonical(result);_require(0<len(raw)<=16*1024*1024,'HOLD_PROJECTION_SIZE_LIMIT')
+    compressed=gzip.compress(raw,mtime=0);_require(len(compressed)<=2*1024*1024,'HOLD_PROJECTION_COMPRESSED_LIMIT')
+    return _write_immutable(root,symbol.replace('.','_')+'_HOLD_SCORE_ACTION','.json.gz',compressed,
+                            decoded_bytes=len(raw))
+
+
 def rebind_action_validator_for_runtime(*, index_ref, output_root):
     """Copy a proven G2 index with only its current validator reference changed."""
     old=json.loads(_checked(index_ref,maximum=8*1024*1024).read_bytes());root=Path(output_root).resolve(strict=True)
@@ -170,23 +353,44 @@ def rebind_action_validator_for_runtime(*, index_ref, output_root):
 
 
 def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, output_root):
-    """Bind one saved score/action correction to that symbol's G2 chunks.
-
-    This bounded adapter consumes an already computed, source-gated single-stock
-    result; it never computes labels, N, historical returns, or a full panel.
-    """
+    """Retain the previously reviewed A20 binding contract."""
     _require(symbol in {'600000.SH','600519.SH','601318.SH','000001.SZ','600036.SH','000301.SZ',
                         '688981.SH','301686.SZ','920000.BJ','920001.BJ','603281.SH','920187.BJ'},
              'HOLD_CHILD_SYMBOL_OUTSIDE_REVIEW')
-    index = json.loads(_checked(parent_index_ref, maximum=8*1024*1024).read_bytes())
-    _require(index.get('candidate_generation') == 'bfd455c86915918360d9f15c907b72e435b9e46cd8f931db3d6b8f6f7d67ab0b',
+    return _materialize_hold_candidate(symbol=symbol, parent_index_ref=parent_index_ref,
+                                       projection_ref=projection_ref, output_root=output_root, legacy=True)
+
+
+def materialize_hold_score_candidate(*, symbol, parent_index_ref, projection_ref, output_root, prepared_context=None):
+    """Bind a source-checked A-share correction using the existing chunk format."""
+    _require(isinstance(symbol,str) and CODE.fullmatch(symbol), 'HOLD_CHILD_SYMBOL_INVALID')
+    return _materialize_hold_candidate(symbol=symbol, parent_index_ref=parent_index_ref,
+                                       projection_ref=projection_ref, output_root=output_root, legacy=False,
+                                       prepared_context=prepared_context)
+
+
+def _materialize_hold_candidate(*, symbol, parent_index_ref, projection_ref, output_root, legacy, prepared_context=None):
+    """Bind saved score/actions; never recompute labels, N, returns, or charts."""
+    if prepared_context is None:
+        index=json.loads(_checked(parent_index_ref,maximum=8*1024*1024).read_bytes())
+        reuse=checked_action_rebind_index(index)
+    else:
+        _require(not legacy and prepared_context.get('parent_index_ref')==parent_index_ref
+                 and prepared_context.get('output_root')==str(Path(output_root).resolve(strict=True))
+                 and prepared_context.get('parent_index_stat')==_stat(parent_index_ref['path']),
+                 'HOLD_CHILD_PREPARED_CONTEXT_CONFLICT')
+        index=prepared_context['index'];reuse=prepared_context['reuse']
+    _require(not legacy or index.get('candidate_generation') == 'bfd455c86915918360d9f15c907b72e435b9e46cd8f931db3d6b8f6f7d67ab0b',
              'HOLD_CHILD_PARENT_GENERATION_CONFLICT')
-    reuse = checked_action_rebind_index(index)
+    _require(reuse is not None and index.get('symbols',{}).get(symbol,{}).get('status')=='READY',
+             'HOLD_CHILD_PARENT_NOT_READY')
     wrapper_ref = index['symbols'][symbol]['binding']
     wrapper = json.loads(_checked(wrapper_ref, maximum=4*1024*1024).read_bytes())
     stock, delta = checked_action_rebind_stock(index, reuse, symbol, wrapper)
     projected = json.loads(_bounded_gzip(projection_ref, maximum=16*1024*1024, compressed_maximum=2*1024*1024))
-    _require(projected.get('schema') == 'v4.research.single_a20_score_action_projection.v1'
+    expected_schema=('v4.research.single_a20_score_action_projection.v1' if legacy else
+                     'v4.research.single_hold_score_action_projection.v1')
+    _require(projected.get('schema') == expected_schema
              and projected.get('symbol') == symbol and projected.get('parent_binding_sha256') == wrapper_ref['sha256']
              and projected.get('origin_binding_sha256') == wrapper['origin_binding']['sha256']
              and projected.get('projection_sha256') == stock['chart']['projection']['sha256']
@@ -200,10 +404,10 @@ def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, 
              'HOLD_CHILD_SOURCE_CONFLICT')
     rows = projected['rows']
     _require(len(rows) == stock['rows'] and projected['target'] == rows[-1]
-             and rows[-1]['trade_date'] == 20261030
-             and rows[-1]['hold_score']['kb_hold_j_not_dead'] in (True,False)
-             and rows[-1]['hold_score']['kb_hold_j_not_dead_reason'] is None
-             and (symbol!='600000.SH' or rows[-1]['hold_score']['kb_hold_score']==4),
+             and str(rows[-1]['trade_date']) == index['source_date'].replace('-','')
+             and (not legacy or rows[-1]['hold_score']['kb_hold_j_not_dead'] in (True,False)
+                  and rows[-1]['hold_score']['kb_hold_j_not_dead_reason'] is None
+                  and (symbol!='600000.SH' or rows[-1]['hold_score']['kb_hold_score']==4)),
              'HOLD_CHILD_TARGET_CONFLICT')
     patch = (json.loads(_bounded_gzip(wrapper['action_patch'], maximum=8*1024*1024, compressed_maximum=2*1024*1024))
              if delta['affected_rows'] else {'field_names':list(ACTION_REBIND_FIELDS),'rows':[]})
@@ -217,6 +421,29 @@ def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, 
     _require(contract.get('schema')=='a_share_kb_hold_score_v1' and contract.get('user_rule_decision',{}).get('date')=='2026-11-02'
              and contract.get('historical_PIT',False) is False and all(contract.get(k) is v for k,v in FLAGS.items()),
              'HOLD_CHILD_SCORE_CONTRACT_CONFLICT')
+    if not legacy:
+        for key, field in (('score_engine','score_engine_sha256'),('score_caller','score_caller_sha256'),
+                           ('action_engine','action_engine_sha256')):
+            source_ref=projected.get(key)
+            _checked(source_ref,maximum=4*1024*1024)
+            _require(source_ref['sha256']==projected[field], 'HOLD_CHILD_ENGINE_SOURCE_CONFLICT')
+    j_ref=projected.get('j_authority')
+    j_reuse_ref=projected.get('j_reused_child')
+    if j_ref is not None:
+        _require(not legacy and projected.get('j_source_mode')=='KB_PINNED_HLC_PREFIX', 'HOLD_CHILD_J_MODE_CONFLICT')
+        _checked(j_ref,maximum=4*1024*1024)
+        _require(j_ref['sha256']==projected.get('j_authority_sha256')
+                 and isinstance(projected.get('j_input_sha256'),str) and SHA.fullmatch(projected['j_input_sha256']),
+                 'HOLD_CHILD_J_SOURCE_CONFLICT')
+        if j_reuse_ref is not None:
+            previous=json.loads(_checked(j_reuse_ref,maximum=4*1024*1024).read_bytes())
+            previous_identity=previous.get('identity') or {}
+            _require(previous.get('candidate_generation')==hashlib.sha256(_canonical(previous_identity)).hexdigest()
+                and previous_identity.get('symbol')==symbol and previous.get('origin_binding')==wrapper['origin_binding']
+                and previous.get('j_input_sha256')==projected['j_input_sha256']
+                and previous.get('j_authority',{}).get('sha256')==j_ref['sha256'], 'HOLD_CHILD_J_REUSE_CONFLICT')
+    else:
+        _require(j_reuse_ref is None, 'HOLD_CHILD_J_REUSE_UNBOUND')
     identity = {'symbol':symbol, 'source_date':index['source_date'],
                 'parent_index_sha256':parent_index_ref['sha256'], 'parent_generation':index['candidate_generation'],
                 'parent_binding_sha256':wrapper_ref['sha256'], 'origin_binding_sha256':wrapper['origin_binding']['sha256'],
@@ -225,15 +452,20 @@ def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, 
                 'score_contract_sha256':score_contract['sha256'], 'score_engine_sha256':projected['score_engine_sha256'],
                 'score_caller_sha256':projected['score_caller_sha256'],
                 'action_engine_sha256':projected['action_engine_sha256']}
+    if j_ref is not None:
+        identity.update(j_authority_sha256=j_ref['sha256'],j_input_sha256=projected['j_input_sha256'],
+                        j_source_mode='KB_PINNED_HLC_PREFIX')
+        if j_reuse_ref is not None:identity['j_reused_child_sha256']=j_reuse_ref['sha256']
     generation = hashlib.sha256(_canonical(identity)).hexdigest()
     root = Path(output_root).resolve(strict=True)
     score_contract_copy=_write_immutable(root,'HOLD_SCORE_CONTRACT','.json',contract_path.read_bytes(),full_hash=True)
     _require(score_contract_copy['sha256']==score_contract['sha256'],'HOLD_CHILD_SCORE_CONTRACT_MOVED')
     names = stock['field_names']; score_fields = stock['field_groups']['hold_score']; action_fields = stock['field_groups']['action']
     allowed_score = {'kb_hold_k','kb_hold_d','kb_hold_j_not_dead','kb_hold_j_not_dead_reason',
+                     'kb_hold_close_up','kb_hold_close_up_reason','kb_hold_above_bbi','kb_hold_above_bbi_reason','kb_hold_bbi',
                      'kb_hold_volume_ok','kb_hold_volume_ok_reason',
                      'kb_hold_score','kb_hold_score_min','kb_hold_score_max','kb_hold_score_status'}
-    chunks, offset, matched_patch = [], 0, set()
+    chunks, offset, matched_patch, changed = [], 0, set(), defaultdict(int)
     for ref in stock['chunks']:
         chunk = json.loads(_bounded_gzip(ref, maximum=MAX_CHUNK_DECODED, compressed_maximum=MAX_CHUNK_COMPRESSED))
         _require(chunk.get('symbol') == symbol and chunk.get('candidate_generation') == stock['candidate_generation']
@@ -246,8 +478,21 @@ def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, 
             if oldnew:
                 _require([prior[k] for k in ACTION_REBIND_FIELDS] == oldnew[0], 'HOLD_CHILD_OLD_ACTION_CONFLICT')
                 prior.update(zip(ACTION_REBIND_FIELDS, oldnew[1])); matched_patch.add(item[0])
+            if j_ref is not None:
+                _require('kb_b1_j' in new, 'HOLD_CHILD_J_FIELD_MISSING')
+                original_j=prior['kb_b1_j'];replacement_j=new['kb_b1_j']
+                _require(original_j is None or _same(original_j,replacement_j), 'HOLD_CHILD_EXISTING_J_MISMATCH')
+                _require(replacement_j is None or _hold_number(replacement_j) is not None, 'HOLD_CHILD_J_INVALID')
+                if not _same(original_j,replacement_j):changed['kb_b1_j']+=1
+                prior['kb_b1_j']=replacement_j
+            else:
+                _require('kb_b1_j' not in new, 'HOLD_CHILD_UNBOUND_J_FIELD')
             _require(all(prior[k] == new['hold_score'][k] for k in set(score_fields)-allowed_score),
                      'HOLD_CHILD_UNRELATED_SCORE_CONFLICT')
+            for k in score_fields:
+                if not _same(prior[k],new['hold_score'][k]):changed[k]+=1
+            for k in action_fields:
+                if not _same(prior[k],new['action'][k]):changed[k]+=1
             for k in score_fields:prior[k] = new['hold_score'][k]
             for k in action_fields:prior[k] = new['action'][k]
             item[1] = [prior[k] for k in names]
@@ -256,12 +501,20 @@ def materialize_a20_hold_candidate(*, symbol, parent_index_ref, projection_ref, 
         child.update(first_date=ref['first_date'],last_date=ref['last_date'],row_count=ref['row_count'])
         chunks.append(child)
     _require(offset == len(rows) and matched_patch == set(patch_by_date), 'HOLD_CHILD_ROW_COVERAGE_CONFLICT')
-    value = {'schema':'v4.workbench.a20_hold_score_candidate.v1', 'identity':identity,
+    _require(dict(changed)==projected['changed_fields'], 'HOLD_CHILD_CHANGED_FIELD_COUNT_CONFLICT')
+    value = {'schema':('v4.workbench.a20_hold_score_candidate.v1' if legacy else
+                       'v4.workbench.hold_score_candidate.v1'), 'identity':identity,
              'candidate_generation':generation, 'parent_index':parent_index_ref, 'parent_binding':wrapper_ref,
              'origin_binding':wrapper['origin_binding'], 'score_projection':projection_ref,'score_contract':score_contract_copy,
-             'rows':offset, 'chunks':chunks, 'unchanged_scope':'ALL_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES',
+             'rows':offset, 'chunks':chunks, 'unchanged_scope':('KB_J_SCORE_ACTION_ONLY_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES'
+                      if j_ref is not None else 'ALL_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES'),
              'changed_fields':projected['changed_fields'], 'bound_j_unavailable_rows':projected['bound_j_unavailable_rows'],
              'target':projected['target'], 'historical_PIT':False, **FLAGS}
+    if not legacy:
+        value.update({k:projected[k] for k in ('score_engine','score_caller','action_engine')})
+    if j_ref is not None:
+        value.update(j_authority=j_ref,j_input_sha256=projected['j_input_sha256'],j_source_mode='KB_PINNED_HLC_PREFIX')
+        if j_reuse_ref is not None:value['j_reused_child']=j_reuse_ref
     return _write_immutable(root, symbol.replace('.','_')+'_HOLD_CHILD_BINDING', '.json', _canonical(value))
 
 
@@ -980,9 +1233,14 @@ def bind_retained_pair_history(*, index_ref, history_refs, history_producer_ref,
                          and type(coverage.get('known_dates')) is int and type(coverage.get('unknown_dates')) is int
                          and coverage['known_dates']+coverage['unknown_dates']==binding['rows'],
                          'GENERIC_PAIRED_HISTORY_GROUP_RULE_CONFLICT:'+group_id)
-            packed=gzip.compress(raw,mtime=0)
-            _require(len(packed)<=2*1024*1024,'GENERIC_PAIRED_HISTORY_SIZE_LIMIT')
-            asset=_write_immutable(root,symbol.replace('.','_')+'_HISTORY','.json.gz',packed,decoded_bytes=len(raw))
+            if shard_ref.get('encoding')=='gzip':
+                _require(shard_ref['bytes']<=2*1024*1024 and len(raw)<=8*1024*1024,
+                         'GENERIC_PAIRED_HISTORY_SIZE_LIMIT')
+                asset={k:shard_ref[k] for k in ('path','sha256','bytes','decoded_bytes','encoding')}
+            else:
+                packed=gzip.compress(raw,mtime=0)
+                _require(len(packed)<=2*1024*1024,'GENERIC_PAIRED_HISTORY_SIZE_LIMIT')
+                asset=_write_immutable(root,symbol.replace('.','_')+'_HISTORY','.json.gz',packed,decoded_bytes=len(raw))
             binding['details']['history']={'status':'READY','asset':asset,
                 'source_candidate_generation':index['candidate_generation'],'candidate_generation':index['candidate_generation'],
                 'calendar_sha256':shard['market_calendar']['sha256'],'source_view_sha256':binding['history_input']['sha256'],
@@ -994,7 +1252,8 @@ def bind_retained_pair_history(*, index_ref, history_refs, history_producer_ref,
         except (ValueError,OSError,KeyError,TypeError) as exc:
             outcomes[symbol]={'status':'UNKNOWN','reason':str(exc)}
     _require(q.sha(owner_path)==owner_copy['sha256']==q.sha(owner_copy['path']),'GENERIC_HISTORY_OWNER_MOVED')
-    index['retained_history_binding']={'source_index':index_ref,'history_owner':owner_copy}
+    index['retained_history_binding']={'source_index':index_ref,'history_owner':owner_copy,
+                                       'bound_symbols':sorted(s for s,v in outcomes.items() if v['status']=='READY')}
     return _write_immutable(root,'GENERIC_SINGLE_INDEX','.json',_canonical(index)),outcomes
 
 

@@ -2278,11 +2278,55 @@ def _strict_fanbao(before, yesterday, today):
     return y < b and t > y and 3 * (t - y) > 2 * (b - y)
 
 
+def _kdj_cache(bars):
+    """Pinned KDJ recursion over the supplied rows, independent of volume."""
+    output = []
+    k = d = 50.0
+    for i, day in enumerate(bars):
+        if i >= 8:
+            low = min(x.low for x in bars[i - 8:i + 1])
+            high = max(x.high for x in bars[i - 8:i + 1])
+            rsv = 50.0 if high == low else (day.close - low) / (high - low) * 100
+            k = (2 / 3) * k + (1 / 3) * rsv
+            d = (2 / 3) * d + (1 / 3) * k
+        output.append((round(k, 2), round(d, 2), round(3 * k - 2 * d, 2)))
+    return output
+
+
+def project_bound_kb_j(symbol, rows):
+    """Project only the KB J component from the exact, ordered HLC prefix."""
+    if not isinstance(symbol, str) or len(symbol) != 9 or not symbol[:6].isdigit() or symbol[6:] not in {'.SH','.SZ','.BJ'}:
+        raise ValueError('KB_ONE_A_SHARE_REQUIRED')
+    bars, valid = [], []
+    previous = 0
+    for row in rows:
+        if row.get('ts_code', symbol) != symbol:
+            raise ValueError('KB_ONE_SYMBOL_REQUIRED')
+        day = int(row['trade_date'])
+        if day <= previous:
+            raise ValueError('KB_TRADE_DATES_NOT_UNIQUE_SORTED')
+        previous = day
+        values = [row.get(key) for key in ('high','low','close')]
+        finite = [_finite(value) and not isinstance(value, bool) for value in values]
+        high, low, close = [float(value) if ok else 0.0 for value, ok in zip(values, finite)]
+        good = all(finite) and low <= close <= high
+        bars.append(DailyData(symbol, str(day), 0.0, high, low, close, 0.0, 0.0, 0.0, 0.0))
+        valid.append(good)
+    cache = _kdj_cache(bars)
+    prefix_valid = True
+    output = []
+    for i, row in enumerate(rows):
+        prefix_valid = prefix_valid and valid[i]
+        output.append({'trade_date':int(row['trade_date']),
+                       'kb_b1_j':cache[i][2] if i >= 8 and prefix_valid else None})
+    return output
+
+
 def _cache(bars):
     closes = [x.close for x in bars]
-    white, yellow, ming, kdj, shapes = [], [], [], [], []
+    white, yellow, ming, shapes = [], [], [], []
+    kdj = _kdj_cache(bars)
     ema1 = ema2 = closes[0] if closes else 0.0
-    k = d = 50.0
     lows = []
     alpha = 2 / 11
     for i, day in enumerate(bars):
@@ -2297,13 +2341,6 @@ def _cache(bars):
         else:
             ming.append(None)
             yellow.append(0)
-        if i >= 8:
-            low = min(x.low for x in bars[i - 8:i + 1])
-            high = max(x.high for x in bars[i - 8:i + 1])
-            rsv = 50.0 if high == low else (day.close - low) / (high - low) * 100
-            k = (2 / 3) * k + (1 / 3) * rsv
-            d = (2 / 3) * d + (1 / 3) * k
-        kdj.append((round(k, 2), round(d, 2), round(3 * k - 2 * d, 2)))
         # Source range(5, len(prefix)-5) adds just index len(prefix)-6.
         q = i - 5
         if q >= 5 and bars[q].low < bars[q - 1].low and bars[q].low < bars[q + 1].low:
@@ -2479,6 +2516,8 @@ def append_kb_signals(frame):
                     row['kb_brick_action'] = '禁止抄底'
                 elif n - 12 >= 4:
                     row['kb_brick_action'] = '减仓'
+        if n >= 9 and hlc_prefix:
+            row['kb_b1_j'] = cache['kdj'][i][2]
         if n >= 9 and hlc_prefix and ok(3,n-2,n) and ok(4,n-1,n):
             b1 = detect_b1_today(p)
             for dst, src in [('kb_b1','is_b1'),('kb_b1_score','b1_score'),('kb_b1_j','b1_j_value'),('kb_b1_amplitude','b1_amplitude'),('kb_b1_pct_chg','b1_pct_chg'),('kb_b1_volume_shrink','b1_volume_shrink')]: row[dst] = b1[src]

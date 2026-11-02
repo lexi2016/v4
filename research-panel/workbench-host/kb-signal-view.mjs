@@ -50,8 +50,8 @@ export function brickCountPresentation(row){
 }
 
 export const SUPPLEMENTAL_UNKNOWN=[
-  ['kb_s1','S1','正文与概念卡对阴阳范围存在冲突，高位和巨量尚未统一量化'],
-  ['kb_s2','S2','需要已确认的 S1 锚点及顶背离量化定义'],
+  ['kb_s1','S1','已有方法描述，较早正文与较新二手整理的适用范围不同；高位和巨量量化待核'],
+  ['kb_s2','S2','已有方法描述，本实现的 S1 锚点及顶背离条件量化待核'],
   ['kb_s3','S3','需要已确认的 S1 或 S2 锚点，先跌离再反抽；数值条件待核'],
 ];
 
@@ -90,7 +90,7 @@ export function actionPresentation(action,contractSha){
 
 export function signalExplanations(row,facts={}){
   const macd=row.kb?.kb_macd_veto,macdState=macd===true?'触发':macd===false?'未触发':'待核';
-  const out=[`MACD日线风险条件 · 本日状态：${macdState}。规则说明：DIF低于零且程序按日线60日窗口未检出当日底背离；知识库正文也强调周/月周期，不能视为完整正文认证。MACD不属于持股评分的五个分项。`];
+  const out=[`MACD日线风险条件 · 本日状态：${macdState}。规则说明：DIF低于零且程序日线60日近似未检出当日底背离；该近似不等同知识库正文的周/月方法，也不能视为完整正文认证。MACD不属于持股评分的五个分项。`];
   const y=row.yidong;
   if(y){const fmt=v=>Number.isFinite(v)?v.toFixed(2):'待核';
     out.push(`异动：${y.kb_yidong_is===true?'已命中':y.kb_yidong_is===false?'未命中':'待核'}；较前5根均量 ${fmt(y.kb_yidong_vol_ratio_5)} 倍，近5根阳线 ${y.kb_yidong_bullish_count_5??'待核'} 根；詹姆斯级 ${y.kb_yidong_james===true?'已命中':y.kb_yidong_james===false?'未命中':'待核'}。`);
@@ -114,7 +114,7 @@ export const HOLD_ITEMS=[
 ];
 export const HOLD_REASONS={RULE_NOT_QUANTIFIED:'旧版结果待按现规则更新',INVALID_OPEN_CLOSE_INPUT:'开盘或收盘缺失或无效',INSUFFICIENT_PRIOR_BAR:'前一日行情不足',INVALID_CLOSE_INPUT:'收盘行情无效',
   INVALID_OHLC_INPUT:'开高低收行情缺失或无效',INVALID_VOLUME_INPUT:'当日成交量缺失或无效',
-  INSUFFICIENT_BBI_HISTORY:'BBI预热不足',INVALID_CLOSE_WINDOW:'收盘行情不足',BBI_EQUALITY_UNRESOLVED:'BBI相等边界待核',
+  INSUFFICIENT_BBI_HISTORY:'BBI预热不足',INVALID_CLOSE_WINDOW:'收盘行情不足',BBI_EQUALITY_UNRESOLVED:'收盘等于保留两位小数的BBI，等号规则待核',
   INSUFFICIENT_KDJ_HISTORY:'KDJ预热不足',INVALID_HLC_PREFIX:'KDJ行情前缀无效',
   INSUFFICIENT_CONFIRMED_SWINGS:'尚不足四个已确认转折点',INVALID_INPUT:'当日行情无效',
   AMBIGUOUS_SAME_BAR_PIVOT:'同一日同时出现高低转折，先后次序待核',

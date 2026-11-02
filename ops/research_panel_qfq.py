@@ -41,7 +41,8 @@ CODE = re.compile(r"^\d{6}\.(SH|SZ|BJ)$")
 
 from ops.research_panel_factor_cache import QfqGateError
 from ops.kb_signal_authority import append_kb_signals, _field_spec
-from ops.kb_hold_score import project_single_history, apply_n_score, SUPPLEMENTAL_REASONS, SINGLE_STOCKS
+from ops.kb_hold_score import (project_single_history, apply_n_score, SUPPLEMENTAL_REASONS, SINGLE_STOCKS,
+                               COMPONENTS, score_history, research_code_in_scope)
 from ops.kb_n_structure import project_n_history
 from ops.kb_action_authority import FIELDS as SINGLE_ACTION_FIELDS, INPUT_FIELDS as SINGLE_ACTION_INPUTS, project_action, action_rule_sha256
 from ops.kb_yidong_authority import FIELDS as SINGLE_YIDONG_FIELD_TYPES, INPUT_FIELDS as SINGLE_YIDONG_INPUTS, project_yidong_history, rule_sha256 as yidong_rule_sha256
@@ -2562,6 +2563,37 @@ def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict
             *retained.get("archive_refs", []), *retained.get("accepted_evidence", [])]):
         raise QfqGateError("ARCHIVE_ADDITION_NEW_SOURCE_CLOSURE_UNBOUND")
     return {**value, "binding_ref": ref}
+
+
+def _bulk_feedback_projection(code: str, source_rows: list[dict]) -> list[dict]:
+    """Match J only when both established source gates have a usable value."""
+    if not research_code_in_scope(code, 'ADMITTED_A_SHARE'):
+        raise ValueError('SINGLE_STOCK_SCOPE_CONFLICT')
+    output = score_history(source_rows)
+    for source, row in zip(source_rows, output):
+        if 'kb_b1_j' not in source:
+            raise ValueError('BOUND_KB_J_MISSING')
+        existing = source['kb_b1_j']
+        if existing is not None and isinstance(existing, float) and math.isnan(existing):
+            existing = None
+        computed = row['kb_hold_j']
+        if existing is not None and computed is not None and existing != computed:
+            raise ValueError('BOUND_KB_J_MISMATCH')
+        if existing is None and computed is not None:
+            # B1 has additional volume/previous-close gates. Do not expose a
+            # score based on an unavailable bound J field as a confirmed fact.
+            row['kb_hold_j_not_dead'] = None
+            row['kb_hold_j_not_dead_reason'] = 'BOUND_KB_J_UNAVAILABLE'
+            values = [row[name] for name in COMPONENTS]
+            lower = sum(value is True for value in values)
+            unknown = sum(value is None for value in values)
+            row.update(kb_hold_score=lower if unknown == 0 else None, kb_hold_score_min=lower,
+                       kb_hold_score_max=lower + unknown,
+                       kb_hold_score_status='COMPLETE' if unknown == 0 else 'PARTIAL_UNKNOWN')
+        del row['kb_hold_j']
+        for name in SUPPLEMENTAL_REASONS:
+            row[name] = None
+    return output
 
 
 def _single_feedback_daily(code: str, computed: pd.DataFrame, n_rows=None) -> pd.DataFrame:

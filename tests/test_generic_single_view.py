@@ -276,6 +276,79 @@ def test_600000_child_binding_is_exact_and_rejects_changed_version(tmp_path):
         host._hold_600000_candidate('2026-10-30','600000.SH')
 
 
+def test_general_score_child_binds_sources_and_only_validator_can_change(tmp_path):
+    symbol='000002.SZ';old_binding={'path':'/old-binding','sha256':S('a')}
+    old_index={'source_date':'2026-10-30','symbols':{symbol:{'binding':old_binding}},
+               'action_rebind':{'validator':{'path':'/previous-validator','sha256':S('8')}}}
+    old_ref=put_json(tmp_path/'old-index.json',old_index)
+    current_ref=put_json(tmp_path/'current-index.json',
+        {**old_index,'action_rebind':{'validator':{'path':'/current-validator','sha256':S('9')}}})
+    projection=tmp_path/'projection.gz';projection.write_bytes(gzip.compress(b'{}',mtime=0));projection_ref=ref(projection)
+    contract=put_json(tmp_path/'score-contract.json',{'schema':'a_share_kb_hold_score_v1',
+        'user_rule_decision':{'date':'2026-11-02'},**view.FLAGS})
+    sources={}
+    for name in ('score_engine','score_caller','action_engine'):
+        path=tmp_path/(name+'.py');path.write_text('# '+name+'\n');sources[name]=ref(path)
+    identity={'symbol':symbol,'source_date':'2026-10-30','parent_index_sha256':old_ref['sha256'],
+        'parent_generation':S('b'),'parent_binding_sha256':S('a'),'origin_binding_sha256':S('1'),
+        'origin_chart_sha256':S('e'),'source_score_projection_sha256':projection_ref['sha256'],
+        'score_contract_sha256':contract['sha256'],**{k+'_sha256':v['sha256'] for k,v in sources.items()}}
+    canonical=lambda x:json.dumps(x,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+    chunk={'path':'/child-chunk','sha256':S('2'),'bytes':10,'decoded_bytes':20,'encoding':'gzip',
+           'first_date':20261030,'last_date':20261030,'row_count':1}
+    child={'schema':'v4.workbench.hold_score_candidate.v1','identity':identity,
+           'candidate_generation':hashlib.sha256(canonical(identity)).hexdigest(),'parent_index':old_ref,
+           'parent_binding':old_binding,'origin_binding':{'sha256':S('1')},'score_projection':projection_ref,
+           'score_contract':contract,**sources,'rows':1,'chunks':[chunk],
+           'unchanged_scope':'ALL_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES','historical_PIT':False,**view.FLAGS}
+    child_ref=put_json(tmp_path/'child.json',child)
+    base={'status':'READY_FOR_RESEARCH_REVIEW','panel_generation':S('b'),'view_generation':S('a'),
+          'origin_binding_sha256':S('1'),'generation':S('c'),'rows':1,'assets':{
+              'chunk-0':{'sha256':S('d'),'first_date':20261030,'last_date':20261030,'row_count':1},
+              'projection':{'sha256':S('e')},'overlay':{'sha256':S('f')}}}
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={'generic_single_index':current_ref,'hold_score_candidates':{symbol:child_ref}}
+    host._generic_single=lambda *_:copy.deepcopy(base)
+    assert host._hold_600000_candidate('2026-10-30',symbol)['chunk_candidate_generation']==child['candidate_generation']
+    assert host._hold_600000_candidate('2026-10-29',symbol) is None
+    changed=put_json(tmp_path/'changed-index.json',{**old_index,'source_date':'2026-10-29'})
+    bad_identity={**identity,'parent_index_sha256':changed['sha256']}
+    bad={**child,'parent_index':changed,'identity':bad_identity,
+         'candidate_generation':hashlib.sha256(canonical(bad_identity)).hexdigest()}
+    host.binding['hold_score_candidates'][symbol]=put_json(tmp_path/'bad-child.json',bad)
+    with pytest.raises(ValueError,match='HOLD_CHILD_PARENT_CONFLICT'):
+        host._hold_600000_candidate('2026-10-30',symbol)
+    host.binding['hold_score_candidates'][symbol]=child_ref
+    j_path=tmp_path/'j-authority.py';j_path.write_text('# frozen KB J authority\n');j_ref=ref(j_path)
+    j_identity={**identity,'j_authority_sha256':j_ref['sha256'],'j_input_sha256':S('7'),'j_source_mode':'KB_PINNED_HLC_PREFIX'}
+    j_child={**child,'identity':j_identity,'candidate_generation':hashlib.sha256(canonical(j_identity)).hexdigest(),
+        'j_authority':j_ref,'j_input_sha256':S('7'),'j_source_mode':'KB_PINNED_HLC_PREFIX',
+        'unchanged_scope':'KB_J_SCORE_ACTION_ONLY_OTHER_FIELDS_DIAGNOSTICS_ORIGINALS_DATES'}
+    prior_j_ref=put_json(tmp_path/'j-child.json',j_child)
+    host.binding['hold_score_candidates'][symbol]=prior_j_ref
+    assert host._hold_600000_candidate('2026-10-30',symbol)['chunk_candidate_generation']==j_child['candidate_generation']
+    reused_identity={**j_identity,'j_reused_child_sha256':prior_j_ref['sha256']}
+    reused_child={**j_child,'identity':reused_identity,'candidate_generation':hashlib.sha256(canonical(reused_identity)).hexdigest(),
+                  'j_reused_child':prior_j_ref}
+    host.binding['hold_score_candidates'][symbol]=put_json(tmp_path/'reused-j-child.json',reused_child)
+    assert host._hold_600000_candidate('2026-10-30',symbol)['chunk_candidate_generation']==reused_child['candidate_generation']
+    bad_reuse={**reused_child,'j_reused_child':{**prior_j_ref,'sha256':S('6')}}
+    host.binding['hold_score_candidates'][symbol]=put_json(tmp_path/'bad-reused-j-child.json',bad_reuse)
+    with pytest.raises(ValueError,match='WORKBENCH_SOURCE_SHA_DRIFT'):
+        host._hold_600000_candidate('2026-10-30',symbol)
+    host.binding['hold_score_candidates'][symbol]=put_json(tmp_path/'bad-j-input.json',{**j_child,'j_input_sha256':S('6')})
+    with pytest.raises(ValueError,match='HOLD_CHILD_J_SOURCE_CONFLICT'):
+        host._hold_600000_candidate('2026-10-30',symbol)
+    host.binding['hold_score_candidates'][symbol]=put_json(tmp_path/'j-child-again.json',j_child)
+    j_path.write_text('# changed after binding\n')
+    with pytest.raises(ValueError,match='WORKBENCH_BOUNDED_SIZE_CONFLICT|WORKBENCH_SOURCE_SHA_DRIFT'):
+        host._hold_600000_candidate('2026-10-30',symbol)
+    host.binding['hold_score_candidates'][symbol]=child_ref
+    Path(sources['score_engine']['path']).write_text('# modified after binding\n')
+    with pytest.raises(ValueError,match='WORKBENCH_BOUNDED_SIZE_CONFLICT|WORKBENCH_SOURCE_SHA_DRIFT'):
+        host._hold_600000_candidate('2026-10-30',symbol)
+
+
 def test_dated_f10_holder_line_is_independent_from_native_value():
     parse=research_workbench_host._observed_f10_holders
     text='★股东户数变化:截止2026-09-30,公司股东数151330,比上期(2026-06-30)减少11997户,幅度-7.35%'
@@ -283,6 +356,36 @@ def test_dated_f10_holder_line_is_independent_from_native_value():
                         'reported_change':-11997,'prior_count':163327,'prior_count_basis':'DERIVED_FROM_REPORTED_CHANGE'}
     assert parse(text.replace('2026-09-30','2026-99-30')) is None
     assert parse(text+'\n'+text.replace('151330','151331')) is None
+    unchanged='★股东户数变化:截止2026-09-30,公司股东数8,比上期(2026-09-24)不变,幅度0.0%'
+    assert parse(unchanged)=={'asof_date':'2026-09-30','count':8,'prior_asof_date':'2026-09-24',
+                              'reported_change':0,'prior_count':8,'prior_count_basis':'REPORTED_UNCHANGED'}
+    assert parse(unchanged+'\n'+unchanged.replace('公司股东数8','公司股东数9')) is None
+
+
+def test_canonical_f10_projects_holders_only_from_verified_same_stock_text(tmp_path):
+    symbol='300206.SZ';generation=S('a');input_sha=S('b');day='2026-10-30'
+    text=('◇300206 理邦仪器 更新日期：2026-10-31◇\n'
+          '★股东户数变化:截止2026-10-20,公司股东数20771,比上期(2026-09-30)减少57户')
+    def bind(text_sha,body=text):
+        stock=put_json(tmp_path/'stock.json',{'symbol':symbol,'name':'理邦仪器','status':'OBSERVED',
+            'source_text':body,'source_text_sha256':text_sha,'source_updated_date':'2026-10-31',
+            'financials':{},'historical_PIT':False,**view.FLAGS})
+        checkpoint=put_json(tmp_path/'checkpoint.json',{'identity':{'data_date':'20261030',
+            'source_generation':generation,'input_sha256':input_sha},'items':{symbol:stock}})
+        receipt=put_json(tmp_path/'receipt.json',{'schema':'v4.a_share.f10_daily_receipt.v1','data_date':'20261030',
+            'source_generation':generation,'input_sha256':input_sha,'status':'COMPLETE','checkpoint':checkpoint})
+        put_json(tmp_path/'index.json',{'f10':{'20261030':receipt}})
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={}
+    host._view=lambda *_:{'source_generation':generation,'source_identity':{'input_sha256':input_sha},'rows':[{'symbol':symbol}]}
+    host.source=SimpleNamespace(_a_product_root=lambda:tmp_path,
+        _a_product_reference=lambda reference:research_workbench_host.checked_bounded(reference,2*1024*1024))
+    digest=hashlib.sha256(text.encode()).hexdigest();bind(digest)
+    assert host.f10(day,symbol,generation)['f10']['reported_holders']['asof_date']=='2026-10-20'
+    assert host.f10(day,symbol,generation)['f10']['reported_holders']['count']==20771
+    bind(S('9'));assert host.f10(day,symbol,generation)['f10']['reported_holders'] is None
+    wrong=text.replace('◇300206 理邦仪器','◇301048 金鹰重工');bind(hashlib.sha256(wrong.encode()).hexdigest(),wrong)
+    assert host.f10(day,symbol,generation)['f10']['reported_holders'] is None
 
 
 def test_f10_business_uses_complete_unambiguous_bounded_table_section():
@@ -300,7 +403,7 @@ def test_history_overlay_requires_exact_source_and_preserves_nonhistory(tmp_path
     symbol='600036.SH';base={'symbol':symbol,'candidate_generation':S('a'),'chunks':[{'sha256':S('b')}],
                              'details':{'history':{'status':'UNKNOWN'},'company':{'status':'UNKNOWN'}}}
     base_ref=put_json(tmp_path/'base.json',base)
-    previous={'schema':'v4.workbench.generic_single_index.v1','symbols':{symbol:{'status':'READY','binding':base_ref}}}
+    previous={'schema':'v4.workbench.generic_single_index.v1','source_date':'2026-10-30','symbols':{symbol:{'status':'READY','binding':base_ref}}}
     prior_ref=put_json(tmp_path/'prior.json',previous)
     owner=put_json(tmp_path/'owner.json',{'owner':'fixture'});shard=put_json(tmp_path/'shard.json',{'symbol':symbol})
     detail={'status':'READY','validation':'PAIRED_HISTORY_OWNER_SHA_BOUND','source_index':prior_ref,'history_owner':owner,
@@ -607,6 +710,9 @@ def test_pair_completion_and_single_batch_have_required_identity(tmp_path):
     _,gzip_outcomes=view.bind_retained_pair_history(index_ref=idx,history_refs={identity['symbol']:gzref},
         history_producer_ref=owner,output_root=out)
     assert gzip_outcomes[identity['symbol']]['status']=='READY'
+    gzip_binding=json.loads(Path(gzip_outcomes[identity['symbol']]['binding']['path']).read_bytes())
+    assert gzip_binding['details']['history']['asset']['path']==gzref['path']
+    assert gzip_binding['details']['history']['asset']['sha256']==gzref['sha256']
     _,bad_gzip=view.bind_retained_pair_history(index_ref=idx,history_refs={identity['symbol']:{**gzref,'decoded_sha256':S('0')}},
         history_producer_ref=owner,output_root=out)
     assert bad_gzip[identity['symbol']]['status']=='UNKNOWN' and 'DECODED_SHA_CONFLICT' in bad_gzip[identity['symbol']]['reason']
@@ -751,6 +857,7 @@ def test_f10_partial_keeps_verified_component_and_rejects_wrong_identity(tmp_pat
         put_json(tmp_path/'index.json',{'f10':{'20261030':receipt}})
     bind(partial)
     host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding={}
     host._view=lambda *_:{'source_generation':generation,'source_identity':{'input_sha256':input_sha},'rows':[{'symbol':symbol}]}
     host.source=SimpleNamespace(_a_product_root=lambda:tmp_path,
         _a_product_reference=lambda reference:research_workbench_host.checked_bounded(reference,2*1024*1024))
@@ -768,6 +875,38 @@ def test_f10_partial_keeps_verified_component_and_rejects_wrong_identity(tmp_pat
     with pytest.raises(ValueError,match='COMPONENT_MARKET_CONFLICT'):host.f10(day,symbol,generation)
     invalid=json.loads(json.dumps(partial));invalid['source_components']['text']['source_text']='◇999999 错误 更新日期：2026-10-30';bind(invalid)
     with pytest.raises(ValueError,match='PARTIAL_TEXT_CONFLICT'):host.f10(day,symbol,generation)
+
+
+def test_scoped_a20_f10_requires_lock_owner_stock_and_canary_identity(tmp_path,monkeypatch):
+    symbol='600036.SH';generation=S('a');input_sha=S('b');day='2026-10-30'
+    names=tmp_path/'names.csv';names.write_text('symbol,market,name\n600036.SH,SH,招商银行\n')
+    name_ref=ref(names);owner=tmp_path/'owner.py';owner.write_text('# exact owner\n');owner_ref=ref(owner)
+    monkeypatch.setattr(research_workbench_host,'A20_F10_OWNER_SHA',owner_ref['sha256'],raising=False)
+    text='◇600036 招商银行 更新日期：2026-11-02◇\n｜★主营业务:银行业务。｜\n└────┘'
+    stock={'symbol':symbol,'name':'招商银行','exchange':'SH','status':'OBSERVED','captured_at':'2026-11-02T04:55:35+00:00',
+        'source_updated_date':'2026-11-02','finance_updated_date':'20261031','source_text':text,
+        'source_text_sha256':hashlib.sha256(text.encode()).hexdigest(),'finance_native_raw':{'code':'600036','market':1},
+        'financials':{},'historical_PIT':False,**view.FLAGS}
+    stock_ref=put_json(tmp_path/'stock.json',stock)
+    row={'symbol':symbol,'status':'PASS_SOURCE_IDENTITY','source_status':'OBSERVED','source_name':'招商银行',
+         'locked_name':'招商银行','captured_at':stock['captured_at'],'source_updated_date':stock['source_updated_date'],
+         'finance_updated_date':stock['finance_updated_date'],'artifact':stock_ref}
+    canary=put_json(tmp_path/'canary.json',{'schema':'v4.a20.f10_capture_canary.v1','status':'PASS_SOURCE_IDENTITY',
+        'symbol':symbol,'artifact':stock_ref,'lock':name_ref,'owner':owner_ref,'historical_PIT':False,**view.FLAGS})
+    items={s:dict(row,symbol=s) for s in research_workbench_host.A20_HISTORY_SYMBOLS};items[symbol]=row
+    receipt={'schema':'v4.a20.f10_scoped_capture.v1','status':'PASS_SOURCE_IDENTITIES','publication':'NONE','requested':5,
+        'lock':name_ref,'owner':owner_ref,'canary':canary,'items':items,'historical_PIT':False,**view.FLAGS}
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost);host.binding={'a20_scoped_f10_capture':put_json(tmp_path/'receipt.json',receipt)}
+    host.single_stock_research=lambda *_:{'status':'READY_FOR_RESEARCH_REVIEW','symbol':symbol,'generation':generation,'input_sha256':input_sha}
+    p={'source_generation':generation,'source_identity':{'input_sha256':input_sha}}
+    answer=host._scoped_a20_f10(day,symbol,p)
+    assert answer['status']=='OBSERVED_SCOPED_A20' and answer['f10']['reported_business']=='银行业务。'
+    assert answer['historical_PIT'] is False and answer['bound_source_generation']==generation
+    assert host._scoped_a20_f10(day,'600000.SH',p) is None
+    bad={**receipt,'owner':{**owner_ref,'sha256':S('9')}};host.binding['a20_scoped_f10_capture']=put_json(tmp_path/'bad-owner.json',bad)
+    with pytest.raises(ValueError,match='F10_SCOPED_OWNER_CONFLICT'):host._scoped_a20_f10(day,symbol,p)
+    bad={**receipt,'items':{**items,symbol:{**row,'source_name':'错名'}}};host.binding['a20_scoped_f10_capture']=put_json(tmp_path/'bad-name.json',bad)
+    with pytest.raises(ValueError,match='F10_SCOPED_STOCK_CONFLICT'):host._scoped_a20_f10(day,symbol,p)
 
 
 def candidate_f10_fixture(root, *, outside=False, wrong_name=False):

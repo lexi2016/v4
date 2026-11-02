@@ -69,6 +69,36 @@ def _fixture_relations(root, reader, cursor=None):
 
 
 class ActualOwnerMetadataContractTests(unittest.TestCase):
+    def test_cursor_rejects_changed_candidate_order_under_same_checkpoint(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            _, index, candidates, _, source_row, reader = _stored_owner_fixture(root)
+            with patch.object(owner, '_read_index', return_value=index), patch.object(owner, '_source_row_for_document', side_effect=source_row):
+                first = _fixture_relations(root, reader)
+                self.assertTrue(first['next_cursor'])
+                candidates.reverse()
+                with self.assertRaisesRegex(ValueError, 'SEARCH_CURSOR_STALE'):
+                    _fixture_relations(root, reader, first['next_cursor'])
+
+    def test_opt_in_window_can_continue_without_revalidating_previous_window(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td).resolve()
+            _, index, candidates, _, source_row, reader = _stored_owner_fixture(root)
+            with patch.object(owner, '_read_index', return_value=index), patch.object(owner, '_source_row_for_document', side_effect=source_row), \
+                 patch('domains.related_pdf_reports.MAX_PRIOR_DOCUMENTS', 0):
+                old = _fixture_relations(root, reader)
+                self.assertTrue(old['coverage']['pagination_incomplete'])
+                self.assertIsNone(old['next_cursor'])
+                first = read_related_pdf_reports(root, None, identity_date='20261029', symbols=['600025.SH'],
+                                                  max_documents=1, allow_window_reset=True, reader=reader)
+                self.assertTrue(first['coverage']['pagination_window_reset'])
+                self.assertTrue(first['next_cursor'])
+                second = read_related_pdf_reports(root, None, identity_date='20261029', symbols=['600025.SH'],
+                    max_documents=1, allow_window_reset=True, cursor=first['next_cursor'], reader=reader)
+                self.assertEqual(second['coverage']['prior_revalidated'], 0)
+                self.assertEqual(len(second['stocks'][0]['reports']), 1)
+                self.assertIsNone(second['next_cursor'])
+
     def test_unverified_pdf_does_not_claim_verified_pdf_metadata(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td).resolve()

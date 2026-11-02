@@ -23,7 +23,7 @@ function harness(fetcher) {
   for (const id of ['relatedReports','relatedReportsState','relatedReportsOutput','relatedReportsRefresh']) nodes[id]=makeNode();
   nodes.relatedReports.dataset={hideEmpty:'true',identityDate:'20261030',generation:'g'};
   const context={document:{getElementById:id=>nodes[id],createElement:makeNode},window:{},fetch:fetcher,
-    URLSearchParams,AbortController,setTimeout,clearTimeout,Date,console};
+    URLSearchParams,AbortController,setTimeout,clearTimeout,setInterval,clearInterval,Date,console};
   vm.runInNewContext(component,context);
   return {nodes, reader:context.window.RelatedReports};
 }
@@ -44,11 +44,11 @@ function matchedReport() {
 function response(value) {return {ok:true,json:async()=>value};}
 function find(node, tag) {return node.tagName===tag.toUpperCase() ? node : node.children.map(child=>find(child,tag)).find(Boolean);}
 
-test('exhausted indexed candidates with no matches hide the empty results',async()=>{
+test('exhausted candidates do not hide incomplete archive coverage',async()=>{
   const {nodes,reader}=harness(async()=>response(page()));
   await reader.select('301048.SZ','金鹰重工',true);
-  assert.equal(nodes.relatedReports.hidden,true);
-  assert.equal(nodes.relatedReportsOutput.children.length,0);
+  assert.equal(nodes.relatedReports.hidden,false);
+  assert.match(nodes.relatedReportsOutput.textContent,/覆盖不完整/);
   assert.match(nodes.relatedReportsState.textContent,/当前游标已结束；覆盖仍以返回范围为准/);
 });
 
@@ -58,7 +58,7 @@ test('failed candidate verification is not treated as a complete empty result',a
   const {nodes,reader}=harness(async()=>response(partial));
   await reader.select('301048.SZ','金鹰重工',true);
   assert.equal(nodes.relatedReports.hidden,false);
-  assert.match(nodes.relatedReportsOutput.textContent,/覆盖未认证完整/);
+  assert.match(nodes.relatedReportsOutput.textContent,/覆盖不完整/);
 });
 
 test('partial empty report page remains visible and continues using the existing cursor',async()=>{
@@ -71,13 +71,49 @@ test('partial empty report page remains visible and continues using the existing
   assert.match(urls[0],/max_documents=5/);
   assert.equal(nodes.relatedReports.hidden,false);
   assert.match(nodes.relatedReportsRefresh.textContent,/继续读取/);
-  assert.match(nodes.relatedReportsOutput.textContent,/覆盖尚未完成/);
+  assert.match(nodes.relatedReportsOutput.textContent,/续页未完成/);
   nodes.relatedReportsRefresh.onclick();
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(urls.length,2);
   assert.match(urls[1],/cursor=next123/);
   assert.equal(nodes.relatedReports.hidden,false);
   assert.match(nodes.relatedReportsState.textContent,/返回 1 篇匹配/);
+});
+
+test('continuation retains earlier matches and cumulative coverage',async()=>{
+  const first=page({cursor:'next123',candidates:10,reports:[matchedReport()]});
+  first.coverage.unavailable_documents=1506; first.coverage.large_ready_pending=23;
+  const report=matchedReport();report.verified_pdf_sha256='e'.repeat(64);
+  report.sources[0].document_id='f'.repeat(64);report.sources[0].original_filename='第二篇.pdf';
+  const second=page({offset:5,candidates:10,reports:[report]});
+  second.coverage.unavailable_documents=1506; second.coverage.large_ready_pending=23;
+  let calls=0;
+  const {nodes,reader}=harness(async()=>response(++calls===1?first:second));
+  await reader.select('301048.SZ','金鹰重工',true);
+  nodes.relatedReportsRefresh.onclick();await new Promise(resolve=>setImmediate(resolve));
+  assert.match(nodes.relatedReportsState.textContent,/累计已取 10 篇候选，返回 2 篇匹配/);
+  assert.match(nodes.relatedReportsOutput.textContent,/研究原文.pdf/);
+  assert.match(nodes.relatedReportsOutput.textContent,/第二篇.pdf/);
+  assert.match(nodes.relatedReportsOutput.textContent,/不可用 1506/);
+  assert.match(nodes.relatedReportsOutput.textContent,/尚未具备可验证检索条件：23/);
+});
+
+test('a new validation window preserves prior results with dated snapshot status',async()=>{
+  const first=page({cursor:'next123',candidates:10,reports:[matchedReport()]});
+  first.coverage.pagination_window_reset=true; first.coverage.search_checkpoint_sha256='d'.repeat(64);
+  const report=matchedReport();report.verified_pdf_sha256='e'.repeat(64);
+  report.sources[0].document_id='f'.repeat(64);report.sources[0].original_filename='第二窗口.pdf';
+  const second=page({offset:5,candidates:10,reports:[report]});
+  second.coverage.pagination_window_reset=false; second.coverage.search_checkpoint_sha256='d'.repeat(64);
+  let calls=0;
+  const {nodes,reader}=harness(async()=>response(++calls===1?first:second));
+  await reader.select('301048.SZ','金鹰重工',true);
+  assert.match(nodes.relatedReportsRefresh.textContent,/保留旧窗口/);
+  nodes.relatedReportsRefresh.onclick();await new Promise(resolve=>setImmediate(resolve));
+  assert.match(nodes.relatedReportsOutput.textContent,/第二窗口.pdf/);
+  assert.match(nodes.relatedReportsOutput.textContent,/研究原文.pdf/);
+  assert.match(nodes.relatedReportsOutput.textContent,/本次窗口切换未重新核验/);
+  assert.match(nodes.relatedReportsOutput.textContent,new RegExp('d'.repeat(64)));
 });
 
 test('a matched candidate shows non-PIT evidence and reads the existing verified OCR detail',async()=>{
@@ -120,7 +156,23 @@ test('a late response for a previous stock cannot replace the current stock',asy
   await first;
   assert.match(nodes.relatedReportsState.textContent,/002865\.SZ/);
   assert.doesNotMatch(nodes.relatedReportsOutput.textContent,/301048|研究原文/);
-  assert.match(nodes.relatedReportsOutput.textContent,/覆盖尚未完成/);
+  assert.match(nodes.relatedReportsOutput.textContent,/续页未完成/);
+});
+
+test('switching stock aborts the pending report request and leaves the new stock responsive',async()=>{
+  let aborted=false,calls=0;
+  const {nodes,reader}=harness((url,options)=>{
+    if (++calls===1) return new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>{
+      aborted=true;reject(new Error('aborted'));
+    },{once:true}));
+    return Promise.resolve(response(page({symbol:'A.002865',reports:[matchedReport()]})));
+  });
+  const first=reader.select('301048.SZ','金鹰重工',true);
+  await reader.select('002865.SZ','钧达股份',true);
+  await first;
+  assert.equal(aborted,true);
+  assert.match(nodes.relatedReportsState.textContent,/002865\.SZ/);
+  assert.match(nodes.relatedReportsOutput.textContent,/研究原文/);
 });
 
 test('a response with a mismatched stock identity is not displayed',async()=>{
@@ -179,7 +231,8 @@ test('render failure after receiving a cursor retries the first page',async()=>{
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(urls.length,2);
   assert.doesNotMatch(urls[1],/cursor=/);
-  assert.equal(nodes.relatedReports.hidden,true);
+  assert.equal(nodes.relatedReports.hidden,false);
+  assert.match(nodes.relatedReportsOutput.textContent,/覆盖不完整/);
 });
 
 test('invalid input exposes an actionable diagnostic without making a request',async()=>{

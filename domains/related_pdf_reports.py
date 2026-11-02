@@ -8,7 +8,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from collections import Counter
+import threading
+from collections import Counter, OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -24,6 +26,7 @@ except ModuleNotFoundError as error:
 from domains.related_pdf_cursor import (CURSORS, PriorDocument, MAX_CURRENT_PAGE_BYTES,
                                       MAX_PRIOR_BYTES, MAX_PRIOR_DOCUMENTS, CURSOR_TTL_SECONDS)
 from infrastructure import zsxq_pdf_ingestion as pdf_owner
+from infrastructure.data_store import NativeDataStore
 from upstreams.v3_shared_data.shared_data.store import StoreError
 
 SAFETY = {"research_only": True, "production_allowed": False,
@@ -40,6 +43,16 @@ _CODE_IN_TEXT = re.compile(
     r"(?<![A-Za-z0-9])(?:(?P<prefix>SH|SZ|BJ|A|HK)\s*\.\s*)?"
     r"(?P<digits>\d{1,6})(?:\s*\.\s*(?P<suffix>SH|SZ|BJ|HK))?"
     r"(?![A-Za-z0-9])", re.I)
+
+# Only source/page-verified OCR is cached. PDF bytes for actual matches are
+# still checked by the existing owner immediately before a result is emitted.
+_PREFILTER_BYTES = 256 * 1024 * 1024
+_PREFILTER_CACHE_BYTES = 384 * 1024 * 1024
+_PREFILTER_WORKERS = 6
+_PREFILTER_CACHE: OrderedDict[tuple, tuple] = OrderedDict()
+_PREFILTER_CACHE_SIZE = 0
+_PREFILTER_CACHE_LOCK = threading.RLock()
+_PREFILTER_RUN_LOCK = threading.Lock()
 
 
 def _day(value: str) -> str:
@@ -271,12 +284,120 @@ def _revalidate_prior(data_root: Path | str, prior: tuple[PriorDocument, ...], r
             raise ValueError('SEARCH_CURSOR_STALE') from error
 
 
+def _ocr_source_stamp(store: Any, index: Mapping[str, Any], candidate: Mapping[str, Any], reader: Any) -> tuple:
+    """Bind the cache to the same owner paths and file versions as the index."""
+    row = index['documents'][candidate['document_id']]
+    source = row['source']
+    engine, artifact = reader._latest_engine_run(row)
+    if (artifact.get('status') != 'READY' or artifact.get('pdf_sha256') != candidate['verified_pdf_sha256']
+            or artifact.get('pdf_size') != candidate['verified_pdf_size']):
+        raise ValueError('PREFILTER_OWNER_IDENTITY_CONFLICT')
+    paths = reader._safe_document_paths(source, artifact, engine)
+    stamps = []
+    for relative in paths:
+        path = reader._safe_artifact_path(store.root, relative)
+        if path.is_symlink() or not path.is_file():
+            raise ValueError('PREFILTER_ARTIFACT_MISSING')
+        stat = path.stat()
+        stamps.append((str(path), stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns))
+    return (str(artifact.get('pages_file_sha256') or ''), *stamps)
+
+
+def _prefilter_ocr_document(root: Path, index: Mapping[str, Any], candidate: Mapping[str, Any],
+                            checkpoint: str, reader: Any) -> tuple[str, ...]:
+    global _PREFILTER_CACHE_SIZE
+    store = NativeDataStore(root)
+    stamp = _ocr_source_stamp(store, index, candidate, reader)
+    key = (str(root), checkpoint, candidate['document_id'], candidate['research_date'],
+           candidate['verified_pdf_sha256'], candidate['verified_pages_size'])
+    with _PREFILTER_CACHE_LOCK:
+        cached = _PREFILTER_CACHE.get(key)
+        if cached is not None and cached[0] == stamp:
+            _PREFILTER_CACHE.move_to_end(key)
+            return cached[1]
+        if cached is not None:
+            _PREFILTER_CACHE_SIZE -= cached[2]
+            del _PREFILTER_CACHE[key]
+    detail = reader._verified_document_detail(store, index, candidate['document_id'], verify_pdf=False)
+    if (not isinstance(detail, Mapping) or not _safe(detail) or detail.get('status') != 'READY'
+            or detail.get('document_id') != candidate['document_id']
+            or detail.get('research_date') != candidate['research_date']
+            or (detail.get('receipt') or {}).get('integrity') != 'SOURCE_AND_PAGE_HASHES_VERIFIED'
+            or (detail.get('processing') or {}).get('verified_pages_size') != candidate['verified_pages_size']
+            or not isinstance(detail.get('source'), Mapping) or not isinstance(detail.get('pages'), list)
+            or _ocr_source_stamp(store, index, candidate, reader) != stamp):
+        raise ValueError('PREFILTER_SOURCE_OR_PAGE_CONFLICT')
+    source = detail['source']
+    segments = (str(source.get('topic_title') or ''), str(source.get('original_filename') or ''),
+                *(str(page.get('text') or '') for page in detail['pages'] if isinstance(page, Mapping)))
+    size = sum(len(text.encode('utf-8')) + 128 for text in segments) + 2048
+    if size <= _PREFILTER_CACHE_BYTES:
+        with _PREFILTER_CACHE_LOCK:
+            old = _PREFILTER_CACHE.pop(key, None)
+            if old is not None:
+                _PREFILTER_CACHE_SIZE -= old[2]
+            while _PREFILTER_CACHE and _PREFILTER_CACHE_SIZE + size > _PREFILTER_CACHE_BYTES:
+                _, evicted = _PREFILTER_CACHE.popitem(last=False)
+                _PREFILTER_CACHE_SIZE -= evicted[2]
+            _PREFILTER_CACHE[key] = (stamp, segments, size)
+            _PREFILTER_CACHE_SIZE += size
+    return segments
+
+
+def _exact_index_candidates(data_root: Path | str, search: Mapping[str, Any],
+                            parsed: Mapping[str, Mapping[str, Any]], profiles: Mapping[str, Mapping[str, Any]],
+                            terms: Mapping[str, list[str]], reader: Any) -> dict[str, Any]:
+    """Remove Bloom false positives with existing verified OCR; retain unknowns."""
+    required = ('_read_index', '_latest_engine_run', '_safe_document_paths', '_safe_artifact_path', '_verified_document_detail')
+    if not all(hasattr(reader, name) for name in required):
+        return dict(search)
+    root = Path(data_root).resolve()
+    candidates = list(search['candidates'])
+    checkpoint = search['checkpoint_sha256']
+    if not isinstance(checkpoint, str) or not _SHA.fullmatch(checkpoint):
+        raise ValueError('PREFILTER_CHECKPOINT_INVALID')
+    with _PREFILTER_RUN_LOCK:
+        index = reader._read_index(NativeDataStore(root))
+        selected, deferred, total = [], [], 0
+        for candidate in candidates:
+            size = candidate.get('verified_pages_size')
+            if type(size) is not int or size < 1 or total + size > _PREFILTER_BYTES:
+                deferred.append(candidate)
+            else:
+                selected.append(candidate)
+                total += size
+        def check(candidate: Mapping[str, Any]) -> tuple[Mapping[str, Any], str]:
+            try:
+                segments = _prefilter_ocr_document(root, index, candidate, checkpoint, reader)
+                for text in segments:
+                    for key, symbol in parsed.items():
+                        if any(term in text for term in terms[key]) and _matches(text, symbol, profiles[key]):
+                            return candidate, 'MATCH'
+                return candidate, 'NO_MATCH'
+            except (OSError, ValueError, KeyError, TypeError, reader.ZsxqPdfError):
+                return candidate, 'UNKNOWN'
+        with ThreadPoolExecutor(max_workers=_PREFILTER_WORKERS) as pool:
+            checked = list(pool.map(check, selected))
+    retained = [candidate for candidate, result in checked if result != 'NO_MATCH'] + deferred
+    unknown = sum(result == 'UNKNOWN' for _, result in checked) + len(deferred)
+    matched = sum(result == 'MATCH' for _, result in checked)
+    coverage = dict(search['coverage'])
+    gaps = list(coverage.get('gaps') or [])
+    if unknown:
+        gaps.append({'reason': 'SEARCH_EXACT_PREFILTER_INCOMPLETE', 'count': unknown})
+    coverage.update(gaps=gaps, bloom_candidates=len(candidates), ocr_prefilter_checked=len(selected) - (unknown - len(deferred)),
+                    ocr_prefilter_matches=matched, ocr_prefilter_unknown=unknown,
+                    search_method='BLOOM_THEN_SOURCE_PAGE_VERIFIED_OCR_EXACT_PDF_REVERIFY')
+    return {**search, 'candidates': retained, 'coverage': coverage}
+
+
 def _indexed_result(data_root: Path | str, day: str, parsed: Mapping[str, Mapping[str, Any]],
                     identities: Mapping[str, Mapping[str, Any]], profiles: Mapping[str, Mapping[str, Any]],
                     hint_status: Mapping[str, Mapping[str, Any]], terms: Mapping[str, list[str]],
-                    search: Mapping[str, Any], max_documents: int, cursor: str | None, reader: Any) -> dict[str, Any]:
+                    search: Mapping[str, Any], max_documents: int, cursor: str | None, reader: Any,
+                    allow_window_reset: bool) -> dict[str, Any]:
     signature = hashlib.sha256(json.dumps({'data_root': str(Path(data_root).resolve()), 'identity_date': day, 'symbols': parsed, 'terms': terms,
-        'identity': identities, 'hints': hint_status},
+        'identity': identities, 'hints': hint_status, 'candidates': search['candidates'], 'allow_window_reset': allow_window_reset},
         ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     candidates = search['candidates']
     cursor_state = CURSORS.resolve(cursor, str(search['checkpoint_sha256']), signature, len(candidates)) if cursor else None
@@ -408,22 +529,32 @@ def _indexed_result(data_root: Path | str, day: str, parsed: Mapping[str, Mappin
     combined = {(item.research_date, item.document_id): item for item in prior}
     combined.update({key: current_verified[key] for key in emitted if key in current_verified})
     pagination_incomplete = False
+    pagination_window_reset = False
     if checkpoint_valid and next_offset < len(candidates):
         cumulative = tuple(combined.values())
         if len(cumulative) > MAX_PRIOR_DOCUMENTS or sum(item.pdf_size + item.pages_size for item in cumulative) > MAX_PRIOR_BYTES:
-            pagination_incomplete = True
-            gaps.append({'reason': 'SEARCH_PAGINATION_VALIDATION_LIMIT', 'remaining_candidates': len(candidates) - next_offset})
+            if allow_window_reset:
+                # Previous results remain a dated client snapshot, not a current
+                # verification claim; a new window starts with an empty prior set.
+                next_cursor = CURSORS.issue(str(search['checkpoint_sha256']), signature, next_offset, ())
+                pagination_window_reset = True
+                gaps.append({'reason': 'SEARCH_PAGINATION_NEW_VERIFICATION_WINDOW', 'remaining_candidates': len(candidates) - next_offset})
+            else:
+                pagination_incomplete = True
+                gaps.append({'reason': 'SEARCH_PAGINATION_VALIDATION_LIMIT', 'remaining_candidates': len(candidates) - next_offset})
         else:
             next_cursor = CURSORS.issue(str(search['checkpoint_sha256']), signature, next_offset, cumulative)
             gaps.append({'reason': 'SEARCH_PAGINATION_REQUIRED', 'remaining_candidates': len(candidates) - next_offset})
     coverage = {**search['coverage'], 'gaps': gaps, 'candidate_documents': len(candidates),
+                'search_checkpoint_sha256': str(search['checkpoint_sha256']),
                 'detail_attempts': len(chunk), 'verified_documents': verified, 'page_offset': offset,
                 'indexed_content_time': 'VERIFIED_AT_LAST_INDEX_UPDATE',
                 'limits': {'documents': max_documents, 'current_page_artifact_bytes': MAX_CURRENT_PAGE_BYTES,
                            'prior_documents': MAX_PRIOR_DOCUMENTS, 'prior_artifact_bytes': MAX_PRIOR_BYTES,
                            'cursor_ttl_seconds': CURSOR_TTL_SECONDS}, 'legacy_max_dates_ignored': True,
                 'prior_revalidated': len(prior) if checkpoint_valid else 0,
-                'pagination_incomplete': pagination_incomplete, 'pagination_required': next_cursor is not None}
+                'pagination_incomplete': pagination_incomplete, 'pagination_window_reset': pagination_window_reset,
+                'pagination_required': next_cursor is not None}
     return {'schema_version': 'v4.related_pdf_reports.candidate.v1', 'status': 'PARTIAL',
             'search_mode': 'FULLTEXT_INDEX', 'identity_date': day, 'time_semantics': 'CURRENT_KNOWLEDGE_NON_PIT',
             'coverage': coverage, 'next_cursor': next_cursor, 'stocks': stocks, **SAFETY}
@@ -432,13 +563,14 @@ def _indexed_result(data_root: Path | str, day: str, parsed: Mapping[str, Mappin
 def read_related_pdf_reports(data_root: Path | str, identity_root: Path | str | None, *,
                              identity_date: str, symbols: Sequence[str], hints: Sequence[str] = (),
                              max_dates: int = DEFAULT_DATES, max_documents: int = DEFAULT_DOCUMENTS,
-                             cursor: str | None = None,
+                             cursor: str | None = None, allow_window_reset: bool = False,
                              identity_reader: Callable[..., dict[str, Any]] = _load_identity,
                              reader: Any = pdf_owner) -> dict[str, Any]:
     day = _day(identity_date)
     if not symbols or len(symbols) > MAX_SYMBOLS:
         raise ValueError("SYMBOL_COUNT_INVALID")
-    if type(max_dates) is not int or not 1 <= max_dates <= MAX_DATES or type(max_documents) is not int or not 1 <= max_documents <= MAX_DOCUMENTS:
+    if (type(max_dates) is not int or not 1 <= max_dates <= MAX_DATES or type(max_documents) is not int
+            or not 1 <= max_documents <= MAX_DOCUMENTS or type(allow_window_reset) is not bool):
         raise ValueError("SCAN_LIMIT_INVALID")
     parsed: dict[str, dict[str, Any]] = {}
     for requested in symbols:
@@ -465,8 +597,9 @@ def read_related_pdf_reports(data_root: Path | str, identity_root: Path | str | 
         try:
             search = reader.query_pdf_search_index(Path(data_root), terms)
             if search.get('status') != 'NOT_MATERIALIZED':
+                search = _exact_index_candidates(data_root, search, parsed, profiles, terms, reader)
                 return _indexed_result(data_root, day, parsed, identities, profiles, hint_status,
-                                       terms, search, max_documents, cursor, reader)
+                                       terms, search, max_documents, cursor, reader, allow_window_reset)
             search_gaps = list(search.get('coverage', {}).get('gaps') or [])
         except (OSError, ValueError, KeyError, TypeError) as error:
             if str(error) in {'SEARCH_CURSOR_STALE', 'SEARCH_CURSOR_INVALID'}:
