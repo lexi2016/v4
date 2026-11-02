@@ -11,6 +11,8 @@ import ops.prepare_runtime_governance_publication as publication
 from ops.prepare_runtime_governance_publication import (
     embedded_publication_rows,
     frozen_transition_binding,
+    omitted_owner_for_stage,
+    prepare_owner_proofs,
     validate_transition_publication_set,
     validate_transition_receipt,
 )
@@ -351,3 +353,62 @@ def test_frozen_transition_binding_rejects_manifest_release_disagreement(tmp_pat
         lambda raw: publication.TRANSITION_OWNER['manifest_sha256'])
     with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
         frozen_transition_binding({'research_transition_owner_binding':_frozen_binding(app_root=str(app))})
+
+
+def _owner_receipt(ledger,slot,release_id,app_root,name):
+    path=ledger/'receipts/live/20261102'/slot/f'{name}.dispatch-receipt.json'
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(json.dumps({'release_id':release_id,'app_root':app_root,
+                                'status':'SUCCEEDED','slot':slot}),encoding='utf-8')
+    return path
+
+
+def test_prepare_owner_proofs_scans_frozen_binding_despite_newer_current_main(tmp_path,monkeypatch):
+    if not OWNER.is_dir() or not (OWNER.parent/'release-manifest.json').is_file():
+        pytest.skip('Frozen f10 transition owner unavailable')
+    ledger=tmp_path/'ledger'
+    _owner_receipt(ledger,'1500',F10_BINDING['release_id'],F10_BINDING['app_root'],'frozen')
+    current=_owner_receipt(ledger,'2200','v4-unified-release-20261102-r7-main',
+                           '/v4-unified-release-20261102-r7-main/app','current')
+    main_env={'V4_DISPATCH_LEDGER_ROOT':str(ledger),
+              'V4_RELEASE_ID':'v4-unified-release-20261102-r7-main',
+              'V4_APP_ROOT':'/v4-unified-release-20261102-r7-main/app'}
+    stage_config={'research_transition_owner_binding':dict(F10_BINDING)}
+    expected,proof=omitted_owner_for_stage(stage_config,main_env)
+    assert expected==F10_BINDING
+    assert proof['release_id']==F10_BINDING['release_id']
+    assert [Path(row['path']).name for row in proof['matching_receipts']]==['frozen.dispatch-receipt.json']
+    monkeypatch.setattr(publication,'transition_owner_proof',
+        lambda *args,**kwargs:{'matching_receipts':proof['matching_receipts']})
+    final_proof,transition=prepare_owner_proofs(stage_config,main_env,{},as_of=LATE)
+    assert final_proof['admission']=='TRANSITION_OWNER_RETAINED_NOT_ZERO'
+    assert transition['matching_receipts']==proof['matching_receipts']
+    current_set=publication.omitted_owner_proof(str(ledger),'v4-unified-release-20261102-r7-main',
+        '/v4-unified-release-20261102-r7-main/app')['matching_receipts']
+    assert [Path(row['path']).name for row in current_set]==['current.dispatch-receipt.json']
+    monkeypatch.setattr(publication,'transition_owner_proof',
+        lambda *args,**kwargs:{'matching_receipts':current_set})
+    with pytest.raises(ValueError,match='TRANSITION_RECEIPT_SET_CHANGED_DURING_PREPARE'):
+        prepare_owner_proofs(stage_config,main_env,{},as_of=LATE)
+
+
+def test_prepare_owner_proofs_without_binding_keeps_current_main_contract(tmp_path):
+    ledger=tmp_path/'ledger';(ledger/'receipts/live').mkdir(parents=True)
+    main_env={'V4_DISPATCH_LEDGER_ROOT':str(ledger),'V4_RELEASE_ID':'current-main',
+              'V4_APP_ROOT':'/current-main/app'}
+    proof,transition=prepare_owner_proofs({},main_env,{},as_of=LATE)
+    assert proof['matching_receipts']==[]
+    assert proof['release_id']=='current-main'
+    assert transition is None
+    _owner_receipt(ledger,'2200','current-main','/current-main/app','current')
+    with pytest.raises(ValueError,match='OMITTED_MAIN_HAS_RECEIPTS_COMPATIBILITY_REQUIRED'):
+        prepare_owner_proofs({},main_env,{},as_of=LATE)
+
+
+def test_prepare_owner_proofs_rejects_non_frozen_binding(tmp_path):
+    ledger=tmp_path/'ledger';(ledger/'receipts/live').mkdir(parents=True)
+    main_env={'V4_DISPATCH_LEDGER_ROOT':str(ledger),'V4_RELEASE_ID':'current-main',
+              'V4_APP_ROOT':'/current-main/app'}
+    stage_config={'research_transition_owner_binding':_frozen_binding(release_id='another-main')}
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        prepare_owner_proofs(stage_config,main_env,{},as_of=LATE)

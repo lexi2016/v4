@@ -263,6 +263,36 @@ def transition_owner_proof(candidate_receipt, *, as_of):
         'admission': 'EXACT_SET_MUST_MATCH_UNDER_GUARD'}
 
 
+def omitted_owner_for_stage(stage_config, main_env):
+    """Scan the owner the plan must omit: the frozen transition owner if bound.
+
+    After activation the current Main is newer and has its own receipts; using
+    it here would compare two different evidence sets.  The Stage binding is the
+    same definition used by transition_owner_proof.
+    """
+    if stage_config.get('research_transition_owner_binding') is None:
+        return None, omitted_owner_proof(main_env["V4_DISPATCH_LEDGER_ROOT"],
+            main_env["V4_RELEASE_ID"], main_env["V4_APP_ROOT"])
+    expected = frozen_transition_binding(stage_config)
+    return expected, omitted_owner_proof(main_env["V4_DISPATCH_LEDGER_ROOT"],
+        expected['release_id'], expected['app_root'])
+
+
+def prepare_owner_proofs(stage_config, main_env, candidate_receipt, *, as_of):
+    """Build the omitted-owner proof and its matching frozen transition proof."""
+    expected, proof = omitted_owner_for_stage(stage_config, main_env)
+    transition_proof = None
+    if expected is not None:
+        transition_proof = transition_owner_proof(candidate_receipt, as_of=as_of)
+        if proof['matching_receipts'] != transition_proof['matching_receipts']:
+            raise ValueError('TRANSITION_RECEIPT_SET_CHANGED_DURING_PREPARE')
+        proof['admission'] = 'TRANSITION_OWNER_RETAINED_NOT_ZERO'
+        proof['reason'] = 'Retained for legacy rollback ledger reference; forward admission uses exact transition_owner_proof.'
+    elif proof['matching_receipts']:
+        raise ValueError('OMITTED_MAIN_HAS_RECEIPTS_COMPATIBILITY_REQUIRED')
+    return proof, transition_proof
+
+
 def prepare(candidate, output, batch1):
     if output.exists(): raise ValueError("PUBLICATION_OUTPUT_MUST_BE_NEW")
     candidate_receipt = json.loads((candidate / "candidate_receipt.json").read_bytes())
@@ -290,24 +320,15 @@ def prepare(candidate, output, batch1):
             "original_plist": str(output / (role + ".original.plist")), "original_plist_sha256": sha(raw),
             "proposed_plist": str(output / (role + ".proposed.plist")), "proposed_plist_sha256": sha(newraw)}
     main_env = plistlib.loads(original["main"])["EnvironmentVariables"]
-    proof = omitted_owner_proof(main_env["V4_DISPATCH_LEDGER_ROOT"], main_env["V4_RELEASE_ID"], main_env["V4_APP_ROOT"])
     stage_app = Path(records['stage']['candidate']['app_root'])
     stage_config = json.loads((stage_app/'stage_center_tick_config.json').read_bytes())
-    transition_proof = None
-    if stage_config.get('research_transition_owner_binding') is not None:
-        cutoff = datetime.now(ZoneInfo('Asia/Shanghai'))
-        transition_proof = transition_owner_proof(candidate_receipt, as_of=cutoff)
-        if proof['matching_receipts'] != transition_proof['matching_receipts']:
-            raise ValueError('TRANSITION_RECEIPT_SET_CHANGED_DURING_PREPARE')
-        proof['admission'] = 'TRANSITION_OWNER_RETAINED_NOT_ZERO'
-        proof['reason'] = 'Retained for legacy rollback ledger reference; forward admission uses exact transition_owner_proof.'
-    elif proof['matching_receipts']:
-        raise ValueError('OMITTED_MAIN_HAS_RECEIPTS_COMPATIBILITY_REQUIRED')
+    cutoff = datetime.now(ZoneInfo('Asia/Shanghai'))
+    proof, transition_proof = prepare_owner_proofs(
+        stage_config, main_env, candidate_receipt, as_of=cutoff)
     protected = []
     for path in sorted((Path.home() / "Library/LaunchAgents").glob("com.lexi.*.plist")):
         label = plistlib.loads(path.read_bytes())["Label"]
         if label not in LABELS.values(): protected.append({"label": label, "plist_path": str(path), "plist_sha256": sha(path.read_bytes())})
-    stage_app = Path(records["stage"]["candidate"]["app_root"])
     manual = Path(records["api"]["candidate"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json"
     api_env = candidate_receipt["live_preimages"]["api"]["environment"]
     panel_env = {key: value for key, value in api_env.items() if key.startswith(("V4_RESEARCH_PANEL_", "V4_WORKBENCH_"))}
