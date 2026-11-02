@@ -74,8 +74,13 @@ def test_bulk_j_uses_both_source_gates_without_replacing_unknowns():
     mismatch=[dict(row) for row in rows];mismatch[-1]['kb_b1_j']+=1
     with pytest.raises(ValueError,match='BOUND_KB_J_MISMATCH'):
         q._bulk_feedback_projection('000063.SZ',mismatch)
+    adjusted=[dict(row) for row in rows]
+    adjusted[0].update(high=-1.,low=-3.,close=-2.)
+    for row,score in zip(adjusted,score_history(adjusted)):
+        row['kb_b1_j']=score['kb_hold_j']
+    assert q._bulk_feedback_projection('000063.SZ',adjusted)[-1]['kb_hold_j_not_dead'] is not None
     invalid=[dict(row) for row in rows]
-    invalid[0].update(high=-1.,low=-3.,close=-2.)
+    invalid[0].update(high=-3.,low=-1.,close=-2.)
     result=q._bulk_feedback_projection('000063.SZ',invalid)
     assert result[-1]['kb_hold_j_not_dead'] is None
     assert result[-1]['kb_hold_j_not_dead_reason']=='INVALID_HLC_PREFIX'

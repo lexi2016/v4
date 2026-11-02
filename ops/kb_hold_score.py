@@ -28,6 +28,14 @@ def _number(value):
     return value if math.isfinite(value) and value > 0 else None
 
 
+def _finite_number(value):
+    try:
+        value = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return value if math.isfinite(value) else None
+
+
 def score_history(rows):
     """Score the supplied prefix once, preserving missing/invalid inputs.
 
@@ -45,13 +53,16 @@ def score_history(rows):
         if date <= previous_date:
             raise ValueError('HOLD_SCORE_DATES_NOT_UNIQUE_SORTED')
         previous_date = date
-        open_, close, high, low, volume = (_number(source.get(key)) for key in ('open', 'close', 'high', 'low', 'volume'))
-        valid_hlc = close is not None and high is not None and low is not None and low <= close <= high
-        valid_ohlc = valid_hlc and open_ is not None and low <= open_ <= high
+        close = _number(source.get('close'))
+        # Valid raw prices can become nonpositive after affine QFQ. KDJ uses
+        # their relative position, so preserve finite ordered adjusted HLC.
+        kdj_close, kdj_high, kdj_low = (_finite_number(source.get(key)) for key in ('close', 'high', 'low'))
+        valid_kdj_hlc = (kdj_close is not None and kdj_high is not None and kdj_low is not None
+                         and kdj_low <= kdj_close <= kdj_high)
         closes.append(close)
-        highs.append(high)
-        lows.append(low)
-        kdj_prefix_valid = kdj_prefix_valid and valid_hlc
+        highs.append(kdj_high)
+        lows.append(kdj_low)
+        kdj_prefix_valid = kdj_prefix_valid and valid_kdj_hlc
         n = len(closes)
         close_up = close > closes[-2] if n >= 2 and close is not None and closes[-2] is not None else None
         bbi = None
@@ -63,15 +74,16 @@ def score_history(rows):
         k_value = d_value = j_value = j_not_dead = None
         if n >= 9 and kdj_prefix_valid:
             low9, high9 = min(lows[-9:]), max(highs[-9:])
-            rsv = 50.0 if high9 == low9 else (close - low9) / (high9 - low9) * 100
+            rsv = 50.0 if high9 == low9 else (kdj_close - low9) / (high9 - low9) * 100
             k = (2 / 3) * k + (1 / 3) * rsv
             d = (2 / 3) * d + (1 / 3) * k
             k_value, d_value, j_value = round(k, 2), round(d, 2), round(3 * k - 2 * d, 2)
             j_not_dead = not (j_value < k_value and j_value < d_value)
-        # The knowledge-body rule explicitly awards 阳量; a valid up candle
-        # establishes that branch without guessing a subjective volume limit.
-        # A down or flat candle alone cannot decide the remaining branches.
-        volume_ok = True if valid_ohlc and volume is not None and close > open_ else None
+        # User-confirmed 2026-11-02 rule: the candle item depends only on the
+        # valid adjusted open and close; high, low and volume are not inputs.
+        candle_open = None if isinstance(source.get('open'),bool) else _finite_number(source.get('open'))
+        candle_close = None if isinstance(source.get('close'),bool) else _finite_number(source.get('close'))
+        volume_ok = candle_close > candle_open if candle_open is not None and candle_close is not None else None
         components = (close_up, above_bbi, volume_ok, None, j_not_dead)
         lower = sum(value is True for value in components)
         unknown = sum(value is None for value in components)
@@ -85,9 +97,7 @@ def score_history(rows):
                    kb_hold_score_status='COMPLETE' if unknown == 0 else 'PARTIAL_UNKNOWN',
                    kb_hold_bbi=bbi, kb_hold_k=k_value, kb_hold_d=d_value, kb_hold_j=j_value,
                    kb_hold_close_up_reason=close_reason, kb_hold_above_bbi_reason=bbi_reason,
-                   kb_hold_volume_ok_reason=(None if volume_ok is True else
-                                             'INVALID_OHLC_INPUT' if not valid_ohlc else
-                                             'INVALID_VOLUME_INPUT' if volume is None else 'RULE_NOT_QUANTIFIED'),
+                   kb_hold_volume_ok_reason=None if volume_ok is not None else 'INVALID_OPEN_CLOSE_INPUT',
                    kb_hold_trend_up_reason='RULE_NOT_QUANTIFIED',
                    kb_hold_j_not_dead_reason=j_reason)
         result.append(row)

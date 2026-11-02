@@ -24,28 +24,43 @@ def test_partial_score_preserves_subjective_components_and_existing_rows():
     assert answer['kb_hold_score_status'] == 'PARTIAL_UNKNOWN'
 
 
-def test_volume_component_only_awards_a_valid_bullish_candle():
+def test_candle_component_awards_only_close_above_open():
     source = bars([20, 21, 20, 20, 20])
     source[1]['open'] = 21.5  # higher close than previous, but a bearish candle
     source[2]['open'] = 19.5  # lower close than previous, but a bullish candle
-    source[3]['open'] = 20.0  # flat is not an established bullish candle
+    source[3]['open'] = 20.0  # flat is a confirmed zero
     source[4]['open'] = None
     answer = score_history(source)
-    assert answer[1]['kb_hold_close_up'] is True and answer[1]['kb_hold_volume_ok'] is None
-    assert answer[1]['kb_hold_volume_ok_reason'] == 'RULE_NOT_QUANTIFIED'
+    assert answer[1]['kb_hold_close_up'] is True and answer[1]['kb_hold_volume_ok'] is False
+    assert answer[1]['kb_hold_volume_ok_reason'] is None
     assert answer[2]['kb_hold_close_up'] is False and answer[2]['kb_hold_volume_ok'] is True
     assert answer[2]['kb_hold_volume_ok_reason'] is None
-    assert answer[3]['kb_hold_volume_ok'] is None
-    assert answer[4]['kb_hold_volume_ok'] is None and answer[4]['kb_hold_volume_ok_reason'] == 'INVALID_OHLC_INPUT'
+    assert answer[3]['kb_hold_volume_ok'] is False
+    assert answer[4]['kb_hold_volume_ok'] is None and answer[4]['kb_hold_volume_ok_reason'] == 'INVALID_OPEN_CLOSE_INPUT'
 
 
 @pytest.mark.parametrize('volume', [None, 0, -1, float('nan'), float('inf')])
-def test_bullish_candle_needs_valid_positive_volume(volume):
+def test_candle_score_does_not_depend_on_volume(volume):
     source = bars([20, 21])
     source[-1]['volume'] = volume
     result = score_history(source)[-1]
+    assert result['kb_hold_volume_ok'] is True
+    assert result['kb_hold_volume_ok_reason'] is None
+
+
+@pytest.mark.parametrize('field', ['open','close'])
+@pytest.mark.parametrize('value', [None, float('nan'), float('inf'), True])
+def test_candle_score_needs_finite_non_boolean_open_and_close(field,value):
+    source=bars([20,21]);source[-1][field]=value
+    result=score_history(source)[-1]
     assert result['kb_hold_volume_ok'] is None
-    assert result['kb_hold_volume_ok_reason'] == 'INVALID_VOLUME_INPUT'
+    assert result['kb_hold_volume_ok_reason']=='INVALID_OPEN_CLOSE_INPUT'
+
+
+def test_candle_score_does_not_depend_on_high_or_low():
+    source=bars([20,21]);source[-1]['high']=None;source[-1]['low']=None
+    result=score_history(source)[-1]
+    assert result['kb_hold_volume_ok'] is True and result['kb_hold_volume_ok_reason'] is None
 
 
 def test_j_state_matches_pinned_source_and_is_not_one_bar_cross():
@@ -59,6 +74,19 @@ def test_j_state_matches_pinned_source_and_is_not_one_bar_cross():
         assert actual[i]['kb_hold_j_not_dead'] == (not (j < k and j < d))
     assert actual[-1]['kb_hold_j_not_dead'] is False
     assert actual[-2]['kb_hold_j_not_dead'] is False
+
+
+def test_qfq_negative_prefix_matches_bound_kdj_without_relaxing_other_components():
+    source = bars([-2 + i / 4 for i in range(30)])
+    actual = score_history(source)
+    reference = [DailyData('600000.SH', str(r['trade_date']), r['open'], r['high'], r['low'],
+                           r['close'], 100, 0, 0) for r in source]
+    k, d, j = _source_kdj(reference)
+    assert (actual[-1]['kb_hold_k'], actual[-1]['kb_hold_d'], actual[-1]['kb_hold_j']) == (k, d, j)
+    assert actual[-1]['kb_hold_j_not_dead'] == (not (j < k and j < d))
+    assert actual[0]['kb_hold_volume_ok'] is True
+    assert actual[0]['kb_hold_volume_ok_reason'] is None
+    assert actual[0]['kb_hold_close_up'] is None
 
 
 def test_warmup_equality_and_invalid_prefix_remain_unknown():
