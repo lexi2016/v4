@@ -46,13 +46,19 @@ function updateListQuoteLabel(){
 function paintArchiveGaps(){
  let box=$('sourceDayArchiveGaps');if(!sourceDayArchive){if(box)box.hidden=true;return}
  if(!box){box=node('details','');box.id='sourceDayArchiveGaps';$('observationMini').after(box)}
- const bound=day,archive=sourceDayArchive,gaps=archive.rows.filter(row=>row.status!=='READY');box.replaceChildren();
- box.append(node('summary',`收盘归档待核 ${gaps.length}只 · 查看原因`));
- for(const row of gaps){
-  const reason=ARCHIVE_REASON_ZH[row.reason]??'部分字段待核';
-  const names=`名单名称「${row.candidate_name??'待核'}」；归档名称「${row.archive_name??'未收录'}」`;
-  const extra=archiveMissingResults.get(row.symbol);const line=node('p',`${row.symbol} · ${names}${row.directory_name?`；目录名称「${row.directory_name}」`:''} · 目标来源日 ${archive.source_date} · ${reason}${extra?'；'+extra:''}`);
-  line.style.whiteSpace='pre-wrap';box.append(line);
+ const bound=day,archive=sourceDayArchive,gaps=archive.rows.filter(row=>row.status!=='READY');
+ let summary=box.querySelector('summary');if(!summary){summary=node('summary','');box.append(summary)}
+ let list=box.querySelector('[data-archive-gap-list]');if(!list){list=node('div','');list.dataset.archiveGapList='';box.append(list)}
+ const heading=`收盘归档待核 ${gaps.length}只 · 查看原因`;if(summary.textContent!==heading)summary.textContent=heading;
+ const contentKey=JSON.stringify([archive.source_date,gaps.map(row=>[row.symbol,row.candidate_name,row.archive_name,row.directory_name,row.reason,archiveMissingResults.get(row.symbol)??null])]);
+ if(list.dataset.contentKey!==contentKey){
+  const lines=gaps.map(row=>{
+   const reason=ARCHIVE_REASON_ZH[row.reason]??'部分字段待核';
+   const names=`名单名称「${row.candidate_name??'待核'}」；归档名称「${row.archive_name??'未收录'}」`;
+   const extra=archiveMissingResults.get(row.symbol);const line=node('p',`${row.symbol} · ${names}${row.directory_name?`；目录名称「${row.directory_name}」`:''} · 目标来源日 ${archive.source_date} · ${reason}${extra?'；'+extra:''}`);
+   line.style.whiteSpace='pre-wrap';return line;
+  });
+  list.replaceChildren(...lines);list.dataset.contentKey=contentKey;
  }
  box.ontoggle=()=>{
   if(!box.open)return;

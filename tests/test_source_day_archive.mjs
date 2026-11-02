@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import {rowValidity,validateSourceDayArchive,archiveRowValidity,listQuoteSource,sortSourceDayArchive,hasBoundTargetDayStock}
+import {rowValidity,validateSourceDayArchive,archiveRowValidity,listQuoteSource,sortSourceDayArchive,hasBoundTargetDayStock,ARCHIVE_REASON_ZH}
   from '../research-panel/workbench-host/observation-local.mjs';
 
 const sha=x=>x.repeat(64),day={source_date:'2026-10-30',observation_date:'2026-11-02',generation:sha('a'),
@@ -96,4 +96,33 @@ test('classification-only refresh discards the old in-flight archive and binds a
   pending[0](response);await first;assert.equal(context.sourceDayArchive,null);
   pending[1](response);await new Promise(resolve=>setImmediate(resolve));
   assert.equal(context.sourceDayArchive,archive);assert.equal(context.archiveRows.size,3);
+});
+
+test('archive gap details stay open and retain their summary during repaint and source readback',async()=>{
+  const registry={},calls=[];
+  class Element{
+    constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.dataset={};this.style={};this.open=false;this.replacements=0;}
+    append(...children){this.children.push(...children)}
+    replaceChildren(...children){this.children=children;this.replacements++}
+    after(child){registry[child.id]=child}
+    querySelector(selector){return this.children.find(child=>selector==='summary'?child.tag==='summary':Object.hasOwn(child.dataset,'archiveGapList'))??null}
+  }
+  registry.observationMini=new Element('div');
+  const bound={...day},missing={symbol:'689009.SH',status:'UNKNOWN',reason:'ARCHIVE_COVERAGE_MISSING',candidate_name:'九号公司',archive_name:null};
+  const source={...archive,rows:[archive.rows[1],missing]},meta={symbol:missing.symbol,status:'READY_FOR_RESEARCH_REVIEW',
+    source_date:day.source_date,generation:day.generation,input_sha256:day.input_sha256,numeric_manifest:day.numeric_manifest,
+    last_date:20261030,chart_status:'READY',historical_PIT:false,RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,
+    orders_sent:false,assets:{html:{sha256:sha('d')}}};
+  const context={day:bound,sourceDayArchive:source,archiveMissingChecked:new Set(),archiveMissingResults:new Map(),ARCHIVE_REASON_ZH,
+    $:id=>registry[id]??null,node:(tag,text)=>new Element(tag,text),updateListQuoteLabel(){},integrationBase:'/api',URLSearchParams,AbortSignal,
+    hasBoundTargetDayStock,fetch:async(url)=>{calls.push(url);return {ok:true,json:async()=>meta}}};
+  vm.createContext(context);
+  const paint=between(shellSource,'function paintArchiveGaps(){','\nfunction renderList(');
+  vm.runInContext(paint+'\nglobalThis.paint=paintArchiveGaps;',context);
+  context.paint();const box=registry.sourceDayArchiveGaps,summary=box.children[0],list=box.children[1],firstRender=list.replacements;
+  box.open=true;context.paint();assert.equal(box.open,true);assert.equal(box.children[0],summary);assert.equal(list.replacements,firstRender);
+  box.ontoggle();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(calls.length,1);assert.equal(box.open,true);assert.equal(box.children[0],summary);
+  assert.match(list.children[1].textContent,/已存目标日行情；收盘归档投影未接入/);
+  context.paint();assert.equal(box.open,true);assert.equal(box.children[0],summary);assert.equal(list.replacements,firstRender+1);
 });
