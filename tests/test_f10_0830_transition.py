@@ -12,7 +12,25 @@ DATA = Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/da
 OWNER = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app')
 RECEIPT = Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261102/0830/65f6aea1d6414c74bca6274084dd4605.dispatch-receipt.json')
 RECEIPT_SHA = 'cc0bf01feed8bb90934f10e1d6596bd686e3ff1a9b7357a36d7849ef3ddf6304'
+CALENDAR = OWNER/'contracts/market_calendar_2026.json'
 CUTOFF = datetime.fromisoformat('2026-11-02T08:30:21+08:00')
+LATE = datetime.fromisoformat('2026-11-02T23:30:00+08:00')
+
+
+def transition_expected(**overrides):
+    value={'trade_date':'20261102','release_id':'f10-daily-20261101-c94609b4e5fff848-main','app_root':str(OWNER),'calendar_path':str(CALENDAR)}
+    value.update(overrides);return value
+
+
+def synthetic_receipt(slot,target,business='20261102',scheduled=None,finished_at='2026-11-02T18:00:30+08:00'):
+    receipt={'schema_version':'v3_5.dispatch.v1','release_id':'f10-daily-20261101-c94609b4e5fff848-main','app_root':str(OWNER),
+        'mode':'LIVE','business_date':business,'scheduled_date':scheduled or business,'target_date':target,
+        'slot':slot,'run_id':'0'*32,'status':'SUCCEEDED','finished_at':finished_at}
+    receipt['ledger_sha256']=m.digest(m.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1]);return receipt
+
+
+def receipt_item(root,receipt):
+    return {'path':str(Path(root)/'receipts/live/20261102'/receipt['slot']/(receipt['run_id']+'.dispatch-receipt.json'))}
 
 
 @pytest.fixture
@@ -68,10 +86,37 @@ def test_transition_witness_rejects_wrong_slot_and_owner(actual_0830,tmp_path):
     ('finished_at','2026-11-02T08:30:22+08:00','TIME_INVALID'),
 ])
 def test_receipt_set_proof_rejects_wrong_identity_or_time(actual_0830,field,value,error):
-    _,path=actual_0830;receipt=json.loads(path.read_bytes());expected={
-        'trade_date':'20261102','release_id':'f10-daily-20261101-c94609b4e5fff848-main','app_root':str(OWNER)}
+    _,path=actual_0830;receipt=json.loads(path.read_bytes());expected=transition_expected()
     item={'path':str(path)}
     validate_transition_receipt(receipt,item,expected,CUTOFF)
     receipt[field]=value
     receipt['ledger_sha256']=m.digest(m.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1])
     with pytest.raises(ValueError,match=error):validate_transition_receipt(receipt,item,expected,CUTOFF)
+
+
+def test_receipt_target_follows_pinned_next_trade_day(tmp_path):
+    for slot,target in (('1800','20261103'),('1605','20261102'),('1540','20261102')):
+        receipt=synthetic_receipt(slot,target)
+        validate_transition_receipt(receipt,receipt_item(tmp_path,receipt),transition_expected(),LATE)
+
+
+@pytest.mark.parametrize('slot,target', [('1800','20261105'),('1605','20261103'),('1800','20261102')])
+def test_receipt_rejects_target_outside_exact_contract(tmp_path,slot,target):
+    receipt=synthetic_receipt(slot,target)
+    with pytest.raises(ValueError,match='IDENTITY_INVALID'):
+        validate_transition_receipt(receipt,receipt_item(tmp_path,receipt),transition_expected(),LATE)
+
+
+def test_receipt_rejects_business_scheduled_mismatch(tmp_path):
+    receipt=synthetic_receipt('1800','20261103',scheduled='20261103')
+    with pytest.raises(ValueError,match='IDENTITY_INVALID'):
+        validate_transition_receipt(receipt,receipt_item(tmp_path,receipt),transition_expected(),LATE)
+
+
+@pytest.mark.parametrize('missing_key', [False,True])
+def test_receipt_rejects_missing_pinned_calendar(tmp_path,missing_key):
+    expected=transition_expected(calendar_path=str(tmp_path/'missing/market_calendar_2026.json'))
+    if missing_key:expected.pop('calendar_path')
+    receipt=synthetic_receipt('1800','20261103')
+    with pytest.raises(ValueError,match='TRANSITION_CALENDAR_MISSING'):
+        validate_transition_receipt(receipt,receipt_item(tmp_path,receipt),expected,LATE)

@@ -1,6 +1,7 @@
 """Risk regression tests. Synthetic source text is never vector acceptance evidence."""
 import copy
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -22,6 +23,21 @@ class Owner:
         if d['research_date']!=day:raise ValueError('date')
         return copy.deepcopy(d)
 
+class Counter:
+    """Stand-in exact counter; records every counted body for body-identity assertions."""
+    def __init__(self):self.calls=[]
+    async def find(self,q,uris,limit):return []
+    async def token_count(self,text):self.calls.append(text);return len(text)+2
+
+def pinned_bge_tokenizer():
+    """Real pinned BGE tokenizer only when the test env provides it; never installs."""
+    try:
+        from infrastructure.report_evidence_index import BgeTokenizer
+        manifest=Path(os.environ['V4_REPORT_LOCAL_MODEL_MANIFEST'])
+        return BgeTokenizer(json.loads(manifest.read_text())['model_dir'])
+    except (KeyError,OSError,ImportError,ValueError):
+        return None
+
 def detail(doc,title='券商证券-目标公司(301216)测试.pdf',date='20261027',available='2026-10-28T12:00:00+08:00',text=None,pdf=None):
     texts=text or ['测试全文 2026年 营业收入 百万元 123 风险提示']
     return dict(document_id=doc,status='READY',research_date=date,
@@ -33,7 +49,7 @@ def detail(doc,title='券商证券-目标公司(301216)测试.pdf',date='2026102
 class EvidenceTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();r=Path(self.temp.name).resolve();self.owner=Owner(r/'source')
-        self.index=ReportIndex(r/'index',self.owner);self.index.initialize();self.service=ReportEvidenceService(self.index)
+        self.index=ReportIndex(r/'index',self.owner);self.index.initialize();self.service=ReportEvidenceService(self.index,Counter())
         self.add(detail('a'*64))
     def tearDown(self):self.temp.cleanup()
     def add(self,d):self.owner.docs[d['document_id']]=d;self.index.upsert(d,Tokens())
@@ -45,6 +61,7 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
                 db.execute('UPDATE chunks SET uri=? WHERE id=?',('viking://resources/v4-report-evidence-20261102/'+row['document_id']+'/'+row['id']+'.md',row['id']))
         class Spy:
             async def find(self,q,uris,limit):self.uris=uris;return []
+            async def token_count(self,text):return len(text)+2
         spy=Spy();self.service.native=spy
         r=await self.service.search('测试',security='301216',market='A')
         self.assertTrue(r['hits']);self.assertTrue(all('a'*64 in u for u in spy.uris))
@@ -58,6 +75,7 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
                 db.execute('UPDATE chunks SET uri=? WHERE id=?',('viking://resources/v4-report-evidence-20261102/'+row['document_id']+'/'+row['id']+'.md',row['id']))
         class Spy:
             async def find(self,q,uris,limit):self.uris=uris;return []
+            async def token_count(self,text):return len(text)+2
         spy=Spy();self.service.native=spy;self.owner.denied.add('b'*64)
         r=await self.service.search('测试')
         self.assertTrue(r['hits']);self.assertTrue(all('b'*64 not in u for u in spy.uris))
@@ -119,9 +137,188 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):self.service.read('../../outside.pdf')
         self.assertEqual((await self.service.search('" OR * ; DROP TABLE documents',strategy='keyword'))['hits'],[])
 
+    async def test_short_chinese_zero_hit_bound_is_conservative(self):
+        tokenizer=pinned_bge_tokenizer()
+        class Pinned:
+            async def find(self,q,uris,limit):return []
+            async def token_count(self,text):return tokenizer.count(text) if tokenizer else len(text)+2
+        self.service.native=Pinned()
+        queries=('格尔软件','万凯新材','国泰海通证券')
+        responses=[await self.service.search(q,strategy='keyword') for q in queries]
+        for q,r in zip(queries,responses):
+            self.assertEqual((r['status'],r['hits']),('NO_EVIDENCE',[]))
+            self.assertGreaterEqual(r['input_tokens_upper_bound'],1)
+        if tokenizer is None:
+            self.skipTest('pinned tokenizer unavailable: tokenizers/manifest missing')
+        for q,r in zip(queries,responses):
+            self.assertEqual(r['input_tokens_upper_bound'],tokenizer.count(q+'\n'))
+
+    async def test_declared_bound_is_exact_counter_of_response_body(self):
+        self.add(detail('b'*64,pdf=digest('b-pdf')))
+        counter=Counter();self.service.native=counter
+        r=await self.service.search('测试',strategy='keyword')
+        body='测试\n'+'\n\n'.join(h['text'] for h in r['hits'])
+        self.assertEqual(r['status'],'CANDIDATES')
+        self.assertEqual({h['document_id'] for h in r['hits']},{'a'*64,'b'*64})
+        self.assertEqual(r['token_counter'],'PINNED_BGE_M3_LOCAL_EMBEDDING_V1')
+        self.assertEqual(r['input_tokens_upper_bound'],len(body)+2)
+        self.assertEqual(counter.calls,['测试\n',body])
+
+    async def test_zero_hit_body_is_exact_query_plus_newline(self):
+        counter=Counter();self.service.native=counter
+        r=await self.service.search('不存在的检索词',strategy='keyword')
+        self.assertEqual((r['status'],r['hits']),('NO_EVIDENCE',[]))
+        self.assertEqual(counter.calls,['不存在的检索词\n','不存在的检索词\n'])
+        self.assertEqual(r['input_tokens_upper_bound'],len('不存在的检索词\n')+2)
+
+    async def test_exact_body_budget_trims_trailing_hits(self):
+        self.add(detail('b'*64,pdf=digest('b-pdf')))
+        class Budget:
+            async def find(self,q,uris,limit):return []
+            async def token_count(self,text):return 7+4993*text.count('风险提示')
+        self.service.native=Budget()
+        r=await self.service.search('测试',strategy='keyword',limit=20)
+        self.assertEqual(len(r['hits']),1)
+        self.assertIn('TOKEN_BUDGET_TRUNCATED',r['gaps'])
+        self.assertLessEqual(r['input_tokens_upper_bound'],6000)
+        self.assertEqual(r['input_tokens_upper_bound'],5000)
+
+    async def test_oversized_query_fails_closed(self):
+        class Budget:
+            def __init__(self,value):self.value=value
+            async def find(self,q,uris,limit):return []
+            async def token_count(self,text):
+                if isinstance(self.value,Exception):raise self.value
+                return self.value
+        for value in (6001,ValueError('TOKEN_COUNT_EXCEEDS_TOKENIZER_LIMIT')):
+            self.service.native=Budget(value)
+            with self.assertRaisesRegex(ValueError,'QUERY_TOKEN_BUDGET_EXCEEDED'):
+                await self.service.search('测试',strategy='keyword')
+
+    async def test_missing_or_failing_counter_fails_closed(self):
+        with self.assertRaisesRegex(ValueError,'TOKEN_BUDGET_UNVERIFIED'):
+            await ReportEvidenceService(self.index).search('测试',strategy='keyword')
+        class Broken:
+            async def find(self,q,uris,limit):return []
+            async def token_count(self,text):raise ValueError('COUNTER_DOWN')
+        self.service.native=Broken()
+        with self.assertRaisesRegex(ValueError,'TOKEN_BUDGET_UNVERIFIED'):
+            await self.service.search('测试',strategy='keyword')
+        self.add(detail('b'*64,pdf=digest('b-pdf')))
+        class BodyBroken(Counter):
+            async def token_count(self,text):
+                if '\n\n' in text:raise ValueError('COUNTER_DOWN')
+                return await super().token_count(text)
+        self.service.native=BodyBroken()
+        with self.assertRaisesRegex(ValueError,'TOKEN_BUDGET_UNVERIFIED'):
+            await self.service.search('测试',strategy='keyword')
+
+    async def test_lone_surrogate_query_is_rejected(self):
+        with self.assertRaisesRegex(ValueError,'QUERY_INVALID_UTF8'):
+            await self.service.search('\ud800')
+
+    def test_pinned_tokenizer_reproduction_counts(self):
+        tokenizer=pinned_bge_tokenizer()
+        if tokenizer is None:self.skipTest('pinned tokenizer unavailable: tokenizers/manifest missing')
+        self.assertEqual(tokenizer.count('，\n'),5)
+        self.assertEqual(tokenizer.count('㌚'*1400+'\n'),7004)
+        self.assertEqual(tokenizer.count('ﷺ'*1000+'\n'),4003)
+        self.assertGreater(tokenizer.count('国泰海通证券'),2)
+        self.assertLessEqual(tokenizer.count('国泰海通证券'),6000)
+
+    async def test_local_embedding_counter_matches_pinned_tokenizer_on_body(self):
+        tokenizer=pinned_bge_tokenizer()
+        if tokenizer is None:self.skipTest('pinned tokenizer unavailable: tokenizers/manifest missing')
+        import httpx
+        from types import SimpleNamespace
+        from infrastructure.report_evidence_native import LocalNative
+        native=LocalNative.__new__(LocalNative)
+        native.runtime=SimpleNamespace(ART=Path(os.environ['V4_REPORT_LOCAL_MODEL_MANIFEST']).parent,require_local_only=lambda:{})
+        body='国泰海通证券\n'+'测试全文 2026年 营业收入 百万元 123 风险提示\n\n'+'测试全文 2026年 营业收入 百万元 123 风险提示'
+        samples=['国泰海通证券','国泰海通证券 ','国泰海通证券\t','国泰海通证券\n','国泰海通证券\n\n','国泰海通证券\n\n\n',
+            '国泰海通证券 \t\n ','国泰海通证券　','国泰海通证券\xa0','abc ','abc\n\n',body,body+'\n']
+        try:counts=[await native.token_count(sample) for sample in samples]
+        except (httpx.HTTPError,OSError,ValueError):self.skipTest('local embedding service unavailable')
+        self.assertEqual(counts,[tokenizer.count(sample) for sample in samples])
+
+    async def test_trailing_newline_boundary_is_not_undercounted(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from infrastructure.report_evidence_native import LocalNative
+        class Response:
+            status_code=200;text=''
+            def raise_for_status(self):pass
+            def json(self):return {'usage':{'total_tokens':6000}}
+        class Client:
+            def __init__(self,*args,**kwargs):pass
+            async def __aenter__(self):return self
+            async def __aexit__(self,*args):pass
+            async def post(self,*args,**kwargs):return Response()
+        root=Path(self.temp.name).resolve()/'native';(root/'private').mkdir(parents=True)
+        (root/'private/local_embedding.json').write_text('{"api_key":"test"}')
+        native=LocalNative.__new__(LocalNative);native.runtime=SimpleNamespace(ART=root,require_local_only=lambda:{})
+        class Counter:
+            async def find(self,q,uris,limit):return []
+            async def token_count(self,text):return await native.token_count(text)
+        with patch('infrastructure.report_evidence_native.httpx.AsyncClient',Client):
+            self.assertEqual(await native.token_count('测试\n'),6001)
+            self.service.native=Counter()
+            with self.assertRaisesRegex(ValueError,'QUERY_TOKEN_BUDGET_EXCEEDED'):
+                await self.service.search('测试',strategy='keyword')
+
+    async def test_counter_transport_and_shape_failures_map_to_unverified(self):
+        import httpx
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from infrastructure.report_evidence_native import LocalNative
+        class Offline:
+            def __init__(self,*args,**kwargs):pass
+            async def __aenter__(self):return self
+            async def __aexit__(self,*args):pass
+            async def post(self,*args,**kwargs):raise httpx.ConnectError('offline')
+        class Shape:
+            status_code=200;text=''
+            def raise_for_status(self):pass
+            def json(self):return {'usage':{}}
+        class BadShape:
+            def __init__(self,*args,**kwargs):pass
+            async def __aenter__(self):return self
+            async def __aexit__(self,*args):pass
+            async def post(self,*args,**kwargs):return Shape()
+        root=Path(self.temp.name).resolve()/'native2';(root/'private').mkdir(parents=True)
+        (root/'private/local_embedding.json').write_text('{"api_key":"test"}')
+        native=LocalNative.__new__(LocalNative);native.runtime=SimpleNamespace(ART=root,require_local_only=lambda:{})
+        for client in (Offline,BadShape):
+            with patch('infrastructure.report_evidence_native.httpx.AsyncClient',client):
+                with self.assertRaisesRegex(ValueError,'TOKEN_COUNT_UNAVAILABLE'):
+                    await native.token_count('测试')
+                class Counter:
+                    async def find(self,q,uris,limit):return []
+                    async def token_count(self,text):return await native.token_count(text)
+                self.service.native=Counter()
+                with self.assertRaisesRegex(ValueError,'TOKEN_BUDGET_UNVERIFIED'):
+                    await self.service.search('测试',strategy='keyword')
+
+    async def test_zero_hit_bound_matches_pinned_tokenizer_through_endpoint(self):
+        tokenizer=pinned_bge_tokenizer()
+        if tokenizer is None:self.skipTest('pinned tokenizer unavailable: tokenizers/manifest missing')
+        import httpx
+        from types import SimpleNamespace
+        from infrastructure.report_evidence_native import LocalNative
+        native=LocalNative.__new__(LocalNative)
+        native.runtime=SimpleNamespace(ART=Path(os.environ['V4_REPORT_LOCAL_MODEL_MANIFEST']).parent,require_local_only=lambda:{})
+        try:live=await native.token_count('格尔软件\n')
+        except (httpx.HTTPError,OSError,ValueError):self.skipTest('local embedding service unavailable')
+        self.assertEqual(live,tokenizer.count('格尔软件\n'))
+        self.service.native=native
+        r=await self.service.search('格尔软件',strategy='keyword')
+        self.assertEqual((r['status'],r['hits']),('NO_EVIDENCE',[]))
+        self.assertEqual(r['input_tokens_upper_bound'],tokenizer.count('格尔软件\n'))
+
     async def test_vector_failure_is_explicit_keyword_only(self):
         class Broken:
             async def find(self,*args):raise RuntimeError('offline')
+            async def token_count(self,text):return len(text)+2
         with self.index.connect(True) as db:db.execute("UPDATE chunks SET uri='viking://resources/v4-report-evidence-20261102/x/body.md'")
         self.service.native=Broken();r=await self.service.search('测试')
         self.assertEqual(r['search_mode'],'keyword_only');self.assertIn('VECTOR_FIND_FAILED_KEYWORD_ONLY',r['gaps'])

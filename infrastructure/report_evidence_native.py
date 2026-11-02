@@ -25,6 +25,32 @@ class LocalNative:
         self.guard()
         return json.loads((self.runtime.ART / 'private/client.local.json').read_text())
 
+    async def token_count(self, text: str) -> int:
+        """Exact pinned BGE-M3 token count through the already-running local embedding service."""
+        try:
+            self.runtime.require_local_only()
+            key = json.loads((self.runtime.ART / 'private/local_embedding.json').read_text())['api_key']
+            async with httpx.AsyncClient(trust_env=False, follow_redirects=False, timeout=30) as client:
+                response = await client.post('http://127.0.0.1:1934/v1/embeddings',
+                    headers={'Authorization': 'Bearer ' + key},
+                    json={'model': 'BAAI/bge-m3', 'input': text, 'dimensions': 1024, 'encoding_format': 'float'})
+                if response.status_code == 400 and 'INPUT_EXCEEDS_8192_TOKENS_NO_SILENT_TRUNCATION' in response.text:
+                    raise ValueError('TOKEN_COUNT_EXCEEDS_TOKENIZER_LIMIT')
+                response.raise_for_status()
+                body = response.json()
+            usage = body.get('usage') if isinstance(body, dict) else None
+            if not isinstance(usage, dict) or not isinstance(usage.get('total_tokens'), int) or isinstance(usage['total_tokens'], bool):
+                raise ValueError('TOKEN_COUNT_RESPONSE_INVALID')
+            total = usage['total_tokens']
+            # The 1934 HF tokenizer drops a trailing whitespace run; the pinned tokenizers
+            # tokenizer counts that run as exactly one token, so restore the pinned count.
+            return total + 1 if text and text[-1].isspace() else total
+        except ValueError as error:
+            if str(error) == 'TOKEN_COUNT_EXCEEDS_TOKENIZER_LIMIT': raise
+            raise ValueError('TOKEN_COUNT_UNAVAILABLE') from error
+        except (httpx.HTTPError, OSError, KeyError, TypeError) as error:
+            raise ValueError('TOKEN_COUNT_UNAVAILABLE') from error
+
     async def find(self, query: str, target_uris: list[str], limit: int = 50):
         if not target_uris:
             return []

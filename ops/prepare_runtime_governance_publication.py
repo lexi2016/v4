@@ -40,16 +40,24 @@ def validate_transition_publication_set(embedded, paths):
 
 def validate_transition_receipt(receipt, item, expected, as_of):
     from infrastructure import manager_input_attestation as attestation
-    name = Path(item['path']).name
+    from ops.run_scheduled_slot import NEXT_TARGET_SLOTS, next_trade_day
+    from contracts.trading_calendar import load_market_calendar
+    name = Path(item['path']).name; slot = receipt.get('slot')
+    calendar_path = expected.get('calendar_path')
+    if not calendar_path or not Path(calendar_path).is_file(): raise ValueError('TRANSITION_CALENDAR_MISSING')
+    # Slot/target semantics come from NEXT_TARGET_SLOTS + the pinned calendar, not this source's stale ALL_SLOTS.
+    target = next_trade_day(expected['trade_date'], calendar=load_market_calendar(Path(calendar_path))) if isinstance(slot, str) and slot in NEXT_TARGET_SLOTS else expected['trade_date']
     run_id = receipt.get('run_id')
     if (receipt.get('schema_version') != 'v3_5.dispatch.v1'
         or receipt.get('release_id') != expected['release_id']
         or receipt.get('app_root') not in (None, expected['app_root'])
         or receipt.get('mode') != 'LIVE'
-        or any(receipt.get(key) != expected['trade_date'] for key in ('business_date','scheduled_date','target_date'))
+        or any(receipt.get(key) != expected['trade_date'] for key in ('business_date','scheduled_date'))
+        or receipt.get('target_date') != target
         or not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id)
         or name != run_id + '.dispatch-receipt.json'
-        or receipt.get('slot') != Path(item['path']).parent.name
+        or not isinstance(slot, str) or not re.fullmatch(r'[0-9]{4}', slot)
+        or slot != Path(item['path']).parent.name
         or receipt.get('ledger_sha256') != sha(attestation.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1])):
         raise ValueError('TRANSITION_RECEIPT_IDENTITY_INVALID')
     finished = attestation.aware(receipt.get('finished_at'))
@@ -72,6 +80,9 @@ def transition_owner_proof(candidate_receipt, *, as_of):
         or expected['release_id'] != 'f10-daily-20261101-c94609b4e5fff848-main'
         or expected['manifest_sha256'] != '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388'):
         raise ValueError('TRANSITION_OWNER_IDENTITY_INVALID')
+    calendar_path = Path(expected['app_root']) / 'contracts/market_calendar_2026.json'
+    if not calendar_path.is_file(): raise ValueError('TRANSITION_CALENDAR_MISSING')
+    calendar_bytes = calendar_path.read_bytes(); validated = dict(expected, calendar_path=str(calendar_path))
     ledger = env['V4_DISPATCH_LEDGER_ROOT']
     old = omitted_owner_proof(ledger, expected['release_id'], expected['app_root'])
     if any(Path(row['path']).parent.parent.name != expected['trade_date'] for row in old['matching_receipts']):
@@ -81,7 +92,7 @@ def transition_owner_proof(candidate_receipt, *, as_of):
         raw = Path(item['path']).read_bytes()
         if sha(raw) != item['sha256']:raise ValueError('TRANSITION_RECEIPT_CHANGED_DURING_SCAN')
         receipt = json.loads(raw)
-        validate_transition_receipt(receipt, item, expected, as_of)
+        validate_transition_receipt(receipt, item, validated, as_of)
         for workload in receipt.get('workload_results', []):
             if not isinstance(workload, dict):raise ValueError('TRANSITION_RECEIPT_WORKLOAD_INVALID')
             authority = workload.get('_authoritative_payload')
@@ -125,7 +136,7 @@ def transition_owner_proof(candidate_receipt, *, as_of):
             if value is None:os.environ.pop(key, None)
             else:os.environ[key] = value
     return {'schema_version': 'v4.f10_transition_evidence_set.v1', 'as_of': as_of.isoformat(),
-        'owner': expected, 'stage_manifest_sha256': stage_info['manifest_sha256'],
+        'owner': expected, 'calendar_sha256': sha(calendar_bytes), 'stage_manifest_sha256': stage_info['manifest_sha256'],
         'ledger_root': ledger, 'matching_receipts': old['matching_receipts'], 'publications': publications,
         'admission': 'EXACT_SET_MUST_MATCH_UNDER_GUARD'}
 

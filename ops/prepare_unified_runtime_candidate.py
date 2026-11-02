@@ -24,6 +24,33 @@ SCHEDULE_REPAIRS = {
     "main": ("ops/run_stage_center_milestone.py", "1e72438420cdff455bb181ad63b4b78ea47981d43c3524c100cbc25d8db1dac6"),
     "api": ("domains/task_status.py", "24d52d7258bb4421810c6116dc54366df9f1363f3fa62850f1a828bd67011ae6"),
 }
+# Reviewed r5-main bytes; role copies that never carried a path record absence instead.
+REMOVALS = {
+    "ops/backfill_us_market_digest.py": "d2c3e11576e50aa55356ff992cb1381af77ffea99261b6e5addb0ed6260f9af0",
+    "ops/collect_preopen_lane.py": "f6699c2e2088831b12557a5ca588243a011de498088277d48c9649a6f507bfe6",
+    "ops/collect_research_panel_adjustment_metadata.py": "83f37fd99d66a0f11eaac71537ac2e1954fe33036d4fa750c0d0bf9bc0f96068",
+    "ops/run_v3_5_runtime_graph_collector.py": "ea92de71eccc48c3ef7ce70b90f17195b0c84169753a5f2a9b9ddff7a1c131ec",
+    "ops/verify_strict_us_selection_v1.py": "c3ddaec4bc3b7f60c8c1785d7ac1df3821cd9dd241149c01e21e180fdec2b2b2",
+    "tests/test_collect_preopen_lane.py": "c6de4e57903db3072921f9f3b014001e0c8e91c5bb50c05cf6dffa70b8543043",
+}
+# Cleaned-after bytes replace these exact preimages in every role copy that carries them.
+RUNTIME_TEST_FILES = {
+    "tests/test_research_panel_runtime_graph.py": ("010e76aae7296fd1798b8d0bcd93935bb4bb2ef0c5959a85abf401fd5cb0f985", "989b7238998f9e90aa0194141a1724bb82dd0d53b53a553a182718cd88e60dca"),
+    "tests/test_runtime_graph_hardening.py": ("857b50052ded269692ef2bb3d6be9b08bbf340d8e9b60dcda7199cfe7807c3ee", "f8b6bf99bd3b1063781c6cb1115dcba9e7191f39772cd24ac8493664b31815bf"),
+}
+
+
+def apply_reviewed_removals(app, removals=REMOVALS):
+    """Unlink reviewed r5 bytes from one role copy; tolerate absence and never create."""
+    removed, absent = [], []
+    for relative, expected in removals.items():
+        path = Path(app) / relative
+        if not path.exists():
+            absent.append(relative); continue
+        if not path.is_file() or sha(path.read_bytes()) != expected:
+            raise ValueError('REVIEWED_REMOVAL_BYTES_CHANGED')
+        path.unlink(); removed.append(relative)
+    return removed, absent
 
 
 def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecessor_date=None):
@@ -57,6 +84,8 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
             raise ValueError("CURRENT_OWNER_DRIFT:" + role)
         verified_baseline(Path(env["V4_APP_ROOT"]), env["V4_RELEASE_MANIFEST_SHA256"], inv)
     output.mkdir(); roles = {}
+    reviewed_removals = {relative: {'path': relative, 'before_sha256': expected, 'roles_removed': [], 'roles_absent': []} for relative, expected in REMOVALS.items()}
+    runtime_test_overlay = {relative: {'path': relative, 'before_sha256': before, 'after_sha256': after, 'roles': []} for relative, (before, after) in RUNTIME_TEST_FILES.items()}
     for role in ("main", "stage", "api"):
         fresh_api = role == "api" and api_snapshot is not None
         before_app = current_api if fresh_api else Path(base["roles"][role]["app_root"])
@@ -66,6 +95,17 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         shutil.copytree(before_app, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
         for relative in REPORT_FILES: write(app, relative, (source / relative).read_bytes())
         additions = set(REPORT_FILES)
+        removed, absent = apply_reviewed_removals(app)
+        additions |= set(removed)
+        for relative in removed: reviewed_removals[relative]['roles_removed'].append(role)
+        for relative in absent: reviewed_removals[relative]['roles_absent'].append(role)
+        for relative, (before_sha, after_sha) in RUNTIME_TEST_FILES.items():
+            path = app / relative
+            if path.exists() and sha(path.read_bytes()) != before_sha: raise ValueError('RUNTIME_TEST_PREIMAGE_CHANGED')
+            raw = (source / relative).read_bytes()
+            if sha(raw) != after_sha: raise ValueError('RUNTIME_TEST_OVERLAY_BYTES_CHANGED')
+            write(app, relative, raw); additions.add(relative)
+            runtime_test_overlay[relative]['roles'].append(role)
         if role in SCHEDULE_REPAIRS:
             relative, preimage = SCHEDULE_REPAIRS[role]
             if sha((before_app / relative).read_bytes()) != preimage:
@@ -162,6 +202,7 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         "live_preimages": actual,
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(), "publication_dependencies": dependencies,
         "report_source_files": frozen, "schedule_source_files": schedule_frozen,
+        "reviewed_removals": list(reviewed_removals.values()), "runtime_test_overlay": list(runtime_test_overlay.values()),
         "activated": False, "DEPLOYMENT": "NOT_DEPLOYED", "NATURAL_VERIFIED": "NOT_RUN"}
     dump(output / "candidate_receipt.json", receipt)
     return receipt

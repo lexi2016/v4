@@ -88,12 +88,23 @@ class ReportEvidenceService:
                      mode='current_research', as_of=None, limit=10, strategy='hybrid'):
         if not isinstance(text, str) or not text.strip() or len(text) > 2000 or not 1 <= limit <= 20:
             raise ValueError('INVALID_QUERY_OR_LIMIT')
+        try: text.encode('utf-8')
+        except UnicodeEncodeError: raise ValueError('QUERY_INVALID_UTF8') from None
         if strategy not in {'keyword', 'vector', 'hybrid'}:
             raise ValueError('INVALID_STRATEGY')
         if mode == 'historical_evidence' and timestamp(as_of) is None:
             raise ValueError('HISTORICAL_AS_OF_REQUIRED_WITH_TIMEZONE')
         if not self.index.path.is_file():
             return dict(status='EVIDENCE_GAP', gaps=['INDEX_NOT_MATERIALIZED'], hits=[], **SAFETY)
+        if not self.native or not callable(getattr(self.native, 'token_count', None)):
+            raise ValueError('TOKEN_BUDGET_UNVERIFIED')
+        # The zero-hit body is exactly the query plus one newline; the final body is
+        # counted by the same pinned tokenizer service after hit selection.
+        try: query_tokens = await self.native.token_count(text + '\n')
+        except ValueError as error:
+            if str(error) == 'TOKEN_COUNT_EXCEEDS_TOKENIZER_LIMIT': raise ValueError('QUERY_TOKEN_BUDGET_EXCEEDED') from None
+            raise ValueError('TOKEN_BUDGET_UNVERIFIED') from error
+        if query_tokens > 6000: raise ValueError('QUERY_TOKEN_BUDGET_EXCEEDED')
         if hasattr(self.index.owner,'begin_query'):
             try:
                 self.index.owner.begin_query()
@@ -153,8 +164,9 @@ class ReportEvidenceService:
                 fused[cid] += 1 / (60 + rank)
         cache, hits, per_pdf, spans = {}, [], defaultdict(int), defaultdict(list)
         merged_spans = {}
-        # Query chars upper-bound model tokens; chunk token counts are from pinned BGE.
-        tokens = len(text) + 2
+        # Exact body budget is enforced post-selection by the pinned tokenizer through
+        # the local embedding service; chunk['tokens'] sums are the conservative pre-filter.
+        tokens = query_tokens
         for cid in sorted(fused, key=lambda k: (-fused[k], k)):
             row = rows[cid]; m = docs[row['document_id']]; chunk = json.loads(row['detail'])
             pdf = row['pdf_sha']; page_key = (pdf, row['page'])
@@ -193,9 +205,18 @@ class ReportEvidenceService:
             merged_spans[cid] = (chunk['start'],chunk['end'])
             if len(hits) == limit:
                 break
+        body = text + '\n' + '\n\n'.join(h['text'] for h in hits)
+        try: exact = await self.native.token_count(body)
+        except ValueError: raise ValueError('TOKEN_BUDGET_UNVERIFIED') from None
+        while exact > 6000 and hits:
+            hits.pop(); gaps.append('TOKEN_BUDGET_TRUNCATED')
+            body = text + '\n' + '\n\n'.join(h['text'] for h in hits)
+            try: exact = await self.native.token_count(body)
+            except ValueError: raise ValueError('TOKEN_BUDGET_UNVERIFIED') from None
         return dict(schema_version='v4.report_evidence.v1', status='CANDIDATES' if hits else 'NO_EVIDENCE',
                     mode=mode, as_of=as_of, search_mode=('keyword_only' if strategy=='keyword' or any('KEYWORD_ONLY' in g for g in gaps) else (strategy+'_partial' if gaps else strategy)),
-                    gaps=sorted(set(gaps)), hits=hits, index_generation=generation, input_tokens_upper_bound=tokens,
+                    gaps=sorted(set(gaps)), hits=hits, index_generation=generation, input_tokens_upper_bound=exact,
+                    token_counter='PINNED_BGE_M3_LOCAL_EMBEDDING_V1',
                     vector_attempted=vector_attempted, vector_succeeded=vector_succeeded,
                     vector_scope_sha256=digest(json.dumps(uris,sort_keys=True)), branch_counts={'keyword':len(keyword),'vector':len(vector)},
                     query_coverage={'eligible_documents':len(docs),'eligible_chunks':len(rows),'native_indexed_chunks':sum(bool(r['uri']) for r in rows.values()),'native_scope_uris':len(uris)},

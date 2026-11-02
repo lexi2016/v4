@@ -358,6 +358,10 @@ def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: 
     date, slot, mode = record['trade_date'], record['slot'], record['mode']
     if mode != 'LIVE':
         raise PublicationError('HOURLY_COMPLETION_MODE_INVALID')
+    from ops.run_scheduled_slot import NEXT_TARGET_SLOTS, next_trade_day
+    from contracts.trading_calendar import load_market_calendar
+    # Slot/target semantics come from the fixed owner slot set + frozen calendar, never stale ALL_SLOTS.
+    expected_target = next_trade_day(date, calendar=load_market_calendar()) if slot in NEXT_TARGET_SLOTS else date
     if transition_0830_witness and (date != '20261102' or slot != '0830'):
         raise PublicationError('HOURLY_TRANSITION_WITNESS_SCOPE_INVALID')
     if transition_0830_witness:
@@ -412,7 +416,7 @@ def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: 
         # exact source/release/run hashes and completion-cutoff gates below
         # remain mandatory; an aggregate status alone never authorizes it.
         if (value.get('status') not in {'SUCCEEDED', 'FAILED', 'DUPLICATE_WORKLOAD_SKIPPED'} or value.get('release_id') != manifest.get('release_id')
-            or any(value.get(key) != date for key in ('scheduled_date', 'target_date'))
+            or value.get('scheduled_date') != date or value.get('target_date') != expected_target
             or any(value.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))
             or any(workload_id not in value.get(key, []) for key in
                    ('selected_workload_ids', 'invoked_workload_ids', 'started_workload_ids', 'succeeded_workload_ids'))):
