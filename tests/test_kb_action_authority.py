@@ -37,3 +37,18 @@ def test_tristate_score_and_rope_do_not_become_default_buy_or_sell():
     hit = project_action({**row, 'kb_b1':True})
     assert hit['kb_action_no_position'] == '等回调' and hit['kb_action_no_position_status'] == 'UNKNOWN_BUY_FILTERS'
     assert project_action({**row, 'kb_b1':True, 'kb_brick_action':'禁止抄底'})['kb_action_no_position'] == '等回调'
+
+
+def test_persisted_float_sell_signal_matches_integer_without_coercing_other_values():
+    row = dict(kb_b1=False, kb_b2=False, kb_b3=False, kb_bull_rope_status='牵牛',
+               kb_white_cross_down=False, kb_macd_veto=False, kb_brick_action='持有',
+               kb_hold_score=None, kb_hold_score_min=4, kb_hold_score_max=5)
+    integer = project_action({**row, 'user_v1_sell_signal_daily': 1})
+    floating = project_action({**row, 'user_v1_sell_signal_daily': 1.0})
+    assert floating == integer
+    assert floating['kb_action_with_position_status'] == 'CONFLICTING_OBSERVATIONS'
+    assert '原式卖点独立展示' in floating['kb_action_reasons']
+    for value in (0, 0.0, 1.01, '1', None, float('nan')):
+        observed = project_action({**row, 'user_v1_sell_signal_daily': value})
+        assert observed['kb_action_with_position_status'] == 'OBSERVED_SCORE_HOLD_CONDITIONAL'
+        assert '原式卖点独立展示' not in observed['kb_action_reasons']

@@ -661,11 +661,15 @@ def daily_product_run_key(context,selected,history_dates,rule_sha256,*,producer_
                     history_dates=list(history_dates),rule_sha256=rule_sha256,
                     producer_sha256=producer_sha256 or sha(Path(__file__).resolve())))
 
-def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
+def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None,isolated_sample_root=None):
  """Called once from original run_a; no historical loop in normal daily mode."""
  context=SourceContext(data_root,target)
  if output_root is not None:context.root=Path(output_root).resolve()
  root=context.root;context.unchanged()
+ if isolated_sample_root is not None:
+  from ops.research_panel_qfq import _validate_full_research_isolation
+  if symbols is None or evaluate is not None or context.receipt.get('status')!='CANDIDATE_READY':raise ValueError('DAILY_ISOLATED_SAMPLE_SCOPE_INVALID')
+  _validate_full_research_isolation(isolated_sample_root,context.data_root,root,{'selector':context.pointer,'backtest':context.backpointer})
  index_start=(root/'index.json').read_bytes() if (root/'index.json').is_file() else None
  if formula_result and (str(context.panel)!=str(formula_result['selector']) or formula_result['selector_sha256']!=context.receipt['candidate_sha256']['selector']):raise ValueError('DAILY_FORMULA_COMPLETION_IDENTITY_CONFLICT')
  selected=sorted(symbols if symbols is not None else context.scope)
@@ -705,7 +709,7 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
  except Exception as error:
   save(parts/'publication_error.json',dict(status='CANNOT_CONFIRM',reason='SOURCE_CHANGED_BEFORE_PUBLICATION:'+str(error),manifest=manifest_ref,artifact=artifact,original_charts=chart_descriptor,**FLAGS))
   raise
- if symbols is None:
+ if symbols is None or isolated_sample_root is not None:
   if ((root/'index.json').read_bytes() if (root/'index.json').is_file() else None)!=index_start:raise ValueError('DAILY_PUBLICATION_INDEX_CAS_MOVED')
   indexfile=root/'index.json';index=json.loads(indexfile.read_text()) if indexfile.is_file() else dict(schema_version='v4.a_share.daily_product_index.v1',dates={})
   index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']]
@@ -727,6 +731,7 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    except (ValueError,OSError,KeyError,TypeError) as error:
     save(parts/'workbench_statistics_error.json',dict(status='CANNOT_CONFIRM',error=str(error),numeric_manifest=manifest_ref,**FLAGS))
   event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS)
+  if isolated_sample_root is not None:event.update(sample_only=True,publication_scope='ISOLATED_CANDIDATE_SAMPLE_ONLY')
   if chart_descriptor is not None:
    event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
   save(root/'events/latest.json',event)

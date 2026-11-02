@@ -6,7 +6,7 @@ snapshots, never rewrites formula panels or assigns current F10 to past days.
 from __future__ import annotations
 
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import hashlib
 import importlib
 import json
@@ -25,8 +25,10 @@ VENDOR = {
     'tdx_f10_concepts_existing.py': 'c0d92c2e7c8409d673a03c029b1d251ab6338a3183eec285c3912be4f47f66d2',
 }
 HOSTS = (('115.238.90.165', 7709), ('119.147.212.81', 7709), ('101.227.73.20', 7709))
-# BJ's server mapping has not been certified here; never infer it from digits.
-MARKET = {'SZ': 0, 'SH': 1}
+# For BJ the existing TDX F10 endpoints use different market selectors.
+# The security still comes from the bound panel exchange, never its digits.
+MARKET = {'SZ': 0, 'SH': 1, 'BJ': 2}
+F10_TEXT_MARKET = {'BJ': 0}
 
 
 def _sha(raw):
@@ -79,11 +81,58 @@ def _safe_number(value):
     return value if math.isfinite(value) else None
 
 
+def _safe_vendor_grab(fetch, text, label):
+    """A missing numeric cell must not discard an otherwise verified F10 item."""
+    try:
+        return _safe_number(fetch.grab(text, label))
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def _bj_financials(text, updated):
+    """Use one dated TDX table column; placeholders and undated values stay unknown."""
+    lines=text.splitlines();header=next((line for line in lines if '★最新主要指标★' in line and '｜' in line),None)
+    labels={'eps':'每股收益(元)','bps':'每股净资产(元)','roe_pct':'净资产收益率(%)'}
+    result={'report_period':None,'holder_count':None,'holder_count_status':'SOURCE_PERIOD_UNBOUND',
+            'eps':None,'bps':None,'roe_pct':None,'revenue_text':None,'net_profit_text':None,
+            'net_profit_scope':'SOURCE_LABEL_NET_PROFIT_PARENT_SCOPE_UNCONFIRMED'}
+    if not header or not updated:return result
+    try:updated_day=date.fromisoformat(updated)
+    except (ValueError,TypeError):return result
+    cells=lambda line:[part.strip() for part in line.strip().strip('｜').split('｜')]
+    columns=cells(header)[1:];value_rows={}
+    for line in lines:
+        if not line.lstrip().startswith('｜'):continue
+        parts=cells(line)
+        for key,label in labels.items():
+            if parts and parts[0]==label:value_rows[key]=parts[1:]
+    for i,period in enumerate(columns):
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',period):continue
+        try:period_day=date.fromisoformat(period)
+        except ValueError:continue
+        if period_day>updated_day:continue
+        values={}
+        for key in labels:
+            row=value_rows.get(key,[]);raw=row[i] if i<len(row) else ''
+            values[key]=_safe_number(float(raw)) if re.fullmatch(r'[+-]?\d+(?:\.\d+)?',raw) else None
+        if not any(value is not None for value in values.values()):continue
+        result.update(report_period=period,**values)
+        for line in lines:
+            if not re.match(r'^\s*｜?\s*'+re.escape(period)+r'\b',line):continue
+            for key,label in (('revenue_text','营业总收入(元)'),('net_profit_text','净利润(元)')):
+                match=re.search(re.escape(label)+r'\s*[:：]\s*([^\s｜]+)',line)
+                if match:result[key]=match.group(1)
+        break
+    return result
+
+
 def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
     if exchange is None:
         return {'symbol':symbol, 'exchange':None, 'status':'SOURCE_IDENTITY_UNAVAILABLE', 'reason':'BOUND_PANEL_EXCHANGE_MISSING'}
     if exchange not in MARKET:
         return {'symbol':symbol, 'exchange':exchange, 'status':'UNSUPPORTED_EXCHANGE', 'reason':'TDX_MARKET_MAPPING_UNCERTIFIED'}
+    if not isinstance(symbol,str) or not re.fullmatch(r'\d{6}\.'+re.escape(exchange),symbol):
+        return {'symbol':symbol, 'exchange':exchange, 'status':'SOURCE_IDENTITY_CONFLICT', 'reason':'BOUND_EXCHANGE_SYMBOL_MISMATCH'}
     fetch, _ = vendor or _vendors(); api = (api_factory or fetch.TdxHq_API)(); connected = None
     try:
         for host in HOSTS:
@@ -91,22 +140,68 @@ def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
                 if api.connect(*host): connected=host; break
             except Exception: continue
         if connected is None: raise RuntimeError('TDX_CONNECTION_FAILED')
-        code=symbol.split('.')[0]; market=MARKET[exchange]
-        categories=api.get_company_info_category(market, code)
-        if not categories: raise RuntimeError('F10_CATEGORY_MISSING')
-        category=categories[0]
-        body=api.get_company_info_content(market,code,category['filename'],category['start'],category['length'])
-        if not isinstance(body,(str,bytes)) or not body: raise RuntimeError('F10_CONTENT_MISSING')
-        text=(body if isinstance(body,str) else body.decode('gbk','replace')).replace('\x00','')
-        finance=api.get_finance_info(market,code)
-        if not isinstance(finance,dict) or str(finance.get('code') or '')!=code or finance.get('market')!=market:
-            raise RuntimeError('F10_FINANCE_IDENTITY_MISMATCH')
+        code=symbol.split('.')[0]; market=MARKET[exchange]; text_market=F10_TEXT_MARKET.get(exchange,market)
+        if exchange=='BJ':
+            # Preserve independently verified parts if only one endpoint works.
+            # Incomplete items remain PARTIAL and are not cached as completed.
+            text_component={'status':'UNKNOWN'}; finance_component={'status':'UNKNOWN'}
+            try:
+                categories=api.get_company_info_category(text_market,code)
+                if not categories:raise RuntimeError('F10_CATEGORY_MISSING')
+                category=categories[0]
+                body=api.get_company_info_content(text_market,code,category['filename'],category['start'],category['length'])
+                if not isinstance(body,(str,bytes)) or not body:raise RuntimeError('F10_CONTENT_MISSING')
+                text=(body if isinstance(body,str) else body.decode('gbk','replace')).replace('\x00','')
+                if not re.search(r'◇'+re.escape(code)+r'\s+[^◇\n]+?\s+更新日期[：:]',text[:300]):
+                    raise RuntimeError('F10_TEXT_IDENTITY_MISMATCH')
+                text_component={'status':'OBSERVED','market':text_market,'category':category,
+                                'source_text':text,'source_text_sha256':_sha(text.encode())}
+            except Exception as error:
+                text_component={'status':'UNKNOWN','reason':type(error).__name__+': '+str(error)}
+            try:
+                finance=api.get_finance_info(market,code)
+                if not isinstance(finance,dict) or str(finance.get('code') or '')!=code or finance.get('market')!=market:
+                    raise RuntimeError('F10_FINANCE_IDENTITY_MISMATCH')
+                finance_component={'status':'OBSERVED','market':market,'finance_native_raw':{
+                    str(k):_safe_number(v) if isinstance(v,(float,int)) else v for k,v in finance.items()}}
+            except Exception as error:
+                finance_component={'status':'UNKNOWN','reason':type(error).__name__+': '+str(error)}
+            if text_component['status']!='OBSERVED' or finance_component['status']!='OBSERVED':
+                observed=sum(c['status']=='OBSERVED' for c in (text_component,finance_component))
+                return {'symbol':symbol,'exchange':exchange,'status':'PARTIAL' if observed else 'FAILED',
+                    'reason':'F10_COMPONENTS_INCOMPLETE','captured_at':datetime.now(timezone.utc).isoformat(),
+                    'server':f'{connected[0]}:{connected[1]}','source_components':{'text':text_component,'finance':finance_component},
+                    'historical_PIT':False,**FLAGS}
+        else:
+            categories=api.get_company_info_category(text_market, code)
+            if not categories: raise RuntimeError('F10_CATEGORY_MISSING')
+            category=categories[0]
+            body=api.get_company_info_content(text_market,code,category['filename'],category['start'],category['length'])
+            if not isinstance(body,(str,bytes)) or not body: raise RuntimeError('F10_CONTENT_MISSING')
+            text=(body if isinstance(body,str) else body.decode('gbk','replace')).replace('\x00','')
+            finance=api.get_finance_info(market,code)
+            if not isinstance(finance,dict) or str(finance.get('code') or '')!=code or finance.get('market')!=market:
+                raise RuntimeError('F10_FINANCE_IDENTITY_MISMATCH')
         section=_concept_section(text); concepts=fetch.concepts_from(section) if section is not None else []
         period=re.search(r'★最新主要指标★\s*｜\s*(\d{4}-\d{2}-\d{2})',text)
         updated=re.search(r'更新日期[：:]\s*(\d{4}-\d{2}-\d{2})',text[:300])
         name=re.search(r'◇'+re.escape(code)+r'\s+([^◇\n]+?)\s+更新日期',text[:300])
         income=re.search(r'营业总收入\(元\)\s*[:：]\s*([^\s｜]+)',text)
         net=re.search(r'净利润\(元\)\s*[:：]\s*([^\s｜]+)',text)
+        financials=(_bj_financials(text,updated.group(1) if updated else None) if exchange=='BJ' else
+            {'report_period':period.group(1) if period else None,
+             'holder_count':_safe_number(finance.get('gudongrenshu')),
+             'eps':_safe_vendor_grab(fetch,text,'每股收益(元)'),'bps':_safe_vendor_grab(fetch,text,'每股净资产(元)'),
+             'roe_pct':_safe_vendor_grab(fetch,text,'净资产收益率(%)'),
+             'revenue_text':income.group(1) if income else None,'net_profit_text':net.group(1) if net else None})
+        if exchange!='BJ' and all(financials[k] is None for k in ('eps','bps','roe_pct')):
+            # Some SH/SZ texts lead with a dated column of '-' placeholders.
+            # Only combine values and revenue from the same actual dated column.
+            dated=_bj_financials(text,updated.group(1) if updated else None)
+            if dated['report_period'] is not None:financials=dated
+            else:
+                financials.update(report_period=None,holder_count=None,revenue_text=None,net_profit_text=None,
+                                  holder_count_status='SOURCE_PERIOD_UNBOUND')
         data={'symbol':symbol,'exchange':exchange,'status':'OBSERVED',
               'captured_at':datetime.now(timezone.utc).isoformat(),'server':f'{connected[0]}:{connected[1]}',
               'category':{'name':category.get('name'),'filename':category.get('filename'),
@@ -117,13 +212,10 @@ def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
               'name':name.group(1).strip() if name else None,
               'concepts':concepts,'concept_status':'OBSERVED' if section is not None and concepts else 'UNKNOWN_EMPTY_OR_UNPARSED',
               'industry':{'tdx_finance_industry_code':finance.get('industry'),'name':None,'status':'CODE_ONLY_NAME_UNMAPPED'},
-              'financials':{'report_period':period.group(1) if period else None,
-                  'holder_count':_safe_number(finance.get('gudongrenshu')),
-                  'eps':fetch.grab(text,'每股收益(元)'),'bps':fetch.grab(text,'每股净资产(元)'),
-                  'roe_pct':fetch.grab(text,'净资产收益率(%)'),
-                  'revenue_text':income.group(1) if income else None,'net_profit_text':net.group(1) if net else None},
+              'financials':financials,
               'finance_native_raw':{str(k):_safe_number(v) if isinstance(v,(float,int)) else v for k,v in finance.items()},
               'historical_PIT':False,**FLAGS}
+        if exchange=='BJ':data['endpoint_markets']={'text':text_market,'finance':market}
         return data
     except Exception as error:
         return {'symbol':symbol,'exchange':exchange,'status':'FAILED','reason':type(error).__name__+': '+str(error),
@@ -150,11 +242,39 @@ def bound_universe(context, requested=None):
     return {symbol:observed.get(symbol) for symbol in sorted(selected)}
 
 
-def complete_f10(context, receipt_ref, output_root, *, requested=None, workers=4, fetch=fetch_one):
+def _isolated_sample_upstream(context, receipt_ref, receipt, output_root, isolated_root, requested):
+    """Bind a real sample product manifest without claiming full daily completion."""
+    from ops.research_panel_qfq import _validate_full_research_isolation
+    isolated=_validate_full_research_isolation(isolated_root,context.data_root,output_root,
+        {'selector':context.pointer,'backtest':context.backpointer})
+    if (requested is None or not Path(receipt_ref['path']).resolve().is_relative_to(isolated)
+            or receipt.get('schema_version')!='v4.a_share.daily_product_manifest.v1'
+            or receipt.get('sample_only') is not True or receipt.get('data_date')!=str(context.target)
+            or receipt.get('source_generation')!=context.generation or receipt.get('input_sha256')!=context.identity['input_sha256']
+            or receipt.get('processed_count')!=len(set(requested)) or receipt.get('source_universe_count')!=len(context.scope)
+            or any(receipt.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('F10_ISOLATED_SAMPLE_MANIFEST_CONFLICT')
+    artifact_ref=receipt.get('artifact') or {}
+    if not Path(artifact_ref.get('path','')).resolve().is_relative_to(isolated):
+        raise ValueError('F10_ISOLATED_SAMPLE_ARTIFACT_ESCAPE')
+    product=json.loads(_read_ref(artifact_ref))
+    if (product.get('sample_only') is not True or product.get('source_generation')!=context.generation
+            or product.get('source_identity')!=context.identity or set(product.get('processed_universe',[]))!=set(requested)
+            or product.get('processed_count')!=len(set(requested)) or any(product.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('F10_ISOLATED_SAMPLE_PRODUCT_CONFLICT')
+    for symbol in requested:
+        if context.qualify(symbol).get('status')!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
+            raise ValueError('F10_ISOLATED_SAMPLE_ADMISSION_FAILED:'+symbol)
+    return isolated
+
+
+def complete_f10(context, receipt_ref, output_root, *, requested=None, workers=4, fetch=fetch_one, isolated_sample_root=None):
     """Run after an immutable successful daily derivative receipt; resume by symbol."""
     if isinstance(workers,bool) or not isinstance(workers,int) or not 1<=workers<=4: raise ValueError('F10_WORKER_LIMIT')
     receipt=json.loads(_read_ref(receipt_ref))
-    if (receipt.get('schema')!='V4_A_DAILY_DERIVATIVES_V1' or receipt.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT'
+    if isolated_sample_root is not None:
+        isolated=_isolated_sample_upstream(context,receipt_ref,receipt,output_root,isolated_sample_root,requested)
+    elif (receipt.get('schema')!='V4_A_DAILY_DERIVATIVES_V1' or receipt.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT'
             or receipt.get('data_date')!=str(context.target) or receipt.get('source_generation')!=context.generation
             or any(receipt.get(k)!=v for k,v in FLAGS.items())): raise ValueError('F10_DAILY_COMPLETION_UNBOUND')
     context.unchanged(); universe=bound_universe(context,requested); context.unchanged()
@@ -210,6 +330,8 @@ def complete_f10(context, receipt_ref, output_root, *, requested=None, workers=4
                      'count':len(universe),'symbols':sorted(universe) if requested is not None else None},
             'observed':len(cache),'failures':failures,'remaining':remaining,'historical_PIT':False,
             'captured_as_current_knowledge':True,**FLAGS}
+    if isolated_sample_root is not None:
+        result.update(upstream_completion_kind='ISOLATED_SAMPLE_NUMERIC_MANIFEST',isolated_sample_root=str(isolated))
     digest=_sha((json.dumps(result,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False)+'\n').encode())
     result_ref=_write(root/'receipts'/(digest+'.json'),result,immutable=True)
     return {'status':result['status'],'receipt':result_ref,'requested':result['requested'],'observed':result['observed'],
@@ -227,6 +349,10 @@ def publish_f10_completion(context, output_root, receipt_ref, *, expected_index_
         or receipt.get('selector_sha256')!=context.identity['selector_artifact_sha256']
         or receipt.get('historical_PIT') is not False or any(receipt.get(k)!=v for k,v in FLAGS.items())
         or receipt.get('status') not in {'COMPLETE','PARTIAL'}):raise ValueError('F10_PUBLICATION_RECEIPT_CONFLICT')
+    if receipt.get('upstream_completion_kind')=='ISOLATED_SAMPLE_NUMERIC_MANIFEST':
+        _isolated_sample_upstream(context,receipt['upstream_success_receipt'],
+            json.loads(_read_ref(receipt['upstream_success_receipt'])),root,receipt.get('isolated_sample_root'),
+            receipt.get('scope',{}).get('symbols'))
     checkpoint=json.loads(_read_ref(receipt['checkpoint']));checkpoint_identity=checkpoint.get('identity',{})
     if (checkpoint.get('schema')!='v4.a_share.f10_checkpoint.v1' or checkpoint_identity.get('data_date')!=day
         or checkpoint_identity.get('source_generation')!=context.generation
@@ -258,6 +384,10 @@ def publish_f10_completion(context, output_root, receipt_ref, *, expected_index_
         if (not manifest_ref or event.get('data_date')!=day or event.get('source_generation')!=context.generation
             or event.get('input_sha256')!=context.identity['input_sha256'] or event.get('manifest')!=manifest_ref):
             raise ValueError('F10_PRODUCT_INDEX_MOVED')
+        if (receipt.get('upstream_completion_kind')=='ISOLATED_SAMPLE_NUMERIC_MANIFEST'
+                and (event.get('publication_scope')!='ISOLATED_CANDIDATE_SAMPLE_ONLY'
+                     or event.get('sample_only') is not True or manifest_ref!=receipt['upstream_success_receipt'])):
+            raise ValueError('F10_ISOLATED_SAMPLE_EVENT_CONFLICT')
         manifest=json.loads(_read_ref(manifest_ref))
         if manifest.get('source_generation')!=context.generation or manifest.get('input_sha256')!=context.identity['input_sha256']:
             raise ValueError('F10_NUMERIC_MANIFEST_CONFLICT')

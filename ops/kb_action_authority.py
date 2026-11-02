@@ -41,7 +41,8 @@ def project_action(row, *, rule_sha256=None):
              and (raw_total is None or total is not None and total == low == high))
     interval = (f'{low}/5' if low == high else f'{low}～{high}/5') if valid else '待核'
     rope, brick, macd, cross = (row[key] for key in ('kb_bull_rope_status', 'kb_brick_action', 'kb_macd_veto', 'kb_white_cross_down'))
-    sell = row['user_v1_sell_signal_daily'] is True or type(row['user_v1_sell_signal_daily']) is int and row['user_v1_sell_signal_daily'] == 1
+    sell_value = row['user_v1_sell_signal_daily']
+    sell = sell_value is True or (isinstance(sell_value, Real) and not isinstance(sell_value, bool) and sell_value == 1)
     blockers = []
     if brick in ('禁止抄底', '止损'):
         blockers.append('砖型源状态为' + brick)

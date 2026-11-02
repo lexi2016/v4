@@ -7,7 +7,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from ops.research_panel_f10 import FLAGS, _concept_section, bound_universe, complete_f10, fetch_one, publish_f10_completion
+from ops.research_panel_f10 import FLAGS, _concept_section, _isolated_sample_upstream, bound_universe, complete_f10, fetch_one, publish_f10_completion
 
 
 def test_f10_uses_exchange_mapping_and_missing_source_is_not_empty_success():
@@ -20,11 +20,113 @@ def test_f10_uses_exchange_mapping_and_missing_source_is_not_empty_success():
     value=fetch_one('301048.SZ','SZ',api_factory=API,vendor=vendor)
     assert value['status']=='FAILED' and 'F10_CATEGORY_MISSING' in value['reason']
     assert calls==[(0,'301048')]
-    assert fetch_one('920123.BJ','BJ',api_factory=API,vendor=vendor)['status']=='UNSUPPORTED_EXCHANGE'
+    unsupported=fetch_one('920123.BJ','BJ',api_factory=API,vendor=vendor)
+    assert unsupported['status']=='FAILED' and unsupported['reason']=='F10_COMPONENTS_INCOMPLETE'
+    conflict=fetch_one('920123.BJ','SZ',api_factory=API,vendor=vendor)
+    assert conflict['status']=='SOURCE_IDENTITY_CONFLICT' and conflict['reason']=='BOUND_EXCHANGE_SYMBOL_MISMATCH'
     absent=fetch_one('920123.BJ',None,api_factory=API,vendor=vendor)
     assert absent['status']=='SOURCE_IDENTITY_UNAVAILABLE' and absent['reason']=='BOUND_PANEL_EXCHANGE_MISSING'
     text='【3.概念板块】\n｜高端装备｜内容｜\n【4.风险提示】\n｜旧风险｜不能算概念｜'
     assert '旧风险' not in _concept_section(text)
+
+
+def test_bj_f10_uses_independent_markets_and_checks_both_identities():
+    calls=[]
+    class API:
+        def connect(self,*host):return True
+        def get_company_info_category(self,market,code):
+            calls.append(('category',market,code));return [{'filename':'f10.txt','name':'提示','start':0,'length':100}]
+        def get_company_info_content(self,market,code,*args):
+            calls.append(('content',market,code));return '◇920000 安徽凤凰 更新日期：2026-11-02◇\n【3.概念板块】\n｜高端装备｜描述｜'
+        def get_finance_info(self,market,code):
+            calls.append(('finance',market,code));return {'market':market,'code':code,'updated_date':20261029,'gudongrenshu':12}
+        def disconnect(self):pass
+    vendor=(SimpleNamespace(TdxHq_API=API,concepts_from=lambda _:[],grab=lambda *_:None),None)
+    result=fetch_one('920000.BJ','BJ',api_factory=API,vendor=vendor)
+    assert result['status']=='OBSERVED' and result['name']=='安徽凤凰'
+    assert result['endpoint_markets']=={'text':0,'finance':2}
+    assert result['source_updated_date']=='2026-11-02' and result['finance_updated_date']=='20261029'
+    assert result['historical_PIT'] is False and result['financials']['holder_count'] is None
+    assert result['financials']['holder_count_status']=='SOURCE_PERIOD_UNBOUND' and result['finance_native_raw']['gudongrenshu']==12
+    assert calls==[('category',0,'920000'),('content',0,'920000'),('finance',2,'920000')]
+
+
+def test_bj_missing_numeric_indicator_stays_unknown_without_losing_other_data():
+    class API:
+        def connect(self,*host):return True
+        def get_company_info_category(self,market,code):return [{'filename':'f10.txt','start':0,'length':100}]
+        def get_company_info_content(self,market,code,*args):return ('◇920201 百瑞吉 更新日期：2026-10-30◇\n'
+            '｜★最新主要指标★｜2026-11-04｜2026-09-30｜\n'
+            '｜每股收益(元)｜-｜1.0400｜\n｜每股净资产(元)｜-｜7.1820｜\n｜净资产收益率(%)｜-｜17.7300｜\n'
+            '｜2026-09-30 营业总收入(元):2.4543亿｜\n｜2026-09-30 净利润(元):6237.3014万｜\n'
+            '｜2026-06-30 营业总收入(元):旧值｜')
+        def get_finance_info(self,market,code):return {'market':2,'code':'920201','gudongrenshu':123}
+        def disconnect(self):pass
+    def unavailable(*_):return float('-')
+    vendor=(SimpleNamespace(TdxHq_API=API,concepts_from=lambda _:[],grab=unavailable),None)
+    result=fetch_one('920201.BJ','BJ',api_factory=API,vendor=vendor)
+    assert result['status']=='OBSERVED' and result['financials']['holder_count'] is None
+    assert result['finance_native_raw']['gudongrenshu']==123
+    assert result['financials']['report_period']=='2026-09-30' and result['financials']['eps']==1.04
+    assert result['financials']['bps']==7.182 and result['financials']['roe_pct']==17.73
+    assert result['financials']['revenue_text']=='2.4543亿' and result['financials']['net_profit_text']=='6237.3014万'
+    assert result['financials']['net_profit_scope']=='SOURCE_LABEL_NET_PROFIT_PARENT_SCOPE_UNCONFIRMED'
+
+
+def test_sh_placeholder_numeric_cell_does_not_discard_company_material():
+    class API:
+        def connect(self,*host):return True
+        def get_company_info_category(self,market,code):return [{'filename':'f10.txt','start':0,'length':100}]
+        def get_company_info_content(self,market,code,*args):
+            return '◇688981 中芯国际 更新日期：2026-10-30◇\n★最新主要指标★｜2026-09-30｜'
+        def get_finance_info(self,market,code):return {'market':1,'code':'688981'}
+        def disconnect(self):pass
+    def grab(text,label):
+        if label=='每股收益(元)':raise ValueError("could not convert string to float: '-'")
+        return 2.5 if label=='每股净资产(元)' else float('nan')
+    vendor=(SimpleNamespace(TdxHq_API=API,concepts_from=lambda _:[],grab=grab),None)
+    result=fetch_one('688981.SH','SH',api_factory=API,vendor=vendor)
+    assert result['status']=='OBSERVED' and result['name']=='中芯国际'
+    assert result['financials']['eps'] is None and result['financials']['bps']==2.5
+    assert result['financials']['roe_pct'] is None and result['historical_PIT'] is False
+
+
+def test_sh_placeholder_header_uses_a_single_bound_actual_period():
+    class API:
+        def connect(self,*host):return True
+        def get_company_info_category(self,market,code):return [{'filename':'f10.txt','start':0,'length':100}]
+        def get_company_info_content(self,market,code,*args):return ('◇688981 中芯国际 更新日期：2026-10-30◇\n'
+            '｜★最新主要指标★｜2026-10-13｜2026-06-30｜\n'
+            '｜每股收益(元)｜-｜0.5600｜\n｜每股净资产(元)｜-｜20.0281｜\n｜净资产收益率(%)｜-｜2.9000｜\n'
+            '｜2026-06-30 营业总收入(元):386.3512亿｜\n｜2026-06-30 净利润(元):44.6743亿｜')
+        def get_finance_info(self,market,code):return {'market':1,'code':'688981','gudongrenshu':123}
+        def disconnect(self):pass
+    def grab(*_):raise ValueError("could not convert string to float: '-'")
+    vendor=(SimpleNamespace(TdxHq_API=API,concepts_from=lambda _:[],grab=grab),None)
+    result=fetch_one('688981.SH','SH',api_factory=API,vendor=vendor)
+    values=result['financials']
+    assert result['status']=='OBSERVED' and values['report_period']=='2026-06-30'
+    assert values['eps']==.56 and values['bps']==20.0281 and values['roe_pct']==2.9
+    assert values['revenue_text']=='386.3512亿' and values['net_profit_text']=='44.6743亿'
+    assert values['holder_count'] is None and values['holder_count_status']=='SOURCE_PERIOD_UNBOUND'
+    assert result['finance_native_raw']['gudongrenshu']==123
+
+
+@pytest.mark.parametrize('bad_part',['text','finance'])
+def test_bj_partial_preserves_verified_component_without_admitting_mismatch(bad_part):
+    class API:
+        def connect(self,*host):return True
+        def get_company_info_category(self,market,code):return [{'filename':'f10.txt','start':0,'length':100}]
+        def get_company_info_content(self,market,code,*args):
+            return '◇'+('920001' if bad_part=='text' else code)+' 安徽凤凰 更新日期：2026-10-30◇'
+        def get_finance_info(self,market,code):return {'market':market,'code':'920001' if bad_part=='finance' else code}
+        def disconnect(self):pass
+    vendor=(SimpleNamespace(TdxHq_API=API,concepts_from=lambda _:[],grab=lambda *_:None),None)
+    result=fetch_one('920000.BJ','BJ',api_factory=API,vendor=vendor)
+    assert result['status']=='PARTIAL' and result['reason']=='F10_COMPONENTS_INCOMPLETE'
+    assert result['source_components'][bad_part]['status']=='UNKNOWN'
+    assert result['source_components']['finance' if bad_part=='text' else 'text']['status']=='OBSERVED'
+    assert result['historical_PIT'] is False
 
 
 def test_f10_completion_is_receipt_bound_and_resume_reuses_success(tmp_path):
@@ -66,6 +168,63 @@ def test_partial_receipt_checkpoint_survives_successful_resume(tmp_path):
     assert second['status']=='COMPLETE' and checkpoint.read_bytes()==before
     assert hashlib.sha256(before).hexdigest()==prior['checkpoint']['sha256']
     assert len(json.loads(Path(json.loads(Path(second['receipt']['path']).read_text())['checkpoint']['path']).read_text())['items'])==2
+
+
+def test_partial_bj_component_is_preserved_and_retried(tmp_path):
+    panel=tmp_path/'panel.parquet';pq.write_table(pa.table({'ts_code':['920000.BJ'],'exchange':['BJ']}),panel)
+    context=SimpleNamespace(scope=['920000.BJ'],panel=panel,target=20261030,generation='a'*64,
+        identity={'selector_artifact_sha256':'b'*64,'input_sha256':'c'*64},unchanged=lambda:None)
+    upstream=tmp_path/'upstream.json';upstream.write_text(json.dumps({'schema':'V4_A_DAILY_DERIVATIVES_V1',
+        'status':'COMPLETE_DESCRIPTIVE_NONPIT','data_date':'20261030','source_generation':context.generation,**FLAGS}))
+    ref={'path':str(upstream),'sha256':hashlib.sha256(upstream.read_bytes()).hexdigest()}
+    partial={'symbol':'920000.BJ','exchange':'BJ','status':'PARTIAL','reason':'F10_COMPONENTS_INCOMPLETE',
+        'source_components':{'text':{'status':'UNKNOWN'},'finance':{'status':'OBSERVED','market':2,
+        'finance_native_raw':{'market':2,'code':'920000'}}},'historical_PIT':False,**FLAGS}
+    first=complete_f10(context,ref,tmp_path/'out',workers=1,fetch=lambda *_:partial)
+    receipt=json.loads(Path(first['receipt']['path']).read_text())
+    failure=receipt['failures']['920000.BJ'];raw=Path(failure['artifact']['path']).read_bytes()
+    assert first['status']=='PARTIAL' and failure['status']=='PARTIAL'
+    assert hashlib.sha256(raw).hexdigest()==failure['artifact']['sha256']
+    assert json.loads(raw)['source_components']['finance']['finance_native_raw']['code']=='920000'
+    checkpoint=json.loads(Path(receipt['checkpoint']['path']).read_text())
+    assert '920000.BJ' not in checkpoint['items']
+    second=complete_f10(context,ref,tmp_path/'out',workers=1,fetch=lambda code,exchange:{
+        'symbol':code,'exchange':exchange,'status':'OBSERVED','historical_PIT':False,**FLAGS})
+    assert second['status']=='COMPLETE' and second['observed']==1
+
+
+def test_isolated_f10_completion_requires_bound_sample_and_admission(tmp_path):
+    isolated=tmp_path/'isolated'; isolated.mkdir()
+    data=isolated/'data'; data.mkdir()
+    root=isolated/'product'; root.mkdir()
+    context=SimpleNamespace(data_root=data,pointer=data/'selector',backpointer=data/'backtest',
+        target=20261030,generation='a'*64,scope=['920201.BJ','920000.BJ','920001.BJ'],
+        identity={'input_sha256':'b'*64},
+        qualify=lambda symbol:{'status':'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
+            if symbol!='920001.BJ' else 'UNKNOWN'})
+    def save(path,value):
+        raw=json.dumps(value,sort_keys=True).encode();path.write_bytes(raw)
+        return {'path':str(path),'sha256':hashlib.sha256(raw).hexdigest()}
+    requested=['920201.BJ','920000.BJ']
+    product={'sample_only':True,'source_generation':context.generation,'source_identity':context.identity,
+             'processed_universe':requested,'processed_count':2,**FLAGS}
+    artifact=save(root/'product.json',product)
+    manifest={'schema_version':'v4.a_share.daily_product_manifest.v1','sample_only':True,
+        'data_date':'20261030','source_generation':context.generation,'input_sha256':context.identity['input_sha256'],
+        'processed_count':2,'source_universe_count':3,'artifact':artifact,**FLAGS}
+    manifest_ref=save(root/'manifest.json',manifest)
+    assert _isolated_sample_upstream(context,manifest_ref,manifest,root,isolated,requested)==isolated
+    with pytest.raises(ValueError,match='MANIFEST_CONFLICT'):
+        _isolated_sample_upstream(context,manifest_ref,{**manifest,'input_sha256':'c'*64},root,isolated,requested)
+    with pytest.raises(ValueError,match='PRODUCT_CONFLICT'):
+        _isolated_sample_upstream(context,manifest_ref,manifest,root,isolated,['920201.BJ','920001.BJ'])
+    outside=save(tmp_path/'outside.json',product)
+    with pytest.raises(ValueError,match='ARTIFACT_ESCAPE'):
+        _isolated_sample_upstream(context,manifest_ref,{**manifest,'artifact':outside},root,isolated,requested)
+    bad_product={**product,'processed_universe':['920201.BJ','920001.BJ']}
+    bad_artifact=save(root/'bad-product.json',bad_product)
+    with pytest.raises(ValueError,match='ADMISSION_FAILED'):
+        _isolated_sample_upstream(context,manifest_ref,{**manifest,'artifact':bad_artifact},root,isolated,bad_product['processed_universe'])
 
 
 def test_f10_completion_publishes_bound_reference_without_mutating_upstream(tmp_path, monkeypatch):

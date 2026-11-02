@@ -642,6 +642,18 @@ def run(output, authorization, phase):
     print(json.dumps({key: value for key, value in summary.items() if key not in {'rows', 'event_cases', 'results', 'symbols'}}, ensure_ascii=False), flush=True)
 
 
+_RETAINED_DEFINITIONS = (
+    ('original_level1', '原式一级买点', 'original', 'user_v1_level1_buy_signal'),
+    ('original_level2', '原式二级买点', 'original', 'user_v1_level2_buy_signal'),
+    ('original_b1', '原式B1', 'original', 'user_v1_B1'),
+    ('original_b2', '原式B2', 'original', 'user_v1_B2'),
+    ('original_b3', '原式B3', 'original', 'user_v1_B3'),
+    ('kb_b1', 'KB B1', 'kb', 'kb_b1'), ('kb_b2', 'KB B2', 'kb', 'kb_b2'),
+    ('kb_b3', 'KB B3', 'kb', 'kb_b3'), ('kb_violence_k', 'KB暴力K', 'kb', 'kb_violence_k'),
+    ('kb_fanbao', 'KB反包', 'kb', 'kb_fanbao'),
+)
+
+
 def retained_single_stock_statistics(rows, close_rows, calendar, identity):
     """Describe already materialized chart/KB labels for one stock, not R5 groups.
 
@@ -651,18 +663,13 @@ def retained_single_stock_statistics(rows, close_rows, calendar, identity):
     """
     from domains.research_daily_statistics import build_daily_event_statistics, stratify_event_cases_by_prefix_percentile
 
-    definitions = (
-        ('original_level1', '原式一级买点', 'original', 'user_v1_level1_buy_signal'),
-        ('original_level2', '原式二级买点', 'original', 'user_v1_level2_buy_signal'),
-        ('original_b1', '原式B1', 'original', 'user_v1_B1'),
-        ('original_b2', '原式B2', 'original', 'user_v1_B2'),
-        ('original_b3', '原式B3', 'original', 'user_v1_B3'),
-        ('kb_b1', 'KB B1', 'kb', 'kb_b1'), ('kb_b2', 'KB B2', 'kb', 'kb_b2'),
-        ('kb_b3', 'KB B3', 'kb', 'kb_b3'), ('kb_violence_k', 'KB暴力K', 'kb', 'kb_violence_k'),
-        ('kb_fanbao', 'KB反包', 'kb', 'kb_fanbao'),
-    )
+    market = identity.get('market')
+    calendar_sha = identity.get('calendar_sha256')
+    if (market not in {'SH', 'SZ', 'BJ'} or not isinstance(calendar_sha, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', calendar_sha)):
+        raise ValueError('RETAINED_MARKET_CALENDAR_IDENTITY_UNBOUND')
     grouped, coverage = [], {}
-    for group_id, label, namespace, field in definitions:
+    for group_id, label, namespace, field in _RETAINED_DEFINITIONS:
         dates, known, unknown = [], 0, 0
         for row in rows:
             value = row[namespace].get(field)
@@ -679,7 +686,8 @@ def retained_single_stock_statistics(rows, close_rows, calendar, identity):
             'source_view_sha256': identity['source_view_sha256']})).hexdigest()
         group_identity = {'generation': identity['source_generation'], 'input': identity['input_sha256'],
             'formula': identity['formula_sha256'] if namespace == 'original' else identity['kb_contract_sha256'],
-            'rule_sha256': rule, 'asof': identity['asof'], 'market': 'SZ',
+            'rule_sha256': rule, 'asof': identity['asof'], 'market': market,
+            'calendar_sha256': calendar_sha,
             'basis': 'QFQ', 'pit_status': 'NONPIT'}
         grouped.append({'group_id': group_id, 'rule_sha256': rule, 'source_identity': group_identity, 'event_dates': dates})
         coverage[group_id] = {'label': label, 'namespace': namespace, 'field': field,
@@ -704,8 +712,10 @@ def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, his
     binding = load(candidate['binding'])
     symbol = binding.get('symbol')
     if (candidate.get('candidate_generation') != binding.get('candidate_generation')
-            or symbol not in {'002865.SZ', '301048.SZ'} or binding.get('source_date') != '2026-10-30'
-            or binding.get('observation_date') != '2026-11-02' or binding.get('historical_PIT') is not False
+            or not isinstance(symbol,str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',symbol)
+            or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(binding.get('source_date','')))
+            or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',str(binding.get('observation_date','')))
+            or binding.get('historical_PIT') is not False
             or any(binding.get(k) != v for k, v in FLAGS.items())):
         raise ValueError('RETAINED_SINGLE_IDENTITY_CONFLICT')
     view_ref, selector_ref = binding['assets']['kb'], candidate['outputs']['selector']
@@ -717,7 +727,8 @@ def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, his
         selector_input = load_path(selector_ref)
     selector = pq.read_table(selector_input, columns=['trade_date', 'ts_code', 'close'])
     prices = selector.to_pylist()
-    if (cal.get('exchange') != 'SZ' or cal.get('asof') != '2026-10-30'
+    market=symbol[-2:];asof=binding['source_date']
+    if (cal.get('exchange') != market or cal.get('asof') != asof
             or cal.get('source_panel_sha256') != binding['candidate_identity']['baseline_panel_sha256']['selector']
             or view.get('candidate_generation') != binding['candidate_generation']
             or view.get('source_generation') != binding['source_generation']
@@ -733,10 +744,10 @@ def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, his
     identity = {'source_generation': binding['source_generation'], 'input_sha256': binding['source_input_sha256'],
         'source_view_sha256': view_ref['sha256'], 'formula_sha256': binding['candidate_identity']['formula_sha256'],
         'kb_contract_sha256': binding['candidate_identity']['source_sha256']['contracts/a_share_kb_fields_v1.json'],
-        'asof': '2026-10-30'}
+        'asof': asof, 'market':market, 'calendar_sha256':calendar_ref['sha256']}
     stats = retained_single_stock_statistics(view['rows'], close_rows, cal['days'], identity)
     shard = {'schema_version': 'v4.a_share.event_cases.single_research.v1', 'symbol': symbol,
-        'data_date': '20261030', 'observation_date': '2026-11-02', 'source_generation': identity['source_generation'],
+        'data_date': asof.replace('-',''), 'observation_date': binding['observation_date'], 'source_generation': identity['source_generation'],
         'input_sha256': identity['input_sha256'], 'numeric_manifest': binding['numeric_manifest'],
         'source_candidate_generation': binding['candidate_generation'], 'source_candidate': candidate_ref,
         'source_selector': selector_ref, 'source_view': view_ref, 'market_calendar': calendar_ref,
@@ -744,12 +755,144 @@ def build_retained_single_stock(candidate_ref, calendar_ref, output_root, *, his
         'producer_sha256': sha(__file__), 'statistics': stats, 'historical_PIT': False,
         'qualification': 'DESCRIPTIVE_RETAINED_LABELS_NONPIT_NOT_FORECAST', **FLAGS}
     digest = hashlib.sha256(canonical(shard)).hexdigest()
-    path = Path(output_root) / 'daily_products/a_share/event_cases/20261030' / digest / (symbol + '.json')
+    path = Path(output_root) / 'daily_products/a_share/event_cases' / asof.replace('-','') / digest / (symbol + '.json')
     if path.exists():
         if load(ref(path)) != shard:
             raise ValueError('RETAINED_SINGLE_OUTPUT_CONFLICT')
         return ref(path)
     return save(path, shard)
+
+
+def build_retained_pair_history(index_ref, symbol, calendar_ref, output_root, *, expected_projection_sha256):
+    """Persist statistics over a verified pair's already-projected daily labels.
+
+    The projection is one bounded batch produced by the existing view owner.
+    The pair attestation is reused through stat checks, never rescanned per stock.
+    """
+    import io
+    import pyarrow.parquet as pq
+
+    if not isinstance(symbol,str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',symbol):
+        raise ValueError('RETAINED_PAIR_SYMBOL_INVALID')
+    index=load(index_ref)
+    if (index.get('schema')!='v4.workbench.generic_single_index.v1'
+            or index.get('historical_PIT') is not False or any(index.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('RETAINED_PAIR_INDEX_CONFLICT')
+    producer=index.get('projection_producer') or {}
+    if (producer.get('sha256')!=expected_projection_sha256 or not re.fullmatch(r'[0-9a-f]{64}',str(expected_projection_sha256))):
+        raise ValueError('RETAINED_PAIR_PROJECTION_PRODUCER_CONFLICT')
+    load_path(producer)
+    pair_ref=index['paired_receipt'];receipt=load(pair_ref);attestation=load(index['verified_pair'])
+    if (receipt.get('status')!='CANDIDATE_READY' or receipt.get('historical_PIT') is not False
+            or any(receipt.get(k)!=v for k,v in FLAGS.items())
+            or receipt.get('generation_id')!=index.get('candidate_generation')
+            or receipt.get('input_sha256')!=index.get('candidate_input_sha256')
+            or receipt.get('candidate_sha256')!=index.get('pair_sha256')
+            or set(receipt.get('candidates',{}))!={'selector','backtest'}
+            or str(receipt.get('target_date'))!=str(index.get('source_date','')).replace('-','')
+            or attestation.get('status')!='PASS' or attestation.get('generation_id')!=receipt['generation_id']
+            or attestation.get('input_sha256')!=receipt['input_sha256']
+            or attestation.get('candidate_receipt_sha256')!=pair_ref['sha256']
+            or set(attestation.get('roles',{}))!={'selector','backtest'}):
+        raise ValueError('RETAINED_PAIR_RECEIPT_CONFLICT')
+    stamps={}
+    for role in ('selector','backtest'):
+        p=Path(receipt['candidates'][role]);proof=attestation['roles'][role]
+        if not p.is_absolute() or p.is_symlink() or p.resolve(strict=True)!=p:
+            raise ValueError('RETAINED_PAIR_PATH_CONFLICT:'+role)
+        stat=p.stat();stamp={'device':stat.st_dev,'inode':stat.st_ino,'size':stat.st_size,
+                            'mtime_ns':stat.st_mtime_ns,'ctime_ns':stat.st_ctime_ns}
+        if proof.get('path')!=str(p) or proof.get('sha256')!=receipt['candidate_sha256'][role] or proof.get('stat')!=stamp:
+            raise ValueError('RETAINED_PAIR_ATTESTATION_CONFLICT:'+role)
+        metadata=json.loads((pq.ParquetFile(p).schema_arrow.metadata or {})[b'a_share_qfq_contract_v1'])
+        if (metadata.get('generation_id')!=receipt['generation_id'] or metadata.get('input_sha256')!=receipt['input_sha256']
+                or metadata.get('research_scope')!='ADMITTED_A_SHARE'):
+            raise ValueError('RETAINED_PAIR_FOOTER_CONFLICT:'+role)
+        stamps[role]=(p,stamp)
+    source=index.get('source_generation');source_input=index.get('input_sha256')
+    if (source!=receipt['generation_id'] or source_input!=receipt['input_sha256']):
+        upgrade=receipt.get('kb_initial_upgrade') or {}
+        if (upgrade.get('source_generation_id')!=source
+                or receipt.get('materialized_reuse_source_input_sha256')!=source_input
+                or upgrade.get('baseline_panel_sha256')!=receipt.get('baseline_panel_sha256')):
+            raise ValueError('RETAINED_PAIR_BASELINE_CONFLICT')
+        expected_panel=receipt['baseline_panel_sha256']['selector']
+    else:expected_panel=receipt['candidate_sha256']['selector']
+    numeric=load(index['numeric_manifest'])
+    if (numeric.get('source_generation')!=source or numeric.get('input_sha256')!=source_input
+            or str(numeric.get('data_date'))!=str(receipt['target_date'])):
+        raise ValueError('RETAINED_PAIR_NUMERIC_CONFLICT')
+    item=index.get('symbols',{}).get(symbol) or {};binding_ref=item.get('binding')
+    if item.get('status')!='READY' or not binding_ref:raise ValueError('RETAINED_PAIR_BINDING_MISSING')
+    binding=load(binding_ref)
+    expected={'symbol':symbol,'source_date':index['source_date'],'observation_date':index['observation_date'],
+        'generation':source,'input_sha256':source_input,'candidate_generation':receipt['generation_id'],
+        'candidate_input_sha256':receipt['input_sha256'],'paired_receipt':pair_ref,
+        'pair_sha256':receipt['candidate_sha256'],'numeric_manifest':index['numeric_manifest']}
+    if (binding.get('schema')!='v4.workbench.generic_single_binding.v1'
+            or any(binding.get(k)!=v for k,v in expected.items())
+            or binding.get('historical_PIT') is not False or any(binding.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('RETAINED_PAIR_BINDING_CONFLICT')
+    history_ref=binding['history_input'];path=load_path(history_ref)
+    raw=path.read_bytes()
+    if history_ref.get('encoding')!='gzip' or len(raw)!=history_ref.get('bytes') or len(raw)>8*1024*1024:
+        raise ValueError('RETAINED_PAIR_HISTORY_SIZE_CONFLICT')
+    with gzip.GzipFile(fileobj=io.BytesIO(raw),mode='rb') as stream:decoded=stream.read(32*1024*1024+1)
+    if len(decoded)>32*1024*1024 or len(decoded)!=history_ref.get('decoded_bytes'):
+        raise ValueError('RETAINED_PAIR_HISTORY_DECODED_SIZE_CONFLICT')
+    history=json.loads(decoded)
+    history_identity={'symbol':symbol,'source_generation':source,'source_input_sha256':source_input,
+        'candidate_generation':receipt['generation_id'],'candidate_input_sha256':receipt['input_sha256'],
+        'paired_receipt':pair_ref,'pair_sha256':receipt['candidate_sha256']}
+    fields=[{'group_id':g,'namespace':n,'field':f} for g,_,n,f in _RETAINED_DEFINITIONS]
+    if (history.get('schema')!='v4.workbench.retained_history_input.v1' or history.get('field_names')!=fields
+            or any(history.get(k)!=v for k,v in history_identity.items()) or history.get('historical_PIT') is not False
+            or any(history.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('RETAINED_PAIR_HISTORY_IDENTITY_CONFLICT')
+    calendar=load(calendar_ref);market=symbol[-2:]
+    if (calendar.get('schema') not in {'D222_PER_EXCHANGE_SOURCE_CALENDAR_V1','V4_PER_EXCHANGE_SOURCE_CALENDAR_V1'}
+            or calendar.get('source_generation')!=source or calendar.get('input_sha256')!=source_input
+            or calendar.get('panel_sha256')!=expected_panel or str(calendar.get('asof_date'))!=str(receipt['target_date'])
+            or calendar.get('historical_PIT') is not False or any(calendar.get(k)!=v for k,v in FLAGS.items())):
+        raise ValueError('RETAINED_PAIR_CALENDAR_CONFLICT')
+    days=calendar.get('dates',{}).get(market)
+    if not isinstance(days,list) or not days:raise ValueError('RETAINED_PAIR_MARKET_CALENDAR_MISSING')
+    cal_days=[str(day)[:4]+'-'+str(day)[4:6]+'-'+str(day)[6:] for day in days]
+    rows=[];close_rows=[];dates=[]
+    for row in history.get('rows',[]):
+        if not isinstance(row,list) or len(row)!=3 or not isinstance(row[2],list) or len(row[2])!=len(fields):
+            raise ValueError('RETAINED_PAIR_HISTORY_ROW_INVALID')
+        day=str(row[0]);dates.append(row[0])
+        if not re.fullmatch(r'\d{8}',day):raise ValueError('RETAINED_PAIR_HISTORY_DATE_INVALID')
+        values={'original':{},'kb':{}}
+        for field,value in zip(fields,row[2]):values[field['namespace']][field['field']]=value
+        rows.append({'trade_date':row[0],**values})
+        close_rows.append({'date':day[:4]+'-'+day[4:6]+'-'+day[6:],'close':row[1]})
+    if (not rows or len(rows)!=binding.get('rows') or dates!=binding.get('dates')
+            or dates!=sorted(set(dates)) or str(dates[-1])!=str(receipt['target_date'])):
+        raise ValueError('RETAINED_PAIR_HISTORY_DATES_CONFLICT')
+    identity={'source_generation':source,'input_sha256':source_input,'source_view_sha256':history_ref['sha256'],
+        'formula_sha256':receipt['user_formula_sha256'],'kb_contract_sha256':receipt['kb_field_contract_sha256'],
+        'asof':index['source_date'],'market':market,'calendar_sha256':calendar_ref['sha256']}
+    stats=retained_single_stock_statistics(rows,close_rows,cal_days,identity)
+    for role,(p,stamp) in stamps.items():
+        stat=p.stat();now={'device':stat.st_dev,'inode':stat.st_ino,'size':stat.st_size,
+                           'mtime_ns':stat.st_mtime_ns,'ctime_ns':stat.st_ctime_ns}
+        if now!=stamp:raise ValueError('RETAINED_PAIR_MOVED:'+role)
+    shard={'schema_version':'v4.a_share.event_cases.paired_research.v1','symbol':symbol,
+        'data_date':str(receipt['target_date']),'observation_date':index['observation_date'],
+        'source_generation':source,'input_sha256':source_input,'numeric_manifest':index['numeric_manifest'],
+        'source_candidate_generation':receipt['generation_id'],'candidate_input_sha256':receipt['input_sha256'],
+        'paired_receipt':pair_ref,'verified_pair':index['verified_pair'],'projection_index':index_ref,
+        'projection_binding':binding_ref,'history_input':history_ref,'market_calendar':calendar_ref,
+        'producer_sha256':sha(__file__),'statistics':stats,'historical_PIT':False,
+        'qualification':'DESCRIPTIVE_RETAINED_LABELS_NONPIT_NOT_FORECAST',**FLAGS}
+    digest=hashlib.sha256(canonical(shard)).hexdigest()
+    destination=Path(output_root)/'daily_products/a_share/event_cases'/str(receipt['target_date'])/digest/(symbol+'.json')
+    if destination.exists():
+        if load(ref(destination))!=shard:raise ValueError('RETAINED_PAIR_OUTPUT_CONFLICT')
+        return ref(destination)
+    return save(destination,shard)
 
 
 def load_path(reference):
