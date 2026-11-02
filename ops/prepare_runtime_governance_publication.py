@@ -31,6 +31,32 @@ def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="000000
         "admission": "ZERO_MATCHES_REQUIRED_UNDER_GUARD", "reason": "No valid hourly publication can exist without its bound dispatch completion; any match requires compatibility review"}
 
 
+def validate_transition_publication_set(embedded, paths):
+    if not paths or any(p.is_symlink() or not re.fullmatch(r'[0-9]{4}\.json', p.name) for p in paths):
+        raise ValueError('TRANSITION_PUBLICATION_SET_INVALID')
+    if {p.stem for p in paths} != set(embedded):
+        raise ValueError('TRANSITION_PUBLICATION_RECEIPT_SET_MISMATCH')
+
+
+def validate_transition_receipt(receipt, item, expected, as_of):
+    from infrastructure import manager_input_attestation as attestation
+    name = Path(item['path']).name
+    run_id = receipt.get('run_id')
+    if (receipt.get('schema_version') != 'v3_5.dispatch.v1'
+        or receipt.get('release_id') != expected['release_id']
+        or receipt.get('app_root') not in (None, expected['app_root'])
+        or receipt.get('mode') != 'LIVE'
+        or any(receipt.get(key) != expected['trade_date'] for key in ('business_date','scheduled_date','target_date'))
+        or not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id)
+        or name != run_id + '.dispatch-receipt.json'
+        or receipt.get('slot') != Path(item['path']).parent.name
+        or receipt.get('ledger_sha256') != sha(attestation.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1])):
+        raise ValueError('TRANSITION_RECEIPT_IDENTITY_INVALID')
+    finished = attestation.aware(receipt.get('finished_at'))
+    if finished > as_of or finished.astimezone(ZoneInfo('Asia/Shanghai')).strftime('%Y%m%d') != expected['trade_date']:
+        raise ValueError('TRANSITION_RECEIPT_TIME_INVALID')
+
+
 def transition_owner_proof(candidate_receipt, *, as_of):
     """Freeze the exact old-Main receipts and verified original publications."""
     from infrastructure import manager_input_attestation as attestation
@@ -50,11 +76,27 @@ def transition_owner_proof(candidate_receipt, *, as_of):
     old = omitted_owner_proof(ledger, expected['release_id'], expected['app_root'])
     if any(Path(row['path']).parent.parent.name != expected['trade_date'] for row in old['matching_receipts']):
         raise ValueError('TRANSITION_RECEIPT_OUTSIDE_DATE')
+    embedded = {}
+    for item in old['matching_receipts']:
+        raw = Path(item['path']).read_bytes()
+        if sha(raw) != item['sha256']:raise ValueError('TRANSITION_RECEIPT_CHANGED_DURING_SCAN')
+        receipt = json.loads(raw)
+        validate_transition_receipt(receipt, item, expected, as_of)
+        for workload in receipt.get('workload_results', []):
+            if not isinstance(workload, dict):raise ValueError('TRANSITION_RECEIPT_WORKLOAD_INVALID')
+            authority = workload.get('_authoritative_payload')
+            publication = authority.get('hourly_publication') if isinstance(authority, dict) else None
+            if publication is None:continue
+            slot = receipt.get('slot')
+            if (workload.get('status') != 'SUCCEEDED' or not isinstance(publication, dict)
+                or publication.get('trade_date') != expected['trade_date'] or publication.get('slot') != slot
+                or not isinstance(slot, str) or not re.fullmatch(r'[0-9]{4}', slot)):
+                raise ValueError('TRANSITION_EMBEDDED_PUBLICATION_INVALID')
+            embedded.setdefault(slot, []).append(publication)
     data = Path(env['V4_DATA_ROOT'])
     folder = data / 'research/hourly/publication/live' / expected['trade_date']
     paths = sorted(folder.glob('*.json'))
-    if not paths or any(p.is_symlink() or not re.fullmatch(r'[0-9]{4}\.json', p.name) for p in paths):
-        raise ValueError('TRANSITION_PUBLICATION_SET_INVALID')
+    validate_transition_publication_set(embedded, paths)
     identity = {'V4_APP_ROOT': str(stage), 'V4_RELEASE_ID': stage_info['release_id'],
         'V4_RELEASE_MANIFEST_PATH': str(stage.parent/'release-manifest.json'),
         'V4_RELEASE_MANIFEST_SHA256': stage_info['manifest_sha256'],
@@ -64,12 +106,16 @@ def transition_owner_proof(candidate_receipt, *, as_of):
     try:
         os.environ.update(identity)
         for path in paths:
+            publication_bytes = path.read_bytes()
+            if any(value != json.loads(publication_bytes) for value in embedded[path.stem]):
+                raise ValueError('TRANSITION_EMBEDDED_PUBLICATION_MISMATCH')
             record, _ = attestation.read_stage_hourly_attestation(stage_app=stage, data_root=data,
                 date=expected['trade_date'], slot=path.stem, mode='LIVE', as_of=as_of)
             witness = record['completion_witness']
             if witness['release_id'] != expected['release_id']:
                 raise ValueError('TRANSITION_PUBLICATION_OWNER_MISMATCH')
-            publications.append({'slot': path.stem, 'publication_sha256': sha(path.read_bytes()),
+            if path.read_bytes() != publication_bytes:raise ValueError('TRANSITION_PUBLICATION_CHANGED_DURING_SCAN')
+            publications.append({'slot': path.stem, 'publication_sha256': sha(publication_bytes),
                 'input_publication_sha256': record['input_publication_sha256'],
                 'source_input_sha256': record['source_input_sha256'], 'artifact_sha256': record['artifact_sha256'],
                 'available_at': record['available_at'], 'finished_at': witness['finished_at'],

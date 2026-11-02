@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from infrastructure import manager_input_attestation as m
+from ops.prepare_runtime_governance_publication import validate_transition_receipt
 
 DATA = Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data')
 OWNER = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app')
@@ -59,3 +60,18 @@ def test_transition_witness_rejects_wrong_slot_and_owner(actual_0830,tmp_path):
     with pytest.raises(m.PublicationError,match='OWNER_INVALID'):
         m._scheduler_completion_witness({'trade_date':'20261102','slot':'0830','mode':'LIVE'},data_root=DATA,
             owner_root=wrong,ledger_root=ledger,as_of=CUTOFF,transition_0830_witness=True)
+
+
+@pytest.mark.parametrize('field,value,error', [
+    ('business_date','20261103','IDENTITY_INVALID'),
+    ('release_id','wrong-owner','IDENTITY_INVALID'),
+    ('finished_at','2026-11-02T08:30:22+08:00','TIME_INVALID'),
+])
+def test_receipt_set_proof_rejects_wrong_identity_or_time(actual_0830,field,value,error):
+    _,path=actual_0830;receipt=json.loads(path.read_bytes());expected={
+        'trade_date':'20261102','release_id':'f10-daily-20261101-c94609b4e5fff848-main','app_root':str(OWNER)}
+    item={'path':str(path)}
+    validate_transition_receipt(receipt,item,expected,CUTOFF)
+    receipt[field]=value
+    receipt['ledger_sha256']=m.digest(m.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1])
+    with pytest.raises(ValueError,match=error):validate_transition_receipt(receipt,item,expected,CUTOFF)

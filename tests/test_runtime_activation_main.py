@@ -6,7 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import pytest
 from ops import activate_runtime_main_stage_api as main
-from ops.prepare_runtime_governance_publication import omitted_owner_proof
+from ops.prepare_runtime_governance_publication import omitted_owner_proof, validate_transition_publication_set
 
 
 @pytest.fixture
@@ -100,6 +100,15 @@ def test_transition_set_admission_accepts_only_matching_candidate_and_set(tmp_pa
     assert main.zero_admission(plan)==proof
     receipt.write_text('{"drift":true}')
     with pytest.raises(ValueError,match='TRANSITION_CANDIDATE_RECEIPT_DRIFT'):main.zero_admission(plan)
+
+
+def test_transition_publication_files_must_match_receipt_slots(tmp_path):
+    a=tmp_path/'0830.json';b=tmp_path/'0900.json';a.write_text('{}');b.write_text('{}')
+    validate_transition_publication_set({'0830':[{}],'0900':[{}]},[a,b])
+    with pytest.raises(ValueError,match='PUBLICATION_RECEIPT_SET_MISMATCH'):
+        validate_transition_publication_set({'0830':[{}],'0900':[{}]},[a])
+    with pytest.raises(ValueError,match='PUBLICATION_RECEIPT_SET_MISMATCH'):
+        validate_transition_publication_set({'0830':[{}]},[a,b])
 
 
 def test_three_role_scope_rejects_pre_or_wrong_forward_order(tmp_path):
