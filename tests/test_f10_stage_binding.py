@@ -52,6 +52,40 @@ def test_same_code_selects_only_successful_pinned_release(tmp_path, monkeypatch)
     with pytest.raises(m.PublicationError,match='ALLOWLIST_INVALID'):m.read_stage_hourly_attestation(stage_app=stage,data_root=data,date='20261101',slot='2300',mode='LIVE',as_of=cutoff)
 
 
+def test_transition_owner_is_single_day_pinned_and_requires_original_witness(tmp_path, monkeypatch):
+    stage=tmp_path/'stage'; stage.mkdir(); data=tmp_path/'data'; data.mkdir()
+    roots=[tmp_path/name/'app' for name in ('new','old1','old2','old3','f10')]
+    for root in roots:
+        (root/'ops').mkdir(parents=True); (root/'ops/run_hourly_research.py').write_bytes(b'm')
+        (root/'infrastructure').mkdir(); (root/'infrastructure/manager_input_attestation.py').write_bytes(b'w')
+    def binding(root):return {'app_root':str(root),'release_id':root.parent.name,'manifest_sha256':'a'*64}
+    cfg={'research_historical_owner_bindings':[binding(r) for r in roots[1:4]],
+         'research_transition_owner_binding':{**binding(roots[4]),'trade_date':'20261102'}}
+    path=stage/'stage_center_tick_config.json'
+    def seal():path.write_text(json.dumps(cfg))
+    seal()
+    for date in ('20261102','20261103'):
+        pub=data/f'research/hourly/publication/live/{date}/0900.json'; pub.parent.mkdir(parents=True)
+        pub.write_text(json.dumps({'materializer_sha256':m.digest(b'm')}))
+        inp=data/f'research/incoming/{date}/0900.json.publication.json';inp.parent.mkdir(parents=True)
+        inp.write_text(json.dumps({'owner_code':{'publication_writer_sha256':m.digest(b'w')}}))
+    monkeypatch.setattr(m,'trusted_research_owner',lambda *a:(roots[0],tmp_path/'ledger',()))
+    monkeypatch.setattr(m,'_release_manifest',lambda *a:None)
+    def read(**kw):
+        if kw['owner_root']!=roots[4]:raise m.PublicationError('HOURLY_COMPLETION_WITNESS_MISSING')
+        return {'as_of':kw['as_of']}
+    monkeypatch.setattr(m,'read_hourly_attestation',read)
+    cutoff=datetime.fromisoformat('2026-11-02T09:30:00+08:00')
+    def run(date):return m.read_stage_hourly_attestation(stage_app=stage,data_root=data,date=date,slot='0900',mode='LIVE',as_of=cutoff)
+    result,evidence=run('20261102')
+    assert result['as_of']==cutoff and 'v4_research_transition_owner_release_id=f10' in evidence
+    with pytest.raises(m.PublicationError,match='WITNESS_MISSING'):run('20261103')
+    monkeypatch.setattr(m,'read_hourly_attestation',lambda **kw:(_ for _ in ()).throw(m.PublicationError('HOURLY_COMPLETION_AFTER_AS_OF')))
+    with pytest.raises(m.PublicationError,match='AFTER_AS_OF'):run('20261102')
+    cfg['research_transition_owner_binding']={**binding(roots[1]),'trade_date':'20261102'};seal()
+    with pytest.raises(m.PublicationError,match='TRANSITION_INVALID'):run('20261102')
+
+
 @pytest.fixture
 def isolated(tmp_path,monkeypatch):
     candidate=os.environ.get('F10_BINDING_CANDIDATE'); replay=os.environ.get('F10_BINDING_REPLAY')

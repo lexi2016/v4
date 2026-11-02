@@ -586,6 +586,26 @@ def read_stage_hourly_attestation(*, stage_app: Path, data_root: Path, date: str
         owners.append((previous, (*evidence, f"v4_research_historical_owner_release_id={binding['release_id']}",
             f"v4_research_historical_owner_manifest_sha256={binding['manifest_sha256']}",
             'v4_research_historical_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')))
+    # A cutover may leave publications by the immediately preceding Main.
+    # This separately pinned, single-day transition does not expand the
+    # historical list or weaken any publication/completion time checks.
+    transition = config.get('research_transition_owner_binding')
+    if transition is not None:
+        if (not isinstance(transition, dict)
+            or set(transition) != {'app_root', 'release_id', 'manifest_sha256', 'trade_date'}
+            or not isinstance(transition.get('release_id'), str) or not transition['release_id']
+            or not re.fullmatch('[0-9]{8}', str(transition.get('trade_date', '')))):
+            raise PublicationError('HOURLY_PROVENANCE_TRANSITION_INVALID')
+        previous = _absolute_release_app(transition['app_root'])
+        if previous in seen:
+            raise PublicationError('HOURLY_PROVENANCE_TRANSITION_INVALID')
+        _release_manifest(previous, transition['release_id'], transition['manifest_sha256'], _MAIN_RESEARCH_FILES)
+        if date == transition['trade_date']:
+            owners.append((previous, (*evidence,
+                f"v4_research_transition_owner_release_id={transition['release_id']}",
+                f"v4_research_transition_owner_manifest_sha256={transition['manifest_sha256']}",
+                f"v4_research_transition_trade_date={transition['trade_date']}",
+                'v4_research_transition_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')))
     record = json.loads(SafeRoot(data_root).read_bytes(f'research/hourly/publication/live/{date}/{slot}.json'))
     materializer_sha = record.get('materializer_sha256') if isinstance(record, dict) else None
     input_publication = json.loads(SafeRoot(data_root).read_bytes(f'research/incoming/{date}/{slot}.json.publication.json'))

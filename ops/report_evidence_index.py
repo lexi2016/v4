@@ -17,7 +17,36 @@ def save(path, obj):
     temp.write_text(json.dumps(obj, ensure_ascii=False, indent=2))
     os.replace(temp, path)
 
-async def import_vectors(index, native, pending=1):
+class PreSubmitUploadError(RuntimeError):
+    """The SDK failed while uploading, before its resource submission call."""
+
+def serialize_uploads(client):
+    """Serialize only SDK uploads; resource processing remains concurrent."""
+    original = client._upload_temp_file
+    lock = asyncio.Lock()
+    async def upload(path):
+        async with lock:
+            try:
+                return await original(path)
+            except Exception as exc:
+                raise PreSubmitUploadError(type(exc).__name__) from exc
+    client._upload_temp_file = upload
+
+async def submit_resource(client, snapshot, target, cid, entry, checkpoint):
+    if entry.get('submission_state') == 'SUBMISSION_UNKNOWN':
+        raise RuntimeError('SUBMISSION_RECONCILIATION_REQUIRED')
+    entry['submission_state']='SUBMISSION_UNKNOWN';checkpoint(cid,entry)
+    try:
+        result=await client.add_resource(str(snapshot),to=target,wait=False,
+            options={'processing_mode':'vectors_only','args':{'parse_mode':'no_split'},'create_parent':True})
+    except PreSubmitUploadError:
+        entry['submission_state']='UPLOAD_FAILED_BEFORE_SUBMISSION';checkpoint(cid,entry)
+        raise
+    entry.update(task_id=result.get('task_id'),ingest_result=result,
+        submission_state='TASK_RECORDED' if result.get('task_id') else 'SUBMISSION_UNKNOWN');checkpoint(cid,entry)
+    if not entry['task_id']:raise RuntimeError('TASK_ID_MISSING_CHECKPOINT_RETAINED')
+
+async def import_vectors(index, native, pending=1, content_id=None):
     """Bounded native task pipeline; the existing embedding service stays batch1."""
     from openviking_sdk import AsyncHTTPClient
     if not 1<=pending<=8:
@@ -25,6 +54,7 @@ async def import_vectors(index, native, pending=1):
     c=native.credentials()
     client=AsyncHTTPClient(url=native.runtime.URL,api_key=c['api_key'],account=c['account'],user=c['user'],timeout=120)
     await client.initialize()
+    serialize_uploads(client)
     cp=index.root/'native-checkpoint.json'
     state=json.loads(cp.read_text()) if cp.exists() else dict(namespace=NAMESPACE,model_revision=MODEL_REVISION,chunks={})
     if state['namespace']!=NAMESPACE or state['model_revision']!=MODEL_REVISION:
@@ -53,6 +83,9 @@ async def import_vectors(index, native, pending=1):
     for row in rows:
         if row['uri']:completed+=1;continue
         cid=json.loads(row['detail'])['content_id'];groups.setdefault(cid,[]).append(row)
+    if content_id is not None:
+        if content_id not in groups:raise ValueError('CANARY_CONTENT_NOT_PENDING')
+        groups={content_id:groups[content_id]}
     def progress():
         elapsed=time.perf_counter()-started
         value=dict(completed_rows=completed,total_rows=len(rows),resolved_content_groups=resolved,seconds=elapsed,
@@ -69,10 +102,7 @@ async def import_vectors(index, native, pending=1):
         if not entry.get('imported_uri'):
             native.guard()
             if not entry.get('task_id'):
-                result=await client.add_resource(str(snapshot),to=scopes[row['document_id']]+'/'+cid,wait=False,
-                    options={'processing_mode':'vectors_only','args':{'parse_mode':'no_split'},'create_parent':True})
-                entry.update(task_id=result.get('task_id'),ingest_result=result);checkpoint(cid,entry)
-                if not entry['task_id']:raise RuntimeError('TASK_ID_MISSING_CHECKPOINT_RETAINED')
+                await submit_resource(client,snapshot,scopes[row['document_id']]+'/'+cid,cid,entry,checkpoint)
             while True:
                 task=await client.get_task(entry['task_id'])
                 status=task.get('status') if task else None
@@ -132,7 +162,7 @@ async def main(args):
         mechanical=json.loads((index.root/'coverage.json').read_text())
         if mechanical.get('full_scope') is not True:
             raise RuntimeError('FULL_MECHANICAL_COVERAGE_REQUIRED')
-        await import_vectors(index,native,args.pending)
+        await import_vectors(index,native,args.pending,args.content_id)
         save(index.root/'coverage.json',{**mechanical,**index.coverage()})
         print(canonical(index.coverage()))
         return
@@ -172,7 +202,11 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--data-root',required=True);p.add_argument('--index-root',required=True);p.add_argument('--bridge',required=True)
     p.add_argument('--document-id',action='append',default=[]);p.add_argument('--vectors',action='store_true');p.add_argument('--full',action='store_true');p.add_argument('--canary-receipt');p.add_argument('--vectors-only',action='store_true');p.add_argument('--pending',type=int,default=1)
-    args=p.parse_args();ReportIndex(args.index_root,PdfOwner(args.data_root)).root.mkdir(parents=True,exist_ok=True)
+    p.add_argument('--content-id', help='Single pending content group for an explicit vectors-only canary')
+    args=p.parse_args()
+    if args.content_id and (not args.vectors_only or len(args.content_id)!=64 or any(c not in '0123456789abcdef' for c in args.content_id)):
+        p.error('--content-id requires --vectors-only and a lowercase SHA256')
+    ReportIndex(args.index_root,PdfOwner(args.data_root)).root.mkdir(parents=True,exist_ok=True)
     with (Path(args.index_root)/'operation.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         asyncio.run(main(args))

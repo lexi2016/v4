@@ -22,8 +22,10 @@ ALIAS = "infrastructure/report_evidence_pdf_owner.py"
 OWNER_SHA = "f567de644f88f9db18a82bde7d3c6d93b31f79bca806141d7f51d30dc0189cde"
 
 
-def prepare(*, source, runtime, report_ref, output, api_snapshot=None):
+def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecessor_date=None):
     if output.exists(): raise ValueError("UNIFIED_OUTPUT_MUST_BE_NEW")
+    if not isinstance(predecessor_date, str) or not re.fullmatch(r"[0-9]{8}", predecessor_date):
+        raise ValueError("EXACT_TRANSITION_DATE_REQUIRED")
     if not re.fullmatch("[0-9a-f]{40}", report_ref): raise ValueError("EXACT_FROZEN_REPORT_COMMIT_REQUIRED")
     base = json.loads((runtime / "candidate_receipt.json").read_bytes())
     frozen = {}
@@ -72,6 +74,15 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None):
                 write(app, "domains/report_subjects.py", (current_api / "domains/report_subjects.py").read_bytes())
                 additions.add("domains/report_subjects.py")
             cfg = json.loads((app / "stage_center_tick_config.json").read_bytes())
+            if cfg.get("research_transition_owner_binding") is not None:
+                raise ValueError("TRANSITION_BINDING_ALREADY_PRESENT")
+            main_env = actual["main"]["environment"]
+            cfg["research_transition_owner_binding"] = {
+                "app_root": main_env["V4_APP_ROOT"], "release_id": main_env["V4_RELEASE_ID"],
+                "manifest_sha256": main_env["V4_RELEASE_MANIFEST_SHA256"], "trade_date": predecessor_date,
+            }
+            write(app, "infrastructure/manager_input_attestation.py", (source / "infrastructure/manager_input_attestation.py").read_bytes())
+            additions.add("infrastructure/manager_input_attestation.py")
             cfg["release_id"] = root.name
             cfg["research_owner_binding"] = {"app_root": roles["main"]["app_root"], "release_id": roles["main"]["release_id"], "manifest_sha256": roles["main"]["manifest_sha256"]}
             dump(app / "stage_center_tick_config.json", cfg); additions.add("stage_center_tick_config.json")
@@ -134,6 +145,7 @@ if __name__ == "__main__":
     for name in ("runtime", "output"): parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--report-ref", required=True)
     parser.add_argument("--api-snapshot", type=Path, help="Explicit fresh API snapshot; any later live drift rejects the build")
+    parser.add_argument("--predecessor-date", required=True, help="Exact business date of the pinned prior Main transition")
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
-    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output, api_snapshot=args.api_snapshot)
+    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output, api_snapshot=args.api_snapshot, predecessor_date=args.predecessor_date)
     print(json.dumps(result["roles"], ensure_ascii=False))
