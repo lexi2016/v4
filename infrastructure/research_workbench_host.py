@@ -167,11 +167,17 @@ def checked_action_rebind_index(index,*,require_producer=True):
         or not re.fullmatch(r'[0-9a-f]{64}',str(authority.get('sha256','')))
         or not re.fullmatch(r'[0-9a-f]{64}',str(summary.get('action_rule_contract_sha256','')))
         or summary.get('historical_PIT') is not False or any(summary.get(k) is not v for k,v in FLAGS.items())
-        or proof.get('status')!='PASS' or proof.get('generation_id')!=index.get('candidate_generation')
+        or proof.get('schema')!='v4.a_share.action_correction_equivalence.v1' or proof.get('status')!='PASS'
+        or proof.get('generation_id')!=index.get('candidate_generation')
         or proof.get('input_sha256')!=index.get('candidate_input_sha256')
         or proof.get('baseline_generation_id')!=origin.get('candidate_generation')
         or proof.get('baseline_panel_sha256')!=origin.get('pair_sha256')
         or proof.get('candidate_sha256')!=index.get('pair_sha256')
+        or str(proof.get('target_date'))!=compact(index['source_date'])
+        or not _same_reference(proof.get('action_delta_summary'),link['summary'])
+        or proof.get('unchanged_scope')!='ALL_NON_ACTION_ARROW_COLUMNS_KEYS_TYPES_NULL_NAN_AND_SIGNED_ZERO'
+        or proof.get('inherited_sidecars_source_generation')!=origin.get('candidate_generation')
+        or proof.get('cross_generation_n_checkpoint_reused') is not False
         or proof.get('historical_PIT') is not False or any(proof.get(k) is not v for k,v in FLAGS.items())
         or set(proof.get('roles',{}))!={'selector','backtest'}):
         raise ValueError('ACTION_REBIND_EQUIVALENCE_CONFLICT')
@@ -181,6 +187,8 @@ def checked_action_rebind_index(index,*,require_producer=True):
         evidence=proof['roles'][role];old_role=old_attestation['roles'][role];new_role=attestation['roles'][role]
         if (not isinstance(evidence,dict) or evidence.get('status')!='PASS' or evidence.get('rows')!=old_role['rows'] or evidence.get('rows')!=new_role['rows']
             or old_role['columns']!=new_role['columns']
+            or new_role.get('footer_generation_id')!=index['candidate_generation']
+            or new_role.get('footer_input_sha256')!=index['candidate_input_sha256']
             or evidence.get('non_action_columns_exact')!=new_role['columns']-len(ACTION_REBIND_FIELDS)
             or evidence.get('action_columns_match_bound_delta')!=len(ACTION_REBIND_FIELDS)
             or evidence.get('applied_rows')!=summary.get('changed_rows')

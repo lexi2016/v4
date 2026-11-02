@@ -73,7 +73,8 @@ def fixture_action_rebind(tmp_path,*,overlay_dates=(20240101,),affected=None,old
         return dict(schema='v4.a_share.paired_candidate_attestation.v1',status='PASS',generation_id=generation,
                     input_sha256=input_sha,candidate_receipt=receipt_ref,candidate_receipt_sha256=receipt_ref['sha256'],
                     roles={role:dict(path=paths[side][role],sha256=pair[role],stat=view._stat(paths[side][role]),
-                                     rows=3,columns=340 if role=='selector' else 192) for role in pair},
+                                     rows=3,columns=340 if role=='selector' else 192,
+                                     footer_generation_id=generation,footer_input_sha256=input_sha) for role in pair},
                     historical_PIT=False,**extra,**view.FLAGS)
     old_att=put_json(origin_root/'old-att.json',attestation(S('a'),S('b'),old_pair,'old',old_receipt))
     identity.update(paired_receipt=old_receipt,pair_sha256=old_pair)
@@ -112,8 +113,11 @@ def fixture_action_rebind(tmp_path,*,overlay_dates=(20240101,),affected=None,old
         'action_authority':{'sha256':S('9')},'action_rule_contract_sha256':S('e'),'stock_index':stock_index,'stock_count':1,
         'target_rows':1,'target_date':20240103,'changed_rows':changed,'changed_stock_count':int(changed>0),
         'changed_field_counts':changed_fields,'historical_PIT':False,**view.FLAGS})
-    proof=put_json(origin_root/'equivalence.json',{'status':'PASS','generation_id':S('7'),'input_sha256':S('6'),
-        'baseline_generation_id':S('a'),'baseline_panel_sha256':old_pair,'candidate_sha256':new_pair,
+    proof=put_json(origin_root/'equivalence.json',{'schema':'v4.a_share.action_correction_equivalence.v1',
+        'status':'PASS','generation_id':S('7'),'input_sha256':S('6'),
+        'baseline_generation_id':S('a'),'baseline_panel_sha256':old_pair,'candidate_sha256':new_pair,'target_date':'20240103',
+        'action_delta_summary':summary,'unchanged_scope':'ALL_NON_ACTION_ARROW_COLUMNS_KEYS_TYPES_NULL_NAN_AND_SIGNED_ZERO',
+        'inherited_sidecars_source_generation':S('a'),'cross_generation_n_checkpoint_reused':False,
         'roles':{role:{'status':'PASS','rows':3,'non_action_columns_exact':selector_non_action if role=='selector' else 186,
                        'action_columns_match_bound_delta':6,'applied_rows':changed,'affected_stocks':int(changed>0)} for role in old_pair},
         'historical_PIT':False,**view.FLAGS})
