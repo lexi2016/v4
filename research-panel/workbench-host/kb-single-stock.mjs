@@ -89,6 +89,20 @@ export function decodeGenericChunk(meta,chunk,ref,patch=null){
     !Array.isArray(meta.original_fields)||meta.original_fields.length!==13)throw Error('单股数据块身份冲突');
   const start=meta.dates.indexOf(ref.first_date);
   if(start<0||meta.dates[start+ref.row_count-1]!==ref.last_date)throw Error('单股数据块日期冲突');
+  const segmented=['RECONCILED_DAILY','INHERITED_WHOLE'].includes(meta.n_identity_kind),spans=meta.n_identity_spans;
+  if(segmented){
+    if(!Array.isArray(spans)||!spans.length||spans.length>meta.dates.length)throw Error('单股诊断来源分段冲突');
+    let next=0;
+    for(const span of spans){
+      if(!span||!Number.isInteger(span.start_index)||!Number.isInteger(span.end_index)||span.start_index!==next||
+        span.end_index<span.start_index||span.end_index>=meta.dates.length||span.first_date!==meta.dates[span.start_index]||
+        span.last_date!==meta.dates[span.end_index]||!sha64(span.generation_id)||!sha64(span.input_sha256))throw Error('单股诊断来源分段冲突');
+      next=span.end_index+1;
+    }
+    if(next!==meta.dates.length)throw Error('单股诊断来源分段冲突');
+  }else if(spans!==undefined)throw Error('单股诊断来源分段冲突');
+  let spanIndex=0;
+  if(segmented)while(spans[spanIndex].end_index<start)spanIndex++;
   return chunk.rows.map((item,index)=>{
     if(!Array.isArray(item)||item.length!==5||item[0]!==meta.dates[start+index]||!Array.isArray(item[1])||item[1].length!==107||
       !Array.isArray(item[2])||item[2].length!==13||!item[3]||typeof item[3]!=='object'||Array.isArray(item[3])||
@@ -106,8 +120,11 @@ export function decodeGenericChunk(meta,chunk,ref,patch=null){
       confirmed_kb_diagnostics:item[3],confirmed_kb_reused:{bowl_white:item[4][0],bowl_yellow:item[4][1]},
       diagnostics:{volume_vs_previous:null,volume_vs_previous_5_mean:all.kb_yidong_vol_ratio_5}};
     const n=item[3].kb_n_structure;
-    if(!n||n.rule_sha256!==meta.n_rule_sha256||n.helper_sha256!==meta.n_helper_sha256||n.input_sha256!==meta.n_input_sha256||
-      n.generation_id!==meta.n_generation_id||n.state!==(row.hold_score.kb_hold_trend_up===true?'TREND_UP':row.hold_score.kb_hold_trend_up_reason)||
+    if(segmented)while(spans[spanIndex].end_index<start+index)spanIndex++;
+    const nGeneration=segmented?spans[spanIndex].generation_id:meta.n_generation_id;
+    const nInput=segmented?spans[spanIndex].input_sha256:meta.n_input_sha256;
+    if(!n||n.rule_sha256!==meta.n_rule_sha256||n.helper_sha256!==meta.n_helper_sha256||n.input_sha256!==nInput||
+      n.generation_id!==nGeneration||n.state!==(row.hold_score.kb_hold_trend_up===true?'TREND_UP':row.hold_score.kb_hold_trend_up_reason)||
       row.yidong.kb_yidong_rule_sha256!==meta.yidong_contract_sha256)throw Error('单股诊断身份冲突');
     actionPresentation(row.action,meta.action_contract_sha256);
     return row;

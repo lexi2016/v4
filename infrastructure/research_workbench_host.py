@@ -258,6 +258,156 @@ def checked_action_rebind_stock(index,reuse,symbol,wrapper):
     return stock,delta
 
 
+def checked_daily_n_spans(index,dates,spans,suffix_start=None):
+    if not isinstance(spans,list) or not spans or len(spans)>len(dates):
+        raise ValueError('GENERIC_DAILY_N_SPANS_CONFLICT')
+    next_index=0
+    for span in spans:
+        if not isinstance(span,dict):raise ValueError('GENERIC_DAILY_N_SPANS_CONFLICT')
+        start,end=span.get('start_index'),span.get('end_index')
+        if (type(start) is not int or type(end) is not int or start!=next_index or start>end or end>=len(dates)
+            or span.get('first_date')!=dates[start] or span.get('last_date')!=dates[end]
+            or not re.fullmatch(r'[0-9a-f]{64}',str(span.get('generation_id') or ''))
+            or not re.fullmatch(r'[0-9a-f]{64}',str(span.get('input_sha256') or ''))
+            or (suffix_start is not None and end>=suffix_start
+                and (span['generation_id']!=index['candidate_generation']
+                     or span['input_sha256']!=index['candidate_input_sha256']))):
+            raise ValueError('GENERIC_DAILY_N_SPANS_CONFLICT')
+        next_index=end+1
+    if next_index!=len(dates):raise ValueError('GENERIC_DAILY_N_SPANS_CONFLICT')
+    return spans
+
+
+def checked_daily_n_lineage(index,stock,symbol):
+    """Check the saved daily lineage and its date spans; never recompute signals."""
+    lineage=stock.get('n_lineage');spans=stock.get('n_identity_spans');dates=stock.get('dates')
+    if (not isinstance(lineage,dict) or lineage.get('schema')!='v4.workbench.daily_n_lineage.v1'
+        or lineage.get('cross_generation_n_checkpoint_reused') is not False
+        or not isinstance(spans,list) or not spans or len(spans)>len(dates)):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    candidate=checked_bounded(stock['paired_receipt'],16*1024*1024)
+    if not isinstance(candidate,dict):raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    source=candidate.get('full_research_continuation') or {};merged=lineage.get('merged_sidecar') or {}
+    inheritance=candidate.get('full_research_sidecar_inheritance') or {}
+    if not all(isinstance(value,dict) for value in (source,merged,inheritance)):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    inherited=merged.get('inherited_prefix') or {};continuation=merged.get('continuation') or {}
+    if not isinstance(inherited,dict) or not isinstance(continuation,dict):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    if (candidate.get('generation_id')!=index['candidate_generation']
+        or candidate.get('input_sha256')!=index['candidate_input_sha256']
+        or candidate.get('n_structure_contract_sha256')!=stock.get('n_rule_sha256')
+        or candidate.get('n_structure_helper_sha256')!=stock.get('n_helper_sha256')
+        or candidate.get('price_basis')!='QFQ_ASOF' or candidate.get('volume_basis')!='QFQ_EVENT_VOLUME'
+        or source.get('schema')!='a_share_kb_daily_continuation_v1'
+        or source.get('sidecar_policy')!='PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME'
+        or inheritance.get('schema')!='a_share_kb_sidecar_inheritance_v1'
+        or inheritance.get('baseline_generation_id')!=source.get('baseline_generation_id')
+        or inheritance.get('baseline_receipt')!=source.get('baseline_receipt')
+        or inheritance.get('identity_policy')!='PRESERVE_PRIOR_SOURCE_IDENTITY_AND_SIDECAR_REFERENCE'
+        or inheritance.get('cross_generation_n_checkpoint_reused') is not False
+        or not isinstance(inheritance.get('recomputed_codes'),list)
+        or symbol not in inheritance['recomputed_codes']
+        or candidate.get('historical_PIT') is not False or any(candidate.get(k) is not v for k,v in FLAGS.items())
+        or not isinstance(candidate.get('confirmed_gap_sidecars'),dict)
+        or candidate['confirmed_gap_sidecars'].get(symbol)!=merged
+        or merged.get('sha256')!=stock.get('diagnostics_sha256')
+        or lineage.get('baseline_receipt')!=source.get('baseline_receipt')
+        or lineage.get('baseline_generation_id')!=source.get('baseline_generation_id')
+        or lineage.get('reconciliation')!=candidate.get('full_research_daily_reconciliation')
+        or continuation.get('first_affected_date')!=lineage.get('first_affected_date')
+        or continuation.get('prefix_through_date')!=lineage.get('prefix_through_date')
+        or continuation.get('prefix_input_sha256')!=lineage.get('prefix_input_sha256')
+        or inherited.get('rows')!=lineage.get('prefix_rows')
+        or inherited.get('through_date')!=lineage.get('prefix_through_date')
+        or inherited.get('identity_policy')!='ORIGINAL_SOURCE_IDENTITY_RETAINED_IN_DIAGNOSTICS'
+        or inherited.get('cross_generation_n_checkpoint_reused') is not False):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    baseline=checked_bounded(lineage['baseline_receipt'],16*1024*1024)
+    checkpoint=checked_bounded(lineage['checkpoint_receipt'],1024*1024)
+    reconciliation=checked_bounded(lineage['reconciliation'],8*1024*1024)
+    if not all(isinstance(value,dict) for value in (baseline,checkpoint,reconciliation)):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    expected_checkpoint=Path(str(candidate.get('run_dir') or ''))/'symbol_checkpoints'/(symbol+'.receipt.json')
+    if (baseline.get('status') not in {'READY','CANDIDATE_READY'}
+        or baseline.get('generation_id')!=source.get('baseline_generation_id')
+        or baseline.get('input_sha256')!=source.get('baseline_input_sha256')
+        or baseline.get('historical_PIT') is not False or any(baseline.get(k) is not v for k,v in FLAGS.items())
+        or not isinstance(baseline.get('confirmed_gap_sidecars'),dict)
+        or baseline['confirmed_gap_sidecars'].get(symbol)!=inherited.get('source')
+        or checkpoint.get('confirmed_gap_sidecar')!=continuation.get('fresh_source')
+        or checkpoint.get('checkpoint_id')!=merged.get('checkpoint_id')
+        or checkpoint.get('checkpoint_id')!=(continuation.get('fresh_source') or {}).get('checkpoint_id')
+        or str(expected_checkpoint)!=(lineage.get('checkpoint_receipt') or {}).get('path')
+        or reconciliation.get('schema')!='a_share_kb_daily_reconciliation_v1'
+        or reconciliation.get('generation_id')!=index['candidate_generation']
+        or reconciliation.get('baseline_generation_id')!=source.get('baseline_generation_id')
+        or reconciliation.get('historical_PIT') is not False or any(reconciliation.get(k) is not v for k,v in FLAGS.items())):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    prefix,suffix=lineage.get('prefix_rows'),lineage.get('suffix_rows')
+    if (type(prefix) is not int or type(suffix) is not int or prefix<0 or suffix<1 or prefix+suffix!=len(dates)
+        or merged.get('rows')!=len(dates)
+        or lineage.get('first_affected_date')!=dates[prefix]
+        or lineage.get('prefix_through_date')!=(dates[prefix-1] if prefix else None)
+        or (prefix and not re.fullmatch(r'[0-9a-f]{64}',str(lineage.get('prefix_input_sha256') or '')))
+        or (not prefix and lineage.get('prefix_input_sha256') is not None)):
+        raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    for role in ('selector','backtest'):
+        item=(reconciliation.get('stocks') or {}).get(symbol,{}).get(role,{})
+        if (item.get('symbol')!=symbol or item.get('first_affected_date')!=dates[prefix]
+            or item.get('preserved_rows')!=prefix or item.get('recomputed_rows')!=suffix):
+            raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
+    return checked_daily_n_spans(index,dates,spans,suffix_start=prefix)
+
+
+def checked_daily_n_whole_lineage(index,stock,symbol):
+    """Retain an unchanged sidecar and its previously persisted row identities."""
+    lineage=stock.get('n_lineage') or {};dates=stock['dates'];spans=stock.get('n_identity_spans')
+    if (not isinstance(lineage,dict) or lineage.get('schema')!='v4.workbench.daily_n_whole_inheritance.v1'
+        or lineage.get('cross_generation_n_checkpoint_reused') is not False):
+        raise ValueError('GENERIC_DAILY_N_WHOLE_LINEAGE_CONFLICT')
+    candidate=checked_bounded(stock['paired_receipt'],16*1024*1024)
+    if not isinstance(candidate,dict):raise ValueError('GENERIC_DAILY_N_WHOLE_LINEAGE_CONFLICT')
+    source=candidate.get('full_research_continuation') or {}
+    inheritance=candidate.get('full_research_sidecar_inheritance') or {};sidecar=lineage.get('inherited_sidecar')
+    if not isinstance(source,dict) or not isinstance(inheritance,dict):
+        raise ValueError('GENERIC_DAILY_N_WHOLE_LINEAGE_CONFLICT')
+    if (candidate.get('generation_id')!=index['candidate_generation'] or candidate.get('input_sha256')!=index['candidate_input_sha256']
+        or candidate.get('n_structure_contract_sha256')!=stock.get('n_rule_sha256')
+        or candidate.get('n_structure_helper_sha256')!=stock.get('n_helper_sha256')
+        or candidate.get('price_basis')!='QFQ_ASOF' or candidate.get('volume_basis')!='QFQ_EVENT_VOLUME'
+        or candidate.get('historical_PIT') is not False or any(candidate.get(k) is not v for k,v in FLAGS.items())
+        or source.get('schema')!='a_share_kb_daily_continuation_v1'
+        or source.get('sidecar_policy')!='PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME'
+        or inheritance.get('schema')!='a_share_kb_sidecar_inheritance_v1'
+        or inheritance.get('baseline_generation_id')!=source.get('baseline_generation_id')
+        or inheritance.get('baseline_receipt')!=source.get('baseline_receipt')
+        or inheritance.get('identity_policy')!='PRESERVE_PRIOR_SOURCE_IDENTITY_AND_SIDECAR_REFERENCE'
+        or inheritance.get('cross_generation_n_checkpoint_reused') is not False
+        or not isinstance(inheritance.get('inherited_whole_codes'),list)
+        or symbol not in inheritance['inherited_whole_codes']
+        or lineage.get('baseline_receipt')!=source.get('baseline_receipt')
+        or lineage.get('baseline_generation_id')!=source.get('baseline_generation_id')
+        or not isinstance(sidecar,dict) or sidecar.get('sha256')!=stock.get('diagnostics_sha256')
+        or not isinstance(candidate.get('confirmed_gap_sidecars'),dict) or candidate['confirmed_gap_sidecars'].get(symbol)!=sidecar
+        or not isinstance(candidate.get('n_structure_checkpoints'),dict)
+        or candidate['n_structure_checkpoints'].get(symbol)!=lineage.get('inherited_checkpoint')):
+        raise ValueError('GENERIC_DAILY_N_WHOLE_LINEAGE_CONFLICT')
+    baseline=checked_bounded(lineage['baseline_receipt'],16*1024*1024)
+    if (not isinstance(baseline,dict) or baseline.get('status') not in {'READY','CANDIDATE_READY'}
+        or baseline.get('generation_id')!=source.get('baseline_generation_id')
+        or baseline.get('input_sha256')!=source.get('baseline_input_sha256')
+        or baseline.get('historical_PIT') is not False or any(baseline.get(k) is not v for k,v in FLAGS.items())
+        or not isinstance(baseline.get('confirmed_gap_sidecars'),dict) or baseline['confirmed_gap_sidecars'].get(symbol)!=sidecar
+        or not isinstance(baseline.get('n_structure_checkpoints'),dict)
+        or baseline['n_structure_checkpoints'].get(symbol)!=lineage.get('inherited_checkpoint')
+        or not re.fullmatch(r'[0-9a-f]{64}',str(lineage.get('sidecar_generation_id') or ''))
+        or not re.fullmatch(r'[0-9a-f]{64}',str(lineage.get('sidecar_input_sha256') or ''))):
+        raise ValueError('GENERIC_DAILY_N_WHOLE_LINEAGE_CONFLICT')
+    checked_bounded_bytes(lineage['inherited_checkpoint'],8*1024*1024)
+    return checked_daily_n_spans(index,dates,spans)
+
+
 def checked_company_snapshot(stock,witness,name_table,symbol):
     """Validate the captured source identity; capture time is not a PIT claim."""
     name_bytes=checked_bounded_bytes(name_table,256*1024)
@@ -600,7 +750,7 @@ class ResearchWorkbenchHost:
             or stock.get('first_date')!=dates[0] or stock.get('last_date')!=dates[-1]
             or not isinstance(chunks,list) or not chunks
             or not re.fullmatch(r'[0-9a-f]{64}',str(n_generation or '')) or not re.fullmatch(r'[0-9a-f]{64}',str(n_input or ''))
-            or stock.get('n_identity_kind','CANDIDATE') not in {'CANDIDATE','MATERIALIZED_REUSE'}
+            or stock.get('n_identity_kind','CANDIDATE') not in {'CANDIDATE','MATERIALIZED_REUSE','RECONCILED_DAILY','INHERITED_WHOLE'}
             or any(not re.fullmatch(r'[0-9a-f]{64}',str(stock.get(k,''))) for k in
                    ('diagnostics_sha256','n_rule_sha256','n_helper_sha256','action_contract_sha256','yidong_contract_sha256'))):
             raise ValueError('GENERIC_BINDING_IDENTITY_CONFLICT')
@@ -609,6 +759,12 @@ class ResearchWorkbenchHost:
             try:valid=isinstance(value,int) and len(text)==8 and datetime.strptime(text,'%Y%m%d').strftime('%Y%m%d')==text
             except ValueError:valid=False
             if not valid:raise ValueError('GENERIC_DATES_INVALID')
+        daily_n_spans=None
+        if stock.get('n_identity_kind') in {'RECONCILED_DAILY','INHERITED_WHOLE'}:
+            daily_n_spans=(checked_daily_n_lineage(index,stock,symbol) if stock['n_identity_kind']=='RECONCILED_DAILY'
+                           else checked_daily_n_whole_lineage(index,stock,symbol))
+            if n_generation!=daily_n_spans[0]['generation_id'] or n_input!=daily_n_spans[0]['input_sha256']:
+                raise ValueError('GENERIC_DAILY_N_LINEAGE_CONFLICT')
         def bounded_ref(item,compressed,decoded=None):
             if (not isinstance(item,dict) or not isinstance(item.get('path'),str)
                 or not re.fullmatch(r'[0-9a-f]{64}',str(item.get('sha256','')))
@@ -676,6 +832,7 @@ class ResearchWorkbenchHost:
                     dates=dates,field_names=names,field_groups=groups,base_fields=base_fields,original_fields=original,
                     n_rule_sha256=stock['n_rule_sha256'],n_helper_sha256=stock['n_helper_sha256'],
                     n_generation_id=n_generation,n_input_sha256=n_input,n_identity_kind=stock.get('n_identity_kind','CANDIDATE'),
+                    **({'n_identity_spans':daily_n_spans} if daily_n_spans is not None else {}),
                     action_contract_sha256=stock['action_contract_sha256'],yidong_contract_sha256=stock['yidong_contract_sha256'],
                     chart_status=chart['status'],chart_reason=chart.get('reason'),detail_status=detail_status,assets=assets,
                     **rebound_metadata,**common)

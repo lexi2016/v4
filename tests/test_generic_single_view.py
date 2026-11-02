@@ -208,6 +208,30 @@ def test_action_rebind_preserves_origin_assets_and_serves_new_logical_version(tm
         research_workbench_host.checked_action_rebind_index({**index,'symbols':{}})
 
 
+def test_validator_compatibility_changes_only_validator_and_keeps_strict_proofs(tmp_path):
+    context,identity,_=fixture_action_rebind(tmp_path);symbol=identity['symbol']
+    result=view.materialize_action_rebind_stock(context,symbol)
+    old_dir=tmp_path/'old-logical';old_dir.mkdir();out=tmp_path/'compat';out.mkdir()
+    previous=old_dir/'old-validator.py';previous.write_text('# old frozen validator\n')
+    old={**context['index'],'symbols':{symbol:{'status':'READY','binding':result['binding']}},
+         'action_rebind':{**context['index']['action_rebind'],'validator':ref(previous)}}
+    old_ref=put_json(old_dir/'index.json',old)
+    with pytest.raises(ValueError,match='VALIDATOR_VERSION_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index(old)
+    new_ref,proof_ref=view.rebind_action_validator_for_runtime(index_ref=old_ref,output_root=out)
+    new=json.loads(Path(new_ref['path']).read_bytes());proof=json.loads(Path(proof_ref['path']).read_bytes())
+    assert proof['ready_bindings']==1 and proof['all_symbol_entries_identical'] is True
+    assert new['symbols']==old['symbols'] and new['paired_receipt']==old['paired_receipt']
+    assert {k:v for k,v in new['action_rebind'].items() if k!='validator'}=={k:v for k,v in old['action_rebind'].items() if k!='validator'}
+    assert research_workbench_host.checked_action_rebind_index(new)['origin']['candidate_generation']==S('a')
+    reverted={**new,'action_rebind':{**new['action_rebind'],'validator':ref(previous)}}
+    with pytest.raises(ValueError,match='VALIDATOR_VERSION_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index(reverted)
+    bad={**new,'pair_sha256':{**new['pair_sha256'],'selector':S('0')}}
+    with pytest.raises(ValueError,match='EQUIVALENCE_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index(bad)
+
+
 @pytest.mark.parametrize(('kwargs','reason'),[
     ({'old_reasons':'["非原值"]'},'ACTION_REBIND_OLD_VALUE_CONFLICT'),
     ({'overlay_dates':(20240101,20240101)},'ACTION_REBIND_OVERLAY_DATE_CONFLICT'),
@@ -569,6 +593,102 @@ def test_reused_n_keeps_original_identity_and_requires_same_sidecar(tmp_path):
     receipt['n_structure_checkpoints'][identity['symbol']]['resume_across_generation']=True
     with pytest.raises(ValueError,match='REUSE_CHECKPOINT_CONFLICT'):
         view._n_sidecar_identity(receipt,meta,side,identity['symbol'])
+
+
+def test_daily_reconciled_sidecar_preserves_n_source_and_rejects_unbound_parts(tmp_path):
+    left,right,fresh,identity=fixture_data();symbol=identity['symbol'];out=tmp_path/'out';out.mkdir()
+    old_rows=fresh.slice(0,2).to_pylist()
+    for row in old_rows:
+        diag=json.loads(row['diagnostics_json']);diag['kb_n_structure'].update(generation_id=S('9'),input_sha256=S('8'))
+        row['diagnostics_json']=json.dumps(diag)
+    old=pa.Table.from_pylist(old_rows,schema=fresh.schema);old_path=tmp_path/'old.parquet';pq.write_table(old,old_path);old_ref=ref(old_path)
+    parts=tmp_path/'run'/'symbol_checkpoints';parts.mkdir(parents=True);fresh_path=parts/(symbol+'.gap.parquet');pq.write_table(fresh,fresh_path)
+    checkpoint_id=S('5');fresh_ref={**ref(fresh_path),'checkpoint_id':checkpoint_id}
+    inherited={'source':old_ref,'rows':2,'through_date':20240102,
+        'identity_policy':'ORIGINAL_SOURCE_IDENTITY_RETAINED_IN_DIAGNOSTICS','cross_generation_n_checkpoint_reused':False}
+    continuation={'fresh_source':fresh_ref,'first_affected_date':20240103,'prefix_input_sha256':S('1'),'prefix_through_date':20240102}
+    meta={'symbol':symbol,'continuation':continuation,'inherited_prefix':inherited,
+          'generation_id':identity['candidate_generation'],'source_input_sha256':identity['candidate_input_sha256'],
+          'price_basis':'QFQ_ASOF','volume_basis':'QFQ_EVENT_VOLUME',
+          'n_structure_enabled':True,'diagnostic_keys':list(view.q.SINGLE_GAP_DIAGNOSTICS)+['kb_n_structure'],
+          'n_structure_contract_sha256':identity['n_rule_sha256'],'n_structure_helper_sha256':identity['n_helper_sha256'],**view.FLAGS}
+    merged=pa.concat_tables([old,fresh.slice(2)]).replace_schema_metadata({b'v4.a_share.kb_gap_diagnostics.v1':json.dumps(meta).encode()})
+    merged_path=parts/(symbol+'.merged.parquet');pq.write_table(merged,merged_path)
+    merged_ref={**ref(merged_path),'checkpoint_id':checkpoint_id,'rows':3,'continuation':continuation,'inherited_prefix':inherited}
+    baseline=put_json(tmp_path/'baseline.json',{'status':'CANDIDATE_READY','generation_id':S('7'),'input_sha256':S('6'),
+        'confirmed_gap_sidecars':{symbol:old_ref},'historical_PIT':False,**view.FLAGS})
+    reconciliation=put_json(tmp_path/'reconciliation.json',{'schema':'a_share_kb_daily_reconciliation_v1',
+        'generation_id':identity['candidate_generation'],'baseline_generation_id':S('7'),'historical_PIT':False,**view.FLAGS,
+        'stocks':{symbol:{role:{'symbol':symbol,'first_affected_date':20240103,'preserved_rows':2,'recomputed_rows':1}
+                          for role in ('selector','backtest')}}})
+    n_checkpoint={**put_json(parts/(symbol+'.n.json'),{}),'checkpoint_id':checkpoint_id}
+    checkpoint_path=parts/(symbol+'.parquet');pq.write_table(left,checkpoint_path)
+    put_json(parts/(symbol+'.receipt.json'),{'checkpoint_id':checkpoint_id,'sha256':ref(checkpoint_path)['sha256'],
+        'confirmed_gap_sidecar':fresh_ref,'n_structure_checkpoint':n_checkpoint})
+    receipt={'status':'CANDIDATE_READY','generation_id':identity['candidate_generation'],'input_sha256':identity['candidate_input_sha256'],
+        'price_basis':'QFQ_ASOF','volume_basis':'QFQ_EVENT_VOLUME',
+        'confirmed_gap_sidecars':{symbol:merged_ref},'n_structure_checkpoints':{symbol:n_checkpoint},'run_dir':str(parts.parent),
+        'n_structure_contract_sha256':identity['n_rule_sha256'],'n_structure_helper_sha256':identity['n_helper_sha256'],
+        'full_research_continuation':{'schema':'a_share_kb_daily_continuation_v1',
+            'sidecar_policy':'PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME',
+            'baseline_receipt':baseline,'baseline_generation_id':S('7'),'baseline_input_sha256':S('6')},
+        'full_research_sidecar_inheritance':{'schema':'a_share_kb_sidecar_inheritance_v1',
+            'baseline_generation_id':S('7'),'baseline_receipt':baseline,'inherited_whole_codes':[],
+            'recomputed_codes':[symbol],'identity_policy':'PRESERVE_PRIOR_SOURCE_IDENTITY_AND_SIDECAR_REFERENCE',
+            'cross_generation_n_checkpoint_reused':False},
+        'full_research_daily_reconciliation':reconciliation,'historical_PIT':False,**view.FLAGS}
+    n=view._n_sidecar_identity(receipt,meta,merged,symbol);assert n['n_identity_kind']=='RECONCILED_DAILY'
+    assert [(s['start_index'],s['end_index'],s['generation_id']) for s in n['n_identity_spans']]==[(0,1,S('9')),(2,2,S('a'))]
+    view._bulk_checkpoint(symbol,receipt,parts)
+    receipt_ref=put_json(tmp_path/'candidate.json',receipt)
+    identity.update(**n,paired_receipt=receipt_ref,diagnostics_sha256=merged_ref['sha256'])
+    binding_ref=view.build_from_verified_tables(symbol=symbol,selector=left,backtest=right,diagnostics=merged,identity=identity,output_root=out)
+    binding=json.loads(Path(binding_ref['path']).read_bytes());index={'candidate_generation':identity['candidate_generation'],
+        'candidate_input_sha256':identity['candidate_input_sha256']}
+    assert research_workbench_host.checked_daily_n_lineage(index,binding,symbol)==n['n_identity_spans']
+    wrong=dict(receipt);wrong['confirmed_gap_sidecars']={symbol:{**merged_ref,'continuation':{**continuation,'fresh_source':{**fresh_ref,'sha256':S('0')}}}}
+    with pytest.raises(ValueError,match='CHECKPOINT_BINDING_CONFLICT'):
+        view._bulk_checkpoint(symbol,wrong,parts)
+    changed=merged.to_pylist();changed[0]['diagnostics_json']=changed[0]['diagnostics_json']+' '
+    with pytest.raises(ValueError,match='SIDECAR_ROWS_CONFLICT'):
+        view._n_sidecar_identity(receipt,meta,pa.Table.from_pylist(changed,schema=merged.schema),symbol)
+    wrong_suffix=merged.to_pylist();diag=json.loads(wrong_suffix[-1]['diagnostics_json']);diag['kb_n_structure']['generation_id']=S('9')
+    wrong_suffix[-1]['diagnostics_json']=json.dumps(diag)
+    with pytest.raises(ValueError,match='DAILY_N_IDENTITY_CONFLICT'):
+        view._daily_n_spans(receipt,meta,pa.Table.from_pylist(wrong_suffix,schema=merged.schema),20240103)
+    broken=dict(meta);broken['continuation']={**continuation,'prefix_input_sha256':S('2')}
+    bad_receipt={**receipt,'confirmed_gap_sidecars':{symbol:{**merged_ref,'continuation':broken['continuation']}}}
+    with pytest.raises(ValueError,match='PREFIX_INPUT_CONFLICT'):
+        view._n_sidecar_identity(bad_receipt,broken,merged,symbol)
+    bad_binding={**binding,'n_identity_spans':[dict(n['n_identity_spans'][0],end_index=2),n['n_identity_spans'][1]]}
+    with pytest.raises(ValueError,match='DAILY_N_SPANS_CONFLICT'):
+        research_workbench_host.checked_daily_n_lineage(index,bad_binding,symbol)
+    baseline_value=json.loads(Path(baseline['path']).read_bytes());baseline_value.pop('historical_PIT')
+    missing_pit=put_json(tmp_path/'baseline-missing-pit.json',baseline_value)
+    bad_receipt={**receipt,'full_research_continuation':{**receipt['full_research_continuation'],'baseline_receipt':missing_pit},
+        'full_research_sidecar_inheritance':{**receipt['full_research_sidecar_inheritance'],'baseline_receipt':missing_pit}}
+    with pytest.raises(ValueError,match='BASELINE_SIDECAR_CONFLICT'):
+        view._n_sidecar_identity(bad_receipt,meta,merged,symbol)
+    whole_source={'schema':'a_share_kb_daily_continuation_v1','sidecar_policy':'PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME',
+        'baseline_receipt':receipt_ref,'baseline_generation_id':receipt['generation_id'],'baseline_input_sha256':receipt['input_sha256']}
+    whole={**receipt,'generation_id':S('4'),'input_sha256':S('3'),'full_research_continuation':whole_source,
+        'full_research_sidecar_inheritance':{'schema':'a_share_kb_sidecar_inheritance_v1',
+            'baseline_generation_id':receipt['generation_id'],'baseline_receipt':receipt_ref,'inherited_whole_codes':[symbol],
+            'recomputed_codes':[],'identity_policy':'PRESERVE_PRIOR_SOURCE_IDENTITY_AND_SIDECAR_REFERENCE',
+            'cross_generation_n_checkpoint_reused':False}}
+    view._require_sidecar_metadata(whole,meta,symbol);whole_n=view._n_sidecar_identity(whole,meta,merged,symbol)
+    assert whole_n['n_identity_kind']=='INHERITED_WHOLE' and whole_n['n_generation_id']==S('9')
+    assert whole_n['n_identity_spans']==n['n_identity_spans']
+    whole_ref=put_json(tmp_path/'whole-candidate.json',whole)
+    whole_identity={**identity,**whole_n,'candidate_generation':S('4'),'candidate_input_sha256':S('3'),'paired_receipt':whole_ref}
+    whole_binding_ref=view.build_from_verified_tables(symbol=symbol,selector=left,backtest=right,diagnostics=merged,
+        identity=whole_identity,output_root=out)
+    whole_binding=json.loads(Path(whole_binding_ref['path']).read_bytes())
+    assert research_workbench_host.checked_daily_n_whole_lineage({'candidate_generation':S('4'),'candidate_input_sha256':S('3')},
+        whole_binding,symbol)==n['n_identity_spans']
+    bad_whole={**whole,'n_structure_checkpoints':{symbol:{**n_checkpoint,'sha256':S('0')}}}
+    with pytest.raises(ValueError,match='WHOLE_SIDECAR_CONFLICT'):
+        view._n_sidecar_identity(bad_whole,meta,merged,symbol)
 
 
 def test_retained_details_keep_old_version_and_check_individual_sources(tmp_path):

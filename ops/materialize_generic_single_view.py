@@ -429,9 +429,31 @@ def build_from_verified_tables(*, symbol, selector, backtest, diagnostics, ident
     previous = 0
     diag_sha = identity['diagnostics_sha256']
     _require(SHA.fullmatch(str(diag_sha)), 'GENERIC_DIAGNOSTICS_IDENTITY_INVALID')
+    segmented=identity.get('n_identity_kind') in {'RECONCILED_DAILY','INHERITED_WHOLE'}
+    spans=identity.get('n_identity_spans') if segmented else None
+    if segmented:
+        lineage=identity.get('n_lineage') or {};dates=[int(row['trade_date']) for row in left];next_index=0
+        lineage_schema='v4.workbench.daily_n_lineage.v1' if identity.get('n_identity_kind')=='RECONCILED_DAILY' else 'v4.workbench.daily_n_whole_inheritance.v1'
+        side_key='merged_sidecar' if identity.get('n_identity_kind')=='RECONCILED_DAILY' else 'inherited_sidecar'
+        _require(isinstance(spans,list) and 0<len(spans)<=len(dates) and isinstance(lineage,dict)
+                 and lineage.get('schema')==lineage_schema
+                 and isinstance(lineage.get(side_key),dict)
+                 and lineage.get(side_key,{}).get('sha256')==diag_sha
+                 and lineage.get('cross_generation_n_checkpoint_reused') is False,
+                 'GENERIC_DAILY_N_SPANS_CONFLICT')
+        for span in spans:
+            _require(isinstance(span,dict),'GENERIC_DAILY_N_SPANS_CONFLICT')
+            start,end=span.get('start_index'),span.get('end_index')
+            _require(type(start) is int and type(end) is int and start==next_index and start<=end<len(dates)
+                     and span.get('first_date')==dates[start] and span.get('last_date')==dates[end]
+                     and isinstance(span.get('generation_id'),str) and SHA.fullmatch(span['generation_id'])
+                     and isinstance(span.get('input_sha256'),str) and SHA.fullmatch(span['input_sha256']),
+                     'GENERIC_DAILY_N_SPANS_CONFLICT')
+            next_index=end+1
+        _require(next_index==len(dates), 'GENERIC_DAILY_N_SPANS_CONFLICT')
     packed_rows, overlay = [], []
-    action_sha, yidong_sha = None, None
-    for a,b,d in zip(left,right,diags):
+    action_sha, yidong_sha, span_index = None, None, 0
+    for row_index,(a,b,d) in enumerate(zip(left,right,diags)):
         try:
             date = int(a['trade_date'])
         except (ValueError, TypeError, OverflowError):
@@ -447,10 +469,15 @@ def build_from_verified_tables(*, symbol, selector, backtest, diagnostics, ident
                  and isinstance(d['prefix_input_sha256'],str) and SHA.fullmatch(d['prefix_input_sha256']),
                  'GENERIC_DIAGNOSTICS_ROW_CONFLICT')
         n = diag['kb_n_structure']
+        if segmented:
+            while row_index>spans[span_index]['end_index']:span_index+=1
+            expected_generation,expected_input=spans[span_index]['generation_id'],spans[span_index]['input_sha256']
+        else:
+            expected_generation=identity.get('n_generation_id',identity['candidate_generation'])
+            expected_input=identity.get('n_input_sha256',identity['candidate_input_sha256'])
         _require(isinstance(n,dict) and n.get('rule_sha256') == identity['n_rule_sha256']
                  and n.get('helper_sha256') == identity['n_helper_sha256']
-                 and n.get('input_sha256') == identity.get('n_input_sha256',identity['candidate_input_sha256'])
-                 and n.get('generation_id') == identity.get('n_generation_id',identity['candidate_generation']),
+                 and n.get('input_sha256') == expected_input and n.get('generation_id') == expected_generation,
                  'GENERIC_N_IDENTITY_CONFLICT')
         _require(n.get('state') == ('TREND_UP' if a['kb_hold_trend_up'] is True else a['kb_hold_trend_up_reason']),
                  'GENERIC_N_VALUE_CONFLICT')
@@ -614,6 +641,11 @@ def _pair_snapshot(receipt_ref, verified_pair_ref=None):
         roles[role] = {'path':path,'sha256':expected,'stat':stamp,'metadata':metadata,'schema':parquet.schema_arrow}
     _require(roles['selector']['metadata'].get('confirmed_gap_sidecars')
              == roles['backtest']['metadata'].get('confirmed_gap_sidecars'), 'GENERIC_PAIR_SIDECAR_MAP_CONFLICT')
+    if receipt.get('full_research_sidecar_inheritance') is not None:
+        _daily_sidecar_inheritance(receipt)
+        _require(all(roles[role]['metadata'].get('full_research_sidecar_inheritance')
+                     ==receipt['full_research_sidecar_inheritance'] for role in ('selector','backtest')),
+                 'GENERIC_DAILY_SIDECAR_FOOTER_CONFLICT')
     if attestation is not None:
         coverage=attestation.get('sidecar_coverage') or {}; count=len(roles['selector']['metadata'].get('confirmed_gap_sidecars') or {})
         _require(count>0 and coverage.get('count')==count and coverage.get('n_checkpoints')==count,
@@ -648,8 +680,185 @@ def _extract_batch(roles, symbols):
     return result
 
 
+def _daily_sidecar_inheritance(receipt):
+    value=receipt.get('full_research_sidecar_inheritance') or {};source=receipt.get('full_research_continuation') or {}
+    inherited=value.get('inherited_whole_codes');recomputed=value.get('recomputed_codes')
+    _require(value.get('schema')=='a_share_kb_sidecar_inheritance_v1'
+             and isinstance(source.get('baseline_generation_id'),str) and SHA.fullmatch(source['baseline_generation_id'])
+             and isinstance(source.get('baseline_input_sha256'),str) and SHA.fullmatch(source['baseline_input_sha256'])
+             and value.get('baseline_generation_id')==source.get('baseline_generation_id')
+             and value.get('baseline_receipt')==source.get('baseline_receipt')
+             and value.get('identity_policy')=='PRESERVE_PRIOR_SOURCE_IDENTITY_AND_SIDECAR_REFERENCE'
+             and value.get('cross_generation_n_checkpoint_reused') is False
+             and isinstance(inherited,list) and isinstance(recomputed,list)
+             and all(isinstance(code,str) for code in (*inherited,*recomputed))
+             and inherited==sorted(set(inherited)) and recomputed==sorted(set(recomputed))
+             and not set(inherited)&set(recomputed)
+             and set(inherited)|set(recomputed)==set(receipt.get('confirmed_gap_sidecars') or {}),
+             'GENERIC_DAILY_SIDECAR_INHERITANCE_CONFLICT')
+    return value
+
+
+def _require_sidecar_metadata(receipt,side_meta,symbol):
+    inheritance=_daily_sidecar_inheritance(receipt) if receipt.get('full_research_sidecar_inheritance') is not None else None
+    inherited=inheritance is not None and symbol in inheritance['inherited_whole_codes']
+    _require(side_meta.get('symbol')==symbol and side_meta.get('n_structure_enabled') is True
+             and set(side_meta.get('diagnostic_keys',[]))==set(q.SINGLE_GAP_DIAGNOSTICS)|{'kb_n_structure'}
+             and all(side_meta.get(k) is v for k,v in FLAGS.items())
+             and (inherited or (side_meta.get('generation_id')==receipt['generation_id']
+                                and side_meta.get('source_input_sha256')==receipt['input_sha256']))
+             and (inheritance is None or (side_meta.get('n_structure_contract_sha256')==receipt.get('n_structure_contract_sha256')
+                  and side_meta.get('n_structure_helper_sha256')==receipt.get('n_structure_helper_sha256')
+                  and side_meta.get('price_basis')==receipt.get('price_basis')=='QFQ_ASOF'
+                  and side_meta.get('volume_basis')==receipt.get('volume_basis')=='QFQ_EVENT_VOLUME')),
+             'GENERIC_SIDECAR_METADATA_CONFLICT')
+
+
+def _daily_n_spans(receipt,side_meta,side,first_affected_date=None):
+    dates=[int(x) for x in side['trade_date'].to_pylist()];spans=[]
+    _require(dates and dates==sorted(set(dates)),'GENERIC_DAILY_SIDECAR_KEYS_CONFLICT')
+    for i,(day,text) in enumerate(zip(dates,side['diagnostics_json'].to_pylist())):
+        diag=json.loads(text);_require(isinstance(diag,dict),'GENERIC_DAILY_N_IDENTITY_CONFLICT')
+        n=diag.get('kb_n_structure');_require(isinstance(n,dict),'GENERIC_DAILY_N_IDENTITY_CONFLICT')
+        generation=n.get('generation_id');input_sha=n.get('input_sha256')
+        _require(isinstance(generation,str) and SHA.fullmatch(generation)
+                 and isinstance(input_sha,str) and SHA.fullmatch(input_sha)
+                 and n.get('rule_sha256')==side_meta.get('n_structure_contract_sha256')
+                 and n.get('helper_sha256')==side_meta.get('n_structure_helper_sha256')
+                 and (first_affected_date is None or day<first_affected_date
+                      or (generation==receipt['generation_id'] and input_sha==receipt['input_sha256'])),
+                 'GENERIC_DAILY_N_IDENTITY_CONFLICT')
+        if spans and (spans[-1]['generation_id'],spans[-1]['input_sha256'])==(generation,input_sha):
+            spans[-1]['last_date']=day;spans[-1]['end_index']=i
+        else:
+            spans.append(dict(first_date=day,last_date=day,start_index=i,end_index=i,
+                              generation_id=generation,input_sha256=input_sha))
+    return spans
+
+
+def _n_reconciled_sidecar_identity(receipt, side_meta, side, symbol):
+    """Verify the saved old-prefix/fresh-suffix sidecar without changing its N identities."""
+    ref=(receipt.get('confirmed_gap_sidecars') or {}).get(symbol) or {}
+    continuation=ref.get('continuation');inherited=ref.get('inherited_prefix')
+    source=receipt.get('full_research_continuation') or {}
+    inheritance=_daily_sidecar_inheritance(receipt)
+    _require(isinstance(continuation,dict) and isinstance(inherited,dict)
+             and symbol in inheritance['recomputed_codes']
+             and source.get('schema')=='a_share_kb_daily_continuation_v1'
+             and source.get('sidecar_policy')=='PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME'
+             and side_meta.get('continuation')==continuation and side_meta.get('inherited_prefix')==inherited
+             and inherited.get('identity_policy')=='ORIGINAL_SOURCE_IDENTITY_RETAINED_IN_DIAGNOSTICS'
+             and inherited.get('cross_generation_n_checkpoint_reused') is False,
+             'GENERIC_DAILY_SIDECAR_LINEAGE_CONFLICT')
+    baseline_ref=source.get('baseline_receipt')
+    baseline=json.loads(_checked(baseline_ref,maximum=16*1024*1024).read_bytes())
+    _require(baseline.get('status') in {'READY','CANDIDATE_READY'}
+             and baseline.get('generation_id')==source.get('baseline_generation_id')
+             and baseline.get('input_sha256')==source.get('baseline_input_sha256')
+             and (baseline.get('confirmed_gap_sidecars') or {}).get(symbol)==inherited.get('source')
+             and baseline.get('historical_PIT') is False and all(baseline.get(k) is v for k,v in FLAGS.items()),
+             'GENERIC_DAILY_BASELINE_SIDECAR_CONFLICT')
+    fresh_ref=continuation.get('fresh_source') or {}
+    checkpoint_path=Path(str(receipt.get('run_dir') or ''))/'symbol_checkpoints'/(symbol+'.receipt.json')
+    _require(checkpoint_path.is_absolute() and not checkpoint_path.is_symlink()
+             and checkpoint_path.resolve(strict=True)==checkpoint_path and checkpoint_path.stat().st_size<=1024*1024,
+             'GENERIC_DAILY_CHECKPOINT_RECEIPT_INVALID')
+    checkpoint_raw=checkpoint_path.read_bytes();checkpoint=json.loads(checkpoint_raw)
+    checkpoint_ref={'path':str(checkpoint_path),'sha256':hashlib.sha256(checkpoint_raw).hexdigest()}
+    _require(checkpoint.get('confirmed_gap_sidecar')==fresh_ref
+             and checkpoint.get('checkpoint_id')==fresh_ref.get('checkpoint_id')==ref.get('checkpoint_id'),
+             'GENERIC_DAILY_FRESH_SIDECAR_CONFLICT')
+    old=pq.read_table(_checked(inherited['source']));fresh=pq.read_table(_checked(fresh_ref))
+    columns=['ts_code','trade_date','diagnostics_json','prefix_input_sha256']
+    _require(side.column_names==old.column_names==fresh.column_names==columns
+             and side.schema.equals(old.schema,check_metadata=False)
+             and side.schema.equals(fresh.schema,check_metadata=False)
+             and set(side['ts_code'].to_pylist())==set(old['ts_code'].to_pylist())==set(fresh['ts_code'].to_pylist())=={symbol},
+             'GENERIC_DAILY_SIDECAR_SCHEMA_CONFLICT')
+    old_dates=[int(x) for x in old['trade_date'].to_pylist()]
+    fresh_dates=[int(x) for x in fresh['trade_date'].to_pylist()]
+    dates=[int(x) for x in side['trade_date'].to_pylist()]
+    _require(old_dates==sorted(set(old_dates)) and fresh_dates==sorted(set(fresh_dates))
+             and dates==fresh_dates and set(old_dates)<=set(fresh_dates), 'GENERIC_DAILY_SIDECAR_KEYS_CONFLICT')
+    first=continuation.get('first_affected_date')
+    _require(type(first) is int and first in fresh_dates, 'GENERIC_DAILY_FIRST_AFFECTED_CONFLICT')
+    before=[i for i,day in enumerate(old_dates) if day<first]
+    after=[i for i,day in enumerate(fresh_dates) if day>=first]
+    prefix_day=old_dates[before[-1]] if before else None
+    prefix_hash=old['prefix_input_sha256'][before[-1]].as_py() if before else None
+    _require(inherited.get('rows')==len(before) and inherited.get('through_date')==prefix_day
+             and continuation.get('prefix_through_date')==prefix_day
+             and continuation.get('prefix_input_sha256')==prefix_hash
+             and (not before or isinstance(prefix_hash,str) and SHA.fullmatch(prefix_hash)
+                  and fresh['prefix_input_sha256'][fresh_dates.index(prefix_day)].as_py()==prefix_hash),
+             'GENERIC_DAILY_PREFIX_INPUT_CONFLICT')
+    expected=pa.concat_tables([old.take(pa.array(before,type=pa.int64())).replace_schema_metadata(None),
+                               fresh.take(pa.array(after,type=pa.int64())).replace_schema_metadata(None)])
+    _require(side.equals(expected,check_metadata=False) and ref.get('rows')==len(dates),
+             'GENERIC_DAILY_SIDECAR_ROWS_CONFLICT')
+    reconciliation_ref=receipt.get('full_research_daily_reconciliation')
+    reconciliation=json.loads(_checked(reconciliation_ref,maximum=8*1024*1024).read_bytes())
+    _require(reconciliation.get('schema')=='a_share_kb_daily_reconciliation_v1'
+             and reconciliation.get('generation_id')==receipt.get('generation_id')
+             and reconciliation.get('baseline_generation_id')==source.get('baseline_generation_id')
+             and reconciliation.get('historical_PIT') is False
+             and all(reconciliation.get(k) is v for k,v in FLAGS.items()), 'GENERIC_DAILY_RECONCILIATION_CONFLICT')
+    for role in ('selector','backtest'):
+        item=(reconciliation.get('stocks') or {}).get(symbol,{}).get(role,{})
+        _require(item.get('symbol')==symbol and item.get('first_affected_date')==first
+                 and item.get('preserved_rows')==len(before) and item.get('recomputed_rows')==len(after),
+                 'GENERIC_DAILY_RECONCILIATION_CONFLICT:'+role)
+    spans=_daily_n_spans(receipt,side_meta,side,first)
+    lineage={'schema':'v4.workbench.daily_n_lineage.v1','baseline_receipt':baseline_ref,
+             'baseline_generation_id':source['baseline_generation_id'],'merged_sidecar':ref,
+             'checkpoint_receipt':checkpoint_ref,'reconciliation':reconciliation_ref,
+             'first_affected_date':first,'prefix_through_date':prefix_day,'prefix_input_sha256':prefix_hash,
+             'prefix_rows':len(before),'suffix_rows':len(after),'cross_generation_n_checkpoint_reused':False}
+    return {'n_generation_id':spans[0]['generation_id'],'n_input_sha256':spans[0]['input_sha256'],
+            'n_identity_kind':'RECONCILED_DAILY','n_identity_spans':spans,'n_lineage':lineage}
+
+
+def _n_whole_inherited_identity(receipt,side_meta,side,symbol):
+    inheritance=_daily_sidecar_inheritance(receipt);source=receipt.get('full_research_continuation') or {}
+    _require(symbol in inheritance['inherited_whole_codes']
+             and source.get('schema')=='a_share_kb_daily_continuation_v1'
+             and source.get('sidecar_policy')=='PRESERVE_BOUND_PRIOR_IDENTITY_NO_CROSS_GENERATION_N_RESUME',
+             'GENERIC_DAILY_SIDECAR_INHERITANCE_CONFLICT')
+    baseline_ref=source.get('baseline_receipt');baseline=json.loads(_checked(baseline_ref,maximum=16*1024*1024).read_bytes())
+    side_ref=(receipt.get('confirmed_gap_sidecars') or {}).get(symbol);checkpoint_ref=(receipt.get('n_structure_checkpoints') or {}).get(symbol)
+    _require(baseline.get('status') in {'READY','CANDIDATE_READY'}
+             and baseline.get('generation_id')==source.get('baseline_generation_id')
+             and baseline.get('input_sha256')==source.get('baseline_input_sha256')
+             and baseline.get('historical_PIT') is False and all(baseline.get(k) is v for k,v in FLAGS.items())
+             and side_ref==(baseline.get('confirmed_gap_sidecars') or {}).get(symbol)
+             and checkpoint_ref==(baseline.get('n_structure_checkpoints') or {}).get(symbol)
+             and isinstance(side_ref,dict) and isinstance(checkpoint_ref,dict),
+             'GENERIC_DAILY_WHOLE_SIDECAR_CONFLICT')
+    _checked(checkpoint_ref,maximum=8*1024*1024)
+    _require(side_meta.get('symbol')==symbol and side_meta.get('n_structure_enabled') is True
+             and side_meta.get('n_structure_contract_sha256')==receipt.get('n_structure_contract_sha256')
+             and side_meta.get('n_structure_helper_sha256')==receipt.get('n_structure_helper_sha256')
+             and isinstance(side_meta.get('generation_id'),str) and SHA.fullmatch(side_meta['generation_id'])
+             and isinstance(side_meta.get('source_input_sha256'),str) and SHA.fullmatch(side_meta['source_input_sha256'])
+             and all(side_meta.get(k) is v for k,v in FLAGS.items()),'GENERIC_DAILY_WHOLE_SIDECAR_CONFLICT')
+    spans=_daily_n_spans(receipt,side_meta,side)
+    lineage={'schema':'v4.workbench.daily_n_whole_inheritance.v1','baseline_receipt':baseline_ref,
+             'baseline_generation_id':source['baseline_generation_id'],'inherited_sidecar':side_ref,
+             'inherited_checkpoint':checkpoint_ref,'sidecar_generation_id':side_meta['generation_id'],
+             'sidecar_input_sha256':side_meta['source_input_sha256'],
+             'cross_generation_n_checkpoint_reused':False}
+    return {'n_generation_id':spans[0]['generation_id'],'n_input_sha256':spans[0]['input_sha256'],
+            'n_identity_kind':'INHERITED_WHOLE','n_identity_spans':spans,'n_lineage':lineage}
+
+
 def _n_sidecar_identity(receipt, side_meta, side, symbol):
     """Keep a proven reused N checkpoint's original identity, without resuming it."""
+    if receipt.get('full_research_sidecar_inheritance') is not None:
+        inheritance=_daily_sidecar_inheritance(receipt)
+        if symbol in inheritance['inherited_whole_codes']:
+            return _n_whole_inherited_identity(receipt,side_meta,side,symbol)
+    if side_meta.get('continuation') is not None:
+        return _n_reconciled_sidecar_identity(receipt,side_meta,side,symbol)
     candidate_generation=receipt['generation_id'];candidate_input=receipt['input_sha256']
     if side_meta.get('materialized_source_candidate_generation') is None:
         return {'n_generation_id':candidate_generation,'n_input_sha256':candidate_input,'n_identity_kind':'CANDIDATE'}
@@ -746,11 +955,7 @@ def materialize_verified_pair(*, paired_receipt_ref, numeric_manifest_ref, symbo
             path = _checked(sidecar_ref)
             side = pq.read_table(path)
             side_meta = json.loads((side.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
-            _require(side_meta.get('symbol') == symbol and side_meta.get('generation_id') == generation
-                     and side_meta.get('source_input_sha256') == input_sha
-                     and side_meta.get('n_structure_enabled') is True
-                     and set(side_meta.get('diagnostic_keys',[])) == set(q.SINGLE_GAP_DIAGNOSTICS) | {'kb_n_structure'}
-                     and all(side_meta.get(k) is v for k,v in FLAGS.items()), 'GENERIC_SIDECAR_METADATA_CONFLICT')
+            _require_sidecar_metadata(receipt,side_meta,symbol)
             n_identity=_n_sidecar_identity(receipt,side_meta,side,symbol)
             name_values = [x for x in pair['selector']['name'].to_pylist() if isinstance(x,str) and x.strip()]
             identity = dict(symbol=symbol,name=name_values[-1].strip() if name_values else symbol,
@@ -1080,8 +1285,14 @@ def _bulk_checkpoint(code,receipt,parts):
     before=_stat(path);_checked({'path':str(path),'sha256':record['sha256']});_require(_stat(path)==before,'GENERIC_BULK_CHECKPOINT_MOVED')
     for key,source in (('confirmed_gap_sidecar',receipt['confirmed_gap_sidecars']),('n_structure_checkpoint',receipt['n_structure_checkpoints'])):
         expected=source.get(code);actual=record.get(key)
+        same=isinstance(expected,dict) and isinstance(actual,dict) and all(
+            expected.get(k)==actual.get(k) for k in ('path','sha256','checkpoint_id'))
+        reconciled=(key=='confirmed_gap_sidecar' and isinstance(expected,dict) and isinstance(actual,dict)
+                    and isinstance(expected.get('continuation'),dict)
+                    and expected['continuation'].get('fresh_source')==actual
+                    and expected.get('checkpoint_id')==actual.get('checkpoint_id'))
         _require(isinstance(expected,dict) and isinstance(actual,dict)
-                 and all(expected.get(k)==actual.get(k) for k in ('path','sha256','checkpoint_id')),
+                 and (same or reconciled),
                  'GENERIC_BULK_CHECKPOINT_BINDING_CONFLICT:'+key)
         reused=(key=='n_structure_checkpoint' and code in receipt.get('materialized_reuse_refs',{})
                 and actual.get('source_generation')==receipt.get('materialized_reuse_source_generation')
@@ -1143,10 +1354,7 @@ def _bulk_one(code,left,right,old):
         _require(_stat(parts/(code+'.parquet'))==before,'GENERIC_BULK_CHECKPOINT_MOVED')
         side_ref=receipt['confirmed_gap_sidecars'][code];side=pq.read_table(_checked(side_ref))
         side_meta=json.loads((side.schema.metadata or {})[b'v4.a_share.kb_gap_diagnostics.v1'])
-        _require(side_meta.get('symbol')==code and side_meta.get('generation_id')==receipt['generation_id']
-                 and side_meta.get('source_input_sha256')==receipt['input_sha256'] and side_meta.get('n_structure_enabled') is True
-                 and set(side_meta.get('diagnostic_keys',[]))==set(q.SINGLE_GAP_DIAGNOSTICS)|{'kb_n_structure'}
-                 and all(side_meta.get(k) is v for k,v in FLAGS.items()),'GENERIC_BULK_SIDECAR_CONFLICT')
+        _require_sidecar_metadata(receipt,side_meta,code)
         n_identity=_n_sidecar_identity(receipt,side_meta,side,code)
         name_values=[x for x in left['name'].to_pylist() if isinstance(x,str) and x.strip()]
         identity=dict(symbol=code,name=name_values[-1].strip() if name_values else code,
@@ -1397,6 +1605,32 @@ def run_owner_bulk(context, cached_buckets, *, workers=4, max_new=None):
         'scope_gap_receipt':context['no_frame_ref'],'symbols':results,'historical_PIT':False,**FLAGS}
     index_ref=_write_immutable(root,'GENERIC_SINGLE_INDEX','.json',_canonical(index))
     return {'status':'COMPLETE','index':index_ref,'progress':progress,**summary}
+
+
+def rebind_action_validator_for_runtime(*, index_ref, output_root):
+    """Copy a proven G2 index with only its current validator reference changed."""
+    old=json.loads(_checked(index_ref,maximum=8*1024*1024).read_bytes());root=Path(output_root).resolve(strict=True)
+    _require(root.is_dir() and root!=Path(index_ref['path']).parent
+             and not root.is_relative_to(Path(index_ref['path']).parent),'ACTION_VALIDATOR_OUTPUT_NOT_ISOLATED')
+    link=old.get('action_rebind') or {}
+    for key in ('producer','validator','consumer'):_checked(link.get(key),maximum=4*1024*1024)
+    checked_action_rebind_index(old,require_producer=False)
+    validator_path=Path(action_host.__file__).resolve(strict=True)
+    validator=_write_immutable(root,'ACTION_REBIND_VALIDATOR','.py',validator_path.read_bytes(),full_hash=True)
+    new={**old,'action_rebind':{**link,'validator':validator}}
+    before={**old,'action_rebind':{k:v for k,v in link.items() if k!='validator'}}
+    after={**new,'action_rebind':{k:v for k,v in new['action_rebind'].items() if k!='validator'}}
+    _require(before==after and old.get('symbols')==new.get('symbols'), 'ACTION_VALIDATOR_COPY_CONFLICT')
+    checked_action_rebind_index(new)
+    _require(q.sha(validator_path)==validator['sha256']==q.sha(validator['path']), 'ACTION_REBIND_VALIDATOR_MOVED')
+    new_ref=_write_immutable(root,'G2_VALIDATOR_COMPAT_INDEX','.json',_canonical(new))
+    ready=[(symbol,item['binding']) for symbol,item in sorted(old['symbols'].items()) if item.get('status')=='READY']
+    proof={'schema':'v4.workbench.action_validator_compatibility.v1','status':'PASS_ISOLATED',
+           'old_index':index_ref,'new_index':new_ref,'old_validator':link['validator'],'new_validator':validator,
+           'other_index_fields_identical':True,'all_symbol_entries_identical':True,'ready_bindings':len(ready),
+           'ready_bindings_sha256':hashlib.sha256(_canonical(ready)).hexdigest(),
+           'pair_and_proof_references_identical':True,'historical_PIT':False,**FLAGS}
+    return new_ref,_write_immutable(root,'G2_VALIDATOR_COMPAT_PROOF','.json',_canonical(proof))
 
 
 def prepare_action_rebind(*, origin_index_ref, paired_receipt_ref, verified_pair_ref, output_root):

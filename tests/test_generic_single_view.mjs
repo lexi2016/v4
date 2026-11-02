@@ -126,6 +126,23 @@ test('N source identity can remain a verified earlier generation',()=>{
   meta.n_generation_id=sha('a');assert.throws(()=>decodeGenericChunk(meta,chunk,ref),/诊断身份冲突/);
 });
 
+test('daily N rows retain their source identity by nonoverlapping bound date spans',()=>{
+  const {meta,chunk,ref}=sample();meta.n_identity_kind='RECONCILED_DAILY';
+  meta.n_identity_spans=[{start_index:0,end_index:0,first_date:20261029,last_date:20261029,generation_id:sha('9'),input_sha256:sha('8')},
+    {start_index:1,end_index:1,first_date:20261030,last_date:20261030,generation_id:sha('a'),input_sha256:sha('b')}];
+  chunk.rows[0][3]=structuredClone(chunk.rows[0][3]);
+  chunk.rows[0][3].kb_n_structure.generation_id=sha('9');chunk.rows[0][3].kb_n_structure.input_sha256=sha('8');
+  assert.equal(decodeGenericChunk(meta,chunk,ref).length,2);
+  assert.equal(decodeGenericChunk({...meta,n_identity_kind:'INHERITED_WHOLE'},chunk,ref).length,2);
+  const wrong=structuredClone(chunk);wrong.rows[0][3].kb_n_structure.generation_id=sha('a');
+  assert.throws(()=>decodeGenericChunk(meta,wrong,ref),/诊断身份冲突/);
+  for(const spans of [[{...meta.n_identity_spans[0],end_index:1},meta.n_identity_spans[1]],
+    [meta.n_identity_spans[1]], [{...meta.n_identity_spans[0],first_date:20261028},meta.n_identity_spans[1]],
+    [meta.n_identity_spans[0],{...meta.n_identity_spans[1],input_sha256:sha('0')}]] ){
+    const changed={...meta,n_identity_spans:spans};assert.throws(()=>decodeGenericChunk(changed,chunk,ref),/诊断来源分段冲突|诊断身份冲突/);
+  }
+});
+
 test('symbol changes clear both versions and same symbol keeps date/version',()=>{
   const url='http://localhost/?symbol=600000.SH&panel_generation='+sha('a')+'&view_generation='+sha('b');
   const same=new URL(singleSelectionHref(url,'600000.SH','2025-01-03'));
