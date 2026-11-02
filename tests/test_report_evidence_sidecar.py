@@ -189,4 +189,46 @@ class SidecarCompatibilityTests(unittest.IsolatedAsyncioTestCase):
             repeated=on_stage_completed(**kwargs);self.assertEqual(repeated['status'],'EVIDENCE_GAP');self.assertEqual(repeated['reason'],'JOB_PREVIOUSLY_FAILED');self.assertEqual(spawn.call_count,1)
         self.assertEqual(self.path.read_bytes(),self.before)
 
+    def _assert_invalid_receipt_preserved(self, *, status, wrong_id, reason):
+        from infrastructure import report_evidence_sidecar as module
+        env=dict(V4_STAGE_REPORT_EVIDENCE_ENABLED='1',V4_RESEARCH_DATA_ROOT=str(self.owner.root),V4_REPORT_EVIDENCE_SIDECAR_ROOT=str(self.root/'sidecars'))
+        kwargs=dict(config=self.config,trade_date=self.date,stage_id=self.stage,receipt=self.receipt)
+        with patch.dict(os.environ,env),patch.object(module.subprocess,'Popen',return_value=SimpleNamespace(pid=12345)) as spawn,patch.object(module,'_materialize_worker') as materializer:
+            first=module.on_stage_completed(**kwargs)
+            path=self.root/'sidecars/jobs'/(first['job_id']+'.receipt.json')
+            submitted=path.read_bytes()
+            invalid=json.loads(submitted);invalid['status']=status
+            if wrong_id:invalid['job_id']='f'*64 if first['job_id']!='f'*64 else 'e'*64
+            raw=json.dumps(invalid,indent=3).encode()
+            # Initial read must refuse before PID probing, spawning or writing.
+            path.write_bytes(raw)
+            result=module.on_stage_completed(**kwargs)
+            self.assertEqual(result['status'],'EVIDENCE_GAP');self.assertEqual(result['reason'],reason)
+            self.assertEqual(path.read_bytes(),raw);self.assertEqual(spawn.call_count,1)
+            # The same guard applies when a receipt changes before lock re-read.
+            path.write_bytes(submitted)
+            def change_before_locked_read(active):
+                path.write_bytes(raw)
+                return False
+            with patch.object(module,'_running_worker',side_effect=change_before_locked_read):
+                result=module.on_stage_completed(**kwargs)
+            self.assertEqual(result['status'],'EVIDENCE_GAP');self.assertEqual(result['reason'],reason)
+            self.assertEqual(path.read_bytes(),raw);self.assertEqual(spawn.call_count,1)
+            # Worker refusal is outside the materialization failure writer.
+            with self.assertRaisesRegex(ValueError,reason):module.consume_sidecar_job(first['job_id'])
+            self.assertEqual(path.read_bytes(),raw);materializer.assert_not_called()
+        self.assertEqual(self.path.read_bytes(),self.before)
+
+    def test_unknown_existing_receipt_is_preserved_at_all_read_boundaries(self):
+        self._assert_invalid_receipt_preserved(status='UNKNOWN',wrong_id=False,reason='JOB_STATE_UNKNOWN')
+
+    def test_mismatched_receipt_job_id_is_refused_at_all_read_boundaries(self):
+        # Terminal reuse and in-flight handling must both bind the expected ID.
+        for status in ('SUBMITTED','RUNNING','COMPLETED','FAILED'):
+            with self.subTest(status=status):
+                self._assert_invalid_receipt_preserved(status=status,wrong_id=True,reason='JOB_IDENTITY_MISMATCH')
+                # Each subcase starts from a genuinely absent job receipt.
+                import shutil
+                shutil.rmtree(self.root/'sidecars')
+
 if __name__=='__main__':unittest.main()
