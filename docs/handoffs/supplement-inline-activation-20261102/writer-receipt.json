@@ -1,0 +1,104 @@
+{
+  "status": "WRITER_OFFLINE_CHECKS_PASSED_NOT_ACTIVATED",
+  "root_cause_proof": [
+    {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/edan-single-20261102-b843699e8d3371ea/app",
+      "run_module": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/edan-single-20261102-b843699e8d3371ea/app/apps/api/v4_api/run.py"
+    },
+    {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-supplement-inline-20261102-89ef3a68/app",
+      "run_module": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-supplement-inline-20261102-89ef3a68/app/apps/api/v4_api/run.py"
+    }
+  ],
+  "before_candidate_plist_sha256": "98d9c703b1f26d0e3cf22fceaf97244a60a29471b735eb6cd812a446e1a25bfe",
+  "candidate_plist_sha256": "ee3f66cc3e7a07192808d38e379d76cc7a4abef603ba23183943d6f2a154f9bc",
+  "preparation_sha256": "966ede1544d25501e7847f7d9b91477be0722960daa6e4595a01a57f2f0520bd",
+  "manifest_sha256_unchanged": "883bc74073bde4ab1d3e828d832c75366a92f05144ae4ae43c198cf9bd0d9d0f",
+  "previous_failed_attempt_sha256_unchanged": "d9ac0ab791b185e6e721f1e04162f4d7ea6da9926e43db693b9dd422705d8521",
+  "live_plist_sha256_unchanged": "09baad3ed6870940d2747fb639a6b42df73895fcc41a3db5258b36c217ca5cd2",
+  "candidate_configuration_check": "PASS",
+  "services_called": false,
+  "scripts_sha256": {
+    "activate_release.py": "685e6a989f146daeac3e78ce139b9b01e8f2ec7bfb2d824d1180d590bc57d7df",
+    "package_release.py": "41246939c7bbb6c114a10b2582c0d29a3c88cab99e3f76ca6189a46cb64939cd",
+    "test_activation.py": "44a718230f01e5e070aeeb0ad57c4f5ad728b16901247d8b088d4931f5ac5dda"
+  },
+  "base_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "branch": "codex/supplement-activation-20261102",
+  "worktree": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/supplement-activation-20261102",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "python_version": "3.14.6",
+  "before_script_sha256": {
+    "activate_release.py": "4b13f5edbbcce15dd805aa5b841700b7dd8e192740110369619abbae042a1c21",
+    "package_release.py": "f80f18a08cec78185171682ced1ed2c40b53051af6cfeeb874094de45f898b1a"
+  },
+  "test_results": {
+    "offline_switch_regressions": "13 individual tests PASS (12 in second suite; real-lock test passed after resolving macOS /var temp symlink)",
+    "first_suite": "11/11 PASS",
+    "second_suite": "12 PASS, 1 test-fixture ERROR (/var is symlink; SafeRoot rejects symlinks)",
+    "targeted_recheck": "1/1 PASS; fixture root resolved; no product change needed",
+    "candidate_plist_lint": "PASS",
+    "candidate_config_sha_consistency": "PASS",
+    "ast_parse": "PASS"
+  },
+  "commands": [
+    "<runtime-python> -B -m unittest discover -s tests -v (11 tests, PASS)",
+    "<runtime-python> -B -m unittest discover -s tests -v (13 tests, 12 PASS + fixture ERROR)",
+    "PYTHONPATH=tests <runtime-python> -B -m unittest test_activation.ActivationTests.test_real_edan_shared_lock_rejects_concurrent_writer -v (PASS)",
+    "<runtime-python> -B <candidate-cwd module-resolution proof and guarded configuration repair>",
+    "plutil -lint <candidate>/config/com.lexi.v4.api.plist (PASS)"
+  ],
+  "not_run": [
+    "launchctl mutations",
+    "live activation",
+    "live rollback",
+    "post-cutover HTTP/UI",
+    "natural runtime acceptance",
+    "git commit/push"
+  ],
+  "cannot_confirm": [
+    "8873 candidate activation and post-cutover behavior pending controller action",
+    "independent Reviewer verdict pending",
+    "non-cooperating writers that bypass shared lock are outside mutual exclusion; SHA drift observed at mutation/recovery boundaries stops further writes"
+  ],
+  "ownership": "No launchctl call or live plist write executed by Writer; candidate plist only WorkingDirectory changed; preparation SHA/repair annotation updated; manifest and old failure unchanged",
+  "proven_flow_reference": "ops/junda_single_release.py in edan-chart-load-fix-20261102 worktree: shared lock, unload absent+socket, atomic install, retry identity, guarded recovery",
+  "research_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "review_revision": {
+    "reason": "P1: successful bootstrap followed by immediate exit left loaded job without PID; previous recovery rejected it",
+    "before_sha256": {
+      "activate_release.py": "959ad47db7cb792dc95cace9295c071f9cb3208793f4971c2f7c090e6149e6e2",
+      "tests/test_activation.py": "3e1e42414183f5b090a90a243ba3dc740908c2ad6624d89ab0336a6674040079"
+    },
+    "after_sha256": {
+      "activate_release.py": "685e6a989f146daeac3e78ce139b9b01e8f2ec7bfb2d824d1180d590bc57d7df",
+      "tests/test_activation.py": "44a718230f01e5e070aeeb0ad57c4f5ad728b16901247d8b088d4931f5ac5dda"
+    },
+    "ownership_proof": "Successful bootstrap records exact desired plist SHA; loaded/no-PID recovery requires matching launchctl print root/path/type/program/arguments/cwd/all staged environment values, no printed pid, no new list PID/listener, and live SHA rechecks",
+    "incremental_tests": "8/8 PASS: 5 new P1 cases and 3 directly affected previous regressions",
+    "new_tests": [
+      "test_bootstrap_immediate_exit_proves_loaded_job_and_recovers_old_release",
+      "test_captured_candidate_pid_then_exit_recovers_owned_loaded_job",
+      "test_loaded_no_pid_without_successful_bootstrap_proof_is_refused",
+      "test_loaded_no_pid_foreign_loaded_config_is_refused (7 config variants)",
+      "test_loaded_no_pid_process_appearing_during_print_is_refused"
+    ],
+    "reused_pass": "13 previous cases; only 3 directly affected were repeated",
+    "command": "PYTHONPATH=tests <runtime-python> -B -m unittest <5 new methods> test_activation.ActivationTests.test_bootstrap_retries_old_identity_then_new test_activation.ActivationTests.test_failed_activation_restores_actual_old_plist_identity test_activation.ActivationTests.test_recovery_refuses_unknown_process -v",
+    "actual_host_format": "Read-only launchctl print gui/501/com.lexi.v4.api confirmed tab-delimited print shape; no launchctl mutation or service action",
+    "unchanged": [
+      "package_release.py",
+      "candidate plist",
+      "preparation.json",
+      "release-manifest.json",
+      "UI",
+      "prior activation-attempt.json"
+    ],
+    "independent_review": "PENDING incremental review; Writer handoff is not acceptance"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "reviewer": "/root/activation_review independent sol_high_reviewer",
+  "verdict": "REVIEWED/FAIL",
+  "scope": "activation scripts launchd cutover/recovery; frontend PASS reused",
+  "activate_sha256": "959ad47db7cb792dc95cace9295c071f9cb3208793f4971c2f7c090e6149e6e2",
+  "finding": {
+    "priority": "P1",
+    "file": "activate_release.py",
+    "line": 223,
+    "trigger": "bootstrap succeeds then candidate exits; launchd job remains loaded with PID=- and last_exit=1",
+    "impact": "tracking empty or prior dead PID leads RECOVERY_DESIRED_PROCESS_UNCONFIRMED; previous plist/service not restored; 8873 unavailable",
+    "independent_reproduction": "pure memory mock recover_previous(previous,desired,before,{}) with loaded/no-PID: exception, unload/atomic/bootstrap never called",
+    "requested_fix": "verify exact owned launchd job config for desired plist and support owned no-PID recovery; reject foreign config/live digital PID; targeted regressions"
+  },
+  "service_mutations": false,
+  "deployment": "NOT_RUN"
+}

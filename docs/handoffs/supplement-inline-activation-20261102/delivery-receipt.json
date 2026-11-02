@@ -1,0 +1,47 @@
+{
+  "status": "DEPLOYED_API_UI_VERIFIED",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_base_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "branch": "codex/supplement-activation-20261102",
+  "deployed_at": "2026-11-02T12:14:34+08:00",
+  "release_id": "v4-stage-supplement-inline-20261102-89ef3a68",
+  "runtime_pid": "91162",
+  "runtime_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-supplement-inline-20261102-89ef3a68/app",
+  "launchd_mechanism": "shared release lock; bootout; wait absent job and clear 8873; guarded atomic plist; bootstrap; retry new identity",
+  "before_plist_sha256": "09baad3ed6870940d2747fb639a6b42df73895fcc41a3db5258b36c217ca5cd2",
+  "after_plist_sha256": "ee3f66cc3e7a07192808d38e379d76cc7a4abef603ba23183943d6f2a154f9bc",
+  "manifest_sha256": "883bc74073bde4ab1d3e828d832c75366a92f05144ae4ae43c198cf9bd0d9d0f",
+  "api_assets_sha256": {
+    "/": "b377084865da02b7d8a28efdd73254d4df41466b809e779d21601dc70192a83a",
+    "/assets/main-CzmllJyl.js": "247a5b5f8eb46e573b03ba6b0de3a0c90713aa10c34157edd9249f852bed7837",
+    "/assets/main-DO7TQB6O.css": "6e94e16358f6f3a3d64e9868715073b9a564dffb8504dd8efb77bfa68d485de6"
+  },
+  "snapshot_rows_unchanged": true,
+  "snapshot_rows_sha256": "b024fc727130daf8e24c8fc78760c919b458c0ef3691dd05f6df8c60d35e1fd7",
+  "formal_counts": {
+    "selected_a_rows": 0,
+    "selected_hk_rows": 10,
+    "selected_total_rows": 10
+  },
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "review": "R1 FAIL owned loaded/no-PID recovery gap; R2 independent REVIEWED/PASS after targeted fix",
+  "verification": {
+    "writer": "13 prior checks PASS; 8 direct revision checks PASS; reused unaffected results",
+    "api": "launchd cwd/env and listener PID + HTTP identity/manifest + HTML/JS/CSS SHA PASS",
+    "ui": "real page 10 ordered cards and provenance; no independent block/errors/mutations",
+    "iab": "user requested built-in browser: tab 1 readback 10 cards, 0 standalone blocks; provenance and release/build match; kept delivered tab",
+    "prior_failure_preserved": true
+  },
+  "scope_limits": {
+    "natural_acceptance": "NOT_RUN",
+    "live_rollback": "NOT_RUN_NOT_NEEDED",
+    "runtime_identity_process_status_field": "CANNOT_CONFIRM unchanged; process separately verified via launchctl/listener",
+    "data_PIT_or_formal_eligibility": "NOT_CERTIFIED_BY_THIS_UI_ACTIVATION"
+  },
+  "controller_artifacts_root": "/Users/lexi/Desktop/学习/agents调试/v4_stage_supplement_inline_20261102"
+}
