@@ -1,10 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind,actionStatusHint} from '../research-panel/workbench-host/kb-single-stock.mjs';
 import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
+
+test('persisted action status makes conflicts and unknown filters visible without changing an observed action',()=>{
+  assert.equal(actionStatusHint('CONFLICTING_OBSERVATIONS'),'信号冲突，待核');
+  assert.equal(actionStatusHint('UNKNOWN_BUY_FILTERS'),'状态待核');
+  assert.equal(actionStatusHint('UNKNOWN_SCORE_OR_RISK'),'状态待核');
+  assert.equal(actionStatusHint('OBSERVED_SCORE_HOLD_CONDITIONAL'),'');
+});
 
 test('F10 canonical and registered candidate retain distinct identities',()=>{
   const day={source_date:'2026-10-30',generation:sha('a'),input_sha256:sha('b')};

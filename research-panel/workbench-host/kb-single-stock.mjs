@@ -114,6 +114,12 @@ export function decodeGenericChunk(meta,chunk,ref,patch=null){
   });
 }
 
+export function actionStatusHint(status){
+  if(status==='CONFLICTING_OBSERVATIONS')return '信号冲突，待核';
+  if(status==='UNKNOWN'||status.startsWith('UNKNOWN_'))return '状态待核';
+  return '';
+}
+
 export function installSingleResearch({loadDetails=()=>{}}={}){
   const host=$('kbSingleResearch'),body=$('kbSingleBody'),status=$('kbSingleStatus'),frame=$('kbSingleChart'),select=$('kbSingleDate');
   const stocks={'002865.SZ':'钧达股份','301048.SZ':'金鹰重工','300206.SZ':'理邦仪器'};
@@ -162,7 +168,10 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
     if(!active)return;const row=active.byDate.get(Number(date));if(!row){$('kbSingleDateStatus').textContent='该日期没有已绑定交易日，不使用临近日替代。';return}
     select.value=iso(row.trade_date);select.removeAttribute('aria-invalid');$('kbSingleDateStatus').textContent='交易日 '+iso(row.trade_date)+' · 单股数据截至 '+day.source_date;$('kbSingleSelected').textContent=iso(row.trade_date);
     const action=actionPresentation(row.action,active.meta.action_contract_sha256),actions=$('kbSingleActions');actions.replaceChildren();
-    for(const [context,value] of [['无持仓',action.flat],['有持仓',action.held]]){const line=node('p');line.append(node('span',context+'：'),node('strong',value));actions.append(line)}
+    for(const [context,value,status] of [['无持仓',action.flat,row.action.kb_action_no_position_status],['有持仓',action.held,row.action.kb_action_with_position_status]]){
+      const line=node('p'),hint=actionStatusHint(status);line.append(node('span',context+'：'),node('strong',value));
+      if(hint)line.append(node('span','（'+hint+'）'));actions.append(line);
+    }
     $('kbSingleActionReasons').replaceChildren(...action.reasons.map(text=>node('p',text)));
     const result=signalSummary(active.view.fields,row.kb,row.original,row.supplemental,row.yidong),chips=$('kbSingleChips');chips.replaceChildren();
     for(const item of result.chips){const chip=node('span',item.label);chip.className='kb-chip'+(item.source==='原式'?' kb-old':'');chip.dataset.signal=item.key;chips.append(chip)}
