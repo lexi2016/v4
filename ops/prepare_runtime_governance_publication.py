@@ -14,6 +14,49 @@ from ops.prepare_f10_stage_binding import dump, inventory_tools, loaded_role, sh
 
 LABELS = {"main": "com.lexi.v4.scheduler", "stage": "com.lexi.stage-center.scheduler", "api": "com.lexi.v4.api"}
 IDENTITY = ("V4_APP_ROOT", "V4_RELEASE_ID", "V4_RELEASE_MANIFEST_PATH", "V4_RELEASE_MANIFEST_SHA256")
+TRANSITION_OWNER = {
+    "release_id": "f10-daily-20261101-c94609b4e5fff848-main",
+    "manifest_sha256": "3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388",
+    "trade_date": "20261102",
+}
+TRANSITION_BINDING_KEYS = {"app_root", "release_id", "manifest_sha256", "trade_date"}
+
+
+def frozen_transition_binding(cfg):
+    """Read the frozen transition owner from the Stage config, not current Main.
+
+    After activation the loaded Main is newer than the transition owner, so the
+    binding in the Stage config is the only definition of the frozen evidence.
+    It must point at a release manifest whose bytes and release id match the pin.
+    """
+    binding = cfg.get("research_transition_owner_binding")
+    if not isinstance(binding, dict) or set(binding) != TRANSITION_BINDING_KEYS:
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    app_root = binding["app_root"]; release_id = binding["release_id"]
+    manifest_sha = binding["manifest_sha256"]; trade_date = binding["trade_date"]
+    if (not isinstance(app_root, str) or not app_root or not Path(app_root).is_absolute()
+        or Path(app_root).name != "app"
+        or not isinstance(release_id, str) or not release_id
+        or not isinstance(manifest_sha, str) or not manifest_sha
+        or not isinstance(trade_date, str) or not trade_date):
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    if (release_id != TRANSITION_OWNER["release_id"]
+        or manifest_sha != TRANSITION_OWNER["manifest_sha256"]
+        or trade_date != TRANSITION_OWNER["trade_date"]):
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    manifest_path = Path(app_root).parent / "release-manifest.json"
+    if not manifest_path.is_file():
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    manifest_bytes = manifest_path.read_bytes()
+    if sha(manifest_bytes) != TRANSITION_OWNER["manifest_sha256"]:
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    try:
+        manifest = json.loads(manifest_bytes)
+    except (UnicodeError, json.JSONDecodeError):
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    if not isinstance(manifest, dict) or manifest.get("release_id") != TRANSITION_OWNER["release_id"]:
+        raise ValueError("TRANSITION_OWNER_IDENTITY_INVALID")
+    return dict(binding)
 
 
 def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="00000000"):
@@ -158,12 +201,7 @@ def transition_owner_proof(candidate_receipt, *, as_of):
         raise ValueError('TRANSITION_READER_NOT_CANDIDATE_BYTES')
     cfg = json.loads((stage / 'stage_center_tick_config.json').read_bytes())
     env = candidate_receipt['live_preimages']['main']['environment']
-    expected = {'app_root': env['V4_APP_ROOT'], 'release_id': env['V4_RELEASE_ID'],
-                'manifest_sha256': env['V4_RELEASE_MANIFEST_SHA256'], 'trade_date': '20261102'}
-    if (cfg.get('research_transition_owner_binding') != expected
-        or expected['release_id'] != 'f10-daily-20261101-c94609b4e5fff848-main'
-        or expected['manifest_sha256'] != '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388'):
-        raise ValueError('TRANSITION_OWNER_IDENTITY_INVALID')
+    expected = frozen_transition_binding(cfg)
     calendar_path = Path(expected['app_root']) / 'contracts/market_calendar_2026.json'
     if not calendar_path.is_file(): raise ValueError('TRANSITION_CALENDAR_MISSING')
     calendar_bytes = calendar_path.read_bytes(); validated = dict(expected, calendar_path=str(calendar_path))

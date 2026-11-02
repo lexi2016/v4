@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pytest
 from infrastructure import manager_input_attestation as m
+import ops.prepare_runtime_governance_publication as publication
 from ops.prepare_runtime_governance_publication import (
     embedded_publication_rows,
+    frozen_transition_binding,
     validate_transition_publication_set,
     validate_transition_receipt,
 )
@@ -20,6 +22,12 @@ RECEIPT_SHA = 'cc0bf01feed8bb90934f10e1d6596bd686e3ff1a9b7357a36d7849ef3ddf6304'
 CALENDAR = OWNER/'contracts/market_calendar_2026.json'
 CUTOFF = datetime.fromisoformat('2026-11-02T08:30:21+08:00')
 LATE = datetime.fromisoformat('2026-11-02T23:30:00+08:00')
+F10_BINDING = {
+    'app_root': str(OWNER),
+    'release_id': 'f10-daily-20261101-c94609b4e5fff848-main',
+    'manifest_sha256': '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388',
+    'trade_date': '20261102',
+}
 
 
 def transition_expected(**overrides):
@@ -268,3 +276,78 @@ def test_old_owner_publication_bytes_still_exact(tmp_path):
     assert _validate(tmp_path,embedded,[path])==[]
     with pytest.raises(ValueError,match='TRANSITION_EMBEDDED_PUBLICATION_MISMATCH'):
         embedded_publication_rows(embedded,[path])
+
+
+def _transition_stage(tmp_path,binding):
+    stage=tmp_path/'stage'/'app'
+    (stage/'infrastructure').mkdir(parents=True)
+    shutil.copyfile(Path(__file__).resolve().parents[1]/'infrastructure/manager_input_attestation.py',
+                    stage/'infrastructure/manager_input_attestation.py')
+    (stage/'stage_center_tick_config.json').write_text(
+        json.dumps({'research_transition_owner_binding':binding}),encoding='utf-8')
+    return {'app_root':str(stage),'release_id':'r10-stage','manifest_sha256':'a'*64}
+
+
+def _frozen_binding(**overrides):
+    return {**F10_BINDING,**overrides}
+
+
+def test_transition_owner_proof_uses_frozen_stage_binding_with_newer_live_main(tmp_path):
+    if not OWNER.is_dir() or not (OWNER.parent/'release-manifest.json').is_file():
+        pytest.skip('Frozen f10 transition owner unavailable')
+    stage_info=_transition_stage(tmp_path,dict(F10_BINDING))
+    ledger=tmp_path/'ledger';(ledger/'receipts/live').mkdir(parents=True)
+    _later_owner(tmp_path)
+    newer_main={'V4_APP_ROOT':'/v4-unified-release-20261102-r7-main/app',
+        'V4_RELEASE_ID':'v4-unified-release-20261102-r7-main',
+        'V4_RELEASE_MANIFEST_SHA256':'789ab62196867c26375df833762e2e90b1d3cea690ef22b71a60092589f6da77',
+        'V4_DISPATCH_LEDGER_ROOT':str(ledger),'V4_DATA_ROOT':str(tmp_path/'data')}
+    receipt={'roles':{'stage':stage_info},'live_preimages':{'main':{'environment':newer_main}}}
+    proof=publication.transition_owner_proof(receipt,as_of=LATE)
+    assert newer_main['V4_RELEASE_ID']!='f10-daily-20261101-c94609b4e5fff848-main'
+    assert proof['owner']==F10_BINDING
+    assert proof['matching_receipts']==[]
+    assert proof['publications']==[]
+    assert proof['ledger_root']==str(ledger)
+
+
+def test_transition_owner_proof_rejects_non_frozen_binding(tmp_path):
+    stage_info=_transition_stage(tmp_path,_frozen_binding(release_id='another-main'))
+    receipt={'roles':{'stage':stage_info},'live_preimages':{'main':{'environment':{}}}}
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        publication.transition_owner_proof(receipt,as_of=LATE)
+
+
+@pytest.mark.parametrize('name,binding',[
+    ('not_dict',[]),
+    ('extra_key',{**F10_BINDING,'extra':'x'}),
+    ('missing_key',{key:value for key,value in F10_BINDING.items() if key!='release_id'}),
+    ('relative_root',_frozen_binding(app_root='relative/app')),
+    ('wrong_basename',_frozen_binding(app_root='/tmp/not-app')),
+    ('empty_release',_frozen_binding(release_id='')),
+    ('nonstring_manifest',_frozen_binding(manifest_sha256=1)),
+    ('wrong_release',_frozen_binding(release_id='another-main')),
+    ('wrong_manifest',_frozen_binding(manifest_sha256='0'*64)),
+    ('wrong_trade_date',_frozen_binding(trade_date='20261101')),
+])
+def test_frozen_transition_binding_rejects_invalid_or_mutated(name,binding):
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        frozen_transition_binding({'research_transition_owner_binding':binding})
+
+
+def test_frozen_transition_binding_rejects_missing_or_wrong_manifest(tmp_path):
+    app=tmp_path/'fake'/'app';app.mkdir(parents=True)
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        frozen_transition_binding({'research_transition_owner_binding':_frozen_binding(app_root=str(app))})
+    (app.parent/'release-manifest.json').write_text(json.dumps({'release_id':F10_BINDING['release_id']}))
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        frozen_transition_binding({'research_transition_owner_binding':_frozen_binding(app_root=str(app))})
+
+
+def test_frozen_transition_binding_rejects_manifest_release_disagreement(tmp_path,monkeypatch):
+    app=tmp_path/'fake2'/'app';app.mkdir(parents=True)
+    (app.parent/'release-manifest.json').write_text(json.dumps({'release_id':'another-main'}))
+    monkeypatch.setattr(publication,'sha',
+        lambda raw: publication.TRANSITION_OWNER['manifest_sha256'])
+    with pytest.raises(ValueError,match='TRANSITION_OWNER_IDENTITY_INVALID'):
+        frozen_transition_binding({'research_transition_owner_binding':_frozen_binding(app_root=str(app))})
