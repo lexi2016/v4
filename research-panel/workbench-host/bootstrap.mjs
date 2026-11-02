@@ -5,6 +5,7 @@ import {loadSkillProjection} from './dot/src/workbench-model.mjs';
 import {setCompanyContext,renderCompanyStatus,explanationFacts} from './company-local.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
+import {installReviewSampleGroups} from './review-sample-groups.mjs';
 const el=id=>document.getElementById(id),add=(host,tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;host.append(n);return n};
 const old=document.querySelector('#interactiveChart .interactive-scroll');if(old)old.hidden=true;
 const navigation=document.querySelector('#interactiveChart .chart-nav');if(navigation)navigation.hidden=true;
@@ -14,6 +15,8 @@ let context=null,current=null,contextSerial=0,completionCallback=null,contextRep
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
 const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
+const reviewSamples=installReviewSampleGroups({container:document.querySelector('.scope-options'),document,
+  openSymbol:(symbol,name)=>singleResearch.openSymbol(symbol,name)});
 el('stockList').addEventListener('click',event=>{const item=event.target.closest?.('[data-symbol]');if(item?.dataset.symbol)singleResearch.openSymbol(item.dataset.symbol,item.dataset.name)});
 bindSingleSymbolSearch(el('query'),symbol=>singleResearch.openSymbol(symbol));
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
@@ -225,9 +228,9 @@ window.StockPanelHost={
     for(const item of contract?.time_contract?.nodes??[]){const d=document.querySelector(`.timetable-item[data-node-id="${item.id}"]`);if(!d)continue;const host=d.querySelector('.node-materials');if(!host)continue;host.replaceChildren();add(host,'strong',labels[item.execution_status]??item.execution_status);if(item.recorded_at)add(host,'p','实际记录 '+item.recorded_at);if(item.source_asof)add(host,'p','来源时点 '+item.source_asof);for(const reason of item.missing??[])add(host,'p','缺口：'+reason);if(item.error)add(host,'p','错误：'+item.error);for(const material of item.materials??[]){try{const u=new URL(material.url,location.href);if(!['https:','http:'].includes(u.protocol)||u.username||u.password)continue;const a=add(host,'a',material.label??'来源材料');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{add(host,'p','材料链接待核');}}}
   },
   preserveChart(){const s=frame.contentWindow?.RESEARCH_PANEL_STATE;if(context&&s?.view)preservedChart={symbol:context.symbol,source_date:context.source_date,generation:context.generation,...s.view,selected:s.selected};},
-  unbindDay(){singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;},
+  unbindDay(){reviewSamples.unbindDay();singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;},
   bindDay(day){
-    activeDay=day;singleResearch.bindDay(day);this.paintClassificationCoverage(day);sourceContext(day,true);
+    activeDay=day;singleResearch.bindDay(day);reviewSamples.bindDay(day);this.paintClassificationCoverage(day);sourceContext(day,true);
     const key=day.source_date;if(moduleEvents?.key===key)return;
     moduleEvents?.close();const mine=++moduleSerial;let previous=null;this.paintTop200();
     moduleEvents=new EventSource('/api/v4/research/workbench/days/'+key+'/events');moduleEvents.key=key;
