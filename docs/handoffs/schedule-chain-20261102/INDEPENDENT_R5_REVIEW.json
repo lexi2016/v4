@@ -1,0 +1,31 @@
+{
+  "reviewer": "/root/activation_review independent Sol High readonly",
+  "verdict": "REVIEWED/PASS",
+  "scope": "c6/r4 to r5 incremental schedule compact receipt reference, role-limited builder and candidate binding",
+  "delivery_commit": "97f92288ec36cf85fe104d7bde53b9e820eef541",
+  "candidate_source_commit": "466dfad78c146f26c6e1ad520f08d1451b3ac549",
+  "candidate": "v4-unified-recovery-20261102-terra-r5",
+  "candidate_receipt_sha256": "6d55dda2eb953b84c8200d86b44cd03df24148d3fb23641d90e8708d4d38e623",
+  "publication_plan_sha256": "459155b9a34a4f2bfd14f1666233f13968dae33180dcf9e5bb532618c4217d86",
+  "independent_checks": [
+    "four source/test SHAs and integration SHA match;clean worktree;candidate receipt,3manifests,plan match",
+    "correct compact reference accepted;wrongSHA and externalpath CANNOT_CONFIRM;fixedpath only",
+    "large Main receipt produces reference under2048chars withSHA/reason/UPSTREAM_NOT_READY",
+    "persisted/returned receipt mismatch refused",
+    "roleallowlist/preimageSHA andbindings+actualcrossrole logs reviewed"
+  ],
+  "reused": [
+    "15targetedWriterchecks",
+    "c6/r4matchingPASS",
+    "unchangedAPIassets"
+  ],
+  "BEHAVIOR_VERIFIED": "listed independent offline checks only",
+  "NOT_RUN": [
+    "fullgeneration",
+    "natural",
+    "realactivation/rollback",
+    "postdeploymentAPI/UI"
+  ],
+  "live_mutations": false,
+  "recorded_at": "2026-11-02T13:11:26.150000+08:00"
+}
