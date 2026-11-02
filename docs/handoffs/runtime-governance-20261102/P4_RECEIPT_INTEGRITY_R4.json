@@ -1,0 +1,186 @@
+{
+  "schema_version": "v4.p4_receipt_integrity_increment.v1",
+  "status": "WRITER_PASS_PENDING_ONE_JOINT_INCREMENTAL_REVIEW",
+  "authorization": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/P4_NARROW_REOPEN_AUTHORIZATION.json",
+    "sha256": "15361e986a4074bfc12373731d4bcf2f05dc62f5c498e00012b8b1409e48c03a"
+  },
+  "scope": [
+    "Reject and preserve UNKNOWN job receipts",
+    "Reject and preserve mismatched job_id receipts"
+  ],
+  "source_commit": "1b7ac1f16f5e5d40a0743ba4727c03bfaa826c3b",
+  "report_source_commit": "888548f4dd7543cbcf822ba4acd3b9ea41c402df",
+  "base_delivery_commit": "cc53aec0653e8215b79ca979b559a13e0312eee5",
+  "source_files": {
+    "infrastructure/report_evidence_sidecar.py": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-unified-integration-20261102/infrastructure/report_evidence_sidecar.py",
+      "sha256": "a1df5fb978fd819d6f21f75c80f7c60c7e02d6aad67c24e369e4b44765f0ea27"
+    },
+    "tests/test_report_evidence_sidecar.py": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-unified-integration-20261102/tests/test_report_evidence_sidecar.py",
+      "sha256": "64bd75505aa95e23fece5fbbfde27e0ccfa3a4e7a14f73bda6769be546505eac"
+    },
+    "docs/handoffs/runtime-governance-20261102/verify_unified_state.py": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/v4-unified-integration-20261102/docs/handoffs/runtime-governance-20261102/verify_unified_state.py",
+      "sha256": "c030a0cc23a4ccda52626ddf0bb1221e6db3b7555d8c139aa3e0080e63c4ec93"
+    }
+  },
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r4",
+  "candidate_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r4/candidate_receipt.json",
+    "sha256": "76b25124ed3fe39c41a97933494ec51aa8d5455ebffb1364abe0270d370e56c6"
+  },
+  "roles": {
+    "api": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/edan-single-20261102-b843699e8d3371ea/app",
+      "actual_current_manifest_sha256": "f10179c1b8028d088ae8e00e9de60d068550e9441a41febaa76569a5c2c2fcb1",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r4/v4-unified-implementation-20261102-r4-api/app",
+      "delta": [
+        "apps/api/v4_api/app.py",
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "components/wechat_ocr/__pycache__/wechat_common.cpython-312.pyc",
+        "config/api-v4_manual_collection_stage_config.json",
+        "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md",
+        "domains/report_evidence.py",
+        "infrastructure/operations_sop_reader.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/verify_report_evidence_canary.py"
+      ],
+      "inventory_sha256": "11279428a772880c85446607a1410fc3efddd34162243e629542a4e56511afe3",
+      "manifest_sha256": "a7a02ccf9ba32c332c9dd5dac86b38f70ce72e03d484f3916f8fe516d59ac96f",
+      "protected_current_files_unchanged": 1328,
+      "release_id": "v4-unified-implementation-20261102-r4-api"
+    },
+    "main": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app",
+      "actual_current_manifest_sha256": "3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r4/v4-unified-implementation-20261102-r4-main/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/review_generation.py",
+        "infrastructure/scheduling/dispatcher.py",
+        "infrastructure/scheduling/execution_ledger.py",
+        "infrastructure/stage_completion_hooks.py",
+        "infrastructure/tdx_minute_replay_provider.py",
+        "ops/build_a_share_close_review.py",
+        "ops/build_close_review.py",
+        "ops/build_runtime_governance_registry.py",
+        "ops/collect_hkconnect_close_snapshot.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_milestone.py",
+        "ops/run_v4_macos_scheduler_due.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py"
+      ],
+      "inventory_sha256": "e33e0bf93cb2ebe228ce680e7f552dca55b079d68f5decf812936e7f873972ef",
+      "manifest_sha256": "d6ebc396d441fa43aca36478c709224f2f48adbd997a984e3eef61aabf931f2c",
+      "protected_current_files_unchanged": 990,
+      "release_id": "v4-unified-implementation-20261102-r4-main"
+    },
+    "stage": {
+      "actual_current_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/stage-four-repairs-20261101-r3/stage-four-repairs-20261101-r3-stage/app",
+      "actual_current_manifest_sha256": "ff62078ab7fb5d05318233fbfab18bd34408a0fc5b162359080c080633ee4115",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-implementation-20261102-r4/v4-unified-implementation-20261102-r4-stage/app",
+      "delta": [
+        "apps/api/v4_api/report_evidence_mcp.py",
+        "apps/api/v4_api/report_evidence_router.py",
+        "domains/report_evidence.py",
+        "domains/report_subjects.py",
+        "infrastructure/manager_input_attestation.py",
+        "infrastructure/report_evidence_index.py",
+        "infrastructure/report_evidence_native.py",
+        "infrastructure/report_evidence_pdf_owner.py",
+        "infrastructure/report_evidence_sidecar.py",
+        "infrastructure/stage_completion_hooks.py",
+        "ops/consume_close_stage_completion.py",
+        "ops/recover_stage_data.py",
+        "ops/report_evidence_index.py",
+        "ops/run_report_evidence_sidecar_job.py",
+        "ops/run_stage_center_nodes.py",
+        "ops/verify_report_evidence_canary.py",
+        "ops/verify_tdx_trade_window_canary.py",
+        "stage_center_tick_config.json"
+      ],
+      "inventory_sha256": "50c3e999ffa424a6cd5f262dedcfbbee8ecfe26537cbbf837a328773502922d4",
+      "manifest_sha256": "1c74980bde85312d05a66f508fef47b9454dd725b11152fd235a3297e2a7f879",
+      "protected_current_files_unchanged": 988,
+      "release_id": "v4-unified-implementation-20261102-r4-stage"
+    }
+  },
+  "targeted_actual_candidate": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/integrity-r4/RESULT.json",
+    "sha256": "565f3d8d67b2d65f4fb397776f05e6dfb9a1390016719a194c02e3d22b0132d0"
+  },
+  "inventory_and_exact_delta": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/inventory-r4.json",
+    "sha256": "4f8c35464111af85d85f876043d5d8d45599b4352e83c7e9dc91226dc184a3d4"
+  },
+  "retrieval_writer_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/retrieval/P4_RECEIPT_GUARD_FREEZE.json",
+    "sha256": "33aad9fbb9a63d99cab19733004de2b69aa9c4b715df06314e2bb01bbfba5a8a"
+  },
+  "reused_scope": {
+    "previous_state_race": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/state-r3/RESULT.json",
+      "sha256": "f16f699ac3a497c2aa18878633de6f42712350078e6a30695436fa004ecdfaf7"
+    },
+    "actual_Main_Stage_hooks": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/actual-entry-r1/RESULT.json",
+      "sha256": "08daaba70ddacb1ddf58b6bcf0cc4bd272f4ea5445d9a4c7bcc0893f08a372cd"
+    },
+    "Edan_API_TCP": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/tcp-r3/RESULT.json",
+      "sha256": "34a7c179bab4c5db392ad9302f2d525b3e8fa39f292abd343a7a92be6aed3312"
+    },
+    "runtime_batches": "BATCH1/2 matching independent PASS unchanged"
+  },
+  "release_admission": "RELEASE_BLOCKED_F10_HISTORY_ADVANCED",
+  "new_release_risk": {
+    "reason": "20261102 F10 now has real0830/0900 publications; prior zero proof no longer valid. Keep existing guard refusal; compatibility repair outside this authorization.",
+    "receipt_evidence": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/20261102-open-readonly-receipts.json",
+      "sha256": "98340d718397c6d0ba0a358b472dad1ab7fbbf3487816e01f9f74dadaf4674d2"
+    },
+    "raw_artifact_sha_checks": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/runtime/20261102-open-readonly-artifacts.json",
+      "sha256": "5f15dde2770247ceb7608ae28f81545ff8858d9c4364d05b1e75dc21df8c6095"
+    }
+  },
+  "rollback_state": "NOT_RUN; previous old zero proof cannot be reused for activation or rollback; existing safety checks retained",
+  "commands": [
+    "PANEL_PYTHON -B -m ops.prepare_unified_runtime_candidate --runtime <runtime-r10> --report-ref 888548f4dd7543cbcf822ba4acd3b9ea41c402df --api-snapshot <existingEdanSnapshot> --output <unified-r4>",
+    "PANEL_PYTHON -B docs/handoffs/runtime-governance-20261102/verify_unified_state.py --integrity --candidate <unified-r4> --evidence <integration/integrity-r4> : two authorized negative regressions PASS on actual candidate",
+    "Official inventory on all3 candidate apps plus exact r3 delta : only sidecar module + required Stage/API binding reseal; no unexpected bytes"
+  ],
+  "not_run": [
+    "publication parameter prepare",
+    "guarded prepare/activate/rollback",
+    "online service/cron/launchctl mutation",
+    "API TCP repeat (unchanged scope reused)",
+    "UI/natural acceptance of this candidate",
+    "this morning PDF/WeChat issue repair"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "history": "Prior cc53/r3 independent FAIL kept unchanged; this increment does not rewrite prior failure evidence"
+}
