@@ -124,11 +124,12 @@ function loadSingleDetails(day,meta,signal,assets){
   const financeLines=[add(finance,'p'),add(finance,'p'),add(finance,'p')];
   const officialEvidence=add(finance,'div');
   const holderBox=add(finance,'div');
-  const paintHolders=f10=>{holderBox.replaceChildren();for(const text of holderLines(holders,f10))add(holderBox,'p',text)};
+  const paintHolders=(f10,observationF10Sha)=>{holderBox.replaceChildren();for(const text of holderLines(holders,f10,{
+    companyF10Verified:checks.tdx_f10==='VERIFIED',companyF10Sha:m.source_refs?.tdx_f10?.file?.sha256,observationF10Sha}))add(holderBox,'p',text)};
   const f10Box=add(company,'div');
-  const paintF10=(f10,source,allowScopedOfficial=false)=>{f10Box.replaceChildren();officialEvidence.replaceChildren();businessLine.textContent=companyBusinessText(b,f10);
+  const paintF10=(f10,source,allowScopedOfficial=false,observationF10Sha=null)=>{f10Box.replaceChildren();officialEvidence.replaceChildren();businessLine.textContent=companyBusinessText(b,f10);
     const official=selectCompanyFinancials(f,f10,allowScopedOfficial),dates=officialSourceDates(f10,allowScopedOfficial);
-    disclosureLine.textContent=financialDisclosureText(official,f10,m.source_refs);financialLines(official,f10??{}).forEach((text,i)=>{financeLines[i].textContent=text});paintHolders(f10??{});
+    disclosureLine.textContent=financialDisclosureText(official,f10,m.source_refs);financialLines(official,f10??{}).forEach((text,i)=>{financeLines[i].textContent=text});paintHolders(f10??{},observationF10Sha);
     if(dates){add(officialEvidence,'p',dates);try{const url=new URL(f10.official_observation.source_url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(officialEvidence,'a','发行人季度报告原件');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{}}
     if(!f10)return;
     add(f10Box,'p',`TDX F10 概念（采集时快照）：${f10.concepts?.map(c=>c.name).join('、')||'待核'}`);
@@ -145,26 +146,26 @@ function loadSingleDetails(day,meta,signal,assets){
       const details=add(finance,'details');add(details,'summary','查看已核对的财务源原始字段（单位及报告期待核）');add(details,'pre',JSON.stringify(raw.finance_native_raw,null,2));
     }else add(finance,'p','财务源分项待核：'+(raw?.reason??'来源缺失'));
   };
-  paintF10(verifiedInitialCompanyF10(m.f10,generic,checks),'单股已绑定快照');
+  paintF10(verifiedInitialCompanyF10(m.f10,generic,checks),'单股已绑定快照',false,m.source_refs?.tdx_f10?.file?.sha256);
   fetch('/api/v4/research/workbench/days/'+day.source_date+'/f10/'+meta.symbol+'?'+new URLSearchParams({revision:day.generation}),{signal,credentials:'same-origin',redirect:'error',cache:'no-store'})
     .then(response=>response.ok?response.json():null).then(value=>{
       if(signal.aborted)return;const kind=f10SourceKind(value,day,meta);
-      if(kind==='CANONICAL'&&value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照');
+      if(kind==='CANONICAL'&&value.status==='OBSERVED'&&(generic||value.stock_ref.sha256===meta.display_projection?.f10_source_sha256))paintF10(value.f10,'日更完成快照',false,value.stock_ref.sha256);
       else if(kind==='CANONICAL'&&generic&&value.status==='PARTIAL_SOURCE_COMPONENTS')paintPartialF10(value);
       else if(kind==='RESEARCH'){
-        paintF10(value.f10,'研究范围 F10 采集快照（未发布，非历史PIT）');
+        paintF10(value.f10,'研究范围 F10 采集快照（未发布，非历史PIT）',false,value.stock_ref.sha256);
         singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
       else if(kind==='CANDIDATE'){
-        paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12),true);
+        paintF10(value.f10,'已登记批量候选F10 · 来源 '+value.source_generation.slice(0,12),true,value.stock_ref.sha256);
         singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
       else if(kind==='SCOPED_A20'){
-        paintF10(value.f10,'本批限定证券F10采集快照（未发布，非历史PIT）');
+        paintF10(value.f10,'本批限定证券F10采集快照（未发布，非历史PIT）',false,value.stock_ref.sha256);
         singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
       else if(kind==='INDEPENDENT'){
-        paintF10(value.f10,'独立公司资料 · 行情仍未准入');
+        paintF10(value.f10,'独立公司资料 · 行情仍未准入',false,value.stock_ref.sha256);
         singleResearch.setObservedName(meta.symbol,value.f10?.name,signal);
       }
     }).catch(()=>{});

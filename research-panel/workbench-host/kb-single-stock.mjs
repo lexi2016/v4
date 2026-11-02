@@ -597,13 +597,19 @@ export function financialLines(official={},f10={}){
       '经营现金流净额：待核（原生现金流口径、单位或报告期未确认）'];
 }
 
-export function holderLines(official={},f10={}){
+export function holderLines(official={},f10={},source={}){
   const lines=[],h=f10.reported_holders;
-  if(official.holder_count!==null&&official.holder_count!==undefined&&official.holder_count!==''&&Number.isFinite(Number(official.holder_count)))
-    lines.push(`${official.holder_asof?'报告期末股东':'股东户数'} ${official.holder_count} 户（${official.holder_asof??'统计截止日待核'}）${official.evidence_status==='SECONDARY_REPORTED'?'；东方财富二级记录，原响应待核，非历史PIT':''}${official.note?'；'+official.note:''}`);
-  if(Number.isSafeInteger(h?.count)&&h.count>0&&/^\d{4}-\d{2}-\d{2}$/.test(h.asof_date??''))
-    lines.push(`TDX F10 股东户数 ${h.count} 户（统计截止 ${h.asof_date}；采集 ${f10.captured_at??'时间待核'}；非历史PIT）`);
+  const dated=Number.isSafeInteger(h?.count)&&h.count>0&&/^\d{4}-\d{2}-\d{2}$/.test(h.asof_date??'');
   const native=f10.financials?.holder_count;
+  const oldF10=!official.holder_asof&&!official.evidence_status&&!official.holder_source_url&&
+    official.note==='F10采集时股东户数，具体统计截止日待核。';
+  const sameF10=source.companyF10Verified===true&&sha64(source.companyF10Sha)&&
+    source.companyF10Sha===source.observationF10Sha;
+  const redundant=oldF10&&sameF10&&dated&&Number.isSafeInteger(native)&&native===h.count&&Number(official.holder_count)===native;
+  if(dated)
+    lines.push(`TDX F10 股东户数 ${h.count} 户（统计截止 ${h.asof_date}；采集 ${f10.captured_at??'时间待核'}；非历史PIT）`);
+  if(!redundant&&official.holder_count!==null&&official.holder_count!==undefined&&official.holder_count!==''&&Number.isFinite(Number(official.holder_count)))
+    lines.push(`${oldF10?'旧公司资料中的 TDX F10 财务源股东户数':official.holder_asof?'报告期末股东':'股东户数'} ${official.holder_count} 户（${official.holder_asof??'统计截止日待核'}）${official.evidence_status==='SECONDARY_REPORTED'?'；东方财富二级记录，原响应待核，非历史PIT':''}${official.note?'；'+official.note:''}`);
   if(Number.isFinite(native)&&native!==h?.count)
     lines.push(`TDX 财务源股东户数 ${native} 户（源更新 ${f10.finance_updated_date??'待核'}；统计截止日未绑定）`);
   return lines.length?lines:['股东户数 待核 户（统计截止日待核）'];

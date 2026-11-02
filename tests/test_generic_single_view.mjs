@@ -131,6 +131,27 @@ test('dated F10 holder observations preserve native dates and uncertain net cash
   assert.match(financialLines({operating_cash_flow:4043040000000},f10)[2],/待核.*口径.*单位.*报告期/);
 });
 
+test('same verified F10 snapshot does not repeat its undated native holder count',()=>{
+  const sha='d'.repeat(64),old={holder_count:20771,holder_asof:null,note:'F10采集时股东户数，具体统计截止日待核。'};
+  const f10={captured_at:'2026-11-01T17:20:52Z',financials:{holder_count:20771},
+    reported_holders:{count:20771,asof_date:'2026-10-20'}};
+  const same={companyF10Sha:sha,observationF10Sha:sha,companyF10Verified:true};
+  assert.deepEqual(holderLines(old,f10,same),[
+    'TDX F10 股东户数 20771 户（统计截止 2026-10-20；采集 2026-11-01T17:20:52Z；非历史PIT）']);
+  for(const proof of [{...same,observationF10Sha:'a'.repeat(64)},{...same,companyF10Verified:false},
+    {...same,observationF10Sha:undefined}] ){
+    const lines=holderLines(old,f10,proof);
+    assert.equal(lines.length,2);assert.match(lines[0],/TDX F10.*2026-10-20/);
+    assert.match(lines[1],/旧公司资料.*统计截止日待核/);
+  }
+  for(const distinct of [{...old,holder_count:20770},{...old,evidence_status:'SECONDARY_REPORTED'},
+    {...old,note:'其他来源'}, {...old,holder_asof:'2026-09-30'}]){
+    const lines=holderLines(distinct,f10,same);
+    assert.equal(lines.length,2);assert.match(lines[0],/TDX F10.*2026-10-20/);
+  }
+  assert.equal(holderLines(old,{...f10,reported_holders:{count:20772,asof_date:'2026-10-20'}},same).length,3);
+});
+
 test('F10 business and period update when the verified snapshot arrives',()=>{
   const f10={captured_at:'2026-11-01T22:57:52Z',finance_updated_date:'20260828',
     financials:{report_period:'2026-09-30'},reported_business:'商业银行业务及资产管理业务。'};
