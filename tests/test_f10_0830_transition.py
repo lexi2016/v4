@@ -1,4 +1,5 @@
 """Bounded original 0830 receipt replay; ledger mutations are isolated fixtures."""
+import hashlib
 import json
 import shutil
 from datetime import datetime
@@ -6,7 +7,11 @@ from pathlib import Path
 
 import pytest
 from infrastructure import manager_input_attestation as m
-from ops.prepare_runtime_governance_publication import validate_transition_receipt
+from ops.prepare_runtime_governance_publication import (
+    embedded_publication_rows,
+    validate_transition_publication_set,
+    validate_transition_receipt,
+)
 
 DATA = Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data')
 OWNER = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/f10-daily-20261101-c94609b4e5fff848-main/app')
@@ -120,3 +125,146 @@ def test_receipt_rejects_missing_pinned_calendar(tmp_path,missing_key):
     receipt=synthetic_receipt('1800','20261103')
     with pytest.raises(ValueError,match='TRANSITION_CALENDAR_MISSING'):
         validate_transition_receipt(receipt,receipt_item(tmp_path,receipt),expected,LATE)
+
+
+def _sha(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _publication_folder(root):
+    return root/'data/research/hourly/publication/live/20261102'
+
+
+def _embedded_file(root,slot,value):
+    path=_publication_folder(root)/f'{slot}.json'
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(json.dumps(value),encoding='utf-8')
+    return path
+
+
+def _later_owner(root,slot='2200',*,artifact_raw=None,receipt_raw=None,**overrides):
+    trade_date='20261102'
+    artifact_raw=(json.dumps({'slot':slot,'fixture':'artifact'}).encode()
+                  if artifact_raw is None else artifact_raw)
+    receipt_raw=(json.dumps({'schema_version':'v3_5.hourly_research_receipt.v1',
+        'archive_date':trade_date,'slot':slot,'mode':'LIVE','production_allowed':False,
+        'buy_gate_updated':False,'orders_sent':False}).encode()
+        if receipt_raw is None else receipt_raw)
+    artifact=root/f'data/research/hourly/live/{trade_date}/{slot}.json'
+    receipt=root/f'data/receipts/research/hourly/live/{trade_date}/{slot}.json'
+    for path,raw in ((artifact,artifact_raw),(receipt,receipt_raw)):
+        path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
+    payload={'schema_version':'v4.hourly_research_publication.v1','trade_date':trade_date,
+        'slot':slot,'mode':'LIVE','RESEARCH_ONLY':True,'production_allowed':False,
+        'buy_gate_updated':False,'orders_sent':False,
+        'artifact_ref':f'research/hourly/live/{trade_date}/{slot}.json',
+        'artifact_sha256':_sha(artifact_raw),
+        'receipt_ref':f'receipts/research/hourly/live/{trade_date}/{slot}.json',
+        'receipt_sha256':_sha(receipt_raw)}
+    payload.update(overrides)
+    publication=_publication_folder(root)/f'{slot}.json'
+    publication.parent.mkdir(parents=True,exist_ok=True)
+    publication.write_text(json.dumps(payload),encoding='utf-8')
+    return publication,payload,artifact,receipt
+
+
+def _validate(root,embedded,paths):
+    return validate_transition_publication_set(
+        embedded,paths,trade_date='20261102',data_root=root/'data')
+
+
+def test_later_owner_publication_is_validated_outside_frozen_proof(tmp_path):
+    embedded={'0830':[{'slot':'0830','fixture':'embedded'}],
+              '0900':[{'slot':'0900','fixture':'embedded'}]}
+    for slot,values in embedded.items():_embedded_file(tmp_path,slot,values[0])
+    _later_owner(tmp_path)
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    diagnostics=_validate(tmp_path,embedded,paths)
+    assert [row['slot'] for row in diagnostics]==['2200']
+    assert set(embedded)=={'0830','0900'}
+    rows=embedded_publication_rows(embedded,paths)
+    assert [row[0] for row in rows]==['0830','0900']
+    assert all(path.stem!='2200' for _,path,_ in rows)
+
+
+@pytest.mark.parametrize('field,value',[
+    ('schema_version','v3_5.dispatch.v1'),('trade_date','20261103'),
+    ('slot','2210'),('mode','BACKFILL'),('RESEARCH_ONLY',False),
+    ('production_allowed',True),('buy_gate_updated',True),('orders_sent',True)])
+def test_later_owner_publication_rejects_wrong_identity(tmp_path,field,value):
+    publication,payload,_,_=_later_owner(tmp_path)
+    payload[field]=value;publication.write_text(json.dumps(payload))
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_IDENTITY_INVALID'):
+        _validate(tmp_path,{},paths)
+
+
+@pytest.mark.parametrize('field,value',[
+    ('artifact_ref','research/hourly/live/20261102/other.json'),
+    ('receipt_ref','receipts/research/hourly/live/20261102/other.json'),
+    ('artifact_sha256','abc'),('receipt_sha256','0'*63)])
+def test_later_owner_publication_rejects_unbound_refs(tmp_path,field,value):
+    _later_owner(tmp_path,**{field:value})
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_REF_INVALID'):
+        _validate(tmp_path,{},paths)
+
+
+@pytest.mark.parametrize('field,error',[
+    ('artifact_sha256','ARTIFACT_SHA_MISMATCH'),('receipt_sha256','RECEIPT_SHA_MISMATCH')])
+def test_later_owner_publication_rejects_hash_mismatch(tmp_path,field,error):
+    _later_owner(tmp_path,**{field:'0'*64})
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_'+error):
+        _validate(tmp_path,{},paths)
+
+
+@pytest.mark.parametrize('which,error',[
+    ('artifact','ARTIFACT_MISSING'),('receipt','RECEIPT_MISSING')])
+def test_later_owner_publication_requires_cited_files(tmp_path,which,error):
+    _,_,artifact,receipt=_later_owner(tmp_path)
+    (artifact if which=='artifact' else receipt).unlink()
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_'+error):
+        _validate(tmp_path,{},paths)
+
+
+def test_later_owner_receipt_must_echo_slot_date_mode_and_safety(tmp_path):
+    for index,(field,value) in enumerate([
+            ('slot','2210'),('archive_date','20261103'),('mode','BACKFILL'),
+            ('production_allowed',True),('buy_gate_updated',True),('orders_sent',True),
+            ('RESEARCH_ONLY',False)]):
+        root=tmp_path/str(index)
+        publication,payload,_,receipt=_later_owner(root)
+        receipt_value=json.loads(receipt.read_bytes());receipt_value[field]=value
+        raw=json.dumps(receipt_value).encode();receipt.write_bytes(raw)
+        payload['receipt_sha256']=_sha(raw);publication.write_text(json.dumps(payload))
+        paths=sorted(_publication_folder(root).glob('*.json'))
+        with pytest.raises(ValueError,
+                match='TRANSITION_PUBLICATION_EXTRA_RECEIPT_IDENTITY_INVALID'):
+            _validate(root,{},paths)
+
+
+def test_embedded_publication_set_still_requires_regular_exact_files(tmp_path):
+    embedded={'0830':[{'slot':'0830'}],'0900':[{'slot':'0900'}]}
+    first=_embedded_file(tmp_path,'0830',embedded['0830'][0])
+    second=_embedded_file(tmp_path,'0900',embedded['0900'][0])
+    assert _validate(tmp_path,embedded,[first,second])==[]
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_RECEIPT_SET_MISMATCH'):
+        _validate(tmp_path,embedded,[first])
+    target=tmp_path/'target.json';target.write_text('{}')
+    second.unlink();second.symlink_to(target)
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_SET_INVALID'):
+        _validate(tmp_path,embedded,[first,second])
+    second.unlink();_embedded_file(tmp_path,'0900',embedded['0900'][0])
+    odd=_publication_folder(tmp_path)/'08300.json';odd.write_text('{}')
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_SET_INVALID'):
+        _validate(tmp_path,embedded,[first,second,odd])
+
+
+def test_old_owner_publication_bytes_still_exact(tmp_path):
+    embedded={'0830':[{'slot':'0830'}]}
+    path=_embedded_file(tmp_path,'0830',{'slot':'0830','drifted':True})
+    assert _validate(tmp_path,embedded,[path])==[]
+    with pytest.raises(ValueError,match='TRANSITION_EMBEDDED_PUBLICATION_MISMATCH'):
+        embedded_publication_rows(embedded,[path])

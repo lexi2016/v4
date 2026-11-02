@@ -130,7 +130,9 @@ def test_transition_publication_files_must_match_receipt_slots(tmp_path):
     validate_transition_publication_set({'0830':[{}],'0900':[{}]},[a,b])
     with pytest.raises(ValueError,match='PUBLICATION_RECEIPT_SET_MISMATCH'):
         validate_transition_publication_set({'0830':[{}],'0900':[{}]},[a])
-    with pytest.raises(ValueError,match='PUBLICATION_RECEIPT_SET_MISMATCH'):
+    # A later-owner file is no longer a set mismatch, but it cannot be accepted
+    # without the trade date and data root needed to verify its cited pair.
+    with pytest.raises(ValueError,match='PUBLICATION_EXTRA_CONTEXT_REQUIRED'):
         validate_transition_publication_set({'0830':[{}]},[a,b])
 
 

@@ -38,6 +38,14 @@ RUNTIME_TEST_FILES = {
     "tests/test_research_panel_runtime_graph.py": ("010e76aae7296fd1798b8d0bcd93935bb4bb2ef0c5959a85abf401fd5cb0f985", "989b7238998f9e90aa0194141a1724bb82dd0d53b53a553a182718cd88e60dca"),
     "tests/test_runtime_graph_hardening.py": ("857b50052ded269692ef2bb3d6be9b08bbf340d8e9b60dcda7199cfe7807c3ee", "f8b6bf99bd3b1063781c6cb1115dcba9e7191f39772cd24ac8493664b31815bf"),
 }
+# Live-derived scheduler repair; the asset is read from the source tree.
+MAIN_OVERRIDES = {
+    "ops/run_v4_macos_scheduler_due.py": (
+        "e6e18cefb9df37407be7770082d844988ed765a21c33567f1a18c88ad9c65ae7",
+        "docs/handoffs/unified-release-20261102/run_v4_macos_scheduler_due.r10.py",
+        "ff1130e6e5be64a48b2ac1c0afcd9e8e1b83fe3a8b584f1a225c555268c41fab",
+    ),
+}
 
 
 def apply_reviewed_removals(app, removals=REMOVALS):
@@ -53,7 +61,134 @@ def apply_reviewed_removals(app, removals=REMOVALS):
     return removed, absent
 
 
-def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecessor_date=None):
+def load_snapshot_dir(snapshot_dir):
+    """Load any present role snapshots; other files in the directory are ignored."""
+    snapshots = {}
+    if snapshot_dir is None: return snapshots
+    root = Path(snapshot_dir)
+    for role in ("main", "stage", "api"):
+        path = root / (role + ".json")
+        if not path.is_file(): continue
+        row = json.loads(path.read_bytes())
+        if not isinstance(row, dict) or not isinstance(row.get("environment"), dict):
+            raise ValueError("SNAPSHOT_ROLE_INVALID:" + role)
+        snapshots[role] = row
+    return snapshots
+
+
+def apply_snapshots(actual, snapshots):
+    """Refresh loaded role rows; a later snapshot replaces an older api snapshot."""
+    actual.update(copy.deepcopy(snapshots))
+    return set(snapshots)
+
+
+def role_baseline(base, actual, role, fresh):
+    """Snapshot roles copy from their refreshed app and pin; others keep the base."""
+    if fresh:
+        env = actual[role]["environment"]
+        return Path(env["V4_APP_ROOT"]), env["V4_RELEASE_MANIFEST_SHA256"]
+    return Path(base["roles"][role]["app_root"]), base["roles"][role]["manifest_sha256"]
+
+
+def apply_main_overrides(app, source, overrides=None):
+    """Replace reviewed live-derived Main bytes after copying; never other roles."""
+    applied = {}
+    for relative, (before_sha, asset, after_sha) in (MAIN_OVERRIDES if overrides is None else overrides).items():
+        path = Path(app) / relative
+        if not path.is_file() or sha(path.read_bytes()) != before_sha:
+            raise ValueError("MAIN_OVERRIDE_PREIMAGE_CHANGED:" + relative)
+        raw = (Path(source) / asset).read_bytes()
+        if sha(raw) != after_sha:
+            raise ValueError("MAIN_OVERRIDE_BYTES_CHANGED:" + relative)
+        write(app, relative, raw)
+        applied[relative] = {"path": relative, "asset": asset, "before_sha256": before_sha,
+                             "after_sha256": after_sha}
+    return applied
+
+
+def apply_schedule_repair(app, before_app, source, relative, preimage):
+    """Accept the frozen preimage or the source bytes already applied on live."""
+    raw = (Path(source) / relative).read_bytes()
+    current = Path(before_app) / relative
+    if not current.is_file(): raise ValueError("SCHEDULE_PREIMAGE_CHANGED")
+    current_sha = sha(current.read_bytes())
+    if current_sha == preimage: mode = "preimage"
+    elif current_sha == sha(raw): mode = "already_applied"
+    else: raise ValueError("SCHEDULE_PREIMAGE_CHANGED")
+    write(app, relative, raw)
+    return mode
+
+
+def apply_runtime_test_overlay(app, source, relative, before_sha, after_sha):
+    """Accept before/after/absence in a stacked copy; always write frozen after bytes."""
+    raw = (Path(source) / relative).read_bytes()
+    if sha(raw) != after_sha: raise ValueError("RUNTIME_TEST_OVERLAY_BYTES_CHANGED")
+    path = Path(app) / relative
+    if not path.exists(): mode = "absent"
+    else:
+        current = sha(path.read_bytes())
+        if current == before_sha: mode = "before"
+        elif current == after_sha: mode = "after"
+        else: raise ValueError("RUNTIME_TEST_PREIMAGE_CHANGED")
+    write(app, relative, raw)
+    return mode
+
+
+def validate_transition_binding(binding):
+    """Strict shape check for a frozen transition-owner binding."""
+    keys = {"app_root", "release_id", "manifest_sha256", "trade_date"}
+    if not isinstance(binding, dict) or set(binding) != keys:
+        raise ValueError("TRANSITION_BINDING_INVALID")
+    app_root = binding["app_root"]; release_id = binding["release_id"]
+    manifest_sha = binding["manifest_sha256"]; trade_date = binding["trade_date"]
+    if (not isinstance(app_root, str) or not app_root or not Path(app_root).is_absolute()
+        or not isinstance(release_id, str) or not release_id
+        or not isinstance(manifest_sha, str) or not manifest_sha
+        or not isinstance(trade_date, str) or not re.fullmatch(r"[0-9]{8}", trade_date)):
+        raise ValueError("TRANSITION_BINDING_INVALID")
+    return binding
+
+
+def apply_stage_transition_binding(cfg, main_env, predecessor_date):
+    """Preserve an existing frozen transition owner; bind only when absent.
+
+    The live Stage's binding names the historical transition owner (f10-daily
+    for 20261102), not the current Main.  Rewriting it would invalidate the
+    transition evidence publication prepare/zero_admission depend on.
+    """
+    existing = cfg.get("research_transition_owner_binding")
+    if existing is not None:
+        binding = validate_transition_binding(existing)
+        if binding["trade_date"] != predecessor_date:
+            raise ValueError("TRANSITION_BINDING_DRIFT")
+        return binding, "preserved"
+    binding = {"app_root": main_env["V4_APP_ROOT"], "release_id": main_env["V4_RELEASE_ID"],
+               "manifest_sha256": main_env["V4_RELEASE_MANIFEST_SHA256"], "trade_date": predecessor_date}
+    cfg["research_transition_owner_binding"] = binding
+    return binding, "bound"
+
+
+def validate_transition_binding_owner(binding, tools):
+    """The preserved/bound transition release must still verify before publication."""
+    verified_baseline(Path(binding["app_root"]), binding["manifest_sha256"], tools)
+
+
+def apply_api_registration(app):
+    """Insert the two API registration lines once, or accept them already present."""
+    relative = "apps/api/v4_api/app.py"; path = Path(app) / relative; body = path.read_text()
+    anchor = "    app.include_router(create_baimao_router(store.root))\n"
+    registration = ("    from apps.api.v4_api.report_evidence_router import create_report_evidence_router\n"
+                    "    app.include_router(create_report_evidence_router(resolved_research_root))\n")
+    if registration in body:
+        if body.count(registration) != 1: raise ValueError("API_REGISTRATION_PREIMAGE_CHANGED")
+        return "already_registered"
+    if body.count(anchor) != 1 or "create_report_evidence_router" in body:
+        raise ValueError("API_REGISTRATION_PREIMAGE_CHANGED")
+    write(app, relative, body.replace(anchor, anchor + registration).encode())
+    return "anchor_applied"
+
+
+def prepare(*, source, runtime, report_ref, output, api_snapshot=None, snapshot_dir=None, predecessor_date=None):
     if output.exists(): raise ValueError("UNIFIED_OUTPUT_MUST_BE_NEW")
     if not isinstance(predecessor_date, str) or not re.fullmatch(r"[0-9]{8}", predecessor_date):
         raise ValueError("EXACT_TRANSITION_DATE_REQUIRED")
@@ -72,6 +207,9 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
     actual = copy.deepcopy(base["live_preimages"])
     if api_snapshot is not None:
         actual["api"] = json.loads(Path(api_snapshot).read_bytes())
+    snapshots = load_snapshot_dir(snapshot_dir)
+    apply_snapshots(actual, snapshots)
+    refreshed = set(snapshots) | ({"api"} if api_snapshot is not None else set())
     current_api = Path(actual["api"]["environment"]["V4_APP_ROOT"])
     alias = (source / ALIAS).read_bytes()
     if sha(alias) != OWNER_SHA or (current_api / "infrastructure/zsxq_pdf_ingestion.py").read_bytes() != alias:
@@ -86,10 +224,14 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
     output.mkdir(); roles = {}
     reviewed_removals = {relative: {'path': relative, 'before_sha256': expected, 'roles_removed': [], 'roles_absent': []} for relative, expected in REMOVALS.items()}
     runtime_test_overlay = {relative: {'path': relative, 'before_sha256': before, 'after_sha256': after, 'roles': []} for relative, (before, after) in RUNTIME_TEST_FILES.items()}
+    main_override_receipt = {}
+    transition_expected_binding = None
+    idempotency_modes = {"schedule_repairs": {}, "runtime_test_files": {},
+                         "stage_transition_binding": None, "api_registration": None}
     for role in ("main", "stage", "api"):
-        fresh_api = role == "api" and api_snapshot is not None
-        before_app = current_api if fresh_api else Path(base["roles"][role]["app_root"])
-        before_pin = actual["api"]["environment"]["V4_RELEASE_MANIFEST_SHA256"] if fresh_api else base["roles"][role]["manifest_sha256"]
+        fresh = role in refreshed
+        fresh_api = role == "api" and fresh
+        before_app, before_pin = role_baseline(base, actual, role, fresh)
         verified_baseline(before_app, before_pin, inv)
         root = output / (output.name + "-" + role); app = root / "app"
         shutil.copytree(before_app, app, symlinks=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
@@ -100,17 +242,19 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         for relative in removed: reviewed_removals[relative]['roles_removed'].append(role)
         for relative in absent: reviewed_removals[relative]['roles_absent'].append(role)
         for relative, (before_sha, after_sha) in RUNTIME_TEST_FILES.items():
-            path = app / relative
-            if path.exists() and sha(path.read_bytes()) != before_sha: raise ValueError('RUNTIME_TEST_PREIMAGE_CHANGED')
-            raw = (source / relative).read_bytes()
-            if sha(raw) != after_sha: raise ValueError('RUNTIME_TEST_OVERLAY_BYTES_CHANGED')
-            write(app, relative, raw); additions.add(relative)
+            mode = apply_runtime_test_overlay(app, source, relative, before_sha, after_sha)
+            additions.add(relative)
             runtime_test_overlay[relative]['roles'].append(role)
+            idempotency_modes['runtime_test_files'].setdefault(relative, {})[role] = mode
         if role in SCHEDULE_REPAIRS:
             relative, preimage = SCHEDULE_REPAIRS[role]
-            if sha((before_app / relative).read_bytes()) != preimage:
-                raise ValueError("SCHEDULE_PREIMAGE_CHANGED:" + role)
-            write(app, relative, (source / relative).read_bytes()); additions.add(relative)
+            idempotency_modes['schedule_repairs'][role] = apply_schedule_repair(
+                app, before_app, source, relative, preimage)
+            additions.add(relative)
+        if role == "main":
+            applied = apply_main_overrides(app, source)
+            main_override_receipt.update(applied)
+            additions |= set(applied)
         if fresh_api:
             write(app, "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md", (source / "docs/operations/RUNTIME_DATA_RECOVERY_SOP.md").read_bytes())
             reader = (app / "infrastructure/operations_sop_reader.py").read_text()
@@ -128,24 +272,18 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
                 write(app, "domains/report_subjects.py", (current_api / "domains/report_subjects.py").read_bytes())
                 additions.add("domains/report_subjects.py")
             cfg = json.loads((app / "stage_center_tick_config.json").read_bytes())
-            if cfg.get("research_transition_owner_binding") is not None:
-                raise ValueError("TRANSITION_BINDING_ALREADY_PRESENT")
             main_env = actual["main"]["environment"]
-            cfg["research_transition_owner_binding"] = {
-                "app_root": main_env["V4_APP_ROOT"], "release_id": main_env["V4_RELEASE_ID"],
-                "manifest_sha256": main_env["V4_RELEASE_MANIFEST_SHA256"], "trade_date": predecessor_date,
-            }
+            transition_expected_binding, mode = apply_stage_transition_binding(
+                cfg, main_env, predecessor_date)
+            idempotency_modes["stage_transition_binding"] = mode
             write(app, "infrastructure/manager_input_attestation.py", (source / "infrastructure/manager_input_attestation.py").read_bytes())
             additions.add("infrastructure/manager_input_attestation.py")
             cfg["release_id"] = root.name
             cfg["research_owner_binding"] = {"app_root": roles["main"]["app_root"], "release_id": roles["main"]["release_id"], "manifest_sha256": roles["main"]["manifest_sha256"]}
             dump(app / "stage_center_tick_config.json", cfg); additions.add("stage_center_tick_config.json")
         if role == "api":
-            path = app / "apps/api/v4_api/app.py"; body = path.read_text()
-            anchor = "    app.include_router(create_baimao_router(store.root))\n"
-            if body.count(anchor) != 1 or "create_report_evidence_router" in body: raise ValueError("API_REGISTRATION_PREIMAGE_CHANGED")
-            body = body.replace(anchor, anchor + "    from apps.api.v4_api.report_evidence_router import create_report_evidence_router\n    app.include_router(create_report_evidence_router(resolved_research_root))\n")
-            write(app, "apps/api/v4_api/app.py", body.encode()); additions.add("apps/api/v4_api/app.py")
+            idempotency_modes["api_registration"] = apply_api_registration(app)
+            additions.add("apps/api/v4_api/app.py")
             manual_path = Path(actual["api"]["environment"]["V4_MANUAL_COLLECTION_STAGE_CONFIG"]) if fresh_api else app / "config/api-v4_manual_collection_stage_config.json"
             manual = json.loads(manual_path.read_bytes())
             manual["stage_owner_root"] = roles["stage"]["app_root"]
@@ -188,21 +326,20 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
     from ops.build_runtime_governance_registry import publication_checks
     dependencies = publication_checks(stage_app=Path(roles["stage"]["app_root"]), api_manual=Path(roles["api"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json", inventory_module=current_api / "ops/api_release_integration.py")
     transition = json.loads((Path(roles["stage"]["app_root"]) / "stage_center_tick_config.json").read_bytes())["research_transition_owner_binding"]
-    main_env = actual["main"]["environment"]
-    if transition != {"app_root": main_env["V4_APP_ROOT"], "release_id": main_env["V4_RELEASE_ID"],
-                      "manifest_sha256": main_env["V4_RELEASE_MANIFEST_SHA256"], "trade_date": predecessor_date}:
+    if transition_expected_binding is None or transition != transition_expected_binding:
         raise ValueError("TRANSITION_BINDING_DRIFT")
-    verified_baseline(Path(transition["app_root"]), transition["manifest_sha256"], inv)
+    validate_transition_binding_owner(transition, inv)
     dependencies.append({"producer_release": transition["release_id"],
         "producer_manifest_sha256": transition["manifest_sha256"],
         "consumer_config_sha256": sha((Path(roles["stage"]["app_root"]) / "stage_center_tick_config.json").read_bytes()),
-        "transition_trade_date": predecessor_date, "scope": "READ_ONLY_TRANSITION_OWNER",
+        "transition_trade_date": transition["trade_date"], "scope": "READ_ONLY_TRANSITION_OWNER",
         "receipt_publication": "NOT_RUN"})
     receipt = {**base, "schema_version": "v4.unified_runtime_candidate.v1", "roles": roles, "report_source_ref": report_ref,
         "live_preimages": actual,
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(), "publication_dependencies": dependencies,
         "report_source_files": frozen, "schedule_source_files": schedule_frozen,
         "reviewed_removals": list(reviewed_removals.values()), "runtime_test_overlay": list(runtime_test_overlay.values()),
+        "main_overrides": list(main_override_receipt.values()), "idempotency_modes": idempotency_modes,
         "activated": False, "DEPLOYMENT": "NOT_DEPLOYED", "NATURAL_VERIFIED": "NOT_RUN"}
     dump(output / "candidate_receipt.json", receipt)
     return receipt
@@ -213,7 +350,8 @@ if __name__ == "__main__":
     for name in ("runtime", "output"): parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--report-ref", required=True)
     parser.add_argument("--api-snapshot", type=Path, help="Explicit fresh API snapshot; any later live drift rejects the build")
+    parser.add_argument("--snapshot-dir", type=Path, help="Directory with optional main.json/stage.json/api.json role snapshots; present roles replace their live preimage and api prefers its snapshot over --api-snapshot")
     parser.add_argument("--predecessor-date", required=True, help="Exact business date of the pinned prior Main transition")
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
-    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output, api_snapshot=args.api_snapshot, predecessor_date=args.predecessor_date)
+    args = parser.parse_args(); result = prepare(source=args.source, runtime=args.runtime, report_ref=args.report_ref, output=args.output, api_snapshot=args.api_snapshot, snapshot_dir=args.snapshot_dir, predecessor_date=args.predecessor_date)
     print(json.dumps(result["roles"], ensure_ascii=False))

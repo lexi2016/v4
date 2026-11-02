@@ -31,11 +31,95 @@ def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="000000
         "admission": "ZERO_MATCHES_REQUIRED_UNDER_GUARD", "reason": "No valid hourly publication can exist without its bound dispatch completion; any match requires compatibility review"}
 
 
-def validate_transition_publication_set(embedded, paths):
-    if not paths or any(p.is_symlink() or not re.fullmatch(r'[0-9]{4}\.json', p.name) for p in paths):
+def _later_owner_publication(path, *, trade_date, data_root):
+    """Validate one post-transition publication; it never enters the frozen proof.
+
+    Later owners (for example the current Main after the Stage/API switch) keep
+    publishing into the transition folder.  Each such file must still be tied
+    to an existing artifact + receipt pair whose bytes match its declared
+    hashes; validation is repeated on every prepare/activation.
+    """
+    slot = path.stem
+    try:
+        publication_bytes = path.read_bytes(); publication = json.loads(publication_bytes)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_INVALID')
+    if not isinstance(publication, dict):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_INVALID')
+    if (publication.get('schema_version') != 'v4.hourly_research_publication.v1'
+        or publication.get('trade_date') != trade_date
+        or publication.get('slot') != slot
+        or publication.get('mode') != 'LIVE'
+        or publication.get('RESEARCH_ONLY') is not True
+        or publication.get('production_allowed') is not False
+        or publication.get('buy_gate_updated') is not False
+        or publication.get('orders_sent') is not False):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_IDENTITY_INVALID')
+    artifact_ref = f'research/hourly/live/{trade_date}/{slot}.json'
+    receipt_ref = f'receipts/research/hourly/live/{trade_date}/{slot}.json'
+    artifact_sha = publication.get('artifact_sha256'); receipt_sha = publication.get('receipt_sha256')
+    if (publication.get('artifact_ref') != artifact_ref or publication.get('receipt_ref') != receipt_ref
+        or not isinstance(artifact_sha, str) or not re.fullmatch('[0-9a-f]{64}', artifact_sha)
+        or not isinstance(receipt_sha, str) or not re.fullmatch('[0-9a-f]{64}', receipt_sha)):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_REF_INVALID')
+    root = Path(data_root)
+    artifact = root / artifact_ref; receipt_path = root / receipt_ref
+    if artifact.is_symlink() or not artifact.is_file():
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_ARTIFACT_MISSING')
+    if sha(artifact.read_bytes()) != artifact_sha:
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_ARTIFACT_SHA_MISMATCH')
+    if receipt_path.is_symlink() or not receipt_path.is_file():
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_MISSING')
+    receipt_bytes = receipt_path.read_bytes()
+    if sha(receipt_bytes) != receipt_sha:
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_SHA_MISMATCH')
+    try:
+        receipt = json.loads(receipt_bytes)
+    except (UnicodeError, json.JSONDecodeError):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_INVALID')
+    dates = ([receipt.get(key) for key in ('trade_date', 'archive_date')
+              if receipt.get(key) is not None] if isinstance(receipt, dict) else [])
+    if (not isinstance(receipt, dict) or receipt.get('slot') != slot
+        or receipt.get('mode') != 'LIVE'
+        or not dates or any(str(value) != trade_date for value in dates)
+        or receipt.get('production_allowed') is not False
+        or receipt.get('buy_gate_updated') is not False
+        or receipt.get('orders_sent') is not False
+        or receipt.get('RESEARCH_ONLY', True) is not True):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_IDENTITY_INVALID')
+    return {'slot': slot, 'publication_sha256': sha(publication_bytes),
+            'artifact_sha256': artifact_sha, 'receipt_sha256': receipt_sha}
+
+
+def validate_transition_publication_set(embedded, paths, *, trade_date=None, data_root=None):
+    if (not paths or any(p.is_symlink() or not p.is_file()
+                         or not re.fullmatch(r'[0-9]{4}\.json', p.name) for p in paths)):
         raise ValueError('TRANSITION_PUBLICATION_SET_INVALID')
-    if {p.stem for p in paths} != set(embedded):
+    folder_slots = {p.stem for p in paths}
+    if not set(embedded).issubset(folder_slots):
         raise ValueError('TRANSITION_PUBLICATION_RECEIPT_SET_MISMATCH')
+    extras = [p for p in paths if p.stem not in embedded]
+    if not extras:
+        return []
+    if (not isinstance(trade_date, str) or not re.fullmatch(r'[0-9]{8}', trade_date)
+        or data_root is None):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_CONTEXT_REQUIRED')
+    return [_later_owner_publication(path, trade_date=trade_date, data_root=data_root)
+            for path in sorted(extras, key=lambda p: p.name)]
+
+
+def embedded_publication_rows(embedded, paths):
+    """Exact old-owner publication bytes; later-owner files are never included."""
+    by_slot = {p.stem: p for p in paths}
+    if not set(embedded).issubset(by_slot):
+        raise ValueError('TRANSITION_PUBLICATION_RECEIPT_SET_MISMATCH')
+    rows = []
+    for slot in sorted(embedded):
+        path = by_slot[slot]; publication_bytes = path.read_bytes()
+        if any(value != json.loads(publication_bytes) for value in embedded[slot]):
+            raise ValueError('TRANSITION_EMBEDDED_PUBLICATION_MISMATCH')
+        rows.append((slot, path, publication_bytes))
+    return rows
 
 
 def validate_transition_receipt(receipt, item, expected, as_of):
@@ -107,7 +191,10 @@ def transition_owner_proof(candidate_receipt, *, as_of):
     data = Path(env['V4_DATA_ROOT'])
     folder = data / 'research/hourly/publication/live' / expected['trade_date']
     paths = sorted(folder.glob('*.json'))
-    validate_transition_publication_set(embedded, paths)
+    # Later-owner publications are validated on every prepare/activation but
+    # stay outside the frozen old-owner proof below.
+    validate_transition_publication_set(
+        embedded, paths, trade_date=expected['trade_date'], data_root=data)
     identity = {'V4_APP_ROOT': str(stage), 'V4_RELEASE_ID': stage_info['release_id'],
         'V4_RELEASE_MANIFEST_PATH': str(stage.parent/'release-manifest.json'),
         'V4_RELEASE_MANIFEST_SHA256': stage_info['manifest_sha256'],
@@ -116,12 +203,9 @@ def transition_owner_proof(candidate_receipt, *, as_of):
     publications = []
     try:
         os.environ.update(identity)
-        for path in paths:
-            publication_bytes = path.read_bytes()
-            if any(value != json.loads(publication_bytes) for value in embedded[path.stem]):
-                raise ValueError('TRANSITION_EMBEDDED_PUBLICATION_MISMATCH')
+        for slot, path, publication_bytes in embedded_publication_rows(embedded, paths):
             record, _ = attestation.read_stage_hourly_attestation(stage_app=stage, data_root=data,
-                date=expected['trade_date'], slot=path.stem, mode='LIVE', as_of=as_of)
+                date=expected['trade_date'], slot=slot, mode='LIVE', as_of=as_of)
             witness = record['completion_witness']
             if witness['release_id'] != expected['release_id']:
                 raise ValueError('TRANSITION_PUBLICATION_OWNER_MISMATCH')
