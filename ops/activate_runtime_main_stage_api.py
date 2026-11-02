@@ -16,7 +16,11 @@ import tempfile
 import time
 
 from ops import activate_runtime_two_roles as two
-from ops.prepare_runtime_governance_publication import omitted_owner_proof, transition_owner_proof
+from ops.prepare_runtime_governance_publication import (
+    omitted_owner_proof,
+    snapshot_launch_agents,
+    transition_owner_proof,
+)
 
 fixed = two.fixed
 
@@ -43,8 +47,18 @@ def configure(plan_path, evidence):
     projected = copy.deepcopy(plan)
     projected["roles"] = {role: plan["roles"][role] for role in ("stage", "api")}
     projected["forward_order"] = ["stage", "api"]; projected["rollback_order"] = ["api", "stage"]
+    # The reviewed two-role validator pins regular plist bytes; links are
+    # handled by the full snapshot equality below (its pinned() rejects links).
+    projected["protected_labels"] = [row for row in plan["protected_labels"]
+                                     if row.get("kind", "file") == "file"]
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as temporary:
         json.dump(projected, temporary); temporary.flush(); two.configure(Path(temporary.name), Path(evidence))
+    two_protection = fixed.external_protection
+
+    def protection():
+        fixed.require(snapshot_launch_agents() == plan["protected_labels"], "PROTECTED_LABELS_CHANGED")
+        return two_protection()
+    fixed.external_protection = protection
     row = plan["roles"]["main"]; old = Path(row["preimage"]["V4_APP_ROOT"]).parent
     new = Path(row["candidate"]["app_root"]).parent
     fixed.require(row["label"] == "com.lexi.v4.scheduler" and new.is_relative_to(fixed.LOCAL / "candidates") and new != old, "WRONG_MAIN_TARGET")
@@ -150,6 +164,8 @@ def admit(role, job):
 def prepare(plan_path, plan):
     fixed.require(fixed.sys.executable == str(fixed.PYTHON), "PINNED_PYTHON_REQUIRED")
     fixed.require(not fixed.EVIDENCE.exists(), "PREPARATION_ALREADY_EXISTS")
+    protected_labels = snapshot_launch_agents()
+    fixed.require(protected_labels == plan["protected_labels"], "PROTECTED_LABELS_CHANGED")
     records = {}; releases = []
     with fixed.guards():
         for role, (label, old, oldsha, new, newsha) in fixed.TARGETS.items():
@@ -165,7 +181,7 @@ def prepare(plan_path, plan):
             raw = Path(row["path"]).read_bytes(); fixed.require(fixed.sha(raw) == row["original_sha256"], "PREPARATION_CAS_DRIFT")
             for suffix, content in (("original", raw), ("staged", fixed.staged(role, raw))):
                 target = fixed.EVIDENCE / (role + "." + suffix + ".plist"); target.write_bytes(content); target.chmod(row["mode"])
-        record = {"status": "PREPARED_NOT_ACTIVATED", "records": records, "releases": releases, "protection": protection, "data_protection": data, "zero_owner_proof": zero,
+        record = {"status": "PREPARED_NOT_ACTIVATED", "records": records, "releases": releases, "protection": protection, "data_protection": data, "protected_labels": protected_labels, "zero_owner_proof": zero,
             "plan_path": str(Path(plan_path).resolve()), "plan_sha256": fixed.sha(Path(plan_path).read_bytes()),
             "script_pins": {str(path): fixed.sha(path.read_bytes()) for path in (Path(__file__), Path(two.__file__), Path(fixed.__file__), Path(omitted_owner_proof.__code__.co_filename))},
             "RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False, "NATURAL_VERIFIED": "NOT_RUN"}
@@ -197,6 +213,9 @@ def switch(preparation_sha, plan_path, *, rollback=False):
     for role, row in records.items():
         old = (fixed.EVIDENCE / (role + ".original.plist")).read_bytes(); new = (fixed.EVIDENCE / (role + ".staged.plist")).read_bytes()
         fixed.require(fixed.sha(old) == row["original_sha256"] and fixed.sha(new) == row["staged_sha256"], "BACKUP_DRIFT"); raws[role] = (old, new)
+    prepared_labels = prepared.get("protected_labels")
+    fixed.require(isinstance(prepared_labels, list) and snapshot_launch_agents() == prepared_labels,
+                  "PROTECTED_LABELS_CHANGED")
     def event(name, **fields): fixed.write_json(fixed.EVIDENCE / (f"event-{time.time_ns()}.json"), {"event": name, **fields})
     with fixed.guards():
         for role, row in records.items():
@@ -218,6 +237,7 @@ def switch(preparation_sha, plan_path, *, rollback=False):
                 event("TARGET_VERIFIED", role=role, result=result)
             if not rollback: fixed.verify_forward()
             fixed.require(fixed.external_protection() == protection and fixed.data_protection() == data, "PROTECTION_POSTCHECK_CHANGED")
+            fixed.require(snapshot_launch_agents() == prepared_labels, "PROTECTED_LABELS_CHANGED")
             event("ROLLBACK_VERIFIED" if rollback else "ACTIVATED_OPERATIONAL_VERIFIED", NATURAL_VERIFIED="NOT_RUN")
         except BaseException as primary:
             restored, failures = fixed.restore_touched(touched, records, raws, ownership, event, rollback=rollback)

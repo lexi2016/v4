@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import plistlib
 import re
+import stat
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -59,6 +60,64 @@ def frozen_transition_binding(cfg):
     return dict(binding)
 
 
+def _stat_identity(value):
+    return {"mode": stat.S_IMODE(value.st_mode), "dev": value.st_dev, "ino": value.st_ino,
+            "size": value.st_size, "mtime_ns": value.st_mtime_ns, "ctime_ns": value.st_ctime_ns}
+
+
+def snapshot_launch_agents(agents_dir=None, target_labels=None):
+    """Read-only pin of every non-target LaunchAgent, including symlink identity.
+
+    Regular files pin bytes and mode.  Symlinks pin lstat identity, exact link
+    text, resolved target path, target identity and target bytes; link and
+    target are rechecked after the read so a concurrent swap cannot be hidden.
+    """
+    root = Path(agents_dir) if agents_dir is not None else Path.home() / "Library/LaunchAgents"
+    targets = set(LABELS.values() if target_labels is None else target_labels)
+    rows = []
+    for path in sorted(root.glob("*.plist")):
+        if path.stem in targets: continue
+        try:
+            before = os.lstat(path)
+            if stat.S_ISLNK(before.st_mode):
+                readlink = os.readlink(path)
+                target = Path(os.path.realpath(path))
+                target_before = os.stat(target)
+                raw = target.read_bytes()
+                after = os.lstat(path); target_after = os.stat(target)
+                readlink_after = os.readlink(path)
+                link_identity = _stat_identity(before); target_identity = _stat_identity(target_before)
+                if (link_identity != _stat_identity(after) or target_identity != _stat_identity(target_after)
+                    or readlink != readlink_after or Path(os.path.realpath(path)) != target):
+                    raise ValueError("PROTECTED_LABEL_CHANGED:" + path.name)
+            elif stat.S_ISREG(before.st_mode):
+                raw = path.read_bytes(); after = os.lstat(path)
+                if _stat_identity(before) != _stat_identity(after):
+                    raise ValueError("PROTECTED_LABEL_CHANGED:" + path.name)
+                link_identity = _stat_identity(before)
+            else:
+                raise ValueError("PROTECTED_LABEL_INVALID:" + path.name)
+            payload = plistlib.loads(raw)
+        except (OSError, plistlib.InvalidFileException) as error:
+            raise ValueError("PROTECTED_LABEL_INVALID:" + path.name) from error
+        if not isinstance(payload, dict):
+            raise ValueError("PROTECTED_LABEL_INVALID:" + path.name)
+        label = payload.get("Label")
+        if not isinstance(label, str) or not label: label = path.stem
+        if label in targets: continue
+        row = {"kind": "symlink" if stat.S_ISLNK(before.st_mode) else "file",
+               "label": label, "plist_path": str(path),
+               "plist_sha256": sha(raw), "mode": link_identity["mode"]}
+        if row["kind"] == "symlink":
+            row.update({"dev": link_identity["dev"], "ino": link_identity["ino"],
+                        "size": link_identity["size"], "mtime_ns": link_identity["mtime_ns"],
+                        "ctime_ns": link_identity["ctime_ns"], "readlink": readlink,
+                        "resolved_target": str(target),
+                        "target": {"path": str(target), "sha256": sha(raw), **_stat_identity(target_before)}})
+        rows.append(row)
+    return rows
+
+
 def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="00000000"):
     checked = []; matches = []
     root = Path(ledger_root) / "receipts/live"
@@ -74,7 +133,55 @@ def omitted_owner_proof(ledger_root, release_id, app_root, *, first_date="000000
         "admission": "ZERO_MATCHES_REQUIRED_UNDER_GUARD", "reason": "No valid hourly publication can exist without its bound dispatch completion; any match requires compatibility review"}
 
 
-def _later_owner_publication(path, *, trade_date, data_root):
+def _later_owner_receipts(publication, slot, *, trade_date, ledger_root):
+    """Tie a pub-free extras file to a valid non-frozen dispatch receipt."""
+    from infrastructure import manager_input_attestation as attestation
+    receipts_dir = Path(ledger_root) / 'receipts/live' / trade_date / slot
+    if not receipts_dir.is_dir():
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_UNOWNED')
+    paths = sorted(receipts_dir.glob('*.dispatch-receipt.json'))
+    if not paths:
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_UNOWNED')
+    matches = []
+    for path in paths:
+        try:
+            receipt = json.loads(path.read_bytes())
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_INVALID')
+        run_id = receipt.get('run_id') if isinstance(receipt, dict) else None
+        release_id = receipt.get('release_id') if isinstance(receipt, dict) else None
+        if (not isinstance(receipt, dict)
+            or receipt.get('schema_version') != 'v3_5.dispatch.v1'
+            or receipt.get('slot') != slot
+            or receipt.get('business_date') != trade_date
+            or receipt.get('scheduled_date') != trade_date
+            or receipt.get('mode') != 'LIVE'
+            or not isinstance(run_id, str) or not re.fullmatch('[0-9a-f]{32}', run_id)
+            or path.name != run_id + '.dispatch-receipt.json'
+            or not isinstance(release_id, str) or not release_id
+            or receipt.get('production_allowed') is not False
+            or receipt.get('buy_gate_updated') is not False
+            or receipt.get('orders_sent') is not False
+            or receipt.get('RESEARCH_ONLY', True) is not True
+            or receipt.get('ledger_sha256') != attestation.digest(
+                attestation.encoded({k: v for k, v in receipt.items() if k != 'ledger_sha256'})[:-1])):
+            raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_INVALID')
+        workloads = receipt.get('workload_results')
+        if not isinstance(workloads, list):
+            raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_INVALID')
+        for workload in workloads:
+            authority = workload.get('_authoritative_payload') if isinstance(workload, dict) else None
+            embedded = authority.get('hourly_publication') if isinstance(authority, dict) else None
+            if isinstance(embedded, dict) and embedded == publication:
+                matches.append(release_id)
+    if not matches:
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_UNOWNED')
+    if any(release_id == TRANSITION_OWNER['release_id'] for release_id in matches):
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_FROZEN_OWNER_MATCH')
+    return matches
+
+
+def _later_owner_publication(path, *, trade_date, data_root, ledger_root):
     """Validate one post-transition publication; it never enters the frozen proof.
 
     Later owners (for example the current Main after the Stage/API switch) keep
@@ -130,11 +237,14 @@ def _later_owner_publication(path, *, trade_date, data_root):
         or receipt.get('orders_sent') is not False
         or receipt.get('RESEARCH_ONLY', True) is not True):
         raise ValueError('TRANSITION_PUBLICATION_EXTRA_RECEIPT_IDENTITY_INVALID')
+    owners = _later_owner_receipts(publication, slot, trade_date=trade_date, ledger_root=ledger_root)
     return {'slot': slot, 'publication_sha256': sha(publication_bytes),
-            'artifact_sha256': artifact_sha, 'receipt_sha256': receipt_sha}
+            'artifact_sha256': artifact_sha, 'receipt_sha256': receipt_sha,
+            'owner_releases': sorted(set(owners))}
 
 
-def validate_transition_publication_set(embedded, paths, *, trade_date=None, data_root=None):
+def validate_transition_publication_set(embedded, paths, *, trade_date=None, data_root=None,
+                                        ledger_root=None):
     if (not paths or any(p.is_symlink() or not p.is_file()
                          or not re.fullmatch(r'[0-9]{4}\.json', p.name) for p in paths)):
         raise ValueError('TRANSITION_PUBLICATION_SET_INVALID')
@@ -145,10 +255,14 @@ def validate_transition_publication_set(embedded, paths, *, trade_date=None, dat
     if not extras:
         return []
     if (not isinstance(trade_date, str) or not re.fullmatch(r'[0-9]{8}', trade_date)
-        or data_root is None):
+        or data_root is None or ledger_root is None):
         raise ValueError('TRANSITION_PUBLICATION_EXTRA_CONTEXT_REQUIRED')
-    return [_later_owner_publication(path, trade_date=trade_date, data_root=data_root)
-            for path in sorted(extras, key=lambda p: p.name)]
+    diagnostics = [_later_owner_publication(
+        path, trade_date=trade_date, data_root=data_root, ledger_root=ledger_root)
+        for path in sorted(extras, key=lambda p: p.name)]
+    if not embedded:
+        raise ValueError('TRANSITION_PUBLICATION_EXTRA_UNOWNED')
+    return diagnostics
 
 
 def embedded_publication_rows(embedded, paths):
@@ -232,7 +346,7 @@ def transition_owner_proof(candidate_receipt, *, as_of):
     # Later-owner publications are validated on every prepare/activation but
     # stay outside the frozen old-owner proof below.
     validate_transition_publication_set(
-        embedded, paths, trade_date=expected['trade_date'], data_root=data)
+        embedded, paths, trade_date=expected['trade_date'], data_root=data, ledger_root=ledger)
     identity = {'V4_APP_ROOT': str(stage), 'V4_RELEASE_ID': stage_info['release_id'],
         'V4_RELEASE_MANIFEST_PATH': str(stage.parent/'release-manifest.json'),
         'V4_RELEASE_MANIFEST_SHA256': stage_info['manifest_sha256'],
@@ -325,10 +439,7 @@ def prepare(candidate, output, batch1):
     cutoff = datetime.now(ZoneInfo('Asia/Shanghai'))
     proof, transition_proof = prepare_owner_proofs(
         stage_config, main_env, candidate_receipt, as_of=cutoff)
-    protected = []
-    for path in sorted((Path.home() / "Library/LaunchAgents").glob("com.lexi.*.plist")):
-        label = plistlib.loads(path.read_bytes())["Label"]
-        if label not in LABELS.values(): protected.append({"label": label, "plist_path": str(path), "plist_sha256": sha(path.read_bytes())})
+    protected = snapshot_launch_agents()
     manual = Path(records["api"]["candidate"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json"
     api_env = candidate_receipt["live_preimages"]["api"]["environment"]
     panel_env = {key: value for key, value in api_env.items() if key.startswith(("V4_RESEARCH_PANEL_", "V4_WORKBENCH_"))}

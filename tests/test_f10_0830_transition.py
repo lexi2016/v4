@@ -152,7 +152,24 @@ def _embedded_file(root,slot,value):
     return path
 
 
-def _later_owner(root,slot='2200',*,artifact_raw=None,receipt_raw=None,**overrides):
+def _dispatch_receipt(root,slot,publication,*,release_id='v4-unified-release-20261102-r7-main',
+                      run_id='e'*32,**overrides):
+    receipt={'schema_version':'v3_5.dispatch.v1','slot':slot,'business_date':'20261102',
+        'scheduled_date':'20261102','target_date':'20261102','mode':'LIVE','run_id':run_id,
+        'release_id':release_id,'status':'SUCCEEDED','production_allowed':False,
+        'buy_gate_updated':False,'orders_sent':False,
+        'workload_results':[{'workload_id':'hourly_research','status':'SUCCEEDED',
+            '_authoritative_payload':{'hourly_publication':publication}}]}
+    receipt.update(overrides)
+    receipt['ledger_sha256']=m.digest(m.encoded({k:v for k,v in receipt.items() if k!='ledger_sha256'})[:-1])
+    path=root/'ledger/receipts/live/20261102'/slot/(run_id+'.dispatch-receipt.json')
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(json.dumps(receipt),encoding='utf-8')
+    return path
+
+
+def _later_owner(root,slot='2200',*,artifact_raw=None,receipt_raw=None,
+                 dispatch=True,dispatch_release='v4-unified-release-20261102-r7-main',**overrides):
     trade_date='20261102'
     artifact_raw=(json.dumps({'slot':slot,'fixture':'artifact'}).encode()
                   if artifact_raw is None else artifact_raw)
@@ -175,12 +192,56 @@ def _later_owner(root,slot='2200',*,artifact_raw=None,receipt_raw=None,**overrid
     publication=_publication_folder(root)/f'{slot}.json'
     publication.parent.mkdir(parents=True,exist_ok=True)
     publication.write_text(json.dumps(payload),encoding='utf-8')
+    if dispatch:_dispatch_receipt(root,slot,payload,release_id=dispatch_release)
     return publication,payload,artifact,receipt
 
 
 def _validate(root,embedded,paths):
     return validate_transition_publication_set(
-        embedded,paths,trade_date='20261102',data_root=root/'data')
+        embedded,paths,trade_date='20261102',data_root=root/'data',ledger_root=root/'ledger')
+
+
+def test_extra_0830_without_dispatch_receipt_is_rejected(tmp_path):
+    embedded={'0900':[{'slot':'0900'}],'1000':[{'slot':'1000'}]}
+    for slot,values in embedded.items():_embedded_file(tmp_path,slot,values[0])
+    _later_owner(tmp_path,'0830')
+    shutil.rmtree(tmp_path/'ledger/receipts/live/20261102/0830')
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_UNOWNED'):
+        _validate(tmp_path,embedded,paths)
+
+
+def test_publications_without_any_embedded_owner_are_rejected(tmp_path):
+    _later_owner(tmp_path)
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_UNOWNED'):
+        _validate(tmp_path,{},paths)
+
+
+def test_extra_matching_both_frozen_and_later_owner_is_rejected(tmp_path):
+    _embedded_file(tmp_path,'0830',{'slot':'0830'})
+    publication,payload,_,_=_later_owner(tmp_path)
+    _dispatch_receipt(tmp_path,'2200',payload,release_id=F10_BINDING['release_id'],run_id='f'*32)
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_FROZEN_OWNER_MATCH'):
+        _validate(tmp_path,{'0830':[{'slot':'0830'}]},paths)
+
+
+def test_extra_dispatch_receipt_corruption_or_mismatch_is_rejected(tmp_path):
+    _embedded_file(tmp_path,'0830',{'slot':'0830'})
+    _later_owner(tmp_path)
+    receipt_path=next((tmp_path/'ledger/receipts/live/20261102/2200').glob('*.dispatch-receipt.json'))
+    paths=sorted(_publication_folder(tmp_path).glob('*.json'))
+    value=json.loads(receipt_path.read_bytes());value['ledger_sha256']='0'*64
+    receipt_path.write_text(json.dumps(value))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_RECEIPT_INVALID'):
+        _validate(tmp_path,{'0830':[{'slot':'0830'}]},paths)
+    value['ledger_sha256']=m.digest(m.encoded({k:v for k,v in value.items() if k!='ledger_sha256'})[:-1])
+    value['workload_results'][0]['_authoritative_payload']['hourly_publication']={'slot':'other'}
+    value['ledger_sha256']=m.digest(m.encoded({k:v for k,v in value.items() if k!='ledger_sha256'})[:-1])
+    receipt_path.write_text(json.dumps(value))
+    with pytest.raises(ValueError,match='TRANSITION_PUBLICATION_EXTRA_UNOWNED'):
+        _validate(tmp_path,{'0830':[{'slot':'0830'}]},paths)
 
 
 def test_later_owner_publication_is_validated_outside_frozen_proof(tmp_path):
@@ -294,12 +355,22 @@ def _frozen_binding(**overrides):
     return {**F10_BINDING,**overrides}
 
 
-def test_transition_owner_proof_uses_frozen_stage_binding_with_newer_live_main(tmp_path):
-    if not OWNER.is_dir() or not (OWNER.parent/'release-manifest.json').is_file():
-        pytest.skip('Frozen f10 transition owner unavailable')
+def test_transition_owner_proof_uses_frozen_stage_binding_with_newer_live_main(tmp_path,monkeypatch):
+    live_publication=DATA/'research/hourly/publication/live/20261102/0830.json'
+    if not OWNER.is_dir() or not (OWNER.parent/'release-manifest.json').is_file() \
+            or not RECEIPT.is_file() or not live_publication.is_file():
+        pytest.skip('Frozen f10 transition owner evidence unavailable')
     stage_info=_transition_stage(tmp_path,dict(F10_BINDING))
-    ledger=tmp_path/'ledger';(ledger/'receipts/live').mkdir(parents=True)
+    ledger=tmp_path/'ledger';frozen=ledger/'receipts/live/20261102/0830'/RECEIPT.name
+    frozen.parent.mkdir(parents=True);shutil.copyfile(RECEIPT,frozen)
     _later_owner(tmp_path)
+    shutil.copyfile(live_publication,_publication_folder(tmp_path)/'0830.json')
+    monkeypatch.setattr(m,'read_stage_hourly_attestation',lambda **kwargs: ({
+        'completion_witness':{'release_id':F10_BINDING['release_id'],
+            'finished_at':'2026-11-02T08:30:13+08:00','receipt_sha256':RECEIPT_SHA,
+            'receipt_ref':str(frozen)},
+        'input_publication_sha256':'a'*64,'source_input_sha256':'b'*64,
+        'artifact_sha256':'c'*64,'available_at':'2026-11-02T08:30:13+08:00'},()))
     newer_main={'V4_APP_ROOT':'/v4-unified-release-20261102-r7-main/app',
         'V4_RELEASE_ID':'v4-unified-release-20261102-r7-main',
         'V4_RELEASE_MANIFEST_SHA256':'789ab62196867c26375df833762e2e90b1d3cea690ef22b71a60092589f6da77',
@@ -308,8 +379,8 @@ def test_transition_owner_proof_uses_frozen_stage_binding_with_newer_live_main(t
     proof=publication.transition_owner_proof(receipt,as_of=LATE)
     assert newer_main['V4_RELEASE_ID']!='f10-daily-20261101-c94609b4e5fff848-main'
     assert proof['owner']==F10_BINDING
-    assert proof['matching_receipts']==[]
-    assert proof['publications']==[]
+    assert [row['slot'] for row in proof['matching_receipts']]==['0830']
+    assert [row['slot'] for row in proof['publications']]==['0830']
     assert proof['ledger_root']==str(ledger)
 
 

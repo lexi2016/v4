@@ -33,8 +33,9 @@ def setup_switch(tmp_path, monkeypatch, fixed, plan=None):
     plan = synthetic_plan(tmp_path) if plan is None else plan
     plan_path = tmp_path/'plan.json'; plan_path.write_text(json.dumps(plan))
     (evidence/'preparation.json').write_text(json.dumps({'records':records,'script_pins':{},'plan_path':str(plan_path.resolve()),
-        'plan_sha256':fixed.sha(plan_path.read_bytes()),'protection':{},'data_protection':{}}))
+        'plan_sha256':fixed.sha(plan_path.read_bytes()),'protection':{},'data_protection':{},'protected_labels':[]}))
     monkeypatch.setattr(fixed,'EVIDENCE',evidence); monkeypatch.setattr(fixed,'TARGETS',targets)
+    monkeypatch.setattr(main,'snapshot_launch_agents',lambda:[])
     for name,value in {'pinned':lambda *a:None,'guards':nullcontext,'loaded':lambda label,*a,**k:records[label]['loaded'],'assert_idle':lambda *a:None,'external_protection':lambda:{},'data_protection':lambda:{},'tools':lambda:None,'verify_release':lambda *a:None,'verify_forward':lambda:{}}.items(): monkeypatch.setattr(fixed,name,value)
     monkeypatch.setattr(main,'assert_main_idle',lambda *a:None); monkeypatch.setattr(main,'zero_admission',lambda *a:{})
     return records, plan_path
