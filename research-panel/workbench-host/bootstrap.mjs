@@ -197,7 +197,7 @@ window.StockPanelHost={
       for(const [key,title]of [['previous_session','前一交易日冻结候选覆盖'],['same_day','同日事后对照']]){const c=value.comparison?.[key];if(c)add(box,'p',`${title} · ${c.source_date} · ${c.hits??'待核'}/${c.candidate_count??'待核'}候选，Top榜 ${c.hits??'待核'}/${c.top_count}。事前可得性待证；图审名单未完成。`);}
       for(const [axis,title] of [['industry','行业'],['structure','结构'],['theme','题材（多标签）']]){const group=add(box,'details');add(group,'summary',title);for(const row of value.statistics?.[axis]??[])add(group,'p',`${row.label} · Top200 ${row.top200_count} · 同范围可计算 ${row.members_with_valid_quote}`);}
       const all=add(box,'details');add(all,'summary',`查看 ${value.top200.length} 只描述性名单`);
-      for(const row of value.top200)add(all,'p',`${row.rank} · ${row.symbol} ${row.name??''} · ${Number(row.change_pct).toFixed(2)}% · ${row.official_major??'行业待核'} · ${row.structure??'结构待核'}`);
+      for(const row of value.top200){const button=add(all,'button',`${row.rank} · ${row.symbol} ${row.name??''} · ${Number(row.change_pct).toFixed(2)}% · ${row.official_major??'行业待核'} · ${row.structure??'结构待核'}`);button.type='button';button.style.display='block';button.onclick=()=>singleResearch.openSymbol(row.symbol,row.name)}
     }catch(error){if(mine===moduleSerial&&activeDay===bound)add(box,'p','本日 Top200 待确认：'+error.message);}
   },
   paintContext,

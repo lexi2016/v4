@@ -5,6 +5,8 @@ import {installKbOverlay} from './kb-chart-overlay.mjs';
 const $=id=>document.getElementById(id);
 const node=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const sha64=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s);
+export const ACTION_REBIND_FIELDS=['kb_action_no_position','kb_action_no_position_status',
+  'kb_action_with_position','kb_action_with_position_status','kb_action_reasons','kb_action_rule_sha256'];
 export const validSymbol=s=>typeof s==='string'&&/^(?:\d{6}\.(?:SH|SZ|BJ)|HK\.\d{5})$/.test(s);
 export function bindSingleSymbolSearch(input,open){
   input.placeholder='名称或代码；完整代码按 Enter 查看单股';
@@ -50,11 +52,39 @@ async function readBoundGzip(ref,signal){
   return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain));
 }
 
+// The producer has already checked every old/new value against the paired
+// correction. The browser verifies identity and consumes those saved values.
+export function decodeActionPatch(meta,payload){
+  if(![meta.asset_candidate_generation,meta.asset_candidate_input_sha256,meta.panel_generation,meta.candidate_input_sha256,
+      meta.origin_binding_sha256,meta.action_source_overlay_sha256,meta.action_rebind_equivalence_sha256].every(sha64)||
+    !Array.isArray(meta.dates)||payload?.schema!=='v4.workbench.generic_action_patch.v1'||payload.symbol!==meta.symbol||
+    payload.origin_candidate_generation!==meta.asset_candidate_generation||
+    payload.origin_candidate_input_sha256!==meta.asset_candidate_input_sha256||
+    payload.candidate_generation!==meta.panel_generation||payload.candidate_input_sha256!==meta.candidate_input_sha256||
+    payload.origin_binding_sha256!==meta.origin_binding_sha256||payload.source_overlay_sha256!==meta.action_source_overlay_sha256||
+    payload.equivalence_sha256!==meta.action_rebind_equivalence_sha256||payload.historical_PIT!==false||payload.RESEARCH_ONLY!==true||
+    ['production_allowed','buy_gate_updated','orders_sent'].some(k=>payload[k]!==false)||
+    JSON.stringify(payload.field_names)!==JSON.stringify(ACTION_REBIND_FIELDS)||!Array.isArray(payload.rows)||
+    payload.rows.length!==meta.action_patch_rows)throw Error('行动修订身份冲突');
+  const dates=new Set(meta.dates),patch=new Map;let previous=0;
+  for(const item of payload.rows){
+    if(!Array.isArray(item)||item.length!==3||!dates.has(item[0])||item[0]<=previous||
+      !Array.isArray(item[1])||item[1].length!==6||!Array.isArray(item[2])||item[2].length!==6||
+      item[1].every((value,i)=>Object.is(value,item[2][i])))throw Error('行动修订日期或内容冲突');
+    for(const values of [item[1],item[2]])actionPresentation(Object.fromEntries(ACTION_REBIND_FIELDS.map((key,i)=>[key,values[i]])),meta.action_contract_sha256);
+    previous=item[0];patch.set(item[0],{old:item[1],value:item[2]});
+  }
+  return patch;
+}
+
 // Unpack persisted values only; no KB or score formula runs in the browser.
-export function decodeGenericChunk(meta,chunk,ref){
+export function decodeGenericChunk(meta,chunk,ref,patch=null){
+  const assetGeneration=meta.asset_candidate_generation??meta.panel_generation;
+  const assetInput=meta.asset_candidate_input_sha256??meta.candidate_input_sha256;
   if(chunk?.schema!=='v4.workbench.generic_single_chunk.v1'||chunk.symbol!==meta.symbol||
-    chunk.candidate_generation!==meta.panel_generation||chunk.candidate_input_sha256!==meta.candidate_input_sha256||
+    chunk.candidate_generation!==assetGeneration||chunk.candidate_input_sha256!==assetInput||
     chunk.source_input_sha256!==meta.input_sha256||
+    meta.action_rebound===true&&(!(patch instanceof Map)||patch.size!==meta.action_patch_rows)||
     !Array.isArray(chunk.rows)||chunk.rows.length!==ref.row_count||!Array.isArray(meta.field_names)||meta.field_names.length!==107||
     !Array.isArray(meta.original_fields)||meta.original_fields.length!==13)throw Error('单股数据块身份冲突');
   const start=meta.dates.indexOf(ref.first_date);
@@ -64,6 +94,11 @@ export function decodeGenericChunk(meta,chunk,ref){
       !Array.isArray(item[2])||item[2].length!==13||!item[3]||typeof item[3]!=='object'||Array.isArray(item[3])||
       Object.keys(item[3]).length!==25||!Array.isArray(item[4])||item[4].length!==2)throw Error('单股数据块内容冲突');
     const all=Object.fromEntries(meta.field_names.map((key,i)=>[key,item[1][i]]));
+    const change=patch?.get(item[0]);
+    if(change){for(let i=0;i<ACTION_REBIND_FIELDS.length;i++){
+      const key=ACTION_REBIND_FIELDS[i];if(!Object.is(all[key],change.old[i]))throw Error('行动修订原值冲突');
+      all[key]=change.value[i];
+    }}
     const group=name=>Object.fromEntries(meta.field_groups[name].map(key=>[key,all[key]]));
     const row={trade_date:item[0],kb:group('kb'),hold_score:group('hold_score'),supplemental:group('supplemental'),
       action:group('action'),yidong:group('yidong'),confirmed_kb_fields:group('confirmed_kb_fields'),
@@ -239,7 +274,7 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
     const refs=Object.entries(a.meta.assets).filter(([key])=>/^chunk-\d+$/.test(key));
     const found=refs.find(([,ref])=>date>=ref.first_date&&date<=ref.last_date);
     if(!found)throw Error('交易日期未绑定数据块');
-    const rows=decodeGenericChunk(a.meta,await readBoundGzip(found[1],a.signal),found[1]);
+    const rows=decodeGenericChunk(a.meta,await readBoundGzip(found[1],a.signal),found[1],a.actionPatch);
     if(active!==a||sequence!==dateSerial)return;
     for(const prior of a.loadedDates){const overlay=a.overlays.get(prior);if(overlay)a.byDate.set(prior,overlay);else a.byDate.delete(prior)}
     a.loadedDates=rows.map(row=>row.trade_date);
@@ -268,15 +303,29 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
     if(meta.status!=='READY_FOR_RESEARCH_REVIEW'||!sha64(meta.view_generation)||!Array.isArray(meta.dates)||meta.dates.length!==meta.rows||
       !Array.isArray(meta.base_fields)||meta.base_fields.length!==57||!Array.isArray(meta.field_names)||meta.field_names.length!==107||
       !meta.assets?.overlay||!['READY','UNKNOWN'].includes(meta.chart_status))throw Error('研究资产身份冲突');
+    let actionPatch=null;
+    if(meta.action_rebound===true){
+      if(!sha64(meta.asset_candidate_generation)||!sha64(meta.asset_candidate_input_sha256)||
+        !sha64(meta.origin_binding_sha256)||!sha64(meta.action_rebind_equivalence_sha256)||
+        !Number.isSafeInteger(meta.action_patch_rows)||meta.action_patch_rows<0||
+        meta.action_patch_rows>meta.rows)throw Error('行动修订身份冲突');
+      if(meta.action_patch_rows){
+        if(!meta.assets.action_patch||!sha64(meta.action_source_overlay_sha256))throw Error('行动修订资产缺失');
+        actionPatch=decodeActionPatch(meta,await readBoundGzip(meta.assets.action_patch,signal));
+      }else{
+        if(meta.assets.action_patch||meta.action_source_overlay_sha256!==null)throw Error('行动修订覆盖冲突');
+        actionPatch=new Map;
+      }
+    }else if(meta.action_rebound!==undefined&&meta.action_rebound!==false)throw Error('行动修订身份冲突');
     const overlay=await readBoundGzip(meta.assets.overlay,signal);if(!isCurrent(mine,bound))return;
-    if(overlay.schema!=='v4.workbench.generic_single_overlay.v1'||overlay.symbol!==requested||overlay.candidate_generation!==meta.panel_generation||!Array.isArray(overlay.rows))throw Error('图上信号身份冲突');
+    if(overlay.schema!=='v4.workbench.generic_single_overlay.v1'||overlay.symbol!==requested||overlay.candidate_generation!==(meta.asset_candidate_generation??meta.panel_generation)||!Array.isArray(overlay.rows))throw Error('图上信号身份冲突');
     const dates=new Set(meta.dates),byDate=new Map;let previous=0;
     for(const item of overlay.rows){if(!Array.isArray(item)||item.length!==2||!dates.has(item[0])||item[0]<=previous||!Array.isArray(item[1])||
       !item[1].length||new Set(item[1]).size!==item[1].length||item[1].some(key=>!CHART_EVENTS.includes(key)))throw Error('图上信号日期冲突');
       previous=item[0];byDate.set(item[0],{trade_date:item[0],kb:Object.fromEntries(item[1].map(key=>[key,true]))});}
     const url=new URL(location.href);url.searchParams.set('symbol',requested);url.searchParams.delete('candidate_generation');
     url.searchParams.set('panel_generation',meta.panel_generation);url.searchParams.set('view_generation',meta.view_generation);history.replaceState(history.state,'',url.href);
-    active={generic:true,meta,dates,byDate,overlays:new Map(byDate),loadedDates:[],signal,
+    active={generic:true,meta,dates,byDate,overlays:new Map(byDate),loadedDates:[],signal,actionPatch,
       view:{fields:meta.base_fields,rows:meta.dates.map(trade_date=>({trade_date})),signal_component_facts:{}}};
     select.min=iso(meta.first_date);select.max=iso(meta.last_date);
     const assets={history:null,company:null};
@@ -301,7 +350,7 @@ export function installSingleResearch({loadDetails=()=>{}}={}){
     const dateMine=++dateSerial;await loadGenericDate(active,chosen,dateMine);if(!isCurrent(mine,bound)||dateMine!==dateSerial)return;paint(chosen);
     if(meta.chart_status!=='READY'){frame.hidden=true;status.textContent=`${meta.name} · 原式图待核 · ${meta.chart_reason??'UNKNOWN'}`;return}
     const projection=await loadProjection({...meta.assets.projection,projection_url:meta.assets.projection.url},
-      {symbol:meta.symbol,source_date:meta.source_date,generation:meta.panel_generation,input_sha256:meta.candidate_input_sha256},{origin:location.origin,signal});
+      {symbol:meta.symbol,source_date:meta.source_date,generation:meta.asset_candidate_generation??meta.panel_generation,input_sha256:meta.asset_candidate_input_sha256??meta.candidate_input_sha256},{origin:location.origin,signal});
     if(!isCurrent(mine,bound))return;
     if(projection.data.rows.some((row,i)=>row.trade_date!==meta.dates[i]))throw Error('原式图日期冲突');
     active.projection=projection;
@@ -442,6 +491,11 @@ export function f10SourceKind(value,day,meta){
     value.lineage==='REGISTERED_ISOLATED_PAIRED_CANDIDATE'&&value.source_generation===meta.panel_generation&&
     value.input_sha256===meta.candidate_input_sha256&&value.bound_source_generation===day.generation&&
     value.bound_source_input_sha256===day.input_sha256)return 'CANDIDATE';
+  if(meta.schema==='v4.workbench.generic_single_research.v1'&&meta.action_rebound===true&&value.status==='OBSERVED_CANDIDATE'&&
+    value.lineage==='REGISTERED_ISOLATED_PAIRED_CANDIDATE_REUSED'&&value.source_generation===meta.asset_candidate_generation&&
+    value.input_sha256===meta.asset_candidate_input_sha256&&value.logical_candidate_generation===meta.panel_generation&&
+    sha64(meta.action_rebind_equivalence_sha256)&&value.reuse_equivalence_sha256===meta.action_rebind_equivalence_sha256&&
+    value.bound_source_generation===day.generation&&value.bound_source_input_sha256===day.input_sha256)return 'CANDIDATE';
   if(meta.schema==='v4.workbench.generic_single_research.v1'&&meta.status==='UNKNOWN_SOURCE_ADMISSION'&&
     value.status==='OBSERVED_INDEPENDENT_COMPANY'&&value.lineage==='REGISTERED_INDEPENDENT_COMPANY_WITHOUT_PRICE_ADMISSION'&&
     value.source_generation===null&&value.input_sha256===null&&value.price_panel_admission==='NOT_ASSERTED'&&

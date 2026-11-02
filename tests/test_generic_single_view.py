@@ -56,6 +56,78 @@ def fixture_data(count=3):
     return pa.Table.from_pylist(left),pa.Table.from_pylist(right),pa.Table.from_pylist(diagnostics),identity
 
 
+def fixture_action_rebind(tmp_path,*,overlay_dates=(20240101,),affected=None,old_reasons='[]',overlay_symbol=None,selector_non_action=334):
+    left,right,diag,identity=fixture_data();origin_root=tmp_path/'origin';origin_root.mkdir()
+    output=tmp_path/'output';output.mkdir();symbol=identity['symbol']
+    old_pair={};new_pair={};paths={}
+    for side,collection in (('old',old_pair),('new',new_pair)):
+        paths[side]={}
+        for role in ('selector','backtest'):
+            path=origin_root/(side+'-'+role+'.parquet');path.write_bytes((side+'-'+role).encode())
+            paths[side][role]=str(path);collection[role]=ref(path)['sha256']
+    def receipt(generation,input_sha,pair,side):
+        return dict(status='CANDIDATE_READY',generation_id=generation,input_sha256=input_sha,
+                    candidates=paths[side],candidate_sha256=pair,target_date='20240103',historical_PIT=False,**view.FLAGS)
+    old_receipt=put_json(origin_root/'old-receipt.json',receipt(S('a'),S('b'),old_pair,'old'))
+    def attestation(generation,input_sha,pair,side,receipt_ref,**extra):
+        return dict(schema='v4.a_share.paired_candidate_attestation.v1',status='PASS',generation_id=generation,
+                    input_sha256=input_sha,candidate_receipt=receipt_ref,candidate_receipt_sha256=receipt_ref['sha256'],
+                    roles={role:dict(path=paths[side][role],sha256=pair[role],stat=view._stat(paths[side][role]),
+                                     rows=3,columns=340 if role=='selector' else 192) for role in pair},
+                    historical_PIT=False,**extra,**view.FLAGS)
+    old_att=put_json(origin_root/'old-att.json',attestation(S('a'),S('b'),old_pair,'old',old_receipt))
+    identity.update(paired_receipt=old_receipt,pair_sha256=old_pair)
+    old_binding=view.build_from_verified_tables(symbol=symbol,selector=left,backtest=right,diagnostics=diag,
+                                                 identity=identity,output_root=origin_root)
+    old_index={'schema':'v4.workbench.generic_single_index.v1','source_date':identity['source_date'],
+        'observation_date':identity['observation_date'],'source_generation':identity['generation'],
+        'input_sha256':identity['input_sha256'],'candidate_generation':S('a'),'candidate_input_sha256':S('b'),
+        'numeric_manifest':identity['numeric_manifest'],'paired_receipt':old_receipt,'verified_pair':old_att,
+        'pair_sha256':old_pair,'symbols':{symbol:{'status':'READY','binding':old_binding}},'historical_PIT':False,**view.FLAGS}
+    old_index_ref=put_json(origin_root/'old-index.json',old_index)
+    changed=len(overlay_dates) if affected is None else affected
+    overlay_ref=None
+    if overlay_dates:
+        old=[None,'UNKNOWN',None,'UNKNOWN',old_reasons,S('e')]
+        new=[None,'UNKNOWN',None,'CONFLICTING_OBSERVATIONS','["冲突"]',S('e')]
+        rows=[]
+        for date_value in overlay_dates:
+            row={'ts_code':overlay_symbol or symbol,'trade_date':date_value}
+            for field,before,after in zip(view.ACTION_REBIND_FIELDS,old,new):row['old__'+field]=before;row['new__'+field]=after
+            rows.append(row)
+        table=pa.Table.from_pylist(rows).replace_schema_metadata({b'scope':b'ACTION_DELTA_NOT_A_PANEL',
+            b'old_candidate_generation':S('a').encode(),b'old_action_authority_sha256':S('8').encode(),
+            b'new_action_authority_sha256':S('9').encode()})
+        path=origin_root/'action.parquet';pq.write_table(table,path);overlay_ref=ref(path)
+    changed_fields={field:(changed if field in {'kb_action_reasons','kb_action_with_position_status'} else 0)
+                    for field in view.ACTION_REBIND_FIELDS}
+    stock_receipt=put_json(origin_root/'stock-receipt.json',{'symbol':symbol,'rows':3,'affected_rows':changed,
+                                                            'changed_fields':changed_fields,'overlay':overlay_ref})
+    stock_index=put_json(origin_root/'stock-index.json',{symbol:{'rows':3,'first_date':20240101,'last_date':20240103,
+        'target_row_present':True,'affected_rows':changed,'changed_fields':changed_fields,
+        'stock_receipt':stock_receipt,'overlay':overlay_ref}})
+    summary=put_json(origin_root/'summary.json',{'schema':'v4.a_share.action_delta_summary.v1','status':'ACTION_DELTA_READY_NOT_PAIRED',
+        'old_candidate_generation':S('a'),'input_sha256':S('b'),'old_pair_sha256':old_pair,'source_candidate':old_receipt,
+        'source_attestation':old_att,'action_fields':list(view.ACTION_REBIND_FIELDS),'old_action_authority_sha256':S('8'),
+        'action_authority':{'sha256':S('9')},'action_rule_contract_sha256':S('e'),'stock_index':stock_index,'stock_count':1,
+        'target_rows':1,'target_date':20240103,'changed_rows':changed,'changed_stock_count':int(changed>0),
+        'changed_field_counts':changed_fields,'historical_PIT':False,**view.FLAGS})
+    proof=put_json(origin_root/'equivalence.json',{'status':'PASS','generation_id':S('7'),'input_sha256':S('6'),
+        'baseline_generation_id':S('a'),'baseline_panel_sha256':old_pair,'candidate_sha256':new_pair,
+        'roles':{role:{'status':'PASS','rows':3,'non_action_columns_exact':selector_non_action if role=='selector' else 186,
+                       'action_columns_match_bound_delta':6,'applied_rows':changed,'affected_stocks':int(changed>0)} for role in old_pair},
+        'historical_PIT':False,**view.FLAGS})
+    new=receipt(S('7'),S('6'),new_pair,'new')
+    new.update(action_correction={'source_generation':S('a'),'sidecar_source_generation':S('a'),'summary':summary,
+        'old_authority_sha256':S('8'),'new_authority_sha256':S('9')},action_correction_equivalence=proof)
+    new_receipt=put_json(origin_root/'new-receipt.json',new)
+    new_att=put_json(origin_root/'new-att.json',attestation(S('7'),S('6'),new_pair,'new',new_receipt,
+        source_attestation=old_att,action_correction_equivalence=proof))
+    context=view.prepare_action_rebind(origin_index_ref=old_index_ref,paired_receipt_ref=new_receipt,
+                                       verified_pair_ref=new_att,output_root=output)
+    return context,identity,old_binding
+
+
 def test_bulk_disk_gate_and_interrupted_immutable_write_can_resume(tmp_path,monkeypatch):
     monkeypatch.setattr(view.shutil,'disk_usage',lambda _:SimpleNamespace(free=39*1024**3))
     assert view._bulk_resources(tmp_path)['reason']=='DISK_BELOW_40_GIB'
@@ -94,6 +166,111 @@ def test_generic_refresh_keeps_display_exclusions_without_dropping_source_fields
     assert not excluded.intersection(binding['field_names'])
     assert not excluded.intersection(item['name'] for item in binding['base_fields'])
     assert {'B1','B2','B3'}<=set(binding['original_fields'])
+
+
+def test_action_rebind_preserves_origin_assets_and_serves_new_logical_version(tmp_path):
+    context,identity,old_ref=fixture_action_rebind(tmp_path);symbol=identity['symbol']
+    result=view.materialize_action_rebind_stock(context,symbol)
+    wrapper=json.loads(Path(result['binding']['path']).read_bytes())
+    old=json.loads(Path(old_ref['path']).read_bytes())
+    assert wrapper['origin_binding']==old_ref and old['candidate_generation']==S('a')
+    assert wrapper['candidate_generation']==S('7') and wrapper['action_patch_rows']==1
+    patch=json.loads(gzip.decompress(Path(wrapper['action_patch']['path']).read_bytes()))
+    assert patch['rows'][0][0]==20240101 and patch['rows'][0][1][4]=='[]'
+    assert patch['rows'][0][2][4]=='["冲突"]' and patch['source_overlay_sha256']==wrapper['source_overlay']['sha256']
+    index={**context['index'],'symbols':{symbol:{'status':'READY','binding':result['binding']}}}
+    index_ref=put_json(tmp_path/'logical-index.json',index)
+    host=ResearchWorkbenchHost.__new__(ResearchWorkbenchHost);host.binding={'generic_single_index':index_ref}
+    host._view=lambda *_:{'source_generation':identity['generation'],'source_identity':{'input_sha256':identity['input_sha256']},
+                          'manifest':identity['numeric_manifest']}
+    host._observation_date=lambda *_:identity['observation_date']
+    meta=host.single_stock_research(identity['source_date'],symbol,identity['generation'])
+    assert meta['panel_generation']==S('7') and meta['asset_candidate_generation']==S('a')
+    assert meta['view_generation']==result['binding']['sha256'] and meta['action_patch_rows']==1
+    content,_=host.single_stock_asset(identity['source_date'],symbol,'action_patch',wrapper['action_patch']['sha256'],
+                                     identity['generation'],S('7'),meta['view_generation'])
+    assert json.loads(gzip.decompress(content))==patch
+    with pytest.raises(ValueError,match='PANEL_REVISION_CONFLICT'):
+        host.single_stock_research(identity['source_date'],symbol,identity['generation'],S('a'))
+    with pytest.raises(ValueError,match='VIEW_REVISION_CONFLICT'):
+        host.single_stock_research(identity['source_date'],symbol,identity['generation'],S('7'),old_ref['sha256'])
+    for bad in ({**wrapper,'candidate_generation':S('9')},
+                {**wrapper,'origin_candidate_generation':S('9')},
+                {**wrapper,'symbol':'000001.SZ'},
+                {**wrapper,'source_overlay':{**wrapper['source_overlay'],'sha256':S('9')}}):
+        with pytest.raises(ValueError,match='ACTION_REBIND_STOCK_IDENTITY_CONFLICT|ACTION_REBIND_PATCH_REQUIRED'):
+            research_workbench_host.checked_action_rebind_stock(index,context['reuse'],symbol,bad)
+    with pytest.raises(ValueError,match='ACTION_REBIND_STOCK_SCOPE_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index({**index,'symbols':{}})
+
+
+@pytest.mark.parametrize(('kwargs','reason'),[
+    ({'old_reasons':'["非原值"]'},'ACTION_REBIND_OLD_VALUE_CONFLICT'),
+    ({'overlay_dates':(20240101,20240101)},'ACTION_REBIND_OVERLAY_DATE_CONFLICT'),
+    ({'overlay_dates':(20240101,),'affected':2},'ACTION_REBIND_OVERLAY_COUNT_CONFLICT'),
+    ({'overlay_dates':(20231231,)},'ACTION_REBIND_OVERLAY_DATE_CONFLICT'),
+    ({'overlay_symbol':'000001.SZ'},'ACTION_REBIND_OVERLAY_DATE_CONFLICT'),
+])
+def test_action_rebind_rejects_bad_source_before_values_and_date_coverage(tmp_path,kwargs,reason):
+    context,identity,_=fixture_action_rebind(tmp_path,**kwargs)
+    with pytest.raises(ValueError,match=reason):view.materialize_action_rebind_stock(context,identity['symbol'])
+
+
+def test_action_rebind_unchanged_stock_has_no_patch_and_refuses_wrong_pair(tmp_path):
+    context,identity,old_ref=fixture_action_rebind(tmp_path,overlay_dates=())
+    result=view.materialize_action_rebind_stock(context,identity['symbol'])
+    wrapper=json.loads(Path(result['binding']['path']).read_bytes())
+    assert wrapper['origin_binding']==old_ref and wrapper['action_patch_rows']==0 and wrapper['action_patch'] is None
+    bad={**context['index'],'candidate_generation':S('0')}
+    with pytest.raises(ValueError,match='ACTION_REBIND_EQUIVALENCE_CONFLICT'):
+        research_workbench_host.checked_action_rebind_index(bad)
+
+
+def test_action_rebind_rejects_incomplete_non_action_equivalence(tmp_path):
+    with pytest.raises(ValueError,match='ACTION_REBIND_ROLE_PROOF_CONFLICT:selector'):
+        fixture_action_rebind(tmp_path,selector_non_action=333)
+
+
+def test_action_rebind_batch_can_resume_without_rewriting_old_assets(tmp_path,monkeypatch):
+    context,identity,old_ref=fixture_action_rebind(tmp_path)
+    monkeypatch.setattr(view,'_bulk_resources',lambda *args,**kwargs:{'ok':True,'reason':None})
+    first=view.run_action_rebind(context,workers=1,max_new=1)
+    assert first['status']=='COMPLETE' and first['ready']==1 and not first['errors']
+    index=json.loads(Path(first['index']['path']).read_bytes())
+    wrapper=json.loads(Path(index['symbols'][identity['symbol']]['binding']['path']).read_bytes())
+    assert wrapper['origin_binding']==old_ref and wrapper['candidate_generation']==S('7')
+    assert Path(old_ref['path']).is_file() and ref(Path(old_ref['path']))==old_ref
+    resumed=view.run_action_rebind(context,workers=1)
+    assert resumed['status']=='COMPLETE' and resumed['submitted_this_run']==0 and resumed['index']==first['index']
+
+
+def test_action_rebind_stops_before_submitting_at_disk_or_budget_gate(tmp_path,monkeypatch):
+    context,_,_=fixture_action_rebind(tmp_path)
+    monkeypatch.setattr(view,'_bulk_resources',lambda *args,**kwargs:{'ok':True,'reason':None})
+    monkeypatch.setattr(view.shutil,'disk_usage',lambda _:SimpleNamespace(free=24*1024**3+32*1024**2))
+    result=view.run_action_rebind(context,workers=1)
+    assert result['status']=='PARTIAL' and result['stop_reason']=='ACTION_REBIND_DISK_RESERVE'
+    assert result['submitted_this_run']==0 and result['unfinished_count']==1
+
+
+def test_action_rebind_stops_before_submitting_at_two_gib_budget(tmp_path,monkeypatch):
+    context,_,_=fixture_action_rebind(tmp_path)
+    monkeypatch.setattr(view,'_bulk_resources',lambda *args,**kwargs:{'ok':True,'reason':None})
+    monkeypatch.setattr(view,'_action_output_bytes',lambda _:2*1024**3)
+    result=view.run_action_rebind(context,workers=1)
+    assert result['status']=='PARTIAL' and result['submitted_this_run']==0
+    assert result['stop_reason']=='ACTION_REBIND_2_GIB_BUDGET'
+
+
+def test_action_rebind_does_not_blindly_retry_a_recorded_failure(tmp_path):
+    context,identity,_=fixture_action_rebind(tmp_path);root=Path(context['output_root']);checkpoints=root/'symbol_receipts';checkpoints.mkdir()
+    failure={'schema':'v4.workbench.action_rebind_symbol_receipt.v1','symbol':identity['symbol'],
+             'run_identity_sha256':context['run_identity']['sha256'],
+             'result':{'status':'FAILED','reason':'SOURCE_MISMATCH'},**view.FLAGS}
+    view._write_immutable(checkpoints,'600000_SH_ACTION_REBIND_RESULT','.json',view._canonical(failure))
+    result=view.run_action_rebind(context,workers=1)
+    assert result['status']=='PARTIAL' and result['stop_reason']=='RECORDED_FAILURE_REQUIRES_DIAGNOSIS'
+    assert result['errors'][0]['reason']=='SOURCE_MISMATCH'
 
 
 def test_bulk_reuses_old_n_checkpoint_only_with_frozen_source_and_no_resume(tmp_path):
@@ -530,6 +707,24 @@ def test_candidate_f10_keeps_lineage_and_rejects_unregistered_paths_and_names(tm
     with pytest.raises(ValueError,match='F10_CANDIDATE_OUTSIDE_REGISTERED_ROOT'):host.f10('2026-10-30',symbol,S('a'))
     host,p,symbol,_=candidate_f10_fixture(tmp_path/'name',wrong_name=True)
     with pytest.raises(ValueError,match='F10_CANDIDATE_STOCK_IDENTITY_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
+
+
+def test_rebound_f10_keeps_its_proven_old_candidate_identity(tmp_path,monkeypatch):
+    host,p,symbol,_=candidate_f10_fixture(tmp_path/'rebound')
+    origin=research_workbench_host.checked_bounded(host.binding['generic_single_index'],8*1024*1024)
+    new={'source_date':'2026-10-30','candidate_generation':S('7'),'candidate_input_sha256':S('6'),
+         'action_rebind':{'equivalence':{'sha256':S('8')}}}
+    host.binding['generic_single_index']=put_json(tmp_path/'logical-f10-index.json',new)
+    monkeypatch.setattr(research_workbench_host,'checked_action_rebind_index',lambda _:{'origin':origin})
+    meta={'status':'READY_FOR_RESEARCH_REVIEW','panel_generation':S('7'),'candidate_input_sha256':S('6'),
+          'asset_candidate_generation':S('c'),'asset_candidate_input_sha256':S('d')}
+    host._generic_single=lambda *_:meta
+    answer=host.f10('2026-10-30',symbol,S('a'))
+    assert answer['lineage']=='REGISTERED_ISOLATED_PAIRED_CANDIDATE_REUSED'
+    assert answer['source_generation']==S('c') and answer['logical_candidate_generation']==S('7')
+    assert answer['reuse_equivalence_sha256']==S('8') and answer['f10']['name']=='南方乳业'
+    host._generic_single=lambda *_:{**meta,'asset_candidate_generation':S('9')}
+    with pytest.raises(ValueError,match='F10_CANDIDATE_VIEW_CONFLICT'):host.f10('2026-10-30',symbol,S('a'))
 
 
 def test_independent_company_does_not_admit_quarantined_price(tmp_path):

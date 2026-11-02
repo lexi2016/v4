@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decodeGenericChunk,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind} from '../research-panel/workbench-host/kb-single-stock.mjs';
+import {decodeGenericChunk,decodeActionPatch,ACTION_REBIND_FIELDS,singleSelectionHref,verifiedCompanyPart,bindSingleSymbolSearch,f10SourceKind} from '../research-panel/workbench-host/kb-single-stock.mjs';
 import {signalSummary} from '../research-panel/workbench-host/kb-signal-view.mjs';
 
 const sha=char=>char.repeat(64);
@@ -18,6 +18,13 @@ test('F10 canonical and registered candidate retain distinct identities',()=>{
   for(const altered of [{...candidate,bound_source_input_sha256:sha('9')},{...candidate,input_sha256:sha('9')},
     {...candidate,symbol:'920201.BJ'},{...candidate,lineage:'UNREGISTERED'}, {...candidate,historical_PIT:true}])
     assert.equal(f10SourceKind(altered,day,meta),null);
+  const rebound={...meta,action_rebound:true,panel_generation:sha('7'),asset_candidate_generation:meta.panel_generation,
+    asset_candidate_input_sha256:meta.candidate_input_sha256,action_rebind_equivalence_sha256:sha('8')};
+  const reused={...candidate,lineage:'REGISTERED_ISOLATED_PAIRED_CANDIDATE_REUSED',
+    logical_candidate_generation:rebound.panel_generation,reuse_equivalence_sha256:rebound.action_rebind_equivalence_sha256};
+  assert.equal(f10SourceKind(reused,day,rebound),'CANDIDATE');
+  assert.equal(f10SourceKind({...reused,reuse_equivalence_sha256:sha('9')},day,rebound),null);
+  assert.equal(f10SourceKind({...reused,source_generation:rebound.panel_generation},day,rebound),null);
   const quarantine={...meta,symbol:'688496.SH',status:'UNKNOWN_SOURCE_ADMISSION'};
   const independent={...common,symbol:quarantine.symbol,status:'OBSERVED_INDEPENDENT_COMPANY',source_generation:null,input_sha256:null,
     bound_source_generation:day.generation,bound_source_input_sha256:day.input_sha256,price_panel_admission:'NOT_ASSERTED',
@@ -62,6 +69,47 @@ test('generic chunk rejects wrong source, day and N rule identity',()=>{
   assert.throws(()=>decodeGenericChunk(meta,{...chunk,rows:[chunk.rows[1],chunk.rows[0]]},ref),/内容冲突/);
   const bad=structuredClone(chunk);bad.rows[1][3].kb_n_structure.rule_sha256=sha('9');
   assert.throws(()=>decodeGenericChunk(meta,bad,ref),/诊断身份冲突/);
+});
+
+function reboundSample(){
+  const s=sample(),meta=s.meta;
+  meta.asset_candidate_generation=meta.panel_generation;meta.asset_candidate_input_sha256=meta.candidate_input_sha256;
+  meta.panel_generation=sha('7');meta.candidate_input_sha256=sha('6');meta.action_rebound=true;
+  meta.origin_binding_sha256=sha('3');meta.action_source_overlay_sha256=sha('4');
+  meta.action_rebind_equivalence_sha256=sha('5');meta.action_patch_rows=1;
+  const old=[null,'UNKNOWN',null,'UNKNOWN','[]',sha('e')],next=[null,'UNKNOWN',null,'CONFLICTING_OBSERVATIONS','["冲突"]',sha('e')];
+  const payload={schema:'v4.workbench.generic_action_patch.v1',symbol:meta.symbol,
+    origin_candidate_generation:meta.asset_candidate_generation,origin_candidate_input_sha256:meta.asset_candidate_input_sha256,
+    candidate_generation:meta.panel_generation,candidate_input_sha256:meta.candidate_input_sha256,
+    origin_binding_sha256:meta.origin_binding_sha256,source_overlay_sha256:meta.action_source_overlay_sha256,
+    equivalence_sha256:meta.action_rebind_equivalence_sha256,field_names:ACTION_REBIND_FIELDS,
+    rows:[[20261029,old,next]],historical_PIT:false,RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false};
+  return {...s,payload};
+}
+
+test('rebound action reads persisted correction while retaining old source asset identity',()=>{
+  const {meta,chunk,ref,payload}=reboundSample(),patch=decodeActionPatch(meta,payload);
+  const rows=decodeGenericChunk(meta,chunk,ref,patch);
+  assert.equal(rows[0].action.kb_action_with_position_status,'CONFLICTING_OBSERVATIONS');
+  assert.equal(rows[0].action.kb_action_reasons,'["冲突"]');
+  assert.equal(rows[1].action.kb_action_reasons,'[]');
+  assert.equal(chunk.candidate_generation,meta.asset_candidate_generation);
+  assert.notEqual(chunk.candidate_generation,meta.panel_generation);
+  const unchanged={...meta,action_patch_rows:0};assert.equal(decodeGenericChunk(unchanged,chunk,ref,new Map())[0].action.kb_action_reasons,'[]');
+  assert.throws(()=>decodeGenericChunk(meta,chunk,ref),/身份冲突/);
+});
+
+test('rebound action rejects missing, duplicated, wrong-date, source or before values',()=>{
+  const {meta,chunk,ref,payload}=reboundSample();
+  for(const altered of [{...payload,rows:[]},{...payload,symbol:'000001.SZ'},
+    {...payload,candidate_generation:sha('8')},{...payload,origin_candidate_generation:sha('9')},
+    {...payload,source_overlay_sha256:sha('9')},{...payload,equivalence_sha256:sha('9')},
+    {...payload,rows:[[20261028,payload.rows[0][1],payload.rows[0][2]]]},
+    {...payload,rows:[[20261029,payload.rows[0][1],payload.rows[0][1]]]}])
+    assert.throws(()=>decodeActionPatch(meta,altered),/行动修订/);
+  assert.throws(()=>decodeActionPatch({...meta,action_patch_rows:2},{...payload,rows:[payload.rows[0],payload.rows[0]]}),/行动修订/);
+  const bad=structuredClone(payload);bad.rows[0][1][4]='["非原值"]';
+  assert.throws(()=>decodeGenericChunk(meta,chunk,ref,decodeActionPatch(meta,bad)),/原值冲突/);
 });
 
 test('N source identity can remain a verified earlier generation',()=>{

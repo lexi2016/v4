@@ -22,6 +22,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import zlib
@@ -35,6 +36,10 @@ import pyarrow.parquet as pq
 from ops import research_panel_qfq as q
 from ops import render_original_formula_projection as renderer
 from ops.kb_hold_score import SUPPLEMENTAL_REASONS
+from infrastructure import research_workbench_host as action_host
+from infrastructure.research_workbench_host import (
+    ACTION_REBIND_FIELDS, checked_action_rebind_index, checked_action_rebind_stock,
+)
 
 
 FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
@@ -1075,10 +1080,11 @@ def _bulk_overlay(code,left,right,roles,parts,overlay):
     return output
 
 
-def _bulk_resources(root,worker_pids=()):
+def _bulk_resources(root,worker_pids=(),*,min_disk_gib=40):
     """Conservative macOS resource gate; no submissions when telemetry is missing."""
+    _require(min_disk_gib in (24,40),'GENERIC_RESOURCE_GATE_INVALID')
     free=shutil.disk_usage(root).free
-    if free<40*1024**3:return {'ok':False,'reason':'DISK_BELOW_40_GIB','disk_free':free}
+    if free<min_disk_gib*1024**3:return {'ok':False,'reason':f'DISK_BELOW_{min_disk_gib}_GIB','disk_free':free}
     try:
         vm=subprocess.run(['vm_stat'],capture_output=True,text=True,check=True,timeout=5).stdout
         page=int(re.search(r'page size of (\d+) bytes',vm).group(1))
@@ -1370,4 +1376,243 @@ def run_owner_bulk(context, cached_buckets, *, workers=4, max_new=None):
         'verified_pair':context['verified_pair_ref'],'previous_index':context['prior_ref'],
         'scope_gap_receipt':context['no_frame_ref'],'symbols':results,'historical_PIT':False,**FLAGS}
     index_ref=_write_immutable(root,'GENERIC_SINGLE_INDEX','.json',_canonical(index))
+    return {'status':'COMPLETE','index':index_ref,'progress':progress,**summary}
+
+
+def prepare_action_rebind(*, origin_index_ref, paired_receipt_ref, verified_pair_ref, output_root):
+    """Validate the corrected pair once before reusing any frozen view assets."""
+    origin=json.loads(_checked(origin_index_ref,maximum=8*1024*1024).read_bytes())
+    receipt=json.loads(_checked(paired_receipt_ref,maximum=16*1024*1024).read_bytes())
+    correction=receipt.get('action_correction') or {}
+    root=Path(output_root).resolve(strict=True)
+    _require(root.is_dir() and root!=Path(origin_index_ref['path']).parent
+             and not root.is_relative_to(Path(origin_index_ref['path']).parent), 'ACTION_REBIND_OUTPUT_NOT_ISOLATED')
+    link={'schema':'v4.workbench.action_rebind_index.v1','origin_index':origin_index_ref,
+          'summary':correction.get('summary'),'equivalence':receipt.get('action_correction_equivalence')}
+    index={**origin,'candidate_generation':receipt.get('generation_id'),'candidate_input_sha256':receipt.get('input_sha256'),
+           'pair_sha256':receipt.get('candidate_sha256'),'paired_receipt':paired_receipt_ref,
+           'verified_pair':verified_pair_ref,'action_rebind':link}
+    reuse=checked_action_rebind_index(index,require_producer=False)
+    scope=reuse['stock_index'];summary=reuse['summary'];symbols=origin.get('symbols')
+    _require(isinstance(symbols,dict) and all(isinstance(v,dict) for v in symbols.values())
+             and all(code in scope for code,item in symbols.items() if item.get('status')=='READY')
+             and sum(item.get('status')=='READY' for item in symbols.values())==summary.get('target_rows')
+             and all(type(item.get('affected_rows')) is int and item['affected_rows']>=0 for item in scope.values())
+             and sum(item['affected_rows'] for item in scope.values())==summary.get('changed_rows')
+             and sum(item['affected_rows']>0 for item in scope.values())==summary.get('changed_stock_count'),
+             'ACTION_REBIND_SCOPE_COUNT_CONFLICT')
+    _require(shutil.disk_usage(root).free>=24*1024**3+64*1024**2,'ACTION_REBIND_DISK_RESERVE')
+    producer=_write_immutable(root,'ACTION_REBIND_PRODUCER','.py',Path(__file__).resolve(strict=True).read_bytes(),full_hash=True)
+    validator_path=Path(action_host.__file__).resolve(strict=True)
+    consumer_path=Path(__file__).resolve(strict=True).parents[1]/'research-panel/workbench-host/kb-single-stock.mjs'
+    validator=_write_immutable(root,'ACTION_REBIND_VALIDATOR','.py',validator_path.read_bytes(),full_hash=True)
+    consumer=_write_immutable(root,'ACTION_REBIND_CONSUMER','.mjs',consumer_path.read_bytes(),full_hash=True)
+    index['action_rebind']={**link,'producer':producer,'validator':validator,'consumer':consumer}
+    identity={'schema':'v4.workbench.action_rebind_run.v1','origin_index':origin_index_ref,
+              'paired_receipt':paired_receipt_ref,'verified_pair':verified_pair_ref,
+              'summary':link['summary'],'equivalence':link['equivalence'],'producer':producer,
+              'validator':validator,'consumer':consumer,**FLAGS}
+    existing=list(root.glob('ACTION_REBIND_RUN_IDENTITY_*.json'))
+    _require(not existing or len(existing)==1 and json.loads(existing[0].read_bytes())==identity,
+             'ACTION_REBIND_RESUME_IDENTITY_CONFLICT')
+    identity_ref=_write_immutable(root,'ACTION_REBIND_RUN_IDENTITY','.json',_canonical(identity),full_hash=True)
+    return {'index':index,'reuse':reuse,'origin':origin,'output_root':str(root),'run_identity':identity_ref,
+            'producer':producer,'validator':validator,'consumer':consumer}
+
+
+def _action_values(values,contract):
+    _require(len(values)==len(ACTION_REBIND_FIELDS) and values[0] in (None,'买入','卖出','持有','放飞','等回调')
+             and values[2] in (None,'买入','卖出','持有','放飞','等回调')
+             and isinstance(values[1],str) and bool(values[1]) and isinstance(values[3],str) and bool(values[3])
+             and isinstance(values[4],str) and values[5]==contract, 'ACTION_REBIND_VALUE_INVALID')
+    try:reasons=json.loads(values[4])
+    except (TypeError,ValueError):raise ValueError('ACTION_REBIND_REASON_INVALID') from None
+    _require(isinstance(reasons,list) and all(isinstance(value,str) for value in reasons),'ACTION_REBIND_REASON_INVALID')
+
+
+def materialize_action_rebind_stock(context,symbol):
+    """Create a thin binding plus already-calculated changed actions for one stock."""
+    index=context['index'];reuse=context['reuse'];origin=context['origin'];root=Path(context['output_root'])
+    selected=origin.get('symbols',{}).get(symbol);delta=reuse['stock_index'].get(symbol)
+    _require(isinstance(selected,dict) and selected.get('status')=='READY' and isinstance(delta,dict),
+             'ACTION_REBIND_SYMBOL_NOT_READY')
+    old_ref=selected['binding'];stock=json.loads(_checked(old_ref,maximum=4*1024*1024).read_bytes())
+    count=delta.get('affected_rows');_require(type(count) is int and 0<=count<=stock.get('rows',-1),
+                                               'ACTION_REBIND_CHANGED_COUNT_INVALID')
+    patch_ref=None;overlay_ref=delta.get('overlay')
+    if count:
+        source=_checked(overlay_ref,maximum=16*1024*1024)
+        metadata=pq.ParquetFile(source).schema_arrow.metadata or {}
+        _require(metadata.get(b'scope')==b'ACTION_DELTA_NOT_A_PANEL'
+                 and metadata.get(b'old_candidate_generation')==origin['candidate_generation'].encode()
+                 and metadata.get(b'old_action_authority_sha256')==reuse['summary']['old_action_authority_sha256'].encode()
+                 and metadata.get(b'new_action_authority_sha256')==reuse['summary']['action_authority']['sha256'].encode(),
+                 'ACTION_REBIND_OVERLAY_IDENTITY_CONFLICT')
+        names=['ts_code','trade_date',*[prefix+field for field in ACTION_REBIND_FIELDS for prefix in ('old__','new__')]]
+        table=pq.read_table(source,columns=names);rows=table.to_pylist()
+        _require(len(rows)==count,'ACTION_REBIND_OVERLAY_COUNT_CONFLICT')
+        by_date={};previous=0;date_set=set(stock['dates']);contract=stock['action_contract_sha256']
+        changed_fields={field:0 for field in ACTION_REBIND_FIELDS}
+        for row in rows:
+            try:date=int(row['trade_date'])
+            except (ValueError,TypeError,OverflowError):raise ValueError('ACTION_REBIND_DATE_INVALID') from None
+            old=[row['old__'+field] for field in ACTION_REBIND_FIELDS]
+            new=[row['new__'+field] for field in ACTION_REBIND_FIELDS]
+            _require(row['ts_code']==symbol and str(date)==str(row['trade_date']) and date>previous and date in date_set
+                     and any(not _same(a,b) for a,b in zip(old,new)), 'ACTION_REBIND_OVERLAY_DATE_CONFLICT')
+            _action_values(old,contract);_action_values(new,contract)
+            for field,before,after in zip(ACTION_REBIND_FIELDS,old,new):
+                if not _same(before,after):changed_fields[field]+=1
+            by_date[date]=(old,new);previous=date
+        _require(changed_fields==delta.get('changed_fields'),'ACTION_REBIND_FIELD_COVERAGE_CONFLICT')
+        positions=[stock['field_names'].index(field) for field in ACTION_REBIND_FIELDS];verified=set()
+        for ref in stock['chunks']:
+            relevant={date for date in by_date if ref['first_date']<=date<=ref['last_date']}
+            if not relevant:continue
+            chunk=json.loads(_bounded_gzip(ref,maximum=MAX_CHUNK_DECODED,compressed_maximum=MAX_CHUNK_COMPRESSED))
+            _require(chunk.get('schema')=='v4.workbench.generic_single_chunk.v1' and chunk.get('symbol')==symbol
+                     and chunk.get('candidate_generation')==origin['candidate_generation']
+                     and chunk.get('candidate_input_sha256')==origin['candidate_input_sha256']
+                     and chunk.get('source_input_sha256')==origin['input_sha256']
+                     and len(chunk.get('rows',[]))==ref['row_count'],'ACTION_REBIND_ORIGIN_CHUNK_CONFLICT')
+            for item in chunk['rows']:
+                date=item[0]
+                if date in relevant:
+                    _require(isinstance(item,list) and len(item)==5 and isinstance(item[1],list)
+                             and len(item[1])==len(stock['field_names'])
+                             and all(_same(item[1][pos],value) for pos,value in zip(positions,by_date[date][0])),
+                             'ACTION_REBIND_OLD_VALUE_CONFLICT')
+                    verified.add(date)
+        _require(verified==set(by_date),'ACTION_REBIND_OLD_DATE_COVERAGE_CONFLICT')
+        payload={'schema':'v4.workbench.generic_action_patch.v1','symbol':symbol,
+                 'origin_candidate_generation':origin['candidate_generation'],
+                 'origin_candidate_input_sha256':origin['candidate_input_sha256'],
+                 'candidate_generation':index['candidate_generation'],'candidate_input_sha256':index['candidate_input_sha256'],
+                 'origin_binding_sha256':old_ref['sha256'],'source_overlay_sha256':overlay_ref['sha256'],
+                 'equivalence_sha256':index['action_rebind']['equivalence']['sha256'],
+                 'field_names':list(ACTION_REBIND_FIELDS),'rows':[[date,*by_date[date]] for date in sorted(by_date)],
+                 'historical_PIT':False,**FLAGS}
+        patch_ref=_packed(root,symbol.replace('.','_')+'_ACTION_PATCH',payload)
+    else:_require(overlay_ref is None,'ACTION_REBIND_OVERLAY_UNEXPECTED')
+    wrapper={'schema':'v4.workbench.generic_action_rebind.v1','symbol':symbol,'origin_binding':old_ref,
+             'origin_projection_source_index':selected.get('projection_source_index'),
+             'origin_candidate_generation':origin['candidate_generation'],
+             'origin_candidate_input_sha256':origin['candidate_input_sha256'],
+             'candidate_generation':index['candidate_generation'],'candidate_input_sha256':index['candidate_input_sha256'],
+             'baseline_panel_sha256':origin['pair_sha256'],'candidate_sha256':index['pair_sha256'],
+             'equivalence':index['action_rebind']['equivalence'],'summary':index['action_rebind']['summary'],
+             'source_stock_receipt':delta['stock_receipt'],'source_overlay':overlay_ref,'action_patch':patch_ref,
+             'action_patch_rows':count,'historical_PIT':False,**FLAGS}
+    checked_action_rebind_stock(index,reuse,symbol,wrapper)
+    binding=_write_immutable(root,symbol.replace('.','_')+'_ACTION_BINDING','.json',_canonical(wrapper))
+    return {'status':'READY','binding':binding,'origin_projection_source_index':selected.get('projection_source_index'),
+            'asset_bytes':binding['bytes']+(patch_ref['bytes'] if patch_ref else 0)}
+
+
+_ACTION_REBIND_WORKER=None
+def _action_rebind_worker_init(context):
+    global _ACTION_REBIND_WORKER
+    _ACTION_REBIND_WORKER=context
+
+
+def _action_rebind_worker(symbol):
+    return materialize_action_rebind_stock(_ACTION_REBIND_WORKER,symbol)
+
+
+def _action_output_bytes(root):
+    total=0
+    for directory,_,files in os.walk(root,followlinks=False):
+        for name in files:
+            path=Path(directory)/name
+            _require(not path.is_symlink(),'ACTION_REBIND_OUTPUT_SYMLINK')
+            total+=path.stat().st_size
+    return total
+
+
+def run_action_rebind(context,*,workers=4,max_new=None):
+    """Resumable metadata/changed-action views; never recalculate stored signals."""
+    _require(type(workers) is int and 1<=workers<=4,'ACTION_REBIND_WORKER_LIMIT')
+    _require(max_new is None or type(max_new) is int and max_new>0,'ACTION_REBIND_BATCH_LIMIT_INVALID')
+    root=Path(context['output_root']);checkpoints=root/'symbol_receipts';checkpoints.mkdir(exist_ok=True)
+    identity_sha=context['run_identity']['sha256'];results={};errors=[];stopped=None;submitted=0
+    for path in checkpoints.glob('*_ACTION_REBIND_RESULT_*.json'):
+        value=json.loads(path.read_bytes());symbol=value.get('symbol');result=value.get('result') or {}
+        _require(symbol in context['origin']['symbols'] and value.get('run_identity_sha256')==identity_sha
+                 and symbol not in results and result.get('status') in {'READY','FAILED'},
+                 'ACTION_REBIND_RESUME_RECEIPT_CONFLICT')
+        if result['status']=='READY':
+            wrapper=json.loads(_checked(result['binding'],maximum=4*1024*1024).read_bytes())
+            checked_action_rebind_stock(context['index'],context['reuse'],symbol,wrapper)
+            if wrapper.get('action_patch'):_checked(wrapper['action_patch'],maximum=MAX_CHUNK_COMPRESSED)
+        results[symbol]=result
+    recorded_failures=[{'symbol':symbol,'reason':result.get('reason')} for symbol,result in results.items()
+                       if result.get('status')=='FAILED']
+    if recorded_failures:
+        return {'status':'PARTIAL','stop_reason':'RECORDED_FAILURE_REQUIRES_DIAGNOSIS',
+                'errors':recorded_failures,'run_identity':context['run_identity'],**FLAGS}
+    pending=[symbol for symbol,item in sorted(context['origin']['symbols'].items())
+             if item.get('status')=='READY' and symbol not in results]
+    started=time.monotonic();last_health=0.0;last_size=0;pending_bytes=0;last_resources=None;futures={}
+    def write_result(symbol,result):
+        nonlocal stopped,pending_bytes
+        value={'schema':'v4.workbench.action_rebind_symbol_receipt.v1','symbol':symbol,
+               'run_identity_sha256':identity_sha,'result':result,**FLAGS}
+        _write_immutable(checkpoints,symbol.replace('.','_')+'_ACTION_REBIND_RESULT','.json',_canonical(value))
+        results[symbol]=result;pending_bytes+=int(result.get('asset_bytes') or 0)+4096
+        if result.get('status')=='FAILED':errors.append({'symbol':symbol,'reason':result.get('reason')});stopped='SYMBOL_FAILURE'
+    def drain(block=False):
+        if not futures:return
+        done,_=wait(futures,return_when=FIRST_COMPLETED,timeout=None if block else 0)
+        for future in done:
+            symbol=futures.pop(future)
+            try:result=future.result()
+            except BaseException as exc:result={'status':'FAILED','reason':type(exc).__name__+': '+str(exc)}
+            write_result(symbol,result)
+    multiprocessing.set_executable(sys.executable)
+    pool=ProcessPoolExecutor(max_workers=workers,mp_context=multiprocessing.get_context('spawn'),
+                             initializer=_action_rebind_worker_init,initargs=(context,)) if pending else None
+    try:
+        for symbol in pending:
+            while len(futures)>=workers and not stopped:drain(True)
+            if stopped:break
+            if max_new is not None and submitted>=max_new:stopped='BOUNDED_BATCH_LIMIT';break
+            if time.monotonic()-last_health>=5:
+                last_resources=_bulk_resources(root,[p.pid for p in multiprocessing.active_children() if p.pid],min_disk_gib=24)
+                last_size=_action_output_bytes(root);pending_bytes=0;last_health=time.monotonic()
+                if not last_resources['ok']:stopped=last_resources['reason'];break
+                if last_size>=2*1024**3-64*1024**2:stopped='ACTION_REBIND_2_GIB_BUDGET';break
+            if last_size+pending_bytes+len(futures)*6*1024**2>=2*1024**3-64*1024**2:
+                stopped='ACTION_REBIND_2_GIB_BUDGET';break
+            if shutil.disk_usage(root).free<24*1024**3+64*1024**2:stopped='ACTION_REBIND_DISK_RESERVE';break
+            futures[pool.submit(_action_rebind_worker,symbol)]=symbol;submitted+=1
+        while futures:drain(True)
+    except (ValueError,OSError,KeyError,TypeError,pa.ArrowException) as exc:
+        stopped='ACTION_REBIND_INPUT_FAILURE';errors.append({'symbol':None,'reason':type(exc).__name__+': '+str(exc)})
+        while futures:drain(True)
+    finally:
+        if pool:pool.shutdown(wait=True)
+    try:
+        _require(q.sha(Path(__file__).resolve(strict=True))==context['producer']['sha256'],'ACTION_REBIND_PRODUCER_MOVED')
+        _require(q.sha(Path(action_host.__file__).resolve(strict=True))==context['validator']['sha256']
+                 and q.sha(Path(__file__).resolve(strict=True).parents[1]/'research-panel/workbench-host/kb-single-stock.mjs')
+                     ==context['consumer']['sha256'], 'ACTION_REBIND_CONSUMER_MOVED')
+        checked_action_rebind_index(context['index'])
+        last_size=_action_output_bytes(root)
+        _require(last_size<=2*1024**3,'ACTION_REBIND_2_GIB_BUDGET')
+    except (ValueError,OSError,KeyError,TypeError) as exc:
+        stopped='ACTION_REBIND_IDENTITY_OR_BUDGET_FAILURE';errors.append({'symbol':None,'reason':str(exc)})
+    remaining=sorted(symbol for symbol,item in context['origin']['symbols'].items()
+                     if item.get('status')=='READY' and (symbol not in results or results[symbol].get('status')!='READY'))
+    summary={'schema':'v4.workbench.action_rebind_progress.v1','run_identity':context['run_identity'],
+        'ready':sum(x.get('status')=='READY' for x in results.values()),'unfinished_count':len(remaining),
+        'unfinished':remaining,'submitted_this_run':submitted,'asset_bytes_total':last_size,
+        'elapsed_seconds':round(time.monotonic()-started,3),'stop_reason':stopped,'errors':errors,'resources':last_resources,**FLAGS}
+    progress=_write_immutable(root,'ACTION_REBIND_PROGRESS','.json',_canonical(summary))
+    if remaining or stopped or errors:return {'status':'PARTIAL','progress':progress,**summary}
+    index=dict(context['index']);index['previous_index']=index['action_rebind']['origin_index']
+    index['symbols']={symbol:(results[symbol] if item.get('status')=='READY' else item)
+                      for symbol,item in context['origin']['symbols'].items()}
+    index['action_rebind']={**index['action_rebind'],'producer':context['producer']}
+    index_ref=_write_immutable(root,'GENERIC_SINGLE_INDEX','.json',_canonical(index))
+    _require(_action_output_bytes(root)<=2*1024**3,'ACTION_REBIND_2_GIB_BUDGET')
     return {'status':'COMPLETE','index':index_ref,'progress':progress,**summary}
