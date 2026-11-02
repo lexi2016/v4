@@ -132,6 +132,17 @@ def prepare(*, source, runtime, report_ref, output, api_snapshot=None, predecess
         verified_baseline(Path(roles[role]["app_root"]), roles[role]["manifest_sha256"], inv)
     from ops.build_runtime_governance_registry import publication_checks
     dependencies = publication_checks(stage_app=Path(roles["stage"]["app_root"]), api_manual=Path(roles["api"]["app_root"]) / "config/api-v4_manual_collection_stage_config.json", inventory_module=current_api / "ops/api_release_integration.py")
+    transition = json.loads((Path(roles["stage"]["app_root"]) / "stage_center_tick_config.json").read_bytes())["research_transition_owner_binding"]
+    main_env = actual["main"]["environment"]
+    if transition != {"app_root": main_env["V4_APP_ROOT"], "release_id": main_env["V4_RELEASE_ID"],
+                      "manifest_sha256": main_env["V4_RELEASE_MANIFEST_SHA256"], "trade_date": predecessor_date}:
+        raise ValueError("TRANSITION_BINDING_DRIFT")
+    verified_baseline(Path(transition["app_root"]), transition["manifest_sha256"], inv)
+    dependencies.append({"producer_release": transition["release_id"],
+        "producer_manifest_sha256": transition["manifest_sha256"],
+        "consumer_config_sha256": sha((Path(roles["stage"]["app_root"]) / "stage_center_tick_config.json").read_bytes()),
+        "transition_trade_date": predecessor_date, "scope": "READ_ONLY_TRANSITION_OWNER",
+        "receipt_publication": "NOT_RUN"})
     receipt = {**base, "schema_version": "v4.unified_runtime_candidate.v1", "roles": roles, "report_source_ref": report_ref,
         "live_preimages": actual,
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(), "publication_dependencies": dependencies,
