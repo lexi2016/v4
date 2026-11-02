@@ -492,6 +492,21 @@ def _closing_task_projection(
         except (ValueError, TypeError):
             output = None
         business_bound = isinstance(output, dict) and output == receipt
+        if (not business_bound and isinstance(output, dict)
+                and item["node_id"] in {"FUPAN_CLOSE_MATERIALS", "FUPAN_REVIEW_START"}
+                and receipt.get("schema_version") == "v3_5_stage_center_milestone_receipt.v1"
+                and output.get("schema_version") == "v4.stage_milestone_dispatch_reference.v1"
+                and result["receipt_sha256"] is not None
+                and output.get("receipt_sha256") == result["receipt_sha256"]
+                and output.get("receipt_path") == receipt_path
+                and all(output.get(key) == receipt.get(key) for key in (
+                    "node_id", "business_date", "stage_id", "status", "run_id"))
+                and all(output.get(flag) is False for flag in (
+                    "production_allowed", "buy_gate_updated", "orders_sent"))):
+            # The dispatch ledger pins a small reference, while this reader
+            # independently verifies the complete receipt at its fixed path.
+            # Large Stage rows/sidecars never need a relaxed stdout limit.
+            business_bound = True
     if (business_bound and all(receipt.get(flag) is False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
             and raw_status in {"READY", "READY_EMPTY", "READY_WITH_ROWS", "READY_WITH_REVIEW_BOUNDARY", "SUCCESS"}):
         result.update(task_state="READY", run_id=dispatch["run_id"], binding_status="BUSINESS_RECEIPT_BOUND_TO_DISPATCH_RUN")

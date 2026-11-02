@@ -1,0 +1,119 @@
+{
+  "schema_version": "v4.schedule_chain_writer_result.v1",
+  "base_commit": "a67e81143f8a936df303356e532b6520850dfdb2",
+  "branch": "codex/schedule-chain-repair-20261102",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/schedule-chain-repair-20261102",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "files": {
+    "ops/run_stage_center_milestone.py": {
+      "before_sha256": "1e72438420cdff455bb181ad63b4b78ea47981d43c3524c100cbc25d8db1dac6",
+      "after_sha256": "8896b679edfe5a2648896f352b8fd62b3d32ec3ebb71f9a70100f96b38d269c1"
+    },
+    "domains/task_status.py": {
+      "before_sha256": "24d52d7258bb4421810c6116dc54366df9f1363f3fa62850f1a828bd67011ae6",
+      "after_sha256": "60951684afadda539f34c94eb1bfa5f2d75092a22e9a5013ce89dbf658e028f0"
+    },
+    "tests/test_schedule_chain_connections.py": {
+      "before_sha256": null,
+      "after_sha256": "46e6fea6832213b0d5e8a6c7bfadf2862d75e84149f48a4cce3aa12a39fde664"
+    }
+  },
+  "business_roles": {
+    "main": [
+      "ops/run_stage_center_milestone.py"
+    ],
+    "api": [
+      "domains/task_status.py"
+    ],
+    "stage": []
+  },
+  "before_candidate_r4_sha_matches": {
+    "main/ops/run_stage_center_milestone.py": true,
+    "api/domains/task_status.py": true
+  },
+  "tests": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-api-oracle tests/test_schedule_chain_connections.py::test_real_stores_completion_milestone_manager_and_status_api",
+      "result": "FAIL product reproduction: successful consume, API CANNOT_CONFIRM"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-milestone-fix tests/test_schedule_chain_connections.py",
+      "result": "FAIL first repair: full stdout still truncated/unparseable at original 2048 cap; 2 direct cases passed"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-reference-fix tests/test_schedule_chain_connections.py",
+      "result": "FAIL second check: normal compact reference/API READY passed; failure metadata omission changed UPSTREAM_NOT_READY to CONTRACT; writer stopped"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-failure-metadata tests/test_schedule_chain_connections.py::test_consumer_failure_releases_only_failed_claim_and_retry_consumes_same_run",
+      "result": "PASS 1 in 0.21s after explicit controller metadata-only exception"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-targeted-final tests/test_schedule_chain_connections.py -k 'not consumer_failure_releases_only_failed_claim'",
+      "result": "10 PASS; 1 test-oracle FAIL because original _bounded adds truncation suffix beyond 2048; no product regression"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-targeted-remaining tests/test_schedule_chain_connections.py -k 'actual_executor_2048 or legacy_full_stdout'",
+      "result": "PASS 3 in 0.23s; corrected suffix oracle plus legacy equality positive/negative"
+    },
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-cli tests/test_schedule_chain_connections.py::test_actual_milestone_cli_emits_small_reference_to_full_receipt",
+      "result": "PASS 1 in 0.18s"
+    },
+    {
+      "command": "SCHEDULE_CHAIN_API_APP=/Users/lexi/Desktop/学习/v4_app/.task_worktrees/schedule-chain-repair-20261102 python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/v4-schedule-chain-20261102-role-seam tests/test_schedule_chain_connections.py::test_real_stores_completion_milestone_manager_and_status_api",
+      "result": "PASS 1 in 0.91s after adding separate API-role subprocess seam"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "targeted_case_total": 15,
+  "targeted_pass_scope": "15 unique direct cases passed across incremental groups; no whole-suite repeat",
+  "earlier_fixture_errors": [
+    "initial test used nonexistent verify_chain; corrected to existing verify_receipt_chain, not a product failure",
+    "2048 cap assertion omitted original truncation marker; corrected test only"
+  ],
+  "candidate_connections": {
+    "r2_early_weak_oracle": "PASS within its process/identity-only scope; superseded by stronger API business READY oracle, not proof of final fix",
+    "after_fix": "NOT_RUN_PENDING_TERRA_ROLE_INTEGRATION"
+  },
+  "review": "NOT_RUN_CONTROLLER_TO_ASSIGN",
+  "deployment": "NOT_RUN",
+  "natural": "CANNOT_CONFIRM",
+  "scope": "isolated real selection/runner stores -> completion -> dispatcher/ledger/registry -> milestone -> manager StageFeed/API; child invocation transport seam, no market collection",
+  "reused_pass": [
+    "Batch2 source12/event4/wrapper7/rollback1/witness6/history3",
+    "actual Main/Stage off/on/reuse/fault unchanged scope",
+    "r4 UNKNOWN and wrong-job_id guard narrow PASS"
+  ],
+  "diagnosis_evidence": {
+    "DIAGNOSIS.json": "93743cd45668ab3d5eb409577ea7c00067ec73901eb7263b67de3d99b97f7f8d",
+    "DEADLINE_DIAGNOSIS.json": "531755bb1d308f20335b1e2d42274f007ee5b38767aa0f84430840c739bf3695"
+  },
+  "unresolved": [
+    "A 09:25 original native manifest missing; do not repair natural evidence",
+    "Four morning A stages F10 witness: Terra-owned fix and candidate acceptance separate",
+    "Main/API intraday catalog and absent Main binding: CANNOT_CONFIRM owner acceptance, preserve Main and Vibe8910",
+    "Legacy disabled registrations are configuration only, not 26 failures",
+    "HK deadline 5 current alerts retained; September stderr STALE; current import CHECK_OK does not certify timely chains",
+    "PDF continuation and WeChat sync remain separate authorization/owner scope"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "external_references": [
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/",
+      "adopted": "Validate idempotent workload effects under repeated notifications; no scheduler migration or dependency added"
+    },
+    {
+      "url": "https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html",
+      "adopted": "Preserve typed task failure across the completion boundary and retry only the failed consumer; no AWS/framework added"
+    }
+  ]
+}

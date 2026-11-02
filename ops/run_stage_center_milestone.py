@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import tempfile
@@ -18,6 +19,7 @@ MILESTONE_STAGES = {
     "FUPAN_REVIEW_START": ("1555", "STAGE_1545_1555", "HK_CONNECT"),
 }
 RECEIPT_SCHEMA = "v3_5_stage_center_milestone_receipt.v1"
+DISPATCH_REFERENCE_SCHEMA = "v4.stage_milestone_dispatch_reference.v1"
 MILESTONE_RETRY_WAIT_SECONDS = 180.0
 MILESTONE_RETRY_INTERVAL_SECONDS = 5.0
 USABLE_SELECTION_STATUSES = frozenset({"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS"})
@@ -133,13 +135,38 @@ def run_milestone(
         # and retry the same exact consumer request after its normal backoff.
         receipt["failure_class"] = "UPSTREAM_NOT_READY"
     receipt_path = _receipt_path(Path(data_root).expanduser().resolve(), date, node)
-    _atomic_write(receipt_path, receipt)
     receipt["receipt_path"] = str(receipt_path)
+    # API consumers bind the dispatched stdout to this exact committed object.
+    # Commit the path as part of it, then persist any optional consumer result
+    # before returning so successful milestones retain the same identity.
+    _atomic_write(receipt_path, receipt)
     from infrastructure.stage_completion_hooks import on_main_milestone
     peripheral = on_main_milestone(selection_root=Path(selection_root), trade_date=date, stage_id=stage_id,
         usable=status in USABLE_SELECTION_STATUSES)
-    if peripheral["status"] != "DISABLED": receipt["report_evidence_sidecar"] = peripheral
+    if peripheral["status"] != "DISABLED":
+        receipt["report_evidence_sidecar"] = peripheral
+        _atomic_write(receipt_path, receipt)
     return receipt
+
+
+def dispatch_reference(receipt: dict[str, Any]) -> dict[str, Any]:
+    """Keep the complete business receipt outside the executor's stdout cap."""
+    raw = Path(receipt["receipt_path"]).read_bytes()
+    if json.loads(raw) != receipt:
+        raise ValueError("MILESTONE_RECEIPT_CHANGED_BEFORE_DISPATCH_REFERENCE")
+    reference = {
+        "schema_version": DISPATCH_REFERENCE_SCHEMA,
+        **{key: receipt[key] for key in (
+            "node_id", "business_date", "stage_id", "status", "run_id", "receipt_path",
+            "production_allowed", "buy_gate_updated", "orders_sent",
+        )},
+        "receipt_sha256": hashlib.sha256(raw).hexdigest(),
+    }
+    if "failure_class" in receipt:
+        reference["failure_class"] = receipt["failure_class"]
+    if "reason" in receipt:
+        reference["reason"] = str(receipt["reason"])[:512]
+    return reference
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -160,10 +187,11 @@ def main(argv: list[str] | None = None) -> int:
             data_root=args.data_root,
             selection_root=args.selection_root,
         )
+        reference = dispatch_reference(result)
     except (OSError, ValueError) as error:
         print(json.dumps({"status": "FAILED", "reason": f"{type(error).__name__}: {error}", "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}, ensure_ascii=False))
         return 1
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    print(json.dumps(reference, ensure_ascii=False, sort_keys=True))
     return 1 if result.get("status") == "CANNOT_CONFIRM" else 0
 
 
@@ -171,4 +199,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-__all__ = ["MILESTONE_STAGES", "main", "run_milestone"]
+__all__ = ["MILESTONE_STAGES", "dispatch_reference", "main", "run_milestone"]
