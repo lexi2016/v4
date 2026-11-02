@@ -173,10 +173,26 @@ def prepare(plan_path, plan):
     return record
 
 
-def switch(preparation_sha, plan, *, rollback=False):
+def prepared_plan(prepared, plan_path):
+    path = Path(plan_path)
+    fixed.require(path.resolve() == Path(prepared["plan_path"]), "ACTIVATION_PLAN_NOT_THE_PREPARED_PLAN")
+    try: raw = path.read_bytes()
+    except OSError: raise ValueError("ACTIVATION_PLAN_NOT_THE_PREPARED_PLAN") from None
+    fixed.require(fixed.sha(raw) == prepared["plan_sha256"], "ACTIVATION_PLAN_NOT_THE_PREPARED_PLAN")
+    return json.loads(raw)
+
+
+def prepared_targets(plan):
+    return {role: (row["label"], Path(row["preimage"]["V4_APP_ROOT"]).parent,
+        row["preimage"]["V4_RELEASE_MANIFEST_SHA256"], Path(row["candidate"]["app_root"]).parent,
+        row["candidate"]["manifest_sha256"]) for role, row in plan["roles"].items()}
+
+
+def switch(preparation_sha, plan_path, *, rollback=False):
     path = fixed.EVIDENCE / "preparation.json"; fixed.pinned(path, preparation_sha); prepared = json.loads(path.read_bytes())
     for filename, digest in prepared["script_pins"].items(): fixed.pinned(Path(filename), digest)
     fixed.pinned(Path(prepared["plan_path"]), prepared["plan_sha256"])
+    plan = prepared_plan(prepared, plan_path); fixed.require(fixed.TARGETS == prepared_targets(plan), "ACTIVATION_TARGETS_NOT_THE_PREPARED_PLAN")
     records = prepared["records"]; raws = {}; ownership = {}; touched = []
     for role, row in records.items():
         old = (fixed.EVIDENCE / (role + ".original.plist")).read_bytes(); new = (fixed.EVIDENCE / (role + ".staged.plist")).read_bytes()
@@ -219,4 +235,4 @@ if __name__ == "__main__":
         prepare(args.plan, plan); print(json.dumps({"status": "PREPARED_NOT_ACTIVATED", "sha256": fixed.sha((args.evidence / "preparation.json").read_bytes())}))
     else:
         fixed.require(args.authorize_live_role_switch and bool(args.preparation_sha), "FUTURE_EXPLICIT_ACTIVATION_AUTHORIZATION_AND_SHA_REQUIRED")
-        switch(args.preparation_sha, plan, rollback=args.action == "rollback")
+        switch(args.preparation_sha, args.plan, rollback=args.action == "rollback")

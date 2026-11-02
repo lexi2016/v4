@@ -216,7 +216,7 @@ class ReportEvidenceService:
         return dict(schema_version='v4.report_evidence.v1', status='CANDIDATES' if hits else 'NO_EVIDENCE',
                     mode=mode, as_of=as_of, search_mode=('keyword_only' if strategy=='keyword' or any('KEYWORD_ONLY' in g for g in gaps) else (strategy+'_partial' if gaps else strategy)),
                     gaps=sorted(set(gaps)), hits=hits, index_generation=generation, input_tokens_upper_bound=exact,
-                    token_counter='PINNED_BGE_M3_LOCAL_EMBEDDING_V1',
+                    token_counter='PINNED_BGE_M3_IN_PROCESS_V1',
                     vector_attempted=vector_attempted, vector_succeeded=vector_succeeded,
                     vector_scope_sha256=digest(json.dumps(uris,sort_keys=True)), branch_counts={'keyword':len(keyword),'vector':len(vector)},
                     query_coverage={'eligible_documents':len(docs),'eligible_chunks':len(rows),'native_indexed_chunks':sum(bool(r['uri']) for r in rows.values()),'native_scope_uris':len(uris)},
