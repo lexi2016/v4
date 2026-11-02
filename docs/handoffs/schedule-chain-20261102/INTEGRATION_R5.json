@@ -1,0 +1,48 @@
+{
+  "schema": "v4.schedule_chain_candidate_integration.v1",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-unified-recovery-20261102-terra-r5",
+  "candidate_source_commit": "466dfad78c146f26c6e1ad520f08d1451b3ac549",
+  "candidate_receipt_sha256": "6d55dda2eb953b84c8200d86b44cd03df24148d3fb23641d90e8708d4d38e623",
+  "source_writer_commit": "de6640464111fcd5b9ba74a63845f4c172d6f807",
+  "test_script_sha256": "46e6fea6832213b0d5e8a6c7bfadf2862d75e84149f48a4cce3aa12a39fde664",
+  "main_milestone_sha256": "8896b679edfe5a2648896f352b8fd62b3d32ec3ebb71f9a70100f96b38d269c1",
+  "api_task_status_sha256": "60951684afadda539f34c94eb1bfa5f2d75092a22e9a5013ce89dbf658e028f0",
+  "builder_sha256": "e148744f89f72547d6cb6bf26fb883f016d237d4df744db2401bb2a03d8966fa",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "test_method": "python -B tests/test_schedule_chain_connections.py from r5 Main cwd with PYTHONPATH=Main:Main/upstreams, SCHEDULE_CHAIN_API_APP=r5 API; identity env pinned; no sidecar/graph/task-status external roots",
+  "test_result": {
+    "api_result_code": "DUPLICATE_WORKLOAD_SKIPPED",
+    "first": "SUCCEEDED",
+    "initial_api_binding": "BUSINESS_RECEIPT_BOUND_TO_DISPATCH_RUN",
+    "initial_api_task_state": "READY",
+    "manager_run_id": "run-1aa53f79314686f1e3ddd9f2",
+    "repeat": "DUPLICATE_WORKLOAD_SKIPPED",
+    "scope": "fixture selection/runner -> completion -> dispatcher/ledger/registry -> milestone -> manager StageFeed/API; child transport seam; no acquisition/natural/deployment",
+    "selection_run_id": "run-e94f14977ee52ce6ed9627ce",
+    "source_bytes_unchanged": true,
+    "status": "PASS_ISOLATED_REAL_CONNECTIONS"
+  },
+  "test_log_sha256": "ef41e1596f0d9131116dc35bb3712670b74585bc78bfbe968fefb314fd4e7c4e",
+  "candidate_vs_r4_inventory_delta": {
+    "main": [
+      "ops/run_stage_center_milestone.py"
+    ],
+    "stage": [
+      "stage_center_tick_config.json"
+    ],
+    "api": [
+      "config/api-v4_manual_collection_stage_config.json",
+      "domains/task_status.py"
+    ]
+  },
+  "plan_sha256": "459155b9a34a4f2bfd14f1666233f13968dae33180dcf9e5bb532618c4217d86",
+  "plan_as_of": "2026-11-02T13:06:07.971085+08:00",
+  "plan_scope": "21 F10 dispatch receipts and 6 original hourly publications; later changes require reprepare",
+  "review": "PENDING_INCREMENTAL",
+  "deployment": "NOT_RUN",
+  "natural": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
