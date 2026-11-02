@@ -1,6 +1,6 @@
 {
   "schema_version": "v4.p4_receipt_integrity_increment.v1",
-  "status": "WRITER_PASS_PENDING_ONE_JOINT_INCREMENTAL_REVIEW",
+  "status": "REVIEWED_PASS_NARROW_P4_RECEIPT_INTEGRITY",
   "authorization": {
     "path": "/Users/lexi/Desktop/学习/agents调试/v4_unified_implementation_20261102/integration/P4_NARROW_REOPEN_AUTHORIZATION.json",
     "sha256": "15361e986a4074bfc12373731d4bcf2f05dc62f5c498e00012b8b1409e48c03a"
@@ -182,5 +182,14 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "history": "Prior cc53/r3 independent FAIL kept unchanged; this increment does not rewrite prior failure evidence"
+  "history": "Prior cc53/r3 independent FAIL kept unchanged; this increment does not rewrite prior failure evidence",
+  "independent_review": {
+    "verdict": "PASS",
+    "scope": "Only UNKNOWN receipt preservation and mismatched job_id refusal, plus affected r4 candidate assembly/manifest delta",
+    "authority": "Controller reported independent Reviewer PASS; full review JSON pending at this compact update",
+    "unchanged_scope": "Reuse prior matching PASS; no repeated API/TCP/full research suite"
+  },
+  "deployment_status": "NOT_DEPLOYED",
+  "full_native_status": "IN_PROGRESS_EXTERNAL_OWNER_NOT_CERTIFIED",
+  "final_handoff": "Central HANDOFF_20261102.md in unified evidence root maintained by controller"
 }
