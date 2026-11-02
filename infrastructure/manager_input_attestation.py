@@ -332,7 +332,8 @@ def _read_hourly_publication_metadata(*, data_root: Path, owner_root: Path,
 
 def read_hourly_attestation(*, data_root: Path, owner_root: Path,
                             date: str, slot: str, mode: str, as_of: datetime,
-                            scheduler_ledger_root: Path | None = None) -> dict:
+                            scheduler_ledger_root: Path | None = None,
+                            transition_0830_witness: bool = False) -> dict:
     """Use original scheduler completion as a conservative local upper bound.
 
     The mutable sidecar alone is never a time witness. The independent original
@@ -345,16 +346,26 @@ def read_hourly_attestation(*, data_root: Path, owner_root: Path,
     if scheduler_ledger_root is None:
         raise PublicationError('HOURLY_PUBLICATION_TIME_WITNESS_UNAVAILABLE')
     witness = _scheduler_completion_witness(record, data_root=data_root, owner_root=owner_root,
-                                          ledger_root=scheduler_ledger_root, as_of=as_of)
+                                          ledger_root=scheduler_ledger_root, as_of=as_of,
+                                          transition_0830_witness=transition_0830_witness)
     return {**record, 'completion_witness': witness}
 
 
 def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: Path,
-                                  ledger_root: Path, as_of: datetime) -> dict:
+                                  ledger_root: Path, as_of: datetime,
+                                  transition_0830_witness: bool = False) -> dict:
     from infrastructure.owned_io import SafeRoot
     date, slot, mode = record['trade_date'], record['slot'], record['mode']
     if mode != 'LIVE':
         raise PublicationError('HOURLY_COMPLETION_MODE_INVALID')
+    if transition_0830_witness and (date != '20261102' or slot != '0830'):
+        raise PublicationError('HOURLY_TRANSITION_WITNESS_SCOPE_INVALID')
+    if transition_0830_witness:
+        raw_manifest = SafeRoot(owner_root.parent).read_bytes('release-manifest.json')
+        if (digest(raw_manifest) != '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388'
+            or json.loads(raw_manifest).get('release_id') != 'f10-daily-20261101-c94609b4e5fff848-main'):
+            raise PublicationError('HOURLY_TRANSITION_WITNESS_OWNER_INVALID')
+    workload_id = 'zsxq_0830' if transition_0830_witness else 'hourly_research'
     ledger = SafeRoot(ledger_root)
     folder = f'receipts/live/{date}/{slot}'
     files = ledger.files(folder, suffix='.dispatch-receipt.json')
@@ -403,10 +414,10 @@ def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: 
         if (value.get('status') not in {'SUCCEEDED', 'FAILED', 'DUPLICATE_WORKLOAD_SKIPPED'} or value.get('release_id') != manifest.get('release_id')
             or any(value.get(key) != date for key in ('scheduled_date', 'target_date'))
             or any(value.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))
-            or any('hourly_research' not in value.get(key, []) for key in
+            or any(workload_id not in value.get(key, []) for key in
                    ('selected_workload_ids', 'invoked_workload_ids', 'started_workload_ids', 'succeeded_workload_ids'))):
             continue
-        matches = [item for item in value.get('workload_results', []) if isinstance(item, dict) and item.get('workload_id') == 'hourly_research']
+        matches = [item for item in value.get('workload_results', []) if isinstance(item, dict) and item.get('workload_id') == workload_id]
         if len(matches) != 1:continue
         workload = matches[0]; authority = workload.get('_authoritative_payload')
         if (workload.get('status') != 'SUCCEEDED' or workload.get('exit_code') != 0
@@ -622,8 +633,14 @@ def read_stage_hourly_attestation(*, stage_app: Path, data_root: Path, date: str
         # Equal code bytes do not identify a release. Only the original full
         # publication + successful dispatch witness may select a pinned owner.
         try:
+            kwargs = {}
+            if (transition is not None and selected == Path(transition['app_root'])
+                and transition['release_id'] == 'f10-daily-20261101-c94609b4e5fff848-main'
+                and transition['manifest_sha256'] == '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388'
+                and date == transition['trade_date'] == '20261102' and slot == '0830'):
+                kwargs['transition_0830_witness'] = True
             publication = read_hourly_attestation(data_root=data_root, owner_root=selected,
-                date=date, slot=slot, mode=mode, as_of=as_of, scheduler_ledger_root=ledger)
+                date=date, slot=slot, mode=mode, as_of=as_of, scheduler_ledger_root=ledger, **kwargs)
         except PublicationError as exc:
             if str(exc) != 'HOURLY_COMPLETION_WITNESS_MISSING':
                 raise  # Never hide source/signature, ledger, clock or cutoff failures.

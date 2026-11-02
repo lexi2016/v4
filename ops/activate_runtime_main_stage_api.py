@@ -16,7 +16,7 @@ import tempfile
 import time
 
 from ops import activate_runtime_two_roles as two
-from ops.prepare_runtime_governance_publication import omitted_owner_proof
+from ops.prepare_runtime_governance_publication import omitted_owner_proof, transition_owner_proof
 
 fixed = two.fixed
 
@@ -116,6 +116,15 @@ def configure(plan_path, evidence):
 
 
 def zero_admission(plan):
+    if 'transition_owner_proof' in plan:
+        proof = plan['transition_owner_proof']
+        receipt_path = Path(plan['candidate_receipt_path'])
+        fixed.require(fixed.sha(receipt_path.read_bytes()) == plan['candidate_receipt_sha256'],
+                      'TRANSITION_CANDIDATE_RECEIPT_DRIFT')
+        from datetime import datetime
+        fresh = transition_owner_proof(json.loads(receipt_path.read_bytes()), as_of=datetime.fromisoformat(proof['as_of']))
+        fixed.require(fresh == proof, 'TRANSITION_EVIDENCE_SET_CHANGED_REPREPARE_REQUIRED')
+        return fresh
     proof = plan["omitted_main_owner_zero_proof"]
     fresh = omitted_owner_proof(proof["ledger_root"], proof["release_id"], proof["app_root"], first_date=proof["first_date"])
     fixed.require(not fresh["matching_receipts"], "OMITTED_MAIN_RECEIPTS_APPEARED_COMPATIBILITY_REQUIRED")

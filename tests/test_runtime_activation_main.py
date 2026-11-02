@@ -73,6 +73,35 @@ def test_zero_omitted_owner_proof_and_later_matching_receipt_refusal(tmp_path,mo
     with pytest.raises(ValueError,match='OMITTED_MAIN_RECEIPTS_APPEARED'):main.zero_admission({'omitted_main_owner_zero_proof':proof})
 
 
+@pytest.mark.parametrize('changed', ['new_receipt','changed_receipt','missing_receipt','new_publication','wrong_date'])
+def test_transition_set_admission_refuses_evidence_drift(tmp_path,monkeypatch,changed):
+    receipt=tmp_path/'candidate_receipt.json';receipt.write_text('{}')
+    proof={'as_of':'2026-11-02T12:59:00+08:00', 'owner':{'trade_date':'20261102'},
+           'matching_receipts':[{'path':'first','sha256':'a'}],
+           'publications':[{'slot':'0830','publication_sha256':'b'}]}
+    current=json.loads(json.dumps(proof))
+    if changed=='new_receipt':current['matching_receipts'].append({'path':'second','sha256':'c'})
+    if changed=='changed_receipt':current['matching_receipts'][0]['sha256']='d'
+    if changed=='missing_receipt':current['matching_receipts']=[]
+    if changed=='new_publication':current['publications'].append({'slot':'0900','publication_sha256':'e'})
+    if changed=='wrong_date':current['owner']['trade_date']='20261103'
+    monkeypatch.setattr(main,'transition_owner_proof',lambda *a,**kw:current)
+    plan={'transition_owner_proof':proof,'candidate_receipt_path':str(receipt),
+          'candidate_receipt_sha256':main.fixed.sha(receipt.read_bytes())}
+    with pytest.raises(ValueError,match='TRANSITION_EVIDENCE_SET_CHANGED'):main.zero_admission(plan)
+
+
+def test_transition_set_admission_accepts_only_matching_candidate_and_set(tmp_path,monkeypatch):
+    receipt=tmp_path/'candidate_receipt.json';receipt.write_text('{}')
+    proof={'as_of':'2026-11-02T12:59:00+08:00','matching_receipts':[{'sha256':'a'}]}
+    plan={'transition_owner_proof':proof,'candidate_receipt_path':str(receipt),
+          'candidate_receipt_sha256':main.fixed.sha(receipt.read_bytes())}
+    monkeypatch.setattr(main,'transition_owner_proof',lambda *a,**kw:proof)
+    assert main.zero_admission(plan)==proof
+    receipt.write_text('{"drift":true}')
+    with pytest.raises(ValueError,match='TRANSITION_CANDIDATE_RECEIPT_DRIFT'):main.zero_admission(plan)
+
+
 def test_three_role_scope_rejects_pre_or_wrong_forward_order(tmp_path):
     path=tmp_path/'plan.json';path.write_text(json.dumps({'roles':{'main':{},'stage':{},'api':{},'pre':{}},'forward_order':['main','stage','api'],'rollback_order':['api','stage','main']}))
     with pytest.raises(ValueError,match='EXACT_MAIN_STAGE_API_ROLES_REQUIRED'):main.configure(path,tmp_path/'evidence')
