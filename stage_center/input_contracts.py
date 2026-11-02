@@ -11,7 +11,7 @@ from types import MappingProxyType
 from typing import Mapping
 
 
-REQUIRED_A_STAGE_POOL_IDS = (
+LEGACY_A_STAGE_POOL_IDS = (
     "a_d1_premarket_pool",
     "a_d1_fupan_watchlist_pool",
     "a_d1_stage7_fenshi_review_pool",
@@ -19,6 +19,10 @@ REQUIRED_A_STAGE_POOL_IDS = (
     "a_share_baimao_research_map",
     "wechat_public_account_v3_preselect",
 )
+
+# The new physical lane is appended; existing six-lane frozen artifacts keep
+# their original validation contract and are never rewritten in place.
+REQUIRED_A_STAGE_POOL_IDS = (*LEGACY_A_STAGE_POOL_IDS, "a_share_chart_selection")
 
 # The six IDs are the graph's known, ordered pool lanes.  They are kept as a
 # separate public alias so callers can distinguish the finite allowlist from
@@ -59,6 +63,11 @@ _A_POOL_CONTRACTS = {
         "v3_wechat_preselect_upstream_v1",
         "VERIFIED_WECHAT_RESEARCH",
     ),
+    "a_share_chart_selection": (
+        "CHART_SELECTION_READY",
+        "v4_a_daily_product_chart_projection_v1",
+        "UPSTREAM_PRODUCER_ARTIFACT",
+    ),
 }
 
 A_POOL_CONTRACTS: Mapping[str, tuple[str, str, str]] = MappingProxyType(
@@ -78,6 +87,7 @@ def a_pool_contract(pool_id: str) -> tuple[str, str, str]:
 __all__ = [
     "A_POOL_CONTRACTS",
     "KNOWN_A_STAGE_POOL_IDS",
+    "LEGACY_A_STAGE_POOL_IDS",
     "REQUIRED_A_STAGE_POOL_IDS",
     "a_pool_contract",
 ]

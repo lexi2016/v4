@@ -28,7 +28,7 @@ from infrastructure.stage_acquisition_universe_contracts import (
     snapshot_pool_provenance,
     validate_artifact_against_snapshot,
 )
-from stage_center.input_contracts import REQUIRED_A_STAGE_POOL_IDS, a_pool_contract
+from stage_center.input_contracts import LEGACY_A_STAGE_POOL_IDS, REQUIRED_A_STAGE_POOL_IDS, a_pool_contract
 
 
 STRICT_ROLE = "A_SHARE_STAGE_ACQUISITION_UNIVERSE_V3"
@@ -50,10 +50,10 @@ _OWNER = "V3_5_STAGE_CENTER"
 _PRODUCER = "ops.materialize_stage_acquisition_universe"
 _LANE = "A_SHARE_STAGE_ACQUISITION"
 _MAX_BYTES = 64 * 1024 * 1024
-# The pool store only exposes an append-only refresh seam for the hourly
-# research recommendation lane.  Other physical lanes are immutable once a
-# strict current has been published; a changed raw SHA there is a conflict.
-_APPEND_ONLY_POOL_IDS = frozenset({"a_share_research_recommendation_pool"})
+# Same-day chart revisions use a bound owner/CAS path.  Strict stage updates
+# may only append candidates and must preserve all prior source membership;
+# a revision that removes candidates never rewrites a sealed stage result.
+_APPEND_ONLY_POOL_IDS = frozenset({"a_share_research_recommendation_pool", "a_share_chart_selection"})
 
 # A strict stage artifact is evidence input only.  Unknown extension fields are
 # not allowed to smuggle an action, post-event label, or target outcome through
@@ -429,6 +429,12 @@ def _pool_value(item: Mapping[str, Any], primary: str, alias: str, label: str) -
 def _validate_artifact(payload: Mapping[str, Any], trade_date: str, identity: EvidenceIdentity) -> None:
     if not isinstance(payload, Mapping):
         raise StrictCommitError("strict artifact must be an object")
+    provenance = payload.get("source_pool_provenance")
+    if not isinstance(provenance, list):
+        raise StrictCommitError("strict artifact source-pool set mismatch")
+    pool_ids = tuple(item.get("pool_id") if isinstance(item, Mapping) else None for item in provenance)
+    if pool_ids not in (LEGACY_A_STAGE_POOL_IDS, REQUIRED_A_STAGE_POOL_IDS):
+        raise StrictCommitError("strict artifact source-pool set mismatch")
     if payload.get("schema_version") != STRICT_ARTIFACT_SCHEMA or payload.get("artifact_role") != STRICT_ROLE:
         raise StrictCommitError("strict artifact schema or role mismatch")
     if payload.get("artifact_version") != STRICT_ARTIFACT_VERSION:
@@ -457,7 +463,7 @@ def _validate_artifact(payload: Mapping[str, Any], trade_date: str, identity: Ev
     if not isinstance(pool_diagnostics, Mapping):
         raise StrictCommitError("strict artifact pool_diagnostics is invalid")
     flattened_diagnostics: list[str] = []
-    for pool_id in REQUIRED_A_STAGE_POOL_IDS:
+    for pool_id in pool_ids:
         reasons = pool_diagnostics.get(pool_id, [])
         if not isinstance(reasons, list) or any(
             not isinstance(reason, str) for reason in reasons
@@ -492,7 +498,7 @@ def _validate_artifact(payload: Mapping[str, Any], trade_date: str, identity: Ev
         raise StrictCommitError("strict artifact source status mismatch")
 
     provenance = payload.get("source_pool_provenance")
-    if not isinstance(provenance, list) or tuple(item.get("pool_id") if isinstance(item, Mapping) else None for item in provenance) != REQUIRED_A_STAGE_POOL_IDS:
+    if tuple(item.get("pool_id") if isinstance(item, Mapping) else None for item in provenance) != pool_ids:
         raise StrictCommitError("strict artifact source-pool set mismatch")
     for item in provenance:
         if not isinstance(item, Mapping):
@@ -572,7 +578,7 @@ def _validate_artifact(payload: Mapping[str, Any], trade_date: str, identity: Ev
         raise StrictCommitError("strict artifact code source membership mismatch")
     for code in codes:
         values = sources.get(code)
-        if not isinstance(values, list) or not values or any(pool_id not in REQUIRED_A_STAGE_POOL_IDS for pool_id in values) or len(values) != len(set(values)):
+        if not isinstance(values, list) or not values or any(pool_id not in pool_ids for pool_id in values) or len(values) != len(set(values)):
             raise StrictCommitError("strict artifact code source membership mismatch")
         provenance_by_pool = {
             item["pool_id"]: item for item in provenance if isinstance(item, Mapping)
@@ -747,7 +753,7 @@ def _close_fd(secure: SecureEvidenceRoot, fd: int, root_fd: int) -> None:
 
 
 def _revalidate_physical_snapshot(
-    root: Path, trade_date: str, expected: StrictAPreselectionSnapshot
+    root: Path, trade_date: str, expected: StrictAPreselectionSnapshot, *, lock_lease: object
 ) -> None:
     """Refuse publication if physical pool evidence changed before the lock.
 
@@ -758,7 +764,7 @@ def _revalidate_physical_snapshot(
     """
 
     try:
-        current = read_strict_a_preselection_snapshot(root, trade_date)
+        current = read_strict_a_preselection_snapshot(root, trade_date, lock_lease=lock_lease)
     except (StageAcquisitionContractError, OSError, ValueError) as error:
         raise StrictCommitError(
             f"required A pool strict physical snapshot cannot be confirmed while locked: {error}"
@@ -1453,8 +1459,8 @@ class StageAcquisitionUniverseCommit:
             timeout_message="data-root import lock timeout",
         )
         try:
-            with lock, self._secure() as secure:
-                _revalidate_physical_snapshot(self.root, date, snapshot)
+            with lock as lease, self._secure() as secure:
+                _revalidate_physical_snapshot(self.root, date, snapshot, lock_lease=lease)
                 try:
                     current = self._verify_current(secure, date, identity)
                 except StrictCommitError as error:
@@ -1550,7 +1556,9 @@ class StageAcquisitionUniverseCommit:
         successor_provenance = successor.get("source_pool_provenance")
         if not isinstance(previous_provenance, list) or not isinstance(successor_provenance, list):
             raise StrictCommitError("strict successor source pool provenance is missing")
-        if tuple(item.get("pool_id") for item in previous_provenance if isinstance(item, Mapping)) != REQUIRED_A_STAGE_POOL_IDS or tuple(item.get("pool_id") for item in successor_provenance if isinstance(item, Mapping)) != REQUIRED_A_STAGE_POOL_IDS:
+        previous_pool_ids = tuple(item.get("pool_id") for item in previous_provenance if isinstance(item, Mapping))
+        successor_pool_ids = tuple(item.get("pool_id") for item in successor_provenance if isinstance(item, Mapping))
+        if previous_pool_ids not in (LEGACY_A_STAGE_POOL_IDS, REQUIRED_A_STAGE_POOL_IDS) or successor_pool_ids != REQUIRED_A_STAGE_POOL_IDS:
             raise StrictCommitError("strict successor source pool set is incomplete")
         previous_by_pool = {item["pool_id"]: item for item in previous_provenance}
         successor_by_pool = {item["pool_id"]: item for item in successor_provenance}
@@ -1572,8 +1580,14 @@ class StageAcquisitionUniverseCommit:
             "receipt_relative_path",
         )
         for pool_id in REQUIRED_A_STAGE_POOL_IDS:
-            old = previous_by_pool[pool_id]
             new = successor_by_pool[pool_id]
+            if pool_id not in previous_by_pool:
+                if pool_id != "a_share_chart_selection":
+                    raise StrictCommitError("strict successor source pool set is incomplete")
+                if new.get("available", True) is True and new.get("row_count", 0) > 0:
+                    changed_pool_ids.append(pool_id)
+                continue
+            old = previous_by_pool[pool_id]
             old_available = old.get("available", True) is True
             new_available = new.get("available", True) is True
             old_empty = old.get("valid_empty", False) is True
@@ -1767,8 +1781,8 @@ class StageAcquisitionUniverseCommit:
             timeout_message="data-root import lock timeout",
         )
         try:
-            with lock, self._secure() as secure:
-                _revalidate_physical_snapshot(self.root, date, snapshot)
+            with lock as lease, self._secure() as secure:
+                _revalidate_physical_snapshot(self.root, date, snapshot, lock_lease=lease)
                 try:
                     current = self._verify_current(secure, date, identity)
                 except StrictCommitError as error:

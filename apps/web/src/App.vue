@@ -40,6 +40,17 @@ function snapshotObservation(workbench: unknown): SnapshotObservation | null {
   const value = recovery?.markets?.A_SHARE;
   return value?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && Array.isArray(value.rows) ? value : null;
 }
+type SnapshotReselection = {
+  mode?: string; selected_rows?: number; scored_rows?: number; captured_at?: string;
+  scoring_evaluated_at?: string; context_status?: string; context_slot?: string | null; context_reader_as_of?: string | null;
+  context_fallback_used?: boolean; context_rejections?: { rejected_slot?: string; error?: string }[];
+  algorithm_sha256?: string; rows: Record<string, unknown>[];
+};
+function snapshotReselection(workbench: unknown): SnapshotReselection | null {
+  const value = (workbench as { snapshot_reselection?: { status?: string; markets?: { A_SHARE?: SnapshotReselection } } } | null)?.snapshot_reselection;
+  const selected = value?.markets?.A_SHARE;
+  return value?.status === "SELECTED_WATCH_ONLY" && selected?.mode === "AFTERFACT_SNAPSHOT_RESELECTION" && Array.isArray(selected.rows) ? selected : null;
+}
 const {
   stageDefinitions,
   closingTimeline,
@@ -83,6 +94,7 @@ const {
   aPoolNextOffset,
   loading,
   loadError,
+  chartCompletionNotice,
   selectedStage,
   stageWorkbench,
   stageLoading,
@@ -149,6 +161,16 @@ const {
   ensureStage,
   onDateInputChange,
 } = useAppShell();
+const globalIndustryMapOpen = ref(false);
+const snapshotSourceTimes = computed(() => {
+  const rows = snapshotObservation(stageWorkbench.value)?.rows ?? [];
+  const times = [...new Set(rows.map((row) => row.source_update_time).filter((value): value is string => typeof value === "string" && value.trim().length > 0))];
+  const missing = rows.some((row) => typeof row.source_update_time !== "string" || !row.source_update_time.trim());
+  return [...times, ...(missing ? ["部分源时点缺失"] : [])].join("、") || "CANNOT_CONFIRM";
+});
+function onGlobalIndustryMapToggle(event: Event) {
+  globalIndustryMapOpen.value = (event.currentTarget as HTMLDetailsElement).open;
+}
 type SopDocument = { id: string; title: string; content: string; sha256: string; updated_at: string; relative_path: string };
 const sopChoices = [
   { id: "overview", title: "SOP 总览" },
@@ -249,7 +271,7 @@ const aEmptyStateDetails = computed(() => {
       <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
       <button type="button" @click="scrollToPool()">D-1 预选池</button>
       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
-      <a class="entry-nav-link research-panel-entry" href="/research-panel/daily.html?date=2026-10-28">研究看板</a>
+      <a class="entry-nav-link research-panel-entry" :href="`/research-panel/daily.html?date=${formatDateInput(selectedDate)}`">研究看板</a>
       <button type="button" @click="openManagerSelection()">经理选股工作台</button>
       <button :class="{ active: sopActive }" type="button" @click="openSop()">SOP</button>
       <button :class="{ active: taskStatusActive }" type="button" @click="openTaskStatus()">任务状态</button>
@@ -278,7 +300,10 @@ const aEmptyStateDetails = computed(() => {
     />
     <template v-else>
 
-    <GlobalIndustryMap v-if="!closeReviewActive" :target-date="selectedDate" />
+    <details v-if="!closeReviewActive" class="panel" :open="globalIndustryMapOpen" @toggle="onGlobalIndustryMapToggle">
+      <summary>全球行业参考地图</summary>
+      <GlobalIndustryMap v-if="globalIndustryMapOpen" :target-date="selectedDate" />
+    </details>
 
     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="阶段上下文">
       <div class="section-heading">
@@ -322,6 +347,15 @@ const aEmptyStateDetails = computed(() => {
       </div>
       <section class="stage-lineage-panel" aria-label="阶段运行血缘">
         <strong>阶段运行血缘</strong>
+        <p v-if="stageWorkbench?.stage_lineage?.natural" class="evidence-gap">{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }} · status={{ stageWorkbench.stage_lineage.natural.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="stageWorkbench?.stage_lineage?.recovery" class="evidence-gap">{{ stageWorkbench.stage_lineage.recovery.label || "CONTROLLED_RECOVERY" }} · status={{ stageWorkbench.stage_lineage.recovery.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence?.cannot_confirm?.length" class="evidence-gap">{{ stageWorkbench.execution_evidence.cannot_confirm.join("、") }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && !stageWorkbench?.execution_evidence" class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence && hasFourLaneFormalGap(stageWorkbench)" class="evidence-gap">
+          四路策略输出属于研究观察；formal_eligible=false 表示正式资格未授予，不代表行情采集失败。
+        </p>
+        <details>
+        <summary>展开运行血缘详情</summary>
         <div v-if="stageWorkbench?.stage_lineage" class="stage-lineage-grid">
           <article v-if="stageWorkbench.stage_lineage.natural" class="stage-lineage-card">
             <b>{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }}</b>
@@ -380,6 +414,7 @@ const aEmptyStateDetails = computed(() => {
           </p>
         </div>
         <p v-else class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        </details>
         <p v-if="stageWorkbench?.stage_lineage?.cannot_confirm?.length" class="evidence-gap">
           {{ stageWorkbench.stage_lineage.cannot_confirm.join("、") }}
         </p>
@@ -401,18 +436,33 @@ const aEmptyStateDetails = computed(() => {
       </p>
       <p v-else-if="stageWorkbench" class="stage-display-status">{{ stageWorkbench.stage.display_status }}</p>
 
+      <div v-if="snapshotReselection(stageWorkbench)" class="market-column" data-snapshot-reselection aria-label="事后快照补选Top10">
+        <h3>事后快照补选 Top10 · WATCH_ONLY</h3>
+        <p>原算法对 {{ snapshotReselection(stageWorkbench)?.scored_rows }} 条有效报价真实评分排序，补选 {{ snapshotReselection(stageWorkbench)?.selected_rows }} 条。非原阶段自然选股、非竞价重演；原正式计数与失败回执保留。</p>
+        <p>快照实际采集 {{ snapshotReselection(stageWorkbench)?.captured_at }} · 本次计算 {{ snapshotReselection(stageWorkbench)?.scoring_evaluated_at }}</p>
+        <p>{{ snapshotReselection(stageWorkbench)?.context_status }} · 采用研究上下文 {{ snapshotReselection(stageWorkbench)?.context_slot || "缺失" }} · 原 reader 验证时点 {{ snapshotReselection(stageWorkbench)?.context_reader_as_of || "无有效上下文" }} · {{ snapshotReselection(stageWorkbench)?.context_fallback_used ? "last-known-good 回退，非采集时点 latest 声明" : "原 reader 已验证" }}</p>
+        <p v-for="(item, index) in snapshotReselection(stageWorkbench)?.context_rejections" :key="index" class="evidence-gap">上下文拒绝 {{ item.rejected_slot }}：{{ item.error }}</p>
+        <p>新闻／研究缺失源分值保留 null；总分沿原引擎既有 neutral 默认计算，未补造实测研究分。</p>
+        <table><thead><tr><th>补选排名</th><th>代码</th><th>名称</th><th>原算法总分</th><th>报价源时刻</th><th>新闻／研究源分</th><th>用途</th></tr></thead>
+        <tbody><tr v-for="row in snapshotReselection(stageWorkbench)?.rows" :key="String(row.code)"><td>{{ row.rank }}</td><td>{{ row.code }}</td><td>{{ row.name || row.stock_name }}</td><td>{{ row.score }}</td><td>{{ row.source_last_bar_time }}</td><td>{{ row.news_quality_score ?? "null" }} ／ {{ row.research_quality_score ?? "null" }}</td><td>WATCH_ONLY</td></tr></tbody></table>
+        <details><summary>算法身份</summary><code>{{ snapshotReselection(stageWorkbench)?.algorithm_sha256 }}</code></details>
+      </div>
       <div v-if="snapshotObservation(stageWorkbench)" class="market-column" data-snapshot-recovery aria-label="当前快照降级观察">
         <h3>当前快照观察 · WATCH_ONLY</h3>
         <p>本阶段正式结果仍按原回执保留。以下为当前行情观察，不是原阶段选股、原 Top10 或自然时点结果；评分与研究上下文未补造。</p>
         <p>真实采集：{{ snapshotObservation(stageWorkbench)?.captured_at }} · 原截止：{{ snapshotObservation(stageWorkbench)?.original_stage_cutoff_at }} · 晚于原截止：{{ snapshotObservation(stageWorkbench)?.after_original_cutoff ? "是" : "否" }}</p>
         <p>观察 {{ snapshotObservation(stageWorkbench)?.observed_rows }} / 请求 {{ snapshotObservation(stageWorkbench)?.requested_rows }}；正式入选计数不增加。隔离/缺失：{{ snapshotObservation(stageWorkbench)?.missing_symbols?.join("、") || "无" }}</p>
         <p class="evidence-gap">{{ snapshotObservation(stageWorkbench)?.gaps?.join("、") }}</p>
+        <p>报价源更新时间：{{ snapshotSourceTimes }}</p>
+        <details>
+        <summary>展开原始报价观察表</summary>
         <table>
           <thead><tr><th>代码</th><th>名称</th><th>快照价格</th><th>源更新时间</th><th>实际采集</th><th>评分/研究</th><th>用途</th></tr></thead>
           <tbody><tr v-for="row in snapshotObservation(stageWorkbench)?.rows" :key="String(row.code)">
             <td>{{ row.code }}</td><td>{{ row.name || "—" }}</td><td>{{ row.last_price }}</td><td>{{ row.source_update_time }}</td><td>{{ row.captured_at }}</td><td>缺失（null）</td><td>WATCH_ONLY</td>
           </tr></tbody>
         </table>
+        </details>
       </div>
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">
@@ -539,6 +589,12 @@ const aEmptyStateDetails = computed(() => {
             </button>
           </div>
           <p v-if="group.pool_id === 'a_all_pool_summary'" class="preview-note">只要汇总池有股票即可进行阶段选股，无需所有子池齐全。</p>
+          <p v-if="group.pool_id === 'a_share_chart_selection'" class="preview-note">
+            研究面板四组同日汇总并去重；信号日 {{ group.signal_date || '待核' }}，目标日 {{ group.target_date || selectedDate }}。
+            <span v-if="group.coverage_evidence?.source_product_status === 'PARTIAL_WITH_ROWS'">来源面板为部分完成。</span>
+            <span v-if="group.coverage_evidence?.source_unknown_count">全范围 {{ group.coverage_evidence.source_unknown_count }} 只股票至少一组待核，可与已命中名单重叠；此处仅列已确认命中的股票。</span>
+          </p>
+          <p v-if="group.pool_id === 'a_share_chart_selection' && chartCompletionNotice" class="evidence-note" role="status">{{ chartCompletionNotice }}</p>
           <template v-if="group.pool_id === 'a_all_pool_summary' && pool?.a_all_pool_rows !== undefined">
             <p class="preview-note" data-testid="pool-page-label">{{ aPoolPageLabel }}</p>
             <div class="pool-pagination" aria-label="A股汇总分页">
@@ -604,7 +660,7 @@ const aEmptyStateDetails = computed(() => {
                   <td>{{ row.pool_rank ?? "-" }}</td><td>{{ poolRowCode(row) }}</td><td>{{ poolRowName(row) }}</td>
                   <td :title="poolRowSourceLane(row)">{{ poolRowSource(row, group) }}</td><td>{{ poolRowSignalDate(row) }}</td><td>{{ row.pool_score ?? "-" }}</td>
                 </tr>
-                <tr v-if="!poolRows(group).length"><td colspan="6">该池当前无可确认行；保留原池边界，不与其他池合并。</td></tr>
+                <tr v-if="!poolRows(group).length"><td colspan="6">{{ group.pool_size ? "当前页没有该池的行；可通过汇总池分页查看。" : "该池当前无可确认行；保留原池边界，不与其他池合并。" }}</td></tr>
               </tbody>
             </table>
           </div>

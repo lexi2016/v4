@@ -21,8 +21,10 @@ from types import MappingProxyType
 from typing import Any, Iterable, Iterator, Mapping
 
 from infrastructure.data_store import _canonical_bytes, _date
+from contracts.a_share_code import is_a_share_code
 from stage_center.input_contracts import (
     KNOWN_A_STAGE_POOL_IDS,
+    LEGACY_A_STAGE_POOL_IDS,
     REQUIRED_A_STAGE_POOL_IDS,
     a_pool_contract,
 )
@@ -65,6 +67,10 @@ STRICT_POOL_SNAPSHOT_AUTHORITY = "STRICT_PHYSICAL_POOL_SNAPSHOT"
 
 class StageAcquisitionContractError(ValueError):
     """A physical stage-input pool or aggregate cannot be confirmed."""
+
+
+class NonAStockInstrument(StageAcquisitionContractError):
+    """A row is outside the existing V4 A-share code identity contract."""
 
 
 def _append_diagnostic(
@@ -240,6 +246,8 @@ def validate_stage_row(
             "stage_selection_eligible is not true"
         )
     code = _canonical_code(row, pool_id, index)
+    if not is_a_share_code(code[2:]):
+        raise NonAStockInstrument(f"{code}:A_SHARE_CODE_INVALID")
     normalized = dict(row)
     normalized["symbol"] = code
     normalized["market"] = "A"
@@ -340,7 +348,12 @@ def validate_pool_rows(
     normalized: list[dict[str, Any]] = []
     seen: set[str] = set()
     for index, raw_row in enumerate(rows):
-        row = validate_stage_row(raw_row, pool_id, trade_date, index)
+        try:
+            row = validate_stage_row(raw_row, pool_id, trade_date, index)
+        except NonAStockInstrument:
+            # Keep other verified securities in the same source pool. The
+            # immutable source artifact and its full SHA remain unchanged.
+            continue
         code = row["symbol"]
         if code in seen:
             raise StageAcquisitionContractError(
@@ -348,6 +361,8 @@ def validate_pool_rows(
             )
         seen.add(code)
         normalized.append(row)
+    if not normalized and not allow_empty:
+        raise StageAcquisitionContractError(f"required A pool {pool_id} has no valid A-share code rows")
     return normalized
 
 
@@ -906,20 +921,23 @@ def validate_strict_stage_acquisition_artifact(
         )
 
     provenance = payload.get("source_pool_provenance")
-    if not isinstance(provenance, list) or len(provenance) != len(REQUIRED_A_STAGE_POOL_IDS):
+    if not isinstance(provenance, list):
         raise StageAcquisitionContractError(
-            "strict stage-acquisition source pool provenance must contain exactly six pools"
+            "strict stage-acquisition source pool provenance is incomplete"
         )
+    pool_ids = tuple(item.get("pool_id") if isinstance(item, Mapping) else None for item in provenance)
+    if pool_ids not in (LEGACY_A_STAGE_POOL_IDS, REQUIRED_A_STAGE_POOL_IDS):
+        raise StageAcquisitionContractError("strict stage-acquisition source pool identity mismatch")
     expected_paths = {
         pool_id: {
             "artifact_relative_path": f"preselection_pools/{trade_date}/{pool_id}.json",
             "manifest_relative_path": f"preselection_pools/{trade_date}/manifest.json",
             "receipt_relative_path": f"preselection_pools/{trade_date}/receipts/{pool_id}.json",
         }
-        for pool_id in REQUIRED_A_STAGE_POOL_IDS
+        for pool_id in pool_ids
     }
     for index, (item, expected_pool_id) in enumerate(
-        zip(provenance, REQUIRED_A_STAGE_POOL_IDS)
+        zip(provenance, pool_ids)
     ):
         if not isinstance(item, Mapping) or item.get("pool_id") != expected_pool_id:
             raise StageAcquisitionContractError(
@@ -1022,7 +1040,7 @@ def validate_strict_stage_acquisition_artifact(
             "strict stage-acquisition pool_diagnostics are invalid"
         )
     flattened_diagnostics: list[str] = []
-    for pool_id in REQUIRED_A_STAGE_POOL_IDS:
+    for pool_id in pool_ids:
         reasons = pool_diagnostics.get(pool_id, [])
         if not isinstance(reasons, list) or any(
             not isinstance(reason, str) for reason in reasons
@@ -1062,7 +1080,7 @@ def validate_strict_stage_acquisition_artifact(
             "strict stage-acquisition code source membership is invalid"
         )
     pool_positions = {
-        pool_id: index for index, pool_id in enumerate(REQUIRED_A_STAGE_POOL_IDS)
+        pool_id: index for index, pool_id in enumerate(pool_ids)
     }
     for code in codes:
         if not isinstance(code, str) or _A_CODE.fullmatch(code) is None:
@@ -1271,7 +1289,7 @@ def validate_artifact_against_snapshot(
 
 
 def read_strict_a_preselection_snapshot(
-    store: Any, trade_date: str, _limit: int | None = None
+    store: Any, trade_date: str, _limit: int | None = None, *, lock_lease: object | None = None
 ) -> StrictAPreselectionSnapshot:
     """Read the known physical pool trios once and return one frozen snapshot.
 
@@ -1284,7 +1302,9 @@ def read_strict_a_preselection_snapshot(
         date = _date(str(trade_date))
     except ValueError as error:
         raise StageAcquisitionContractError("required A pool trade date is invalid") from error
-    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    from infrastructure.preselection_pool_store import (
+        PreselectionPoolArtifactMissing, PreselectionPoolIntegrityError, PreselectionPoolStore,
+    )
 
     # ``Path`` itself has a ``root`` property (``/`` on POSIX); inspect paths
     # before looking for the NativeDataStore root attribute.
@@ -1292,16 +1312,33 @@ def read_strict_a_preselection_snapshot(
     pool_store = store if isinstance(store, PreselectionPoolStore) else PreselectionPoolStore(root)
     snapshots: list[VerifiedPoolSnapshot] = []
     diagnostics: dict[str, list[str]] = {}
-    for pool_id in KNOWN_A_STAGE_POOL_IDS:
-        try:
-            result = pool_store.read_pool_snapshot(date, pool_id)
-            snapshots.append(_snapshot_from_store_result(result, date, pool_id))
-        except Exception as error:
-            _append_diagnostic(
-                diagnostics,
-                pool_id,
-                f"SOURCE_UNAVAILABLE:{type(error).__name__}:{error}",
-            )
+    if lock_lease is None:
+        # One root lease makes the complete physical pool set a consistent
+        # snapshot. Shared root/manifest errors remain fail-closed.
+        results, integrity_errors = pool_store.read_all_with_quarantine(date)
+    else:
+        # The strict publisher already owns this exact lock; pass its live
+        # lease through instead of trying to acquire the same mutex again.
+        results=[];integrity_errors=[]
+        for pool_id in KNOWN_A_STAGE_POOL_IDS:
+            try:
+                results.append(pool_store.read_pool_snapshot(date,pool_id,lock_lease=lock_lease))
+            except PreselectionPoolArtifactMissing:
+                continue
+            except PreselectionPoolIntegrityError as error:
+                integrity_errors.append(error)
+    for result in results:
+        artifact=result.get('artifact') if isinstance(result,Mapping) else None
+        pool_id=artifact.get('pool_id') if isinstance(artifact,Mapping) else None
+        if pool_id in KNOWN_A_STAGE_POOL_IDS:
+            snapshots.append(_snapshot_from_store_result(result,date,pool_id))
+        elif pool_id!='hkconnect_d1_top100':
+            raise StageAcquisitionContractError('locked A pool reader returned an unsupported pool')
+    for error in integrity_errors:
+        if error.pool_id in KNOWN_A_STAGE_POOL_IDS:
+            _append_diagnostic(diagnostics,error.pool_id,f'POOL_SOURCE_INTEGRITY_UNCONFIRMED:{error.reason}')
+        elif error.pool_id!='hkconnect_d1_top100':
+            raise StageAcquisitionContractError('locked A pool reader returned an unknown quarantine pool')
     return aggregate_verified_pool_snapshots(
         snapshots,
         date,

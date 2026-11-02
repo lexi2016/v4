@@ -88,6 +88,14 @@ def __merge_source_contract_body(_v4_scope, /, target, incoming):
         )
         if values:
             target[field] = " / ".join(values)
+    # Preserve structured group evidence when the summary's first row came
+    # from a different pool; leave its rank, name and generic date untouched.
+    if incoming_row.get("pool_id") == "a_share_chart_selection":
+        for field in ("chart_groups", "chart_pending_groups", "chart_group_states", "chart_reasons",
+                      "chart_source_date", "chart_source_generation", "chart_source_input_sha256",
+                      "chart_source_manifest_sha256"):
+            if field in incoming_row:
+                target[field] = incoming_row[field]
 
 
 def _display_name_date_role(trade_date, *, as_of=None):
@@ -146,7 +154,8 @@ def project_a_display_names(response, trade_date, pool_root, *, as_of=None):
     applied, missing = set(), set()
 
     prior_signal_codes={}
-    if date_role=="CURRENT_A_SESSION_PRIOR_SIGNAL_DISPLAY" and current:
+    verified_signal_codes={}
+    if authority.get("pool_audit"):
         from infrastructure.preselection_pool_store import PreselectionPoolStore,PreselectionPoolIntegrityError
         try:
             source=PreselectionPoolStore(Path(pool_root))
@@ -155,26 +164,67 @@ def project_a_display_names(response, trade_date, pool_root, *, as_of=None):
                 try:
                     snapshot=source.read_pool_snapshot(trade_date,pool_id);pool=snapshot["artifact"]
                     trio=audit.get("trio_raw_sha256") or {}
-                    if (snapshot.get("artifact_raw_sha256")!=trio.get("artifact") or snapshot.get("receipt_raw_sha256")!=trio.get("receipt")
-                            or snapshot.get("manifest_raw_sha256")!=trio.get("manifest") or pool.get("signal_date")!=observation_date
-                            or pool.get("target_date")!=trade_date):continue
-                    prior_signal_codes[pool_id]={_normalize_a_code(row.get("symbol") or row.get("code")) for row in pool.get("rows",[])
-                        if row.get("signal_date") in (None,"",observation_date)}
+                    signal_date=pool.get("signal_date")
+                    if (any(not isinstance(trio.get(key),str) or re.fullmatch(r"[0-9a-f]{64}",trio[key]) is None for key in ("artifact","manifest","receipt"))
+                            or snapshot.get("artifact_raw_sha256")!=trio.get("artifact") or snapshot.get("receipt_raw_sha256")!=trio.get("receipt")
+                            or snapshot.get("manifest_raw_sha256")!=trio.get("manifest") or pool.get("target_date")!=trade_date
+                            or not isinstance(signal_date,str) or len(signal_date)!=8 or not signal_date.isdigit() or signal_date>=trade_date):continue
+                    datetime.strptime(signal_date,"%Y%m%d")
+                    codes={_normalize_a_code(row.get("symbol") or row.get("code")) for row in pool.get("rows",[])
+                        if isinstance(row,dict) and row.get("signal_date") in (None,"",signal_date)}
+                    if signal_date==observation_date:prior_signal_codes[pool_id]=codes
                 except (PreselectionPoolIntegrityError,OSError,ValueError,KeyError,TypeError):continue
         except (PreselectionPoolIntegrityError,OSError,ValueError,KeyError,TypeError):pass
+
+    # Stage7 is backed by its own verified Review Core store; the preselection
+    # slot can be an empty placeholder and is not proof of these members.
+    stage_pool_id="a_d1_stage7_fenshi_review_pool"
+    stage_present=any(isinstance(pool,dict) and pool.get("pool_id")==stage_pool_id for pool in output.get("pools") or [])
+    stage_present=stage_present or any(isinstance(row,dict) and row.get("pool_id")==stage_pool_id
+        for key in ("rows","unified_rows","a_source_only_rows","a_all_pool_rows") for row in output.get(key) or [])
+    if stage_present:
+        verified_signal_codes.pop(stage_pool_id,None)
+        prior_signal_codes.pop(stage_pool_id,None)
+        from infrastructure.review_core_stage7_pool_source import load_review_core_stage7_pool
+        stage_pool=load_review_core_stage7_pool(trade_date)
+        signal_date=stage_pool.get("signal_date")
+        hashes=(stage_pool.get("consumer_artifact_sha256"),stage_pool.get("consumer_manifest_sha256"),stage_pool.get("consumer_receipt_sha256"))
+        try:
+            from contracts.trading_calendar import load_market_calendar,previous_session
+            previous_a_session=previous_session(load_market_calendar(),trade_date,market="a_share")
+            if (stage_pool.get("status") in ("READY","PARTIAL") and stage_pool.get("target_date")==trade_date
+                    and stage_pool.get("source_merge_role")=="SOURCE_ONLY" and stage_pool.get("stage_selection_eligible") is False
+                    and isinstance(signal_date,str) and signal_date==previous_a_session
+                    and all(isinstance(value,str) and re.fullmatch(r"[0-9a-f]{64}",value) for value in hashes)):
+                datetime.strptime(signal_date,"%Y%m%d")
+                members={_normalize_a_code(row.get("symbol") or row.get("code")) for row in stage_pool.get("rows",[])
+                    if isinstance(row,dict) and row.get("signal_date")==signal_date and row.get("target_date")==trade_date}
+                verified_signal_codes[stage_pool_id]=(signal_date,members)
+                if signal_date==observation_date:prior_signal_codes[stage_pool_id]=members
+        except (ValueError,TypeError):pass
 
     def project(row, pool_scope=None):
         if not isinstance(row, dict):
             return row
         if row.get("market") not in (None, "A", "A_SHARE") or str(row.get("symbol") or "").startswith("HK."):
             return row
-        if any(row.get(field) not in (None, "", trade_date) for field in ("trade_date", "target_date")):
+        if row.get("target_date") not in (None,"",trade_date):
+            return row
+        row_date=row.get("trade_date")
+        if row_date not in (None,"",trade_date) and (row.get("target_date")!=trade_date or row.get("signal_date")!=row_date):
             return row
         codes = {_normalize_a_code(row.get(field)) for field in ("symbol", "stock_code", "code", "ts_code") if row.get(field)}
         codes.discard("")
         if len(codes) != 1:
             return row
         canonical = next(iter(codes))
+        if row_date not in (None,"",trade_date):
+            if pool_scope and row.get("pool_id") not in (None,"",pool_scope):
+                return row
+            scope=pool_scope or row.get("pool_id")
+            binding=verified_signal_codes.get(stage_pool_id) if scope==stage_pool_id else None
+            if not binding or binding[0]!=row_date or canonical not in binding[1]:
+                missing.add(canonical);return row
         code = canonical[2:]
         if canonical in conflicted:
             missing.add(canonical)

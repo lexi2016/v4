@@ -33,6 +33,7 @@ OPTIONAL_DAILY_POOL_IDS = frozenset(
     {
         "a_share_baimao_research_map",
         "wechat_public_account_v3_preselect",
+        "a_share_chart_selection",
     }
 )
 
@@ -64,6 +65,32 @@ def _stat_mtime_ns(path: Path) -> int | None:
         return None
 
 
+def _pool_publish_metadata(root: Path) -> tuple[Any, ...]:
+    """Stat only publication metadata, including already-existing dates.
+
+    Official pool writes atomically replace each date's manifest. Publishing
+    into an existing date does not change the parent pool directory mtime.
+    Do not read/hash raw pool artifacts on the warm navigation path.
+    """
+    pool_root = root / "preselection_pools"
+    try:
+        dates = sorted(path for path in pool_root.iterdir() if re.fullmatch(r"\d{8}", path.name))
+    except OSError:
+        dates = []
+
+    def metadata(path: Path) -> tuple[Any, ...] | None:
+        try:
+            info = path.lstat()
+            return (info.st_mtime_ns, info.st_ctime_ns, info.st_size, info.st_ino, info.st_mode)
+        except OSError:
+            return None
+
+    return (
+        metadata(pool_root),
+        tuple((path.name, metadata(path), metadata(path / "manifest.json")) for path in dates),
+    )
+
+
 def _catalog_freshness_token(
     store: NativeDataStore,
     stage_selection_root: Path | str | None,
@@ -71,9 +98,9 @@ def _catalog_freshness_token(
 ) -> tuple[Any, ...]:
     """Cheap change detector so a cached catalog never hides a fresh publish.
 
-    The TTL only bounds how long an unchanged tree may be reused; any new pool
-    date, selection publish or store update changes one of these mtimes and
-    forces a rebuild before the TTL expires.
+    The TTL bounds reuse of an unchanged tree. New dates, publication in an
+    existing date, selection publication and catalog updates change tracked
+    metadata and force a rebuild before the TTL expires.
     """
     roots = [Path(store.root)]
     if preselection_source_root is not None:
@@ -84,7 +111,7 @@ def _catalog_freshness_token(
         (
             str(root),
             _stat_mtime_ns(root / "date_catalog.json"),
-            _stat_mtime_ns(root / "preselection_pools"),
+            _pool_publish_metadata(root),
         )
         for root in roots
     ]
@@ -484,6 +511,7 @@ _POOL_ORDER = (
     "a_share_baimao_research_map",
     "hkconnect_d1_top100",
     "wechat_public_account_v3_preselect",
+    "a_share_chart_selection",
 )
 _POOL_NAMES = {
     "a_d1_premarket_pool": "A股 D-1 主预选池",
@@ -493,6 +521,7 @@ _POOL_NAMES = {
     "a_share_baimao_research_map": "白毛卡点研究池",
     "hkconnect_d1_top100": "港股通 0.2 D-1 Top100",
     "wechat_public_account_v3_preselect": "公众号股票池",
+    "a_share_chart_selection": "图形选股",
 }
 
 _POOL_SOURCE_CONTRACT = {
@@ -500,6 +529,7 @@ _POOL_SOURCE_CONTRACT = {
     "a_d1_fupan_watchlist_pool": ("D1_FUPAN", "（复）", "fupan_lane"),
     "a_d1_stage7_fenshi_review_pool": ("D1_STAGE7", "（分）", "stage7_lane"),
     "a_share_research_recommendation_pool": ("RESEARCH_RECOMMENDATION", "（研）", "research_lane"),
+    "a_share_chart_selection": ("CHART_SELECTION", "（图）", "research_panel_four_group"),
 }
 
 

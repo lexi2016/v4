@@ -46,6 +46,7 @@ POOL_ORDER = (
     "a_share_baimao_research_map",
     "hkconnect_d1_top100",
     "wechat_public_account_v3_preselect",
+    "a_share_chart_selection",
 )
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 
@@ -640,6 +641,8 @@ class PreselectionPoolStore:
     def materialize(self, payload: Mapping[str, Any]) -> dict[str, str]:
         trade_date = validate_pool_artifact(payload)
         pool_id = str(payload["pool_id"])
+        if pool_id == "a_share_chart_selection":
+            raise ValueError("CHART_POOL_USE_BOUND_DAILY_OWNER")
         self._preflight_required_write_context(trade_date, pool_id)
         # Physical pool writers and strict stage publication share this root
         # lock.  This closes the snapshot-to-commit window for every writer
@@ -652,6 +655,102 @@ class PreselectionPoolStore:
             self._assert_write_allowed(trade_date, pool_id)
             self._reconcile_pending_commit_unlocked(trade_date, pool_id)
             return self._materialize_unlocked(payload)
+
+    def materialize_chart_selection(
+        self,
+        payload: Mapping[str, Any],
+        *,
+        index_ref: Mapping[str, Any],
+        event_ref: Mapping[str, Any],
+        calendar_ref: Mapping[str, Any],
+        archive_refs: Mapping[str, Any],
+        expected_previous: Mapping[str, str] | None = None,
+    ) -> dict[str, str]:
+        """Publish only the exact current daily-owner chart projection.
+
+        A replacement requires the complete physical preimage.  The original
+        daily event, index, input and calendar are checked again while the
+        existing pool lock is held; neither caller-supplied rows nor an older
+        daily event may bypass that check.
+        """
+        from ops.research_panel_daily_product import chart_preselection_from_completion
+
+        refs = dict(index_ref=index_ref, event_ref=event_ref, calendar_ref=calendar_ref,
+                    archive_refs=archive_refs)
+        if chart_preselection_from_completion(**refs) != dict(payload):
+            raise ValueError("CHART_POOL_PROJECTION_MISMATCH")
+        trade_date = validate_pool_artifact(payload)
+        pool_id = str(payload["pool_id"])
+        if pool_id != "a_share_chart_selection":
+            raise ValueError("CHART_POOL_EXACT_SCOPE_REQUIRED")
+        cas_keys = {"artifact_raw_sha256", "receipt_raw_sha256", "manifest_raw_sha256"}
+        if expected_previous is not None and (
+            set(expected_previous) != cas_keys
+            or any(_SHA256.fullmatch(str(value)) is None for value in expected_previous.values())
+        ):
+            raise ValueError("CHART_POOL_COMPLETE_CAS_REQUIRED")
+        self._preflight_required_write_context(trade_date, pool_id)
+        with owned_interprocess_lock(
+            self.root / ".import.lock", timeout_seconds=10,
+            timeout_message="data-root import lock timeout",
+        ):
+            self._assert_write_allowed(trade_date, pool_id)
+            self._reconcile_pending_commit_unlocked(trade_date, pool_id)
+            if chart_preselection_from_completion(**refs) != dict(payload):
+                raise ValueError("CHART_POOL_PROJECTION_MOVED")
+            try:
+                snapshot = self._read_pool_snapshot_unlocked(trade_date, pool_id, verify_chart_source=False)
+            except PreselectionPoolArtifactMissing:
+                if expected_previous is not None:
+                    raise ValueError("CHART_POOL_PREIMAGE_MISSING") from None
+                return self._materialize_unlocked(payload)
+            if snapshot["artifact"] == dict(payload):
+                return {"artifact_path": snapshot["artifact_relative"],
+                        "receipt_path": snapshot["receipt_relative"],
+                        "sha256": snapshot["artifact_sha256"]}
+            if expected_previous is None or any(
+                snapshot[key] != value for key, value in expected_previous.items()
+            ):
+                raise ValueError("CHART_POOL_PREIMAGE_MISMATCH")
+            previous = snapshot["artifact"]
+            if (previous.get("pool_id") != pool_id
+                    or previous.get("producer_id") != payload.get("producer_id")
+                    or previous.get("source_role") != payload.get("source_role")
+                    or previous.get("signal_date") != payload.get("signal_date")
+                    or previous.get("target_date") != payload.get("target_date")):
+                raise ValueError("CHART_POOL_PREIMAGE_IDENTITY_CONFLICT")
+            digest = _sha256(payload)
+            receipt = self._receipt(trade_date=trade_date, pool_id=pool_id,
+                artifact_path=snapshot["artifact_relative"], artifact_sha256=digest, payload=payload)
+            self._archive_recovery_revision(trade_date, pool_id, snapshot["artifact_sha256"],
+                previous, snapshot["receipt"])
+            self._archive_recovery_revision(trade_date, pool_id, digest, payload, receipt)
+            manifest = dict(snapshot["manifest"])
+            manifest[pool_id] = digest
+            self._commit_main_snapshot(snapshot, payload=payload, receipt=receipt, manifest=manifest)
+            result = self._read_pool_snapshot_unlocked(trade_date, pool_id)
+            if result["artifact"] != dict(payload) or result["artifact_sha256"] != digest:
+                raise ValueError("CHART_POOL_COMMIT_READBACK_CONFLICT")
+            return {"artifact_path": snapshot["artifact_relative"],
+                    "receipt_path": snapshot["receipt_relative"], "sha256": digest,
+                    "previous_sha256": snapshot["artifact_sha256"]}
+
+    def read_chart_selection_preimage(self, trade_date: str) -> dict[str, Any] | None:
+        """Return the exact stored trio for a source-verified chart refresh.
+
+        The old source may already have advanced, so this narrow read skips
+        only the current-source freshness check, never physical trio checks.
+        """
+        trade_date = _date(trade_date)
+        pool_id = "a_share_chart_selection"
+        self._preflight_pending_read_recovery(trade_date, (pool_id,))
+        with owned_interprocess_lock(self.root / ".import.lock", timeout_seconds=10,
+                timeout_message="data-root import lock timeout"):
+            self._reconcile_pending_commit_read_unlocked(trade_date, pool_id)
+            try:
+                return self._read_pool_snapshot_unlocked(trade_date, pool_id, verify_chart_source=False)
+            except PreselectionPoolArtifactMissing:
+                return None
 
     def _materialize_unlocked(self, payload: Mapping[str, Any]) -> dict[str, str]:
         trade_date = validate_pool_artifact(payload)
@@ -1114,7 +1213,19 @@ class PreselectionPoolStore:
             return self._read_pool_unlocked(trade_date, pool_id)
 
     def _read_pool_unlocked(self, trade_date: str, pool_id: str) -> dict[str, Any]:
-        return _pool_readers._read_pool_unlocked(self, trade_date, pool_id, _api=sys.modules[__name__])
+        payload = _pool_readers._read_pool_unlocked(self, trade_date, pool_id, _api=sys.modules[__name__])
+        self._verify_chart_source(pool_id, payload)
+        return payload
+
+    @staticmethod
+    def _verify_chart_source(pool_id: str, payload: Mapping[str, Any]) -> None:
+        if pool_id != "a_share_chart_selection":
+            return
+        from ops.research_panel_daily_product import verify_chart_preselection_source
+        try:
+            verify_chart_preselection_source(payload)
+        except (ValueError, OSError) as error:
+            raise PreselectionPoolIntegrityError(pool_id, str(error)) from error
 
     def read_pool_snapshot(
         self,
@@ -1151,7 +1262,8 @@ class PreselectionPoolStore:
         self._reconcile_pending_commit_read_unlocked(trade_date, pool_id)
         return self._read_pool_snapshot_unlocked(trade_date, pool_id)
 
-    def _read_pool_snapshot_unlocked(self, trade_date: str, pool_id: str) -> dict[str, Any]:
+    def _read_pool_snapshot_unlocked(self, trade_date: str, pool_id: str, *,
+                                     verify_chart_source: bool = True) -> dict[str, Any]:
         """Read one pool trio with canonical physical-byte identity.
 
         ``read_pool`` intentionally keeps its historical semantic-object
@@ -1160,7 +1272,10 @@ class PreselectionPoolStore:
         This reader therefore returns both semantic and raw-byte digests while
         preserving the existing store paths and validation rules.
         """
-        return _pool_readers._read_pool_snapshot_unlocked(self, trade_date, pool_id, _api=sys.modules[__name__])
+        snapshot = _pool_readers._read_pool_snapshot_unlocked(self, trade_date, pool_id, _api=sys.modules[__name__])
+        if verify_chart_source:
+            self._verify_chart_source(pool_id, snapshot["artifact"])
+        return snapshot
 
     read_pool_raw_snapshot = read_pool_snapshot
     read_raw_snapshot = read_pool_snapshot
@@ -1180,6 +1295,15 @@ class PreselectionPoolStore:
                     pools.append(self._read_pool_unlocked(trade_date, pool_id))
                 except FileNotFoundError:
                     continue
+                except PreselectionPoolIntegrityError as error:
+                    if pool_id != "a_share_chart_selection":
+                        raise
+                    pools.append({"pool_id":pool_id, "display_name":"图形选股", "market":"A",
+                        "status":"CANNOT_CONFIRM", "producer_id":"V4_INDEPENDENT_POOL_PROJECTION",
+                        "source_role":"EXPECTED_MISSING", "source_path":"", "source_sha256":"",
+                        "trade_date":trade_date, "target_date":trade_date, "rows":[],
+                        "cannot_confirm":[error.reason], "production_allowed":False,
+                        "buy_gate_updated":False, "orders_sent":False})
             if not pools:
                 raise FileNotFoundError(trade_date)
             return pools

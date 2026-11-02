@@ -49,6 +49,15 @@ const loadError = ref("");
 let requestVersion = 0;
 let poolRequestController: AbortController | null = null;
 let loadedPoolDate = "";
+let dailyCompletionEvents: EventSource | null = null;
+type ChartCompletionGap = { sourceDate: string; targetDate: string; sourceGeneration: string; manifestSha256: string };
+const chartCompletionGaps = ref<Record<string, ChartCompletionGap>>({});
+const chartCompletionNotice = computed(() => {
+  const gaps = Object.values(chartCompletionGaps.value).filter((gap) => gap.targetDate === selectedDate.value);
+  if (!gaps.length) return "";
+  const gap = gaps[gaps.length - 1];
+  return `图形池更新回执未确认：信号日 ${gap.sourceDate}，目标日 ${gap.targetDate}（来源代次 ${gap.sourceGeneration.slice(0, 8)}）。当前列表只代表已核验的既有来源；具体失败见该日 A 股运行回执。`;
+});
 const poolPageOffset = ref(0);
 let firstPoolPage: PoolResponse | null = null;
 watch(selectedDate, (date, previousDate) => {
@@ -226,6 +235,7 @@ const preselectionGroups = computed(() => {
     group("hkconnect_d1_top100", "hkPreselectGroup", "港股通 D-1 预选池"),
     group("wechat_public_account_v3_preselect", "wechatPreselectGroup", "公众号股票池"),
     group("a_d1_premarket_pool", "selectorPreselectGroup", "A股 D-1 主预选池"),
+    group("a_share_chart_selection", "chartPreselectGroup", "图形选股"),
     group("a_d1_stage7_fenshi_review_pool", "fenshiPreselectGroup", "A股 D-1 Stage7/分时复盘池"),
     group("a_d1_fupan_watchlist_pool", "fupanPreselectGroup", "A股 D-1 复盘继续观察池"),
     group("a_share_baimao_research_map", "baimaoPreselectGroup", "白毛卡点研究池"),
@@ -796,6 +806,38 @@ function onBrowserHistoryChange() {
   void applyNavigationFromUrl();
 }
 
+function onDailyPoolCompleted(event: MessageEvent) {
+  let value: unknown;
+  try { value = JSON.parse(event.data); } catch { return; }
+  if (!value || typeof value !== "object") return;
+  const completion = value as Record<string, unknown>;
+  const chart = completion.chart_preselection as Record<string, unknown> | undefined;
+  const manifest = completion.manifest as Record<string, unknown> | undefined;
+  if (completion.schema_version !== "v4.a_share.daily_completion.v1"
+      || completion.RESEARCH_ONLY !== true || completion.production_allowed !== false
+      || completion.buy_gate_updated !== false || completion.orders_sent !== false
+      || !["READY", "CANNOT_CONFIRM"].includes(String(chart?.status || ""))
+      || chart?.pool_id !== "a_share_chart_selection"
+      || chart.source_date !== completion.data_date || !/^\d{8}$/.test(String(completion.data_date || ""))
+      || chart.source_generation !== completion.source_generation
+      || !/^[a-f0-9]{64}$/.test(String(completion.source_generation || ""))
+      || chart.source_manifest_sha256 !== manifest?.sha256 || !/^[a-f0-9]{64}$/.test(String(manifest?.sha256 || ""))) return;
+  const target = chart.target_date;
+  if (typeof target !== "string" || !/^\d{8}$/.test(target)) return;
+  const key = [target, chart.source_date, chart.source_generation, chart.source_manifest_sha256].join(":");
+  if (chart.status === "READY") {
+    if (typeof chart.artifact_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(chart.artifact_sha256)) return;
+    const remaining = { ...chartCompletionGaps.value };
+    delete remaining[key];
+    chartCompletionGaps.value = remaining;
+  } else {
+    chartCompletionGaps.value = { ...chartCompletionGaps.value,
+      [key]: { sourceDate: String(completion.data_date), targetDate: target,
+        sourceGeneration: String(completion.source_generation), manifestSha256: String(manifest?.sha256) } };
+  }
+  if (target === selectedDate.value) void loadPool(selectedDate.value);
+}
+
 async function onDateInputChange(event: Event) {
   const input = event.currentTarget as HTMLInputElement;
   const compact = compactDateInput(input.value);
@@ -817,6 +859,10 @@ onMounted(async () => {
   const dateIntentAtMount = userDateIntentVersion;
   const stageIntentAtMount = userStageIntentVersion;
   window.addEventListener("popstate", onBrowserHistoryChange);
+  if (typeof EventSource !== "undefined") {
+    dailyCompletionEvents = new EventSource("/api/v4/research/events");
+    dailyCompletionEvents.addEventListener("a_share_daily_completed", onDailyPoolCompleted as EventListener);
+  }
   try {
     const [dateList, laneDates] = await Promise.all([
       fetch("/api/v1/runs/date-list").then((r) => (r.ok ? r.json() : Promise.reject(new Error("request failed")))),
@@ -882,6 +928,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("popstate", onBrowserHistoryChange);
+  dailyCompletionEvents?.close();
+  dailyCompletionEvents = null;
   closingRequestVersion += 1;
   closingController?.abort();
   if (closingRefreshTimer !== null) clearTimeout(closingRefreshTimer);
@@ -936,6 +984,7 @@ onBeforeUnmount(() => {
     aPoolNextOffset,
     loading,
     loadError,
+    chartCompletionNotice,
     selectedStage,
     stageWorkbench,
     stageLoading,

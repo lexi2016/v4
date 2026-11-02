@@ -25,6 +25,8 @@ export type PoolRow = {
 };
 export type PoolGroup = {
   pool_id: string; display_name?: string; market?: string; pool_size?: number; returned_rows?: number; rows?: PoolRow[];
+  signal_date?: string; target_date?: string;
+  coverage_evidence?: { source_unknown_count?: number; source_processed_count?: number; source_product_status?: string; group_counts?: Record<string, number> };
   page_offset?: number; page_limit?: number; has_more?: boolean;
   status?: string; complete?: boolean; recommendation_status?: string; producer_id?: string; source_path?: string;
   cannot_confirm?: Array<string | { reason?: string; description?: string }>;
