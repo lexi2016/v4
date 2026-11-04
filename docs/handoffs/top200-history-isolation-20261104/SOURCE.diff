@@ -1,0 +1,33 @@
+diff --git a/ops/research_panel_top200.py b/ops/research_panel_top200.py
+index 3d932f5bc..c560aac99 100644
+--- a/ops/research_panel_top200.py
++++ b/ops/research_panel_top200.py
+@@ -567,9 +567,15 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
+         if upstream_failure is not None:raise ValueError('UPSTREAM_DAILY_SOURCE_FAILED:'+str(upstream_failure.get('reason') or upstream_failure.get('status')))
+         os.environ['V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT']=str(root)
+         context=SourceContext(data_root,int(target))
+-        history=run_incremental_history(context,root,output/context.generation/'history')
+-        if history['status'] not in {'COMPLETE_DESCRIPTIVE_NONPIT','COMPLETE_NO_HISTORY_GAPS'}:raise ValueError('DAILY_HISTORY_PARTIAL')
+-        history_view=publish_current_history_view(context,root,output/context.generation/'current_history_view')
++        history_view=None
++        try:
++            history=run_incremental_history(context,root,output/context.generation/'history')
++            if history['status'] not in {'COMPLETE_DESCRIPTIVE_NONPIT','COMPLETE_NO_HISTORY_GAPS'}:raise ValueError('DAILY_HISTORY_PARTIAL')
++            history_view=publish_current_history_view(context,root,output/context.generation/'current_history_view')
++        except Exception as error:
++            # Same-day ranking uses the bound daily product and official quote
++            # package; missing historical bootstrap inputs remain a separate gap.
++            history=dict(status='CANNOT_CONFIRM',reason=str(error))
+         official_ref=reference(Path(receipt_root)/'a_sync_authority/official_daily'/day/'input.json')
+         payload,reuse=build(context,root,official_ref,classification_root)
+         existing=json.loads((root/'index.json').read_bytes()).get('top200',{}).get(day)
+@@ -581,7 +587,8 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
+         if statistics_root:
+             from ops.build_mac_workbench import materialize_statistics
+             materialize_statistics(root,Path(statistics_root))
+-        receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='COMPLETE_DESCRIPTIVE_NONPIT',data_date=day,source_generation=context.generation,history=history,history_view=history_view,top200=publication,computation=reuse,**FLAGS)
++        complete=history['status'] in {'COMPLETE_DESCRIPTIVE_NONPIT','COMPLETE_NO_HISTORY_GAPS'}
++        receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='COMPLETE_DESCRIPTIVE_NONPIT' if complete else 'CANNOT_CONFIRM',data_date=day,source_generation=context.generation,history=history,history_view=history_view,top200=publication,computation=reuse,**FLAGS)
+     except Exception as error:
+         receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='CANNOT_CONFIRM',data_date=day,error=str(error),**FLAGS)
+     save(output/'latest_receipt.json',receipt)

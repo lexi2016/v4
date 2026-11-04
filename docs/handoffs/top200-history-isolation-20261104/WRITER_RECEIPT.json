@@ -1,0 +1,97 @@
+{
+  "status": "REVIEWED_PASS_SOURCE_ONLY_NOT_DEPLOYED",
+  "goal": "Preserve failed historical bootstrap as CANNOT_CONFIRM while allowing source-bound same-day Top200 and four-group comparison to continue",
+  "worktree": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/top200-history-isolation-20261104",
+  "branch": "codex/top200-history-isolation-20261104",
+  "baseline_commit": "b4e3b2637e1b9485c35cec0246bfd6a81088cfb6",
+  "prior_dirty_for_owned_paths": [],
+  "allowed_paths": [
+    "ops/research_panel_top200.py",
+    "tests/test_daily_top200_completion.py",
+    "docs/handoffs/top200-history-isolation-20261104/"
+  ],
+  "source_sha256": {
+    "baseline_and_current_main": "23cef60699d84a1755f24a802edc1a615c5e159df060873013065c882b41771f",
+    "candidate": "dede5d9e653784b2da71bf148acffdda4630802d05a1a87d5a4152be474b2cbb",
+    "tests": "3a985aecf7a0f5c1923dcff4b5b8091bdbc8ba56e2eb08433bb8f198532fec27"
+  },
+  "live_main_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-rc-namecov-pythonpath-20261104-r1/v4-rc-namecov-pythonpath-20261104-r1-main/app",
+  "live_main_target_source_equals_baseline": true,
+  "cause": {
+    "date": "20261104",
+    "source_generation": "e3ff25234adf18d8f29805a1107b36d61416b7bba3af8f3da9e63f17ee42fe09",
+    "failing_function": "_prior_generation_proofs",
+    "failing_source_line": 266,
+    "first_affected_checked_stock": "000001.SZ",
+    "missing_old_generation": "4787511e6c3125fa043fca9dafd2fdd3fa9496970220a3f0792cfe9732ce1a09",
+    "failure": "Missing old D29 selector parquet; history exception previously prevented build and stage of same-day Top200",
+    "receipt_relative_to_daily_root": "continuations/20261104/latest_receipt.json"
+  },
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/test_daily_top200_completion.py --basetemp=<worktree>/.test-tmp/top200-r4",
+      "result": "7 passed in 0.25s; before adding normal/partial history continuation coverage"
+    },
+    {
+      "command": "Actual Main dependencies + candidate Top200 module injected via importlib; pytest -q tests/test_daily_top200_completion.py --basetemp=<worktree>/.test-tmp/main-compat-r2",
+      "result": "9 passed in 0.10s",
+      "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "coverage": [
+    "Actual prior-generation missing panel.stat failure",
+    "Private real build/stage/publish and attempt receipt",
+    "Exact product identity and day manifest/event mismatch rejection",
+    "Four-group same-day hit comparison",
+    "Reuse with zero structure/formula calls",
+    "Incomplete history does not claim complete",
+    "Upstream source failure stops derivatives",
+    "Normal completion and F10 continuation retained"
+  ],
+  "earlier_test_failures": [
+    "Default pytest shared temp cleanup hit unrelated old EPERM; left shared directories untouched and switched to this worktree basetemp",
+    "First explicit basetemp parent absent; created only this task parent",
+    "Baseline lacks two deployed dependency helpers; fixture isolates baseline and separate Main compatibility run asserts actual deployed helpers exist",
+    "Fixture initially lacked panel attribute; corrected fixture",
+    "Main publisher returns PUBLISHED_TOP200 while source baseline returns PUBLISHED_HISTORY_SYNC; tests accept established receipt names and assert actual materialized source binding"
+  ],
+  "unresolved": [
+    "Missing D29 source parquet/history bootstrap remains CANNOT_CONFIRM",
+    "Standalone worktree baseline predates deployed dependency updates; do not deploy whole tree",
+    "Full live materialization/API/UI/natural execution NOT_RUN by Writer",
+    "Main deployment NOT_RUN; do not affect tonight 21:15 validation"
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "review": {
+    "verdict": "PASS",
+    "reviewer": "/root/top200_reviewer",
+    "reported_by": "/root controller",
+    "scope": "Only frozen historical-failure isolation behavior and direct source/publication guards; not live Main deployment or end-to-end research completion",
+    "independent_checks": "Current Main dependencies: 9 passed; private missing-current-input, quote exception, and CAS conflict checks all blocked publication",
+    "material_defects": []
+  },
+  "deployment": {
+    "status": "NOT_DEPLOYED",
+    "main_changed": false,
+    "api_changed": false,
+    "scheduled_tasks_changed": false,
+    "natural_execution": "NOT_RUN_BY_WRITER"
+  },
+  "git_sync": {
+    "authorized_target": "lexi2016/v4",
+    "authorized_branch": "codex/top200-history-isolation-20261104",
+    "remote": "origin",
+    "remote_url": "git@github.com:lexi2016/v4.git",
+    "scope": "Only source, targeted regression tests, and compact handoff files",
+    "receipt_rule": "Final handoff reports actual commit and remote SHA readback after push; this source receipt does not claim live deployment"
+  }
+}
