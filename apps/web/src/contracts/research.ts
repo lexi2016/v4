@@ -150,8 +150,8 @@ export type ResearchDayLineage = {
 export type ResearchDayProduct = {
   schema_version: "v3_5.research_day_product.v1";
   contract_id: "v3_5.research_day_product.v1";
-  workflow_name: "V35_DAILY_RESEARCH_AUTHORITY_V1";
-  pass_signal: "V35_DAILY_RESEARCH_AUTHORITY_PASS_V1";
+  workflow_name: "V4_DAILY_RESEARCH_AUTHORITY_V1";
+  pass_signal: "V4_DAILY_RESEARCH_AUTHORITY_PASS_V1";
   archive_date: string | null;
   timezone: "Asia/Shanghai";
   date_mode: "EXACT";

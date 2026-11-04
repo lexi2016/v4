@@ -78,6 +78,9 @@ export interface StockDecision {
   invalidation_conditions: string[];
   risks: string[];
   evidence_ids: string[];
+  row_id?: string | null;
+  recommendation_lane?: RecommendationLane | null;
+  display_only?: boolean;
   membership_status?: string | null;
   available_at?: string | null;
   changed?: string | null;
@@ -125,6 +128,125 @@ export interface USFactorSummary extends SafetyFlags {
   historical_pit_verified: false;
   combined_source_and_stock_count: null;
   industry_summary?: HKIndustrySummary | null;
+  strict_us_selection?: StrictUSSelectionSummary | null;
+  single_day_mapping?: SingleDayMappingSummary | null;
+}
+export interface SingleDayMappingPath {
+  grade: "A" | "B" | "C";
+  source_type?: string | null;
+  us_symbol?: string | null;
+  relation_type?: string | null;
+  relation_status?: string | null;
+  source_industry?: string | null;
+  proxy_symbol?: string | null;
+  proxy_symbols?: string[];
+  sign?: number;
+  return_pct?: string | null;
+  signed_return_pct?: string | null;
+  status: string;
+  reason?: string | null;
+  gaps?: string[];
+  research_basis?: string | null;
+  relation_limitations?: string[];
+  relation_source_refs?: unknown[];
+  source_sha256?: string | null;
+  source_session?: string | null;
+}
+export interface SingleDayMappingRow {
+  symbol: string;
+  name?: string | null;
+  row_id?: string | null;
+  recommendation_lane?: RecommendationLane | null;
+  display_only?: boolean;
+  in_monthly_pool: true;
+  decision: "BENEFIT" | "RISK" | "CONFLICT" | "OBSERVATION" | "UNMAPPED" | "UNASSESSED";
+  mapping_grade?: "A" | "B" | "C" | null;
+  source_industry?: string | null;
+  primary_proxy?: string | null;
+  primary_us_symbol?: string | null;
+  primary_relation_type?: string | null;
+  primary_signed_return_pct?: string | null;
+  primary_status?: string | null;
+  mapping_paths: SingleDayMappingPath[];
+  conflict_paths?: SingleDayMappingPath[];
+  reason?: string | null;
+  reasons: string[];
+  formal_target_eligibility: "CANNOT_CONFIRM";
+  frozen_policy_conflict?: boolean;
+}
+export interface SingleDayMappingSummary extends SafetyFlags {
+  display_only: true;
+  state: string;
+  rules_version: string;
+  mapping_policy_version: string;
+  mapping_policy_sha256: string;
+  target_date: string | null;
+  price_session: string | null;
+  source_session: string | null;
+  monthly_observed_scope_count: number | null;
+  monthly_source_date?: string | null;
+  monthly_source_sha256?: string | null;
+  monthly_codes_sha256?: string | null;
+  formal_target_eligibility: "CANNOT_CONFIRM";
+  counts: Record<SingleDayMappingRow["decision"], number | null> & {
+    SMALL_MOVE_WATCH: number | null;
+    C_WATCH: number | null;
+  };
+  rows: SingleDayMappingRow[];
+  outside_pool_observations: Record<string, unknown>[];
+  benefit_rows: SingleDayMappingRow[] | string[];
+  risk_rows: SingleDayMappingRow[] | string[];
+  conflict_rows: string[];
+  observation_rows: string[];
+  unmapped_rows: string[];
+  unassessed_rows: string[];
+  industry_source_status?: string | null;
+  industry_source_date?: string | null;
+  industry_source_sha256?: string | null;
+  gaps: string[];
+  strict_v1_status: "PAUSED_NOT_EXECUTED";
+  deferred_gates: string[];
+  historical_pit_verified: false;
+  research_effectiveness: "UNVERIFIED";
+}
+export interface StrictUSSelectionRow {
+  symbol: string;
+  decision: string;
+  rank: number | null;
+  reason: string | null;
+  reasons: string[];
+  mapping_grade?: string | null;
+  primary_theme?: string | null;
+  primary_proxy?: string | null;
+  primary_us_symbol?: string | null;
+  primary_signed_proxy_return_pct?: string | null;
+  metrics: Record<string, string>;
+  mapping_paths?: Record<string, unknown>[];
+  risks?: string[];
+}
+export interface StrictUSSelectionSummary extends SafetyFlags {
+  display_only: true;
+  state: string;
+  rules_version: string;
+  rules_sha256: string;
+  mapping_policy_version: string;
+  mapping_policy_sha256: string;
+  basic_unit_check_sha256?: string | null;
+  target_date: string | null;
+  price_session: string | null;
+  source_session: string | null;
+  monthly_observed_scope_count: number | null;
+  selected_count: number | null;
+  decision_counts?: Record<string, number>;
+  funnel: Record<string, number>;
+  rows: StrictUSSelectionRow[];
+  selected: StrictUSSelectionRow[];
+  gaps: string[];
+  amount_unit_status?: string | null;
+  amount_scale?: string | null;
+  amount_threshold_hkd?: string | null;
+  historical_pit_verified: false;
+  research_effectiveness: string;
 }
 export interface HKIndustrySummary {
   display_only: true;
@@ -184,6 +306,178 @@ export interface PlanVersion {
   cutoff?: string | null;
   origin?: "NEW" | "LEGACY";
   [key: string]: unknown;
+}
+export interface USMappingSelectionIdentity {
+  schema_version: "v4.us_hk.selection.v1";
+  policy_sha256: string;
+  engine_identity: string;
+}
+export interface USMappingSelectionSnapshot {
+  run_id: string;
+  target_date: string;
+  phase: Phase;
+  product_sha256?: string | null;
+  cutoff: string | null;
+  source_sessions?: Record<string, string | null>;
+}
+export interface USMappingSelectionCounts {
+  industry_match_count?: NullableCount;
+  candidate_count: NullableCount;
+  current_supported: NullableCount;
+  dated_weak: NullableCount;
+  pending_research: NullableCount;
+  selected: NullableCount;
+  qualified_not_selected: NullableCount;
+  rejected: NullableCount;
+  pending: NullableCount;
+}
+export interface USMappingCompactGate {
+  gate: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  reasons: string[];
+}
+export type USMappingProjection = "focus" | "catalogue";
+export interface USMappingFocusCounts {
+  candidate_count: NullableCount;
+  industry_match_count: NullableCount;
+  eligible: NullableCount;
+  selected: NullableCount;
+  capped: NullableCount;
+  not_triggered: NullableCount;
+  pending: NullableCount;
+}
+export interface USMappingFocusPolicy {
+  policy_version: string;
+  policy_sha256: string;
+}
+export interface USMappingFocusDecision {
+  symbol: string;
+  decision: "SELECTED" | "CAPPED" | "NOT_TRIGGERED" | "PENDING";
+  eligible: boolean;
+  rank: number | null;
+  primary_path_id: string | null;
+  primary_us_symbol: string | null;
+  primary_theme: string | null;
+  primary_return_pct: string | null;
+  hk_mean_turnover20_hkd: string | null;
+  reasons: string[];
+}
+export interface USMappingCompactStock {
+  industry_matches?: USMappingIndustryMatch[];
+  symbol: string;
+  name?: string | null;
+  research_state?: "current_supported" | "dated_weak" | "pending";
+  direction?: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
+  primary_path_id?: string | null;
+  strict_state: string;
+  strict_decision?: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED" | string | null;
+  focus_decision?: USMappingFocusDecision | null;
+  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED"
+    | "CAPPED" | "NOT_TRIGGERED";
+  primary_us_symbol?: string | null;
+  primary_theme?: string | null;
+  primary_return_pct?: string | null;
+  hk_mean_turnover20_hkd?: string | null;
+  qualified?: boolean;
+  rank: number | null;
+  reasons?: string[];
+  gates?: USMappingCompactGate[];
+  path_count?: number;
+  source_refs?: Record<string, unknown>[];
+}
+export interface USMappingSelectionView {
+  listing_mode?: "INDUSTRY_MATCH" | "TRIGGERED_FOCUS";
+  listing_policy_version?: string;
+  listing_policy_sha256?: string;
+  projection: USMappingProjection;
+  focus_counts?: USMappingFocusCounts | null;
+  focus_policy?: USMappingFocusPolicy | null;
+  selection_identity: USMappingSelectionIdentity;
+  lane_sources?: Record<string, unknown>;
+  counts: USMappingSelectionCounts;
+  pagination: { total: number; offset: number; limit: number };
+  stocks: USMappingCompactStock[];
+}
+export interface USMappingIndustryMatch {
+  us_symbol: string;
+  industry: string;
+  segment: string | null;
+  association: "BUSINESS_PEER" | "SAME_ISSUER" | "CLASSIFIED_INDUSTRY_PROXY";
+  role: "INDIVIDUAL" | "SECTOR_CONTEXT";
+  relation_id: string | null;
+  return_pct: string | null;
+  source_session: string | null;
+  current_applicability: string | null;
+  source_refs: Record<string, unknown>[];
+  warnings: string[];
+}
+export interface USMappingMappingPath {
+  path_id: string;
+  symbol: string;
+  us_symbol: string | null;
+  relation_type: string | null;
+  role: "INDIVIDUAL" | "SECTOR_CONTEXT";
+  scope: "current_supported" | "dated_weak" | "pending" | "excluded";
+  status: "PASS" | "PENDING" | "REJECT";
+  direction: "POSITIVE" | "NEGATIVE" | "UNKNOWN";
+  strict_supported: boolean;
+  primary_theme: string | null;
+  return_pct: string | null;
+  source_session: string | null;
+  available_at: string | null;
+  source_refs: Record<string, unknown>[];
+  evidence_ids: string[];
+  reasons: string[];
+}
+export interface USMappingResearchCandidate {
+  symbol: string;
+  name: string | null;
+  research_state: "current_supported" | "dated_weak" | "pending";
+  direction: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
+  primary_path_id: string | null;
+  paths: USMappingMappingPath[];
+  reasons: string[];
+  source_refs: Record<string, unknown>[];
+}
+export interface USMappingGateDecision {
+  gate: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  actual: unknown;
+  threshold: unknown;
+  reasons: string[];
+  source_refs: Record<string, unknown>[];
+}
+export interface USMappingStrictDecision {
+  symbol: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED";
+  qualified: boolean;
+  rank: number | null;
+  primary_path_id: string | null;
+  primary_theme: string | null;
+  primary_return_pct: string | null;
+  gates: USMappingGateDecision[];
+  metrics: Record<string, unknown>;
+  reasons: string[];
+  evidence_ids: string[];
+}
+export interface USMappingDiagnosticStock {
+  symbol: string;
+  candidate: USMappingResearchCandidate;
+  strict: USMappingStrictDecision;
+  relationships: USMappingMappingPath[];
+  relationship_pagination: { total: number; offset: number; limit: number };
+}
+export interface USMappingDiagnosticsData {
+  snapshot: USMappingSelectionSnapshot | PlanMetadata;
+  selection_identity: USMappingSelectionIdentity | null;
+  counts: USMappingSelectionCounts | DecisionCounts | null;
+  pagination: { total: number; offset: number; limit: number };
+  stocks: USMappingDiagnosticStock[];
+  versions?: PlanVersion[];
+  lane_sources?: Record<string, unknown>;
+  legacy?: boolean;
+  gaps?: Gap[] | null;
 }
 export interface USMappingRunContract {
   schema_version?: string;
@@ -263,16 +557,19 @@ export interface DayData {
   counts: DecisionCounts | null;
   pagination: { total: number; offset: number; limit: number };
   versions?: PlanVersion[];
+  us_mapping_selection?: USMappingSelectionView;
+  us_mapping_legacy?: boolean;
   gaps?: Gap[] | null;
   us_mapping_summary?: {
-    display_only: true; plan_run_id: string; source_symbol_count: number; source_row_count: number;
-    relation_row_count: number; mapped_hk_count: number; source_decision_counts: Record<string, number>;
-    mixed_source_count: number; coverage: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
-    factor_summary?: USFactorSummary | null;
+    display_only: true; plan_run_id?: string; source_symbol_count?: number; source_row_count?: number;
+    relation_row_count?: number; mapped_hk_count?: number; source_decision_counts?: Record<string, number>;
+    mixed_source_count?: number; coverage?: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
+    factor_summary?: Partial<USFactorSummary> | null;
     catalog_summary?: { state?: string | null; stock_count?: number | null; relation_count?: number | null;
       consumed_relation_count?: number | null; displayed_relation_count?: number | null };
     run_contract?: USMappingRunContract | null;
     directional_proxy_lists?: HKDirectionalProxyLists | null;
+    gaps?: string[];
   } | null;
 }
 export interface StockLaneDetail {

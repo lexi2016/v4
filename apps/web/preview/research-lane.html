@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>研报决策台 · V3.5 Lane 三栏预览</title>
+<title>研报决策台 · V4 Lane 三栏预览</title>
 <link rel="stylesheet" href="research-lane.css">
 <style>
   body { margin:0; background:#0f172a; color:#e2e8f0; font:14px/1.5 "Microsoft YaHei","PingFang SC",sans-serif; }
@@ -55,7 +55,7 @@ function scrollToWechat() {
 
 async function load(date) {
   const d = (date === undefined ? $("#dateInput").value : date) || "";
-  const url = `/api/v3/research/lane${d ? `?research_date=${d}` : ""}`;
+  const url = `/api/v4/research/lane${d ? `?research_date=${d}` : ""}`;
   const p = await (await fetch(url)).json();
   if (p.status === "NOT_MATERIALIZED") { $("#app").innerHTML = `<div class="empty">未物化：${esc(p.reason)}</div>`; return; }
   const daily = p.stock_research_daily || [];

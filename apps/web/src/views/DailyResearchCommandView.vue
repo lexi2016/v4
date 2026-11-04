@@ -116,8 +116,8 @@ function strictWireIssues(body: Partial<DailyResearchPayload>, date: string): st
   const issues: string[] = [];
   if (body.schema_version !== "v3_5.research_day_product.v1") issues.push(`schema_version=${displayWireValue(body.schema_version)}`);
   if (body.contract_id !== "v3_5.research_day_product.v1") issues.push(`contract_id=${displayWireValue(body.contract_id)}`);
-  if (body.workflow_name !== "V35_DAILY_RESEARCH_AUTHORITY_V1") issues.push(`workflow_name=${displayWireValue(body.workflow_name)}`);
-  if (body.pass_signal !== "V35_DAILY_RESEARCH_AUTHORITY_PASS_V1") issues.push(`pass_signal=${displayWireValue(body.pass_signal)}`);
+  if (body.workflow_name !== "V4_DAILY_RESEARCH_AUTHORITY_V1") issues.push(`workflow_name=${displayWireValue(body.workflow_name)}`);
+  if (body.pass_signal !== "V4_DAILY_RESEARCH_AUTHORITY_PASS_V1") issues.push(`pass_signal=${displayWireValue(body.pass_signal)}`);
   if (body.endpoint_mode !== "EXACT") issues.push(`endpoint_mode=${displayWireValue(body.endpoint_mode)}`);
   if (body.date_mode !== "EXACT") issues.push(`date_mode=${displayWireValue(body.date_mode)}`);
   if (body.timezone !== "Asia/Shanghai") issues.push(`timezone=${displayWireValue(body.timezone)}`);
@@ -138,7 +138,7 @@ async function loadDate(date: string) {
   state.value = "LOADING";
 
   try {
-    const response = await fetch(`/api/v3/research/day?archive_date=${date}`);
+    const response = await fetch(`/api/v4/research/day?archive_date=${date}`);
     if (requestId !== requestSequence.value) return;
     if (!response.ok) {
       throw new Error(`strict day request failed (${response.status})`);
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
 
     <footer class="daily-research-command__footer">
       <span>contract_id=v3_5.research_day_product.v1</span>
-      <span>workflow=V35_DAILY_RESEARCH_AUTHORITY_V1</span>
+      <span>workflow=V4_DAILY_RESEARCH_AUTHORITY_V1</span>
       <span>read_only / CANNOT_CONFIRM when the chain is incomplete</span>
     </footer>
   </main>

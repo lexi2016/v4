@@ -1,9 +1,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { ApiError, createWorkbenchApi } from "./api";
+import { researchCutoff } from "./display";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
+  USMappingCompactStock, USMappingDiagnosticsData, USMappingProjection
 } from "./types";
 import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
@@ -25,13 +27,25 @@ function isAbort(error: unknown): boolean {
 }
 function keyForQuery(q: DayQuery): string {
   return JSON.stringify([q.date, q.phase || "", q.run_id || "", q.offset || 0, q.limit || 50,
-    q.decision || "", q.lane || "", q.q || ""]);
+    q.decision || "", q.lane || "", q.projection || "", q.q || ""]);
 }
 export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
   const panel = ref<Panel>("stocks");
+  const singleDayVersion = ref<{
+    run_id: string; phase: Phase; cutoff: string | null; sourceSession: string | null;
+  } | null>(null);
+  const singleDayVersionLoading = ref(false);
+  const singleDayVersionError = ref("");
+  const usMappingDiagnostics = ref<APIData<USMappingDiagnosticsData>>(null);
+  const usMappingDiagnosticsSymbol = ref("");
+  const usMappingDiagnosticsLoading = ref(false);
+  const usMappingDiagnosticsError = ref("");
+  const usMappingDiagnosticsOffset = ref(0);
   const decisionFilter = ref<Decision | "">("");
   const laneFilter = ref<RecommendationLane>('US_MAPPING');
+  const usMappingProjection = ref<USMappingProjection>("focus");
+  const usMappingRunPin = ref("");
   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
   const searchDraft = ref("");
   const search = ref("");
@@ -79,10 +93,14 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const selectedRunId = computed(() => snapshot.value?.run_id || route.value.runId || "");
   const selectedDate = computed(() => snapshot.value?.context.target_date || route.value.date);
   const hasStale = computed(() => stale.value && !!day.value);
-  const readMode = computed(() => route.value.runId ? "固定 run_id" : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
+  const readMode = computed(() => route.value.runId ? "固定 run_id"
+    : laneFilter.value === "US_MAPPING" && usMappingRunPin.value ? "同 run_id 续读"
+      : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
   const valid = computed(() => route.value.error === null);
 
   let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
+  let lastSuccessfulPageContext = "";
+  let usMappingDiagnosticsSeq = 0;
   let dayAbort: AbortController | null = null;
   let detailAbort: AbortController | null = null;
   let historyAbort: AbortController | null = null;
@@ -90,6 +108,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   let catalogAbort: AbortController | null = null;
   const catalogRelationAborts = new Map<string, AbortController>();
   let jobAbort: AbortController | null = null;
+  let usMappingDiagnosticsAbort: AbortController | null = null;
   let jobTimer: ReturnType<typeof setTimeout> | null = null;
 
   function stopJobReads(): void {
@@ -99,9 +118,20 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     jobTimer = null;
     jobLoading.value = false;
   }
+  function clearUSMappingDiagnostics(): void {
+    usMappingDiagnosticsSeq++;
+    usMappingDiagnosticsAbort?.abort();
+    usMappingDiagnosticsAbort = null;
+    usMappingDiagnostics.value = null;
+    usMappingDiagnosticsSymbol.value = "";
+    usMappingDiagnosticsLoading.value = false;
+    usMappingDiagnosticsError.value = "";
+    usMappingDiagnosticsOffset.value = 0;
+  }
   function abortAll(): void {
     daySeq++; detailSeq++; historySeq++; reviewSeq++; catalogSeq++;
     dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort(); catalogAbort?.abort();
+    clearUSMappingDiagnostics();
     catalogLoading.value = false;
     clearCatalogRelationDetails();
     stopJobReads();
@@ -110,20 +140,25 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     operationSeq++;
     operationLoading.value = false;
     abortAll();
+    singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     day.value = null; dayLoading.value = false; dayError.value = ""; stale.value = false;
     lastSuccessfulKey.value = "";
+    lastSuccessfulPageContext = "";
     detail.value = null; detailSymbol.value = ""; detailError.value = ""; detailLoading.value = false;
     history.value = null; historyError.value = ""; historyLoading.value = false;
     review.value = null; reviewError.value = ""; reviewLoading.value = false;
     job.value = null; jobId.value = ""; jobError.value = "";
     panel.value = "stocks"; offset.value = 0; search.value = ""; searchDraft.value = "";
     decisionFilter.value = ""; laneFilter.value = 'US_MAPPING';
+    usMappingProjection.value = "focus"; usMappingRunPin.value = "";
     delete laneViews.US_MAPPING; delete laneViews.OVERSOLD;
   }
   function navigate(next: WorkbenchRoute, replace = false): void {
     resetPage();
     route.value = next;
-    const url = window.location.pathname + routeSearch(next, window.location.search) + window.location.hash;
+    const previous = new URLSearchParams(window.location.search);
+    ["offset", "limit", "decision", "lane", "q"].forEach(key => previous.delete(key));
+    const url = window.location.pathname + routeSearch(next, previous.toString()) + window.location.hash;
     if (replace) window.history.replaceState(null, "", url);
     else window.history.pushState(null, "", url);
     if (!next.error) void loadDay();
@@ -141,18 +176,64 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (!route.value.error) void loadDay();
   }
   function dayQuery(): DayQuery {
-    return { date: route.value.date, phase: route.value.phase, run_id: route.value.runId,
+    const runId = route.value.runId || (laneFilter.value === "US_MAPPING" ? usMappingRunPin.value : "");
+    return { date: route.value.date, phase: route.value.phase, run_id: runId || undefined,
       offset: offset.value, limit, decision: decisionFilter.value,
-      lane: laneFilter.value, q: search.value };
+      lane: laneFilter.value, projection: laneFilter.value === "US_MAPPING" ? usMappingProjection.value : undefined,
+      q: search.value };
+  }
+  // Discovery only: never replace the selected run with another version's rows.
+  async function findSingleDayVersion(response: Envelope<DayData>, query: DayQuery,
+    seq: number, signal: AbortSignal): Promise<void> {
+    singleDayVersion.value = null; singleDayVersionError.value = "";
+    if (query.lane !== "US_MAPPING" || !response.data?.snapshot || response.data.us_mapping_selection
+      || response.data.us_mapping_summary?.factor_summary?.single_day_mapping) return;
+    const candidates = (response.data.versions || [])
+      .filter(version => version.run_id !== response.data?.snapshot?.run_id
+        && (!version.target_date || version.target_date === query.date))
+      .sort((a, b) => Number(b.phase === "NEXT_DAY") - Number(a.phase === "NEXT_DAY"));
+    singleDayVersionLoading.value = true;
+    let failed = false;
+    try {
+      for (const version of candidates) {
+        if (seq !== daySeq || signal.aborted) return;
+        try {
+          const candidate = await api.getRecommendations({ date: query.date, phase: version.phase,
+            run_id: version.run_id, lane: "US_MAPPING", offset: 0, limit: 1 }, signal);
+          if (seq !== daySeq || signal.aborted) return;
+          const snap = candidate.data?.snapshot;
+          const summary = candidate.data?.us_mapping_summary?.factor_summary?.single_day_mapping;
+          if (snap?.context.target_date !== query.date || snap.run_id !== version.run_id
+            || snap.context.phase !== version.phase) { failed = true; continue; }
+          if (!summary || summary.target_date !== query.date || !Array.isArray(summary.rows)) continue;
+          singleDayVersion.value = { run_id: snap.run_id, phase: snap.context.phase,
+            cutoff: researchCutoff(snap.context), sourceSession: summary.source_session };
+          return;
+        } catch (error) {
+          if (seq !== daySeq || signal.aborted || isAbort(error)) return;
+          failed = true;
+        }
+      }
+      singleDayVersionError.value = failed
+        ? "部分同日保存版读取失败，单日映射版本仍待核；可从计划版本选择器重试。"
+        : "同目标日暂未找到可读取的单日映射保存版。";
+    } finally {
+      if (seq === daySeq) singleDayVersionLoading.value = false;
+    }
   }
   async function loadDay(preserve = false): Promise<void> {
     if (!valid.value) return;
     const query = dayQuery(); const key = keyForQuery(query);
+    const pageContext = keyForQuery({ ...query, offset: 0 });
     const previousRunId = snapshot.value?.run_id;
-    const old = preserve && lastSuccessfulKey.value === key ? day.value : null;
+    const samePinnedPageContext = Boolean(query.run_id && query.run_id === previousRunId
+      && lastSuccessfulPageContext === pageContext);
+    const old = preserve && (lastSuccessfulKey.value === key || samePinnedPageContext) ? day.value : null;
     const seq = ++daySeq;
     dayAbort?.abort(); const ctrl = new AbortController(); dayAbort = ctrl;
     if (!old) day.value = null;
+    clearUSMappingDiagnostics();
+    singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     stale.value = false; dayLoading.value = true; dayError.value = "";
     try {
       const response = await api.getRecommendations(query, ctrl.signal);
@@ -162,7 +243,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         if (snap.context.target_date !== query.date ||
             (query.run_id && snap.run_id !== query.run_id) ||
             (query.phase && snap.context.phase !== query.phase) ||
-            (response.data?.recommendation_projection && response.data.recommendation_projection.lane !== query.lane)) {
+            (response.data?.recommendation_projection && response.data.recommendation_projection.lane !== query.lane) ||
+            (query.lane === "US_MAPPING" && response.data.us_mapping_selection?.projection
+              && response.data.us_mapping_selection.projection !== (query.projection || "focus")
+              && !(query.projection === "focus" && !response.data.us_mapping_selection.focus_counts
+                && response.data.us_mapping_selection.projection === "catalogue"))) {
           throw new ApiError("API 返回的日期、阶段或版本与本次请求不一致", 502);
         }
       }
@@ -173,13 +258,20 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         review.value = null; reviewLoading.value = false; reviewError.value = "";
       }
       day.value = response;
-      if (response.data?.snapshot) lastSuccessfulKey.value = key;
-      else lastSuccessfulKey.value = "";
+      void findSingleDayVersion(response, query, seq, ctrl.signal);
+      if (response.data?.snapshot) {
+        lastSuccessfulKey.value = key;
+        lastSuccessfulPageContext = pageContext;
+      } else {
+        lastSuccessfulKey.value = "";
+        lastSuccessfulPageContext = "";
+      }
     } catch (error) {
       if (seq !== daySeq || isAbort(error)) return;
       dayError.value = errorMessage(error);
       day.value = old;
       stale.value = !!old;
+      if (old?.data?.pagination) offset.value = old.data.pagination.offset;
     } finally {
       if (seq === daySeq) dayLoading.value = false;
     }
@@ -192,19 +284,40 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (lane === laneFilter.value) return;
     laneViews[laneFilter.value] = { offset: offset.value, decision: decisionFilter.value, search: search.value };
     laneFilter.value = lane;
-    const view = laneViews[lane]; offset.value = view?.offset || 0;
+    const incompatibleUSMappingOffset = lane === "US_MAPPING" && usMappingProjection.value !== "focus";
+    if (lane === "US_MAPPING") { usMappingProjection.value = "focus"; usMappingRunPin.value = ""; }
+    const view = laneViews[lane]; offset.value = incompatibleUSMappingOffset ? 0 : view?.offset || 0;
     decisionFilter.value = view?.decision || ''; search.value = view?.search || ''; searchDraft.value = search.value;
     detailSeq++; detailAbort?.abort(); detail.value = null; detailLoading.value = false;
     panel.value = 'stocks'; void loadDay();
   }
   function setOffset(next: number): void {
     const maxTotal = pagination.value?.total ?? 0;
-    if (!Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
+    if (dayLoading.value || !Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
+    if (laneFilter.value === "US_MAPPING" && !route.value.runId && !usMappingRunPin.value) {
+      usMappingRunPin.value = selectedRunId.value;
+    }
     offset.value = next;
+    void loadDay(true);
+  }
+  function switchUSMappingProjection(projection: USMappingProjection): void {
+    if (laneFilter.value !== "US_MAPPING" || projection === usMappingProjection.value) return;
+    const selection = day.value?.data?.us_mapping_selection;
+    if (!selection?.focus_counts || !selection.focus_policy) return;
+    if (!route.value.runId) usMappingRunPin.value = selectedRunId.value;
+    usMappingProjection.value = projection;
+    offset.value = 0;
+    detailSeq++; detailAbort?.abort(); detail.value = null; detailLoading.value = false; detailError.value = "";
+    panel.value = "stocks";
     void loadDay();
+  }
+  function refreshDay(): void {
+    if (laneFilter.value === "US_MAPPING" && !route.value.runId) usMappingRunPin.value = "";
+    void loadDay(true);
   }
   function showPanel(next: Panel): void {
     panel.value = next;
+    if (next !== "stocks") clearUSMappingDiagnostics();
     if (next === "history") void loadHistory();
     if (next === "reviews") void loadReview();
     if (next === "catalog") void loadCatalog();
@@ -289,21 +402,31 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     void loadCatalog(next);
   }
   async function openStock(stock: StockDecision): Promise<void> {
+    clearUSMappingDiagnostics();
     panel.value = "detail";
     detail.value = null; detailError.value = ""; detailSymbol.value = stock.symbol;
+    const seq = ++detailSeq;
+    detailAbort?.abort(); detailAbort = null; detailLoading.value = false;
     const runId = selectedRunId.value;
     if (!runId) { detailError.value = "缺少计划 run_id，不能读取跨版本详情"; return; }
-    const seq = ++detailSeq;
-    detailAbort?.abort(); const ctrl = new AbortController(); detailAbort = ctrl;
+    const recommendationLane = stock.recommendation_lane ?? laneFilter.value;
+    const rowId = typeof stock.row_id === "string" ? stock.row_id : "";
+    if (recommendationLane !== laneFilter.value) {
+      detailError.value = "保存的推荐来源与当前名单不一致，不能读取详情"; return;
+    }
+    if (recommendationLane === "US_MAPPING" && !rowId) {
+      detailError.value = "当前历史保存版缺少 US_MAPPING 行标识，不能读取跨版本详情"; return;
+    }
+    const ctrl = new AbortController(); detailAbort = ctrl;
     detailLoading.value = true;
     try {
       const result = await api.getStock(stock.symbol, route.value.date, runId, ctrl.signal,
-        { lane: laneFilter.value, row_id: String(stock.row_id || '') });
+        { lane: recommendationLane, row_id: rowId });
       if (seq !== detailSeq || ctrl.signal.aborted) return;
       if (result.data?.plan_run_id !== runId || result.data.stock?.symbol !== stock.symbol) {
         throw new ApiError("个股详情与请求的计划 run_id 不一致", 502);
       }
-      if (result.data.recommendation_lane !== laneFilter.value || result.data.stock.row_id !== stock.row_id) {
+      if (result.data.recommendation_lane !== recommendationLane || result.data.stock.row_id !== stock.row_id) {
         throw new ApiError('个股详情与请求的独立推荐来源或记录不一致', 502);
       }
       detail.value = result;
@@ -312,6 +435,73 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     } finally {
       if (seq === detailSeq) detailLoading.value = false;
     }
+  }
+  async function loadUSMappingDiagnostics(symbol: string, relationshipOffset = 0): Promise<void> {
+    const runId = selectedRunId.value;
+    const savedSnapshot = snapshot.value;
+    if (!runId || !savedSnapshot || laneFilter.value !== "US_MAPPING") {
+      usMappingDiagnosticsError.value = "没有当前 US_MAPPING 保存 run_id，不能读取诊断。";
+      return;
+    }
+    if (!/^HK\.[0-9]{5}$/.test(symbol) || !Number.isInteger(relationshipOffset) || relationshipOffset < 0) return;
+    const requestedDate = route.value.date;
+    const requestedPhase = route.value.phase || savedSnapshot.context.phase;
+    const requestedDaySeq = daySeq;
+    const compactIdentity = day.value?.data?.us_mapping_selection?.selection_identity;
+    const seq = ++usMappingDiagnosticsSeq;
+    usMappingDiagnosticsAbort?.abort();
+    const ctrl = new AbortController();
+    usMappingDiagnosticsAbort = ctrl;
+    usMappingDiagnosticsSymbol.value = symbol;
+    usMappingDiagnosticsOffset.value = relationshipOffset;
+    usMappingDiagnostics.value = null;
+    usMappingDiagnosticsError.value = "";
+    usMappingDiagnosticsLoading.value = true;
+    try {
+      const result = await api.getUSMappingDiagnostics({
+        date: requestedDate, phase: requestedPhase, run_id: runId, symbol,
+        relationship_offset: relationshipOffset, relationship_limit: 50
+      }, ctrl.signal);
+      if (seq !== usMappingDiagnosticsSeq || requestedDaySeq !== daySeq || ctrl.signal.aborted
+        || requestedDate !== route.value.date || runId !== selectedRunId.value || laneFilter.value !== "US_MAPPING") return;
+      const responseSnapshot = result.data?.snapshot;
+      const responseDate = responseSnapshot
+        ? ("context" in responseSnapshot ? responseSnapshot.context.target_date : responseSnapshot.target_date) : undefined;
+      const responsePhase = responseSnapshot
+        ? ("context" in responseSnapshot ? responseSnapshot.context.phase : responseSnapshot.phase) : undefined;
+      if (!responseSnapshot || responseSnapshot.run_id !== runId || responseDate !== requestedDate
+        || responsePhase !== requestedPhase) {
+        throw new ApiError("US_MAPPING diagnostics 日期、阶段或 run_id 与当前保存版不一致", 502);
+      }
+      const identity = result.data?.selection_identity;
+      if (!identity || (compactIdentity && (identity.schema_version !== compactIdentity.schema_version
+        || identity.policy_sha256 !== compactIdentity.policy_sha256
+        || identity.engine_identity !== compactIdentity.engine_identity))) {
+        throw new ApiError("US_MAPPING diagnostics 与当前 selection_identity 不一致", 502);
+      }
+      if (!result.data?.stocks?.some(stock => stock.symbol === symbol)) {
+        throw new ApiError("US_MAPPING diagnostics 未返回所选港股", 502);
+      }
+      usMappingDiagnostics.value = result;
+    } catch (error) {
+      if (seq === usMappingDiagnosticsSeq && !isAbort(error)) usMappingDiagnosticsError.value = errorMessage(error);
+    } finally {
+      if (seq === usMappingDiagnosticsSeq) usMappingDiagnosticsLoading.value = false;
+    }
+  }
+  function toggleUSMappingDiagnostics(stock: USMappingCompactStock): void {
+    if (usMappingDiagnosticsSymbol.value === stock.symbol) {
+      clearUSMappingDiagnostics();
+      return;
+    }
+    void loadUSMappingDiagnostics(stock.symbol, 0);
+  }
+  function pageUSMappingDiagnostics(nextOffset: number): void {
+    const symbol = usMappingDiagnosticsSymbol.value;
+    if (!symbol || !Number.isInteger(nextOffset) || nextOffset < 0) return;
+    const pagination = usMappingDiagnostics.value?.data?.stocks.find(row => row.symbol === symbol)?.relationship_pagination;
+    if (!pagination || nextOffset >= pagination.total || nextOffset === pagination.offset) return;
+    void loadUSMappingDiagnostics(symbol, nextOffset);
   }
   async function loadHistory(): Promise<void> {
     if (!valid.value) return;
@@ -428,7 +618,12 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
 
   return {
-    route, panel, selectDate, decisionFilter, laneFilter, searchDraft, search, offset, limit,
+    route, panel, selectDate, singleDayVersion, singleDayVersionLoading, singleDayVersionError,
+    usMappingDiagnostics, usMappingDiagnosticsSymbol, usMappingDiagnosticsLoading,
+    usMappingDiagnosticsError, usMappingDiagnosticsOffset, toggleUSMappingDiagnostics,
+    pageUSMappingDiagnostics,
+    decisionFilter, laneFilter, usMappingProjection, switchUSMappingProjection, refreshDay,
+    searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,
     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,

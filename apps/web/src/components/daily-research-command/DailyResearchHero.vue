@@ -73,7 +73,7 @@ function statusLabel(state: DailyResearchCommandState) {
 <template>
   <header class="daily-research-command__hero">
     <div class="daily-research-command__hero-copy">
-      <p class="daily-research-command__eyebrow">V3.5 / RESEARCH AUTHORITY</p>
+      <p class="daily-research-command__eyebrow">V4 / RESEARCH AUTHORITY</p>
       <h1 class="daily-research-command__title">全天研究指挥台</h1>
       <p class="daily-research-command__subtitle">
         只读查看 exact-date 全天产品。小时槽位是血缘证据，不会被提升为全天权威。
