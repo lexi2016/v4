@@ -1,0 +1,1011 @@
+{
+ "schema_version": "v4.research.a_share_pool_top200.v1",
+ "generated_at": "2026-11-04T17:19:30.234330+08:00",
+ "scope": "READ_ONLY_DERIVED_SERIES; no authoritative artifact written",
+ "rule": {
+  "a_pool_union": "A股所有预选池汇总：六路已知 A 池按证券代码去重；与同日收盘 Top200 求交",
+  "a_pool": "每个独立 A 预选池分别计算；只统计 A 股票行；缺失池或 CANNOT_CONFIRM 池不补 0",
+  "seven_stage": "union of A_SHARE stage selection rows across 7 stages; per-stage displayed rows (currently 10)",
+  "top200": "fixed 5575 A-share directory + official TDX daily package; top 200 by change_pct with full valid bar",
+  "metrics": {
+   "top200_coverage_pct": "H/T",
+   "selection_hit_rate_pct": "H/S"
+  },
+  "missing_policy": "missing pool, missing stage, or missing Top200 input is declared; do not fill 0 or claim a complete month"
+ },
+ "latest_available_date": "20261104",
+ "available_dates": [
+  "20261030",
+  "20261102",
+  "20261103",
+  "20261104"
+ ],
+ "evidence_dates": [
+  "20261029",
+  "20261030",
+  "20261102",
+  "20261103",
+  "20261104"
+ ],
+ "dates": [
+  {
+   "date": "20261029",
+   "status": "NOT_MATERIALIZED",
+   "reason": "NO_OFFICIAL_DAILY_PACKAGE",
+   "stage_coverage": {
+    "available": 2,
+    "total": 7,
+    "missing_stages": [
+     "STAGE_0925",
+     "STAGE_0930_0935",
+     "STAGE_0935_0940",
+     "STAGE_0940_0945",
+     "STAGE_1445_1500"
+    ]
+   },
+   "seven_stage": {
+    "status": "PARTIAL_STAGE_COVERAGE",
+    "selected_count": 19,
+    "hit_count": null,
+    "top_count": null,
+    "top200_coverage_pct": null,
+    "selection_hit_rate_pct": null,
+    "stages": {
+     "STAGE_0925": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0930_0935": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0935_0940": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0940_0945": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0945_1030": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261029/A_SHARE_SELECTION_STAGE_0945_1030/run-16a9788ca378a6443b6e3d5a/artifact.csv",
+      "artifact_sha256": "acdc74429483d73aea19ab91f8416dedb77af46083df1a074c2d4481de32b0a4",
+      "run_id": "run-16a9788ca378a6443b6e3d5a",
+      "hit_count": null
+     },
+     "STAGE_1300_1315": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261029/A_SHARE_SELECTION_STAGE_1300_1315/run-3b5bcb7f550faadacc151e6e/artifact.csv",
+      "artifact_sha256": "12c792eeb8fbdf283ad694831a72e7530822b1ca342dcedc81954380f9f17fd7",
+      "run_id": "run-3b5bcb7f550faadacc151e6e",
+      "hit_count": null
+     },
+     "STAGE_1445_1500": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     }
+    }
+   },
+   "a_pool": {
+    "status": "PARTIAL_POOL_COVERAGE",
+    "reason": "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+    "materialized": true,
+    "evaluable": false,
+    "selected_count": 58,
+    "hit_count": null,
+    "top_count": null,
+    "top200_coverage_pct": null,
+    "selection_hit_rate_pct": null,
+    "pool_count": 6,
+    "materialized_pool_count": 1,
+    "partial_pool_ids": [],
+    "missing_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool",
+     "a_share_research_recommendation_pool",
+     "a_share_baimao_research_map",
+     "wechat_public_account_v3_preselect"
+    ],
+    "missing_mandatory_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool",
+     "a_share_research_recommendation_pool"
+    ],
+    "partial_mandatory_pool_ids": [],
+    "api_data_status": "PARTIAL_WITH_ROWS",
+    "api_input_fingerprint": "70a8d4a4139bf9a1e766267f9f72a6173d4768acf1cf64e8e3b6263ef1040b97",
+    "pools": [
+     {
+      "pool_id": "a_d1_premarket_pool",
+      "display_name": "A股 D-1 主预选池",
+      "status": "V192_CANDIDATE_READY",
+      "signal_date": "20261028",
+      "target_date": "20261029",
+      "row_count": 58,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 58,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "a5dc491b787b53facf18847205d834b1b4d742d3c872cf8dd139001b399d179a"
+     },
+     {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "display_name": "A股 D-1 复盘继续观察池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "display_name": "A股 D-1 Stage7/分时复盘池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_share_research_recommendation_pool",
+      "display_name": "A股研报推荐股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_share_baimao_research_map",
+      "display_name": "白毛卡点研究池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "display_name": "公众号股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    ]
+   },
+   "top200": null
+  },
+  {
+   "date": "20261030",
+   "status": "PARTIAL",
+   "reason": "PARTIAL_POOL_OR_STAGE_COVERAGE",
+   "stage_coverage": {
+    "available": 3,
+    "total": 7,
+    "missing_stages": [
+     "STAGE_0925",
+     "STAGE_0930_0935",
+     "STAGE_0935_0940",
+     "STAGE_0940_0945"
+    ]
+   },
+   "seven_stage": {
+    "status": "PARTIAL_STAGE_COVERAGE",
+    "selected_count": 29,
+    "hit_count": 7,
+    "top_count": 200,
+    "top200_coverage_pct": 3.5,
+    "selection_hit_rate_pct": 24.14,
+    "stages": {
+     "STAGE_0925": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0930_0935": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0935_0940": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0940_0945": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0945_1030": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261030/A_SHARE_SELECTION_STAGE_0945_1030/run-fcd541b3edd311f6a4937656/artifact.csv",
+      "artifact_sha256": "240e0ac18601b10d66aeb952f307894f9b1398d18b340f263abfaedf94642bde",
+      "run_id": "run-fcd541b3edd311f6a4937656",
+      "hit_count": 3
+     },
+     "STAGE_1300_1315": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261030/A_SHARE_SELECTION_STAGE_1300_1315/run-af99c9b2e90db54c28e1faf7/artifact.csv",
+      "artifact_sha256": "b936bbc1279f7eab9e679b49bd2639f0940bdf082c2c54fbfe51d49aaa7256ac",
+      "run_id": "run-af99c9b2e90db54c28e1faf7",
+      "hit_count": 2
+     },
+     "STAGE_1445_1500": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261030/A_SHARE_SELECTION_STAGE_1445_1500/run-22c6287060ceb523fbd7f774/artifact.csv",
+      "artifact_sha256": "78f2553ff5f5a5129109ee5b0ef2b67b83297aeaea3712279180db0ba588db9c",
+      "run_id": "run-22c6287060ceb523fbd7f774",
+      "hit_count": 2
+     }
+    }
+   },
+   "a_pool": {
+    "status": "PARTIAL_POOL_COVERAGE",
+    "reason": "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+    "materialized": true,
+    "evaluable": true,
+    "selected_count": 531,
+    "hit_count": 49,
+    "top_count": 200,
+    "top200_coverage_pct": 24.5,
+    "selection_hit_rate_pct": 9.23,
+    "pool_count": 6,
+    "materialized_pool_count": 2,
+    "partial_pool_ids": [],
+    "missing_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool",
+     "a_share_baimao_research_map",
+     "wechat_public_account_v3_preselect"
+    ],
+    "missing_mandatory_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "partial_mandatory_pool_ids": [],
+    "api_data_status": "PARTIAL_WITH_ROWS",
+    "api_input_fingerprint": "bdcf982c036a270d7ac3827eb5f20ab5b91fdd9ba32e2bee91a19b82a815054c",
+    "pools": [
+     {
+      "pool_id": "a_d1_premarket_pool",
+      "display_name": "A股 D-1 主预选池",
+      "status": "V192_CANDIDATE_READY",
+      "signal_date": "20261029",
+      "target_date": "20261030",
+      "row_count": 25,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 25,
+      "hit_count": 2,
+      "top200_coverage_pct": 1.0,
+      "selection_hit_rate_pct": 8.0,
+      "source_sha256": "0bed6e2aa115cc3d8c40057022d83429b504b6edb30808ac19328027ba01edb2"
+     },
+     {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "display_name": "A股 D-1 复盘继续观察池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "display_name": "A股 D-1 Stage7/分时复盘池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_share_research_recommendation_pool",
+      "display_name": "A股研报推荐股票池",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 517,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 517,
+      "hit_count": 49,
+      "top200_coverage_pct": 24.5,
+      "selection_hit_rate_pct": 9.48,
+      "source_sha256": "e78b02d54c4e229905a35d5d286326a0fe87ed73aa5e25ee6221ffe3160d0bc8"
+     },
+     {
+      "pool_id": "a_share_baimao_research_map",
+      "display_name": "白毛卡点研究池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "display_name": "公众号股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    ]
+   },
+   "top200": {
+    "top_count": 200,
+    "min_change_pct": 3.3967,
+    "source": "STORED_TOP200_ARTIFACT",
+    "source_sha256": "6fb3a62bff43cc6a3651363d6a4ff3fa37096267d771a8446a099afd43d833fe",
+    "official_input_sha256": null
+   }
+  },
+  {
+   "date": "20261102",
+   "status": "PARTIAL",
+   "reason": "PARTIAL_POOL_OR_STAGE_COVERAGE",
+   "stage_coverage": {
+    "available": 0,
+    "total": 7,
+    "missing_stages": [
+     "STAGE_0925",
+     "STAGE_0930_0935",
+     "STAGE_0935_0940",
+     "STAGE_0940_0945",
+     "STAGE_0945_1030",
+     "STAGE_1300_1315",
+     "STAGE_1445_1500"
+    ]
+   },
+   "seven_stage": {
+    "status": "NOT_MATERIALIZED",
+    "selected_count": null,
+    "hit_count": null,
+    "top_count": 200,
+    "top200_coverage_pct": null,
+    "selection_hit_rate_pct": null,
+    "stages": {
+     "STAGE_0925": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0930_0935": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0935_0940": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0940_0945": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0945_1030": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_1300_1315": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_1445_1500": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     }
+    }
+   },
+   "a_pool": {
+    "status": "PARTIAL_POOL_COVERAGE",
+    "reason": "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+    "materialized": true,
+    "evaluable": true,
+    "selected_count": 765,
+    "hit_count": 41,
+    "top_count": 200,
+    "top200_coverage_pct": 20.5,
+    "selection_hit_rate_pct": 5.36,
+    "pool_count": 6,
+    "materialized_pool_count": 4,
+    "partial_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "missing_pool_ids": [
+     "a_share_baimao_research_map",
+     "wechat_public_account_v3_preselect"
+    ],
+    "missing_mandatory_pool_ids": [],
+    "partial_mandatory_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "api_data_status": "PARTIAL_WITH_ROWS",
+    "api_input_fingerprint": "c28e768220aef7df3e51c2ac7c0cdd4a670b1e7ef50cb967721d0dbd4e7de8d7",
+    "pools": [
+     {
+      "pool_id": "a_d1_premarket_pool",
+      "display_name": "A股 D-1 主预选池",
+      "status": "V192_CANDIDATE_READY",
+      "signal_date": "20261030",
+      "target_date": "20261102",
+      "row_count": 27,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 27,
+      "hit_count": 3,
+      "top200_coverage_pct": 1.5,
+      "selection_hit_rate_pct": 11.11,
+      "source_sha256": "b7da4f726b0e22a12a612f82510e35ce5d6c7040ad767c8e4174e4543e191da9"
+     },
+     {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "display_name": "A股 D-1 复盘继续观察池",
+      "status": "FUPAN_WATCHLIST_POOL_READY_DATA_PARTIAL",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 36,
+      "materialized": true,
+      "partial": true,
+      "selected_count": 36,
+      "hit_count": 7,
+      "top200_coverage_pct": 3.5,
+      "selection_hit_rate_pct": 19.44,
+      "source_sha256": "6abbb4e18f9a8d69255553860f6e1c431d2c0322f528c9fcb1bc013321c58b6f"
+     },
+     {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "display_name": "A股 D-1 Stage7/分时复盘池",
+      "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 10,
+      "materialized": true,
+      "partial": true,
+      "selected_count": 10,
+      "hit_count": 0,
+      "top200_coverage_pct": 0.0,
+      "selection_hit_rate_pct": 0.0,
+      "source_sha256": "141166c8ad93d9f088ff6aac07f8fad0225627a39192cd77f4dc84bd81efadbf"
+     },
+     {
+      "pool_id": "a_share_research_recommendation_pool",
+      "display_name": "A股研报推荐股票池",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 742,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 742,
+      "hit_count": 40,
+      "top200_coverage_pct": 20.0,
+      "selection_hit_rate_pct": 5.39,
+      "source_sha256": "f8a6597245b13e480826c53c641fed604bc75b7a21e8e9162dd3596b1ee9515f"
+     },
+     {
+      "pool_id": "a_share_baimao_research_map",
+      "display_name": "白毛卡点研究池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "display_name": "公众号股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    ]
+   },
+   "top200": {
+    "top_count": 200,
+    "min_change_pct": 9.9698,
+    "source": "COMPUTED_FROM_OFFICIAL_DAILY_PACKAGE",
+    "source_sha256": "83d4edbb120a479061b28e2bff8ce745c7343f01de5c6048468e752b4492f7a8",
+    "official_input_sha256": "86f73957919594f3a439d41a51fb579378f83430f180a472a6fc2deb5325a128"
+   }
+  },
+  {
+   "date": "20261103",
+   "status": "PARTIAL",
+   "reason": "PARTIAL_POOL_OR_STAGE_COVERAGE",
+   "stage_coverage": {
+    "available": 6,
+    "total": 7,
+    "missing_stages": [
+     "STAGE_0925"
+    ]
+   },
+   "seven_stage": {
+    "status": "PARTIAL_STAGE_COVERAGE",
+    "selected_count": 49,
+    "hit_count": 9,
+    "top_count": 200,
+    "top200_coverage_pct": 4.5,
+    "selection_hit_rate_pct": 18.37,
+    "stages": {
+     "STAGE_0925": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0930_0935": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_0930_0935/run-aa1f73345f3632d6f8d186a3/artifact.csv",
+      "artifact_sha256": "2b0ccebfb4dda88d1c32c0f8962b029e01fcd68706ac0d480678c4825cbac787",
+      "run_id": "run-aa1f73345f3632d6f8d186a3",
+      "hit_count": 3
+     },
+     "STAGE_0935_0940": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_0935_0940/run-897ee9ef4262fe3e50c7692c/artifact.csv",
+      "artifact_sha256": "566c403958eadd8afe591e89c38effe4abbb1c9ca1c4d8a38571c1a57ebfd269",
+      "run_id": "run-897ee9ef4262fe3e50c7692c",
+      "hit_count": 2
+     },
+     "STAGE_0940_0945": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_0940_0945/run-93a5083cb3cb3b52f8b75a84/artifact.csv",
+      "artifact_sha256": "ec456a046af3f25348986ae6006dfe1a302b90b7cc7b961e15878966f980bd2a",
+      "run_id": "run-93a5083cb3cb3b52f8b75a84",
+      "hit_count": 0
+     },
+     "STAGE_0945_1030": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_0945_1030/run-600484e1cba8dccec8ee0298/artifact.csv",
+      "artifact_sha256": "91487bdad313fdd769b0bd22c191f39ee61e78df495c656083d80366e350624f",
+      "run_id": "run-600484e1cba8dccec8ee0298",
+      "hit_count": 4
+     },
+     "STAGE_1300_1315": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_1300_1315/run-f379c90313be57be73bc74ea/artifact.csv",
+      "artifact_sha256": "32568c36066ed3396df0bd2fac709425d1c5b18b88758666e8d3372dec5afc5c",
+      "run_id": "run-f379c90313be57be73bc74ea",
+      "hit_count": 2
+     },
+     "STAGE_1445_1500": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261103/A_SHARE_SELECTION_STAGE_1445_1500/run-f91fdde1fd2fcdfba2e6d4b7/artifact.csv",
+      "artifact_sha256": "3e598a5e1ecd63e4ea91a0c74cffa7b2af2c20acb547d3e91ddd80316fa83fca",
+      "run_id": "run-f91fdde1fd2fcdfba2e6d4b7",
+      "hit_count": 2
+     }
+    }
+   },
+   "a_pool": {
+    "status": "PARTIAL_POOL_COVERAGE",
+    "reason": "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+    "materialized": true,
+    "evaluable": true,
+    "selected_count": 434,
+    "hit_count": 27,
+    "top_count": 200,
+    "top200_coverage_pct": 13.5,
+    "selection_hit_rate_pct": 6.22,
+    "pool_count": 6,
+    "materialized_pool_count": 2,
+    "partial_pool_ids": [],
+    "missing_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool",
+     "a_share_baimao_research_map",
+     "wechat_public_account_v3_preselect"
+    ],
+    "missing_mandatory_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "partial_mandatory_pool_ids": [],
+    "api_data_status": "PARTIAL_WITH_ROWS",
+    "api_input_fingerprint": "7d333a0d339139ad8ca355b32c5cc47ad8be9b0c383e8bac9dd504387acd0c12",
+    "pools": [
+     {
+      "pool_id": "a_d1_premarket_pool",
+      "display_name": "A股 D-1 主预选池",
+      "status": "V192_CANDIDATE_READY",
+      "signal_date": "20261102",
+      "target_date": "20261103",
+      "row_count": 135,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 135,
+      "hit_count": 8,
+      "top200_coverage_pct": 4.0,
+      "selection_hit_rate_pct": 5.93,
+      "source_sha256": "8119c5360c52547d35082a7c3b1a4404335b13f185ffd067af8f655a345367eb"
+     },
+     {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "display_name": "A股 D-1 复盘继续观察池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "display_name": "A股 D-1 Stage7/分时复盘池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "a_share_research_recommendation_pool",
+      "display_name": "A股研报推荐股票池",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 318,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 318,
+      "hit_count": 20,
+      "top200_coverage_pct": 10.0,
+      "selection_hit_rate_pct": 6.29,
+      "source_sha256": "22f02f63b729dcdcdaaf855525636db05fb60b184d93fb7d0706715145ebef4a"
+     },
+     {
+      "pool_id": "a_share_baimao_research_map",
+      "display_name": "白毛卡点研究池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "display_name": "公众号股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    ]
+   },
+   "top200": {
+    "top_count": 200,
+    "min_change_pct": 4.0119,
+    "source": "COMPUTED_FROM_OFFICIAL_DAILY_PACKAGE",
+    "source_sha256": "ffbb7a5ea20e540a7c71ca39d3b31ccec0d9be20105e55d65f085e6a8cb0800e",
+    "official_input_sha256": "97204a266df258438c088c16248291983482e91ca103e830086d16168b1e9d7b"
+   }
+  },
+  {
+   "date": "20261104",
+   "status": "PARTIAL",
+   "reason": "PARTIAL_POOL_OR_STAGE_COVERAGE",
+   "stage_coverage": {
+    "available": 5,
+    "total": 7,
+    "missing_stages": [
+     "STAGE_0925",
+     "STAGE_1445_1500"
+    ]
+   },
+   "seven_stage": {
+    "status": "PARTIAL_STAGE_COVERAGE",
+    "selected_count": 45,
+    "hit_count": 11,
+    "top_count": 200,
+    "top200_coverage_pct": 5.5,
+    "selection_hit_rate_pct": 24.44,
+    "stages": {
+     "STAGE_0925": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     },
+     "STAGE_0930_0935": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261104/A_SHARE_SELECTION_STAGE_0930_0935/run-b2956014bf98cb53f92ac2cf/artifact.csv",
+      "artifact_sha256": "a8c3253d97b72b49587db79afb7f91f8bf4be7adaf1eb24d5b7423910679bfe4",
+      "run_id": "run-b2956014bf98cb53f92ac2cf",
+      "hit_count": 3
+     },
+     "STAGE_0935_0940": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261104/A_SHARE_SELECTION_STAGE_0935_0940/run-3b2ba212cd0379ce074094f5/artifact.csv",
+      "artifact_sha256": "6a243b027dd435d4a41947affcf6dc462b8f3e11196472f5385fa5cda9950e4c",
+      "run_id": "run-3b2ba212cd0379ce074094f5",
+      "hit_count": 3
+     },
+     "STAGE_0940_0945": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261104/A_SHARE_SELECTION_STAGE_0940_0945/run-57e596521699f76fc72de54c/artifact.csv",
+      "artifact_sha256": "cbd3e880795c5795ea45fc4ba4479ff1e499600294ad6d69ecb9128a28fed589",
+      "run_id": "run-57e596521699f76fc72de54c",
+      "hit_count": 1
+     },
+     "STAGE_0945_1030": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261104/A_SHARE_SELECTION_STAGE_0945_1030/run-095a76ee63066fb7e96c9877/artifact.csv",
+      "artifact_sha256": "89ef30bbbe6e5589e729933209f93b2170155c78123f690e97d53e51ae1f248b",
+      "run_id": "run-095a76ee63066fb7e96c9877",
+      "hit_count": 4
+     },
+     "STAGE_1300_1315": {
+      "status": "READY",
+      "row_count": 10,
+      "unique_codes": 10,
+      "artifact_relative": "selection_runs/20261104/A_SHARE_SELECTION_STAGE_1300_1315/run-20764f160754bc23ee7bc602/artifact.csv",
+      "artifact_sha256": "cff5e4d2cd5bd96831e6d763005444e6fce636e9a5dc3d4b64f8bec92afc2b11",
+      "run_id": "run-20764f160754bc23ee7bc602",
+      "hit_count": 2
+     },
+     "STAGE_1445_1500": {
+      "status": "NOT_MATERIALIZED",
+      "hit_count": null
+     }
+    }
+   },
+   "a_pool": {
+    "status": "PARTIAL_POOL_COVERAGE",
+    "reason": "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+    "materialized": true,
+    "evaluable": true,
+    "selected_count": 379,
+    "hit_count": 24,
+    "top_count": 200,
+    "top200_coverage_pct": 12.0,
+    "selection_hit_rate_pct": 6.33,
+    "pool_count": 6,
+    "materialized_pool_count": 4,
+    "partial_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "missing_pool_ids": [
+     "a_share_baimao_research_map",
+     "wechat_public_account_v3_preselect"
+    ],
+    "missing_mandatory_pool_ids": [],
+    "partial_mandatory_pool_ids": [
+     "a_d1_fupan_watchlist_pool",
+     "a_d1_stage7_fenshi_review_pool"
+    ],
+    "api_data_status": "PARTIAL_WITH_ROWS",
+    "api_input_fingerprint": "38a814ff32249d0e0b50274271c5ea190f1c28ee221c8498690ebde4ed4bb159",
+    "pools": [
+     {
+      "pool_id": "a_d1_premarket_pool",
+      "display_name": "A股 D-1 主预选池",
+      "status": "V192_CANDIDATE_READY",
+      "signal_date": "20261103",
+      "target_date": "20261104",
+      "row_count": 48,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 48,
+      "hit_count": 1,
+      "top200_coverage_pct": 0.5,
+      "selection_hit_rate_pct": 2.08,
+      "source_sha256": "589ce8c493a4212f616909832b90f0f97839430d846050e10eda489b14e894e2"
+     },
+     {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "display_name": "A股 D-1 复盘继续观察池",
+      "status": "FUPAN_WATCHLIST_POOL_READY_DATA_PARTIAL",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 40,
+      "materialized": true,
+      "partial": true,
+      "selected_count": 40,
+      "hit_count": 1,
+      "top200_coverage_pct": 0.5,
+      "selection_hit_rate_pct": 2.5,
+      "source_sha256": "57de63e9ae6456e5eef05c6f020bb8654d77369747667a666b7b9c6891dfeb28"
+     },
+     {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "display_name": "A股 D-1 Stage7/分时复盘池",
+      "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 10,
+      "materialized": true,
+      "partial": true,
+      "selected_count": 10,
+      "hit_count": 1,
+      "top200_coverage_pct": 0.5,
+      "selection_hit_rate_pct": 10.0,
+      "source_sha256": "9fb3dd9945e3807785f183f7d92c2d1f30acc8947e0a23577b8e5aca217348ab"
+     },
+     {
+      "pool_id": "a_share_research_recommendation_pool",
+      "display_name": "A股研报推荐股票池",
+      "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 314,
+      "materialized": true,
+      "partial": false,
+      "selected_count": 314,
+      "hit_count": 24,
+      "top200_coverage_pct": 12.0,
+      "selection_hit_rate_pct": 7.64,
+      "source_sha256": "ba2f7e49cbd1577e08691642c2a00e51ff608ce9c790196a73dc3c0933468f11"
+     },
+     {
+      "pool_id": "a_share_baimao_research_map",
+      "display_name": "白毛卡点研究池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "display_name": "公众号股票池",
+      "status": "CANNOT_CONFIRM",
+      "signal_date": null,
+      "target_date": null,
+      "row_count": 0,
+      "materialized": false,
+      "partial": false,
+      "selected_count": null,
+      "hit_count": null,
+      "top200_coverage_pct": null,
+      "selection_hit_rate_pct": null,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     }
+    ]
+   },
+   "top200": {
+    "top_count": 200,
+    "min_change_pct": 11.079,
+    "source": "COMPUTED_FROM_OFFICIAL_DAILY_PACKAGE",
+    "source_sha256": "7225b94422e6f0203e27f4ff20ceacb39979ecba52c423e35cad75ba71a76f92",
+    "official_input_sha256": "6a6aad7fdeabfb9f4da99d3a59ffd1f049931672388b43c6900bde598adc09a7"
+   }
+  }
+ ],
+ "window_note": "只列出有 A 股产品、阶段、预选池或官方日包证据的日期；其余近月交易日保持未物化，不补 0。",
+ "safety_flags": {
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+ }
+}

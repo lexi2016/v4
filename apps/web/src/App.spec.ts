@@ -85,7 +85,7 @@ const jsonResponse = (payload: unknown) => {
   return { ok: true, json: async () => payload };
 };
 const poolRequestUrl = (date: string, offset = 0) =>
-  `/api/v3/preselection-pools?date=${date}&limit=200&offset=${offset}`;
+  `/api/v4/preselection-pools?date=${date}&limit=200&offset=${offset}`;
 function expectPoolRequest(date: string, offset = 0) {
   expect(vi.mocked(fetch)).toHaveBeenCalledWith(
     poolRequestUrl(date, offset),
@@ -249,15 +249,15 @@ const closeReview = {
   orders_sent: false,
 };
 
-describe("V3.5 legacy-compatible stage workbench", () => {
+describe("V4 legacy-compatible stage workbench", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/?date=20260730&stage=STAGE_0925");
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/tasks/status")) return jsonResponse(taskStatus);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/tasks/status")) return jsonResponse(taskStatus);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     }));
   });
@@ -278,9 +278,77 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     for (const name of ["刷新快照", "阶段选股", "D-1 预选池", "研报决策台", "经理选股工作台", "任务状态", "A股复盘"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
-    expect(within(screen.getByRole("region", { name: "阶段上下文" })).getAllByRole("button")).toHaveLength(19);
+    expect(within(screen.getByRole("region", { name: "阶段上下文" })).getAllByRole("button")).toHaveLength(20);
+    expect(screen.getByText("9A. 15:00 A股收盘：七阶段 Top200")).toBeTruthy();
     expect(screen.getByText("19. 21:15 8871 刷新与页面验收")).toBeTruthy();
   }, 10_000);
+
+  it("opens the UI-only A-share pool Top200 panel from node 9A without a task receipt", async () => {
+    const top200ReadOnly = {
+      schema_version: "v4.research.a_share_pool_top200.v1",
+      latest_available_date: "20260730",
+      dates: [{
+        date: "20260730",
+        status: "PARTIAL",
+        reason: "PARTIAL_POOL_OR_STAGE_COVERAGE",
+        stage_coverage: { available: 3, total: 7, missing_stages: ["STAGE_0925"] },
+        seven_stage: {
+          status: "PARTIAL_STAGE_COVERAGE",
+          selected_count: 29, hit_count: 7, top_count: 200,
+          top200_coverage_pct: 3.5, selection_hit_rate_pct: 24.14, stages: {},
+        },
+        a_pool: {
+          status: "PARTIAL_POOL_COVERAGE",
+          reason: "MISSING_OR_PARTIAL_MANDATORY_POOLS",
+          materialized: true,
+          evaluable: true,
+          selected_count: 531,
+          hit_count: 49,
+          top_count: 200,
+          top200_coverage_pct: 24.5,
+          selection_hit_rate_pct: 9.23,
+          pool_count: 6,
+          materialized_pool_count: 2,
+          partial_pool_ids: [],
+          missing_pool_ids: ["a_d1_fupan_watchlist_pool", "a_d1_stage7_fenshi_review_pool"],
+          missing_mandatory_pool_ids: ["a_d1_fupan_watchlist_pool", "a_d1_stage7_fenshi_review_pool"],
+          partial_mandatory_pool_ids: [],
+          pools: [],
+        },
+        top200: { top_count: 200, min_change_pct: 3.3967, source: "STORED_TOP200_ARTIFACT" },
+      }],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
+      }
+      if (url.startsWith("/api/v4/tasks/status")) return jsonResponse(taskStatus);
+      if (url === "/api/v4/review?date=20260730") return jsonResponse(closeReview);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/top200-hit.json") return jsonResponse(top200ReadOnly);
+      return jsonResponse(blockedPool);
+    }));
+
+    render(App);
+    await screen.findByText("美图公司");
+    const node = screen.getByTestId("closing-a_share_seven_stage_top200");
+    expect(node.textContent).toContain("READ_ONLY");
+    expect(node.textContent).toContain("UI_ONLY · 无调度回执");
+    expect(node.textContent).not.toContain("CANNOT_CONFIRM");
+
+    await fireEvent.click(node);
+    expect(await screen.findByTestId("a-top200-card-pool")).toBeTruthy();
+    expect(screen.getByTestId("a-top200-card-pool").textContent).toContain("49/200");
+    expect(screen.getByTestId("a-top200-card-seven").textContent).toContain("7/200");
+    await fireEvent.click(screen.getByTestId("a-top200-close"));
+    await waitFor(() => expect(screen.queryByTestId("a-top200-panel")).toBeNull());
+
+    await fireEvent.click(node);
+    expect(await screen.findByTestId("a-top200-card-pool")).toBeTruthy();
+    await fireEvent.click(screen.getByTestId("closing-hkconnect_model_selection_review"));
+    await waitFor(() => expect(screen.queryByTestId("a-top200-panel")).toBeNull());
+    expect(await screen.findByRole("heading", { name: "收盘复盘" })).toBeTruthy();
+  });
 
   it("shows verified Stage backfill provenance and keeps missing runner receipt explicit", async () => {
     const recovered = {
@@ -311,8 +379,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/tasks/status")) return jsonResponse(taskStatus);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(recovered);
+      if (url.startsWith("/api/v4/tasks/status")) return jsonResponse(taskStatus);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(recovered);
       return jsonResponse(blockedPool);
     }));
 
@@ -345,7 +413,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           future_target_dates: [],
         });
       }
-      if (url === "/api/v3/research/lane?research_date=20260730") {
+      if (url === "/api/v4/research/lane?research_date=20260730") {
         return jsonResponse({
           schema_version: "v3_5.research_lane.v1",
           status: "NOT_MATERIALIZED",
@@ -359,7 +427,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           orders_sent: false,
         });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -371,8 +439,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(await screen.findByRole("region", { name: "研报决策台" })).toBeTruthy();
     expect(await screen.findByText("NOT_MATERIALIZED")).toBeTruthy();
     expect(screen.getByRole("button", { name: "公众号" }).getAttribute("aria-pressed")).toBe("false");
-    expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/lane?research_date=20260730");
-    expect(fetchMock.mock.calls.some(([url]) => url === "/api/v3/research/lane")).toBe(false);
+    expect(fetchMock).toHaveBeenCalledWith("/api/v4/research/lane?research_date=20260730");
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/v4/research/lane")).toBe(false);
   }, 15_000);
 
   it("opens the real task status view and returns to the stage workbench", async () => {
@@ -407,13 +475,108 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     // its CANNOT_CONFIRM state without presenting a validated guarantee.
     expect(screen.queryByText(/RESEARCH_ONLY=true/)).toBeNull();
     expect(screen.getByText(/只读观察，不打开 BUY gate/)).toBeTruthy();
-    expect(screen.getByText("A股无主表候选")).toBeTruthy();
+    expect(screen.getByText("A股选股结果待确认")).toBeTruthy();
     expect(screen.getByText("港股通09:20 / A股09:25竞价选股 阶段 · source rows 1 / requested 159")).toBeTruthy();
     expect(screen.getByRole("region", { name: "A股候选" })).toBeTruthy();
     expect(screen.getByRole("region", { name: "港股通候选" })).toBeTruthy();
     expect(screen.queryByText("支撑位")).toBeNull();
     expect(screen.queryByText("压力位")).toBeNull();
     expect(screen.queryByText("失效位")).toBeNull();
+  });
+
+  function aEmptyStage(overrides: Record<string, unknown> = {}) {
+    return {
+      ...structuredClone(referenceStage),
+      status: "PARTIAL_WITH_ROWS",
+      stage: { ...referenceStage.stage, display_status: "PARTIAL_WITH_ROWS" },
+      markets: {
+        A: {
+          status: "CANNOT_CONFIRM", source_status: "CANNOT_CONFIRM", selection_status: "CANNOT_CONFIRM",
+          requested_rows: null, source_rows: null, selected_rows: null, candidate_count: 0,
+          selection_artifact_sha256: null, selection_manifest_receipt_verified: false,
+          cannot_confirm: ["SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"], ...overrides,
+        },
+        HK: { status: "PARTIAL_WITH_ROWS", source_status: "READY", selected_rows: 10 },
+      },
+      selected_a_rows: 0, selected_hk_rows: 10, selected_total_rows: 10,
+      unified_rows: Array.from({ length: 10 }, (_, index) => ({
+        ...referenceStage.unified_rows[0], code: `HK.${String(index + 1).padStart(5, "0")}`,
+        name: `港股观察${index + 1}`, rank: index + 1,
+      })),
+    };
+  }
+  function useAEmptyStage(payload: unknown) {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(payload);
+      return jsonResponse(blockedPool);
+    }));
+  }
+
+  it("keeps A unknown/null independent from ten partial HK rows", async () => {
+    useAEmptyStage(aEmptyStage());
+    render(App);
+    await screen.findByText("港股观察10");
+    const region = screen.getByRole("region", { name: "A股候选" });
+    expect(region.textContent).toContain("A股选股结果待确认");
+    expect(region.textContent).toContain("缺少有效输入或产物");
+    expect(region.textContent).toContain("CANNOT_CONFIRM");
+    expect(region.textContent).toContain("SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID");
+    expect(region.textContent).not.toContain("PARTIAL_WITH_ROWS");
+    expect(region.textContent).not.toContain("A股无主表候选");
+    expect(region.textContent).not.toContain("本阶段无入选");
+    expect(region.textContent).not.toContain("Futu");
+    expect(screen.getByRole("region", { name: "港股通候选" }).querySelectorAll(".candidate-card")).toHaveLength(10);
+  });
+
+  const readyZeroA = {
+    status: "READY", source_status: "READY", selection_status: "READY",
+    requested_rows: 20, source_rows: 20, selected_rows: 0,
+    selection_artifact_sha256: "a".repeat(64), selection_manifest_receipt_verified: true, cannot_confirm: [],
+  };
+  it("confirms A empty selection only for a valid READY zero result", async () => {
+    useAEmptyStage(aEmptyStage(readyZeroA));
+    render(App);
+    await screen.findByText("港股观察10");
+    const region = screen.getByRole("region", { name: "A股候选" });
+    expect(region.textContent).toContain("A股本阶段无入选");
+    expect(region.textContent).not.toContain("A股选股结果待确认");
+    expect(region.textContent).not.toContain("PARTIAL_WITH_ROWS");
+  });
+  it.each([
+    { selected_rows: null }, { source_rows: null }, { requested_rows: null },
+    { source_status: "CANNOT_CONFIRM" }, { selection_status: "CANNOT_CONFIRM" },
+    { selection_artifact_sha256: null }, { selection_manifest_receipt_verified: false },
+  ])("does not turn incomplete A receipt/counts into zero: %j", async (gap) => {
+    useAEmptyStage(aEmptyStage({ ...readyZeroA, ...gap }));
+    render(App);
+    await screen.findByText("港股观察10");
+    const region = screen.getByRole("region", { name: "A股候选" });
+    expect(region.textContent).toContain("A股选股结果待确认");
+    expect(region.textContent).toContain("缺少有效输入或产物");
+    expect(region.textContent).not.toContain("本阶段无入选");
+    expect(region.textContent).not.toContain("Futu");
+  });
+  it("prioritizes the missing receipt above A empty-result labels", async () => {
+    useAEmptyStage(exactMissingStageReceipt("20260730", "STAGE_0925"));
+    render(App);
+    await screen.findByText("阶段执行回执缺失");
+    const region = screen.getByRole("region", { name: "A股候选" });
+    expect(region.textContent).toContain("EXACT_DATE_STAGE_RECEIPT_MISSING");
+    expect(region.textContent).toContain("行数待确认");
+    expect(region.textContent).not.toContain("A股选股结果待确认");
+    expect(region.textContent).not.toContain("本阶段无入选");
+  });
+  it("keeps existing A observation cards when their source remains unconfirmed", async () => {
+    const payload = aEmptyStage();
+    payload.unified_rows.push({ ...referenceStage.unified_rows[0], market: "A", code: "SH.600000", name: "A股观察样本", stage_display_decision: "观察" });
+    useAEmptyStage(payload);
+    render(App);
+    await screen.findByText("A股观察样本");
+    const region = screen.getByRole("region", { name: "A股候选" });
+    expect(region.querySelectorAll(".candidate-card")).toHaveLength(1);
+    expect(region.textContent).toContain("观察");
+    expect(region.querySelector(".empty-card")).toBeNull();
   });
 
   it("renders the exact D-1/09:20 business state without a missing-evidence placeholder", async () => {
@@ -436,7 +599,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(d1ReferenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(d1ReferenceStage);
       return jsonResponse(blockedPool);
     }));
 
@@ -505,7 +668,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(postOpenStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(postOpenStage);
       return jsonResponse(poolWithProvenance);
     }));
 
@@ -519,36 +682,6 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     const baimaoRegion = screen.getByRole("region", { name: "白毛卡点研究池" });
     expect(within(baimaoRegion).getByText("20260729")).toBeTruthy();
     expect(container.textContent).not.toContain("缺证");
-  });
-
-  it("shows supplemental news links and exact missing reasons without changing stage scores", async () => {
-    window.history.replaceState({}, "", "/?date=20260730&stage=STAGE_0945_1030");
-    const linked = structuredClone(referenceStage) as any;
-    linked.stage = { stage_id: "STAGE_0945_1030", label: "09:45-10:30", status: "PARTIAL_WITH_ROWS", display_status: "PARTIAL_WITH_ROWS" };
-    linked.unified_rows = [{ market: "A", code: "SH.603386", name: "骏亚科技", rank: 1, score: 80,
-      news_quality_score: null, research_quality_score: null,
-      news_link: { score: 48, article_count: 2, mode: "READ_ONLY_SUPPLEMENT_NOT_IN_ORIGINAL_STAGE_SCORE" },
-      news_missing_reason: "原阶段未生成新闻分；补关联分未计入原阶段分",
-      research_missing_reason: "10:00 研报归档无该股记录" },
-      { market: "A", code: "SH.600391", name: "航发科技", rank: 2, score: 79,
-        news_missing_reason: "截至该阶段的新闻正文未匹配到该股票",
-        research_missing_reason: "10:00 研报归档无该股记录" }];
-    linked.markets.A.candidate_count = 2;
-    linked.markets.A.source_rows = 2;
-    linked.markets.HK.candidate_count = 0;
-    linked.selected_a_rows = 2;
-    linked.selected_hk_rows = 0;
-    linked.selected_total_rows = 2;
-    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
-      if (url === "/api/v1/runs/date-list") return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
-      return jsonResponse(url.startsWith("/api/v3/workbench/stage") ? linked : blockedPool);
-    }));
-    render(App);
-    await screen.findByText("骏亚科技");
-    expect(screen.getByText("48 · 补关联（2篇）")).toBeTruthy();
-    expect(screen.getByText("原阶段未生成新闻分；补关联分未计入原阶段分")).toBeTruthy();
-    expect(screen.getAllByText("10:00 研报归档无该股记录")).toHaveLength(2);
-    expect(screen.getByText("截至该阶段的新闻正文未匹配到该股票")).toBeTruthy();
   });
 
   it("loads every stage snapshot into the timeline and explains an empty HK stage", async () => {
@@ -581,7 +714,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) {
+      if (url.startsWith("/api/v4/workbench/stage")) {
         const stageId = new URL(url, window.location.origin).searchParams.get("stage") || "STAGE_0925";
         return jsonResponse(stageById[stageId]);
       }
@@ -620,7 +753,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(v11Stage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(v11Stage);
       return jsonResponse(blockedPool);
     }));
 
@@ -639,17 +772,17 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     render(App);
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith("/api/v1/runs/date-list");
-      expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/dates");
+      expect(fetchMock).toHaveBeenCalledWith("/api/v4/research/dates");
       expectPoolRequest("20260730");
       expect(fetchMock).toHaveBeenCalledWith(
-        "/api/v3/workbench/stage?date=20260730&stage=STAGE_0925&limit=50",
+        "/api/v4/workbench/stage?date=20260730&stage=STAGE_0925&limit=50",
         expect.objectContaining({ cache: "no-store" }),
       );
     });
 
     await fireEvent.update(screen.getByRole("combobox", { name: "阶段" }), "STAGE_0930_0935");
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20260730&stage=STAGE_0930_0935&limit=50",
+      "/api/v4/workbench/stage?date=20260730&stage=STAGE_0930_0935&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     ));
   });
@@ -675,7 +808,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(native0925);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(native0925);
       return jsonResponse(blockedPool);
     }));
 
@@ -687,7 +820,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(screen.queryByText("A股无主表候选")).toBeNull();
     expect(within(screen.getByRole("region", { name: "A股候选" })).getByText("50 条")).toBeTruthy();
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20260730&stage=STAGE_0925&limit=50",
+      "/api/v4/workbench/stage?date=20260730&stage=STAGE_0925&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
   });
@@ -719,7 +852,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) {
+      if (url.startsWith("/api/v4/workbench/stage")) {
         const stage = structuredClone(replayStage);
         stage.stage.stage_id = new URL(url, window.location.origin).searchParams.get("stage") || "STAGE_0925";
         return jsonResponse(stage);
@@ -730,7 +863,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(await screen.findByText("美图公司")).toBeTruthy();
     await fireEvent.update(screen.getByRole("combobox", { name: "阶段" }), "STAGE_0930_0935");
     await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20260730&stage=STAGE_0930_0935&limit=50",
+      "/api/v4/workbench/stage?date=20260730&stage=STAGE_0930_0935&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     ));
     expect(screen.queryByText(/缺证 6 项/)).toBeNull();
@@ -767,7 +900,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(postOpenStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(postOpenStage);
       return jsonResponse(blockedPool);
     }));
 
@@ -818,7 +951,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(stage);
       return jsonResponse(blockedPool);
     }));
 
@@ -862,7 +995,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(stage);
       return jsonResponse(blockedPool);
     }));
 
@@ -911,7 +1044,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(nativeStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(nativeStage);
       return jsonResponse(blockedPool);
     }));
 
@@ -932,7 +1065,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({
         data_status: "PARTIAL_WITH_ROWS",
         trade_date: "20260730",
@@ -997,7 +1130,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({
         data_status: "PARTIAL_WITH_ROWS",
         trade_date: "20260730",
@@ -1083,10 +1216,10 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260917", navigation_date: "20260917", stage_dates: ["20260917"], research_dates: ["20260917"], future_target_dates: [] });
       }
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: ["20260917"] });
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: "20260917" });
-      if (url === "/api/v3/research/lane?research_date=20260917") return jsonResponse(archiveLane);
-      if (url.startsWith("/api/v3/research/wechat/materials?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: ["20260917"] });
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: "20260917" });
+      if (url === "/api/v4/research/lane?research_date=20260917") return jsonResponse(archiveLane);
+      if (url.startsWith("/api/v4/research/wechat/materials?")) {
         return jsonResponse({
           schema_version: "v4.wechat_materials.stage_a.v1",
           status: "NOT_INDEXED",
@@ -1117,12 +1250,12 @@ describe("V3.5 legacy-compatible stage workbench", () => {
 
     await screen.findByRole("region", { name: "研报决策台" });
     await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-09-17"));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/lane?research_date=20260917");
+    expect(fetchMock).toHaveBeenCalledWith("/api/v4/research/lane?research_date=20260917");
     expect(screen.getByTestId("research-date-identity").textContent).toContain("20260917");
     const archive = await screen.findByRole("region", { name: "公众号研究归档" });
     expect(archive).toBeTruthy();
     expect(screen.getByRole("button", { name: "公众号" }).getAttribute("aria-pressed")).toBe("true");
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v3/research/wechat/materials?") && String(url).includes("date=20260917"))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v4/research/wechat/materials?") && String(url).includes("date=20260917"))).toBe(true);
 
     await fireEvent.click(screen.getByRole("button", { name: "研报决策台" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "公众号" }).getAttribute("aria-pressed")).toBe("false"));
@@ -1141,8 +1274,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/tasks/status")) return jsonResponse(taskStatus);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/tasks/status")) return jsonResponse(taskStatus);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({
         data_status: "PARTIAL_WITH_ROWS",
         trade_date: "20260730",
@@ -1218,7 +1351,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           future_target_dates: [],
         });
       }
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const request = new URL(url, window.location.origin);
         const response = structuredClone(referenceStage) as any;
         response.trade_date = request.searchParams.get("date");
@@ -1228,7 +1361,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
         response.selected_total_rows = 0;
         return jsonResponse(response);
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const request = new URL(url, window.location.origin);
         const date = request.searchParams.get("date") || "";
         const offset = Number(request.searchParams.get("offset"));
@@ -1244,8 +1377,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     render(App);
 
     expect((await screen.findByTestId("pool-page-label")).textContent).toContain("第 1 / 2 页 · 本页 200 / 共 371 条");
-    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v3/workbench/stage?")).length).toBe(9));
-    const stageCallsBeforePage = fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v3/workbench/stage?")).length;
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v4/workbench/stage?")).length).toBe(9));
+    const stageCallsBeforePage = fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v4/workbench/stage?")).length;
     await fireEvent.click(screen.getByTestId("pool-page-next"));
     await waitFor(() => expectPoolRequest("20260730", 200));
     const pageTwoLabel = await screen.findByTestId("pool-page-label");
@@ -1254,7 +1387,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect((screen.getByTestId("pool-page-previous") as HTMLButtonElement).disabled).toBe(false);
     expect(within(screen.getByRole("region", { name: "A股所有预选池汇总" })).getByText("PARTIAL_WITH_ROWS", { selector: "strong" })).toBeTruthy();
     expect(screen.queryByText("完整 371 条")).toBeNull();
-    expect(fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v3/workbench/stage?")).length).toBe(stageCallsBeforePage);
+    expect(fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v4/workbench/stage?")).length).toBe(stageCallsBeforePage);
     expect(new URL(fetchMock.mock.calls.find(([url]) => url === poolRequestUrl("20260730", 200))![0], window.location.origin).searchParams.has("stage")).toBe(false);
 
     await fireEvent.click(screen.getByTestId("pool-page-previous"));
@@ -1273,7 +1406,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(screen.getByText("A候选0")).toBeTruthy();
     expect(screen.queryByText("A候选200")).toBeNull();
     expect(fetchMock.mock.calls.some(([url]) => {
-      if (!url.startsWith("/api/v3/workbench/stage?")) return false;
+      if (!url.startsWith("/api/v4/workbench/stage?")) return false;
       return new URL(url, window.location.origin).searchParams.has("offset");
     })).toBe(false);
   });
@@ -1283,8 +1416,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url === "/api/v3/review?date=20260730") return jsonResponse(closeReview);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/api/v4/review?date=20260730") return jsonResponse(closeReview);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     }));
     const fetchMock = vi.mocked(fetch);
@@ -1296,7 +1429,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     const reviewEntry = within(container.querySelector("nav")!).getByRole("button", { name: "A股复盘" });
     await fireEvent.click(reviewEntry);
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v3/review?date=20260730"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v4/review?date=20260730"));
     expect(container.contains(closeButton)).toBe(false); // Review owns the first screen, not the stage timeline.
     expect(reviewEntry.classList.contains("active")).toBe(true);
     expect(container.contains(openingButton)).toBe(false);
@@ -1312,7 +1445,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     expect(reviewPanel.getByText("布鲁可")).toBeTruthy();
     expect(reviewPanel.getByText("仅0.2")).toBeTruthy();
     expect(reviewPanel.getByText("A_REVIEW_GAP")).toBeTruthy();
-    expect(fetchMock).not.toHaveBeenCalledWith("/api/v3/review?date=20260729");
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/v4/review?date=20260729");
   });
 
   it("keeps a missing selected date local instead of falling back", async () => {
@@ -1325,7 +1458,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           future_target_dates: [],
         });
       }
-      if (url === "/api/v3/review?date=20260730") {
+      if (url === "/api/v4/review?date=20260730") {
         return jsonResponse({
           trade_date: "20260730",
           market_reviews: { A: {
@@ -1341,7 +1474,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           } } }, production_allowed: false, buy_gate_updated: false, orders_sent: false,
         });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     }));
     render(App);
@@ -1351,7 +1484,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
 
     expect(await screen.findByText("该交易日复盘尚未生成")).toBeTruthy();
     expect(screen.getByText("A_SHARE_REVIEW_NOT_MATERIALIZED")).toBeTruthy();
-    expect(vi.mocked(fetch)).not.toHaveBeenCalledWith("/api/v3/review?date=20260729");
+    expect(vi.mocked(fetch)).not.toHaveBeenCalledWith("/api/v4/review?date=20260729");
   });
 
   it("does not let a slow prior-date review overwrite the newly selected date", async () => {
@@ -1364,16 +1497,16 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260729", "20260730"], future_target_dates: [] });
       }
-      if (url === "/api/v3/review?date=20260730") return oldReviewResponse;
-      if (url === "/api/v3/review?date=20260729") return jsonResponse(newerReview);
-      if (url.includes("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/api/v4/review?date=20260730") return oldReviewResponse;
+      if (url === "/api/v4/review?date=20260729") return jsonResponse(newerReview);
+      if (url.includes("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     }));
     render(App);
     await screen.findByText("美图公司");
 
     void fireEvent.click(screen.getByText("9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20").closest("button")!);
-    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalledWith("/api/v3/review?date=20260730"));
+    await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalledWith("/api/v4/review?date=20260730"));
     await fireEvent.change(screen.getByLabelText("交易日（日历选择）"), { target: { value: "2026-07-29" } });
     expect(await screen.findByText("D29 exact review")).toBeTruthy();
 
@@ -1414,13 +1547,13 @@ describe("V3.5 legacy-compatible stage workbench", () => {
           future_target_dates: ["20260731"],
         });
       }
-      if (url.includes("/api/v3/workbench/stage") && url.includes("date=20260730")) {
+      if (url.includes("/api/v4/workbench/stage") && url.includes("date=20260730")) {
         return jsonResponse(referenceStage);
       }
-      if (url.includes("/api/v3/workbench/stage") && url.includes("date=20260729")) {
+      if (url.includes("/api/v4/workbench/stage") && url.includes("date=20260729")) {
         return jsonResponse(historicalStage);
       }
-      if (url.includes("/api/v3/workbench/stage")) return jsonResponse(emptyStage);
+      if (url.includes("/api/v4/workbench/stage")) return jsonResponse(emptyStage);
       return jsonResponse(blockedPool);
     }));
     render(App);
@@ -1438,7 +1571,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     await waitFor(() => {
       expectPoolRequest("20260729");
       expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-        "/api/v3/workbench/stage?date=20260729&stage=STAGE_0925&limit=50",
+        "/api/v4/workbench/stage?date=20260729&stage=STAGE_0925&limit=50",
         expect.objectContaining({ cache: "no-store" }),
       );
       expect(screen.getByText("仅属于20260729")).toBeTruthy();
@@ -1451,7 +1584,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
     await waitFor(() => {
       expectPoolRequest("20260731");
       expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-        "/api/v3/workbench/stage?date=20260731&stage=STAGE_0925&limit=50",
+        "/api/v4/workbench/stage?date=20260731&stage=STAGE_0925&limit=50",
         expect.objectContaining({ cache: "no-store" }),
       );
       expect(screen.queryByText("仅属于20260729")).toBeNull();
@@ -1478,7 +1611,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (options?.method === "POST") {
         return jsonResponse({ ok: true, ensure_status: "ALREADY_COMPLETE" });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(blockedPool);
     }));
     render(App);
@@ -1507,8 +1640,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260817", stage_dates: ["20260817"], future_target_dates: [] });
       }
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({
         data_status: "PARTIAL_WITH_ROWS",
         trade_date: "20260817",
@@ -1541,7 +1674,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({ ...blockedPool, trade_date: "20260729" });
     }));
 
@@ -1559,7 +1692,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse(missingPool);
     }));
 
@@ -1575,8 +1708,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url === "/api/v3/review?date=20260730") return jsonResponse({ ...closeReview, trade_date: "20260729" });
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/api/v4/review?date=20260730") return jsonResponse({ ...closeReview, trade_date: "20260729" });
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({ ...blockedPool, trade_date: "20260730" });
     }));
 
@@ -1596,8 +1729,8 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260730", stage_dates: ["20260730"], future_target_dates: [] });
       }
-      if (url === "/api/v3/review?date=20260730") return jsonResponse(missingDate);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(referenceStage);
+      if (url === "/api/v4/review?date=20260730") return jsonResponse(missingDate);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(referenceStage);
       return jsonResponse({ ...blockedPool, trade_date: "20260730" });
     }));
 
@@ -1620,7 +1753,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260826", stage_dates: ["20260826"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(exactStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(exactStage);
       return jsonResponse({ ...blockedPool, trade_date: "20260825" });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -1629,7 +1762,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
 
     const dateInput = screen.getByLabelText("交易日（日历选择）") as HTMLInputElement;
     await waitFor(() => expect(dateInput.value).toBe("2026-08-25"));
-    const stageCalls = fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v3/workbench/stage"));
+    const stageCalls = fetchMock.mock.calls.filter(([url]) => url.startsWith("/api/v4/workbench/stage"));
     expect(stageCalls.length).toBeGreaterThan(0);
     expect(stageCalls.every(([url, options]) => {
       const requestUrl = new URL(url, window.location.origin);
@@ -1657,7 +1790,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260825", stage_dates: ["20260825"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) {
+      if (url.startsWith("/api/v4/workbench/stage")) {
         const stageId = new URL(url, window.location.origin).searchParams.get("stage");
         if (stageId === "STAGE_0925") {
           primaryStageCalls += 1;
@@ -1687,7 +1820,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260825", stage_dates: ["20260825"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return { ok: false, json: async () => ({}) };
+      if (url.startsWith("/api/v4/workbench/stage")) return { ok: false, json: async () => ({}) };
       return jsonResponse({ ...blockedPool, trade_date: "20260825" });
     }));
 
@@ -1728,7 +1861,7 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20260825", stage_dates: ["20260825"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(lineageStage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(lineageStage);
       return jsonResponse({ ...blockedPool, trade_date: "20260825" });
     }));
 
@@ -1769,14 +1902,14 @@ describe("V3.5 legacy-compatible stage workbench", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "20261014", stage_dates: ["20261014"], future_target_dates: [] });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse(stage);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse(stage);
       return jsonResponse({ ...blockedPool, trade_date: "20261014" });
     }));
 
     render(App);
 
     const lineage = await screen.findByRole("region", { name: "阶段运行血缘" });
-    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith("/api/v3/workbench/stage"))).toBe(true));
+    await waitFor(() => expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).startsWith("/api/v4/workbench/stage"))).toBe(true));
     await waitFor(() => expect(lineage.textContent).toContain("HK_CONNECT独立运行事实"));
     expect(within(lineage).getByText(/HK_CONNECT独立运行事实：VERIFIED；核验范围：HK_CONNECT/)).toBeTruthy();
     expect(within(lineage).getByText(/A_SHARE独立核验缺口：MARKET_NOT_IN_INDEPENDENT_REVIEW_SCOPE/)).toBeTruthy();
@@ -1794,9 +1927,9 @@ describe("r3 preserved Vibe and explicit review focus", () => {
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse({ default_date: "20260914", navigation_date: "20260915",
         navigation_timezone: "Asia/Shanghai", dates: ["20260915", "20260914"], stage_dates: ["20260914"], future_target_dates: [] });
-      if (url.startsWith("/api/v3/review?")) return jsonResponse({ ...closeReview, trade_date: date });
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: date });
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [], market_snapshot_dates: [] });
+      if (url.startsWith("/api/v4/review?")) return jsonResponse({ ...closeReview, trade_date: date });
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: date });
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [], market_snapshot_dates: [] });
       return jsonResponse({ ...blockedPool, trade_date: date });
     }));
   }
@@ -1886,7 +2019,7 @@ describe("r3 preserved Vibe and explicit review focus", () => {
     await waitFor(() => expect(document.querySelector("[data-review-focus='research']")).toBeTruthy());
     expect(a.classList.contains("active")).toBe(false); expect(research.classList.contains("active")).toBe(true);
     expect(document.querySelector("[data-review-focus] [data-review-section]")?.getAttribute("data-review-section")).toBe("research");
-    expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).startsWith("/api/v3/review?"))).toHaveLength(1);
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).startsWith("/api/v4/review?"))).toHaveLength(1);
   });
 });
 
@@ -1918,9 +2051,9 @@ describe("weekend research natural-day navigation", () => {
     };
     const fetchMock = vi.fn(async (url: string, _options?: RequestInit) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: dateList.research_dates });
-      if (url === "/api/v3/research/lane?research_date=20260920") return jsonResponse(missingWeekendLane);
-      if (url.startsWith("/api/v3/workbench/stage")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: dateList.research_dates });
+      if (url === "/api/v4/research/lane?research_date=20260920") return jsonResponse(missingWeekendLane);
+      if (url.startsWith("/api/v4/workbench/stage")) {
         return jsonResponse({ ...referenceStage, trade_date: "20260918" });
       }
       return jsonResponse({ ...blockedPool, trade_date: "20260918" });
@@ -1944,7 +2077,7 @@ describe("weekend research natural-day navigation", () => {
     expect(new URLSearchParams(window.location.search).get("date")).toBe("20260920");
     expect(new URLSearchParams(window.location.search).get("view")).toBe("research");
     expect(new URLSearchParams(window.location.search).get("stage")).toBe(null);
-    expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/lane?research_date=20260920");
+    expect(fetchMock).toHaveBeenCalledWith("/api/v4/research/lane?research_date=20260920");
     expect(fetchMock.mock.calls.some(([url]) => String(url) === poolRequestUrl("20260920"))).toBe(false);
 
     cleanup();
@@ -1954,15 +2087,15 @@ describe("weekend research natural-day navigation", () => {
     await waitFor(() => expect(reloadedInput.value).toBe("2026-09-20"));
     expect(new URLSearchParams(window.location.search).get("date")).toBe("20260920");
     expect(new URLSearchParams(window.location.search).get("view")).toBe("research");
-    expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/lane?research_date=20260920");
+    expect(fetchMock).toHaveBeenCalledWith("/api/v4/research/lane?research_date=20260920");
 
     await fireEvent.click(screen.getByRole("button", { name: "阶段选股" }));
     await waitFor(() => expect(reloadedInput.value).toBe("2026-09-18"));
     expect(new URLSearchParams(window.location.search).get("date")).toBe("20260918");
     expect(new URLSearchParams(window.location.search).get("view")).toBe(null);
     expect(new URLSearchParams(window.location.search).get("stage")).toBe("STAGE_0925");
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v3/workbench/stage?date=20260920"))).toBe(false);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v3/workbench/stage?date=20260918"))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v4/workbench/stage?date=20260920"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v4/workbench/stage?date=20260918"))).toBe(true);
   });
 
   it("synchronizes research and stage modes in both browser history directions", async () => {
@@ -1989,9 +2122,9 @@ describe("weekend research natural-day navigation", () => {
     };
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: dateList.research_dates });
-      if (url === "/api/v3/research/lane?research_date=20260920") return jsonResponse(missingWeekendLane);
-      if (url.startsWith("/api/v3/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: "20260918" });
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: dateList.research_dates });
+      if (url === "/api/v4/research/lane?research_date=20260920") return jsonResponse(missingWeekendLane);
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse({ ...referenceStage, trade_date: "20260918" });
       return jsonResponse({ ...blockedPool, trade_date: "20260918" });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -2051,9 +2184,9 @@ describe("empty research catalogs preserve an explicit URL date", () => {
       if (url === "/api/v1/runs/date-list") {
         return jsonResponse({ default_date: "", navigation_date: "", stage_dates: [], research_dates: [], future_target_dates: [] });
       }
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url === "/api/v3/research/lane?research_date=20260917") return jsonResponse(lane);
-      if (url.startsWith("/api/v3/research/wechat/materials?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url === "/api/v4/research/lane?research_date=20260917") return jsonResponse(lane);
+      if (url.startsWith("/api/v4/research/wechat/materials?")) {
         return {
           ok: true,
           headers: new Headers({ "content-type": "application/json" }),
@@ -2081,7 +2214,7 @@ describe("empty research catalogs preserve an explicit URL date", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "公众号" }));
     expect(await screen.findByTestId("wechat-not-indexed")).toBeTruthy();
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v3/research/wechat/materials?") && String(url).includes("date=20260917"))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v4/research/wechat/materials?") && String(url).includes("date=20260917"))).toBe(true);
   }, 15_000);
 });
 
@@ -2100,8 +2233,8 @@ describe("future target date navigation", () => {
   function installFutureDateApi() {
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const requestUrl = new URL(url, "http://localhost");
         const requestedDate = requestUrl.searchParams.get("date") || "";
         const requestedStage = requestUrl.searchParams.get("stage") || "STAGE_0925";
@@ -2116,7 +2249,7 @@ describe("future target date navigation", () => {
           },
         });
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const requestUrl = new URL(url, "http://localhost");
         const requestedDate = requestUrl.searchParams.get("date") || "";
         const futureRow = {
@@ -2135,7 +2268,7 @@ describe("future target date navigation", () => {
           pools: [],
         });
       }
-      if (url.startsWith("/api/v3/review?")) {
+      if (url.startsWith("/api/v4/review?")) {
         const requestUrl = new URL(url, "http://localhost");
         return jsonResponse({ ...closeReview, trade_date: requestUrl.searchParams.get("date") });
       }
@@ -2165,17 +2298,17 @@ describe("future target date navigation", () => {
     await waitFor(() => expect(screen.getAllByText(/NOT_DUE/).length).toBeGreaterThan(0));
     expectPoolRequest("20260929");
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20260929&stage=STAGE_0925&limit=50",
+      "/api/v4/workbench/stage?date=20260929&stage=STAGE_0925&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
     const selectedDateRequests = fetchMock.mock.calls.slice(beforeSelection)
       .map(([url]) => String(url))
-      .filter((url) => url.startsWith("/api/v3/preselection-pools?") || url.startsWith("/api/v3/workbench/stage?"));
+      .filter((url) => url.startsWith("/api/v4/preselection-pools?") || url.startsWith("/api/v4/workbench/stage?"));
     expect(selectedDateRequests.length).toBeGreaterThan(1);
     expect(selectedDateRequests.every((url) => url.includes("date=20260929"))).toBe(true);
 
     await fireEvent.click(screen.getByRole("button", { name: "A股复盘" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v3/review?date=20260929"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v4/review?date=20260929"));
     expect(input.value).toBe("2026-09-29");
 
     await fireEvent.click(screen.getByRole("button", { name: "阶段选股" }));
@@ -2202,7 +2335,7 @@ describe("future target date navigation", () => {
     await waitFor(() => expect(screen.getAllByText(/NOT_DUE/).length).toBeGreaterThan(0));
     expectPoolRequest("20260929");
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20260929&stage=STAGE_0925&limit=50",
+      "/api/v4/workbench/stage?date=20260929&stage=STAGE_0925&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
   });
@@ -2230,8 +2363,8 @@ describe("exact-date stage receipt and fast navigation", () => {
     window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_1445_1500");
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const request = new URL(url, window.location.origin);
         const date = request.searchParams.get("date") || "";
         const stageId = request.searchParams.get("stage") || "";
@@ -2239,7 +2372,7 @@ describe("exact-date stage receipt and fast navigation", () => {
           ? exactMissingStageReceipt(date, stageId)
           : stageResponse(date, stageId));
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const date = new URL(url, window.location.origin).searchParams.get("date") || "";
         return jsonResponse({ ...blockedPool, trade_date: date });
       }
@@ -2268,8 +2401,8 @@ describe("exact-date stage receipt and fast navigation", () => {
     window.history.replaceState({}, "", "/?date=20261013&stage=STAGE_0925");
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const request = new URL(url, window.location.origin);
         const date = request.searchParams.get("date") || "";
         const stageId = request.searchParams.get("stage") || "";
@@ -2277,7 +2410,7 @@ describe("exact-date stage receipt and fast navigation", () => {
           ? missingArtifact0925Stage(date)
           : stageResponse(date, stageId));
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const date = new URL(url, window.location.origin).searchParams.get("date") || "";
         return jsonResponse({ ...blockedPool, trade_date: date });
       }
@@ -2306,15 +2439,15 @@ describe("exact-date stage receipt and fast navigation", () => {
     const dateCatalog = deferred<ReturnType<typeof jsonResponse>>();
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return dateCatalog.promise;
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const request = new URL(url, window.location.origin);
         return jsonResponse(stageResponse(
           request.searchParams.get("date") || "",
           request.searchParams.get("stage") || "",
         ));
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const date = new URL(url, window.location.origin).searchParams.get("date") || "";
         return jsonResponse({ ...blockedPool, trade_date: date });
       }
@@ -2332,7 +2465,7 @@ describe("exact-date stage receipt and fast navigation", () => {
     await waitFor(() => expect(dateInput.value).toBe("2026-10-13"));
     expect(stageSelect.value).toBe("STAGE_1545_1555");
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
+      "/api/v4/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
     await waitFor(() => expect(new URLSearchParams(window.location.search).get("date")).toBe("20261013"));
@@ -2344,7 +2477,7 @@ describe("exact-date stage receipt and fast navigation", () => {
     const refreshedStageSelect = await screen.findByRole("combobox", { name: "阶段" }) as HTMLSelectElement;
     await waitFor(() => expect(refreshedStageSelect.value).toBe("STAGE_1545_1555"));
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v3/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
+      "/api/v4/workbench/stage?date=20261013&stage=STAGE_1545_1555&limit=50",
       expect.objectContaining({ cache: "no-store" }),
     );
   });
@@ -2355,8 +2488,8 @@ describe("exact-date stage receipt and fast navigation", () => {
     let deferInitialStage = true;
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") return jsonResponse(dateList);
-      if (url === "/api/v3/research/dates") return jsonResponse({ research_dates: [] });
-      if (url.startsWith("/api/v3/workbench/stage?")) {
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url.startsWith("/api/v4/workbench/stage?")) {
         const request = new URL(url, window.location.origin);
         const date = request.searchParams.get("date") || "";
         const stageId = request.searchParams.get("stage") || "";
@@ -2366,7 +2499,7 @@ describe("exact-date stage receipt and fast navigation", () => {
         }
         return jsonResponse(stageResponse(date, stageId));
       }
-      if (url.startsWith("/api/v3/preselection-pools?")) {
+      if (url.startsWith("/api/v4/preselection-pools?")) {
         const date = new URL(url, window.location.origin).searchParams.get("date") || "";
         return jsonResponse({ ...blockedPool, trade_date: date });
       }

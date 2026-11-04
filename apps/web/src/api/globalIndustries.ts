@@ -6,7 +6,7 @@ import type {
 export async function loadGlobalIndustryDates(
   signal?: AbortSignal,
 ): Promise<GlobalIndustryDatesResponse> {
-  const response = await fetch("/api/v3/research/dates", {
+  const response = await fetch("/api/v4/research/dates", {
     cache: "no-store",
     signal,
   });
@@ -19,7 +19,7 @@ export async function loadGlobalIndustries(
   signal?: AbortSignal,
 ): Promise<GlobalIndustryResponse> {
   const response = await fetch(
-    `/api/v3/research/us-market?research_date=${encodeURIComponent(researchDate)}`,
+    `/api/v4/research/us-market?research_date=${encodeURIComponent(researchDate)}`,
     { cache: "no-store", signal },
   );
   if (!response.ok) throw new Error("global industry request failed");

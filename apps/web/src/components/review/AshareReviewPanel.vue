@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import VideoReviewPanel from "./VideoReviewPanel.vue";
+import AshareHistoryPanel from "./AshareHistoryPanel.vue";
 import type { AShareCloseBoard, AShareCloseModel, AShareCloseRole, AShareRichRow, AShareReview } from "../../contracts/review";
 
 const props = defineProps<{ review: AShareReview }>();
@@ -30,6 +30,7 @@ const richTriggers = computed<readonly AShareRichRow[]>(() => {
 });
 const richCatalysts = computed<readonly AShareRichRow[]>(() => props.review.catalyst_rows ?? []);
 const richSources = computed<readonly AShareRichRow[]>(() => props.review.source_status_rows ?? []);
+const richVideoGaps = computed<readonly AShareRichRow[]>(() => props.review.video_gap_rows ?? []);
 type FailureRow = Readonly<Record<string, unknown>>;
 type ReviewWithFailure = AShareReview & {
   first_failed_layer?: FailureRow;
@@ -122,7 +123,15 @@ function stockName(row: AShareCloseRole | AShareRichRow) {
   return [name, code, stage ? `[${stage}]` : ""].filter(Boolean).join(" ");
 }
 
-
+function videoStatus(): string {
+  const video = props.review.video ?? {};
+  const targetTradeDate = String(video.target_trade_date ?? "");
+  const videoTradeDate = String(video.trade_date ?? "");
+  const status = String(video.status ?? video.gap_status ?? "");
+  if (!targetTradeDate || !videoTradeDate || targetTradeDate !== props.review.trade_date || videoTradeDate !== props.review.trade_date) return "当天视频未锁定";
+  if (!status || status.includes("NOT_LOCKED") || status.includes("CANNOT_CONFIRM") || status.includes("NOT_MATERIALIZED")) return "当天视频未锁定";
+  return `当天视频：${label(status)}`;
+}
 </script>
 
 <template>
@@ -132,7 +141,7 @@ function stockName(row: AShareCloseRole | AShareRichRow) {
       <p><span>{{ review.headline || review.trade_date }}</span><small> · {{ partialStage ? "阶段证据富复盘 · CANNOT_CONFIRM" : (richReady ? "Review Core 富复盘" : (review.source_role || "未确认")) }}</small></p>
     </div>
 
-    <VideoReviewPanel :trade-date="review.trade_date || ''" :video="review.video" :gap-rows="review.video_gap_rows" :learning-rows="review.video_learning_rows" />
+    <AshareHistoryPanel :trade-date="review.trade_date || ''" />
 
     <template v-if="richReady">
       <section class="a-product-first" data-testid="a-product-first">
@@ -145,6 +154,7 @@ function stockName(row: AShareCloseRole | AShareRichRow) {
           <article><span>{{ partialStage ? "阶段验证锚" : "明日先看" }}</span><strong>{{ richAnchors.slice(0, 5).map((row) => stockName(row)).join("、") || "未确认" }}</strong></article>
         </div>
         <div class="product-boundary">
+          <p><strong>视频状态：</strong>{{ videoStatus() }}</p>
           <p><strong>数据边界：</strong>日线/分钟/开盘代理，未验证盘口队列与封单稳定性；本页为研究复盘，不形成买卖建议。</p>
         </div>
       </section>
@@ -201,7 +211,8 @@ function stockName(row: AShareCloseRole | AShareRichRow) {
       </section>
 
       <details class="audit-appendix" data-testid="a-audit-appendix">
-        <summary>审计与证据附录（催化、SHA、收盘自动链）</summary>
+        <summary>审计与证据附录（视频、催化、SHA、收盘自动链）</summary>
+        <section class="review-row-section"><h3>视频差距和改进</h3><p>{{ videoStatus() }}；未跨日期补视频。</p><div class="review-table-wrap"><table><thead><tr><th>项目</th><th>旧版问题</th><th>本次状态</th><th>仍缺</th></tr></thead><tbody><tr v-for="row in richVideoGaps" :key="String(row.id ?? row.row_id)"><td>{{ richValue(row, "gap_type", "项目", "title") }}</td><td>{{ richValue(row, "old_problem", "旧版问题") }}</td><td>{{ richValue(row, "status", "result") }}</td><td>{{ richValue(row, "cannot_confirm", "仍缺") }}</td></tr><tr v-if="!richVideoGaps.length"><td colspan="4">当天视频未锁定；视频差距不写成其他日期的证据。</td></tr></tbody></table></div></section>
         <section class="review-row-section"><h3>研报/资讯催化矩阵</h3><div class="review-table-wrap"><table><thead><tr><th>方向</th><th>催化</th><th>质量</th><th>边界</th></tr></thead><tbody><tr v-for="row in richCatalysts" :key="String(row.id ?? row.direction)"><td>{{ richValue(row, "direction", "theme") }}</td><td>{{ richValue(row, "catalyst", "reason") }}</td><td>{{ label(row.quality) }}</td><td>{{ richValue(row, "boundary", "cannot_confirm") }}</td></tr><tr v-if="!richCatalysts.length"><td colspan="4">催化矩阵未命中；研报只作背景，不替代量价证据。</td></tr></tbody></table></div></section>
         <section class="review-row-section"><h3>数据源与 SHA</h3><p v-for="row in richSources" :key="String(row.id ?? row.source)">{{ richValue(row, "source", "name") }}：{{ label(row.status) }} · {{ richValue(row, "reason", "cannot_confirm") }}</p><p>Review Core run：{{ review.source_run_id || "未确认" }} · bundle SHA：{{ review.review_core_bundle?.bundle_sha256 || review.artifact_sha256 || review.source_sha256 || "未确认" }} · manifest SHA：{{ review.review_core_bundle?.manifest_sha256 || "未确认" }} · receipt SHA：{{ review.review_core_bundle?.receipt_sha256 || "未确认" }}</p><p>production_allowed=false · buy_gate_updated=false · orders_sent=false</p></section>
         <section v-if="review.close_chain" class="review-row-section"><h3>收盘自动链 · V3 图谱顺序</h3><p>{{ label(review.close_chain.status) }} · 缺失节点 {{ review.close_chain.cannot_confirm?.length ?? 0 }}</p><div class="review-table-wrap"><table><thead><tr><th>时点</th><th>节点</th><th>业务</th><th>状态</th><th>证据/原因</th></tr></thead><tbody><tr v-for="row in review.close_chain.nodes ?? []" :key="String(row.task_id)" data-testid="close-chain-row"><td>{{ row.slot }}</td><td>{{ row.task_id }}</td><td>{{ row.label }}</td><td>{{ label(row.status) }}</td><td>{{ row.reason }}</td></tr></tbody></table></div></section>

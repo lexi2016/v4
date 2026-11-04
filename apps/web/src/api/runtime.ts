@@ -6,7 +6,7 @@ export async function loadTaskStatus(
   signal?: AbortSignal,
 ): Promise<TaskStatusResponse> {
   const response = await fetch(
-    `/api/v3/tasks/status?date=${encodeURIComponent(date)}`,
+    `/api/v4/tasks/status?date=${encodeURIComponent(date)}`,
     { signal },
   );
   if (!response.ok) throw new Error("task status request failed");

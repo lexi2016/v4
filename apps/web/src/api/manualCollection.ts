@@ -24,7 +24,7 @@ async function readResponse(response: Response): Promise<CollectionJob> {
 }
 
 export async function startCollection(request: CollectionRequest, signal?: AbortSignal): Promise<CollectionJob> {
-  return readResponse(await fetch("/api/v3/manual-collection", {
+  return readResponse(await fetch("/api/v4/manual-collection", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request), signal,
   }));
@@ -32,5 +32,5 @@ export async function startCollection(request: CollectionRequest, signal?: Abort
 
 export async function readCollection(jobId: string, signal?: AbortSignal): Promise<CollectionJob> {
   if (!/^[a-f0-9]{32}$/.test(jobId)) throw new Error("补采任务标识无效。");
-  return readResponse(await fetch(`/api/v3/manual-collection/${jobId}`, { signal }));
+  return readResponse(await fetch(`/api/v4/manual-collection/${jobId}`, { signal }));
 }

@@ -112,6 +112,7 @@ function memberKey(row: Row, index: number): string {
       <h3>竞价与盘中客观路径</h3>
       <p>六时点：09:25、09:35、10:00、11:30、14:00、15:00。缺失时点不以当前行情回填。</p>
       <p v-if="intraday?.missing_slots?.length">缺失：{{ intraday.missing_slots.join("、") }}</p>
+      <details v-if="intraday?.read_diagnostics?.length"><summary>六时点精确读链：失败层与预期路径（非已存在产物）</summary><pre>{{ json(intraday.read_diagnostics) }}</pre></details>
       <p v-if="!intraday?.slots?.length">所选日期盘中快照未确认。</p>
       <div v-else class="daily-research-review-table-wrap">
         <table><thead><tr><th>时点</th><th>前日池 / 已报价</th><th>覆盖率</th><th>均涨幅</th><th>中位涨幅</th><th>高开 / 红盘率</th><th>跌幅≤−5%</th><th>采集时间 / 漂移</th></tr></thead>
@@ -140,7 +141,9 @@ function memberKey(row: Row, index: number): string {
       <small>只读取请求日期的 dated JSON；未使用 latest.json，生成仅通过上方按钮显式触发。</small>
     </div>
 
-    <template v-else>
+    <details v-if="!ready && currentReview?.read_diagnostic"><summary>每日文件精确读链与证据缺口</summary><pre>{{ json(currentReview.read_diagnostic) }}</pre></details>
+
+    <template v-if="ready">
       <div class="daily-research-review-meta" data-testid="daily-research-review-meta">
         <span>source_role={{ currentReview?.source_role || "CANNOT_CONFIRM" }}</span>
         <span>data_as_of={{ currentReview?.data_as_of || "CANNOT_CONFIRM" }}</span>

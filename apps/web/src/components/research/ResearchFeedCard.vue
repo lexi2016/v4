@@ -8,7 +8,18 @@ import { chipList } from "../../composables/useResearchLane";
 const props = defineProps<{ card: Record<string, unknown> }>();
 const presentation = computed(() => feedCardPresentation(props.card));
 const isPdf = computed(() => text(props.card.kind) === "pdf");
+function formatPdfTopicTimestamp(value: unknown): string {
+  const raw = text(value);
+  const compactOffset = raw.match(/^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?)([+-])(\d{2})(\d{2})$/);
+  return formatFeedTimestamp(compactOffset ? `${compactOffset[1]}${compactOffset[2]}${compactOffset[3]}:${compactOffset[4]}` : raw);
+}
 const pdfDetail = ref<ResearchPdfDocumentDetail | null>(null);
+const pdfState = computed(() => {
+  const detail = pdfDetail.value;
+  if (!detail) return props.card;
+  const processing = record(detail.processing);
+  return { ...props.card, ...processing, status: detail.status, reason_code: detail.reason_code || processing.last_error_code };
+});
 const pdfOpen = ref(false);
 const pdfLoading = ref(false);
 const pdfError = ref("");
@@ -27,12 +38,6 @@ function record(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
-}
-
-function formatPdfTopicTimestamp(value: unknown): string {
-  const raw = text(value);
-  const compactOffset = raw.match(/^(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?)([+-])(\d{2})(\d{2})$/);
-  return formatFeedTimestamp(compactOffset ? `${compactOffset[1]}${compactOffset[2]}${compactOffset[3]}:${compactOffset[4]}` : raw);
 }
 
 function pdfStatusLabel(value: unknown): string {
@@ -93,14 +98,14 @@ const originalUrl = computed(() => {
         <div class="hourly-feed-title">{{ text(card.title || card.source_title || card.stock_name || card.stock_code) }}</div>
         <div class="hourly-meta">{{ isPdf ? "知识星球 PDF 补充" : presentation.sourceLabel }}</div>
       </div>
-      <span v-if="isPdf" class="hourly-source-tag source">{{ pdfStatusLabel(card.status) }}</span>
+      <span v-if="isPdf" class="hourly-source-tag source">{{ pdfStatusLabel(pdfState.status) }}</span>
       <span v-else-if="presentation.showTypeLabel" class="hourly-source-tag source">{{ presentation.typeLabel }}</span>
     </div>
     <template v-if="isPdf">
       <div class="hourly-meta">话题：{{ text(card.topic_title) || "CANNOT_CONFIRM" }} · {{ text(card.group_name) || "来源组未确认" }}</div>
       <div class="hourly-meta">原话题时间：{{ formatPdfTopicTimestamp(card.source_topic_published_at) || "CANNOT_CONFIRM" }} · PDF 发布时间：未知</div>
-      <div class="hourly-meta">最近下载：{{ formatFeedTimestamp(card.downloaded_at) || "待处理" }} · OCR 完成：{{ formatFeedTimestamp(card.ocr_completed_at) || "待处理" }} · 延迟处理，非 PIT 补充</div>
-      <div class="hourly-meta">页进度：{{ text(card.processed_page_count) || "0" }} / {{ text(card.page_count) || "待确认" }} 页 · 状态：{{ pdfStatusLabel(card.status) }}{{ text(card.reason_code) ? ` · ${text(card.reason_code)}` : "" }}</div>
+      <div class="hourly-meta">最近下载：{{ formatFeedTimestamp(pdfState.downloaded_at) || "待处理" }} · OCR 完成：{{ formatFeedTimestamp(pdfState.ocr_completed_at) || "待处理" }} · 延迟处理，非 PIT 补充</div>
+      <div class="hourly-meta">页进度：{{ text(pdfState.processed_page_count) || "0" }} / {{ text(pdfState.page_count) || "待确认" }} 页 · 状态：{{ pdfStatusLabel(pdfState.status) }}{{ text(pdfState.reason_code) ? ` · ${text(pdfState.reason_code)}` : "" }}</div>
       <div v-if="card.excerpt" class="hourly-summary">{{ text(card.excerpt) }}</div>
       <div class="hourly-focus-strip">
         <button v-if="card.can_open_detail" type="button" class="hourly-pill pdf-detail-button" :disabled="pdfLoading" @click="togglePdfDetail">

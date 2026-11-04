@@ -26,7 +26,7 @@ describe("HK open / Southbound closed navigation", () => {
           hk_observation_only_dates: ["20260925"],
         });
       }
-      if (url.startsWith("/api/v3/workbench/stage")) {
+      if (url.startsWith("/api/v4/workbench/stage")) {
         return jsonResponse({ trade_date: "20260925" });
       }
       return jsonResponse({

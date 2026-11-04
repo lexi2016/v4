@@ -185,27 +185,7 @@ export type ReviewMetric = {
   evidence_status?: string;
   selected_count?: number | null;
   hit_count?: number | null;
-  selected_codes?: readonly string[];
-  hit_codes?: readonly string[];
   coverage_pct?: number | null;
-  precision_pct?: number | null;
-  score_rows?: number | null;
-  unique_score_codes?: number | null;
-  candidate_status?: string;
-  recommendation_status?: string;
-  pit_status?: string;
-  research_only?: boolean;
-  cannot_confirm?: readonly string[];
-  production_allowed?: false;
-  buy_gate_updated?: false;
-  orders_sent?: false;
-};
-
-export type HkObservedStageUnion = ReviewMetric & {
-  stage_ids?: readonly string[] | null;
-  expected_stage_count?: number | null;
-  missing_stages?: readonly string[];
-  unverified_stages?: readonly string[];
 };
 
 export type HkAttributionRow = {
@@ -216,10 +196,34 @@ export type HkAttributionRow = {
   model_0_2_hit?: boolean | null;
   observed_model_0_2_hit?: boolean | null;
   stage_union_hit?: boolean | null;
-  observed_stage_union_hit?: boolean | null;
   first_stage?: string | null;
   all_stages?: readonly string[];
-  classification?: string;
+  classification?: string | null;
+};
+
+export type HkObservedStageUnion = {
+  evidence_status?: string;
+  selected_codes?: readonly string[];
+  selected_count?: number | null;
+  hit_codes?: readonly string[];
+  hit_count?: number | null;
+  stage_ids?: readonly string[];
+  backfill_run_ids?: readonly string[];
+  cannot_confirm?: readonly string[];
+  expected_stage_count?: number | null;
+};
+
+export type HkObservedModelMetric = HkObservedStageUnion & {
+  source_path?: string;
+  source_sha256?: string;
+  receipt_path?: string;
+  receipt_sha256?: string;
+  producer_function?: string;
+  target_date?: string;
+  signal_date?: string;
+  candidate_status?: string;
+  score_rows?: number | null;
+  unique_score_codes?: number | null;
 };
 
 export type HkModelSelectionReview = {
@@ -228,10 +232,9 @@ export type HkModelSelectionReview = {
   trade_date?: string;
   primary_kpi?: string;
   evidence_mode?: string;
-  stages?: Record<string, ReviewMetric>;
   reference_snapshot?: boolean;
   close_source_sha256?: string;
-  models?: Record<string, ReviewMetric>;
+  models?: Record<string, ReviewMetric | HkObservedModelMetric>;
   stage_union?: ReviewMetric;
   observed_stage_union?: HkObservedStageUnion | null;
   row_counts?: Record<string, number>;
@@ -239,120 +242,14 @@ export type HkModelSelectionReview = {
   top20_attribution?: readonly HkAttributionRow[];
   cannot_confirm?: readonly string[];
   missing_stages?: readonly string[];
-  unverified_stages?: readonly string[];
-  stage_input_evidence?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
 };
 
-export type HkReview = { market?: string; model_selection_review?: HkModelSelectionReview };
-
-export type HkPrefixResearchEvidence = {
-  label?: string;
-  ref?: string;
-  sha256?: string;
-  verification?: string;
-};
-
-export type HkPrefixResearch = {
-  schema_version?: string;
-  status?: string;
-  requested_date?: string;
-  asset_id?: string;
-  run_id?: string;
-  asset_status?: string;
-  scope?: {
-    historical_prefix_only?: boolean;
-    event_date_range?: readonly string[];
-    max_event_year?: number;
-    consumed_2026?: boolean;
-    event_day_included?: boolean;
-    available_at_basis?: string;
-    window_status?: string;
-  } | null;
-  source?: {
-    rows?: number;
-    symbols?: number;
-    date_range?: readonly string[];
-    schema_columns?: readonly string[];
-    sha256?: string;
-    manifest_sha256?: string;
-    status?: string;
-    price_basis?: string;
-    price_basis_status?: string;
-    volume_source_column?: string;
-    volume_unit?: string;
-  } | null;
-  calendar?: {
-    market_day_count?: number;
-    row_count?: number;
-    date_range?: readonly string[];
-    source?: string;
-    certification?: string;
-    receipt_sha256?: string;
-    receipt_verification?: string;
-  } | null;
-  binding?: {
-    groups?: number;
-    controls?: number;
-    series_count?: number;
-    rows_per_series?: number;
-    resampled?: boolean;
-    event_type_counts?: Record<string, number>;
-    sha256?: string;
-    matched_verdict_sha256?: string;
-  } | null;
-  export?: {
-    series_count?: number;
-    rows_per_series?: number;
-    total_rows?: number;
-    event_date_range?: readonly string[];
-    event_type_counts?: Record<string, number>;
-    state_distribution?: Record<string, number>;
-    state_distribution_by_event_type?: Record<string, Record<string, number>>;
-    quality_distribution?: Record<string, number>;
-    source_observed_rows?: number;
-    source_missing_rows?: number;
-    unknown_series_count?: number;
-    unknown_row_count?: number;
-    indeterminate_series_count?: number;
-    indeterminate_row_count?: number;
-    terminal_unknown_series_count?: number;
-    terminal_indeterminate_series_count?: number;
-    complete_terminal_pairs?: number;
-    required_complete_pairs?: number;
-    coverage_status?: string;
-    coverage_fraction?: string;
-    terminal_delta_mean?: number | null;
-    terminal_delta_lower_mean?: number | null;
-    terminal_delta_upper_mean?: number | null;
-    warmup_is_not_no_active_setup?: boolean;
-  } | null;
-  acceptance?: {
-    field_isolation?: string;
-    future_isolation?: string;
-    past_positive_control?: string;
-    csv_replay?: string;
-    source_window_replay?: string;
-  };
-  review?: {
-    manual_review_status?: string;
-    conclusion_status?: string;
-    comparison_status?: string;
-    conclusion?: string;
-    no_alpha_claim?: boolean;
-    main_effect_status?: string;
-    daily_selection_separated?: boolean;
-  };
-  evidence?: readonly HkPrefixResearchEvidence[];
-  cannot_confirm?: readonly string[];
-  research_only?: true;
-  production_allowed?: false;
-  buy_gate_updated?: false;
-  orders_sent?: false;
-};
+export type HkReview = { market?: string; status?: string; model_selection_review?: HkModelSelectionReview };
 
 export type DailyResearchReviewSection = Readonly<Record<string, unknown>>;
 
 export type DailyResearchReview = {
+  read_diagnostic?: Readonly<Record<string, unknown>>;
   schema_version?: string;
   status?: string;
   artifact_status?: string;
@@ -391,7 +288,6 @@ export type DailyResearchReview = {
 
 export type ReviewEnvelope = {
   intraday_research?: IntradayResearchReview;
-  hk_prefix_research?: HkPrefixResearch;
   schema_version?: string;
   trade_date: string;
   reference_snapshot?: boolean;
@@ -400,12 +296,6 @@ export type ReviewEnvelope = {
   production_allowed: false;
   buy_gate_updated: false;
   orders_sent: false;
-};
-
-// Compatibility shape for older callers that consumed a partial envelope.
-// Canonical review requests and views continue to use the exact ReviewEnvelope.
-export type ReviewResponse = Omit<Partial<ReviewEnvelope>, "market_reviews"> & {
-  market_reviews?: { A?: AShareReview; HK?: HkReview };
 };
 
 
@@ -427,6 +317,7 @@ export type IntradaySnapshot = {
   top_board_level: number; live: Readonly<Record<string, unknown>> | null;
 };
 export type IntradayResearchReview = {
+  read_diagnostics?: ReadonlyArray<Readonly<Record<string, unknown>>>;
   status: "READY" | "CANNOT_CONFIRM"; date?: string; slots: IntradaySnapshot[];
   missing_slots?: string[]; cannot_confirm: string[];
   auction?: Readonly<Record<string, unknown>>; path?: Readonly<Record<string, unknown>>;

@@ -1,5 +1,5 @@
 /** Stage A only: exact archive references, not research candidates or trading data. */
-const BASE = '/api/v3/research/wechat/materials';
+const BASE = '/api/v4/research/wechat/materials';
 const SCHEMA = 'v4.wechat_materials.stage_a.v1';
 const MENTIONS_SCHEMA = 'v4.wechat_mentions.stage_a.v1';
 const SHA = /^[0-9a-f]{64}$/;

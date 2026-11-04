@@ -1,13 +1,16 @@
 <script setup lang="ts">
 
 
+import { computed, ref, watch } from "vue";
 import TaskStatusView from "./views/TaskStatusView.vue";
 import ManualCollectionControls from "./components/ManualCollectionControls.vue";
+import AShareTop200Panel from "./components/research/AShareTop200Panel.vue";
 import ReviewView from "./views/ReviewView.vue";
 import ResearchView from "./views/ResearchView.vue";
 import GlobalIndustryMap from "./components/research/GlobalIndustryMap.vue";
 import WechatMentionPool from "./components/research/WechatMentionPool.vue";
 import { useAppShell } from "./app_shell/useAppShell";
+import type { StageRow } from "./app_shell/types";
 
 type OperatingExecutionFact = {
   status?: string;
@@ -29,9 +32,31 @@ function hasFourLaneFormalGap(workbench: unknown): boolean {
     return row.market === "HK" && row.source_mode === "HK_CONNECT_FOUR_LANE" && row.formal_eligible === false;
   });
 }
+type SnapshotObservation = {
+  mode?: string; captured_at?: string; original_stage_cutoff_at?: string;
+  after_original_cutoff?: boolean; observed_rows?: number; requested_rows?: number;
+  missing_symbols?: string[]; gaps?: string[]; rows: Record<string, unknown>[];
+};
+function snapshotObservation(workbench: unknown): SnapshotObservation | null {
+  const recovery = (workbench as { snapshot_recovery?: { markets?: { A_SHARE?: SnapshotObservation } } } | null)?.snapshot_recovery;
+  const value = recovery?.markets?.A_SHARE;
+  return value?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && Array.isArray(value.rows) ? value : null;
+}
+type SnapshotReselection = {
+  mode?: string; selected_rows?: number; scored_rows?: number; captured_at?: string;
+  scoring_evaluated_at?: string; context_status?: string; context_slot?: string | null; context_reader_as_of?: string | null;
+  context_fallback_used?: boolean; context_rejections?: { rejected_slot?: string; error?: string }[];
+  algorithm_sha256?: string; rows: Record<string, unknown>[];
+};
+function snapshotReselection(workbench: unknown): SnapshotReselection | null {
+  const value = (workbench as { snapshot_reselection?: { status?: string; markets?: { A_SHARE?: SnapshotReselection } } } | null)?.snapshot_reselection;
+  const selected = value?.markets?.A_SHARE;
+  return value?.status === "SELECTED_WATCH_ONLY" && selected?.mode === "AFTERFACT_SNAPSHOT_RESELECTION" && Array.isArray(selected.rows) ? selected : null;
+}
 const {
   stageDefinitions,
   closingTimeline,
+  loadClosingStatus,
   poolRows,
   poolEvidenceReason,
   poolEvidenceDetails,
@@ -56,6 +81,8 @@ const {
   qualityScore,
   stageCountText,
   stageMarketCountText,
+  aMarketStateText,
+  hkMarketStateText,
   missingStageReceiptMessage,
   hasMissingStageReceipt,
   hkChangeLabel,
@@ -76,12 +103,17 @@ const {
   stageRunStatus,
   navigationStatus,
   taskStatusActive,
+  sopActive,
+  openSop,
   researchActive,
   researchArchiveEntry,
   closeReviewActive,
+  aTop200Active,
   reviewFocus,
   reviewTitle,
   runtimeLabel,
+  frontendIdentity,
+  refreshFrontend,
   closeReviewLoading,
   closeReviewError,
   closeReviewPayload,
@@ -116,6 +148,8 @@ const {
   hkChangeValue,
   hkScoreLabel,
   showNavigationStatus,
+  loadAShareTop200,
+  closeAShareTop200,
   openTaskStatus,
   openResearch,
   openManagerSelection,
@@ -131,6 +165,89 @@ const {
   ensureStage,
   onDateInputChange,
 } = useAppShell();
+type SnapshotReselectionDeclaration = SnapshotReselection & {
+  status?: string;
+  markets?: { A_SHARE?: SnapshotReselection };
+};
+const snapshotReselectionActive = computed(() => {
+  const declaration = (stageWorkbench.value as { snapshot_reselection?: SnapshotReselectionDeclaration } | null)?.snapshot_reselection;
+  const nested = snapshotReselection(stageWorkbench.value);
+  const topLevel = declaration && Array.isArray(declaration.rows)
+    && (declaration.mode === "AFTERFACT_SNAPSHOT_RESELECTION" || declaration.status === "SELECTED_WATCH_ONLY")
+    ? declaration
+    : null;
+  const selection = nested ?? topLevel;
+  if (!selection || selection.rows.length === 0) return null;
+  const kindVerified = selection.mode === "AFTERFACT_SNAPSHOT_RESELECTION"
+    || declaration?.status === "SELECTED_WATCH_ONLY"
+    || declaration?.markets?.A_SHARE?.mode === "AFTERFACT_SNAPSHOT_RESELECTION";
+  return kindVerified ? selection : null;
+});
+type SnapshotReselectionCard = StageRow & { action_level?: string };
+const snapshotReselectionCards = computed<SnapshotReselectionCard[]>(() =>
+  (snapshotReselectionActive.value?.rows ?? []).map((row) => ({
+    ...row,
+    support_primary_price: row.support_primary_price ?? row.support,
+    pressure_price: row.pressure_price ?? row.pressure,
+    invalidation_price: row.invalidation_price ?? row.invalidation,
+  } as SnapshotReselectionCard)),
+);
+const globalIndustryMapOpen = ref(false);
+const snapshotSourceTimes = computed(() => {
+  const rows = snapshotObservation(stageWorkbench.value)?.rows ?? [];
+  const times = [...new Set(rows.map((row) => row.source_update_time).filter((value): value is string => typeof value === "string" && value.trim().length > 0))];
+  const missing = rows.some((row) => typeof row.source_update_time !== "string" || !row.source_update_time.trim());
+  return [...times, ...(missing ? ["部分源时点缺失"] : [])].join("、") || "CANNOT_CONFIRM";
+});
+function onGlobalIndustryMapToggle(event: Event) {
+  globalIndustryMapOpen.value = (event.currentTarget as HTMLDetailsElement).open;
+}
+type SopDocument = { id: string; title: string; content: string; sha256: string; updated_at: string; relative_path: string };
+const sopChoices = [
+  { id: "overview", title: "SOP 总览" },
+  { id: "stage-selection", title: "阶段运行规程" },
+  { id: "repair-20261028-29", title: "完整修复记录" },
+];
+const sopDocument = ref<SopDocument | null>(null);
+const sopLoading = ref(false);
+const sopError = ref("");
+let sopVersion = 0;
+async function loadSop(id = "overview") {
+  if (!sopChoices.some((item) => item.id === id)) return;
+  const version = ++sopVersion;
+  sopLoading.value = true; sopError.value = "";
+  try {
+    const response = await fetch(`/api/v4/operations/sop?doc=${encodeURIComponent(id)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error("SOP 文档暂不可读，请稍后刷新。");
+    const value = await response.json() as SopDocument;
+    if (value.id !== id || typeof value.content !== "string" || !/^[a-f0-9]{64}$/.test(value.sha256)) throw new Error("SOP 文档身份未确认。");
+    if (version === sopVersion) sopDocument.value = value;
+  } catch (error) { if (version === sopVersion) sopError.value = error instanceof Error ? error.message : "SOP 读取失败"; }
+  finally { if (version === sopVersion) sopLoading.value = false; }
+}
+watch(sopActive, (active) => { if (active) void loadSop(sopDocument.value?.id || "overview"); });
+
+const aEmptyResultVerified = computed(() => {
+  const lane = aSummary.value;
+  return lane.status === "READY"
+    && lane.source_status === "READY"
+    && lane.selection_status === "READY"
+    && [lane.requested_rows, lane.source_rows, lane.selected_rows].every(
+      (value) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0,
+    )
+    && lane.selected_rows === 0
+    && lane.selection_manifest_receipt_verified === true
+    && /^[a-f0-9]{64}$/i.test(lane.selection_artifact_sha256 || "");
+});
+const aEmptyStateDetails = computed(() => {
+  const lane = aSummary.value;
+  return [
+    aEmptyResultVerified.value ? "READY · 已确认入选 0 条" : "CANNOT_CONFIRM · 缺少有效输入或产物",
+    `A股状态 ${lane.status || "CANNOT_CONFIRM"} / 来源 ${lane.source_status || "CANNOT_CONFIRM"} / 选股 ${lane.selection_status || "CANNOT_CONFIRM"}`,
+    ...(lane.display_reasons ?? []),
+    ...(lane.cannot_confirm ?? []),
+  ].join(" · ");
+});
 </script>
 
 <template>
@@ -141,6 +258,7 @@ const {
         <p>阶段选股只读取同一 date + stage 的 A股与港股通阶段工作台；只读观察，不打开 BUY gate，不接交易接口，不生成 live order。</p>
       </div>
       <span class="runtime-badge">{{ runtimeLabel }}</span>
+      <span class="runtime-badge" role="status">{{ frontendIdentity.message }} <button v-if="frontendIdentity.status === 'MISMATCH'" type="button" @click="refreshFrontend">刷新前端</button></span>
     </header>
 
     <section class="control-panel" aria-label="页面控制">
@@ -172,7 +290,7 @@ const {
           <option v-for="stage in stageDefinitions" :key="stage.id" :value="stage.id">{{ stage.label }}</option>
         </select>
       </label>
-      <button type="button" :disabled="stageLoading || closeReviewLoading" @click="closeReviewActive ? loadCloseReview(reviewFocus, true) : loadStageFromUser()">刷新快照</button>
+      <button type="button" :disabled="stageLoading || closeReviewLoading" @click="loadClosingStatus(); closeReviewActive ? loadCloseReview(reviewFocus, true) : loadStageFromUser()">刷新快照</button>
       <span class="runtime-state">{{ researchActive ? "研究入口按自然日导航；阶段入口按A股或港股开市日导航" : "V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页" }}</span>
     </section>
     <small v-if="selectedDate" class="selected-date-context" data-testid="selected-date-context">{{ selectedDateContext }}</small>
@@ -181,10 +299,12 @@ const {
     </p>
 
     <nav class="entry-nav" aria-label="功能入口">
-      <button :class="{ active: !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
+      <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
       <button type="button" @click="scrollToPool()">D-1 预选池</button>
       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
+      <a class="entry-nav-link research-panel-entry" :href="`/research-panel/daily.html?date=${formatDateInput(selectedDate)}`">研究看板</a>
       <button type="button" @click="openManagerSelection()">经理选股工作台</button>
+      <button :class="{ active: sopActive }" type="button" @click="openSop()">SOP</button>
       <button :class="{ active: taskStatusActive }" type="button" @click="openTaskStatus()">任务状态</button>
       <button :class="{ active: closeReviewActive && reviewFocus === 'A' }" :aria-pressed="closeReviewActive && reviewFocus === 'A'" type="button" @click="loadCloseReview('A')">A股复盘</button>
       <button class="entry-nav-link" :class="{ active: closeReviewActive && reviewFocus === 'research' }" :aria-pressed="closeReviewActive && reviewFocus === 'research'" type="button" @click="loadCloseReview('research')">研究复盘</button>
@@ -192,8 +312,14 @@ const {
     </nav>
     <p v-if="navigationStatus" class="navigation-status" role="status">{{ navigationStatus }}</p>
 
+    <section v-if="sopActive" class="panel" aria-label="SOP 运行规程" data-sop-view>
+      <h2>SOP · 运行规程与修复记录</h2>
+      <nav aria-label="SOP 文档"><button v-for="item in sopChoices" :key="item.id" type="button" @click="loadSop(item.id)">{{ item.title }}</button><button type="button" @click="loadSop(sopDocument?.id || 'overview')">刷新文档</button></nav>
+      <p v-if="sopLoading" role="status">正在读取规程。</p><p v-if="sopError" role="alert">{{ sopError }}</p>
+      <article v-if="sopDocument"><h3>{{ sopDocument.title }}</h3><p>文件更新时间：{{ sopDocument.updated_at }} · {{ sopDocument.relative_path }}</p><p>SHA256 <code>{{ sopDocument.sha256 }}</code></p><pre style="white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; line-height: 1.7" v-text="sopDocument.content"></pre></article>
+    </section>
     <TaskStatusView
-      v-if="taskStatusActive"
+      v-else-if="taskStatusActive"
       :date="selectedDate"
       :stage-summary="stageSummary"
       :current-stage-id="selectedStage"
@@ -205,12 +331,15 @@ const {
     />
     <template v-else>
 
-    <GlobalIndustryMap v-if="!closeReviewActive" :target-date="selectedDate" />
+    <details v-if="!closeReviewActive" class="panel" :open="globalIndustryMapOpen" @toggle="onGlobalIndustryMapToggle">
+      <summary>全球行业参考地图</summary>
+      <GlobalIndustryMap v-if="globalIndustryMapOpen" :target-date="selectedDate" />
+    </details>
 
     <section v-if="!closeReviewActive" class="panel timeline-panel" aria-label="阶段上下文">
       <div class="section-heading">
         <div><span class="eyebrow">阶段分组主视图</span><h2>阶段上下文 v2</h2></div>
-        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ hasMissingStageReceipt ? "待确认" : stageCountText(stageWorkbench?.selected_a_rows) }} / 港股 {{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}</p>
+        <p>{{ selectedDate }} · {{ currentStageDefinition.label }} · A股 {{ aMarketStateText }} / 港股 {{ hkMarketStateText }}</p>
       </div>
       <div class="timeline-grid">
         <button
@@ -222,16 +351,22 @@ const {
           <small>{{ timelineStageCounts(stage.id) }}</small>
         </button>
         <button
-          v-for="(label, index) in closingTimeline" :key="label" type="button"
-          :class="{ current: index === 0 && closeReviewActive }"
-          @click="index === 0 ? loadCloseReview('HK') : showNavigationStatus(label)"
+          v-for="node in closingTimeline" :key="node.node_id"
+          :data-testid="`closing-${node.node_id}`" type="button"
+          :class="{ current: (node.node_id === 'hkconnect_model_selection_review' && closeReviewActive) || (node.node_id === 'a_share_seven_stage_top200' && aTop200Active) }"
+          @click="node.node_id === 'hkconnect_model_selection_review' ? loadCloseReview('HK') : node.node_id === 'a_share_seven_stage_top200' ? loadAShareTop200() : showNavigationStatus(`${node.label} · ${node.state} · ${node.reason}`)"
         >
-          <b>{{ label }}</b>
-            <span>{{ index === 0 && closeReviewActive ? "已加载指定日期复盘" : (index < 3 ? "复盘入口保留" : "未到验收批次") }}</span>
-          <small>{{ index === 0 ? (closeReviewActive ? `${selectedDate} · 只读` : "点击加载只读收盘复盘") : "当前不冒充完成" }}</small>
+          <b>{{ node.label }}</b>
+          <span>{{ node.node_id === 'a_share_seven_stage_top200' ? 'READ_ONLY' : node.state }}</span>
+          <small v-if="node.node_id === 'a_share_seven_stage_top200'">{{ selectedDate }} · 点击加载只读统计</small>
+          <small v-else>{{ selectedDate }} · {{ node.reason }}</small>
+          <small v-if="node.node_id === 'a_share_seven_stage_top200'">UI_ONLY · 无调度回执</small>
+          <small v-else>{{ node.owner_id }} · run_id={{ node.run_id }} · binding={{ node.binding_status }}</small>
         </button>
       </div>
     </section>
+
+    <AShareTop200Panel v-if="aTop200Active" :date="selectedDate" @close="closeAShareTop200" />
 
     <section v-if="!closeReviewActive" class="panel stage-panel">
       <div class="section-heading">
@@ -239,7 +374,7 @@ const {
         <p v-if="stageWorkbench">{{ stageWorkbench.stage.status }} · {{ stageWorkbench.stage.window || currentStageDefinition.label }}</p>
       </div>
       <div class="stage-actions">
-        <ManualCollectionControls :date="selectedDate" target="HK_STAGE" :stage-id="selectedStage" @completed="selectedDate === $event.trade_date && selectedStage === $event.stage_id && loadStage(selectedStage, true)" />
+        <ManualCollectionControls v-if="selectedStage === 'STAGE_1545_1555'" :date="selectedDate" target="HK_STAGE" :stage-id="selectedStage" @completed="selectedDate === $event.trade_date && selectedStage === $event.stage_id && loadStage(selectedStage, true)" />
         <button type="button" :disabled="stageLoading || !selectedDate" @click="ensureStage(false)">运行 / 恢复当前阶段</button>
         <button type="button" :disabled="stageLoading || !selectedDate" @click="ensureStage(true)">强制重新物化</button>
         <span v-if="referenceMode" class="reference-label">参考快照 · WATCH_ONLY</span>
@@ -247,6 +382,15 @@ const {
       </div>
       <section class="stage-lineage-panel" aria-label="阶段运行血缘">
         <strong>阶段运行血缘</strong>
+        <p v-if="stageWorkbench?.stage_lineage?.natural" class="evidence-gap">{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }} · status={{ stageWorkbench.stage_lineage.natural.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="stageWorkbench?.stage_lineage?.recovery" class="evidence-gap">{{ stageWorkbench.stage_lineage.recovery.label || "CONTROLLED_RECOVERY" }} · status={{ stageWorkbench.stage_lineage.recovery.status || "CANNOT_CONFIRM" }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence?.cannot_confirm?.length" class="evidence-gap">{{ stageWorkbench.execution_evidence.cannot_confirm.join("、") }}</p>
+        <p v-if="!stageWorkbench?.stage_lineage && !stageWorkbench?.execution_evidence" class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        <p v-if="!stageWorkbench?.stage_lineage && stageWorkbench?.execution_evidence && hasFourLaneFormalGap(stageWorkbench)" class="evidence-gap">
+          四路策略输出属于研究观察；formal_eligible=false 表示正式资格未授予，不代表行情采集失败。
+        </p>
+        <details>
+        <summary>展开运行血缘详情</summary>
         <div v-if="stageWorkbench?.stage_lineage" class="stage-lineage-grid">
           <article v-if="stageWorkbench.stage_lineage.natural" class="stage-lineage-card">
             <b>{{ stageWorkbench.stage_lineage.natural.label || "ORIGINAL_NATURAL_RUN" }}</b>
@@ -305,6 +449,7 @@ const {
           </p>
         </div>
         <p v-else class="evidence-gap">CANNOT_CONFIRM：当前响应未提供可验证的 natural/recovery receipt 血缘。</p>
+        </details>
         <p v-if="stageWorkbench?.stage_lineage?.cannot_confirm?.length" class="evidence-gap">
           {{ stageWorkbench.stage_lineage.cannot_confirm.join("、") }}
         </p>
@@ -326,9 +471,26 @@ const {
       </p>
       <p v-else-if="stageWorkbench" class="stage-display-status">{{ stageWorkbench.stage.display_status }}</p>
 
+      <div v-if="snapshotObservation(stageWorkbench)" class="market-column" data-snapshot-recovery aria-label="当前快照降级观察">
+        <h3>当前快照观察 · WATCH_ONLY</h3>
+        <p>本阶段正式结果仍按原回执保留。以下为当前行情观察，不是原阶段选股、原 Top10 或自然时点结果；评分与研究上下文未补造。</p>
+        <p>真实采集：{{ snapshotObservation(stageWorkbench)?.captured_at }} · 原截止：{{ snapshotObservation(stageWorkbench)?.original_stage_cutoff_at }} · 晚于原截止：{{ snapshotObservation(stageWorkbench)?.after_original_cutoff ? "是" : "否" }}</p>
+        <p>观察 {{ snapshotObservation(stageWorkbench)?.observed_rows }} / 请求 {{ snapshotObservation(stageWorkbench)?.requested_rows }}；正式入选计数不增加。隔离/缺失：{{ snapshotObservation(stageWorkbench)?.missing_symbols?.join("、") || "无" }}</p>
+        <p class="evidence-gap">{{ snapshotObservation(stageWorkbench)?.gaps?.join("、") }}</p>
+        <p>报价源更新时间：{{ snapshotSourceTimes }}</p>
+        <details>
+        <summary>展开原始报价观察表</summary>
+        <table>
+          <thead><tr><th>代码</th><th>名称</th><th>快照价格</th><th>源更新时间</th><th>实际采集</th><th>评分/研究</th><th>用途</th></tr></thead>
+          <tbody><tr v-for="row in snapshotObservation(stageWorkbench)?.rows" :key="String(row.code)">
+            <td>{{ row.code }}</td><td>{{ row.name || "—" }}</td><td>{{ row.last_price }}</td><td>{{ row.source_update_time }}</td><td>{{ row.captured_at }}</td><td>缺失（null）</td><td>WATCH_ONLY</td>
+          </tr></tbody>
+        </table>
+        </details>
+      </div>
       <div class="market-columns">
         <section class="market-column" aria-label="A股候选">
-          <div class="market-title"><h3>A股</h3><span>{{ hasMissingStageReceipt ? "待确认" : `${stageCountText(stageWorkbench?.selected_a_rows)} 条` }}</span></div>
+          <div class="market-title"><h3>A股</h3><span>{{ aMarketStateText }}</span></div>
           <p v-if="stageWorkbench?.markets?.A?.selection_mode === 'BACKFILL'" class="evidence-note">
             历史回补 BACKFILL · {{ stageWorkbench?.markets?.A?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.A?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.A?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.A?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
           </p>
@@ -343,12 +505,29 @@ const {
             </ul>
             <p v-if="!stageWorkbench?.markets?.A?.source_evidence?.length" class="evidence-gap">CANNOT_CONFIRM：A股来源证据缺失或为空。</p>
           </details>
-          <div v-if="!aRows.length" class="empty-card">
-            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : "A股无主表候选" }}</strong>
+          <div v-if="!aRows.length && !snapshotReselectionActive" class="empty-card">
+            <strong>{{ hasMissingStageReceipt ? "阶段执行回执缺失" : aEmptyResultVerified ? "A股本阶段无入选" : "A股选股结果待确认" }}</strong>
             <span v-if="hasMissingStageReceipt">{{ currentStageDefinition.label }} 阶段 · 行数待确认</span>
-            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows ?? aSummary.source_rows) }}</span>
-            <p>{{ stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V3.5。" }}</p>
+            <span v-else>{{ currentStageDefinition.label }} 阶段 · source rows {{ stageCountText(aSummary.source_rows) }} / requested {{ stageCountText(aSummary.requested_rows) }}</span>
+            <p>{{ hasMissingStageReceipt ? missingStageReceiptMessage : aEmptyStateDetails }}</p>
           </div>
+          <template v-if="!aRows.length && snapshotReselectionActive">
+            <p class="evidence-note">事后快照补选 · {{ snapshotReselectionActive.scored_rows ?? "未记录" }}→{{ snapshotReselectionActive.selected_rows ?? "未记录" }} 条 · 采集 {{ snapshotReselectionActive.captured_at || "未记录" }} · 计算 {{ snapshotReselectionActive.scoring_evaluated_at || "未记录" }} · WATCH_ONLY · 原阶段正式结果仍待确认</p>
+            <article v-for="row in snapshotReselectionCards" :key="rowCode(row)" class="candidate-card">
+              <div class="candidate-head"><div><strong>{{ rowName(row) }}</strong><span>{{ rowCode(row) }} · 排名 {{ rowRank(row) }}</span></div><b>{{ row.action_level || row.trade_status || "WATCH_ONLY" }}</b></div>
+              <dl>
+                <div><dt>涨幅</dt><dd>{{ formatPercent(aShareChangePct(row)) }}</dd></div>
+                <div><dt>阶段分</dt><dd>{{ rowScore(row) }}</dd></div>
+                <div><dt>新闻分</dt><dd>{{ typeof row.news_quality_score === 'number' ? qualityScore(row.news_quality_score) : row.news_link ? `${qualityScore(row.news_link.score)} · 补关联（${row.news_link.article_count}篇）` : row.news_missing_reason || '新闻评分来源未确认' }}</dd></div>
+                <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
+                <div><dt>支撑位</dt><dd>{{ evidenceValue(rowSupport(row)) }}</dd></div>
+                <div><dt>压力位</dt><dd>{{ evidenceValue(rowPressure(row)) }}</dd></div>
+                <div><dt>失效位</dt><dd>{{ evidenceValue(rowInvalidation(row)) }}</dd></div>
+                <div><dt>{{ row.next_validation_time ? "下次" : "数据截止" }}</dt><dd>{{ rowNextEvidence(row) || "当前阶段未提供验证时间" }}</dd></div>
+              </dl>
+              <p v-if="row.news_link" class="evidence-note">{{ row.news_missing_reason }}</p>
+            </article>
+          </template>
           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">
             <div class="candidate-head"><div><strong>{{ rowName(row) }}</strong><span>{{ rowCode(row) }} · 排名 {{ rowRank(row) }}</span></div><b>{{ row.stage_display_decision || "观察" }}</b></div>
             <dl>
@@ -365,14 +544,14 @@ const {
           </article>
         </section>
         <section class="market-column" :aria-label="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'">
-          <div class="market-title"><h3>{{ stageWorkbench?.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ stageMarketCountText(stageWorkbench?.markets?.HK, stageWorkbench?.selected_hk_rows) }}<template v-if="!['CANNOT_CONFIRM', 'OBSERVATION_UNVERIFIED', 'READY_EMPTY'].includes(stageWorkbench?.markets?.HK?.display_mode || '')"> 条</template></span></div>
+          <div class="market-title"><h3>{{ stageWorkbench?.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "港股通观察行" : `港股通${isPreopenStage ? "09:20二筛" : "二筛"}` }}</h3><span>{{ hkMarketStateText }}</span></div>
           <p v-if="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED'" class="evidence-note">未验证原因：{{ stageWorkbench.markets.HK.display_reasons?.join("、") || "SelectionStore 或执行绑定不足" }}</p>
           <p v-if="stageWorkbench?.markets?.HK?.selection_mode === 'BACKFILL'" class="evidence-note">
             历史回补 BACKFILL · {{ stageWorkbench?.markets?.HK?.backfill_run_ids?.join("、") || stageWorkbench?.markets?.HK?.backfill_run_id || "run id CANNOT_CONFIRM" }} · selection {{ stageWorkbench?.markets?.HK?.selection_manifest_receipt_verified ? "manifest/receipt 已验证" : "manifest/receipt CANNOT_CONFIRM" }} · runner receipt {{ stageWorkbench?.markets?.HK?.runner_receipt_verified ? "已验证" : "CANNOT_CONFIRM" }}
           </p>
           <p v-if="stageWorkbench?.markets?.HK?.cannot_confirm?.includes('BACKFILL_NAMESPACE_CONFLICT')" class="evidence-gap">BACKFILL_NAMESPACE_CONFLICT：多个回补批次的优先级无法确认。</p>
           <div v-if="stageWorkbench && !hkRows.length" class="empty-card">
-            <strong>{{ stageWorkbench.markets?.HK?.display_mode === "CANNOT_CONFIRM" ? "待确认/缺少正式产物" : stageWorkbench.markets?.HK?.display_mode === "READY_EMPTY" ? "正式结果为空（READY_EMPTY）" : stageWorkbench.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "观察数据未验证" : "港股通该阶段无可确认候选" }}</strong><p>{{ stageWorkbench.markets?.HK?.display_mode === "CANNOT_CONFIRM" ? stageWorkbench.markets.HK.display_reasons?.join("、") || stageWorkbench.markets.HK.cannot_confirm?.join("、") || "缺少正式 SelectionStore 产物" : stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V3.5。" }}</p>
+            <strong>{{ stageWorkbench.markets?.HK?.display_mode === "CANNOT_CONFIRM" ? "待确认/缺少正式产物" : stageWorkbench.markets?.HK?.display_mode === "READY_EMPTY" ? "正式结果为空（READY_EMPTY）" : stageWorkbench.markets?.HK?.display_mode === "OBSERVATION_UNVERIFIED" ? "观察数据未验证" : "港股通该阶段无可确认候选" }}</strong><p>{{ stageWorkbench.markets?.HK?.display_mode === "CANNOT_CONFIRM" ? stageWorkbench.markets.HK.display_reasons?.join("、") || stageWorkbench.markets.HK.cannot_confirm?.join("、") || "缺少正式 SelectionStore 产物" : stageWorkbench?.stage.display_status || "该阶段数据尚未进入 V4。" }}</p>
           </div>
           <p v-if="isPreopenStage && hkRows.length" class="evidence-note">09:20阶段只做初筛；支撑/压力/失效位从09:30后阶段生成。</p>
           <article v-for="row in hkRows" :key="rowCode(row)" class="candidate-card">

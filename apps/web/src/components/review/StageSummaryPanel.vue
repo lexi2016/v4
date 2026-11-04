@@ -7,6 +7,8 @@ export type StageSummary = {
   stage_label?: string | null;
   phase_status?: string | null;
   selected_a_rows?: number | null;
+  a_market_state_label?: string;
+  hk_market_state_label?: string;
   a_source_rows?: number | null;
   a_candidate_count?: number | null;
   selected_hk_rows?: number | null;
@@ -82,15 +84,16 @@ function dateText(value: string | null | undefined) {
 
 function sourceText() {
   if (!identityValid.value) return "—";
-  return summary.value.reference_mode === true ? "本地参考快照" : "V3.5 原生输入";
+  return summary.value.reference_mode === true ? "本地参考快照" : "V4 原生输入";
 }
 </script>
 
 <template>
   <section class="status-grid stage-summary-grid" aria-label="阶段摘要" data-stage-summary>
     <article><span>阶段状态</span><strong>{{ text(summary.phase_status) }}</strong><small>{{ dateText(summary.trade_date) }} / {{ identityValid ? summary.stage_label : "—" }} 阶段</small></article>
-    <article><span>A股候选</span><strong>{{ numberText(summary.selected_a_rows) }}</strong><small>source rows {{ numberText(summary.a_source_rows) }}；candidate {{ numberText(summary.a_candidate_count) }}</small></article>
-    <article><span>港股通候选</span><strong>{{ numberText(summary.selected_hk_rows) }}</strong><small>candidate {{ numberText(summary.hk_candidate_count) }}；同阶段观察</small></article>
+    <article v-if="summary.stage_id !== 'STAGE_1545_1555'"><span>A股候选</span><strong>{{ identityValid && summary.a_market_state_label ? summary.a_market_state_label : numberText(summary.selected_a_rows) }}</strong><small>source rows {{ numberText(summary.a_source_rows) }}；candidate {{ numberText(summary.a_candidate_count) }}</small></article>
+    <article v-else><span>A股</span><strong>不适用</strong><small>港股专属阶段，不代表零候选</small></article>
+    <article><span>港股通候选</span><strong>{{ identityValid && summary.hk_market_state_label ? summary.hk_market_state_label : numberText(summary.selected_hk_rows) }}</strong><small>candidate {{ numberText(summary.hk_candidate_count) }}；同阶段观察</small></article>
     <article><span>港股通源</span><strong>{{ sourceText() }}</strong><small>运行时不调用旧 V3 服务</small></article>
     <article><span>统一行数</span><strong>{{ numberText(summary.selected_total_rows) }}</strong><small>A股与港股通同阶段合并展示</small></article>
     <article><span>数据级别</span><strong>{{ text(summary.data_level) }}</strong><small>阶段产物驱动，非交易接口</small></article>

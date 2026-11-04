@@ -54,8 +54,8 @@ async function generateSelectedDate() {
     <p>各复盘共享精确日期读取接口，入口只改变内容定位；原版 Vibe 完整功能继续由8910提供。</p>
     <div v-for="section in sections" :key="section" :data-review-section="section">
       <template v-if="section === 'HK'">
-        <p class="review-slot-banner" data-testid="hk-close-1610">16:10 港股通正式收盘复盘</p>
-        <HkCloseReviewPanel :review="current.market_reviews.HK" :historical="current.hk_prefix_research" />
+        <p class="review-slot-banner" data-testid="hk-close-1610">16:10 港股市场正式收盘复盘</p>
+        <HkCloseReviewPanel :review="current.market_reviews.HK" />
       </template>
       <AshareReviewPanel v-else-if="section === 'A'" :review="current.market_reviews.A" />
       <DailyResearchReviewPanel v-else :review="current.research_review" :intraday="current.intraday_research" :date="current.trade_date"

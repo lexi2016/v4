@@ -1,7 +1,7 @@
 import type { ReviewEnvelope, ManualReviewResult } from "../contracts/review";
 
 export async function loadReview(date: string, signal?: AbortSignal): Promise<ReviewEnvelope> {
-  const url = `/api/v3/review?date=${encodeURIComponent(date)}`;
+  const url = `/api/v4/review?date=${encodeURIComponent(date)}`;
   const response = signal ? await fetch(url, { signal }) : await fetch(url);
   if (!response.ok) throw new Error("review request failed");
   return response.json() as Promise<ReviewEnvelope>;
@@ -9,7 +9,7 @@ export async function loadReview(date: string, signal?: AbortSignal): Promise<Re
 
 
 export async function generateReview(date: string): Promise<ManualReviewResult> {
-  const response = await fetch("/api/v3/review/generate", {
+  const response = await fetch("/api/v4/review/generate", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ date }),
   });

@@ -1,4 +1,4 @@
-import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow, StageWorkbench } from "./types";
+import type { MarketSummary, PoolGroup, PoolRow, ReviewMetric, StageRow, StageTimelinePayload, StageWorkbench } from "./types";
 
 export function poolRows(group: PoolGroup) {
   return group.rows ?? [];
@@ -38,7 +38,7 @@ export function poolCountLabel(group: PoolGroup) {
   const returned = group.returned_rows
     ?? (group.pool_id === "a_all_pool_summary" ? group.rows?.length ?? 0 : total);
   const status = (group.status || "").trim().toUpperCase();
-  const cannotConfirm = group.complete === false
+  const cannotConfirm = (group.complete === false && group.has_more !== true)
     || ["CANNOT_CONFIRM", "NOT_MATERIALIZED", "MISSING", "DATA_BLOCKED_EMPTY", "FAILED", "ERROR"].includes(status);
   if (cannotConfirm && returned === 0) return "未生成/待补齐";
   if (cannotConfirm) return `当前显示 ${returned} / 共 ${total} 条（待补齐）`;
@@ -156,6 +156,43 @@ export function stageMarketCountText(summary: MarketSummary | undefined, selecte
   }
   if (summary?.display_mode === "READY_EMPTY") return "0 条 · 正式空结果已验证";
   return stageCountText(selectedRows);
+}
+export function stageMarketStateText(workbench: StageWorkbench | StageTimelinePayload | null | undefined, market: "A" | "HK") {
+  const stageId = workbench?.stage?.stage_id;
+  if (market === "A" && stageId === "STAGE_1545_1555") return "不适用";
+  if (!workbench) return "待确认";
+  const summary = workbench.markets?.[market];
+  const due = workbench.execution_evidence?.due_status;
+  if (["NOT_DUE", "PENDING_NOT_DUE"].includes(due || "") || workbench.status === "PENDING_NOT_DUE") return "未到期/等待执行";
+  const selected = market === "A" ? workbench.selected_a_rows : workbench.selected_hk_rows;
+  const supplementary = (workbench as unknown as { snapshot_reselection?: { status?: string; markets?: { A_SHARE?: { mode?: string; selected_rows?: number; captured_at?: string } } } }).snapshot_reselection;
+  const picked = supplementary?.markets?.A_SHARE;
+  if (market === "A" && !(typeof selected === "number" && selected > 0) && summary?.selection_manifest_receipt_verified !== true
+      && supplementary?.status === "SELECTED_WATCH_ONLY" && picked?.mode === "AFTERFACT_SNAPSHOT_RESELECTION" && (picked.selected_rows || 0) > 0) {
+    const time = picked.captured_at?.match(/T(\d{2}:\d{2})/)?.[1] || "时刻待确认";
+    return `事后补选${picked.selected_rows}条 · 快照${time} · 非原时点`;
+  }
+  const recovery = (workbench as unknown as { snapshot_recovery?: { status?: string; markets?: { A_SHARE?: { mode?: string; observed_rows?: number; captured_at?: string } } } }).snapshot_recovery;
+  const observation = recovery?.markets?.A_SHARE;
+  if (market === "A" && !(typeof selected === "number" && selected > 0)
+      && summary?.selection_manifest_receipt_verified !== true && recovery?.status === "OBSERVATIONS_AVAILABLE"
+      && observation?.mode === "SNAPSHOT_RECOVERY_OBSERVATION" && (observation.observed_rows || 0) > 0) {
+    const time = observation.captured_at?.match(/T(\d{2}:\d{2})/)?.[1] || "时刻待确认";
+    return `快照补采${observation.observed_rows}条 · ${time}获取 · 非原时点`;
+  }
+  const sourceStatus = summary?.source_status || "";
+  if (["FAILED", "ERROR", "DATA_BLOCKED_EMPTY"].includes(sourceStatus)
+      || (typeof summary?.requested_rows === "number" && summary.requested_rows > 0 && summary.source_rows === 0)) return "采集失败/来源未就绪";
+  if (summary?.display_mode === "READY_EMPTY"
+      || (summary?.selection_manifest_receipt_verified === true && selected === 0 && summary?.status === "READY")) return "成功零结果 · 0 条";
+  if (summary?.display_mode === "OBSERVATION_UNVERIFIED") {
+    const label = `${stageCountText(summary.observation_count)} 条观察行 · 未验证`;
+    return sourceStatus.includes("PARTIAL") || summary?.status?.includes("PARTIAL") ? `部分完成 · ${label}` : label;
+  }
+  if (sourceStatus.includes("PARTIAL") || summary?.status?.includes("PARTIAL")) return `部分完成 · ${stageCountText(selected)} 条`;
+  if (workbench.execution_evidence?.status === "EXECUTION_RECEIPT_MISSING") return "等待执行/待确认";
+  if (!summary || summary.display_mode === "CANNOT_CONFIRM" || summary.status === "CANNOT_CONFIRM") return "待确认/缺少正式产物";
+  return `${stageCountText(selected)} 条`;
 }
 export function hasExactMissingStageReceipt(
   workbench: StageWorkbench | null | undefined,

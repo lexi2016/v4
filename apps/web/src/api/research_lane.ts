@@ -402,21 +402,21 @@ export function loadResearchLane(
   researchDate: string,
   options?: ResearchLaneRequestOptions,
 ): Promise<ResearchLane> {
-  const url = `/api/v3/research/lane?research_date=${encodeURIComponent(researchDate)}`;
+  const url = `/api/v4/research/lane?research_date=${encodeURIComponent(researchDate)}`;
   return options
     ? load(url, "EXACT", researchDate, options)
     : loadLegacy(url);
 }
 
 export function loadResearchLaneLatest(): Promise<ResearchLane> {
-  return loadLegacy("/api/v3/research/lane");
+  return loadLegacy("/api/v4/research/lane");
 }
 
 export async function loadResearchPdfDocumentDetail(
   documentId: string,
   researchDate: string,
 ): Promise<ResearchPdfDocumentDetail> {
-  const url = `/api/v3/research/pdf-documents/${encodeURIComponent(documentId)}?research_date=${encodeURIComponent(researchDate)}`;
+  const url = `/api/v4/research/pdf-documents/${encodeURIComponent(documentId)}?research_date=${encodeURIComponent(researchDate)}`;
   const payload = await requestJson(url, "research PDF document", { });
   if (!isRecord(payload)
       || payload.schema_version !== "v4.zsxq_pdf_document_detail.v1"
@@ -456,7 +456,7 @@ export function loadResearchDay(
   options?: ResearchLaneRequestOptions,
 ): Promise<ResearchDayProduct> {
   return loadDay(
-    `/api/v3/research/day?archive_date=${encodeURIComponent(researchDate)}`,
+    `/api/v4/research/day?archive_date=${encodeURIComponent(researchDate)}`,
     "EXACT",
     researchDate,
     options,

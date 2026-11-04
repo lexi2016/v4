@@ -1,4 +1,4 @@
-import type { PoolGroup, PoolResponse, StageWorkbench } from "../app_shell/types";
+import type { PoolGroup, PoolResponse, StageTimelinePayload, StageWorkbench } from "../app_shell/types";
 import { assertExactResponseDate, assertExactStagePayload } from "../app_shell/formatters";
 
 export const POOL_PAGE_SIZE = 200;
@@ -229,10 +229,11 @@ function validateMarketSummaries(value: unknown) {
   }
 }
 
-function hasOnlyUnassessedMarketSummaries(value: unknown) {
+function hasOnlyUnassessedMarketSummaries(value: unknown, stageId: string) {
   if (!isRecord(value)) return false;
   const marketIds = Object.keys(value).sort();
-  if (marketIds.length !== 2 || marketIds[0] !== "A" || marketIds[1] !== "HK") return false;
+  const expected = stageId === "STAGE_1545_1555" ? ["HK"] : ["A", "HK"];
+  if (marketIds.length !== expected.length || marketIds.some((market, index) => market !== expected[index])) return false;
   return marketIds.every((market) => {
     const summary = value[market];
     if (!isRecord(summary)
@@ -256,10 +257,11 @@ function hasExactMissingStageReceiptEnvelope(record: JsonRecord, requestedDate: 
   const executionEvidence = record.execution_evidence;
   const selectionMarkets = record.selection_markets;
   if (!isRecord(stage) || !isRecord(executionEvidence) || !isRecord(selectionMarkets)) return false;
-  if (!hasOnlyUnassessedMarketSummaries(record.markets)
-    || (record.market_summaries !== undefined && !hasOnlyUnassessedMarketSummaries(record.market_summaries))) return false;
+  if (!hasOnlyUnassessedMarketSummaries(record.markets, stageId)
+    || (record.market_summaries !== undefined && !hasOnlyUnassessedMarketSummaries(record.market_summaries, stageId))) return false;
   const markets = Object.entries(selectionMarkets);
-  if (markets.length !== 2 || !["A_SHARE", "HK_CONNECT"].every((key) => Object.hasOwn(selectionMarkets, key))) {
+  const expectedMarkets = stageId === "STAGE_1545_1555" ? ["HK_CONNECT"] : ["A_SHARE", "HK_CONNECT"];
+  if (markets.length !== expectedMarkets.length || !expectedMarkets.every((key) => Object.hasOwn(selectionMarkets, key))) {
     return false;
   }
   const unassessedMarkets = markets.every(([market, value]) => isRecord(value)
@@ -457,15 +459,71 @@ async function requestJson(url: string, signal?: AbortSignal, timeoutMs?: number
 export async function loadPoolSnapshot(date: string, offset = 0, signal?: AbortSignal): Promise<PoolResponse> {
   if (!/^\d{8}$/.test(date)) throw new Error("D-1 预选池请求日期格式错误。");
   if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("D-1 预选池请求 offset 必须是非负整数。");
-  const url = `/api/v3/preselection-pools?date=${encodeURIComponent(date)}&limit=${POOL_PAGE_SIZE}&offset=${offset}`;
+  const url = `/api/v4/preselection-pools?date=${encodeURIComponent(date)}&limit=${POOL_PAGE_SIZE}&offset=${offset}`;
   const payload = await requestJson(url, signal);
   return validatePoolResponse(payload, date, offset);
+}
+
+export function projectSummaryPoolPage(first: PoolResponse | null, page: PoolResponse): PoolResponse | null {
+  if (!first || first.trade_date !== page.trade_date || !/^[0-9a-f]{64}$/.test(first.input_fingerprint || "")
+      || first.input_fingerprint !== page.input_fingerprint) return null;
+  return {
+    ...first,
+    a_all_pool_rows: page.a_all_pool_rows,
+    a_all_pool_complete: page.a_all_pool_complete,
+    pagination: page.pagination && {
+      ...page.pagination,
+      arrays: { ...first.pagination?.arrays, a_all_pool_rows: page.pagination.arrays?.a_all_pool_rows },
+      pools: first.pagination?.pools,
+    },
+  };
 }
 
 export async function loadStageSnapshot(date: string, stageId: string, signal?: AbortSignal): Promise<StageWorkbench> {
   if (!/^\d{8}$/.test(date)) throw new Error("阶段工作台请求日期格式错误。");
   if (!/^[A-Z0-9_]+$/.test(stageId)) throw new Error("阶段工作台请求 stage_id 格式错误。");
-  const url = `/api/v3/workbench/stage?date=${encodeURIComponent(date)}&stage=${encodeURIComponent(stageId)}&limit=${STAGE_PAGE_SIZE}`;
+  const url = `/api/v4/workbench/stage?date=${encodeURIComponent(date)}&stage=${encodeURIComponent(stageId)}&limit=${STAGE_PAGE_SIZE}`;
   const payload = await requestJson(url, signal, STAGE_READ_TIMEOUT_MS);
   return validateStageResponse(payload, date, stageId);
+}
+
+const STAGE_TIMELINE_BATCH_TIMEOUT_MS = 20_000;
+
+function validateStageTimelineSummary(value: unknown, label: string): StageTimelinePayload {
+  if (!isRecord(value)) invalid(label, "阶段摘要不是对象");
+  if (!isRecord(value.stage)) invalid(label, "缺少 stage");
+  count(value.selected_a_rows, label);
+  count(value.selected_hk_rows, label, true);
+  if (typeof value.selected_a_rows !== "number") invalid(label, "缺少 selected_a_rows");
+  if (value.execution_evidence !== undefined && value.execution_evidence !== null
+      && !isRecord(value.execution_evidence)) invalid(label, "execution_evidence 必须是对象");
+  for (const key of ["markets", "snapshot_reselection", "snapshot_recovery"]) {
+    if (value[key] !== undefined && value[key] !== null && !isRecord(value[key])) {
+      invalid(label, `${key} 必须是对象`);
+    }
+  }
+  return value as StageTimelinePayload;
+}
+
+export async function loadStageTimelineBatch(
+  date: string,
+  stages: string[],
+  signal?: AbortSignal,
+): Promise<Record<string, StageTimelinePayload>> {
+  if (!/^\d{8}$/.test(date)) throw new Error("阶段时间轴请求日期格式错误。");
+  if (!stages.length) return {};
+  const url = `/api/v4/workbench/stage-batch?date=${encodeURIComponent(date)}&stages=${encodeURIComponent(stages.join(","))}`;
+  const payload = await requestJson(url, signal, STAGE_TIMELINE_BATCH_TIMEOUT_MS);
+  if (!isRecord(payload)) invalid("阶段时间轴", "响应不是对象");
+  if (payload.schema_version !== "v4.stage_timeline_batch.v1") invalid("阶段时间轴", "schema_version 不受支持");
+  if (payload.trade_date !== date) invalid("阶段时间轴", "响应日期与请求不一致");
+  assertResearchOnlyFlags(payload, "阶段时间轴", { writePerformed: true });
+  if (!isRecord(payload.stages)) invalid("阶段时间轴", "缺少 stages");
+  const summaries: Record<string, StageTimelinePayload> = {};
+  for (const stage of stages) {
+    const summary = payload.stages[stage];
+    if (summary === undefined) continue;
+    summaries[stage] = validateStageTimelineSummary(summary, `阶段时间轴 ${stage}`);
+  }
+  return summaries;
 }

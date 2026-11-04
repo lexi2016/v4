@@ -132,9 +132,6 @@ button:disabled { cursor: wait; opacity: .58; }
 .review-metric-grid strong { display: block; margin: 7px 0; color: #215477; font-size: 22px; }
 .review-warning { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 18px 15px; padding: 11px; color: #765615; background: #fff8dc; border: 1px solid #ead18a; border-radius: 5px; font-size: 11px; }
 .review-warning span { padding: 3px 7px; background: #fff; border: 1px solid #e4d4a2; border-radius: 999px; }
-.review-table-scroll-hint { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; color: #526a7f; font-size: 11px; line-height: 1.4; }
-.review-table-scroll-hint strong { color: #215477; font-weight: 700; }
-.review-table-wrap:focus-visible { outline: 2px solid #215477; outline-offset: 2px; }
 .review-table-wrap { margin: 0 18px 20px; overflow-x: auto; border: 1px solid #d2dce5; border-radius: 6px; }
 .review-table-wrap table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .review-table-wrap th, .review-table-wrap td { padding: 9px 10px; text-align: left; border-bottom: 1px solid #e1e8ee; }
@@ -241,3 +238,7 @@ button:disabled { cursor: wait; opacity: .58; }
   .global-leader-grid, .global-industry-groups { grid-template-columns: 1fr; }
   .global-industry-row-grid { grid-template-columns: 1fr; }
 }
+
+/* Only the user-approved research entry has button presentation. */
+.entry-nav .research-panel-entry { display: inline-flex; align-items: center; padding: 8px 14px; color: #254d71; background: #f8fbfd; border: 1px solid #9eb5c8; border-radius: 5px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.entry-nav .research-panel-entry:hover { background: #eaf4fb; }

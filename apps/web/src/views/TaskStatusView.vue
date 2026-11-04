@@ -45,6 +45,10 @@ const logicalRows = computed(() => [...(payload.value?.groups.logical ?? [])].so
   (left, right) => (statusPriority[left.status] ?? 2) - (statusPriority[right.status] ?? 2),
 ));
 
+function booleanEvidence(value: unknown) {
+  return value === true ? "是（回执声明）" : value === false ? "否" : "未记录／未知";
+}
+
 function duration(row: LogicalWorkloadStatus) {
   return typeof row.duration_ms === "number" ? `${row.duration_ms} ms` : "未记录";
 }
@@ -126,9 +130,20 @@ onBeforeUnmount(() => controller?.abort());
             <div><dt>下次计划</dt><dd>{{ row.next_due || "未配置" }}</dd></div>
             <div><dt>耗时</dt><dd>{{ duration(row) }}</dd></div>
             <div><dt>结果码</dt><dd>{{ row.result_code || "CANNOT_CONFIRM" }}</dd></div>
-            <div><dt>新鲜度</dt><dd>{{ row.freshness || "CANNOT_CONFIRM" }}</dd></div>
+            <div><dt>调度回执时效（非数据更新）</dt><dd>{{ row.receipt_freshness || row.freshness || "CANNOT_CONFIRM" }}</dd></div>
           </dl>
-          <details v-if="row.receipt_path"><summary>查看 receipt</summary><code>{{ row.receipt_path }}</code></details>
+          <p data-business-message>{{ row.business_message || "无可验证业务更新证据" }}</p>
+          <dl aria-label="业务采集与更新证据">
+            <div><dt>采集状态</dt><dd>{{ row.capture_status || "CANNOT_CONFIRM" }}</dd></div>
+            <div><dt>已调用采集器</dt><dd>{{ booleanEvidence(row.collector_invoked) }}</dd></div>
+            <div><dt>已执行采集</dt><dd>{{ booleanEvidence(row.capture_performed) }}</dd></div>
+            <div><dt>新采集已验证</dt><dd>{{ booleanEvidence(row.new_capture_verified) }}</dd></div>
+            <div><dt>业务更新</dt><dd>{{ row.data_update_status || "CANNOT_CONFIRM" }}</dd></div>
+            <div><dt>业务数据日</dt><dd>{{ row.business_data_date || "未记录（不借用计划日）" }}</dd></div>
+            <div><dt>业务证据</dt><dd>{{ row.business_evidence_status || "CANNOT_CONFIRM" }}</dd></div>
+          </dl>
+          <p v-if="row.breakpoint" role="status">失败原因：{{ row.breakpoint }}</p>
+          <details v-if="row.receipt_path"><summary>查看 receipt 身份（路径本身不是验证）</summary><p>{{ row.business_run_id || "无业务 run_id" }}</p><code>{{ row.receipt_path }}</code></details>
         </article>
       </div>
       <details v-if="payload.groups.registrations.length" class="task-registration-panel" aria-label="图谱待确认任务">
