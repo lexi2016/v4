@@ -866,16 +866,18 @@ async function goToday() {
   await refreshNavigationDate(true);
 }
 let restoringDate = false;
+let navigationRequestVersion = 0;
 let navigationReady = false;
 async function refreshNavigationDate(force = false) {
-  if (!navigationReady || (!force && fixedDate.value) || restoringDate || document.visibilityState === "hidden") return;
+  if (!navigationReady || (!force && fixedDate.value) || (!force && restoringDate) || document.visibilityState === "hidden") return;
   restoringDate = true;
+  const version = ++navigationRequestVersion;
   const intent = userDateIntentVersion;
   try {
     const response = await fetch("/api/v1/runs/date-list", { cache: "no-store" });
     if (!response.ok) return;
     const result: DateResponse = await response.json();
-    if (intent !== userDateIntentVersion || fixedDate.value) return;
+    if (version !== navigationRequestVersion || intent !== userDateIntentVersion || fixedDate.value) return;
     dateData.value = { ...result, research_dates: [...new Set([...(result.research_dates ?? []), ...(dateData.value.research_dates ?? [])])] };
     const date = todayDate.value;
     if (!/^\d{8}$/.test(date)) return;
@@ -884,7 +886,7 @@ async function refreshNavigationDate(force = false) {
     writeSelectedDateToUrl(date);
     if (changed || force) await onDateChange();
   } catch { /* Keep the visible date and its gaps when the calendar is unavailable. */ }
-  finally { restoringDate = false; }
+  finally { if (version === navigationRequestVersion) restoringDate = false; }
 }
 function onPageRestore() { void refreshNavigationDate(); }
 

@@ -2585,6 +2585,45 @@ describe("daily date navigation and independent A close view", () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-03");
   });
+  it("honors today while an older focus calendar request is pending", async () => {
+    window.history.replaceState({}, "", "/?view=a-top200");
+    let dateRequests = 0;
+    let resolveFocus!: (value: ReturnType<typeof jsonResponse>) => void;
+    let resolveToday!: (value: ReturnType<typeof jsonResponse>) => void;
+    const focusResponse = new Promise<ReturnType<typeof jsonResponse>>(resolve => { resolveFocus = resolve; });
+    const todayResponse = new Promise<ReturnType<typeof jsonResponse>>(resolve => { resolveToday = resolve; });
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") {
+        dateRequests += 1;
+        if (dateRequests === 2) return focusResponse;
+        if (dateRequests === 3) return todayResponse;
+        return jsonResponse(calendar("20261105"));
+      }
+      return jsonResponse(url === "/top200-hit.json" ? { dates: [] } : {});
+    }));
+    render(App);
+    await screen.findByTestId("a-top200-panel");
+    const input = screen.getByLabelText("交易日（日历选择）") as HTMLInputElement;
+    expect(input.value).toBe("2026-11-05");
+    window.dispatchEvent(new Event("focus"));
+    await waitFor(() => expect(dateRequests).toBe(2));
+    await fireEvent.change(input, { target: { value: "2026-11-04" } });
+    expect(input.value).toBe("2026-11-04");
+    expect(window.location.search).toContain("date=20261104");
+    await fireEvent.click(screen.getByTestId("go-today"));
+    await waitFor(() => expect(dateRequests).toBe(3));
+    // The older completion must neither move the date nor release the new request's busy state.
+    resolveFocus(jsonResponse(calendar("20261106")));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    window.dispatchEvent(new Event("focus"));
+    expect(dateRequests).toBe(3);
+    expect(input.value).toBe("2026-11-04");
+    resolveToday(jsonResponse(calendar("20261105")));
+    await waitFor(() => expect(input.value).toBe("2026-11-05"));
+    expect(new URLSearchParams(window.location.search).has("date")).toBe(false);
+    expect(new URLSearchParams(window.location.search).get("view")).toBe("a-top200");
+    expect(screen.getByTestId("selected-date-context").textContent).toContain("跟随上海当日");
+  });
   it("preserves the A deep link when pageshow fires during initial calendar loading", async () => {
     window.history.replaceState({}, "", "/?view=a-top200");
     const api = install(); render(App);
