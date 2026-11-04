@@ -1,0 +1,32 @@
+{
+  "at": "2026-11-05T00:06:17.807798+08:00",
+  "reviewer": "/root/a_close_ui_reviewer",
+  "identity": "independent read-only Sol High",
+  "source_commit": "7926d88223f0089d48c777273168950ab07d392f",
+  "verdict": "REVIEWED/PASS",
+  "previous_failure": "REVIEW_R1.json",
+  "incremental_checks": {
+    "date_tests": 8,
+    "real_module_race_harness": [
+      "old response first: PASS",
+      "new response first: PASS"
+    ],
+    "final_date": "20261105",
+    "final_url": "?view=a-top200",
+    "calendar_request_count": 3,
+    "busy_guard": "old finally preserves newer request ownership",
+    "inventory": "1344/12delta/1332 preserved",
+    "manifest_sha256": "c303fc23cd93a2c7077fc7f1d5595f951a24f54aa46a4dc16fcdb76d4298b3e1",
+    "proposed_plist_sha256": "5ca7466047a3a74dec26d9378af941cb88ac210f6bc7a20d71823ce43b5fdaef",
+    "r2_unchanged": true,
+    "data_projection": "unchanged from previously independently verified payload"
+  },
+  "reused_pass": "REVIEW_R1.json.unaffected_checks",
+  "not_run_by_reviewer": [
+    "GUI",
+    "deployment",
+    "live API",
+    "natural slot",
+    "whole-repository tests/typecheck/build"
+  ]
+}
