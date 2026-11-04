@@ -90,6 +90,8 @@ const {
   hitTop20,
   reviewClassification,
   selectedDate,
+  goToday,
+  selectDate,
   pool,
   aPoolPageLabel,
   aPoolPreviousOffset,
@@ -251,7 +253,7 @@ const aEmptyStateDetails = computed(() => {
 </script>
 
 <template>
-  <main class="dashboard-shell">
+  <main class="dashboard-shell" :class="{ 'a-top200-view': aTop200Active }">
     <header class="page-header">
       <div>
         <h1>V4 阶段选股</h1>
@@ -273,6 +275,7 @@ const aEmptyStateDetails = computed(() => {
           @change="onDateInputChange"
         />
       </label>
+      <button type="button" data-testid="go-today" @click="goToday">今日</button>
       <button
         v-if="nextFutureTargetDate"
         type="button"
@@ -299,7 +302,7 @@ const aEmptyStateDetails = computed(() => {
     </p>
 
     <nav class="entry-nav" aria-label="功能入口">
-      <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive }" type="button" @click="loadStageFromUser()">阶段选股</button>
+      <button :class="{ active: !sopActive && !taskStatusActive && !researchActive && !closeReviewActive && !aTop200Active }" type="button" @click="loadStageFromUser()">阶段选股</button>
       <button type="button" @click="scrollToPool()">D-1 预选池</button>
       <button :class="{ active: researchActive }" type="button" @click="openResearch()">研报决策台</button>
       <a class="entry-nav-link research-panel-entry" :href="`/research-panel/daily.html?date=${formatDateInput(selectedDate)}`">研究看板</a>
@@ -329,6 +332,7 @@ const aEmptyStateDetails = computed(() => {
       :archive-date="selectedDate"
       :initial-feed-filter="researchArchiveEntry ? 'wechat' : 'latest'"
     />
+    <AShareTop200Panel v-else-if="aTop200Active" :date="selectedDate" @close="closeAShareTop200" @select-date="selectDate" />
     <template v-else>
 
     <details v-if="!closeReviewActive" class="panel" :open="globalIndustryMapOpen" @toggle="onGlobalIndustryMapToggle">
@@ -366,7 +370,6 @@ const aEmptyStateDetails = computed(() => {
       </div>
     </section>
 
-    <AShareTop200Panel v-if="aTop200Active" :date="selectedDate" @close="closeAShareTop200" />
 
     <section v-if="!closeReviewActive" class="panel stage-panel">
       <div class="section-heading">

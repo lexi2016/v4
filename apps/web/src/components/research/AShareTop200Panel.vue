@@ -1,705 +1,115 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 
-type StageEntry = {
-  status?: string;
-  row_count?: number | null;
-  unique_codes?: number | null;
-  hit_count?: number | null;
-  artifact_relative?: string;
-  artifact_sha256?: string;
-  run_id?: string;
-};
-
-type StageCoverage = {
-  available?: number | null;
-  total?: number | null;
-  missing_stages?: string[];
-};
-
-type SevenStage = {
-  status?: string;
-  selected_count?: number | null;
-  hit_count?: number | null;
-  top_count?: number | null;
-  top200_coverage_pct?: number | null;
-  selection_hit_rate_pct?: number | null;
-  stages?: Record<string, StageEntry>;
-};
-
-type PoolRow = {
-  pool_id: string;
-  display_name?: string;
-  status?: string;
-  signal_date?: string | null;
-  target_date?: string | null;
-  row_count?: number | null;
-  materialized?: boolean;
-  partial?: boolean;
-  selected_count?: number | null;
-  hit_count?: number | null;
-  top200_coverage_pct?: number | null;
-  selection_hit_rate_pct?: number | null;
-  source_sha256?: string;
-};
-
-type APool = {
-  status?: string;
-  reason?: string | null;
-  materialized?: boolean;
-  evaluable?: boolean;
-  selected_count?: number | null;
-  hit_count?: number | null;
-  top_count?: number | null;
-  top200_coverage_pct?: number | null;
-  selection_hit_rate_pct?: number | null;
-  pool_count?: number | null;
-  materialized_pool_count?: number | null;
-  partial_pool_ids?: string[];
-  missing_pool_ids?: string[];
-  missing_mandatory_pool_ids?: string[];
-  partial_mandatory_pool_ids?: string[];
-  pools?: PoolRow[];
-};
-
-type Top200Definition = {
-  top_count?: number | null;
-  min_change_pct?: number | null;
-  source?: string;
-  source_sha256?: string;
-  official_input_sha256?: string | null;
-};
-
-type Top200DateEntry = {
-  date: string;
-  status: string;
-  reason?: string | null;
-  stage_coverage?: StageCoverage;
-  seven_stage?: SevenStage;
-  a_pool?: APool;
-  top200?: Top200Definition | null;
-};
-
-type Top200Payload = {
-  schema_version?: string;
-  generated_at?: string;
-  latest_available_date?: string;
-  available_dates?: string[];
-  dates?: Top200DateEntry[];
-  window_note?: string;
-  safety_flags?: Record<string, boolean>;
-};
-
+type Pool = { pool_id: string; display_name?: string; materialized?: boolean; partial?: boolean; selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null };
+type Stage = { status?: string; row_count?: number | null; unique_codes?: number | null; hit_count?: number | null };
+type Stock = { rank: number; code: string; name?: string | null; change_pct?: number | null; pool_hit: boolean; pool_memberships: string[]; stage_memberships: string[] };
+type Entry = { date: string; status?: string; a_pool?: { selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null; materialized_pool_count?: number | null; pool_count?: number | null; missing_pool_ids?: string[]; partial_pool_ids?: string[]; pools?: Pool[] }; seven_stage?: { selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null; stages?: Record<string, Stage> }; stage_coverage?: { available?: number | null; total?: number | null; missing_stages?: string[] }; top200?: { top_count?: number | null; min_change_pct?: number | null }; stocks?: Stock[]; detail_status?: string; detail_gap?: string };
+type Payload = { schema_version?: string; generated_at?: string; latest_available_date?: string; dates: Entry[]; detail_projection?: unknown; safety_flags?: unknown };
 const props = defineProps<{ date: string }>();
-const emit = defineEmits<{ close: [] }>();
-
-const STAGES: { id: string; label: string }[] = [
-  { id: "STAGE_0925", label: "09:20/09:25 竞价" },
-  { id: "STAGE_0930_0935", label: "09:30-09:35" },
-  { id: "STAGE_0935_0940", label: "09:35-09:40" },
-  { id: "STAGE_0940_0945", label: "09:40-09:45" },
-  { id: "STAGE_0945_1030", label: "09:45-10:30" },
-  { id: "STAGE_1300_1315", label: "13:00-13:15" },
-  { id: "STAGE_1445_1500", label: "14:45-15:00" },
-];
-
-const POOL_SHORT_NAMES: Record<string, string> = {
-  a_d1_premarket_pool: "主池",
-  a_d1_fupan_watchlist_pool: "复盘",
-  a_d1_stage7_fenshi_review_pool: "Stage7",
-  a_share_research_recommendation_pool: "研报",
-  a_share_baimao_research_map: "白毛",
-  wechat_public_account_v3_preselect: "公众号",
-};
-
-const POOL_DISPLAY_NAMES: Record<string, string> = {
-  a_d1_premarket_pool: "A股 D-1 主预选池",
-  a_d1_fupan_watchlist_pool: "A股 D-1 复盘继续观察池",
-  a_d1_stage7_fenshi_review_pool: "A股 D-1 Stage7/分时复盘池",
-  a_share_research_recommendation_pool: "A股研报推荐股票池",
-  a_share_baimao_research_map: "白毛卡点研究池",
-  wechat_public_account_v3_preselect: "公众号股票池",
-};
-
-const A_POOL_ORDER = Object.keys(POOL_DISPLAY_NAMES);
-
-const REASON_LABELS: Record<string, string> = {
-  NO_OFFICIAL_DAILY_PACKAGE: "无官方日包",
-  NO_A_SHARE_POOL_OR_STAGE_SELECTION: "无 A 股池/阶段选股",
-  PARTIAL_POOL_OR_STAGE_COVERAGE: "池或阶段覆盖不完整",
-  POOL_API_UNAVAILABLE: "池投影不可读",
-  POOL_UNION_EMPTY: "池汇总为空",
-  MISSING_OR_PARTIAL_MANDATORY_POOLS: "必备池缺失或部分物化",
-};
-
-const payload = ref<Top200Payload | null>(null);
+const emit = defineEmits<{ close: []; selectDate: [date: string] }>();
+const payload = ref<Payload | null>(null);
 const loading = ref(true);
 const error = ref("");
-
-const requestedDate = computed(() => props.date || "");
-const dates = computed(() => payload.value?.dates ?? []);
-const byDate = computed(() => new Map(dates.value.map((entry) => [entry.date, entry])));
-const exactEntry = computed<Top200DateEntry | null>(() => byDate.value.get(requestedDate.value) ?? null);
-const latestEntry = computed<Top200DateEntry | null>(() => {
-  const latest = payload.value?.latest_available_date;
-  if (latest && byDate.value.has(latest)) return byDate.value.get(latest) ?? null;
-  return dates.value.at(-1) ?? null;
-});
-const selectedEntry = computed<Top200DateEntry | null>(() => exactEntry.value ?? latestEntry.value);
-const usingFallback = computed(() => exactEntry.value === null && latestEntry.value !== null);
-const selectedTopCount = computed<number | null>(() =>
-  selectedEntry.value?.top200?.top_count ?? selectedEntry.value?.a_pool?.top_count ?? null,
-);
-
-const selectedStageRows = computed(() => {
-  const stages = selectedEntry.value?.seven_stage?.stages ?? {};
-  const ids = [...STAGES.map((stage) => stage.id), ...Object.keys(stages).filter((id) => !STAGES.some((stage) => stage.id === id))];
-  return ids.map((id) => {
-    const known = STAGES.find((stage) => stage.id === id);
-    return {
-      id,
-      label: known?.label ?? id,
-      entry: stages[id] ?? { status: "NOT_MATERIALIZED", hit_count: null },
-    };
-  });
-});
-
-const poolRows = computed<PoolRow[]>(() => {
-  const ap = selectedEntry.value?.a_pool;
-  if (!ap) return [];
-  const union: PoolRow = {
-    pool_id: "a_all_pool_summary",
-    display_name: "A股所有预选池汇总",
-    status: ap.status,
-    materialized: ap.materialized,
-    partial: ap.status === "PARTIAL_POOL_COVERAGE",
-    selected_count: ap.selected_count,
-    hit_count: ap.hit_count,
-    top200_coverage_pct: ap.top200_coverage_pct,
-    selection_hit_rate_pct: ap.selection_hit_rate_pct,
-  };
-  const apiPools = ap.pools ?? [];
-  const pools = apiPools.length
-    ? apiPools
-    : (ap.pool_count ?? 0) > 0
-      ? A_POOL_ORDER.map((pool_id) => ({
-        pool_id,
-        display_name: POOL_DISPLAY_NAMES[pool_id],
-        status: ap.reason || "NOT_MATERIALIZED",
-        materialized: false,
-        partial: false,
-        selected_count: null,
-        hit_count: null,
-        top200_coverage_pct: null,
-        selection_hit_rate_pct: null,
-      }))
-      : [];
-  return [union, ...pools];
-});
-
-const availableDatesText = computed(() => {
-  const available = payload.value?.available_dates ?? [];
-  return available.length ? available.map(formatDate).join("、") : "无";
-});
-
-function isSevenMaterialized(entry: Top200DateEntry | null): boolean {
-  return entry?.seven_stage?.status === "READY" || entry?.seven_stage?.status === "PARTIAL_STAGE_COVERAGE";
-}
-
-function isAPoolMaterialized(entry: Top200DateEntry | null): boolean {
-  return entry?.a_pool?.materialized === true;
-}
-
-function formatDate(value?: string | null): string {
-  return value && /^\d{8}$/.test(value)
-    ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
-    : value || "—";
-}
-
-function numberText(value?: number | null): string {
-  return typeof value === "number" && Number.isFinite(value) ? String(value) : "—";
-}
-
-function percentText(value?: number | null): string {
-  return typeof value === "number" && Number.isFinite(value) ? `${Number(value.toFixed(2))}%` : "—";
-}
-
-function rawPercent(value?: number | null): string {
-  return typeof value === "number" && Number.isFinite(value) ? `${value}%` : "—";
-}
-
-function aPoolHit(entry: Top200DateEntry | null): string {
-  if (!isAPoolMaterialized(entry)) return "未物化";
-  const hit = entry?.a_pool?.hit_count;
-  if (typeof hit !== "number") return "未物化";
-  const top = entry?.a_pool?.top_count ?? entry?.top200?.top_count;
-  return `${hit}/${typeof top === "number" ? top : "缺证"}`;
-}
-
-function aPoolSelected(entry: Top200DateEntry | null): string {
-  return isAPoolMaterialized(entry) ? numberText(entry?.a_pool?.selected_count) : "未物化";
-}
-
-function aPoolCoverage(entry: Top200DateEntry | null): string {
-  if (!isAPoolMaterialized(entry)) return "未物化";
-  return percentText(entry?.a_pool?.top200_coverage_pct);
-}
-
-function aPoolRate(entry: Top200DateEntry | null): string {
-  if (!isAPoolMaterialized(entry)) return "未物化";
-  return percentText(entry?.a_pool?.selection_hit_rate_pct);
-}
-
-function poolCoverageText(ap?: APool): string {
-  const total = ap?.pool_count ?? 6;
-  const materialized = ap?.materialized_pool_count;
-  if (typeof materialized !== "number") return `未物化/${total} 路`;
-  return `${materialized}/${total} 路`;
-}
-
-function poolGapText(ap?: APool): string {
-  if (!ap) return "未物化";
-  const missing = (ap.missing_pool_ids ?? []).map((id) => POOL_SHORT_NAMES[id] ?? id);
-  const partial = (ap.partial_pool_ids ?? []).map((id) => POOL_SHORT_NAMES[id] ?? id);
-  const parts: string[] = [];
-  if (ap.reason && ap.reason !== "MISSING_OR_PARTIAL_MANDATORY_POOLS") {
-    parts.push(reasonLabel(ap.reason));
-  }
-  if (missing.length) parts.push(`缺 ${missing.join("/")}`);
-  if (partial.length) parts.push(`部分 ${partial.join("/")}`);
-  return parts.length ? parts.join(" · ") : "无";
-}
-
-function sevenHit(entry: Top200DateEntry | null): string {
-  if (!isSevenMaterialized(entry)) return "未物化";
-  const seven = entry?.seven_stage;
-  if (typeof seven?.hit_count !== "number") return "未物化";
-  const top = seven.top_count ?? entry?.top200?.top_count;
-  return `${seven.hit_count}/${typeof top === "number" ? top : "缺证"}`;
-}
-
-function sevenCount(entry: Top200DateEntry | null, value?: number | null): string {
-  return isSevenMaterialized(entry) ? numberText(value) : "未物化";
-}
-
-function sevenPercent(entry: Top200DateEntry | null, value?: number | null): string {
-  return isSevenMaterialized(entry) ? percentText(value) : "未物化";
-}
-
-function coverageText(coverage?: StageCoverage): string {
-  const total = coverage?.total ?? 7;
-  return typeof coverage?.available === "number" ? `${coverage.available}/${total}` : `未物化/${total}`;
-}
-
-function missingStagesText(coverage?: StageCoverage): string {
-  const missing = coverage?.missing_stages ?? [];
-  return missing.length ? missing.join("、") : "无";
-}
-
-function stageStatus(entry: StageEntry): string {
-  return entry.status || "NOT_MATERIALIZED";
-}
-
-function stageCount(entry: StageEntry, key: "row_count" | "unique_codes" | "hit_count"): string {
-  if (stageStatus(entry) !== "READY") return "未物化";
-  return numberText(entry[key]);
-}
-
-function statusLabel(status?: string): string {
-  if (status === "READY") return "已物化";
-  if (status === "PARTIAL") return "部分物化";
-  if (status === "NOT_MATERIALIZED") return "未物化";
-  return status || "未物化";
-}
-
-function reasonLabel(reason?: string | null): string {
-  return reason ? (REASON_LABELS[reason] ?? reason) : "";
-}
-
-function rowGapText(entry: Top200DateEntry): string {
-  const parts: string[] = [];
-  const add = (value: string) => {
-    if (value && !parts.includes(value)) parts.push(value);
-  };
-  if (entry.reason && entry.reason !== "PARTIAL_POOL_OR_STAGE_COVERAGE") {
-    add(reasonLabel(entry.reason));
-  }
-  if (entry.a_pool?.reason && entry.a_pool.reason !== "MISSING_OR_PARTIAL_MANDATORY_POOLS") {
-    add(reasonLabel(entry.a_pool.reason));
-  }
-  if (entry.a_pool?.materialized) {
-    const missing = (entry.a_pool.missing_mandatory_pool_ids ?? []).map((id) => POOL_SHORT_NAMES[id] ?? id);
-    const partial = (entry.a_pool.partial_mandatory_pool_ids ?? []).map((id) => POOL_SHORT_NAMES[id] ?? id);
-    if (missing.length) add(`缺 ${missing.join("/")}`);
-    if (partial.length) add(`部分 ${partial.join("/")}`);
-  }
-  const available = entry.stage_coverage?.available;
-  const total = entry.stage_coverage?.total ?? 7;
-  if (typeof available === "number" && available < total) add(`阶段 ${available}/${total}`);
-  return parts.join(" · ");
-}
-
-function poolStatusLabel(pool: PoolRow): string {
-  if (!pool.materialized) return "未物化";
-  return pool.partial ? "部分" : "已物化";
-}
-
-function poolStatusDetail(pool: PoolRow): string {
-  if (!pool.materialized) return pool.status || "CANNOT_CONFIRM";
-  return pool.status || (pool.partial ? "PARTIAL" : "READY");
-}
-
-function poolSelectedCell(pool: PoolRow): string {
-  return pool.materialized ? numberText(pool.selected_count) : "未物化";
-}
-
-function poolHitCell(pool: PoolRow): string {
-  if (!pool.materialized) return "未物化";
-  if (typeof pool.hit_count !== "number") return "未物化";
-  return `${pool.hit_count}/${selectedTopCount.value ?? "缺证"}`;
-}
-
-function poolCoverageCell(pool: PoolRow): string {
-  return pool.materialized ? percentText(pool.top200_coverage_pct) : "—";
-}
-
-function poolRateCell(pool: PoolRow): string {
-  return pool.materialized ? percentText(pool.selection_hit_rate_pct) : "—";
-}
-
-function poolSignalText(pool: PoolRow): string {
-  return pool.signal_date ? `signal ${formatDate(pool.signal_date)}` : "";
-}
-
-function dateAPoolSelected(row: Top200DateEntry): string {
-  return isAPoolMaterialized(row) ? numberText(row.a_pool?.selected_count) : "—";
-}
-
-function dateAPoolHit(row: Top200DateEntry): string {
-  if (!isAPoolMaterialized(row) || typeof row.a_pool?.hit_count !== "number") return "—";
-  const top = row.top200?.top_count ?? row.a_pool.top_count;
-  return `${row.a_pool.hit_count}/${typeof top === "number" ? top : "缺证"}`;
-}
-
-function dateAPoolCoverage(row: Top200DateEntry): string {
-  return isAPoolMaterialized(row) ? percentText(row.a_pool?.top200_coverage_pct) : "—";
-}
-
-function dateAPoolRate(row: Top200DateEntry): string {
-  return isAPoolMaterialized(row) ? percentText(row.a_pool?.selection_hit_rate_pct) : "—";
-}
-
-function dateSevenSelected(row: Top200DateEntry): string {
-  return isSevenMaterialized(row) ? numberText(row.seven_stage?.selected_count) : "—";
-}
-
-function dateSevenHit(row: Top200DateEntry): string {
-  if (!isSevenMaterialized(row) || typeof row.seven_stage?.hit_count !== "number") return "—";
-  const top = row.seven_stage.top_count ?? row.top200?.top_count;
-  return `${row.seven_stage.hit_count}/${typeof top === "number" ? top : "缺证"}`;
-}
-
-function dateSevenRate(row: Top200DateEntry): string {
-  return isSevenMaterialized(row) ? percentText(row.seven_stage?.selection_hit_rate_pct) : "—";
-}
-
-function statusClass(status?: string): string {
-  if (status === "READY") return "status-ready";
-  if (status === "PARTIAL") return "status-partial";
-  return "status-missing";
-}
-
-async function loadTop200() {
-  loading.value = true;
-  error.value = "";
+const heading = ref<HTMLElement | null>(null);
+const filter = ref<"all" | "pool" | "stage">("all");
+const page = ref(0);
+const PAGE_SIZE = 50;
+const stageNames: Record<string, string> = { STAGE_0925: "09:25 竞价", STAGE_0930_0935: "09:30–09:35", STAGE_0935_0940: "09:35–09:40", STAGE_0940_0945: "09:40–09:45", STAGE_0945_1030: "09:45–10:30", STAGE_1300_1315: "13:00–13:15", STAGE_1445_1500: "14:45–15:00 尾盘" };
+const poolNames: Record<string, string> = { a_d1_premarket_pool: "主预选池", a_d1_fupan_watchlist_pool: "复盘观察池", a_d1_stage7_fenshi_review_pool: "分时复盘池", a_share_research_recommendation_pool: "研报推荐池", a_share_baimao_research_map: "白毛研究池", wechat_public_account_v3_preselect: "公众号池" };
+const selectedEntry = computed(() => payload.value?.dates.find(row => row.date === props.date) ?? null);
+const latest = computed(() => payload.value?.latest_available_date);
+const stocks = computed(() => selectedEntry.value?.stocks ?? []);
+const filtered = computed(() => stocks.value.filter(row => filter.value === "pool" ? row.pool_hit : filter.value === "stage" ? row.stage_memberships.length > 0 : true));
+const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)));
+const visibleStocks = computed(() => filtered.value.slice(page.value * PAGE_SIZE, (page.value + 1) * PAGE_SIZE));
+const stageRows = computed(() => Object.entries(stageNames).map(([id, label]) => ({ id, label, entry: selectedEntry.value?.seven_stage?.stages?.[id] })));
+const poolLabels = (ids?: string[]) => (ids ?? []).map(id => poolNames[id] || "未识别来源（见证据）").join("、");
+const stageLabels = (ids?: string[]) => (ids ?? []).map(id => stageNames[id] || "未识别阶段（见证据）").join("、");
+const count = (value?: number | null) => typeof value === "number" ? String(value) : "不可确认";
+const percent = (value?: number | null) => typeof value === "number" ? `${value.toFixed(2)}%` : "不可确认";
+const changeText = (value?: number | null) => typeof value === "number" ? `${value >= 0 ? "+" : ""}${percent(value)}` : "不可确认";
+const dateText = (value: string) => value.replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3");
+const coverage = computed(() => `${count(selectedEntry.value?.stage_coverage?.available)} / ${count(selectedEntry.value?.stage_coverage?.total)}`);
+watch([() => props.date, filter], () => { page.value = 0; });
+onMounted(async () => {
   try {
     const response = await fetch("/top200-hit.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`A股选股池 Top200 静态数据读取失败（HTTP ${response.status}）。`);
+    if (!response.ok) throw new Error(`收盘复盘读取失败（HTTP ${response.status}）`);
     const body: unknown = await response.json();
-    if (!body || typeof body !== "object" || !Array.isArray((body as { dates?: unknown }).dates)) {
-      throw new Error("A股选股池 Top200 静态数据缺少 dates 队列。");
-    }
-    payload.value = body as Top200Payload;
-  } catch (reason) {
-    error.value = reason instanceof Error ? reason.message : "A股选股池 Top200 静态数据读取失败。";
-  } finally {
+    if (!body || typeof body !== "object" || !Array.isArray((body as Payload).dates)) throw new Error("收盘复盘日期目录不可确认");
+    payload.value = body as Payload;
+  } catch (reason) { error.value = reason instanceof Error ? reason.message : "收盘复盘读取失败"; }
+  finally {
     loading.value = false;
+    await nextTick();
+    heading.value?.scrollIntoView?.({ block: "start", behavior: "instant" });
   }
-}
-
-onMounted(loadTop200);
+});
 </script>
 
 <template>
-  <section class="panel a-top200-panel" data-testid="a-top200-panel" aria-label="A股选股池与七阶段 Top200 只读统计">
-    <div class="section-heading">
-      <div>
-        <span class="eyebrow">UI_ONLY · READ_ONLY_STATISTICS · RESEARCH_ONLY</span>
-        <h2>9A. 15:00 A股收盘：全池 / 七阶段 Top200</h2>
-      </div>
-      <button class="a-top200-close" type="button" data-testid="a-top200-close" @click="emit('close')">关闭统计</button>
-    </div>
-
-    <p v-if="loading" class="review-loading" role="status">正在读取 A 股选股池 Top200 物化统计。</p>
-    <p v-else-if="error" class="review-loading error" role="alert">{{ error }}</p>
-
+  <section class="panel a-top200-panel" data-testid="a-top200-panel" aria-label="A股全池与七阶段 Top200 收盘复盘">
+    <header ref="heading" class="a-top200-heading">
+      <div><span class="eyebrow">A股 · 收盘复盘</span><h2>9A. 全池 / 七阶段 Top200</h2><p>{{ dateText(date) }} · 同日收盘回看</p></div>
+      <button type="button" data-testid="a-top200-close" @click="emit('close')">返回阶段选股</button>
+    </header>
+    <p v-if="loading" class="a-message" role="status">正在读取收盘复盘。</p>
+    <p v-else-if="error" class="a-message" role="alert">{{ error }}</p>
     <template v-else>
-      <p v-if="!selectedEntry" class="review-loading" data-testid="a-top200-empty">
-        当前页面日期 {{ requestedDate }} 无 A 股选股池 Top200 物化；静态文件没有可展示的日期队列，不补 0。
-      </p>
+      <div v-if="!selectedEntry" class="a-message" data-testid="a-top200-empty">
+        <p>{{ dateText(date) }} 尚无收盘复盘工件，未运行或来源不可确认；不显示其他日期的结果。</p>
+        <button v-if="latest && latest !== date" type="button" @click="emit('selectDate', latest)">查看最近已存日期 {{ dateText(latest) }}</button>
+      </div>
       <template v-else>
-        <p v-if="usingFallback" class="a-top200-fallback" data-testid="a-top200-fallback">
-          当前页面日期 {{ requestedDate }} 无 A 股选股池 Top200 物化；以下自动展示 latest_available_date {{ formatDate(selectedEntry.date) }} 的只读统计，不补 0。
-        </p>
-        <p v-else class="a-top200-selected-date" data-testid="a-top200-selected-date">
-          当前展示日期 {{ formatDate(selectedEntry.date) }} · {{ statusLabel(selectedEntry.status) }}<template v-if="selectedEntry.reason"> · {{ reasonLabel(selectedEntry.reason) }}</template>
-        </p>
-
-        <div class="review-metric-grid">
-          <article data-testid="a-top200-card-pool">
-            <span>A股选股池整体（六路预选池去重）</span>
-            <strong>{{ aPoolHit(selectedEntry) }}</strong>
-            <small>S {{ aPoolSelected(selectedEntry) }} · Top200 覆盖率 {{ aPoolCoverage(selectedEntry) }} · 名单命中率 {{ aPoolRate(selectedEntry) }}</small>
-            <small>池覆盖 {{ poolCoverageText(selectedEntry.a_pool) }} · {{ poolGapText(selectedEntry.a_pool) }}</small>
-          </article>
-          <article data-testid="a-top200-card-seven">
-            <span>七阶段盘中并集</span>
-            <strong>{{ sevenHit(selectedEntry) }}</strong>
-            <small>S {{ sevenCount(selectedEntry, selectedEntry.seven_stage?.selected_count) }} · Top200 覆盖率 {{ sevenPercent(selectedEntry, selectedEntry.seven_stage?.top200_coverage_pct) }} · 名单命中率 {{ sevenPercent(selectedEntry, selectedEntry.seven_stage?.selection_hit_rate_pct) }}</small>
-            <small>阶段覆盖 {{ coverageText(selectedEntry.stage_coverage) }} · 缺失阶段：{{ missingStagesText(selectedEntry.stage_coverage) }}</small>
-          </article>
-          <article data-testid="a-top200-card-top200">
-            <span>Top200 口径</span>
-            <strong>{{ selectedEntry.top200 ? numberText(selectedEntry.top200.top_count) : "未物化" }}</strong>
-            <small>最低涨幅 {{ selectedEntry.top200 ? rawPercent(selectedEntry.top200.min_change_pct) : "未物化" }}</small>
-            <small>来源 {{ selectedEntry.top200?.source || "未物化" }}</small>
-          </article>
+        <div class="a-metrics">
+          <article data-testid="a-top200-card-pool"><span>全池命中收盘榜单</span><strong>{{ count(selectedEntry.a_pool?.hit_count) }} <small>/ {{ count(selectedEntry.top200?.top_count) }}</small></strong><p>候选去重 {{ count(selectedEntry.a_pool?.selected_count) }} 只</p><dl><dt>收盘榜单覆盖率</dt><dd>{{ percent(selectedEntry.a_pool?.top200_coverage_pct) }}</dd><dt>候选名单命中率</dt><dd>{{ percent(selectedEntry.a_pool?.selection_hit_rate_pct) }}</dd></dl></article>
+          <article data-testid="a-top200-card-seven"><span>七阶段命中收盘榜单</span><strong>{{ count(selectedEntry.seven_stage?.hit_count) }} <small>/ {{ count(selectedEntry.top200?.top_count) }}</small></strong><p>已物化阶段并集 {{ count(selectedEntry.seven_stage?.selected_count) }} 只 · 覆盖 {{ coverage }}</p><dl><dt>收盘榜单覆盖率</dt><dd>{{ percent(selectedEntry.seven_stage?.top200_coverage_pct) }}</dd><dt>候选名单命中率</dt><dd>{{ percent(selectedEntry.seven_stage?.selection_hit_rate_pct) }}</dd></dl></article>
+          <article data-testid="a-top200-card-top200"><span>A股收盘涨幅榜</span><strong>{{ count(selectedEntry.top200?.top_count) }} <small>只</small></strong><p>榜单最低涨幅 {{ percent(selectedEntry.top200?.min_change_pct) }}</p><p>覆盖率 = 命中数 ÷ 榜单数<br>名单命中率 = 命中数 ÷ 候选数</p></article>
         </div>
-
-        <h3>分池统计（同一交易日）</h3>
-        <div class="review-table-wrap a-top200-table-wrap">
-          <table class="a-top200-pool-table">
-            <thead>
-              <tr><th>池</th><th>状态</th><th>S</th><th>H</th><th>Top200 覆盖率</th><th>名单命中率</th></tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="pool in poolRows"
-                :key="pool.pool_id"
-                :class="{ 'summary-row': pool.pool_id === 'a_all_pool_summary' }"
-                :data-testid="pool.pool_id === 'a_all_pool_summary' ? 'a-top200-pool-union' : 'a-top200-pool-row'"
-              >
-                <td class="a-top200-pool-name">
-                  <strong>{{ pool.display_name || pool.pool_id }}</strong>
-                  <small>{{ pool.pool_id }}</small>
-                  <small v-if="poolSignalText(pool)"> · {{ poolSignalText(pool) }}</small>
-                </td>
-                <td>
-                  <span>{{ poolStatusLabel(pool) }}</span>
-                  <small class="a-top200-pool-status-detail"> · {{ poolStatusDetail(pool) }}</small>
-                </td>
-                <td class="numeric">{{ poolSelectedCell(pool) }}</td>
-                <td class="numeric">{{ poolHitCell(pool) }}</td>
-                <td class="numeric">{{ poolCoverageCell(pool) }}</td>
-                <td class="numeric">{{ poolRateCell(pool) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3>日期队列</h3>
-        <div class="review-table-wrap a-top200-table-wrap">
-          <table class="a-top200-date-table">
-            <thead>
-              <tr>
-                <th>日期</th>
-                <th>全池 S</th>
-                <th>全池 H</th>
-                <th>全池 Top200 覆盖率</th>
-                <th>全池 名单命中率</th>
-                <th>7阶段 覆盖</th>
-                <th>7阶段 S</th>
-                <th>7阶段 H</th>
-                <th>7阶段 命中率</th>
-                <th>状态 / 缺口</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in dates" :key="row.date" data-testid="a-top200-date-row">
-                <td>{{ formatDate(row.date) }}</td>
-                <td class="numeric">{{ dateAPoolSelected(row) }}</td>
-                <td class="numeric">{{ dateAPoolHit(row) }}</td>
-                <td class="numeric">{{ dateAPoolCoverage(row) }}</td>
-                <td class="numeric">{{ dateAPoolRate(row) }}</td>
-                <td>{{ coverageText(row.stage_coverage) }}</td>
-                <td class="numeric">{{ dateSevenSelected(row) }}</td>
-                <td class="numeric">{{ dateSevenHit(row) }}</td>
-                <td class="numeric">{{ dateSevenRate(row) }}</td>
-                <td class="status-cell">
-                  <span class="status-pill" :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
-                  <small v-if="rowGapText(row)">{{ rowGapText(row) }}</small>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="a-top200-window-note">{{ payload?.window_note }} 有合格输入的日期：{{ availableDatesText }}。</p>
-
-        <h3>选中日期逐阶段明细</h3>
-        <div class="review-table-wrap a-top200-table-wrap">
-          <table class="a-top200-stage-table">
-            <thead>
-              <tr><th>stage</th><th>状态</th><th>row_count</th><th>unique_codes</th><th>hit_count</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in selectedStageRows" :key="row.id" data-testid="a-top200-stage-row">
-                <td>{{ row.id }}<small> · {{ row.label }}</small></td>
-                <td>{{ stageStatus(row.entry) }}</td>
-                <td class="numeric">{{ stageCount(row.entry, "row_count") }}</td>
-                <td class="numeric">{{ stageCount(row.entry, "unique_codes") }}</td>
-                <td class="numeric">{{ stageCount(row.entry, "hit_count") }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="a-top200-boundary">
-          <p>RESEARCH_ONLY · 不形成买入建议</p>
-          <p>A股选股池整体 = 六路 A 预选池按证券代码去重；分池统计见上表；不使用四组公式名单。</p>
-          <p>池为 D-1/盘前预选池，命中按目标日收盘统计；不把事后统计说成事前选股能力。</p>
-          <p>七阶段盘中并集与 D-1 预选池是两个口径；缺失池/阶段不补 0。</p>
-          <p>production_allowed=false · buy_gate_updated=false · orders_sent=false</p>
-        </div>
-        <p class="a-top200-meta">
-          /top200-hit.json · {{ payload?.schema_version || "schema 未标注" }} · 生成于 {{ payload?.generated_at || "未标注" }}
-        </p>
+        <aside class="a-gaps" aria-label="本日数据缺口">
+          <p>全池已物化 {{ count(selectedEntry.a_pool?.materialized_pool_count) }} / {{ count(selectedEntry.a_pool?.pool_count) }} 路；<template v-if="selectedEntry.a_pool?.partial_pool_ids?.length">部分数据：{{ poolLabels(selectedEntry.a_pool.partial_pool_ids) }}；</template><template v-if="selectedEntry.a_pool?.missing_pool_ids?.length">未物化：{{ poolLabels(selectedEntry.a_pool.missing_pool_ids) }}。</template></p>
+          <p>阶段覆盖 {{ coverage }}；<template v-if="selectedEntry.stage_coverage?.missing_stages?.length">原快照缺少 {{ stageLabels(selectedEntry.stage_coverage.missing_stages) }}，未补零，后来的补跑未混入本次回看。</template><template v-else>按原快照逐阶段对照。</template></p>
+        </aside>
+        <div class="a-list-heading"><div><h3>Top200 股票与命中归因</h3><p>分池与阶段重合只记一次命中，归因可同时出现多项。</p></div><label>显示范围<select v-model="filter" aria-label="Top200 显示范围"><option value="all">全部榜单（{{ stocks.length }}）</option><option value="pool">全池命中（{{ stocks.filter(r => r.pool_hit).length }}）</option><option value="stage">阶段命中（{{ stocks.filter(r => r.stage_memberships.length).length }}）</option></select></label></div>
+        <p v-if="!stocks.length" class="a-message" data-testid="a-top200-detail-gap">{{ selectedEntry.detail_gap || '缺少同日同来源的股票明细；统计保留，明细不可确认。' }}</p>
+        <template v-else>
+          <div class="a-table-scroll" tabindex="0" aria-label="Top200 股票表，可横向滚动">
+            <table class="a-stocks"><thead><tr><th>排名</th><th>股票</th><th>当日涨幅</th><th>全池命中归因</th><th>七阶段命中归因</th></tr></thead><tbody>
+              <tr v-for="row in visibleStocks" :key="row.code" data-testid="a-top200-stock-row"><td>{{ row.rank }}</td><td><strong>{{ row.name || '名称不可确认' }}</strong><small>{{ row.code }}</small></td><td class="a-gain">{{ changeText(row.change_pct) }}</td><td><span :class="{ 'a-hit': row.pool_hit }">{{ row.pool_hit ? poolLabels(row.pool_memberships) || '汇总命中；分池归因不可确认' : '未命中已物化全池' }}</span></td><td><span :class="{ 'a-hit': row.stage_memberships.length }">{{ row.stage_memberships.length ? stageLabels(row.stage_memberships) : '未命中已物化阶段' }}</span></td></tr>
+            </tbody></table>
+          </div>
+          <nav class="a-pagination" aria-label="Top200 分页"><span>共 {{ filtered.length }} 只 · 第 {{ page + 1 }} / {{ pageCount }} 页</span><button type="button" :disabled="page === 0" @click="page--">上一页</button><button type="button" :disabled="page + 1 >= pageCount" @click="page++">下一页</button></nav>
+        </template>
+        <details class="a-details"><summary>分池统计 · {{ count(selectedEntry.a_pool?.materialized_pool_count) }} 路已物化</summary><div class="a-table-scroll"><table><thead><tr><th>来源池</th><th>状态</th><th>候选数</th><th>命中数</th><th>榜单覆盖率</th><th>名单命中率</th></tr></thead><tbody><tr v-for="pool in selectedEntry.a_pool?.pools ?? []" :key="pool.pool_id" data-testid="a-top200-pool-row"><td>{{ poolNames[pool.pool_id] || pool.display_name }}</td><td>{{ !pool.materialized ? '未物化' : pool.partial ? '部分数据' : '已物化' }}</td><td>{{ pool.materialized ? count(pool.selected_count) : '不可确认' }}</td><td>{{ pool.materialized ? count(pool.hit_count) : '不可确认' }}</td><td>{{ percent(pool.top200_coverage_pct) }}</td><td>{{ percent(pool.selection_hit_rate_pct) }}</td></tr></tbody></table></div></details>
+        <details class="a-details"><summary>七阶段统计 · 已物化 {{ coverage }}</summary><div class="a-table-scroll"><table><thead><tr><th>阶段</th><th>状态</th><th>行数</th><th>去重候选</th><th>命中数</th></tr></thead><tbody><tr v-for="row in stageRows" :key="row.id" data-testid="a-top200-stage-row"><td>{{ row.label }}</td><td>{{ row.entry?.status === 'READY' ? '已物化' : '原快照未物化' }}</td><td>{{ count(row.entry?.row_count) }}</td><td>{{ count(row.entry?.unique_codes) }}</td><td>{{ count(row.entry?.hit_count) }}</td></tr></tbody></table></div></details>
       </template>
+      <details class="a-details"><summary>其他已存日期</summary><div class="a-date-list"><button v-for="entry in payload?.dates ?? []" :key="entry.date" type="button" :aria-pressed="entry.date === date" @click="emit('selectDate', entry.date)">{{ dateText(entry.date) }} · {{ entry.top200 ? '有收盘统计' : '缺收盘榜单' }}</button></div></details>
+      <p class="a-boundary">仅用于研究回看。池与盘中名单和同日收盘榜单的交集不代表未来收益或事前预测能力；不同市场、不同分母的命中率不能直接比较策略强弱。</p>
+      <details class="a-details a-evidence"><summary>来源与核对证据</summary><p>原统计生成于 {{ payload?.generated_at || '不可确认' }} · /top200-hit.json</p><pre>{{ JSON.stringify({ schema: payload?.schema_version, projection: payload?.detail_projection, selected: selectedEntry, safety_flags: payload?.safety_flags }, null, 2) }}</pre></details>
     </template>
   </section>
 </template>
 
 <style scoped>
-.a-top200-close {
-  padding: 7px 11px;
-  color: #254d71;
-  background: #f8fbfd;
-  border: 1px solid #9eb5c8;
-  border-radius: 5px;
-  font-weight: 700;
-}
-.a-top200-selected-date {
-  margin: 14px 18px 0;
-  padding: 9px 12px;
-  color: #526a7f;
-  background: #f1f6f9;
-  border-left: 4px solid #5f9ac2;
-  font-size: 12px;
-}
-.a-top200-fallback {
-  margin: 14px 18px 0;
-  padding: 9px 12px;
-  color: #765615;
-  background: #fff8dc;
-  border: 1px solid #ead18a;
-  border-radius: 5px;
-  font-size: 12px;
-}
-.a-top200-panel h3 {
-  margin: 18px 18px 8px;
-  color: #334f66;
-  font-size: 14px;
-}
-.a-top200-table-wrap {
-  margin: 0 18px 8px;
-  overflow-x: auto;
-}
-.a-top200-table-wrap table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.a-top200-pool-table { min-width: 760px; }
-.a-top200-date-table { min-width: 1080px; }
-.a-top200-stage-table { min-width: 720px; }
-.a-top200-table-wrap th,
-.a-top200-table-wrap td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e4ebf0;
-  font-size: 12px;
-  text-align: left;
-  vertical-align: top;
-  white-space: nowrap;
-}
-.a-top200-table-wrap th {
-  color: #526a7f;
-  background: #f7fafc;
-  font-weight: 700;
-  line-height: 1.35;
-  white-space: normal;
-  word-break: keep-all;
-}
-.a-top200-table-wrap td.numeric {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.a-top200-table-wrap tr.summary-row {
-  background: #f1f6f9;
-  font-weight: 700;
-}
-.a-top200-table-wrap td.status-cell {
-  min-width: 240px;
-  max-width: 360px;
-  white-space: normal;
-  line-height: 1.45;
-}
-.a-top200-table-wrap td.status-cell small {
-  display: block;
-  color: #718499;
-  font-size: 10px;
-  white-space: normal;
-}
-.a-top200-table-wrap td small {
-  color: #718499;
-  font-size: 10px;
-}
-.a-top200-pool-name strong,
-.a-top200-pool-name small {
-  display: block;
-}
-.a-top200-pool-status-detail {
-  color: #718499;
-  font-size: 10px;
-}
-.status-pill {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-}
-.status-ready { color: #2f6b45; background: #e8f5ec; }
-.status-partial { color: #7a5a17; background: #fff4d6; }
-.status-missing { color: #7a3d3d; background: #fbeaea; }
-.a-top200-window-note {
-  margin: 0 18px 8px;
-  color: #718499;
-  font-size: 11px;
-  line-height: 1.5;
-}
-.a-top200-boundary {
-  margin: 16px 18px;
-  padding: 10px 12px;
-  color: #7a5a17;
-  background: #fffaf0;
-  border: 1px solid #ead9b6;
-  border-radius: 5px;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.a-top200-boundary p { margin: 0; }
-.a-top200-meta {
-  margin: 0 18px 18px;
-  color: #7a8b9b;
-  font-size: 10px;
-  overflow-wrap: anywhere;
-}
+.a-top200-panel { min-width: 0; overflow-wrap: anywhere; }
+.a-top200-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 20px; border-bottom: 1px solid #d7e0e8; scroll-margin-top: 12px; }
+h2 { margin: 5px 0; color: #263f57; font-size: 22px; } h3 { margin: 0 0 6px; font-size: 17px; } p { margin: 5px 0; line-height: 1.6; }
+.a-top200-heading p, .a-list-heading p { color: #65788b; font-size: 13px; }
+button, select { padding: 8px 12px; border: 1px solid #a7bacb; border-radius: 6px; background: #f8fbfd; color: #254d71; }
+.a-message { margin: 18px 20px; padding: 14px; background: #f3f7fa; }
+.a-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; padding: 20px; }
+.a-metrics article { min-width: 0; padding: 18px; border: 1px solid #d7e3ec; border-radius: 8px; background: #f7fafc; }
+.a-metrics article > span { color: #526a7f; font-size: 13px; } .a-metrics strong { display: block; margin: 12px 0; color: #215477; font-size: 36px; } .a-metrics strong small { font-size: 17px; font-weight: 500; }
+.a-metrics p, .a-metrics dl { color: #63798b; font-size: 12px; } .a-metrics dl { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin: 14px 0 0; } dd { margin: 0; color: #215477; font-weight: 600; }
+.a-gaps { margin: 0 20px 20px; padding: 10px 14px; color: #77581c; border-left: 3px solid #d6b463; background: #fff9e9; font-size: 12px; }
+.a-list-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 20px; align-items: end; } .a-list-heading label { display: grid; gap: 5px; font-size: 12px; color: #526a7f; }
+.a-table-scroll { max-width: 100%; min-width: 0; overflow-x: auto; margin: 0 20px; border: 1px solid #e0e7ed; border-radius: 5px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; } .a-stocks { min-width: 690px; table-layout: fixed; } .a-stocks th:nth-child(1) { width: 8%; } .a-stocks th:nth-child(2) { width: 19%; } .a-stocks th:nth-child(3) { width: 13%; } .a-stocks th:nth-child(4) { width: 28%; }
+th,td { text-align: left; padding: 12px; border-bottom: 1px solid #e5ebf0; vertical-align: top; line-height: 1.5; } th { color: #526a7f; background: #f3f7fa; font-weight: 600; } td small { display: block; color: #7b8c9d; font-size: 11px; margin-top: 3px; } tbody tr:nth-child(even) { background: #fafcfd; } .a-gain { color: #b84c45; font-variant-numeric: tabular-nums; } .a-hit { color: #235c83; font-weight: 600; }
+.a-pagination { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 14px 20px; align-items: center; font-size: 12px; } .a-pagination span { margin-right: auto; color: #63798b; }
+.a-details { margin: 12px 20px; border: 1px solid #d9e3eb; border-radius: 6px; } summary { padding: 13px 15px; color: #365973; cursor: pointer; font-size: 13px; font-weight: 600; } .a-details .a-table-scroll { margin: 0 12px 12px; } .a-details table { min-width: 580px; } .a-date-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 14px; } .a-boundary { margin: 18px 20px; color: #748596; font-size: 12px; }
+.a-evidence p { padding: 0 14px; font-size: 12px; } pre { padding: 14px; max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+@media(max-width: 900px) { .a-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); } .a-metrics article:last-child { grid-column: 1 / -1; } }
+@media(max-width: 640px) { .a-top200-heading { padding: 16px; } h2 { font-size: 20px; } .a-metrics { gap: 10px; padding: 16px; } .a-metrics article { padding: 12px; } .a-metrics strong { font-size: 30px; } .a-metrics dl { grid-template-columns: 1fr; gap: 3px; } dd { margin-bottom: 5px; } .a-gaps,.a-list-heading,.a-boundary,.a-details { margin-left: 16px; margin-right: 16px; } .a-table-scroll { margin-left: 16px; margin-right: 16px; } }
 </style>

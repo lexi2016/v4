@@ -15,7 +15,7 @@ const stageDefinitions: StageDefinition[] = [
 ];
 const closingTimeline: ClosingTimelineNode[] = [
   { node_id: "hkconnect_model_selection_review", label: "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20", owner_id: "v35_dispatcher.hk_connect_close_review" },
-  { node_id: "a_share_seven_stage_top200", label: "9A. 15:00 A股收盘：七阶段 Top200", owner_id: "ui.a_share_seven_stage_top200" },
+  { node_id: "a_share_seven_stage_top200", label: "9A. 15:00 A股收盘：全池 / 七阶段 Top200", owner_id: "ui.a_share_seven_stage_top200" },
   { node_id: "FUPAN_CLOSE_MATERIALS", label: "10. 15:00 收盘前总结材料", owner_id: "v35_dispatcher.fupan_close_materials" },
   { node_id: "FUPAN_REVIEW_START", label: "11. 15:55 收盘后复盘启动", owner_id: "v35_dispatcher.fupan_review_start" },
   { node_id: "FUPAN_A_SHARE_STRUCTURE", label: "12. 16:05 A股收盘数据与题材骨架", owner_id: "v35_dispatcher.a_share_close_review" },

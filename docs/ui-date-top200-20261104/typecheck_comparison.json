@@ -1,0 +1,10 @@
+{
+  "candidate_error_count": 15,
+  "baseline_error_count": 18,
+  "new_errors": [],
+  "baseline_only_errors": [
+    "src/api/managerWorkspace.attention.spec.ts: error TS18048: 'mapping' is possibly 'undefined'.",
+    "src/manager-workbench/__tests__/us_factor.spec.ts: error TS2322: Type '{ display_only: true; state: string; rules_version: string; mapping_policy_version: string; mapping_policy_sha256: string; target_date: string; price_session: string; source_session: string; ... 25 more ...; orders_sent: boolean; }' is not assignable to type 'SingleDayMappingSummary'.",
+    "src/views/ManagerSelectionView.spec.ts: error TS2578: Unused '@ts-expect-error' directive."
+  ]
+}

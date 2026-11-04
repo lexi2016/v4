@@ -41,6 +41,8 @@ export function useAppShell() {
   }
 
 
+// A date in a shared deep link is an explicit query; routine navigation follows today.
+const fixedDate = ref(/^\d{8}$/.test(new URLSearchParams(window.location.search).get("date") || ""));
 const selectedDate = ref("");
 const dateData = ref<DateResponse>({ default_date: "", stage_dates: [], future_target_dates: [] });
 const pool = ref<PoolResponse | null>(null);
@@ -95,6 +97,7 @@ let stageTimelineRequestController: AbortController | null = null;
 let userDateIntentVersion = 0;
 let userStageIntentVersion = 0;
 
+const todayDate = computed(() => dateData.value.system_date || dateData.value.navigation_date || dateData.value.default_date || "");
 const dateOptions = computed(() =>
   [...new Set([
     ...(dateData.value.dates ?? []),
@@ -103,6 +106,7 @@ const dateOptions = computed(() =>
     ...(dateData.value.review_dates ?? []),
     ...(dateData.value.research_dates ?? []),
     ...(dateData.value.hk_observation_only_dates ?? []),
+    todayDate.value,
     dateData.value.navigation_date,
     dateData.value.default_date,
   ].filter((date): date is string => Boolean(date)))].sort(),
@@ -114,6 +118,7 @@ const tradingDateOptions = computed(() =>
     ...dateData.value.stage_dates,
     ...(dateData.value.review_dates ?? []),
     ...(dateData.value.hk_observation_only_dates ?? []),
+    todayDate.value,
     dateData.value.navigation_date,
     dateData.value.default_date,
   ].filter((date): date is string => Boolean(date)))].sort(),
@@ -142,14 +147,15 @@ const nextHkTargetDate = computed(() => {
 const selectedDateContext = computed(() => {
   if (!selectedDate.value) return "请选择交易日。";
   const formattedDate = formatDateInput(selectedDate.value);
-  if (researchActive.value) return `当前查看研究自然日：${formattedDate}`;
+  if (selectedDate.value === todayDate.value) return `今日：${formattedDate} · ${fixedDate.value ? "固定日期查询" : "跟随上海当日"}`;
+  if (researchActive.value) return `查看研究自然日：${formattedDate}`;
   if ((dateData.value.future_target_dates ?? []).includes(selectedDate.value)) {
     const targetLabel = selectedDate.value === nextFutureTargetDate.value
       ? "次日预选池准备（未开盘）"
       : "未来目标日预选池准备（未开盘）";
     return `当前查看目标日：${formattedDate} · ${targetLabel}`;
   }
-  return `当前查看交易日：${formattedDate}`;
+  return `查看历史：${formattedDate}`;
 });
 const isHkObservationOnlyDate = computed(() =>
   Boolean(dateData.value.hk_observation_only_dates?.includes(selectedDate.value)),
@@ -335,10 +341,14 @@ function loadAShareTop200() {
   taskStatusActive.value = false;
   researchActive.value = false;
   navigationStatus.value = "";
+  sopActive.value = false;
   aTop200Active.value = true;
+  writeNavigationUrl(selectedDate.value, { view: "a-top200", stage: null });
 }
 function closeAShareTop200() {
   aTop200Active.value = false;
+  void loadPool();
+  void loadStageFromUser(selectedStage.value);
 }
 function isHistoricalTradingDate(date: string) {
   const anchor = dateData.value.navigation_date || dateData.value.default_date;
@@ -353,6 +363,7 @@ function resolveTradingDate(candidate = selectedDate.value) {
   const options = tradingDateOptions.value;
   return [
     candidate,
+    todayDate.value,
     dateData.value.navigation_date,
     dateData.value.default_date,
     ...options,
@@ -369,7 +380,8 @@ function resolveResearchDate(candidate = selectedDate.value) {
 function writeNavigationUrl(date: string, state?: NavigationUrlState) {
   if (!/^\d{8}$/.test(date)) return;
   const url = new URL(window.location.href);
-  url.searchParams.set("date", date);
+  if (fixedDate.value || date !== todayDate.value) url.searchParams.set("date", date);
+  else url.searchParams.delete("date");
   if (state && Object.prototype.hasOwnProperty.call(state, "view")) {
     if (state.view !== "sop") sopActive.value = false;
     if (state.view) url.searchParams.set("view", state.view);
@@ -564,6 +576,7 @@ async function loadStageTimeline(date: string, currentStage: string, currentPayl
 }
 
 async function openNextFutureTargetPool() {
+  fixedDate.value = true;
   const targetDate = nextFutureTargetDate.value;
   if (!targetDate) return;
   const needsReload = targetDate !== selectedDate.value
@@ -582,6 +595,7 @@ async function openNextFutureTargetPool() {
 }
 
 async function openNextHkTargetPool() {
+  fixedDate.value = true;
   const targetDate = nextHkTargetDate.value;
   if (!targetDate) return;
   const needsReload = targetDate !== selectedDate.value
@@ -722,6 +736,7 @@ async function ensureStage(force = false) {
 }
 
 async function onDateChange() {
+  if (aTop200Active.value) return;
   const requestedDate = selectedDate.value;
   abortStageRequests();
   stageRequestVersion += 1;
@@ -746,6 +761,7 @@ async function onDateChange() {
 async function applyNavigationFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const requestedDate = params.get("date") || "";
+  fixedDate.value = /^\d{8}$/.test(requestedDate);
   const requestedView = params.get("view") || "";
   const requestedStage = params.get("stage") || "";
   if (requestedView === "sop") { openSop(); return; }
@@ -786,6 +802,11 @@ async function applyNavigationFromUrl() {
     return;
   }
 
+  if (requestedView === "a-top200") {
+    selectedDate.value = resolveTradingDate(requestedDate || todayDate.value);
+    loadAShareTop200();
+    return;
+  }
   if (["review", "a-review", "research-review"].includes(requestedView)) {
     const explicitTradingDate = /^\d{8}$/.test(requestedDate)
       && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
@@ -818,6 +839,14 @@ function onBrowserHistoryChange() {
   void applyNavigationFromUrl();
 }
 
+async function selectDate(date: string) {
+  if (!/^\d{8}$/.test(date)) return;
+  userDateIntentVersion += 1;
+  fixedDate.value = true;
+  selectedDate.value = date;
+  writeSelectedDateToUrl(date);
+  await onDateChange();
+}
 async function onDateInputChange(event: Event) {
   const input = event.currentTarget as HTMLInputElement;
   const compact = compactDateInput(input.value);
@@ -828,17 +857,46 @@ async function onDateInputChange(event: Event) {
     return;
   }
   input.setCustomValidity("");
-  userDateIntentVersion += 1;
-  selectedDate.value = compact;
-  writeSelectedDateToUrl(compact);
-  await onDateChange();
+  await selectDate(compact);
 }
+
+async function goToday() {
+  fixedDate.value = false;
+  userDateIntentVersion += 1;
+  await refreshNavigationDate(true);
+}
+let restoringDate = false;
+let navigationReady = false;
+async function refreshNavigationDate(force = false) {
+  if (!navigationReady || (!force && fixedDate.value) || restoringDate || document.visibilityState === "hidden") return;
+  restoringDate = true;
+  const intent = userDateIntentVersion;
+  try {
+    const response = await fetch("/api/v1/runs/date-list", { cache: "no-store" });
+    if (!response.ok) return;
+    const result: DateResponse = await response.json();
+    if (intent !== userDateIntentVersion || fixedDate.value) return;
+    dateData.value = { ...result, research_dates: [...new Set([...(result.research_dates ?? []), ...(dateData.value.research_dates ?? [])])] };
+    const date = todayDate.value;
+    if (!/^\d{8}$/.test(date)) return;
+    const changed = selectedDate.value !== date;
+    selectedDate.value = date;
+    writeSelectedDateToUrl(date);
+    if (changed || force) await onDateChange();
+  } catch { /* Keep the visible date and its gaps when the calendar is unavailable. */ }
+  finally { restoringDate = false; }
+}
+function onPageRestore() { void refreshNavigationDate(); }
 
 onMounted(async () => {
   void loadFrontendIdentity();
+  const initialParams = new URLSearchParams(window.location.search);
   const dateIntentAtMount = userDateIntentVersion;
   const stageIntentAtMount = userStageIntentVersion;
   window.addEventListener("popstate", onBrowserHistoryChange);
+  window.addEventListener("focus", onPageRestore);
+  window.addEventListener("pageshow", onPageRestore);
+  document.addEventListener("visibilitychange", onPageRestore);
   try {
     const [dateList, laneDates] = await Promise.all([
       fetch("/api/v1/runs/date-list").then((r) => (r.ok ? r.json() : Promise.reject(new Error("request failed")))),
@@ -853,28 +911,31 @@ onMounted(async () => {
       // only covers the current day (e.g. a fresh V4 data root).
       research_dates: [...new Set([...(dateList.research_dates ?? []), ...((laneDates?.research_dates as string[] | undefined) ?? [])])].sort(),
     };
-    const params = new URLSearchParams(window.location.search);
-    const requestedDate = params.get("date");
-    const requestedStage = params.get("stage");
-    const requestedView = params.get("view");
+    const requestedDate = initialParams.get("date");
+    const requestedStage = initialParams.get("stage");
+    const requestedView = initialParams.get("view");
     const userSelectedDate = userDateIntentVersion !== dateIntentAtMount
       && isAllowedDateForView(selectedDate.value)
       ? selectedDate.value
       : "";
     const userSelectedStage = userStageIntentVersion !== stageIntentAtMount;
+    navigationReady = true;
     if (!userSelectedStage && requestedStage && stageDefinitions.some((stage) => stage.id === requestedStage)) {
       selectedStage.value = requestedStage;
     }
     if (requestedView === "sop") {
-      selectedDate.value = userSelectedDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || resolveTradingDate(todayDate.value);
       openSop();
+    } else if (aTop200Active.value || requestedView === "a-top200") {
+      selectedDate.value = resolveTradingDate(requestedDate || todayDate.value);
+      loadAShareTop200();
     } else if (requestedView === "research") {
       const explicitResearchDate = requestedDate
         && /^\d{8}$/.test(requestedDate)
         && (researchDateOptions.value.includes(requestedDate) || researchDateOptions.value.length === 0)
         ? requestedDate
         : "";
-      selectedDate.value = userSelectedDate || explicitResearchDate || resolveResearchDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitResearchDate || resolveResearchDate(todayDate.value);
       openResearch();
     } else if (["review", "a-review", "research-review"].includes(requestedView || "")) {
       const explicitTradingDate = requestedDate
@@ -882,7 +943,7 @@ onMounted(async () => {
         && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
         ? requestedDate
         : "";
-      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(todayDate.value);
       await Promise.all([loadPool(), loadCloseReview(requestedView === "research-review" ? "research" : requestedView === "a-review" ? "A" : "HK")]);
     } else {
       const explicitTradingDate = requestedDate
@@ -890,7 +951,7 @@ onMounted(async () => {
         && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
         ? requestedDate
         : "";
-      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(dateData.value.navigation_date || dateData.value.default_date || "");
+      selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(todayDate.value);
       if (userSelectedDate || userSelectedStage) {
         bindSelectedDate(selectedDate.value, { view: null, stage: selectedStage.value });
       }
@@ -899,11 +960,14 @@ onMounted(async () => {
   } catch {
     loadError.value = "交易日目录读取失败。";
     stageError.value = "交易日目录读取失败。";
-  }
+  } finally { navigationReady = true; }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("popstate", onBrowserHistoryChange);
+  window.removeEventListener("focus", onPageRestore);
+  window.removeEventListener("pageshow", onPageRestore);
+  document.removeEventListener("visibilitychange", onPageRestore);
   closingRequestVersion += 1;
   closingController?.abort();
   if (closingRefreshTimer !== null) clearTimeout(closingRefreshTimer);
@@ -951,6 +1015,10 @@ onBeforeUnmount(() => {
     hitTop20,
     reviewClassification,
     selectedDate,
+    goToday,
+    selectDate,
+    todayDate,
+    fixedDate,
     pool,
     poolPageOffset,
     aPoolPageLabel,

@@ -13,7 +13,7 @@ describe("closing timeline evidence projection",()=>{
   it("preserves eight stages and correct existing 8873 task purpose",()=>{
     expect(createTimeline().stageDefinitions).toHaveLength(8);
     expect(definitions).toHaveLength(12);
-    expect(definitions[1].label).toBe("9A. 15:00 A股收盘：七阶段 Top200");
+    expect(definitions[1].label).toBe("9A. 15:00 A股收盘：全池 / 七阶段 Top200");
     expect(definitions[11].label).toContain("8873 页面与接口验收");
   });
   it.each(["PLANNED","QUEUED","RUNNING","WAITING_DEPENDENCY","FAILED","PARTIAL","READY"])("shows %s only from exact date and owner",state=>{

@@ -242,3 +242,9 @@ button:disabled { cursor: wait; opacity: .58; }
 /* Only the user-approved research entry has button presentation. */
 .entry-nav .research-panel-entry { display: inline-flex; align-items: center; padding: 8px 14px; color: #254d71; background: #f8fbfd; border: 1px solid #9eb5c8; border-radius: 5px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
 .entry-nav .research-panel-entry:hover { background: #eaf4fb; }
+
+/* Only the A close view needs wrapping for the compact header evidence. */
+.a-top200-view .page-header > *, .a-top200-view .control-panel > * { min-width: 0; }
+.a-top200-view .runtime-badge { white-space: normal; overflow-wrap: anywhere; }
+.a-top200-view .control-panel, .a-top200-view .entry-nav { flex-wrap: wrap; }
+.a-top200-view .control-panel select, .a-top200-view .control-panel input { max-width: 100%; }

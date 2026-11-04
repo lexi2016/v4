@@ -12,7 +12,7 @@ export type StageDefinition = { id: string; label: string; timeline: string };
 
 export type DateResponse = {
   default_date: string; stage_dates: string[]; review_dates?: string[]; research_dates?: string[]; future_target_dates: string[];
-  dates?: string[]; navigation_date?: string; navigation_timezone?: string;
+  dates?: string[]; system_date?: string; navigation_date?: string; navigation_timezone?: string;
   hk_observation_only_dates?: string[];
   runtime_identity?: { status: string; release_id: string; process_status: string };
 };

@@ -338,14 +338,15 @@ describe("V4 legacy-compatible stage workbench", () => {
 
     await fireEvent.click(node);
     expect(await screen.findByTestId("a-top200-card-pool")).toBeTruthy();
-    expect(screen.getByTestId("a-top200-card-pool").textContent).toContain("49/200");
-    expect(screen.getByTestId("a-top200-card-seven").textContent).toContain("7/200");
+    expect(screen.getByTestId("a-top200-card-pool").textContent).toContain("49 / 200");
+    expect(screen.getByTestId("a-top200-card-seven").textContent).toContain("7 / 200");
     await fireEvent.click(screen.getByTestId("a-top200-close"));
     await waitFor(() => expect(screen.queryByTestId("a-top200-panel")).toBeNull());
 
-    await fireEvent.click(node);
+    await fireEvent.click(screen.getByTestId("closing-a_share_seven_stage_top200"));
     expect(await screen.findByTestId("a-top200-card-pool")).toBeTruthy();
-    await fireEvent.click(screen.getByTestId("closing-hkconnect_model_selection_review"));
+    await fireEvent.click(screen.getByTestId("a-top200-close"));
+    await fireEvent.click(await screen.findByTestId("closing-hkconnect_model_selection_review"));
     await waitFor(() => expect(screen.queryByTestId("a-top200-panel")).toBeNull());
     expect(await screen.findByRole("heading", { name: "收盘复盘" })).toBeTruthy();
   });
@@ -2526,5 +2527,81 @@ describe("exact-date stage receipt and fast navigation", () => {
     expect(screen.queryByText("迟到的旧阶段")).toBeNull();
     expect(dateInput.value).toBe("2026-10-12");
     expect(timelineButtons[7].classList.contains("current")).toBe(true);
+  });
+});
+
+describe("daily date navigation and independent A close view", () => {
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+  function calendar(today = "20261104") {
+    return { default_date: "20261103", navigation_date: today, system_date: today, stage_dates: ["20261103", "20261104"], future_target_dates: ["20261105"] };
+  }
+  function install(initial = calendar()) {
+    let dates = initial;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === "/api/v1/runs/date-list") return jsonResponse(dates);
+      if (url === "/api/v4/research/dates") return jsonResponse({ research_dates: [] });
+      if (url === "/top200-hit.json") return jsonResponse({ dates: [] });
+      const requested = new URL(url, window.location.origin).searchParams.get("date") || "20261104";
+      if (url.startsWith("/api/v4/workbench/stage")) return jsonResponse({ ...structuredClone(referenceStage), trade_date: requested });
+      return jsonResponse({ ...blockedPool, trade_date: requested });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return { fetchMock, change: (value: typeof dates) => { dates = value; } };
+  }
+  it("opens root on API today, leaves routine navigation dynamic, and uses no future option fallback", async () => {
+    window.history.replaceState({}, "", "/");
+    install(); render(App);
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-04"));
+    await fireEvent.click(screen.getByRole("button", { name: "阶段选股" }));
+    expect(new URLSearchParams(window.location.search).has("date")).toBe(false);
+    expect(screen.getByTestId("selected-date-context").textContent).toContain("今日");
+  });
+  it("preserves explicit historical deep links and explicit tomorrow then returns to dynamic today", async () => {
+    window.history.replaceState({}, "", "/?date=20261103");
+    install(); render(App);
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-03"));
+    expect(screen.getByTestId("selected-date-context").textContent).toContain("查看历史");
+    await fireEvent.click(screen.getByTestId("next-future-target-pool"));
+    await waitFor(() => expect(window.location.search).toContain("date=20261105"));
+    expect(screen.getByTestId("selected-date-context").textContent).toContain("预选池准备");
+    await fireEvent.click(screen.getByTestId("go-today"));
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-04"));
+    expect(new URLSearchParams(window.location.search).has("date")).toBe(false);
+  });
+  it("follows system date on restore even without a materialized trading record", async () => {
+    window.history.replaceState({}, "", "/");
+    const api = install(); render(App);
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-04"));
+    api.change({ ...calendar("20261107"), navigation_date: "20261106", future_target_dates: ["20261109"] });
+    window.dispatchEvent(new Event("pageshow"));
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-07"));
+    expect(new URLSearchParams(window.location.search).has("date")).toBe(false);
+  });
+  it("does not change an explicit historical date on focus", async () => {
+    window.history.replaceState({}, "", "/?date=20261103");
+    const api = install(); render(App);
+    await waitFor(() => expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-03"));
+    api.change(calendar("20261107")); window.dispatchEvent(new Event("focus"));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect((screen.getByLabelText("交易日（日历选择）") as HTMLInputElement).value).toBe("2026-11-03");
+  });
+  it("preserves the A deep link when pageshow fires during initial calendar loading", async () => {
+    window.history.replaceState({}, "", "/?view=a-top200");
+    const api = install(); render(App);
+    window.dispatchEvent(new Event("pageshow"));
+    window.dispatchEvent(new Event("focus"));
+    await screen.findByTestId("a-top200-panel");
+    expect(new URLSearchParams(window.location.search).get("view")).toBe("a-top200");
+    expect(screen.queryByRole("region", { name: "阶段上下文" })).toBeNull();
+    expect(api.fetchMock.mock.calls.filter(([url]) => url === "/api/v1/runs/date-list")).toHaveLength(1);
+  });
+  it("opens A close as an independent body and returns to stage navigation", async () => {
+    window.history.replaceState({}, "", "/"); install(); render(App);
+    await fireEvent.click(await screen.findByTestId("closing-a_share_seven_stage_top200"));
+    expect(await screen.findByTestId("a-top200-panel")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "阶段上下文" })).toBeNull();
+    await waitFor(() => expect(new URLSearchParams(window.location.search).get("view")).toBe("a-top200"));
+    await fireEvent.click(screen.getByTestId("a-top200-close"));
+    expect(await screen.findByRole("region", { name: "阶段上下文" })).toBeTruthy();
   });
 });
