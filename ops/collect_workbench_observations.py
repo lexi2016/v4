@@ -1,6 +1,6 @@
 """Dated workbench projection of existing read-only quote clients. No account API."""
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timedelta
 import fcntl
 import hashlib
 import json
@@ -12,6 +12,7 @@ from pathlib import Path
 import urllib.parse
 import urllib.request
 from zoneinfo import ZoneInfo
+from contracts.us_equity_calendar import latest_completed_session, session as us_session, CALENDAR_PATH as US_CALENDAR_PATH
 
 from infrastructure.research_workbench_host import FLAGS, checked
 
@@ -170,8 +171,10 @@ def parse_us_index(raw,code,name,expected_name,url,session,received):
     change=number(ratio[:-1]);epoch=number(info.get('exchangeDataTimeMs'))
     if price is None or price<=0 or previous is None or previous<=0 or state_price is None or abs(price-state_price)>.001 or change is None or epoch is None:raise ValueError('US_INDEX_PRICE_INVALID')
     stamp=datetime.fromtimestamp(epoch/1000,NY)
-    expected_status='收盘价 '+session[4:6]+'/'+session[6:]+' 16:00 (美东)'
-    if (stamp.strftime('%Y%m%d')!=session or stamp.hour!=16 or stamp.minute!=0 or stamp.second!=0
+    close=us_session(session).close_at
+    if close is None:raise ValueError('US_INDEX_CLOSED_SESSION')
+    expected_status='收盘价 '+session[4:6]+'/'+session[6:]+' '+close.strftime('%H:%M')+' (美东)'
+    if (stamp!=close
             or stamp>received or page.values['status'][0]!=expected_status):raise ValueError('US_INDEX_NOT_EXPECTED_SESSION_CLOSE')
     if abs((price/previous-1)*100-change)>.015:raise ValueError('US_INDEX_CHANGE_BASELINE_CONFLICT')
     return dict(symbol=code,name=name,value=price,previous_close=previous,change_pct=change,source_asof=stamp.isoformat(),
@@ -182,26 +185,30 @@ def us_benchmarks(day,clock,read=None,prior=None):
     read=read or (lambda url:urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=15).read())
     result=dict(schema='V4_WORKBENCH_US_BENCHMARKS_V1',observation_date=day,status='SOURCE_ERROR',rows=[],recorded_at=clock().isoformat(),provider='Futu official website',**FLAGS);raw={}
     try:
-        api='http://127.0.0.1:8873/api/v4/research/us-market?research_date='+day.replace('-','')
+        completed=latest_completed_session(clock())
+        capture_day=(completed.close_at+timedelta(minutes=15)).astimezone(SH).strftime('%Y%m%d')
+        api='http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture_day
         oracle_raw=read(api);oracle=json.loads(oracle_raw);session=oracle.get('us_session_date')
-        if (oracle.get('schema_version')!='v3_5.global_industries.v2' or oracle.get('research_date')!=day.replace('-','')
+        if (oracle.get('schema_version')!='v3_5.global_industries.v2' or any(oracle.get(key)!=capture_day for key in ('research_date','target_date','target_trade_date'))
                 or any(oracle.get(k)!=v for k,v in FLAGS.items()) or oracle.get('write_policy')!='read_only'
                 or not isinstance(session,str) or not re.fullmatch(r'\d{8}',session)
-                or oracle.get('capture_session_date')!=session or oracle.get('capture_phase')!='POST_CLOSE'
+                or oracle.get('capture_session_date')!=session or oracle.get('source_date')!=session or oracle.get('capture_phase')!='POST_CLOSE'
+                or oracle.get('status') not in ('READY','PARTIAL')
                 or any(not isinstance(oracle.get(key),dict) or not re.fullmatch(r'[a-f0-9]{64}',oracle[key].get('sha256','')) for key in ('artifact','manifest','receipt'))):raise ValueError('US_SESSION_ORACLE_UNCONFIRMED')
-        oracle_ref=dict(url=api,research_date=day.replace('-',''),response_sha256=hashlib.sha256(oracle_raw).hexdigest(),session_date=session,artifact=oracle['artifact'],manifest=oracle['manifest'],receipt=oracle['receipt'])
+        if session!=completed.session_date:raise ValueError('US_UPSTREAM_COMPLETED_SESSION_MISMATCH')
+        oracle_ref=dict(url=api,research_date=capture_day,observation_date=day,response_sha256=hashlib.sha256(oracle_raw).hexdigest(),session_date=session,artifact=oracle['artifact'],manifest=oracle['manifest'],receipt=oracle['receipt'])
         if (prior and prior.get('schema')==result['schema'] and prior.get('observation_date')==day
                 and prior.get('status')=='DATED_US_BENCHMARKS' and prior.get('us_session_date')==session
                 and prior.get('raw_ref') and {row.get('symbol') for row in prior.get('rows',[])}=={row[0] for row in US_INDICES}):
             checked(prior['raw_ref'])
-            return dict(prior,reused_completed_session=True,oracle=oracle_ref,cache_checked_at=clock().isoformat()),{}
+            return dict(prior,reused_completed_session=True,oracle=oracle_ref,market_context=oracle,session_close_at=completed.close_at.isoformat(),calendar_ref=dict(path=str(US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(US_CALENDAR_PATH.read_bytes()).hexdigest()),cache_checked_at=clock().isoformat()),{}
         rows=[];pages={}
         for code,name,expected_name,url in US_INDICES:
             try:
                 page_raw=read(url);received=clock();pages[code]=dict(url=url,html=page_raw.decode('utf-8'),sha256=hashlib.sha256(page_raw).hexdigest(),read_at=received.isoformat())
                 rows.append(parse_us_index(page_raw,code,name,expected_name,url,session,received))
             except Exception as error:rows.append(dict(symbol=code,name=name,value=None,change_pct=None,status='SOURCE_ERROR',error=type(error).__name__+': '+str(error)))
-        result.update(rows=rows,us_session_date=session,oracle=oracle_ref,status='DATED_US_BENCHMARKS' if all(row['status']=='DATED_CLOSE' for row in rows) else 'PARTIAL',recorded_at=clock().isoformat())
+        result.update(rows=rows,us_session_date=session,session_close_at=completed.close_at.isoformat(),calendar_ref=dict(path=str(US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(US_CALENDAR_PATH.read_bytes()).hexdigest()),oracle=oracle_ref,market_context=oracle,status='DATED_US_BENCHMARKS' if all(row['status']=='DATED_CLOSE' for row in rows) else 'PARTIAL',recorded_at=clock().isoformat())
         raw=dict(pages=pages,oracle=oracle_ref)
     except Exception as error:result['error']=type(error).__name__+': '+str(error)
     return result,raw
@@ -235,6 +242,19 @@ def collect(day,slot,identity,symbols,*,now=None,kr_read=None,official_input=Non
 
 
 def publish(root,snapshot,kr,raw):
+    # Move only a qualified active external raw dependency into the canonical
+    # source archive. Old immutable receipts and their original bytes stay put.
+    us=snapshot.get('context',{}).get('us_benchmarks',{})
+    prior=us.get('raw_ref')
+    if (us.get('status')=='DATED_US_BENCHMARKS' and prior
+            and not Path(prior['path']).resolve().is_relative_to(Path(root).resolve())):
+        qualified=checked(prior)
+        archive_path=Path(root)/'sources'/'us_benchmarks'/us['us_session_date']/prior['sha256']/'raw.json'
+        if archive_path.exists():
+            archived=dict(path=str(archive_path.resolve()),sha256=prior['sha256']);checked(archived)
+        else:archived=put(archive_path,qualified)
+        if archived['sha256']!=prior['sha256']:raise ValueError('US_RAW_ARCHIVE_BYTE_CONFLICT')
+        us['raw_ref']=archived;us['archived_from']=prior
     day=snapshot['observation_date'];slot=snapshot['slot'];run=root/day/slot
     run=run/digest(dict(snapshot=snapshot,korea=kr))
     raw_ref=put(run/'raw.json',dict(original_owner=raw,korea=kr))

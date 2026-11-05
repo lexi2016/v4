@@ -81,7 +81,7 @@ function paintContext(snapshot){
   for(const [market,originalValue]of Object.entries(contextReply.markets)){
     let value=originalValue;
     if(bound&&market==='JP'&&marketObservation.japan)value=marketObservation.japan;
-    if(bound&&market==='US'&&marketObservation.benchmarks){const bench=marketObservation.benchmarks,session=originalValue.native?.rows?.[0]?.session_date;value={...originalValue,benchmarks:session&&bench.us_session_date!==session?null:bench};}
+    if(bound&&market==='US'&&marketObservation.benchmarks){const bench=marketObservation.benchmarks,base=marketObservation.usMarket??originalValue,session=base.native?.rows?.[0]?.session_date;value={...base,benchmarks:session&&bench.us_session_date!==session?null:bench};}
     renderMarketCard(host,market,value,identity,document);
   }
 }

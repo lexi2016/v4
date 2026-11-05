@@ -86,6 +86,13 @@ test('Korea PARTIAL preserves each successful index while only its failed peer s
   assert.ok(main.includes('Yahoo')&&main.includes('11:30'));assert.ok(!main.includes('原来源读取失败')&&!main.includes('0.00%')&&!main.includes('KR_PRICE_BASELINE_MISSING'));
  }
 });
+test('calendar-bound early NY close is accepted and a wrong close/calendar ref is rejected',()=>{
+ const snapshot=foreignSnapshot();snapshot.observation_date='2026-11-30';const us=snapshot.context.us_benchmarks;us.observation_date='2026-11-30';us.us_session_date='20261127';us.oracle.research_date='20261128';us.oracle.session_date='20261127';us.session_close_at='2026-11-27T13:00:00-05:00';us.calendar_ref=ref('trusted-calendar');
+ for(const row of us.rows){row.session_date='20261127';row.source_asof=us.session_close_at;row.read_at='2026-11-30T08:00:00+08:00';}
+ const selected={...day,observation_date:'2026-11-30'};assert.equal(observationMarketContext(snapshot,selected).benchmarks.complete,true);
+ us.session_close_at='2026-11-27T16:00:00-05:00';assert.equal(observationMarketContext(snapshot,selected).benchmarks.complete,false);
+ us.session_close_at='2026-11-27T13:00:00-05:00';delete us.calendar_ref;assert.equal(observationMarketContext(snapshot,selected).benchmarks.complete,false);
+});
 test('same-day chart selection does not invalidate an in-flight saved-context read',async()=>{
  const {ctx,requests}=sourceHarness();Object.assign(ctx,{cancelOriginalReady:()=>{},r2Serial:0,r2Controller:null,skillReviewCleanup:null,original:{clear:()=>{}},current:null,stat:{replaceChildren:()=>{}},el:()=>({textContent:''})});
  const start=bootstrap.indexOf('clear(){cancelOriginalReady();'),end=bootstrap.indexOf('\n  setWindow(',start);ctx.chart=vm.runInContext('({'+bootstrap.slice(start,end)+'})',ctx);
@@ -99,4 +106,26 @@ test('actual foreground callback coalesces focus/visibility, reads saved context
  const first=ctx.host.refreshSavedSources();assert.equal(ctx.host.refreshSavedSources(),first);resolve();await first;assert.equal(reads,1);
  const next=ctx.host.refreshSavedSources();ctx.activeDay={...day,source_date:'2026-11-05'};resolve();await next;assert.equal(reads,1);
  ctx.document.hidden=true;assert.equal(ctx.host.refreshSavedSources(),null);
+});
+
+test('Monday consumes only the exact Friday completed session and original Saturday artifact projection',()=>{
+ const monday={...day,source_date:'2026-11-06',observation_date:'2026-11-09'},snapshot=foreignSnapshot();
+ Object.assign(snapshot,{source_date:monday.source_date,observation_date:monday.observation_date});
+ const us=snapshot.context.us_benchmarks;Object.assign(us,{observation_date:monday.observation_date,us_session_date:'20261106',session_close_at:'2026-11-06T16:00:00-05:00',calendar_ref:ref('calendar')});
+ Object.assign(us.oracle,{research_date:'20261107',observation_date:monday.observation_date,session_date:'20261106'});
+ for(const row of us.rows)Object.assign(row,{session_date:'20261106',source_asof:us.session_close_at,read_at:'2026-11-09T08:00:00+08:00'});
+ const api=fixture();for(const key of ['research_date','target_date','target_trade_date'])api[key]='20261107';
+ for(const key of ['source_date','us_session_date','capture_session_date'])api[key]='20261106';api.provider_session_dates=['20261106'];
+ api.native_board_snapshot.capture_session_date='20261106';for(const row of api.native_board_snapshot.rows)Object.assign(row,{session_date:'20261106',update_time:'2026-11-06 16:00:00'});
+ for(const key of ['artifact','manifest','receipt'])us.oracle[key]=api[key];
+ us.market_context=api;
+ const view=observationMarketContext(snapshot,monday);assert.equal(view.benchmarks.complete,true);assert.equal(view.usMarket.native.rows.length,6);assert.equal(view.usMarket.artifact_research_date,'20261107');assert.equal(view.usMarket.observation_date,'2026-11-09');
+ const card=renderMarketCard(new Element(),'US',{...view.usMarket,benchmarks:view.benchmarks},monday,doc);
+ assert.match(card.textContent,/最近美股收盘11\/06 · A观察11\/09/);assert.doesNotMatch(card.children[0].textContent,/昨晚/);
+ for(const mutate of [x=>x.oracle.research_date='20261109',x=>x.oracle.session_date='20261102',x=>x.calendar_ref.sha256='bad']){
+  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks);const v=observationMarketContext(invalid,monday);assert.equal(v.usMarket,null);assert.equal(v.benchmarks.complete,false);
+ }
+ for(const mutate of [x=>x.capture_phase='PRE_OPEN',x=>x.us_session_date='20261102',x=>x.orders_sent=true,x=>x.artifact={...x.artifact,sha256:'0'.repeat(64)}]){
+  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks.market_context);assert.equal(observationMarketContext(invalid,monday).usMarket,null);
+ }
 });

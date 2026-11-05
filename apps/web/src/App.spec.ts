@@ -404,6 +404,14 @@ describe("V4 legacy-compatible stage workbench", () => {
     expect(original.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
+  it("opens the daily workbench in current mode while selected stage dates stay independent", async () => {
+    render(App);
+    const link = await screen.findByRole("link", { name: "研究看板" });
+    expect(link.getAttribute("href")).toBe("/research-panel/workbench.html?mode=current");
+    expect(screen.getByLabelText("交易日（日历选择）").getAttribute("type")).toBe("date");
+    expect(screen.getByRole("link", { name: "原版 Vibe · 8910" }).getAttribute("href")).toBe("http://127.0.0.1:8910/a-share/review");
+  });
+
   it("opens the research desk on the selected exact date without an implicit latest request", async () => {
     const fetchMock = vi.fn(async (url: string) => {
       if (url === "/api/v1/runs/date-list") {

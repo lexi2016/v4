@@ -149,3 +149,83 @@ def test_runner_passes_only_foreign_context_across_slots_and_preserves_schedule(
     result=runner.run(dict(state_root=str(state),product_root=str(product_root),host_binding=binding),now=NOW,collector=collector,manual=True)
     assert seen['foreign_context']==foreign and seen['prior_snapshot'] is None and seen['prior_korea'] is None
     assert result['scope']==1 and len(runner.SLOTS)==35
+
+
+@pytest.mark.parametrize('day,session,close_hour,offset',[
+    ('2026-11-06','20261105',16,-5),('2026-11-09','20261106',16,-5),
+    ('2026-10-30','20261029',16,-4),('2026-11-27','20261125',16,-5),
+    ('2026-11-30','20261127',13,-5)])
+def test_daily_calendar_behavior_and_synthetic_page_clocks_not_future_market_data(day,session,close_hour,offset):
+    now=datetime.fromisoformat(day+'T08:00:00+08:00');completed=c.latest_completed_session(now)
+    assert completed.session_date==session and completed.close_at.hour==close_hour
+    assert completed.close_at.utcoffset().total_seconds()==offset*3600
+    raw=(FIXTURES/'FUTU_SPX_PAGE.html').read_bytes()
+    # Only the test's clock fields are changed. Prices are historical samples,
+    # never claimed as quotes or execution on these future observation dates.
+    raw=raw.replace(b'1793826000000',str(int(completed.close_at.timestamp()*1000)).encode())
+    raw=raw.replace(b'11/04 16:00',(session[4:6]+'/'+session[6:]+' '+completed.close_at.strftime('%H:%M')).encode())
+    row=c.parse_us_index(raw,'.SPX','标普500','标普500指数','https://www.futunn.com/index/.SPX-US',session,now)
+    assert row['source_asof']==completed.close_at.isoformat()
+
+
+def test_upstream_stale_or_missing_exact_target_is_unknown_without_page_downloads():
+    calls=[]
+    def read(url):
+        calls.append(url)
+        oracle=json.loads((FIXTURES/'US_SOURCE.json').read_bytes());
+        for key in ('research_date','target_date','target_trade_date'):oracle[key]='20261106'
+        return json.dumps(oracle).encode()  # old11/04 session, expected11/05
+    view,_=c.us_benchmarks('2026-11-06',lambda:datetime.fromisoformat('2026-11-06T08:00:00+08:00'),read)
+    assert view['status']=='SOURCE_ERROR' and 'COMPLETED_SESSION_MISMATCH' in view['error'] and len(calls)==1
+    missing=lambda url:json.dumps({'research_date':'20261106','status':'CANNOT_CONFIRM'}).encode()
+    view,_=c.us_benchmarks('2026-11-06',lambda:datetime.fromisoformat('2026-11-06T08:00:00+08:00'),missing)
+    assert view['status']=='SOURCE_ERROR' and not view['rows']
+
+
+def test_archive_external_qualified_hot_raw_with_new_receipt_preserves_old_reference(tmp_path):
+    old=c.put(tmp_path/'external-qualified'/'raw.json',{'qualified':'TEST_ONLY_CANONICAL_BYTES'})
+    root=tmp_path/'canonical';snapshot=dict(observation_date=DAY,slot='1100',recorded_at=NOW.isoformat(),context={'us_benchmarks':dict(status='DATED_US_BENCHMARKS',us_session_date='20261104',raw_ref=old)})
+    pointer=c.publish(root,snapshot,{'indices':[]},{})
+    saved=c.checked(pointer['snapshot']);view=saved['context']['us_benchmarks']
+    assert Path(view['raw_ref']['path']).is_relative_to(root/'sources')
+    assert view['raw_ref']['sha256']==old['sha256'] and view['archived_from']==old
+    assert c.checked(old)==c.checked(view['raw_ref'])
+    raw_path=Path(view['raw_ref']['path']);before=raw_path.stat().st_mtime_ns
+    snapshot['slot']='1110';c.publish(root,snapshot,{'indices':[]},{})
+    assert raw_path.stat().st_mtime_ns==before  # canonical immutable source unchanged
+
+
+@pytest.mark.parametrize('day,expected_source',[('2026-11-06','2026-11-05'),('2026-11-09','2026-11-06')])
+def test_runner_next_day_weekend_and_restart_protocol_without_future_natural_claim(tmp_path,day,expected_source):
+    now=datetime.fromisoformat(day+'T10:00:00+08:00');state=tmp_path/'state';product_root=tmp_path/'products';product_root.mkdir()
+    calendar_path=Path(OWNER)/'contracts/market_calendar_2026.json';calendar_ref={'path':str(calendar_path),'sha256':hashlib.sha256(calendar_path.read_bytes()).hexdigest()}
+    product=c.put(product_root/'product.json',dict(source_generation=IDENTITY['generation'],source_identity={'input_sha256':IDENTITY['input_sha256']},rows=[{'symbol':'000001.SZ'}]))
+    manifest=c.put(product_root/'manifest.json',{'artifact':product});c.put(product_root/'index.json',{'dates':{expected_source.replace('-',''):manifest}})
+    binding=c.put(tmp_path/'binding.json',{'calendar':calendar_ref});config=dict(state_root=str(state),product_root=str(product_root),host_binding=binding,calendar=calendar_ref)
+    calls=[]
+    def collector(observation,slot,identity,symbols,**kwargs):
+        calls.append(identity['source_date']);return dict(schema='OBSERVATION_SNAPSHOT_VIEW_V1',source_date=identity['source_date'],source_generation=identity['generation'],input_sha256=identity['input_sha256'],observation_date=observation,slot=slot,recorded_at=now.isoformat(),rows=[{'symbol':symbol,'error':'TEST_ONLY_NO_FUTURE_QUOTE'} for symbol in symbols]),{'indices':[{'value':None}]},{}
+    result=runner.run(config,now=now,collector=collector);assert result['manual'] is False and calls==[expected_source]
+    runner.run(config,now=now,collector=collector)
+    result=runner.run(config,now=now,collector=collector);assert result['status']=='DIAGNOSIS_REQUIRED' and len(calls)==2
+    c.put(product_root/'index.json',{'dates':{}});result=runner.run(config,now=now,collector=collector);assert result['error']=='PREVIOUS_SESSION_PRODUCT_MISSING'
+    unknown=runner.run(config,now=datetime.fromisoformat('2027-01-04T10:00:00+08:00'),collector=collector);assert unknown['status']=='CANNOT_CONFIRM'
+
+
+@pytest.mark.parametrize('day,session,capture',[('2026-11-09','20261106','20261107'),('2026-11-27','20261125','20261126'),('2026-11-30','20261127','20261128')])
+def test_exact_original_close_capture_day_is_distinct_from_a_observation(day,session,capture,tmp_path):
+    now=datetime.fromisoformat(day+'T08:00:00+08:00');completed=c.latest_completed_session(now);calls=[]
+    oracle=json.loads((FIXTURES/'US_SOURCE.json').read_bytes())
+    for key in ('research_date','target_date','target_trade_date'):oracle[key]=capture
+    for key in ('source_date','us_session_date','capture_session_date'):oracle[key]=session
+    oracle['provider_session_dates']=[session]
+    prior=dict(schema='V4_WORKBENCH_US_BENCHMARKS_V1',observation_date=day,status='DATED_US_BENCHMARKS',us_session_date=session,raw_ref=c.put(tmp_path/'raw.json',{'TEST_ONLY':True}),rows=[dict(symbol=row[0]) for row in c.US_INDICES])
+    def read(url):calls.append(url);return json.dumps(oracle).encode()
+    view,raw=c.us_benchmarks(day,lambda:now,read,prior)
+    assert view['status']=='DATED_US_BENCHMARKS' and view['observation_date']==day
+    assert view['oracle']['research_date']==capture and view['oracle']['session_date']==session
+    assert view['session_close_at']==completed.close_at.isoformat() and view['market_context']==oracle
+    assert calls==['http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture] and raw=={}
+    for key,value in [('capture_phase','PRE_OPEN'),('us_session_date','20261102'),('research_date',day.replace('-',''))]:
+        wrong=dict(oracle);wrong[key]=value;view,_=c.us_benchmarks(day,lambda:now,lambda url:json.dumps(wrong).encode(),prior)
+        assert view['status']=='SOURCE_ERROR' and not view['rows']
