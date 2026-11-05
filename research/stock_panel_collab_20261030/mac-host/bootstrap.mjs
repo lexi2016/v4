@@ -4,6 +4,7 @@ import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
 import {setCompanyContext,renderCompanyStatus,explanationFacts,beginCompanyRequest,isCurrentCompanyRequest,validateCompany} from './company-local.mjs';
 import {renderReceivedResearch,createReceivedCompanyRefresh} from './received-research.mjs';
+import {usMarketContext,unknownUsContext} from './workbench-us-context.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
 const el=id=>document.getElementById(id),add=(host,tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;host.append(n);return n};
@@ -11,14 +12,14 @@ const old=document.querySelector('#interactiveChart .interactive-scroll');if(old
 const navigation=document.querySelector('#interactiveChart .chart-nav');if(navigation)navigation.hidden=true;
 const container=add(el('interactiveChart'),'div');container.id='macOriginalRenderer';
 const stat=add(el('interactivePanel'),'section');stat.className='panel';stat.id='macHistoricalStatistics';
-let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null;
+let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null,foregroundRead=null;
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
 const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
 el('stockList').addEventListener('click',event=>{const symbol=event.target.closest?.('[data-symbol]')?.dataset.symbol;if(symbol==='301048.SZ')singleResearch.openSymbol(symbol);else if(symbol)singleResearch.clear()});
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
 const original=bridge.OriginalFullChart;
-window.OriginalFullChart={...original,clear(){cancelOriginalReady();++r2Serial;r2Controller?.abort();r2Controller=null;if(skillReviewCleanup){skillReviewCleanup();skillReviewCleanup=null}original.clear();current=null;context=null;++contextSerial;stat.replaceChildren();el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
+window.OriginalFullChart={...original,clear(){cancelOriginalReady();++r2Serial;r2Controller?.abort();r2Controller=null;if(skillReviewCleanup){skillReviewCleanup();skillReviewCleanup=null}original.clear();current=null;context=null;stat.replaceChildren();if(!activeDay){++contextSerial;contextReply=null;el('marketCards').textContent='跨市场来源尚未与所选日期绑定';}else paintContext();},
   setWindow(value){if(!current?.r2)return original.setWindow(value);const w=frame.contentWindow;if(!w?.setOriginalWindow||!w.RESEARCH_PANEL_STATE)throw Error('ORIGINAL_RENDERER_NOT_READY');if(value!=='all'&&(!Number.isSafeInteger(value)||value<1))throw Error('INVALID_RENDERER_WINDOW');w.setOriginalWindow(value==='all'?0:value,w.RESEARCH_PANEL_STATE.rows.length)},
   setStock(value){if(!current?.r2)return original.setStock(value);if(value!==current.projection)throw Error('RENDERER_CONTEXT_UNBOUND');return this.setWindow(120)}};
 const frame=original.bind();frame.style.height="460px";
@@ -61,16 +62,21 @@ async function openSkill(day,row,selectedGroup){
   return current;
 }
 function sourceContext(day,force=false){
-  const mine=++contextSerial;
   if(!force&&contextReply?.source_date===day.source_date&&contextReply?.observation_date===day.observation_date&&contextReply?.generation===day.generation&&contextReply?.input_sha256===day.input_sha256){paintContext();return;}
+  const mine=++contextSerial;
   const sameIdentity=(a,b)=>a&&b&&['source_date','observation_date','generation','input_sha256'].every(k=>a[k]===b[k]);
   const isCurrent=()=>mine===contextSerial&&sameIdentity(activeDay||context,day);
-  const invalidate=reason=>{if(!isCurrent())return;contextReply=null;const host=el('marketCards');host.replaceChildren();host.textContent='跨市场来源校验失败 · CANNOT_CONFIRM：'+reason;};
-  return fetch('/api/v4/research/workbench/days/'+day.source_date+'/context?'+new URLSearchParams({revision:day.generation}),{method:'GET',credentials:'same-origin',redirect:'error',cache:'no-store'}).then(r=>{if(!r.ok)throw Error('CONTEXT_READ_FAILED_HTTP_'+r.status);return r.json()}).then(v=>{if(!isCurrent())return;if(!sameIdentity(v,day)){invalidate('SOURCE_CONTEXT_IDENTITY_CONFLICT');return;}contextReply=v;paintContext()}).catch(error=>invalidate(error.message));
+  const unknown=reason=>({status:'UNKNOWN',summary:reason+' · CANNOT_CONFIRM'});
+  contextReply={source_date:day.source_date,observation_date:day.observation_date,generation:day.generation,input_sha256:day.input_sha256,markets:{US:unknownUsContext('正在读取已保存来源'),JP:unknown('日本当日来源未绑定'),KR:unknown('韩国当日基准/来源待核')}};paintContext();
+  let usView=null;
+  const read=url=>fetch(url,{method:'GET',credentials:'same-origin',redirect:'error',cache:'no-store'}).then(r=>{if(!r.ok)throw Error('CONTEXT_READ_HTTP_'+r.status);return r.json()});
+  const base=read('/api/v4/research/workbench/days/'+day.source_date+'/context?'+new URLSearchParams({revision:day.generation})).then(value=>{if(!isCurrent())return;if(!sameIdentity(value,day))throw Error('SOURCE_CONTEXT_IDENTITY_CONFLICT');contextReply={...value,markets:{...value.markets,US:usView??contextReply.markets.US}};paintContext();}).catch(error=>{if(!isCurrent())return;contextReply.markets.JP=unknown('日本当日来源读取失败：'+error.message);contextReply.markets.KR=unknown('韩国当日基准/来源读取失败：'+error.message);paintContext();});
+  const us=read('/api/v4/research/us-market?'+new URLSearchParams({research_date:day.observation_date.replaceAll('-','')})).then(value=>{if(!isCurrent())return;usView=usMarketContext(value,day);contextReply.markets.US=usView;paintContext();}).catch(error=>{if(!isCurrent())return;usView=unknownUsContext(error.message);contextReply.markets.US=usView;paintContext();});
+  return Promise.allSettled([base,us]);
 }
 function paintContext(){
   const identity=activeDay||context;if(!contextReply||!identity||contextReply.source_date!==identity.source_date||contextReply.observation_date!==identity.observation_date||contextReply.generation!==identity.generation||contextReply.input_sha256!==identity.input_sha256)return;const host=el('marketCards');host.replaceChildren();
-  for(const [market,value]of Object.entries(contextReply.markets)){const card=add(host,'div');card.className='market-card';add(card,'strong',({US:'美国',JP:'日本',KR:'韩国'})[market]);add(card,'span',value.summary);const note=add(card,'small',value.status==='UNKNOWN'?'来源缺口 · UNKNOWN':`源 ${value.source_asof??'未知'} · 实读 ${value.recorded_at??'未知'}；${value.limitation??''}`);note.title=note.textContent;}
+  for(const [market,value]of Object.entries(contextReply.markets)){const card=add(host,'div');card.className='market-card';add(card,'strong',({US:'美国',JP:'日本',KR:'韩国'})[market]);add(card,'span',value.summary);const note=add(card,'small',value.status==='UNKNOWN'?'来源缺口 · UNKNOWN':`源 ${value.source_asof??'未知'} · ${value.recorded_label??'实读'} ${value.recorded_at??'未知'}；${value.limitation??''}`);note.title=note.textContent;}
 }
 function showStatistics(bundle){
   stat.replaceChildren();add(stat,'h3',({original:'原公式',nav_smallk:'小K',nav_pullback:'回踩',nav_breakout:'突破'})[bundle.context.group]+' · 同买点历史统计');
@@ -182,7 +188,7 @@ window.StockPanelHost={
     for(const item of contract?.time_contract?.nodes??[]){const d=document.querySelector(`.timetable-item[data-node-id="${item.id}"]`);if(!d)continue;const host=d.querySelector('.node-materials');if(!host)continue;host.replaceChildren();add(host,'strong',labels[item.execution_status]??item.execution_status);if(item.recorded_at)add(host,'p','实际记录 '+item.recorded_at);if(item.source_asof)add(host,'p','来源时点 '+item.source_asof);for(const reason of item.missing??[])add(host,'p','缺口：'+reason);if(item.error)add(host,'p','错误：'+item.error);for(const material of item.materials??[]){try{const u=new URL(material.url,location.href);if(!['https:','http:'].includes(u.protocol)||u.username||u.password)continue;const a=add(host,'a',material.label??'来源材料');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{add(host,'p','材料链接待核');}}}
   },
   preserveChart(){const s=frame.contentWindow?.RESEARCH_PANEL_STATE;if(context&&s?.view)preservedChart={symbol:context.symbol,source_date:context.source_date,generation:context.generation,...s.view,selected:s.selected};},
-  unbindDay(){singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;},
+  unbindDay(){singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
   bindDay(day){
     activeDay=day;singleResearch.bindDay(day);this.paintClassificationCoverage(day);sourceContext(day,true);
     const key=day.source_date;if(moduleEvents?.key===key)return;
@@ -192,12 +198,20 @@ window.StockPanelHost={
       const changed=Object.keys(e.modules??{}).filter(k=>previous?.[k]!==e.modules[k]);previous=e.modules;
       // Event payloads are invalidation hints. Only fresh GET responses may
       // replace content, so a delayed/replayed event cannot restore old data.
-      if(changed.includes('context'))sourceContext(activeDay,true);
+      if(changed.includes('context')||changed.includes('observations'))sourceContext(activeDay,true);
       completionCallback?.modules?.(changed,e);
     }catch{}});
   },
   installCompletion(callback){completionCallback=callback},
+  refreshSavedSources(){
+    if(document.hidden||foregroundRead)return foregroundRead;
+    const before=activeDay;
+    foregroundRead=Promise.resolve(completionCallback?.catalog?.()).then(()=>{if(activeDay&&activeDay===before)return sourceContext(activeDay,true);}).finally(()=>{foregroundRead=null;});
+    return foregroundRead;
+  },
 };
+window.addEventListener('focus',()=>window.StockPanelHost.refreshSavedSources());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)window.StockPanelHost.refreshSavedSources();});
 const events=new EventSource('/api/v4/research/events');
 const refreshReceivedCompany=createReceivedCompanyRefresh({getContext:()=>context,begin:beginCompanyRequest,isCurrent:isCurrentCompanyRequest,validate:validateCompany,
   fetchCompany:async identity=>{const response=await fetch('/api/v4/research/workbench/days/'+identity.source_date+'/company/'+identity.symbol+'?'+new URLSearchParams({revision:identity.generation}),{credentials:'same-origin',redirect:'error',cache:'no-store'});if(!response.ok)throw Error('RECEIVED_COMPANY_REFRESH_FAILED');return response.json();},
