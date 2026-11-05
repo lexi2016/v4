@@ -1,0 +1,114 @@
+{
+  "status": "PREPARED_TESTED_INPUT_BLOCKED",
+  "asof": 20261105,
+  "recorded_utc": "2026-11-05T11:48:55.589840+00:00",
+  "baseline_commit": "92bf34b47e0c1238221df6d919e918e2562a24f8",
+  "branch": "codex/zge-p59-daily-screen-20261105",
+  "model_sha256": "ba3553516af05dec467299579dccc7d8c418882dbd4cc89433b4722c2df9dd43",
+  "feature_order_sha256": "6d4e8f60a7854f1895976e1d462975d4645fc0dc01d2b92661d8111b28172325",
+  "source_generation": "63986092da44625a69d34f5f98a300c8ba685ea023dbaa007639207caa3ea109",
+  "stages": {
+    "PREPARED": true,
+    "TESTED": true,
+    "INPUT": "BLOCKED_FIXED_MODEL_INPUT_COMPATIBILITY",
+    "MODEL_LOADED": false,
+    "REAL_REGISTRY_EXECUTION": "NOT_RUN",
+    "REAL_INFERENCE": "NOT_RUN",
+    "SCORES_PRODUCED": false,
+    "OBSERVATION_LIST_PRODUCED": false,
+    "DEPLOYMENT": "NOT_RUN"
+  },
+  "test_evidence": {
+    "command": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python -B -m unittest -v test_daily_screen",
+    "passed": 14,
+    "failed": 0,
+    "csv_precision_regression": "0.00012345678901234567: reproduced SAVED_SCORE_CONFLICT, then exact round-trip passed",
+    "git_diff_check": "PASS"
+  },
+  "input_gap_evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/phase59_post1015_oos_20261105/FEATURE_MAP_PREFLIGHT.json",
+      "sha256": "0dbed3cc7bce1cd2c7d13758846bcaf5096d3a84975fff9f56c76ee6cf65e05a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/phase59_post1015_oos_20261105/UPSTREAM_MISSING_SOURCE_REQUEST.json",
+      "sha256": "f2615086245cf8af6139303d1848b99ce0788e626929fa3457538aeb24095f51"
+    }
+  ],
+  "missing_named_producer": {
+    "function": "engineer_phase5_9_transfer_columns",
+    "total_fields": 19,
+    "within_original_p53_mask": [
+      "p53_jcb_red_green_vol_ratio_5d",
+      "p53_jcb_rs_5d_excess",
+      "p53_pb_yellow_slope5_resilience",
+      "p53_pb_dd_from_keyk_high_shallow",
+      "p53_support_hold_composite",
+      "p53_anti_naive_j13_trap",
+      "p53_prior_bull_archetype_sim_pit"
+    ],
+    "additional_nonmasked_fields": [
+      "jcb_wave_active_flag",
+      "jcb_accumulation_intensity",
+      "jcb_washout_maturity_score",
+      "tactic_pb1_shallow_white_score",
+      "tactic_pb2_yellow_bowl_b1_score",
+      "tactic_pb3_keyk_low_spring_score",
+      "tactic_super_b1_doji_score",
+      "tactic_b2_yang_confirm_score",
+      "rev_r1_pinbar_flag",
+      "rev_r2_engulf_flag",
+      "rev_r3_reclaim_white_flag",
+      "rev_r4_weak_mkt_indep_flag"
+    ]
+  },
+  "other_incompatibilities": {
+    "unmasked_unknown_c_event_inputs": [
+      "volr",
+      "gain_from_low60_pct",
+      "range60_pct",
+      "mkt_ew_ret_5d",
+      "pct_above_white",
+      "kb_personal_vol_quantile_z",
+      "kb_personal_j_quantile_z",
+      "pers_vol_norm_20d",
+      "pers_vol_norm_60d",
+      "pers_vol_norm_250d",
+      "kb_four_layer_synthesis_score",
+      "kb_buildup_wave_stage_score",
+      "kb_b1_three_questions_score",
+      "kb_ten_charts_composite_similarity",
+      "kb_white_yellow_bowl_score",
+      "kb_b1_user_orig_flag",
+      "kb_super_b1_flag",
+      "kb_sb1_fake_break_flag",
+      "kb_post_disaster_rebuild_flag",
+      "kb_b2_five_iron_laws_score",
+      "kb_changan_b3_flag",
+      "kb_risk_s1_green_cap",
+      "digested_big_green_rebuild_flag",
+      "v1_prior_score_norm",
+      "pass_193_baseline"
+    ],
+    "explicit_proxy_mappings": {
+      "dist_white_pct": "P52_CLOSE_OVER_WHITE_MAPPED_PROXY",
+      "dist_bbi_pct": "CLOSE_OVER_PANEL_BBI_MAPPED_PROXY",
+      "pers_dist_w_norm_60d": "P58_FROM_WHITE_PROXY_AND_AMPLITUDE",
+      "pers_pb_depth_style_index": "P59_P52_ANCHOR_AND_PIT2024_HABIT_MAPPED_PROXY"
+    }
+  },
+  "decision": "Fixed model 63 SOURCE_BOUND inputs cannot be satisfied by this upstream mapping. Do not add masks, substitute definitions, change weights or create a parallel producer. Root coordinates reuse of separately versioned owner results.",
+  "acceptance_limits": "Synthetic consumer tests are engineering evidence only; no real source semantic, inference, OOS, strategy or production acceptance claimed.",
+  "source_sha256": {
+    "screen.py": "763b8744a226917e88b1a82a7afc21a0a5113572be70f8ebb98757ce01bde3e5",
+    "registry.py": "a54d0decda310c76d7665fc03bee0643929c0ce6fe716e81a823d6a72fdf922b",
+    "test_daily_screen.py": "bcfb04d37f3440dfd788cb4249e1a5353f0bb5e06f86364b8ce87151dd393787",
+    "README.md": "ce9c6b42373ec9ba5b39da7c4a1c6bd7bf9a1925cc59cac870aab38f7d60212f"
+  },
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
