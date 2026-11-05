@@ -215,13 +215,21 @@ def _stage_projection(date,stage_root,top):
     for stage in STAGES:
         entry=entries.get(date+'/'+stage+'/A_SHARE');codes=set()
         try:
-            if not entry:raise KeyError('STAGE_NOT_MATERIALIZED')
+            if entry is None:raise KeyError('STAGE_NOT_MATERIALIZED')
+            role='A_SHARE_SELECTION_'+stage
+            if (not isinstance(entry,dict)or entry.get('market')!='A_SHARE'or entry.get('stage_id')!=stage
+                    or entry.get('trade_date')!=date or entry.get('role')!=role):raise ValueError('STAGE_ENTRY_MARKET_DATE_STAGE_ROLE_CONFLICT')
+            run=entry.get('run_id')
+            if (not isinstance(run,str)or not run.startswith('run-')or '/'in run or '\\'in run
+                    or entry.get('artifact_relative')!='/'.join(('selection_runs',date,role,run,'artifact.csv'))):raise ValueError('STAGE_ENTRY_RUN_PATH_CONFLICT')
             path=stage_root/entry['artifact_relative']
-            if not path.resolve().is_relative_to(stage_root.resolve())or path.is_symlink()or Path(entry['artifact_relative']).parts[:2]!=('selection_runs',date)or sha(path)!=entry['artifact_sha256']:raise ValueError('STAGE_SOURCE_SHA_MISMATCH')
+            if not path.resolve().is_relative_to(stage_root.resolve())or path.is_symlink()or sha(path)!=entry['artifact_sha256']:raise ValueError('STAGE_SOURCE_SHA_MISMATCH')
             with path.open(encoding='utf-8-sig',newline='')as stream:rows=list(csv.DictReader(stream))
-            codes=set(filter(None,(canonical_symbol(row.get('code'))for row in rows)))
+            mapped=[canonical_symbol(row.get('code'))for row in rows]
+            if any(code is None for code in mapped):raise ValueError('STAGE_ROW_MARKET_IDENTITY_CONFLICT')
+            codes=set(mapped)
             stages[stage]=dict(status='READY',row_count=len(rows),unique_codes=len(codes),artifact_relative=entry['artifact_relative'],artifact_sha256=entry['artifact_sha256'],run_id=entry.get('run_id'),hit_count=len(codes&top))
-        except (OSError,ValueError,KeyError)as error:stages[stage]=dict(status='NOT_MATERIALIZED'if not entry else 'CANNOT_CONFIRM',hit_count=None,error=str(error))
+        except (OSError,ValueError,KeyError)as error:stages[stage]=dict(status='NOT_MATERIALIZED'if entry is None else 'CANNOT_CONFIRM',hit_count=None,error=str(error))
         members[stage]=codes
     union=set().union(*members.values());available=sum(s['status']=='READY'for s in stages.values());hits=len(union&top)if available else None
     return dict(status='READY'if available==7 else 'PARTIAL_STAGE_COVERAGE',selected_count=len(union)if available else None,hit_count=hits,top_count=len(top),stages=stages,**_ratios(hits,len(union),len(top))),dict(available=available,total=7,missing_stages=[k for k,v in stages.items()if v['status']!='READY']),source

@@ -116,5 +116,39 @@ class DailyProjectionTest(FrozenDetailsTest):
         row=project('20261104',lambda *args,**kwargs:first,self.root,self.root,legacy)['dates'][0]
         self.assertEqual(row['a_pool']['hit_count'],1);self.assertEqual(row['seven_stage']['stages']['STAGE_0925']['status'],'CANNOT_CONFIRM');self.assertIsNone(row['seven_stage']['hit_count'])
 
+
+
+class StageIdentityRegression(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name);self.date='20261105';self.stage='STAGE_0940_0945'
+    def artifact(self,stage,market='A_SHARE',code='SH.600001',run='run-test'):
+        role=market+'_SELECTION_'+stage;relative='/'.join(('selection_runs',self.date,role,run,'artifact.csv'));path=self.root/relative;path.parent.mkdir(parents=True,exist_ok=True);path.write_text('code\n'+code+'\n')
+        return dict(market=market,stage_id=stage,trade_date=self.date,role=role,run_id=run,artifact_relative=relative,artifact_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    def project(self,bad,good=None):
+        from ops.build_a_share_pool_top200 import _stage_projection
+        entries={self.date+'/'+self.stage+'/A_SHARE':bad}
+        if good:entries[self.date+'/STAGE_0930_0935/A_SHARE']=good
+        (self.root/'selection_latest.json').write_text(json.dumps({'entries':entries}))
+        return _stage_projection(self.date,self.root,{'600001.SH'})
+    def test_same_date_hk_entry_under_a_key_is_unknown_and_valid_a_survives(self):
+        hk=self.artifact(self.stage,'HK_CONNECT','HK.00700');good=self.artifact('STAGE_0930_0935')
+        seven,coverage,_=self.project(hk,good)
+        self.assertEqual(coverage['available'],1);self.assertEqual(seven['selected_count'],1);self.assertEqual(seven['hit_count'],1)
+        rejected=seven['stages'][self.stage];self.assertEqual(rejected['status'],'CANNOT_CONFIRM');self.assertIsNone(rejected['hit_count']);self.assertIn('MARKET_DATE_STAGE_ROLE_CONFLICT',rejected['error'])
+        seven,coverage,_=self.project(hk);self.assertEqual(coverage['available'],0);self.assertIsNone(seven['selected_count']);self.assertIsNone(seven['hit_count'])
+    def test_metadata_and_run_path_conflicts_cannot_become_ready(self):
+        valid=self.artifact(self.stage);good=self.artifact('STAGE_0930_0935')
+        for key,value in [('market','HK_CONNECT'),('trade_date','20261104'),('stage_id','STAGE_UNKNOWN'),('role','UNKNOWN_ROLE'),('run_id','run-other'),('artifact_relative','selection_runs/20261105/UNKNOWN/run-test/artifact.csv')]:
+            with self.subTest(field=key):
+                bad=copy.deepcopy(valid);bad[key]=value;seven,coverage,_=self.project(bad,good)
+                self.assertEqual(coverage['available'],1);self.assertEqual(seven['hit_count'],1);self.assertEqual(seven['stages'][self.stage]['status'],'CANNOT_CONFIRM');self.assertIsNone(seven['stages'][self.stage]['hit_count'])
+        malformed=self.artifact(self.stage,run='run-bad'+chr(92)+'path');seven,coverage,_=self.project(malformed,good)
+        self.assertEqual(coverage['available'],1);self.assertEqual(seven['stages'][self.stage]['status'],'CANNOT_CONFIRM')
+        for bad in [{},'not-metadata']:
+            seven,coverage,_=self.project(bad,good);self.assertEqual(coverage['available'],1);self.assertEqual(seven['stages'][self.stage]['status'],'CANNOT_CONFIRM')
+    def test_hk_csv_cannot_become_zero_even_with_a_metadata(self):
+        bad=self.artifact(self.stage,code='HK.00700');seven,coverage,_=self.project(bad)
+        self.assertEqual(coverage['available'],0);self.assertIsNone(seven['hit_count']);self.assertIn('ROW_MARKET_IDENTITY_CONFLICT',seven['stages'][self.stage]['error'])
+
 if __name__ == '__main__':
     unittest.main()
