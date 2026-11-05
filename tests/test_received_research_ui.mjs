@@ -47,6 +47,67 @@ test('source URLs restrict protocol and credentials; identities reject stale tar
   }
   assert.equal(receivedView({}),null);
 });
+
+function v2Fixture(symbol='300856.SZ'){
+  const value=fixture(symbol),material=value.received_materials;
+  value.source_date='2026-11-05';value.observation_date='2026-11-06';
+  material.data_date='20261105';
+  Object.assign(material.received_batch_summary,{source_date:'20261105',target_date:'20261106',scope_count:364,
+    themes:[],technical_observe_count:0,wait_for_trigger_count:0,original_producer_status_counts:{PARTIAL:364},specified_primary_page_check_count:0});
+  Object.assign(material.secondary_screen,{source_date:'20261105',target_date:'20261106',status:'NOT_RUN_FOR_20261105_GENERATION',
+    role:'NOT_RUN',reference_status:'NOT_RUN',reference_fields:{volume_to_current_MA5:null,volume_to_prior_MA5:null},
+    received_record:{industry_secondary_status:'NOT_RUN_FOR_20261105_GENERATION',full_chain_status:'NOT_RUN_FOR_20261105_GENERATION',theme:null}});
+  Object.assign(material.daily_performance,{source_date:'20261105',target_date:'20261106',volume_to_current_MA5:null,
+    volume_to_prior_MA5:null,future_d2:null,future_d5:null,received_source_record:{vol_ratio_60:'9.99'}});
+  const business=symbol==='603007.SH'?'当前主营混动和增程燃油箱，不沿用园林业务分类。':symbol==='920007.BJ'?'光伏支架部件；未认证完整跟踪控制系统。':'个人护理品原料与化学品';
+  Object.assign(material.received_fundamentals,{business,research_as_of:'2026-10-29T19:00:00+08:00',growth_quality:'原始增长质量',key_risks:'原始风险',
+    industry_chain_position:business,received_source_record:{business,prior_status:'COMPLETED'},
+    research_main_classification:{symbol,source_date:'20261105',observation_date:'20261106',source_generation:value.generation,
+      research_main_industry:symbol==='603007.SH'?'汽车零部件':symbol==='920007.BJ'?'光伏产业链':'化工与新材料',
+      industry_chain_position_received:business,research_tier_received:'保留原研究层级',user_resource_priority:symbol==='300856.SZ'?'优先补证':null,...flags}});
+  return value;
+}
+
+test('V2 shows received classification, old research date and unrun secondary without old selections or MA60 substitution',()=>{
+  for(const symbol of ['300856.SZ','603007.SH','920007.BJ']){
+    const value=v2Fixture(symbol),doc=documentFixture();
+    assert.equal(renderReceivedResearch(value,doc),true);
+    const text=['companySummary','companyMetrics','companyEvidence'].map(id=>doc.getElementById(id).textContent).join('');
+    for(const part of ['公司研究已接收，仍有资料待补','研究主营分类（依据收到的主营描述）','行业二筛：今天尚未运行',
+      '2026-10-29T19:00:00+08:00','原包状态 PARTIAL','原始增长质量','原始风险','Canonical D量/含D近5交易日均量：待核'])assert.ok(text.includes(part),part);
+    assert.ok(text.includes(symbol==='300856.SZ'?'研究资源优先级：优先补证':'原始研究层级：保留原研究层级'));
+    for(const part of ['三主题外','B1动态引用缺陷','技术观察 +','未列本批六只重点','9.9900'])assert.ok(!text.includes(part),part);
+    const first=doc.getElementById('companyEvidence').textContent;
+    renderReceivedResearch(value,doc);assert.equal(doc.getElementById('companyEvidence').textContent,first);
+  }
+  for(const mutate of [v=>v.received_materials.received_fundamentals.research_main_classification.symbol='920007.BJ',
+    v=>v.received_materials.received_fundamentals.research_main_classification.source_date='20261104',
+    v=>v.received_materials.secondary_screen.received_record.theme='旧主题',
+    v=>v.received_materials.secondary_screen.reference_fields.volume_to_current_MA5=1]){
+    const value=v2Fixture();mutate(value);
+    assert.throws(()=>receivedView(value),/IDENTITY_CONFLICT/);
+  }
+});
+
+test('actual V2 stage retains all 364 PARTIAL rows, raw records and three fixed content samples', {skip:!process.env.V4_RECEIVED_V2_STAGE},()=>{
+  const plan=JSON.parse(fs.readFileSync(process.env.V4_RECEIVED_V2_STAGE+'/PUBLICATION_PLAN.json','utf8'));
+  const shards=Object.entries(plan.immutable_files).filter(([path])=>!path.endsWith('/index.json')).map(([,ref])=>JSON.parse(fs.readFileSync(ref.path,'utf8')));
+  assert.equal(shards.length,364);assert.deepEqual(plan.summary.original_producer_status_counts,{PARTIAL:364});
+  assert.deepEqual(plan.summary.user_resource_priority_counts,{'优先补证':3,'次级观察':4});
+  for(const material of shards){
+    assert.equal(material.daily_performance.volume_to_current_MA5,null);
+    assert.equal(material.daily_performance.volume_to_prior_MA5,null);
+    assert.equal(material.daily_performance.future_d2,null);assert.equal(material.daily_performance.future_d5,null);
+    assert.equal(material.received_fundamentals.received_source_record.business,material.received_fundamentals.business);
+    const value={schema:'V4_RECEIVED_COMPANY_VIEW_V1',symbol:material.symbol,source_date:'2026-11-05',observation_date:'2026-11-06',
+      generation:material.source_generation,input_sha256:material.input_sha256,received_materials:material,...flags};
+    assert.ok(receivedView(value));
+    if(['300856.SZ','603007.SH','920007.BJ'].includes(material.symbol)){
+      assert.ok(renderReceivedResearch(value,documentFixture()));
+      assert.match(material.received_fundamentals.business,material.symbol==='300856.SZ'?/个人护理|防晒/:material.symbol==='603007.SH'?/燃油箱/:/光伏|支架/);
+    }
+  }
+});
 test('company-material completion refresh rejects stale stock/day and later same-symbol request',async()=>{
   let context=fixture(),serial=0,applied=0,resolve;
   const refresh=createReceivedCompanyRefresh({getContext:()=>context,begin:()=>++serial,isCurrent:ticket=>ticket===serial,

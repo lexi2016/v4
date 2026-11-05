@@ -14,35 +14,57 @@ export function receivedView(value){
   const material=value?.received_materials,fund=material?.received_fundamentals;
   if(!fund)return null; // Preserve all previously accepted older company views.
   const summary=material.received_batch_summary,secondary=material.secondary_screen,perf=material.daily_performance;
+  const classification=fund.research_main_classification,v2=Boolean(classification);
   const date=compact(value.source_date),target=compact(value.observation_date);
+  const v1SecondaryValid=secondary?.status==='CANNOT_CONFIRM'
+    &&secondary.received_record?.full_chain_status==='CANNOT_CONFIRM';
+  const v2SecondaryValid=v2&&safe(classification)&&classification.symbol===value.symbol
+    &&classification.source_date===date&&classification.observation_date===target
+    &&classification.source_generation===value.generation
+    &&secondary?.status==='NOT_RUN_FOR_20261105_GENERATION'
+    &&secondary.role==='NOT_RUN'&&secondary.reference_status==='NOT_RUN'
+    &&secondary.received_record?.industry_secondary_status==='NOT_RUN_FOR_20261105_GENERATION'
+    &&secondary.received_record?.full_chain_status==='NOT_RUN_FOR_20261105_GENERATION'
+    &&secondary.received_record?.theme==null
+    &&summary.themes?.length===0&&summary.technical_observe_count===0&&summary.wait_for_trigger_count===0
+    &&Object.values(secondary.reference_fields??{}).every(item=>item===null);
   if(!safe(value)||!safe(material)||!safe(summary)||!safe(perf)||material.symbol!==value.symbol
       ||material.data_date!==date||material.source_generation!==value.generation||material.input_sha256!==value.input_sha256
       ||summary.source_date!==date||summary.target_date!==target||summary.generation!==value.generation||summary.input_sha256!==value.input_sha256
-      ||secondary?.source_date!==date||secondary.target_date!==target||secondary.status!=='CANNOT_CONFIRM'
-      ||summary.strict_full_chain_certified_count!==0||secondary.received_record?.full_chain_status!=='CANNOT_CONFIRM'
+      ||secondary?.source_date!==date||secondary.target_date!==target
+      ||summary.strict_full_chain_certified_count!==0||!(v2?v2SecondaryValid:v1SecondaryValid)
       ||perf?.symbol!==value.symbol||perf.source_date!==date||perf.target_date!==target||perf.source_generation!==value.generation
       ||perf.current_target_day_return_pct!==null||perf.current_target_day_performance_status!=='NOT_MATERIALIZED_NOT_READ')throw Error('RECEIVED_RESEARCH_IDENTITY_CONFLICT');
-  return {material,fund,summary,secondary,perf,date,target};
+  return {material,fund,summary,secondary,perf,date,target,v2,classification};
 }
 
 export function renderReceivedResearch(value,doc=document){
   const data=receivedView(value);if(!data)return false;
-  const {material,fund,summary,secondary,perf,date,target}=data;
+  const {material,fund,summary,secondary,perf,date,target,v2,classification}=data;
   const add=(host,tag,text)=>{const node=doc.createElement(tag);if(text!==undefined)node.textContent=String(text);host.append(node);return node;};
   const company=doc.getElementById('companySummary'),metrics=doc.getElementById('companyMetrics'),evidence=doc.getElementById('companyEvidence');
-  company.replaceChildren();metrics.replaceChildren();
+  company.replaceChildren();metrics.replaceChildren();evidence.replaceChildren();
   const batch=add(company,'section');batch.id='receivedBatchSummary';batch.className='notice';
-  add(batch,'strong',`${summary.themes?.length??'待核'}主题二筛 · ${summary.scope_count}只原池 · 完整链0已确认`);
-  add(batch,'p',`行情截至${date.slice(4,6)}/${date.slice(6)}收盘 / 目标观察${target.slice(4,6)}/${target.slice(6)}；${summary.technical_observe_count}技术观察 + ${summary.wait_for_trigger_count}候触发。`);
+  add(batch,'strong',v2?`公司研究接收 · ${summary.scope_count}只原池 · 行业二筛：今天尚未运行`:`${summary.themes?.length??'待核'}主题二筛 · ${summary.scope_count}只原池 · 完整链0已确认`);
+  add(batch,'p',`行情截至${date.slice(4,6)}/${date.slice(6)}收盘 / 目标观察${target.slice(4,6)}/${target.slice(6)}${v2?'。':`；${summary.technical_observe_count}技术观察 + ${summary.wait_for_trigger_count}候触发。`}`);
   for(const theme of summary.themes??[]){
     const names=role=>(theme[role]??[]).map(item=>`${item.name??''} ${item.symbol}`).join('、')||'未列';
     add(batch,'p',`${theme.theme}：技术观察 ${names('technical_observe')}；候触发 ${names('wait_for_trigger')}`);
   }
-  add(batch,'small',`二筛接收时点 ${summary.secondary_recorded_at??'待核'}；行业是研究参考。B1动态引用缺陷、历史换手等缺口保留，候触发不计合格信号。`);
-  add(company,'h4','收到的公司研究');
-  add(company,'p',`${value.symbol} · ${fund.verified_name??fund.screened_name??''} · 原包状态 ${fund.status??'UNKNOWN'} · 截至 ${fund.as_of??'待核'}`);
+  add(batch,'small',v2?'研究主营分类只作研究参考；小市值及完整量价结构仍待核。':`二筛接收时点 ${summary.secondary_recorded_at??'待核'}；行业是研究参考。B1动态引用缺陷、历史换手等缺口保留，候触发不计合格信号。`);
+  add(company,'h4',v2?'公司研究已接收，仍有资料待补':'收到的公司研究');
+  add(company,'p',`${value.symbol} · ${fund.verified_name??fund.screened_name??''} · 原包状态 ${fund.status??'UNKNOWN'} · 截至 ${fund.research_as_of??fund.as_of??'待核'}`);
   add(company,'p',fund.business??'主营原文待核');
-  for(const [key,label]of [['profit_driver','利润驱动'],['growth_quality','增长质量'],['cash_debt_quality','现金与负债'],['key_risks','主要风险']])add(company,'p',`${label}：${fund[key]??'CANNOT_CONFIRM'}`);
+  if(v2){
+    add(company,'p',`研究主营分类（依据收到的主营描述）：${classification.research_main_industry??'UNKNOWN'}`);
+    add(company,'p',`主营/产业链位置：${classification.industry_chain_position_received??fund.industry_chain_position??'CANNOT_CONFIRM'}`);
+    const priority=classification.user_resource_priority;
+    if(priority)add(company,'p',`研究资源优先级：${priority}`);
+    else add(company,'p',`原始研究层级：${classification.research_tier_received??fund.research_tier??'UNKNOWN'}`);
+  }
+  for(const [key,label]of [['profit_driver','利润驱动'],['growth_quality','增长质量'],['cash_debt_quality','现金与负债'],['bottleneck_evidence','产业卡点'],['customer_commercialization','客户商业化'],['orders_capacity','订单与产能'],['key_risks','主要风险']]){
+    if(v2||['profit_driver','growth_quality','cash_debt_quality','key_risks'].includes(key))add(company,'p',`${label}：${fund[key]??'CANNOT_CONFIRM'}`);
+  }
   add(company,'small',`原包自报 ${Object.entries(summary.original_producer_status_counts??{}).map(([key,count])=>key+' '+count).join(' / ')}；仅${summary.specified_primary_page_check_count??'待核'}只官方指定页另有复核，其余为收到的研究。全部历史PIT未认证。`);
   const detail=add(company,'details');add(detail,'summary','估值、催化与反证原文');
   for(const [key,label]of [['valuation_method','估值方法'],['valuation_date','估值日期'],['valuation_assessment','估值判断'],['catalyst','催化跟踪'],['counter_evidence','反证'],['evidence_summary','原包依据范围']])add(detail,'p',`${label}：${fund[key]??'CANNOT_CONFIRM'}`);
@@ -53,20 +75,27 @@ export function renderReceivedResearch(value,doc=document){
   add(metrics,'p',`全历史收盘价分位 ${percent(perf.all_history_percentile_pct)}（${perf.all_history_sample_count??'待核'}样本）；近250日 ${percent(perf.near250_percentile_pct)}。`);
   add(metrics,'p',`目标${target.slice(4,6)}/${target.slice(6)}盘中未读取，涨跌为空；不是实时量比。财务期间 ${fund.latest_financial_period??'待核'}；财务数值未从原文推算。`);
   const screen=add(metrics,'section');screen.id='receivedSecondaryScreen';
-  add(screen,'strong',`行业二筛 · ${roleLabel[secondary.role]??secondary.role} · 完整链 CANNOT_CONFIRM`);
-  add(screen,'p',`${secondary.received_record.theme??'三主题外'} · 行情源日 ${date} · 目标 ${target} · 接收 ${secondary.recorded_at??'待核'}`);
-  const fields=secondary.reference_fields??{};
-  add(screen,'p',`P5外部参考：关键K ${fields.p5_key_type??'待核'} / 日期 ${fields.p5_key_date||'待核'} / 距D ${fields.p5_key_age??'待核'}；风险 ${fields.p5_risk_label??'待核'}。`);
-  add(screen,'p',`P5 D量/含D近5均量 ${number(fields.volume_to_current_MA5,4)}；P5 D量/此前5均量 ${number(fields.volume_to_prior_MA5,4)}。原二筛当前5均量阈值0.92；参考快照不覆盖Canonical。`);
-  add(screen,'p',`B1：${secondary.received_record.b1_status??'CANNOT_CONFIRM'}；原市场门：${secondary.received_record.market_gate_status??'CANNOT_CONFIRM'}。`);
-  if(secondary.errors?.length)add(screen,'p',`P5隔离 / 缺口：${secondary.errors.join('；')}。参考值留空，Canonical行情单列。`);
+  if(v2){
+    add(screen,'strong','行业二筛：今天尚未运行');
+    add(screen,'p',`研究主营分类按收到的主营描述；源日 ${date} · 观察日 ${target} · 二筛状态 ${secondary.received_record.industry_secondary_status}`);
+    if(secondary.received_record.gap)add(screen,'p',`保留说明：${secondary.received_record.gap}`);
+  }else{
+    add(screen,'strong',`行业二筛 · ${roleLabel[secondary.role]??secondary.role} · 完整链 CANNOT_CONFIRM`);
+    add(screen,'p',`${secondary.received_record.theme??'三主题外'} · 行情源日 ${date} · 目标 ${target} · 接收 ${secondary.recorded_at??'待核'}`);
+    const fields=secondary.reference_fields??{};
+    add(screen,'p',`P5外部参考：关键K ${fields.p5_key_type??'待核'} / 日期 ${fields.p5_key_date||'待核'} / 距D ${fields.p5_key_age??'待核'}；风险 ${fields.p5_risk_label??'待核'}。`);
+    add(screen,'p',`P5 D量/含D近5均量 ${number(fields.volume_to_current_MA5,4)}；P5 D量/此前5均量 ${number(fields.volume_to_prior_MA5,4)}。原二筛当前5均量阈值0.92；参考快照不覆盖Canonical。`);
+    add(screen,'p',`B1：${secondary.received_record.b1_status??'CANNOT_CONFIRM'}；原市场门：${secondary.received_record.market_gate_status??'CANNOT_CONFIRM'}。`);
+    if(secondary.errors?.length)add(screen,'p',`P5隔离 / 缺口：${secondary.errors.join('；')}。参考值留空，Canonical行情单列。`);
+  }
   const missing=add(evidence,'details');add(missing,'summary','收到的来源、指定页复核与缺口');
   add(missing,'p',`本股证据等级 ${perf.fundamental_evidence_level??fund.evidence_status}；原状态 ${fund.status??'UNKNOWN'}。原文声明与分析推断依原包保留，不认证全部内容。`);
   for(const gap of fund.missing_inputs??[])add(missing,'p','研究缺口：'+gap);
   for(const gap of perf.missing_inputs??[])add(missing,'p','行情/策略缺口：'+gap);
   for(const source of fund.sources??[]){const row=add(missing,'p',`${source.title??source.source_id} · ${source.financial_period??'期间待核'} · ${source.page_or_section??'章节待核'} · ${source.access_status??'读取状态待核'} `),url=safeSourceUrl(source.url);if(url){const a=add(row,'a','原始来源');a.href=url;a.target='_blank';a.rel='noopener noreferrer';}else add(row,'span','来源链接待核');add(missing,'small',`来源SHA ${source.sha256||'UNKNOWN'}；披露 ${source.disclosed_at||'UNKNOWN'}；接收 ${source.retrieved_at||'UNKNOWN'}`);}
   for(const audit of fund.specified_primary_page_checks??[])add(missing,'pre',JSON.stringify(audit,null,2));
-  const claims=add(missing,'details');add(claims,'summary',`原声明分类 ${fund.claims?.length??0} 条`);for(const claim of fund.claims??[])add(claims,'p',`${claim.statement_class??'分类待核'} · ${claim.field??''}：${claim.statement??''}`);
+  const claims=add(missing,'details');add(claims,'summary',`原声明分类 ${fund.claims?.length??0} 条`);for(const claim of fund.claims??[])add(claims,'p',`${claim.statement_class??claim.basis??'分类待核'} · ${claim.field??''}：${claim.statement??claim.claim??''}`);
+  if(v2){const source=add(missing,'details');add(source,'summary','完整收到的原始研究行');add(source,'pre',JSON.stringify(fund.received_source_record,null,2));}
   const refs=add(missing,'details');add(refs,'summary','绑定来源与原始二筛字段');add(refs,'pre',JSON.stringify({source_refs:material.source_refs,secondary_screen:secondary,performance:perf},null,2));
   return true;
 }

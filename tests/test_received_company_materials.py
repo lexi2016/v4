@@ -82,12 +82,204 @@ def batch(tmp_path):
     return dict(config=config, root=root, stage=stage, index=index, event=event, codes=codes, tmp=tmp_path)
 
 
+def v2_batch(batch):
+    tmp, codes = batch['tmp'], batch['codes']
+    date, target = '20261104', '20261105'
+    generation, input_sha, package = 'a' * 64, 'b' * 64, 'V2_TEST_PACKAGE'
+    numeric_ref = m.ref(batch['root'] / 'manifest.json')
+    numeric = m.load(numeric_ref)
+    candidates_ref = write_csv(tmp / 'v2_candidates.csv', [dict(symbol=c, name=c) for c in codes])
+    prior_research_ref = write_csv(tmp / 'v2_prior_research.csv', [dict(symbol=codes[1], status='COMPLETED')])
+    prior_sources_ref = write_csv(tmp / 'v2_prior_sources.csv', [dict(symbol=codes[1], source_id='prior-source')])
+    daily_rows = []
+    for code in codes:
+        daily_rows.append(dict(symbol=code, ts_code=code, trade_date=date, source_date=date,
+            observation_date=target, source_generation=generation, input_sha256=input_sha,
+            manifest_sha256=numeric_ref['sha256'], open='10', high='12', low='9', close='11.25',
+            pre_close='10.5', pct_chg='7.142857', amount='123000000', volume='5000000',
+            turnover_rate_pct='1.25', price_position_all_history_pct='12.5', price_position_all_history_n='800',
+            price_position_250_pct='20', price_position_250_n='250', vol_ratio_60='1.2', volume_ratio_5='',
+            industry_secondary_status='NOT_RUN_FOR_20261105_GENERATION', industry_secondary_theme='',
+            industry_secondary_level='', industry_secondary_reason='',
+            industry_secondary_gap='Previous day is not a current signal', future_d2='', future_d5=''))
+    daily_ref = write_csv(tmp / 'v2_daily_performance.csv', daily_rows)
+    source_rows = []
+    fund_rows = []
+    claim_rows = []
+    for code in codes:
+        source_id = 'source-' + code
+        source_rows.append(dict(source_id=source_id, symbol=code, title='received report',
+            url='https://example.org/' + code, sha256='d' * 64, supported_fact_or_metric='业务原文'))
+        ids = [source_id, 'INPUT_CANDIDATES', 'INPUT_DAILY_PERFORMANCE']
+        if code == codes[1]:
+            ids += ['INPUT_PRIOR_RESEARCH', 'INPUT_PRIOR_SOURCES']
+        fund_rows.append(dict(symbol=code, source_date=date, observation_date=target, package_id=package,
+            input_digest='pack', source_generation=generation, input_sha256=input_sha,
+            manifest_sha256=numeric_ref['sha256'], screened_name=code, verified_name=code,
+            verified_short_name=code, research_as_of='2026-11-04T19:00:00+08:00',
+            latest_financial_period='2026Q3_YTD', new_or_reused='NEW', status='PARTIAL',
+            prior_status='COMPLETED' if code == codes[1] else '',
+            prior_research_as_of='2026-10-29T19:00:00+08:00' if code == codes[1] else '',
+            business='主营原文：收到的公司业务描述。', industry_chain_position='产业链位置原文：客户与产品环节。',
+            profit_driver='利润原文，不将叙述解析为认证数值。', growth_quality='增长质量原文',
+            cash_debt_quality='现金与债务原文', bottleneck_evidence='卡点原文',
+            customer_commercialization='客户商业化原文', orders_capacity='订单产能原文',
+            key_risks='风险原文', reused_modules='[]', research_tier='A_DEEPEN_RESEARCH' if code == codes[1] else 'B',
+            missing_inputs='["仍有资料待补"]', source_ids=json.dumps(ids),
+            industry_secondary_status='NOT_RUN_FOR_20261105_GENERATION', industry_secondary_theme='',
+            industry_secondary_level='', industry_secondary_reason='',
+            industry_secondary_gap='Previous day is not a current signal', future_d2='', future_d5='',
+            RESEARCH_ONLY='true', production_allowed='false', buy_gate_updated='false', orders_sent='false'))
+        claim_rows.append(dict(symbol=code, field='business', claim='主营原文声明', basis='RECEIVED_TEXT',
+            source_ids=json.dumps([source_id]), citation_granularity='RECORD', research_as_of='2026-11-04T19:00:00+08:00'))
+    shared_refs = {
+        'CANDIDATES.csv': candidates_ref,
+        'DAILY_PERFORMANCE.csv': daily_ref,
+        'PRIOR_RESEARCH.csv': prior_research_ref,
+        'PRIOR_SOURCES.csv': prior_sources_ref,
+    }
+    for source_id, (input_key, filename) in m.V2_SHARED_SOURCES.items():
+        reference = shared_refs[filename]
+        source_rows.append(dict(source_id=source_id, symbol='', title=filename, url='https://drive.google.com/file/d/'+source_id+'/view',
+            sha256=reference['sha256'], supported_fact_or_metric='Bound shared input, not company disclosure'))
+    fundamentals_ref = write_csv(tmp / 'v2_fundamentals.csv', fund_rows)
+    sources_ref = write_csv(tmp / 'v2_sources.csv', source_rows)
+    claims_ref = write_csv(tmp / 'v2_claim_lineage.csv', claim_rows)
+    files = {name: dict(sha256=reference['sha256']) for name, reference in shared_refs.items()}
+    batch_manifest = dict(package_id=package, input_digest='pack', source_date=date, observation_date=target,
+        scope=len(codes), source_generation=generation, numeric_manifest=dict(sha256=numeric_ref['sha256']),
+        numeric_product=dict(sha256=numeric['artifact']['sha256']), files=files, **m.FLAGS)
+    batch_manifest_ref = m.save(tmp / 'v2_batch_manifest.json', batch_manifest)
+    return_manifest_ref = m.save(tmp / 'v2_return_manifest.json', dict(package_id=package,
+        source_date=date, observation_date=target, source_generation=generation, input_digest='pack',
+        scope=len(codes), generated_at='2026-11-04T20:00:00+08:00', **m.FLAGS))
+    priority_path = tmp / 'v2_priority_review.md'
+    priority_path.write_text('300856.SZ 优先补证\n', encoding='utf-8')
+    priority_ref = m.ref(priority_path)
+    class_rows = []
+    for row in fund_rows:
+        symbol = row['symbol']
+        priority = '优先补证' if symbol == codes[1] else None
+        class_rows.append(dict(symbol=symbol, screened_name=row['screened_name'], verified_name=row['verified_short_name'],
+            user_resource_priority=priority, user_resource_priority_source=priority_ref['path'] if priority else None,
+            research_tier_received=row['research_tier'], status='RESEARCH_MAIN_CLASSIFICATION_DERIVED',
+            research_main_industry='化工与新材料', industry_chain_position_received=row['industry_chain_position'],
+            basis_field='business', basis_phrase='主营原文', basis_excerpt=row['business'],
+            classification_method='EXPLICIT_SYMBOL_AND_EXACT_SOURCE_PHRASE', source_date=date,
+            observation_date=target, source_generation=generation, source_ids=json.loads(row['source_ids']), **m.FLAGS))
+    classification_ref = m.save(tmp / 'v2_classification.json', class_rows)
+    classification_csv_ref = write_csv(tmp / 'v2_classification.csv', class_rows)
+    class_qa_ref = m.save(tmp / 'v2_classification_qa.json', dict(
+        status='PASS_364_SCOPE_WITH_TEXT_SUPPORTED_CLASSIFICATION', scope_count=len(codes),
+        unique_symbol_count=len(codes), classification_count=len(codes), unknown_count=0,
+        source_sha256=fundamentals_ref['sha256'], priority_source_sha256=priority_ref['sha256'],
+        json_sha256=classification_ref['sha256'], csv_sha256=classification_csv_ref['sha256'], **m.FLAGS))
+    inputs = dict(fundamentals=fundamentals_ref, sources=sources_ref, claim_lineage=claims_ref,
+        batch_manifest=batch_manifest_ref, return_manifest=return_manifest_ref,
+        daily_performance_csv=daily_ref, classification_rows=classification_ref,
+        classification_csv=classification_csv_ref, classification_qa=class_qa_ref,
+        priority_review=priority_ref, shared_candidates=candidates_ref,
+        shared_prior_research=prior_research_ref, shared_prior_sources=prior_sources_ref)
+    config = dict(schema=m.V2_SCHEMA, product_root=str(batch['root']), source_date=date,
+        observation_date=target, source_generation=generation, source_input_sha256=input_sha,
+        numeric_manifest={'sha256': numeric_ref['sha256']}, scope_count=len(codes),
+        owner_publisher=batch['config']['owner_publisher'],
+        publication_adapter=batch['config']['publication_adapter'], owner_lock=batch['config']['owner_lock'],
+        inputs=inputs, **m.FLAGS)
+    return dict(config=config, inputs=inputs, codes=codes, date=date, target=target, tmp=tmp,
+        fundamentals=fund_rows, source_rows=source_rows, shared_refs=shared_refs, batch_manifest=batch_manifest)
+
+
 def prepare(batch):
     return m.prepare(m.save(batch['tmp'] / 'config.json', batch['config']), batch['stage'])
 
 
 def shard(plan, symbol):
     return next(m.load(local) for target, local in plan['immutable_files'].items() if target.endswith('/'+symbol+'.json'))
+
+
+def test_v2_return_schema_normalizes_aliases_and_preserves_received_classification(batch):
+    fixture = v2_batch(batch)
+    config_ref = m.save(fixture['tmp'] / 'v2_import_config.json', fixture['config'])
+    plan = m.prepare(config_ref, fixture['tmp'] / 'v2_stage')
+    assert plan['status'] == 'PREPARED_NOT_PUBLISHED'
+    assert plan['summary']['return_schema'] == m.V2_SCHEMA
+    assert plan['summary']['scope_count'] == 3
+    assert plan['summary']['themes'] == []
+    assert plan['summary']['technical_observe_count'] == 0
+    assert plan['summary']['wait_for_trigger_count'] == 0
+    assert plan['summary']['secondary_status'] == 'NOT_RUN_FOR_20261105_GENERATION'
+    assert plan['summary']['secondary_status_counts'] == {'NOT_RUN_FOR_20261105_GENERATION': 3}
+    assert plan['summary']['user_resource_priority_counts'] == {'优先补证': 1}
+    assert len(plan['completed']) == 3
+
+    row = shard(plan, '300856.SZ')
+    fund = row['received_fundamentals']
+    assert fund['status'] == 'PARTIAL'
+    assert fund['research_as_of'] == '2026-11-04T19:00:00+08:00'
+    assert fund['prior_status'] == 'COMPLETED'
+    assert fund['prior_research_as_of'] == '2026-10-29T19:00:00+08:00'
+    assert fund['industry_chain_position'] == '产业链位置原文：客户与产品环节。'
+    assert fund['bottleneck_evidence'] == '卡点原文'
+    assert fund['customer_commercialization'] == '客户商业化原文'
+    assert fund['orders_capacity'] == '订单产能原文'
+    assert fund['research_tier_received'] == 'A_DEEPEN_RESEARCH'
+    assert fund['user_resource_priority'] == '优先补证'
+    assert fund['research_main_classification']['research_main_industry'] == '化工与新材料'
+    assert json.loads(fund['received_source_record']['source_ids']) == fund['source_ids']
+    assert len(fund['claims']) == 1 and fund['claims'][0]['claim'] == '主营原文声明'
+    global_sources = [source for source in fund['sources'] if source['source_id'].startswith('INPUT_')]
+    assert {source['source_id'] for source in global_sources} == {
+        'INPUT_CANDIDATES', 'INPUT_DAILY_PERFORMANCE', 'INPUT_PRIOR_RESEARCH', 'INPUT_PRIOR_SOURCES'}
+    assert all(source['symbol'] == '' for source in global_sources)
+    assert row['financials_reported'] == {} and row['shareholders_reported'] == {}
+
+    assert row['secondary_screen']['status'] == 'NOT_RUN_FOR_20261105_GENERATION'
+    assert row['secondary_screen']['role'] == 'NOT_RUN'
+    assert row['secondary_screen']['received_record']['theme'] is None
+    assert row['secondary_screen']['received_record']['full_chain_status'] == 'NOT_RUN_FOR_20261105_GENERATION'
+    assert all(value is None for value in row['secondary_screen']['reference_fields'].values())
+    perf = row['daily_performance']
+    assert perf['close'] == 11.25 and perf['day_return_pct'] == pytest.approx(7.142857)
+    assert perf['amount_yuan'] == 123000000 and perf['volume_shares'] == 5000000
+    assert perf['volume_to_current_MA5'] is None and perf['volume_to_prior_MA5'] is None
+    assert perf['future_d2'] is None and perf['future_d5'] is None
+    assert perf['current_target_day_return_pct'] is None
+    assert perf['current_target_day_performance_status'] == 'NOT_MATERIALIZED_NOT_READ'
+    assert perf['received_source_record']['future_d2'] == ''
+    assert m.load(m.ref(batch['root'] / 'index.json')) == batch['index']
+
+
+def test_v2_rejects_arbitrary_empty_symbol_sources_and_shared_input_scope_drift(batch):
+    fixture = v2_batch(batch)
+    config = fixture['config']
+    source_ref = config['inputs']['sources']
+    source_rows = m.csv_rows(source_ref)
+    source_rows.append(dict(source_id='UNBOUND_GLOBAL_INPUT', symbol='', title='unknown.csv',
+        url='https://drive.google.com/file/d/unknown/view', sha256='e' * 64))
+    config['inputs']['sources'] = write_csv(fixture['tmp'] / 'v2_sources_extra.csv', source_rows)
+    config_ref = m.save(fixture['tmp'] / 'v2_import_config_extra.json', config)
+    with pytest.raises(ValueError, match='RECEIVED_GLOBAL_SOURCE_IDS_CONFLICT'):
+        m.prepare(config_ref, fixture['tmp'] / 'v2_stage_extra')
+
+    fixture = v2_batch(batch)
+    config = fixture['config']
+    prior_ref = config['inputs']['shared_prior_research']
+    prior_rows = m.csv_rows(prior_ref)
+    prior_rows.append(dict(symbol='000001.SZ', status='OUT_OF_SCOPE'))
+    changed_prior_ref = write_csv(fixture['tmp'] / 'v2_prior_research_outside.csv', prior_rows)
+    config['inputs']['shared_prior_research'] = changed_prior_ref
+    source_rows = m.csv_rows(config['inputs']['sources'])
+    for source in source_rows:
+        if source['source_id'] == 'INPUT_PRIOR_RESEARCH':
+            source['sha256'] = changed_prior_ref['sha256']
+    config['inputs']['sources'] = write_csv(fixture['tmp'] / 'v2_sources_prior_drift.csv', source_rows)
+    manifest = m.load(config['inputs']['batch_manifest'])
+    manifest['files']['PRIOR_RESEARCH.csv']['sha256'] = changed_prior_ref['sha256']
+    config['inputs']['batch_manifest'] = m.save(fixture['tmp'] / 'v2_manifest_prior_drift.json', manifest)
+    config_ref = m.save(fixture['tmp'] / 'v2_import_config_prior_drift.json', config)
+    with pytest.raises(ValueError, match='RECEIVED_SHARED_SOURCE_SCOPE_OUTSIDE_BATCH:INPUT_PRIOR_RESEARCH'):
+        m.prepare(config_ref, fixture['tmp'] / 'v2_stage_prior_drift')
 
 
 def test_exact_projection_preserves_raw_status_nulls_and_non_target_fields(batch):
