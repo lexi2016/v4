@@ -1,11 +1,11 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/vue";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import payload from "../../../public/top200-hit.json";
 import AShareTop200Panel from "./AShareTop200Panel.vue";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 function show(date = "20261104") {
-  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => payload })));
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({...payload,requested_date:date}) })));
   return render(AShareTop200Panel, { props: { date } });
 }
 
@@ -65,4 +65,37 @@ describe("A close review snapshot", () => {
     expect(screen.getByTestId("a-top200-detail-gap").textContent).toContain("缺少同日同来源");
     expect(screen.queryByTestId("a-top200-stock-row")).toBeNull();
   });
+});
+
+function dated(date:string) {
+  const old=structuredClone(payload.dates.find(row=>row.date==='20261104')!);
+  if(date==='20261105') { old.date=date;old.a_pool.selected_count=382;old.a_pool.hit_count=32;old.a_pool.top200_coverage_pct=16;old.a_pool.selection_hit_rate_pct=8.38; }
+  return {...payload,requested_date:date,dates:[...payload.dates.filter(row=>row.date!==date),old]};
+}
+it('fetches a newly materialized date and rejects a late previous-date response',async()=>{
+  let finishOld:(value:unknown)=>void=()=>{};
+  vi.stubGlobal('fetch',vi.fn((url:string)=>url.endsWith('20261104')?new Promise(resolve=>{finishOld=resolve;}):Promise.resolve({ok:true,json:async()=>dated('20261105')})));
+  const view=render(AShareTop200Panel,{props:{date:'20261104'}});
+  await view.rerender({date:'20261105'});
+  expect((await screen.findByTestId('a-top200-card-pool')).textContent).toContain('32 / 200');
+  expect(screen.getByTestId('a-top200-card-pool').textContent).toContain('382');
+  finishOld({ok:true,json:async()=>dated('20261104')});await Promise.resolve();await Promise.resolve();
+  expect(screen.getByTestId('a-top200-card-pool').textContent).toContain('32 / 200');
+});
+it('validates exact requested date before exposing a result',async()=>{
+  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>dated('20261104')})));
+  render(AShareTop200Panel,{props:{date:'20261105'}});
+  expect((await screen.findByRole('alert')).textContent).toContain('日期或来源不可确认');
+  expect(screen.queryByTestId('a-top200-card-pool')).toBeNull();
+});
+it('uses the existing dated completion event and foreground reads, then closes the stream',async()=>{
+  const streams: Array<{url:string;listener?: (event:MessageEvent)=>void;close:ReturnType<typeof vi.fn>}> = [];
+  class Events { url:string;listener?: (event:MessageEvent)=>void;close=vi.fn();constructor(url:string){this.url=url;streams.push(this);}addEventListener(name:string,fn:(event:MessageEvent)=>void){expect(name).toBe('workbench_completed');this.listener=fn;} }
+  vi.stubGlobal('EventSource',Events);const fetcher=vi.fn(async()=>({ok:true,json:async()=>dated('20261105')}));vi.stubGlobal('fetch',fetcher);
+  const view=render(AShareTop200Panel,{props:{date:'20261105'}});await screen.findByTestId('a-top200-card-pool');
+  expect(streams[0].url).toContain('/days/2026-11-05/events');
+  streams[0].listener?.({data:JSON.stringify({source_date:'2026-11-04',event_id:'wrong'})}as MessageEvent);expect(fetcher).toHaveBeenCalledTimes(1);
+  streams[0].listener?.({data:JSON.stringify({source_date:'2026-11-05',event_id:'new'})}as MessageEvent);await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(2));await screen.findByTestId('a-top200-card-pool');
+  window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(3));
+  view.unmount();expect(streams[0].close).toHaveBeenCalledTimes(1);
 });

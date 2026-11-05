@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
 
 type Pool = { pool_id: string; display_name?: string; materialized?: boolean; partial?: boolean; selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null };
 type Stage = { status?: string; row_count?: number | null; unique_codes?: number | null; hit_count?: number | null };
 type Stock = { rank: number; code: string; name?: string | null; change_pct?: number | null; pool_hit: boolean; pool_memberships: string[]; stage_memberships: string[] };
 type Entry = { date: string; status?: string; a_pool?: { selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null; materialized_pool_count?: number | null; pool_count?: number | null; missing_pool_ids?: string[]; partial_pool_ids?: string[]; pools?: Pool[] }; seven_stage?: { selected_count?: number | null; hit_count?: number | null; top200_coverage_pct?: number | null; selection_hit_rate_pct?: number | null; stages?: Record<string, Stage> }; stage_coverage?: { available?: number | null; total?: number | null; missing_stages?: string[] }; top200?: { top_count?: number | null; min_change_pct?: number | null }; stocks?: Stock[]; detail_status?: string; detail_gap?: string };
-type Payload = { schema_version?: string; generated_at?: string; latest_available_date?: string; dates: Entry[]; detail_projection?: unknown; safety_flags?: unknown };
+type Payload = { requested_date?: string; archive_source?: unknown; selected_source_status?: string; schema_version?: string; generated_at?: string; latest_available_date?: string; dates: Entry[]; detail_projection?: unknown; safety_flags?: unknown };
 const props = defineProps<{ date: string }>();
 const emit = defineEmits<{ close: []; selectDate: [date: string] }>();
 const payload = ref<Payload | null>(null);
@@ -32,20 +32,41 @@ const changeText = (value?: number | null) => typeof value === "number" ? `${val
 const dateText = (value: string) => value.replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3");
 const coverage = computed(() => `${count(selectedEntry.value?.stage_coverage?.available)} / ${count(selectedEntry.value?.stage_coverage?.total)}`);
 watch([() => props.date, filter], () => { page.value = 0; });
-onMounted(async () => {
+let requestSerial=0, disposed=false, events: EventSource | null=null, lastEvent="", foregroundQueued=false;
+async function refresh() {
+  const date=props.date, mine=++requestSerial;
+  loading.value=true; error.value=""; payload.value=null;
   try {
-    const response = await fetch("/top200-hit.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`收盘复盘读取失败（HTTP ${response.status}）`);
-    const body: unknown = await response.json();
-    if (!body || typeof body !== "object" || !Array.isArray((body as Payload).dates)) throw new Error("收盘复盘日期目录不可确认");
-    payload.value = body as Payload;
-  } catch (reason) { error.value = reason instanceof Error ? reason.message : "收盘复盘读取失败"; }
-  finally {
-    loading.value = false;
-    await nextTick();
-    heading.value?.scrollIntoView?.({ block: "start", behavior: "instant" });
+    const response=await fetch(`/api/v4/research/a-share/top200-hit?date=${encodeURIComponent(date)}`,{cache:"no-store"});
+    if(!response.ok)throw new Error(`收盘复盘来源待核（HTTP ${response.status}）`);
+    const body:unknown=await response.json();
+    if(disposed||mine!==requestSerial||props.date!==date)return;
+    const value=body as Payload;
+    if(!value||value.schema_version!=="v4.research.a_share_pool_top200.v1"||value.requested_date!==date||!Array.isArray(value.dates))throw new Error("收盘复盘日期或来源不可确认");
+    payload.value=value;
+  } catch(reason) {
+    if(!disposed&&mine===requestSerial&&props.date===date)error.value=reason instanceof Error?reason.message:"收盘复盘读取失败";
+  } finally {
+    if(!disposed&&mine===requestSerial&&props.date===date){loading.value=false;await nextTick();heading.value?.scrollIntoView?.({block:"start",behavior:"instant"});}
   }
-});
+}
+function bindEvents(date:string) {
+  events?.close();events=null;lastEvent="";
+  if(typeof EventSource==="undefined")return;
+  const sourceDate=date.replace(/^(\d{4})(\d{2})(\d{2})$/,"$1-$2-$3"),stream=new EventSource(`/api/v4/research/workbench/days/${sourceDate}/events`);events=stream;
+  stream.addEventListener("workbench_completed",event=>{
+    if(disposed||events!==stream||props.date!==date)return;
+    try{const value=JSON.parse((event as MessageEvent).data);if(value.source_date!==sourceDate||!value.event_id||value.event_id===lastEvent)return;lastEvent=value.event_id;void refresh();}catch{/* Ignore an unbound event; next entry/focus reads saved sources. */}
+  });
+}
+function foreground() {
+  if(disposed||document.visibilityState==="hidden"||foregroundQueued)return;
+  foregroundQueued=true;void Promise.resolve().then(()=>{foregroundQueued=false;if(!disposed)void refresh();});
+}
+watch(()=>props.date,date=>{bindEvents(date);void refresh();},{immediate:true});
+onMounted(()=>{window.addEventListener("focus",foreground);document.addEventListener("visibilitychange",foreground);});
+onBeforeUnmount(()=>{disposed=true;++requestSerial;events?.close();window.removeEventListener("focus",foreground);document.removeEventListener("visibilitychange",foreground);});
+
 </script>
 
 <template>
@@ -86,7 +107,7 @@ onMounted(async () => {
       </template>
       <details class="a-details"><summary>其他已存日期</summary><div class="a-date-list"><button v-for="entry in payload?.dates ?? []" :key="entry.date" type="button" :aria-pressed="entry.date === date" @click="emit('selectDate', entry.date)">{{ dateText(entry.date) }} · {{ entry.top200 ? '有收盘统计' : '缺收盘榜单' }}</button></div></details>
       <p class="a-boundary">仅用于研究回看。池与盘中名单和同日收盘榜单的交集不代表未来收益或事前预测能力；不同市场、不同分母的命中率不能直接比较策略强弱。</p>
-      <details class="a-details a-evidence"><summary>来源与核对证据</summary><p>原统计生成于 {{ payload?.generated_at || '不可确认' }} · /top200-hit.json</p><pre>{{ JSON.stringify({ schema: payload?.schema_version, projection: payload?.detail_projection, selected: selectedEntry, safety_flags: payload?.safety_flags }, null, 2) }}</pre></details>
+      <details class="a-details a-evidence"><summary>来源与核对证据</summary><p>来源读取于 {{ payload?.generated_at || '不可确认' }} · 同日已保存来源；历史静态快照仅按精确日期保留</p><pre>{{ JSON.stringify({ schema: payload?.schema_version, archive_source: payload?.archive_source, selected_source_status: payload?.selected_source_status, projection: payload?.detail_projection, selected: selectedEntry, safety_flags: payload?.safety_flags }, null, 2) }}</pre></details>
     </template>
   </section>
 </template>

@@ -73,5 +73,48 @@ class FrozenDetailsTest(unittest.TestCase):
                     self.assertEqual(sum(pool['pool_id'] in r['pool_memberships'] for r in rows), pool['hit_count'])
 
 
+
+
+class DailyProjectionTest(FrozenDetailsTest):
+    def daily_root(self):
+        from ops.build_a_share_pool_top200 import read_daily_projection
+        self.top.write_text(json.dumps(dict(schema='V4_A_SHARE_TOP200_V1',data_date='20261104',top200_count=2,top200=[dict(rank=1,symbol='600001.SH',name='甲',change_pct=10.),dict(rank=2,symbol='000001.SZ',name='乙',change_pct=5.)],source_generation='generation',input_sha256='input',numeric_manifest={},RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)))
+        product=self.root/'product.json';product.write_text(json.dumps(dict(source_generation='generation',source_identity={'input_sha256':'input'})))
+        manifest=self.root/'manifest.json';manifest.write_text(json.dumps({'artifact':dict(path=str(product),sha256=self.sha(product))}))
+        numeric=dict(path=str(manifest),sha256=self.sha(manifest));top=json.loads(self.top.read_text());top['numeric_manifest']=numeric;self.top.write_text(json.dumps(top));top_ref=dict(path=str(self.top),sha256=self.sha(self.top))
+        (self.root/'index.json').write_text(json.dumps(dict(dates={'20261104':numeric},top200={'20261104':top_ref})))
+        legacy=self.root/'legacy.json';legacy.write_text(json.dumps(dict(schema_version='v4.research.a_share_pool_top200.v1',generated_at='old',available_dates=[],dates=[])))
+        pages=copy.deepcopy(self.pages);page=pages[0];page.update(ok=True,recommendation_status='WATCH_ONLY_BACKTEST_GATED',write_policy='read_only',production_allowed=False,buy_gate_updated=False,orders_sent=False,a_all_pool_row_count=1);page['pools'][0].update(pool_size=1,status='READY')
+        return read_daily_projection,legacy,pages
+
+    def test_new_date_is_discovered_from_current_index_not_static_dates(self):
+        project,legacy,pages=self.daily_root();before=(self.root/'index.json').read_bytes()
+        result=project('20261104',lambda *args,**kwargs:pages[0],self.root,self.root,legacy)
+        row=result['dates'][0];self.assertEqual(result['requested_date'],'20261104');self.assertEqual(row['a_pool']['selected_count'],1);self.assertEqual(row['a_pool']['hit_count'],1);self.assertEqual(len(row['stocks']),2);self.assertEqual(row['seven_stage']['hit_count'],None)
+        self.assertEqual((self.root/'index.json').read_bytes(),before)
+
+    def test_wrong_pool_date_and_numeric_generation_are_rejected(self):
+        project,legacy,pages=self.daily_root();pages[0]['trade_date']='20261105'
+        with self.assertRaisesRegex(ValueError,'POOL_DATE'):project('20261104',lambda *args,**kwargs:pages[0],self.root,self.root,legacy)
+        top=json.loads(self.top.read_text());top['source_generation']='wrong';self.top.write_text(json.dumps(top));index=json.loads((self.root/'index.json').read_text());index['top200']['20261104']['sha256']=self.sha(self.top);(self.root/'index.json').write_text(json.dumps(index))
+        with self.assertRaisesRegex(ValueError,'NUMERIC_IDENTITY'):project('20261104',lambda *args,**kwargs:pages[0],self.root,self.root,legacy)
+
+    def test_unknown_date_does_not_substitute_existing_top200(self):
+        project,legacy,pages=self.daily_root();result=project('20261105',lambda *args,**kwargs:self.fail('no source date should not fetch another pool'),self.root,self.root,legacy)
+        self.assertEqual(result['requested_date'],'20261105');self.assertEqual(result['dates'],[]);self.assertEqual(result['selected_source_status'],'NOT_MATERIALIZED')
+
+    def test_complete_pagination_and_one_bad_stage_are_isolated(self):
+        from ops.build_a_share_pool_top200 import _complete_pages
+        project,legacy,pages=self.daily_root();first=pages[0];first['a_all_pool_row_count']=2;first['pools'][0]['pool_size']=2;second=copy.deepcopy(first);second['a_all_pool_rows']=[{'symbol':'A.000001'}];second['pools'][0]['rows']=[{'symbol':'A.000001'}]
+        calls=[]
+        def page(date,limit,offset=0):calls.append(offset);return first if offset==0 else second
+        gathered,sets,union=_complete_pages('20261104',page);self.assertEqual(calls,[0,300]);self.assertEqual(len(union),2)
+        second['input_fingerprint']='drift'
+        with self.assertRaisesRegex(ValueError,'FINGERPRINT'):_complete_pages('20261104',page)
+        first['a_all_pool_row_count']=1;first['pools'][0]['pool_size']=1
+        (self.root/'selection_latest.json').write_text(json.dumps({'entries':{'20261104/STAGE_0925/A_SHARE':{'artifact_relative':'selection_runs/20261103/wrong.csv','artifact_sha256':'bad'}}}))
+        row=project('20261104',lambda *args,**kwargs:first,self.root,self.root,legacy)['dates'][0]
+        self.assertEqual(row['a_pool']['hit_count'],1);self.assertEqual(row['seven_stage']['stages']['STAGE_0925']['status'],'CANNOT_CONFIRM');self.assertIsNone(row['seven_stage']['hit_count'])
+
 if __name__ == '__main__':
     unittest.main()
