@@ -4,7 +4,7 @@ import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
 import {setCompanyContext,renderCompanyStatus,explanationFacts,beginCompanyRequest,isCurrentCompanyRequest,validateCompany} from './company-local.mjs';
 import {renderReceivedResearch,createReceivedCompanyRefresh} from './received-research.mjs';
-import {usMarketContext,unknownUsContext} from './workbench-us-context.mjs';
+import {usMarketContext,unknownUsContext,renderMarketCard,observationMarketContext} from './workbench-us-context.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
 const el=id=>document.getElementById(id),add=(host,tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;host.append(n);return n};
@@ -12,7 +12,7 @@ const old=document.querySelector('#interactiveChart .interactive-scroll');if(old
 const navigation=document.querySelector('#interactiveChart .chart-nav');if(navigation)navigation.hidden=true;
 const container=add(el('interactiveChart'),'div');container.id='macOriginalRenderer';
 const stat=add(el('interactivePanel'),'section');stat.className='panel';stat.id='macHistoricalStatistics';
-let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null,foregroundRead=null;
+let context=null,current=null,contextSerial=0,completionCallback=null,contextReply=null,activeDay=null,moduleEvents=null,moduleSerial=0,preservedChart=null,foregroundRead=null,marketObservation=null;
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
 const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
@@ -74,9 +74,16 @@ function sourceContext(day,force=false){
   const us=read('/api/v4/research/us-market?'+new URLSearchParams({research_date:day.observation_date.replaceAll('-','')})).then(value=>{if(!isCurrent())return;usView=usMarketContext(value,day);contextReply.markets.US=usView;paintContext();}).catch(error=>{if(!isCurrent())return;usView=unknownUsContext(error.message);contextReply.markets.US=usView;paintContext();});
   return Promise.allSettled([base,us]);
 }
-function paintContext(){
+function paintContext(snapshot){
   const identity=activeDay||context;if(!contextReply||!identity||contextReply.source_date!==identity.source_date||contextReply.observation_date!==identity.observation_date||contextReply.generation!==identity.generation||contextReply.input_sha256!==identity.input_sha256)return;const host=el('marketCards');host.replaceChildren();
-  for(const [market,value]of Object.entries(contextReply.markets)){const card=add(host,'div');card.className='market-card';add(card,'strong',({US:'美国',JP:'日本',KR:'韩国'})[market]);add(card,'span',value.summary);const note=add(card,'small',value.status==='UNKNOWN'?'来源缺口 · UNKNOWN':`源 ${value.source_asof??'未知'} · ${value.recorded_label??'实读'} ${value.recorded_at??'未知'}；${value.limitation??''}`);note.title=note.textContent;}
+  if(snapshot!==undefined){try{marketObservation=observationMarketContext(snapshot,identity);}catch{marketObservation=null;}}
+  const bound=marketObservation&&['source_date','observation_date','generation','input_sha256'].every(key=>marketObservation.identity[key]===identity[key]);
+  for(const [market,originalValue]of Object.entries(contextReply.markets)){
+    let value=originalValue;
+    if(bound&&market==='JP'&&marketObservation.japan)value=marketObservation.japan;
+    if(bound&&market==='US'&&marketObservation.benchmarks){const bench=marketObservation.benchmarks,session=originalValue.native?.rows?.[0]?.session_date;value={...originalValue,benchmarks:session&&bench.us_session_date!==session?null:bench};}
+    renderMarketCard(host,market,value,identity,document);
+  }
 }
 function showStatistics(bundle){
   stat.replaceChildren();add(stat,'h3',({original:'原公式',nav_smallk:'小K',nav_pullback:'回踩',nav_breakout:'突破'})[bundle.context.group]+' · 同买点历史统计');
@@ -188,7 +195,7 @@ window.StockPanelHost={
     for(const item of contract?.time_contract?.nodes??[]){const d=document.querySelector(`.timetable-item[data-node-id="${item.id}"]`);if(!d)continue;const host=d.querySelector('.node-materials');if(!host)continue;host.replaceChildren();add(host,'strong',labels[item.execution_status]??item.execution_status);if(item.recorded_at)add(host,'p','实际记录 '+item.recorded_at);if(item.source_asof)add(host,'p','来源时点 '+item.source_asof);for(const reason of item.missing??[])add(host,'p','缺口：'+reason);if(item.error)add(host,'p','错误：'+item.error);for(const material of item.materials??[]){try{const u=new URL(material.url,location.href);if(!['https:','http:'].includes(u.protocol)||u.username||u.password)continue;const a=add(host,'a',material.label??'来源材料');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}catch{add(host,'p','材料链接待核');}}}
   },
   preserveChart(){const s=frame.contentWindow?.RESEARCH_PANEL_STATE;if(context&&s?.view)preservedChart={symbol:context.symbol,source_date:context.source_date,generation:context.generation,...s.view,selected:s.selected};},
-  unbindDay(){singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;++contextSerial;el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
+  unbindDay(){singleResearch.unbindDay();this.clearCompany();moduleEvents?.close();moduleEvents=null;++moduleSerial;activeDay=null;el('macTop200')?.replaceChildren();contextReply=null;marketObservation=null;++contextSerial;el('marketCards').textContent='跨市场来源尚未与所选日期绑定';},
   bindDay(day){
     activeDay=day;singleResearch.bindDay(day);this.paintClassificationCoverage(day);sourceContext(day,true);
     const key=day.source_date;if(moduleEvents?.key===key)return;
@@ -206,7 +213,7 @@ window.StockPanelHost={
   refreshSavedSources(){
     if(document.hidden||foregroundRead)return foregroundRead;
     const before=activeDay;
-    foregroundRead=Promise.resolve(completionCallback?.catalog?.()).then(()=>{if(activeDay&&activeDay===before)return sourceContext(activeDay,true);}).finally(()=>{foregroundRead=null;});
+    foregroundRead=Promise.resolve(completionCallback?.catalog?.()).then(async()=>{if(activeDay&&activeDay===before){await completionCallback?.modules?.(['observations']);if(activeDay===before)return sourceContext(activeDay,true);}}).finally(()=>{foregroundRead=null;});
     return foregroundRead;
   },
 };

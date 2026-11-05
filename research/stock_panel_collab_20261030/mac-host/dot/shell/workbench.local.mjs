@@ -126,6 +126,6 @@ window.StockPanelHost.installCompletion({
   window.StockPanelHost.unbindDay();++completionSerial;return this.catalog(true);
  }
 });
-const originalRefresh=refreshObservationData;refreshObservationData=async(...args)=>{const answer=await originalRefresh(...args);window.StockPanelHost.paintContext();window.StockPanelHost.paintWorkflow(timeContract);return answer};
+const originalRefresh=refreshObservationData;refreshObservationData=async(...args)=>{const answer=await originalRefresh(...args);window.StockPanelHost.paintContext(observationSnapshot);window.StockPanelHost.paintWorkflow(timeContract);return answer};
 
 $('classificationQuery').addEventListener('input',()=>{page=0;renderList(true)});for(const checkbox of document.querySelectorAll('[data-classification-label]'))checkbox.addEventListener('change',()=>{page=0;renderList(true)});const stockGridViewport=$('stockGridViewport');$('showStockNames').onclick=()=>stockGridViewport.scrollTo({left:0,behavior:'smooth'});$('showStockRates').onclick=()=>stockGridViewport.scrollTo({left:stockGridViewport.scrollWidth,behavior:'smooth'});
