@@ -198,6 +198,7 @@ def test_actual_crossprocess_live_sleep_crash_lease_no_timeout_or_pid_guess(vers
         with pair.retire_candidate(root,first):pass
     finally:
         if process.poll() is None:process.kill();process.wait(timeout=5)
+        process.stdout.close()
 
 
 def test_pair_exception_and_lazy_lifetime_contract(versions):
@@ -363,3 +364,97 @@ def test_actual_publisher_process_crash_in_prepared_gap_recovers_original_pair(v
     with q.publication_lock(data):q.recover_pair(data/'runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json',pair.pointers(data))
     assert all(pointer.read_text().strip()==str(paths[0][role]) for role,pointer in pair.pointers(data).items())
     assert (root/'current.json').read_bytes()==before
+
+
+def test_refreshing_invocation_key_survives_its_own_snapshot_update(tmp_path):
+    snapshot=tmp_path/'snapshot.json';snapshot.write_text('{"asof":20261105}')
+    dependency=tmp_path/'dependency.py';dependency.write_text('# fixed numerical dependency\n')
+    module=types.SimpleNamespace(__file__=str(dependency),input_path=lambda root:snapshot)
+    kwargs=dict(driver_path=dependency,formula_path=dependency,contract_csv=dependency,refresh_inputs=True,publish=True)
+    before=g.qfq_invocation_key(module,tmp_path,20261106,kwargs)
+    snapshot.write_text('{"asof":20261106,"owner_refreshed":true}')
+    assert g.qfq_invocation_key(module,tmp_path,20261106,kwargs)==before
+    assert g.qfq_invocation_key(module,tmp_path,20261109,kwargs)!=before
+    # Explicit offline immutable-snapshot calls must retain exact SHA identity.
+    kwargs['refresh_inputs']=False
+    first=g.qfq_invocation_key(module,tmp_path,20261106,kwargs)
+    snapshot.write_text('{"asof":20261106,"revision":2}')
+    assert g.qfq_invocation_key(module,tmp_path,20261106,kwargs)!=first
+
+
+def test_failed_refresh_retries_one_original_registry_row(policy,tmp_path):
+    snapshot=tmp_path/'snapshot.json';snapshot.write_text('old target snapshot')
+    dependency=tmp_path/'dependency.py';dependency.write_text('fixed owner')
+    module=types.SimpleNamespace(__file__=str(dependency),input_path=lambda root:snapshot)
+    kwargs=dict(driver_path=dependency,formula_path=dependency,contract_csv=dependency,refresh_inputs=True)
+    def key():return g.qfq_invocation_key(module,tmp_path,20261109,kwargs)
+    original=key();directory=Path(policy['run_root'])/'original'
+    with pytest.raises(RuntimeError):
+        with g.admission(policy,key=original,directory=directory,predicted=g.MIB):
+            snapshot.write_text('new target snapshot persisted before failure')
+            raise RuntimeError('owner failed after refresh')
+    with g.admission(policy,key=key(),directory=directory,predicted=g.MIB) as (claim,_):
+        state=claim.registry.read();assert list(state['tasks'])==[original]
+        assert state['tasks'][original]['attempts']==2 and state['tasks'][original]['resumed']
+        claim.finish(error=RuntimeError('fixture ended; no producer'))
+
+
+def test_monitor_cap_accounts_entire_atomic_index_maintenance_peak(tmp_path,monkeypatch):
+    cfg=_monitor_config(tmp_path);cfg['ordinary_retention']['max_bytes']=1024*1024
+    now=datetime.now(timezone.utc);report=_report(now);report['critical_evidence']=True
+    monitor.ordinary_retention(cfg,report,now=now)
+    root=Path(cfg['ordinary_retention']['root']);state=json.loads((root/'index.json').read_text());template=state['reports'][0]
+    payload=(root/template['name']).read_bytes();state['reports']=[]
+    for n in range(700):
+        name=f'protected_fixture_{n:05}.json';(root/name).write_bytes(payload)
+        state['reports'].append({**template,'name':name,'critical':True})
+    monitor.save_json(root/'index.json',state)
+    cap=cfg['ordinary_retention']['max_bytes'];used=sum(p.stat().st_size for p in root.iterdir() if p.is_file())
+    # The prior128KiB guess would admit while the actual index is larger.
+    (root/'unknown_preserved_evidence').write_bytes(b'X'*(cap-150*1024-used))
+    before={p.name:p.read_bytes() for p in root.iterdir() if p.is_file()}
+    result=monitor.ordinary_retention(cfg,report,now=now)
+    assert result['status'].startswith('SUPPRESSED_OWN_BUDGET')
+    assert result['maintenance_peak_bytes']>cap
+    assert {p.name:p.read_bytes() for p in root.iterdir() if p.is_file()}==before
+
+
+@pytest.mark.parametrize('reconcile_failure',[False,True])
+def test_real_ready_reuse_reconciles_original_committed_pair_gap(versions,monkeypatch,reconcile_failure):
+    from ops import research_panel_qfq as q
+    data,root,paths=versions;pointers=pair.pointers(data)
+    journal=data/'runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json'
+    # Original owner committedV2, followed by process/control failure before
+    # atomic paired metadata commit. Cooperating Readers still safely seeV1.
+    with q.publication_lock(data):q.publish_pair(pointers,paths[1],{r:p.read_bytes() for r,p in pointers.items()},journal)
+    with pair.acquire(root) as binding:assert binding.paths==paths[0]
+    runs=data/'runs';run=runs/('qfq_'+'2'*20);run.mkdir(parents=True)
+    status=dict(status='READY',generation_id='2'*64,run_dir=str(run),selector_pointer_ready=True,backtest_pointer_ready=True,
+        **r.FLAGS,candidates={role:str(p) for role,p in paths[1].items()},candidate_sha256={role:r.digest(p) for role,p in paths[1].items()})
+    r.atomic_json(run/'stage_status.json',status);r.atomic_json(run/'candidate_receipt.json',status)
+    pins=data/'pins.json';r.atomic_json(pins,dict(expected_main_app_root=str(Path(g.__file__).resolve().parents[1])))
+    policy=dict(data_root=str(data),run_root=str(runs),formal_roots={role:str(data) for role in pointers},
+        pointers={role:str(p) for role,p in pointers.items()},managed_pin_inventory=dict(path=str(pins),sha256=r.digest(pins)),
+        governance=dict(enabled=True,registry_root=str(root/'registry'),pool_id='tiny',pool_identity_verified=True))
+    policy_file=data/'policy.json';r.atomic_json(policy_file,policy)
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY',str(policy_file));monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY_SHA256',r.digest(policy_file))
+    monkeypatch.setattr(r,'load_policy',lambda *a,**k:policy) # isolate already-reviewed load-policy binding gates
+    monkeypatch.setattr(q,'load_snapshot',lambda *a:{})
+    monkeypatch.setattr(q,'generation_identity',lambda *a:dict(input_sha256='input2'))
+    original_contract=q.panel_contract
+    monkeypatch.setattr(q,'panel_contract',lambda p:{**original_contract(p),'turnover_input_sha256':'fixtureturnover'})
+    turnover=types.ModuleType('ops.research_panel_turnover');turnover.load_daily=lambda *a:types.SimpleNamespace(identity='fixtureturnover')
+    monkeypatch.setitem(sys.modules,'ops.research_panel_turnover',turnover)
+    if reconcile_failure:
+        monkeypatch.setattr(pair,'publish_configured',lambda *a:(_ for _ in ()).throw(OSError('pair control unavailable')))
+    def forbidden(**kwargs):pytest.fail('READY reuse must not invoke producer')
+    def invoke():return r.run_with_retention(forbidden,data_root=data,return_root=runs,pointers=pointers,target=20261108,ready_check=lambda:True,
+        driver_path=data/'driver',formula_path=data/'formula',contract_csv=data/'contract',tdx_root=data)
+    if reconcile_failure:
+        with pytest.raises(OSError,match='pair control unavailable'):invoke()
+        with pair.acquire(root) as binding:assert binding.paths==paths[0]
+    else:
+        answer=invoke();assert answer['already_current']
+        assert answer['storage_pair']['status']=='VERIFIED_REUSE_PAIR_RECONCILED'
+        with pair.acquire(root) as binding:assert binding.paths==paths[1]
+        assert not (root/'registry').exists() # safe metadata reuse needs no disk/task admission

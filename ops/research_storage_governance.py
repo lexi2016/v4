@@ -785,6 +785,14 @@ def qfq_write_seams(module, claim):
                         try:publish_configured(args[1])
                         except (OSError,ValueError,KeyError,RetentionError) as error:
                             claim.pair_recording_error=str(error)[:1024]
+                    else:
+                        # Original recovery runs under qfq_publish.lock before
+                        # inputs/large writes. Reconcile a prior committed pair
+                        # gap before allowing another generation to proceed.
+                        from ops.research_storage_pair import publish_configured, settings
+                        if settings() is not None:
+                            publish_configured({role:Path(pointer.read_text(encoding='utf-8-sig').strip())
+                                                for role,pointer in pointers.items()})
                     return result
                 finally:
                     claim.control_paths = prior
@@ -913,10 +921,17 @@ def qfq_invocation_key(module, data_root, target, kwargs):
     snapshot=module.input_path(data_root)
     files={key:dict(path=str(kwargs[key]),sha256=digest(safe_path(kwargs[key])))
            for key in ('driver_path','formula_path','contract_csv')}
-    files['snapshot']=dict(path=str(snapshot),sha256=digest(snapshot) if snapshot.exists() else 'MISSING_PRE_REFRESH')
+    refreshing=kwargs.get('refresh_inputs') is True
+    # This is a storage operation key, never a READY numerical cache identity.
+    # The original owner refreshes this mutable file INSIDE the admitted call.
+    # Binding its pre-refresh SHA creates a second reservation on failed retry.
+    # Final numerical inputs/generation remain validated by the unchanged owner
+    # and recorded in its result; offline explicit snapshots still bind SHA.
+    files['snapshot']=dict(path=str(snapshot),sha256=('OWNER_REFRESHED_TARGET_BOUND_IN_RESULT' if refreshing
+        else digest(snapshot) if snapshot.exists() else 'MISSING_PRE_REFRESH'))
     # Exact source bytes, not governance code or an entire repository commit.
     files['owner']=dict(path=module.__file__,sha256=digest(Path(module.__file__)))
-    return computation_identity(inputs=files,scope=dict(target=target,market='A',input_scope='OWNER_SNAPSHOT'),
+    return computation_identity(inputs=files,scope=dict(target=target,market='A',input_scope='OWNER_MANAGED_REFRESH_OPERATION' if refreshing else 'OWNER_SNAPSHOT'),
         calculation=dict(owner_mode='EXISTING_QFQ_GENERATION_AUTHORITY',arguments=json.loads(json.dumps({key:value for key,value in kwargs.items() if key not in {'workers','publish','driver_path','formula_path','contract_csv'}},default=str))),
         schema='a_share_qfq_panel_v1',environment=dict(python=__import__('sys').version))
 
@@ -960,7 +975,15 @@ def verified_qfq_current(module, policy, target, kwargs):
             if digest(path)!=status['candidate_sha256'][role] or stamp(path)!=observed:
                 raise RetentionError('CURRENT_ARTIFACT_CORRUPT')
             _ARTIFACT_CACHE[str(path)]=dict(path=str(path),stat=observed,sha256=status['candidate_sha256'][role])
-    return {**status,'already_current':True,'selector':str(paths['selector']),'backtest':str(paths['backtest'])}
+    # The actual retention READY path already holds the original publication
+    # lock. Reconcile the single paired commit here as well, so failure after
+    # original CURRENT commit cannot strand all future Readers on an old pair.
+    # Only bounded footer/receipt/manifest metadata is read; no producer/rehash.
+    from ops.research_storage_pair import publish_configured
+    pair_manifest=publish_configured(paths)
+    pair_state=({'storage_pair':dict(status='VERIFIED_REUSE_PAIR_RECONCILED',id=pair_manifest['id'])}
+                if pair_manifest is not None else {})
+    return {**status,**pair_state,'already_current':True,'selector':str(paths['selector']),'backtest':str(paths['backtest'])}
 
 
 def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointers, target, **kwargs):

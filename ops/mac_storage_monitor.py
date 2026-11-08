@@ -185,29 +185,61 @@ def ordinary_retention(config, report, *, now=None):
         critical = bool(report.get('critical_evidence') or report['capacity'].get('history_parse_errors')
                         or report.get('directory_history_parse_errors'))
         name = now.strftime('%Y%m%dT%H%M%S%fZ') + '_' + uuid.uuid4().hex[:8] + '.json'
-        if len(raw) > 64 * 1024 or used + 2 * len(raw) + 128 * 1024 > cap:
+        if len(raw) > 64 * 1024:
             return {'status': 'SUPPRESSED_OWN_BUDGET_PROTECTED_EVIDENCE_RETAINED', 'used_bytes': used, 'cap_bytes': cap, 'deleted_bytes': 0}
         path = root / name
-        # Persist ownership intent before file write: interruption leaves an
-        # explicit UNKNOWN, never an unregistered object adopted on next run.
         record = dict(name=name, timestamp=now.timestamp(), critical=critical,
                       sha256=hashlib.sha256(raw).hexdigest(), size=len(raw), status='PREPARED')
-        state['reports'].append(record);save_json(index, state)
-        with path.open('xb') as stream:
-            stream.write(raw);stream.flush();os.fsync(stream.fileno())
-        record['status'] = 'COMMITTED';save_json(index, state)
+        state['reports'].append(record)
         light = {key: report['capacity'][key] for key in ('observed_utc', 'timestamp', 'volume_path', 'total_bytes', 'available_bytes', 'threshold')}
         rows.append(light)
         cutoff = now.timestamp() - 90 * 86400
-        # Trend rows are this owner's reduced measurements, never the legacy file.
         kept = [row for row in rows if isinstance(row.get('timestamp'), (int, float)) and row['timestamp'] >= cutoff]
         if any(not isinstance(row.get('timestamp'), (int, float)) for row in rows):
             raise ValueError('ORDINARY_TREND_INVALID_TIMESTAMP')
         trend_raw = ''.join(json.dumps(row, separators=(',', ':')) + '\n' for row in (rows if dry else kept)).encode()
-        if len(trend_raw) <= 8 * 1024**2 and used + len(raw) + 2 * len(trend_raw) + 128 * 1024 <= cap:
+        trend_allowed = len(trend_raw) <= 8 * 1024**2
+        def size(value):
+            # Exact save_json encoding, including its final newline.
+            return len((json.dumps(value,ensure_ascii=False,indent=2)+'\n').encode())
+        old_index = index.stat().st_size if index.exists() else 0
+        old_trend_path = root / 'trend.jsonl'
+        old_trend = old_trend_path.stat().st_size if old_trend_path.exists() else 0
+        prepared_bytes = size(state)
+        record['status']='COMMITTED'
+        committed_bytes = size(state)
+        possible = sorted([row for row in state['reports'] if row['status']=='COMMITTED'
+                           and not row['critical'] and row['name'] not in protected],
+                          key=lambda row:(row['timestamp'],row['name']))
+        possible = possible[:-14] if len(possible)>14 else []
+        # Reserve the actual entire replacement index, including worst-case
+        # bounded failure text for every potential candidate. Existing critical
+        # records cannot be discarded to make maintenance fit.
+        failure_state=json.loads(json.dumps(state))
+        possible_names={row['name'] for row in possible}
+        for row in failure_state['reports']:
+            if row['name'] in possible_names:row['rotation_error']='\x00'*512
+        final_index_bound=size(failure_state)
+        after_prepared=used-old_index+prepared_bytes
+        after_commit=used-old_index+committed_bytes+len(raw)
+        after_trend=after_commit-old_trend+len(trend_raw) if trend_allowed else after_commit
+        peak=max(used+prepared_bytes,
+                 after_prepared+len(raw)+committed_bytes,
+                 after_commit+(len(trend_raw) if trend_allowed else 0),
+                 after_trend+final_index_bound)
+        if peak > cap:
+            return dict(status='SUPPRESSED_OWN_BUDGET_PROTECTED_EVIDENCE_RETAINED',
+                        used_bytes=used,cap_bytes=cap,maintenance_peak_bytes=peak,deleted_bytes=0)
+        # Ownership intent precedes the report. An interrupted PREPARED record
+        # is preserved, never adopted as a successful ordinary candidate.
+        record['status']='PREPARED';save_json(index,state)
+        with path.open('xb') as stream:
+            stream.write(raw);stream.flush();os.fsync(stream.fileno())
+        record['status']='COMMITTED';save_json(index,state)
+        if trend_allowed:
             temp = root / 'trend.jsonl.pending'
             if temp.is_symlink():raise ValueError('ORDINARY_TREND_ALIAS')
-            temp.write_bytes(trend_raw);os.replace(temp, root / 'trend.jsonl')
+            temp.write_bytes(trend_raw);os.replace(temp,old_trend_path)
         ordinary = sorted([row for row in state['reports'] if row['status'] == 'COMMITTED'
                            and not row['critical'] and row['name'] not in protected],
                           key=lambda row: (row['timestamp'], row['name']))
