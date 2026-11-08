@@ -105,8 +105,13 @@ containment, avoiding baseline-plus-written double charging. Actual free-space r
 Parquet-table and publish boundaries. There is no OS quota. Already submitted
 workers drain; no business process is killed.
 
-Scoped module adapters restore original bindings on exceptions and do not mutate
-PyArrow globally. Spawned worker writes are bounded by the original parent's
+Scoped module adapters check the caller's active admission on every function,
+writer/executor method and Future operation. Unrelated threads pass through to
+the original implementation without billing or gates. Participating ThreadPool
+work and registered completion callbacks explicitly inherit context; spawned
+process callables remain unchanged. Nested adapters reuse existing bindings,
+and normal/exception exits restore module and per-Future methods. PyArrow is
+never patched globally. Spawned worker writes are bounded by the original parent's
 submit/result seams. The existing publication journal and rollback are reused;
 bounded control writes are allowed to finish/roll back after a transaction has
 started. A committed pair remains READY if registry recording subsequently fails.

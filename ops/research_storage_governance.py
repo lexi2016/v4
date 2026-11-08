@@ -6,7 +6,7 @@ new data layout or formula computation. Unregistered callers remain outside scop
 from __future__ import annotations
 
 from contextlib import contextmanager
-from contextvars import ContextVar
+from contextvars import ContextVar, copy_context
 import fcntl
 import hashlib
 import json
@@ -19,6 +19,7 @@ import threading
 import time
 import types
 import uuid
+import weakref
 
 from ops.research_storage_retention import (RetentionError, atomic_json, canonical,
     digest, safe_path, stamp, logical_bytes, under, files)
@@ -30,6 +31,7 @@ _ACTIVE = ContextVar('v4_storage_claim', default=None)
 _DEPTH = ContextVar('v4_storage_depth', default=0)
 _ARTIFACT_CACHE = {}
 _ADAPTER_LOCK = threading.RLock()
+_ADAPTER_SCOPES = ContextVar('v4_storage_adapter_scopes', default={})
 
 
 class SpaceBlocked(RetentionError):
@@ -500,120 +502,261 @@ def admission(policy, *, key, directory, predicted, category='ordinary', optiona
             _ACTIVE.reset(token);_DEPTH.reset(depth)
 
 
-@contextmanager
-def qfq_write_seams(module, claim):
-    """Scoped interception of existing parent/batch/write seams; source unchanged.
+class _AdapterLease:
+    def __init__(self, claim):
+        self.claim, self.active = claim, True
+        self.futures = []
 
-    One shared writer is held. Module-local pq proxy never mutates PyArrow.
-    Spawn workers are checked at parent submit/result boundaries; at most the
-    existing bounded worker batch is in flight. No kill or formula interruption.
-    """
-    if claim is None:
-        yield
+    def owns(self):
+        return self.active and _ACTIVE.get() is self.claim
+
+    def retire(self):
+        self.active = False
+        for reference, originals, wrappers in self.futures:
+            future = reference()
+            if future is None:
+                continue
+            for name, wrapper in wrappers.items():
+                if future.__dict__.get(name) is wrapper:
+                    if name in originals:
+                        setattr(future, name, originals[name])
+                    else:
+                        delattr(future, name)
+        self.futures.clear()
+
+    def thread_call(self, function):
+        # A distinct Context for each submitted function/callback: Context.run
+        # cannot concurrently enter the same Context in multiple workers.
+        context = copy_context()
+        def call(*args, **kwargs):
+            if self.active:
+                return context.run(function, *args, **kwargs)
+            return function(*args, **kwargs)
+        return call
+
+
+@contextmanager
+def _adapter_scope(kind, modules, claim):
+    if claim is None or _ACTIVE.get() is not claim:
+        yield None, []
+        return
+    installed = _ADAPTER_SCOPES.get()
+    selected = [module for module in modules if not (
+        (prior := installed.get((kind, id(module)))) is not None
+        and prior.claim is claim and prior.active)]
+    if not selected:
+        # Includes explicitly propagated workers entering the same adapter;
+        # don't try to acquire the installer's thread-owned RLock again.
+        yield None, []
         return
     with _ADAPTER_LOCK:
+        lease = _AdapterLease(claim)
+        state = dict(installed)
+        state.update({(kind, id(module)): lease for module in selected})
+        token = _ADAPTER_SCOPES.set(state)
+        try:
+            yield lease, selected
+        finally:
+            lease.retire()
+            _ADAPTER_SCOPES.reset(token)
+
+
+def _guard_future(future, lease, observe):
+    """Keep the actual Future (including wait/as_completed internals)."""
+    original_result = future.result
+    original_callback = future.add_done_callback
+    originals = {name:future.__dict__[name] for name in ('result','add_done_callback') if name in future.__dict__}
+    def result(*args, **kwargs):
+        value = original_result(*args, **kwargs)
+        if lease.owns():
+            observe()
+        return value
+    def add_done_callback(function, *args, **kwargs):
+        if lease.owns():
+            function = lease.thread_call(function)
+        return original_callback(function, *args, **kwargs)
+    future.result = result
+    future.add_done_callback = add_done_callback
+    lease.futures.append((weakref.ref(future), originals, dict(result=result, add_done_callback=add_done_callback)))
+    return future
+
+
+@contextmanager
+def qfq_write_seams(module, claim):
+    """Caller-scoped gates; foreign threads retain exact original behavior.
+
+    Participating ThreadPool work/callbacks explicitly inherit their admission.
+    Process work remains unchanged, guarded at parent submit/result boundaries.
+    Module-local pq proxies never mutate shared PyArrow objects.
+    """
+    with _adapter_scope('qfq', [module], claim) as (lease, _):
+        if lease is None:
+            yield
+            return
         originals = {}
-        def replace(name,value):
-            originals[name]=getattr(module,name);setattr(module,name,value)
-        def write(path,payload):
-            path=Path(path);claim.watch(path)
-            # A bounded failure/checkpoint receipt remains possible after pause;
-            # no data write is disguised as an arbitrary small JSON exemption.
-            control=(str(path) in getattr(claim,'control_paths',set()) and len(payload)<=192*1024)
-            final_receipt=(getattr(claim,'publication_committed',False)
-                and path.name in {'qfq_expected_current.json','qfq_readiness.json','meta.json','task_summary.json','stage_status.json'}
-                and len(payload)<=16*MIB)
+        def replace(name, value):
+            originals[name] = getattr(module, name)
+            setattr(module, name, value)
+        def write(path, payload):
+            if not lease.owns():
+                return originals['_write'](path, payload)
+            path = Path(path)
+            claim.watch(path)
+            control = str(path) in getattr(claim, 'control_paths', set()) and len(payload) <= 192*1024
+            final_receipt = (getattr(claim, 'publication_committed', False)
+                and path.name in {'qfq_expected_current.json', 'qfq_readiness.json', 'meta.json', 'task_summary.json', 'stage_status.json'}
+                and len(payload) <= 16*MIB)
             if control or final_receipt:
-                claim.control_written=getattr(claim,'control_written',0)+len(payload)
-                if claim.control_written>64*MIB:raise SpaceBlocked('PUBLICATION_CONTROL_BUDGET')
-            diagnostic=(path.name=='stage_status.json' and len(payload)<=64*1024
-                        and json.loads(payload).get('status')=='FAILED')
-            if not diagnostic and not control and not final_receipt:claim.checkpoint(incoming=len(payload))
-            originals['_write'](path,payload);claim.observe(path)
+                claim.control_written = getattr(claim, 'control_written', 0) + len(payload)
+                if claim.control_written > 64*MIB:
+                    raise SpaceBlocked('PUBLICATION_CONTROL_BUDGET')
+            diagnostic = (path.name == 'stage_status.json' and len(payload) <= 64*1024
+                          and json.loads(payload).get('status') == 'FAILED')
+            if not diagnostic and not control and not final_receipt:
+                claim.checkpoint(incoming=len(payload))
+            result = originals['_write'](path, payload)
+            if lease.owns():
+                claim.observe(path)
+            return result
         def guarded(function):
-            def call(*args,**kwargs):
-                claim.checkpoint();return function(*args,**kwargs)
+            def call(*args, **kwargs):
+                if lease.owns():
+                    claim.checkpoint()
+                return function(*args, **kwargs)
             return call
         class Writer:
-            def __init__(self,path,*args,**kwargs):
-                self.path=Path(path);claim.watch(self.path);claim.checkpoint()
-                self.inner=originals['pq'].ParquetWriter(path,*args,**kwargs)
-            def __enter__(self):return self
-            def __exit__(self,*args):
-                try:return self.inner.__exit__(*args)
-                finally:claim.observe(self.path)
-            def __getattr__(self,name):return getattr(self.inner,name)
-            def write_table(self,table,*args,**kwargs):
-                claim.observe(self.path);claim.checkpoint(incoming=table.nbytes)
-                result=self.inner.write_table(table,*args,**kwargs);claim.observe(self.path);return result
-            def write_batch(self,batch,*args,**kwargs):
-                claim.observe(self.path);claim.checkpoint(incoming=batch.nbytes)
-                result=self.inner.write_batch(batch,*args,**kwargs);claim.observe(self.path);return result
+            def __new__(cls, *args, **kwargs):
+                if not lease.owns():
+                    return originals['pq'].ParquetWriter(*args, **kwargs)
+                return super().__new__(cls)
+            def __init__(self, path, *args, **kwargs):
+                self.path = Path(path)
+                claim.watch(self.path)
+                claim.checkpoint()
+                self.inner = originals['pq'].ParquetWriter(path, *args, **kwargs)
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                try:
+                    return self.inner.__exit__(*args)
+                finally:
+                    if lease.owns():
+                        claim.observe(self.path)
+            def __getattr__(self, name):
+                return getattr(self.inner, name)
+            def write_table(self, table, *args, **kwargs):
+                if lease.owns():
+                    claim.observe(self.path)
+                    claim.checkpoint(incoming=table.nbytes)
+                result = self.inner.write_table(table, *args, **kwargs)
+                if lease.owns():
+                    claim.observe(self.path)
+                return result
+            def write_batch(self, batch, *args, **kwargs):
+                if lease.owns():
+                    claim.observe(self.path)
+                    claim.checkpoint(incoming=batch.nbytes)
+                result = self.inner.write_batch(batch, *args, **kwargs)
+                if lease.owns():
+                    claim.observe(self.path)
+                return result
             def close(self):
-                result=self.inner.close();claim.observe(self.path);return result
+                result = self.inner.close()
+                if lease.owns():
+                    claim.observe(self.path)
+                return result
         class ParquetProxy:
-            def __getattr__(self,name):return getattr(originals['pq'],name)
-            ParquetWriter=Writer
-            def write_table(self,table,path,*args,**kwargs):
-                claim.watch(path);claim.checkpoint(incoming=table.nbytes)
-                result=originals['pq'].write_table(table,path,*args,**kwargs);claim.observe(path);return result
-        def executor_type(base):
+            def __getattr__(self, name):
+                return getattr(originals['pq'], name)
+            ParquetWriter = Writer
+            def write_table(self, table, path, *args, **kwargs):
+                if lease.owns():
+                    claim.watch(path)
+                    claim.checkpoint(incoming=table.nbytes)
+                result = originals['pq'].write_table(table, path, *args, **kwargs)
+                if lease.owns():
+                    claim.observe(path)
+                return result
+        def executor_type(base, *, threaded):
             class Executor:
-                def __init__(self,*args,**kwargs):self.inner=base(*args,**kwargs)
-                def __enter__(self):self.inner.__enter__();return self
-                def __exit__(self,*args):return self.inner.__exit__(*args)
-                def __getattr__(self,name):return getattr(self.inner,name)
-                def submit(self,function,*args,**kwargs):
+                def __new__(cls, *args, **kwargs):
+                    if not lease.owns():
+                        return base(*args, **kwargs)
+                    return super().__new__(cls)
+                def __init__(self, *args, **kwargs):
+                    self.inner = base(*args, **kwargs)
+                def __enter__(self):
+                    self.inner.__enter__()
+                    return self
+                def __exit__(self, *args):
+                    return self.inner.__exit__(*args)
+                def __getattr__(self, name):
+                    return getattr(self.inner, name)
+                def submit(self, function, *args, **kwargs):
+                    if not lease.owns():
+                        return self.inner.submit(function, *args, **kwargs)
                     claim.checkpoint()
-                    # Owner checkpoint naming is fixed and verified from source.
-                    paths=[]
-                    if function.__name__=='_symbol_process_task':
-                        payload=args[0];root=Path(payload[4]);code=payload[0]
-                        paths=[root/(code+suffix) for suffix in ('.parquet','.receipt.json')]
-                        for path in paths:claim.watch(path)
-                    future=self.inner.submit(function,*args,**kwargs)
-                    class Future:
-                        def __getattr__(self,name):return getattr(future,name)
-                        def result(self,*a,**k):
-                            result=future.result(*a,**k)
-                            for path in paths:claim.observe(path)
-                            return result
-                    return Future()
+                    paths = []
+                    if getattr(function, '__name__', None) == '_symbol_process_task':
+                        payload = args[0]
+                        root, code = Path(payload[4]), payload[0]
+                        paths = [root/(code+suffix) for suffix in ('.parquet', '.receipt.json')]
+                        for path in paths:
+                            claim.watch(path)
+                    if threaded:
+                        function = lease.thread_call(function)
+                    future = self.inner.submit(function, *args, **kwargs)
+                    def observe():
+                        for path in paths:
+                            claim.observe(path)
+                    return _guard_future(future, lease, observe)
             return Executor
-        def checkpoint_function(*args,**kwargs):
-            code,_,_,_,root=args[:5]
-            paths=[Path(root)/(code+suffix) for suffix in ('.parquet','.receipt.json')]
-            for path in paths:claim.watch(path)
-            claim.checkpoint();result=originals['_symbol_checkpoint'](*args,**kwargs)
-            for path in paths:claim.observe(path)
+        def checkpoint_function(*args, **kwargs):
+            if not lease.owns():
+                return originals['_symbol_checkpoint'](*args, **kwargs)
+            code, _, _, _, root = args[:5]
+            paths = [Path(root)/(code+suffix) for suffix in ('.parquet', '.receipt.json')]
+            for path in paths:
+                claim.watch(path)
+            claim.checkpoint()
+            result = originals['_symbol_checkpoint'](*args, **kwargs)
+            if lease.owns():
+                for path in paths:
+                    claim.observe(path)
             return result
+        def transaction(name):
+            def call(*args, **kwargs):
+                if not lease.owns():
+                    return originals[name](*args, **kwargs)
+                if name == 'publish_pair':
+                    claim.checkpoint(incoming=64*MIB)
+                    pointers, journal = args[0], args[3]
+                else:
+                    journal, pointers = args[:2]
+                prior = getattr(claim, 'control_paths', set())
+                claim.control_paths = {str(path) for path in pointers.values()} | {str(journal)}
+                try:
+                    result = originals[name](*args, **kwargs)
+                    if name == 'publish_pair':
+                        claim.publication_committed = True
+                    return result
+                finally:
+                    claim.control_paths = prior
+            return call
         try:
-            replace('_write',write)
-            replace('pq',ParquetProxy())
-            replace('spool_current',guarded(module.spool_current))
-            def transaction(name):
-                def call(*args,**kwargs):
-                    if name=='publish_pair':
-                        claim.checkpoint(incoming=64*MIB)
-                        pointers,journal=args[0],args[3]
-                    else:
-                        journal,pointers=args[:2]
-                        # Recovery is only a bounded owner control transaction.
-                    prior=getattr(claim,'control_paths',set())
-                    claim.control_paths={str(path) for path in pointers.values()}|{str(journal)}
-                    try:
-                        result=originals[name](*args,**kwargs)
-                        if name=='publish_pair':claim.publication_committed=True
-                        return result
-                    finally:claim.control_paths=prior
-                return call
-            for name in ('publish_pair','recover_pair'):replace(name,transaction(name))
-            replace('_symbol_checkpoint',checkpoint_function)
-            for name in ('ThreadPoolExecutor','ProcessPoolExecutor'):
-                replace(name,executor_type(getattr(module,name)))
+            replace('_write', write)
+            replace('pq', ParquetProxy())
+            replace('spool_current', guarded(module.spool_current))
+            for name in ('publish_pair', 'recover_pair'):
+                replace(name, transaction(name))
+            replace('_symbol_checkpoint', checkpoint_function)
+            for name in ('ThreadPoolExecutor', 'ProcessPoolExecutor'):
+                replace(name, executor_type(getattr(module, name), threaded=name == 'ThreadPoolExecutor'))
             yield
         finally:
-            for name,value in originals.items():setattr(module,name,value)
+            lease.retire()
+            for name, value in originals.items():
+                setattr(module, name, value)
 
 
 def debug_projection(*, policy, source, output_root, symbols=None, columns=None, output_days=20):
@@ -862,77 +1005,114 @@ def reference_source(path):
 
 
 @contextmanager
-def product_write_seams(modules,claim):
-    if claim is None:
-        yield;return
-    with _ADAPTER_LOCK:
-        originals=[]
-        def replace(module,name,value):originals.append((module,name,getattr(module,name)));setattr(module,name,value)
+def product_write_seams(modules, claim):
+    with _adapter_scope('product', modules, claim) as (lease, selected):
+        if lease is None:
+            yield
+            return
+        originals = []
+        def replace(module, name, value):
+            originals.append((module, name, getattr(module, name)))
+            setattr(module, name, value)
         def save(original):
-            def call(path,value,*args,**kwargs):
-                path=Path(path);claim.watch(path)
-                size=len(json.dumps(value,default=str).encode())
-                diagnostic=(path.name in {'publication_error.json','latest_receipt.json'} and size<=64*1024
-                    and isinstance(value,dict) and value.get('status')=='CANNOT_CONFIRM')
-                if not diagnostic:claim.checkpoint(incoming=size*2)
-                result=original(path,value,*args,**kwargs);claim.observe(path);return result
+            def call(path, value, *args, **kwargs):
+                if not lease.owns():
+                    return original(path, value, *args, **kwargs)
+                path = Path(path)
+                claim.watch(path)
+                size = len(json.dumps(value, default=str).encode())
+                diagnostic = (path.name in {'publication_error.json', 'latest_receipt.json'} and size <= 64*1024
+                    and isinstance(value, dict) and value.get('status') == 'CANNOT_CONFIRM')
+                if not diagnostic:
+                    claim.checkpoint(incoming=size*2)
+                result = original(path, value, *args, **kwargs)
+                if lease.owns():
+                    claim.observe(path)
+                return result
             return call
         def boundary(original):
-            def call(*args,**kwargs):
+            def call(*args, **kwargs):
+                if not lease.owns():
+                    return original(*args, **kwargs)
                 claim.checkpoint()
-                result=original(*args,**kwargs)
-                if original.__name__ in {'retain_owner_result','finalize_owner_charts'} and len(args)>=2:
-                    directory=Path(args[1])
-                    paths=([directory/'original_retained'/(args[2]+'.json.gz')] if original.__name__=='retain_owner_result'
+                result = original(*args, **kwargs)
+                if not lease.owns():
+                    return result
+                if original.__name__ in {'retain_owner_result', 'finalize_owner_charts'} and len(args) >= 2:
+                    directory = Path(args[1])
+                    paths = ([directory/'original_retained'/(args[2]+'.json.gz')] if original.__name__ == 'retain_owner_result'
                         else list(billing_files(directory)))
                     for path in paths:
-                        if path not in claim.baselines:claim.baselines[path]=(0,0)
+                        if path not in claim.baselines:
+                            claim.baselines[path] = (0, 0)
                         claim.observe(path)
-                if original.__name__ in {'run_incremental_history','publish_current_history_view','build','stage','finalize_owner_charts'}:
-                    root=Path(claim.directory)
+                if original.__name__ in {'run_incremental_history', 'publish_current_history_view', 'build', 'stage', 'finalize_owner_charts'}:
+                    root = Path(claim.directory)
                     if root.exists():
                         for path in billing_files(root):
-                            if path not in claim.baselines:claim.baselines[path]=(0,0)
+                            if path not in claim.baselines:
+                                claim.baselines[path] = (0, 0)
                             claim.observe(path)
                 claim.checkpoint()
                 return result
             return call
-        def executor_type(base):
+        def executor_type(base, *, threaded):
             class Executor:
-                def __init__(self,*args,**kwargs):
-                    self.parts=Path(kwargs['initargs'][3]);self.root=Path(kwargs['initargs'][2])
-                    self.inner=base(*args,**kwargs)
-                def __enter__(self):self.inner.__enter__();return self
-                def __exit__(self,*args):return self.inner.__exit__(*args)
-                def __getattr__(self,name):return getattr(self.inner,name)
-                def submit(self,function,symbol,*args,**kwargs):
-                    paths=[self.parts/(symbol+'.json'),self.parts/'original_retained'/(symbol+'.json.gz')]
-                    for path in paths:claim.watch(path)
-                    claim.checkpoint()
-                    future=self.inner.submit(function,symbol,*args,**kwargs)
-                    original=future.result
-                    def result(*a,**k):
-                        value=original(*a,**k)
-                        paths.extend(self.root.glob('history/*/'+symbol+'/checkpoint.json'))
+                def __new__(cls, *args, **kwargs):
+                    if not lease.owns():
+                        return base(*args, **kwargs)
+                    return super().__new__(cls)
+                def __init__(self, *args, **kwargs):
+                    initargs = kwargs.get('initargs', ())
+                    self.parts = Path(initargs[3]) if len(initargs) >= 4 else None
+                    self.root = Path(initargs[2]) if len(initargs) >= 4 else None
+                    self.inner = base(*args, **kwargs)
+                def __enter__(self):
+                    self.inner.__enter__()
+                    return self
+                def __exit__(self, *args):
+                    return self.inner.__exit__(*args)
+                def __getattr__(self, name):
+                    return getattr(self.inner, name)
+                def submit(self, function, *args, **kwargs):
+                    if not lease.owns():
+                        return self.inner.submit(function, *args, **kwargs)
+                    paths = []
+                    symbol = args[0] if args and isinstance(args[0], str) else None
+                    if self.parts is not None and symbol is not None:
+                        paths = [self.parts/(symbol+'.json'), self.parts/'original_retained'/(symbol+'.json.gz')]
                         for path in paths:
-                            # Admission captured pre-existing file baselines;
-                            # unknown paths were created by this guarded job.
-                            if path not in claim.baselines:claim.baselines[path]=(0,0)
+                            claim.watch(path)
+                    claim.checkpoint()
+                    if threaded:
+                        function = lease.thread_call(function)
+                    future = self.inner.submit(function, *args, **kwargs)
+                    def observe():
+                        if self.root is not None and symbol is not None:
+                            paths.extend(self.root.glob('history/*/'+symbol+'/checkpoint.json'))
+                        for path in paths:
+                            if path not in claim.baselines:
+                                claim.baselines[path] = (0, 0)
                             claim.observe(path)
-                        return value
-                    future.result=result
-                    return future
+                    return _guard_future(future, lease, observe)
             return Executor
         try:
-            for module in modules:
-                if hasattr(module,'ProcessPoolExecutor'):replace(module,'ProcessPoolExecutor',executor_type(module.ProcessPoolExecutor))
-                if hasattr(module,'save'):replace(module,'save',save(module.save))
-                if hasattr(module,'write_json'):replace(module,'write_json',save(module.write_json))
-                for name in ('compute_stock','run_incremental_history','publish_current_history_view','build','stage','record_daily_attempt','retain_owner_result','finalize_owner_charts','owner_pngs'):
-                    if hasattr(module,name):replace(module,name,boundary(getattr(module,name)))
+            for module in selected:
+                for name in ('ThreadPoolExecutor', 'ProcessPoolExecutor'):
+                    if hasattr(module, name):
+                        replace(module, name, executor_type(getattr(module, name), threaded=name == 'ThreadPoolExecutor'))
+                if hasattr(module, 'save'):
+                    replace(module, 'save', save(module.save))
+                if hasattr(module, 'write_json'):
+                    replace(module, 'write_json', save(module.write_json))
+                for name in ('compute_stock', 'run_incremental_history', 'publish_current_history_view', 'build', 'stage', 'record_daily_attempt', 'retain_owner_result', 'finalize_owner_charts', 'owner_pngs'):
+                    if hasattr(module, name):
+                        replace(module, name, boundary(getattr(module, name)))
             yield
         finally:
-            for module,name,value in reversed(originals):setattr(module,name,value)
+            lease.retire()
+            for module, name, value in reversed(originals):
+                setattr(module, name, value)
 
 
 def main():
