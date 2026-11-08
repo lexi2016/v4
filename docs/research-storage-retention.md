@@ -145,3 +145,66 @@ existing binding mechanism; it does not delete data or start a full rebuild.
 Disabling `governance.enabled` removes V2 admission; keep autoGC off. Removing both
 retention environment fields restores the legacy unguarded caller and is a
 separate explicit operational decision. No service or scheduler is changed here.
+
+## Phase2 bounded continuation (2026-11-08; source, not deployment acceptance)
+
+Actual Main QFQ and product calls are sequential. The exact unique-inode logical
+resident was85,863,466,983B; QFQ48GiB includes its staging/control allowance,
+then its terminal claim releases the reservation before product32GiB admission.
+Retained future output is UNKNOWN. At the conservative48GiB-retained endpoint,
+product admission has35,878,937B class headroom; another48GiB QFQ can block.
+Same-directory recovery keeps its original identity and replaces its reservation
+once, but retains a full additional forecast unless exact reusable-byte credit
+has been certified. This may conservatively block a nearly completed failed run;
+it does not authorize deleting recovery inputs or expanding160GiB.
+
+The real raw-sync authority now enters shared-pool input admission before loading
+or downloading. Its forecast is twice exact existing native .day bytes plus the
+existing32MiB package limit and32MiB response/control allowance. Protected raw
+inputs remain global free-space assets, not reclaimable ordinary residents.
+Scoped adapters guard actual imported adjustment metadata/GBBQ serializer
+boundaries, without changing their numerical source bytes. Standalone/manual
+calls outside these registered invocation scopes and HK remain uncovered.
+
+The task registry is JSON capped at4MiB **exact serialized bytes**. Every new
+unfinished task reserves a256KiB mutable control slot before data writes;
+checkpoints and terminal records replace its padding. Admission leaves16KiB
+margin. Terminal state does not require deleting other tasks or unique evidence.
+No daily archive/database copy or pruning of active/frozen/unique records occurs.
+At task count/cap, new work stops; a serialized atomic save peaks at old+new JSON
+(<8MiB), not one file. Pair manifests have their own4MiB bounded namespace with
+128KiB prepublication margin and count toward the existing512MiB own-output
+budget. Leases use OS locks, not timeout/PID deletion permission.
+
+New Main/API requests bind one immutable pair manifest, acquired under short
+metadata coordination and protected by a generation OS shared lease until the
+materialized request ends. Normal Readers do not acquire qfq_publish.lock.
+The original publisher holds its existing lock, publishes through its unchanged
+owner, then atomically commits one manifest holding both roles/current+rollback.
+A crash between commits leaves the previous immutable pair available; explicit
+seed/reconciliation under the original owner lock is idempotent. Source caller
+adapters replace only a request-local loaded shared Reader's mutable CURRENT
+revalidation; its original filtering and numeric/basis code is unchanged.
+Streaming/lazy returns require an explicit lifetime contract and are rejected by
+the current materialized-entry decorator. Historical direct/frozen profiles keep
+their original selection, and their objects remain protected. Unknown historical
+readers protect their object scope; they are not claimed covered globally.
+
+`ops/mac_storage_monitor.py` is the exact existing external monitor imported then
+patched for its lifecycle. The controller must repoint the existing invocation,
+not add a timer. Its explicitly approved **new empty ordinary root** owns only
+new reports, keeps14ordinary detailed **runs** and90days of lightweight trends,
+protects critical/error/explicit rollback IDs, and supports dry-run. Legacy
+history/inventories, including1.113GB evidence, are not rotation candidates.
+Detailed64KiB/report, trend8MiB and namespace16MiB default caps suppress writes
+when evidence cannot rotate. Non-daily modes code-suppress the old unbounded
+per-file collector even if an old path list remains configured.
+
+Object qualification is recorded in `READER_GC_MATRIX.csv` under the original
+audit. `retire_candidate` provides a noncurrent/nonrollback exclusive-lease gate
+for known immutable generation manifests; it performs no data deletion.
+Future successful private Arrow copies may qualify only with original ownership,
+source/merge/recovery and object-scope authority gates. Concrete complete formal
+panel rebuild certificates are absent; tiny fixtures do not certify a full
+panel. No real formal two-generation GC, natural run, deployment or actual
+reclaim is asserted by this source change.

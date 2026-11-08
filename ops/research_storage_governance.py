@@ -27,6 +27,9 @@ from ops.research_storage_retention import (RetentionError, atomic_json, canonic
 SCHEMA = 'v4_storage_governance_v2'
 GIB = 1024**3
 MIB = 1024**2
+# One bounded mutable slot is reserved before a new task may write data.
+CONTROL_SLOT_BYTES = 256 * 1024
+ADMISSION_MARGIN_BYTES = 16 * 1024
 _ACTIVE = ContextVar('v4_storage_claim', default=None)
 _DEPTH = ContextVar('v4_storage_depth', default=0)
 _ARTIFACT_CACHE = {}
@@ -139,6 +142,8 @@ def configuration(policy):
         value['accounting_roots']['ordinary'].append(policy['run_root'])
         value['creation_roots']=[]
     value['extra_owned_roots']=[str(Path(policy['run_root'])/'storage_retention_ownership')]
+    if os.environ.get('V4_STORAGE_PAIR_ROOT'):
+        value['extra_owned_roots'].append(str(safe_path(os.environ['V4_STORAGE_PAIR_ROOT'],exists=False)))
     return value
 
 
@@ -210,20 +215,45 @@ class Registry:
             safe_path(row['directory'],exists=False)
         return value
 
-    def save(self, value):
-        raw = json.dumps(value).encode()
-        if len(raw) > self.config['max_registry_bytes'] or len(value['tasks']) > self.config['max_tasks']:
+    @staticmethod
+    def encoded(value):
+        # Measure the exact bytes that will be persisted (the former compact
+        # estimate followed by indented atomic_json could exceed the 4MiB cap).
+        return json.dumps(value, sort_keys=True, ensure_ascii=False,
+                          separators=(',', ':')).encode() + b'\n'
+
+    def save(self, value, *, admitting=False):
+        for row in value['tasks'].values():
+            row.pop('_control_reserve', None)
+            if row['state'] != 'READY':
+                used = len(self.encoded(row))
+                if used > CONTROL_SLOT_BYTES:
+                    raise RetentionError('TASK_CONTROL_SLOT_EXCEEDED')
+                # Replaced by bounded terminal metadata, not additional space.
+                row['_control_reserve'] = ' ' * max(0, CONTROL_SLOT_BYTES-used-24)
+        raw = self.encoded(value)
+        limit = self.config['max_registry_bytes'] - (ADMISSION_MARGIN_BYTES if admitting else 0)
+        if len(raw) > limit or len(value['tasks']) > self.config['max_tasks']:
             raise RetentionError('REGISTRY_BUDGET_PROTECTED_EVIDENCE_RETAINED')
-        # No rotation/deletion of evidence. Stop new materialization on this bound.
         extra=sum(billing_bytes(Path(path)) for path in self.config.get('extra_owned_roots',[]) if Path(path).exists() and not under(Path(path),self.root))
-        if billing_bytes(self.root) + extra + 2*len(raw) > self.config['own_budget_bytes']:
+        # Old file plus atomic temporary; no daily database copies or archives.
+        if billing_bytes(self.root) + extra + len(raw) > self.config['own_budget_bytes']:
             raise RetentionError('GOVERNANCE_OWN_OUTPUT_BUDGET')
-        atomic_json(self.path, value)
+        temporary = self.path.with_name('registry.json.pending')
+        safe_path(temporary, exists=False)
+        try:
+            with temporary.open('wb') as stream:
+                stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+            os.replace(temporary, self.path)
+            from ops.research_storage_retention import fsync_dir
+            fsync_dir(self.root)
+        finally:
+            temporary.unlink(missing_ok=True)
 
     def remaining(self, record):
         return max(0, record['reserved_bytes'] - record.get('written_bytes', 0))
 
-    def space(self, state, key, remaining, *, category, optional_full, category_used=0):
+    def space(self, state, key, remaining, *, category, optional_full, category_used=0, category_remaining_bytes=None):
         usage = shutil.disk_usage(self.disk_root)
         ratio = usage.free / usage.total
         if ratio < self.config['minimum_free_ratio'] or (optional_full and ratio < self.config['optional_full_min_ratio']):
@@ -233,9 +263,9 @@ class Registry:
         if usage.free - others - remaining < self.config['reserve_bytes'] + self.config['safety_bytes']:
             raise SpaceBlocked('SPACE_RESERVATION_BLOCKED')
         limit = self.config['debug_budget_bytes'] if category == 'debug' else self.config['ordinary_peak_budget_bytes']
-        category_remaining=sum(self.remaining(row) for task,row in state['tasks'].items()
+        category_remaining=sum(max(0,row['reserved_bytes']-row.get('logical_written_bytes',row.get('written_bytes',0))) for task,row in state['tasks'].items()
             if task!=key and row['category']==category and row['state'] in {'RUNNING','VALIDATING','FAILED_RECOVERABLE','SPACE_BLOCKED'})
-        if category_used + category_remaining + remaining > limit:
+        if category_used + category_remaining + (remaining if category_remaining_bytes is None else category_remaining_bytes) > limit:
             raise SpaceBlocked('CATEGORY_BUDGET_BLOCKED')
         return dict(free_bytes=usage.free, total_bytes=usage.total, remaining_bytes=remaining,
                     other_remaining_bytes=others, ratio_denominator='disk_usage.total shared pool capacity')
@@ -351,7 +381,7 @@ class Claim:
                 resumed=bool(old),heartbeat=time.time(),space=sample,
                 category_baseline_bytes=self.category_used,initial_children=self.initial_children,
                 billing_paths=sorted(set((old or {}).get('billing_paths',[]))|set(self.new_billing_paths())))
-            self.registry.save(state)
+            self.registry.save(state, admitting=True)
         directory=Path(self.directory)
         if directory.exists():
             for path in billing_files(directory):
@@ -425,7 +455,8 @@ class Claim:
                 billing_paths=sorted(set(row.get('billing_paths',[]))|set(self.new_billing_paths())))
             try:
                 row['space'] = self.registry.space(state,self.key,max(incoming,self.registry.remaining(row)),
-                    category=self.category,optional_full=self.optional_full,category_used=self.category_used+logical)
+                    category=self.category,optional_full=self.optional_full,category_used=self.category_used+logical,
+                    category_remaining_bytes=max(incoming,row['reserved_bytes']-logical))
             except SpaceBlocked:
                 self.paused=True
                 row['state']='SPACE_BLOCKED'
@@ -441,6 +472,7 @@ class Claim:
             state = self.registry.read();row = state['tasks'][self.key]
             if row.get('token') != self.token:
                 raise RetentionError('CLAIM_OWNER_DRIFT')
+            row.pop('_control_reserve', None)
             row['billing_paths']=sorted(set(row.get('billing_paths',[]))|set(self.new_billing_paths()))
             row.update(state=('SPACE_BLOCKED' if self.paused else 'FAILED_RECOVERABLE') if error else 'READY',heartbeat=time.time())
             if error:
@@ -607,8 +639,11 @@ def qfq_write_seams(module, claim):
                 and path.name in {'qfq_expected_current.json', 'qfq_readiness.json', 'meta.json', 'task_summary.json', 'stage_status.json'}
                 and len(payload) <= 16*MIB)
             if control or final_receipt:
+                allowance=getattr(claim,'publication_control_reserved_bytes',0)
+                if allowance <= 0 or (final_receipt and allowance != 64*MIB):
+                    raise SpaceBlocked('PUBLICATION_CONTROL_NOT_RESERVED')
                 claim.control_written = getattr(claim, 'control_written', 0) + len(payload)
-                if claim.control_written > 64*MIB:
+                if claim.control_written > allowance:
                     raise SpaceBlocked('PUBLICATION_CONTROL_BUDGET')
             diagnostic = (path.name == 'stage_status.json' and len(payload) <= 64*1024
                           and json.loads(payload).get('status') == 'FAILED')
@@ -728,8 +763,15 @@ def qfq_write_seams(module, claim):
             def call(*args, **kwargs):
                 if not lease.owns():
                     return originals[name](*args, **kwargs)
+                # The64MiB control allowance is carved out of the existing
+                # forecast before entering ANY pointer transaction. It is not
+                # an additional postcommit quota exemption.
+                allowance=64*MIB if name=='publish_pair' else 192*1024
+                claim.checkpoint(incoming=allowance)
+                claim.publication_control_reserved_bytes=allowance
                 if name == 'publish_pair':
-                    claim.checkpoint(incoming=64*MIB)
+                    from ops.research_storage_pair import publication_preflight
+                    publication_preflight()
                     pointers, journal = args[0], args[3]
                 else:
                     journal, pointers = args[:2]
@@ -739,6 +781,10 @@ def qfq_write_seams(module, claim):
                     result = originals[name](*args, **kwargs)
                     if name == 'publish_pair':
                         claim.publication_committed = True
+                        from ops.research_storage_pair import publish_configured
+                        try:publish_configured(args[1])
+                        except (OSError,ValueError,KeyError,RetentionError) as error:
+                            claim.pair_recording_error=str(error)[:1024]
                     return result
                 finally:
                     claim.control_paths = prior
@@ -925,9 +971,11 @@ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointe
     # compatible completed stocks using its existing full identity checks.
     with admission(policy,key=key,directory=return_root,predicted=reservation['predicted_bytes'],
             category_used=0,reuse_ready=False) as (claim,_):
-        with qfq_write_seams(module,claim):
+        with qfq_write_seams(module,claim), input_write_seams(claim):
             result=rebuild(data_root=data_root,return_root=return_root,pointers=pointers,target=target,**kwargs)
         if claim:
+            if getattr(claim,'pair_recording_error',None):
+                result['storage_pair']=dict(status='RECONCILIATION_REQUIRED_OLD_IMMUTABLE_PAIR_RETAINED',error=claim.pair_recording_error)
             if result.get('status')=='READY':
                 try:claim.finish(result,[result['selector'],result['backtest']])
                 except (OSError,ValueError,RetentionError) as error:
@@ -953,6 +1001,13 @@ def configured_policy():
 
 
 def governed_product(function, /, *args, **kwargs):
+    from ops.research_storage_pair import request_binding
+    data = kwargs.get('data_root', args[0] if args else None)
+    with request_binding(data):
+        return _governed_product(function, *args, **kwargs)
+
+
+def _governed_product(function, /, *args, **kwargs):
     """Actual daily/Top200/recovery callsites; original producer keeps ownership.
 
     No cache shortcut: the original producer validates/reuses immutable results.
@@ -1136,3 +1191,136 @@ def main():
 
 
 if __name__=='__main__':main()
+
+
+def input_forecast(tdx_root):
+    root=safe_path(tdx_root)
+    native=[path for path in billing_files(root) if path.suffix.lower()=='.day']
+    native_bytes=sum(path.stat().st_size for path in native)
+    return dict(predicted_bytes=2*native_bytes+64*MIB,native_bytes=native_bytes,
+                native_files=len(native),basis='two existing native copies +32MiB bounded official package +32MiB response/control')
+
+
+@contextmanager
+def input_preflight(*, tdx_root, receipt_root, target):
+    """Actual raw-sync facade, before download/module invocation.
+
+    Protected raw inputs are not ordinary-reclaimable residents. This temporary
+    ordinary peak reservation bounds the source operation, while existing raw
+    bytes remain reflected in real filesystem free space. The source keeps its
+    existing per-request limits and native recovery semantics.
+    """
+    policy=configured_policy()
+    if not policy or not configuration(policy):
+        yield None
+        return
+    root=safe_path(tdx_root)
+    # Existing source writes one accepted full-file view and can stage one native
+    # rewrite; conservatively reserve twice the exact native inventory plus the
+    # existing official package maximum32MiB and response/control headroom32MiB.
+    predicted=input_forecast(root)['predicted_bytes']
+    directory=safe_path(Path(receipt_root)/'a_sync_authority'/str(target),exists=False)
+    key=computation_identity(inputs=dict(native_root=str(root)),scope=dict(target=str(target),market='A'),
+        calculation=dict(entry='existing_raw_sync',source=reference_source(__file__)),schema='raw_sync_storage_only_v1')
+    with admission(policy,key=key,directory=directory,predicted=predicted,reuse_ready=False) as (claim,_):
+        yield claim
+        if claim:
+            # Raw provenance remains protected; this is not a READY derived
+            # artifact or future deletion credential. A tiny storage receipt is
+            # sufficient to release the operation's peak reservation.
+            receipt=claim.registry.root/('input_'+key+'.json')
+            atomic_json(receipt,dict(key=key,status='SOURCE_OPERATION_COMPLETED',
+                source_directory=str(directory),protected_raw=True,predicted_bytes=predicted))
+            claim.finish(dict(status='SOURCE_OPERATION_COMPLETED'),[receipt])
+
+
+@contextmanager
+def input_write_seams(claim):
+    """Catch imported-by-value helper aliases at their real existing boundaries.
+
+    Source files/algorithm identities stay byte-identical. These modules are
+    installed only in the admitted QFQ call context and retired with its lease.
+    Direct standalone invocations remain explicitly outside this scoped adapter.
+    """
+    if claim is None:yield;return
+    import importlib
+    modules=[importlib.import_module('ops.'+name) for name in (
+        'research_panel_adjustment_inputs','research_panel_tdx_adjustment_inputs',
+        'research_panel_daily_source','research_panel_factor_cache')]
+    with _adapter_scope('input',modules,claim) as (lease,selected):
+        if lease is None:yield;return
+        originals=[]
+        for module in selected:
+            for name in ('_write','_save_bytes','_json'):
+                if not hasattr(module,name):continue
+                original=getattr(module,name);originals.append((module,name,original))
+                def guarded(path,payload,*args,_original=original,_name=name,**kwargs):
+                    if not lease.owns():return _original(path,payload,*args,**kwargs)
+                    path=Path(path);claim.watch(path)
+                    size=len(json.dumps(payload,default=str).encode())*2 if _name=='_json' else len(payload)
+                    claim.checkpoint(incoming=size)
+                    result=_original(path,payload,*args,**kwargs)
+                    if lease.owns():claim.observe(path)
+                    return result
+                setattr(module,name,guarded)
+        tdx=next(m for m in selected if m.__name__.endswith('research_panel_tdx_adjustment_inputs'))
+        original_fallback=tdx.build_fallback
+        originals.append((tdx,'build_fallback',original_fallback))
+        def fallback(root,codes,target,**kwargs):
+            if not lease.owns():return original_fallback(root,codes,target,**kwargs)
+            factory=kwargs.get('parser_factory')
+            class Parser:
+                def get_df(self,path):
+                    selected_factory=factory
+                    if selected_factory is None:
+                        # Same original parser and pin/gates, loaded at the
+                        # exact point the existing owner would instantiate it.
+                        import importlib.util
+                        config=json.loads((Path(root)/'qfq_tdx_official_source.json').read_bytes())
+                        spec=importlib.util.spec_from_file_location('qfq_official_gbbq_parser',config['parser']['path'])
+                        parser=importlib.util.module_from_spec(spec);spec.loader.exec_module(parser)
+                        selected_factory=parser.GbbqReader
+                    frame=selected_factory().get_df(path)
+                    class Frame:
+                        def __len__(self):return len(frame)
+                        def __getattr__(self,name):return getattr(frame,name)
+                        def __getitem__(self,key):return frame[key]
+                        def to_parquet(self,path,*args,**kw):
+                            if not lease.owns():return frame.to_parquet(path,*args,**kw)
+                            path=Path(path);claim.watch(path)
+                            claim.checkpoint(incoming=int(frame.memory_usage(index=True,deep=True).sum())+64*1024)
+                            result=frame.to_parquet(path,*args,**kw)
+                            if lease.owns():claim.observe(path)
+                            return result
+                    return Frame()
+            return original_fallback(root,codes,target,**{**kwargs,'parser_factory':Parser})
+        tdx.build_fallback=fallback
+        try:yield
+        finally:
+            lease.retire()
+            for module,name,original in reversed(originals):setattr(module,name,original)
+
+
+def guarded_raw_run(module,args,claim):
+    if claim is None:return module.run(args)
+    with _adapter_scope('raw',[module],claim) as (lease,_):
+        if lease is None:return module.run(args)
+        originals=[]
+        for name in ('_atomic_write_bytes','write_json','write_csv'):
+            if not hasattr(module,name):continue
+            original=getattr(module,name);originals.append((name,original))
+            def guarded(path,payload,*a,_original=original,_name=name,**kw):
+                if not lease.owns():return _original(path,payload,*a,**kw)
+                path=Path(path);claim.watch(path)
+                size=len(payload) if _name=='_atomic_write_bytes' else len(json.dumps(payload,default=str).encode())*2
+                claim.checkpoint(incoming=size)
+                result=_original(path,payload,*a,**kw)
+                if lease.owns():claim.observe(path)
+                return result
+            setattr(module,name,guarded)
+        try:
+            claim.checkpoint()
+            return module.run(args)
+        finally:
+            lease.retire()
+            for name,original in reversed(originals):setattr(module,name,original)

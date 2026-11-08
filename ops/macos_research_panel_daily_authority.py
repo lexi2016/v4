@@ -801,171 +801,176 @@ def run_windows_a_sync_authority(
 ) -> dict[str, Any]:
     # The public facade rebinds this function's globals; keep the new helper
     # anchored to its implementation module, like the frozen default gates.
-    from ops.macos_research_panel_daily_authority import _native_history_evidence
+    from ops.research_storage_governance import input_preflight
+    with input_preflight(tdx_root=tdx_root, receipt_root=receipt_root, target=target_date) as storage_claim:
+        from ops.macos_research_panel_daily_authority import _native_history_evidence
 
-    target = int(_date(target_date))
-    root = Path(tdx_root).resolve()
-    module = _load_authority_module(script_path, module_name)
-    module.TDX_ROOT = root
-    module.DATA_ROOT = Path(receipt_root).resolve()
-    # Keep the durable cursor and raw snapshots date-bound.  A retry for a
-    # different target date must never inherit a prior run's progress scope.
-    module.RUN_DIR = Path(receipt_root).resolve() / "a_sync_authority" / str(target)
-    module.DIR_BY_MARKET = {
-        "a": [("sh", root / "vipdoc" / "sh" / "lday"), ("sz", root / "vipdoc" / "sz" / "lday")],
-        "bj": [("bj", root / "vipdoc" / "bj" / "lday")],
-    }
-    authority_options = dict(authority_args or {})
-    sync_host = authority_options.pop("host", None)
-    sync_port = authority_options.pop("port", None)
-    if sync_port is not None:
-        if sync_host is None:
-            raise SnapshotGateError("A sync port requires an explicit host")
-        if ":" in str(sync_host):
-            raise SnapshotGateError("A sync host must omit the port when port is supplied separately")
-        try:
-            normalized_port = int(sync_port)
-        except (TypeError, ValueError) as error:
-            raise SnapshotGateError("A sync port must be an integer") from error
-        if not 1 <= normalized_port <= 65535:
-            raise SnapshotGateError("A sync port must be between 1 and 65535")
-        sync_host = f"{sync_host}:{normalized_port}"
-    args = argparse.Namespace(
-        tdx_root=root,
-        target_date=target,
-        markets="a,bj",
-        limit=0,
-        host=sync_host,
-        timeout=1.5,
-        count=20,
-        sleep=0.0,
-        progress_every=10_000,
-        dry_run=False,
-        **authority_options,
-    )
-    from ops.research_panel_daily_source import acquire_daily_input
-    source_ref = acquire_daily_input(target, Path(receipt_root).resolve())
-    args.official_daily_input = Path(source_ref["path"])
-    args.official_daily_input_sha256 = source_ref["sha256"]
-    frozen_target_files = _target_files_impl(root)
-    history_evidence = _native_history_evidence(module, args)
-    reported = dict(module.run(args))
-    reported_status = str(reported.get("status") or "").upper()
-    raw_exit_code = reported.get("exit_code", 0)
-    try:
-        exit_code = int(raw_exit_code)
-    except (TypeError, ValueError):
-        exit_code = -1
-    timeout_signal = reported_status in {"TIMEOUT", "A_SYNC_TIMEOUT", "INTERRUPTED"} or bool(
-        reported.get("timeout") or reported.get("interrupted")
-    )
-    bounded_run_timeout = _bounded_timeout_impl(reported, exit_code)
-    if timeout_signal and not bounded_run_timeout:
-        # A bounded partial run is useful evidence, but it is not a sync
-        # authority and must not feed the formula lane.  Persist the explicit
-        # failure receipt before raising so the dispatcher can expose the
-        # first failed layer after the child exits normally.
-        receipt = Path(receipt_root) / "a_sync_authority.json"
-        timeout_payload = {
-            "status": "CANNOT_CONFIRM",
-            "authority_status": "CANNOT_CONFIRM",
-            "RESEARCH_ONLY": True,
-            "reason_code": "A_SYNC_INTERRUPTED" if reported_status == "INTERRUPTED" else "A_SYNC_TIMEOUT",
-            "first_failed_layer": "A_SYNC",
-            "target_date": target,
-            "target_count": reported.get("target_count"),
-            "accepted_count": reported.get("accepted_count"),
-            "quarantine_count": reported.get("quarantine_count"),
-            "completed_count": reported.get("completed_count"),
-            "pending_count": reported.get("pending_count"),
-            "timeout_scope": reported.get("timeout_scope"),
-            "progress_path": reported.get("progress_path"),
-            "authority": reported,
-            **SAFETY_FLAGS,
+        target = int(_date(target_date))
+        root = Path(tdx_root).resolve()
+        module = _load_authority_module(script_path, module_name)
+        module.TDX_ROOT = root
+        module.DATA_ROOT = Path(receipt_root).resolve()
+        # Keep the durable cursor and raw snapshots date-bound.  A retry for a
+        # different target date must never inherit a prior run's progress scope.
+        module.RUN_DIR = Path(receipt_root).resolve() / "a_sync_authority" / str(target)
+        module.DIR_BY_MARKET = {
+            "a": [("sh", root / "vipdoc" / "sh" / "lday"), ("sz", root / "vipdoc" / "sz" / "lday")],
+            "bj": [("bj", root / "vipdoc" / "bj" / "lday")],
         }
-        _atomic_write(
-            receipt,
-            (json.dumps(timeout_payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode(),
+        authority_options = dict(authority_args or {})
+        sync_host = authority_options.pop("host", None)
+        sync_port = authority_options.pop("port", None)
+        if sync_port is not None:
+            if sync_host is None:
+                raise SnapshotGateError("A sync port requires an explicit host")
+            if ":" in str(sync_host):
+                raise SnapshotGateError("A sync host must omit the port when port is supplied separately")
+            try:
+                normalized_port = int(sync_port)
+            except (TypeError, ValueError) as error:
+                raise SnapshotGateError("A sync port must be an integer") from error
+            if not 1 <= normalized_port <= 65535:
+                raise SnapshotGateError("A sync port must be between 1 and 65535")
+            sync_host = f"{sync_host}:{normalized_port}"
+        args = argparse.Namespace(
+            tdx_root=root,
+            target_date=target,
+            markets="a,bj",
+            limit=0,
+            host=sync_host,
+            timeout=1.5,
+            count=20,
+            sleep=0.0,
+            progress_every=10_000,
+            dry_run=False,
+            **authority_options,
         )
-        raise SnapshotGateError(
-            "A sync stopped before exact-date authority closure: "
-            f"scope={reported.get('timeout_scope')},pending={reported.get('pending_count')}"
+        from ops.research_panel_daily_source import acquire_daily_input
+        from ops.research_storage_governance import input_write_seams
+        with input_write_seams(storage_claim):
+            source_ref = acquire_daily_input(target, Path(receipt_root).resolve())
+        args.official_daily_input = Path(source_ref["path"])
+        args.official_daily_input_sha256 = source_ref["sha256"]
+        frozen_target_files = _target_files_impl(root)
+        history_evidence = _native_history_evidence(module, args)
+        from ops.research_storage_governance import guarded_raw_run
+        reported = dict(guarded_raw_run(module, args, storage_claim))
+        reported_status = str(reported.get("status") or "").upper()
+        raw_exit_code = reported.get("exit_code", 0)
+        try:
+            exit_code = int(raw_exit_code)
+        except (TypeError, ValueError):
+            exit_code = -1
+        timeout_signal = reported_status in {"TIMEOUT", "A_SYNC_TIMEOUT", "INTERRUPTED"} or bool(
+            reported.get("timeout") or reported.get("interrupted")
         )
-    target_files = frozen_target_files
-    scope = _scope_audit_impl(
-        root,
-        target,
-        target_files,
-        reported,
-        allow_bounded_run_timeout=bounded_run_timeout,
-    )
-    authority_status = str(scope["authority_status"])
-    accepted_value = int(scope["accepted_count"])
-    quarantine_value = int(scope["quarantine_count"])
-    pending_value = int(scope["pending_count"])
-    target_value = int(scope["target_count"])
-    partial_sync = authority_status == "REBUILD_REQUIRED"
-    input_info: dict[str, Any]
-    if partial_sync:
-        run_dir_value = reported.get("run_dir") or str(module.RUN_DIR)
-        input_info = _accepted_formula_input_root(
+        bounded_run_timeout = _bounded_timeout_impl(reported, exit_code)
+        if timeout_signal and not bounded_run_timeout:
+            # A bounded partial run is useful evidence, but it is not a sync
+            # authority and must not feed the formula lane.  Persist the explicit
+            # failure receipt before raising so the dispatcher can expose the
+            # first failed layer after the child exits normally.
+            receipt = Path(receipt_root) / "a_sync_authority.json"
+            timeout_payload = {
+                "status": "CANNOT_CONFIRM",
+                "authority_status": "CANNOT_CONFIRM",
+                "RESEARCH_ONLY": True,
+                "reason_code": "A_SYNC_INTERRUPTED" if reported_status == "INTERRUPTED" else "A_SYNC_TIMEOUT",
+                "first_failed_layer": "A_SYNC",
+                "target_date": target,
+                "target_count": reported.get("target_count"),
+                "accepted_count": reported.get("accepted_count"),
+                "quarantine_count": reported.get("quarantine_count"),
+                "completed_count": reported.get("completed_count"),
+                "pending_count": reported.get("pending_count"),
+                "timeout_scope": reported.get("timeout_scope"),
+                "progress_path": reported.get("progress_path"),
+                "authority": reported,
+                **SAFETY_FLAGS,
+            }
+            _atomic_write(
+                receipt,
+                (json.dumps(timeout_payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode(),
+            )
+            raise SnapshotGateError(
+                "A sync stopped before exact-date authority closure: "
+                f"scope={reported.get('timeout_scope')},pending={reported.get('pending_count')}"
+            )
+        target_files = frozen_target_files
+        scope = _scope_audit_impl(
             root,
             target,
-            Path(receipt_root),
-            Path(run_dir_value),
-            target_files=target_files,
-            authority_status=authority_status,
-            _history_status=getattr(module, "_local_history_status", None),
-            _history_evidence=history_evidence,
+            target_files,
+            reported,
+            allow_bounded_run_timeout=bounded_run_timeout,
         )
-        effective_target_count = int(input_info["accepted_target_date_file_count"])
-    else:
-        _full_scope_impl(root, target, target_files, reported)
-        effective_target_count = len(target_files)
-        input_info = {
-            "formula_tdx_root": str(root),
-            "formula_input_mode": "FULL_SYNC",
-            "formula_input_manifest": None,
-            "accepted_target_date_file_count": effective_target_count,
-            "excluded_rebuild_candidate_count": 0,
+        authority_status = str(scope["authority_status"])
+        accepted_value = int(scope["accepted_count"])
+        quarantine_value = int(scope["quarantine_count"])
+        pending_value = int(scope["pending_count"])
+        target_value = int(scope["target_count"])
+        partial_sync = authority_status == "REBUILD_REQUIRED"
+        input_info: dict[str, Any]
+        if partial_sync:
+            run_dir_value = reported.get("run_dir") or str(module.RUN_DIR)
+            input_info = _accepted_formula_input_root(
+                root,
+                target,
+                Path(receipt_root),
+                Path(run_dir_value),
+                target_files=target_files,
+                authority_status=authority_status,
+                _history_status=getattr(module, "_local_history_status", None),
+                _history_evidence=history_evidence,
+            )
+            effective_target_count = int(input_info["accepted_target_date_file_count"])
+        else:
+            _full_scope_impl(root, target, target_files, reported)
+            effective_target_count = len(target_files)
+            input_info = {
+                "formula_tdx_root": str(root),
+                "formula_input_mode": "FULL_SYNC",
+                "formula_input_manifest": None,
+                "accepted_target_date_file_count": effective_target_count,
+                "excluded_rebuild_candidate_count": 0,
+            }
+        if partial_sync and effective_target_count != accepted_value:
+            raise SnapshotGateError(
+                "A sync reconciliation accepted count does not match exact-date files: "
+                f"reported={accepted_value},materialized={effective_target_count}"
+            )
+        # The original owner floor applies equally to a partial/rebuild handoff;
+        # quarantines do not authorize a weaker formula-input threshold.
+        required_count = int(minimum_target_date_files)
+        if effective_target_count < required_count:
+            raise SnapshotGateError(f"A sync target-date postcondition failed: {effective_target_count} < {required_count}")
+        if target_value <= 0:
+            raise SnapshotGateError("A sync target-date coverage cannot be confirmed")
+        coverage_rate = accepted_value / target_value
+        if not 0.0 <= float(coverage_rate) <= 1.0:
+            raise SnapshotGateError("A sync target-date coverage is invalid")
+        receipt = Path(receipt_root) / "a_sync_authority.json"
+        payload = {
+            "status": "READY",
+            "authority_status": authority_status,
+            "target_date": target,
+            "target_date_file_count": effective_target_count,
+            "target_scope_file_count": len(target_files),
+            "target_count": target_value,
+            "accepted_count": accepted_value,
+            "quarantine_count": quarantine_value,
+            "pending_count": pending_value,
+            "target_fingerprint": scope["target_fingerprint"],
+            "target_keys": scope["target_keys"],
+            "coverage_rate": coverage_rate,
+            "reconciliation": reported.get("reconciliation"),
+            "files": [str(path) for path in target_files],
+            "authority": reported,
+            **input_info,
+            **SAFETY_FLAGS,
         }
-    if partial_sync and effective_target_count != accepted_value:
-        raise SnapshotGateError(
-            "A sync reconciliation accepted count does not match exact-date files: "
-            f"reported={accepted_value},materialized={effective_target_count}"
-        )
-    # The original owner floor applies equally to a partial/rebuild handoff;
-    # quarantines do not authorize a weaker formula-input threshold.
-    required_count = int(minimum_target_date_files)
-    if effective_target_count < required_count:
-        raise SnapshotGateError(f"A sync target-date postcondition failed: {effective_target_count} < {required_count}")
-    if target_value <= 0:
-        raise SnapshotGateError("A sync target-date coverage cannot be confirmed")
-    coverage_rate = accepted_value / target_value
-    if not 0.0 <= float(coverage_rate) <= 1.0:
-        raise SnapshotGateError("A sync target-date coverage is invalid")
-    receipt = Path(receipt_root) / "a_sync_authority.json"
-    payload = {
-        "status": "READY",
-        "authority_status": authority_status,
-        "target_date": target,
-        "target_date_file_count": effective_target_count,
-        "target_scope_file_count": len(target_files),
-        "target_count": target_value,
-        "accepted_count": accepted_value,
-        "quarantine_count": quarantine_value,
-        "pending_count": pending_value,
-        "target_fingerprint": scope["target_fingerprint"],
-        "target_keys": scope["target_keys"],
-        "coverage_rate": coverage_rate,
-        "reconciliation": reported.get("reconciliation"),
-        "files": [str(path) for path in target_files],
-        "authority": reported,
-        **input_info,
-        **SAFETY_FLAGS,
-    }
-    _atomic_write(receipt, (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
-    return payload
+        _atomic_write(receipt, (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
+        return payload
 
 
 def _parquet_max_date(path: Path) -> int | None:
