@@ -137,6 +137,35 @@ def logical_bytes(path: Path) -> int:
     return sum(stamp(item)["size"] for item in files(path))
 
 
+def quarantine_state(policy: dict, *, measure: bool = True) -> dict:
+    """Known-absent legacy Desktop destination is valid only for no-delete mode.
+
+    Never recreate a user-deleted directory. Permission errors, wrong types and
+    path escapes are errors, not measured zeroes. Validate an existing ancestor.
+    """
+    path = safe_path(policy["quarantine_root"], exists=False)
+    try:
+        info = path.stat()
+    except FileNotFoundError:
+        if not policy.get("dry_run", True) or policy.get("auto_gc_enabled", False):
+            raise RetentionError("MISSING_QUARANTINE_OUTSIDE_NONDELETING_DRYRUN")
+        ancestor = path.parent
+        while True:
+            try:
+                info = ancestor.stat()
+                break
+            except FileNotFoundError:
+                if ancestor == ancestor.parent:
+                    raise RetentionError("QUARANTINE_EXISTING_ANCESTOR_UNKNOWN")
+                ancestor = ancestor.parent
+        if not stat.S_ISDIR(info.st_mode) or info.st_dev != Path(policy["data_root"]).stat().st_dev:
+            raise RetentionError("QUARANTINE_ANCESTOR_TYPE_OR_POOL")
+        return dict(status="KNOWN_ABSENT_NONDELETING_DRYRUN", bytes=0, path=str(path), ancestor=str(ancestor))
+    if not stat.S_ISDIR(info.st_mode):
+        raise RetentionError("QUARANTINE_NOT_DIRECTORY")
+    return dict(status="EXISTS", bytes=logical_bytes(path) if measure else None, path=str(path))
+
+
 def load_policy(path: Path, *, data_root: Path | None = None,
                 run_root: Path | None = None, pointers: dict | None = None,
                 expected_sha256: str | None = None) -> dict:
@@ -145,8 +174,9 @@ def load_policy(path: Path, *, data_root: Path | None = None,
     policy = read_json(path)
     if policy.get("schema") != SCHEMA or policy.get("keep_completed") != 2:
         raise RetentionError("POLICY_SCHEMA_OR_KEEP_COMPLETED")
-    for key in ("data_root", "run_root", "quarantine_root"):
+    for key in ("data_root", "run_root"):
         safe_path(policy[key])
+    quarantine_state(policy, measure=False)
     for key in ("pointers", "formal_roots"):
         if set(policy[key]) != ROLES:
             raise RetentionError(f"POLICY_ROLES:{key}")
@@ -277,6 +307,9 @@ def begin_creation(policy: dict) -> Path | None:
     """
     if not policy.get("future_reclamation"):
         return None
+    owned = _ownership_root(policy)
+    if owned.exists() and logical_bytes(owned) >= 64 * 1024**2:
+        raise RetentionError("OWNERSHIP_EVIDENCE_BUDGET_NO_DELETION")
     roots = [policy["run_root"], *policy["formal_roots"].values()]
     existing = {root: sorted(item.name for item in safe_path(root).iterdir()) for root in roots}
     path = _ownership_root(policy) / "reservations" / (uuid.uuid4().hex + ".json")
@@ -823,7 +856,8 @@ def plan(policy: dict, *, active_recovery_refs: list | None = None) -> dict:
                   run_names=sorted(path.name for path in Path(policy["run_root"]).iterdir() if RUN.fullmatch(path.name)),
                   source_verifications=source_verifications, preserved_unknown=unknown,
                   consumer_scope_attestations=pin_inventory["consumer_scopes"],
-                  actions=actions, move_bytes=sum(item["bytes"] for item in actions), **FLAGS)
+                  actions=actions, move_bytes=sum(item["bytes"] for item in actions),
+                  auto_gc_enabled=False, dry_run=True, gc_execution_status="BLOCKED_UNREGISTERED_READER_COORDINATION", **FLAGS)
     result["plan_id"] = canonical(result)
     return result
 
@@ -841,113 +875,25 @@ def _recheck(policy: dict, proposal: dict) -> None:
 
 
 def apply(policy: dict, proposal: dict) -> dict:
-    """Caller holds retention AND publication locks; never follows/replaces paths.
+    """Nondeleting candidate validation; no rename/unlink under dry-run.
 
-    PREPARED manifest is fsynced before first rename. Repeating this exact plan
-    resumes interrupted moves using inode, bytes and SHA; an existing different
-    destination is never overwritten. Small original run receipts stay in place.
+    Legacy future_reclamation is creation provenance, never GC authorization.
+    Actual Reader/reference coordination has not been integrated. Even an
+    explicit switch cannot enable mutation until that separate contract exists.
     """
     identity = dict(proposal)
     plan_id = identity.pop("plan_id")
     if canonical(identity) != plan_id:
         raise RetentionError("PLAN_DIGEST_CONFLICT")
     _recheck(policy, proposal)
-    quarantine = safe_path(policy["quarantine_root"])
-    destination = quarantine / plan_id
-    safe_path(destination, exists=False)
-    manifest_path = destination / "RESTORE_MANIFEST.json"
-    if manifest_path.exists():
-        manifest = read_json(manifest_path)
-        if manifest["plan"] != proposal:
-            raise RetentionError("DESTINATION_COLLISION")
-    else:
-        if destination.exists():
-            raise RetentionError("DESTINATION_COLLISION")
-        retained_bytes = sum(action["bytes"] for action in proposal["actions"] if action["disposition"] != "RECLAIM_FUTURE")
-        if logical_bytes(quarantine) + retained_bytes > policy["max_quarantine_bytes"]:
-            raise RetentionError("QUARANTINE_BUDGET_EXCEEDED_NO_SPACE_FREED")
-        for action in proposal["actions"]:
-            source, run = safe_path(action["source"]), safe_path(action["run"])
-            status = read_json(run / "stage_status.json")
-            relocated = {item["original_path"]: item["archived_path"] for item in policy.get("formal_relocations", [])}
-            allowed = {run / name for name in ("symbol_checkpoints", "current_selector_buckets", "current_backtest_buckets")}
-            for role, value in status["candidates"].items():
-                path = Path(relocated.get(value, value))
-                allowed.add(path.parent if role == "selector" else path.parent.parent)
-            if (run.parent != Path(policy["run_root"]) or not RUN.fullmatch(run.name)
-                    or status.get("status") != "READY" or source not in allowed
-                    or any(overlap(source, Path(pin)) for pin in proposal["protected"])
-                    or action["disposition"] not in {"RECLAIM_FUTURE", "QUARANTINE_EXISTING", "QUARANTINE_FUTURE_UNPROVEN"}):
-                raise RetentionError("APPLY_ACTION_SCOPE_CONFLICT")
-            if action["disposition"] == "RECLAIM_FUTURE":
-                disposition, reconstruction, _ = reclamation_classification(policy, action, status, proposal["source_verifications"])
-                if disposition != "RECLAIM_FUTURE" or reconstruction != action.get("reconstruction"):
-                    raise RetentionError("RECONSTRUCTION_PROOF_REQUIRED_FOR_RECLAIM")
-            if source.stat().st_dev != quarantine.stat().st_dev:
-                raise RetentionError("CROSS_DEVICE_MOVE_FORBIDDEN")
-        destination.mkdir()
-        manifest = dict(schema=SCHEMA, status="PREPARED", plan=proposal, moved=[], purge_started=[], purged={}, **FLAGS)
-        atomic_json(manifest_path, manifest)
-    for index, action in enumerate(proposal["actions"]):
-        source, target = Path(action["source"]), destination / f"artifact_{index:04d}"
-        safe_path(source, exists=False)
-        safe_path(target, exists=False)
-        if source.exists() and target.exists() or not source.exists() and not target.exists():
-            raise RetentionError("MOVE_STATE_AMBIGUOUS")
-        located = source if source.exists() else target
-        expected_names = {str(Path(item["path"]).relative_to(source)) for item in action["files"]}
-        found_names = {str(path.relative_to(located)) for path in files(located)}
-        purging = index in manifest["purge_started"]
-        missing = expected_names - found_names
-        if (found_names - expected_names or missing and (not purging or located != target)
-                or any(Path(name).suffix != ".parquet" for name in missing)):
-            raise RetentionError("MOVE_TREE_CHANGED")
-        for item in action["files"]:
-            path = located / Path(item["path"]).relative_to(source)
-            if not path.exists() and purging:
-                continue
-            actual = stamp(path)
-            # rename can change ctime; inode/device/size/mtime and SHA are fixed.
-            if any(actual[key] != item["stat"][key] for key in ("device", "inode", "size", "mtime_ns")) or digest(path) != item["sha256"]:
-                raise RetentionError(f"MOVE_FILE_CHANGED:{path}")
-        if located == source:
-            os.rename(source, target)
-            fsync_dir(source.parent)
-            fsync_dir(destination)
-        # Verify destination again after rename, before publishing progress.
-        for item in action["files"]:
-            path = target / Path(item["path"]).relative_to(source)
-            if path.exists():
-                _checked_file(path, item["sha256"])
-        if index not in manifest["moved"]:
-            manifest["moved"].append(index)
-            atomic_json(manifest_path, manifest)
-        if action["disposition"] == "RECLAIM_FUTURE":
-            # Durable complete-tree verification precedes any irreversible step.
-            # Existing artifacts cannot enter this branch without a pre-build
-            # absence reservation and matching committed ownership receipt.
-            if index not in manifest["purge_started"]:
-                manifest["purge_started"].append(index)
-                atomic_json(manifest_path, manifest)
-            purged = manifest["purged"].setdefault(str(index), [])
-            for item in action["files"]:
-                relative = Path(item["path"]).relative_to(source)
-                path = target / relative
-                if path.suffix != ".parquet":
-                    continue  # Preserve all small receipts and lineage JSON.
-                if path.exists():
-                    _checked_file(path, item["sha256"])
-                    path.unlink()
-                    fsync_dir(path.parent)
-                if str(relative) not in purged:
-                    purged.append(str(relative))
-                    atomic_json(manifest_path, manifest)
-    reclaimed = sum(item["stat"]["size"] for action in proposal["actions"] if action["disposition"] == "RECLAIM_FUTURE"
-                    for item in action["files"] if Path(item["path"]).suffix == ".parquet")
-    manifest["status"] = "FUTURE_RECLAIMED_EXISTING_QUARANTINED" if reclaimed else "QUARANTINED_NOT_DELETED"
-    atomic_json(manifest_path, manifest)
-    return dict(status=manifest["status"], manifest=str(manifest_path), moved_bytes=proposal["move_bytes"],
-                reclaimed_logical_bytes=reclaimed, freed_bytes=None if reclaimed else 0)
+    if policy.get("auto_gc_enabled", False) and not policy.get("dry_run", True):
+        raise RetentionError("GC_BLOCKED_UNREGISTERED_READER_COORDINATION")
+    return dict(status="DRY_RUN_NO_DATA_MUTATION", plan_id=plan_id,
+                candidate_count=len(proposal["actions"]),
+                candidate_bytes=proposal["move_bytes"], moved_bytes=0,
+                reclaimed_logical_bytes=0, freed_bytes=0,
+                auto_gc_enabled=False, dry_run=True,
+                blocker="UNREGISTERED_READER_COORDINATION_AND_POLICY_AUTHORIZATION")
 
 
 def growth_guard(policy: dict, *, already_current: bool) -> dict:
@@ -958,7 +904,8 @@ def growth_guard(policy: dict, *, already_current: bool) -> dict:
     # Full pair output + Arrow bucket copies + computed symbol shards, with
     # headroom. This is a conservative estimate, not a filesystem allocation cap.
     predicted = max(policy["minimum_build_bytes"], math.ceil(pair_bytes * 3.5))
-    quarantine_bytes = logical_bytes(Path(policy["quarantine_root"]))
+    quarantine = quarantine_state(policy)
+    quarantine_bytes = quarantine["bytes"]
     managed_bytes = logical_bytes(Path(policy["run_root"])) + sum(logical_bytes(Path(path)) for path in policy["formal_roots"].values())
     free = shutil.disk_usage(policy["data_root"]).free
     if free - predicted < policy["reserve_bytes"]:
@@ -968,7 +915,7 @@ def growth_guard(policy: dict, *, already_current: bool) -> dict:
     if quarantine_bytes >= policy["max_quarantine_bytes"]:
         raise RetentionError("NEW_BUILD_QUARANTINE_BUDGET_NO_PERMANENT_DELETE")
     return dict(status="NEW_BUILD_BUDGET_RESERVED", predicted_bytes=predicted, free_bytes=free,
-                managed_bytes=managed_bytes, quarantine_bytes=quarantine_bytes)
+                managed_bytes=managed_bytes, quarantine_bytes=quarantine_bytes, quarantine_status=quarantine["status"])
 
 
 def run_with_retention(rebuild, *, data_root: Path, return_root: Path, pointers: dict,
@@ -988,12 +935,27 @@ def run_with_retention(rebuild, *, data_root: Path, return_root: Path, pointers:
         raise RetentionError("MAIN_APP_ROOT_BINDING_FAILED")
     with owner_lock(policy):
         with owner_lock(policy, publication=True):
+            from ops.research_storage_governance import configuration, verified_qfq_current, governed_qfq
+            governed = configuration(policy) is not None
             reuse = bool(ready_check())
+            if governed and reuse:
+                from ops import research_panel_qfq
+                current = verified_qfq_current(research_panel_qfq, policy, target, kwargs)
+                if current is not None:
+                    # Existing results stay safely readable even when the pool
+                    # registry or disk admission is unavailable. No producer runs.
+                    current["storage_retention"] = dict(reservation=dict(status="VERIFIED_REUSE_NO_WRITES"),
+                        outcome=dict(status="DRY_RUN_NO_DATA_MUTATION"))
+                    return current
+                raise RetentionError("READY_COMPUTE_IDENTITY_RECONCILIATION_REQUIRED_NO_AUTOMATIC_REBUILD")
             reservation = growth_guard(policy, already_current=reuse)
             creation = begin_creation(policy) if not reuse else None
-        # Existing rebuild obtains its unchanged publication lock, source gates,
-        # CURRENT transaction and idempotent checkpoint reuse itself.
-        result = rebuild(data_root=data_root, return_root=return_root, pointers=pointers, target=target, **kwargs)
+        # The original owner retains its publication lock and all source gates.
+        if governed:
+            result = governed_qfq(rebuild, policy, reservation, data_root=data_root,
+                return_root=return_root, pointers=pointers, target=target, **kwargs)
+        else:
+            result = rebuild(data_root=data_root, return_root=return_root, pointers=pointers, target=target, **kwargs)
         if result.get("status") != "READY":
             return result
         try:

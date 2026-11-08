@@ -110,7 +110,7 @@ def test_current_rollback_and_small_audit_receipts_survive(fixture):
     assert f.entries[0][0] / "symbol_checkpoints" in actions(proposal)
     outcome = storage.apply(policy, proposal)
     assert outcome["freed_bytes"] == 0
-    assert outcome["status"] == "QUARANTINED_NOT_DELETED"
+    assert outcome["status"] == "DRY_RUN_NO_DATA_MUTATION"
     assert all((run / "stage_status.json").exists() and (run / "candidate_receipt.json").exists()
                for run, _ in f.entries)
     assert storage.apply(policy, proposal) == outcome
@@ -169,25 +169,15 @@ def test_apply_rechecks_pointer_receipt_inventory_and_pins(fixture, change):
     assert not list(f.quarantine.iterdir())
 
 
-def test_move_interruption_manifest_precedes_rename_and_resumes(fixture, monkeypatch):
+def test_dry_run_never_enters_rename_transaction(fixture, monkeypatch):
     f = fixture
     proposal = storage.plan(f.policy)
-    rename = storage.os.rename
-    counter = 0
-    def interrupt(source, destination):
-        nonlocal counter
-        assert (Path(destination).parent / "RESTORE_MANIFEST.json").is_file()
-        counter += 1
-        if counter == 2:
-            raise OSError("simulated interruption")
-        rename(source, destination)
-    monkeypatch.setattr(storage.os, "rename", interrupt)
-    with pytest.raises(OSError, match="simulated interruption"):
-        storage.apply(f.policy, proposal)
-    manifest = f.quarantine / proposal["plan_id"] / "RESTORE_MANIFEST.json"
-    assert json.loads(manifest.read_text())["status"] == "PREPARED"
-    monkeypatch.setattr(storage.os, "rename", rename)
-    assert storage.apply(f.policy, proposal)["status"] == "QUARANTINED_NOT_DELETED"
+    def forbidden(*args, **kwargs):
+        pytest.fail("dry-run must never rename ordinary data")
+    monkeypatch.setattr(storage.os, "rename", forbidden)
+    assert storage.apply(f.policy, proposal)["status"] == "DRY_RUN_NO_DATA_MUTATION"
+    assert not list(f.quarantine.iterdir())
+    assert all(Path(row["source"]).exists() for row in proposal["actions"])
 
 
 def test_symlink_alias_path_escape_and_collision(fixture):
@@ -195,8 +185,7 @@ def test_symlink_alias_path_escape_and_collision(fixture):
     proposal = storage.plan(f.policy)
     destination = f.quarantine / proposal["plan_id"]
     destination.mkdir()
-    with pytest.raises(storage.RetentionError, match="COLLISION"):
-        storage.apply(f.policy, proposal)
+    assert storage.apply(f.policy, proposal)["moved_bytes"] == 0
     destination.rmdir()
     checkpoint = f.entries[0][0] / "symbol_checkpoints" / "000001.SZ.parquet"
     alias = f.tmp / "alias"
@@ -214,8 +203,7 @@ def test_quarantine_limit_and_absolute_growth_guard(fixture, monkeypatch):
     f = fixture
     f.policy["max_quarantine_bytes"] = 1
     proposal = storage.plan(f.policy)
-    with pytest.raises(storage.RetentionError, match="QUARANTINE_BUDGET"):
-        storage.apply(f.policy, proposal)
+    assert storage.apply(f.policy, proposal)["moved_bytes"] == 0
     assert storage.growth_guard(f.policy, already_current=True)["status"].startswith("REUSE")
     monkeypatch.setattr(storage.shutil, "disk_usage", lambda _: types.SimpleNamespace(free=1000))
     f.policy["max_quarantine_bytes"] = 10**8
@@ -235,7 +223,8 @@ def test_cross_day_budget_counts_quarantine_no_rehash_of_protected_history(fixtu
     proposal = storage.plan(f.policy)
     storage.apply(f.policy, proposal)
     moved = storage.logical_bytes(f.quarantine)
-    assert moved >= proposal["move_bytes"]
+    assert moved == 0
+    moved = proposal["move_bytes"]
     f.policy["max_managed_bytes"] = moved
     with pytest.raises(storage.RetentionError, match="MANAGED_BUDGET"):
         storage.growth_guard(f.policy, already_current=False)
@@ -367,18 +356,10 @@ def test_only_registered_future_obsolete_artifacts_can_be_reclaimed(fixture):
     assert all(action["disposition"] == "QUARANTINE_EXISTING" for action in proposal["actions"]
                if Path(action["run"]) in {item[0] for item in f.entries[:5]})
     outcome = storage.apply(f.policy, proposal)
-    assert outcome["reclaimed_logical_bytes"] > 0
-    assert outcome["freed_bytes"] is None  # Physical allocation is a separate measurement.
-    manifest = json.loads(Path(outcome["manifest"]).read_text())
-    for index, action in enumerate(proposal["actions"]):
-        target = Path(outcome["manifest"]).parent / f"artifact_{index:04d}"
-        if action["disposition"] != "RECLAIM_FUTURE":
-            assert all((target / Path(item["path"]).relative_to(action["source"])).exists() for item in action["files"])
-        else:
-            assert not list(target.rglob("*.parquet"))
-            assert all((target / Path(item["path"]).relative_to(action["source"])).exists()
-                       for item in action["files"] if item["path"].endswith(".json"))
-    assert manifest["purge_started"]
+    assert outcome["reclaimed_logical_bytes"] == 0
+    assert outcome["freed_bytes"] == 0
+    assert all(Path(row["source"]).exists() for row in proposal["actions"])
+    assert not list(f.quarantine.iterdir())
     assert storage.apply(f.policy, proposal) == outcome
 
 
@@ -393,26 +374,22 @@ def test_future_failed_or_reused_current_never_registered(fixture):
     assert not any(storage.under(path, failed) for path in actions(storage.plan(f.policy)))
 
 
-def test_future_reclamation_interrupted_after_unlink_resumes(fixture, monkeypatch):
+def test_legacy_future_flag_cannot_bypass_dryrun_or_reader_blocker(fixture, monkeypatch):
     f = fixture
     enable_future(f)
     append_future_generation(f, 5)
     append_future_generation(f, 6)
     append_future_generation(f, 7)
     proposal = storage.plan(f.policy)
-    unlink = Path.unlink
-    interrupted = False
-    def interrupt(path, *args, **kwargs):
-        nonlocal interrupted
-        unlink(path, *args, **kwargs)
-        if path.suffix == ".parquet" and not interrupted:
-            interrupted = True
-            raise OSError("after irreversible unlink")
-    monkeypatch.setattr(Path, "unlink", interrupt)
-    with pytest.raises(OSError, match="irreversible"):
-        storage.apply(f.policy, proposal)
-    monkeypatch.setattr(Path, "unlink", unlink)
-    assert storage.apply(f.policy, proposal)["reclaimed_logical_bytes"] > 0
+    def forbidden(*args, **kwargs):
+        pytest.fail("legacy future_reclamation must not bypass no-delete defaults")
+    monkeypatch.setattr(Path, "unlink", forbidden)
+    assert storage.apply(f.policy, proposal)["reclaimed_logical_bytes"] == 0
+    assert all(Path(row["source"]).exists() for row in proposal["actions"])
+    f.policy.update(auto_gc_enabled=True, dry_run=False)
+    proposal=storage.plan(f.policy)
+    with pytest.raises(storage.RetentionError,match="UNREGISTERED_READER"):
+        storage.apply(f.policy,proposal)
 
 
 def test_future_pin_and_owner_lock_block_reclamation(fixture):
@@ -539,7 +516,7 @@ def test_explicit_consumer_of_current_future_spool_prevents_immediate_disposal(f
     assert future / "current_selector_buckets" not in actions(storage.plan(f.policy))
 
 
-def test_cross_device_quarantine_fails_without_move(fixture, monkeypatch):
+def test_cross_device_dryrun_never_moves(fixture, monkeypatch):
     f = fixture
     proposal = storage.plan(f.policy)
     original = Path.stat
@@ -551,8 +528,7 @@ def test_cross_device_quarantine_fails_without_move(fixture, monkeypatch):
             return storage.os.stat_result(values)
         return info
     monkeypatch.setattr(Path, "stat", different_device)
-    with pytest.raises(storage.RetentionError, match="CROSS_DEVICE"):
-        storage.apply(f.policy, proposal)
+    assert storage.apply(f.policy, proposal)["moved_bytes"] == 0
     assert not list(f.quarantine.iterdir())
 
 
@@ -636,7 +612,7 @@ def install_checkpoint_proof_fixture(f, monkeypatch, run, status):
     return raw, snapshot, checkpoint
 
 
-def test_certified_future_checkpoint_purges_but_formal_remains_quarantined(fixture, monkeypatch):
+def test_certified_future_checkpoint_remains_candidate_without_reader_coordination(fixture, monkeypatch):
     f=fixture
     enable_future(f)
     run,status=append_future_generation(f,5)
@@ -652,7 +628,8 @@ def test_certified_future_checkpoint_purges_but_formal_remains_quarantined(fixtu
         root=Path(path).parent if role=="selector" else Path(path).parent.parent
         disposition,proof,_=storage.reclamation_classification(f.policy,dict(run=str(run),source=str(root)),status,{})
         assert disposition=="QUARANTINE_FUTURE_UNPROVEN" and proof["status"]=="UNKNOWN_FORMAL_RECONSTRUCTION"
-    assert storage.apply(f.policy,proposal)["reclaimed_logical_bytes"]>0
+    assert storage.apply(f.policy,proposal)["reclaimed_logical_bytes"]==0
+    assert (run/"symbol_checkpoints/000001.SZ.parquet").exists()
 
 
 @pytest.mark.parametrize("failure",["missing_raw","changed_raw","changed_code","fingerprint","source_budget"])
@@ -806,3 +783,90 @@ def test_missing_usage_is_strict_and_unknown_usage_fails(fixture):
     update_inventory(f,lambda value:value["pins"][-1].update(usage="unknown_mode"))
     with pytest.raises(storage.RetentionError,match="USAGE_UNKNOWN"):
         storage.plan(f.policy)
+
+
+@pytest.mark.parametrize('verified', [True,False])
+def test_governed_ready_reads_bypass_space_registry_but_stale_control_never_rebuilds(fixture,monkeypatch,verified):
+    from ops import research_storage_governance as governance
+    f=fixture
+    f.policy['governance']=dict(enabled=True,registry_root=str(f.tmp/'registry'),pool_id='test-shared-apfs',pool_identity_verified=True)
+    write(f.policy_path,f.policy)
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY',str(f.policy_path))
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY_SHA256',storage.digest(f.policy_path))
+    monkeypatch.setattr(governance,'verified_qfq_current',lambda *args:dict(status='READY',already_current=True) if verified else None)
+    monkeypatch.setattr(storage.shutil,'disk_usage',lambda _:pytest.fail('verified safe reuse must not need disk admission'))
+    def forbidden(**kwargs):pytest.fail('no original full producer invocation from stale cheap READY')
+    def run():return storage.run_with_retention(forbidden,data_root=f.data,return_root=f.runs,
+        pointers={k:Path(v) for k,v in f.policy['pointers'].items()},target=20261104,ready_check=lambda:True)
+    if verified:
+        assert run()['storage_retention']['reservation']['status']=='VERIFIED_REUSE_NO_WRITES'
+    else:
+        with pytest.raises(storage.RetentionError,match='NO_AUTOMATIC_REBUILD'):run()
+    assert not (f.tmp/'registry').exists()
+
+
+def test_user_deleted_quarantine_dryrun_load_guard_plan_status_never_recreates(fixture,monkeypatch):
+    from ops import research_storage_governance as governance
+    f=fixture;f.quarantine.rmdir()
+    f.policy.update(dry_run=True,auto_gc_enabled=False)
+    f.policy['governance']=dict(enabled=True,registry_root=str(f.tmp/'registry'),pool_id='shared-test-apfs',pool_identity_verified=True)
+    write(f.policy_path,f.policy)
+    policy=storage.load_policy(f.policy_path)
+    monkeypatch.setattr(storage.shutil,'disk_usage',lambda _:types.SimpleNamespace(free=200*1024**3,total=1000*1024**3))
+    outcome=storage.growth_guard(policy,already_current=False)
+    assert outcome['quarantine_bytes']==0 and outcome['quarantine_status']=='KNOWN_ABSENT_NONDELETING_DRYRUN'
+    proposal=storage.plan(policy)
+    assert storage.apply(policy,proposal)['moved_bytes']==0
+    assert governance.read_only_status(policy)['status']=='READ_ONLY'
+    assert not f.quarantine.exists() and not (f.tmp/'registry').exists()
+
+
+@pytest.mark.parametrize('failure',['permission','not_directory','delete_enabled'])
+def test_missing_quarantine_does_not_turn_unknown_or_unsafe_states_into_zero(fixture,monkeypatch,failure):
+    f=fixture;f.quarantine.rmdir()
+    if failure=='permission':
+        original=Path.stat
+        def denied(path,*args,**kwargs):
+            if path==f.quarantine:raise PermissionError('controlled permission denied')
+            return original(path,*args,**kwargs)
+        monkeypatch.setattr(Path,'stat',denied)
+        with pytest.raises(PermissionError):storage.quarantine_state(f.policy)
+    elif failure=='not_directory':
+        f.quarantine.write_text('not a directory')
+        with pytest.raises(storage.RetentionError,match='NOT_DIRECTORY'):storage.quarantine_state(f.policy)
+    else:
+        f.policy.update(auto_gc_enabled=True,dry_run=False)
+        with pytest.raises(storage.RetentionError,match='OUTSIDE_NONDELETING'):storage.quarantine_state(f.policy)
+
+
+def test_three_registered_publications_keep_old_ordinary_bytes_billed_without_double_charge(fixture,monkeypatch):
+    from ops import research_storage_governance as governance
+    f=fixture;enable_future(f)
+    f.policy['governance']=dict(enabled=True,registry_root=str(f.tmp/'registry'),pool_id='shared-test-pool',pool_identity_verified=True)
+    monkeypatch.setattr(storage.shutil,'disk_usage',lambda _:types.SimpleNamespace(free=200*1024**3,total=1000*1024**3))
+    config=governance.configuration(f.policy)
+    initial=governance.ordinary_resident_paths(config)
+    first_rollback=f.entries[-2][1]['candidates']['selector']
+    charges=[]
+    for index in (5,6,7):
+        registry=governance.Registry(config,f.data)
+        before=registry.read()
+        expected_paths=set(initial)
+        for row in before['tasks'].values():expected_paths.update(row.get('billing_paths',[]))
+        expected=sum(storage.logical_bytes(path) for path in governance.unique_roots(expected_paths))
+        with governance.admission(f.policy,key='publish-'+str(index),directory=f.runs,predicted=1024*1024) as (active,_):
+            row=active.registry.read()['tasks'][active.key]
+            assert row['category_baseline_bytes']==expected
+            charges.append(expected)
+            run,status=append_future_generation(f,index)
+            active.finish(dict(status='READY',generation_id=status['generation_id']),list(status['candidates'].values()))
+    assert charges[0]<charges[1]<charges[2]
+    state=registry.read()
+    assert first_rollback in state['resident_baseline_paths']
+    assert any(str(f.entries[-3][0]) in row['billing_paths'] for row in state['tasks'].values())
+    # Paths shared by dynamic current/rollback and prior V2 ownership roots are
+    # deduplicated by actual containment, never baseline+everwritten arithmetic.
+    paths=initial+governance.ordinary_resident_paths(config)
+    for row in state['tasks'].values():paths.extend(row['billing_paths'])
+    billed=governance.unique_roots(paths)
+    assert not any(left!=right and storage.under(left,right) for left in billed for right in billed)
