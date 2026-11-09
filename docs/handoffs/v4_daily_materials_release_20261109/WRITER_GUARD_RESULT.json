@@ -23,6 +23,11 @@
       "scope": "both existing candidate-builder paths with schema admission",
       "command": "python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r5 tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
       "result": "2 PASS"
+    },
+    {
+      "scope": "rollback readiness after bootstrap must also verify previous identity and homepage",
+      "command": "python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r6 tests/test_daily_materials_release.py::test_partial_cutover_restores_whole_tuple_before_any_bootstrap",
+      "result": "1 PASS; incremental regression after rollback-readiness implementation changed"
     }
   ],
   "runtime_checks": {
@@ -41,7 +46,8 @@
     "active deploy/API/UI/natural NOT_RUN",
     "new 371 company material publication NOT_RUN",
     "11/08 retention-r1/governance-r2 intermediate historical Main owners outside prior Stage allowlist not certified",
-    "API r1 is intermediate; score/action delta pending; do not activate r1"
+    "API r1 is intermediate; score/action delta pending; do not activate r1",
+    "Intermediate r1 packet tool-source hash is intentionally superseded after incremental rollback readiness fix; final score-integrated packet must reseal tool hashes."
   ],
   "safety": {
     "RESEARCH_ONLY": true,

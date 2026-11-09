@@ -111,6 +111,18 @@ def wait_running(service, timeout=60):
     raise RuntimeError('SERVICE_READY_TIMEOUT:' + service['label'])
 
 
+def wait_homepage(timeout=60):
+    from ops.prepare_daily_materials_release import homepage_smoke
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            return homepage_smoke('http://127.0.0.1:8873')
+        except OSError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.3)
+
+
 def restore_services(services, backup, stopped):
     """Restore a complete previous tuple after any partial installation.
 
@@ -146,7 +158,8 @@ def restore_services(services, backup, stopped):
                 previous = dict(services[role], app_root=services[role]['old_app_root'],
                                 manifest_sha256=services[role]['old_manifest_sha256'])
                 wait_running(previous)
-    return {'status': 'RESTORED_EXACT_PREVIOUS_TUPLE', 'roles': stopped}
+    homepage = wait_homepage() if 'api' in stopped else []
+    return {'status': 'RESTORED_EXACT_PREVIOUS_TUPLE', 'roles': stopped, 'homepage_gets': homepage}
 
 
 def cutover(packet_path: Path, review_path: Path, *, rollback: bool = False):
@@ -202,18 +215,11 @@ def cutover(packet_path: Path, review_path: Path, *, rollback: bool = False):
             service = services[role]
             response = run(['launchctl', 'bootstrap', f'gui/{os.getuid()}', service['live_plist']])
             response.check_returncode()
-            if role != 'stage' and not rollback:
-                wait_running(service)
-        if not rollback:
-            deadline = time.monotonic() + 60
-            while True:
-                try:
-                    state['homepage_gets'] = homepage_smoke('http://127.0.0.1:8873')
-                    break
-                except OSError:
-                    if time.monotonic() >= deadline:
-                        raise
-                    time.sleep(.3)
+            if role != 'stage':
+                expected = dict(service, app_root=service['old_app_root'],
+                                manifest_sha256=service['old_manifest_sha256']) if rollback else service
+                wait_running(expected)
+        state['homepage_gets'] = wait_homepage()
         state['status'] = 'ROLLED_BACK_EXACT_PREVIOUS' if rollback else 'ACTIVATED_API_GET_VERIFIED_NATURAL_PENDING'
     except BaseException as error:
         state.update(status='FAILED', error=type(error).__name__ + ':' + str(error), stopped=stopped, changed=changed)

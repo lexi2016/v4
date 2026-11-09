@@ -149,6 +149,7 @@ def test_partial_cutover_restores_whole_tuple_before_any_bootstrap(tmp_path, mon
     monkeypatch.setattr(activation, 'loaded', lambda label: (SimpleNamespace(returncode=1), None))
     monkeypatch.setattr(activation, 'wait_drained', lambda *a, **k: None)
     monkeypatch.setattr(activation, 'wait_running', lambda *a, **k: None)
+    monkeypatch.setattr(activation, 'wait_homepage', lambda *a, **k: [])
     monkeypatch.setattr(activation, 'run', run)
     result = activation.restore_services(services, backup, ['stage', 'main', 'api'])
     assert result['status'] == 'RESTORED_EXACT_PREVIOUS_TUPLE'
