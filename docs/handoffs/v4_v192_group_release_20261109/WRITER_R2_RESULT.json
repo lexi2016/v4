@@ -1,0 +1,108 @@
+{
+  "status": "R2_QUOTE_MAPPING_PREPARED_TESTED_PENDING_INCREMENTAL_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-v192-group-release-20261109",
+  "tool_source_commit": "0f99dc0b82a46d510cd92d7ea40d14c16211bf3e",
+  "business_source_commit": "5a15f7aa8d443c0c57f8084657dbd65e9ce16ef5",
+  "source_delta": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/v192_group/quote_repair/RUNTIME_DELTA.json",
+    "sha256": "ec25c6a4edce5e9e1dd37dd7b9967f62bb92753ffda10f84ebcc59f7932055e9"
+  },
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/PACKET.json",
+    "sha256": "a2f11f4126975035e199c9080d7644eccb693fc852f2781d7ed955ca37ed8254"
+  },
+  "cas_baseline": "DEPLOYED_V192_R1_NOT_R4",
+  "services": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/v4-v192-group-20261109-r2-api/app",
+      "before_sha256": "17092b98d4fb63ecf4c3c590a6fea11457038f19f75e4f590a44b9992d0b8525",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/API_CANDIDATE.plist",
+      "draft_plist_sha256": "27321be21c1dd13996d96864112aa53ab7da4606130321bd377f78d62eadced7",
+      "kind": "api",
+      "label": "com.lexi.v4.api",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/v4-v192-group-20261109-r2-api/release-manifest.json",
+      "manifest_sha256": "80907f87e251043f4268816ac8ab6848dbbda274c6e0cbfdef330a8c738b2705",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/v4-v192-group-20261109-r1-api/app",
+      "old_manifest_sha256": "5f2f26cde973f83ddcba6de4b7d7bf389378bd1f949c10c0d9455131017733d7",
+      "release_id": "v4-v192-group-20261109-r2-api"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/app",
+      "before_sha256": "caa1d868a6968cbee42b93950ff18079753122c6d990874338cbb762b3b03e54",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/MAIN_CANDIDATE.plist",
+      "draft_plist_sha256": "31bcd91a225935b27a90e499fcc02ab547d2f4a56410d898d0dd2284b0dc639f",
+      "kind": "main",
+      "label": "com.lexi.v4.scheduler",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/release-manifest.json",
+      "manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/app",
+      "old_manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "release_id": "v4-daily-materials-20261109-r4-main"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/app",
+      "before_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/STAGE_CANDIDATE.plist",
+      "draft_plist_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01",
+      "kind": "stage",
+      "label": "com.lexi.stage-center.scheduler",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/release-manifest.json",
+      "manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/app",
+      "old_manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "release_id": "v4-daily-materials-20261109-r4-stage"
+    }
+  },
+  "preservation": {
+    "main": {
+      "identity_preserved": true,
+      "manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "changed_environment": [
+        "V4_RESEARCH_RETENTION_POLICY",
+        "V4_RESEARCH_RETENTION_POLICY_SHA256"
+      ],
+      "before": "caa1d868a6968cbee42b93950ff18079753122c6d990874338cbb762b3b03e54",
+      "after": "31bcd91a225935b27a90e499fcc02ab547d2f4a56410d898d0dd2284b0dc639f"
+    },
+    "stage": {
+      "identity_preserved": true,
+      "manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "changed_environment": [],
+      "before": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01",
+      "after": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01"
+    },
+    "quote_helper": {
+      "changed": false,
+      "sha256": "fa25facc1dd00689e5bfa5b34473f43b877b099c5144c73af69cdf86861973a5"
+    },
+    "baseline": "DEPLOYED_V192_R1"
+  },
+  "commands": [
+    "<absolute-python> -B -m ops.prepare_v192_group_release --delta <quote_repair>/RUNTIME_DELTA.json --output <Library candidates>/v4-v192-group-20261109-r2 --r4-packet <Library candidates>/v4-v192-group-20261109-r1/PACKET.json",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <candidate>/check_dependencies.py",
+    "<absolute-python> -B <candidate>/check_quote_mapping.py"
+  ],
+  "compatibility_parameter_note": "Existing --r4-packet option supplies the actual deployed R1 packet; prepare code validates live tuple against that supplied packet. No tool code changed.",
+  "checks": {
+    "dependency": "PASS24 reverse refs and actual retention checker with draft plist address substitutions; Main manifest preserved",
+    "quotes": "PASS19 finite price/change_percent_source/amount_source fields;3 selected representatives exactly match original source; date/QFQ/rawturnover/unknown exact time retained",
+    "release_locators": "PASS2 homepage release identity GET;2 changed static GET SHA/no-store",
+    "previous": "Existing model membership19/original371/original31/score/helper/producer checks reused, not rerun"
+  },
+  "fixture_failure": "Preserved QUOTE_MAPPING_ATTEMPT1_FIXTURE.stderr: test incorrectly used ref.quotes. Corrected only test script to established ref.rows; business code unchanged.",
+  "not_run": [
+    "R2 independent incremental verdict",
+    "R2 service activation/live API/UI",
+    "Original371 or score/model recomputation/publication",
+    "Git push"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
