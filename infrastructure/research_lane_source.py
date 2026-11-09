@@ -1271,14 +1271,24 @@ class ResearchLaneSource:
 
     @staticmethod
     def _company_time(value):
-        if isinstance(value,str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):
-            value+='T23:59:59.999999+08:00'
         if not isinstance(value, str) or _OFFSET_TIMESTAMP.fullmatch(value) is None:
             return None
         try:
             return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(_SHANGHAI)
         except ValueError:
             return None
+
+    @classmethod
+    def _company_after_cutoff(cls, value, cutoff):
+        # Date precision constrains only the calendar day. Never manufacture a
+        # known instant from a date-only disclosure (or a local receipt date).
+        if isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            try:
+                return datetime.strptime(value, "%Y-%m-%d").date() > cutoff.date()
+            except ValueError:
+                return False
+        timestamp = cls._company_time(value)
+        return timestamp is not None and timestamp > cutoff
 
     def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None):
         """Read received evidence; current candidate identity never rewrites its origin."""
@@ -1334,28 +1344,30 @@ class ResearchLaneSource:
                 received = self._company_time(shard.get("received_at") or manifest.get("received_at"))
                 fund = shard.get("received_fundamentals") or {}
                 # Generated/research dates are not proof of first local receipt.
-                times = [self._company_time(fund.get("research_as_of") or fund.get("as_of"))]
+                times = [fund.get("research_as_of") or fund.get("as_of")]
                 for source in fund.get("sources", []):
-                    times.extend(self._company_time(source.get(k)) for k in ("disclosed_at", "retrieved_at"))
+                    times.extend(source.get(k) for k in ("disclosed_at", "retrieved_at"))
                 for section in ("business_reported", "financials_reported", "shareholders_reported"):
                     record = shard.get(section) or {}
-                    times.extend(self._company_time(record.get(k)) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
-                if (received is not None and received > cutoff) or any(t is not None and t > cutoff for t in times):
+                    times.extend(record.get(k) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
+                if (received is not None and received > cutoff) or any(self._company_after_cutoff(t, cutoff) for t in times):
                     skipped.append("AFTER_ASOF_CUTOFF")
                     continue
                 if not current and received is None:
                     skipped.append("RECEIVED_TIME_UNKNOWN")
                     continue
-                candidates.append((origin, received.isoformat() if received else "", binding, manifest, shard))
+                date_only = any(isinstance(t, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", t) for t in times)
+                candidates.append((origin, received.isoformat() if received else "", binding, manifest, shard, date_only))
         if not candidates:
             return {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date,
                     "missing_reason":"NO_ELIGIBLE_RECEIVED_MATERIALS" if skipped else "NO_BOUND_MATERIALS_FOR_SYMBOL",
                     "availability_gaps":sorted(set(skipped)), "research_only":True,
                     "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
-        origin, received, binding, manifest, shard = max(candidates, key=lambda row: (row[0], row[1]))
+        origin, received, binding, manifest, shard, date_only = max(candidates, key=lambda row: (row[0], row[1]))
         reused = origin != date or manifest["numeric_manifest"] != product["manifest"]
         lifecycle = dict(material_source_date=origin, received_at=received or None,
                          received_time_status="RECORDED_LOCAL_RECEIPT" if received else "UNKNOWN",
+                         disclosure_time_status="UNKNOWN_DATE_ONLY_PRESENT" if date_only else "AS_RECORDED_NOT_PIT_CERTIFIED",
                          view_mode="CURRENT_RESEARCH" if current else "HISTORICAL_ASOF",
                          asof_cutoff=cutoff.isoformat(), historical_PIT_safe=False,
                          freshness_status="HISTORICAL_NOT_REVIEWED_FOR_CURRENT_CANDIDATES" if reused else "RECEIVED_FOR_SOURCE_CANDIDATES",

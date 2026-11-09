@@ -480,3 +480,63 @@ def test_new_candidate_without_material_and_future_receipt_remain_unknown(batch)
     m.save(batch['root']/'index.json',batch['index']);m.save(batch['root']/'events/latest.json',batch['event'])
     with pytest.raises(ValueError,match='LOCAL_RECEIPT_TIME_INVALID'):
         m.prepare(m.save(batch['tmp']/'future-receipt.json',bad),batch['tmp']/'future-stage')
+
+
+@pytest.mark.parametrize('disclosed,received,history,eligible,gap', [
+    ('2026-11-04','2026-11-04T21:07:36+08:00',False,True,None),
+    ('2026-11-05','2026-11-04T21:07:36+08:00',False,False,'AFTER_ASOF_CUTOFF'),
+    ('2026-11-04T21:31:00+08:00','2026-11-04T21:07:36+08:00',False,False,'AFTER_ASOF_CUTOFF'),
+    ('2026-11-04T21:00:00+08:00','2026-11-04T21:07:36+08:00',False,True,None),
+    ('2026-11-04','2026-11-04T21:31:00+08:00',False,False,'AFTER_ASOF_CUTOFF'),
+    ('2026-11-04','2026-11-04',True,False,'RECEIVED_TIME_UNKNOWN'),
+    ('2026-11-04','2026-11-05T00:00:00+08:00',True,False,'AFTER_ASOF_CUTOFF'),
+    ('2026-11-05','2026-11-04T21:07:36+08:00',True,False,'AFTER_ASOF_CUTOFF'),
+    ('2026-11-04','2026-11-04T21:07:36+08:00',True,True,None),
+])
+def test_date_precision_cutoff_keeps_same_day_without_inventing_timestamp(batch,monkeypatch,disclosed,received,history,eligible,gap):
+    from datetime import datetime
+    plan=prepare(batch);reader=reader_fixture(batch,plan)
+    monkeypatch.setitem(reader.read_a_daily_company_materials.__func__.__globals__,'shanghai_now',
+                        lambda:datetime.fromisoformat('2026-11-04T21:30:00+08:00'))
+    index=json.loads((batch['root']/'index.json').read_text())
+    manifest=m.load(index['company_materials']['20261104']);symbol=batch['codes'][0]
+    row=m.load(manifest['items'][symbol]);row['received_at']=received
+    row['received_fundamentals']['as_of']='2026-11-04T20:00:00+08:00'
+    row['business_reported']['asof_date']='2026-11-04'
+    row['received_fundamentals']['sources'][0]['disclosed_at']=disclosed
+    manifest['received_at']=received;manifest['items'][symbol]=m.save(batch['root']/'precision-shard.json',row)
+    index['company_materials']['20261104']=m.save(batch['root']/'precision-manifest.json',manifest)
+    m.save(batch['root']/'index.json',index)
+    if history:advance_numeric(batch)
+    value=reader.read_a_daily_company_materials('20261104',symbol)
+    assert (value['status']=='PARTIAL_RECEIVED') is eligible
+    if eligible:
+        assert value['materials']['received_fundamentals']['sources'][0]['disclosed_at']==disclosed
+        assert value['material_lifecycle']['historical_PIT_safe'] is False
+        if len(disclosed)==10:
+            assert reader._company_time(disclosed) is None
+            assert value['material_lifecycle']['disclosure_time_status']=='UNKNOWN_DATE_ONLY_PRESENT'
+    else:assert gap in value['availability_gaps']
+
+
+@pytest.mark.skipif(not os.environ.get('V4_MASTER_IMPORT_CONFIG'),reason='Actual date-boundary probe requires explicit package')
+def test_actual_same_day_date_only_disclosures_use_current_received_materials(tmp_path,monkeypatch):
+    from datetime import datetime
+    config=m.load(m.ref(os.environ['V4_MASTER_IMPORT_CONFIG']))
+    evidence=Path(config['inputs']['return_manifest']['path']).parents[2]/'company'
+    plan=m.load(m.ref(evidence/'prepared_import/PUBLICATION_PLAN.json'))
+    source_spec=importlib.util.spec_from_file_location('company_date_precision_reader',MODULE.parents[1]/'infrastructure/research_lane_source.py')
+    source_module=importlib.util.module_from_spec(source_spec);source_spec.loader.exec_module(source_module)
+    monkeypatch.setattr(source_module,'shanghai_now',lambda:datetime.fromisoformat('2026-11-09T21:30:00+08:00'))
+    reader=object.__new__(source_module.ResearchLaneSource);reader._a_product_root=lambda:tmp_path
+    index=m.load(plan['staged_index']);m.save(tmp_path/'index.json',index)
+    reader._a_product_reference=lambda reference:m.load(plan['immutable_files'].get(reference['path'],reference))
+    numeric=m.load(index['dates']['20261109']);product={**m.load(numeric['artifact']),'manifest':index['dates']['20261109']}
+    reader.read_a_daily_product=lambda *args,**kwargs:product
+    for symbol in ('000554.SZ','301263.SZ','603477.SH'):
+        value=reader.read_a_daily_company_materials('20261109',symbol)
+        assert value['status']=='PARTIAL_RECEIVED'
+        assert value['material_lifecycle']['material_source_date']=='20261109'
+        assert value['material_lifecycle']['received_at']==config['received_at']
+        assert value['material_lifecycle']['disclosure_time_status']=='UNKNOWN_DATE_ONLY_PRESENT'
+        assert value['material_lifecycle']['historical_PIT_safe'] is False
