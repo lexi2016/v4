@@ -118,7 +118,10 @@ def validate_release_identity() -> dict[str, str]:
     if hashlib.sha256(raw).hexdigest() != env["V35_RELEASE_MANIFEST_SHA256"]:
         raise ValueError("RELEASE_MANIFEST_SHA_MISMATCH")
     payload = json.loads(raw)
-    if (payload.get("schema_version") != "v4.release_candidate.v1"
+    if (not isinstance(payload, dict)
+            or not isinstance(payload.get("candidate"), dict)
+            or not isinstance(payload.get("application_inventory"), dict)
+            or payload.get("schema_version") != "v4.release_candidate.v1"
             or payload.get("candidate", {}).get("app_root") != str(app)
             or payload.get("candidate", {}).get("release_id") != env["V35_RELEASE_ID"]):
         raise ValueError("RELEASE_MANIFEST_IDENTITY_MISMATCH")

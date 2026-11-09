@@ -279,6 +279,16 @@ def _plist_environment(payload: Mapping[str, Any]) -> dict[str, str]:
     return values
 
 
+def validate_api_manifest_shape(manifest: Any) -> None:
+    """Admission check shared by builders and packet validators, before copying."""
+    if not isinstance(manifest, dict):
+        raise ValueError("API_RELEASE_MANIFEST_OBJECT_REQUIRED")
+    if manifest.get("schema_version") != "v4.release_candidate.v1":
+        raise ValueError("API_RELEASE_MANIFEST_SCHEMA_UNSUPPORTED")
+    if not isinstance(manifest.get("candidate"), dict) or not isinstance(manifest.get("application_inventory"), dict):
+        raise ValueError("API_RELEASE_MANIFEST_IDENTITY_OR_INVENTORY_MISSING")
+
+
 def _release_identity(
     *, release_root: Path, app_root: Path, release_id: str,
     manifest_path: Path, manifest_sha256: str,
@@ -297,14 +307,9 @@ def _release_identity(
         manifest = json.loads(manifest_raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("API_RELEASE_MANIFEST_JSON_INVALID") from exc
-    if not isinstance(manifest, dict):
-        raise ValueError("API_RELEASE_MANIFEST_OBJECT_REQUIRED")
-    if manifest.get("schema_version") != "v4.release_candidate.v1":
-        raise ValueError("API_RELEASE_MANIFEST_SCHEMA_UNSUPPORTED")
-    candidate = manifest.get("candidate")
-    inventory = manifest.get("application_inventory")
-    if not isinstance(candidate, dict) or not isinstance(inventory, dict):
-        raise ValueError("API_RELEASE_MANIFEST_IDENTITY_OR_INVENTORY_MISSING")
+    validate_api_manifest_shape(manifest)
+    candidate = manifest["candidate"]
+    inventory = manifest["application_inventory"]
     if candidate.get("release_id") != release_id or candidate.get("app_root") != str(app_root):
         raise ValueError("API_RELEASE_MANIFEST_IDENTITY_MISMATCH")
     entries = inventory.get("entries")

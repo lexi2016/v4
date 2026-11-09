@@ -27,13 +27,13 @@ from typing import Any, Iterable, Mapping, Sequence
 try:
     from .api_release_integration import (
         build_integrated_app, inventory_tree as integration_inventory_tree,
-        module_role_contract,
+        module_role_contract, validate_api_manifest_shape,
     )
 except ImportError:
     try:
         from api_release_integration import (
             build_integrated_app, inventory_tree as integration_inventory_tree,
-            module_role_contract,
+            module_role_contract, validate_api_manifest_shape,
         )
     except ImportError:
         _integration_spec = importlib.util.spec_from_file_location(
@@ -47,6 +47,7 @@ except ImportError:
         build_integrated_app = _integration_module.build_integrated_app
         integration_inventory_tree = _integration_module.inventory_tree
         module_role_contract = _integration_module.module_role_contract
+        validate_api_manifest_shape = _integration_module.validate_api_manifest_shape
 
 try:  # Running as ``python ops/build_release_candidate.py``.
     from prepare_api_only_cutover import (
@@ -471,6 +472,7 @@ def build_module_candidate(
             ],
         }
         manifest_path = candidate_root / "release-manifest.json"
+        validate_api_manifest_shape(manifest)
         _json_dump(manifest_path, manifest)
         manifest_sha = sha256_file(manifest_path)
         plan = render_module_cutover(
@@ -699,6 +701,7 @@ def build_candidate(
             ],
         }
         manifest_path = candidate_root / "release-manifest.json"
+        validate_api_manifest_shape(manifest)
         _json_dump(manifest_path, manifest)
         manifest_sha = sha256_file(manifest_path)
         plan = render_cutover(
