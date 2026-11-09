@@ -311,6 +311,12 @@ class ResearchWorkbenchHost:
         try:available={row['symbol'] for row in self.chart_views(source_date,revision)['projections'].get('rows',[])}
         except (ValueError,OSError,KeyError,TypeError):available=set()
         for row in result['rows']:row['original_chart_status']='MATERIALIZED' if row['symbol'] in available else 'NOT_MATERIALIZED'
+        # The existing source-close reader owns validation and the selector
+        # read. Its scope is part of its cache key; never mutate the 371 rows.
+        if result['status'] in {'READY','READY_EMPTY'}:
+            try:result['source_close_reference']=self._quote_references.read({**product,'rows':result['rows']})
+            except (ValueError,OSError,KeyError,TypeError) as error:
+                result['source_close_reference']=dict(status='CANNOT_CONFIRM',reason=str(error),rows={})
         return result
 
     def _v192_version(self,source_date):

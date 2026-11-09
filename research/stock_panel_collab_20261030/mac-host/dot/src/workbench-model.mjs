@@ -37,3 +37,13 @@ export function v192Summary(value){
  const status=value.status==='CANNOT_CONFIRM'?'来源待核':value.status==='READY_EMPTY'?'已就绪，本日无候选':`已就绪 · ${value.count}只`;
  return `v1.9.2候选 · ${source} · ${status}。独立模型组；排序分只作复核参考，不能当买入顺序；同定义D+2/D+5统计未接入。`;
 }
+
+
+export function quoteContext(day,row){
+ if(!row?.v192_member)return day;
+ const ref=day.v192_group?.source_close_reference;
+ const bound=ref?.schema==='V4_WORKBENCH_SOURCE_CLOSE_REFERENCE_V1'&&ref.status==='BOUND_SOURCE_CLOSE'&&ref.source_date===day.source_date&&ref.generation===day.generation&&ref.input_sha256===day.input_sha256&&ref.numeric_manifest?.sha256===day.numeric_manifest?.sha256&&ref.numeric_manifest?.path===day.numeric_manifest?.path&&ref.selector?.sha256===day.source_selector_sha256;
+ // Keep the canonical reference object and scope unchanged. A failed model
+ // quote binding is missing, never a reference from another date/generation.
+ return {...day,source_close_reference:bound?ref:null};
+}
