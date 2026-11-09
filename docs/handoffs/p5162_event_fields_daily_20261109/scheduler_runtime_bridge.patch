@@ -10,7 +10,7 @@
                                  def saved_leaf():
                                      index = json.loads((product_root/"index.json").read_bytes())
                                      manifest_ref = index["dates"][request.business_date]
-@@ -841,9 +844,47 @@
+@@ -841,9 +844,56 @@
                                      if (Path(selector).read_bytes() != selector_bytes or
                                              Path(backtest).read_bytes() != backtest_bytes):
                                          raise ValueError("PAIRED_SOURCE_CHANGED_DURING_LEAF_RECOVERY")
@@ -25,6 +25,13 @@
 +                                                descriptor.get("sample_only") is not False):
 +                                            raise ValueError("EVENT_FIELDS_DESCRIPTOR_IDENTITY")
 +                                        fields = json.loads(checked(descriptor["index"]).read_bytes())
++                                        from ops.materialize_p5162_event_fields import algorithm_identity
++                                        from ops.research_panel_daily_product import config as current_daily_config
++                                        _, current_config_ref = current_daily_config()
++                                        if (fields.get("algorithm") != algorithm_identity() or
++                                                fields.get("source_config") != current_config_ref or
++                                                product.get("source_config") != current_config_ref):
++                                            raise ValueError("EVENT_FIELDS_RULE_OR_CONFIG_DRIFT")
 +                                        if (fields.get("schema") != "v4.p5162.event_fields_index.v1" or
 +                                                fields.get("data_date") != request.business_date or
 +                                                fields.get("source_generation") != expected_identity["generation"] or
@@ -39,6 +46,8 @@
 +                                            raise ValueError("EVENT_FIELDS_RECORD_MISSING")
 +                                        completion = json.loads((product_root / "events/latest.json").read_bytes())
 +                                        if (completion.get("data_date") != request.business_date or
++                                                completion.get("source_generation") != expected_identity["generation"] or
++                                                completion.get("input_sha256") != expected_identity["input_sha256"] or
 +                                                completion.get("manifest") != manifest_ref or
 +                                                completion.get("p5162_event_fields") != descriptor):
 +                                            raise ValueError("EVENT_FIELDS_COMPLETION_IDENTITY")

@@ -145,10 +145,18 @@ def test_owner_calls_sidecar_and_cached_numeric_repairs_missing(tmp_path,monkeyp
     with pytest.raises(ValueError,match='IDENTITY_CONFLICT'):
         adapter.materialize(other,product,third['manifest'],output_root=tmp_path/'wrong')
     # A later date makes new observations but keeps the original event id.
+    old_context=current[0];old_record=Path(idx['items'][SYMBOL]['path']);old_record_bytes=old_record.read_bytes()
     current[0]=setup('20261028','generation-b')
     fourth=owner.materialize_daily_product(data_root=tmp_path,target=20261028,original_charts=False)
     idx2=adapter.checked(fourth['p5162_event_fields']['index'])
     assert adapter.checked(idx2['items'][SYMBOL])['panel_reference']['event_id']=='PANEL_REFERENCE_K:000913.SZ:20261026'
+    assert old_record.read_bytes()==old_record_bytes
+    with pytest.raises(ValueError,match='MODEL_READER_INDEX_IDENTITY_CONFLICT'):
+        adapter.read_model_fields(descriptor['index'],SYMBOL,data_date='20261028',generation=GEN)
+    later_context=current[0];current[0]=old_context
+    with pytest.raises(ValueError,match='EVENT_FIELDS_EXISTING_PUBLICATION_IDENTITY_CONFLICT'):
+        owner.materialize_daily_product(data_root=tmp_path,target=20261027,require_cached_numeric=True)
+    current[0]=later_context
     assert len(calls)==4
     # Sample owner calls do not change existing publication state.
     before=(root/'index.json').read_bytes(),(root/'events/latest.json').read_bytes()

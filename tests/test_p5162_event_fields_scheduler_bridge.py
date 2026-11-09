@@ -21,7 +21,7 @@ from test_p5162_event_fields import SYMBOL, source_row, bar, CAL
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = ROOT/'docs/handoffs/p5162_event_fields_daily_20261109/scheduler_runtime_bridge.patch'
 BASE_SHA = '6f848524e991ccb3631cb56927d3beb7361f6ee8882a2eceea5b8a58903bcf4f'
-AFTER_SHA = 'e2cff40fa0daa3f2670539067fc9790ba0f6a47f3cbee3731cc97accbc6e7d3e'
+AFTER_SHA = '70b5483c0ca012f6a0293e06ae67436d2f370c38cda55b72f82d97fbd9d7b185'
 
 
 def bridge_applicator():
@@ -54,7 +54,8 @@ def test_bridge_rejects_any_base_drift_without_writing(tmp_path):
     assert path.read_bytes()==changed
 
 
-def test_same_day_missing_fields_calls_cached_owner_and_reuses(tmp_path,monkeypatch):
+@pytest.mark.parametrize('drift',['algorithm','config','completion_generation','completion_input_sha'])
+def test_same_day_missing_fields_calls_cached_owner_and_reuses(tmp_path,monkeypatch,drift):
     pair=types.ModuleType('ops.research_storage_pair');pair.paired_request=lambda fn:fn
     monkeypatch.setitem(sys.modules,'ops.research_storage_pair',pair)
     sys.modules.pop('ops.research_panel_daily_product',None)
@@ -74,6 +75,7 @@ def test_same_day_missing_fields_calls_cached_owner_and_reuses(tmp_path,monkeypa
     ctx=SimpleNamespace(root=root,target=int(target),generation=gen,identity=identity,scope=symbols,
         config_ref={'sha256':'config'},snapshot_ref=snapshot,panel=panel,calendars={'SZ':CAL},unchanged=lambda:None)
     monkeypatch.setattr(owner,'SourceContext',lambda *a:ctx)
+    monkeypatch.setattr(owner,'config',lambda: ({},ctx.config_ref))
     def compute(context,symbol,**kwargs):
         row=source_row(symbol,target,gen)
         if symbol==symbols[1]:row['evaluation']['symbol']='000001.SZ'
@@ -137,3 +139,29 @@ def test_same_day_missing_fields_calls_cached_owner_and_reuses(tmp_path,monkeypa
     assert ctx._p5162_event_fields_last_run=={'computed':1,'reused':1}
     assert adapter.checked(adapter.checked(third['original_chart_leaf']['p5162_event_fields']['index'])['items'][symbols[1]])['status']=='SOURCE_ISOLATED'
     assert method(host,request)['status']=='SUCCEEDED' and len(guard)==2
+    previous=third['original_chart_leaf']['p5162_event_fields']; old_index=adapter.checked(previous['index'])
+    old_index_bytes=Path(previous['index']['path']).read_bytes()
+    old_record_bytes=Path(old_index['items'][SYMBOL]['path']).read_bytes()
+    before_index=indexpath.read_bytes();before_event=eventpath.read_bytes()
+    if drift=='algorithm':
+        changed={**adapter.algorithm_identity(),'domain_sha256':'changed-domain-fixture'}
+        monkeypatch.setattr(adapter,'algorithm_identity',lambda:changed)
+        fresh=method(host,request)
+        assert fresh['status']=='SUCCEEDED' and len(guard)==3 and guard[-1]['require_cached_numeric'] is True
+        fresh_index=adapter.checked(fresh['original_chart_leaf']['p5162_event_fields']['index'])
+        assert fresh_index['algorithm']==changed
+        assert adapter.checked(fresh_index['items'][SYMBOL])['panel_reference']==adapter.checked(old_index['items'][SYMBOL])['panel_reference']
+        assert Path(previous['index']['path']).read_bytes()==old_index_bytes
+        assert Path(old_index['items'][SYMBOL]['path']).read_bytes()==old_record_bytes
+    else:
+        if drift=='config':ctx.config_ref={'sha256':'new-config'}
+        else:
+            event=json.loads(before_event)
+            event['source_generation' if drift=='completion_generation' else 'input_sha256']='mismatched'
+            owner.save(eventpath,event)
+        changed_event=eventpath.read_bytes()
+        with pytest.raises(ExecutionError) as failure:method(host,request)
+        reason='EVENT_FIELDS_EXISTING_SOURCE_CONFIG_CONFLICT' if drift=='config' else 'EVENT_FIELDS_EXISTING_PUBLICATION_IDENTITY_CONFLICT'
+        assert reason in failure.value.args[0]['original_chart_leaf']['reason']
+        assert len(guard)==3 and guard[-1]['require_cached_numeric'] is True
+        assert indexpath.read_bytes()==before_index and eventpath.read_bytes()==changed_event

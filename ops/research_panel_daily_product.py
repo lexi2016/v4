@@ -453,11 +453,13 @@ def _recover_event_fields_from_cached_numeric(context,root,index_start):
  manifest_ref=index.get('dates',{}).get(day)
  if not manifest_ref:raise ValueError('EVENT_FIELDS_EXISTING_NUMERIC_MANIFEST_MISSING')
  manifest=json.loads(checked(manifest_ref).read_bytes());product=json.loads(checked(manifest['artifact']).read_bytes())
+ if product.get('source_config')!=context.config_ref:raise ValueError('EVENT_FIELDS_EXISTING_SOURCE_CONFIG_CONFLICT')
  if (product.get('sample_only') is not False or product.get('source_identity')!=context.identity
      or product.get('source_generation')!=context.generation or product.get('data_date')!=day
      or set(product.get('processed_universe',[]))!=set(context.scope)
      or event.get('data_date')!=day or event.get('manifest')!=manifest_ref
-     or event.get('source_generation')!=context.generation):
+     or event.get('source_generation')!=context.generation
+     or event.get('input_sha256')!=context.identity.get('input_sha256')):
   raise ValueError('EVENT_FIELDS_EXISTING_PUBLICATION_IDENTITY_CONFLICT')
  from ops.materialize_p5162_event_fields import materialize as materialize_event_fields
  descriptor=materialize_event_fields(context,product,manifest_ref,save_function=save)
