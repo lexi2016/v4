@@ -209,3 +209,9 @@ def test_packet_rejects_changed_delta_input_before_any_install():
     packet['company_score_delta']['sha256'] = '0' * 64
     with pytest.raises(ValueError, match='REVIEWED_DELTA_INPUT_DRIFT'):
         validate_dependency_packet(packet)
+
+
+def test_desktop_runtime_candidate_is_rejected_before_cutover():
+    from ops.prepare_daily_materials_release import validate_runtime_locations
+    with pytest.raises(ValueError, match='RUNTIME_CANDIDATE_MUST_USE_EXISTING_LIBRARY_ROOT'):
+        validate_runtime_locations({'runtime_candidate_root': str(Path.home() / 'Desktop/candidate')})

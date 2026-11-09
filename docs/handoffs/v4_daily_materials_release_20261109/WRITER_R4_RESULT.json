@@ -1,0 +1,134 @@
+{
+  "status": "R4_PREPARED_TESTED_PENDING_INDEPENDENT_LOCATOR_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-release-dependency-20261109",
+  "branch": "codex/v4-release-dependency-20261109",
+  "base_source_commit": "46687accc028b5add8d06c592a92d80ce2b2c364",
+  "packet": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/PACKET.json",
+  "packet_sha256": "29ccd14e3552521f77b8355281e9179ad3f1492149d6aa7c5a14d79e56ee421c",
+  "runtime_candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4",
+  "scope": "Observed Desktop launchd shell TCC failure only; no business code/static change; no permission or TCC setting change",
+  "restored_cas_baseline": {
+    "api": {
+      "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+      "before_sha256": "7dc29f97a1030f6bfde251ec7f4e7aad6a58d072c6ab3b1b739e705c64396807",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-api/app"
+    },
+    "main": {
+      "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+      "before_sha256": "e26cae7e894f7d31153e37032226b1b02cadeddfce9405e9eacf75506ff4e19d",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-main/app"
+    },
+    "stage": {
+      "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "before_sha256": "769588345d23d05456031059469421e1f492a172005c62c31fd7d92aca14459d",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-runtime-evidence-owner-repin-20261106-r1/v4-runtime-evidence-owner-repin-20261106-r1-stage/app"
+    }
+  },
+  "locator_proof": {
+    "api": {
+      "app_entries": 1355,
+      "app_changed_paths": [],
+      "plist_changed_keys": [
+        "WorkingDirectory"
+      ],
+      "environment_changed_keys": [
+        "V4_APP_ROOT",
+        "V4_RELEASE_ID",
+        "V4_RELEASE_MANIFEST_PATH",
+        "V4_RELEASE_MANIFEST_SHA256",
+        "V4_RESEARCH_PANEL_ASSET_MANIFEST",
+        "V4_RESEARCH_PANEL_ROOT"
+      ],
+      "manifest_sha256": "5de4dc86f013eba3f75bc1523a441019d5c592d4181a28a650c3645e6d34c5cc",
+      "draft_plist_sha256": "c8a10b5c4b6f544fc5fe0377cd5acbbf0b8ce536fd6c8c0f69a021ee945d1c81"
+    },
+    "main": {
+      "app_entries": 1029,
+      "app_changed_paths": [],
+      "plist_changed_keys": [
+        "ProgramArguments",
+        "WorkingDirectory"
+      ],
+      "environment_changed_keys": [
+        "V4_APP_ROOT",
+        "V4_RELEASE_ID",
+        "V4_RELEASE_MANIFEST_PATH",
+        "V4_RELEASE_MANIFEST_SHA256",
+        "V4_RESEARCH_RETENTION_POLICY",
+        "V4_RESEARCH_RETENTION_POLICY_SHA256"
+      ],
+      "manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "draft_plist_sha256": "a53e7e2f869018060ee02d5508354c778c3fe07def2a0b5c23a3d3ac00ec7b51"
+    },
+    "stage": {
+      "app_entries": 1003,
+      "app_changed_paths": [
+        "stage_center_tick_config.json"
+      ],
+      "plist_changed_keys": [
+        "ProgramArguments",
+        "WorkingDirectory"
+      ],
+      "environment_changed_keys": [
+        "PYTHONPATH",
+        "STAGE_CENTER_CONFIG",
+        "V4_APP_ROOT",
+        "V4_RELEASE_ID",
+        "V4_RELEASE_MANIFEST_PATH",
+        "V4_RELEASE_MANIFEST_SHA256"
+      ],
+      "manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "draft_plist_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01"
+    },
+    "static": {
+      "all_tree_entries": 493,
+      "all_bytes_and_modes_preserved": true,
+      "aggregate_sha256": "223ca4ada6e1eb6bc17809e3dcd464dc8f8bcc9fa64a4efcb94377cbdddadcb6",
+      "asset_manifest_sha256": "b0de57372b6a7a66a2d4f70790c9ba49452daa2393cd37c34452181e6510ac69"
+    },
+    "scope": "R3_TO_R4_LOCATOR_ONLY_NO_BUSINESS_LOGIC_CHANGE",
+    "tcc": "Launchd actual access NOT_RUN by Writer; bash -n read/parse only PASS"
+  },
+  "changed_source_files": [
+    {
+      "path": "ops/prepare_daily_materials_release.py",
+      "sha256": "391da805e22c5eb3b954ca99184ba788fb86bfcb140255baa3262923124fec71"
+    },
+    {
+      "path": "tests/test_daily_materials_release.py",
+      "sha256": "b9a6c14d574e07939fec1ccfa7f4e47d524fbd28e12c0b59d5256a5b64bff0b4"
+    }
+  ],
+  "commands": [
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <release>/prepare_r4_locator_packet.py",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <r4-library-root>/check_packet.py",
+    "<absolute-python> -B <r4-library-root>/check_stage_witness.py",
+    "<absolute-python> -B <r4-library-root>/check_locator_api.py",
+    "/bin/bash -n <r4-library-root>/v4-daily-materials-20261109-r4-main/app/ops/launch_v4_macos_scheduler.sh",
+    "<absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r12 tests/test_daily_materials_release.py::test_desktop_runtime_candidate_is_rejected_before_cutover"
+  ],
+  "results": {
+    "new_test": "1 PASS Desktop root rejected before cutover",
+    "dependency": "PASS24 source bindings and all app/static inventory",
+    "retention": "PASS actual configured_policy/_checked_file with draft plist substitutions only",
+    "stage": "PASS existing11/09 original phase2 historical witness",
+    "api": "PASS ASGI date-list41dates/verified runtime,frontend VERIFIED,and unchanged kb SHA",
+    "shell": "PASS bash -n read/parse only; NOT launchd TCC validation"
+  },
+  "cannot_confirm": [
+    "Independent R4 review pending",
+    "R4 service activation/launchd TCC/actual listener/API/UI NOT_RUN by Writer",
+    "New371 company/score publication and newMain natural operation NOT_RUN"
+  ],
+  "preserved_failure_evidence": [
+    "release/R3_ACTIVATION_FAILED_RECEIPT.json",
+    "release/R3_ROLLBACK_READBACK.json",
+    "R3 original packet and PASS unmodified"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

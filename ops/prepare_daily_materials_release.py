@@ -194,6 +194,7 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
     """
     import plistlib
     from ops.api_release_integration import inventory_digest
+    validate_runtime_locations(packet)
     for key in ('company_delta', 'company_score_delta'):
         reference = packet.get(key)
         if reference and sha(Path(reference['path'])) != reference['sha256']:
@@ -285,3 +286,25 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
             'mode': 'INSTALLED' if installed else 'DRAFT_PLIST_SUBSTITUTION_ONLY',
             'main_manifest_preserved': main['old_manifest_sha256'] == main['manifest_sha256'],
             'main_delta_scope': packet.get('main_delta_scope')}
+
+
+def validate_runtime_locations(packet: dict) -> None:
+    """Reject the observed Desktop launchd failure before any cutover.
+
+    Only this packet's executable app/static/config locators are restricted.
+    Existing business inputs and historical evidence retain their real paths.
+    """
+    approved = Path.home() / 'Library/Application Support/com.lexi.v4.local/candidates'
+    root = Path(packet.get('runtime_candidate_root', ''))
+    if (not root.is_absolute() or root == approved or not root.is_relative_to(approved)
+            or root.is_symlink() or root.resolve() != root):
+        raise ValueError('RUNTIME_CANDIDATE_MUST_USE_EXISTING_LIBRARY_ROOT')
+    paths = [packet['policy']['path'], packet['pins']['path'],
+             packet['static']['root'], packet['static']['manifest']]
+    for service in packet['services'].values():
+        paths.extend(service[key] for key in ('app_root', 'manifest', 'draft_plist'))
+    for value in paths:
+        path = Path(value)
+        if (not path.is_absolute() or not path.is_relative_to(root)
+                or path.is_symlink() or path.resolve() != path):
+            raise ValueError('RUNTIME_LOCATOR_OUTSIDE_LIBRARY_PACKET:' + str(path))
