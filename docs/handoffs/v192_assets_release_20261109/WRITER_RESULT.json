@@ -1,0 +1,102 @@
+{
+  "status": "PREPARED_TESTED_PENDING_SINGLE_INCREMENTAL_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/v192-assets-release-20261109",
+  "branch": "codex/v192-assets-release-20261109",
+  "baseline_source": "1e7b3f065858c89fdaa792207ca36abdf062fa95",
+  "baseline_packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/PACKET.json",
+    "sha256": "a2f11f4126975035e199c9080d7644eccb693fc852f2781d7ed955ca37ed8254"
+  },
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/PACKET.json",
+    "sha256": "4f5ce4b9c2a06621d46707bee28e0d2bf46acd3225145684663ad7539ddbe945"
+  },
+  "business_delta": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/v192_assets/RUNTIME_DELTA.json",
+    "sha256": "7429a7345e62c35a9d2be1a653512925530db2a29bc6bdd105495d5b74aea40d"
+  },
+  "changed_source_files": [
+    {
+      "path": "ops/prepare_v192_assets_release.py",
+      "sha256": "9570ab920170c466229b5225d8c2f180c4c28167c1e94ef51de16329c4b485d1"
+    },
+    {
+      "path": "tests/test_v192_assets_release.py",
+      "sha256": "70fc76ea614a4d3eed0e5839b15c3cf945158c9f72a3fa1c517b358b9b1c748c"
+    }
+  ],
+  "services": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/app",
+      "before_sha256": "27321be21c1dd13996d96864112aa53ab7da4606130321bd377f78d62eadced7",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/API_CANDIDATE.plist",
+      "draft_plist_sha256": "3d83e9fedccb2d7b1e93604d750b92a056c74f3b07f1fd81c3dfbb8ad7bde496",
+      "kind": "api",
+      "label": "com.lexi.v4.api",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/release-manifest.json",
+      "manifest_sha256": "446e8e7b606d035dd277264adcd912f330f7aae58fb9037ca1f27dd33ac82f5e",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r2/v4-v192-group-20261109-r2-api/app",
+      "old_manifest_sha256": "80907f87e251043f4268816ac8ab6848dbbda274c6e0cbfdef330a8c738b2705",
+      "release_id": "v4-v192-assets-20261109-r1-api"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app",
+      "before_sha256": "31bcd91a225935b27a90e499fcc02ab547d2f4a56410d898d0dd2284b0dc639f",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/MAIN_CANDIDATE.plist",
+      "draft_plist_sha256": "9005bd7a7bda2b50df2b271978002ad38e2b85aabeed91c47610005828ec78e2",
+      "kind": "main",
+      "label": "com.lexi.v4.scheduler",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/release-manifest.json",
+      "manifest_sha256": "29ac5b4f0b5330085b97058a74b3a2f49a822a555e0c5f65537a98bffd2bebdf",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/app",
+      "old_manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "release_id": "v4-v192-assets-20261109-r1-main"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/app",
+      "before_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/STAGE_CANDIDATE.plist",
+      "draft_plist_sha256": "bac75a699401718bc6c85b82baa82fd1425c507ab050cd7ab87ce18c91003bde",
+      "kind": "stage",
+      "label": "com.lexi.stage-center.scheduler",
+      "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/release-manifest.json",
+      "manifest_sha256": "ac6813892f098aae57c3c0edcc4ff4ce595f7c6bcac2954a2b6f8edbc0f721f0",
+      "old_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/app",
+      "old_manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "release_id": "v4-v192-assets-20261109-r1-stage"
+    }
+  },
+  "checks": {
+    "release_test": "1 PASS installedStage five-to-six exact preimage; all other reader bytes preserved",
+    "dependency": "PASS24 refs and actual configured_policy/_checked_file via draft plist substitutions",
+    "witness": "PASS existing09phase2 A and22old002c Main original receipts read through newStage six-owner chain; newMain natural NOT_RUN",
+    "main_profile": "PASS actual retirement Main Python -B -S completion CLI import/help; no producer execution",
+    "packaged_api": "PASS homepage identities and3 static hashes/no-store; unpublished603286 controlled404; GET leaves canonical indexd9a87 unchanged",
+    "business_evidence_reused": "Original owner17 READY,603286 ASGI→bridge→renderer2256bars/51/22/3of5/dual-context and6completion tests from business Writer, not rerun"
+  },
+  "commands": [
+    "<absolute-panel-python> -B -m ops.prepare_v192_assets_release --delta <v192_assets>/RUNTIME_DELTA.json --output <Library candidates>/v4-v192-assets-20261109-r1 --baseline-packet <deployed-v192-r2>/PACKET.json",
+    "<absolute-panel-python> -B -m pytest -q --basetemp=/tmp/v192-assets-release-tests-20261109-r1 tests/test_v192_assets_release.py",
+    "PYTHONPATH=<release-source> <absolute-panel-python> -B <candidate>/check_dependencies.py",
+    "<absolute-panel-python> -B <candidate>/check_stage_witness.py",
+    "<absolute-panel-python> -B <candidate>/check_packaged_runtime.py"
+  ],
+  "panel_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "actual_main_python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/retirement-main-20261028/venvs/v4-mac/bin/python",
+  "publication": "Root uses existing completion module prepare-publication then publish after activation exits/releases A_LONG. Prepared17 assets remain durable Library objects; no data rollback/cleanup.",
+  "cannot_confirm": [
+    "Independent incremental verdict pending",
+    "Activation/live API/UI/newMain natural completion NOT_RUN",
+    "Canonical17 module publication NOT_RUN; candidate GET404 is expected until Root publishes",
+    "17 same-generation company materials and modelD2/D5 still unknown/not materialized per business handoff"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
