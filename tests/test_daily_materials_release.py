@@ -169,3 +169,43 @@ def test_cutover_refuses_main_with_active_children(monkeypatch):
         activation.require_idle_main({'label': 'main'})
     monkeypatch.setattr(activation, 'descendants', lambda pid: [123])
     activation.require_idle_main({'label': 'main'})
+
+
+def test_explicit_rollback_requires_all_previous_backups_before_stopping(tmp_path):
+    from ops import activate_daily_materials_release as activation
+    services = {'api': {'before_sha256': hashlib.sha256(b'old-api').hexdigest()},
+                'main': {'before_sha256': hashlib.sha256(b'old-main').hexdigest()}}
+    (tmp_path / 'api.plist').write_bytes(b'old-api')
+    with pytest.raises(RuntimeError, match='BACKUP_MISSING_OR_DRIFT:main'):
+        activation.require_previous_backups(services, tmp_path)
+    (tmp_path / 'main.plist').write_bytes(b'old-main')
+    activation.require_previous_backups(services, tmp_path)
+
+
+def test_packet_rejects_stage_config_from_different_owner(tmp_path):
+    import os, plistlib
+    from ops.prepare_daily_materials_release import validate_dependency_packet
+    fixture = os.environ.get('V4_FINAL_PACKET_FIXTURE')
+    if not fixture:
+        pytest.skip('final packet fixture is opt-in')
+    packet = json.loads(Path(fixture).read_text())
+    stage = packet['services']['stage']
+    draft = plistlib.loads(Path(stage['draft_plist']).read_bytes())
+    draft['EnvironmentVariables']['STAGE_CENTER_CONFIG'] = stage['old_app_root'] + '/stage_center_tick_config.json'
+    changed = tmp_path / 'stage-config-drift.plist'
+    changed.write_bytes(plistlib.dumps(draft))
+    stage.update(draft_plist=str(changed), draft_plist_sha256=hashlib.sha256(changed.read_bytes()).hexdigest())
+    with pytest.raises(ValueError, match='PLIST_STAGE_CONFIG_OWNER_DRIFT'):
+        validate_dependency_packet(packet)
+
+
+def test_packet_rejects_changed_delta_input_before_any_install():
+    import os
+    from ops.prepare_daily_materials_release import validate_dependency_packet
+    fixture = os.environ.get('V4_FINAL_PACKET_FIXTURE')
+    if not fixture:
+        pytest.skip('final packet fixture is opt-in')
+    packet = json.loads(Path(fixture).read_text())
+    packet['company_score_delta']['sha256'] = '0' * 64
+    with pytest.raises(ValueError, match='REVIEWED_DELTA_INPUT_DRIFT'):
+        validate_dependency_packet(packet)

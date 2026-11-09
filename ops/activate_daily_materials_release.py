@@ -129,6 +129,13 @@ def require_idle_main(service):
         raise RuntimeError('MAIN_NOT_IDLE_OR_ACTIVE_CHILDREN_NO_CUTOVER')
 
 
+def require_previous_backups(services, backup):
+    for role, service in services.items():
+        path = backup / (role + '.plist')
+        if not path.is_file() or digest(path) != service['before_sha256']:
+            raise RuntimeError('ROLLBACK_BACKUP_MISSING_OR_DRIFT:' + role)
+
+
 def restore_services(services, backup, stopped):
     """Restore a complete previous tuple after any partial installation.
 
@@ -183,6 +190,8 @@ def cutover(packet_path: Path, review_path: Path, *, rollback: bool = False):
     backup = packet_path.parent / 'cutover-backup'
     backup.mkdir(exist_ok=True)
     try:
+        if rollback:
+            require_previous_backups(services, backup)
         for name in ('DEFAULT.lock', 'A_LONG.lock'):
             path = Path(packet['scheduler_lane_lock_root']) / name
             stream = path.open('a+')

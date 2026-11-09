@@ -1,4 +1,4 @@
-# 2026-11-09 final r2 release dependency handoff
+# 2026-11-09 final r3 release dependency handoff
 
 The final source is isolated from canonical b4719b0. Canonical apps/api/v35_api is older than the installed apps/api/v4_api; only exact reviewed deltas are overlaid onto full, verified installed app inventories. All non-delta bytes are preserved, including sealed bytecode. API manifests require the object candidate contract; Main keeps runtime_graph_repair schema and its string candidate.
 
@@ -6,8 +6,10 @@ The user subsequently requested original score/action restoration. Final r2 ther
 
 Stage current and historical explicit manifest locators are restricted to the exact owner parent, no-follow files and SHA. Five exact historical owners preserve previous three plus the observed 11/06 owner and current phase2 Main; the original 11/06 singleton transition stays unchanged. The 11/09 0900 witness is authenticated through historical phase2 f77c, never labelled new Main natural execution.
 
-Task-local scripts in this directory are exact archival copies. Execute the originals under agents调试/v4_daily_materials_release_repair_20261109/release, not these relative-output snapshots. PACKET_FINAL.json is the final packet; its SHA and all candidate identities are in WRITER_FINAL_RESULT.json. r1 is deliberately INTERMEDIATE/DO_NOT_ACTIVATE and its stale tool hash is preserved as rejection evidence.
+Task-local scripts in this directory are exact archival copies. Execute the originals under agents调试/v4_daily_materials_release_repair_20261109/release, not these relative-output snapshots. PACKET_FINAL_R3.json is the final packet; its SHA and all candidate identities are in WRITER_FINAL_R3_RESULT.json. r2 is superseded by the independent qualification-cache fix and final single-file static delta. r1 is deliberately INTERMEDIATE/DO_NOT_ACTIVATE and its stale tool hash is preserved as rejection evidence.
 
 The controller must obtain an independent PASS that binds PACKET_FINAL.json SHA, then invoke ops.activate_daily_materials_release. It checks final source/tool pins and all forward/reverse dependencies, takes DEFAULT/A_LONG locks, rejects active Main descendants, drains original PIDs/descendants even after the API port closes, CAS-installs the full stopped-service tuple, then bootstraps. Automatic recovery and --rollback restore all exact old plists before any old bootstrap, verify running old identities and homepage reads. Known pre-task storage-pin drift is restored, not certified fixed by rollback.
 
 After cutover returns and releases A_LONG, the controller serially re-prepares/publishes accepted company and score plans through their existing owner CAS path. The candidate ASGI reads only existing published data; it does not certify the new 371 records. Actual new material/date-boundary samples, all-371 score metadata, UI and natural execution remain controller acceptance work. No live service change, publication, push, UI, or natural run was performed by this Writer.
+
+R3 reuses the exact r2 API app/manifest and all unchanged static bytes. Main qualification key includes status, reason and full canonical evidence; a single final kb-single-stock date-invalidation static change is included. New Main/Stage/plists/pins/policy are sealed incrementally. Stage launcher, working directory and config owner plus immutable delta input are now checked together. Explicit rollback requires all three valid original backups before any stop.

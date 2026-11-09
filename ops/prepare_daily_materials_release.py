@@ -194,6 +194,10 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
     """
     import plistlib
     from ops.api_release_integration import inventory_digest
+    for key in ('company_delta', 'company_score_delta'):
+        reference = packet.get(key)
+        if reference and sha(Path(reference['path'])) != reference['sha256']:
+            raise ValueError('REVIEWED_DELTA_INPUT_DRIFT:' + key)
     for reference in packet.get('tool_source_files', []):
         if sha(Path(reference['path'])) != reference['sha256']:
             raise ValueError('REVIEWED_TOOL_SOURCE_DRIFT:' + reference['path'])
@@ -211,7 +215,16 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
         return {'status': 'EXACT_PREVIOUS_PLISTS_RESTORED'}
     for role, service in packet['services'].items():
         plist_path = substitutions[service['live_plist']]
-        env = plistlib.loads(plist_path.read_bytes())['EnvironmentVariables']
+        plist = plistlib.loads(plist_path.read_bytes())
+        env = plist['EnvironmentVariables']
+        if plist.get('WorkingDirectory') != service['app_root']:
+            raise ValueError('PLIST_WORKING_DIRECTORY_DRIFT:' + role)
+        if role in {'main', 'stage'}:
+            entry = 'launch_v4_macos_scheduler.sh' if role == 'main' else 'run_stage_center_nodes.py'
+            if str(Path(service['app_root']) / 'ops' / entry) not in plist.get('ProgramArguments', []):
+                raise ValueError('PLIST_ENTRY_OWNER_DRIFT:' + role)
+        if role == 'stage' and env.get('STAGE_CENTER_CONFIG') != str(Path(service['app_root']) / 'stage_center_tick_config.json'):
+            raise ValueError('PLIST_STAGE_CONFIG_OWNER_DRIFT')
         if any(env.get(key) != service[value] for key, value in (
             ('V4_APP_ROOT', 'app_root'), ('V4_RELEASE_ID', 'release_id'),
             ('V4_RELEASE_MANIFEST_PATH', 'manifest'), ('V4_RELEASE_MANIFEST_SHA256', 'manifest_sha256'))):

@@ -1,0 +1,354 @@
+{
+  "status": "R3_PREPARED_TESTED_PENDING_INDEPENDENT_FINAL_ACCEPTANCE",
+  "baseline": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-release-dependency-20261109",
+  "branch": "codex/v4-release-dependency-20261109",
+  "changed_source_files": [
+    {
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "57d24754ef1dcf054d4b40a0e167eeba3ca92001f5fd2e3cdf87925ae5545d45",
+      "after_sha256": "9e471213880ab6e8e72df5eb90affeec261c24ea6f81a178217ed44e3f71d0db"
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "before_sha256": "4bcda4d0a2a26d15616ab0ba809ad86c0f874bfbcc7367cbc54cd1f77d56597d",
+      "after_sha256": "91590d18fa5fd054b126c772aa5d747d1316063852fbc23b7316fd8c0182062e"
+    },
+    {
+      "path": "ops/build_release_candidate.py",
+      "before_sha256": "a3e67159d3557415410ef168fbd791281dbd1338f266ee8d8820de697d69641b",
+      "after_sha256": "9f53bcd619976af7e71e82441e5ddd001867b12c0ea446499225daa4366667c1"
+    },
+    {
+      "path": "ops/prepare_daily_materials_release.py",
+      "before_sha256": null,
+      "after_sha256": "2995ebaa1b77c53f724c6d709106c13fe4ac29ff7cf7006b44fe00d2d2313cae"
+    },
+    {
+      "path": "ops/activate_daily_materials_release.py",
+      "before_sha256": null,
+      "after_sha256": "97f9501e3c7152e7ce249372ff6172a899a8d92d46bef260611b438acdc63ed6"
+    },
+    {
+      "path": "tests/test_daily_materials_release.py",
+      "before_sha256": null,
+      "after_sha256": "e31710f40ab51b4a397a8fd594d4d3c2db45d7fd82d47d8f646a2163101a339b"
+    }
+  ],
+  "packet_path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/PACKET_FINAL_R3.json",
+  "packet_sha256": "83e89117512411409252acfab89b4ef41496be1493e7293f71c1694f6b294262",
+  "services": {
+    "api": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r2-api/app",
+      "manifest": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r2-api/release-manifest.json",
+      "manifest_sha256": "946d713515d7c9f9fce386e05165910657cd7d09ab4993e20a7a2654556610ff",
+      "draft_plist": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/API_FINAL_R3.plist",
+      "draft_plist_sha256": "56ac9da97852cf2758a69d20e98d6fbecc18be35905b388d42d5baa341b3c01d"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r3-main/app",
+      "manifest": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r3-main/release-manifest.json",
+      "manifest_sha256": "21ec98be6e834c3fa074f2c81bcd822654bc68b7bb700ed2ac3f279d26b1cc12",
+      "draft_plist": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/MAIN_FINAL_R3.plist",
+      "draft_plist_sha256": "7c0afff99a6387874465848307634d7f62e705538e9075763881d3f6c4f9de03"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r3-stage/app",
+      "manifest": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r3-stage/release-manifest.json",
+      "manifest_sha256": "1fb2ecbf9a2efc62a7962f50865b2a9fab6e87055e4c2704bb34b09bc4da0608",
+      "draft_plist": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/STAGE_FINAL_R3.plist",
+      "draft_plist_sha256": "390a38b42dc8b280b7cca7089252354b4549b7dca4830b80b2ce7084a0f1f552"
+    }
+  },
+  "preservation": {
+    "api": {
+      "base_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-api/release-manifest.json",
+        "sha256": "ad7212be29ce1c2f076ba235657ce13aa6e5fb975389afeddc5cb3d38dcc604d"
+      },
+      "delta": [
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "apps/api/v4_api/runtime_graph_router.py",
+            "sha256": "54be278bd9c254c96a7085db1c2332f40e4984cca9b99d2340a5c2436dba85ec",
+            "size": 32106
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "apps/api/v4_api/runtime_graph_router.py",
+            "sha256": "c9678127e53db68db9a7486af899e6a9c5802b667bc6d8047dbd8b24e72f21a4",
+            "size": 31919
+          },
+          "path": "apps/api/v4_api/runtime_graph_router.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/research_lane_source.py",
+            "sha256": "97ca8c0d62419140523c08930176c48820d1e7f59a2b028cd191048a8299e5bd",
+            "size": 83571
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/research_lane_source.py",
+            "sha256": "7ce88d6d121242bd03af97075b8f92d024e03112d217d2ed2108fccf888d54c2",
+            "size": 78108
+          },
+          "path": "infrastructure/research_lane_source.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/research_workbench_host.py",
+            "sha256": "eb14f57f7174cb176eaf02bcbb3488e546099a8b96933ae9b4df156f2f9be55d",
+            "size": 72466
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/research_workbench_host.py",
+            "sha256": "988bcd77d3269aa0554055cdda245c44ff9417fbb84001b922481d3e4ceb59a1",
+            "size": 70289
+          },
+          "path": "infrastructure/research_workbench_host.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/research_workbench_score_action.py",
+            "sha256": "605ef003f41279bc6ad1f83618ba4829e741366b402ce7c6c12e2b0bf7592cc1",
+            "size": 2467
+          },
+          "before": null,
+          "path": "infrastructure/research_workbench_score_action.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/scheduling/dispatcher.py",
+            "sha256": "a222e5261abef674c1f8cb0ccf7ffc711110eaf11fcf208c8dbf253350de0173",
+            "size": 24398
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "infrastructure/scheduling/dispatcher.py",
+            "sha256": "1e4e5175cdb10fbd354690357484eb7ecd6e057ff07528347e51a7bcabfb7374",
+            "size": 24217
+          },
+          "path": "infrastructure/scheduling/dispatcher.py"
+        }
+      ],
+      "non_delta_entries_preserved": 1350,
+      "scope": "SOURCE_DELTA_ONLY_NO_PRODUCER_REPLAY"
+    },
+    "main": {
+      "base_manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-main/release-manifest-authority-fixed.json",
+        "sha256": "f77c64bbf1539c4306deec069f2e28350957b2c803d83e28b330eabb9a952743"
+      },
+      "delta": [
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "contracts/a_share_kb_action_v1.json",
+            "sha256": "f303fb47788e7473a2de250152e029cd42ab8580546e527453ee629a5d884bea",
+            "size": 4749
+          },
+          "before": null,
+          "path": "contracts/a_share_kb_action_v1.json"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "contracts/a_share_kb_fields_v1.json",
+            "sha256": "6e425edbce7751211b289554efc7d1fc17e9da48eec904220313afa881ddf456",
+            "size": 22827
+          },
+          "before": null,
+          "path": "contracts/a_share_kb_fields_v1.json"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "contracts/a_share_kb_hold_score_v1.json",
+            "sha256": "64994b81e1a5c35bf162aa85aa3cf461437b67e82f4c4e3fc4b53a27367d7444",
+            "size": 3951
+          },
+          "before": null,
+          "path": "contracts/a_share_kb_hold_score_v1.json"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "contracts/a_share_kb_n_structure_v1.json",
+            "sha256": "b00de5a156225b4843c18c988e09b8a0b708496cdd61b475fd6d9cb92a26633f",
+            "size": 7035
+          },
+          "before": null,
+          "path": "contracts/a_share_kb_n_structure_v1.json"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/kb_action_authority.py",
+            "sha256": "0b7a4820a1e387ed4e3496f01d207b20f4f70b423b10f01f8439b3f0d16d583d",
+            "size": 6930
+          },
+          "before": null,
+          "path": "ops/kb_action_authority.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/kb_hold_score.py",
+            "sha256": "ca4195a0af1e7220b4fbf13cf07865f3e307cbf7ed45e0ad76b0c00da07e61cb",
+            "size": 8924
+          },
+          "before": null,
+          "path": "ops/kb_hold_score.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/kb_n_structure.py",
+            "sha256": "2284db9740e168e1889b4b6d11e53d8962d38a1527185f6bee971498c8c2f9eb",
+            "size": 10670
+          },
+          "before": null,
+          "path": "ops/kb_n_structure.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/kb_signal_authority.py",
+            "sha256": "8b31138e49c7d1395de15bfad91dba65992d1af4c2c9a322abb8136e7f5cf053",
+            "size": 89267
+          },
+          "before": null,
+          "path": "ops/kb_signal_authority.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/materialize_workbench_score_action.py",
+            "sha256": "0da14f75fa6c4713dd56ee93d08772f08408ca0cead568b8cdfb04c7f48431da",
+            "size": 19181
+          },
+          "before": null,
+          "path": "ops/materialize_workbench_score_action.py"
+        },
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/research_panel_daily_product.py",
+            "sha256": "9b3f13272d686959a2317a1a2373301d18d5fa8480967ac78bdb1894a1aaa3f5",
+            "size": 50548
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "ops/research_panel_daily_product.py",
+            "sha256": "f41cb99b1049e64e10156dd35fa0b52df0cb10c38ccfd30bd1feb29d1efa6a2f",
+            "size": 49884
+          },
+          "path": "ops/research_panel_daily_product.py"
+        }
+      ],
+      "non_delta_entries_preserved": 1019,
+      "scope": "SOURCE_DELTA_ONLY_NO_PRODUCER_REPLAY"
+    },
+    "stage": {
+      "base_manifest": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release/v4-daily-materials-20261109-r2-stage/release-manifest.json",
+        "sha256": "e68c938394071f80634f490f632176676f597d5b6371e706080c6561229b5718"
+      },
+      "delta": [
+        {
+          "after": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "stage_center_tick_config.json",
+            "sha256": "ab0fcbd21c3693daad3b966c203ce1114253b356ab9b98f95173201f37fce0ce",
+            "size": 5862
+          },
+          "before": {
+            "kind": "file",
+            "mode": "0644",
+            "path": "stage_center_tick_config.json",
+            "sha256": "aa8af3615268ac0160c949bcd216f4968a783d8db26475efaca6bc0e9cc565ec",
+            "size": 5862
+          },
+          "path": "stage_center_tick_config.json"
+        }
+      ],
+      "non_delta_entries_preserved": 1002,
+      "scope": "SOURCE_DELTA_ONLY_NO_PRODUCER_REPLAY"
+    }
+  },
+  "checks": {
+    "source_tests": "19 distinct targeted cases PASS cumulatively; only changed/new cases re-executed",
+    "r3_dependency": "PASS24 bindings including Main/Stage entry+config owner, immutable delta JSON SHA, full app/static inventory; API app946d7135 exact r2 reuse",
+    "r3_actual_retention_checker": "PASS configured_policy and actual _checked_file with draft plist address substitutions only",
+    "r3_stage_witness": "PASS11/09 0900 original phase2 historical owner; unchanged 11/07 and11/06 scopes reuse r2 PASS",
+    "r3_api_static": "PASS changed kb-single-stock.mjs served SHA d823 with no-store via ASGI. Unchanged r2 homepage/company/API code PASS reused. New371 publication NOT_RUN"
+  },
+  "commands": [
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <release>/build_final_packet.py <score>/RUNTIME_DELTA.json",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <release>/check_final_packet.py",
+    "<absolute-python> -B <release>/check_final_stage_witness.py",
+    "<absolute-python> -B <release>/check_final_api_candidate.py",
+    "V4_REPAIR_STAGE_FIXTURE=<original-active-stage> V4_REPAIR_RUNTIME_FIXTURE=<original-active-api> <absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r7 tests/test_daily_materials_release.py::test_stage_patch_preserves_single_day_and_exact_five_history_limit",
+    "<absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r8 tests/test_daily_materials_release.py::test_cutover_refuses_main_with_active_children",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <release>/build_incremental_packet_r3.py <score>/RUNTIME_DELTA.json",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <release>/check_r3_packet.py",
+    "<absolute-python> -B <release>/check_r3_stage_witness.py",
+    "<absolute-python> -B <release>/check_r3_static.py",
+    "<absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r9 tests/test_daily_materials_release.py::test_explicit_rollback_requires_all_previous_backups_before_stopping",
+    "V4_FINAL_PACKET_FIXTURE=<release>/PACKET_FINAL_R3.json <absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r10 tests/test_daily_materials_release.py::test_packet_rejects_stage_config_from_different_owner",
+    "V4_FINAL_PACKET_FIXTURE=<release>/PACKET_FINAL_R3.json <absolute-python> -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r11 tests/test_daily_materials_release.py::test_packet_rejects_changed_delta_input_before_any_install"
+  ],
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "cannot_confirm": [
+    "Final independent Reviewer verdict pending",
+    "Activation,actual listener/API/UI and new Main natural execution NOT_RUN",
+    "371 company/score publication NOT_RUN; source Writer staged oracles are not actual published API evidence",
+    "11/08 intermediate retention-r1/governance-r2 historical owners not certified",
+    "Rollback restores exact previous tuple including its known pre-task storage-pin drift"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "superseded": {
+    "r1": "stale tool SHA rejects; never activated",
+    "r2": "independent score qualification cache P2; final static kb date invalidation absent; never activated"
+  },
+  "incremental_notes": [
+    "Frozen score delta7edb40d0 contains Main qualification canonical key fix0da14f75. API app and5static files exactly reuse prior bytes.",
+    "Exact-byte reuse guard rejected kb-single-stock0e3bbf4e vs finald823, preserved as real delta; only1static file overlaid and served-test passed.",
+    "R3 Stage clone reused reviewed reader; draft rewriting uses actual original plist root, not cloned r2 app. Added launcher/config owner check and negative regression.",
+    "Explicit rollback refuses any missing/changed old plist backups before stopping any service.",
+    "No live plist/config/app write, service control, raw-market/model action, business publication or push by Writer."
+  ]
+}
