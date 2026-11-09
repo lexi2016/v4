@@ -114,7 +114,8 @@ def patch_stage_owner_reader(source: str) -> str:
     """Keep exact pins; permit a declared same-release manifest filename.
 
     Existing singleton transitions and their special 20261102 witness stay
-    intact. A fourth exact historical pin preserves the preceding Main owner.
+    intact. Five exact historical pins preserve the preceding Main owners
+    across the observed 11/06 and this 11/09 daily-hook cutover.
     """
     edits = [
         ("                      required: tuple[str, ...]) -> dict:",
@@ -132,6 +133,13 @@ def patch_stage_owner_reader(source: str) -> str:
         ("    _release_manifest(owner, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES)",
          "    _release_manifest(owner, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES,\n"
          "                      manifest_path=binding.get('manifest_path'))"),
+        ("set(binding) != {'app_root', 'release_id', 'manifest_sha256'}\n            or not isinstance(binding.get('release_id'), str)",
+         "set(binding) not in ({'app_root', 'release_id', 'manifest_sha256'},\n"
+         "                                     {'app_root', 'release_id', 'manifest_sha256', 'manifest_path'})\n"
+         "            or not isinstance(binding.get('release_id'), str)"),
+        ("        _release_manifest(previous, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES)",
+         "        _release_manifest(previous, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES,\n"
+         "                          manifest_path=binding.get('manifest_path'))"),
     ]
     for old, new in edits:
         if source.count(old) != 1:
@@ -140,7 +148,7 @@ def patch_stage_owner_reader(source: str) -> str:
     old = "not isinstance(historical, list) or len(historical) > 3"
     if source.count(old) != 1:
         raise ValueError("STAGE_HISTORICAL_BOUND_PATCH_PREIMAGE_MISMATCH")
-    return source.replace(old, "not isinstance(historical, list) or len(historical) > 4", 1)
+    return source.replace(old, "not isinstance(historical, list) or len(historical) > 5", 1)
 
 
 
@@ -185,6 +193,7 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
     addresses. All other source files are read at their actual pinned paths.
     """
     import plistlib
+    from ops.api_release_integration import inventory_digest
     for reference in packet.get('tool_source_files', []):
         if sha(Path(reference['path'])) != reference['sha256']:
             raise ValueError('REVIEWED_TOOL_SOURCE_DRIFT:' + reference['path'])
@@ -212,6 +221,13 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
             raise ValueError('RELEASE_MANIFEST_SHA_DRIFT:' + role)
         manifest = json.loads(manifest_path.read_text())
         validate_packet_manifest(manifest, role=role)
+        identity = manifest['candidate'] if role == 'api' else manifest
+        if identity.get('app_root') != service['app_root'] or identity.get('release_id') != service['release_id']:
+            raise ValueError('MANIFEST_RELEASE_IDENTITY_DRIFT:' + role)
+        inventory = manifest['application_inventory']
+        if (inventory.get('entry_count') != len(inventory['entries'])
+                or inventory_digest(inventory['entries']) != inventory.get('aggregate_sha256')):
+            raise ValueError('RELEASE_INVENTORY_DIGEST_DRIFT:' + role)
         if frozen_inventory(Path(service['app_root']), manifest['application_inventory']['entries']) != manifest['application_inventory']['entries']:
             raise ValueError('RELEASE_INVENTORY_DRIFT:' + role)
     stage = packet['services']['stage']
@@ -254,4 +270,5 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
             raise ValueError('STATIC_ASSET_SHA_DRIFT:' + item['path'])
     return {'status': 'PASS_FULL_DEPENDENCY_TUPLE', 'source_bindings_checked': len(pins['source_bindings']),
             'mode': 'INSTALLED' if installed else 'DRAFT_PLIST_SUBSTITUTION_ONLY',
-            'main_manifest_preserved': main['old_manifest_sha256'] == main['manifest_sha256']}
+            'main_manifest_preserved': main['old_manifest_sha256'] == main['manifest_sha256'],
+            'main_delta_scope': packet.get('main_delta_scope')}

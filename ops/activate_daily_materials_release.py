@@ -123,6 +123,12 @@ def wait_homepage(timeout=60):
             time.sleep(.3)
 
 
+def require_idle_main(service):
+    state, pid = loaded(service['label'])
+    if state.returncode != 0 or not pid or len(descendants(pid)) != 1:
+        raise RuntimeError('MAIN_NOT_IDLE_OR_ACTIVE_CHILDREN_NO_CUTOVER')
+
+
 def restore_services(services, backup, stopped):
     """Restore a complete previous tuple after any partial installation.
 
@@ -182,6 +188,7 @@ def cutover(packet_path: Path, review_path: Path, *, rollback: bool = False):
             stream = path.open('a+')
             fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
             held.append(stream)
+        require_idle_main(services['main'])
         for role in ('stage', 'main', 'api'):
             service = services[role]
             live = Path(service['live_plist'])
@@ -195,6 +202,9 @@ def cutover(packet_path: Path, review_path: Path, *, rollback: bool = False):
                 destination.write_bytes(live.read_bytes())
                 destination.chmod(0o600)
             old_state, pid = loaded(service['label'])
+            expected_root = service['app_root'] if rollback else service['old_app_root']
+            if old_state.returncode == 0 and expected_root not in old_state.stdout:
+                raise RuntimeError('LOADED_SERVICE_ROOT_DRIFT:' + role)
             tracked = descendants(pid)
             if old_state.returncode == 0:
                 response = run(['launchctl', 'bootout', f'gui/{os.getuid()}/{service["label"]}'])

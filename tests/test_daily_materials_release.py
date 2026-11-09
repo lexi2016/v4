@@ -72,12 +72,12 @@ def runtime_source():
     return Path(root)
 
 
-def test_stage_patch_preserves_single_day_and_only_one_extra_history(runtime_source):
+def test_stage_patch_preserves_single_day_and_exact_five_history_limit(runtime_source):
     import os
     source = (Path(os.environ['V4_REPAIR_STAGE_FIXTURE']) / 'infrastructure/manager_input_attestation.py').read_text()
     patched = patch_stage_owner_reader(source)
     compile(patched, '<patched-owner-reader>', 'exec')
-    assert "len(historical) > 4" in patched
+    assert "len(historical) > 5" in patched
     assert "if date == transition['trade_date']" in patched
     assert "manifest_path=binding.get('manifest_path')" in patched
     with pytest.raises(ValueError, match='PREIMAGE_MISMATCH'):
@@ -158,3 +158,14 @@ def test_partial_cutover_restores_whole_tuple_before_any_bootstrap(tmp_path, mon
     with pytest.raises(RuntimeError, match='CONCURRENT_CHANGE_NO_OVERWRITE'):
         activation.restore_services(services, backup, ['stage', 'main', 'api'])
     assert Path(services['stage']['live_plist']).read_bytes() == b'concurrent-change'
+
+
+def test_cutover_refuses_main_with_active_children(monkeypatch):
+    from types import SimpleNamespace
+    from ops import activate_daily_materials_release as activation
+    monkeypatch.setattr(activation, 'loaded', lambda label: (SimpleNamespace(returncode=0), 123))
+    monkeypatch.setattr(activation, 'descendants', lambda pid: [123, 456])
+    with pytest.raises(RuntimeError, match='MAIN_NOT_IDLE_OR_ACTIVE_CHILDREN'):
+        activation.require_idle_main({'label': 'main'})
+    monkeypatch.setattr(activation, 'descendants', lambda pid: [123])
+    activation.require_idle_main({'label': 'main'})
