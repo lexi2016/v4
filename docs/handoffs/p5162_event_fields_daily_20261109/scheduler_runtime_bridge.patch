@@ -1,0 +1,61 @@
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -814,6 +814,9 @@
+                                     input_sha256=authority["source_sha256"], snapshot=footer["adjustment_snapshot"],
+                                     selector_artifact_sha256=receipt["selector_sha256"], asof=int(request.business_date),
+                                     basis=footer["market_basis"]["A"], historical_PIT=False)
++                                class EventFieldsLeafNeedsRecovery(Exception):
++                                    pass
++
+                                 def saved_leaf():
+                                     index = json.loads((product_root/"index.json").read_bytes())
+                                     manifest_ref = index["dates"][request.business_date]
+@@ -841,9 +844,47 @@
+                                     if (Path(selector).read_bytes() != selector_bytes or
+                                             Path(backtest).read_bytes() != backtest_bytes):
+                                         raise ValueError("PAIRED_SOURCE_CHANGED_DURING_LEAF_RECOVERY")
+-                                    return {"status": product["status"], "manifest": manifest_ref, "reused": True, "numeric_recomputed": False}
++                                    try:
++                                        descriptor = index["p5162_event_fields"][request.business_date]
++                                        if (descriptor.get("status") not in {"READY", "PARTIAL_WITH_UNKNOWN"} or
++                                                descriptor.get("data_date") != request.business_date or
++                                                descriptor.get("source_generation") != expected_identity["generation"] or
++                                                descriptor.get("input_sha256") != expected_identity["input_sha256"] or
++                                                descriptor.get("numeric_manifest") != manifest_ref or
++                                                descriptor.get("sample_only") is not False):
++                                            raise ValueError("EVENT_FIELDS_DESCRIPTOR_IDENTITY")
++                                        fields = json.loads(checked(descriptor["index"]).read_bytes())
++                                        if (fields.get("schema") != "v4.p5162.event_fields_index.v1" or
++                                                fields.get("data_date") != request.business_date or
++                                                fields.get("source_generation") != expected_identity["generation"] or
++                                                fields.get("input_sha256") != expected_identity["input_sha256"] or
++                                                fields.get("numeric_manifest") != manifest_ref or
++                                                fields.get("source_identity") != expected_identity or
++                                                fields.get("sample_only") is not False or
++                                                set(fields.get("items", {})) != set(product["row_refs"]) or
++                                                fields.get("counts", {}).get("total") != len(product["row_refs"])):
++                                            raise ValueError("EVENT_FIELDS_INDEX_IDENTITY")
++                                        if any(not Path(item["path"]).is_file() for item in fields["items"].values()):
++                                            raise ValueError("EVENT_FIELDS_RECORD_MISSING")
++                                        completion = json.loads((product_root / "events/latest.json").read_bytes())
++                                        if (completion.get("data_date") != request.business_date or
++                                                completion.get("manifest") != manifest_ref or
++                                                completion.get("p5162_event_fields") != descriptor):
++                                            raise ValueError("EVENT_FIELDS_COMPLETION_IDENTITY")
++                                    except (OSError, ValueError, KeyError, TypeError) as error:
++                                        raise EventFieldsLeafNeedsRecovery(str(error)) from error
++                                    return {"status": product["status"], "manifest": manifest_ref,
++                                            "p5162_event_fields": descriptor, "reused": True, "numeric_recomputed": False}
+                                 try:
+                                     leaf = saved_leaf()
++                                except EventFieldsLeafNeedsRecovery:
++                                    # Never trigger missing numeric checkpoints, source collection,
++                                    # score/action history or original formula in this repair path.
++                                    recovered = governed_product(materialize_daily_product, data_root=data_root,
++                                        target=int(request.business_date), output_root=product_root,
++                                        require_cached_numeric=True)
++                                    leaf = {**saved_leaf(), "event_fields_recovered_by_original_owner": True,
++                                            "numeric_recomputed": False, "materialization": recovered}
+                                 except (OSError, ValueError, KeyError, TypeError):
+                                     # The paired source is already valid. Resume its exact
+                                     # original materializer/checkpoints, without invoking

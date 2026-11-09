@@ -445,13 +445,44 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
 from ops.research_storage_pair import paired_request
 
 
+def _recover_event_fields_from_cached_numeric(context,root,index_start):
+ """Rebuild only this derivative from the exact already-published product."""
+ indexfile=root/'index.json';eventfile=root/'events/latest.json'
+ if index_start is None or not eventfile.is_file():raise ValueError('EVENT_FIELDS_EXISTING_PUBLICATION_MISSING')
+ event_start=eventfile.read_bytes();index=json.loads(index_start);event=json.loads(event_start);day=str(context.target)
+ manifest_ref=index.get('dates',{}).get(day)
+ if not manifest_ref:raise ValueError('EVENT_FIELDS_EXISTING_NUMERIC_MANIFEST_MISSING')
+ manifest=json.loads(checked(manifest_ref).read_bytes());product=json.loads(checked(manifest['artifact']).read_bytes())
+ if (product.get('sample_only') is not False or product.get('source_identity')!=context.identity
+     or product.get('source_generation')!=context.generation or product.get('data_date')!=day
+     or set(product.get('processed_universe',[]))!=set(context.scope)
+     or event.get('data_date')!=day or event.get('manifest')!=manifest_ref
+     or event.get('source_generation')!=context.generation):
+  raise ValueError('EVENT_FIELDS_EXISTING_PUBLICATION_IDENTITY_CONFLICT')
+ from ops.materialize_p5162_event_fields import materialize as materialize_event_fields
+ descriptor=materialize_event_fields(context,product,manifest_ref,save_function=save)
+ context.unchanged()
+ if indexfile.read_bytes()!=index_start or eventfile.read_bytes()!=event_start:raise ValueError('DAILY_PUBLICATION_INDEX_OR_EVENT_CAS_MOVED')
+ index.setdefault('p5162_event_fields',{})[day]=descriptor
+ event['p5162_event_fields']=descriptor;event['event_id']=digest({k:v for k,v in event.items() if k!='event_id'})
+ save(indexfile,index);save(eventfile,event)
+ return dict(manifest=manifest_ref,artifact=manifest['artifact'],status=product['status'],data_date=day,
+             source_generation=context.generation,processed_count=product['processed_count'],
+             unique_count=product['unique_count'],unknown_count=product['unknown_count'],
+             history_status=product['history_status'],p5162_event_fields=descriptor,
+             numeric_recomputed=False,**FLAGS)
+
+
 @paired_request
-def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
+def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None,require_cached_numeric=False):
  """Called once from original run_a; no historical loop in normal daily mode."""
  context=SourceContext(data_root,target)
  if output_root is not None:context.root=Path(output_root).resolve()
  root=context.root;context.unchanged()
  index_start=(root/'index.json').read_bytes() if (root/'index.json').is_file() else None
+ if require_cached_numeric:
+  if symbols is not None or history_dates or evaluate is not None or formula_result is not None or chart_png_renderer is not None:raise ValueError('EVENT_FIELDS_CACHED_RECOVERY_SCOPE_CONFLICT')
+  return _recover_event_fields_from_cached_numeric(context,root,index_start)
  if formula_result and (str(context.panel)!=str(formula_result['selector']) or formula_result['selector_sha256']!=context.receipt['candidate_sha256']['selector']):raise ValueError('DAILY_FORMULA_COMPLETION_IDENTITY_CONFLICT')
  selected=sorted(symbols if symbols is not None else context.scope)
  if not set(selected)<=set(context.scope):raise ValueError('DAILY_PROJECTION_OUTSIDE_PROCESSED_UNIVERSE')
@@ -511,6 +542,16 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   except Exception as error:
    score_action=dict(status='CANNOT_CONFIRM',reason='SCORE_MATERIALIZATION_FAILED:'+str(error),numeric_manifest=manifest_ref,**FLAGS)
   index.setdefault('score_action',{})[str(target)]=score_action
+  # Project saved panel-reference K facts at this same completion boundary.
+  # A gap is carried in the descriptor and never substitutes an older day.
+  try:
+   from ops.materialize_p5162_event_fields import materialize as materialize_event_fields
+   event_fields=materialize_event_fields(context,product,manifest_ref,save_function=save)
+  except Exception as error:
+   event_fields=dict(status='CANNOT_CONFIRM',reason='EVENT_FIELDS_MATERIALIZATION_FAILED:'+str(error),numeric_manifest=manifest_ref,**FLAGS)
+  index.setdefault('p5162_event_fields',{})[str(target)]=event_fields
+  context.unchanged()
+  if ((root/'index.json').read_bytes() if (root/'index.json').is_file() else None)!=index_start:raise ValueError('DAILY_PUBLICATION_INDEX_CAS_MOVED')
   save(indexfile,index)
   statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
   if statistics_root:
@@ -523,5 +564,7 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   if chart_descriptor is not None:
    event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
   event['score_action']=score_action
+  event['p5162_event_fields']=event_fields
+  event['event_id']=digest({k:v for k,v in event.items() if k!='event_id'})
   save(root/'events/latest.json',event)
- return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
+ return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**({'p5162_event_fields':event_fields} if symbols is None else {}),**FLAGS)
