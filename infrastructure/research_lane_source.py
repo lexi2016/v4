@@ -1,8 +1,8 @@
-"""Read-only V3.5-owned research lane source over verified research archives.
+"""Read-only V4-owned research lane source over verified research archives.
 
 The research decision-desk lane is served exclusively from the explicitly
 bound ``data_root`` through exact archives and hourly artifacts plus an
-optional V3.5-owned validated event artifact. Nothing reads the V3 research
+optional V4-owned validated event artifact. Nothing reads the V3 research
 module, assistant run logs, or legacy finance/ai sources; no event is ever
 synthesized and no sibling root is searched. The bound root is disclosed only
 as read-only provenance so a deployment can be audited.
@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 import re
 import hashlib
+import gzip
+import io
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
@@ -21,8 +23,8 @@ from domains.research import project_legacy_source_gaps
 from infrastructure.data_store import _sha256
 from infrastructure.market_time import shanghai_now
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.owned_io import SafeRoot
 from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
-from infrastructure.scheduling.execution_ledger import ExecutionLedger
 
 
 _EVENT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9:._-]{0,255}")
@@ -34,6 +36,13 @@ _STATUS_RECEIPT_GLOB = "*.dispatch-receipt.json"
 _SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
+def _execution_ledger_type():
+    """Load scheduling support only for endpoints that actually read it."""
+    from infrastructure.scheduling.execution_ledger import ExecutionLedger
+
+    return ExecutionLedger
+
+
 class ResearchLaneSource:
     """Projections over a verified ``ResearchArchiveStore``.
 
@@ -43,8 +52,12 @@ class ResearchLaneSource:
     ``ResearchArchiveStore.read_exact`` / ``read_latest`` and only projects.
     """
 
-    def __init__(self, data_root: Path, *, ledger_root: Path | None = None) -> None:
+    def __init__(self, data_root: Path, *, ledger_root: Path | None = None, a_share_daily_root: Path | None = None,
+                 original_chart_binding: Mapping[str, Any] | None = None, original_chart_artifact_root: Path | str | None = None) -> None:
         self.data_root = Path(data_root)
+        self.a_share_daily_root = Path(a_share_daily_root).resolve() if a_share_daily_root is not None else None
+        self.original_chart_binding = original_chart_binding
+        self.original_chart_artifact_root = Path(original_chart_artifact_root).resolve() if original_chart_artifact_root is not None else None
         self.ledger_root = Path(ledger_root) if ledger_root is not None else self.data_root.parent / "dispatcher"
         self.store = ResearchArchiveStore(self.data_root)
         self.hourly_store = HourlyResearchStore(self.data_root)
@@ -60,7 +73,7 @@ class ResearchLaneSource:
         server data root; there is no sibling-root search here.
         """
         return {
-            "source_id": "V35_RESEARCH_DATA_ROOT",
+            "source_id": "V4_RESEARCH_DATA_ROOT",
             "source_root": str(self.data_root),
             "ledger_root": str(self.ledger_root),
             "binding_policy": "EXPLICIT_RESEARCH_DATA_ROOT_OR_SERVER_DATA_ROOT",
@@ -159,7 +172,7 @@ class ResearchLaneSource:
         # Use the existing ledger's date/mode ordering and integrity check.
         # Random run filenames are not execution chronology. Unverified JSON
         # cannot be projected as a successful hourly run.
-        ledger = ExecutionLedger(self.ledger_root)
+        ledger = _execution_ledger_type()(self.ledger_root)
         try:
             rows = ledger.list_receipts(research_date, mode="LIVE")
             valid, _ = ledger.verify_receipt_chain(research_date, mode="LIVE")
@@ -435,7 +448,7 @@ class ResearchLaneSource:
             "message": "已到计划窗口，但无可核验的同日执行回执；上游或执行状态未确认，不等于已执行失败。",
         }
         try:
-            ledger = ExecutionLedger(self.ledger_root)
+            ledger = _execution_ledger_type()(self.ledger_root)
             receipts = ledger.list_receipts(research_date, mode="LIVE")
             receipts = tuple(row for row in receipts
                 if row.get("scheduled_date") == research_date and row.get("target_date") == research_date
@@ -899,6 +912,526 @@ class ResearchLaneSource:
             slots = self.hourly_store.list_slots(archive_date, mode="LIVE")
             return self._project_bound_source(payload, slot=slot), slot, len(slots)
         return self.store.read_exact(archive_date), "", 0
+
+    def _a_product_root(self):
+        if self.a_share_daily_root is None:
+            return None
+        return self.a_share_daily_root / "daily_products/a_share"
+
+    def _original_chart_bytes(self, reference, *, binding=None):
+        binding = self.original_chart_binding if binding is None else binding
+        if (not isinstance(binding, Mapping) or not isinstance(reference, Mapping)
+                or not isinstance(reference.get("path"), str) or not isinstance(reference.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])):
+            raise ValueError("ORIGINAL_CHART_REFERENCE_INVALID")
+        root = Path(binding["artifact_root"])
+        path = Path(reference["path"])
+        if (not root.is_absolute() or root.resolve(strict=True) != root
+                or not path.is_absolute() or not path.is_relative_to(root)
+                or path.resolve(strict=True) != path or path.is_symlink()):
+            raise ValueError("ORIGINAL_CHART_REFERENCE_OUTSIDE_BOUND_ROOT")
+        raw = SafeRoot(root).read_bytes(str(path.relative_to(root)), max_bytes=64 * 1024 * 1024)
+        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
+            raise ValueError("ORIGINAL_CHART_REFERENCE_SHA_DRIFT")
+        return raw
+
+    def _a_chart_history_origin(self, product, descriptor, date, symbol):
+        """Validate the exact ref delta; read full rows only for this requested stock."""
+        chart_origin = descriptor.get("chart_origin_manifest")
+        if chart_origin is None:
+            return product
+        origin_manifest = self._a_product_reference(chart_origin)
+        origin = self._a_product_reference(origin_manifest["artifact"])
+        excluded = {"row_refs", "artifact", "manifest", "available_dates", "original_charts", "history_sync"}
+        declared = descriptor.get("history_updated_symbols")
+        if ({k:v for k,v in origin.items() if k not in excluded} != {k:v for k,v in product.items() if k not in excluded}
+                or origin_manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1"
+                or origin_manifest.get("data_date") != date or origin_manifest.get("source_generation") != product["source_generation"]
+                or origin_manifest.get("input_sha256") != product["source_identity"]["input_sha256"]
+                or set(origin["row_refs"]) != set(product["row_refs"])
+                or not isinstance(declared, list) or len(declared) != len(set(declared))):
+            raise ValueError("ORIGINAL_CHART_NUMERIC_ORIGIN_CONFLICT")
+        changed = {s for s in origin["row_refs"] if origin["row_refs"][s] != product["row_refs"][s]}
+        if not changed or changed != set(declared) or not changed <= {row["symbol"] for row in product["rows"]}:
+            raise ValueError("ORIGINAL_CHART_HISTORY_ORIGIN_DELTA_INVALID")
+        if symbol in changed:
+            old_row = self._a_product_reference(origin["row_refs"][symbol])
+            new_row = self._a_product_reference(product["row_refs"][symbol])
+            self._a_daily_checkpoint_binding(new_row, product, symbol, date)
+            if ({k:v for k,v in old_row.items() if k not in {"statistics", "historical_coverage"}}
+                    != {k:v for k,v in new_row.items() if k not in {"statistics", "historical_coverage"}}):
+                raise ValueError("ORIGINAL_CHART_HISTORY_ORIGIN_ROW_CONFLICT")
+        return {**origin, "manifest": chart_origin, "artifact": origin_manifest["artifact"]}
+
+    def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
+        """Read only the explicitly bound, completed original-chart artifacts."""
+        product = self.read_a_daily_product(date, include_display_names=False)
+        current_product = product
+        chart_origin = None
+        binding = self.original_chart_binding
+        if binding is None:
+            root = self._a_product_root()
+            descriptor = product.get("original_charts")
+            if (root is None or not isinstance(descriptor, Mapping)
+                    or descriptor.get("numeric_manifest") != product.get("manifest")):
+                raise ValueError("ORIGINAL_CHART_OWNER_BINDING_NOT_CONFIGURED")
+            binding = {"artifact_root": str(self.original_chart_artifact_root or root), "manifest": descriptor.get("manifest"), "receipt": descriptor.get("receipt")}
+            chart_origin = descriptor.get("chart_origin_manifest")
+            product = self._a_chart_history_origin(product, descriptor, date, symbol)
+        if not isinstance(binding, Mapping):
+            raise ValueError("ORIGINAL_CHART_BINDING_NOT_CONFIGURED")
+        read = lambda ref: self._original_chart_bytes(ref, binding=binding)
+        identity = product.get("source_identity") or {}
+        if (product.get("status") not in ("READY", "PARTIAL_WITH_ROWS")
+                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
+                or generation is not None and generation != product.get("source_generation")
+                or input_sha256 is not None and input_sha256 != identity.get("input_sha256")):
+            raise ValueError("ORIGINAL_CHART_PRODUCT_IDENTITY_CONFLICT")
+        config_ref = product["source_config"]
+        config_path = Path(config_ref["path"])
+        if not config_path.is_absolute() or config_path.resolve(strict=True) != config_path:
+            raise ValueError("ORIGINAL_CHART_CONFIG_PATH_INVALID")
+        config_raw = SafeRoot(config_path.parent).read_bytes(config_path.name, max_bytes=2 * 1024 * 1024)
+        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
+            raise ValueError("ORIGINAL_CHART_CONFIG_SHA_DRIFT")
+        config = json.loads(config_raw)
+        if (config["formula"]["sha256"] != "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac"
+                or config["engine"]["sha256"] != "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"):
+            raise ValueError("ORIGINAL_CHART_FORMULA_OR_ENGINE_CONFLICT")
+        manifest = json.loads(read(binding["manifest"]))
+        receipt = json.loads(read(binding["receipt"]))
+        candidates = {row["symbol"] for row in product["rows"]}
+        records = receipt.get("records")
+        owner = receipt.get("owner_sidecar") is True
+        errors = receipt.get("errors")
+        if not isinstance(errors, list) or not isinstance(records, list):
+            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
+        failed = {row["symbol"] for row in errors} if owner else set()
+        ready = candidates - failed
+        if ((receipt.get("status") not in ("OWNER_CHARTS_COMPLETED", "OWNER_CHARTS_PARTIAL") if owner else receipt.get("status") != "MECHANICAL_247_DELIVERY_PASS")
+                or receipt.get("expected") != len(candidates) or receipt.get("verified") != len(ready)
+                or not failed <= candidates or len(failed) != len(errors) or (not owner and errors)
+                or any(receipt.get(key) != [] for key in ("missing", "extra"))
+                or len(records) != len(ready) or {row.get("symbol") for row in records} != ready
+                or not isinstance(manifest.get("samples"), Mapping) or set(manifest["samples"]) != ready
+                or any(manifest.get(key) is not value or receipt.get(key) is not value
+                       for key, value in {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())):
+            raise ValueError("ORIGINAL_CHART_COMPLETION_CONFLICT")
+        source_binding = receipt["source_binding"]
+        expected = {"product": product["artifact"], "manifest": product["manifest"], "config": config_ref,
+                    "formula": config["formula"], "engine": config["engine"]}
+        if any(source_binding.get(key) != value for key, value in expected.items()):
+            raise ValueError("ORIGINAL_CHART_COMPLETION_SOURCE_CONFLICT")
+        if symbol in failed:
+            raise ValueError("ORIGINAL_CHART_OWNER_TYPED_GAP:" + next(row.get("reason", "UNKNOWN") for row in errors if row["symbol"] == symbol))
+        item = manifest["samples"][symbol]
+        record = next(row for row in records if row["symbol"] == symbol)
+        if (record.get("data_date") != date or record.get("source_generation") != product["source_generation"]
+                or record.get("source_input_sha256") != identity["input_sha256"]
+                or record.get("formula_sha256") != config["formula"]["sha256"]):
+            raise ValueError("ORIGINAL_CHART_RECORD_IDENTITY_CONFLICT")
+        refs = {"html": item["html"], "png": item["PNG"], "projection": item["projection"]}
+        for kind, key in (("html", "html"), ("png", "PNG"), ("projection", "projection")):
+            if any(refs[kind].get(part) != record[key].get(part) for part in ("path", "sha256")):
+                raise ValueError("ORIGINAL_CHART_OUTPUT_REFERENCE_CONFLICT")
+        raw = {kind: read(ref) for kind, ref in refs.items()}
+        if refs["projection"]["path"].endswith(".gz"):
+            with gzip.GzipFile(fileobj=io.BytesIO(raw["projection"])) as compressed:
+                projection_raw = compressed.read(64 * 1024 * 1024 + 1)
+        else:
+            projection_raw = raw["projection"]
+        if len(projection_raw) > 64 * 1024 * 1024:
+            raise ValueError("ORIGINAL_CHART_PROJECTION_SIZE_LIMIT")
+        projection = json.loads(projection_raw)
+        formula = projection["formula_result"]
+        source = projection["source"]
+        if owner:
+            retained_bytes = read(projection["source_cache"])
+            with gzip.GzipFile(fileobj=io.BytesIO(retained_bytes)) as compressed:
+                retained_raw = compressed.read(64 * 1024 * 1024 + 1)
+            if len(retained_raw) > 64 * 1024 * 1024:
+                raise ValueError("ORIGINAL_CHART_RETAINED_SIZE_LIMIT")
+            retained = json.loads(retained_raw)
+            calendar_raw = json.dumps(retained["calendar"], ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+            if (retained.get("symbol") != symbol or retained.get("data_date") != date
+                    or retained.get("identity") != identity or retained.get("config") != config_ref
+                    or retained.get("bars_sha256") != projection["source_cache"].get("bars_sha256")
+                    or hashlib.sha256(calendar_raw).hexdigest() != projection["source_cache"].get("calendar_sha256")
+                    or retained.get("formula_result") != formula
+                    or retained.get("bar_dates") != [row.get("trade_date") for row in formula.get("rows", [])]):
+                raise ValueError("ORIGINAL_CHART_RETAINED_BINDING_CONFLICT")
+        if (projection.get("symbol") != symbol or projection.get("data_date") != date
+                or any(projection.get(key) is not value for key, value in
+                       {"RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}.items())
+                or source.get("generation_id") != product["source_generation"]
+                or source.get("source_input_sha256") != identity["input_sha256"]
+                or source.get("price_basis") != identity["basis"]["price_basis"]
+                or source.get("volume_basis") != identity["basis"]["volume_basis"]
+                or projection.get("source_cache") != record.get("source_cache")
+                or record.get("product_row_ref") != product["row_refs"].get(symbol)
+                or projection.get("product_row_ref") != product["row_refs"].get(symbol)
+                or any(projection["lineage"].get(key) != value for key, value in expected.items())
+                or formula.get("formula_sha256") != config["formula"]["sha256"] or formula.get("mode") != "prefix"
+                or formula.get("field_count") != 51 or formula.get("drawing_count") != 22
+                or len(formula.get("rows", [])) != item.get("rows") or not formula.get("rows")
+                or formula["rows"][-1].get("trade_date") != int(date)
+                or projection.get("unsupported_drawings") != []):
+            raise ValueError("ORIGINAL_CHART_PROJECTION_IDENTITY_CONFLICT")
+        answer = {"schema_version": "v4.a_share.original_chart.v1", "status": "READY", "symbol": symbol,
+            "data_date": date, "source_generation": product["source_generation"], "input_sha256": identity["input_sha256"],
+            "formula_sha256": config["formula"]["sha256"], "engine_sha256": config["engine"]["sha256"],
+            "product_manifest": product["manifest"], "product_artifact": product["artifact"],
+            "chart_manifest": binding["manifest"], "completion_receipt": binding["receipt"],
+            "rows": item["rows"], "values_per_row": 51, "drawings_per_row": 22, "assets": refs,
+            "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        if chart_origin is not None:
+            answer.update(product_manifest=current_product["manifest"], product_artifact=current_product["artifact"], chart_numeric_origin_manifest=chart_origin)
+        if asset is not None:
+            if asset not in refs or asset_sha256 != refs[asset]["sha256"]:
+                raise ValueError("ORIGINAL_CHART_ASSET_SHA_CONFLICT")
+            answer["_asset_bytes"] = raw[asset]
+        return answer
+
+    def _a_product_reference(self, reference):
+        root = self._a_product_root()
+        if (
+            not isinstance(reference, Mapping)
+            or not isinstance(reference.get("path"), str)
+            or not reference.get("path")
+            or not isinstance(reference.get("sha256"), str)
+            or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])
+        ):
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_INVALID")
+        path = Path(reference["path"])
+        if root is None or not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path or not path.is_relative_to(root):
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_OUTSIDE_BOUND_ROOT")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != reference["sha256"]:
+            raise ValueError("A_DAILY_PRODUCT_REFERENCE_SHA_DRIFT")
+        value = json.loads(raw)
+        if not isinstance(value, Mapping):
+            raise ValueError("A_DAILY_PRODUCT_OBJECT_INVALID")
+        if value.get("RESEARCH_ONLY") is not True or any(value.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent")):
+            raise ValueError("A_DAILY_PRODUCT_SAFETY_UNBOUND")
+        return value
+
+    def _a_daily_checkpoint_binding(self, row, product, symbol, date):
+        """Bind the whole stored row, including price statistics, to this product."""
+        identity = product["source_identity"]
+        qualification = row.get("qualification")
+        statistics = row.get("statistics")
+        asof = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+        if (not isinstance(qualification, Mapping)
+                or qualification.get("source_generation") != product["source_generation"]
+                or qualification.get("symbol") != symbol or qualification.get("target_date") != date
+                or not isinstance(statistics, Mapping) or statistics.get("asof") != asof
+                or not isinstance(statistics.get("groups"), list) or not statistics["groups"]):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+        snapshot = identity.get("snapshot")
+        if snapshot is not None and (not isinstance(snapshot, Mapping)
+                or not snapshot.get("path") or not snapshot.get("sha256")
+                or qualification.get("snapshot_path") != snapshot["path"]
+                or qualification.get("snapshot_sha256") != snapshot["sha256"]):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+        config_ref = product.get("source_config")
+        if (not isinstance(config_ref, Mapping) or not isinstance(config_ref.get("path"), str)
+                or not config_ref["path"] or not isinstance(config_ref.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", config_ref["sha256"])):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        # The producer's explicitly hash-bound config can live outside the
+        # product directory. Read only that exact file; never infer a config.
+        config_path = Path(config_ref["path"])
+        if (not config_path.is_absolute() or config_path.is_symlink()
+                or config_path.resolve(strict=True) != config_path):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        config_raw = config_path.read_bytes()
+        if hashlib.sha256(config_raw).hexdigest() != config_ref["sha256"]:
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_CONFIG_SHA_DRIFT")
+        config = json.loads(config_raw)
+        formula = config.get("formula") if isinstance(config, Mapping) else None
+        if (not isinstance(formula, Mapping) or not isinstance(formula.get("sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", formula["sha256"])):
+            raise ValueError("A_DAILY_SYMBOL_DETAIL_FORMULA_IDENTITY_UNBOUND")
+        basis = identity.get("basis")
+        expected = {"generation": product["source_generation"], "input": identity["input_sha256"],
+                    "asof": asof, "market": symbol[-2:], "formula": formula["sha256"],
+                    "basis": basis.get("price_basis") if isinstance(basis, Mapping) else "QFQ_ASOF"}
+        for group in statistics["groups"]:
+            binding = group.get("source_identity") if isinstance(group, Mapping) else None
+            if (not isinstance(binding, Mapping) or group.get("identity_status") != "BOUND"
+                    or any(binding.get(key) != value for key, value in expected.items())
+                    or not isinstance(binding.get("formula"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", binding["formula"])
+                    or not isinstance(group.get("rule_sha256"), str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", group["rule_sha256"])
+                    or binding.get("rule_sha256") != group["rule_sha256"]):
+                raise ValueError("A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT")
+
+    def _a_daily_display_names(self, index, product, reference, date):
+        """Only a hash-bound, same-product display projection may fill empty names."""
+        descriptors = index.get("display_names")
+        descriptor = descriptors.get(date) if isinstance(descriptors, Mapping) else None
+        if descriptor is None:
+            return {}, None
+        names = self._a_product_reference(descriptor)
+        identity = product["source_identity"]
+        selector = names.get("selector")
+        if (names.get("schema_version") != "v4.a_share.daily_display_names.v1"
+                or names.get("numeric_manifest") != reference or names.get("data_date") != date
+                or names.get("source_generation") != product["source_generation"]
+                or names.get("input_sha256") != identity["input_sha256"]
+                or not isinstance(selector, Mapping)
+                or selector.get("sha256") != identity.get("selector_artifact_sha256")
+                or not isinstance(names.get("items"), Mapping)):
+            raise ValueError("A_DAILY_DISPLAY_NAMES_IDENTITY_CONFLICT")
+        for code, entry in names["items"].items():
+            if (code not in product["row_refs"] or not isinstance(entry, Mapping)
+                    or entry.get("symbol") != code or not isinstance(entry.get("name"), str)
+                    or not entry["name"].strip() or not isinstance(entry.get("source_date"), str)
+                    or not re.fullmatch(r"\d{8}", entry["source_date"]) or entry["source_date"] > date):
+                raise ValueError("A_DAILY_DISPLAY_NAME_ROW_INVALID")
+        return names["items"], descriptor
+
+    @staticmethod
+    def _a_daily_named_row(row, names, descriptor):
+        if row is None or (isinstance(row.get("display_name"), str) and row["display_name"].strip()):
+            return row
+        entry = names.get(row.get("symbol"))
+        return ({**row, "display_name": entry["name"], "display_name_source":
+                 {"kind": "BOUND_SELECTOR_LAST_NONEMPTY_NAME", "source_date": entry["source_date"], "binding": descriptor}}
+                if entry else row)
+
+    def read_a_daily_product(self, date=None, symbol=None, *, include_display_names=True):
+        root = self._a_product_root()
+        if date is not None and not re.fullmatch(r"\d{8}", date):
+            raise ValueError("A_DAILY_DATE_INVALID")
+        if symbol is not None and not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", symbol):
+            raise ValueError("A_DAILY_SYMBOL_INVALID")
+        if root is None or not (root / "index.json").is_file():
+            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":date, "rows":[], "available_dates":[]}
+        index = json.loads((root / "index.json").read_text())
+        if not isinstance(index, Mapping) or not isinstance(index.get("dates"), Mapping):
+            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
+        chosen = date or index.get("latest_date")
+        if not isinstance(chosen, str) or not re.fullmatch(r"\d{8}", chosen):
+            raise ValueError("A_DAILY_PRODUCT_INDEX_INVALID")
+        reference = index.get("dates", {}).get(chosen)
+        if reference is None:
+            return {"schema_version":"v4.a_share.daily_product.v1", "status":"NOT_MATERIALIZED", "data_date":chosen, "rows":[], "available_dates":sorted(index.get("dates", {}))}
+        manifest = self._a_product_reference(reference)
+        product = self._a_product_reference(manifest["artifact"])
+        identity = product.get("source_identity")
+        if (not isinstance(identity, Mapping)
+                or not isinstance(product.get("source_generation"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", product["source_generation"])
+                or identity.get("generation") != product["source_generation"]
+                or str(identity.get("asof")) != chosen
+                or not isinstance(identity.get("input_sha256"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", identity["input_sha256"])):
+            raise ValueError("A_DAILY_PRODUCT_SOURCE_IDENTITY_INVALID")
+        if (manifest.get("schema_version") != "v4.a_share.daily_product_manifest.v1" or product.get("schema_version") != "v4.a_share.daily_product.v1"
+                or manifest.get("data_date") != chosen or product.get("data_date") != chosen
+                or manifest.get("source_generation") != product.get("source_generation")
+                or manifest.get("input_sha256") != identity["input_sha256"]
+                or manifest.get("sample_only") is not False or product.get("sample_only") is not False
+                or manifest.get("processed_count") != product.get("processed_count")):
+            raise ValueError("A_DAILY_PRODUCT_GENERATION_DATE_OR_COVERAGE_CONFLICT")
+        sync = index.get("history_sync", {}).get(chosen)
+        if sync is not None and (sync.get("numeric_manifest") != reference
+                or sync.get("source_generation") != product["source_generation"]
+                or sync.get("input_sha256") != identity["input_sha256"]
+                or not isinstance(sync.get("candidate_symbols"), list)
+                or not isinstance(sync.get("completed_symbols"), list)
+                or not set(sync["completed_symbols"]) <= set(sync["candidate_symbols"])
+                or set(sync["candidate_symbols"]) != {row["symbol"] for row in product["rows"]}):
+            raise ValueError("HISTORY_SYNC_IDENTITY_CONFLICT")
+        stock_sync = ({**sync, "status":"COMPLETE" if symbol in sync["completed_symbols"] else "IN_PROGRESS"}
+                      if sync is not None and symbol in sync["candidate_symbols"] else None)
+        names, name_binding = self._a_daily_display_names(index, product, reference, chosen) if include_display_names else ({}, None)
+        if symbol is not None:
+            row_refs = product.get("row_refs")
+            if not isinstance(row_refs, Mapping):
+                raise ValueError("A_DAILY_PRODUCT_ROW_REFERENCES_INVALID")
+            row_ref = row_refs.get(symbol)
+            match = self._a_product_reference(row_ref) if row_ref else None
+            if match is not None and (match.get("symbol") != symbol or match.get("data_date") != chosen):
+                raise ValueError("A_DAILY_SYMBOL_DETAIL_IDENTITY_CONFLICT")
+            if match is not None:
+                self._a_daily_checkpoint_binding(match, product, symbol, chosen)
+            if match is None:
+                rows = product.get("rows")
+                if not isinstance(rows, list):
+                    raise ValueError("A_DAILY_PRODUCT_ROWS_INVALID")
+                if any(isinstance(row, Mapping) and row.get("symbol") == symbol for row in rows):
+                    raise ValueError("A_DAILY_SYMBOL_DETAIL_REFERENCE_MISSING")
+            return {"status":"READY" if match is not None else "NOT_IN_PROCESSED_UNIVERSE", "data_date":chosen, "source_generation":product["source_generation"], "source_identity":product["source_identity"], "manifest":reference, "row":self._a_daily_named_row(match, names, name_binding), **({"history_sync":stock_sync} if stock_sync is not None else {}), "research_only":True, "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        chart_index = index.get("original_charts")
+        descriptor = chart_index.get(chosen) if isinstance(chart_index, Mapping) else None
+        return {k:v for k,v in product.items() if k != "all_rows"} | {"rows":[self._a_daily_named_row(row, names, name_binding) for row in product["rows"]], "available_dates":sorted(index["dates"]), "manifest":reference, "artifact":manifest["artifact"]} | ({"original_charts": descriptor} if descriptor is not None else {})
+
+    @staticmethod
+    def _company_time(value):
+        if isinstance(value,str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):
+            value+='T23:59:59.999999+08:00'
+        if not isinstance(value, str) or _OFFSET_TIMESTAMP.fullmatch(value) is None:
+            return None
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(_SHANGHAI)
+        except ValueError:
+            return None
+
+    def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None):
+        """Read received evidence; current candidate identity never rewrites its origin."""
+        product = self.read_a_daily_product(date, include_display_names=False)
+        if (not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(symbol))
+                or symbol not in {row.get("symbol") for row in product.get("rows", [])}
+                or generation is not None and generation != product.get("source_generation")
+                or input_sha256 is not None and input_sha256 != product.get("source_identity", {}).get("input_sha256")):
+            raise ValueError("COMPANY_MATERIALS_PRODUCT_IDENTITY_CONFLICT")
+        index = json.loads((self._a_product_root() / "index.json").read_text())
+        current = date == index.get("latest_date")
+        cutoff = shanghai_now() if current else datetime.strptime(date + "235959", "%Y%m%d%H%M%S").replace(tzinfo=_SHANGHAI, microsecond=999999)
+        candidates = []
+        skipped = []
+        bindings = index.get("company_materials", {})
+        versions = index.get("company_materials_versions", {})
+        for origin in sorted(set(bindings) | set(versions), reverse=True):
+            if origin > date:
+                continue
+            refs = ([bindings[origin]] if origin in bindings else []) + list(reversed(versions.get(origin, [])))
+            seen = set()
+            for binding in refs:
+                key = (binding.get("path"), binding.get("sha256"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                manifest = self._a_product_reference(binding)
+                if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
+                        or manifest.get("data_date") != origin or not isinstance(manifest.get("items"), Mapping)):
+                    raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
+                if symbol not in manifest["items"]:
+                    continue
+                # Validate original frozen numeric bytes, including a replaced same-day generation.
+                numeric = self._a_product_reference(manifest["numeric_manifest"])
+                original_product = self._a_product_reference(numeric["artifact"])
+                if (numeric.get("data_date") != origin or original_product.get("data_date") != origin
+                        or numeric.get("source_generation") != manifest.get("source_generation")
+                        or original_product.get("source_generation") != manifest.get("source_generation")
+                        or numeric.get("input_sha256") != manifest.get("input_sha256")
+                        or original_product.get("source_identity", {}).get("input_sha256") != manifest.get("input_sha256")
+                        or set(manifest["items"]) != {row["symbol"] for row in original_product["rows"]}):
+                    raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
+                shard = self._a_product_reference(manifest["items"][symbol])
+                if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
+                        or shard.get("symbol") != symbol or shard.get("data_date") != origin
+                        or shard.get("numeric_manifest") != manifest.get("source_numeric_manifest", manifest["numeric_manifest"])
+                        or shard.get("source_generation") != manifest.get("source_generation")
+                        or shard.get("input_sha256") != manifest.get("input_sha256")
+                        or shard.get("RESEARCH_ONLY") is not True
+                        or any(shard.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+                        or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
+                    raise ValueError("COMPANY_MATERIALS_SHARD_IDENTITY_CONFLICT")
+                received = self._company_time(shard.get("received_at") or manifest.get("received_at"))
+                fund = shard.get("received_fundamentals") or {}
+                # Generated/research dates are not proof of first local receipt.
+                times = [self._company_time(fund.get("research_as_of") or fund.get("as_of"))]
+                for source in fund.get("sources", []):
+                    times.extend(self._company_time(source.get(k)) for k in ("disclosed_at", "retrieved_at"))
+                for section in ("business_reported", "financials_reported", "shareholders_reported"):
+                    record = shard.get(section) or {}
+                    times.extend(self._company_time(record.get(k)) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
+                if (received is not None and received > cutoff) or any(t is not None and t > cutoff for t in times):
+                    skipped.append("AFTER_ASOF_CUTOFF")
+                    continue
+                if not current and received is None:
+                    skipped.append("RECEIVED_TIME_UNKNOWN")
+                    continue
+                candidates.append((origin, received.isoformat() if received else "", binding, manifest, shard))
+        if not candidates:
+            return {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date,
+                    "missing_reason":"NO_ELIGIBLE_RECEIVED_MATERIALS" if skipped else "NO_BOUND_MATERIALS_FOR_SYMBOL",
+                    "availability_gaps":sorted(set(skipped)), "research_only":True,
+                    "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+        origin, received, binding, manifest, shard = max(candidates, key=lambda row: (row[0], row[1]))
+        reused = origin != date or manifest["numeric_manifest"] != product["manifest"]
+        lifecycle = dict(material_source_date=origin, received_at=received or None,
+                         received_time_status="RECORDED_LOCAL_RECEIPT" if received else "UNKNOWN",
+                         view_mode="CURRENT_RESEARCH" if current else "HISTORICAL_ASOF",
+                         asof_cutoff=cutoff.isoformat(), historical_PIT_safe=False,
+                         freshness_status="HISTORICAL_NOT_REVIEWED_FOR_CURRENT_CANDIDATES" if reused else "RECEIVED_FOR_SOURCE_CANDIDATES",
+                         current_candidate_identity=dict(data_date=date, source_generation=product["source_generation"],
+                             input_sha256=product["source_identity"]["input_sha256"], numeric_manifest=product["manifest"]),
+                         material_identity=dict(data_date=origin, source_generation=manifest["source_generation"],
+                             input_sha256=manifest["input_sha256"], numeric_manifest=manifest["numeric_manifest"]))
+        return {"status":"PARTIAL_RECEIVED", "symbol":symbol, "data_date":date,
+                "source_generation":product["source_generation"], "input_sha256":product["source_identity"]["input_sha256"],
+                "numeric_manifest":product["manifest"], "materials_manifest":binding,
+                "material_ref":manifest["items"][symbol], "materials":shard, "material_lifecycle":lifecycle,
+                "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+
+    def read_a_daily_event_cases(self, date, symbol, *, group="original", horizon="d2"):
+        if group not in {"original","nav_smallk","nav_pullback","nav_breakout"} or horizon not in {"d2","d5"}:
+            raise ValueError("EVENT_CASE_SELECTION_INVALID")
+        detail = self.read_a_daily_product(date, symbol)
+        if detail.get("status") != "READY":
+            raise ValueError("EVENT_CASE_SYMBOL_UNBOUND")
+        index = json.loads((self._a_product_root() / "index.json").read_text())
+        binding = index.get("event_cases", {}).get(date)
+        if binding is None:
+            pending = detail.get("history_sync", {}).get("status") == "IN_PROGRESS"
+            return {"status":"IN_PROGRESS" if pending else "NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "history_sync":detail.get("history_sync"),
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        manifest = self._a_product_reference(binding)
+        if (manifest.get("schema_version") != "v4.a_share.event_cases_index.v1"
+                or manifest.get("numeric_manifest") != detail["manifest"]
+                or manifest.get("source_generation") != detail["source_generation"]
+                or manifest.get("input_sha256") != detail["source_identity"]["input_sha256"]
+                or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)):
+            raise ValueError("EVENT_CASE_MANIFEST_CONFLICT")
+        row_ref = manifest["items"].get(symbol)
+        if row_ref is None:
+            pending = detail.get("history_sync", {}).get("status") == "IN_PROGRESS"
+            return {"status":"IN_PROGRESS" if pending else "NOT_MATERIALIZED", "cases":[], "symbol":symbol, "data_date":date,
+                    "history_sync":detail.get("history_sync"),
+                    "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+        shard = self._a_product_reference(row_ref)
+        stats_raw = json.dumps(detail["row"]["statistics"],ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+        if (shard.get("schema_version") != "v4.a_share.event_cases.v1" or shard.get("symbol") != symbol
+                or shard.get("data_date") != date or shard.get("numeric_manifest") != manifest.get("case_numeric_origins", {}).get(symbol, detail["manifest"])
+                or shard.get("source_generation") != detail["source_generation"]
+                or shard.get("input_sha256") != detail["source_identity"]["input_sha256"]
+                or shard.get("statistics_sha256") != hashlib.sha256(stats_raw).hexdigest()):
+            raise ValueError("EVENT_CASE_SHARD_CONFLICT")
+        selected = shard.get("groups", {}).get(group, {}).get(horizon)
+        if not isinstance(selected, Mapping) or not isinstance(selected.get("cases"), list):
+            raise ValueError("EVENT_CASE_GROUP_UNAVAILABLE")
+        return {"status":"READY", "symbol":symbol, "data_date":date, "group":group, "horizon":horizon,
+                "numeric_manifest":detail["manifest"], "source_generation":detail["source_generation"],
+                "source_identity":detail["source_identity"], "projection":shard["projection"],
+                "case_ref":row_ref, **selected,
+                "research_only":True,"production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+
+    def read_a_daily_latest_event(self):
+        root = self._a_product_root()
+        if root is None or not (root / "events/latest.json").is_file():
+            return None
+        event = json.loads((root / "events/latest.json").read_text())
+        if not isinstance(event, Mapping):
+            raise ValueError("A_DAILY_EVENT_OBJECT_INVALID")
+        if event.get("schema_version") != "v4.a_share.daily_completion.v1" or event.get("RESEARCH_ONLY") is not True or any(event.get(k) is not False for k in ("production_allowed","buy_gate_updated","orders_sent")):
+            raise ValueError("A_DAILY_EVENT_SCHEMA_OR_SAFETY_INVALID")
+        event_manifest = event.get("manifest")
+        if not isinstance(event_manifest, Mapping):
+            raise ValueError("A_DAILY_EVENT_MANIFEST_REFERENCE_INVALID")
+        manifest = self._a_product_reference(event_manifest)
+        if (event.get("artifact") != manifest.get("artifact") or any(event.get(k) != manifest.get(k) for k in ("data_date","source_generation","input_sha256","processed_count","source_universe_count","status"))):
+            raise ValueError("A_DAILY_EVENT_MANIFEST_IDENTITY_CONFLICT")
+        if "original_charts" in event:
+            product = self.read_a_daily_product(event["data_date"])
+            if event["original_charts"] != product.get("original_charts"):
+                raise ValueError("A_DAILY_EVENT_CHART_DESCRIPTOR_CONFLICT")
+        return event
 
     def read_latest_event(self) -> dict[str, Any] | None:
         relative = (

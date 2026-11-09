@@ -344,3 +344,139 @@ def test_existing_owner_publication_cas_and_stable_lock(batch, drift):
             m.publish(plan_ref)
         if drift in ('index','event'):
             assert json.loads(path.read_text())['parallel_owner'] == 'preserve'
+
+
+def advance_numeric(batch, date='20261109'):
+    root = batch['root']
+    original = json.loads((root / 'index.json').read_text())
+    product = dict(data_date=date, source_generation='d'*64, source_identity={'input_sha256':'e'*64},
+                   rows=[dict(symbol=c) for c in batch['codes']], **m.FLAGS)
+    artifact = m.save(root / ('numeric-'+date+'.json'), product)
+    numeric = m.save(root / ('manifest-'+date+'.json'), dict(data_date=date, source_generation='d'*64,
+                     input_sha256='e'*64, artifact=artifact, **m.FLAGS))
+    original['dates'][date] = numeric; original.update(latest_date=date, latest=numeric)
+    event = {**batch['event'], 'data_date':date, 'source_generation':'d'*64, 'input_sha256':'e'*64,
+             'manifest':numeric, 'artifact':artifact}
+    m.save(root/'index.json',original);m.save(root/'events/latest.json',event)
+    return original,event
+
+
+def test_late_return_preserves_latest_numeric_and_completion_byte_identity(batch):
+    index,event = advance_numeric(batch)
+    plan=prepare(batch)
+    assert m.load(plan['staged_event']) == event
+    assert plan['staged_event']['sha256'] == plan['expected_event']['sha256']
+    after=m.load(plan['staged_index'])
+    assert {k:v for k,v in after.items() if k!='company_materials'} == {k:v for k,v in index.items() if k!='company_materials'}
+    assert shard(plan,batch['codes'][0])['received_at']
+
+
+def reader_fixture(batch, plan):
+    source_spec=importlib.util.spec_from_file_location('company_candidate_reader', MODULE.parents[1]/'infrastructure/research_lane_source.py')
+    source_module=importlib.util.module_from_spec(source_spec);source_spec.loader.exec_module(source_module)
+    reader=object.__new__(source_module.ResearchLaneSource)
+    index=json.loads((batch['root']/'index.json').read_text());index['company_materials'].pop('20261029',None);m.save(batch['root']/'index.json',index)
+    reader._a_product_root=lambda:batch['root']
+    reader._a_product_reference=m.load
+    def product(date, **kwargs):
+        index=json.loads((batch['root']/'index.json').read_text())
+        ref=index['dates'][date]
+        value=m.load(m.load(ref)['artifact'])
+        return {**value,'manifest':ref}
+    reader.read_a_daily_product=product
+    for target,staged in plan['immutable_files'].items():m.save(target,m.load(staged))
+    index=m.load(plan['staged_index']);index['company_materials'].pop('20261029',None);m.save(batch['root']/'index.json',index)
+    return reader
+
+
+def test_cross_day_reuses_original_identity_and_unknown_receipt_never_enters_history(batch):
+    plan=prepare(batch);reader=reader_fixture(batch,plan)
+    advance_numeric(batch)
+    value=reader.read_a_daily_company_materials('20261109',batch['codes'][0],generation='d'*64,input_sha256='e'*64)
+    assert value['materials']['data_date']=='20261104'
+    assert value['source_generation']=='d'*64
+    assert value['material_lifecycle']['material_identity']['source_generation']=='a'*64
+    assert value['material_lifecycle']['freshness_status']=='HISTORICAL_NOT_REVIEWED_FOR_CURRENT_CANDIDATES'
+    # Actual local reception occurred after the historical source day.
+    old=reader.read_a_daily_company_materials('20261104',batch['codes'][0])
+    assert old['status']=='NOT_MATERIALIZED' and old['availability_gaps']==['AFTER_ASOF_CUTOFF']
+    index=json.loads((batch['root']/'index.json').read_text());binding=index['company_materials']['20261104']
+    manifest=m.load(binding);row=m.load(manifest['items'][batch['codes'][0]])
+    row.pop('received_at');manifest.pop('received_at')
+    manifest['items'][batch['codes'][0]]=m.save(batch['root']/'legacy-shard.json',row)
+    index['company_materials']['20261104']=m.save(batch['root']/'legacy-index.json',manifest)
+    m.save(batch['root']/'index.json',index)
+    current=reader.read_a_daily_company_materials('20261109',batch['codes'][0])
+    assert current['material_lifecycle']['received_at'] is None
+    historical=reader.read_a_daily_company_materials('20261104',batch['codes'][0])
+    assert historical['availability_gaps']==['RECEIVED_TIME_UNKNOWN']
+
+
+def test_same_day_generation_change_preserves_origin_and_new_candidate_missing(batch):
+    plan=prepare(batch);reader=reader_fixture(batch,plan)
+    advance_numeric(batch,'20261104')
+    answer=reader.read_a_daily_company_materials('20261104',batch['codes'][0])
+    assert answer['material_lifecycle']['material_identity']['source_generation']=='a'*64
+    assert answer['source_generation']=='d'*64
+    with pytest.raises(ValueError,match='PRODUCT_IDENTITY'):
+        reader.read_a_daily_company_materials('20261104','000001.SZ')
+
+
+def test_material_history_keeps_previous_receipt_and_future_publication_is_excluded(batch):
+    plan=prepare(batch);reader=reader_fixture(batch,plan)
+    manifest=m.load(m.load(plan['staged_index'])['company_materials']['20261104'])
+    symbol=batch['codes'][0];row=m.load(manifest['items'][symbol])
+    row['received_at']='2026-11-04T23:00:00+08:00'
+    row['received_fundamentals']['as_of']='2026-11-04T22:00:00+08:00'
+    row['received_fundamentals']['sources'][0]['disclosed_at']='2026-11-10T00:00:00+08:00'
+    manifest['received_at']=row['received_at'];manifest['items'][symbol]=m.save(batch['root']/'future-public.json',row)
+    index=json.loads((batch['root']/'index.json').read_text());index['company_materials']['20261104']=m.save(batch['root']/'future-manifest.json',manifest)
+    m.save(batch['root']/'index.json',index);advance_numeric(batch)
+    assert reader.read_a_daily_company_materials('20261104',symbol)['availability_gaps']==['AFTER_ASOF_CUTOFF']
+    row['received_fundamentals']['sources'][0]['disclosed_at']='2026-11-04T00:00:00+08:00'
+    manifest['items'][symbol]=m.save(batch['root']/'past-public.json',row)
+    index=json.loads((batch['root']/'index.json').read_text());index['company_materials']['20261104']=m.save(batch['root']/'past-manifest.json',manifest)
+    m.save(batch['root']/'index.json',index)
+    assert reader.read_a_daily_company_materials('20261104',symbol)['status']=='PARTIAL_RECEIVED'
+    second=m.prepare(m.save(batch['tmp']/'second-config.json',batch['config']),batch['tmp']/'second-stage')
+    assert m.load(second['staged_index'])['company_materials_versions']['20261104']==[index['company_materials']['20261104']]
+
+
+@pytest.mark.skipif(not os.environ.get('V4_MASTER_IMPORT_CONFIG'),reason='Actual return requires explicit pinned config')
+def test_actual_v3_exact_scope_raw_rows_and_industry_preserved(tmp_path):
+    reference=m.ref(os.environ['V4_MASTER_IMPORT_CONFIG'])
+    plan=m.prepare(reference,tmp_path/'stage')
+    config=m.load(reference)
+    original={row['symbol']:row for row in m.csv_rows(config['inputs']['fundamentals'])}
+    secondary={row['symbol']:row for row in m.csv_rows(config['inputs']['secondary_rows'])}
+    manifest=m.load(plan['immutable_files'][m.load(plan['staged_index'])['company_materials']['20261109']['path']])
+    assert set(manifest['items'])==set(original) and len(original)==371
+    for symbol in original:
+        value=m.load(plan['immutable_files'][manifest['items'][symbol]['path']])
+        assert value['received_fundamentals']['received_source_record']==original[symbol]
+        assert value['received_fundamentals']['status']=='PARTIAL'
+        assert value['secondary_screen']['received_record']==secondary[symbol]
+        assert value['received_at']==config['received_at']
+        assert value['financials_reported']=={} and value['daily_performance']['future_d2'] is None
+    bad=copy.deepcopy(config);bad['generation']='0'*64
+    with pytest.raises(ValueError,match='NUMERIC_OR_EVENT_IDENTITY'):
+        m.prepare(m.save(tmp_path/'bad-generation.json',bad),tmp_path/'bad-stage')
+
+
+def test_new_candidate_without_material_and_future_receipt_remain_unknown(batch):
+    plan=prepare(batch);reader=reader_fixture(batch,plan)
+    advance_numeric(batch)
+    index=json.loads((batch['root']/'index.json').read_text())
+    numeric=m.load(index['latest']);product=m.load(numeric['artifact'])
+    product['rows'].append(dict(symbol='000001.SZ'))
+    numeric['artifact']=m.save(batch['root']/'new-membership.json',product)
+    index['latest']=index['dates']['20261109']=m.save(batch['root']/'new-membership-manifest.json',numeric)
+    m.save(batch['root']/'index.json',index)
+    answer=reader.read_a_daily_company_materials('20261109','000001.SZ')
+    assert answer['status']=='NOT_MATERIALIZED' and answer['missing_reason']=='NO_BOUND_MATERIALS_FOR_SYMBOL'
+    bad={**batch['config'],'received_at':'2999-01-01T00:00:00+00:00'}
+    # Unrelated numeric advance is consistent with its original latest completion;
+    # receipt validation is exercised against the source fixture's initial index.
+    m.save(batch['root']/'index.json',batch['index']);m.save(batch['root']/'events/latest.json',batch['event'])
+    with pytest.raises(ValueError,match='LOCAL_RECEIPT_TIME_INVALID'):
+        m.prepare(m.save(batch['tmp']/'future-receipt.json',bad),batch['tmp']/'future-stage')

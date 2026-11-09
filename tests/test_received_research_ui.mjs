@@ -170,3 +170,32 @@ test('actual staged 238 rows and 15+1 quarantines remain distinct from canonical
     if(['300149.SZ','300856.SZ','688111.SH'].includes(material.symbol))assert.ok(renderReceivedResearch(value,documentFixture()));
   }
 });
+
+test('cross-day received views keep original source identity and mark no current review',()=>{
+  const value=v2Fixture();const material=value.received_materials;
+  const original={data_date:material.data_date,source_generation:material.source_generation,input_sha256:material.input_sha256};
+  value.source_date='2026-11-09';value.observation_date='2026-11-10';value.generation='c'.repeat(64);value.input_sha256='d'.repeat(64);
+  value.material_lifecycle={material_source_date:original.data_date,received_at:null,
+    freshness_status:'HISTORICAL_NOT_REVIEWED_FOR_CURRENT_CANDIDATES',material_identity:original,
+    current_candidate_identity:{data_date:'20261109',source_generation:value.generation,input_sha256:value.input_sha256}};
+  const doc=documentFixture();renderReceivedResearch(value,doc);
+  assert.match(doc.getElementById('companySummary').textContent,/历史资料 · 当前候选当日未复核.*20261105.*接收 UNKNOWN/);
+  value.material_lifecycle.material_identity.source_generation='0'.repeat(64);
+  assert.throws(()=>receivedView(value),/IDENTITY_CONFLICT/);
+});
+
+test('actual master return shows three representative businesses, received financials and industry research',
+ {skip:!process.env.V4_COMPANY_PREVIEW_VIEWS},()=>{
+  const values=JSON.parse(fs.readFileSync(process.env.V4_COMPANY_PREVIEW_VIEWS,'utf8'));
+  for(const symbol of ['002047.SZ','300856.SZ','688718.SH']){
+    const value=values[symbol],doc=documentFixture();assert.equal(renderReceivedResearch(value,doc),true);
+    const text=['companySummary','companyMetrics','companyEvidence'].map(id=>doc.getElementById(id).textContent).join('');
+    const raw=value.received_materials.received_fundamentals.received_source_record;
+    for(const part of [symbol,raw.business,raw.research_priority,'收到的财务摘要','PARTIAL; research mapping only',
+      value.received_materials.secondary_screen.received_record.industry_secondary_tier,'2026-11-09T21:07:36.119968+08:00'])assert.ok(text.includes(part),symbol+':'+part);
+    assert.ok(!text.includes('今天尚未运行'));
+    if(symbol!=='002047.SZ')assert.ok(text.includes(raw.current_normalized_revenue_ytd_cny));
+  }
+  const before=documentFixture();renderReceivedResearch(values.before_002047,before);
+  assert.match(before.getElementById('companySummary').textContent,/历史资料 · 当前候选当日未复核/);
+});

@@ -3,7 +3,7 @@ import {makeStockBridge} from './stock/stock-bridge.mjs';
 import {loadProjection,adaptProjection} from './dot/src/projection-view.mjs';
 import {loadSkillProjection} from './dot/src/workbench-model.mjs';
 import {setCompanyContext,renderCompanyStatus,explanationFacts,beginCompanyRequest,isCurrentCompanyRequest,validateCompany} from './company-local.mjs';
-import {renderReceivedResearch,createReceivedCompanyRefresh} from './received-research.mjs';
+import {renderReceivedResearch,renderMaterialTiming,createReceivedCompanyRefresh} from './received-research.mjs';
 import {usMarketContext,unknownUsContext,renderMarketCard,observationMarketContext} from './workbench-us-context.mjs';
 import {completionAction} from './completion-action.mjs';
 import {renderClassification} from './classification-local.mjs';
@@ -99,7 +99,7 @@ function showStatistics(bundle){
   add(stat,'small','非历史PIT认证；仅描述已接受事件，不预测未来。');
 }
 function paintCompanyReports(value,target=el('companyEvidence')){
-  renderReceivedResearch(value,document);
+  if(!renderReceivedResearch(value,document))renderMaterialTiming(value,el('companySummary'),document);
   const box=add(target,'details');add(box,'summary','研报来源与缺口');
   if(!value.reports?.catalog?.length)add(box,'p','研报元数据未接入 · CANNOT_CONFIRM');
   for(const report of value.reports?.catalog??[]){const row=add(box,'p');add(row,'span',`${report.published_at??'日期未知'} · ${report.institution??''} · ${report.title??'标题缺失'} · ${report.full_text_status??report.evidence_status??'全文状态未知'} `);try{const url=new URL(report.report_url||report.metadata_source_url);if(url.protocol==='https:'&&!url.username&&!url.password){const a=add(row,'a',report.report_url?'原始报告入口':'元数据来源');a.href=url.href;a.target='_blank';a.rel='noopener noreferrer';}}catch{add(row,'small','来源链接未接入');}if(report.summary)add(box,'p',report.summary);}
@@ -207,6 +207,7 @@ window.StockPanelHost={
       // replace content, so a delayed/replayed event cannot restore old data.
       if(changed.includes('context')||changed.includes('observations'))sourceContext(activeDay,true);
       completionCallback?.modules?.(changed,e);
+      if(changed.includes('company'))refreshReceivedCompany({...e,data_date:e.source_date.replaceAll('-',''),source_generation:e.generation,company_materials:true});
     }catch{}});
   },
   installCompletion(callback){completionCallback=callback},

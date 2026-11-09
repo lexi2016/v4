@@ -19,6 +19,7 @@ import re
 import stat
 import sys
 from collections import Counter
+from datetime import datetime, timezone
 
 FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
 TEXT_FIELDS = ('business', 'profit_driver', 'growth_quality', 'cash_debt_quality',
@@ -35,6 +36,7 @@ META_FIELDS = ('screened_name', 'verified_name', 'as_of', 'latest_financial_peri
 
 V1_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V1'
 V2_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V2'
+V3_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V3'
 V2_SHARED_SOURCES = {
     'INPUT_CANDIDATES': ('shared_candidates', 'CANDIDATES.csv'),
     'INPUT_DAILY_PERFORMANCE': ('daily_performance_csv', 'DAILY_PERFORMANCE.csv'),
@@ -111,6 +113,12 @@ def normalize_import_config(value):
     schema = value.get('schema')
     if schema == V1_SCHEMA:
         return copy.deepcopy(value), 'V1'
+    if schema == V3_SCHEMA:
+        normalized=copy.deepcopy(value)
+        normalized['schema']=V1_SCHEMA
+        for key in ('source_date','target_date'):
+            normalized[key]=str(normalized.get(key,'')).replace('-','')
+        return normalized, 'V3'
     if schema != V2_SCHEMA:
         raise ValueError('RECEIVED_CONFIG_INVALID')
     normalized = copy.deepcopy(value)
@@ -310,6 +318,94 @@ def v2_daily_performance(row, date, target, generation, input_sha, numeric_manif
     return performance
 
 
+def prepare_master_payload(config, numeric_ref, numeric, scope, date, target, generation, input_sha):
+    """The received master is an alias of existing material fields, not a new producer."""
+    inputs=config['inputs']
+    original=exact_rows(csv_rows(inputs['fundamentals']),scope,'FUNDAMENTALS')
+    candidates=exact_rows(csv_rows(inputs['candidates']),scope,'CANDIDATES')
+    performance_rows=exact_rows(csv_rows(inputs['daily_performance']),scope,'PERFORMANCE')
+    secondary_rows=exact_rows(csv_rows(inputs['secondary_rows']),scope,'SECONDARY')
+    source_manifest,returned=load(inputs['input_manifest']),load(inputs['return_manifest'])
+    digest=inputs['candidates']['sha256']
+    for manifest in (source_manifest,returned):
+        if (str(manifest.get('source_date','')).replace('-','')!=date
+                or str(manifest.get('observation_date','')).replace('-','')!=target
+                or manifest.get('source_generation')!=generation or manifest.get('input_digest')!=digest
+                or not safe_flags(manifest)):
+            raise ValueError('RECEIVED_V3_MANIFEST_IDENTITY_CONFLICT')
+    if (source_manifest.get('numeric_manifest')!=numeric_ref or source_manifest.get('scope')!=len(scope)
+            or returned.get('batch_id')!=source_manifest.get('package_id')):
+        raise ValueError('RECEIVED_V3_NUMERIC_MANIFEST_CONFLICT')
+    for key,filename in (('candidates','CANDIDATES.csv'),('daily_performance','DAILY_PERFORMANCE.csv')):
+        reference=inputs[key]
+        if (returned.get('current_input_bindings',{}).get(filename,{}).get('sha256')!=reference['sha256']
+                or source_manifest.get('files',{}).get(filename,{}).get('sha256')!=reference['sha256']):
+            raise ValueError('RECEIVED_V3_SHARED_INPUT_CONFLICT:'+key)
+    payloads={item.get('file_name'):item for item in returned.get('files',[])}
+    for key in ('fundamentals','sources','secondary_rows'):
+        reference=inputs[key];entry=payloads.get(Path(reference['path']).name,{})
+        if entry.get('sha256')!=reference['sha256'] or entry.get('bytes')!=checked(reference).stat().st_size:
+            raise ValueError('RECEIVED_V3_RETURN_FILE_CONFLICT:'+key)
+    sources={}
+    for raw in csv_rows(inputs['sources']):
+        if not raw.get('source_id') or raw['source_id'] in sources:
+            raise ValueError('RECEIVED_SOURCE_ID_CONFLICT:'+str(raw.get('source_id')))
+        sources[raw['source_id']]={**raw,'sha256':raw.get('original_document_sha256'),
+                                  'disclosed_at':raw.get('document_date')}
+    received,performance,screens={},{},{}
+    for symbol,row in original.items():
+        candidate=candidates[symbol];perf=performance_rows[symbol];secondary=secondary_rows[symbol]
+        for record in (row,candidate,perf):
+            if (str(record.get('source_date','')).replace('-','')!=date
+                    or str(record.get('observation_date','')).replace('-','')!=target
+                    or record.get('source_generation')!=generation or record.get('input_sha256')!=input_sha
+                    or record.get('manifest_sha256')!=numeric_ref['sha256']):
+                raise ValueError('RECEIVED_V3_STOCK_IDENTITY_CONFLICT:'+symbol)
+        for key in ('product_sha256','row_sha256','close','pre_close','pct_chg','amount','volume'):
+            if row.get(key)!=(candidate if key in ('product_sha256','row_sha256') else perf).get(key):
+                raise ValueError('RECEIVED_V3_ORIGINAL_INPUT_DRIFT:'+symbol+':'+key)
+        for record in (row,secondary):
+            if any(str(record.get(k)).lower()!=str(v).lower() for k,v in FLAGS.items()):
+                raise ValueError('RECEIVED_STOCK_SAFETY_CONFLICT:'+symbol)
+        if (str(secondary.get('source_date','')).replace('-','')!=date
+                or str(secondary.get('observation_date','')).replace('-','')!=target
+                or row.get('input_digest')!=digest or row.get('batch_id')!=returned['batch_id']
+                or not row.get('research_status') or not secondary.get('industry_secondary_status')
+                or str(secondary.get('industry_research_rank_is_trade_rank')).lower()!='false'):
+            raise ValueError('RECEIVED_V3_SECONDARY_IDENTITY_CONFLICT:'+symbol)
+        received[symbol]={**row,'source_date':date,'observation_date':target,
+            'status':row['research_status'],'screened_name':row.get('name'),
+            'verified_name':row.get('current_verified_name'),'package_id':row['batch_id'],
+            '_received_source_record':row}
+        try:
+            missing=json.loads(row.get('missing_inputs') or '[]')
+        except ValueError:
+            missing=[row['missing_inputs']]
+        if not isinstance(missing,list):raise ValueError('RECEIVED_V3_MISSING_INPUTS_INVALID:'+symbol)
+        received[symbol]['missing_inputs']=missing
+        value=dict(symbol=symbol,source_date=date,target_date=target,source_generation=generation,
+            numeric_manifest_sha256=numeric_ref['sha256'],current_target_day_return_pct=None,
+            current_target_day_performance_status='NOT_MATERIALIZED_NOT_READ',
+            fundamental_evidence_level='RECEIVED_RESEARCH_NOT_FULLY_VERIFIED',
+            received_source_record=perf,future_d2=None,future_d5=None,volume_ratio_dates=[],**FLAGS)
+        for dest,source in dict(close='close',previous_close='pre_close',day_return_pct='pct_chg',
+            open='open',high='high',low='low',amount_yuan='amount',volume_shares='volume',
+            turnover_rate_pct='turnover_rate_pct',all_history_percentile_pct='position_all_pct',
+            all_history_sample_count='position_all_n',near250_percentile_pct='position_250_pct',
+            volume_to_current_MA5='volume_ratio_5').items():
+            value[dest]=_optional_number(perf.get(source),symbol+':'+source,integer=dest.endswith('_count'))
+        value['volume_to_prior_MA5']=None
+        performance[symbol]=value
+        screens[symbol]=dict(status='PARTIAL_RECEIVED_MODULE',role='RESEARCH_MAPPING_ONLY',
+            source_date=date,target_date=target,recorded_at=returned.get('generated_at_utc'),
+            errors=[],reference_status='RECEIVED_REFERENCE_ONLY',reference_fields={},
+            received_record=secondary,source_ref=inputs['secondary_rows'],receipt=inputs['return_manifest'],**FLAGS)
+    # Common material construction keeps dates normalized separately from untouched original rows.
+    source_manifest={**source_manifest,'input_digest':digest}
+    returned={**returned,'generated_at':returned.get('generated_at_utc')}
+    return received,sources,performance,screens,source_manifest,returned
+
+
 def prepare(config_reference, stage):
     config, import_mode = normalize_import_config(load(config_reference))
     root, stage = Path(config['product_root']), Path(stage).resolve()
@@ -339,11 +435,24 @@ def prepare(config_reference, stage):
             or product.get('source_generation') != generation or numeric.get('source_generation') != generation
             or product.get('source_identity', {}).get('input_sha256') != input_sha
             or numeric.get('input_sha256') != input_sha
-            or index.get('latest_date') != date or index.get('latest') != numeric_ref
-            or event.get('data_date') != date or event.get('source_generation') != generation
-            or event.get('input_sha256') != input_sha or event.get('manifest') != numeric_ref
-            or event.get('artifact') != numeric['artifact'] or not safe_flags(event)):
+            or not safe_flags(event)):
         raise ValueError('RECEIVED_NUMERIC_OR_EVENT_IDENTITY_CONFLICT')
+    latest_date = index.get('latest_date')
+    latest_ref = index.get('latest')
+    latest_numeric = load(latest_ref)
+    if (not isinstance(latest_date, str) or date > latest_date or index['dates'].get(latest_date) != latest_ref
+            or event.get('data_date') != latest_date or event.get('manifest') != latest_ref
+            or event.get('artifact') != latest_numeric.get('artifact')
+            or any(event.get(k) != latest_numeric.get(k) for k in ('data_date', 'source_generation', 'input_sha256'))):
+        raise ValueError('RECEIVED_LATEST_NUMERIC_OR_EVENT_IDENTITY_CONFLICT')
+    received_at = config.get('received_at') or datetime.now(timezone.utc).isoformat()
+    try:
+        received_time=datetime.fromisoformat(received_at.replace('Z','+00:00'))
+        if received_time.tzinfo is None or received_time>datetime.now(timezone.utc):raise ValueError()
+    except (ValueError,TypeError,AttributeError):
+        raise ValueError('RECEIVED_LOCAL_RECEIPT_TIME_INVALID')
+    if import_mode=='V3' and not config.get('received_at'):
+        raise ValueError('RECEIVED_V3_LOCAL_RECEIPT_TIME_REQUIRED')
     codes = [row['symbol'] for row in product['rows']]
     scope = set(codes)
     if len(codes) != len(scope) or len(scope) != config['scope_count']:
@@ -374,7 +483,7 @@ def prepare(config_reference, stage):
             raise ValueError('RECEIVED_SECONDARY_RECEIPT_CONFLICT')
         classification, classification_counts, priority_counts = {}, {}, {}
         shared_scopes = {}
-    else:
+    elif import_mode == 'V2':
         manifest_numeric = source_manifest.get('numeric_manifest')
         product_identity = source_manifest.get('numeric_product')
         if (source_manifest.get('source_date') != date or source_manifest.get('observation_date') != target
@@ -416,6 +525,12 @@ def prepare(config_reference, stage):
                     full_chain_status='NOT_RUN_FOR_20261105_GENERATION'),
                 source_ref=inputs['daily_performance'], receipt=inputs['return_manifest'], **FLAGS)
         receipt = None
+    else:
+        received,sources_by_id,performance,screens,source_manifest,return_manifest=prepare_master_payload(
+            config,numeric_ref,numeric,scope,date,target,generation,input_sha)
+        source_rows_for_binding=list(sources_by_id.values())
+        classification,classification_counts,priority_counts,shared_scopes={},{},{},{}
+        receipt=None
     if import_mode == 'V1':
         sources_by_id = {}
         source_rows_for_binding = csv_rows(inputs['sources'])
@@ -425,9 +540,16 @@ def prepare(config_reference, stage):
             raise ValueError('RECEIVED_SOURCE_ID_CONFLICT:' + key)
         sources_by_id[key] = row
     claims = {symbol: [] for symbol in scope}
-    for row in csv_rows(inputs['claims']):
+    for row in (csv_rows(inputs['claims']) if 'claims' in inputs else []):
         if row.get('symbol') in scope:
             claims[row['symbol']].append(row)
+    if import_mode=='V3':
+        for symbol,row in received.items():
+            try:
+                facts=json.loads(row.get('facts') or '[]')
+            except (ValueError,TypeError):
+                facts=[]  # Unstructured original text remains in received_source_record.
+            claims[symbol]=facts if isinstance(facts,list) and all(isinstance(f,dict) for f in facts) else []
     audits = {symbol: [] for symbol in scope}
     for name, reference in inputs.items():
         if not name.startswith('primary_check_'):
@@ -468,6 +590,8 @@ def prepare(config_reference, stage):
                        research_tier_preserved_count=sum(bool(row.get('research_tier')) for row in received.values()),
                        classification_ref=inputs['classification_rows'], classification_csv_ref=inputs['classification_csv'],
                        package_id=source_manifest.get('package_id'))
+    if import_mode=='V3':
+        summary.update(return_schema=V3_SCHEMA,package_id=return_manifest['batch_id'],secondary_status='PARTIAL_RECEIVED_MODULE',secondary_status_counts=dict(Counter(row['received_record']['industry_secondary_status'] for row in screens.values())))
     gap_by_symbol = ({row['symbol']: row['errors'] for row in receipt.get('quote_or_feature_gaps', [])}
                      if receipt else {})
     immutable_files = {}
@@ -496,7 +620,7 @@ def prepare(config_reference, stage):
                     or screen.get('v4_generation') != generation
                     or screen.get('full_chain_status') != 'CANNOT_CONFIRM'):
                 raise ValueError('RECEIVED_STOCK_IDENTITY_CONFLICT:' + symbol)
-        elif (screen.get('source_date') != date or screen.get('target_date') != target
+        elif import_mode=='V2' and (screen.get('source_date') != date or screen.get('target_date') != target
                 or screen.get('status') != 'NOT_RUN_FOR_20261105_GENERATION'
                 or screen.get('received_record', {}).get('full_chain_status') != 'NOT_RUN_FOR_20261105_GENERATION'
                 or screen.get('reference_status') != 'NOT_RUN'
@@ -511,9 +635,12 @@ def prepare(config_reference, stage):
             shared_source_ok = (import_mode == 'V2' and source_id in V2_SHARED_SOURCES
                                 and source is not None and not (source.get('symbol') or '').strip()
                                 and symbol in shared_scopes.get(source_id, set()))
-            if source is None or (source.get('symbol') != symbol and not shared_source_ok):
+            master_source_ok = (import_mode=='V3' and source is not None
+                                and (source.get('symbols') in ('BATCH_OR_METHOD','ALL','UNKNOWN')
+                                     or symbol in (json_list(source['symbols'],'SOURCE_SYMBOLS') if str(source.get('symbols','')).startswith('[') else str(source.get('symbols','')).split('|'))))
+            if source is None or (source.get('symbol') != symbol and not shared_source_ok and not master_source_ok):
                 raise ValueError('RECEIVED_STOCK_SOURCE_CONFLICT:' + symbol + ':' + str(source_id))
-            selected_sources.append(source)
+            selected_sources.append({**source,'symbol_scope_status':'UNKNOWN_RECEIVED_ROW_REFERENCE_ONLY'} if import_mode=='V3' and source.get('symbols')=='UNKNOWN' else source)
         errors = sorted(set(screen.get('errors', []) + gap_by_symbol.get(symbol, [])))
         screen['errors'] = errors
         if import_mode == 'V1':
@@ -535,6 +662,8 @@ def prepare(config_reference, stage):
                       claims=claims[symbol], sources=selected_sources,
                       evidence_status='RECEIVED_RESEARCH_NOT_FULLY_VERIFIED', historical_PIT_safe=False,
                       specified_primary_page_checks=audits[symbol])
+        if import_mode=='V3':
+            fields.update(received_source_record=copy.deepcopy(row['_received_source_record']))
         if import_mode == 'V2':
             fields.update(received_source_record=copy.deepcopy(row),
                           research_main_classification=classification[symbol],
@@ -543,7 +672,7 @@ def prepare(config_reference, stage):
                           user_resource_priority=classification[symbol].get('user_resource_priority'))
         shard = dict(schema_version='v4.a_share.company_materials.v1', symbol=symbol, data_date=date,
                      source_generation=generation, input_sha256=input_sha, numeric_manifest=numeric_ref,
-                     source_refs=inputs, received_fundamentals=fields, secondary_screen=secondary,
+                     source_refs=inputs, received_at=received_at, received_fundamentals=fields, secondary_screen=secondary,
                      daily_performance=perf, received_batch_summary=summary,
                      business_reported=dict(value=row.get('business'), asof_date=row.get('research_as_of') or row.get('as_of'),
                                             evidence_status='RECEIVED_RESEARCH_NOT_FULLY_VERIFIED'),
@@ -552,12 +681,20 @@ def prepare(config_reference, stage):
         items[symbol] = immutable('company_materials/' + date, symbol + '.json', shard)
     materials = dict(schema_version='v4.a_share.company_materials_index.v1', data_date=date,
                      numeric_manifest=numeric_ref, source_generation=generation, input_sha256=input_sha,
-                     items=items, source_refs=inputs, **FLAGS)
+                     items=items, received_at=received_at, source_refs=inputs, **FLAGS)
     material_ref = immutable('company_materials/' + date, 'index.json', materials)
     new_index, new_event = copy.deepcopy(index), copy.deepcopy(event)
-    new_index.setdefault('company_materials', {})[date] = material_ref
-    new_event.update(company_materials=material_ref)
-    new_event['event_id'] = hashlib.sha256(canonical({k: v for k, v in new_event.items() if k != 'event_id'})).hexdigest()
+    previous = new_index.setdefault('company_materials', {}).get(date)
+    if previous is not None:
+        history = new_index.setdefault('company_materials_versions', {}).setdefault(date, [])
+        if previous not in history:
+            history.append(previous)
+    new_index['company_materials'][date] = material_ref
+    # A late return only changes its company module. Latest numeric completion
+    # remains byte-identical; host module versions provide invalidation hints.
+    if date == latest_date:
+        new_event.update(company_materials=material_ref)
+        new_event['event_id'] = hashlib.sha256(canonical({k: v for k, v in new_event.items() if k != 'event_id'})).hexdigest()
     plan = dict(schema='V4_RECEIVED_RESEARCH_PUBLICATION_PLAN_V1', status='PREPARED_NOT_PUBLISHED',
                 config=config_reference, publication_adapter=config['publication_adapter'],
                 owner_publisher=config['owner_publisher'], shared_owner_lock=lock, target_root=str(root),
