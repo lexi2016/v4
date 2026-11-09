@@ -317,11 +317,41 @@ class ResearchWorkbenchHost:
             try:result['source_close_reference']=self._quote_references.read({**product,'rows':result['rows']})
             except (ValueError,OSError,KeyError,TypeError) as error:
                 result['source_close_reference']=dict(status='CANNOT_CONFIRM',reason=str(error),rows={})
+        if result['status'] in {'READY','READY_EMPTY'}:
+            from infrastructure.research_workbench_v192_assets import load
+            bound=load(self.source,product,result.get('source_artifact_sha256'))
+            if bound:
+                complete=set(bound['module']['completed_symbols'])
+                for row in result['rows']:
+                    if row['symbol'] in complete:
+                        row['original_chart_status']='MATERIALIZED'
+                        sample=bound['manifest']['samples'][row['symbol']]
+                        query=urlencode(dict(revision=p['source_generation'],model_sha256=result['source_artifact_sha256'],sha256=sample['PNG']['sha256']))
+                        row['v192_assets']=dict(model_artifact_sha256=result['source_artifact_sha256'],
+                            selector_sha256=result['selector_sha256'],chart=dict(symbol=row['symbol'],
+                            source_date=source_date,source_generation=p['source_generation'],source_input_sha256=p['source_identity']['input_sha256'],
+                            chart_review='UNKNOWN_NOT_REVIEWED',full_stock_PASS=0,rows_declared=sample['rows'],
+                            image_url=f"/api/v4/research/workbench/days/{source_date}/v192-assets/{row['symbol']}/png?{query}"))
         return result
+
+    def v192_stock_assets(self,source_date,symbol,model_sha256,revision=None,kind=None,digest=None):
+        model=self.v192_group(source_date,revision)
+        if (model.get('source_artifact_sha256')!=model_sha256
+                or not any(row['symbol']==symbol and row.get('v192_assets') for row in model['rows'])):
+            raise KeyError('V192_SYMBOL_ASSETS_NOT_BOUND')
+        p=self._view(source_date,revision)
+        product=self.source.read_a_daily_product(p['data_date'],include_display_names=False)
+        from infrastructure.research_workbench_v192_assets import load,chart
+        bound=load(self.source,product,model_sha256)
+        value=chart(self.source,product,bound,symbol,kind=kind,digest=digest)
+        if kind is not None:return value['_asset_bytes'],{'html':'text/html; charset=utf-8','png':'image/png','projection':'application/octet-stream'}[kind]
+        base=f'/api/v4/research/workbench/days/{source_date}/v192-assets/{symbol}/'
+        value['assets']={key:{'sha256':ref['sha256'],'url':base+key+'?'+urlencode(dict(revision=p['source_generation'],model_sha256=model_sha256,sha256=ref['sha256']))} for key,ref in value['assets'].items()}
+        return value
 
     def _v192_version(self,source_date):
         from infrastructure.research_workbench_v192 import version
-        try:return version(self._observation_date(source_date))
+        try:return dict(model=version(self._observation_date(source_date)),assets=self._index().get('v192_assets',{}).get(compact(source_date)))
         except (ValueError,OSError,KeyError,TypeError) as error:return dict(status='CANNOT_CONFIRM',reason=str(error))
 
     def daily_score_action(self,source_date,symbol,revision=None):
@@ -334,10 +364,16 @@ class ResearchWorkbenchHost:
             numeric_manifest=p['manifest'],historical_PIT=False,**FLAGS)
         root=self.source._a_product_root()
         descriptor=json.loads((root/'index.json').read_bytes()).get('score_action',{}).get(compact(source_date)) if root else None
-        if not descriptor or not descriptor.get('index'):
-            return dict(status='UNKNOWN',reason=(descriptor or {}).get('reason','SCORE_NOT_MATERIALIZED_FOR_DATE'),row=None,**common)
         from infrastructure.research_workbench_score_action import read_score_action
-        value=read_score_action(root,descriptor,p,source_date,symbol)
+        value=(read_score_action(root,descriptor,p,source_date,symbol) if descriptor and descriptor.get('index')
+            else dict(status='UNKNOWN',reason=(descriptor or {}).get('reason','SCORE_NOT_MATERIALIZED_FOR_DATE'),row=None))
+        if value.get('status')=='UNKNOWN' and value.get('row') is None:
+            model=self.v192_group(source_date,revision)
+            if any(row['symbol']==symbol and row.get('v192_assets') for row in model['rows']):
+                product=self.source.read_a_daily_product(p['data_date'],include_display_names=False)
+                from infrastructure.research_workbench_v192_assets import load
+                bound=load(self.source,product,model['source_artifact_sha256'])
+                value=read_score_action(Path(bound['module']['artifact_root']),bound['module']['score_action'],p,source_date,symbol)
         return dict(**value,**common)
 
     def single_stock_research(self,source_date,symbol,revision=None):
@@ -874,6 +910,12 @@ def create_workbench_router(source):
     def day(source_date:str,revision:str|None=None):return call('day',source_date,revision)
     @router.get('/days/{source_date}/v192')
     def v192_group(source_date:str,revision:str|None=None):return call('v192_group',source_date,revision)
+    @router.get('/days/{source_date}/v192-assets/{symbol}')
+    def v192_stock_assets(source_date:str,symbol:str,model_sha256:str,revision:str|None=None):return call('v192_stock_assets',source_date,symbol,model_sha256,revision)
+    @router.get('/days/{source_date}/v192-assets/{symbol}/{kind}')
+    def v192_stock_asset(source_date:str,symbol:str,kind:str,sha256:str,model_sha256:str,revision:str|None=None):
+        raw,mime=call('v192_stock_assets',source_date,symbol,model_sha256,revision,kind,sha256)
+        return Response(raw,media_type=mime,headers={'Cache-Control':'private, max-age=31536000, immutable'})
     @router.get('/days/{source_date}/top200')
     def top200(source_date:str,revision:str|None=None):return call('top200',source_date,revision)
     @router.get('/days/{source_date}/charts')

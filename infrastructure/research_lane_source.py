@@ -966,9 +966,16 @@ class ResearchLaneSource:
     def read_original_chart(self, date, symbol, *, generation=None, input_sha256=None, asset=None, asset_sha256=None):
         """Read only the explicitly bound, completed original-chart artifacts."""
         product = self.read_a_daily_product(date, include_display_names=False)
+        return self._read_original_chart_product(product, symbol, generation=generation,
+            input_sha256=input_sha256, asset=asset, asset_sha256=asset_sha256)
+
+    def _read_original_chart_product(self, product, symbol, *, generation=None, input_sha256=None,
+                                     asset=None, asset_sha256=None, binding_override=None):
+        """Original validation, also usable by an explicitly verified derived scope."""
+        date = product['data_date']
         current_product = product
         chart_origin = None
-        binding = self.original_chart_binding
+        binding = binding_override if binding_override is not None else self.original_chart_binding
         if binding is None:
             root = self._a_product_root()
             descriptor = product.get("original_charts")

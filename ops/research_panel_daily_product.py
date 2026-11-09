@@ -511,6 +511,16 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   except Exception as error:
    score_action=dict(status='CANNOT_CONFIRM',reason='SCORE_MATERIALIZATION_FAILED:'+str(error),numeric_manifest=manifest_ref,**FLAGS)
   index.setdefault('score_action',{})[str(target)]=score_action
+  # The numeric owner already holds A_LONG. Materialize only model-only missing
+  # views, then attach their independent module without reacquiring that lock.
+  v192_assets=None
+  try:
+   from ops.complete_workbench_v192_assets import at_numeric_completion,attach
+   v192_assets=at_numeric_completion(context,product,manifest_ref)
+   if v192_assets.get('module'):attach(index,{},v192_assets,root)
+  except Exception as error:
+   v192_assets=dict(status='CANNOT_CONFIRM',reason='V192_ASSET_COMPLETION_FAILED:'+str(error),numeric_manifest=manifest_ref,**FLAGS)
+  if not v192_assets.get('module'):index.setdefault('v192_assets',{})[str(target)]=v192_assets
   save(indexfile,index)
   statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
   if statistics_root:
@@ -523,5 +533,7 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   if chart_descriptor is not None:
    event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
   event['score_action']=score_action
+  event['v192_assets']=index['v192_assets'][str(target)]
+  event['event_id']=digest({k:v for k,v in event.items() if k!='event_id'})
   save(root/'events/latest.json',event)
  return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
