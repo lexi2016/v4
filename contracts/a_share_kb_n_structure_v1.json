@@ -1,0 +1,78 @@
+{
+  "schema": "a_share_kb_n_structure_v1",
+  "rule_id": "ZGE_N_TREND_CONFIRMED_5X5_CLOSE_BREAK_LOCAL_V1",
+  "rule_origin": "USER_CONFIRMED_LOCAL_OPERATIONAL_DEFINITION",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "sources": [
+    {
+      "path": "/Users/lexi/Desktop/学习/Z哥方法论/upstream/zettaranc-knowledge_4512a341cdff/wiki/zettaranc/concepts/02-底层工具/N型结构.md",
+      "sha256": "89f96110d32ea6529ac89ea4ca9f5ba25b77309987f3fe30d0783fc282bafa1c",
+      "lines": "18-20,42-46",
+      "meaning": "Both swing highs and swing lows rise. The source does not provide the full quantitative V1 algorithm."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/Z哥方法论/upstream/zettaranc-knowledge_4512a341cdff/wiki/zettaranc/concepts/05-资金仓位/五分制持仓评分系统.md",
+      "sha256": "fe60f3c82593e7660b681b87e5184a654637687b78ac5a1c07ee9c89f104f92b",
+      "lines": "18-24",
+      "meaning": "A rising low and high breakout comprise the trend component."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/Z哥方法论/references/zge_sources_20261024/zettaranc-skill_b195c3b3/modules/indicators/wave_theory.py",
+      "sha256": "417f1fe559998060516e3a295675897d357998e484701bd0ed02ec5ffa87093d",
+      "lines": "11-39",
+      "meaning": "The left/right five-bar low-point primitive is a reference only; its fallback and the high-point mirror are not an authoritative complete N rule."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/DOT_TO_LOCAL_QWEN_MIGRATION_V1_20261101/reports/KB_PANEL_FIELD_CALCULATION_MANUAL_20261102.md",
+      "sections": "8,14",
+      "meaning": "The user subsequently confirmed the local V1; the manual's historical 'pending' wording describes its status before that confirmation."
+    }
+  ],
+  "input": {
+    "scope": "one A-share symbol and its ordered, bound QFQ daily prefix",
+    "fields": ["trade_date", "high", "low", "close"],
+    "optional_check": "If ts_code is present on a bar it must equal the bound symbol.",
+    "precision": "Compare the supplied QFQ double precision directly; do not round prices.",
+    "valid_bar": "Finite positive H/L/C with low <= close <= high.",
+    "date": "Unique, ascending YYYYMMDD; omitted dates are not filled or labelled as suspensions.",
+    "coverage": "The existing producer must establish any source/calendar completeness needed for its use; a calendar hash by itself does not certify absence of missing bars.",
+    "identities": ["symbol", "generation_id", "input_sha256", "rule_sha256", "helper_sha256", "calendar_sha256", "price_basis_sha256", "price_basis=QFQ_ASOF"],
+    "identity_note": "The owner binds and validates the actual contract, helper, raw input, calendar and price-basis hashes. Calendar and price-basis hashes may be null for a single input generation, with CANNOT_CONFIRM status; either missing hash prohibits cross-generation checkpoint reuse."
+  },
+  "pivot": {
+    "window": "5 valid earlier bars + center + 5 valid later bars; confirmation is the fifth later bar's date.",
+    "high": "The center is the maximum H of its 11-bar window and there is no equal H later in that window.",
+    "low": "The center is the minimum L of its 11-bar window and there is no equal L later in that window.",
+    "tie": "The last equal window extreme wins; equal highs or equal lows do not count as rising.",
+    "same_bar_high_and_low": "AMBIGUOUS_SAME_BAR_PIVOT; clear the pending swing sequence and keep UNKNOWN until four subsequent, confirmed, alternating unambiguous pivots are obtained.",
+    "invalid_bar": "INVALID_INPUT; clear the pending swing sequence, retain the invalid observation in the window and keep UNKNOWN until four subsequent, confirmed, alternating pivots are obtained from valid windows.",
+    "consecutive_same_kind": "Keep the more extreme point, or the later point when prices are equal. Only affect current and later as-of outputs."
+  },
+  "classification": {
+    "unknown": "Fewer than four confirmed alternating swings, a same-bar ambiguity, or invalid input is null, never false.",
+    "true": "Among the latest four confirmed alternating swings, H2 > H1 and L2 > L1 at unrounded source precision.",
+    "false": "Four confirmed alternating swings exist but either strict comparison fails; or current close is strictly below the latest confirmed low (BROKEN_BY_CLOSE).",
+    "intraday_touch": "A low touching or falling below the confirmed low does not by itself set BROKEN_BY_CLOSE. The rule is evaluated again with each subsequent close; V1 does not introduce an unapproved persistent-break latch.",
+    "break_priority": "The close-break test is evaluated only when the four confirmed swings are available.",
+    "structure_known_at": "The latest confirmed_at of the four currently retained points; never backfill the event-day score.",
+    "first_breakout_at": "Always null in V1: a first breakout date was not specified by the confirmed rule and must not be inferred from the H2 event date."
+  },
+  "outputs": {
+    "wide_fields_reused": ["kb_hold_trend_up", "kb_hold_trend_up_reason", "kb_hold_score", "kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status"],
+    "wide_columns_added": 0,
+    "diagnostics": "The existing producer merges one kb_n_structure object into its existing same-symbol, same-date diagnostics sidecar. L1/H1/L2/H2 each carry price, event_date and confirmed_at; missing points carry nulls.",
+    "other_fields": "Existing score components and signals remain unchanged. The producer recomputes only the existing score totals and range from the updated trend component."
+  },
+  "checkpoint": {
+    "schema": "kb_n_structure_checkpoint_v1",
+    "contents": "Symbol and rule identity, caller-bound identities, canonical HLC prefix hash, last date, 10-bar tail, swing state, interruption state, counts, and an integrity hash.",
+    "owner": "Existing producer persists the checkpoint and receipt, verifies the actual helper/contract/source hashes, and independently validates expected_prefix_sha256 against the current bound prefix before resuming.",
+    "append": "Process only new bars and any pivot just matured; previously emitted as-of rows are immutable.",
+    "revision": "Restore a validated checkpoint strictly before the earliest changed or inserted bar and replay from the next bar; if none exists, replay the necessary complete symbol prefix. Compare state and prefix identity before reuse; do not fabricate convergence.",
+    "cross_generation": "Reject changed calendar, price basis, symbol, rule or helper; if generation_id or input_sha256 changes, reject reuse if either calendar_sha256 or price_basis_sha256 is unknown, even when source bytes happen to match. A verified matching prefix is mandatory for every resume.",
+    "hash_semantics": "prefix_sha256 hashes canonical normalized HLC records, not raw-file bytes; raw input SHA remains separately bound. checkpoint_sha256 is an integrity check, not an authenticated signature."
+  }
+}

@@ -299,8 +299,25 @@ class ResearchWorkbenchHost:
             raise ValueError('WORKBENCH_SOURCE_REVISION_CONFLICT')
         return view
 
+    def daily_score_action(self,source_date,symbol,revision=None):
+        """Read an exact-day materialized score; no market reads or computation."""
+        p=self._view(source_date,revision)
+        if not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)',symbol):raise ValueError('SCORE_SYMBOL_INVALID')
+        common=dict(schema='v4.workbench.daily_kb_research.v1',source_date=source_date,
+            observation_date=self._observation_date(source_date),symbol=symbol,
+            generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],
+            numeric_manifest=p['manifest'],historical_PIT=False,**FLAGS)
+        root=self.source._a_product_root()
+        descriptor=json.loads((root/'index.json').read_bytes()).get('score_action',{}).get(compact(source_date)) if root else None
+        if not descriptor or not descriptor.get('index'):
+            return dict(status='UNKNOWN',reason=(descriptor or {}).get('reason','SCORE_NOT_MATERIALIZED_FOR_DATE'),row=None,**common)
+        from infrastructure.research_workbench_score_action import read_score_action
+        value=read_score_action(root,descriptor,p,source_date,symbol)
+        return dict(**value,**common)
+
     def single_stock_research(self,source_date,symbol,revision=None):
         """A separately bound, precomputed single-stock research artifact."""
+        if source_date!='2026-10-30':return self.daily_score_action(source_date,symbol,revision)
         if (source_date=='2026-10-30' and symbol not in {'002865.SZ','301048.SZ','300206.SZ'}
                 and self.binding.get('top200_research_panel_r3')):
             from infrastructure.research_workbench_top200 import metadata as scoped_metadata
@@ -518,6 +535,7 @@ class ResearchWorkbenchHost:
             index=self._index()
             result['modules']['catalog']=digest({key:index.get(key,{})for key in ('dates','attempts')})
             result['modules']['top200']=digest(index.get('top200',{}).get(compact(source_date)))
+            result['modules']['score_action']=digest(index.get('score_action',{}).get(compact(source_date)))
             result['event_id']=digest(result['modules'])
             return result
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
@@ -530,6 +548,7 @@ class ResearchWorkbenchHost:
         modules=dict(catalog=digest({key:self._index().get(key,{})for key in ('dates','attempts')}),top200=digest(self._index().get('top200',{}).get(compact(source_date))),classification=self.classifications.version(),list=digest([p['manifest'],self._index().get('display_names',{}).get(compact(source_date))]),
                      company=digest([self._index().get('latest_date'),{key:{day:value for day,value in self._index().get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]),
                      statistics=digest(version('statistics',source_date)),observations=digest(quote),
+                     score_action=digest(self._index().get('score_action',{}).get(compact(source_date))),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
         return dict(schema='V4_WORKBENCH_VERSIONS_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],modules=modules,event_id=digest(modules),**FLAGS)

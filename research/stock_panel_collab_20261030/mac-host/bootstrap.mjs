@@ -16,7 +16,7 @@ let context=null,current=null,contextSerial=0,completionCallback=null,contextRep
 let r2Serial=0,r2Controller=null,skillReviewCleanup=null;
 let originalReadyObserver=null;
 const singleResearch=installSingleResearch({loadDetails:loadSingleDetails});
-el('stockList').addEventListener('click',event=>{const symbol=event.target.closest?.('[data-symbol]')?.dataset.symbol;if(symbol==='301048.SZ')singleResearch.openSymbol(symbol);else if(symbol)singleResearch.clear()});
+el('stockList').addEventListener('click',event=>{const symbol=event.target.closest?.('[data-symbol]')?.dataset.symbol;if(symbol&&activeDay?.source_date!=='2026-10-30')return;else if(symbol==='301048.SZ')singleResearch.openSymbol(symbol);else if(symbol)singleResearch.clear()});
 const bridge=makeStockBridge({origin:location.origin,basePath:'/api/v4/research/a-share',fetcher:fetch,loadProjection,container,eventTarget:window});
 const original=bridge.OriginalFullChart;
 window.OriginalFullChart={...original,clear(){cancelOriginalReady();++r2Serial;r2Controller?.abort();r2Controller=null;if(skillReviewCleanup){skillReviewCleanup();skillReviewCleanup=null}original.clear();current=null;context=null;stat.replaceChildren();if(!activeDay){++contextSerial;contextReply=null;el('marketCards').textContent='跨市场来源尚未与所选日期绑定';}else paintContext();},
@@ -166,7 +166,7 @@ window.StockPanelHost={
     const own=Object.entries(row.group_states).filter(([,v])=>v==='TRUE').map(([g])=>g);
     const group=own.includes(selectedGroup)?selectedGroup:own[0];
     context={source_date:day.source_date,observation_date:day.observation_date,symbol:row.symbol,generation:day.generation,input_sha256:day.input_sha256,group,horizon:'d2'};
-    setCompanyContext(context);sourceContext(day);
+    setCompanyContext(context);sourceContext(day);if(day.source_date!=='2026-10-30')singleResearch.openSymbol(row.symbol,row.name);
     let coverage=el('macScopeCoverage');if(!coverage){coverage=document.createElement('p');coverage.id='macScopeCoverage';coverage.className='counts';document.querySelector('.source-note').append(coverage);}coverage.textContent=`当前已交付候选 ${day.scope_count} 条；原处理 ${day.original_processed_count} 条，未交付台账行不在本页展示。`;
     const bundle=await bridge.open(context,{render:true});current=bundle;context=bundle.context;el('fullCoverage').textContent=`${bundle.projection.data.rows.length}行原式51变量/22绘图 · 来源日${context.source_date} · 统计manifest ${bundle.numeric_manifest.sha256.slice(0,12)}`;showStatistics(bundle);return bundle;
   },
@@ -207,6 +207,7 @@ window.StockPanelHost={
       // replace content, so a delayed/replayed event cannot restore old data.
       if(changed.includes('context')||changed.includes('observations'))sourceContext(activeDay,true);
       completionCallback?.modules?.(changed,e);
+      if(changed.includes('score_action'))singleResearch.refresh();
       if(changed.includes('company'))refreshReceivedCompany({...e,data_date:e.source_date.replaceAll('-',''),source_generation:e.generation,company_materials:true});
     }catch{}});
   },
@@ -225,6 +226,6 @@ const refreshReceivedCompany=createReceivedCompanyRefresh({getContext:()=>contex
   fetchCompany:async identity=>{const response=await fetch('/api/v4/research/workbench/days/'+identity.source_date+'/company/'+identity.symbol+'?'+new URLSearchParams({revision:identity.generation}),{credentials:'same-origin',redirect:'error',cache:'no-store'});if(!response.ok)throw Error('RECEIVED_COMPANY_REFRESH_FAILED');return response.json();},
   apply:value=>{renderCompanyStatus(document,'READY',value.symbol);el('companyEvidence').replaceChildren();paintCompanyReports(value);},
   onError:identity=>renderCompanyStatus(document,'ERROR',identity.symbol)});
-events.addEventListener('a_share_daily_completed',event=>{try{const e=JSON.parse(event.data),action=completionAction(context,e);if(e.f10&&activeDay&&e.data_date===activeDay.source_date.replaceAll('-','')&&e.source_generation===activeDay.generation&&e.input_sha256===activeDay.input_sha256)singleResearch.refresh();if(action==='catalog')completionCallback?.catalog?.();else if(action==='refresh'){completionCallback?.refresh?.();if(e.company_materials)refreshReceivedCompany(e);}else if(action==='source_changed'){window.OriginalFullChart.clear();completionCallback?.sourceChanged?.();}else if(action==='gap')el('projectionStatus').textContent='完成事件来源字段待核；当前已绑定版本未替换。';}catch{}});
+events.addEventListener('a_share_daily_completed',event=>{try{const e=JSON.parse(event.data),action=completionAction(context,e);if((e.f10||e.score_action)&&activeDay&&e.data_date===activeDay.source_date.replaceAll('-','')&&e.source_generation===activeDay.generation&&e.input_sha256===activeDay.input_sha256)singleResearch.refresh();if(action==='catalog')completionCallback?.catalog?.();else if(action==='refresh'){completionCallback?.refresh?.();if(e.company_materials)refreshReceivedCompany(e);}else if(action==='source_changed'){window.OriginalFullChart.clear();completionCallback?.sourceChanged?.();}else if(action==='gap')el('projectionStatus').textContent='完成事件来源字段待核；当前已绑定版本未替换。';}catch{}});
 window.addEventListener('pagehide',()=>{events.close();moduleEvents?.close();++moduleSerial;bridge.clear()},{once:true});
 await import('./dot/shell/workbench.local.mjs');
