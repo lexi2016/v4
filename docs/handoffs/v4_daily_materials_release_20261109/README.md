@@ -1,0 +1,11 @@
+# 2026-11-09 date/release dependency repair
+
+This is a bounded source and preparation handoff. Main business code and its f77c64bb manifest remain unchanged. The installed Main policy authority is its plist environment; the manifest storage_phase2 section remains historical publication provenance. Stage pins that exact authority-fixed manifest through a same-release explicit locator; the historical allowlist grows from three to four exact owners, and the 11/06 singleton transition is unchanged.
+
+Canonical b4719b0 contains apps/api/v35_api; the installed newer runtime contains apps/api/v4_api and different code. The preparation module applies exact-preimage, minimal patches to private copies of the installed runtime. It never overlays the old canonical app onto the active app. Inventory checks preserve every non-delta entry, including already sealed bytecode entries.
+
+The Python scripts here are exact snapshots of task-local scripts executed under the external release output directory. They are archival evidence, not generic entry points; their relative output root must be that task directory. Use the external files and the frozen packet instructions for any continuation. The controller executes ops.activate_daily_materials_release only after an independent review receipt binds PACKET.json SHA. --rollback restores the exact preceding three-plist tuple; known pre-task storage-pin drift is also restored and is not certified healthy.
+
+The API r1 packet predates the subsequently requested score/action restoration and must not be activated. Preserve its evidence; integrate the final company+score delta into a new API/static candidate, regenerate only changed dependent pins/policy/Main-plist, reuse the unchanged Stage candidate and its passed witnesses, then perform one joint independent review.
+
+Runtime evidence is outside Git: agents调试/v4_daily_materials_release_repair_20261109/release/{BASELINE.json,STAGE_PACKAGE.json,STAGE_WITNESS.json,PACKET.json,DEPENDENCY_CHECK.json,POLICY_AUTHORITY_CHECK.json,API_CANDIDATE_CHECK.json,API_CANDIDATE_THIRD_COMPANY.json}. No producer replay, live service change, company publication, UI, natural run, push, or final acceptance was performed by this Writer.

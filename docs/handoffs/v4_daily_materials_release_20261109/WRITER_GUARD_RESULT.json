@@ -1,0 +1,52 @@
+{
+  "baseline": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "status": "GUARDS_AND_STAGE_PREPARED_TESTED_API_R1_INTERMEDIATE_PENDING_SCORE_DELTA",
+  "runtime_output_root": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/release",
+  "test_environment": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "tests": [
+    {
+      "scope": "old candidate structure, runtime controlled fallback, Main/API schema distinction, Stage patch and 3 prior API integration checks",
+      "command": "V4_REPAIR_STAGE_FIXTURE=<active-stage> V4_REPAIR_RUNTIME_FIXTURE=<active-api> python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r2 tests/test_daily_materials_release.py tests/test_api_release_integration.py -k \"daily_materials or candidate_is_active or wrong_before or readback_ignores\"",
+      "result": "10 PASS,44 deselected"
+    },
+    {
+      "scope": "authority manifest explicit locator SHA,parent,nofollow",
+      "command": "python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r3 tests/test_daily_materials_release.py::test_stage_authority_locator_retains_sha_and_nofollow",
+      "result": "1 PASS"
+    },
+    {
+      "scope": "asynchronous process exit and partial whole-tuple rollback/CAS",
+      "command": "python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r4 tests/test_daily_materials_release.py -k \"bootstrap or partial_cutover\"",
+      "result": "2 PASS,8 deselected"
+    },
+    {
+      "scope": "both existing candidate-builder paths with schema admission",
+      "command": "python -B -m pytest -q --basetemp=/tmp/v4-release-repair-tests-20261109-r5 tests/test_build_release_candidate.py::test_build_candidate_copies_current_dist_and_writes_manifest_and_plan tests/test_build_release_candidate.py::test_candidate_stages_scheduler_with_identical_api_manifest_pin",
+      "result": "2 PASS"
+    }
+  ],
+  "runtime_checks": {
+    "stage": "3 real original hourly witnesses PASS; 11/09 current Main,11/07 historical Main,11/06 singleton transition",
+    "dependency": "24 source_bindings PASS via draft-only live-plist substitution; actual retention._checked_file PASS",
+    "api_r1": "two home GET plus 3 company symbols and original historical boundary ASGI GET PASS; four served static SHA PASS; NO LISTENING SOCKET"
+  },
+  "failures_preserved": [
+    "initial test fixture omitted V4_RELEASE_MANIFEST_PATH and pointed Stage reader at API source; corrected fixtures",
+    "pytest global stale garbage EPERM; dedicated per-run basetemp used, foreign temp data untouched",
+    "preparation inventory scanner distinguishes generated314 kind; preserve all sealed cache bytes with exact hashes",
+    "read-only copied static permissions prevented overlay; candidate-only temporary write permission restored to original mode, resumed exact-preimage copy"
+  ],
+  "cannot_confirm": [
+    "independent review NOT_RUN",
+    "active deploy/API/UI/natural NOT_RUN",
+    "new 371 company material publication NOT_RUN",
+    "11/08 retention-r1/governance-r2 intermediate historical Main owners outside prior Stage allowlist not certified",
+    "API r1 is intermediate; score/action delta pending; do not activate r1"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
