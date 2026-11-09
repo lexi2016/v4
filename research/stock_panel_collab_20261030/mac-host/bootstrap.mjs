@@ -160,15 +160,19 @@ function whenOriginalReady(callback){
 }
 frame.addEventListener('load',()=>whenOriginalReady((w,child)=>{if(!child.getElementById('mac-original-focus-style')){const style=child.createElement('style');style.id='mac-original-focus-style';style.textContent='body{margin:0!important;background:#07131e!important}header,aside,.toolbar,.charthead .controls,#selected-date,.stats,.tables,details,#status,.foot,#chart-caption{display:none!important}main{display:block!important;max-width:none!important;margin:0!important;min-height:0!important}article{padding:12px!important}.chartbox{border:0!important;padding:0!important}.charthead{margin:0 0 4px!important}canvas{height:405px!important}';child.head.appendChild(style);w.dispatchEvent(new w.Event('resize'));w.paint();}if(preservedChart&&preservedChart.symbol===current.context.symbol&&preservedChart.source_date===current.context.source_date&&preservedChart.generation===current.context.generation){w.setOriginalWindow(preservedChart.count,preservedChart.start+preservedChart.count);w.choose(preservedChart.selected);w.paint();preservedChart=null;}const select=el('fullDateSelect');select.replaceChildren();for(const r of current.projection.data.rows){const option=add(select,'option',String(r.trade_date));option.value=String(r.trade_date)}select.value=String(current.projection.data.rows.at(-1).trade_date);select.onchange=()=>{const s=w.RESEARCH_PANEL_STATE,i=s.rows.findIndex(r=>String(r.trade_date)===select.value);if(i<0)return;w.setOriginalWindow(Math.min(120,s.rows.length),Math.min(s.rows.length,i+84));w.choose(i);w.paint()};}));
 window.StockPanelHost={
-  clearCompany(){setCompanyContext(null);renderCompanyStatus(document,'IDLE');},
+  clearCompany(){singleResearch.clear();setCompanyContext(null);renderCompanyStatus(document,'IDLE');},
   async open(day,row,selectedGroup){
     if(day.ruleset_id==='ZGE_SKILL_DAILY_CANDIDATES_R2')return openSkill(day,row,selectedGroup);
     const own=Object.entries(row.group_states).filter(([,v])=>v==='TRUE').map(([g])=>g);
     const group=own.includes(selectedGroup)?selectedGroup:own[0];
     context={source_date:day.source_date,observation_date:day.observation_date,symbol:row.symbol,generation:day.generation,input_sha256:day.input_sha256,group,horizon:'d2'};
     setCompanyContext(context);sourceContext(day);if(day.source_date!=='2026-10-30')singleResearch.openSymbol(row.symbol,row.name);
+    if(row.v192_member&&row.original_chart_status!=='MATERIALIZED'){
+      stat.replaceChildren();add(stat,'h3','v1.9.2候选');add(stat,'p','同日原式图未物化 · 同定义D+2/D+5统计未接入。');
+      return {status:'NOT_MATERIALIZED',reason:'同日原式图未物化',context};
+    }
     let coverage=el('macScopeCoverage');if(!coverage){coverage=document.createElement('p');coverage.id='macScopeCoverage';coverage.className='counts';document.querySelector('.source-note').append(coverage);}coverage.textContent=`当前已交付候选 ${day.scope_count} 条；原处理 ${day.original_processed_count} 条，未交付台账行不在本页展示。`;
-    const bundle=await bridge.open(context,{render:true});current=bundle;context=bundle.context;el('fullCoverage').textContent=`${bundle.projection.data.rows.length}行原式51变量/22绘图 · 来源日${context.source_date} · 统计manifest ${bundle.numeric_manifest.sha256.slice(0,12)}`;showStatistics(bundle);return bundle;
+    const bundle=await bridge.open(context,{render:true});current=bundle;context=bundle.context;el('fullCoverage').textContent=`${bundle.projection.data.rows.length}行原式51变量/22绘图 · 来源日${context.source_date} · 统计manifest ${bundle.numeric_manifest.sha256.slice(0,12)}`;if(selectedGroup==='v192'){stat.replaceChildren();add(stat,'h3','v1.9.2候选 · 历史统计');add(stat,'p','同定义D+2/D+5统计未接入；原四组统计请切回对应组查看。')}else showStatistics(bundle);return bundle;
   },
   async paintTop200(){
     const bound=activeDay,mine=moduleSerial;if(!bound)return;

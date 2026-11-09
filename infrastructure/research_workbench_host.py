@@ -299,6 +299,25 @@ class ResearchWorkbenchHost:
             raise ValueError('WORKBENCH_SOURCE_REVISION_CONFLICT')
         return view
 
+    def v192_group(self,source_date,revision=None):
+        """Independent same-source candidate group; never changes four-group rows."""
+        p=self._view(source_date,revision)
+        product=self.source.read_a_daily_product(p['data_date'],include_display_names=False)
+        if (product.get('manifest')!=p['manifest'] or product.get('source_generation')!=p['source_generation']
+                or product.get('source_identity')!=p['source_identity']):
+            raise ValueError('V192_NUMERIC_PRODUCT_MOVED')
+        from infrastructure.research_workbench_v192 import project
+        result=project(self.source,product,source_date,self._observation_date(source_date))
+        try:available={row['symbol'] for row in self.chart_views(source_date,revision)['projections'].get('rows',[])}
+        except (ValueError,OSError,KeyError,TypeError):available=set()
+        for row in result['rows']:row['original_chart_status']='MATERIALIZED' if row['symbol'] in available else 'NOT_MATERIALIZED'
+        return result
+
+    def _v192_version(self,source_date):
+        from infrastructure.research_workbench_v192 import version
+        try:return version(self._observation_date(source_date))
+        except (ValueError,OSError,KeyError,TypeError) as error:return dict(status='CANNOT_CONFIRM',reason=str(error))
+
     def daily_score_action(self,source_date,symbol,revision=None):
         """Read an exact-day materialized score; no market reads or computation."""
         p=self._view(source_date,revision)
@@ -536,6 +555,7 @@ class ResearchWorkbenchHost:
             result['modules']['catalog']=digest({key:index.get(key,{})for key in ('dates','attempts')})
             result['modules']['top200']=digest(index.get('top200',{}).get(compact(source_date)))
             result['modules']['score_action']=digest(index.get('score_action',{}).get(compact(source_date)))
+            result['modules']['v192']=digest(self._v192_version(source_date))
             result['event_id']=digest(result['modules'])
             return result
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
@@ -549,6 +569,7 @@ class ResearchWorkbenchHost:
                      company=digest([self._index().get('latest_date'),{key:{day:value for day,value in self._index().get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]),
                      statistics=digest(version('statistics',source_date)),observations=digest(quote),
                      score_action=digest(self._index().get('score_action',{}).get(compact(source_date))),
+                     v192=digest(self._v192_version(source_date)),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
         return dict(schema='V4_WORKBENCH_VERSIONS_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],modules=modules,event_id=digest(modules),**FLAGS)
@@ -636,7 +657,7 @@ class ResearchWorkbenchHost:
         except (ValueError,OSError,KeyError,TypeError) as error:
             quote_reference=dict(status='CANNOT_CONFIRM:'+str(error),rows={})
         execution=self.workflow(source_date)
-        return dict(source_close_reference=quote_reference,schema='RESEARCH_SYSTEM_DAY_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],revision=p['source_generation'],numeric_manifest=p['manifest'],rows=rows,scope_count=len(rows),original_processed_count=p['processed_count'],row_scope='FROZEN_CANDIDATE_UNION_ONLY_NOT_FULL_POOL',formula_review='PENDING',chart_review='UNKNOWN_NOT_REVIEWED',execution_status='DEFERRED_USER',classification_catalogs=classification['catalogs'] if classification else {},classification_identity_counts=classification['identity_counts'] if classification else {},classification_status=classification['status'] if classification else 'CANNOT_CONFIRM_SOURCE_NOT_BOUND',statistics_status=statistics_status,statistics_version=statistics_ref['sha256'] if statistics_ref else None,workflow=[dict(label=n['label_zh'],status=n['execution_status'],recorded_at=n.get('recorded_at'),materials=n.get('materials',[])) for n in execution['time_contract']['nodes']],materials=[],reference_links=[dict(label='旧版单股归档',url='/research-panel/legacy-daily.html?'+urlencode(dict(date=source_date)))],source_refs=dict(numeric_manifest=p['manifest'],artifact=p['artifact'],date_binding=self.binding.get('observation_dates',{}).get(source_date) or dict(calendar=self.binding.get('calendar'),method='NEXT_AUTHORITY_SESSION')),**FLAGS)
+        return dict(source_close_reference=quote_reference,source_selector_sha256=p['source_identity']['selector_artifact_sha256'],schema='RESEARCH_SYSTEM_DAY_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],revision=p['source_generation'],numeric_manifest=p['manifest'],rows=rows,scope_count=len(rows),original_processed_count=p['processed_count'],row_scope='FROZEN_CANDIDATE_UNION_ONLY_NOT_FULL_POOL',formula_review='PENDING',chart_review='UNKNOWN_NOT_REVIEWED',execution_status='DEFERRED_USER',classification_catalogs=classification['catalogs'] if classification else {},classification_identity_counts=classification['identity_counts'] if classification else {},classification_status=classification['status'] if classification else 'CANNOT_CONFIRM_SOURCE_NOT_BOUND',statistics_status=statistics_status,statistics_version=statistics_ref['sha256'] if statistics_ref else None,workflow=[dict(label=n['label_zh'],status=n['execution_status'],recorded_at=n.get('recorded_at'),materials=n.get('materials',[])) for n in execution['time_contract']['nodes']],materials=[],reference_links=[dict(label='旧版单股归档',url='/research-panel/legacy-daily.html?'+urlencode(dict(date=source_date)))],source_refs=dict(numeric_manifest=p['manifest'],artifact=p['artifact'],date_binding=self.binding.get('observation_dates',{}).get(source_date) or dict(calendar=self.binding.get('calendar'),method='NEXT_AUTHORITY_SESSION')),**FLAGS)
 
     def classification_catalog(self,market):
         return self.classifications.catalog(market)
@@ -678,7 +699,12 @@ class ResearchWorkbenchHost:
     def company(self,source_date,symbol,revision=None):
         if self._is_skill_date(source_date):return None
         p=self._view(source_date,revision)
-        answer=self.source.read_a_daily_company_materials(p['data_date'],symbol,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'])
+        extra={}
+        if not any(row.get('symbol')==symbol for row in p['rows']):
+            model=self.v192_group(source_date,revision)
+            if not any(row.get('symbol')==symbol for row in model['rows']):raise KeyError('V192_SYMBOL_NOT_BOUND')
+            extra['allow_processed_symbol']=True
+        answer=self.source.read_a_daily_company_materials(p['data_date'],symbol,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],**extra)
         if answer.get('status')!='PARTIAL_RECEIVED':
             return dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',status=answer.get('status'),symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],missing_reason=answer.get('missing_reason'),availability_gaps=answer.get('availability_gaps',[]),**FLAGS)
         if answer.get('numeric_manifest')!=p['manifest']:raise ValueError('WORKBENCH_COMPANY_REVISION_MOVED')
@@ -840,6 +866,8 @@ def create_workbench_router(source):
         return StreamingResponse(stream(),media_type='text/event-stream',headers={'Cache-Control':'no-store','X-Accel-Buffering':'no'})
     @router.get('/days/{source_date}')
     def day(source_date:str,revision:str|None=None):return call('day',source_date,revision)
+    @router.get('/days/{source_date}/v192')
+    def v192_group(source_date:str,revision:str|None=None):return call('v192_group',source_date,revision)
     @router.get('/days/{source_date}/top200')
     def top200(source_date:str,revision:str|None=None):return call('top200',source_date,revision)
     @router.get('/days/{source_date}/charts')
