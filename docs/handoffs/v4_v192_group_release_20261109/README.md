@@ -1,0 +1,9 @@
+# V1.9.2 independent group release preparation
+
+This release adds only the frozen six-file API/static feature delta on actual deployed R4. It reuses the exact Main002c0868 andStage0a5a7ef6 app/manifest identities. Stage plist bytes are unchanged; Main plist changes only its storage policy locator and SHA. The new API plist adds exactly three workbench-only bindings to the existing Main strict V192 data root/package/reader3654d9dd. No general API source is redirected.
+
+The inactive API/static/policy/pins/draft plists live under Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1. The prepare validator permits only explicit Main/Stage preservation with equal old/new app and manifest SHA; API and all new controls remain inside the new Library packet root. Producer/Main deltas are rejected before output creation. Existing R4 files and the 7de0e5aee frozen branch are untouched.
+
+PACKET.json SHA and source/manifest/plist identities, commands and limits are in WRITER_RESULT.json. DEPENDENCY_CHECK.json and POLICY_AUTHORITY_CHECK_R4.json in the packet root cover all24 reverse bindings with actual retention checks. INTEGRATED_API.json is packaged ASGI evidence only:19 model candidates,371 unchanged four-group rows,31 original-formula rows and their existing source/selector/reader SHA. No new data, model or score is computed or published. Business Writer8Python/4Node and previous R4 repair PASS scopes are reused; they were not rerun by release Writer.
+
+Controller uses the existing ops.activate_daily_materials_release from this source worktree only after one independent joint PASS binds this packet SHA. It keeps DEFAULT/A_LONG ownership and the idle-Main/child guard; healthy scheduled children must finish before activation. It CAS-installs the complete tuple and can restore the exact successful R4 tuple. Neither this handoff nor ASGI evidence is a live deployment or UI claim.

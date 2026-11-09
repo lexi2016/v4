@@ -1,0 +1,91 @@
+{
+  "status": "PREPARED_TESTED_PENDING_SINGLE_JOINT_REVIEW",
+  "baseline": "7de0e5aee3a8cd19d0bdf657ab6671eb9a073262",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-v192-group-release-20261109",
+  "branch": "codex/v4-v192-group-release-20261109",
+  "business_source_commit": "befa8614c",
+  "changed_source_files": [
+    {
+      "path": "ops/prepare_daily_materials_release.py",
+      "before_sha256": "391da805e22c5eb3b954ca99184ba788fb86bfcb140255baa3262923124fec71",
+      "after_sha256": "673f02200ac800e5172f2d69280199d5f506715c869ae354538a706d050500ab"
+    },
+    {
+      "path": "ops/prepare_v192_group_release.py",
+      "before_sha256": null,
+      "after_sha256": "c041b9f465da517834390b45c6deca9b5e82a9c81b3d0196df5ef6adde4bda9c"
+    },
+    {
+      "path": "tests/test_v192_release_dependencies.py",
+      "before_sha256": null,
+      "after_sha256": "99304dee77db6754a65496a566f927831d1ba98e4d5d188b46c3b14ef1b99116"
+    }
+  ],
+  "packet": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/PACKET.json",
+  "packet_sha256": "b5824a749c146cdf2d3d4d810ca146aeca438375eb4ffdf36702e1d926b7a268",
+  "services": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/v4-v192-group-20261109-r1-api/app",
+      "release_id": "v4-v192-group-20261109-r1-api",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/v4-v192-group-20261109-r1-api/release-manifest.json",
+      "manifest_sha256": "5f2f26cde973f83ddcba6de4b7d7bf389378bd1f949c10c0d9455131017733d7",
+      "before_sha256": "c8a10b5c4b6f544fc5fe0377cd5acbbf0b8ce536fd6c8c0f69a021ee945d1c81",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/API_CANDIDATE.plist",
+      "draft_plist_sha256": "17092b98d4fb63ecf4c3c590a6fea11457038f19f75e4f590a44b9992d0b8525"
+    },
+    "main": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/app",
+      "release_id": "v4-daily-materials-20261109-r4-main",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/release-manifest.json",
+      "manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "before_sha256": "a53e7e2f869018060ee02d5508354c778c3fe07def2a0b5c23a3d3ac00ec7b51",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/MAIN_CANDIDATE.plist",
+      "draft_plist_sha256": "caa1d868a6968cbee42b93950ff18079753122c6d990874338cbb762b3b03e54"
+    },
+    "stage": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/app",
+      "release_id": "v4-daily-materials-20261109-r4-stage",
+      "manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-stage/release-manifest.json",
+      "manifest_sha256": "0a5a7ef61f023e58dca361352167a6e6849499a2ec251ed5e76607caa2933ad7",
+      "before_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01",
+      "draft_plist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-group-20261109-r1/STAGE_CANDIDATE.plist",
+      "draft_plist_sha256": "84a647a2c5b39ff3e28690966a549f81c24b75a6fa13b09d0501eca292153a01"
+    }
+  },
+  "data_boundary": "V192 group source19 reused through exact existing Main strict reader; original371/four-group and31 original-formula data not recomputed or published",
+  "source_binding": {
+    "V4_WORKBENCH_V192_READER_SHA256": "3654d9dd77887714fefb9a938a00277e0ab8215fbebf367436a0a6710205e008",
+    "V4_WORKBENCH_V192_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+    "V4_WORKBENCH_V192_SHARED_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data"
+  },
+  "reader": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/shared_data/v192_selector.py",
+    "sha256": "3654d9dd77887714fefb9a938a00277e0ab8215fbebf367436a0a6710205e008"
+  },
+  "checks": {
+    "new_tool_tests": "5 PASS: exact preserved Main/Stage Library identities, changed root/SHA rejection, API cannot escape new batch via preservation, Main producer delta rejected before creation",
+    "dependency": "PASS24 source bindings and new3 Main-owner source bindings; actual configured_policy/_checked_file PASS with draft plist substitutions",
+    "packaged_api": "PASS_ASGI_NO_SOCKET:19 v192,371 four-group,31 original,source6d2ce/selector2b241/reader3654 match; two homepage GET verified;3 changed static GET/SHA/no-store PASS",
+    "preservation": "Main app/manifest002c andStage app/manifest0a5 preserved;Stage plist identical;Main plist only policy locator/SHA changes"
+  },
+  "commands": [
+    "<absolute-python> -B -m pytest -q --basetemp=/tmp/v4-v192-release-tests-20261109-r1 tests/test_v192_release_dependencies.py",
+    "<absolute-python> -B -m pytest -q --basetemp=/tmp/v4-v192-release-tests-20261109-r2 tests/test_v192_release_dependencies.py::test_prepare_rejects_main_producer_delta_before_creating_candidate",
+    "<absolute-python> -B -m ops.prepare_v192_group_release --delta <v192_group>/RUNTIME_DELTA.json --output <library-candidates>/v4-v192-group-20261109-r1 --r4-packet <r4>/PACKET.json",
+    "PYTHONPATH=<writer-worktree> <absolute-python> -B <candidate>/check_dependencies.py",
+    "<absolute-python> -B <candidate>/check_integrated_api.py"
+  ],
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "not_run": [
+    "Independent joint Reviewer verdict",
+    "Service activation/live API/UI/natural verification",
+    "Original371/model/score recomputation or publication",
+    "Git push"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

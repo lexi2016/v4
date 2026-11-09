@@ -275,6 +275,15 @@ def validate_dependency_packet(packet: dict, *, installed: bool = False, old: bo
         raise ValueError('STATIC_MANIFEST_SHA_DRIFT')
     api = packet['services']['api']
     api_env = plistlib.loads(substitutions[api['live_plist']].read_bytes())['EnvironmentVariables']
+    v192_binding = packet.get('v192_environment_binding')
+    if v192_binding is not None:
+        reader_path = Path(main_env['V4_SHARED_PACKAGE_ROOT']) / 'shared_data/v192_selector.py'
+        expected = {'V4_WORKBENCH_V192_SHARED_ROOT': main_env['V4_SHARED_DATA_ROOT'],
+                    'V4_WORKBENCH_V192_SHARED_PACKAGE_ROOT': main_env['V4_SHARED_PACKAGE_ROOT'],
+                    'V4_WORKBENCH_V192_READER_SHA256': sha(reader_path)}
+        if (v192_binding != expected or any(api_env.get(name) != value for name, value in expected.items())
+                or packet.get('v192_reader_source') != {'path': str(reader_path), 'sha256': sha(reader_path)}):
+            raise ValueError('V192_EXISTING_MAIN_SOURCE_BINDING_DRIFT')
     if (api_env['V4_RESEARCH_PANEL_ROOT'] != static['root']
             or api_env['V4_RESEARCH_PANEL_ASSET_MANIFEST'] != static['manifest']):
         raise ValueError('API_STATIC_LOCATOR_DRIFT')
@@ -299,10 +308,24 @@ def validate_runtime_locations(packet: dict) -> None:
     if (not root.is_absolute() or root == approved or not root.is_relative_to(approved)
             or root.is_symlink() or root.resolve() != root):
         raise ValueError('RUNTIME_CANDIDATE_MUST_USE_EXISTING_LIBRARY_ROOT')
+    preserved = packet.get('preserved_service_roles', [])
+    if not isinstance(preserved, list) or len(preserved) != len(set(preserved)) or not set(preserved) <= {'main', 'stage'}:
+        raise ValueError('PRESERVED_SERVICE_SCOPE_INVALID')
     paths = [packet['policy']['path'], packet['pins']['path'],
              packet['static']['root'], packet['static']['manifest']]
-    for service in packet['services'].values():
-        paths.extend(service[key] for key in ('app_root', 'manifest', 'draft_plist'))
+    for role, service in packet['services'].items():
+        paths.append(service['draft_plist'])
+        for key in ('app_root', 'manifest'):
+            if role not in preserved:
+                paths.append(service[key])
+                continue
+            if (service['app_root'] != service['old_app_root']
+                    or service['manifest_sha256'] != service['old_manifest_sha256']):
+                raise ValueError('PRESERVED_SERVICE_IDENTITY_CHANGED:' + role)
+            path = Path(service[key])
+            if (not path.is_absolute() or not path.is_relative_to(approved)
+                    or path.is_symlink() or path.resolve() != path):
+                raise ValueError('PRESERVED_SERVICE_OUTSIDE_LIBRARY:' + role)
     for value in paths:
         path = Path(value)
         if (not path.is_absolute() or not path.is_relative_to(root)
