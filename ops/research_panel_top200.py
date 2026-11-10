@@ -635,3 +635,188 @@ def record_daily_attempt(root,receipt):
         save(index_path,index)
         return artifact
     finally:os.close(fd);lock.close()
+
+
+def merge_exact_301314_row(product, old, row, row_ref):
+    """Mechanical one-row aggregate; membership follows the actual target result."""
+    import copy
+    symbol='301314.SZ'
+    if (row.get('symbol')!=symbol or old.get('symbol')!=symbol or row.get('data_date')!='20261110'
+        or product.get('data_date')!='20261110' or product.get('processed_count')!=5808
+        or len(product.get('row_refs',{}))!=5808):raise ValueError('EXACT_301314_AGGREGATE_SCOPE_CONFLICT')
+    updated=copy.deepcopy(product);updated['row_refs'][symbol]=row_ref
+    for group in GROUPS:
+        before,after=old['evaluation']['groups'][group]['status'],row['evaluation']['groups'][group]['status']
+        if before not in {'TRUE','FALSE','UNKNOWN'}or after not in {'TRUE','FALSE','UNKNOWN'}:raise ValueError('EXACT_301314_GROUP_STATE_INVALID')
+        counts=updated['three_value_counts'][group]
+        if counts.get(before,0)<1:raise ValueError('EXACT_301314_GROUP_COUNT_INVALID')
+        counts[before]-=1;counts[after]=counts.get(after,0)+1
+        updated['group_counts'][group]=counts.get('TRUE',0)
+    updated['rows']=[r for r in updated['rows']if r['symbol']!=symbol]
+    if row['groups']:
+        updated['rows'].append({k:v for k,v in row.items()if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')})
+        updated['rows'].sort(key=lambda r:r['symbol'])
+    updated['unique_count']=len(updated['rows'])
+    updated['unknown_count']+=int(bool(row['pending_groups']))-int(bool(old['pending_groups']))
+    updated['status']='PARTIAL_WITH_ROWS'if updated['unknown_count']else'READY'
+    return updated
+
+
+def prepare_exact_301314_row(context,root,output,computation_ref):
+    """One exact source repair using the existing Staging/shared-owner publisher.
+
+    New immutable unreferenced assets use a fresh namespace required by the
+    accepted chart reader. Published index/event/cache and old bytes are untouched.
+    """
+    import copy,os
+    from ops import research_panel_daily_product as owner
+    from ops import repair_301314_admission as repair
+    from ops import render_original_formula_projection as renderer
+    from ops import materialize_workbench_score_action as score
+    from ops.sync_stock_history_completion import Staging,DEFAULT_OWNER_LOCK
+    root,output=Path(root).resolve(),Path(output).resolve();done=load(computation_ref);day='20261110';symbol='301314.SZ'
+    repair.scope(context)
+    if (done.get('status')!='PREPARED_EXACT_301314_SINGLE_ROW_NOT_PUBLISHED' or done.get('symbol')!=symbol
+        or done.get('target_date')!=context.target or done.get('source_identity')!=context.identity
+        or done.get('source_config')!=context.config_ref or done.get('code')!=reference(Path(owner.__file__))
+        or done.get('repair_code')!=reference(Path(repair.__file__))):raise ValueError('EXACT_301314_COMPUTATION_BINDING_CONFLICT')
+    row,cache=load(done['row']),load(done['cache']);actual=context.qualify(symbol)
+    if (row['qualification']!=actual or row['qualification']['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
+        or cache['source_identity']!=context.identity or any(row.get(k)!=v for k,v in FLAGS.items())):raise ValueError('EXACT_301314_QUALIFICATION_DRIFT')
+    bars,_=context.read(symbol)
+    if cache['prefix_sha256']!=digest(bars)or cache['rules_signature']!=digest(context.config):raise ValueError('EXACT_301314_PREFIX_OR_RULE_DRIFT')
+    index_ref,event_ref=reference(root/'index.json'),reference(root/'events/latest.json');index,event=load(index_ref),load(event_ref)
+    manifest_ref=index['dates'][day];manifest=load(manifest_ref);product=load(manifest['artifact'])
+    if (manifest_ref!=done['original_numeric_manifest']or product['row_refs'][symbol]!=done['original_row']
+        or product['source_identity']!=context.identity or product['source_config']!=context.config_ref
+        or event.get('manifest')!=manifest_ref or event.get('artifact')!=manifest['artifact']
+        or index_ref!=done['expected_index']or event_ref!=done['expected_event']):raise ValueError('EXACT_301314_ORIGINAL_NUMERIC_MOVED')
+    others={k:v for k,v in product['row_refs'].items()if k!=symbol}
+    if hashlib.sha256(json.dumps(others,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=done['other_checkpoint_reference_digest']:raise ValueError('EXACT_301314_OTHER_REFERENCE_DRIFT')
+    for ref in others.values():checked(ref)
+    namespace=root/'exact_metadata_rows'/day/'301314'/digest(computation_ref)
+    if namespace.exists():raise ValueError('EXACT_301314_NEW_NAMESPACE_REQUIRED')
+    namespace.mkdir(parents=True)
+    writer=Staging(root,output)
+    # Record every new file after success; the namespace did not exist before.
+    target_ref=owner.save(namespace/'checkpoint.json',row,immutable=True)
+    updated=merge_exact_301314_row(product,load(done['original_row']),row,target_ref)
+    artifact=writer.immutable(str(namespace.relative_to(root)),'product.json',updated)
+    new_manifest={**manifest,'artifact':artifact,'counts':updated['three_value_counts'],'status':updated['status']}
+    new_ref=writer.immutable(str(namespace.relative_to(root))+'/manifests','manifest.json',new_manifest)
+    new_index=copy.deepcopy(index);new_index['dates'][day]=new_ref
+    if new_index.get('latest_date')==day:new_index['latest']=new_ref
+    old_chart=index['original_charts'][day];chart=load(old_chart['manifest']);chart_receipt=load(old_chart['receipt'])
+    if old_chart['numeric_manifest']!=manifest_ref or chart_receipt['status']!='OWNER_CHARTS_COMPLETED':raise ValueError('EXACT_301314_ORIGINAL_CHARTS_INCOMPLETE')
+
+    def link(source,destination):
+        source=checked(source);destination=Path(destination);destination.parent.mkdir(parents=True,exist_ok=True)
+        if destination.exists():raise ValueError('EXACT_301314_NEW_ASSET_ALREADY_EXISTS:'+str(destination))
+        os.link(source,destination);return reference(destination)
+
+    def charts_for(scope_product,numeric,scope_artifact,old_samples,parts,retained_target=None):
+        for stock in sorted({r['symbol']for r in scope_product['rows']}):
+            if stock==symbol:
+                if retained_target is None:raise ValueError('EXACT_301314_TARGET_RETAINED_RESULT_REQUIRED')
+                link(retained_target,parts/'original_retained'/(stock+'.json.gz'))
+            else:
+                if scope_product['row_refs'][stock]!=product['row_refs'][stock]:raise ValueError('EXACT_301314_UNRELATED_CHART_ROW_CHANGED')
+                link(old_samples[stock]['source_cache'],parts/'original_retained'/(stock+'.json.gz'))
+        def pngs(items):
+            new=[]
+            for item in items:
+                if item['symbol']==symbol:new.append(item)
+                else:link(old_samples[item['symbol']]['PNG'],item['png'])
+            return renderer.owner_pngs(new)if new else {}
+        descriptor=renderer.finalize_owner_charts(context,parts,scope_product,numeric,scope_artifact,gaps={},png_renderer=pngs)
+        if descriptor['status']!='OWNER_CHARTS_COMPLETED':raise ValueError('EXACT_301314_CANDIDATE_CHARTS_INCOMPLETE')
+        return descriptor
+
+    descriptor=charts_for(updated,new_ref,artifact,chart['samples'],namespace/'canonical_parts',done.get('retained_result'))
+    new_index['original_charts'][day]=descriptor
+    # Current canonical scores are independent of the unselected target. Rebind
+    # their index metadata only after proving every retained member ref identical.
+    selected={r['symbol']for r in updated['rows']};before_selected={r['symbol']for r in product['rows']}
+    old_score=index['score_action'][day];score_index=load(old_score['index'])
+    if (old_score['numeric_manifest']!=manifest_ref or score_index['numeric_manifest']!=manifest_ref
+        or set(score_index['items'])!=before_selected):raise ValueError('EXACT_301314_CANONICAL_SCORE_SCOPE_CONFLICT')
+    canonical_items={s:r for s,r in score_index['items'].items()if s in selected}
+    target_score=None
+    # The same stock-only score owner also fills the missing V192 view below.
+    target_score=score.materialize(context,updated,new_ref,output_root=namespace/'target_score',symbols=[symbol],workers=1)
+    target_score_index=load(target_score['index'])
+    if symbol in selected:canonical_items[symbol]=target_score_index['items'][symbol]
+    for stock in selected-{symbol}:
+        if updated['row_refs'][stock]!=product['row_refs'][stock]:raise ValueError('EXACT_301314_OTHER_SCORE_ROW_CHANGED')
+    def score_descriptor(previous,previous_index,items,base):
+        value={**previous_index,'numeric_manifest':new_ref,'items':items}
+        value['counts']=dict(total=len(items),materialized=sum(load(r)['status']=='MATERIALIZED'for r in items.values()),unknown=sum(load(r)['status']=='UNKNOWN'for r in items.values()))
+        ref=owner.save(base/'index.json',value,immutable=True)
+        return {**previous,'numeric_manifest':new_ref,'index':ref,'counts':value['counts'],'status':'READY'if not value['counts']['unknown']else'PARTIAL_WITH_UNKNOWN'}
+    new_index['score_action'][day]=score_descriptor(old_score,score_index,canonical_items,namespace/'canonical_score')
+    # Preserve case shards and their real numeric origins. Target has no
+    # historical bootstrap; never claim complete event cases for it.
+    if day in index.get('event_cases',{}):
+        cases=copy.deepcopy(load(index['event_cases'][day]));origins=cases.setdefault('case_numeric_origins',{})
+        for stock,ref in cases['items'].items():origins.setdefault(stock,load(ref)['numeric_manifest'])
+        cases['numeric_manifest']=new_ref
+        new_index['event_cases'][day]=writer.immutable(str(namespace.relative_to(root))+'/event_cases','index.json',cases)
+    # These views consume unchanged selector prices and unchanged candidate
+    # members/checkpoints, so only their numeric binding changes.
+    for key in ('display_names','top200'):
+        if day not in index.get(key,{}):continue
+        payload=load(index[key][day])
+        if payload.get('numeric_manifest')!=manifest_ref:raise ValueError('EXACT_301314_'+key.upper()+'_ORIGIN_CONFLICT')
+        if key=='top200'and selected!=before_selected:raise ValueError('EXACT_301314_TOP200_TARGET_MEMBERSHIP_REQUIRES_OWNER_REFRESH')
+        payload['numeric_manifest']=new_ref
+        new_index[key][day]=writer.immutable(str(namespace.relative_to(root))+'/'+key,'index.json',payload)
+    # Reuse every other V192 result/PNG/score; only this target is computed.
+    old_v=index['v192_assets'][day];module=copy.deepcopy(load(old_v['module']))
+    if module['numeric_manifest']!=manifest_ref or symbol not in module['scope_symbols']:raise ValueError('EXACT_301314_V192_ORIGIN_CONFLICT')
+    vroot=namespace/'v192_assets';vscope=copy.deepcopy(load(module['scope_product']))
+    missing=sorted(set(module['model_symbols'])-selected)
+    vscope.update(rows=[dict(symbol=s)for s in missing],row_refs={s:updated['row_refs'][s]for s in missing},processed_universe=missing,processed_count=len(missing),unique_count=len(missing),source_numeric_manifest=new_ref)
+    scope_artifact=owner.save(vroot/'scope/product.json',vscope,immutable=True)
+    scope_manifest={**load(module['scope_manifest']),'artifact':scope_artifact,'source_numeric_manifest':new_ref}
+    scope_ref=owner.save(vroot/'scope/manifest.json',scope_manifest,immutable=True)
+    prior_samples=load(module['charts']['manifest'])['samples']
+    vcharts=charts_for(vscope,scope_ref,scope_artifact,prior_samples,vroot/'parts',done.get('retained_result'))
+    vscore=load(module['score_action']['index']);vitems={}
+    for stock in missing:
+        origin=target_score_index['items'][symbol]if stock==symbol else vscore['items'][stock]
+        if stock!=symbol and updated['row_refs'][stock]!=product['row_refs'][stock]:raise ValueError('EXACT_301314_V192_OTHER_SCORE_CHANGED')
+        vitems[stock]=link(origin,vroot/'score_records'/(stock+'.json'))
+    vscores=score_descriptor(module['score_action'],vscore,vitems,vroot/'score_action')
+    module.update(numeric_manifest=new_ref,artifact_root=str(vroot),scope_product=scope_artifact,scope_manifest=scope_ref,
+        charts=vcharts,score_action=vscores,scope_symbols=missing,completed_symbols=missing,
+        canonical_symbols_sha256=digest(sorted(selected)),status='READY',
+        identity={**module['identity'],'numeric_manifest':new_ref,'symbols':missing})
+    module_ref=owner.save(vroot/'module.json',module,immutable=True)
+    new_index['v192_assets'][day]={**old_v,'module':module_ref,'numeric_manifest':new_ref,'status':'READY'}
+    previous=writer.immutable(str(namespace.relative_to(root)),'previous_index.json',index)
+    new_index.setdefault('exact_metadata_rows',{}).setdefault(day,{})[symbol]=dict(computation=computation_ref,row=target_ref,previous_index=previous,original_row=done['original_row'])
+    new_event={**event,'manifest':new_ref,'artifact':artifact,'original_charts':descriptor,
+        'score_action':new_index['score_action'][day],'v192_assets':new_index['v192_assets'][day],
+        'unknown_count':updated['unknown_count'],'event_id':digest(dict(manifest=new_ref,exact_metadata_row=computation_ref))}
+    for key in ('event_cases','display_names','top200'):
+        if day in new_index.get(key,{}):new_event[key]=new_index[key][day]
+    lock=DEFAULT_OWNER_LOCK.stat()
+    plan=dict(status='PREPARED_EXACT_301314_METADATA_ROW',expected_index=index_ref,expected_event=event_ref,
+        staged_index=save(output/'index.json',new_index),staged_event=save(output/'event.json',new_event),immutable_files=writer.files,
+        completed=[symbol],owner_publisher=reference(Path(owner.__file__)),shared_owner_lock=dict(path=str(DEFAULT_OWNER_LOCK),device=lock.st_dev,inode=lock.st_ino),
+        target_root=str(root),stage=str(output),computation=computation_ref,numeric_manifest=new_ref,artifact=artifact,
+        candidate_namespace=str(namespace),candidate_namespace_previously_absent=True,preparation_owner=reference(Path(__file__)),
+        unchanged_other_row_refs=len(others),other_checkpoint_reference_digest=digest(others),
+        membership_before=len(before_selected),membership_after=len(selected),target_membership=bool(row['groups']),
+        current_formula_pending_groups=row['pending_groups'],historical_bootstrap_computations=0,
+        published=False,**FLAGS)
+    # Inventory includes binary/HTML artifacts whose accepted owner needed final
+    # immutable names during PREPARE. They remain unreferenced until root CAS.
+    inventory=[]
+    for p in sorted(namespace.rglob('*')):
+        if p.is_file():
+            st=p.stat();inventory.append(dict(**reference(p),size=st.st_size,hardlink_count=st.st_nlink))
+    plan['new_unreferenced_files']=inventory;plan['new_unreferenced_bytes']=sum(r['size']for r in inventory)
+    save(output/'PLAN.json',plan);context.unchanged()
+    if reference(root/'index.json')!=index_ref or reference(root/'events/latest.json')!=event_ref:raise ValueError('EXACT_301314_PUBLICATION_MOVED_DURING_PREPARE')
+    return plan

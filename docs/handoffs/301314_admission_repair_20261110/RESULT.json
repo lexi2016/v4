@@ -1,0 +1,230 @@
+{
+  "schema": "V4_EXACT_301314_CURRENT_SOURCE_REPAIR_DELIVERY_V1",
+  "baseline_commit": "603082fb379dfd78429c46e4f613a8f8745ae931",
+  "source_root": "/Users/lexi/.codex/worktrees/301314-admission-repair-20261110",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "branch": "codex/301314-admission-repair-20261110",
+  "files": [
+    {
+      "after_sha256": "5f08989c558edee30e4be44e651bc1b8a311eccd113ff4e326992f2d20d34c4e",
+      "before_sha256": "b1bce39077908c724bcfe4fec7046500b0bc5c93a2e3bc593d1e50f0cfa6a80f",
+      "path": "ops/research_panel_daily_product.py"
+    },
+    {
+      "after_sha256": "a6651d4e87202af95a4d1b328b4061661ccc1c99c547234896990e212e55ee7a",
+      "before_sha256": "f6f67cec37ebb632fab0035af531c3cebe3c499dcc97d0b5e78cca05dd8bb584",
+      "path": "ops/research_panel_top200.py"
+    },
+    {
+      "after_sha256": "9ea328074431ed1c16912f3652a1203a7179a0c20d6b0dbab4286495f0007c83",
+      "before_sha256": null,
+      "path": "ops/repair_301314_admission.py"
+    },
+    {
+      "after_sha256": "d298695621ecf26342038452c94c5250285d4150f78c8ea9122ec294dfffb5f5",
+      "before_sha256": null,
+      "path": "tests/test_repair_301314_admission.py"
+    },
+    {
+      "after_sha256": "582fbd0c8e861bc43d002edf66e88d15f5bce3c37ceca840bfbf503d4e9cde3e",
+      "before_sha256": null,
+      "path": "tests/test_research_panel_daily_product_admission.py"
+    },
+    {
+      "after_sha256": "3f623866ff6175dc53b8c2b614955cd68f5589c0fbb1cfa988ad30669b5a928f",
+      "before_sha256": null,
+      "path": "tests/test_research_panel_top200_301314_admission.py"
+    }
+  ],
+  "source_fact": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_301314_admission_repair_20261110/writer/SOURCE_FACTS_V3.json",
+    "sha256": "758a03b5f908878078bd7bfb63c5bb6cb0b8602f86b6e5c932691ac9986d4baa"
+  },
+  "source_validation": {
+    "resolved_rows": 868,
+    "adjustment_events": 4,
+    "selector_backtest_OHLCVA": "FULL_TARGET_EXACT_MATCH",
+    "original_validator_unchanged": true,
+    "admission": "CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH",
+    "original_raw_snapshot_panel_receipts_unchanged": true
+  },
+  "tests": {
+    "original_focused_tests": 9,
+    "incremental_fresh_process_shadowing_test": 1,
+    "prior_full_source_and_asset_PASS": "REUSED unchangedbytes",
+    "independent_negative_source_cases": 7,
+    "independent_R2_negatives": [
+      "wrongSHA",
+      "runtimepath",
+      "relativepath"
+    ],
+    "formula_entry_counters": "NOT_INSTRUMENTED"
+  },
+  "review": {
+    "verdict": "REVIEWED/PASS",
+    "plan_sha256": "8fe5994dce82e8035b32697e5623b27a21c9f9d72e76a35bd7caa1aa7b58def7",
+    "R1_source_data_review": "PASS",
+    "R2_fresh_entry_review": "PASS"
+  },
+  "publication": {
+    "status": "PUBLISHED_EXACT_301314_METADATA_ROW",
+    "started_at": "2026-11-10T22:41:15.049713+08:00",
+    "finished_at": "2026-11-10T22:41:22.816498+08:00",
+    "plan": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_301314_admission_repair_20261110/writer/publication_r2/PLAN.json",
+      "sha256": "8fe5994dce82e8035b32697e5623b27a21c9f9d72e76a35bd7caa1aa7b58def7"
+    },
+    "numeric_manifest": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/exact_metadata_rows/20261110/301314/0234cbff7ea9987a2d9840b6f570c10e477d1b56963ae244510fbd8a0679b389/manifests/8ab64bd117e437e2931b36d56444701dce512d54fc99bdbd0e7a1ca01a57d0bf/manifest.json",
+      "sha256": "bf7dd7bc1c4defe8e9f19330734869f89e896cfcd1cebf0a0dc566ba3b0e3bec"
+    },
+    "product": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/exact_metadata_rows/20261110/301314/0234cbff7ea9987a2d9840b6f570c10e477d1b56963ae244510fbd8a0679b389/7e49ae188d1c722528f42778e7226aa9a21beb5b5c8bf8e828115d5f2cd5fba8/product.json",
+      "sha256": "57eecfd9ff8dff3c0e43b082b5301fb174498a8be1d85f1c1b51033c1cb53a8d"
+    },
+    "cache_before": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/history/48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3/301314.SZ/checkpoint.json",
+      "sha256": "0f22092ab731c22f2c5122fd1893b6868638a418ec1994266af8186cbffe15f0"
+    },
+    "cache_after": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/history/48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3/301314.SZ/checkpoint.json",
+      "sha256": "626a25842f8b50f8e62bf81640f29110edaa06d38e79bb8073a3f3ad69bfd9bf"
+    },
+    "services_unchanged": true
+  },
+  "live_acceptance": {
+    "status": "PASS_REAL_API_31_VALID_0_SOURCE_PENDING",
+    "at": "2026-11-10T22:42:14.942835+08:00",
+    "v192": {
+      "status": "READY",
+      "count": 31,
+      "source_count": 31,
+      "valid_count": 31,
+      "pending_count": 0,
+      "generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+      "input_sha256": "b0bb597acefe3e50dffa0ac3b3fb6b1d24263819b3bac286ca8b92c2f2028ac3",
+      "source_run_id": "20261111-a-share-v192-premarket-pool-v3-3ccd5fa450dd",
+      "source_artifact_sha256": "acd3da1e2b38b7b4f7ee950f4d1d6989ccf748f0b5e0b2250b3f403e6474a676"
+    },
+    "day_scope": 380,
+    "group_counts": {
+      "nav_breakout": 65,
+      "nav_pullback": 126,
+      "nav_smallk": 246,
+      "original": 43
+    },
+    "processed_count": 5808,
+    "unchanged_other_checkpoint_refs": 5807,
+    "target_formula_pending": "original",
+    "target_formula_reasons": "REDGREEN_UNKNOWN|RISK_APPLICABILITY_OR_INPUT_PENDING",
+    "source_close_scope": 31,
+    "source_close_available": 31,
+    "sample_scope": "Affected301314 plus unchangedSZ300549/SH600281: HTTP PNG/declarationSHA and strict chart metadata reader. Counts/checkpointrefs mechanicallyverified forfullscope; notfullchart/PITcertification.",
+    "sample_assets": [
+      {
+        "symbol": "301314.SZ",
+        "image_http": 200,
+        "png_sha256": "41b13471e653e7532722dd6125831edf468e56278213ed73b819db2d1fbcf00a",
+        "chart_status": "READY",
+        "meta_schema": null,
+        "meta_binding": {
+          "source_generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+          "symbol": "301314.SZ",
+          "rows": 868
+        }
+      },
+      {
+        "symbol": "300549.SZ",
+        "image_http": 200,
+        "png_sha256": "dbaffc8bff789634076909e9aada790f56088c2649387124f6a406c71b157896",
+        "chart_status": "READY",
+        "meta_schema": null,
+        "meta_binding": {
+          "source_generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+          "symbol": "300549.SZ",
+          "rows": 2452
+        }
+      },
+      {
+        "symbol": "600281.SH",
+        "image_http": 200,
+        "png_sha256": "3336f1ed2b0947cdfdf17635cb2097d8fadd86738f6af290a7dcb30467bb0e06",
+        "chart_status": "READY",
+        "meta_schema": null,
+        "meta_binding": {
+          "source_generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+          "symbol": "600281.SH",
+          "rows": 6147
+        }
+      }
+    ],
+    "UI": {
+      "status": "USER_CONFIRMED",
+      "at_recorded": "2026-11-10T22:43:42.748943+08:00",
+      "evidence": "User replied: 已显示 31 只，能看到科瑞思",
+      "scope": "Currentworkbench V192 count31 and301314visible; no fullUIauditclaim"
+    },
+    "natural_acceptance": "NOT_RUN",
+    "flags": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "preserved_failure": {
+    "R1_publish": "Stopped beforewrites by preparationcodeidentityguard; diagnosed runtimeops namespace shadowing, corrected inR2",
+    "index_event_cache_unchanged_on_failure": true,
+    "old_errors_preserved": true
+  },
+  "dependency_boundary": {
+    "active_API_Main_Stage_code": "UNCHANGED; existingAPIconsumes newsourceproduct",
+    "original_runtime_dependencies": [
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/_a_share_daily_sync_parts/official_daily_package.py",
+        "sha256": "ff15f25c287e49f554a08038a4c1e503a044b25829fea77a8663f89bd11dd276"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_storage_retention.py",
+        "sha256": "1c55d06730bea852828f1a85bdcc227957d87645b789a7ae24825d6f9993bbbf"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_panel_factor_cache.py",
+        "sha256": "158f1d26b1a803c280b27139cb8b2f3ab0d9c9fe418bff91f6a0bfc9ef1f04f9"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/bootstrap_stock_event_history.py",
+        "sha256": "befdec34344d8826e4a6a08ca74977de73a08f862d8292b04b71b9a0be20ed5c"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_storage_pair.py",
+        "sha256": "3b7d65c14b8872909e81eb6117f38db8403606a9d3edb4683955753a0bb4fad8"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_panel_qfq.py",
+        "sha256": "05e8aa7aa19c1ae998481360d80fb99a39498ffd31c5945caedd5c791daa1fad"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/sync_stock_history_completion.py",
+        "sha256": "8ac31ebf6aca340ef9f4262e959cf72d16c29c86b185b4058e73c96ea872f6da"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/domains/research_daily_product.py",
+        "sha256": "48cccee9eb4c77d2d09965a3e25354580278d14605e835d28833998a327c39e3"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/domains/research_daily_statistics.py",
+        "sha256": "49f20f898517131403b329b99565a5b244c5a74b5a30f5cae54c4ced77187fff"
+      }
+    ],
+    "sourcerepair_operator": "Tasksourceworktree invocation; no Mainbinary/plistdeployment"
+  },
+  "limitations": [
+    "Target originalgroup remainsUNKNOWN dueREDGREEN_UNKNOWN/RISK_APPLICABILITY_OR_INPUT_PENDING; notforcedFALSEorTRUE",
+    "HistoricalPIT/providerrevision/fullhistoricalgroup labels notcertified",
+    "Exact20261110snapshotrepair only; futuredates/samedayfullproducer replaydurability CANNOT_CONFIRM",
+    "Existingtwo-step index/event then cacheupdate; CASexceptionrollback andpreservedbackups; crashreconciliationrequired"
+  ],
+  "local_evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_301314_admission_repair_20261110",
+  "github_sync": "Remote commit/files readback recorded separately after committing this slim result."
+}

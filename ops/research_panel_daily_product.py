@@ -233,6 +233,12 @@ class SourceContext:
  def qualify(self,symbol):
   args=(symbol,str(self.target),self.footer,self.receipt,self.quarantine,self.generation,Path(self.quarantine_ref['path']))
   original=self.helper.verify_symbol_admission(*args)
+  if symbol=='301314.SZ' and self.target==20261110 and original.get('reason')=='CURRENT_SYMBOL_HISTORY_END_MISMATCH':
+   path=os.environ.get('V4_A_DAILY_301314_TYPED_FACT_PATH');expected=os.environ.get('V4_A_DAILY_301314_TYPED_FACT_SHA256')
+   if path or expected:
+    if not path or not expected:raise ValueError('EXACT_301314_TYPED_FACT_BINDING_INCOMPLETE')
+    from ops.repair_301314_admission import qualify
+    return qualify(self,dict(path=path,sha256=expected))
   if (symbol!='002731.SZ' or self.target!=20261030 or original.get('reason')!='CURRENT_SYMBOL_HISTORY_END_MISMATCH'
       or 'history_end_date' in self.snapshot.get('symbols',{}).get(symbol,{})):return original
   proof,proof_ref=_exact_typed_end_fact(self,symbol)
@@ -388,10 +394,11 @@ def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
 
 
 def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False):
- from domains.research_daily_product import evaluate_daily_product
+ from domains import research_daily_product as original_daily_rules
+ evaluate_daily_product=original_daily_rules.evaluate_daily_product
  from domains.research_daily_statistics import build_daily_event_statistics
  history_dates=tuple(history_dates)
- evaluate=evaluate or evaluate_daily_product;bars,name=context.read(symbol);q=context.qualify(symbol);target=context.target;calendar=context.calendars[symbol[-2:]];rule_sha=sha(Path(__file__).resolve().parents[1]/'domains/research_daily_product.py')
+ evaluate=evaluate or evaluate_daily_product;bars,name=context.read(symbol);q=context.qualify(symbol);target=context.target;calendar=context.calendars[symbol[-2:]];rule_sha=sha(Path(original_daily_rules.__file__))
  if q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' and (not bars or bars[-1]['trade_date']!=target or str(bars[0]['trade_date'])!=q['history_start_date']):q=dict(status='UNKNOWN',reason='ADMITTED_PREFIX_START_OR_TARGET_MISMATCH')
  captured=[]
  current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None or (reuse_history_prefix and history_dates) else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
