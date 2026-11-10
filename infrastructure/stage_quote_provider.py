@@ -11,6 +11,35 @@ NATIVE_A_SCHEMA = "stage_center.a_opening_native_snapshot.v1"
 PREOPEN_SESSION_OPEN_SEMANTICS = "PREOPEN_SESSION_OPEN_LABEL"
 
 
+def native_opening_field_readiness(rows):
+    """Describe positive finite source fields without certifying a match.
+
+    Zero volume/turnover may mean no activity or an unready field. This
+    snapshot alone cannot disambiguate them, so both remain UNKNOWN here.
+    Original rows and raw SDK batches are never rewritten by this summary.
+    """
+    import math
+    fields = ("last_price", "prev_close_price", "open_price", "high_price", "low_price", "turnover", "volume")
+    counts = dict.fromkeys(fields, 0)
+    complete = 0
+    for row in rows:
+        ready = []
+        for field in fields:
+            try:
+                value = float(row.get(field))
+                available = math.isfinite(value) and value > 0
+            except (TypeError, ValueError):
+                available = False
+            counts[field] += int(available)
+            ready.append(available)
+        complete += int(all(ready))
+    return {"source_rows": len(rows), "positive_finite_rows": counts,
+            "all_fields_positive_finite_rows": complete,
+            "status": "FIELDS_AVAILABLE" if rows and complete == len(rows) else "PARTIAL_OR_UNKNOWN",
+            "zero_or_invalid": "UNKNOWN_NOT_OBSERVED_ZERO",
+            "auction_transaction_certified": False}
+
+
 def _opening_clock(value):
     from datetime import datetime
     from zoneinfo import ZoneInfo
@@ -310,6 +339,7 @@ class NativeAOpeningSnapshotProvider:
             "capture_mode": "CAPABILITY_ONLY_NOT_0925_REPLAY" if capability_only else "NATURAL",
             "temporal_cutoff_safe": not capability_only and edge <= started <= finished <= cutoff,
             "requested_symbols": codes, "rows": accepted, "raw_batches": batches,
+            "field_readiness": native_opening_field_readiness(accepted),
             "rejected_rows": rejected, "errors": errors, "missing_symbols": [s for s in codes if s not in seen],
             "data_level": "NATIVE_QUOTE_SNAPSHOT_VISIBLE_L1_NOT_L2_NOT_TRANSACTION",
             "RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False})

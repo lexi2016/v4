@@ -77,6 +77,7 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
         try:
             from infrastructure.stage_quote_provider import (
                 PREOPEN_SESSION_OPEN_SEMANTICS,
+                native_opening_field_readiness,
                 read_native_a_opening_snapshot,
             )
             if root is None:
@@ -117,10 +118,12 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
                     "source_method": row["source_method"]})
             missing = tuple(code for code in requested if code not in {r["code"] for r in rows})
             preopen_label_rows = sum(1 for item in rows if item.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS)
+            readiness = native_opening_field_readiness([by_code[code] for code in requested if code in by_code])
             return _v4_global(_v4_scope, 'SourceResult')(
                 source_id="a_share_auction", status="READY" if not missing else "PARTIAL_WITH_ROWS" if rows else "CANNOT_CONFIRM",
                 rows=tuple(rows), requested_rows=len(requested), missing_symbols=missing,
-                cannot_confirm=("NATIVE_QUOTE_SNAPSHOT_NOT_L2_NOT_TRANSACTION",),
+                cannot_confirm=("NATIVE_QUOTE_SNAPSHOT_NOT_L2_NOT_TRANSACTION",
+                    "NATIVE_FIELD_READINESS=" + _v4_global(_v4_scope, 'json').dumps(readiness, sort_keys=True)),
                 source_evidence=("route=a_share_native_quote_snapshot", "native_snapshot_contract=V4_A_OPENING_NATIVE_SNAPSHOT_V1",
                     "exact_date=true", f"native_snapshot_sha256={manifest['artifact_sha256']}",
                     f"native_snapshot_manifest={root / 'native_opening' / plan.trade_date / 'STAGE_0925' / 'manifest.json'}",

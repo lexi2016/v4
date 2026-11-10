@@ -137,6 +137,21 @@ A_SHARE_LIVE_TOP10_ALGORITHM_SOURCE_BYTES = json.dumps(
 A_SHARE_LIVE_ALGORITHM_MANIFEST = A_SHARE_LIVE_TOP10_ALGORITHM_MANIFEST
 A_SHARE_LIVE_ALGORITHM_SOURCE_BYTES = A_SHARE_LIVE_TOP10_ALGORITHM_SOURCE_BYTES
 A_SHARE_LIVE_ALGORITHM_SHA256 = hashlib.sha256(A_SHARE_LIVE_TOP10_ALGORITHM_SOURCE_BYTES).hexdigest()
+A_SHARE_AUCTION_PRICE_READY_MANIFEST = {
+    "base_top10_sha256": A_SHARE_LIVE_ALGORITHM_SHA256,
+    "base_legacy_sha256": LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256,
+    "version": "stage_center.selection.a_auction.price_readiness.v1",
+    "native_price": "positive_finite_open_else_positive_finite_last; last_and_prev_close_required_positive_finite",
+    "native_semantics": "WATCH_ONLY_snapshot_observation_NOT_auction_transaction",
+    "unready_fields": "nonpositive_or_nonfinite_open_high_low_amount_volume_UNKNOWN; no_amount_bonus_when_unknown",
+    "invalid_price": "isolate_with_CANNOT_CONFIRM; never_score_zero_or_missing_price",
+    "legacy_transaction": "no_quote_substitution; valid_scores_and_top10_unchanged",
+    "score_weights": "unchanged",
+}
+A_SHARE_AUCTION_PRICE_READY_SHA256 = hashlib.sha256(json.dumps(
+    A_SHARE_AUCTION_PRICE_READY_MANIFEST, ensure_ascii=False, sort_keys=True,
+    separators=(",", ":"),
+).encode("utf-8")).hexdigest()
 PRE_V11_TOP10_ALGORITHM_SHA256 = "fa010779606766f2bb94e2b5ef028a06df218ca6e68b48284a94c64bf0919657"
 V11_PIT_TOP10_ALGORITHM_SHA256 = "8e04f83945294bd9c6c9a6bc1fa75b046c999860a3515f5d4f0538211fd09878"
 ALGORITHM_SHA_ALLOWLIST = _v4_definitions._value_ALGORITHM_SHA_ALLOWLIST(globals())

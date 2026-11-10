@@ -188,7 +188,7 @@ def _production_selection_builders_body(_v4_scope, /, stage_id, *, research_root
                     "next_validation_time": raw.get("cutoff_at"),
                     "trade_date": plan.trade_date,
                     **({key: row.get(key) for key in (
-                        "prev_close_price", "bid_vol", "ask_vol", "is_open_call_auction_match",
+                        "prev_close_price", "volume", "bid_vol", "ask_vol", "is_open_call_auction_match",
                         "native_quote_snapshot", "native_snapshot_sha256", "native_capture_started_at",
                         "native_captured_at", "native_source_update_time", "native_market_cutoff_at", "source_time_semantics", "source_method",
                     )} if row.get("native_quote_snapshot") is True else {}),

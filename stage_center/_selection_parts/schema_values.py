@@ -86,6 +86,7 @@ def _value_ALGORITHM_SHA_ALLOWLIST(_v4_scope, /):
         _v4_global(_v4_scope, 'HK_FULL_POOL_ALGORITHM_SHA256'),
         _v4_global(_v4_scope, 'LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256'),
         _v4_global(_v4_scope, 'A_SHARE_LIVE_ALGORITHM_SHA256'),
+        _v4_global(_v4_scope, 'A_SHARE_AUCTION_PRICE_READY_SHA256'),
         _v4_global(_v4_scope, 'PRE_V11_TOP10_ALGORITHM_SHA256'),
         _v4_global(_v4_scope, 'V11_PIT_TOP10_ALGORITHM_SHA256'),
     }

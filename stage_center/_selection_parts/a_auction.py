@@ -73,6 +73,29 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
         prev_close = _v4_global(_v4_scope, '_optional_number')(
             _v4_global(_v4_scope, '_a_row_value')(source, "prev_close_price", "prev_close", "last_close")
         )
+        price_basis = "AUCTION_TRANSACTION_PRICE"
+        field_values = {}
+        if native:
+            # A quote is an observation, never proof of an auction match.
+            # An explicit zero open is unready and must not mask valid last.
+            for field, aliases in {
+                "open_price": ("open_price", "open"),
+                "last_price": ("last_price",),
+                "high_price": ("high_price", "high"),
+                "low_price": ("low_price", "low"),
+                "amount": ("amount_yuan", "auction_amount_est_yuan", "amount"),
+                "volume": ("volume",),
+            }.items():
+                value = _v4_global(_v4_scope, '_optional_number')(_v4_global(_v4_scope, '_a_row_value')(source, *aliases))
+                field_values[field] = value if value is not None and value > 0 else None
+            price = field_values["open_price"] or field_values["last_price"]
+            price_basis = "NATIVE_OPEN_PRICE_OBSERVATION" if field_values["open_price"] is not None else "NATIVE_LAST_PRICE_OBSERVATION"
+            if field_values["last_price"] is None:
+                price = None
+            amount = field_values["amount"]
+        if price is None or price <= 0 or prev_close is None or prev_close <= 0:
+            invalid_evidence.append(f"{code}: CANNOT_CONFIRM_PRICE_NOT_READY")
+            continue
         current_change = _v4_global(_v4_scope, '_live_pct_change')(price, prev_close)
         qmt = {
             "open": price,
@@ -92,6 +115,8 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
             )
         )
         card_source = _v4_global(_v4_scope, 'dict')(source)
+        if native:
+            card_source.update(field_values)
         card_source["current_change_pct"] = current_change
         card = _v4_global(_v4_scope, '_stage_card_evidence')(
             card_source,
@@ -103,6 +128,14 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
             source_last_bar_time=_v4_global(_v4_scope, '_a_row_value')(source, "update_time", "time"),
             next_validation_time=next_validation_time or _v4_global(_v4_scope, '_a_row_value')(source, "next_validation_time"),
         )
+        if native:
+            # _stage_card_evidence uses aliases/fallbacks for old inputs;
+            # native unready fields must stay unknown in the public card.
+            card.update({key: field_values[key] for key in ("open_price", "last_price", "high_price", "low_price")})
+            for key, field in (("support", "low_price"), ("support_primary_price", "low_price"),
+                               ("pressure", "high_price"), ("pressure_price", "high_price"),
+                               ("invalidation", "low_price"), ("invalidation_price", "low_price")):
+                card[key] = field_values[field]
         normalized.append(
             {
                 "code": code,
@@ -111,7 +144,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                 "formal_eligible": False,
                 "prev_close_price": prev_close,
                 "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
-                "qmt_gap_pct": 0.0 if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
+                "qmt_gap_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 6),
                 "qmt_amount": amount,
                 "stage_score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
                 "support": price,
@@ -124,7 +157,8 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                     "exact_date=true",
                     "formula=windows_v3_live_stage_quality_score",
                     "score_bounded_0_100=true",
-                    "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+                    f"current_change_pct_basis={price_basis}_VS_PREV_CLOSE",
+                    *(["native_unready_fields=UNKNOWN", "unknown_amount_bonus=neutral_0_NOT_observed_zero"] if native else []),
                     *(["native_source_time_semantics=PREOPEN_SESSION_OPEN_LABEL",
                        "native_observation_time_basis=captured_at"] if native and preopen_label else []),
                 ],
@@ -132,13 +166,21 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                 "trade_status": "WATCH_ONLY",
                 "bar_order": index,
                 **card,
+                "scoring_price": price,
+                "price_basis": price_basis,
+                **({"field_readiness": {key: "AVAILABLE" if value is not None else "UNKNOWN" for key, value in field_values.items()}} if native else {}),
             }
         )
     normalized = _v4_global(_v4_scope, '_cap_recommendations')(_v4_global(_v4_scope, 'sorted')(normalized, key=lambda item: item["score"], reverse=True))
     cannot = (*cannot_confirm, *invalid_evidence)
     top10 = _v4_global(_v4_scope, '_top10_contract')(source_evidence)
     legacy = _v4_global(_v4_scope, '_legacy_backfill')(source_evidence) and not top10
-    algorithm_sha = _v4_global(_v4_scope, 'A_SHARE_LIVE_ALGORITHM_SHA256') if top10 else _v4_global(_v4_scope, 'LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256')
+    algorithm_sha = _v4_global(_v4_scope, 'A_SHARE_AUCTION_PRICE_READY_SHA256')
+    native_count = sum(source.get("native_quote_snapshot") is True for source in rows)
+    native_unknown_count = sum(any(value == "UNKNOWN" for value in row.get("field_readiness", {}).values()) for row in normalized)
+    if native_contract:
+        cannot = (*cannot, "NATIVE_QUOTE_SNAPSHOT_NOT_AUCTION_TRANSACTION",
+                  f"NATIVE_FIELD_READINESS: source_rows={native_count}; selected_unknown_rows={native_unknown_count}; zero_unready_is_UNKNOWN")
     evidence = (
         *source_evidence,
         "route=a_share_native_quote_snapshot" if native_contract else "route=a_share_exact_date_auction_transaction",
@@ -146,7 +188,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
         "window=09:20-09:30",
         "formula=windows_v3_live_stage_quality_score",
         "score_bounded_0_100=true",
-        "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+        "current_change_pct_basis=EXPLICIT_PER_ROW_PRICE_BASIS_VS_PREV_CLOSE",
         f"algorithm_sha256={algorithm_sha}",
     )
     return _v4_global(_v4_scope, '_selection_envelope')(
