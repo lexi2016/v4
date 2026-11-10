@@ -1,0 +1,82 @@
+{
+  "status": "PREPARED_TESTED_NOT_DEPLOYED_REVIEW_REQUIRED",
+  "baseline_commit": "3feefa9d9a79b37ef9ba808c954eb6b0da3ded62",
+  "source_root": "/Users/lexi/.codex/worktrees/top200-scope-release-20261110",
+  "branch": "codex/top200-scope-release-20261110",
+  "business_head": "eedd3c037a12ccfec34e724ab32202e7ac372a20",
+  "business_source_commit": "28f12f21f0638487063fc56e9e2d0fae8f8d60d8",
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/PACKET.json",
+    "sha256": "57d42d857f022d157ad3a1106d0ef01d20f42eb363bce3a81c34a22f6e9793b9"
+  },
+  "frozen_delta": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/FROZEN_DELTA.json",
+    "sha256": "a09430537f3041cf978adc9b41e1fa32d99847cf2427d2fa9e1c63129992c967"
+  },
+  "source_changes": [
+    {
+      "target": "ops/prepare_top200_scope_release.py",
+      "before_sha256": null,
+      "after_sha256": "940083831ebf9802ce0856498288449e4ffdf1ce5d89596d46b73d31a8451fd5"
+    },
+    {
+      "target": "tests/test_prepare_top200_scope_release.py",
+      "before_sha256": null,
+      "after_sha256": "437812989dd504889658a33e5cb10cdb08c1b5d110e69846e5652c1fe9037c23"
+    },
+    {
+      "target": "docs/handoffs/top200_scope_release_20261110/check_candidate.py",
+      "before_sha256": null,
+      "after_sha256": "019ccd4045d85c7d0a53b149b38d774dd489bfe21bcc2c7a13ea1894ee38ae3a"
+    }
+  ],
+  "dependency_result": {
+    "mode": "DRAFT_PLIST_SUBSTITUTION_ONLY",
+    "source_bindings_checked": 24,
+    "status": "PASS_API_AND_SAME_IDENTITY_MAIN_DEPENDENCY_TUPLE_STAGE_UNCHANGED"
+  },
+  "candidate_check": {
+    "path": "/Users/lexi/.codex/worktrees/top200-scope-release-20261110/docs/handoffs/top200_scope_release_20261110/CANDIDATE_CHECK.json",
+    "sha256": "21a9371e97e788bc3b4d13de3dd4d010363c7a7d3092effc24452057191919ca"
+  },
+  "tests": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q --basetemp=/tmp/top200-scope-release-tests-20261110-r1 tests/test_prepare_top200_scope_release.py",
+      "result": "6 PASS"
+    },
+    {
+      "command": "same pytest, --basetemp=/tmp/top200-scope-release-tests-20261110-r2 -k cutover or bootstrap or busy",
+      "result": "3 PASS after exact loaded-env/homepage checks; 3 unchanged deselected"
+    },
+    {
+      "command": "python -B docs/handoffs/top200_scope_release_20261110/check_candidate.py --packet <r2>/PACKET.json --out <handoff>/CANDIDATE_CHECK.json",
+      "result": "PASS actual Main policy + 24 checked files, socket-free candidate ASGI, exact frontend bytes, protected index/receipts unchanged"
+    }
+  ],
+  "preservation": {
+    "main_app_manifest_and_identity": "UNCHANGED",
+    "main_plist_allowed_changes": [
+      "V4_RESEARCH_RETENTION_POLICY",
+      "V4_RESEARCH_RETENTION_POLICY_SHA256"
+    ],
+    "stage": "ALL_FILES_AND_PLIST_UNCHANGED_NO_SERVICE_OPERATION",
+    "old_hashed_assets": "PRESERVED",
+    "external_workbench_assets": "UNCHANGED",
+    "business_data": "NO_WRITES_OR_REPLAY"
+  },
+  "failure_evidence": {
+    "r1_packet_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r1/PACKET.json",
+    "r1_packet_sha256": "da6baa17e1ca36adf3f4563b61673a52e8cf70426eaaf932c0861ac8b8b20a61",
+    "r1_status": "NOT_DEPLOYED_BUSINESS_RECEIPT_SYMLINK_REJECTED_BY_REVIEW",
+    "checker_development": "optional ledger env and natural stage key corrected; local CANDIDATE_CHECK.failure.json retained, not candidate defect"
+  },
+  "CANNOT_CONFIRM": [
+    "Independent joint review remains required",
+    "Actual service reload, live API/UI and natural run NOT_RUN by this Writer",
+    "Historical PIT and full seven-stage effectiveness remain unconfirmed"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
