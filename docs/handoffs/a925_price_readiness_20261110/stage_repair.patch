@@ -47,7 +47,7 @@ index d4acadea4..49f2a6680 100644
              "data_level": "NATIVE_QUOTE_SNAPSHOT_VISIBLE_L1_NOT_L2_NOT_TRANSACTION",
              "RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False})
 diff --git a/stage_center/_live_collectors_parts/a_auction.py b/stage_center/_live_collectors_parts/a_auction.py
-index b93436f22..9519e8e42 100644
+index b93436f22..7be5b5063 100644
 --- a/stage_center/_live_collectors_parts/a_auction.py
 +++ b/stage_center/_live_collectors_parts/a_auction.py
 @@ -77,6 +77,7 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
@@ -58,7 +58,20 @@ index b93436f22..9519e8e42 100644
                  read_native_a_opening_snapshot,
              )
              if root is None:
-@@ -117,10 +118,12 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
+@@ -93,9 +94,10 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
+                     "last_price", "prev_close_price", "open_price", "high_price", "low_price", "turnover", "volume",
+                     "bid_price1", "ask_price1", "bid_vol1", "ask_vol1")}
+                 price, previous = numeric["last_price"], numeric["prev_close_price"]
+-                if (price is None or price <= 0 or previous is None or previous <= 0
+-                        or any(numeric[key] is None for key in ("open_price", "high_price", "low_price", "turnover", "volume"))):
++                if price is None or price <= 0 or previous is None or previous <= 0:
+                     continue  # Bad source row is isolated; no invented prev close.
++                # Optional unready fields stay None through the raw contract;
++                # they cannot veto an otherwise valid native price observation.
+                 preopen_label = row.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS
+                 observation_time = _shanghai_datetime(
+                     row["captured_at"] if preopen_label else row["source_update_time"]
+@@ -117,10 +119,12 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
                      "source_method": row["source_method"]})
              missing = tuple(code for code in requested if code not in {r["code"] for r in rows})
              preopen_label_rows = sum(1 for item in rows if item.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS)

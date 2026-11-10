@@ -2,7 +2,7 @@
 
 Writer targeted PASS；独立 Reviewer 与发布验收待主控执行。机器回执见 `HANDOFF.json`。
 
-业务修复 commit：`536a41c706d0a8c1d33c1e84328a7556a9aa6dbf`。它的父提交 `f9e0e69fed3cb4d05c12621bb5f45071e9401ec5` 单独固定现役 Stage 允许文件原字节；不能把整工作树作为可部署运行时。发布只对现役 Stage 基线应用 `stage_repair.patch` 的六个源码变化，并按 `SOURCE_BASELINE.json` 核对每个 before/after SHA。未改的活动依赖见 `UNCHANGED_DEPENDENCIES.json`。
+业务修复 commits：`536a41c706d0a8c1d33c1e84328a7556a9aa6dbf`、独审P2返修 `e2c3940b329063fcb065a4e37ee5130b95b52d10`。前者的父提交 `f9e0e69fed3cb4d05c12621bb5f45071e9401ec5` 单独固定现役 Stage 允许文件原字节；不能把整工作树作为可部署运行时。发布只对现役 Stage 基线应用最新 `stage_repair.patch` 的六个源码变化，并按 `SOURCE_BASELINE.json` 核对每个 before/after SHA。未改的活动依赖见 `UNCHANGED_DEPENDENCIES.json`。
 
 原生报价的 open 非正/非有限时使用正数 last，明确标为 `NATIVE_LAST_PRICE_OBSERVATION`；open 正数时保持原有选价和评分。缺少正数 last/昨收的 native 行被隔离并报告 `CANNOT_CONFIRM_PRICE_NOT_READY`。真实成交兼容路径不以报价替代无效成交价，缺价/缺昨收同样明确隔离。未就绪 open/high/low/amount/volume 是 UNKNOWN/null；缺成交额的原评分加分项保持中性零，但不声称观测成交额为零。权重、Top10、BUY、安全旗标均未改变。
 
@@ -13,6 +13,7 @@ Futu [官方快照文档](https://openapi.futunn.com/futu-api-doc/en/quote/get-m
 验证结果：
 
 - 原失败回归 RED：15 FAILED / 4 PASSED，3代表均复现 -100%。修复后21个针对性用例通过；改用原始真实昨收后再验受影响4例通过。
+- 独审P2返修：补15个真实 provider→immutable snapshot→collector→raw validate→production builder 测试，覆盖5可选字段各自 None/NaN/Inf。返修前15 FAILED，去除 collector 对可选字段非None的错误必需校验后15 PASSED；last/prev_close 正数条件保留。raw 合同、公式和时点不变。其他匹配PASS复用。
 - 临时 active Stage 依赖加本批六文件：42 PASSED / 2 FAILED。两失败在未改动 active provider 上也完全相同：既有3次重试与旧 one-call/有限时钟 fixture 不匹配。本批未改这些重试或旧 fixture。
 - 11/9全472行旧分与原 trace 精确一致；36命中逐项输出在本地 `LOCAL_ONLY_36_HITS.json`；460条旧 -100% 输入已消除，12条正常 open 分数不变。
 - 11/10复用原320条快照：300条旧 -100% 输入已消除，20条正常 open 分数不变。
@@ -24,5 +25,7 @@ Futu [官方快照文档](https://openapi.futunn.com/futu-api-doc/en/quote/get-m
 后续 `a_live` 保留独立 qmt.open/lastPrice，评分采用 safe(open) or safe(lastPrice)，没有本次首个非空0复制到二者的映射路径。本批不改其他阶段、新闻/研究质量、owner、历史回执或作业。
 
 `verify_isolated.py` 是本批离线复核入口，使用 `PANEL_PYTHON` 绝对解释器；普通运行复建临时 overlay 并执行匹配范围。它显式排除已证实的两条原有 fixture 失败；实际首次完整运行的42/2记录保留于 `HANDOFF.json`。`--finish` 用于已完成测试后的纯函数与 API 兼容验证。临时目录仅为本批复核/发布准备保留，待引用结束再清理。
+
+`--optional` 只复核P2受影响的15条完整链路用例。所有后续 pytest 都在临时 overlay 内，并禁用 cacheprovider、设置 PYTHONDONTWRITEBYTECODE=1。首次在未改 active Stage 直接验证旧 fixture 时，pytest 写入了该封签目录的 `.pytest_cache/v/cache/lastfailed` 与 `nodeids`；这是本批测试副作用，主控负责保留证据并CAS恢复，Writer不再修改现役目录，不声称该副作用不存在。
 
 未执行：部署、live publication、服务/计划任务操作、行情查询、作业重放、训练、Git push、真实自然时段/API/UI验收。RESEARCH_ONLY=true；production_allowed=false；buy_gate_updated=false；orders_sent=false。

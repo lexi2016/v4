@@ -4,15 +4,15 @@
   "branch": "codex/a925-price-readiness-20261110",
   "business_base_commit": "fc423383b906f964896a4ceb423d4da020d9c32e",
   "active_source_overlay_commit": "f9e0e69fed3cb4d05c12621bb5f45071e9401ec5",
-  "repair_commit": "536a41c706d0a8c1d33c1e84328a7556a9aa6dbf",
+  "repair_commit": "e2c3940b329063fcb065a4e37ee5130b95b52d10",
   "stage_patch": "stage_repair.patch",
-  "stage_patch_sha256": "89ae2d93d39b3f2985cd629b8687f0d29a32aaf5d436f24b2dbf16ce6a50a92c",
+  "stage_patch_sha256": "dab5bef0b8e5c77097d26e9184f03eb629cd3c566bcabc20a81f77ba38cbe65c",
   "stage_files": {
     "stage_center/_live_collectors_parts/a_auction.py": {
       "base_sha": "0146d4921d77c9df0f791a86e6b343a36d87b06dd248bb48d597d9da47b39cad",
       "active_sha": "593885059a4ee419db596b95c8c7445d5dcb9b7e046fc65839c50d2fd232342d",
       "equal": false,
-      "candidate_sha256": "65b60eb4d264fe5e1269dfad909328eedbcf867895796e1c7418c8e402b85e89",
+      "candidate_sha256": "1ca14b0d7ef030f6a17c9215af6e1611686bdeef2a35ee6d1e9bc11125eb2a14",
       "changed_from_active": true
     },
     "stage_center/_live_collectors_parts/selection_builder_registry.py": {
@@ -78,7 +78,8 @@
       20
     ],
     "snapshot_original_sha_unchanged": true,
-    "new_algorithm_api_envelope_roundtrip": "PASS"
+    "new_algorithm_api_envelope_roundtrip": "PASS",
+    "optional_full_chain_incremental": "RED 15 FAILED -> GREEN 15 PASSED; existing 21 targeted and 42 active overlay PASS reused"
   },
   "isolation": {
     "stage_overlay": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
@@ -154,6 +155,54 @@
     {
       "command": "git commit -m \"fix(stage): preserve native A925 price readiness and quote semantics\"",
       "result": "536a41c706d0a8c1d33c1e84328a7556a9aa6dbf"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/tests/test_a925_price_readiness.py",
+        "-k",
+        "optional_unknown_survives",
+        "--basetemp=/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/optional-red",
+        "--tb=short"
+      ],
+      "cwd": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
+      "env_overrides": {
+        "PYTHONPATH": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "result": "15 FAILED,21 deselected",
+      "scope": "Reviewer P2 optional readiness only"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/tests/test_a925_price_readiness.py",
+        "-k",
+        "optional_unknown_survives",
+        "--basetemp=/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/optional-green",
+        "--tb=short"
+      ],
+      "cwd": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
+      "env_overrides": {
+        "PYTHONPATH": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "result": "15 PASSED,21 deselected",
+      "scope": "Reviewer P2 optional readiness only"
+    },
+    {
+      "command": "git diff --check -- stage_center/_live_collectors_parts/a_auction.py tests/test_a925_price_readiness.py",
+      "result": "PASS"
     }
   ],
   "safety_flags": {
@@ -162,5 +211,15 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "temporary_artifacts": "LOCAL_ONLY_* and .verification kept locally for reviewer/publisher; excluded from Git; remove only after they are no longer needed"
+  "temporary_artifacts": "LOCAL_ONLY_* and .verification kept locally for reviewer/publisher; excluded from Git; remove only after they are no longer needed",
+  "initial_repair_commit": "536a41c706d0a8c1d33c1e84328a7556a9aa6dbf",
+  "known_side_effect": {
+    "action": "original baseline pytest executed with active Stage cwd",
+    "files": [
+      ".pytest_cache/v/cache/lastfailed",
+      ".pytest_cache/v/cache/nodeids"
+    ],
+    "restoration_owner": "CONTROLLER_CAS_RESTORE; not Writer",
+    "subsequent_tests": "isolated overlay only; -p no:cacheprovider and PYTHONDONTWRITEBYTECODE=1"
+  }
 }

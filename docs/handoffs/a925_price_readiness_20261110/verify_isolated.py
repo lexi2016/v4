@@ -117,17 +117,22 @@ def verify_api():
 
 
 def main():
-    if len(sys.argv)>1 and sys.argv[1] != '--finish':
+    if len(sys.argv)>1 and sys.argv[1] not in {'--finish', '--optional'}:
         return verify_pure() if sys.argv[1]=='pure' else verify_api()
     sys.path.insert(0,str(REPO))
     from stage_center import selection
     overlay=HERE/'.verification/stage'
     mount(STAGE,overlay,{p:(REPO/p).read_bytes() for p in CHANGED})
     env=dict(os.environ,PYTHONPATH=str(overlay),PYTHONDONTWRITEBYTECODE='1')
-    command=[sys.executable,'-m','pytest','-q',str(REPO/'tests/test_a925_price_readiness.py'),
+    command=[sys.executable,'-m','pytest','-p','no:cacheprovider','-q',str(REPO/'tests/test_a925_price_readiness.py'),
              str(STAGE/'tests/test_a925_native_snapshot.py'),str(REPO/'stage_center/tests/test_selection_consumer_batch3.py'),
              '-k','not primary_first_no_transaction_or_minute_rpc_and_bad_rows_isolated and not late_true_capture_cannot_be_replaced_by_old_source_timestamp',
              '--basetemp='+str(HERE/'.verification/pytest'),'--tb=short']
+    if '--optional' in sys.argv:
+        command=[sys.executable,'-m','pytest','-p','no:cacheprovider','-q',str(REPO/'tests/test_a925_price_readiness.py'),
+                 '-k','optional_unknown_survives','--basetemp='+str(HERE/'.verification/optional-review'),'--tb=short']
+        subprocess.run(command,cwd=overlay,env=env,check=True)
+        return
     if '--finish' not in sys.argv:
         result=subprocess.run(command,cwd=overlay,env=env);assert result.returncode==0
     subprocess.run([sys.executable,str(Path(__file__).resolve()),'pure'],cwd=overlay,env=env,check=True)
