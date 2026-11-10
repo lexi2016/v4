@@ -193,7 +193,12 @@
         "sha256": "9d0ab5ee9e5e4927a5b486ba4f7215a6141a2006c9e40a96eeb037e1356e6427"
       }
     ],
-    "UI_VERIFIED": "CANNOT_CONFIRM_BROWSER_CONTROL_UNAVAILABLE; user refresh confirmation requested",
+    "UI_VERIFIED": {
+      "status": "USER_CONFIRMED",
+      "evidence": "User refreshed current workbench and replied: 已显示 30 只及待核提示",
+      "scope": "V192 group count30 and pending1 displayed; no claim of full UI audit",
+      "at_recorded": "2026-11-10T22:02:36.874629+08:00"
+    },
     "NATURAL_VERIFIED": "NOT_RUN",
     "flags": {
       "RESEARCH_ONLY": true,
@@ -239,7 +244,6 @@
   },
   "local_evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_v192_partial_group_20261110",
   "NOT_RUN": [
-    "Rendered current browser UI: computer control unavailable; user refresh confirmation pending",
     "Natural scheduled run acceptance",
     "Real rollback drill; fault cases simulated"
   ],
