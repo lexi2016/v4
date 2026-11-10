@@ -1,0 +1,95 @@
+{
+  "status": "PREPARED_TESTED_INDEPENDENT_REVIEW_REQUIRED_NOT_DEPLOYED",
+  "source_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110",
+  "branch": "codex/a925-price-readiness-release-20261110",
+  "baseline_commit": "f998046fc6ba71a19bffd3e4da87890f68402534",
+  "business_head": "5e3820da77f33499bd769c7d054dd0e0082de33e",
+  "business_repair_commit": "e2c3940b329063fcb065a4e37ee5130b95b52d10",
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r2/PACKET.json",
+    "sha256": "dd4b2085b4e01a12666ad22e56d5b67fd9f985c5101d6e0b2e7c77af392441ee"
+  },
+  "source_changes": [
+    {
+      "target": "ops/prepare_a925_readiness_release.py",
+      "before_sha256": null,
+      "after_sha256": "02f2355448a4d6d19c42f56df0d6b75f5c04d5ed13e2efd56a6e85cb47b5e320"
+    },
+    {
+      "target": "tests/test_prepare_a925_readiness_release.py",
+      "before_sha256": null,
+      "after_sha256": "e6132bbdd20949037591ee787b709e59593f07920004ba5b893b2a1d0aac8903"
+    },
+    {
+      "target": "docs/handoffs/a925_readiness_release_20261110/check_candidate.py",
+      "before_sha256": null,
+      "after_sha256": "71ec7da20b9db123af325f5920782a704eebc87b291c0e317c98e6153aff528e"
+    }
+  ],
+  "release_input": {
+    "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/RELEASE_INPUT.json",
+    "sha256": "b9ec3ed199f2db4deabf22c4da43a93d0f6311cea1971dd773391e6d77e4631c"
+  },
+  "candidate_check": {
+    "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/CANDIDATE_CHECK.json",
+    "sha256": "52965659c3c97730b2e2778c191ad18a05d1aabca54875386e75b18f7e649daf"
+  },
+  "dependency_check": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r2/DEPENDENCY_CHECK.json",
+    "sha256": "2c9e650e17c224db247df6e92cf8f09c74324c2374b2303183069bbfbd36bffb"
+  },
+  "instructions": {
+    "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/README.md",
+    "sha256": "e42a2f24a7d81193225ef090161f67f02a5de2bf687625415087a0da81d2e02e"
+  },
+  "baseline_evidence": {
+    "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/BASELINE_DEPENDENCIES.json",
+    "sha256": "02219d077d40c468c9117f7bc86a74f47869f0019979a11bc0ccb24ad96fcd99"
+  },
+  "failure_evidence": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/PREPARE_FAILURE_R1.json",
+      "sha256": "74545ed7783b38b6ddb321f1f9c59c77ff8211e274eb909124852cce00bee64e"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-release-20261110/docs/handoffs/a925_readiness_release_20261110/STAGE_BASELINE_DRIFT.json",
+      "sha256": "bb0f8be1e3212c558be057dc5febd1b31952eb3a7a05c5b01ebfd505afbf909b"
+    }
+  ],
+  "preservation": {
+    "main_identity": "UNCHANGED_29ac5b4f",
+    "main_only_env": [
+      "V4_RESEARCH_RETENTION_POLICY",
+      "V4_RESEARCH_RETENTION_POLICY_SHA256"
+    ],
+    "stage_owner_history_transition": "UNCHANGED_FIELDS",
+    "stage_calendar_RunAtLoad": "UNCHANGED",
+    "frontend_company_score_models_market_quality": "UNCHANGED",
+    "old_inventory_validator": "STRICT_NO_EXCEPTIONS",
+    "live_data": "NOT_WRITTEN"
+  },
+  "tests": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q --basetemp=/tmp/a925-readiness-release-tests-20261110-r1 tests/test_prepare_a925_readiness_release.py",
+      "result": "5 PASS"
+    },
+    {
+      "command": "same interpreter, --basetemp=/tmp/a925-readiness-locator-tests-20261110 tests/test_prepare_a925_readiness_release.py -k locator",
+      "result": "1 PASS,5 unchanged deselected"
+    },
+    {
+      "command": "python -B docs/handoffs/a925_readiness_release_20261110/check_candidate.py --packet <r2>/PACKET.json --envelope <Writer>/.verification/envelope.json --out <handoff>/CANDIDATE_CHECK.json",
+      "result": "PASS production interpreter Main24pins, Stage/API new+old isolated-store consumption, pure-due identity equivalence, 2homepage GET200/VERIFIED and unchanged live pointers/receipts"
+    }
+  ],
+  "CANNOT_CONFIRM": [
+    "Independent final review is required",
+    "Actual deployment/live API/UI/new natural run NOT_RUN by Writer",
+    "Provider latest price is not certified matched auction transaction price",
+    "No historical natural-run rewrite, strategy-lift or PIT claim"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

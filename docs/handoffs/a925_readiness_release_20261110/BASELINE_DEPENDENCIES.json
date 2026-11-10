@@ -1,0 +1,101 @@
+{
+  "status": "READ_ONLY_DEPENDENCY_BASELINE_NOT_DEPLOYED",
+  "baseline_commit": "f998046fc6ba71a19bffd3e4da87890f68402534",
+  "services": {
+    "api": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+        "sha256": "e3519afb8642db28a52bd821a4ff545997ef594b4317248657233eaf88833669"
+      },
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/v4-top200-scope-20261110-r2-api/app",
+      "release_id": "v4-top200-scope-20261110-r2-api",
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/v4-top200-scope-20261110-r2-api/release-manifest.json",
+        "sha256": "4d24d947cfbae389f38bfb7f0a65800abd3f34ac50bceff3dabafc0076a8a618"
+      },
+      "program_arguments": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+        "-B",
+        "-m",
+        "apps.api.v4_api.run",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8873",
+        "--stage-selection-root",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+      ]
+    },
+    "main": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+        "sha256": "52c478c471f26f145f3165665fdde1d12c9939569630ec09242e36ec8c97f0ba"
+      },
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app",
+      "release_id": "v4-v192-assets-20261109-r1-main",
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/release-manifest.json",
+        "sha256": "29ac5b4f0b5330085b97058a74b3a2f49a822a555e0c5f65537a98bffd2bebdf"
+      },
+      "program_arguments": [
+        "/bin/bash",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app/ops/launch_v4_macos_scheduler.sh"
+      ]
+    },
+    "stage": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+        "sha256": "bac75a699401718bc6c85b82baa82fd1425c507ab050cd7ab87ce18c91003bde"
+      },
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/app",
+      "release_id": "v4-v192-assets-20261109-r1-stage",
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/release-manifest.json",
+        "sha256": "ac6813892f098aae57c3c0edcc4ff4ce595f7c6bcac2954a2b6f8edbc0f721f0"
+      },
+      "program_arguments": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+        "-B",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/app/ops/run_stage_center_nodes.py",
+        "--config",
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/app/stage_center_tick_config.json"
+      ]
+    }
+  },
+  "policy": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/research_storage_policy.json",
+    "sha256": "b70160d074bf19666d69b813440db7ac2d9df61a993980eb659af6fcb5ac2379"
+  },
+  "pins": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/research_storage_pins.json",
+    "sha256": "15b1889f51ac2c40239b50386f601da9295a34e7d4b37682594dc2d83ff04d09"
+  },
+  "source_binding_count": 24,
+  "main_plist_reverse_pin": false,
+  "stage_config": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-stage/app/stage_center_tick_config.json",
+    "sha256": "1d7a028dc946dd8ab6e99f509ec4135d5715cbacb7a914f3a1b37856963ae98c"
+  },
+  "stage_owner": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/release-manifest.json",
+    "manifest_sha256": "29ac5b4f0b5330085b97058a74b3a2f49a822a555e0c5f65537a98bffd2bebdf",
+    "release_id": "v4-v192-assets-20261109-r1-main"
+  },
+  "historical_owner_count": 6,
+  "transition": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-before1700-20261105-r1/v4-daily-before1700-20261105-r1-main/app",
+    "manifest_sha256": "3332482ee7784f1c8fce4ef89a175d032abedbe20c4d4737eb42f5caced480ae",
+    "release_id": "v4-daily-before1700-20261105-r1-main",
+    "trade_date": "20261106"
+  },
+  "api_consumer_risk": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/v4-top200-scope-20261110-r2-api/app/stage_center/selection.py",
+    "sha256": "3a958bd69dd8e0a457ed198849c707940c691bcb5c30ed6a31ccf8d6a332a806",
+    "verification_line": 1880,
+    "behavior": "Rejects manifest_algorithm outside ALGORITHM_SHA_ALLOWLIST; requires explicit new algorithm SHA compatibility in API monolith, retain old SHA values"
+  },
+  "proposed_dag": "New Stage + optional exact API compatibility -> both plists -> same 24 pins protection -> policy -> only two Main env refs; Main app/release/manifest unchanged",
+  "natural_replay": false,
+  "service_operations": false
+}

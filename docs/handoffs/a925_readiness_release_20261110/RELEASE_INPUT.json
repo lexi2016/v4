@@ -1,0 +1,84 @@
+{
+  "schema": "v4.a925_readiness.release_input.v1",
+  "business_head": "5e3820da77f33499bd769c7d054dd0e0082de33e",
+  "business_repair_commit": "e2c3940b329063fcb065a4e37ee5130b95b52d10",
+  "entries": [
+    {
+      "scope": "stage",
+      "target": "stage_center/_live_collectors_parts/a_auction.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/stage_center/_live_collectors_parts/a_auction.py",
+      "before_sha256": "593885059a4ee419db596b95c8c7445d5dcb9b7e046fc65839c50d2fd232342d",
+      "after_sha256": "1ca14b0d7ef030f6a17c9215af6e1611686bdeef2a35ee6d1e9bc11125eb2a14"
+    },
+    {
+      "scope": "stage",
+      "target": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "2b15091366e2acf68bc83c99dac5ca13e6046ed7b2515cf18928c0d2a0dc3223",
+      "after_sha256": "3ca5f82d4bb34fafa36a9794f28fdf2c7f0593ff995a901d1fd4542a126aea31"
+    },
+    {
+      "scope": "stage",
+      "target": "stage_center/_selection_parts/a_auction.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/stage_center/_selection_parts/a_auction.py",
+      "before_sha256": "6cd293ba42babb1c20520d24865d38c65cc09a4aca0acc4e336ab20980992646",
+      "after_sha256": "7cfdd706d35b4516e32079c29c77f375a87b467044bd35ceb7ffeea29234ace4"
+    },
+    {
+      "scope": "stage",
+      "target": "stage_center/selection.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/stage_center/selection.py",
+      "before_sha256": "4774b65757e90b9475bbf55cb79fb9cf5bf3522e8e407e63ce2ad0785d330736",
+      "after_sha256": "2693af2c44e99c7b0e0f838a3a2e8fade507759cabb504b314e3a1138e085164"
+    },
+    {
+      "scope": "stage",
+      "target": "stage_center/_selection_parts/schema_values.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/stage_center/_selection_parts/schema_values.py",
+      "before_sha256": "278a216a9c43344b83fb5eddcd34812087f53db8d4962b58f6106c06e2e81e75",
+      "after_sha256": "96012c06fa8566e62d14d5f8873cb90cf7513abc88638f42df113be01173abf7"
+    },
+    {
+      "scope": "stage",
+      "target": "infrastructure/stage_quote_provider.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/infrastructure/stage_quote_provider.py",
+      "before_sha256": "d7f9832d911228719bb0740c0250a120304b1f6979d95c63d1866078e7009140",
+      "after_sha256": "a1caa4569c1ffca4d38bf622ea1e0cd2507a51d88135765da9dc3d3c26188a7d"
+    },
+    {
+      "scope": "api",
+      "target": "stage_center/selection.py",
+      "source": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/api/stage_center/selection.py",
+      "before_sha256": "3a958bd69dd8e0a457ed198849c707940c691bcb5c30ed6a31ccf8d6a332a806",
+      "after_sha256": "da958233527e288bfbcb8bccd74885118d05c09fe7c85e608eec76d599b248fe"
+    }
+  ],
+  "input_bindings": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/HANDOFF.json",
+      "sha256": "848055d91b2424e3701f9bd4e83dadb1e948327f3e5eb0729761ee35f7b4284a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/SOURCE_BASELINE.json",
+      "sha256": "f8c289ca074854ce31e3ac7a70e23960a6eeec90ea6ec202eab151fde1a61818"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/stage_repair.patch",
+      "sha256": "dab5bef0b8e5c77097d26e9184f03eb629cd3c566bcabc20a81f77ba38cbe65c"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/api_compat.patch",
+      "sha256": "9be94a2c5e768f1cd9b10c7a0c485be79d87acd4d1d34a187738445fcc0fd426"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/API_COMPAT_SHA.json",
+      "sha256": "3052ec3e04f712d7295ae357541630c6d765d588f1df4d22e959fdca6ee8f1a1"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_a925_price_readiness_repair_20261110/CACHE_RESTORATION.json",
+      "sha256": "f8958cac6b42877ab5bb2d66e2957658111be9d6794ca3c23bea064ed46bb2d1"
+    }
+  ],
+  "deletions": [],
+  "new_algorithm_sha256": "15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896"
+}

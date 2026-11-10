@@ -1,0 +1,11 @@
+{
+  "status": "PREPARE_REJECTED_BEFORE_CLONE_AND_PACKET",
+  "output_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r1",
+  "operation": "prepare",
+  "error": "BASE_INVENTORY_DRIFT",
+  "cause": "Two sealed .pytest_cache files differ from active Stage manifest; exact diff retained in STAGE_BASELINE_DRIFT.json",
+  "packet_created": false,
+  "services_changed": false,
+  "business_data_written": false,
+  "next": "Controller preserve/CAS restore original two cache bytes; wait refreshed collector business freeze; build fresh r2 without weakening inventory"
+}

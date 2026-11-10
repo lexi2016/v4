@@ -1,0 +1,87 @@
+{
+  "status": "PASS_PRODUCTION_INTERPRETER_READ_ONLY_CANDIDATE_INTEGRATION",
+  "packet_sha256": "dd4b2085b4e01a12666ad22e56d5b67fd9f985c5101d6e0b2e7c77af392441ee",
+  "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "policy": {
+    "status": "PASS_ACTUAL_MAIN_POLICY_AND_24_SOURCE_BINDINGS",
+    "count": 24,
+    "draft_plist_substitution": true,
+    "expected_main_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app",
+    "auto_gc_enabled": false,
+    "dry_run": true
+  },
+  "stage": {
+    "status": "PASS_ACTUAL_STAGE_ISOLATED_ROUNDTRIP_OLD_AND_NEW_ALGORITHMS",
+    "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "new_algorithm": "15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896",
+    "old_algorithm": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "new_rows": 10,
+    "old_rows": 10,
+    "isolated_store": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r2/checks/isolated-selection",
+    "due_identity_only": {
+      "evaluated_at": "2026-11-10T15:31:27.226964+08:00",
+      "date": "20261110",
+      "before": [
+        "PREP_0915"
+      ],
+      "after": [
+        "PREP_0915"
+      ],
+      "settled_stages_not_rearmed": [
+        "STAGE_0925",
+        "STAGE_0930_0935",
+        "STAGE_0935_0940",
+        "STAGE_0940_0945",
+        "STAGE_0945_1030",
+        "STAGE_1300_1315",
+        "STAGE_1445_1500"
+      ]
+    },
+    "jobs_executed": false,
+    "provider_queries": false
+  },
+  "api": {
+    "status": "PASS_ACTUAL_API_NEW_OLD_STORE_CONSUMPTION_AND_HOMEPAGE",
+    "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "new_algorithm": "15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896",
+    "old_algorithm": "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "new_rows": 10,
+    "old_rows": 10,
+    "release_id": "v4-a925-readiness-20261110-r2-api",
+    "manifest_sha256": "0ba04297af5d6b6d5d806a0f96459ddff74a2c207afad0133cbca7c1b9b475e4",
+    "frontend_status": "VERIFIED",
+    "top200_native_index_preserved": true,
+    "native_index_sha256": "7bb23f308dae333b5c407c277fec19cccd0ca8d630d6a5c483e7ea20fe19efe1",
+    "date_list_http": 200,
+    "frontend_build_http": 200
+  },
+  "preserved_source_hashes": {
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json": "9caa58d73f864b607aa92d3f082fd48939b7e08e697b029d1912d583fda7daa1",
+    "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/envelope.json": "7d50d538d8d573bda68c84265dafe377fc11ca306fcd07b8f980601d73c17472",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/latest.json": "a1631d7b97a74136a8e46d59f5520bb08ad879a06ac914d9ce0a8fa1683e7435",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/bundle_latest.json": "eec49049952b57346eb0fec557016249376b9315a78be016ae48e152606eac10",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0925/receipt.json": "92dae7fb59cd3acc4f22d7e5fcf69883244bc9c4f711327653961666440c881d",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0930_0935/receipt.json": "9b0a2e87ef2142b94056103c5c3ee8788286f5dba6a6f30d3be24722140ba92a",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0935_0940/receipt.json": "d5c8fec0b2f2827bf31d697afed50448fb84dc3e535f7e8c7940b28b8e2e5baf",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0940_0945/receipt.json": "f3c77ecce0e70bb7714f181295f263aee97b0ed7d4c3e361dc279966e044fc61",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0945_1030/receipt.json": "537eda83a8fc71b1b1de57a9e586b768a4346263897f075a53ead4edbb30772c",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1300_1315/receipt.json": "b9ddb06ac669739f0307366b9afe83824371fe7e07b1a3787f1f04a4acef7083",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1445_1500/receipt.json": "fa4c6ccb1ec023aa134f153b248cc742b42be0353fe04a0daf5262bb5d647470",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1545_1555/receipt.json": "10a4af02d3361066109cc709d348d8e7f84170c7f2fa19cab571c97bbaa2770e",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_0925/receipt.json": "080cd26687a72d333cd478a842fdbcfcb7b0ea68aa7dfd1a5d72555a29b73322",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_0930_0935/receipt.json": "cc99d535404b3166d8b60fd443451b258b6c888eed11791c1097fb37dde0cce3",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_0935_0940/receipt.json": "84a249fb9d85e45016e0904ad7de0d4f19823ea20c1d54e3aeaed66ffe76419f",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_0940_0945/receipt.json": "cda87a3ea0fa2ea831dccb33d52873f41da7035b9526eed57db28934b5ce77b6",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_0945_1030/receipt.json": "114550dc6bd9a9dfeb5f3bcdb106ab8bd79da7c9d36bb0e25e6a012145677634",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_1300_1315/receipt.json": "9676d79aea657cf1abef00705615e3797c00a184d89a0d943d1facaf9c863d0a",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261110/STAGE_1445_1500/receipt.json": "8c52ad6f1c9695d6fdea47bbb25c2f36b1b94fe94ca521eb74097d68aca2d528",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/index.json": "854b2b6486a5070cc1073f808ccd67fdb9d6c8555c9d4b48a13bc46c97e3aa8c"
+  },
+  "service_operations": false,
+  "provider_queries": false,
+  "existing_envelope_serialized_only": true,
+  "live_data_written": false,
+  "deployment": "NOT_RUN",
+  "actual_UI": "NOT_RUN",
+  "natural_run": "NOT_RUN"
+}
