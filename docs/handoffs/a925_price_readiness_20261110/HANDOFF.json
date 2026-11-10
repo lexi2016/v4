@@ -1,0 +1,166 @@
+{
+  "status": "WRITER_TARGETED_PASS_REVIEW_REQUIRED",
+  "source_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110",
+  "branch": "codex/a925-price-readiness-20261110",
+  "business_base_commit": "fc423383b906f964896a4ceb423d4da020d9c32e",
+  "active_source_overlay_commit": "f9e0e69fed3cb4d05c12621bb5f45071e9401ec5",
+  "repair_commit": "536a41c706d0a8c1d33c1e84328a7556a9aa6dbf",
+  "stage_patch": "stage_repair.patch",
+  "stage_patch_sha256": "89ae2d93d39b3f2985cd629b8687f0d29a32aaf5d436f24b2dbf16ce6a50a92c",
+  "stage_files": {
+    "stage_center/_live_collectors_parts/a_auction.py": {
+      "base_sha": "0146d4921d77c9df0f791a86e6b343a36d87b06dd248bb48d597d9da47b39cad",
+      "active_sha": "593885059a4ee419db596b95c8c7445d5dcb9b7e046fc65839c50d2fd232342d",
+      "equal": false,
+      "candidate_sha256": "65b60eb4d264fe5e1269dfad909328eedbcf867895796e1c7418c8e402b85e89",
+      "changed_from_active": true
+    },
+    "stage_center/_live_collectors_parts/selection_builder_registry.py": {
+      "base_sha": "00594f490167a26b48db2b6642ba219072fd4d726afbe8c6dcac13339106e9a7",
+      "active_sha": "2b15091366e2acf68bc83c99dac5ca13e6046ed7b2515cf18928c0d2a0dc3223",
+      "equal": false,
+      "candidate_sha256": "3ca5f82d4bb34fafa36a9794f28fdf2c7f0593ff995a901d1fd4542a126aea31",
+      "changed_from_active": true
+    },
+    "stage_center/_selection_parts/a_auction.py": {
+      "base_sha": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "active_sha": "6cd293ba42babb1c20520d24865d38c65cc09a4aca0acc4e336ab20980992646",
+      "equal": false,
+      "candidate_sha256": "7cfdd706d35b4516e32079c29c77f375a87b467044bd35ceb7ffeea29234ace4",
+      "changed_from_active": true
+    },
+    "stage_center/_selection_parts/market_quality.py": {
+      "base_sha": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "active_sha": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "equal": true,
+      "candidate_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "changed_from_active": false
+    },
+    "stage_center/selection.py": {
+      "base_sha": "4939dc5c347cc8f84654a6f81a715b3423e7eae518bd2efeafe0ced630dfeb20",
+      "active_sha": "4774b65757e90b9475bbf55cb79fb9cf5bf3522e8e407e63ce2ad0785d330736",
+      "equal": false,
+      "candidate_sha256": "2693af2c44e99c7b0e0f838a3a2e8fade507759cabb504b314e3a1138e085164",
+      "changed_from_active": true
+    },
+    "stage_center/_selection_parts/schema_values.py": {
+      "base_sha": "692c6af654e921fe2e1be28122169e9a76d50ca813e64c3bff3a7c8daa2268ed",
+      "active_sha": "278a216a9c43344b83fb5eddcd34812087f53db8d4962b58f6106c06e2e81e75",
+      "equal": false,
+      "candidate_sha256": "96012c06fa8566e62d14d5f8873cb90cf7513abc88638f42df113be01173abf7",
+      "changed_from_active": true
+    },
+    "infrastructure/stage_quote_provider.py": {
+      "base_sha": "5d72b15bb39657289426a83e9f2d819f9f5476dde91e37703c7ee4ab53c53f47",
+      "active_sha": "d7f9832d911228719bb0740c0250a120304b1f6979d95c63d1866078e7009140",
+      "equal": false,
+      "candidate_sha256": "a1caa4569c1ffca4d38bf622ea1e0cd2507a51d88135765da9dc3d3c26188a7d",
+      "changed_from_active": true
+    }
+  },
+  "api_variant": {
+    "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-top200-scope-20261110-r2/v4-top200-scope-20261110-r2-api/app/stage_center/selection.py",
+    "before_sha256": "3a958bd69dd8e0a457ed198849c707940c691bcb5c30ed6a31ccf8d6a332a806",
+    "after_sha256": "da958233527e288bfbcb8bccd74885118d05c09fe7c85e608eec76d599b248fe",
+    "algorithm_sha256": "15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896"
+  },
+  "api_patch": "api_compat.patch",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "frozen_pass_scope": {
+    "targeted_tests_passed": 21,
+    "active_overlay_test_result": "42 PASSED / 2 pre-existing baseline fixture FAIL",
+    "post_actual_representative_input_update": "4 affected tests PASS",
+    "pure_20261109_rows": 472,
+    "pool_hits_reconciled": 36,
+    "pure_20261110_rows": 320,
+    "old_positive_open_scores_unchanged": [
+      12,
+      20
+    ],
+    "snapshot_original_sha_unchanged": true,
+    "new_algorithm_api_envelope_roundtrip": "PASS"
+  },
+  "isolation": {
+    "stage_overlay": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
+    "publication_store": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/artifacts",
+    "api_candidate_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/api",
+    "publication_index": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/artifacts/selection_latest.json",
+    "live_store_as_publish_root_used": false,
+    "live_index_before_sha": "NOT_CAPTURED",
+    "live_index_hash_unchanged": "CANNOT_CONFIRM_NO_BEFORE_HASH",
+    "evidence": "verify_isolated.py sets publish root to HERE/.verification/artifacts; only temporary artifacts and API candidate are mutated"
+  },
+  "cannot_confirm": [
+    "Futu latest quote is not certified auction matched transaction price",
+    "Why supplier open/amount/volume still zero within edge window; no official readiness guarantee found",
+    "First real natural run after deployment NOT_RUN",
+    "Runtime API/UI acceptance NOT_RUN",
+    "Whole mixed repo is not standalone Stage runtime; unchanged dependencies listed separately",
+    "No claim of strategy improvement or ex ante PIT certification",
+    "Full legacy provider test suite not all PASS: two unchanged baseline fixtures fail"
+  ],
+  "not_run": [
+    "deployment",
+    "live state publication",
+    "daily job replay",
+    "provider network queries",
+    "training",
+    "scheduler/service operations",
+    "Git push"
+  ],
+  "other_stage_root_cause_review": "a_live keeps distinct qmt.open and lastPrice; safe(open) or safe(lastPrice) handles zero open; no shared first-nonempty-zero duplication found. No a_live or news/research scoring changes.",
+  "official_source": "https://openapi.futunn.com/futu-api-doc/en/quote/get-market-snapshot.html",
+  "commands": [
+    {
+      "command": "\"$PANEL_PYTHON\" -m pytest -q tests/test_a925_price_readiness.py",
+      "environment": "active-source baseline overlay before repair",
+      "result": "RED: 15 FAILED, 4 PASSED; -100 observed in all 3 representatives"
+    },
+    {
+      "command": "\"$PANEL_PYTHON\" -m pytest -q tests/test_a925_price_readiness.py stage_center/tests/test_selection_consumer_batch3.py",
+      "environment": "mixed repo dependencies",
+      "result": "21 targeted PASSED, 8 consumer FAILED (unchanged dependency mismatch); session cleanup also hit pre-existing EPERM"
+    },
+    {
+      "command": "\"$PANEL_PYTHON\" -m pytest -q stage_center/tests/test_selection_consumer_batch3.py --basetemp=/tmp/a925-writer-consumer-20261110 --tb=short",
+      "result": "8 FAILED: unchanged repo store_publication does not accept active selection.py replace_failed_run_id; no dependency patch made"
+    },
+    {
+      "command": "\"$PANEL_PYTHON\" docs/handoffs/a925_price_readiness_20261110/verify_isolated.py",
+      "environment": "temporary active Stage symlink overlay with only six repair files",
+      "result": "42 PASSED, 2 FAILED; baseline provider retry fixture failures"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 \"$PANEL_PYTHON\" -m pytest -q tests/test_a925_native_snapshot.py -k \"primary_first_no_transaction_or_minute_rpc_and_bad_rows_isolated or late_true_capture_cannot_be_replaced_by_old_source_timestamp\" --basetemp=/tmp/a925-active-baseline-20261110 --tb=short",
+      "environment": "unmodified active Stage",
+      "result": "same 2 FAILED; fixture expects one call vs pre-existing three retries / finite now iterator exhausted"
+    },
+    {
+      "command": "\"$PANEL_PYTHON\" docs/handoffs/a925_price_readiness_20261110/verify_isolated.py --finish",
+      "result": "PASS: full472 old exact score reconciliation, 36 hits ledger, full320 second-date boundary, isolated publication and API native metadata roundtrip"
+    },
+    {
+      "command": "\"$PANEL_PYTHON\" -m pytest -q tests/test_a925_price_readiness.py -k \"positive_last or normal_native\" --basetemp=/tmp/a925-representatives-20261110 --tb=short",
+      "result": "4 PASSED,17 deselected after binding representative fixtures to actual prev_close values"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "git commit -m \"chore: pin active Stage source baseline for A925 repair\"",
+      "result": "f9e0e69fed3cb4d05c12621bb5f45071e9401ec5"
+    },
+    {
+      "command": "git commit -m \"fix(stage): preserve native A925 price readiness and quote semantics\"",
+      "result": "536a41c706d0a8c1d33c1e84328a7556a9aa6dbf"
+    }
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "temporary_artifacts": "LOCAL_ONLY_* and .verification kept locally for reviewer/publisher; excluded from Git; remove only after they are no longer needed"
+}

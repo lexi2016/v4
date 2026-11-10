@@ -1,0 +1,100 @@
+{
+  "20261109": {
+    "snapshot_sha256": "f631e8381042fa9c610625f7293e160fc4720cfe58791e2e4a0c8d4a48503a89",
+    "requested": 487,
+    "returned": 472,
+    "original_positive_open_scores_unchanged": 12,
+    "old_minus100_rows": 460,
+    "new_minus100_rows": 0,
+    "new_last_price_observations": 460,
+    "readiness": {
+      "source_rows": 472,
+      "positive_finite_rows": {
+        "last_price": 472,
+        "prev_close_price": 472,
+        "open_price": 12,
+        "high_price": 12,
+        "low_price": 12,
+        "turnover": 12,
+        "volume": 12
+      },
+      "all_fields_positive_finite_rows": 12,
+      "status": "PARTIAL_OR_UNKNOWN",
+      "zero_or_invalid": "UNKNOWN_NOT_OBSERVED_ZERO",
+      "auction_transaction_certified": false
+    },
+    "old_top10": [
+      "A.002310",
+      "A.002150",
+      "A.000700",
+      "A.002015",
+      "A.000559",
+      "A.000026",
+      "A.000893",
+      "A.000703",
+      "A.001289",
+      "A.002001"
+    ],
+    "new_top10": [
+      "A.002578",
+      "A.002929",
+      "A.600207",
+      "A.002943",
+      "A.605488",
+      "A.002712",
+      "A.600229",
+      "A.301313",
+      "A.002149",
+      "A.002865"
+    ]
+  },
+  "20261110": {
+    "snapshot_sha256": "d7a3d13b4573bea9a6fe91c06d2eaae76b7d9fe85fdb085c6ab500a0f5106c8a",
+    "requested": 330,
+    "returned": 320,
+    "original_positive_open_scores_unchanged": 20,
+    "old_minus100_rows": 300,
+    "new_minus100_rows": 0,
+    "new_last_price_observations": 300,
+    "readiness": {
+      "source_rows": 320,
+      "positive_finite_rows": {
+        "last_price": 320,
+        "prev_close_price": 320,
+        "open_price": 20,
+        "high_price": 20,
+        "low_price": 20,
+        "turnover": 20,
+        "volume": 20
+      },
+      "all_fields_positive_finite_rows": 20,
+      "status": "PARTIAL_OR_UNKNOWN",
+      "zero_or_invalid": "UNKNOWN_NOT_OBSERVED_ZERO",
+      "auction_transaction_certified": false
+    },
+    "old_top10": [
+      "A.000823",
+      "A.001339",
+      "A.000938",
+      "A.002028",
+      "A.001308",
+      "A.002179",
+      "A.000063",
+      "A.000792",
+      "A.000002",
+      "A.000026"
+    ],
+    "new_top10": [
+      "A.600408",
+      "A.603703",
+      "A.001379",
+      "A.002347",
+      "A.301226",
+      "A.603286",
+      "A.002708",
+      "A.002310",
+      "A.000530",
+      "A.601188"
+    ]
+  }
+}
