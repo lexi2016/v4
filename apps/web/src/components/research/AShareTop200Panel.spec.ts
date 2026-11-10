@@ -99,3 +99,42 @@ it('uses the existing dated completion event and foreground reads, then closes t
   window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));await waitFor(()=>expect(fetcher).toHaveBeenCalledTimes(3));
   view.unmount();expect(streams[0].close).toHaveBeenCalledTimes(1);
 });
+
+it('names partial scope, natural failure and formula comparison without changing source-pool totals', async () => {
+  const entry = {
+    date: '20261109', top200: { top_count: 200 },
+    a_pool: { selected_count: 487, hit_count: 36, materialized_pool_count: 2, pool_count: 6 },
+    seven_stage: { selected_count: 10, hit_count: 2, stages: {
+      STAGE_0925: { status: 'READY', execution_status: 'PARTIAL_ROWS', row_count: 10, unique_codes: 10, hit_count: 2, research_evidence_status: 'CANNOT_CONFIRM', error_counts: { RESEARCH_ITEM_QUALITY_SCORE_MISSING: 400 }, errors: ['RESEARCH_ITEM_QUALITY_SCORE_MISSING'] },
+      STAGE_0930_0935: { status: 'NOT_MATERIALIZED', execution_status: 'EXECUTION_FAILED', hit_count: null, errors: ['SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING'] },
+      STAGE_0935_0940: { status: 'READY', execution_status: 'VALID_EMPTY', row_count: 0, unique_codes: 0, hit_count: 0 },
+      STAGE_0940_0945: { status: 'NOT_MATERIALIZED', execution_status: 'NOT_RUN', hit_count: null }
+    } },
+    stage_coverage: { available: 1, total: 7 },
+    formula_comparison: { status: 'READY', signal_date: '20261106', target_date: '20261109', historical_PIT: false, rows: [
+      { group_id: 'four_group_union', signal_date: '20261106', target_date: '20261109', selected_count: 387, hit_count: 10, top200_coverage_pct: 5, selection_hit_rate_pct: 2.58 },
+      { group_id: 'v192', signal_date: '20261106', target_date: '20261109', selected_count: 19, hit_count: 2, top200_coverage_pct: 1, selection_hit_rate_pct: 10.53 }
+    ] }
+  };
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ ...payload, requested_date: entry.date, dates: [entry] }) })));
+  render(AShareTop200Panel, { props: { date: entry.date } });
+  const pool = await screen.findByTestId('a-top200-card-pool');
+  expect(pool.textContent).toContain('已接入来源池汇总（2/6）');
+  expect(pool.textContent).toContain('36 / 200');
+  expect(pool.textContent).toContain('487');
+  expect(screen.getByTestId('a-top200-card-seven').textContent).toContain('已物化阶段（1/7）');
+  expect(screen.getByLabelText('本日数据缺口').textContent).toContain('完整七阶段效果不可评价');
+  const stages = screen.getAllByTestId('a-top200-stage-row');
+  expect(stages[0].textContent).toContain('已生成名单，证据不完整');
+  expect(stages[0].textContent).toContain('400 项');
+  expect(stages[1].textContent).toContain('行情已到，小时研究完成回执未通过，未生成名单');
+  expect(stages[1].textContent).toContain('不可确认');
+  expect(stages[1].textContent).not.toContain('HOURLY_COMPLETION_WITNESS_MISSING');
+  expect(stages[2].textContent).toContain('有效空名单');
+  expect(stages[3].textContent).toContain('未运行');
+  const formula = screen.getByTestId('a-top200-formula-comparison');
+  expect(formula.textContent).toContain('此表不属于上方已接入来源池汇总');
+  expect(formula.textContent).toContain('historical_PIT=false');
+  expect(formula.textContent).toContain('2026-11-06');
+  expect(screen.getAllByTestId('a-top200-formula-row')).toHaveLength(2);
+});

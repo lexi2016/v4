@@ -150,5 +150,150 @@ class StageIdentityRegression(unittest.TestCase):
         bad=self.artifact(self.stage,code='HK.00700');seven,coverage,_=self.project(bad)
         self.assertEqual(coverage['available'],0);self.assertIsNone(seven['hit_count']);self.assertIn('ROW_MARKET_IDENTITY_CONFLICT',seven['stages'][self.stage]['error'])
 
+class NaturalReceiptSemanticsTest(StageIdentityRegression):
+    def setUp(self):
+        super().setUp()
+        self.selection = self.root / 'selection'
+        self.selection.mkdir()
+        self.root = self.selection
+
+    def receipt(self, errors=None, selected=0, **overrides):
+        from ops.build_a_share_pool_top200 import FLAGS
+        payload = dict(trade_date=self.date, stage_id=self.stage, dispatch_mode='NATURAL',
+                       markets={'A_SHARE': dict(market='A_SHARE', selected_rows=selected,
+                           source_status='READY', cannot_confirm=errors or [])}, **FLAGS)
+        payload.update(overrides)
+        path = self.root.parent / 'receipts' / self.date / self.stage / 'receipt.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload))
+        return path
+
+    def test_natural_failure_is_null_while_valid_empty_is_zero(self):
+        error = 'SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING'
+        path = self.receipt([error])
+        seven, coverage, _ = self.project(None)
+        failed = seven['stages'][self.stage]
+        self.assertEqual(failed['execution_status'], 'EXECUTION_FAILED')
+        self.assertIsNone(failed['hit_count'])
+        self.assertIn(error, failed['errors'])
+        self.assertEqual(failed['receipt_source']['sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
+        valid = self.artifact(self.stage)
+        artifact = self.root / valid['artifact_relative']
+        artifact.write_text('code\n')
+        valid['artifact_sha256'] = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        self.receipt()
+        seven, coverage, _ = self.project(valid)
+        self.assertEqual(coverage['available'], 1)
+        self.assertEqual(seven['selected_count'], 0)
+        self.assertEqual(seven['hit_count'], 0)
+        self.assertEqual(seven['stages'][self.stage]['execution_status'], 'VALID_EMPTY')
+        self.assertIsNone(seven['selection_hit_rate_pct'])
+        self.assertEqual(seven['top200_coverage_pct'], 0)
+
+    def test_receipt_date_stage_market_and_safety_conflicts_are_unknown(self):
+        from ops.build_a_share_pool_top200 import _natural_receipt
+        for changed in [dict(trade_date='20261104'), dict(stage_id='STAGE_0925'),
+                        dict(dispatch_mode='MANUAL'), dict(orders_sent=True),
+                        dict(markets={'A_SHARE': {'market':'HK_CONNECT'}})]:
+            with self.subTest(changed=changed):
+                self.receipt(**changed)
+                result = _natural_receipt(self.date, self.stage, self.root)
+                self.assertEqual(result['receipt_status'], 'CANNOT_CONFIRM')
+                self.assertEqual(result['execution_status'], 'CANNOT_CONFIRM')
+
+    def test_rows_survive_partial_research_and_errors_are_grouped(self):
+        valid = self.artifact(self.stage)
+        self.receipt(['RESEARCH_STAGE_EVIDENCE_MISSING', 'RESEARCH_ITEM_QUALITY_SCORE_MISSING:A.600001',
+                      'RESEARCH_ITEM_QUALITY_SCORE_MISSING:A.000001'], selected=1)
+        seven, coverage, _ = self.project(valid)
+        stage = seven['stages'][self.stage]
+        self.assertEqual(stage['execution_status'], 'PARTIAL_ROWS')
+        self.assertEqual(stage['research_evidence_status'], 'CANNOT_CONFIRM')
+        self.assertEqual(stage['row_count'], 1)
+        self.assertEqual(stage['hit_count'], 1)
+        self.assertEqual(stage['error_counts']['RESEARCH_ITEM_QUALITY_SCORE_MISSING'], 2)
+        self.assertEqual(len(stage['errors']), 2)
+        self.receipt(selected=2)
+        seven, coverage, _ = self.project(valid)
+        self.assertEqual(coverage['available'], 0)
+        self.assertIsNone(seven['stages'][self.stage]['hit_count'])
+
+    def test_empty_rows_with_partial_evidence_are_not_certified_empty(self):
+        valid = self.artifact(self.stage)
+        artifact = self.root / valid['artifact_relative']; artifact.write_text('code\n')
+        valid['artifact_sha256'] = FrozenDetailsTest.sha(artifact)
+        self.receipt(['RESEARCH_STAGE_EVIDENCE_MISSING'])
+        seven, coverage, _ = self.project(valid)
+        self.assertEqual(coverage['available'], 0)
+        self.assertIsNone(seven['stages'][self.stage]['hit_count'])
+        self.assertEqual(seven['stages'][self.stage]['row_count'], 0)
+
+    def test_absent_receipt_is_not_run_only_when_index_is_readable(self):
+        seven, _, _ = self.project(None)
+        self.assertEqual(seven['stages'][self.stage]['execution_status'], 'NOT_RUN')
+
+
+class PoolEmptySemanticsTest(unittest.TestCase):
+    def test_bound_ready_empty_is_zero_and_missing_remains_null(self):
+        from ops.build_a_share_pool_top200 import _pool_projection, A_POOL_IDS
+        ready = dict(pool_id=A_POOL_IDS[0], status='READY', pool_size=0, source_sha256='bound')
+        result = _pool_projection([dict(input_fingerprint='f', pools=[ready])], {key:set() for key in A_POOL_IDS}, set(), {'600001.SH'})
+        self.assertEqual(result['selected_count'], 0)
+        self.assertEqual(result['hit_count'], 0)
+        self.assertEqual(result['pools'][0]['selected_count'], 0)
+        self.assertIsNone(result['pools'][1]['selected_count'])
+        self.assertIsNone(result['selection_hit_rate_pct'])
+
+
+class FormulaComparisonTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        from ops.build_a_share_pool_top200 import FLAGS
+        self.product = dict(data_date='20261106', source_generation='generation',
+            source_identity=dict(input_sha256='input', historical_PIT=False),
+            group_counts=dict(original=1, nav_smallk=1, nav_pullback=0, nav_breakout=0),
+            rows=[dict(data_date='20261106', symbol='A.000001', groups='original|nav_smallk')], **FLAGS)
+        self.manifest = dict(data_date='20261106', source_generation='generation', input_sha256='input', **FLAGS)
+        self.pool = dict(pools=[dict(pool_id='a_d1_premarket_pool', signal_date='20261106', target_date='20261109',
+            materialized=True, selected_count=19, hit_count=2, top200_coverage_pct=1, selection_hit_rate_pct=10.53)])
+
+    def compare(self, date='20261109'):
+        from ops.build_a_share_pool_top200 import _formula_comparison
+        product = self.root / 'product.json'; product.write_text(json.dumps(self.product))
+        self.manifest['artifact'] = dict(path=str(product), sha256=FrozenDetailsTest.sha(product))
+        manifest = self.root / 'manifest.json'; manifest.write_text(json.dumps(self.manifest))
+        self.index = dict(dates={'20261106':dict(path=str(manifest), sha256=FrozenDetailsTest.sha(manifest))})
+        return _formula_comparison(date, self.root, self.index, {'000001.SZ'}, self.pool)
+
+    def test_exact_d1_deduplicated_groups_are_separate_from_pool_union(self):
+        result = self.compare()
+        self.assertEqual(result['status'], 'READY')
+        self.assertEqual(result['signal_date'], '20261106')
+        self.assertFalse(result['historical_PIT'])
+        self.assertFalse(result['included_in_source_pool_union'])
+        union, original, smallk, pullback, breakout, v192 = result['rows']
+        self.assertEqual([r['selected_count'] for r in (union,original,smallk,pullback,breakout,v192)], [1,1,1,0,0,19])
+        self.assertEqual(union['hit_count'], 1)
+        self.assertEqual(v192['hit_count'], 2)
+        self.assertIsNone(pullback['selection_hit_rate_pct'])
+
+    def test_missing_exact_d1_does_not_use_older_or_latest(self):
+        self.assertEqual(self.compare('20261110')['error'], 'EXACT_D1_FORMULA_MANIFEST_MISSING')
+        self.product['data_date']='20261109'
+        self.assertEqual(self.compare()['status'], 'CANNOT_CONFIRM')
+
+    def test_source_hash_and_row_identity_fail_closed(self):
+        from ops.build_a_share_pool_top200 import _formula_comparison
+        result = self.compare()
+        Path(result['product_source']['path']).write_text('{}')
+        self.assertEqual(_formula_comparison('20261109', self.root, self.index, {'000001.SZ'}, self.pool)['status'], 'CANNOT_CONFIRM')
+        self.product['rows'][0]['symbol']='HK.00700'
+        self.assertEqual(self.compare()['error'], 'FORMULA_ROW_MARKET_IDENTITY_CONFLICT')
+        self.product['rows'][0]['symbol']='000001.SZ'
+        self.product['orders_sent']=True
+        self.assertEqual(self.compare()['error'], 'FORMULA_DATE_GENERATION_OR_SAFETY_CONFLICT')
+
+
 if __name__ == '__main__':
     unittest.main()
