@@ -313,11 +313,11 @@ class ResearchWorkbenchHost:
         for row in result['rows']:row['original_chart_status']='MATERIALIZED' if row['symbol'] in available else 'NOT_MATERIALIZED'
         # The existing source-close reader owns validation and the selector
         # read. Its scope is part of its cache key; never mutate the 371 rows.
-        if result['status'] in {'READY','READY_EMPTY'}:
+        if result['status'] in {'READY','READY_EMPTY','PARTIAL'}:
             try:result['source_close_reference']=self._quote_references.read({**product,'rows':result['rows']})
             except (ValueError,OSError,KeyError,TypeError) as error:
                 result['source_close_reference']=dict(status='CANNOT_CONFIRM',reason=str(error),rows={})
-        if result['status'] in {'READY','READY_EMPTY'}:
+        if result['status'] in {'READY','READY_EMPTY','PARTIAL'}:
             from infrastructure.research_workbench_v192_assets import load
             bound=load(self.source,product,result.get('source_artifact_sha256'))
             if bound:

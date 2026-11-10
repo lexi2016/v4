@@ -1,0 +1,247 @@
+{
+  "schema": "v4.v192_partial_group.controller_acceptance.v1",
+  "baseline_commit": "083e07706007de75de596d5dff06949065497648",
+  "branch": "codex/v192-partial-group-20261110",
+  "source_root": "/Users/lexi/.codex/worktrees/v192-partial-group-20261110",
+  "runtime_release": {
+    "api": {
+      "plist_sha256": "15e31b754c7153f28a21084845fbf938932506c662e1efe975f870c1c1783063",
+      "release": "v4-v192-partial-20261110-r2-api",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-partial-20261110-r2/v4-v192-partial-20261110-r2-api/app",
+      "manifest_sha256": "f6ee699f4afd5187507b61489cf9065f20cde4b0b83fda3dd21c4a2a9a9a1c03"
+    },
+    "main": {
+      "plist_sha256": "62d6175d2acab7a096e0b9d64ad9134673166f198e2b52750387f8f9d1d0cfde",
+      "release": "v4-daily-storage-recovery-20261110-r1-main",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app",
+      "manifest_sha256": "544c7cc4ce3a53720af0c9162dee9d234322f8bd135b56c10c330136ca33cbc8"
+    },
+    "stage": {
+      "plist_sha256": "b107beee2101c2de27848d08003ba1f7fdb0f4de463e2f7cd39c6c346ada24cb",
+      "release": "v4-daily-storage-recovery-20261110-r1-stage",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-stage/app",
+      "manifest_sha256": "c50a18940b84e9d5d99e9e3f1488c4acac4443310f39717cd2e46eac1ec7b829"
+    }
+  },
+  "files": [
+    {
+      "path": "infrastructure/research_workbench_host.py",
+      "before_sha256": "d209dc37ba0ed16f7c3939e48c7e2033bf2c300921086d25fbdbd2bbc945a7b5",
+      "after_sha256": "a6ff76071e1eea60c8aab3ed8476ab1464da0a1c023411eebc9484da779311eb"
+    },
+    {
+      "path": "infrastructure/research_workbench_v192.py",
+      "before_sha256": "739e75c72281e4cedb3e57c1bb9de932f148b513801f7550972a6cecb20a9cd3",
+      "after_sha256": "1545cc8a086e68acfbab9875744dc59ffc6cf2ccc64352d9b83e496633463101"
+    },
+    {
+      "path": "research/stock_panel_collab_20261030/mac-host/dot/shell/workbench.local.mjs",
+      "before_sha256": "71ff81d2d660f82a4c02ec7b42702fbd67ef3180c12a82327da63823fee7e81a",
+      "after_sha256": "9484f026b62c4a6bb9ab11b5b22674aec34e0d516d07253abbb72103f7173a4a"
+    },
+    {
+      "path": "research/stock_panel_collab_20261030/mac-host/dot/src/workbench-model.mjs",
+      "before_sha256": "9a4ed293714fd1efa46e976569fc7750967d8760962167a1bf253f08d3ef4378",
+      "after_sha256": "9d0ab5ee9e5e4927a5b486ba4f7215a6141a2006c9e40a96eeb037e1356e6427"
+    },
+    {
+      "path": "tests/test_workbench_v192_group.py",
+      "before_sha256": "62bcd83529ae9f77dd56e52be064004af55e121659feb0b9a328bdb28d203935",
+      "after_sha256": "eddd1aad7396990add6609270e051661cfc621216f5a22e7469b1e5d89f5c14f"
+    },
+    {
+      "path": "tests/test_workbench_v192_quotes.py",
+      "before_sha256": "38205cc16ba3363af644ad8ec382c5795b023e83475adbeb752e852236f570bd",
+      "after_sha256": "384f5dd202fdabcb3d773989ec8d159f2cd110d47cf172e322b967e5eb03aede"
+    },
+    {
+      "path": "tests/test_workbench_v192_ui.mjs",
+      "before_sha256": "fc2ef500a3f69d866228bcf29e2018ff6715e7be7b208b99a0ac50c6cc791092",
+      "after_sha256": "4cb08badc4c0ad5214e8e6e2dea3043fab18d72f3435d9eea637fd81c6584f0f"
+    },
+    {
+      "path": "ops/prepare_v192_partial_release.py",
+      "before_sha256": null,
+      "after_sha256": "495d87e62a61676007c649a769a48f779bbdd9bc9e0926fd23b1db8400397c99"
+    },
+    {
+      "path": "tests/test_v192_partial_release.py",
+      "before_sha256": null,
+      "after_sha256": "11336b8a7adf94a8f277680cc4c909934c35c5c7d8538d22ae0525f36305ee56"
+    }
+  ],
+  "tests": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_workbench_v192_group.py tests/test_workbench_v192_quotes.py --basetemp='/Users/lexi/Desktop/学习/agents调试/v4_v192_partial_group_20261110/pytest-writer-2'",
+      "result": "PASS",
+      "passed": 20
+    },
+    {
+      "command": "node --test tests/test_workbench_v192_ui.mjs tests/test_workbench_v192_quotes.mjs",
+      "result": "PASS",
+      "passed": 8
+    },
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m pytest -q tests/test_v192_partial_release.py --basetemp='/Users/lexi/Desktop/学习/agents调试/v4_v192_partial_group_20261110/pytest-r2-final'",
+      "result": "14 passed in 0.23s",
+      "log": "/Users/lexi/Desktop/学习/agents调试/v4_v192_partial_group_20261110/R2_RELEASE_TESTS.txt"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "independent_review": {
+    "verdict": "REVIEWED/PASS",
+    "reviewer": "/root/v192_partial_reviewer",
+    "packet_sha256": "ebc2c2780e549e11d143185efe169882179186747bbd793a40964bee0c252f06",
+    "scope": "R1 P1 explicit rollback failure recovery correction in helper/tests and exact new R2 packet; unchanged source/UI acceptance reused.",
+    "R1_FAILURE": "Explicit rollback failure recovery did not restore pre-operation installed tuple; never activated. R2 five fault-case recovery verified independently."
+  },
+  "candidate_packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-partial-20261110-r2/PREPARED_PACKET.json",
+    "sha256": "ebc2c2780e549e11d143185efe169882179186747bbd793a40964bee0c252f06"
+  },
+  "activation": {
+    "status": "ACTIVATED_API_MAIN_POLICY_NATURAL_PENDING",
+    "rollback_requested": false,
+    "control_roles": [
+      "api",
+      "main"
+    ],
+    "stopped": [
+      "main",
+      "api"
+    ],
+    "changed": [
+      "api",
+      "main"
+    ],
+    "stage_service_operation": false,
+    "business_jobs_replayed": false,
+    "recovery_target": "PRE_ACTIVATION_BASELINE_TUPLE",
+    "homepage_gets": [
+      {
+        "path": "/api/v1/runs/date-list",
+        "http_status": 200,
+        "sha256": "d6598f1544de02fac45ff89663ae388d137733b070d3c6b19a3512b9b71638fb",
+        "status": null,
+        "date_count": 42
+      },
+      {
+        "path": "/api/v4/runtime-graph/frontend-build",
+        "http_status": 200,
+        "sha256": "a8961d42a5eb436bfd2a762e34146d819f2196ac278d84828dc485512c853a6a",
+        "status": "VERIFIED",
+        "date_count": 0
+      }
+    ]
+  },
+  "live_acceptance": {
+    "at": "2026-11-10T21:59:16.859339+08:00",
+    "status": "PASS_LIVE_API_AND_SERVED_STATIC",
+    "v192": {
+      "status": "PARTIAL",
+      "source_count": 31,
+      "valid_count": 30,
+      "pending_count": 1,
+      "count": 30,
+      "source_run_id": "20261111-a-share-v192-premarket-pool-v3-3ccd5fa450dd",
+      "source_artifact_sha256": "acd3da1e2b38b7b4f7ee950f4d1d6989ccf748f0b5e0b2250b3f403e6474a676",
+      "generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5"
+    },
+    "pending": [
+      {
+        "symbol": "301314.SZ",
+        "reason": "A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT",
+        "qualification_reason": "CURRENT_SYMBOL_HISTORY_END_MISMATCH"
+      }
+    ],
+    "quote_scope": 30,
+    "quote_available": 30,
+    "original_scope": 380,
+    "original_group_counts": {
+      "nav_smallk": 246,
+      "nav_pullback": 126,
+      "nav_breakout": 65,
+      "original": 43
+    },
+    "sample_statement": "Two valid members across SZ/SH: bound PNG HTTP200 and byte SHA; known bad member 301314.SZ remains excluded. All group/quote counts mechanically checked; no full chart/content/PIT certification.",
+    "sample_assets": [
+      {
+        "symbol": "300549.SZ",
+        "http_status": 200,
+        "png_sha256": "dbaffc8bff789634076909e9aada790f56088c2649387124f6a406c71b157896",
+        "source_binding": "same generation/input/model as group"
+      },
+      {
+        "symbol": "600281.SH",
+        "http_status": 200,
+        "png_sha256": "3336f1ed2b0947cdfdf17635cb2097d8fadd86738f6af290a7dcb30467bb0e06",
+        "source_binding": "same generation/input/model as group"
+      }
+    ],
+    "served_static": [
+      {
+        "path": "research/stock_panel_collab_20261030/mac-host/dot/shell/workbench.local.mjs",
+        "http_status": 200,
+        "sha256": "9484f026b62c4a6bb9ab11b5b22674aec34e0d516d07253abbb72103f7173a4a"
+      },
+      {
+        "path": "research/stock_panel_collab_20261030/mac-host/dot/src/workbench-model.mjs",
+        "http_status": 200,
+        "sha256": "9d0ab5ee9e5e4927a5b486ba4f7215a6141a2006c9e40a96eeb037e1356e6427"
+      }
+    ],
+    "UI_VERIFIED": "CANNOT_CONFIRM_BROWSER_CONTROL_UNAVAILABLE; user refresh confirmation requested",
+    "NATURAL_VERIFIED": "NOT_RUN",
+    "flags": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "unchanged_D10_source_hashes": {
+    "manifest": "3d22c74bfee594c594b1630e4327318e5cf3d02e81e2b0b8e692679c6ed2bddd",
+    "artifact": "e8befdf5210126c46afd32d149f69d6359292e39af9666455f6923b54de8be50"
+  },
+  "pinned_guard_dependency": {
+    "root": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110",
+    "tool_source_files": [
+      {
+        "path": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110/ops/prepare_daily_materials_release.py",
+        "sha256": "673f02200ac800e5172f2d69280199d5f506715c869ae354538a706d050500ab"
+      },
+      {
+        "path": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110/ops/prepare_v192_group_release.py",
+        "sha256": "c041b9f465da517834390b45c6deca9b5e82a9c81b3d0196df5ef6adde4bda9c"
+      },
+      {
+        "path": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110/ops/api_release_integration.py",
+        "sha256": "91590d18fa5fd054b126c772aa5d747d1316063852fbc23b7316fd8c0182062e"
+      },
+      {
+        "path": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110/ops/prepare_top200_scope_release.py",
+        "sha256": "940083831ebf9802ce0856498288449e4ffdf1ce5d89596d46b73d31a8451fd5"
+      },
+      {
+        "path": "/Users/lexi/.codex/worktrees/a925-main-consumer-release-20261110/ops/activate_daily_materials_release.py",
+        "sha256": "97f9501e3c7152e7ce249372ff6172a899a8d92d46bef260611b438acdc63ed6"
+      },
+      {
+        "path": "/Users/lexi/.codex/worktrees/v192-partial-group-20261110/ops/prepare_v192_partial_release.py",
+        "sha256": "495d87e62a61676007c649a769a48f779bbdd9bc9e0926fd23b1db8400397c99"
+      }
+    ],
+    "status": "Explicit prior worktree/file-SHA dependency; not merged by this task",
+    "observed_HEAD": "9533664efef9a1e1c8f16b4e43eca020a160ef47"
+  },
+  "local_evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_v192_partial_group_20261110",
+  "NOT_RUN": [
+    "Rendered current browser UI: computer control unavailable; user refresh confirmation pending",
+    "Natural scheduled run acceptance",
+    "Real rollback drill; fault cases simulated"
+  ],
+  "github_sync": "Controller records remote commit and file SHA readback separately after this document is committed."
+}

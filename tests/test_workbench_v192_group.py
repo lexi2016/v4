@@ -36,13 +36,15 @@ def test_independent_membership_preserves_four_groups_and_projects_only_needed_f
     assert 'evaluation' not in json.dumps(result)
 
 
-@pytest.mark.parametrize('change',['selector','signal_date','target_date','checkpoint_date'])
+@pytest.mark.parametrize('change',['selector','signal_date','target_date','artifact_hash','row_count','market'])
 def test_conflicting_date_or_selector_is_explicit_unknown(change):
     p,s,v,b,calls=fixture()
     if change=='selector':v.run.manifest['provenance']['panel_sha256']='0'*64
     elif change=='signal_date':v.rows[0]['signal_date']='20261106'
     elif change=='target_date':v.run.manifest['trade_date']='20261111'
-    else:s._a_product_reference=lambda r:dict(symbol=Path(r['path']).name,data_date='20261106')
+    elif change=='artifact_hash':v.run.verification['artifact_sha256']='0'*64
+    elif change=='row_count':v.run.verification['row_count']=3
+    else:v.rows[0]['ts_code']='301199.HK'
     result=project(s,p,'2026-11-09','2026-11-10',binding_reader=b)
     assert result['status']=='CANNOT_CONFIRM' and result['rows']==[] and result['count']==0
     assert result['source_date']=='2026-11-09'
@@ -79,3 +81,52 @@ def test_processed_company_read_is_opt_in_and_preserves_missing_materials(tmp_pa
     assert result['status']=='NOT_MATERIALIZED' and result['symbol']=='301361.SZ'
     with pytest.raises(ValueError,match='PRODUCT_IDENTITY'):
         source.read_a_daily_company_materials('20261109','000001.SZ',allow_processed_symbol=True)
+
+
+@pytest.mark.parametrize('all_invalid',[False,True])
+def test_invalid_checkpoint_is_quarantined_without_losing_verified_members(all_invalid):
+    p,s,v,b,calls=fixture();before=deepcopy(p)
+    original=s._a_product_reference
+    def detail(ref):
+        row=original(ref)
+        if all_invalid or row['symbol']=='301199.SZ':
+            row['qualification']={'status':'UNKNOWN','reason':'CURRENT_SYMBOL_HISTORY_END_MISMATCH'}
+        return row
+    def strict(row,*args):
+        if row.get('qualification',{}).get('status')=='UNKNOWN':
+            raise ValueError('A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT')
+    s._a_product_reference=detail;s._a_daily_checkpoint_binding=strict
+    result=project(s,p,'2026-11-09','2026-11-10',binding_reader=b)
+    assert result['status']=='PARTIAL' and result['source_count']==2
+    assert result['valid_count']==result['count']==(0 if all_invalid else 1)
+    assert result['pending_count']==result['excluded_count']==(2 if all_invalid else 1)
+    assert {r['symbol'] for r in result['rows']}.isdisjoint(r['symbol'] for r in result['excluded_rows'])
+    excluded=result['excluded_rows'][0]
+    assert excluded==dict(symbol='301199.SZ',status='CANNOT_CONFIRM',
+        reason='A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT',
+        qualification_reason='CURRENT_SYMBOL_HISTORY_END_MISMATCH',source_checkpoint=p['row_refs']['301199.SZ'])
+    assert p==before
+
+
+@pytest.mark.parametrize('failure',['checkpoint_date','checkpoint_hash','formula_hash','formula_missing','reader_hash'])
+def test_row_local_and_global_failures_remain_distinct(failure):
+    p,s,v,b,calls=fixture()
+    if failure=='checkpoint_date':
+        s._a_product_reference=lambda ref:dict(symbol=Path(ref['path']).name,data_date='20261106')
+    elif failure=='checkpoint_hash':
+        def corrupt(ref):raise ValueError('A_DAILY_PRODUCT_REFERENCE_SHA_CONFLICT')
+        s._a_product_reference=corrupt
+    elif failure=='reader_hash':
+        def bad_reader():raise ValueError('V192_READER_SHA_CONFLICT')
+        b=bad_reader
+    else:
+        def bad_binding(*args):
+            if failure=='formula_missing':raise FileNotFoundError('shared config missing')
+            raise ValueError('A_DAILY_SYMBOL_DETAIL_FORMULA_CONFIG_SHA_DRIFT')
+        s._a_daily_checkpoint_binding=bad_binding
+    result=project(s,p,'2026-11-09','2026-11-10',binding_reader=b)
+    if failure.startswith('checkpoint'):
+        assert result['status']=='PARTIAL' and result['pending_count']==2 and result['source_count']==2
+    else:
+        assert result['status']=='CANNOT_CONFIRM' and result['rows']==[]
+        assert result['source_count'] is None and result['valid_count'] is None

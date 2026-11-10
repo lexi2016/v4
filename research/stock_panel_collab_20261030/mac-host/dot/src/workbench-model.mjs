@@ -25,16 +25,21 @@ export async function loadSkillProjection(ref,expected,{adaptProjection,origin,f
 
 // Independent model membership never changes the four original group states.
 export function validateV192Group(value,day){
- if(value?.schema!=='V4_WORKBENCH_V192_GROUP_V1'||value.group_id!=='v192'||value.source_date!==day.source_date||value.observation_date!==day.observation_date||value.generation!==day.generation||value.input_sha256!==day.input_sha256||value.selector_sha256!==day.source_selector_sha256||value.numeric_manifest?.sha256!==day.numeric_manifest?.sha256||value.numeric_manifest?.path!==day.numeric_manifest?.path||!['READY','READY_EMPTY','CANNOT_CONFIRM'].includes(value.status)||!Array.isArray(value.rows)||value.rows.length!==value.count||new Set(value.rows.map(row=>row.symbol)).size!==value.count||value.RESEARCH_ONLY!==true||value.historical_PIT!==false||['production_allowed','buy_gate_updated','orders_sent'].some(key=>value[key]!==false)||value.rank_usage_boundary!=='RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY')throw Error('V192_GROUP_IDENTITY_CONFLICT');
+ if(value?.schema!=='V4_WORKBENCH_V192_GROUP_V1'||value.group_id!=='v192'||value.source_date!==day.source_date||value.observation_date!==day.observation_date||value.generation!==day.generation||value.input_sha256!==day.input_sha256||value.selector_sha256!==day.source_selector_sha256||value.numeric_manifest?.sha256!==day.numeric_manifest?.sha256||value.numeric_manifest?.path!==day.numeric_manifest?.path||!['READY','READY_EMPTY','PARTIAL','CANNOT_CONFIRM'].includes(value.status)||!Array.isArray(value.rows)||value.rows.length!==value.count||new Set(value.rows.map(row=>row.symbol)).size!==value.count||value.RESEARCH_ONLY!==true||value.historical_PIT!==false||['production_allowed','buy_gate_updated','orders_sent'].some(key=>value[key]!==false)||value.rank_usage_boundary!=='RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY')throw Error('V192_GROUP_IDENTITY_CONFLICT');
  if(value.rows.some(row=>row.v192_member!==true||!/^\d{6}\.(SH|SZ|BJ)$/.test(row.symbol)||!row.group_states||Object.keys(LEGACY_GROUPS).some(key=>!['TRUE','FALSE','UNKNOWN'].includes(row.group_states[key]))||Object.keys(row.history_rates??{}).length))throw Error('V192_ROW_IDENTITY_CONFLICT');
  if(value.status==='CANNOT_CONFIRM'&&value.rows.length)throw Error('V192_UNKNOWN_WITH_ROWS');
- if(value.status==='READY'&&!/^[a-f0-9]{64}$/.test(value.source_artifact_sha256??''))throw Error('V192_SOURCE_SHA_MISSING');
+ if(['READY','PARTIAL'].includes(value.status)&&!/^[a-f0-9]{64}$/.test(value.source_artifact_sha256??''))throw Error('V192_SOURCE_SHA_MISSING');
+ if(value.status==='PARTIAL'){
+  const excluded=value.excluded_rows;
+  if(!Number.isSafeInteger(value.source_count)||!Number.isSafeInteger(value.valid_count)||!Number.isSafeInteger(value.pending_count)||value.valid_count!==value.count||value.pending_count<=0||value.excluded_count!==value.pending_count||value.source_count!==value.valid_count+value.pending_count||!Array.isArray(excluded)||excluded.length!==value.pending_count||new Set(excluded.map(row=>row.symbol)).size!==excluded.length||excluded.some(row=>!/^\d{6}\.(SH|SZ|BJ)$/.test(row.symbol)||value.rows.some(valid=>valid.symbol===row.symbol)||row.status!=='CANNOT_CONFIRM'||typeof row.reason!=='string'||!row.reason||typeof row.source_checkpoint?.path!=='string'||!row.source_checkpoint.path||!/^[a-f0-9]{64}$/.test(row.source_checkpoint?.sha256??'')))throw Error('V192_PARTIAL_COUNTS_OR_EXCLUSIONS_CONFLICT');
+ }
+ if(value.status==='READY_EMPTY'&&(value.count!==0||(value.source_count??0)!==0||(value.pending_count??0)!==0))throw Error('V192_EMPTY_WITH_CANDIDATES');
  return value;
 }
 export function v192Summary(value){
  if(!value)return 'v1.9.2候选来源尚未就绪';
  const source=`信号日 ${value.source_date} → 观察日 ${value.observation_date}`;
- const status=value.status==='CANNOT_CONFIRM'?'来源待核':value.status==='READY_EMPTY'?'已就绪，本日无候选':`已就绪 · ${value.count}只`;
+ const status=value.status==='CANNOT_CONFIRM'?`来源待核 · 数量未知${value.reason?' · '+value.reason:''}`:value.status==='PARTIAL'?`部分就绪 · 来源 ${value.source_count}只 / 有效 ${value.valid_count}只 / 待核 ${value.pending_count}只；${value.excluded_rows.map(row=>row.symbol+'：'+[row.qualification_reason,row.reason].filter(Boolean).join(' / ')).join('；')}`:value.status==='READY_EMPTY'?'已就绪，本日无候选':`已就绪 · ${value.count}只`;
  return `v1.9.2候选 · ${source} · ${status}。独立模型组；排序分只作复核参考，不能当买入顺序；同定义D+2/D+5统计未接入。`;
 }
 

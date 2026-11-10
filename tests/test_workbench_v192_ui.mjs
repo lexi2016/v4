@@ -48,3 +48,33 @@ test('actual interactive loader clears previous chart and keeps model statistics
  await ctx.loadInteractive({symbol:'301361.SZ'},4);assert.equal(cleared,2);assert.equal(ctx.interactiveLoaded,null);assert.equal(el('interactiveChart').hidden,true);assert.match(el('projectionStatus').textContent,/原式图未物化.*同定义D\+2\/D\+5统计未接入/);
  assert.ok(shell.includes("if(changed.includes('v192'))await refreshV192Group()"));
 });
+
+function partial(){
+ const {day,model}=fixtures();
+ return {day,model:{...model,status:'PARTIAL',source_count:4,valid_count:3,pending_count:1,excluded_count:1,excluded_rows:[{symbol:'301314.SZ',status:'CANNOT_CONFIRM',reason:'A_DAILY_SYMBOL_DETAIL_SOURCE_IDENTITY_CONFLICT',qualification_reason:'CURRENT_SYMBOL_HISTORY_END_MISMATCH',source_checkpoint:{path:'/checkpoint/301314.SZ.json',sha256:'f'.repeat(64)}}]}};
+}
+test('partial owns reconciled valid/source/pending counts and isolates blocked identity',()=>{
+ const {day,model}=partial();day.v192_group=validateV192Group(model,day);
+ assert.equal(filterStocks(day,{group:'v192'}).length,3);
+ assert.equal(filterStocks(day,{group:'v192',query:'301314'}).length,0);
+ assert.match(v192Summary(model),/部分就绪.*来源 4只.*有效 3只.*待核 1只.*301314.SZ.*CURRENT_SYMBOL_HISTORY_END_MISMATCH/);
+ for(const change of [{source_count:5},{pending_count:0},{valid_count:4},{excluded_rows:[]},{excluded_rows:[{...model.excluded_rows[0],symbol:model.rows[0].symbol}]},{excluded_rows:[{...model.excluded_rows[0],source_checkpoint:{path:'/unbound'}}]}])assert.throws(()=>validateV192Group({...model,...change},day),/PARTIAL/);
+ const blocked=validateV192Group({...model,rows:[],count:0,valid_count:0,source_count:1},day);
+ assert.match(v192Summary(blocked),/部分就绪.*有效 0只.*待核 1只/);
+ assert.doesNotMatch(v192Summary(blocked),/本日无候选/);
+ assert.throws(()=>validateV192Group({...blocked,status:'READY_EMPTY'},day),/EMPTY/);
+});
+test('actual filter controls show unknown instead of zero and partial counts with reason',()=>{
+ const {day,model}=partial(),nodes=new Map();
+ function node(tag,text=''){return {textContent:text,classList:{toggle(){}},setAttribute(){},dataset:{},append(){},replaceChildren(){this.children=[]},children:[],after(){}}}
+ const ctx={day:{...day,v192_group:model},GROUPS,group:'v192',v192Summary,node,$:id=>{if(!nodes.has(id))nodes.set(id,node('p'));return nodes.get(id)}};
+ ctx.$('groupFilters').append=x=>ctx.$('groupFilters').children.push(x);
+ vm.createContext(ctx);const start=shell.indexOf('function renderFilters()'),end=shell.indexOf('function renderList(',start);
+ vm.runInContext(shell.slice(start,end),ctx);ctx.renderFilters();
+ assert.ok(ctx.$('groupFilters').children.some(x=>/有效|3 \/ 来源 4 · 待核 1/.test(x.textContent)));
+ assert.match(ctx.$('v192GroupStatus').textContent,/301314.SZ.*CURRENT_SYMBOL_HISTORY_END_MISMATCH/);
+ ctx.day={...day,v192_group:{...model,status:'CANNOT_CONFIRM',rows:[],count:0,reason:'V192_READER_SHA_CONFLICT'}};ctx.renderFilters();
+ assert.ok(ctx.$('groupFilters').children.some(x=>/v1.9.2候选 待核 · 数量未知/.test(x.textContent)));
+ assert.match(ctx.$('v192GroupStatus').textContent,/来源待核 · 数量未知.*V192_READER_SHA_CONFLICT/);
+ assert.doesNotMatch(ctx.$('v192GroupStatus').textContent,/本日无候选/);
+});

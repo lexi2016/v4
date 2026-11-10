@@ -75,7 +75,7 @@ def project(source,product,source_date,observation_date,*,binding_reader=configu
                 or proof.get('row_count')!=len(verified.rows)
                 or proof.get('artifact_sha256')!=manifest.get('artifact_sha256')):
             raise ValueError('V192_WORKBENCH_SOURCE_IDENTITY_CONFLICT')
-        rows=[];seen=set()
+        rows=[];excluded=[];seen=set()
         processed=set(product.get('processed_universe',[]));refs=product.get('row_refs',{})
         for candidate in verified.rows:
             symbol=candidate.get('ts_code')
@@ -87,14 +87,28 @@ def project(source,product,source_date,observation_date,*,binding_reader=configu
             seen.add(symbol)
             # Only its bound existing checkpoint is read. Historical groups,
             # returns and evaluations are not copied into the API response.
-            detail=source._a_product_reference(refs[symbol])
-            if detail.get('symbol')!=symbol or detail.get('data_date')!=product['data_date']:
-                raise ValueError('V192_CHECKPOINT_DATE_OR_SYMBOL_CONFLICT')
-            source._a_daily_checkpoint_binding(detail,product,symbol,product['data_date'])
-            hits=set(filter(None,detail.get('groups','').split('|')))
-            pending=set(filter(None,detail.get('pending_groups','').split('|')))
-            if not hits<=set(GROUPS) or not pending<=set(GROUPS) or hits&pending:
-                raise ValueError('V192_CHECKPOINT_GROUP_CONFLICT')
+            detail=None
+            try:
+                detail=source._a_product_reference(refs[symbol])
+                if detail.get('symbol')!=symbol or detail.get('data_date')!=product['data_date']:
+                    raise ValueError('V192_CHECKPOINT_DATE_OR_SYMBOL_CONFLICT')
+                try:source._a_daily_checkpoint_binding(detail,product,symbol,product['data_date'])
+                except (OSError,KeyError,TypeError) as error:
+                    raise ValueError('A_DAILY_SYMBOL_DETAIL_FORMULA_SOURCE_UNAVAILABLE:'+str(error)) from error
+                hits=set(filter(None,detail.get('groups','').split('|')))
+                pending=set(filter(None,detail.get('pending_groups','').split('|')))
+                if not hits<=set(GROUPS) or not pending<=set(GROUPS) or hits&pending:
+                    raise ValueError('V192_CHECKPOINT_GROUP_CONFLICT')
+            except (ValueError,OSError,KeyError,TypeError) as error:
+                # Formula/config identity is shared by the entire product, so
+                # these failures must still close the whole projection.
+                if str(error).startswith('A_DAILY_SYMBOL_DETAIL_FORMULA_'):
+                    raise
+                qualification=detail.get('qualification',{}) if isinstance(detail,dict) else {}
+                excluded.append(dict(symbol=symbol,status='CANNOT_CONFIRM',reason=str(error),
+                    qualification_reason=qualification.get('reason'),
+                    source_checkpoint=refs[symbol]))
+                continue
             rows.append(dict(symbol=symbol,enriched_display_name=detail.get('display_name') or candidate.get('stock_name'),
                 group_states={g:'TRUE' if g in hits else 'UNKNOWN' if g in pending else 'FALSE' for g in GROUPS},
                 eligible_candidate=bool(hits),in_fifth=bool(pending),v192_member=True,history_rates={},
@@ -102,13 +116,17 @@ def project(source,product,source_date,observation_date,*,binding_reader=configu
                     'final_score','premarket_pool_score','primary_buy_signal','secondary_buy_signal')},
                 source_checkpoint=refs[symbol],checkpoint_status='BOUND_SAME_GENERATION',
                 source_row={key:detail.get(key) for key in ('symbol','data_date','groups','pending_groups','risk_clear','reasons')}))
-        return dict(status='READY' if rows else 'READY_EMPTY',rows=rows,count=len(rows),
+        return dict(status='PARTIAL' if excluded else 'READY' if rows else 'READY_EMPTY',
+            rows=rows,count=len(rows),source_count=len(verified.rows),valid_count=len(rows),
+            pending_count=len(excluded),excluded_count=len(excluded),excluded_rows=excluded,
             source_run_id=proof['run_id'],source_artifact_sha256=proof['artifact_sha256'],
             source_manifest_sha256=proof['manifest_sha256'],source_receipt_sha256=proof['receipt_sha256'],
             reader_source=reader_ref,**common)
     except (ValueError,OSError,KeyError,TypeError) as error:
-        return dict(status='CANNOT_CONFIRM',reason=str(error),rows=[],count=0,**common)
+        return dict(status='CANNOT_CONFIRM',reason=str(error),rows=[],count=0,source_count=None,valid_count=None,
+            pending_count=None,excluded_count=None,excluded_rows=[],**common)
     except Exception as error:
         # The original strict reader's StoreError is intentionally not replaced
         # with an empty READY group or a stale/latest candidate artifact.
-        return dict(status='CANNOT_CONFIRM',reason=type(error).__name__+':'+str(error),rows=[],count=0,**common)
+        return dict(status='CANNOT_CONFIRM',reason=type(error).__name__+':'+str(error),rows=[],count=0,source_count=None,valid_count=None,
+            pending_count=None,excluded_count=None,excluded_rows=[],**common)

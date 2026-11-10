@@ -4,11 +4,12 @@ import pytest
 from infrastructure.research_workbench_host import ResearchWorkbenchHost
 
 
-def setup_host(monkeypatch,*,fail=False):
+def setup_host(monkeypatch,*,fail=False,status='READY'):
+    monkeypatch.setattr('infrastructure.research_workbench_v192_assets.load',lambda *args:None)
     native_rows=[dict(symbol=f'{i:06d}.SZ') for i in range(371)]
     model_rows=[dict(symbol=f'{600000+i:06d}.SH',v192_member=True) for i in range(19)]
     product=dict(data_date='20261109',source_generation='g',source_identity={'input_sha256':'i','selector_artifact_sha256':'s'},manifest={'path':'/numeric','sha256':'m'},rows=native_rows)
-    result=dict(status='READY',rows=model_rows,count=19)
+    result=dict(status=status,rows=model_rows,count=19,source_artifact_sha256='a'*64,selector_sha256='s')
     monkeypatch.setattr('infrastructure.research_workbench_v192.project',lambda *a:deepcopy(result))
     calls=[]
     def read(scoped):
@@ -43,3 +44,20 @@ def test_quote_binding_failure_preserves_19_members_and_has_no_old_quote_rows(mo
     assert result['source_close_reference']['status']=='CANNOT_CONFIRM'
     assert result['source_close_reference']['rows']=={}
     assert len(product['rows'])==371
+
+
+def test_partial_only_passes_valid_rows_to_quotes_and_existing_assets(monkeypatch):
+    host,product,calls=setup_host(monkeypatch,status='PARTIAL')
+    sample={'PNG':{'sha256':'a'*64},'HTML':{'sha256':'b'*64},'rows':51}
+    asset_calls=[]
+    def assets(source,bound,model_sha):
+        asset_calls.append(bound)
+        return dict(module={'completed_symbols':['600000.SH']},manifest={'samples':{'600000.SH':sample}})
+    monkeypatch.setattr('infrastructure.research_workbench_v192_assets.load',assets)
+    result=host.v192_group('2026-11-09','g')
+    assert result['status']=='PARTIAL' and result['source_close_reference']['scope_count']==19
+    assert {r['symbol'] for r in calls[0]['rows']}=={r['symbol'] for r in result['rows']}
+    assert '301314.SZ' not in {r['symbol'] for r in calls[0]['rows']}
+    assert asset_calls==[product]
+    assert result['rows'][0]['original_chart_status']=='MATERIALIZED'
+    assert result['rows'][1]['original_chart_status']=='NOT_MATERIALIZED'
