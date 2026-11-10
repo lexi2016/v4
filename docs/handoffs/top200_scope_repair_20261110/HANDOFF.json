@@ -1,0 +1,110 @@
+{
+  "status": "CANDIDATE_WRITER_HANDOFF_NOT_FINAL_ACCEPTANCE",
+  "source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+  "base_commit": "b304ca2513eceacb4e373777953eaf9c7dd016c9",
+  "branch": "codex/top200-scope-repair-20261110",
+  "source_root": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110",
+  "active_api_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/app",
+  "allowed_source_files": [
+    "ops/build_a_share_pool_top200.py",
+    "apps/web/src/components/research/AShareTop200Panel.vue",
+    "tests/test_a_share_pool_top200_details.py",
+    "apps/web/src/components/research/AShareTop200Panel.spec.ts"
+  ],
+  "source_hashes": {
+    "ops/build_a_share_pool_top200.py": {
+      "baseline_sha256": "38da3de1e3f1769eda56758af5033e99a0ba64891b6fab1fa6d3bb6b3a3bbb80",
+      "after_sha256": "8dda87f08c86eef25736c3a2ceac5d6510761c12fb8b5e56c06ed9ecfbdf6a29"
+    },
+    "apps/web/src/components/research/AShareTop200Panel.vue": {
+      "baseline_sha256": "d4e93542fed2baf068932a456430224ff62865d42ea13e66a745ec412290f15f",
+      "after_sha256": "5bce665e1e35fcf25b69c45d33566f9329b46475c1c2732d5aa03a99946e2a9b"
+    },
+    "tests/test_a_share_pool_top200_details.py": {
+      "baseline_sha256": "ed1a2e982f80302c3623b67f103febce276a40e9c53669cff3ccaf2c6158953f",
+      "after_sha256": "4e1b97e823b5e5691e8e6b5bcebaafed5028ee770cc90a37368be6fbba473186"
+    },
+    "apps/web/src/components/research/AShareTop200Panel.spec.ts": {
+      "baseline_sha256": "14b1e7d150c7a2d657e4f4567454c1df45a3197ebcc591589df0f56374955302",
+      "after_sha256": "43f1bcf26806dc2d6dfa7b2edfe30bd38b41fcf617809fb991cc1ac31dd274c7"
+    }
+  },
+  "unchanged_runtime_dependencies": {
+    "contracts/trading_calendar.py": {
+      "candidate_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "active_sha256": "8130fbb05d6ebc42a512447c3c6b6ce72f77c6c3e589b8bce6b03ec4da9d8718",
+      "release_policy": "KEEP_ACTIVE_UNCHANGED",
+      "difference": "MODULE_DOCSTRING_ONLY_EXECUTABLE_AST_MATCH"
+    },
+    "contracts/market_calendar_2026.json": {
+      "candidate_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "active_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "release_policy": "KEEP_ACTIVE_UNCHANGED"
+    },
+    "apps/api/v4_api/preselection_router.py": {
+      "candidate_sha256": "138f9ac5ca8ef8e92c3e1ccce8ecb91e78d1a29e70ecc4d05254aad730d24142",
+      "active_sha256": "138f9ac5ca8ef8e92c3e1ccce8ecb91e78d1a29e70ecc4d05254aad730d24142",
+      "release_policy": "KEEP_ACTIVE_UNCHANGED"
+    }
+  },
+  "scope_freeze": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/SCOPE_FREEZE.json",
+  "tests": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m unittest tests.test_a_share_pool_top200_details -q",
+      "result": "PASS",
+      "tests": 29
+    },
+    {
+      "command": "apps/web/node_modules/.bin/vitest run src/components/research/AShareTop200Panel.spec.ts --root apps/web",
+      "result": "PASS",
+      "tests": 9
+    },
+    {
+      "command": "PYTHONPATH=. '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' docs/handoffs/top200_scope_repair_20261110/canary_read_only.py --product-root '/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share' --stage-root '/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection' --legacy '/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/app/apps/web/dist/top200-hit.json' --out docs/handoffs/top200_scope_repair_20261110/CANARY.json",
+      "result": "PASS_READ_ONLY_DATED_CANARY"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "test_cwd": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110",
+  "canary": {
+    "path": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/docs/handoffs/top200_scope_repair_20261110/CANARY.json",
+    "sha256": "61ba95709141f42628e0fd25f707667e9bd6749d5cb522b54d330f5e5f4c506f"
+  },
+  "release_delta": {
+    "path": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/docs/handoffs/top200_scope_repair_20261110/RELEASE_DELTA.json",
+    "sha256": "87cf8f7202f1905619cb08b2d95f62e841198e5f95bb549fe771508de1bc74fe"
+  },
+  "states": {
+    "IMPLEMENTED": true,
+    "TARGETED_TESTS_PASS": true,
+    "INDEPENDENT_REVIEW": "NOT_RUN",
+    "INTEGRATED": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": false,
+    "UI_VERIFIED": false,
+    "NATURAL_VERIFIED": false,
+    "GITHUB_SYNC": "NOT_RUN_BY_WRITER"
+  },
+  "unresolved": [
+    "historical_PIT=false; retrospective label intersection is not certified predictive performance",
+    "11/9 six natural failures retained; no replay or witness/owner rule change",
+    "11/10 row existence does not certify missing research/quality evidence",
+    "other branch frontend differs from active; build used active input plus one SFC overlay",
+    "calendar module docstring differs; executable AST and frozen calendar JSON match; keep active dependency",
+    "full repository typecheck and unrelated tests NOT_RUN; targeted Vue tests and active-input Vite build PASS"
+  ],
+  "CANNOT_CONFIRM": [
+    "11/9 complete seven-stage effectiveness",
+    "production, trading, or historical PIT qualification",
+    "runtime API/UI behavior before controller deployment"
+  ],
+  "safety_flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

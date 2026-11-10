@@ -1,0 +1,217 @@
+{
+  "status": "PASS_READ_ONLY_DATED_CANARY",
+  "date": "20261109",
+  "pool": {
+    "selected_count": 487,
+    "hit_count": 36,
+    "materialized_pool_count": 2,
+    "pool_count": 6
+  },
+  "stage": {
+    "selected_count": 10,
+    "hit_count": 2
+  },
+  "stage_coverage": {
+    "available": 1,
+    "total": 7,
+    "missing_stages": [
+      "STAGE_0930_0935",
+      "STAGE_0935_0940",
+      "STAGE_0940_0945",
+      "STAGE_0945_1030",
+      "STAGE_1300_1315",
+      "STAGE_1445_1500"
+    ]
+  },
+  "stages": {
+    "STAGE_0925": {
+      "status": "READY",
+      "execution_status": "PARTIAL_ROWS",
+      "row_count": 10,
+      "hit_count": 2,
+      "errors": [
+        "NATIVE_QUOTE_SNAPSHOT_NOT_L2_NOT_TRANSACTION"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0925/receipt.json",
+        "sha256": "92dae7fb59cd3acc4f22d7e5fcf69883244bc9c4f711327653961666440c881d"
+      }
+    },
+    "STAGE_0930_0935": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0930_0935/receipt.json",
+        "sha256": "9b0a2e87ef2142b94056103c5c3ee8788286f5dba6a6f30d3be24722140ba92a"
+      }
+    },
+    "STAGE_0935_0940": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0935_0940/receipt.json",
+        "sha256": "d5c8fec0b2f2827bf31d697afed50448fb84dc3e535f7e8c7940b28b8e2e5baf"
+      }
+    },
+    "STAGE_0940_0945": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0940_0945/receipt.json",
+        "sha256": "f3c77ecce0e70bb7714f181295f263aee97b0ed7d4c3e361dc279966e044fc61"
+      }
+    },
+    "STAGE_0945_1030": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0945_1030/receipt.json",
+        "sha256": "537eda83a8fc71b1b1de57a9e586b768a4346263897f075a53ead4edbb30772c"
+      }
+    },
+    "STAGE_1300_1315": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1300_1315/receipt.json",
+        "sha256": "b9ddb06ac669739f0307366b9afe83824371fe7e07b1a3787f1f04a4acef7083"
+      }
+    },
+    "STAGE_1445_1500": {
+      "status": "NOT_MATERIALIZED",
+      "execution_status": "EXECUTION_FAILED",
+      "row_count": null,
+      "hit_count": null,
+      "errors": [
+        "SELECTION_ERROR:ResearchContextError:RESEARCH_SOURCE_WITNESS_INVALID:HOURLY_COMPLETION_WITNESS_MISSING"
+      ],
+      "receipt_source": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1445_1500/receipt.json",
+        "sha256": "fa4c6ccb1ec023aa134f153b248cc742b42be0353fe04a0daf5262bb5d647470"
+      }
+    }
+  },
+  "formula_comparison": {
+    "status": "READY",
+    "target_date": "20261109",
+    "scope": "D1_FROZEN_FORMULA_LABELS_VS_STORED_TOP200",
+    "included_in_source_pool_union": false,
+    "rows": [
+      {
+        "group_id": "four_group_union",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "selected_count": 387,
+        "hit_count": 10,
+        "top200_coverage_pct": 5.0,
+        "selection_hit_rate_pct": 2.58
+      },
+      {
+        "group_id": "original",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "selected_count": 47,
+        "hit_count": 1,
+        "top200_coverage_pct": 0.5,
+        "selection_hit_rate_pct": 2.13
+      },
+      {
+        "group_id": "nav_smallk",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "selected_count": 287,
+        "hit_count": 6,
+        "top200_coverage_pct": 3.0,
+        "selection_hit_rate_pct": 2.09
+      },
+      {
+        "group_id": "nav_pullback",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "selected_count": 111,
+        "hit_count": 3,
+        "top200_coverage_pct": 1.5,
+        "selection_hit_rate_pct": 2.7
+      },
+      {
+        "group_id": "nav_breakout",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "selected_count": 47,
+        "hit_count": 3,
+        "top200_coverage_pct": 1.5,
+        "selection_hit_rate_pct": 6.38
+      },
+      {
+        "group_id": "v192",
+        "signal_date": "20261106",
+        "target_date": "20261109",
+        "status": "READY",
+        "selected_count": 19,
+        "hit_count": 2,
+        "top200_coverage_pct": 1.0,
+        "selection_hit_rate_pct": 10.53
+      }
+    ],
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "signal_date": "20261106",
+    "calendar_source": {
+      "path": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/contracts/market_calendar_2026.json",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+    },
+    "manifest_source": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/versions/20261106/dad1a85c1dc20ce57644fdbc027245a4c2ba9fb1006a8b194b147de5c5e29f4e/c6515f0f08b9dfeee4f82399533140bf8b94fcf81ae8f37e601ccaf0ff3cb4e9/manifest.json",
+      "sha256": "d4583e576b9dc1d7917d659d947961423ec5296cb8e9aeef14c0ea5962d9ab14"
+    },
+    "product_source": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/versions/20261106/dad1a85c1dc20ce57644fdbc027245a4c2ba9fb1006a8b194b147de5c5e29f4e/c6515f0f08b9dfeee4f82399533140bf8b94fcf81ae8f37e601ccaf0ff3cb4e9/product.json",
+      "sha256": "7008da209ae614b579d7cfa2839fc5059744207b8bf59b766a83bc5b98d5365b"
+    },
+    "historical_PIT": false,
+    "prediction_claim": "NOT_CERTIFIED",
+    "history_status": "PARTIAL_NEEDS_BOOTSTRAP",
+    "index_source": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/index.json",
+      "sha256": "854b2b6486a5070cc1073f808ccd67fdb9d6c8555c9d4b48a13bc46c97e3aa8c"
+    }
+  },
+  "source_hashes_unchanged": {
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json": "dd87904290b6a51f27ea1f4d3cec1228f0a7ff673deeed001465ac4337a00cfa",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/index.json": "854b2b6486a5070cc1073f808ccd67fdb9d6c8555c9d4b48a13bc46c97e3aa8c",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0925/receipt.json": "92dae7fb59cd3acc4f22d7e5fcf69883244bc9c4f711327653961666440c881d",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0930_0935/receipt.json": "9b0a2e87ef2142b94056103c5c3ee8788286f5dba6a6f30d3be24722140ba92a",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0935_0940/receipt.json": "d5c8fec0b2f2827bf31d697afed50448fb84dc3e535f7e8c7940b28b8e2e5baf",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0940_0945/receipt.json": "f3c77ecce0e70bb7714f181295f263aee97b0ed7d4c3e361dc279966e044fc61",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_0945_1030/receipt.json": "537eda83a8fc71b1b1de57a9e586b768a4346263897f075a53ead4edbb30772c",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1300_1315/receipt.json": "b9ddb06ac669739f0307366b9afe83824371fe7e07b1a3787f1f04a4acef7083",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261109/STAGE_1445_1500/receipt.json": "fa4c6ccb1ec023aa134f153b248cc742b42be0353fe04a0daf5262bb5d647470"
+  }
+}

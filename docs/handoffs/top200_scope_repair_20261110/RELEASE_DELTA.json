@@ -1,0 +1,83 @@
+{
+  "status": "CANDIDATE_NOT_DEPLOYED",
+  "active_api_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/app",
+  "source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+  "changes": [
+    {
+      "target_relative": "ops/build_a_share_pool_top200.py",
+      "source": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/ops/build_a_share_pool_top200.py",
+      "before_sha256": "38da3de1e3f1769eda56758af5033e99a0ba64891b6fab1fa6d3bb6b3a3bbb80",
+      "after_sha256": "8dda87f08c86eef25736c3a2ceac5d6510761c12fb8b5e56c06ed9ecfbdf6a29",
+      "size": 29234
+    },
+    {
+      "target_relative": "apps/web/src/components/research/AShareTop200Panel.vue",
+      "source": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/apps/web/src/components/research/AShareTop200Panel.vue",
+      "before_sha256": "d4e93542fed2baf068932a456430224ff62865d42ea13e66a745ec412290f15f",
+      "after_sha256": "5bce665e1e35fcf25b69c45d33566f9329b46475c1c2732d5aa03a99946e2a9b",
+      "size": 23225
+    },
+    {
+      "target_relative": "apps/web/dist/index.html",
+      "source": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/candidate-dist/index.html",
+      "before_sha256": "989d23bb640dba3435bf321615b2991eae3770fbf34bffa5d24adef0981aa17d",
+      "after_sha256": "7bb23f308dae333b5c407c277fec19cccd0ca8d630d6a5c483e7ea20fe19efe1",
+      "size": 750
+    },
+    {
+      "target_relative": "apps/web/dist/assets/main-DCRf2b-t.js",
+      "source": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/candidate-dist/assets/main-DCRf2b-t.js",
+      "before_sha256": null,
+      "after_sha256": "6cc9739e0a88c618c7ee412162a09cab1dda070b57ff4a2b6a6f4c87f5f8a675",
+      "size": 292606
+    },
+    {
+      "target_relative": "apps/web/dist/assets/main-n9OD1tAD.css",
+      "source": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/candidate-dist/assets/main-n9OD1tAD.css",
+      "before_sha256": null,
+      "after_sha256": "10832c006183124bd549838b3f9dcc59621fcc2c0ae9641327d33fa2777b179c",
+      "size": 58678
+    }
+  ],
+  "deletions": [],
+  "preserve_existing_hashed_assets": true,
+  "excluded_build_outputs": [
+    "manager-selection/**",
+    "daily-research-command/**",
+    "assets/managerSelection-*",
+    "assets/dailyResearchCommand-*"
+  ],
+  "unchanged_main_baseline_proof": {
+    "index.html": "989d23bb640dba3435bf321615b2991eae3770fbf34bffa5d24adef0981aa17d",
+    "assets/main-8z9bdxdh.js": "f49802387c2885219be12e5486ea7af3f923196e250ee38fe2accd5c82c9a6dc",
+    "assets/main-B8Pbg9Vp.css": "5aae6d8d2ca7f6a9856901edfd3e88edf6d9ac8b86f20e6216f3779f39e16bfc"
+  },
+  "build_input_manifest": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/BUILD_INPUT.json",
+    "sha256": "fad7b536126f403737d64cd30613b9dd707c097096c0ac58f9053a841bd14fe2"
+  },
+  "toolchain": {
+    "node": "24.19.0",
+    "vite": "7.3.6",
+    "vue": "3.5.40",
+    "plugin_vue": "6.0.8",
+    "vitest": "4.1.10",
+    "typescript": "5.9.3"
+  },
+  "commands": [
+    {
+      "command": "'/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.bin/vite' build --outDir ../baseline-dist",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/input",
+      "exit_code": 0
+    },
+    {
+      "command": "'/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/.bin/vite' build --outDir ../candidate-dist",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/v4_top200_scope_repair_20261110/writer_build/input",
+      "exit_code": 0
+    }
+  ],
+  "preparation_failures_resolved": [
+    "initial exec cwd did not yet exist; no command executed",
+    "initial baseline build missing required multi-page entry HTML; copied active daily-research-command/manager-selection/preview inputs, then build passed"
+  ]
+}
