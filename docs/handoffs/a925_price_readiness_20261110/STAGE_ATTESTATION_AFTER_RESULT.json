@@ -1,0 +1,34 @@
+{
+  "6": {
+    "status": "PARSED_AND_SELECTED",
+    "manifest_checks": 6,
+    "selected_owner": "fixture5",
+    "historical_evidence_present": true
+  },
+  "7": {
+    "status": "PARSED_AND_SELECTED",
+    "manifest_checks": 7,
+    "selected_owner": "fixture6",
+    "historical_evidence_present": true
+  },
+  "8": {
+    "status": "REJECTED",
+    "error": "HOURLY_PROVENANCE_ALLOWLIST_INVALID",
+    "manifest_checks": 0
+  },
+  "invalid_sha": {
+    "status": "REJECTED",
+    "error": "RESEARCH_RELEASE_MANIFEST_SHA_MISMATCH",
+    "manifest_checks": 7
+  },
+  "invalid_path": {
+    "status": "REJECTED",
+    "error": "RESEARCH_OWNER_ROOT_INVALID",
+    "manifest_checks": 6
+  },
+  "invalid_duplicate": {
+    "status": "REJECTED",
+    "error": "HOURLY_PROVENANCE_ALLOWLIST_INVALID",
+    "manifest_checks": 6
+  }
+}

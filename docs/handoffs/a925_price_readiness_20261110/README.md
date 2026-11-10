@@ -12,6 +12,10 @@ Main 也是真实 reader：其原 `348e19df…` 文件读取新身份产物会�
 
 Main 增量验证入口是 `PYTHONDONTWRITEBYTECODE=1 "$PANEL_PYTHON" docs/handoffs/a925_price_readiness_20261110/verify_main_compat.py`。它仅建立 `.verification/main-before`、`.verification/main-after` 隔离副本，并用既有 `.verification/artifacts` 新产物及 `.verification/main-legacy-fixture` 合成旧产物核读。旧 Main reader 对新产物 RED、get返回0行；兼容后原envelope全行精确读回、get返回10行。旧SHA产物在前后 reader/get 都 PASS，allowlist恰好由原7项增加15fd一项，原Main文件事后仍为原SHA。结果在 `MAIN_COMPAT_BEFORE_RESULT.json`、`MAIN_COMPAT_AFTER_RESULT.json`；源码前后SHA与fixture目录在 `MAIN_COMPAT_SHA.json`。没有重跑已匹配的 Stage/API PASS。
 
+发布 guard 又确认保留原6个历史 owner 并追加旧Main29ac时需要第7项，因此独立提供第7个 Stage 变更文件：`stage_attestation_compat.patch`。它以现役 `infrastructure/manager_input_attestation.py` 的 `bb88782d…` 原字节为基线，**只把历史 owner 上限6改为7**；候选文件SHA为 `cdfadb406984babc623f7b5bedf42e92e44fa2e0b12063d519256ff653960d12`。repo同名文件存在漂移，因此不把repo旧文件覆盖现役。原六文件 `stage_repair.patch`、API/Main兼容patch、15fd算法字节均未变。
+
+`verify_attestation_compat.py` 在临时目录构造真实 manifest、inventory、源码文件及其 SHA，执行实际历史绑定解析和 `_release_manifest` 校验：旧6保持通过，7从拒绝变为逐项校验7份manifest并选中第7个，8仍在manifest读取前拒绝；错误SHA、相对路径、重复owner也仍拒绝。当前Stage信任入口和最终publication witness在该边界测试中作桩，不宣称该合成fixture证明真实运行时重新封签。结果/源文件前后SHA见 `STAGE_ATTESTATION_*`；现役源文件前后SHA一致，fixture用后清理。未改6个历史owner条目、11/6 transition、manifest/路径/SHA校验、运行时config或发布绑定。
+
 Futu [官方快照文档](https://openapi.futunn.com/futu-api-doc/en/quote/get-market-snapshot.html)分别定义 last_price 为最新价、open_price 为开盘价、update_time 为更新时间，没有把最新价认证为09:25撮合成交价。将零开盘/量额判为 UNKNOWN 是本次保守解释，不是官方就绪保证。provider 只新增字段覆盖汇总，未改请求、等待、重试或截止时间；原始 SDK 批次和历史原字节保留。
 
 验证结果：
