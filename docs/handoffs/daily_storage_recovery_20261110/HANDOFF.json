@@ -1,0 +1,89 @@
+{
+  "schema": "v4.daily_storage_recovery_writer.v1",
+  "status": "IMPLEMENTED_TARGETED_TESTED_PREPARED_NOT_ACCEPTED",
+  "timestamp": "2026-11-10T17:47:04.353390+08:00",
+  "business_worktree": "/Users/lexi/.codex/worktrees/daily-storage-recovery-20261110",
+  "business_base": "26824b180acf8f5b0f13ffca1918a2aaa04d6f78",
+  "release_worktree": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110",
+  "release_base": "9533664efef9a1e1c8f16b4e43eca020a160ef47",
+  "changed_files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-recovery-20261110/ops/research_storage_governance.py",
+      "sha256": "1e5ad5ceec4514a4e203f34e837958d859e396cc23d6bfb54de00e360fbe6e2f"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-recovery-20261110/tests/test_daily_storage_recovery.py",
+      "sha256": "104e519da10abf46275df8d1033f8de7721ce1039abab8e06a13c1e9d18df666"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/ops/prepare_daily_storage_recovery_release.py",
+      "sha256": "ec0b286996711c4abf00ed9381b12e264f1f63bbf9250a1598c0f4df68278232"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/tests/test_prepare_daily_storage_recovery_release.py",
+      "sha256": "711c645ce6b4eb1afd32c10ac2122793b9e890a0221509712cbbb6b27ea05e33"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/docs/handoffs/daily_storage_release_20261110/DELTA.json",
+      "sha256": "7a962a3b44e6b6122f96841f262940a7741d31a93bf6b4f9d88b80049b41860c"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/docs/handoffs/daily_storage_release_20261110/stage_manager_input_attestation.py",
+      "sha256": "e7d6ef73a65e6dec59d197d0fd0097e923ca872585c9844275a607d76fcd05e1"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-recovery-20261110/docs/handoffs/daily_storage_recovery_20261110/README.md",
+      "sha256": "f9231058e3e0d7f3d8fef67c5b5b27c78cd349dfe7596638ade7befad929b16f"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/docs/handoffs/daily_storage_release_20261110/README.md",
+      "sha256": "c47aab6f9b4c469c46afbd7ba4e9a0dbd9c9ae656598be2cad716506d0ca4d2f"
+    }
+  ],
+  "business_source_before_sha256": "51c4a8d825267210657ef580353fff7a11d4c3fadbdfbb203f29f6be7bed90b8",
+  "diagnosis": "Generic doubled JSON proxy over-reserves actual JSON/CSV source serializers. Replace only raw-sync admission size measurement with exact UTF8 serialization length; existing writers and all numeric/source bytes unchanged.",
+  "proof": {
+    "red": "RED.txt:2 fail PREDICTED_PEAK_EXCEEDED,2 pass",
+    "green": "GREEN.txt:59 passed (new4 plus storage/context55)",
+    "release": "RELEASE_TESTS.txt:3 passed",
+    "serializer": "SERIALIZER_EVIDENCE.json:95,298,417 exact summary vs156,490,186 old admission; actual newerCSV21,229,694 differs from old-summary reconstruction18,652,199",
+    "packet": "24 source bindings validated; strict Main/Stage clones preserve all non-delta bytes; exact API unchanged"
+  },
+  "tests_commands": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -m pytest -q tests/test_daily_storage_recovery.py --basetemp /Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/pytest-red",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -m pytest -q tests/test_daily_storage_recovery.py tests/test_research_storage_governance.py tests/test_research_storage_governance_context.py --basetemp /Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/pytest-green",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -B -m pytest -q tests/test_prepare_daily_storage_recovery_release.py --basetemp /Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/pytest-release"
+  ],
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/PACKET.json",
+    "sha256": "1ba798729923924fa8073dfb050a00e9bbe7a072795d0c5f4819d0e147349316",
+    "status": "PREPARED_NOT_ACTIVATED",
+    "delta": [
+      "Main ops/research_storage_governance.py exact serializer accounting",
+      "Stage infrastructure/manager_input_attestation.py sole >7 to >8 history capacity",
+      "Stage config exact old current Main appended as historical8; current repinned; prior7 and transition unchanged"
+    ],
+    "control_roles": [
+      "main",
+      "stage"
+    ],
+    "api": "UNCHANGED_NO_SERVICE_CONTROL",
+    "pins": "24 bindings, only source-prefix/SHA and Stage plist migration; policy only managed_pin_inventory reference changes"
+  },
+  "recovery_invocation": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/RECOVERY_INVOCATION.json",
+  "cannot_confirm": [
+    "Exact historical failing incoming in-memory payload was not persisted; preserved summary16:23 and CSV16:45 belong to different runs",
+    "Actual D10 owner recovery result, paired generation, daily package, derivatives, API/UI and natural slot NOT_RUN by Writer",
+    "Full first-run raw forecast and direct os.open snapshot capture not certified by this minimal resume fix",
+    "Independent review, activation, commit and push pending controller"
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "temporary_failure": "First red pytest session encountered unrelated shared pytest retention cleanup EPERM; reran in task-owned --basetemp and retained exact2fail/2pass evidence; no shared cleanup attempted.",
+  "preparation_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m ops.prepare_daily_storage_recovery_release prepare --delta /Users/lexi/.codex/worktrees/daily-storage-release-20261110/docs/handoffs/daily_storage_release_20261110/DELTA.json --output '/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1'",
+  "ownership": "Released to controller for independent read-only review. All business/release executable bytes and packet frozen at listed SHA."
+}

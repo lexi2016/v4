@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
+import csv
 import fcntl
 import hashlib
 import json
@@ -1324,6 +1325,32 @@ def input_write_seams(claim):
             for module,name,original in reversed(originals):setattr(module,name,original)
 
 
+def raw_write_size(name, payload):
+    """Measure the existing raw owner's on-disk serializer, not a JSON proxy.
+
+    JSON/CSV helpers write directly; only _atomic_write_bytes stages a second
+    file. In either case incoming is one new encoded payload alongside the
+    already observed allocations, not twice an unrelated serialization.
+    """
+    if name == '_atomic_write_bytes':return len(payload)
+    if name == 'write_json':
+        encoder=json.JSONEncoder(ensure_ascii=False,indent=2,default=str)
+        return sum(len(chunk.encode('utf-8')) for chunk in encoder.iterencode(payload))
+    if name != 'write_csv':raise RetentionError('UNKNOWN_RAW_WRITE_SERIALIZER')
+    class Counter:
+        # utf-8-sig writes one BOM, including for an empty CSV header.
+        size=3
+        def write(self, value):
+            self.size+=len(value.encode('utf-8'))
+            return len(value)
+    counter=Counter()
+    keys=list(dict.fromkeys(key for row in payload for key in row))
+    writer=csv.DictWriter(counter,fieldnames=keys)
+    writer.writeheader()
+    for row in payload:writer.writerow({key:row.get(key) for key in keys})
+    return counter.size
+
+
 def guarded_raw_run(module,args,claim):
     if claim is None:return module.run(args)
     with _adapter_scope('raw',[module],claim) as (lease,_):
@@ -1335,7 +1362,7 @@ def guarded_raw_run(module,args,claim):
             def guarded(path,payload,*a,_original=original,_name=name,**kw):
                 if not lease.owns():return _original(path,payload,*a,**kw)
                 path=Path(path);claim.watch(path)
-                size=len(payload) if _name=='_atomic_write_bytes' else len(json.dumps(payload,default=str).encode())*2
+                size=raw_write_size(_name,payload)
                 claim.checkpoint(incoming=size)
                 result=_original(path,payload,*a,**kw)
                 if lease.owns():claim.observe(path)
