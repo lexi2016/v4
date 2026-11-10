@@ -1,0 +1,86 @@
+{
+  "status": "PREPARED_TARGETED_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "at": "2026-11-10T18:11:08.279630+08:00",
+  "worktree": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110",
+  "base_commit": "3f5c5307b0300be7a55d913b1c33456770cdbec3",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/ops/prepare_daily_storage_budget_recovery.py",
+      "sha256": "b0136b25f51543b65895c9132ec98c429333927f1486f3ee779c6eecffb790d9"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/tests/test_prepare_daily_storage_budget_recovery.py",
+      "sha256": "8b2c3ae78ee9af2f88c17344f46dd0fe01441b719cac07d8b62408ad51e71b09"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/docs/handoffs/daily_storage_budget_recovery_20261110/README.md",
+      "sha256": "60e41f0562a21a63397b07c2f8289eae1f7761aa37ed3046a3f7410286672218"
+    }
+  ],
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r2/PACKET.json",
+    "sha256": "41a8bdc5bd1cd6623f7527445298efeea20683ccbe1262585fdecb52b105e61d"
+  },
+  "actual_capacity_observation": {
+    "category_baseline_bytes": 132064048368,
+    "formula_forecast_bytes": 51539607552,
+    "free_bytes": 338791305216,
+    "gate_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_storage_governance.py",
+    "ordinary_budget_bytes": 240518168576,
+    "other_remaining_bytes": 34713812416,
+    "ratio_denominator": "disk_usage.total shared pool capacity",
+    "remaining_bytes": 51539607552,
+    "total_bytes": 1995165736960
+  },
+  "exact_policy_diff": {
+    "field": "governance.ordinary_peak_budget_bytes",
+    "before": 171798691840,
+    "after": 240518168576
+  },
+  "exact_plist_diff": [
+    "EnvironmentVariables.V4_RESEARCH_RETENTION_POLICY",
+    "EnvironmentVariables.V4_RESEARCH_RETENTION_POLICY_SHA256"
+  ],
+  "control_roles": [
+    "main"
+  ],
+  "unchanged": [
+    "Main app/release/manifest",
+    "Stage/API app/plist/source identity",
+    "all24pinbytes/reference",
+    "original reservation semantics and all future rows",
+    "48GiB formula forecast",
+    "64GiB reserve,4GiB safety,10%ratio",
+    "debug/quarantine limits,protected paths,GC=false,dry_run=true",
+    "raw numerical inputs,formula/model/pool/BUY"
+  ],
+  "tests": {
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/BUDGET_TESTS.txt",
+    "result": "7 passed in0.06s",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q tests/test_prepare_daily_storage_budget_recovery.py --basetemp /Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/pytest-budget-v2",
+    "previous_serializer": "59PASS reused, exacta188source/testbytes restored"
+  },
+  "prepare": {
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/BUDGET_PREPARE.txt",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m ops.prepare_daily_storage_budget_recovery prepare --output '/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r2'",
+    "result": "PASS,24bindings"
+  },
+  "business_restore": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/RESTORED_SERIALIZER_WINNER.json",
+  "rejected_delta": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/REJECTED_TERMINAL_RESERVATION_DELTA.patch",
+  "continuation_plan": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/RECOVERY_CONTINUATION_R2.json",
+  "continuation_note": "Plan is original owner with bound READY raw authority/accepted manifest; its old160GiB capacity-block observation remains historical. Activate reviewed224GiB policy before continuation, no raw repetition.",
+  "not_run": [
+    "independent review",
+    "activation",
+    "real formula/producer",
+    "D10pair/product/derivatives",
+    "API/UI and natural acceptance",
+    "commit/push"
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

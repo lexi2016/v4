@@ -1,0 +1,24 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "reviewer": "/root/daily_storage_reviewer",
+  "received_and_consumed_at": "2026-11-10T18:13:11.093833+08:00",
+  "scope": "r2 bounded capacity policy, Main-only transaction, original-owner continuation plan",
+  "packet_sha256": "41a8bdc5bd1cd6623f7527445298efeea20683ccbe1262585fdecb52b105e61d",
+  "continuation_sha256": "f7ede7871df606dbb112634b1faefacbfac0c8adf8f58396d7ec35b9bbb2abc5",
+  "blocking_findings": [],
+  "nonblocking_findings": [
+    {
+      "severity": "P3",
+      "file": "ops/prepare_daily_storage_budget_recovery.py",
+      "line": 174,
+      "issue": "Displayed category headroom uses physical rather than logical remaining reservations",
+      "exact_category_peak_bytes": 218317480649,
+      "exact_category_headroom_bytes": 22200687927,
+      "runtime_gate_affected": false
+    }
+  ],
+  "independent_checks": "PASS_PACKET_VALIDATION_24_PINS_EXACT_DELTAS_AND_CONTINUATION_INPUT_HASHES",
+  "reused_tests": "7 focused tests",
+  "prior_r1_pass": "REUSED_UNCHANGED",
+  "actual_formula_and_product": "CANNOT_CONFIRM_NOT_RUN"
+}
