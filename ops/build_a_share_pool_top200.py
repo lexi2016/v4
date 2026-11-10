@@ -213,10 +213,13 @@ def _pool_projection(pages,sets,union,top):
 def _natural_receipt(date, stage, stage_root):
     """Explain the existing natural run; never authorize or recreate selection."""
     path = stage_root.parent / 'receipts' / date / stage / 'receipt.json'
-    if not path.exists():
-        return dict(receipt_status='NOT_FOUND', execution_status='NOT_RUN', errors=[])
     ref = dict(path=str(path))
     try:
+        receipt_root = stage_root.parent.resolve() / 'receipts'
+        if path.is_symlink() or not path.resolve().is_relative_to(receipt_root):
+            raise ValueError('NATURAL_RECEIPT_SOURCE_PATH_ESCAPE')
+        if not path.exists():
+            return dict(receipt_status='NOT_FOUND', execution_status='NOT_RUN', errors=[])
         ref['sha256'] = sha(path)
         receipt = checked(ref)
         if not isinstance(receipt, dict) or not isinstance(receipt.get('markets'), dict):

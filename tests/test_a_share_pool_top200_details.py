@@ -228,6 +228,36 @@ class NaturalReceiptSemanticsTest(StageIdentityRegression):
         self.assertIsNone(seven['stages'][self.stage]['hit_count'])
         self.assertEqual(seven['stages'][self.stage]['row_count'], 0)
 
+    def test_receipt_direct_symlink_is_rejected_even_with_matching_payload(self):
+        from ops.build_a_share_pool_top200 import _natural_receipt
+        path = self.receipt()
+        target = self.root.parent / 'outside-receipt.json'
+        path.rename(target)
+        path.symlink_to(target)
+        result = _natural_receipt(self.date, self.stage, self.root)
+        self.assertEqual(result['receipt_status'], 'CANNOT_CONFIRM')
+        self.assertIn('NATURAL_RECEIPT_SOURCE_PATH_ESCAPE', result['errors'])
+
+    def test_receipt_parent_symlink_escape_is_rejected(self):
+        from ops.build_a_share_pool_top200 import _natural_receipt
+        path = self.receipt()
+        directory = path.parent
+        outside = self.root.parent / 'outside-stage'
+        directory.rename(outside)
+        directory.symlink_to(outside, target_is_directory=True)
+        result = _natural_receipt(self.date, self.stage, self.root)
+        self.assertEqual(result['receipt_status'], 'CANNOT_CONFIRM')
+        self.assertIn('NATURAL_RECEIPT_SOURCE_PATH_ESCAPE', result['errors'])
+
+    def test_receipt_direct_symlink_inside_receipt_root_is_rejected(self):
+        from ops.build_a_share_pool_top200 import _natural_receipt
+        path = self.receipt()
+        target = path.with_name('same-root.json')
+        path.rename(target)
+        path.symlink_to(target)
+        result = _natural_receipt(self.date, self.stage, self.root)
+        self.assertEqual(result['receipt_status'], 'CANNOT_CONFIRM')
+
     def test_absent_receipt_is_not_run_only_when_index_is_readable(self):
         seven, _, _ = self.project(None)
         self.assertEqual(seven['stages'][self.stage]['execution_status'], 'NOT_RUN')
