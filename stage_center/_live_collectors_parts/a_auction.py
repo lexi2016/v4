@@ -94,9 +94,10 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
                     "last_price", "prev_close_price", "open_price", "high_price", "low_price", "turnover", "volume",
                     "bid_price1", "ask_price1", "bid_vol1", "ask_vol1")}
                 price, previous = numeric["last_price"], numeric["prev_close_price"]
-                if (price is None or price <= 0 or previous is None or previous <= 0
-                        or any(numeric[key] is None for key in ("open_price", "high_price", "low_price", "turnover", "volume"))):
+                if price is None or price <= 0 or previous is None or previous <= 0:
                     continue  # Bad source row is isolated; no invented prev close.
+                # Optional unready fields stay None through the raw contract;
+                # they cannot veto an otherwise valid native price observation.
                 preopen_label = row.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS
                 observation_time = _shanghai_datetime(
                     row["captured_at"] if preopen_label else row["source_update_time"]
