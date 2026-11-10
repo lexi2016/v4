@@ -13,7 +13,7 @@ def base_policy(tmp_path):
         protected=['CURRENT','rollback','raw','unfinished'],auto_gc_enabled=False,dry_run=True,
         managed_pin_inventory={'path':'/fixed/pins','sha256':'exact-pins'},
         governance=dict(enabled=True,pool_id='isolated',pool_identity_verified=True,
-            registry_root=str(tmp_path/'registry'),ordinary_peak_budget_bytes=160*release.GIB,
+            registry_root=str(tmp_path/'registry'),ordinary_peak_budget_bytes=224*release.GIB,
             reserve_bytes=64*release.GIB,safety_bytes=4*release.GIB,minimum_free_ratio=.10))
 
 
@@ -21,8 +21,8 @@ def test_exact_one_field_policy_change_and_all_protections_retained(tmp_path):
     before=base_policy(tmp_path);original=deepcopy(before)
     after=release.budget_policy(before)
     assert before==original
-    assert after['governance']['ordinary_peak_budget_bytes']==240_518_168_576
-    unchanged=deepcopy(after);unchanged['governance']['ordinary_peak_budget_bytes']=160*release.GIB
+    assert after['governance']['ordinary_peak_budget_bytes']==280_246_616_064
+    unchanged=deepcopy(after);unchanged['governance']['ordinary_peak_budget_bytes']=224*release.GIB
     assert unchanged==before
     release.assert_policy_delta(before,after)
     for mutation in ('reserve_bytes','safety_bytes','minimum_free_ratio'):
@@ -42,17 +42,17 @@ def test_original_gate_retains_all_reservations_and_accepts_bounded_capacity(tmp
     before=base_policy(tmp_path)
     config=gate.configuration(before)
     registry=gate.Registry(config,tmp_path)
-    state={'tasks':{'old':dict(reserved_bytes=34_713_812_416,written_bytes=0,
+    state={'tasks':{'old':dict(reserved_bytes=34_713_824_729,written_bytes=12_313,
         logical_written_bytes=0,category='ordinary',state='FAILED_RECOVERABLE')}}
-    monkeypatch.setattr(gate.shutil,'disk_usage',lambda _:types.SimpleNamespace(free=338_705_674_240,total=1_995_165_736_960))
+    monkeypatch.setattr(gate.shutil,'disk_usage',lambda _:types.SimpleNamespace(free=294_229_622_784,total=1_995_165_736_960))
     def sample():
-        return registry.space(state,'new',51_539_607_552,category='ordinary',optional_full=False,category_used=132_064_048_368)
+        return registry.space(state,'new',68_719_476_736,category='ordinary',optional_full=False,category_used=176_179_710_037)
     with pytest.raises(gate.SpaceBlocked,match='CATEGORY_BUDGET_BLOCKED'):sample()
     config['ordinary_peak_budget_bytes']=release.NEW_BUDGET
     assert sample()['other_remaining_bytes']==34_713_812_416
-    assert state['tasks']['old']['reserved_bytes']==34_713_812_416
-    assert sum(release.CAPACITY.values())==218_317_468_336
-    assert release.NEW_BUDGET-sum(release.CAPACITY.values())==22_200_700_240
+    assert state['tasks']['old']['reserved_bytes']==34_713_824_729
+    assert sum(release.CAPACITY.values())==279_613_011_502
+    assert release.NEW_BUDGET-sum(release.CAPACITY.values())==633_604_562
     monkeypatch.setattr(gate.shutil,'disk_usage',lambda _:types.SimpleNamespace(free=70*release.GIB,total=1000*release.GIB))
     with pytest.raises(gate.SpaceBlocked):sample()
 
@@ -63,7 +63,7 @@ def test_preflight_runs_exact_pinned_original_gate_with_same_interpreter(tmp_pat
     seen=[]
     def run(argv,**kw):
         seen.append((argv,kw))
-        return types.SimpleNamespace(returncode=0,stdout=json.dumps({'gate_source':'/exact/main/app/ops/research_storage_governance.py','other_remaining_bytes':34_713_812_416}))
+        return types.SimpleNamespace(returncode=0,stdout=json.dumps({'gate_source':'/exact/main/app/ops/research_storage_governance.py','other_remaining_bytes':34_713_812_416,'logical_other_remaining_bytes':34_713_824_729,'category_baseline_bytes':176_179_710_037,'free_bytes':294_229_622_784,'total_bytes':1_995_165_736_960}))
     monkeypatch.setattr(release.subprocess,'run',run)
     sample=release.capacity_check(release.budget_policy(policy))
     assert sample['other_remaining_bytes']==34_713_812_416
@@ -144,3 +144,18 @@ def test_failed_install_recovers_main_only_original_policy(transaction,monkeypat
     monkeypatch.setattr(release.svc,'restore_services',restore)
     with pytest.raises(RuntimeError,match='new main failed'):release.cutover(packet,review)
     assert live.read_bytes()==b'original' and ('restore','main') in events
+
+
+def test_remaining_chain_worst_case_and_genuine_space_limits(tmp_path):
+    policy=release.budget_policy(base_policy(tmp_path))
+    sample=dict(category_baseline_bytes=176_179_710_037,logical_other_remaining_bytes=34_713_824_729,
+        other_remaining_bytes=34_713_812_416,free_bytes=294_229_622_784,total_bytes=1_995_165_736_960)
+    rows=release.remaining_chain_projection(policy,sample)
+    assert [r['category_worst_bytes'] for r in rows]==[245_253_273_134,279_613_011_502]
+    assert all(r['category_pass'] and r['ratio_pass'] and r['reserve_pass'] for r in rows)
+    bad=dict(sample,free_bytes=250_000_000_000)
+    with pytest.raises(ValueError,match='REMAINING_CHAIN_CAPACITY_REJECTED'):
+        release.remaining_chain_projection(policy,bad)
+    bad=dict(sample,category_baseline_bytes=176_179_710_037+633_604_563)
+    with pytest.raises(ValueError,match='REMAINING_CHAIN_CAPACITY_REJECTED'):
+        release.remaining_chain_projection(policy,bad)

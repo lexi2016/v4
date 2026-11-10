@@ -1,0 +1,138 @@
+{
+  "status": "PREPARED_INCREMENTAL_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "at": "2026-11-10T19:23:59.190784+08:00",
+  "source_root": "/Users/lexi/.codex/worktrees/daily-storage-budget-r3-20261110",
+  "base_commit": "2ae6c433791788f85717fd02b41e237109d16dfb",
+  "branch": "codex/daily-storage-budget-r3-20261110",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-budget-r3-20261110/ops/prepare_daily_storage_budget_recovery.py",
+      "sha256": "644dd0f5c023ddc314d1f19424988e71b21b81e106837fd54d17ed3c036146af"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-budget-r3-20261110/tests/test_prepare_daily_storage_budget_recovery.py",
+      "sha256": "9c27a7545cb60870fd0e704f4d9eba5a472399dde9ce463b24730144800d2626"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-budget-r3-20261110/docs/handoffs/daily_storage_budget_recovery_20261110/R3.md",
+      "sha256": "9ceac5848f17cf4263e1b9d28029d9789b3ea176a30d686ff6c9847ea36f1c10"
+    }
+  ],
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r3/PACKET.json",
+    "sha256": "c671dd9119c5bba731e9430c8dc96092c76a254a7616036a6b51aac70164e0f5"
+  },
+  "exact_policy_diff": {
+    "field": "governance.ordinary_peak_budget_bytes",
+    "before": 240518168576,
+    "after": 280246616064
+  },
+  "control_roles": [
+    "main"
+  ],
+  "capacity": {
+    "category_baseline_bytes": 176179710037,
+    "remaining_chain_forecast_bytes": 68719476736,
+    "retained_other_remaining_bytes": 34713824729
+  },
+  "capacity_observation": {
+    "category_baseline_bytes": 176179710037,
+    "free_bytes": 293794906112,
+    "gate_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app/ops/research_storage_governance.py",
+    "logical_other_remaining_bytes": 34713824729,
+    "measured_category_bytes": 176179710037,
+    "ordinary_budget_bytes": 280246616064,
+    "other_remaining_bytes": 34713812416,
+    "ratio_denominator": "disk_usage.total shared pool capacity",
+    "remaining_bytes": 68719476736,
+    "remaining_chain_forecast_bytes": 68719476736,
+    "remaining_chain_projection": [
+      {
+        "category_limit_bytes": 280246616064,
+        "category_pass": true,
+        "category_worst_bytes": 245253273134,
+        "free_after_all_retained_reservations_bytes": 224721355328,
+        "minimum_free_ratio": 0.1,
+        "original_forecast_bytes": 34359738368,
+        "projected_free_after_bytes": 259435167744,
+        "projected_free_ratio": 0.130031888047204,
+        "ratio_pass": true,
+        "reserve_and_safety_bytes": 73014444032,
+        "reserve_pass": true,
+        "stage": "materialize_daily_product"
+      },
+      {
+        "category_limit_bytes": 280246616064,
+        "category_pass": true,
+        "category_worst_bytes": 279613011502,
+        "free_after_all_retained_reservations_bytes": 190361616960,
+        "minimum_free_ratio": 0.1,
+        "original_forecast_bytes": 34359738368,
+        "projected_free_after_bytes": 225075429376,
+        "projected_free_ratio": 0.11281039224287381,
+        "ratio_pass": true,
+        "reserve_and_safety_bytes": 73014444032,
+        "reserve_pass": true,
+        "stage": "complete_daily_derivatives"
+      }
+    ],
+    "total_bytes": 1995165736960
+  },
+  "target_basis": "ceil(279613011502/GiB)=261GiB,633604562bytes headroom, full first-stage envelope retained before second32GiB. Old logical reservations34713824729 preserved; forecasts unchanged.",
+  "preserved_r2": {
+    "packet": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r2/PACKET.json",
+      "sha256": "41a8bdc5bd1cd6623f7527445298efeea20683ccbe1262585fdecb52b105e61d"
+    },
+    "tool": {
+      "path": "/Users/lexi/.codex/worktrees/daily-storage-release-20261110/ops/prepare_daily_storage_budget_recovery.py",
+      "sha256": "b0136b25f51543b65895c9132ec98c429333927f1486f3ee779c6eecffb790d9"
+    },
+    "tool_hash_matches": true
+  },
+  "winner": "R1Main app/manifest/source unchanged; D10READY formula result is reused, not recomputed",
+  "continuation_script": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/continue_product_owner_r3.py",
+    "sha256": "7221a003cf3e9da3cdb0fa8556b476fe39e8161ebf48a0c2e92eb426240a976b"
+  },
+  "continuation": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/PRODUCT_OWNER_R3_CALL.json",
+    "sha256": "2a98fe478940f994c44a2ca48eb645dac4ad7427db8390ddba012eb077b4c6eb"
+  },
+  "continuation_review_required_fields": [
+    "verdict=PASS",
+    "packet_sha256",
+    "continuation_sha256",
+    "continuation_script_sha256"
+  ],
+  "tests": {
+    "changed_capacity": "BUDGET_R3_TESTS.txt:4passed4deselected",
+    "unchanged_transaction": "4 matched R2transaction PASS reused; no transaction code changes",
+    "input_check": "PRODUCT_OWNER_R3_CHECK.txt: final script CHECKED_INPUTS_ONLY_NO_PRODUCER PASS after handoff/startup checks",
+    "negative_check": "PRODUCT_OWNER_R3_NEGATIVE_CHECK.json:2rejectionsPASS",
+    "prior_import_failure": "PRODUCT_OWNER_R3_IMPORT_FAILURE.txt retained, corrected original app import binding",
+    "lock_handoff": "PRODUCT_OWNER_R3_LOCK_CHECK.json: disposable-file second open blocked before release, acquired after actual close, PASS"
+  },
+  "commands": {
+    "test": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q tests/test_prepare_daily_storage_budget_recovery.py -k 'exact_one or original_gate or preflight or remaining_chain' --basetemp /Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/pytest-budget-r3-chain",
+    "prepare": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m ops.prepare_daily_storage_budget_recovery prepare --output '/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r3'",
+    "check_only": "Use PRODUCT_OWNER_R3_CALL invocation with exact current Main plist environment plus --check-only"
+  },
+  "installation_precheck": "validate static CAS/source/pins, then activate checks original lane locks/idle, remeasures current category/global/chain projections; reject real drift before stopping Main",
+  "not_run": [
+    "independent review",
+    "R3activation",
+    "product or derivatives producer",
+    "raw or formula rerun",
+    "API/UI acceptance",
+    "commit/push"
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "lock_handoff": "Explicit controller decision: A_LONG covers validation/product/A-receipt only; unlock+actualFDclose+EBADF checkpoint then revalidate pair/formula/product, bind same immutable pair with original request_binding, invoke original governed derivatives/publishers without manual A_LONG or inherited slot/FD metadata. Original publisher CAS/unchanged gates and lock behavior retained; failures stop without reentry.",
+  "known_r2_hazard": "R2 derivatives stopped at admission; latent outer A_LONG reacquisition deadlock not reached. R3script explicit handoff prevents it without changing business owner or fake scheduled slot."
+}

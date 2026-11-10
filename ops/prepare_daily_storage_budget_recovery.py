@@ -23,22 +23,22 @@ from ops.prepare_v192_group_release import save
 from ops.prepare_daily_materials_release import sha
 
 GIB = 1024**3
-OLD_BUDGET = 160*GIB
-NEW_BUDGET = 224*GIB
+OLD_BUDGET = 224*GIB
+NEW_BUDGET = 261*GIB
 BASE_PLISTS = {
-    'main': 'db82a2953124e4631501af08c4a912a9769cd787538db664e213c005b5753ada',
+    'main': 'b247e7cdfd7d4055a8819aa9e511221f10d6aab80a9478a4a1babca45b8af551',
     'api': 'ae03403a80079c7502eac9d020d9905a50cc4447828e0a3fe07fbc2ec00b6d02',
     'stage': 'b107beee2101c2de27848d08003ba1f7fdb0f4de463e2f7cd39c6c346ada24cb',
 }
 LABELS = {'main':'com.lexi.v4.scheduler', 'api':'com.lexi.v4.api',
           'stage':'com.lexi.stage-center.scheduler'}
-CAPACITY = dict(category_baseline_bytes=132064048368,
-    formula_forecast_bytes=51539607552, retained_other_remaining_bytes=34713812416)
+CAPACITY = dict(category_baseline_bytes=176179710037,
+    remaining_chain_forecast_bytes=2*34359738368, retained_other_remaining_bytes=34713824729)
 
 
 def budget_policy(before):
     if before['governance']['ordinary_peak_budget_bytes'] != OLD_BUDGET:
-        raise ValueError('EXACT_160_GIB_POLICY_REQUIRED')
+        raise ValueError('EXACT_224_GIB_POLICY_REQUIRED')
     after = deepcopy(before)
     after['governance']['ordinary_peak_budget_bytes'] = NEW_BUDGET
     return after
@@ -46,14 +46,43 @@ def budget_policy(before):
 
 def assert_policy_delta(before, after):
     if after != budget_policy(before):
-        raise ValueError('POLICY_CHANGE_OUTSIDE_ORDINARY_160_TO_224_GIB')
+        raise ValueError('POLICY_CHANGE_OUTSIDE_ORDINARY_224_TO_261_GIB')
+
+
+def remaining_chain_projection(policy, sample):
+    """Retain the full first32GiB envelope before admitting the second32GiB.
+
+    A partial first stage may retain bytes plus unspent reservation; READY may
+    retain all bytes. Both are conservatively charged as the same full envelope.
+    """
+    forecast=32*GIB
+    rows=[]
+    cfg=policy['governance']
+    for ordinal,name in enumerate(('materialize_daily_product','complete_daily_derivatives'),1):
+        retained=ordinal*forecast
+        category=sample['category_baseline_bytes']+sample['logical_other_remaining_bytes']+retained
+        after_free=sample['free_bytes']-retained
+        reservation_free=after_free-sample['other_remaining_bytes']
+        row=dict(stage=name,original_forecast_bytes=forecast,
+            category_worst_bytes=category,category_limit_bytes=cfg['ordinary_peak_budget_bytes'],
+            category_pass=category<=cfg['ordinary_peak_budget_bytes'],
+            projected_free_after_bytes=after_free,projected_free_ratio=after_free/sample['total_bytes'],
+            minimum_free_ratio=cfg['minimum_free_ratio'],
+            ratio_pass=after_free/sample['total_bytes']>=cfg['minimum_free_ratio'],
+            free_after_all_retained_reservations_bytes=reservation_free,
+            reserve_and_safety_bytes=cfg['reserve_bytes']+cfg['safety_bytes'],
+            reserve_pass=reservation_free>=cfg['reserve_bytes']+cfg['safety_bytes'])
+        rows.append(row)
+    if not all(r['category_pass'] and r['ratio_pass'] and r['reserve_pass'] for r in rows):
+        raise ValueError('REMAINING_CHAIN_CAPACITY_REJECTED:'+json.dumps(rows))
+    return rows
 
 
 def capacity_check(policy):
     """Read current disk and retained reservations with original gate semantics.
 
     This is a bounded admission precheck, not a reservation or forecast change.
-    Actual formula owner repeats admission with freshly measured residents.
+    Each actual product owner repeats admission with freshly measured residents.
     """
     pins=json.loads(checked(policy['managed_pin_inventory']).read_text())
     app_root=pins['expected_main_app_root']
@@ -65,33 +94,43 @@ policy=json.loads(sys.stdin.read())
 registry=g.Registry(g.configuration(policy),policy['data_root'])
 with registry.writer(),registry.transaction():
  state=registry.read()
- sample=registry.space(state,'__budget_precheck__',int(sys.argv[2]),category='ordinary',optional_full=False,category_used=int(sys.argv[3]))
+ roots=set(registry.config['accounting_roots']['ordinary'])
+ roots.update(g.ordinary_resident_paths(registry.config))
+ roots.update(state.get('resident_baseline_paths') or [])
+ for row in state['tasks'].values():
+  if row['category']=='ordinary':roots.update(row.get('billing_paths',[]))
+ seen=set()
+ measured=sum(g.billing_bytes(path,seen=seen) for path in g.unique_roots(roots) if path.exists())
+ baseline=max(measured,int(sys.argv[3]))
+ logical_other=sum(max(0,r['reserved_bytes']-r.get('logical_written_bytes',r['written_bytes'])) for r in state['tasks'].values() if r['category']=='ordinary' and r['state'] in {'RUNNING','VALIDATING','FAILED_RECOVERABLE','SPACE_BLOCKED'})
+ sample=registry.space(state,'__budget_precheck__',int(sys.argv[2]),category='ordinary',optional_full=False,category_used=baseline)
+ sample.update(category_baseline_bytes=baseline,measured_category_bytes=measured,logical_other_remaining_bytes=logical_other)
 sample['gate_source']=str(Path(g.__file__).resolve())
 print(json.dumps(sample))
 """
     result=subprocess.run([sys.executable,'-B','-c',program,app_root,
-        str(CAPACITY['formula_forecast_bytes']),str(CAPACITY['category_baseline_bytes'])],
+        str(CAPACITY['remaining_chain_forecast_bytes']),str(CAPACITY['category_baseline_bytes'])],
         input=json.dumps(policy),capture_output=True,text=True,timeout=30)
     if result.returncode != 0:
         raise ValueError('ORIGINAL_STORAGE_GATE_PRECHECK_REJECTED:'+result.stderr[-2048:])
     sample=json.loads(result.stdout)
     if sample.get('gate_source') != str(Path(app_root)/'ops/research_storage_governance.py'):
         raise ValueError('ORIGINAL_STORAGE_GATE_SOURCE_DRIFT')
-    sample.update(category_baseline_bytes=CAPACITY['category_baseline_bytes'],
-        formula_forecast_bytes=CAPACITY['formula_forecast_bytes'],
+    sample.update(remaining_chain_forecast_bytes=CAPACITY['remaining_chain_forecast_bytes'],
         ordinary_budget_bytes=policy['governance']['ordinary_peak_budget_bytes'])
+    sample['remaining_chain_projection']=remaining_chain_projection(policy,sample)
     return sample
 
 
 def prepare(output):
     approved = Path.home()/'Library/Application Support/com.lexi.v4.local/candidates'
-    if (output != approved/'v4-daily-storage-recovery-20261110-r2'
+    if (output != approved/'v4-daily-storage-recovery-20261110-r3'
             or output.resolve() != output or output.exists()):
-        raise ValueError('EXACT_NEW_R2_CANDIDATE_REQUIRED')
+        raise ValueError('EXACT_NEW_R3_CANDIDATE_REQUIRED')
     home = Path.home()/'Library/LaunchAgents'
     services = {role:_service(home/(label+'.plist')) for role,label in LABELS.items()}
     if {role:s['before_sha256'] for role,s in services.items()} != BASE_PLISTS:
-        raise ValueError('EXACT_INSTALLED_R1_TUPLE_REQUIRED')
+        raise ValueError('EXACT_INSTALLED_R2_TUPLE_REQUIRED')
     for service in services.values():_inventory(service)
     main = services['main']
     env = main['baseline_payload']['EnvironmentVariables']
@@ -134,9 +173,9 @@ def prepare(output):
 
 
 def validate(packet, *, installed=False, restored=False):
-    approved = Path.home()/'Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r2'
+    approved = Path.home()/'Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r3'
     if packet['root'] != str(approved) or approved.resolve() != approved:
-        raise ValueError('EXACT_R2_CANDIDATE_REQUIRED')
+        raise ValueError('EXACT_R3_CANDIDATE_REQUIRED')
     if packet['control_roles'] != ['main'] or packet['capacity'] != CAPACITY:
         raise ValueError('EXACT_MAIN_ONLY_CAPACITY_SCOPE_REQUIRED')
     for reference in packet['tool_source_files']+[packet['old_policy'],packet['policy'],packet['pins']]:checked(reference)
