@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import urllib.request
 
+import ops.build_a_share_pool_top200 as projection
 from ops.build_a_share_pool_top200 import read_daily_projection, sha, STAGES
 
 parser = argparse.ArgumentParser()
@@ -31,6 +32,7 @@ assert all(row['seven_stage']['stages'][k]['execution_status'] == 'EXECUTION_FAI
 assert all(any('HOURLY_COMPLETION_WITNESS_MISSING' in e for e in row['seven_stage']['stages'][k]['errors']) for k in STAGES[1:])
 assert before == {str(path): sha(path) for path in paths}
 summary = dict(status='PASS_READ_ONLY_DATED_CANARY', date='20261109',
+    source_code=dict(path=str(Path(projection.__file__)), sha256=sha(Path(projection.__file__))),
     pool={k:row['a_pool'][k] for k in ['selected_count','hit_count','materialized_pool_count','pool_count']},
     stage={k:row['seven_stage'][k] for k in ['selected_count','hit_count']}, stage_coverage=row['stage_coverage'],
     stages={k:{f:v.get(f) for f in ['status','execution_status','row_count','hit_count','errors','receipt_source']} for k,v in row['seven_stage']['stages'].items()},

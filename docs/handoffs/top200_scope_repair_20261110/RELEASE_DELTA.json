@@ -1,14 +1,14 @@
 {
   "status": "CANDIDATE_NOT_DEPLOYED",
   "active_api_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-api/app",
-  "source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+  "source_commit": "28f12f21f0638487063fc56e9e2d0fae8f8d60d8",
   "changes": [
     {
       "target_relative": "ops/build_a_share_pool_top200.py",
       "source": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/ops/build_a_share_pool_top200.py",
       "before_sha256": "38da3de1e3f1769eda56758af5033e99a0ba64891b6fab1fa6d3bb6b3a3bbb80",
-      "after_sha256": "8dda87f08c86eef25736c3a2ceac5d6510761c12fb8b5e56c06ed9ecfbdf6a29",
-      "size": 29234
+      "after_sha256": "5a4690a6c2625c8ebcd8be51cf1fede2f6e7145e701fab205133fe4ff7c196f3",
+      "size": 29454
     },
     {
       "target_relative": "apps/web/src/components/research/AShareTop200Panel.vue",
@@ -79,5 +79,10 @@
   "preparation_failures_resolved": [
     "initial exec cwd did not yet exist; no command executed",
     "initial baseline build missing required multi-page entry HTML; copied active daily-research-command/manager-selection/preview inputs, then build passed"
-  ]
+  ],
+  "incremental_revision": {
+    "previous_source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+    "scope": "RECEIPT_SYMLINK_ESCAPE_ONLY",
+    "frontend_build": "UNCHANGED_REUSE_PRIOR_PASS"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "status": "CANDIDATE_WRITER_HANDOFF_NOT_FINAL_ACCEPTANCE",
-  "source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+  "source_commit": "28f12f21f0638487063fc56e9e2d0fae8f8d60d8",
   "base_commit": "b304ca2513eceacb4e373777953eaf9c7dd016c9",
   "branch": "codex/top200-scope-repair-20261110",
   "source_root": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110",
@@ -14,7 +14,7 @@
   "source_hashes": {
     "ops/build_a_share_pool_top200.py": {
       "baseline_sha256": "38da3de1e3f1769eda56758af5033e99a0ba64891b6fab1fa6d3bb6b3a3bbb80",
-      "after_sha256": "8dda87f08c86eef25736c3a2ceac5d6510761c12fb8b5e56c06ed9ecfbdf6a29"
+      "after_sha256": "5a4690a6c2625c8ebcd8be51cf1fede2f6e7145e701fab205133fe4ff7c196f3"
     },
     "apps/web/src/components/research/AShareTop200Panel.vue": {
       "baseline_sha256": "d4e93542fed2baf068932a456430224ff62865d42ea13e66a745ec412290f15f",
@@ -22,7 +22,7 @@
     },
     "tests/test_a_share_pool_top200_details.py": {
       "baseline_sha256": "ed1a2e982f80302c3623b67f103febce276a40e9c53669cff3ccaf2c6158953f",
-      "after_sha256": "4e1b97e823b5e5691e8e6b5bcebaafed5028ee770cc90a37368be6fbba473186"
+      "after_sha256": "ddebf0c56242b22e8651cf1ecdf7c093d869dd843f1d6f3330ddc82c903f7bf7"
     },
     "apps/web/src/components/research/AShareTop200Panel.spec.ts": {
       "baseline_sha256": "14b1e7d150c7a2d657e4f4567454c1df45a3197ebcc591589df0f56374955302",
@@ -71,11 +71,11 @@
   "test_cwd": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110",
   "canary": {
     "path": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/docs/handoffs/top200_scope_repair_20261110/CANARY.json",
-    "sha256": "61ba95709141f42628e0fd25f707667e9bd6749d5cb522b54d330f5e5f4c506f"
+    "sha256": "0a811736b9d649f1c06d2ef62852546681842d009589a8582a2e26491e2b7564"
   },
   "release_delta": {
     "path": "/Users/lexi/.codex/worktrees/top200-scope-repair-20261110/docs/handoffs/top200_scope_repair_20261110/RELEASE_DELTA.json",
-    "sha256": "87cf8f7202f1905619cb08b2d95f62e841198e5f95bb549fe771508de1bc74fe"
+    "sha256": "a09430537f3041cf978adc9b41e1fa32d99847cf2427d2fa9e1c63129992c967"
   },
   "states": {
     "IMPLEMENTED": true,
@@ -106,5 +106,22 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
+  },
+  "incremental_revision": {
+    "previous_source_commit": "f5308efad21a84eb92531ba0b498204215cb20b7",
+    "scope": "RECEIPT_DIRECT_SYMLINK_AND_RESOLVED_PARENT_ESCAPE_REJECTION",
+    "red_reproduction": {
+      "tests": 3,
+      "result": "FAILED_AS_EXPECTED_ON_PREVIOUS_CANDIDATE",
+      "observed": "BOUND_NATURAL_RECEIPT"
+    },
+    "test": {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -m unittest tests.test_a_share_pool_top200_details.NaturalReceiptSemanticsTest -q",
+      "result": "PASS",
+      "tests": 11
+    },
+    "canary": "PASS_READ_ONLY_DATED_CANARY",
+    "Vue_and_build": "NOT_REPEATED_UNCHANGED_PRIOR_PASS_REUSED",
+    "independent_review": "PENDING_INCREMENTAL_RECHECK"
   }
 }
