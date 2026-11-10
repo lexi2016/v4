@@ -1,0 +1,19 @@
+{
+  "mode": "before",
+  "legacy_reader": "PASS",
+  "legacy_algorithm_sha256": "559cd78cd22d86063abdc64c9134419a9a22b4398b560257c9693ea26ebf645e",
+  "legacy_consumer_get": "PASS",
+  "allowlist": [
+    "559cd78cd22d86063abdc64c9134419a9a22b4398b560257c9693ea26ebf645e",
+    "8e04f83945294bd9c6c9a6bc1fa75b046c999860a3515f5d4f0538211fd09878",
+    "928b9f190122bff6efd0b749ad8ae692108b3e560e185865cfefb9d3b0757bee",
+    "eee20b08b50a693dd673f93937ef4eedc63e909295820a0141ce5e728a3754d2",
+    "f2991c472b17742acfd3adb81458ff13826f99dfb7b8a223ad8d6a5dfbbd1a1e",
+    "fa010779606766f2bb94e2b5ef028a06df218ca6e68b48284a94c64bf0919657",
+    "fa010779e194b06ee9a77799d6b41a8d76a641a047b05b96c4594766e4497506"
+  ],
+  "new_reader": "EXPECTED_RED",
+  "error": "selection algorithm SHA mismatch",
+  "new_consumer_get": "EXPECTED_RED",
+  "consumer_selected_rows": 0
+}

@@ -1,5 +1,5 @@
 {
-  "status": "WRITER_TARGETED_PASS_REVIEW_REQUIRED",
+  "status": "WRITER_THREE_OWNER_SOURCE_CLOSURE_PASS_REVIEW_REQUIRED",
   "source_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110",
   "branch": "codex/a925-price-readiness-20261110",
   "business_base_commit": "fc423383b906f964896a4ceb423d4da020d9c32e",
@@ -79,7 +79,8 @@
     ],
     "snapshot_original_sha_unchanged": true,
     "new_algorithm_api_envelope_roundtrip": "PASS",
-    "optional_full_chain_incremental": "RED 15 FAILED -> GREEN 15 PASSED; existing 21 targeted and 42 active overlay PASS reused"
+    "optional_full_chain_incremental": "RED 15 FAILED -> GREEN 15 PASSED; existing 21 targeted and 42 active overlay PASS reused",
+    "main_consumer_compatibility": "PASS: old reader expected SHA mismatch -> one-line compat reads exact new envelope; old algorithm reader/get before+after PASS; new consumer.get 0->10; all original seven SHA preserved"
   },
   "isolation": {
     "stage_overlay": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/stage",
@@ -89,7 +90,11 @@
     "live_store_as_publish_root_used": false,
     "live_index_before_sha": "NOT_CAPTURED",
     "live_index_hash_unchanged": "CANNOT_CONFIRM_NO_BEFORE_HASH",
-    "evidence": "verify_isolated.py sets publish root to HERE/.verification/artifacts; only temporary artifacts and API candidate are mutated"
+    "evidence": "verify_isolated.py sets publish root to HERE/.verification/artifacts; only temporary artifacts and API candidate are mutated",
+    "main_before_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/main-before",
+    "main_after_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/main-after",
+    "main_legacy_publish_store": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/main-legacy-fixture",
+    "main_source_original_sha_unchanged": true
   },
   "cannot_confirm": [
     "Futu latest quote is not certified auction matched transaction price",
@@ -203,6 +208,12 @@
     {
       "command": "git diff --check -- stage_center/_live_collectors_parts/a_auction.py tests/test_a925_price_readiness.py",
       "result": "PASS"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 \"$PANEL_PYTHON\" docs/handoffs/a925_price_readiness_20261110/verify_main_compat.py",
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "result": "MAIN_COMPAT_PASS: new reader RED->GREEN; old reader/get PASS before+after; new get0->10; Main source original SHA unchanged",
+      "scope": "Main exact one-line enum only; no Stage/API tests repeated"
     }
   ],
   "safety_flags": {
@@ -221,5 +232,23 @@
     ],
     "restoration_owner": "CONTROLLER_CAS_RESTORE; not Writer",
     "subsequent_tests": "isolated overlay only; -p no:cacheprovider and PYTHONDONTWRITEBYTECODE=1"
+  },
+  "main_variant": {
+    "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app/stage_center/selection.py",
+    "before_sha256": "348e19df299d2b67697ec4f145a2d9952dbfdd3d963b3cbde428d5a97bb822cd",
+    "after_sha256": "6cb42f8a324577ec70e35046660627957280ba00c0f6d76b0dd5257197749345",
+    "algorithm_sha256": "15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896",
+    "delta": "append one allowlist literal only",
+    "new_fixture_store": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/artifacts",
+    "legacy_fixture_store": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/main-legacy-fixture",
+    "patch": "main_compat.patch",
+    "patch_sha256": "4d86c2e46ccb5fdff700c52ef900ebb682b070bb3cc66b8a51ce0679932382ed",
+    "candidate_root": "/Users/lexi/.codex/worktrees/a925-price-readiness-20261110/docs/handoffs/a925_price_readiness_20261110/.verification/main-after"
+  },
+  "integration_state": {
+    "previous_two_owner_candidate": "SEALED_BUT_MAIN_READER_GAP_OBSERVED_NOT_DEPLOYED",
+    "three_owner_source_compatibility": "STAGE_PRODUCER_PLUS_API_AND_MAIN_READERS_TARGETED_PASS",
+    "runtime_deployment": "NOT_RUN_BY_WRITER",
+    "controller_remaining": "independent incremental review; exact compatibility Main release; Stage owner repin new Main and preserve historical29ac; authorized release verification"
   }
 }

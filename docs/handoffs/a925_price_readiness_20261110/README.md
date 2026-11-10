@@ -8,6 +8,10 @@ Writer targeted PASS；独立 Reviewer 与发布验收待主控执行。机器�
 
 新增09:25专用算法身份 `15fd78695c5c0b345dcbf6b32f884320b1fb51b3f9b40876bfe83fe9655fa896`，旧身份全部继续允许读取。新身份覆盖 native 价格降级与 legacy 非法价隔离，其他阶段的算法身份未改。API 的现役文件是 monolith，必须只应用 `api_compat.patch` 单行枚举变化，不能覆盖成 Stage 拆分版。准确 API before/after SHA 见 `API_COMPAT_SHA.json`；实际候选位于 `.verification/api/stage_center/selection.py`。
 
+Main 也是真实 reader：其原 `348e19df…` 文件读取新身份产物会报 `selection algorithm SHA mismatch`。本轮只对这个精确原文件提供 `main_compat.patch` 一行允许枚举追加，Main 候选 SHA 为 `6cb42f8a324577ec70e35046660627957280ba00c0f6d76b0dd5257197749345`。不把 API/Stage 文件覆盖 Main。Main/Scheduler 的运行逻辑未改；owner重pin与历史Main29ac兼容声明由主控发布阶段处理，Writer未改运行时绑定。
+
+Main 增量验证入口是 `PYTHONDONTWRITEBYTECODE=1 "$PANEL_PYTHON" docs/handoffs/a925_price_readiness_20261110/verify_main_compat.py`。它仅建立 `.verification/main-before`、`.verification/main-after` 隔离副本，并用既有 `.verification/artifacts` 新产物及 `.verification/main-legacy-fixture` 合成旧产物核读。旧 Main reader 对新产物 RED、get返回0行；兼容后原envelope全行精确读回、get返回10行。旧SHA产物在前后 reader/get 都 PASS，allowlist恰好由原7项增加15fd一项，原Main文件事后仍为原SHA。结果在 `MAIN_COMPAT_BEFORE_RESULT.json`、`MAIN_COMPAT_AFTER_RESULT.json`；源码前后SHA与fixture目录在 `MAIN_COMPAT_SHA.json`。没有重跑已匹配的 Stage/API PASS。
+
 Futu [官方快照文档](https://openapi.futunn.com/futu-api-doc/en/quote/get-market-snapshot.html)分别定义 last_price 为最新价、open_price 为开盘价、update_time 为更新时间，没有把最新价认证为09:25撮合成交价。将零开盘/量额判为 UNKNOWN 是本次保守解释，不是官方就绪保证。provider 只新增字段覆盖汇总，未改请求、等待、重试或截止时间；原始 SDK 批次和历史原字节保留。
 
 验证结果：
