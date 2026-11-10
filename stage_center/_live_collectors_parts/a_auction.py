@@ -1,5 +1,6 @@
 """stage_center.live_collectors: a_auction (review candidate, not deployment)."""
 from __future__ import annotations
+
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -70,6 +71,71 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
             missing_symbols=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(codes) - {_v4_global(_v4_scope, 'str')(row["code"]) for row in rows})),
             source_evidence=("route=a_share_exact_date_auction_transaction", "exact_date=true", f"auction_csv={csv_path}", f"auction_csv_sha256={_v4_global(_v4_scope, '_sha_file')(csv_path)}"),
         )
+    if replay_provider is None:
+        # Native prephase is the normal source. This consumer never waits,
+        # queries a late quote or silently starts transaction/history replay.
+        try:
+            from infrastructure.stage_quote_provider import (
+                PREOPEN_SESSION_OPEN_SEMANTICS,
+                read_native_a_opening_snapshot,
+            )
+            if root is None:
+                raise ValueError("A native auction root is not configured")
+            payload, manifest = read_native_a_opening_snapshot(root, plan.candidate_input)
+            requested = tuple(codes)
+            by_code = {row["symbol"]: row for row in payload["rows"] if row.get("symbol") in requested}
+            rows = []
+            for code in requested:
+                if code not in by_code:
+                    continue
+                row = by_code[code]
+                numeric = {key: _v4_global(_v4_scope, '_safe_number')(row.get(key)) for key in (
+                    "last_price", "prev_close_price", "open_price", "high_price", "low_price", "turnover", "volume",
+                    "bid_price1", "ask_price1", "bid_vol1", "ask_vol1")}
+                price, previous = numeric["last_price"], numeric["prev_close_price"]
+                if (price is None or price <= 0 or previous is None or previous <= 0
+                        or any(numeric[key] is None for key in ("open_price", "high_price", "low_price", "turnover", "volume"))):
+                    continue  # Bad source row is isolated; no invented prev close.
+                preopen_label = row.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS
+                observation_time = _shanghai_datetime(
+                    row["captured_at"] if preopen_label else row["source_update_time"]
+                ).strftime("%Y-%m-%d %H:%M:%S")
+                rows.append({"batch_index": len(rows)+1, "code": code,
+                    "name": row.get("name") or code, "trade_date": plan.trade_date,
+                    "update_time": observation_time, "time": observation_time,
+                    "last_price": price, "open_price": numeric["open_price"],
+                    "high_price": numeric["high_price"], "low_price": numeric["low_price"],
+                    "prev_close_price": previous, "turnover": numeric["turnover"], "amount": numeric["turnover"],
+                    "volume": numeric["volume"], "bid_price": numeric["bid_price1"],
+                    "ask_price": numeric["ask_price1"], "bid_vol": numeric["bid_vol1"], "ask_vol": numeric["ask_vol1"],
+                    "window_start": observation_time, "window_end": observation_time,
+                    "bar_count": 1, "temporal_cutoff_safe": True, "is_open_call_auction_match": False,
+                    "native_quote_snapshot": True, "native_snapshot_sha256": manifest["artifact_sha256"],
+                    "native_capture_started_at": row["capture_started_at"], "native_captured_at": row["captured_at"],
+                    "native_source_update_time": row["source_update_time"], "native_market_cutoff_at": payload["market_cutoff_at"],
+                    "source_time_semantics": row.get("source_time_semantics") or "",
+                    "source_method": row["source_method"]})
+            missing = tuple(code for code in requested if code not in {r["code"] for r in rows})
+            preopen_label_rows = sum(1 for item in rows if item.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS)
+            return _v4_global(_v4_scope, 'SourceResult')(
+                source_id="a_share_auction", status="READY" if not missing else "PARTIAL_WITH_ROWS" if rows else "CANNOT_CONFIRM",
+                rows=tuple(rows), requested_rows=len(requested), missing_symbols=missing,
+                cannot_confirm=("NATIVE_QUOTE_SNAPSHOT_NOT_L2_NOT_TRANSACTION",),
+                source_evidence=("route=a_share_native_quote_snapshot", "native_snapshot_contract=V4_A_OPENING_NATIVE_SNAPSHOT_V1",
+                    "exact_date=true", f"native_snapshot_sha256={manifest['artifact_sha256']}",
+                    f"native_snapshot_manifest={root / 'native_opening' / plan.trade_date / 'STAGE_0925' / 'manifest.json'}",
+                    f"native_snapshot_captured_at={payload['captured_at']}",
+                    f"candidate_current_sha256={manifest['candidate_current_sha256']}",
+                    "native_snapshot_real_capture_within_092500_092505=true",
+                    f"native_preopen_session_label_rows={preopen_label_rows}",
+                    "native_observation_time_basis=" + ("captured_at_for_preopen_label" if preopen_label_rows else "source_update_time")))
+        except Exception as error:
+            return _v4_global(_v4_scope, 'SourceResult')(
+                source_id="a_share_auction", status="CANNOT_CONFIRM", requested_rows=len(codes),
+                cannot_confirm=(f"A_NATIVE_0925_SNAPSHOT_UNAVAILABLE:{type(error).__name__}:{error}",),
+                source_evidence=("route=a_share_native_quote_snapshot", "late_snapshot_query_forbidden=true"))
+    # Explicitly injected transaction replay remains a historical compatibility
+    # path, preserving its original parser and safety behavior below.
     # The generated CSV is the preferred exact artifact.  When it is absent,
     # replay the same date/cutoff through the existing read-only PyTDX history
     # provider.  This is deliberately a narrow fallback: it never reads a
@@ -78,10 +144,10 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
     replay_evidence = (
         "route=a_share_exact_date_auction_transaction",
         "exact_date=true",
-        "replay_method=pytdx.hq.get_history_transaction_data",
         f"replay_trade_date={plan.trade_date}",
         f"replay_cutoff={cutoff_iso}",
     )
+    replay_method_evidence = "replay_method=UNKNOWN"
     try:
         if replay_provider is None:
             from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
@@ -133,9 +199,8 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
             if _v4_global(_v4_scope, 'isinstance')(raw, _v4_global(_v4_scope, 'Mapping'))
         ]
         source_methods = {method for method in row_methods if method}
-        replay_method = envelope_method or (
-            next(iter(source_methods)) if len(source_methods) == 1 and all(row_methods) else ""
-        )
+        replay_method = envelope_method or (next(iter(source_methods)) if len(source_methods) == 1 and all(row_methods) else "")
+        replay_method_evidence = f"replay_method={replay_method or 'UNKNOWN'}"
         if replay_method not in {
             "pytdx.hq.get_transaction_data",
             "pytdx.hq.get_history_transaction_data",
@@ -214,7 +279,7 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
                 _v4_global(_v4_scope, 'dict').fromkeys(
                     (
                         *replay_evidence,
-                        f"replay_method={replay_method}",
+                        replay_method_evidence,
                         f"replay_source={payload.get('source') or 'PYTDX_A_SHARE_0925_HISTORY_TRANSACTION'}",
                         f"replay_captured_at={captured_at}",
                         f"replay_capture_mode={capture_mode}",
@@ -231,5 +296,5 @@ def _collect_a_share_auction_body(_v4_scope, /, plan, *, codes, python_path, sha
             cannot_confirm=(f"PYTDX_0925_REPLAY_ERROR:{_v4_global(_v4_scope, 'type')(error).__name__}:{error}",),
             error=_v4_global(_v4_scope, 'str')(error),
             requested_rows=_v4_global(_v4_scope, 'len')(codes),
-            source_evidence=replay_evidence,
+            source_evidence=(*replay_evidence, replay_method_evidence),
         )

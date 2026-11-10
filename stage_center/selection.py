@@ -1,6 +1,6 @@
 """Pure V3 stage-selection formulas and an isolated selection artifact store.
 
-This module intentionally has no imports from V3/V3.5.  Inputs are normalized
+This module intentionally has no imports from V3/V4.  Inputs are normalized
 records supplied by the stage-center acquisition boundary; the functions only
 compute deterministic observations and never authorize a trade.
 """
@@ -16,9 +16,6 @@ import re
 import tempfile
 import time
 from infrastructure.interprocess_lock import owned_interprocess_lock
-from contracts.a_share_instruments import (
-    A_STOCK_INSTRUMENT_CONTRACT, a_share_instrument_rejection, a_share_row_code,
-)
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -117,6 +114,7 @@ HK_FULL_POOL_ALGORITHM_SHA256 = hashlib.sha256(json.dumps(
     HK_FULL_POOL_ALGORITHM_MANIFEST, ensure_ascii=False, sort_keys=True,
     separators=(",", ":"),
 ).encode("utf-8")).hexdigest()
+
 
 LEGACY_A_SHARE_LIVE_ALGORITHM_MANIFEST: dict[str, Any] = _v4_definitions._value_LEGACY_A_SHARE_LIVE_ALGORITHM_MANIFEST(globals())
 LEGACY_A_SHARE_LIVE_ALGORITHM_SOURCE_BYTES = json.dumps(
@@ -443,20 +441,6 @@ def _cap_recommendations(
     return _v4_impl(globals(), rows, preserve_legacy=preserve_legacy)
 
 
-def _a_stock_selection_rows(rows, source_evidence):
-    """Exclude non-stock instruments before scoring, with raw identity retained."""
-    accepted = []
-    excluded = []
-    for row in rows:
-        code = a_share_row_code(row)
-        rejection = a_share_instrument_rejection(code, row)
-        if rejection:
-            excluded.append(f"non_stock_instrument_excluded={code}:{rejection}")
-        else:
-            accepted.append(row)
-    return accepted, (*source_evidence, f"instrument_filter={A_STOCK_INSTRUMENT_CONTRACT}", *excluded)
-
-
 def select_a_stage(
     rows: Sequence[Mapping[str, Any]],
     trade_date: str,
@@ -472,9 +456,6 @@ def select_a_stage(
     source_mode: str = "A_SHARE_STAGE_BARS",
 ) -> dict[str, Any]:
     """Materialize A-share stage rows with V3's formal-pool semantics."""
-    if requested_rows is None:
-        requested_rows = len(rows)
-    rows, source_evidence = _a_stock_selection_rows(rows, source_evidence)
     from stage_center._selection_parts.a_stage import _select_a_stage_body as _v4_impl
     return _v4_impl(globals(), rows, trade_date, stage_id, raw_artifact_sha256, source_status=source_status, requested_rows=requested_rows, missing_symbols=missing_symbols, cannot_confirm=cannot_confirm, source_evidence=source_evidence, formal_incomplete=formal_incomplete, source_mode=source_mode)
 
@@ -498,9 +479,6 @@ def select_a_live_stage(
     older minute-bar ``select_a_stage`` formula: historical 09:40-09:45 rows
     must be recomputed from the exact pytdx adapter and formal candidate pool.
     """
-    if requested_rows is None:
-        requested_rows = len(rows)
-    rows, source_evidence = _a_stock_selection_rows(rows, source_evidence)
     from stage_center._selection_parts.a_live import _select_a_live_stage_body as _v4_impl
     return _v4_impl(globals(), rows, trade_date, stage_id, raw_artifact_sha256, source_status=source_status, requested_rows=requested_rows, missing_symbols=missing_symbols, cannot_confirm=cannot_confirm, source_evidence=source_evidence)
 
@@ -526,9 +504,6 @@ def select_a_0925_auction(
     and the route records the exact-date/time contract in evidence rather than
     falling through to minute-bar scoring.
     """
-    if requested_rows is None:
-        requested_rows = len(rows)
-    rows, source_evidence = _a_stock_selection_rows(rows, source_evidence)
     from stage_center._selection_parts.a_auction import _select_a_0925_auction_body as _v4_impl
     return _v4_impl(globals(), rows, trade_date, raw_artifact_sha256, next_validation_time=next_validation_time, source_status=source_status, requested_rows=requested_rows, missing_symbols=missing_symbols, cannot_confirm=cannot_confirm, source_evidence=source_evidence)
 
@@ -687,7 +662,7 @@ def _artifact_fields_for_schema(schema_version: str | None) -> tuple[str, ...]:
         # ``artifact.csv`` deliberately remains the legacy 12-column
         # projection.  The manifest envelope is the v2 carrier for the full
         # stage-card evidence, which lets the immutable V3 consumer continue
-        # reading the shared run while V3.5 receives the richer envelope.
+        # reading the shared run while V4 receives the richer envelope.
         return SELECTION_ARTIFACT_FIELDS_V1
     raise SelectionError("selection schema version mismatch")
 
@@ -752,31 +727,9 @@ class SelectionStore:
         from stage_center._selection_parts.store_verification import _SelectionStore__verify_run_body as _v4_impl
         return _v4_impl(globals(), self, trade_date, stage_id, market, run_id)
 
-    def publish(self, envelope: Mapping[str, Any], *, market: str) -> dict[str, Any]:
+    def publish(self, envelope: Mapping[str, Any], *, market: str, replace_failed_run_id: str | None = None) -> dict[str, Any]:
         from stage_center._selection_parts.store_publication import _SelectionStore_publish_body as _v4_impl
-        return _v4_impl(globals(), self, envelope, market=market)
-
-    def publish_hk_futu_kline_enrichment_pair(
-        self,
-        candidate_document_bytes: bytes,
-        *,
-        expected_candidate_sha256: str,
-        expected_input_baseline_sha256: str,
-        expected_originals_by_stage: Mapping[str, Mapping[str, str]],
-    ) -> dict[str, Any]:
-        """CAS-publish the frozen 2026-10-12 HK Futu K_1M enrichment pair."""
-        from stage_center._selection_parts.store_publication import (
-            _SelectionStore_publish_hk_futu_kline_enrichment_pair_body as _v4_impl,
-        )
-
-        return _v4_impl(
-            globals(),
-            self,
-            candidate_document_bytes,
-            expected_candidate_sha256=expected_candidate_sha256,
-            expected_input_baseline_sha256=expected_input_baseline_sha256,
-            expected_originals_by_stage=expected_originals_by_stage,
-        )
+        return _v4_impl(globals(), self, envelope, market=market, replace_failed_run_id=replace_failed_run_id)
 
     def read_verified(self, trade_date: str, stage_id: str, market: str) -> dict[str, Any]:
         latest = self._latest()

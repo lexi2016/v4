@@ -34,7 +34,7 @@ def _value_SELECTION_ARTIFACT_FIELDS_V2(_v4_scope, /):
     "low_price",
     "source_last_bar_time",
     "next_validation_time",
-    # V3 and V3.5 use different public spellings.  Persist both in the
+    # V3 and V4 use different public spellings.  Persist both in the
     # producer so neither consumer has to infer missing evidence.
     "support_primary_price",
     "pressure_price",

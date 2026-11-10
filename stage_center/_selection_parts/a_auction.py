@@ -17,6 +17,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
     _v4_global(_v4_scope, '_validate_market')("STAGE_0925", "A_SHARE")
     normalized: list[dict[str, Any]] = []
     invalid_evidence: list[str] = []
+    native_contract = "native_snapshot_contract=V4_A_OPENING_NATIVE_SNAPSHOT_V1" in source_evidence
     for index, source in _v4_global(_v4_scope, 'enumerate')(rows):
         row_date = _v4_global(_v4_scope, 'str')(_v4_global(_v4_scope, '_a_row_value')(source, "trade_date", "verify_date", "date8", "target_date") or "").replace("-", "")
         if row_date and row_date != trade_date:
@@ -35,7 +36,33 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
         if not (920 <= hhmm_value <= 930):
             invalid_evidence.append(f"row {index + 1} outside 09:20-09:30 auction window")
             continue
-        if not _v4_global(_v4_scope, '_truthy')(source.get("is_open_call_auction_match"), True):
+        native = source.get("native_quote_snapshot") is True
+        if native:
+            from infrastructure.stage_quote_provider import PREOPEN_SESSION_OPEN_SEMANTICS, _opening_clock
+            try:
+                digest = source["native_snapshot_sha256"]
+                capture_start = _opening_clock(source["native_capture_started_at"])
+                captured = _opening_clock(source["native_captured_at"])
+                update = _opening_clock(source["native_source_update_time"])
+                cutoff = _opening_clock(source["native_market_cutoff_at"])
+                preopen_label = (
+                    source.get("source_time_semantics") == PREOPEN_SESSION_OPEN_SEMANTICS
+                    and source.get("source_method") == "get_market_snapshot"
+                    and update.strftime("%Y-%m-%d %H:%M:%S")
+                    == f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]} 09:30:00"
+                )
+                if (not native_contract or not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", digest)
+                        or f"native_snapshot_sha256={digest}" not in source_evidence
+                        or cutoff.strftime("%Y%m%d%H%M%S") != trade_date+"092505"
+                        or not cutoff.replace(second=0,microsecond=0) <= capture_start <= captured <= cutoff
+                        or not (preopen_label or cutoff.replace(second=0,microsecond=0) <= update <= captured)
+                        or source.get("is_open_call_auction_match") is not False
+                        or source.get("source_method") not in {"get_market_snapshot", "get_security_quotes"}):
+                    raise ValueError("native quote provenance/true clock rejected")
+            except (KeyError, TypeError, ValueError) as error:
+                invalid_evidence.append(f"row {index + 1} invalid native quote: {error}")
+                continue
+        if not native and not _v4_global(_v4_scope, '_truthy')(source.get("is_open_call_auction_match"), True):
             invalid_evidence.append(f"row {index + 1} is not an opening auction match")
             continue
         code = _v4_global(_v4_scope, 'str')(_v4_global(_v4_scope, '_a_row_value')(source, "code", "ts_code", "stock_code") or "").strip()
@@ -80,7 +107,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
             {
                 "code": code,
                 "score": _v4_global(_v4_scope, 'round')(bounded_score, 6),
-                "status": "集合竞价成交代理观察",
+                "status": "竞价原生报价快照观察" if native else "集合竞价成交代理观察",
                 "formal_eligible": False,
                 "prev_close_price": prev_close,
                 "current_change_pct": None if current_change is None else _v4_global(_v4_scope, 'round')(current_change, 4),
@@ -90,14 +117,16 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
                 "support": price,
                 "pressure": price,
                 "invalidation": price,
-                "source_mode": "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
+                "source_mode": "A_SHARE_NATIVE_QUOTE_SNAPSHOT_STAGE_0925" if native else "A_SHARE_AUCTION_TRANSACTION_STAGE_0925",
                 "lane_evidence": [
-                    "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
+                    "A_SHARE_NATIVE_QUOTE_SNAPSHOT_NOT_TRANSACTION" if native else "A_SHARE_EXACT_DATE_AUCTION_TRANSACTION",
                     "window=09:20-09:30",
                     "exact_date=true",
                     "formula=windows_v3_live_stage_quality_score",
                     "score_bounded_0_100=true",
                     "current_change_pct_basis=AUCTION_PRICE_VS_PREV_CLOSE",
+                    *(["native_source_time_semantics=PREOPEN_SESSION_OPEN_LABEL",
+                       "native_observation_time_basis=captured_at"] if native and preopen_label else []),
                 ],
                 "action_level": "NO_BUY",
                 "trade_status": "WATCH_ONLY",
@@ -112,7 +141,7 @@ def _select_a_0925_auction_body(_v4_scope, /, rows, trade_date, raw_artifact_sha
     algorithm_sha = _v4_global(_v4_scope, 'A_SHARE_LIVE_ALGORITHM_SHA256') if top10 else _v4_global(_v4_scope, 'LEGACY_A_SHARE_LIVE_ALGORITHM_SHA256')
     evidence = (
         *source_evidence,
-        "route=a_share_exact_date_auction_transaction",
+        "route=a_share_native_quote_snapshot" if native_contract else "route=a_share_exact_date_auction_transaction",
         "exact_date=true",
         "window=09:20-09:30",
         "formula=windows_v3_live_stage_quality_score",
