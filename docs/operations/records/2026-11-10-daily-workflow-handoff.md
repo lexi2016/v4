@@ -165,3 +165,6 @@ D=20261109、O=20261110、四组去重371，导航小K253、原公式31、回踩
 > 请先读V4源码的docs/operations/records/2026-11-10-daily-workflow-handoff.md和docs/operations/DAILY_RESEARCH_DELIVERY_SOP.md，并查当前日期、release和原任务回执。按第七节续行同目标，只补未完成项，不重做已验收修复，不重复公式/上传/富途/Chat，不改模型、BUY或既有调度。先说明当前D/O日包是否齐备及下一真实断点，再继续看板、富途和研究回包闭环；新自然验收与历史离线结果分开记录。
 
 RESEARCH_ONLY=true；production_allowed=false；buy_gate_updated=false；orders_sent=false。
+
+
+后续实际恢复、1111富途验收、用户整组删除规则及Chat连接阻塞见[晚间执行记录](2026-11-10-daily-recovery-delivery.md)。原检查时点与未就绪证据保持原样。

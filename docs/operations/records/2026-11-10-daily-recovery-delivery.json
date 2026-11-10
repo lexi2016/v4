@@ -1,0 +1,71 @@
+{
+  "status": "PARTIAL_DELIVERED_CHAT_CONTROL_BLOCKED",
+  "at": "2026-11-10T20:57:43.011555+08:00",
+  "package_id": "FUTU1111_D20261110_O20261111_55a680cccf78",
+  "D": "2026-11-10",
+  "O": "2026-11-11",
+  "generation": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+  "input_digest": "55a680cccf7892044b477a86c884d89864a1f20243fda198a253c64bedd7cbc8",
+  "source_manifest": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/versions/20261110/cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5/70c285399019af7fc120d00ee2d30707755801a3746c907a7a6fa32acc4bc0d9/manifest.json",
+    "sha256": "3d22c74bfee594c594b1630e4327318e5cf3d02e81e2b0b8e692679c6ed2bddd"
+  },
+  "formula_pair": "READY_AFTER_MANUAL_RECOVERY",
+  "daily_product": "PARTIAL_WITH_ROWS",
+  "candidate_count": 380,
+  "original_charts": "380/380 OWNER_CHARTS_COMPLETED",
+  "workbench": "API_PASS and UI_PASS for three SH/SZ/BJ representatives; original tab auto-updated after completion event",
+  "oldest_group": "1029 DELETED_BY_USER_CLIENT; UI and API confirmed",
+  "future_rotation": "Client whole-group deletion of oldest dated custom group when capacity blocks; no backup or per-stock cleanup; automation17 prompt updated, schedule and target unchanged. If whole-group deletion alone fails to free total capacity, report actual result rather than escalating deletion.",
+  "drive": {
+    "status": "SUCCESS_RECEIPTS_9_FILES",
+    "start_here": "https://drive.google.com/file/d/1bLKE1f485dhgI-6IUiHKemEOptwl6En8/view?usp=drivesdk",
+    "prompt": "https://drive.google.com/file/d/1bBPAjL_JuiCdd1dqpMSIfJO3JzDU3Q6y/view?usp=drivesdk",
+    "folder": "https://drive.google.com/drive/folders/1EwBwcBCgbIHtX2YWMTpciEBISjnzsN26",
+    "return_folder": "https://drive.google.com/drive/folders/1oU19fBdb3mj8egbGTwdtR92tkdTCQWuR"
+  },
+  "limitations": [
+    "Manual recovery is not natural/PIT acceptance; next morning09:25 natural slot not yet occurred",
+    "Raw source retained technical exclusions and PARTIAL; 5808 processed,913 unknown in product",
+    "Historical derivative CANNOT_CONFIRM/HISTORY_PRIOR_PANEL_MISSING at approved relocated1029 path; file exists at approved relocation",
+    "Top200 PARTIAL_DESCRIPTIVE; v1.9.2 current group pending; current overseas cards incomplete",
+    "Old81 Chat could not load; prior partial originals kept; no newly verified return",
+    "New company research NOT_RECEIVED and NOT_IMPORTED",
+    "New source SOP record NOT_PUBLISHED to sealed online runtime"
+  ],
+  "github_code_commits": {
+    "governance": "a188b8f0270dd2041e739bd59bdf7a45e5565681",
+    "release_r2": "2ae6c433791788f85717fd02b41e237109d16dfb",
+    "budget_r3": "e82f51f0e45f33d0f07ee825492d8d959f1dd858"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "futu": {
+    "status": "PASS",
+    "requested": 380,
+    "readback": 380,
+    "readback_unique": 380,
+    "missing": [],
+    "extras": [],
+    "stock_count": 380,
+    "index_count": 0,
+    "source_markets": {
+      "SZ": 192,
+      "SH": 164,
+      "BJ": 24
+    },
+    "all_count": 1908
+  },
+  "chat": {
+    "open_status": "USER_CONFIRMED_VISIBLE",
+    "sent_status": "NOT_SENT",
+    "response_state": "NOT_STARTED",
+    "prompt_sha256": "721e867694ddd354f9655a310e2ec77c0b914afed1bf40ad2a493eebbb0cc0e6",
+    "prompt_url": "https://drive.google.com/file/d/1bBPAjL_JuiCdd1dqpMSIfJO3JzDU3Q6y/view?usp=drivesdk",
+    "start_here": "https://drive.google.com/file/d/1bLKE1f485dhgI-6IUiHKemEOptwl6En8/view?usp=drivesdk",
+    "blocker": "CUA getTab, getBrowser and bounded read-only page access each timed out after 30 seconds even after user confirmed page visible. No send was attempted.",
+    "next_action": "When browser control recovers, inspect the visible chat and local receipt first, then submit CHAT_PROMPT once. User may forward prepared sentence now."
+  }
+}

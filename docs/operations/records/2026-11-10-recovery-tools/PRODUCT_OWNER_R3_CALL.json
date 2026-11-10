@@ -1,0 +1,80 @@
+{
+  "status": "FROZEN_MANUAL_RECOVERY_CALL_NOT_RUN",
+  "packet": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r3/PACKET.json",
+    "sha256": "c671dd9119c5bba731e9430c8dc96092c76a254a7616036a6b51aac70164e0f5"
+  },
+  "policy": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r3/research_storage_policy.json",
+    "sha256": "51563d9a294ac2bf5fced43fb90057ab778e34676c9e6c92893bb7a15a61fd00"
+  },
+  "main_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app",
+  "main_manifest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/release-manifest.json",
+    "sha256": "544c7cc4ce3a53720af0c9162dee9d234322f8bd135b56c10c330136ca33cbc8"
+  },
+  "formula_result": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/RECOVERY_R2_FORMULA_RESULT.json",
+    "sha256": "dc731f2ff88a406455b676f9acce4e056810a14e87097a9ec9550c72bb0c613a"
+  },
+  "stage_status": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_cfaef27985f1053b4e88/stage_status.json",
+    "sha256": "f4b028ffc09bd8c6ad787645401b53eacda85e95ed5bb745a561872b145d0a8a"
+  },
+  "candidate_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_cfaef27985f1053b4e88/candidate_receipt.json",
+    "sha256": "3aaf74e3aa7fed2c14ee04ecd316ab19a0400855b6545abc911df7eb3a4ecf7e"
+  },
+  "paired_current": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/storage_governance_v2/paired/current.json",
+    "sha256": "8af01b832e77b3b6dfb0b7459b26e97d6f73a07b005b235b008fcd8fafce4eed"
+  },
+  "paired_manifest": {
+    "id": "3d870a8b0d952d6b703b6d6658fa7b8638a33dd14242d2d088016872ae687a21",
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/storage_governance_v2/paired/generations/3d870a8b0d952d6b703b6d6658fa7b8638a33dd14242d2d088016872ae687a21.json",
+    "sha256": "b2b4cfa6f0059cbfcbaffca03003e9a53169672a7afdd948f37a0e6f42cd0fad"
+  },
+  "paired_id": "3d870a8b0d952d6b703b6d6658fa7b8638a33dd14242d2d088016872ae687a21",
+  "formula_identity": {
+    "generation_id": "cfaef27985f1053b4e888645a3ee8d512792edbae62d33cffafa41ff3c0685b5",
+    "input_sha256": "b0bb597acefe3e50dffa0ac3b3fb6b1d24263819b3bac286ca8b92c2f2028ac3",
+    "snapshot_file_sha256": "d0cae0e45f242c2d89d99d8d3b22e07f03e9c6497d555a31c9480e99e130fb8f",
+    "formula_sha256": "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258",
+    "turnover_input_sha256": "58b6215bb70c7b69caee94be48c2d31bc14c5723d30978f697f53a1b1b10f112",
+    "asof_date": 20261110
+  },
+  "source_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a_sync_authority.json",
+    "sha256": "58e8fda233d32be426246b2013361693efe9ba6e81b129979191385dc0e99224",
+    "size": 158896464
+  },
+  "accepted_input_manifest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/formula_inputs/20261110/6efdca1b11eb7e615c7ad79c5dbbd26b7e7a4834741131047403bcca3f28f2cc/manifest.json",
+    "sha256": "1dfd6b85fb26995aa2278f8e7afc9380a23ec92bb539110e96c69dd45f5d674b",
+    "size": 4171333
+  },
+  "lane_lock": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/scheduler_lane_owners/A_LONG.lock",
+  "invocation": {
+    "executable": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/retirement-main-20261028/venvs/v4-mac/bin/python",
+    "argv": [
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/v4_daily_storage_recovery_20261110/continue_product_owner_r3.py"
+    ],
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app",
+    "environment": "Inherit exact installed Main EnvironmentVariables; no clock or cutoff overrides"
+  },
+  "steps": [
+    "original governed_product(materialize_daily_product)",
+    "original build_a_lane_outcome + run_scheduled_lanes receipt",
+    "original governed_product(complete_daily_derivatives)"
+  ],
+  "reused": "Raw authority and READY formula/pair with exact SHA/stat/footer identity; no raw or formula invocation",
+  "verification_scope": "No repeated full multiGiB panel SHA: original candidate SHA bindings plus current pair/stat/footer; original product SourceContext validates its existing contract.",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "lock_handoff": "Hold A_LONG only for input validation/product/original A receipt. Explicitly unlock and close own FD before governed derivatives; record closed FD; revalidate sameD/currentpair/formula/product binding; original publishers own A_LONG and unchanged/CAS; no scheduled slot/FD metadata. Failures stop, no reentry/retry."
+}
