@@ -78,6 +78,229 @@ class _RawDriver:
         return self.cache[key].copy()
 
 
+# The anchor contract already permits a physical block to contain many symbols.
+# A sealed batch is a storage commit, not a new producer or numerical result.
+BATCH_META = b'v4.original_panel.delta_batch.v1'
+BATCH_SEAL = 'v4.original_panel.delta_batch_seal.v1'
+
+
+def _packing_limits(c):
+    budget = (c.get('resource_plan') or {}).get('job_budget_bytes', 64 * 1024**3)
+    maximum = max(1, min(64 * 1024**2, budget // 64))
+    return dict(max_bytes=maximum, max_symbols=max(1, min(128, maximum // (512 * 1024))))
+
+
+def _batch_common(c):
+    return dict(generation_id=c['run_id'], asof_date=c['target'], input_sha256=c['identity']['input_sha256'])
+
+
+def _batch_path(q, c, role, footer):
+    return c['candidates'][role].parent / 'delta_blocks' / ('batch.' + q['canonical_sha'](footer) + '.parquet')
+
+
+def _seal_key(q, value):
+    return q['canonical_sha'](dict(schema=BATCH_SEAL, **value['identity'],
+        dependencies={code: row['dependency'] for code, row in value['records'].items()}))
+
+
+def _read_seal(q, ref):
+    path = q['_source'](ref, owner='committed delta batch seal')
+    value = json.loads(path.read_text())
+    if (value.get('schema') != BATCH_SEAL or not value.get('records') or not value.get('blocks')
+            or path.name != _seal_key(q, value) + '.json'):
+        raise ValueError('DELTA_BATCH_SEAL_IDENTITY')
+    for role, block in value['blocks'].items():
+        artifact = q['_source'](dict(path=block['path'], sha256=block['sha256']), owner='sealed delta batch role ' + role)
+        if logical.stamp(artifact) != block['stat']:
+            raise ValueError('DELTA_BATCH_SEAL_BLOCK_CHANGED')
+    return value
+
+
+def _sealed_record(q, ref, code):
+    import copy
+    seal = _read_seal(q, ref)
+    if code not in seal['records']:
+        raise ValueError('DELTA_BATCH_MEMBER_MISSING')
+    record = copy.deepcopy(seal['records'][code])
+    record['batch_seal'] = ref
+    for role, value in record['roles'].items():
+        block = copy.deepcopy(seal['blocks'][role])
+        block['metadata_refs'] = block.get('metadata_refs', []) + [ref]
+        value.update(artifact=dict(path=block['path'], sha256=block['sha256']), block=block)
+    return record
+
+
+def _thin_record(record):
+    import copy
+    result = copy.deepcopy(record)
+    for value in result['roles'].values():
+        value.pop('block', None)
+    return result
+
+
+def _load_checkpoint(q, path, code):
+    raw = json.loads(Path(path).read_text())
+    if raw.get('schema') == BATCH_SEAL:
+        return _sealed_record(q, dict(path=str(path), sha256=q['sha'](path)), code)
+    if 'batch_seal' not in raw:
+        return raw
+    result = _sealed_record(q, raw['batch_seal'], code)
+    if _thin_record(result) != raw:
+        raise ValueError('DELTA_BATCH_CHECKPOINT_INDEX_DRIFT')
+    return result
+
+
+def _sealed_members(q, run, *, identity=None):
+    """Discover only atomically committed storage batches, never loose outputs."""
+    result = {}
+    for path in sorted((Path(run) / 'delta_batch_seals').glob('*.json')):
+        ref = dict(path=str(path), sha256=q['sha'](path))
+        seal = _read_seal(q, ref)
+        if identity is not None and seal['identity'] != identity:
+            raise ValueError('DELTA_BATCH_SEAL_GENERATION_DRIFT')
+        for code, record in seal['records'].items():
+            old = result.get(code)
+            if old and old['dependency'] != record['dependency']:
+                raise ValueError('DELTA_BATCH_DUPLICATE_MEMBER_DEPENDENCY')
+            result.setdefault(code, dict(reference=ref, dependency=record['dependency']))
+    return result
+
+
+class _PackedWrites:
+    """Bound parent-owned Arrow patches; workers still only calculate."""
+    def __init__(self, q, c):
+        self.q, self.c, self.limits = q, c, _packing_limits(c)
+        self.pending, self.bytes = [], 0
+        self.written_bytes = self.reused_bytes = 0
+        self.reused_paths = set()
+        self.failed = None
+
+    def reused(self, path):
+        path = Path(path)
+        if path not in self.reused_paths:
+            self.reused_paths.add(path)
+            self.reused_bytes += path.stat().st_size
+
+    def _file(self, path, table):
+        q = self.q
+        path.parent.mkdir(parents=True, exist_ok=True)
+        memory = pa.BufferOutputStream()
+        logical.physical.write_table(table, memory, compression='zstd')
+        payload = memory.getvalue()
+        expected_sha = hashlib.sha256(payload).hexdigest()
+        if path.exists():
+            if q['sha'](path) != expected_sha:
+                raise ValueError('DELTA_UNREGISTERED_OUTPUT_CONFLICT:' + str(path))
+            self.reused(path)
+        else:
+            # The original owner fsyncs and atomically renames this bounded
+            # payload. A failed write never leaves a partial final batch file.
+            q['_write'](path, payload.to_pybytes())
+            self.written_bytes += path.stat().st_size
+        if q['sha'](path) != expected_sha:
+            raise ValueError('DELTA_WRITTEN_BLOCK_SHA')
+        return logical.descriptor(path, sha256=expected_sha,
+            symbols=set(table['ts_code'].to_pylist()), key_rows=key_index(path))
+
+    def _single(self, prepared):
+        q, c = self.q, self.c
+        code, dependency, checkpoint, record = (prepared[k] for k in ('code', 'dependency', 'checkpoint', 'record'))
+        for role, patch in prepared['patches'].items():
+            path = c['candidates'][role].parent / 'delta_blocks' / (code + '.' + dependency + '.parquet')
+            meta = {k: v for k, v in (patch.schema.metadata or {}).items() if k != logical.META}
+            meta[b'v4.original_panel.delta_block.v1'] = json.dumps(dict(**_batch_common(c), dependency=dependency,
+                role=role, symbol=code)).encode()
+            block = self._file(path, patch.replace_schema_metadata(meta))
+            record['roles'][role].update(artifact=dict(path=str(path), sha256=block['sha256']), block=block)
+        q['_json'](checkpoint, record)
+        return prepared
+
+    def add(self, prepared):
+        if self.failed is not None:
+            raise self.failed
+        size = sum(table.nbytes for table in prepared['patches'].values())
+        result = []
+        try:
+            if not prepared['patches']:
+                return [self._single(prepared)]
+            if size > self.limits['max_bytes']:
+                result.extend(self.flush())
+                result.append(self._single(prepared))
+                return result
+            if self.pending and (self.bytes + size > self.limits['max_bytes']
+                    or len(self.pending) >= self.limits['max_symbols']):
+                result.extend(self.flush())
+            self.pending.append(prepared)
+            self.bytes += size
+            if len(self.pending) >= self.limits['max_symbols']:
+                result.extend(self.flush())
+            return result
+        except BaseException as error:
+            self.failed = error
+            raise
+
+    def flush(self):
+        if self.failed is not None:
+            raise self.failed
+        if not self.pending:
+            return []
+        pending = sorted(self.pending, key=lambda item: item['code'])
+        try:
+            if len(pending) == 1:
+                result = [self._single(pending[0])]
+            else:
+                blocks = {}
+                for role in self.c['schemas']:
+                    members = [item for item in pending if role in item['patches']]
+                    if not members:
+                        continue
+                    tables = [item['patches'][role] for item in members]
+                    if not all(table.schema.equals(tables[0].schema, check_metadata=True) for table in tables):
+                        raise ValueError('DELTA_BATCH_SCHEMA_DRIFT')
+                    table = pa.concat_tables(tables)
+                    footer = dict(**_batch_common(self.c), role=role,
+                        members={item['code']: dict(dependency=item['dependency'], rows=len(item['patches'][role])) for item in members})
+                    meta = {k: v for k, v in (table.schema.metadata or {}).items() if k != logical.META}
+                    meta[BATCH_META] = json.dumps(footer, sort_keys=True).encode()
+                    blocks[role] = self._file(_batch_path(self.q, self.c, role, footer), table.replace_schema_metadata(meta))
+                seal = dict(schema=BATCH_SEAL, identity=_batch_common(self.c), blocks=blocks,
+                    records={item['code']: item['record'] for item in pending})
+                path = self.c['run_dir'] / 'delta_batch_seals' / (_seal_key(self.q, seal) + '.json')
+                if path.exists():
+                    if json.loads(path.read_text()) != seal:
+                        raise ValueError('DELTA_BATCH_SEAL_CONFLICT')
+                else:
+                    self.q['_json'](path, seal)
+                ref = dict(path=str(path), sha256=self.q['sha'](path))
+                # A seal is committed only after both role files exist and match
+                # their hashes. Per-stock files are small, recoverable indexes.
+                result = []
+                for item in pending:
+                    record = _sealed_record(self.q, ref, item['code'])
+                    self.q['_json'](item['checkpoint'], _thin_record(record))
+                    result.append({**item, 'record': record})
+            self.pending, self.bytes = [], 0
+            return result
+        except BaseException as error:
+            self.failed = error
+            raise
+
+
+def _add_scoped_block(blocks, code, block):
+    """One physical reference; only verified members enter the logical scope."""
+    import copy
+    previous = next((old for old in blocks if old['path'] == block['path']), None)
+    if previous is None:
+        previous = copy.deepcopy(block)
+        previous['symbols'] = []
+        previous['key_rows'] = {}
+        blocks.append(previous)
+    elif any(previous.get(key) != block.get(key) for key in ('sha256', 'stat', 'rows', 'row_groups', 'metadata_refs')):
+        raise ValueError('DELTA_SHARED_BLOCK_DESCRIPTOR_DRIFT')
+    previous['symbols'] = sorted(set(previous['symbols']) | {code})
+    previous['key_rows'][code] = list(block['key_rows'][code])
+
+
 def run_delta(q, c):
     try:
         return _run_delta(q, c)
@@ -125,6 +348,18 @@ def _run_delta(q, c):
     quarantine.update({code:dict(reason=c.get('legacy_policy',{}).get('reason','LEGACY_BASIS_UNKNOWN'),
         legacy_non_target=True,policy=snapshot.get('legacy_preservation_policy')) for code in c.get('legacy_codes',[])})
     classifications, resumed, logical_written, reused_bytes = {}, 0, 0, 0
+    c['sealed_records'] = _sealed_members(q, run, identity=_batch_common(c))
+    packer = _PackedWrites(q, c)
+    processed_results = 0
+    def accept(code, kind, record):
+        for role in currents:
+            counts[role]['panel_rows'] += record['logical_rows'][role]
+            if record['has_target'][role]: current_symbols[role].add(code)
+            value = record['roles'].get(role)
+            if value:
+                _add_scoped_block(deltas[role], code, value['block'])
+                for key in ('appended_rows', 'revised_rows'): counts[role][key] += value[key]
+        classifications[code] = kind
     source_semantics = {key: meta[key] for key in ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')}
     source_semantics['kernel_sha256'] = q['computation_kernel_sha'](Path(q['__file__']))
     from concurrent.futures import wait,FIRST_COMPLETED
@@ -142,7 +377,8 @@ def _run_delta(q, c):
     stop=run/'STOP_REQUESTED'
     def progress(stage='ORIGINAL_DELTA_STORAGE'):
         q['_json'](run/'progress.json',dict(stage=stage,completed=len(classifications),total=len(expected),
-            reused_checkpoints=resumed,new_delta_file_bytes=logical_written,compute_backend=backend,
+            reused_checkpoints=resumed,new_delta_file_bytes=packer.written_bytes,compute_backend=backend,
+            buffered_computations=len(packer.pending),buffered_patch_bytes=packer.bytes,packing_limits=packer.limits,
             workers=c['workers'],max_pending=limit,maximum_inflight=maximum_inflight,
             worker_pids=sorted(worker_pids),worker_cpu_seconds=cpu_seconds,elapsed_seconds=time.perf_counter()-started))
     for bucket,codes in buckets.items():
@@ -175,57 +411,45 @@ def _run_delta(q, c):
                 code=pending.pop(future)
                 try:
                     prepared=future.result()
+                    processed_results += 1
                     worker_pids.add(prepared['worker_pid']);cpu_seconds+=prepared['cpu_seconds']
                     item,kind,dependency,checkpoint=(prepared[k]for k in ('item','kind','dependency','checkpoint'))
                     if checkpoint.is_file():
-                        saved=json.loads(checkpoint.read_text())
+                        saved=_load_checkpoint(q,checkpoint,code)
                         if saved['dependency']!=dependency or saved.get('classification')!=kind:raise ValueError('DELTA_CHECKPOINT_IDENTITY')
                         origin=prepared.get('origin');validation=c
                         if origin:
-                            validation={**c,'run_id':origin['source_generation'],'candidates':{r:Path(p)for r,p in origin['source_candidates'].items()}}
+                            validation={**c,'run_id':origin['source_generation'],'run_dir':Path(origin.get('source_run',c['run_dir'])),'candidates':{r:Path(p)for r,p in origin['source_candidates'].items()}}
                         _validate_resume(q,validation,code,dependency,saved,frames,schemas)
                         record=saved;resumed+=1
-                        for value in record['roles'].values():reused_bytes+=Path(value['artifact']['path']).stat().st_size
+                        for value in record['roles'].values(): packer.reused(value['artifact']['path'])
+                        if prepared.get('checkpoint_member') and not origin:
+                            q['_json'](run/'delta_checkpoints'/(code+'.'+dependency+'.json'),_thin_record(record))
+                        accept(code,kind,record)
                     else:
-                        record=prepared['record']
-                        for role,patch in prepared['patches'].items():
-                            path=c['candidates'][role].parent/'delta_blocks'/(code+'.'+dependency+'.parquet')
-                            path.parent.mkdir(parents=True,exist_ok=True)
-                            block_meta={k:v for k,v in (patch.schema.metadata or{}).items()if k!=logical.META}
-                            block_meta[b'v4.original_panel.delta_block.v1']=json.dumps(dict(generation_id=c['run_id'],dependency=dependency,
-                                role=role,symbol=code,asof_date=target,input_sha256=c['identity']['input_sha256'])).encode()
-                            patch=patch.replace_schema_metadata(block_meta)
-                            if path.exists():
-                                memory=pa.BufferOutputStream();logical.physical.write_table(patch,memory,compression='zstd')
-                                if q['sha'](path)!=hashlib.sha256(memory.getvalue()).hexdigest():raise ValueError('DELTA_UNREGISTERED_OUTPUT_CONFLICT:'+str(path))
-                                reused_bytes+=path.stat().st_size
-                            else:
-                                q['pq'].write_table(patch,path,compression='zstd');logical_written+=path.stat().st_size
-                            block=logical.descriptor(path,sha256=q['sha'](path),symbols=[code],key_rows={code:list(range(q['pq'].ParquetFile(path).num_row_groups))})
-                            record['roles'][role].update(artifact=dict(path=str(path),sha256=block['sha256']),block=block)
-                        q['_json'](checkpoint,record)
-                    for role in currents:
-                        counts[role]['panel_rows']+=record['logical_rows'][role]
-                        if record['has_target'][role]:current_symbols[role].add(code)
-                        value=record['roles'].get(role)
-                        if value:
-                            deltas[role].append(value['block'])
-                            for key in ('appended_rows','revised_rows'):counts[role][key]+=value[key]
-                    classifications[code]=kind
+                        for completed in packer.add(prepared):
+                            accept(completed['code'],completed['kind'],completed['record'])
                 except BaseException as error:
                     eligible=snapshot.get('original_quarantine_eligible',{})
                     if isinstance(error,q['QfqGateError']) and code in eligible:
                         quarantine[code]=dict(reason=str(error),original_status=eligible[code]);classifications[code]='ORIGINAL_QUARANTINE_ELIGIBLE_FAILURE'
                     elif failure is None:failure=error
-                if backend=='process' and len(classifications)%32==0 and failure is None:
+                if backend=='process' and processed_results%32==0 and failure is None:
                     plan=resource_plan(observe_resources(),c.get('requested_workers'))
                     limit=min(2*c['workers'],plan['max_pending'])
                     if plan['drained']:failure=MemoryError('DELTA_RESOURCE_LIMIT_DRAINED')
                 if len(classifications)%max(1,min(16,c['workers']))==0 or failure is not None:progress('DRAINING'if failure else'ORIGINAL_DELTA_STORAGE')
             if failure is not None:exhausted=True
+        if packer.failed is None:
+            try:
+                for completed in packer.flush():
+                    accept(completed['code'],completed['kind'],completed['record'])
+            except BaseException as error:
+                failure = failure or error
         progress('DRAINED'if failure else'ORIGINAL_DELTA_STORAGE')
         if failure is not None:raise failure
     pool.shutdown(wait=True);c.pop('_delta_pool',None)
+    logical_written,reused_bytes=packer.written_bytes,packer.reused_bytes
     for role in deltas:
         deltas[role].sort(key=lambda block:(q['_bucket'](block['symbols'][0]),block['symbols'][0]))
     if c.get('delta_resume_control'):
@@ -331,11 +555,16 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
         baseline=c['baseline_hashes'],turnover_input=c['identity'].get('turnover_input_sha256'),
         schemas={r: hashlib.sha256(s.remove_metadata().serialize()).hexdigest() for r, s in schemas.items()}))
     checkpoint = run / 'delta_checkpoints' / (code + '.' + dependency + '.json')
-    origin=None
+    origin=None;checkpoint_member=None
     restored=c.get('recovered',{}).get(code)
     if not checkpoint.is_file() and restored is not None and restored.get('read_only_delta') is True:
         origin=restored
         checkpoint=q['_source'](restored['checkpoint'],owner='sealed original delta checkpoint '+code)
+        checkpoint_member=restored['checkpoint'].get('member')
+    sealed=c.get('sealed_records',{}).get(code)
+    if not checkpoint.is_file() and sealed is not None and sealed['dependency']==dependency:
+        checkpoint=q['_source'](sealed['reference'],owner='completed same-run batch member '+code)
+        checkpoint_member=code
     computed = None
     if kind != 'UNCHANGED' and not checkpoint.is_file():
         recovered=c.get('recovered',{}).get(code)
@@ -346,7 +575,65 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
             if set(computed.ts_code.astype(str))!={code}:raise q['QfqGateError']('DELTA_RECOVERED_ROW_CODE_CONFLICT:'+code)
         else:
             computed=q['rebuild_symbol'](code, item, target, raw_driver)
-    return dict(item=item,kind=kind,dependency=dependency,checkpoint=checkpoint,computed=computed,origin=origin,baseline_proof=baseline_proof)
+    return dict(code=code,item=item,kind=kind,dependency=dependency,checkpoint=checkpoint,checkpoint_member=checkpoint_member,computed=computed,origin=origin,baseline_proof=baseline_proof)
+
+
+def _validate_persisted_patch(q, c, code, dependency, saved, role, value, schema=None):
+    path = q['_source'](value['artifact'], owner='delta resume source ' + code)
+    patch = q['pq'].read_table(path)
+    metadata = patch.schema.metadata or {}
+    if schema is not None and not patch.schema.equals(schema, check_metadata=False):
+        raise ValueError('DELTA_CHECKPOINT_ARTIFACT_IDENTITY')
+    if BATCH_META in metadata:
+        footer = json.loads(metadata[BATCH_META])
+        members = footer.get('members', {})
+        if (set(footer) != set(_batch_common(c)) | {'role', 'members'}
+                or {key: footer.get(key) for key in _batch_common(c)} != _batch_common(c)
+                or footer.get('role') != role or code not in members
+                or members[code].get('dependency') != dependency
+                or set(members) != set(patch['ts_code'].to_pylist())
+                or not set(members) <= set(c['snapshot']['symbols'])
+                or path != _batch_path(q, c, role, footer)):
+            raise ValueError('DELTA_BATCH_ARTIFACT_IDENTITY')
+        ref = saved.get('batch_seal')
+        if not ref or Path(ref['path']).parent != c['run_dir'] / 'delta_batch_seals':
+            raise ValueError('DELTA_BATCH_SEAL_PATH')
+        seal = _read_seal(q, ref)
+        if seal['identity'] != _batch_common(c):
+            raise ValueError('DELTA_BATCH_SEAL_GENERATION_DRIFT')
+        for member, item in members.items():
+            record = seal['records'].get(member, {})
+            subset = patch.filter(pc.equal(patch['ts_code'], member))
+            if (item != dict(dependency=record.get('dependency'), rows=len(subset))
+                    or role not in record.get('roles', {})):
+                raise ValueError('DELTA_BATCH_MEMBER_IDENTITY')
+        expected = logical.descriptor(path, sha256=value['artifact']['sha256'],
+            symbols=members, key_rows=key_index(path))
+        expected['metadata_refs'] = expected.get('metadata_refs', []) + [ref]
+        if value['block'] != expected:
+            raise ValueError('DELTA_CHECKPOINT_BLOCK_DESCRIPTOR')
+        all_keys = list(zip(patch['ts_code'].to_pylist(), patch['trade_date'].to_pylist()))
+        if len(set(all_keys)) != len(all_keys):
+            raise ValueError('DELTA_CHECKPOINT_KEYS')
+        if any(int(day) > c['target'] for _, day in all_keys):
+            raise ValueError('DELTA_CHECKPOINT_KEYS')
+        patch = patch.filter(pc.equal(patch['ts_code'], code))
+    else:
+        expected = c['candidates'][role].parent / 'delta_blocks' / (code + '.' + dependency + '.parquet')
+        footer = json.loads(metadata.get(b'v4.original_panel.delta_block.v1', b'{}'))
+        required = dict(**_batch_common(c), dependency=dependency, role=role, symbol=code)
+        if footer != required or path != expected or set(patch['ts_code'].to_pylist()) != {code}:
+            raise ValueError('DELTA_CHECKPOINT_ARTIFACT_IDENTITY')
+        expected = logical.descriptor(path, sha256=value['artifact']['sha256'], symbols=[code],
+            key_rows={code: list(range(q['pq'].ParquetFile(path).num_row_groups))})
+        if value['block'] != expected:
+            raise ValueError('DELTA_CHECKPOINT_BLOCK_DESCRIPTOR')
+    if value['block']['path'] != str(path) or value['artifact']['sha256'] != value['block']['sha256']:
+        raise ValueError('DELTA_CHECKPOINT_PATH_OR_SHA')
+    days = [int(x) for x in patch['trade_date'].to_pylist()]
+    if len(set(days)) != len(days) or not days or max(days) > c['target']:
+        raise ValueError('DELTA_CHECKPOINT_KEYS')
+    return patch
 
 
 def _validate_resume(q,c,code,dependency,saved,frames,schemas):
@@ -359,20 +646,8 @@ def _validate_resume(q,c,code,dependency,saved,frames,schemas):
         if value is None:
             keys=old_keys
         else:
-            expected=c['candidates'][role].parent/'delta_blocks'/(code+'.'+dependency+'.parquet')
-            if value['artifact']['path']!=str(expected) or value['block']['path']!=str(expected) or value['artifact']['sha256']!=value['block']['sha256']:
-                raise ValueError('DELTA_CHECKPOINT_PATH_OR_SHA')
-            path=q['_source'](value['artifact'],owner='delta resume source '+code)
-            patch=q['pq'].read_table(path)
-            footer=json.loads((patch.schema.metadata or {}).get(b'v4.original_panel.delta_block.v1',b'{}'))
-            required=dict(generation_id=c['run_id'],dependency=dependency,role=role,symbol=code,asof_date=c['target'],input_sha256=c['identity']['input_sha256'])
-            if footer!=required or not patch.schema.equals(schema,check_metadata=False) or set(patch['ts_code'].to_pylist())!={code}:
-                raise ValueError('DELTA_CHECKPOINT_ARTIFACT_IDENTITY')
-            days=[int(x) for x in patch['trade_date'].to_pylist()]
-            if len(set(days))!=len(days) or not days or max(days)>c['target']:
-                raise ValueError('DELTA_CHECKPOINT_KEYS')
-            if value['block']!=logical.descriptor(path,sha256=value['artifact']['sha256'],symbols=[code],key_rows={code:list(range(q['pq'].ParquetFile(path).num_row_groups))}):
-                raise ValueError('DELTA_CHECKPOINT_BLOCK_DESCRIPTOR')
+            patch=_validate_persisted_patch(q,c,code,dependency,saved,role,value,schema)
+            days=[int(x)for x in patch['trade_date'].to_pylist()]
             appended=len(set(days)-old_keys)
             if value['appended_rows']!=appended or value['revised_rows']!=len(days)-appended:
                 raise ValueError('DELTA_CHECKPOINT_COUNTS')
@@ -517,7 +792,7 @@ def _delta_process_task(payload):
 
 
 def _process_state(c,source_semantics):
-    fields=['target','run_dir','currents','schemas','contracts','baseline_hashes','identity','turnover','role_start','driver_path','formula_path']
+    fields=['target','run_dir','currents','schemas','contracts','baseline_hashes','identity','turnover','role_start','driver_path','formula_path','sealed_records']
     result={key:c[key]for key in fields}
     result.update(retained_history=(True if c['retained_history']is not None else None),source_semantics=source_semantics)
     return result
@@ -606,19 +881,19 @@ def load_delta_recovery(q,value,snapshot,identity,baseline,data_root):
             or any(status.get(k)!=v for k,v in old.items())):
         raise q['QfqGateError']('DELTA_RESUME_ORIGINAL_RUN_NOT_CLOSED')
     result={}
+    validation=dict(run_id=generation,run_dir=run,target=target,identity=old,
+        candidates={role:Path(path) for role,path in value['source_candidates'].items()},snapshot=snapshot)
     for code,ref in chunks.items():
-        path=q['_source'](ref,owner='original delta checkpoint '+code);saved=json.loads(path.read_text())
+        path=q['_source'](ref,owner='original delta checkpoint '+code);saved=_load_checkpoint(q,path,code)
         expected=run/'delta_checkpoints'/(code+'.'+saved['dependency']+'.json')
-        if path!=expected or set(saved['logical_rows'])!=set(value['source_candidates'])or set(saved['has_target'])!=set(value['source_candidates']):
+        sealed=ref.get('member')==code and path.parent==run/'delta_batch_seals'
+        if (not (path==expected or sealed) or ('member' in ref and not sealed)
+                or set(saved['logical_rows'])!=set(value['source_candidates']) or set(saved['has_target'])!=set(value['source_candidates'])):
             raise q['QfqGateError']('DELTA_RESUME_CHECKPOINT_PATH_OR_SCOPE:'+code)
         for role,item in saved['roles'].items():
-            artifact=q['_source'](item['artifact'],owner='original delta block '+code)
-            expected=Path(value['source_candidates'][role]).parent/'delta_blocks'/(code+'.'+saved['dependency']+'.parquet')
-            meta=json.loads((q['pq'].read_schema(artifact).metadata or{}).get(b'v4.original_panel.delta_block.v1',b'{}'))
-            if (artifact!=expected or item['block']['path']!=str(artifact)or item['block']['sha256']!=item['artifact']['sha256']
-                    or meta!=dict(generation_id=generation,dependency=saved['dependency'],role=role,symbol=code,asof_date=target,input_sha256=old['input_sha256'])):
-                raise q['QfqGateError']('DELTA_RESUME_BLOCK_IDENTITY:'+code)
-        result[code]=dict(checkpoint=ref,read_only_delta=True,source_generation=generation,source_candidates=value['source_candidates'])
+            _validate_persisted_patch(q,validation,code,saved['dependency'],saved,role,item)
+        result[code]=dict(checkpoint=ref,read_only_delta=True,source_generation=generation,
+            source_run=str(run),source_candidates=value['source_candidates'])
     return result
 
 
@@ -639,6 +914,8 @@ def prepare_delta_resume(*,source_run,target_core,target_delta,independent_revie
         code=p.name.split('.')[0]+'.'+p.name.split('.')[1]
         if code in chunks:raise owner.QfqGateError('DELTA_RESUME_DUPLICATE_STOCK')
         chunks[code]=dict(path=str(p),sha256=owner.sha(p))
+    for code, sealed in _sealed_members(q,run).items():
+        chunks.setdefault(code,{**sealed['reference'],'member':code})
     value=dict(schema=DELTA_RECOVERY_SCHEMA,recovery_scope='SAME_DAY_DELTA_PROCESS_V1',asof_date=status['asof_date'],source_run=str(run),source_generation=status['generation_id'],
         source_identity=identity,source_status=status_ref,source_candidates=status['candidates'],baseline_panel_sha256=status['baseline_panel_sha256'],
         original_snapshot=status['adjustment_snapshot'],source_core=dict(path=str(Path(target_core).parent/'research_panel_qfq.py'),sha256=identity['adapter_sha256']),

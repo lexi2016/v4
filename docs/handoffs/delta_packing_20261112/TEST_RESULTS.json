@@ -1,0 +1,107 @@
+{
+  "status": "WRITER_CHECKS_PASSED_INDEPENDENT_REVIEW_PENDING",
+  "baseline_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "test_runs": [
+    {
+      "command": "PYTHONPATH=<candidate-worktree>:<existing-active-main-app> PANEL_PYTHON -B -m pytest tests/test_delta_packed_blocks.py tests/test_logical_panel_delta.py tests/test_delta_owner.py tests/test_delta_recovery_r3.py tests/test_delta_parallel_control.py tests/test_delta_full_prefix_oracle.py tests/test_delta_readiness_r2.py tests/test_logical_fd_scope.py -q --basetemp=.verification/packing-atomic-final",
+      "passed": 80,
+      "exit_code": 0,
+      "seconds": 10.98
+    },
+    {
+      "command": "same Python/path: pytest tests/test_delta_packed_blocks.py -q -k original_owner_storage_guard --basetemp=.verification/packing-guard-r2",
+      "passed": 2,
+      "deselected": 16,
+      "exit_code": 0,
+      "seconds": 0.24
+    }
+  ],
+  "environment_note": "Namespace ops is loaded from candidate first; the second existing app path supplies only baseline-untracked original research_panel_turnover dependency for the real-spawn oracle. No business source copied or mocked.",
+  "current_reader_certification": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/current_reader_r2/CURRENT_READER_CERTIFICATION.json",
+    "sha256": "6c6c6df59b3a29fe308ba71ac6b0798c98957199d3bd6ee591ac5782ff820620"
+  },
+  "shadow_three_market_canary": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/shadow_canary_r2/SHADOW_RESULT.json",
+    "sha256": "9dd4d96e952689a09bb0747e2c52402f8bd1f41467864f9390f63d0da871bb66"
+  },
+  "shadow_all_incremental_rows": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/shadow_full_atomic/SHADOW_RESULT.json",
+    "sha256": "48870a7a3a6e49c10458753c64875007905131f1208f12680e0975adbefb79cb"
+  },
+  "existing_strict_validator": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/EXISTING_SEMANTIC_VALIDATOR_READBACK.json",
+    "sha256": "bda6393c538d21b21d33086838e82623a4132108e0dccb05a8d51b4ecd964fba"
+  },
+  "source_hashes": {
+    "delta": "3698a95e27b44717aecb2896127e245db43890c289d0c9b80a3c1f83aa7f05fb",
+    "logical": "b73cb6e3164b81a77620c431229f1e77184d8be18a82a2b598961a05b0637cb6"
+  },
+  "math_ast_unchanged": {
+    "ops/research_panel_delta.py": {
+      "functions": [
+        "changed_rows",
+        "factor_state",
+        "raw_identity"
+      ],
+      "before_ast_sha256": "7d2b4450e90d314dbdc1368d61ff19743b997be58f126fffb3583443987baecf",
+      "after_ast_sha256": "7d2b4450e90d314dbdc1368d61ff19743b997be58f126fffb3583443987baecf",
+      "unchanged": true
+    },
+    "ops/research_panel_logical.py": {
+      "functions": [
+        "_columns",
+        "_project"
+      ],
+      "before_ast_sha256": "a642c0063cec93d119d56943f83006150cdf122057eb9e9fd0b44aa8b5853928",
+      "after_ast_sha256": "a642c0063cec93d119d56943f83006150cdf122057eb9e9fd0b44aa8b5853928",
+      "unchanged": true
+    }
+  },
+  "source_writes": 0,
+  "formula_computations": 0,
+  "current_D11_rewritten": false,
+  "deployed": false,
+  "API_UI_NATURAL_VERIFIED": false,
+  "retained_failures": [
+    {
+      "scope": "First legacy pytest session",
+      "result": "Assertions passed; shared /tmp pytest cleanup failed on another preexisting immutable snapshot. Replaced only task basetemp, no shared cleanup."
+    },
+    {
+      "scope": "Initial test fixture",
+      "result": "Forced bucket did not match original spooled-view grouping; fixed oracle setup, not production code."
+    },
+    {
+      "scope": "Actual first shadow canary",
+      "result": "dictionary<int16,string> ts_code membership values_set mismatch; fixed mask-only decode and added dictionary/null/NaN regression",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/shadow_canary/FAILURE.json",
+        "sha256": "97477e39188f898055e0618641df9c3ee525474adb44dab43f0eca4f94039884"
+      }
+    },
+    {
+      "scope": "First current-reader comparison",
+      "result": "Own read-only trial interrupted after the matching type issue was known; not a business run cancellation",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/current_reader/FAILURE.json",
+        "sha256": "c4c87b95970d2a380509cc3a656a0694286df5a310ca04ce4d72ee63056c8358"
+      }
+    },
+    {
+      "scope": "Test-only dictionary ordering/null indexing",
+      "result": "Corrected test oracle conversion/None dictionary-key assumptions; source unaffected"
+    },
+    {
+      "scope": "Baseline real-spawn dependency",
+      "result": "94c2 source tree omitted original turnover module; exact active source used via namespace fallback, then full suite passed"
+    }
+  ],
+  "limitations": [
+    "Current-reader certification covers both complete current D11 artifacts; no historical PIT certification",
+    "Packing results are shadow storage-only; the accepted D11 base/deltas remain untouched",
+    "Shadow uses source-identical changed rows, no formula execution",
+    "Actual new candidate source/manifest/consumer plumbing and natural next-day run remain controller work"
+  ]
+}

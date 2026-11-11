@@ -173,6 +173,17 @@ class LogicalFile:
                 table = table.set_column(table.schema.get_field_index(name), schema.field(name), pa.array(values, type=schema.field(name).type))
         return table.replace_schema_metadata(schema.metadata)
 
+    @staticmethod
+    def _scope(table, block):
+        # symbols is already the block's advertised key scope for pruning.
+        # Enforce the same scope for unfiltered and streaming reads as well.
+        if block.get('symbols') is not None:
+            codes = table['ts_code']
+            if pa.types.is_dictionary(codes.type):
+                codes = pc.cast(codes, codes.type.value_type)
+            table = table.filter(pc.is_in(codes, value_set=pa.array(block['symbols'], type=codes.type)))
+        return table
+
     def _columns(self, columns, filters):
         selected = list(self.schema_arrow.names if columns is None else columns)
         needed = list(dict.fromkeys([*KEYS, *selected]))
@@ -213,7 +224,7 @@ class LogicalFile:
                 group_ids = sorted({g for c in requested_symbols for g in block['key_rows'].get(c, [])})
             with self._file(index) as f:
                 table = f.read_row_groups(group_ids, columns=needed) if group_ids is not None else f.read(columns=needed)
-            table = self._align(table,needed)
+            table = self._scope(self._align(table,needed), block)
             if key_expression is not None:
                 table = table.filter(key_expression)
             keys = _keys(table)
@@ -239,12 +250,13 @@ class LogicalFile:
         for index in range(1,len(self.blocks)):
             with self._file(index) as handle:
                 for batch in handle.iter_batches(columns=KEYS,batch_size=batch_size):
-                    latest.update((key,index)for key in _keys(pa.Table.from_batches([batch])))
+                    table=self._scope(pa.Table.from_batches([batch]),self.blocks[index])
+                    latest.update((key,index)for key in _keys(table))
         excluded=set(self.value.get('excluded_symbols',[]))
         for index in range(len(self.blocks)):
             with self._file(index) as handle:
                 for batch in handle.iter_batches(columns=needed,batch_size=batch_size):
-                    table=self._align(pa.Table.from_batches([batch]),needed)
+                    table=self._scope(self._align(pa.Table.from_batches([batch]),needed),self.blocks[index])
                     keep=[latest.get(key,index)==index and key[0]not in excluded for key in _keys(table)]
                     table=self._project(table.filter(pa.array(keep,type=pa.bool_()))).select(selected)
                     yield from table.to_batches(max_chunksize=batch_size)
