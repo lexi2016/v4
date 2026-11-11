@@ -19,34 +19,34 @@ Allowed changes: observer collector, its US benchmark renderer, focused regressi
 
 ## Change and current candidate hashes
 
-- `ops/collect_workbench_observations.py` (`412017e2fbb41f44c42241b3f4926fae63f0083824d665e5c582334886fba388`): session now comes from `latest_completed_session` and its official calendar receipt. The `/api/v4/research/us-market` call becomes optional sector context. Its missing, malformed, failed, or conflicting response is recorded under `market_context` diagnostics while the three Futu pages are still independently fetched and checked. Completed-session cache reuse now requires exact observation/session/close/calendar identity, receipt hash, and valid rows.
+- `ops/collect_workbench_observations.py` (`a156575144ada2c6d3bd3c6aabb06d38fafd090ca38e7c4d72d3524ecaa3364c`): session now comes from `latest_completed_session` and its official calendar receipt. The `/api/v4/research/us-market` call becomes optional sector context. Its missing, malformed, failed, or conflicting response is recorded under `market_context` diagnostics while the three Futu pages are still independently fetched and checked. Completed-session cache reuse now requires exact observation/session/close/calendar identity, receipt hash, and valid rows. Naive or invalid cache timestamps are cache misses and fall through to the exact-page fetch path.
 - `research/stock_panel_collab_20261030/mac-host/workbench-us-context.mjs` (`64f67efaf8959362d15d878de2d3538454854a1393405b21ff10304282482fcb`): benchmark display binds to the observation, exact US session close, calendar reference, and raw receipt; it no longer requires the unrelated API artifact/manifest/receipt trio. Supplemental sector-board context keeps its separate exact API provenance checks.
-- `tests/test_workbench_japan_observation.py` (`5fc67e505cc690f11fe368f0c7f4a04b3b4567ac4a4436bf154b3d3a3504f4fc`): missing, malformed, session-conflicting, and timeout API cases; wrong/stale Futu page rejection; exact calendar reuse for weekend, Thanksgiving closure, DST, and early close; valid completed-cache reuse.
+- `tests/test_workbench_japan_observation.py` (`81996abb6ec063c0d9200fa38091b41023cc89e42c629fd699f697544b30f5e0`): missing, malformed, session-conflicting, and timeout API cases; wrong/stale Futu page rejection; exact calendar reuse for weekend, Thanksgiving closure, DST, and early close; valid completed-cache reuse; naive cached `read_at` triggers three exact page fetches and a dated result.
 - `tests/test_workbench_us_context.mjs` (`18e9a8141ea1c4add23dfe6d528d1d29a8bf197c9833caef89527063fddcaa64`): verifies all three dated closes render without API receipts, while a stale row remains missing and invalid calendar/API context does not validate that supplemental context.
 
 ## Verification
 
-Both commands below ran with `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python` as `PANEL_PYTHON`.
+The incremental cache regression ran with the active observer interpreter `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python`, `-B`, and `PYTHONDONTWRITEBYTECODE=1` to avoid writing bytecode into the runtime owner tree.
 
 ```sh
-V4_OBSERVATION_OWNER_APP='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-market-chain-20261105-r1-observer/app' \
+PYTHONDONTWRITEBYTECODE=1 V4_OBSERVATION_OWNER_APP='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-market-chain-20261105-r1-observer/app' \
 V4_MARKET_SOURCE_FIXTURES='/Users/lexi/Desktop/学习/agents调试/v4_market_readability_20261105' \
-"$PANEL_PYTHON" -m pytest -q --basetemp=/tmp/us-benchmark-test-20261111-r7 tests/test_workbench_japan_observation.py
-# 33 passed
+'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q --basetemp=/tmp/us-benchmark-cache-naive-20261111 tests/test_workbench_japan_observation.py
+# 34 passed
 
-env -u V4_MARKET_SOURCE_FIXTURES \
+env -u V4_MARKET_SOURCE_FIXTURES PYTHONDONTWRITEBYTECODE=1 \
 V4_OBSERVATION_OWNER_APP='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/v4-daily-market-chain-20261105-r1-observer/app' \
-"$PANEL_PYTHON" -m pytest -q --basetemp=/tmp/us-benchmark-test-20261111-r6 tests/test_workbench_japan_observation.py
-# 18 passed, 15 skipped (only saved-source/Japan fixture-dependent cases)
+'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -q --basetemp=/tmp/us-benchmark-cache-naive-synthetic-20261111 tests/test_workbench_japan_observation.py
+# 19 passed, 15 skipped (only saved-source/Japan fixture-dependent cases)
 
 node --test tests/test_workbench_us_context.mjs
-# 13 passed
+# 13 passed before the cache-only delta; renderer and Node test hashes were frozen and unchanged.
 
 git diff --check
 # passed
 ```
 
-The self-contained Python run executes the new benchmark regressions without `V4_MARKET_SOURCE_FIXTURES`. These tests still require the existing observer owner dependency root; with neither that root nor its dependency in the source tree, the module reports an explicit skip. No live data capture was run by the Writer.
+The self-contained Python run executes the new benchmark regressions without `V4_MARKET_SOURCE_FIXTURES`. These tests still require the existing observer owner dependency root; with neither that root nor its dependency in the source tree, the module reports an explicit skip. The independent reviewer already passed the unchanged Node renderer suite (13 tests); it was not rerun for this cache-only delta. No live data capture was run by the Writer.
 
 ## Integration handoff
 

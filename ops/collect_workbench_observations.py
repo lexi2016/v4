@@ -243,9 +243,12 @@ def _valid_us_benchmark_cache(prior,day,session,close_at,calendar_ref):
         change=number(row.get('change_pct')) if row else None
         try:source_at=datetime.fromisoformat(row['source_asof']);read_at=datetime.fromisoformat(row['read_at'])
         except (KeyError,TypeError,ValueError):return False
+        if source_at.tzinfo is None or read_at.tzinfo is None:return False
+        try:source_is_future=source_at>read_at
+        except TypeError:return False
         if (row.get('name')!=name or row.get('status')!='DATED_CLOSE' or row.get('session_date')!=session
                 or row.get('timezone')!='America/New_York' or row.get('source_url')!=url
-                or row.get('source_asof')!=close_at.isoformat() or source_at!=close_at or source_at>read_at
+                or row.get('source_asof')!=close_at.isoformat() or source_at!=close_at or source_is_future
                 or value is None or value<=0 or previous is None or previous<=0 or change is None
                 or abs((value/previous-1)*100-change)>.015
                 or not re.fullmatch(r'[a-f0-9]{64}',row.get('raw_sha256',''))):return False

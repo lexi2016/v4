@@ -190,6 +190,27 @@ def test_existing_publish_binds_full_raw_foreign_context_and_reuses_only_complet
     assert jp['reused_same_slot'] is True
 
 
+def test_naive_completed_cache_read_times_fall_through_to_exact_futu_pages(tmp_path):
+    completed=c.latest_completed_session(NOW);session=completed.session_date;calls=[]
+    rows=[]
+    for code,name,expected_name,url in c.US_INDICES:
+        row=c.parse_us_index(futu_page(code,session,completed.close_at),code,name,expected_name,url,session,NOW)
+        row['read_at']='2026-11-05T11:00:00'  # Legacy naive timestamp makes this cache unverifiable.
+        rows.append(row)
+    calendar_bytes=c.US_CALENDAR_PATH.read_bytes()
+    calendar_ref=dict(path=str(c.US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(calendar_bytes).hexdigest())
+    prior=dict(schema='V4_WORKBENCH_US_BENCHMARKS_V1',observation_date=DAY,status='DATED_US_BENCHMARKS',
+               us_session_date=session,session_close_at=completed.close_at.isoformat(),calendar_ref=calendar_ref,
+               raw_ref=c.put(tmp_path/'prior-raw.json',{'test_only':True}),rows=rows,**c.FLAGS)
+
+    view,raw=c.us_benchmarks(DAY,lambda:NOW,benchmark_reader(calls,session,completed.close_at,TimeoutError('optional digest unavailable')),prior)
+
+    assert view['status']=='DATED_US_BENCHMARKS' and view['us_session_date']==session
+    assert not view.get('reused_completed_session')
+    assert len(view['rows'])==3 and all(row['status']=='DATED_CLOSE' and row['session_date']==session for row in view['rows'])
+    assert len(calls)==4 and set(raw['pages'])=={row[0] for row in c.US_INDICES}
+
+
 def test_runner_passes_only_foreign_context_across_slots_and_preserves_schedule(tmp_path,monkeypatch):
     monkeypatch.setattr(runner,'load_market_calendar',lambda *args:object())
     monkeypatch.setattr(runner,'resolve_market_states',lambda *args:{'a_share':runner.TradingDayState.FULL_TRADING_DAY})
