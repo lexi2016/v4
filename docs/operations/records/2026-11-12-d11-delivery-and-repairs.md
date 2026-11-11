@@ -13,6 +13,6 @@ D=2026-11-11，O=2026-11-12；generation `270ba879ab1086df0c89a8e130ea6352b332cf
 - 后续基础增量已接合批实现：5541证券完整影子中原Parquet1008.174MB、新Parquet28.704MB、连CP/封签40.604468MB；不代表当前D11已回收这些字节，也不代表整条日更每天只40MB。
 - SOP、chat-review-loop与自动化17已固定“核基础→完整选股→先名单/表现/prompt→面板发布与核回→后续交付”；17:00触发不等于上游齐备。D/O、交易日与generation动态绑定。
 
-本批Chat由用户转发，Codex未发新会话；富途目标1112，本批未导入。回包收到后按现有合同验manifest/coverage/source/input_digest再沿原owner接入，不另建数据层。D12开盘阶段及下次17:00自然流程仍待真实回执，不重放历史作业。
+本批Chat由用户转发，Codex未发新会话；富途目标1112，完整426只单文件和源BJ映射已备好。OpenD只读核对目标组不存在；客户端被Mac锁屏阻断，未创建组或导入。解锁后沿同D/O/generation继续全量预览、排除同码指数和其他市场证券后再导入，不另起日期组。回包收到后按现有合同验manifest/coverage/source/input_digest再沿原owner接入，不另建数据层。D12开盘阶段及下次17:00自然流程仍待真实回执，不重放历史作业。
 
 唯一轻量交付账本：`DELIVERY_D20261111_O20261112_G270ba879ab1086df.json`。实际现役和原始回执优先。后续先读本账本、FINAL_RUNTIME_API_VERIFICATION.json及launchctl身份；已部署业务源码在工作分支`codex/d11-functional-closure-20261112`，canonical有其他并行修改，未合并此业务分支，不能把它的旧字节当现役重新发布。
