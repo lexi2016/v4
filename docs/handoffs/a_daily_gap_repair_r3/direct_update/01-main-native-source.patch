@@ -1,0 +1,458 @@
+--- a/ops/research_panel_daily_source.py
++++ b/ops/research_panel_daily_source.py
+@@ -37,10 +37,18 @@
+ def acquire_daily_input(target: int, receipt_root: Path, *, fetch=None, now=None, sleep=time.sleep) -> dict:
+     """One dated download; verified immutable cache reuse, bounded not-ready failure."""
+     policy = source_policy()
+-    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage, SOURCE_URL, parse_package
++    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage, SOURCE_URL, parse_package, bind_cached_history
+     from contracts.trading_calendar import load_market_calendar, previous_session, resolve_market_states, TradingDayState
+     moment = now or datetime.now(timezone.utc)
+     local = moment.astimezone(ZoneInfo("Asia/Shanghai"))
++    # An interrupted past session may be replayed only from the original
++    # already-bound cache. Do not backdate the clock or download past/future
++    # packages through the current-session acquisition window.
++    past_cache = receipt_root / 'a_sync_authority/official_daily' / str(target) / 'input.json'
++    if target < int(local.strftime('%Y%m%d')) and past_cache.is_file():
++        ref = dict(path=str(past_cache.resolve()),sha256=sha(past_cache))
++        OfficialDailyPackage(ref,target)
++        return bind_cached_history(ref)
+     if int(local.strftime("%Y%m%d")) != target or local.strftime("%H%M") < policy["earliest_slot"]:
+         raise QfqGateError("OFFICIAL_DAILY_SOURCE_WAIT_WINDOW")
+     calendar_ref, adapter_ref = policy["calendar"], policy["calendar_adapter"]
+@@ -56,7 +64,7 @@
+     if cached.is_file():
+         ref = dict(path=str(cached.resolve()), sha256=sha(cached))
+         OfficialDailyPackage(ref, target)
+-        return ref
++        return bind_cached_history(ref)
+     url = SOURCE_URL.format(date=target)
+     def download():
+         with urllib.request.urlopen(url, timeout=30) as response:
+@@ -88,7 +96,7 @@
+         calendar_adapter=adapter_ref)
+     ref = _immutable(cached, descriptor)
+     OfficialDailyPackage(ref, target)
+-    return ref
++    return bind_cached_history(ref)
+ 
+ 
+ def _identity(codes: list[str], date: int) -> dict:
+--- a/ops/a_share_daily_sync.py
++++ b/ops/a_share_daily_sync.py
+@@ -852,9 +852,9 @@
+     return _v4_impl(globals(), markets, tdx_root)
+ 
+ 
+-def append_bars(path: Path, bars: List[Dict[str, Any]]) -> None:
++def append_bars(path: Path, bars: List[Dict[str, Any]], *, expected_source_sha256=Ellipsis) -> None:
+     from ops._a_share_daily_sync_parts.day_file_format import _append_bars_body as _v4_impl
+-    return _v4_impl(globals(), path, bars)
++    return _v4_impl(globals(), path, bars, expected_source_sha256=expected_source_sha256)
+ 
+ 
+ def _runtime_host_candidates(preferred_host: Optional[str]) -> list[tuple[str, int]]:
+--- a/ops/_a_share_daily_sync_parts/official_daily_package.py
++++ b/ops/_a_share_daily_sync_parts/official_daily_package.py
+@@ -11,6 +11,7 @@
+ 
+ SOURCE_KIND = "TDX_OFFICIAL_G4DAY"
+ SOURCE_URL = "https://www.tdx.com.cn/products/data/data/g4day/{date}.zip"
++MAX_CACHED_HISTORY_INPUTS = 32
+ 
+ 
+ def _sha(raw):return hashlib.sha256(raw).hexdigest()
+@@ -20,6 +21,37 @@
+     raw=p.read_bytes()
+     if _sha(raw)!=ref['sha256']:raise ValueError('G4DAY_SOURCE_SHA_MISMATCH')
+     return p,raw
++
++
++def bind_cached_history(ref: dict) -> dict:
++    """Bind existing owner-cache descriptors, without fetching or rewriting them.
++
++    The owner stores input.json at <official_daily>/<session>/input.json.
++    Stop at the first absent descriptor. Each session is subsequently verified
++    against the same calendar, input SHA and package SHA by the adapter.
++    """
++    path, raw = _bound(ref)
++    value = json.loads(raw)
++    if path.name != 'input.json' or path.parent.name != str(value['target_date']):
++        raise ValueError('G4DAY_CACHE_LAYOUT_INVALID')
++    history = []
++    previous = int(value['previous_session'])
++    for _ in range(MAX_CACHED_HISTORY_INPUTS):
++        cached = path.parent.parent / str(previous) / 'input.json'
++        if not cached.exists():
++            break
++        # Do not resolve away a symlink before the bound-path validator sees it.
++        entry = {'path': str(cached), 'sha256': _sha(cached.read_bytes()), 'target_date': previous}
++        _, payload = _bound(entry)
++        descriptor = json.loads(payload)
++        if descriptor.get('target_date') != previous:
++            raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
++        history.append(entry)
++        next_previous = int(descriptor['previous_session'])
++        if next_previous >= previous:
++            raise ValueError('G4DAY_HISTORY_ORDER_INVALID')
++        previous = next_previous
++    return {**ref, **({'history_inputs': history} if history else {})}
+ 
+ def parse_package(raw: bytes, target: int):
+     """Pure parser; preserve native precision and explicit member/index lineage."""
+@@ -65,7 +97,11 @@
+ 
+ class OfficialDailyPackage:
+     def __init__(self, ref: dict, target: int):
+-        self.input_path,raw=_bound(ref);self.input_ref=dict(ref);value=json.loads(raw)
++        self.input_path,raw=_bound(ref)
++        # This is the immutable descriptor identity used by existing progress.
++        # Additional cached sessions are individually bound in recovery_chain;
++        # discovering them must not invalidate completed same-input progress.
++        self.input_ref={name:ref[name] for name in ('path','sha256')};value=json.loads(raw)
+         if value.get('schema_version')!='a_sync_official_daily_input.v1' or value.get('source_kind')!=SOURCE_KIND or value.get('target_date')!=target or value.get('source_url')!=SOURCE_URL.format(date=target):raise ValueError('G4DAY_INPUT_IDENTITY_INVALID')
+         self.package_path,payload=_bound(value['package']);self.package_ref=dict(value['package']);self.target=target
+         cal_path,_=_bound(value['calendar']);adapter_path,adapter_raw=_bound(value['calendar_adapter'])
+@@ -79,15 +115,141 @@
+         if value.get('previous_session')!=previous:raise ValueError('G4DAY_PREVIOUS_SESSION_PROOF_INVALID')
+         self.previous=int(previous);self.calendar_ref=dict(value['calendar']);self.calendar_adapter_ref=dict(value['calendar_adapter'])
+         self.rows,self.summary=parse_package(payload,target)
++        self._history_refs = {}
++        self._history_packages = {}
++        self._lookup_chains = {}
++        self._witnesses = {}
++        history = ref.get('history_inputs', [])
++        if not isinstance(history, list) or len(history) > MAX_CACHED_HISTORY_INPUTS:
++            raise ValueError('G4DAY_HISTORY_INPUTS_INVALID')
++        for entry in history:
++            date = entry.get('target_date')
++            if type(date) is not int or date >= target or date in self._history_refs:
++                raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
++            # Verify descriptors now; defer package parsing until a symbol needs it.
++            _, descriptor = _bound(entry)
++            if json.loads(descriptor).get('target_date') != date:
++                raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
++            self._history_refs[date] = dict(entry)
++
++    def _previous_package(self, date):
++        if date not in self._history_packages:
++            package = OfficialDailyPackage(self._history_refs[date], date)
++            if (package.calendar_ref != self.calendar_ref or
++                    package.calendar_adapter_ref != self.calendar_adapter_ref):
++                raise ValueError('G4DAY_HISTORY_CALENDAR_IDENTITY_CONFLICT')
++            self._history_packages[date] = package
++        return self._history_packages[date]
++
+     def lineage(self,market,code):
+         item=self.rows.get((market,code))
+         return {'source_kind':SOURCE_KIND,'source_url':SOURCE_URL.format(date=self.target),
+                 'package':self.package_ref,'input_ref':self.input_ref,'calendar':self.calendar_ref,
+                 'calendar_adapter':self.calendar_adapter_ref,'previous_session':self.previous,
+-                'record':item[1] if item else None,'target_date':self.target,'market':market,'code':code}
++                'record':item[1] if item else None,'target_date':self.target,'market':market,'code':code,
++                'date_witness': self._witnesses.get((market, code)),
++                'recovery_chain': [package.lineage(market, code)
++                                   for package in self._lookup_chains.get((market, code), [])
++                                   if package is not self]}
+     def lookup(self,market,code,last_date):
+-        if last_date not in {self.previous,self.target}:return [],'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
+-        item=self.rows.get((market,code))
+-        if item is None:return [],'TARGET_DATE_MISSING'
+-        if item[2]>0xffffffff:return [],'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
+-        return [dict(item[0])],'OK'
++        self._lookup_chains[(market, code)] = []
++        if last_date is None or last_date > self.target:
++            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
++        chain = [self]
++        package = self
++        while last_date < package.previous:
++            if package.previous not in self._history_refs:
++                return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
++            package = self._previous_package(package.previous)
++            chain.append(package)
++        if last_date not in {package.previous, self.target}:
++            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
++        ordered = list(reversed(chain))
++        self._lookup_chains[(market, code)] = ordered
++        bars = []
++        for package in ordered:
++            item = package.rows.get((market, code))
++            if item is None:
++                return [], 'TARGET_DATE_MISSING'
++            if item[2] > 0xffffffff:
++                return [], 'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
++            bars.append(dict(item[0]))
++        return bars, 'OK'
++
++    def witnessed_lookup(self, market, code, last_date, rows, witness_ref):
++        """G4 values only; an overlapping SDK sequence witnesses absent dates.
++
++        This proves the provider returned no bar in an interval, never an
++        exchange/issuer suspension fact. Missing packages still cannot pass.
++        """
++        from ops.a_share_daily_sync import valid_hq_bar, day_int
++        self.lookup(market, code, last_date)
++        chain = self._lookup_chains.get((market, code), [])
++        if last_date is None or last_date >= self.previous or not chain:
++            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
++        if not isinstance(rows, list) or not 2 <= len(rows) <= 32:
++            return [], 'G4DAY_WITNESS_INCOMPLETE'
++        if any(not valid_hq_bar(b)[0] or
++               b.get('market', market) != market or b.get('code', code) != code for b in rows):
++            return [], 'G4DAY_WITNESS_BAR_OR_IDENTITY_INVALID'
++        dates = [day_int(b) for b in rows]
++        if (dates != sorted(set(dates)) or dates[0] >= last_date or dates[-1] != self.target):
++            return [], 'G4DAY_WITNESS_DATE_COVERAGE_INVALID'
++        later = [b for b in rows if day_int(b) > last_date]
++        if any(b['vol'] <= 0 or b['amount'] <= 0 for b in later):
++            return [], 'G4DAY_WITNESS_NO_CURRENT_TRADED_BAR'
++        expected = {day_int(b) for b in later}
++        witnessed = {day_int(b):b for b in later}
++        bars, absent = [], []
++        for package in chain:
++            item = package.rows.get((market, code))
++            bar = item[0] if item else None
++            valid = bar is not None and valid_hq_bar(bar)[0]
++            traded = valid and bar['vol'] > 0 and bar['amount'] > 0
++            if traded:
++                if package.target not in expected:
++                    return [], 'G4DAY_WITNESS_TRADED_DATE_CONFLICT'
++                if item[2] > 0xffffffff:
++                    return [], 'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
++                if any(round(float(bar[k])*100)!=round(float(witnessed[package.target][k])*100)
++                       for k in ('open','high','low','close')):
++                    return [], 'G4DAY_WITNESS_OHLC_CONFLICT'
++                bars.append(dict(bar))
++            else:
++                placeholder = bar is None or (all(bar[k] == 0 for k in ('open','high','low'))
++                                              and bar['vol'] == 0 and bar['amount'] == 0)
++                if package.target in dates or not placeholder:
++                    return [], 'G4DAY_WITNESS_MISSING_OR_INVALID_TRADED_BAR'
++                absent.append(package.target)
++        if {day_int(b) for b in bars} != expected or not bars or day_int(bars[-1]) != self.target:
++            return [], 'G4DAY_WITNESS_UNCOVERED_DATE'
++        self._witnesses[(market,code)] = dict(response=witness_ref, absent_dates=absent,
++            first_response_date=dates[0], last_response_date=dates[-1],
++            semantics='NO_BAR_IN_OVERLAPPING_PROVIDER_SEQUENCE; LEGAL_SUSPENSION_CANNOT_CONFIRM')
++        return bars, 'OK'
++
++    def needs_witness(self, market, code, last_date):
++        """Only a complete historical package chain with a traded current day."""
++        if last_date is None or last_date >= self.previous:
++            return False
++        self.lookup(market, code, last_date)
++        chain = self._lookup_chains.get((market,code), [])
++        if not chain:
++            return False
++        from ops.a_share_daily_sync import valid_hq_bar
++        current = self.rows.get((market,code))
++        if not current or not valid_hq_bar(current[0])[0] or current[0]['vol'] <= 0 or current[0]['amount'] <= 0:
++            return False
++        absent = False
++        for package in chain:
++            item = package.rows.get((market,code))
++            if item is None:
++                absent = True
++                continue
++            bar = item[0]
++            if valid_hq_bar(bar)[0] and bar['vol']>0 and bar['amount']>0:
++                continue
++            if not (all(bar[k]==0 for k in ('open','high','low')) and bar['vol']==0 and bar['amount']==0):
++                return False
++            absent = True
++        return absent
+--- a/ops/_a_share_daily_sync_parts/cli_runtime.py
++++ b/ops/_a_share_daily_sync_parts/cli_runtime.py
+@@ -98,6 +98,13 @@
+     package_sha = _v4_global(_v4_scope, 'getattr')(args, 'official_daily_input_sha256', None)
+     if bool(package_path) != bool(package_sha):
+         raise ValueError('official daily input path and SHA must be supplied together')
++    package_ref = {"path": str(package_path.resolve()), "sha256": package_sha} if package_path else None
++    if package_ref and package_path.name == 'input.json' and package_path.parent.name == str(target_date):
++        # The authority/CLI transmits only the dated descriptor path and SHA.
++        # Rebind the original owner's cached predecessors here, before run_sync,
++        # so the normal scheduled entry uses the same recovery as direct calls.
++        from .official_daily_package import bind_cached_history
++        package_ref = bind_cached_history(package_ref)
+     result = _v4_global(_v4_scope, 'run_sync')(
+         targets,
+         target_date=_v4_global(_v4_scope, 'str')(target_date),
+@@ -112,7 +119,7 @@
+         progress_path=_v4_global(_v4_scope, 'getattr')(args, "progress_path", None),
+         trusted_cas_inputs=_v4_global(_v4_scope, 'getattr')(args, "trusted_cas_inputs", None),
+         seed_adjustment_inputs=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs", None),
+-        official_daily_input={"path":str(package_path.resolve()),"sha256":package_sha} if package_path else None,
++        official_daily_input=package_ref,
+         seed_adjustment_inputs_sha256=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs_sha256", None),
+     )
+     result.update(
+--- a/ops/_a_share_daily_sync_parts/sync_workflow.py
++++ b/ops/_a_share_daily_sync_parts/sync_workflow.py
+@@ -706,6 +706,21 @@
+                     package_failure = 'OK'
+                     if package is not None:
+                         source_rows, package_failure = package.lookup(int(item.market), symbol, last_date)
++                        if package.needs_witness(int(item.market), symbol, last_date):
++                            from .gap_witness import obtain
++                            try:
++                                source_rows, package_failure, refs, witness_attempts = obtain(
++                                    _v4_scope, package, item, last_date, api_factory=api_factory,
++                                    hosts=hosts, deadline=min(symbol_deadline,run_deadline,
++                                        _v4_global(_v4_scope,'time').monotonic()+request_deadline),
++                                    request_deadline=request_deadline, timeout=timeout,
++                                    run_id=run_id,recorded_at=recorded_at)
++                            except _v4_global(_v4_scope,'SyncTimeoutError') as error:
++                                symbol_snapshots.extend(getattr(error,'witness_snapshots',[]))
++                                progress.setdefault('gap_witness_attempts',{})[symbol]=getattr(error,'witness_attempts',[])
++                                raise
++                            symbol_snapshots.extend(refs)
++                            progress.setdefault('gap_witness_attempts', {})[symbol] = witness_attempts
+                     if package_failure != 'OK':
+                         capture_response(source_rows)
+                         bars, failure_type = [], package_failure
+@@ -791,7 +806,8 @@
+                         )
+                         break
+                     if not dry_run:
+-                        _v4_global(_v4_scope, 'append_bars')(item.path, bars_to_write)
++                        _v4_global(_v4_scope, 'append_bars')(item.path, bars_to_write,
++                            expected_source_sha256=source_sha_before)
+                     last_after = last_date if not bars_to_write else _v4_global(_v4_scope, 'day_int')(bars_to_write[-1])
+                     source_sha_after = _v4_global(_v4_scope, '_file_sha256')(_v4_global(_v4_scope, 'Path')(item.path))
+                     accepted = {
+--- a/ops/_a_share_daily_sync_parts/day_file_format.py
++++ b/ops/_a_share_daily_sync_parts/day_file_format.py
+@@ -91,7 +91,7 @@
+     return rows
+ 
+ 
+-def _append_bars_body(_v4_scope, /, path, bars):
++def _append_bars_body(_v4_scope, /, path, bars, *, expected_source_sha256=Ellipsis):
+     failure = _v4_global(_v4_scope, '_local_path_failure')(path)
+     if failure is not None:
+         raise _v4_global(_v4_scope, 'OSError')(f"A_SYNC_SOURCE_PATH_REJECTED:{path}:{failure}")
+@@ -101,6 +101,6 @@
+     failure = _v4_global(_v4_scope, '_local_path_failure')(path)
+     if failure is not None:
+         raise _v4_global(_v4_scope, 'OSError')(f"A_SYNC_SOURCE_PATH_REJECTED:{path}:{failure}")
+-    with path.open("ab") as f:
+-        for bar in bars:
+-            f.write(_v4_global(_v4_scope, 'pack_hq_bar')(bar))
++    from .native_io import commit
++    payload = b''.join(_v4_global(_v4_scope, 'pack_hq_bar')(bar) for bar in bars)
++    return commit(_v4_scope,path,suffix=payload,expected=expected_source_sha256)
+--- /dev/null
++++ b/ops/_a_share_daily_sync_parts/gap_witness.py
+@@ -0,0 +1,55 @@
++"""Bounded date-only witness through the original daily SDK transport."""
++from __future__ import annotations
++
++
++def obtain(scope, package, target, last_date, *, api_factory, hosts, deadline,
++           request_deadline, timeout, run_id, recorded_at):
++    # Reuse the accepted original TDX host before the general SDK host list.
++    candidates = list(dict.fromkeys([('180.153.18.170',7709), *hosts]))[:3]
++    if api_factory is scope.get('_runtime_api_factory'):
++        from .tdx_mac_adapter import MacDailyHqAPI
++        api_factory = lambda host, port: MacDailyHqAPI(auto_retry=False,raise_exception=True)
++    snapshots, attempts = [], []
++    for ordinal, (host, port) in enumerate(candidates, 1):
++        remaining = deadline - scope['time'].monotonic()
++        if remaining <= 0:
++            error=scope['SyncTimeoutError']('SYMBOL', request_deadline, request_deadline)
++            error.witness_snapshots=snapshots;error.witness_attempts=attempts
++            raise error
++        api = None
++        request = dict(code=str(target.code), market=int(target.market), kline=9, start=0,
++                       count=32, target_date=str(package.target), source_kind='TDX_MAC_DATE_WITNESS')
++        started = scope['time'].monotonic()
++        dispatched=0
++        try:
++            with scope['_deadline_guard'](min(request_deadline,remaining), scope='REQUEST'):
++                api = api_factory(host,port)
++                if getattr(api,'response_ref',None) is not None:
++                    request['cached_original_response'] = api.response_ref
++                if not api.connect(host,port,time_out=timeout):
++                    raise ValueError('G4DAY_WITNESS_CONNECT_FALSE')
++                dispatched=1
++                response = api.get_security_bars(9,int(target.market),str(target.code),0,32)
++            ref = scope['_write_raw_response_snapshot'](target_date=package.target,target=target,
++                request=request,host=scope['_host_label'](host,port),host_ordinal=ordinal,
++                attempt_ordinal=ordinal,response_rows=response,run_id=run_id,observed_at=recorded_at)
++            snapshots.append(ref)
++            attempts.append(dict(host=scope['_host_label'](host,port),requests=1,
++                                 request_budget_seconds=min(request_deadline,remaining),
++                                 elapsed_seconds=scope['time'].monotonic()-started))
++            bars, reason = package.witnessed_lookup(int(target.market),str(target.code),last_date,response,ref)
++            return bars, reason, snapshots, attempts
++        except Exception as error:
++            attempts.append(dict(host=scope['_host_label'](host,port),error=repr(error),
++                                 requests=dispatched,request_budget_seconds=min(request_deadline,remaining),
++                                 elapsed_seconds=scope['time'].monotonic()-started))
++            snapshots.append(scope['_write_raw_response_snapshot'](target_date=package.target,
++                target=target,request=request,host=scope['_host_label'](host,port),
++                host_ordinal=ordinal,attempt_ordinal=ordinal,response_error=repr(error),
++                run_id=run_id,observed_at=recorded_at))
++            if isinstance(error,scope['SyncTimeoutError']):
++                error.witness_snapshots=snapshots;error.witness_attempts=attempts
++                raise
++        finally:
++            scope['_disconnect_session'](api)
++    return [], 'G4DAY_WITNESS_SOURCE_UNAVAILABLE', snapshots, attempts
+--- /dev/null
++++ b/ops/_a_share_daily_sync_parts/native_io.py
+@@ -0,0 +1,54 @@
++"""The original native append uses a per-directory CAS lock and atomic replace.
++
++This does not claim exclusion of unrelated programs that ignore this lock.
++"""
++from __future__ import annotations
++import hashlib, os, stat, tempfile
++from pathlib import Path
++from infrastructure.interprocess_lock import owned_interprocess_lock
++
++
++def _sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def commit(scope, path, *, suffix, expected=Ellipsis):
++    path = Path(path)
++    if scope['_local_path_failure'](path):
++        raise ValueError('A_SYNC_SOURCE_PATH_REJECTED')
++    path.parent.mkdir(parents=True,exist_ok=True)
++    lock = path.parent / '.a_share_native_write'
++    with owned_interprocess_lock(lock,timeout_seconds=5.0,timeout_message='A native writer already active'):
++        failure = scope['_local_path_failure'](path)
++        if failure:
++            raise ValueError('A_SYNC_SOURCE_PATH_REJECTED:'+failure)
++        before = path.read_bytes() if path.exists() else None
++        digest = _sha(before) if before is not None else None
++        if expected is not Ellipsis and digest != expected:
++            raise ValueError('A_SYNC_SOURCE_CAS_MOVED')
++        after = (before or b'') + suffix
++        if after==before:
++            return dict(path=str(path),before_sha256=digest,after_sha256=digest,
++                lock=str(lock),cooperating_paths_only=True,
++                prefix_unchanged=True,no_op=True)
++        if len(after)%32:
++            raise ValueError('A_SYNC_NATIVE_SHAPE_INVALID')
++        fd, raw = tempfile.mkstemp(prefix='.'+path.name+'.',suffix='.tmp',dir=path.parent)
++        temporary = Path(raw)
++        try:
++            if path.exists():os.fchmod(fd,stat.S_IMODE(path.stat().st_mode))
++            with os.fdopen(fd,'wb') as handle:
++                handle.write(after);handle.flush();os.fsync(handle.fileno())
++            if (path.read_bytes() if path.exists() else None) != before:
++                raise ValueError('A_SYNC_SOURCE_CAS_MOVED_BEFORE_REPLACE')
++            os.replace(temporary,path)
++            directory = os.open(path.parent,os.O_RDONLY)
++            try:os.fsync(directory)
++            finally:os.close(directory)
++            if path.read_bytes()!=after:
++                raise ValueError('A_SYNC_NATIVE_READBACK_CONFLICT')
++        finally:
++            temporary.unlink(missing_ok=True)
++        return dict(path=str(path),before_sha256=digest,after_sha256=_sha(after),
++                    lock=str(lock),
++                    cooperating_paths_only=True,prefix_unchanged=True)

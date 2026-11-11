@@ -1,0 +1,9 @@
+本批修复原A股日更跨停牌恢复、同日期成员身份分代，并沿原same-asof路径只计算真实改变的8股、Arrow复用5766股。301314仅补来源元数据并复用旧868行/4事件，不重算旧认证。
+
+分支基线8000b140d不含此前已验收的全部Main增量。实际运行的Main须依次应用本目录01–04补丁；不得整份覆盖现役Main，也不得把本分支声称为独立完整运行包。SOURCE_IDENTITY.json记录实际源码SHA和运行层区别。
+
+针对性检查：原CLI红/绿和真实002623缓存重放通过；successor选择/次日冻结源/显式acceptance检查16项通过，acceptance正例1项通过；原D10reuse边界8项通过；同日identity修订1项通过。完整原_same_asof_price_reuse真实canary通过：changed8/reused5766/removed0/derived_no_bar0。旧000004退市fixture在基线和修复版同失败，未改门禁。
+
+运行环境使用项目PANEL_PYTHON绝对路径。Main-only复用检查须显式设置V4_TEST_QFQ_REUSE_SOURCE指向已核SHA的有效Main ops/research_panel_qfq.py；Git基线未包含该旧运行入口，因此该检查不是无环境依赖的普通单元测试。
+
+运行产物、原行情、候选面板、Futu响应、完整日志、release app、plist和credentials均不随此目录提交。本批已取消的a_daily_gap_*、membership、daily_product prototype不属于白名单。控制器的实际发布/API/UI状态须独立记录，源码交付不冒称live完成。

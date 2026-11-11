@@ -1,0 +1,109 @@
+--- a/ops/research_panel_qfq.py
++++ b/ops/research_panel_qfq.py
+@@ -1329,13 +1329,19 @@
+ 
+ 
+ def verify_release_gate(root: Path, output: Path, identity: dict, target: int, convention: str) -> None:
++    acceptance_path = root / "qfq_convention_acceptance.json"
++    configured = os.environ.get("V4_QFQ_CONVENTION_ACCEPTANCE_PATH")
++    configured_sha = os.environ.get("V4_QFQ_CONVENTION_ACCEPTANCE_SHA256")
++    if bool(configured) != bool(configured_sha):
++        raise QfqGateError("CONVENTION_ACCEPTANCE_PATH_AND_SHA_REQUIRED")
++    if configured:
++        acceptance_path = _source(dict(path=configured, sha256=configured_sha), owner="release convention acceptance")
+     oracle_path = root / "qfq_futu_oracle.json"
+     if oracle_path.is_file():
+         oracle = json.loads(oracle_path.read_text())
+         if oracle.get("asof_date") == target:
+             verify_display_oracle(oracle, output, identity, target)
+             return
+-    acceptance_path = root / "qfq_convention_acceptance.json"
+     if acceptance_path.is_file():
+         accepted = json.loads(acceptance_path.read_text())
+         if (accepted.get("status") == "PASS" and accepted.get("reviewer_id")
+@@ -1363,6 +1369,76 @@
+     for ref in [value["source_config"], value["source_policy"], *value["archive_refs"], *value["accepted_evidence"]]:
+         _source(ref, owner="accepted daily history retention")
+     return value
++
++
++def selected_history_retention(current: dict | None, *, target: int) -> dict | None:
++    """Explicit D10 metadata-only admission of the independently reviewed stock."""
++    import struct
++    names = ("V4_QFQ_RETENTION_BASELINE_PATH", "V4_QFQ_RETENTION_BASELINE_SHA256",
++             "V4_QFQ_RETENTION_SUCCESSOR_PATH", "V4_QFQ_RETENTION_SUCCESSOR_SHA256")
++    supplied = [os.environ.get(name) for name in names]
++    if not any(supplied):
++        return current
++    if not all(supplied):
++        raise QfqGateError("RETENTION_SUCCESSOR_EXPLICIT_D10_BINDINGS_REQUIRED")
++    refs = [dict(path=supplied[i], sha256=supplied[i+1]) for i in (0, 2)]
++    baseline, successor = [json.loads(_source(ref, owner="retention selection").read_text()) for ref in refs]
++    keys = {"source_config", "source_policy", "archive_refs", "accepted_evidence"}
++    if (set(baseline) != keys or set(successor) != keys or current not in (baseline, successor)
++            or any(successor[key] != baseline[key] for key in ("source_policy", "archive_refs"))
++            or successor["accepted_evidence"][:len(baseline["accepted_evidence"])] != baseline["accepted_evidence"]):
++        raise QfqGateError("RETENTION_SUCCESSOR_BASELINE_OR_EVIDENCE_CHANGED")
++    if target < 20261110 or (current == baseline and target != 20261110):
++        raise QfqGateError("RETENTION_SUCCESSOR_INITIAL_ADMISSION_REQUIRES_D10")
++    before, after = [json.loads(_source(value["source_config"], owner="retention source config").read_text())
++                     for value in (baseline, successor)]
++    if (len(before["stocks"]) != 5541 or len(after["stocks"]) != 5542
++            or after["stocks"][:-1] != before["stocks"]
++            or {k:v for k,v in before.items() if k != "stocks"} != {k:v for k,v in after.items() if k != "stocks"}):
++        raise QfqGateError("RETENTION_SUCCESSOR_ORIGINAL_MEMBERS_CHANGED")
++    stock = after["stocks"][-1]
++    if (stock.get("code") != "301314.SZ" or any(row.get("code") == "301314.SZ" for row in before["stocks"])
++            or len(stock.get("sources", [])) != 1):
++        raise QfqGateError("RETENTION_SUCCESSOR_NEW_MEMBER_SCOPE")
++    extra = successor["accepted_evidence"][len(baseline["accepted_evidence"]):]
++    evidence = [(ref, json.loads(_source(ref, owner="added stock evidence").read_text())) for ref in extra]
++    facts = [(ref, value) for ref, value in evidence
++             if value.get("schema") == "V4_EXACT_301314_20261110_TYPED_SOURCE_FACT_V1"]
++    if len(facts) != 1:
++        raise QfqGateError("RETENTION_SUCCESSOR_TYPED_FACT_REQUIRED")
++    fact_ref, fact = facts[0]
++    if (fact.get("symbol") != "301314.SZ" or fact.get("target_date") != 20261110
++            or fact.get("resolved_rows") != 868 or len(fact.get("events", [])) != 4
++            or not any(value.get("verdict") == "REVIEWED/PASS" and value.get("reviewer")
++                       and value.get("source_fact_sha256") == fact_ref["sha256"] for _, value in evidence)):
++        raise QfqGateError("RETENTION_SUCCESSOR_INDEPENDENT_FACT_REVIEW_REQUIRED")
++    source = stock["sources"][0]
++    if source.get("name") != "native" or source.get("kind") != "day_bytes":
++        raise QfqGateError("RETENTION_SUCCESSOR_WHOLE_NATIVE_REQUIRED")
++    payload = _source(source, owner="added stock whole native").read_bytes()
++    pieces, dates = [], []
++    for original in fact["raw_refs"]:
++        copies = [value["frozen_copy"] for _, value in evidence if value.get("original_ref") == original]
++        if len(copies) > 1 or (copies and copies[0].get("sha256") != original["sha256"]):
++            raise QfqGateError("RETENTION_SUCCESSOR_FROZEN_COPY_CONFLICT")
++        source_ref = copies[0] if copies else original
++        raw = _source(source_ref, owner="reviewed added stock frozen source").read_bytes()
++        if current == baseline:
++            _source(original, owner="initial added stock source")
++        if len(raw) % 32:
++            raise QfqGateError("RETENTION_SUCCESSOR_RAW_BOUNDARY")
++        for offset in range(0, len(raw), 32):
++            date = struct.unpack_from("<I", raw, offset)[0]
++            if original.get("from_date_exclusive", 19000101) < date <= 20261110:
++                dates.append(date); pieces.append(raw[offset:offset+32])
++    response = json.loads(_source(fact["factor_response"], owner="reviewed added stock events").read_text())
++    events = [dict(ex_date=int(row["ex_div_date"].replace("-", "")), a=row["forward_adj_factorA"],
++                   b=row["forward_adj_factorB"], volume_a=row["backward_adj_factorA"])
++              for row in response["rows"] if int(row["ex_div_date"].replace("-", "")) <= 20261110]
++    if (payload != b"".join(pieces) or len(dates) != 868 or dates != sorted(set(dates))
++            or dates[0] != 20230328 or dates[-1] != 20261110 or events != fact["events"]):
++        raise QfqGateError("RETENTION_SUCCESSOR_RAW_OR_EVENT_PARITY_CHANGED")
++    return successor
+ 
+ 
+ TAIL_DELTA_ASOF_FIELDS = frozenset({
+@@ -2439,7 +2515,7 @@
+         frozen_baseline = json.loads(baseline_file.read_text()) if publish else baseline_binding(pointers)
+         check_baseline(pointers, frozen_baseline)
+         driver, _ = authorities(driver_path, formula_path)
+-        retained_history = accepted_history_retention(pointers) if history is None else None
++        retained_history = selected_history_retention(accepted_history_retention(pointers), target=target) if history is None else None
+         if refresh_inputs:
+             required_start = required_a_history(pointers)
+             from ops.research_panel_adjustment_inputs import prepare_snapshot

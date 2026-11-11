@@ -37,10 +37,18 @@ def _immutable(path: Path, value: dict) -> dict:
 def acquire_daily_input(target: int, receipt_root: Path, *, fetch=None, now=None, sleep=time.sleep) -> dict:
     """One dated download; verified immutable cache reuse, bounded not-ready failure."""
     policy = source_policy()
-    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage, SOURCE_URL, parse_package
+    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage, SOURCE_URL, parse_package, bind_cached_history
     from contracts.trading_calendar import load_market_calendar, previous_session, resolve_market_states, TradingDayState
     moment = now or datetime.now(timezone.utc)
     local = moment.astimezone(ZoneInfo("Asia/Shanghai"))
+    # An interrupted past session may be replayed only from the original
+    # already-bound cache. Do not backdate the clock or download past/future
+    # packages through the current-session acquisition window.
+    past_cache = receipt_root / 'a_sync_authority/official_daily' / str(target) / 'input.json'
+    if target < int(local.strftime('%Y%m%d')) and past_cache.is_file():
+        ref = dict(path=str(past_cache.resolve()),sha256=sha(past_cache))
+        OfficialDailyPackage(ref,target)
+        return bind_cached_history(ref)
     if int(local.strftime("%Y%m%d")) != target or local.strftime("%H%M") < policy["earliest_slot"]:
         raise QfqGateError("OFFICIAL_DAILY_SOURCE_WAIT_WINDOW")
     calendar_ref, adapter_ref = policy["calendar"], policy["calendar_adapter"]
@@ -56,7 +64,7 @@ def acquire_daily_input(target: int, receipt_root: Path, *, fetch=None, now=None
     if cached.is_file():
         ref = dict(path=str(cached.resolve()), sha256=sha(cached))
         OfficialDailyPackage(ref, target)
-        return ref
+        return bind_cached_history(ref)
     url = SOURCE_URL.format(date=target)
     def download():
         with urllib.request.urlopen(url, timeout=30) as response:
@@ -88,7 +96,7 @@ def acquire_daily_input(target: int, receipt_root: Path, *, fetch=None, now=None
         calendar_adapter=adapter_ref)
     ref = _immutable(cached, descriptor)
     OfficialDailyPackage(ref, target)
-    return ref
+    return bind_cached_history(ref)
 
 
 def _identity(codes: list[str], date: int) -> dict:
@@ -169,7 +177,11 @@ def build_cache_configuration(*, data_root: Path, tdx_root: Path, target: int, c
     else:
         prior_detector = _detector(root, prior_date, current=False)
         prior_ids = _immutable(config_root / "identities" / (str(prior_date) + ".json"), _identity(list(previous["symbols"]), prior_date))
-    ids = _immutable(config_root / "identities" / (str(target) + ".json"), _identity(codes, target))
+    identity = _identity(codes, target)
+    identity_path = config_root / "identities" / (str(target) + ".json")
+    if identity_path.is_file() and json.loads(identity_path.read_text()) != identity:
+        identity_path = identity_path.with_name(str(target) + "-" + canonical_sha(identity) + ".json")
+    ids = _immutable(identity_path, identity)
     descriptor = _detector(root, target, current=True)
     config = dict(schema="research_factor_cache_plan.v1", target_date=target,
         previous_metadata=prior_ref, previous_identities=prior_ids, current_identities=ids,

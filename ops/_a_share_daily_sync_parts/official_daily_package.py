@@ -11,6 +11,7 @@ from datetime import datetime
 
 SOURCE_KIND = "TDX_OFFICIAL_G4DAY"
 SOURCE_URL = "https://www.tdx.com.cn/products/data/data/g4day/{date}.zip"
+MAX_CACHED_HISTORY_INPUTS = 32
 
 
 def _sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -20,6 +21,37 @@ def _bound(ref):
     raw=p.read_bytes()
     if _sha(raw)!=ref['sha256']:raise ValueError('G4DAY_SOURCE_SHA_MISMATCH')
     return p,raw
+
+
+def bind_cached_history(ref: dict) -> dict:
+    """Bind existing owner-cache descriptors, without fetching or rewriting them.
+
+    The owner stores input.json at <official_daily>/<session>/input.json.
+    Stop at the first absent descriptor. Each session is subsequently verified
+    against the same calendar, input SHA and package SHA by the adapter.
+    """
+    path, raw = _bound(ref)
+    value = json.loads(raw)
+    if path.name != 'input.json' or path.parent.name != str(value['target_date']):
+        raise ValueError('G4DAY_CACHE_LAYOUT_INVALID')
+    history = []
+    previous = int(value['previous_session'])
+    for _ in range(MAX_CACHED_HISTORY_INPUTS):
+        cached = path.parent.parent / str(previous) / 'input.json'
+        if not cached.exists():
+            break
+        # Do not resolve away a symlink before the bound-path validator sees it.
+        entry = {'path': str(cached), 'sha256': _sha(cached.read_bytes()), 'target_date': previous}
+        _, payload = _bound(entry)
+        descriptor = json.loads(payload)
+        if descriptor.get('target_date') != previous:
+            raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
+        history.append(entry)
+        next_previous = int(descriptor['previous_session'])
+        if next_previous >= previous:
+            raise ValueError('G4DAY_HISTORY_ORDER_INVALID')
+        previous = next_previous
+    return {**ref, **({'history_inputs': history} if history else {})}
 
 def parse_package(raw: bytes, target: int):
     """Pure parser; preserve native precision and explicit member/index lineage."""
@@ -65,7 +97,11 @@ def parse_package(raw: bytes, target: int):
 
 class OfficialDailyPackage:
     def __init__(self, ref: dict, target: int):
-        self.input_path,raw=_bound(ref);self.input_ref=dict(ref);value=json.loads(raw)
+        self.input_path,raw=_bound(ref)
+        # This is the immutable descriptor identity used by existing progress.
+        # Additional cached sessions are individually bound in recovery_chain;
+        # discovering them must not invalidate completed same-input progress.
+        self.input_ref={name:ref[name] for name in ('path','sha256')};value=json.loads(raw)
         if value.get('schema_version')!='a_sync_official_daily_input.v1' or value.get('source_kind')!=SOURCE_KIND or value.get('target_date')!=target or value.get('source_url')!=SOURCE_URL.format(date=target):raise ValueError('G4DAY_INPUT_IDENTITY_INVALID')
         self.package_path,payload=_bound(value['package']);self.package_ref=dict(value['package']);self.target=target
         cal_path,_=_bound(value['calendar']);adapter_path,adapter_raw=_bound(value['calendar_adapter'])
@@ -79,15 +115,141 @@ class OfficialDailyPackage:
         if value.get('previous_session')!=previous:raise ValueError('G4DAY_PREVIOUS_SESSION_PROOF_INVALID')
         self.previous=int(previous);self.calendar_ref=dict(value['calendar']);self.calendar_adapter_ref=dict(value['calendar_adapter'])
         self.rows,self.summary=parse_package(payload,target)
+        self._history_refs = {}
+        self._history_packages = {}
+        self._lookup_chains = {}
+        self._witnesses = {}
+        history = ref.get('history_inputs', [])
+        if not isinstance(history, list) or len(history) > MAX_CACHED_HISTORY_INPUTS:
+            raise ValueError('G4DAY_HISTORY_INPUTS_INVALID')
+        for entry in history:
+            date = entry.get('target_date')
+            if type(date) is not int or date >= target or date in self._history_refs:
+                raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
+            # Verify descriptors now; defer package parsing until a symbol needs it.
+            _, descriptor = _bound(entry)
+            if json.loads(descriptor).get('target_date') != date:
+                raise ValueError('G4DAY_HISTORY_INPUT_DATE_CONFLICT')
+            self._history_refs[date] = dict(entry)
+
+    def _previous_package(self, date):
+        if date not in self._history_packages:
+            package = OfficialDailyPackage(self._history_refs[date], date)
+            if (package.calendar_ref != self.calendar_ref or
+                    package.calendar_adapter_ref != self.calendar_adapter_ref):
+                raise ValueError('G4DAY_HISTORY_CALENDAR_IDENTITY_CONFLICT')
+            self._history_packages[date] = package
+        return self._history_packages[date]
+
     def lineage(self,market,code):
         item=self.rows.get((market,code))
         return {'source_kind':SOURCE_KIND,'source_url':SOURCE_URL.format(date=self.target),
                 'package':self.package_ref,'input_ref':self.input_ref,'calendar':self.calendar_ref,
                 'calendar_adapter':self.calendar_adapter_ref,'previous_session':self.previous,
-                'record':item[1] if item else None,'target_date':self.target,'market':market,'code':code}
+                'record':item[1] if item else None,'target_date':self.target,'market':market,'code':code,
+                'date_witness': self._witnesses.get((market, code)),
+                'recovery_chain': [package.lineage(market, code)
+                                   for package in self._lookup_chains.get((market, code), [])
+                                   if package is not self]}
     def lookup(self,market,code,last_date):
-        if last_date not in {self.previous,self.target}:return [],'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
-        item=self.rows.get((market,code))
-        if item is None:return [],'TARGET_DATE_MISSING'
-        if item[2]>0xffffffff:return [],'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
-        return [dict(item[0])],'OK'
+        self._lookup_chains[(market, code)] = []
+        if last_date is None or last_date > self.target:
+            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
+        chain = [self]
+        package = self
+        while last_date < package.previous:
+            if package.previous not in self._history_refs:
+                return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
+            package = self._previous_package(package.previous)
+            chain.append(package)
+        if last_date not in {package.previous, self.target}:
+            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
+        ordered = list(reversed(chain))
+        self._lookup_chains[(market, code)] = ordered
+        bars = []
+        for package in ordered:
+            item = package.rows.get((market, code))
+            if item is None:
+                return [], 'TARGET_DATE_MISSING'
+            if item[2] > 0xffffffff:
+                return [], 'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
+            bars.append(dict(item[0]))
+        return bars, 'OK'
+
+    def witnessed_lookup(self, market, code, last_date, rows, witness_ref):
+        """G4 values only; an overlapping SDK sequence witnesses absent dates.
+
+        This proves the provider returned no bar in an interval, never an
+        exchange/issuer suspension fact. Missing packages still cannot pass.
+        """
+        from ops.a_share_daily_sync import valid_hq_bar, day_int
+        self.lookup(market, code, last_date)
+        chain = self._lookup_chains.get((market, code), [])
+        if last_date is None or last_date >= self.previous or not chain:
+            return [], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE'
+        if not isinstance(rows, list) or not 2 <= len(rows) <= 32:
+            return [], 'G4DAY_WITNESS_INCOMPLETE'
+        if any(not valid_hq_bar(b)[0] or
+               b.get('market', market) != market or b.get('code', code) != code for b in rows):
+            return [], 'G4DAY_WITNESS_BAR_OR_IDENTITY_INVALID'
+        dates = [day_int(b) for b in rows]
+        if (dates != sorted(set(dates)) or dates[0] >= last_date or dates[-1] != self.target):
+            return [], 'G4DAY_WITNESS_DATE_COVERAGE_INVALID'
+        later = [b for b in rows if day_int(b) > last_date]
+        if any(b['vol'] <= 0 or b['amount'] <= 0 for b in later):
+            return [], 'G4DAY_WITNESS_NO_CURRENT_TRADED_BAR'
+        expected = {day_int(b) for b in later}
+        witnessed = {day_int(b):b for b in later}
+        bars, absent = [], []
+        for package in chain:
+            item = package.rows.get((market, code))
+            bar = item[0] if item else None
+            valid = bar is not None and valid_hq_bar(bar)[0]
+            traded = valid and bar['vol'] > 0 and bar['amount'] > 0
+            if traded:
+                if package.target not in expected:
+                    return [], 'G4DAY_WITNESS_TRADED_DATE_CONFLICT'
+                if item[2] > 0xffffffff:
+                    return [], 'G4DAY_VOLUME_OUTSIDE_NATIVE_UINT32'
+                if any(round(float(bar[k])*100)!=round(float(witnessed[package.target][k])*100)
+                       for k in ('open','high','low','close')):
+                    return [], 'G4DAY_WITNESS_OHLC_CONFLICT'
+                bars.append(dict(bar))
+            else:
+                placeholder = bar is None or (all(bar[k] == 0 for k in ('open','high','low'))
+                                              and bar['vol'] == 0 and bar['amount'] == 0)
+                if package.target in dates or not placeholder:
+                    return [], 'G4DAY_WITNESS_MISSING_OR_INVALID_TRADED_BAR'
+                absent.append(package.target)
+        if {day_int(b) for b in bars} != expected or not bars or day_int(bars[-1]) != self.target:
+            return [], 'G4DAY_WITNESS_UNCOVERED_DATE'
+        self._witnesses[(market,code)] = dict(response=witness_ref, absent_dates=absent,
+            first_response_date=dates[0], last_response_date=dates[-1],
+            semantics='NO_BAR_IN_OVERLAPPING_PROVIDER_SEQUENCE; LEGAL_SUSPENSION_CANNOT_CONFIRM')
+        return bars, 'OK'
+
+    def needs_witness(self, market, code, last_date):
+        """Only a complete historical package chain with a traded current day."""
+        if last_date is None or last_date >= self.previous:
+            return False
+        self.lookup(market, code, last_date)
+        chain = self._lookup_chains.get((market,code), [])
+        if not chain:
+            return False
+        from ops.a_share_daily_sync import valid_hq_bar
+        current = self.rows.get((market,code))
+        if not current or not valid_hq_bar(current[0])[0] or current[0]['vol'] <= 0 or current[0]['amount'] <= 0:
+            return False
+        absent = False
+        for package in chain:
+            item = package.rows.get((market,code))
+            if item is None:
+                absent = True
+                continue
+            bar = item[0]
+            if valid_hq_bar(bar)[0] and bar['vol']>0 and bar['amount']>0:
+                continue
+            if not (all(bar[k]==0 for k in ('open','high','low')) and bar['vol']==0 and bar['amount']==0):
+                return False
+            absent = True
+        return absent

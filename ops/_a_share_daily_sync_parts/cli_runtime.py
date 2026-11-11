@@ -98,6 +98,13 @@ def _run_body(_v4_scope, /, args):
     package_sha = _v4_global(_v4_scope, 'getattr')(args, 'official_daily_input_sha256', None)
     if bool(package_path) != bool(package_sha):
         raise ValueError('official daily input path and SHA must be supplied together')
+    package_ref = {"path": str(package_path.resolve()), "sha256": package_sha} if package_path else None
+    if package_ref and package_path.name == 'input.json' and package_path.parent.name == str(target_date):
+        # The authority/CLI transmits only the dated descriptor path and SHA.
+        # Rebind the original owner's cached predecessors here, before run_sync,
+        # so the normal scheduled entry uses the same recovery as direct calls.
+        from .official_daily_package import bind_cached_history
+        package_ref = bind_cached_history(package_ref)
     result = _v4_global(_v4_scope, 'run_sync')(
         targets,
         target_date=_v4_global(_v4_scope, 'str')(target_date),
@@ -112,7 +119,7 @@ def _run_body(_v4_scope, /, args):
         progress_path=_v4_global(_v4_scope, 'getattr')(args, "progress_path", None),
         trusted_cas_inputs=_v4_global(_v4_scope, 'getattr')(args, "trusted_cas_inputs", None),
         seed_adjustment_inputs=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs", None),
-        official_daily_input={"path":str(package_path.resolve()),"sha256":package_sha} if package_path else None,
+        official_daily_input=package_ref,
         seed_adjustment_inputs_sha256=_v4_global(_v4_scope, 'getattr')(args, "seed_adjustment_inputs_sha256", None),
     )
     result.update(

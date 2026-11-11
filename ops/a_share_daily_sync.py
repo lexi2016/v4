@@ -819,9 +819,9 @@ def discover_targets(markets: Iterable[str], tdx_root: Path) -> List[Tuple[str, 
     return _v4_impl(globals(), markets, tdx_root)
 
 
-def append_bars(path: Path, bars: List[Dict[str, Any]]) -> None:
+def append_bars(path: Path, bars: List[Dict[str, Any]], *, expected_source_sha256=Ellipsis) -> None:
     from ops._a_share_daily_sync_parts.day_file_format import _append_bars_body as _v4_impl
-    return _v4_impl(globals(), path, bars)
+    return _v4_impl(globals(), path, bars, expected_source_sha256=expected_source_sha256)
 
 
 def _runtime_host_candidates(preferred_host: Optional[str]) -> list[tuple[str, int]]:

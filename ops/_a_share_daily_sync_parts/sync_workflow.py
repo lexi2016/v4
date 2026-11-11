@@ -697,6 +697,21 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                     package_failure = 'OK'
                     if package is not None:
                         source_rows, package_failure = package.lookup(int(item.market), symbol, last_date)
+                        if package.needs_witness(int(item.market), symbol, last_date):
+                            from .gap_witness import obtain
+                            try:
+                                source_rows, package_failure, refs, witness_attempts = obtain(
+                                    _v4_scope, package, item, last_date, api_factory=api_factory,
+                                    hosts=hosts, deadline=min(symbol_deadline,run_deadline,
+                                        _v4_global(_v4_scope,'time').monotonic()+request_deadline),
+                                    request_deadline=request_deadline, timeout=timeout,
+                                    run_id=run_id,recorded_at=recorded_at)
+                            except _v4_global(_v4_scope,'SyncTimeoutError') as error:
+                                symbol_snapshots.extend(getattr(error,'witness_snapshots',[]))
+                                progress.setdefault('gap_witness_attempts',{})[symbol]=getattr(error,'witness_attempts',[])
+                                raise
+                            symbol_snapshots.extend(refs)
+                            progress.setdefault('gap_witness_attempts', {})[symbol] = witness_attempts
                     if package_failure != 'OK':
                         capture_response(source_rows)
                         bars, failure_type = [], package_failure
@@ -782,7 +797,8 @@ def _run_sync_body(_v4_scope, /, targets, *, target_date, api_factory, host_cand
                         )
                         break
                     if not dry_run:
-                        _v4_global(_v4_scope, 'append_bars')(item.path, bars_to_write)
+                        _v4_global(_v4_scope, 'append_bars')(item.path, bars_to_write,
+                            expected_source_sha256=source_sha_before)
                     last_after = last_date if not bars_to_write else _v4_global(_v4_scope, 'day_int')(bars_to_write[-1])
                     source_sha_after = _v4_global(_v4_scope, '_file_sha256')(_v4_global(_v4_scope, 'Path')(item.path))
                     accepted = {

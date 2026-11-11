@@ -3,7 +3,7 @@ from datetime import datetime
 import hashlib,io,json,struct,zipfile
 import pytest
 from ops import a_share_daily_sync as sync
-from ops._a_share_daily_sync_parts.official_daily_package import parse_package,OfficialDailyPackage,SOURCE_URL
+from ops._a_share_daily_sync_parts.official_daily_package import parse_package,OfficialDailyPackage,SOURCE_URL,bind_cached_history
 ROOT=Path(__file__).resolve().parents[1]
 CAL=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts')
 TARGET=20261029
@@ -93,3 +93,106 @@ def test_same_date_identical_native_record_is_reused(tmp_path,monkeypatch):
 def test_calendar_proof_mismatch_or_holiday_rejected(tmp_path,previous,target):
     inp=input_ref(tmp_path,previous=previous,target=target)
     with pytest.raises(ValueError):OfficialDailyPackage(inp,target)
+
+
+def recovery_input(tmp_path):
+    for target, previous in [(20261106, '20261105'), (20261109, '20261106'), (20261110, '20261109')]:
+        inp = input_ref(tmp_path / str(target), previous=previous, target=target)
+    return bind_cached_history(inp)
+
+
+def test_bound_chain_recovers_weekend_gap_with_one_parse_per_package(tmp_path, monkeypatch):
+    import ops._a_share_daily_sync_parts.official_daily_package as adapter
+    inp = recovery_input(tmp_path / 'cache')
+    calls = []
+    original = adapter.parse_package
+    def observed(raw, target):
+        calls.append(target)
+        return original(raw, target)
+    monkeypatch.setattr(adapter, 'parse_package', observed)
+    targets = []
+    prefixes = {}
+    for prefix, market, code in SPECS:
+        p = tmp_path / (prefix + code + '.day')
+        # Nonzero reserved bytes must survive verbatim.
+        raw = bytearray(sync.pack_hq_bar(bar(20261105)))
+        raw[-4:] = b'keep'
+        p.write_bytes(raw)
+        prefixes[p] = bytes(raw)
+        targets.append(sync.DailyTarget(code, market, p))
+    monkeypatch.setattr(sync, 'RUN_DIR', tmp_path / 'run')
+    def forbidden(*a, **kw):
+        raise AssertionError('recovery must not open TCP')
+    result = sync.run_sync(targets, target_date='20261110', api_factory=forbidden,
+                           host_candidates=[], official_daily_input=inp)
+    assert result['accepted_count'] == 3 and result['updated_count'] == 3
+    assert sorted(calls) == [20261106, 20261109, 20261110]
+    for target, row in zip(targets, result['symbol_reconciliation']):
+        assert target.path.read_bytes().startswith(prefixes[target.path])
+        assert [sync.day_int(b) for b in sync.read_hq_day_bars(target.path)] == [20261105, 20261106, 20261109, 20261110]
+        assert row['records_written'] == 3
+        snapshot = json.loads(Path(row['raw_response_snapshots'][0]['path']).read_text())
+        assert [p['target_date'] for p in snapshot['request']['recovery_chain']] == [20261106, 20261109]
+        assert all(p['record']['md1_member']['sha256'] for p in snapshot['request']['recovery_chain'])
+
+
+def test_recovery_chain_refuses_missing_session_and_unknown_origin(tmp_path):
+    inp = recovery_input(tmp_path)
+    inp['history_inputs'] = [p for p in inp['history_inputs'] if p['target_date'] != 20261109]
+    package = OfficialDailyPackage(inp, 20261110)
+    for last in (None, 20261105, 20261107, 20261111):
+        assert package.lookup(1, '600025', last) == ([], 'HISTORICAL_GAP_NOT_COVERED_BY_DAILY_PACKAGE')
+
+
+def test_recovery_descriptor_sha_change_is_not_rebound(tmp_path):
+    inp = recovery_input(tmp_path)
+    path = Path(inp['history_inputs'][0]['path'])
+    path.write_bytes(path.read_bytes() + b' ')
+    with pytest.raises(ValueError, match='G4DAY_SOURCE_SHA_MISMATCH'):
+        OfficialDailyPackage(inp, 20261110)
+
+
+def test_recovery_package_sha_change_is_not_rebound(tmp_path):
+    inp = recovery_input(tmp_path)
+    p = json.loads(Path(inp['history_inputs'][0]['path']).read_text())['package']['path']
+    Path(p).write_bytes(b'changed')
+    package = OfficialDailyPackage(inp, 20261110)
+    with pytest.raises(ValueError, match='G4DAY_SOURCE_SHA_MISMATCH'):
+        package.lookup(1, '600025', 20261105)
+
+
+def test_recovery_refuses_calendar_identity_drift(tmp_path):
+    inp = recovery_input(tmp_path)
+    p = Path(inp['history_inputs'][0]['path'])
+    value = json.loads(p.read_text())
+    calendar_copy = tmp_path / 'other-calendar.json'
+    calendar_copy.write_bytes(Path(value['calendar']['path']).read_bytes())
+    value['calendar'] = ref(calendar_copy)
+    p.write_text(json.dumps(value))
+    inp['history_inputs'][0] = {**ref(p), 'target_date': 20261109}
+    package = OfficialDailyPackage(inp, 20261110)
+    with pytest.raises(ValueError, match='G4DAY_HISTORY_CALENDAR_IDENTITY_CONFLICT'):
+        package.lookup(1, '600025', 20261105)
+
+
+def test_recovery_invalid_intermediate_bar_uses_original_validator(tmp_path, monkeypatch):
+    inp = recovery_input(tmp_path / 'cache')
+    package_path = Path(json.loads(Path(inp['history_inputs'][0]['path']).read_text())['package']['path'])
+    def invalid(prefix, cod, md):
+        if prefix == 'sh':
+            struct.pack_into('<d', md, 12, 0.0)
+        return cod, md
+    package_path.write_bytes(packet(20261109, tweak=invalid))
+    p = Path(inp['history_inputs'][0]['path'])
+    value = json.loads(p.read_text()); value['package'] = ref(package_path)
+    p.write_text(json.dumps(value))
+    inp['history_inputs'][0] = {**ref(p), 'target_date': 20261109}
+    target = tmp_path / 'sh600025.day'
+    original = sync.pack_hq_bar(bar(20261105)); target.write_bytes(original)
+    monkeypatch.setattr(sync, 'RUN_DIR', tmp_path / 'run')
+    result = sync.run_sync([sync.DailyTarget('600025', 1, target)], target_date='20261110',
+                           api_factory=lambda *a: pytest.fail('unexpected TCP'),
+                           host_candidates=[], official_daily_input=inp)
+    assert result['accepted_count'] == 0
+    assert result['symbol_reconciliation'][0]['reason_code'] == sync.INVALID_BAR
+    assert target.read_bytes() == original

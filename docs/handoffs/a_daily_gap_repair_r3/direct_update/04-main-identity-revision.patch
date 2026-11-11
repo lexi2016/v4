@@ -1,0 +1,15 @@
+--- a/ops/research_panel_daily_source.py
++++ b/ops/research_panel_daily_source.py
+@@ -177,7 +177,11 @@
+     else:
+         prior_detector = _detector(root, prior_date, current=False)
+         prior_ids = _immutable(config_root / "identities" / (str(prior_date) + ".json"), _identity(list(previous["symbols"]), prior_date))
+-    ids = _immutable(config_root / "identities" / (str(target) + ".json"), _identity(codes, target))
++    identity = _identity(codes, target)
++    identity_path = config_root / "identities" / (str(target) + ".json")
++    if identity_path.is_file() and json.loads(identity_path.read_text()) != identity:
++        identity_path = identity_path.with_name(str(target) + "-" + canonical_sha(identity) + ".json")
++    ids = _immutable(identity_path, identity)
+     descriptor = _detector(root, target, current=True)
+     config = dict(schema="research_factor_cache_plan.v1", target_date=target,
+         previous_metadata=prior_ref, previous_identities=prior_ids, current_identities=ids,
