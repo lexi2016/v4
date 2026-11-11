@@ -82,10 +82,13 @@ export function observationMarketContext(snapshot,day){
  const us=values.us_benchmarks;
  if(us){
   const required=['.DJI','.SPX','.IXIC'];
-  const captureDate=us.session_close_at&&Number.isFinite(Date.parse(us.session_close_at))?new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.parse(us.session_close_at)+15*60000)).replaceAll('-',''):compact(day.observation_date);
+  const closeTime=Date.parse(us.session_close_at),closeDate=Number.isFinite(closeTime)?new Date(closeTime):null;
+  const closeSession=closeDate?new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(closeDate).replaceAll('-',''):null;
+  const closeClock=closeDate?new Intl.DateTimeFormat('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(closeDate):null;
+  const calendarBound=reference(us.calendar_ref)&&closeSession===us.us_session_date&&['13:00:00','16:00:00'].includes(closeClock);
+  const captureDate=Number.isFinite(closeTime)?new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(closeTime+15*60000)).replaceAll('-',''):compact(day.observation_date);
   const bound=us.schema==='V4_WORKBENCH_US_BENCHMARKS_V1'&&safe(us)&&us.observation_date===day.observation_date&&reference(us.raw_ref)
-   &&us.oracle?.research_date===captureDate&&(!us.oracle?.observation_date||us.oracle.observation_date===day.observation_date)&&us.oracle?.session_date===us.us_session_date&&sha(us.oracle?.response_sha256)
-   &&['artifact','manifest','receipt'].every(key=>reference(us.oracle?.[key]));
+   &&['DATED_US_BENCHMARKS','PARTIAL'].includes(us.status)&&/^\d{8}$/.test(us.us_session_date??'')&&calendarBound;
   const rows=bound&&Array.isArray(us.rows)?us.rows.filter(row=>required.includes(row.symbol)&&row.status==='DATED_CLOSE'
    &&row.session_date===us.us_session_date&&row.timezone==='America/New_York'&&finite(row.value)&&row.value>0&&finite(row.previous_close)&&row.previous_close>0&&finite(row.change_pct)
    &&Math.abs((row.value/row.previous_close-1)*100-row.change_pct)<.015&&sha(row.raw_sha256)
@@ -97,7 +100,9 @@ export function observationMarketContext(snapshot,day){
   const direction=complete?(rows.every(row=>row.change_pct>0)?'三大指数齐涨':rows.every(row=>row.change_pct<0)?'三大指数齐跌':'三大指数涨跌不一'):'三大指数资料未齐';
   const carried=captureDate!==compact(day.observation_date),label=carried?`最近美股收盘${us.us_session_date.slice(4,6)}/${us.us_session_date.slice(6)} · A观察${day.observation_date.slice(5).replace('-','/')}`:null;
   result.benchmarks={...us,rows,complete,heading:(carried?'最近美股收盘：':'昨晚美股：')+direction,session_label:label};
-  if(bound&&reference(us.calendar_ref)&&us.market_context&&us.market_context.us_session_date===us.us_session_date
+  if(bound&&us.market_context?.us_session_date===us.us_session_date&&us.oracle
+    &&us.oracle.research_date===captureDate&&(!us.oracle.observation_date||us.oracle.observation_date===day.observation_date)
+    &&us.oracle.session_date===us.us_session_date&&sha(us.oracle.response_sha256)
     &&['artifact','manifest','receipt'].every(key=>sameRef(us.market_context[key],us.oracle[key]))){
    try{result.usMarket=usMarketContext(us.market_context,{...day,observation_date:captureDate});result.usMarket.artifact_research_date=captureDate;result.usMarket.observation_date=day.observation_date;}catch{ /* Bad native projection cannot erase independently valid benchmarks. */ }
   }

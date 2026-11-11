@@ -181,35 +181,102 @@ def parse_us_index(raw,code,name,expected_name,url,session,received):
                 timezone='America/New_York',session_date=session,source_url=url,read_at=received.isoformat(),raw_sha256=hashlib.sha256(raw).hexdigest(),status='DATED_CLOSE')
 
 
+def _us_market_context(day,capture_day,session,clock,read):
+    """Capture the optional sector digest without making it a benchmark dependency."""
+    api='http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture_day
+    request_started_at=clock().isoformat();response_sha=None
+    diagnostic=dict(schema='V4_WORKBENCH_US_MARKET_CONTEXT_DIAGNOSTIC_V1',source='V4 /api/v4/research/us-market',
+                    url=api,research_date=capture_day,observation_date=day,expected_us_session_date=session,
+                    status='CANNOT_CONFIRM',request_started_at=request_started_at,**FLAGS)
+    try:
+        response=read(api)
+        response_raw=response.encode('utf-8') if isinstance(response,str) else bytes(response)
+        response_sha=hashlib.sha256(response_raw).hexdigest();read_at=clock().isoformat()
+        diagnostic.update(response_sha256=response_sha,read_at=read_at)
+        oracle=json.loads(response_raw)
+        if not isinstance(oracle,dict):raise ValueError('US_SESSION_ORACLE_UNCONFIRMED:RESPONSE_NOT_OBJECT')
+        if oracle.get('status') not in ('READY','PARTIAL'):
+            issues=oracle.get('cannot_confirm')
+            detail='|'.join(str(item) for item in issues if isinstance(item,str)) if isinstance(issues,list) else ''
+            detail=detail or str(oracle.get('reason') or oracle.get('status') or 'STATUS_MISSING')
+            raise ValueError('US_SESSION_ORACLE_UNCONFIRMED:'+detail)
+        session_from_api=oracle.get('us_session_date')
+        if (oracle.get('schema_version')!='v3_5.global_industries.v2'
+                or any(oracle.get(key)!=capture_day for key in ('research_date','target_date','target_trade_date'))
+                or any(oracle.get(k)!=v for k,v in FLAGS.items()) or oracle.get('write_policy')!='read_only'
+                or not isinstance(session_from_api,str) or not re.fullmatch(r'\d{8}',session_from_api)
+                or oracle.get('capture_session_date')!=session_from_api or oracle.get('source_date')!=session_from_api
+                or oracle.get('capture_phase')!='POST_CLOSE'
+                or any(not isinstance(oracle.get(key),dict) or not re.fullmatch(r'[a-f0-9]{64}',oracle[key].get('sha256','')) for key in ('artifact','manifest','receipt'))):
+            raise ValueError('US_SESSION_ORACLE_UNCONFIRMED:CONTRACT_OR_PROVENANCE_INVALID')
+        if session_from_api!=session:
+            raise ValueError('US_UPSTREAM_COMPLETED_SESSION_MISMATCH:'+session_from_api+'!='+session)
+        oracle_ref=dict(url=api,research_date=capture_day,observation_date=day,response_sha256=response_sha,
+                        session_date=session_from_api,artifact=oracle['artifact'],manifest=oracle['manifest'],receipt=oracle['receipt'])
+        diagnostic.update(status='VALIDATED',upstream_status=oracle.get('status'),error=None)
+        return oracle,oracle_ref,diagnostic
+    except Exception as error:
+        failed_at=clock().isoformat()
+        diagnostic.update(status='CANNOT_CONFIRM',response_sha256=response_sha,recorded_at=failed_at,
+                           error=type(error).__name__+': '+str(error))
+        context=dict(schema=diagnostic['schema'],source=diagnostic['source'],url=api,research_date=capture_day,
+                     observation_date=day,us_session_date=session,status='CANNOT_CONFIRM',error=diagnostic['error'],
+                     response_sha256=response_sha,recorded_at=failed_at,**FLAGS)
+        return context,None,diagnostic
+
+
+def _valid_us_benchmark_cache(prior,day,session,close_at,calendar_ref):
+    if (not isinstance(prior,dict) or prior.get('schema')!='V4_WORKBENCH_US_BENCHMARKS_V1'
+            or prior.get('observation_date')!=day or prior.get('status')!='DATED_US_BENCHMARKS'
+            or prior.get('us_session_date')!=session or prior.get('session_close_at')!=close_at.isoformat()
+            or prior.get('calendar_ref')!=calendar_ref or any(prior.get(k)!=v for k,v in FLAGS.items())
+            or not prior.get('raw_ref')):return False
+    try:checked(prior['raw_ref'])
+    except (OSError,ValueError,KeyError,TypeError):return False
+    rows=prior.get('rows')
+    if not isinstance(rows,list) or len(rows)!=len(US_INDICES):return False
+    indexed={row.get('symbol'):row for row in rows if isinstance(row,dict)}
+    if len(indexed)!=len(US_INDICES):return False
+    for code,name,_,url in US_INDICES:
+        row=indexed.get(code)
+        value=number(row.get('value')) if row else None;previous=number(row.get('previous_close')) if row else None
+        change=number(row.get('change_pct')) if row else None
+        try:source_at=datetime.fromisoformat(row['source_asof']);read_at=datetime.fromisoformat(row['read_at'])
+        except (KeyError,TypeError,ValueError):return False
+        if (row.get('name')!=name or row.get('status')!='DATED_CLOSE' or row.get('session_date')!=session
+                or row.get('timezone')!='America/New_York' or row.get('source_url')!=url
+                or row.get('source_asof')!=close_at.isoformat() or source_at!=close_at or source_at>read_at
+                or value is None or value<=0 or previous is None or previous<=0 or change is None
+                or abs((value/previous-1)*100-change)>.015
+                or not re.fullmatch(r'[a-f0-9]{64}',row.get('raw_sha256',''))):return False
+    return True
+
+
 def us_benchmarks(day,clock,read=None,prior=None):
     read=read or (lambda url:urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=15).read())
     result=dict(schema='V4_WORKBENCH_US_BENCHMARKS_V1',observation_date=day,status='SOURCE_ERROR',rows=[],recorded_at=clock().isoformat(),provider='Futu official website',**FLAGS);raw={}
     try:
-        completed=latest_completed_session(clock())
+        completed=latest_completed_session(clock());session=completed.session_date
         capture_day=(completed.close_at+timedelta(minutes=15)).astimezone(SH).strftime('%Y%m%d')
-        api='http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture_day
-        oracle_raw=read(api);oracle=json.loads(oracle_raw);session=oracle.get('us_session_date')
-        if (oracle.get('schema_version')!='v3_5.global_industries.v2' or any(oracle.get(key)!=capture_day for key in ('research_date','target_date','target_trade_date'))
-                or any(oracle.get(k)!=v for k,v in FLAGS.items()) or oracle.get('write_policy')!='read_only'
-                or not isinstance(session,str) or not re.fullmatch(r'\d{8}',session)
-                or oracle.get('capture_session_date')!=session or oracle.get('source_date')!=session or oracle.get('capture_phase')!='POST_CLOSE'
-                or oracle.get('status') not in ('READY','PARTIAL')
-                or any(not isinstance(oracle.get(key),dict) or not re.fullmatch(r'[a-f0-9]{64}',oracle[key].get('sha256','')) for key in ('artifact','manifest','receipt'))):raise ValueError('US_SESSION_ORACLE_UNCONFIRMED')
-        if session!=completed.session_date:raise ValueError('US_UPSTREAM_COMPLETED_SESSION_MISMATCH')
-        oracle_ref=dict(url=api,research_date=capture_day,observation_date=day,response_sha256=hashlib.sha256(oracle_raw).hexdigest(),session_date=session,artifact=oracle['artifact'],manifest=oracle['manifest'],receipt=oracle['receipt'])
-        if (prior and prior.get('schema')==result['schema'] and prior.get('observation_date')==day
-                and prior.get('status')=='DATED_US_BENCHMARKS' and prior.get('us_session_date')==session
-                and prior.get('raw_ref') and {row.get('symbol') for row in prior.get('rows',[])}=={row[0] for row in US_INDICES}):
-            checked(prior['raw_ref'])
-            return dict(prior,reused_completed_session=True,oracle=oracle_ref,market_context=oracle,session_close_at=completed.close_at.isoformat(),calendar_ref=dict(path=str(US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(US_CALENDAR_PATH.read_bytes()).hexdigest()),cache_checked_at=clock().isoformat()),{}
+        calendar_bytes=US_CALENDAR_PATH.read_bytes()
+        calendar_ref=dict(path=str(US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(calendar_bytes).hexdigest())
+        result.update(us_session_date=session,session_close_at=completed.close_at.isoformat(),calendar_ref=calendar_ref,market_context_research_date=capture_day)
+        if _valid_us_benchmark_cache(prior,day,session,completed.close_at,calendar_ref):
+            return dict(prior,reused_completed_session=True,cache_checked_at=clock().isoformat()),{}
+
+        # This API supplies optional sector context. The exact US session comes
+        # from the existing official calendar and remains independently dated.
+        market_context,oracle_ref,context_diagnostic=_us_market_context(day,capture_day,session,clock,read)
         rows=[];pages={}
         for code,name,expected_name,url in US_INDICES:
             try:
                 page_raw=read(url);received=clock();pages[code]=dict(url=url,html=page_raw.decode('utf-8'),sha256=hashlib.sha256(page_raw).hexdigest(),read_at=received.isoformat())
                 rows.append(parse_us_index(page_raw,code,name,expected_name,url,session,received))
             except Exception as error:rows.append(dict(symbol=code,name=name,value=None,change_pct=None,status='SOURCE_ERROR',error=type(error).__name__+': '+str(error)))
-        result.update(rows=rows,us_session_date=session,session_close_at=completed.close_at.isoformat(),calendar_ref=dict(path=str(US_CALENDAR_PATH.resolve()),sha256=hashlib.sha256(US_CALENDAR_PATH.read_bytes()).hexdigest()),oracle=oracle_ref,market_context=oracle,status='DATED_US_BENCHMARKS' if all(row['status']=='DATED_CLOSE' for row in rows) else 'PARTIAL',recorded_at=clock().isoformat())
-        raw=dict(pages=pages,oracle=oracle_ref)
+        result.update(rows=rows,oracle=oracle_ref,market_context=market_context,market_context_diagnostics=context_diagnostic,
+                      status='DATED_US_BENCHMARKS' if all(row['status']=='DATED_CLOSE' for row in rows) else 'PARTIAL',recorded_at=clock().isoformat())
+        raw=dict(pages=pages,market_context_diagnostics=context_diagnostic)
+        if oracle_ref:raw['oracle']=oracle_ref
     except Exception as error:result['error']=type(error).__name__+': '+str(error)
     return result,raw
 

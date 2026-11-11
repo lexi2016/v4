@@ -1,5 +1,5 @@
 """Bounded foreign observations in the existing owner; no network in tests."""
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import importlib.util
 import json
@@ -10,11 +10,13 @@ import sys
 
 import pytest
 
-OWNER = os.environ.get('V4_OBSERVATION_OWNER_APP')
-if not OWNER:
-    pytest.skip('Pin the existing observation owner dependency root', allow_module_level=True)
-sys.path.insert(0, OWNER)
 ROOT = Path(__file__).resolve().parents[1]
+OWNER = os.environ.get('V4_OBSERVATION_OWNER_APP') or str(ROOT)
+if not (Path(OWNER)/'infrastructure/research_workbench_host.py').is_file():
+    pytest.skip('Pin the existing observation owner dependency root',allow_module_level=True)
+sys.path.insert(0, OWNER)
+FIXTURES = Path(os.environ['V4_MARKET_SOURCE_FIXTURES']) if os.environ.get('V4_MARKET_SOURCE_FIXTURES') else None
+requires_source_fixtures = pytest.mark.skipif(FIXTURES is None,reason='official saved-source fixtures are not configured')
 
 
 def module(name, path):
@@ -30,7 +32,6 @@ runner = module('market_observation_slot_under_test', ROOT / 'ops/run_workbench_
 NOW = datetime.fromisoformat('2026-11-05T11:00:00+08:00')
 DAY = '2026-11-05'
 IDENTITY = dict(source_date='2026-11-04', generation='a' * 64, input_sha256='b' * 64)
-FIXTURES = Path(os.environ['V4_MARKET_SOURCE_FIXTURES'])
 
 
 def normalize(value):
@@ -41,7 +42,24 @@ def normalize(value):
 
 
 def jp_record():
+    if FIXTURES is None:raise RuntimeError('official saved-source fixture not configured')
     return normalize(json.loads((FIXTURES / 'FUTU_N225_SNAPSHOT_PROBE.json').read_text())['rows'][0])
+
+
+def source_fixture(name):
+    if FIXTURES is None:raise RuntimeError('official saved-source fixture not configured')
+    return (FIXTURES/name).read_bytes()
+
+
+def oracle_fixture():
+    if FIXTURES is not None:return json.loads(source_fixture('US_SOURCE.json'))
+    artifact=dict(path='/saved/us-market/artifact.json',sha256='a'*64)
+    manifest=dict(path='/saved/us-market/manifest.json',sha256='b'*64)
+    receipt=dict(path='/saved/us-market/receipt.json',sha256='c'*64)
+    return dict(schema_version='v3_5.global_industries.v2',status='READY',research_date='20261105',target_date='20261105',
+                target_trade_date='20261105',source_date='20261104',us_session_date='20261104',capture_session_date='20261104',
+                provider_session_dates=['20261104'],capture_phase='POST_CLOSE',write_policy='read_only',artifact=artifact,
+                manifest=manifest,receipt=receipt,RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 
 
 class Frame:
@@ -56,12 +74,40 @@ class Quote:
 
 
 def web_reader(calls):
-    oracle = (FIXTURES / 'US_SOURCE.json').read_bytes()
+    oracle = json.dumps(oracle_fixture()).encode()
     def read(url):
         calls.append(url)
         if url.startswith('http://127.0.0.1:8873/'): return oracle
         code = '.DJI' if '.DJI-US' in url else '.SPX' if '.SPX-US' in url else '.IXIC'
-        return (FIXTURES / ('FUTU_' + code[1:] + '_PAGE.html')).read_bytes()
+        return futu_page(code,'20261104',c.us_session('20261104').close_at)
+    return read
+
+
+def futu_page(code,session,close_at):
+    if FIXTURES is not None:
+        raw=(FIXTURES/('FUTU_'+code[1:]+'_PAGE.html')).read_bytes()
+        raw=raw.replace(b'1793826000000',str(int(close_at.timestamp()*1000)).encode())
+        raw=raw.replace(b'11/04 16:00',(session[4:6]+'/'+session[6:]+' '+close_at.strftime('%H:%M')).encode())
+        return raw
+    _,name,expected_name,url=next(row for row in c.US_INDICES if row[0]==code)
+    value=101.0;previous=100.0;percent='1.00%';stamp=int(close_at.timestamp()*1000)
+    state={'stock_info':{'stockCode':code,'name':expected_name,'marketLabel':'US','instrumentType':6,'isPlate':False,
+                         'priceNominal':str(value),'priceLastClose':str(previous),'exchangeDataTimeMs':str(stamp)}}
+    html=(f'<html><head><link rel="canonical" href="https://www.futunn.com/index/{code}-US"><title>{expected_name}({code})</title></head>'
+          f'<body><div class="price-current"><span class="price">{value}</span><span class="change-ratio">{percent}</span></div>'
+          f'<div class="status">收盘价 {session[4:6]}/{session[6:]} {close_at.strftime("%H:%M")} (美东)</div>'
+          f'<script>window.__INITIAL_STATE__={json.dumps(state,ensure_ascii=False)}</script></body></html>')
+    return html.encode()
+
+
+def benchmark_reader(calls,session,close_at,api_response):
+    def read(url):
+        calls.append(url)
+        if url.startswith('http://127.0.0.1:8873/'):
+            if isinstance(api_response,Exception):raise api_response
+            return api_response
+        code='.DJI' if '.DJI-US' in url else '.SPX' if '.SPX-US' in url else '.IXIC'
+        return futu_page(code,session,close_at)
     return read
 
 
@@ -72,10 +118,11 @@ def kr_read(url):
     return json.dumps({'chart': {'result': [dict(meta=dict(symbol=symbol,instrumentType='INDEX',exchangeTimezoneName='Asia/Seoul',regularMarketTime=stamp,regularMarketPrice=100),timestamp=[prior,stamp],indicators={'quote':[{'close':[102,100]}]})]}}).encode()
 
 
+@requires_source_fixtures
 def test_actual_three_official_html_pages_parse_quote_dom_and_exact_ny_close():
     expected = {'.DJI': (53356.12,3.03), '.SPX': (7688.620,1.58), '.IXIC': (25736.513,1.44)}
     for code,name,official,url in c.US_INDICES:
-        raw = (FIXTURES / ('FUTU_' + code[1:] + '_PAGE.html')).read_bytes()
+        raw = source_fixture('FUTU_' + code[1:] + '_PAGE.html')
         row = c.parse_us_index(raw, code, name, official, url, '20261104', NOW)
         assert (row['value'], row['change_pct']) == expected[code]
         assert row['source_asof'] == '2026-11-04T16:00:00-05:00'
@@ -83,8 +130,9 @@ def test_actual_three_official_html_pages_parse_quote_dom_and_exact_ny_close():
 
 
 @pytest.mark.parametrize('change', ['canonical','status','session','price','title'])
+@requires_source_fixtures
 def test_us_html_wrong_identity_session_or_baseline_rejected(change):
-    raw = (FIXTURES / 'FUTU_SPX_PAGE.html').read_bytes()
+    raw = source_fixture('FUTU_SPX_PAGE.html')
     session = '20261104'
     if change == 'canonical': raw = raw.replace(b'rel="canonical" href="https://www.futunn.com/index/.SPX-US"', b'rel="canonical" href="https://www.futunn.com/index/.IXIC-US"')
     elif change == 'status': raw = raw.replace('收盘价 11/04 16:00'.encode(), '收盘价 11/04 15:00'.encode())
@@ -94,6 +142,14 @@ def test_us_html_wrong_identity_session_or_baseline_rejected(change):
     with pytest.raises(ValueError): c.parse_us_index(raw,'.SPX','标普500','标普500指数','https://www.futunn.com/index/.SPX-US',session,NOW)
 
 
+@requires_source_fixtures
+def test_us_html_future_page_close_is_rejected_even_when_identity_matches():
+    raw=source_fixture('FUTU_SPX_PAGE.html')
+    with pytest.raises(ValueError,match='US_INDEX_NOT_EXPECTED_SESSION_CLOSE'):
+        c.parse_us_index(raw,'.SPX','标普500','标普500指数','https://www.futunn.com/index/.SPX-US','20261104',datetime.fromisoformat('2026-11-04T15:59:00-05:00'))
+
+
+@requires_source_fixtures
 def test_japan_actual_quote_rows_tokyo_date_price_and_close_context():
     quote = Quote(jp_record());view, raw = c.japan(DAY, lambda: NOW, lambda: quote)
     assert view['status'] == 'DATED_INDEX_OBSERVATION'
@@ -105,6 +161,7 @@ def test_japan_actual_quote_rows_tokyo_date_price_and_close_context():
 
 
 @pytest.mark.parametrize('key,value', [('code','JP.OTHER'),('index_valid',False),('prev_close_price',None),('last_price',0),('update_time','2026-11-04 11:30:00'),('update_time','2026-11-05 21:30:00')])
+@requires_source_fixtures
 def test_japan_bad_quotes_remain_null_and_quote_context_closes(key,value):
     row = jp_record();row[key] = value;quote = Quote(row)
     view,_ = c.japan(DAY,lambda: NOW,lambda: quote)
@@ -112,10 +169,12 @@ def test_japan_bad_quotes_remain_null_and_quote_context_closes(key,value):
     assert view['value'] is None and view['change_pct'] is None
 
 
+@requires_source_fixtures
 def test_existing_publish_binds_full_raw_foreign_context_and_reuses_only_completed_us_session(tmp_path):
     quote = Quote(jp_record());calls=[]
     snapshot,kr,raw = c.collect(DAY,'1100',IDENTITY,['000001.SZ'],now=NOW,clock=lambda: NOW,quote_factory=lambda:quote,us_read=web_reader(calls),kr_read=kr_read)
     assert snapshot['context']['us_benchmarks']['status'] == 'DATED_US_BENCHMARKS'
+    assert snapshot['context']['us_benchmarks']['market_context_diagnostics']['status']=='VALIDATED'
     assert len(calls)==4  # oracle + three webpages, once
     pointer = c.publish(tmp_path,snapshot,kr,raw)
     published = c.checked(pointer['snapshot']);receipt = c.checked(pointer['receipt']);fullraw = c.checked(receipt['raw'])
@@ -125,7 +184,8 @@ def test_existing_publish_binds_full_raw_foreign_context_and_reuses_only_complet
     assert published['rows']==snapshot['rows'] and len(published['rows'])==1
     copied = dict(published);saved_sha = copied.pop('snapshot_sha256');assert saved_sha == c.digest(copied)
     cached, cached_raw = c.us_benchmarks(DAY,lambda: NOW,web_reader(calls),prior=published['context']['us_benchmarks'])
-    assert cached['reused_completed_session'] is True and cached_raw=={} and len(calls)==5
+    assert cached['reused_completed_session'] is True and cached_raw=={} and len(calls)==4
+    assert cached['market_context_diagnostics']['status']=='VALIDATED'
     jp,_ = c.japan(DAY,lambda: NOW,lambda:pytest.fail('same-slot Japan should reuse'),prior=published['context']['japan'])
     assert jp['reused_same_slot'] is True
 
@@ -159,7 +219,7 @@ def test_daily_calendar_behavior_and_synthetic_page_clocks_not_future_market_dat
     now=datetime.fromisoformat(day+'T08:00:00+08:00');completed=c.latest_completed_session(now)
     assert completed.session_date==session and completed.close_at.hour==close_hour
     assert completed.close_at.utcoffset().total_seconds()==offset*3600
-    raw=(FIXTURES/'FUTU_SPX_PAGE.html').read_bytes()
+    raw=futu_page('.SPX',session,completed.close_at)
     # Only the test's clock fields are changed. Prices are historical samples,
     # never claimed as quotes or execution on these future observation dates.
     raw=raw.replace(b'1793826000000',str(int(completed.close_at.timestamp()*1000)).encode())
@@ -168,18 +228,21 @@ def test_daily_calendar_behavior_and_synthetic_page_clocks_not_future_market_dat
     assert row['source_asof']==completed.close_at.isoformat()
 
 
-def test_upstream_stale_or_missing_exact_target_is_unknown_without_page_downloads():
-    calls=[]
+def test_stale_api_and_stale_futu_pages_remain_unknown_without_date_substitution():
+    calls=[];now=datetime.fromisoformat('2026-11-06T08:00:00+08:00');completed=c.latest_completed_session(now)
+    oracle=oracle_fixture()
+    capture=(completed.close_at+timedelta(minutes=15)).astimezone(c.SH).strftime('%Y%m%d')
+    for key in ('research_date','target_date','target_trade_date'):oracle[key]=capture
     def read(url):
         calls.append(url)
-        oracle=json.loads((FIXTURES/'US_SOURCE.json').read_bytes());
-        for key in ('research_date','target_date','target_trade_date'):oracle[key]='20261106'
-        return json.dumps(oracle).encode()  # old11/04 session, expected11/05
-    view,_=c.us_benchmarks('2026-11-06',lambda:datetime.fromisoformat('2026-11-06T08:00:00+08:00'),read)
-    assert view['status']=='SOURCE_ERROR' and 'COMPLETED_SESSION_MISMATCH' in view['error'] and len(calls)==1
-    missing=lambda url:json.dumps({'research_date':'20261106','status':'CANNOT_CONFIRM'}).encode()
-    view,_=c.us_benchmarks('2026-11-06',lambda:datetime.fromisoformat('2026-11-06T08:00:00+08:00'),missing)
-    assert view['status']=='SOURCE_ERROR' and not view['rows']
+        if url.startswith('http://127.0.0.1:8873/'):return json.dumps(oracle).encode()  # valid but older 11/04 session
+        code='.DJI' if '.DJI-US' in url else '.SPX' if '.SPX-US' in url else '.IXIC'
+        return futu_page(code,'20261104',c.us_session('20261104').close_at)  # 11/04 page while calendar expects 11/05
+    view,_=c.us_benchmarks('2026-11-06',lambda:now,read)
+    assert view['status']=='PARTIAL' and view['us_session_date']=='20261105'
+    assert 'COMPLETED_SESSION_MISMATCH' in view['market_context_diagnostics']['error']
+    assert all(row['status']=='SOURCE_ERROR' and row['value'] is None for row in view['rows'])
+    assert len(calls)==4
 
 
 def test_archive_external_qualified_hot_raw_with_new_receipt_preserves_old_reference(tmp_path):
@@ -213,19 +276,64 @@ def test_runner_next_day_weekend_and_restart_protocol_without_future_natural_cla
 
 
 @pytest.mark.parametrize('day,session,capture',[('2026-11-09','20261106','20261107'),('2026-11-27','20261125','20261126'),('2026-11-30','20261127','20261128')])
-def test_exact_original_close_capture_day_is_distinct_from_a_observation(day,session,capture,tmp_path):
+def test_exact_original_close_capture_day_is_distinct_from_observation_using_existing_calendar(day,session,capture):
     now=datetime.fromisoformat(day+'T08:00:00+08:00');completed=c.latest_completed_session(now);calls=[]
-    oracle=json.loads((FIXTURES/'US_SOURCE.json').read_bytes())
+    oracle=oracle_fixture()
     for key in ('research_date','target_date','target_trade_date'):oracle[key]=capture
     for key in ('source_date','us_session_date','capture_session_date'):oracle[key]=session
     oracle['provider_session_dates']=[session]
-    prior=dict(schema='V4_WORKBENCH_US_BENCHMARKS_V1',observation_date=day,status='DATED_US_BENCHMARKS',us_session_date=session,raw_ref=c.put(tmp_path/'raw.json',{'TEST_ONLY':True}),rows=[dict(symbol=row[0]) for row in c.US_INDICES])
-    def read(url):calls.append(url);return json.dumps(oracle).encode()
-    view,raw=c.us_benchmarks(day,lambda:now,read,prior)
+    response=json.dumps(oracle).encode();read=benchmark_reader(calls,session,completed.close_at,response)
+    view,raw=c.us_benchmarks(day,lambda:now,read)
     assert view['status']=='DATED_US_BENCHMARKS' and view['observation_date']==day
+    assert view['us_session_date']==session and view['market_context_research_date']==capture
     assert view['oracle']['research_date']==capture and view['oracle']['session_date']==session
     assert view['session_close_at']==completed.close_at.isoformat() and view['market_context']==oracle
-    assert calls==['http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture] and raw=={}
-    for key,value in [('capture_phase','PRE_OPEN'),('us_session_date','20261102'),('research_date',day.replace('-',''))]:
-        wrong=dict(oracle);wrong[key]=value;view,_=c.us_benchmarks(day,lambda:now,lambda url:json.dumps(wrong).encode(),prior)
-        assert view['status']=='SOURCE_ERROR' and not view['rows']
+    assert view['calendar_ref']['sha256']==hashlib.sha256(Path(view['calendar_ref']['path']).read_bytes()).hexdigest()
+    assert set(row['symbol'] for row in view['rows'])=={row[0] for row in c.US_INDICES}
+    assert all(row['source_asof']==completed.close_at.isoformat() for row in view['rows'])
+    assert calls==['http://127.0.0.1:8873/api/v4/research/us-market?research_date='+capture]+[row[3] for row in c.US_INDICES]
+    assert set(raw['pages'])=={row[0] for row in c.US_INDICES}
+
+
+@pytest.mark.parametrize('failure', ['missing','malformed','conflict','timeout'])
+def test_optional_market_context_failures_do_not_block_exact_three_index_capture(failure):
+    now=datetime.fromisoformat('2026-11-06T08:00:00+08:00');completed=c.latest_completed_session(now);session=completed.session_date;calls=[]
+    oracle=oracle_fixture()
+    capture=(completed.close_at+timedelta(minutes=15)).astimezone(c.SH).strftime('%Y%m%d')
+    for key in ('research_date','target_date','target_trade_date'):oracle[key]=capture
+    for key in ('source_date','us_session_date','capture_session_date'):oracle[key]=session
+    oracle['provider_session_dates']=[session]
+    if failure=='missing':
+        oracle.update(status='CANNOT_CONFIRM',cannot_confirm=['EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED'])
+        response=json.dumps(oracle).encode()
+    elif failure=='malformed':response=b'{invalid json'
+    elif failure=='conflict':
+        for key in ('source_date','us_session_date','capture_session_date'):oracle[key]='20261104'
+        oracle['provider_session_dates']=['20261104'];response=json.dumps(oracle).encode()
+    else:response=TimeoutError('optional API read timed out')
+    view,raw=c.us_benchmarks('2026-11-06',lambda:now,benchmark_reader(calls,session,completed.close_at,response))
+    diagnostic=view['market_context_diagnostics']
+    assert view['status']=='DATED_US_BENCHMARKS' and view['us_session_date']==session
+    assert len(view['rows'])==3 and all(row['status']=='DATED_CLOSE' and row['session_date']==session for row in view['rows'])
+    assert diagnostic['status']=='CANNOT_CONFIRM' and diagnostic.get('error')
+    assert view['market_context']['status']=='CANNOT_CONFIRM' and view.get('oracle') is None
+    if failure=='missing':assert 'EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED' in diagnostic['error']
+    if failure=='malformed':assert diagnostic['response_sha256'] and 'JSONDecodeError' in diagnostic['error']
+    if failure=='conflict':assert 'COMPLETED_SESSION_MISMATCH' in diagnostic['error']
+    if failure=='timeout':assert 'TimeoutError' in diagnostic['error']
+    assert set(raw['pages'])=={row[0] for row in c.US_INDICES}
+
+
+def test_one_wrong_futu_page_stays_unknown_while_other_exact_indices_remain_dated():
+    now=NOW;completed=c.latest_completed_session(now);session=completed.session_date;calls=[]
+    def read(url):
+        calls.append(url)
+        if url.startswith('http://127.0.0.1:8873/'):return b'{unrelated digest unavailable'
+        code='.DJI' if '.DJI-US' in url else '.SPX' if '.SPX-US' in url else '.IXIC'
+        raw=futu_page(code,session,completed.close_at)
+        return raw.replace(b'\xe6\x94\xb6\xe7\x9b\x98\xe4\xbb\xb7 11/04 16:00',b'\xe6\x94\xb6\xe7\x9b\x98\xe4\xbb\xb7 11/03 16:00') if code=='.SPX' else raw
+    view,_=c.us_benchmarks(DAY,lambda:now,read)
+    by_symbol={row['symbol']:row for row in view['rows']}
+    assert view['status']=='PARTIAL' and by_symbol['.SPX']['status']=='SOURCE_ERROR'
+    assert 'US_INDEX_NOT_EXPECTED_SESSION_CLOSE' in by_symbol['.SPX']['error']
+    assert by_symbol['.DJI']['status']==by_symbol['.IXIC']['status']=='DATED_CLOSE'

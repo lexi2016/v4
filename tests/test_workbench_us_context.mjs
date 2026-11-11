@@ -7,7 +7,7 @@ const day={source_date:'2026-11-04',observation_date:'2026-11-05',generation:'a'
 const ref=name=>({path:'/saved/'+name,sha256:'c'.repeat(64)});
 function foreignSnapshot(){return {schema:'OBSERVATION_SNAPSHOT_VIEW_V1',source_date:day.source_date,observation_date:day.observation_date,source_generation:day.generation,input_sha256:day.input_sha256,RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,context:{
  japan:{schema:'V4_WORKBENCH_JAPAN_V1',observation_date:'2026-11-05',status:'DATED_INDEX_OBSERVATION',symbol:'JP..N225',timezone:'Asia/Tokyo',source_asof:'2026-11-05T11:30:00+09:00',recorded_at:'2026-11-05T10:44:00+08:00',value:61913.51,previous_close:62188.63,change_pct:-.4424,raw_sha256:'c'.repeat(64),raw_ref:ref('raw'),RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false},
- us_benchmarks:{schema:'V4_WORKBENCH_US_BENCHMARKS_V1',observation_date:'2026-11-05',status:'DATED_US_BENCHMARKS',us_session_date:'20261104',raw_ref:ref('raw'),oracle:{research_date:'20261105',session_date:'20261104',response_sha256:'c'.repeat(64),artifact:ref('api'),manifest:ref('manifest'),receipt:ref('receipt')},RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,
+ us_benchmarks:{schema:'V4_WORKBENCH_US_BENCHMARKS_V1',observation_date:'2026-11-05',status:'DATED_US_BENCHMARKS',us_session_date:'20261104',session_close_at:'2026-11-04T16:00:00-05:00',calendar_ref:ref('calendar'),raw_ref:ref('raw'),oracle:{research_date:'20261105',session_date:'20261104',response_sha256:'c'.repeat(64),artifact:ref('api'),manifest:ref('manifest'),receipt:ref('receipt')},RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,
  rows:[['.DJI',53356.12,51786.72,3.03],['.SPX',7688.62,7568.92,1.58],['.IXIC',25736.513,25371.48,1.44]].map(([symbol,value,previous_close,change_pct])=>({symbol,value,previous_close,change_pct,status:'DATED_CLOSE',session_date:'20261104',timezone:'America/New_York',source_asof:'2026-11-04T16:00:00-05:00',read_at:'2026-11-05T10:44:00+08:00',raw_sha256:'c'.repeat(64),source_url:'https://www.futunn.com/index/'+symbol+'-US'}))}}};}
 function fixture(){const manifest=ref('manifest'),receipt=ref('receipt');const value={schema_version:'v3_5.global_industries.v2',status:'PARTIAL',research_date:'20261105',target_date:'20261105',target_trade_date:'20261105',source_date:'20261104',us_session_date:'20261104',capture_session_date:'20261104',provider_session_dates:['20261104'],capture_phase:'POST_CLOSE',captured_at:'2026-11-04T21:15:02Z',available_board_count:13,requested_board_count:24,write_policy:'read_only',recommendation_status:'RESEARCH_ONLY',RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,artifact:{...ref('artifact'),manifest,receipt},manifest,receipt,cannot_confirm:['FUTU_BOARD_MATCH_UNCONFIRMED'],a_share_relation_status:'NO_REVIEWED_A_SHARE_RELATION_EVIDENCE'};
  value.native_board_snapshot={schema_version:'v3_5.futu_us_native_board_snapshot.v2',status:'READY',market:'US',timezone:'America/New_York',capture_session_date:'20261104',source_response_sha256:'d'.repeat(64),registry_sha256:'e'.repeat(64),available_board_count:6,requested_board_count:6,RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,rows:[['黄金',8.98378],['云计算服务商',4.288929],['可再生能源',4.136314],['天然气',-4.538001],['稀土概念',-4.826103],['存储概念',-6.304687]].map(([name,pct],i)=>({board_code:'US.LIST'+i,board_id:'US.LIST'+i,board_name:name,expected_board_name:name,status:'READY',plate_valid:true,membership_status:'READY',metric_kind:'OFFICIAL_BOARD',plate_type:'CONCEPT',market:'US',timezone:'America/New_York',session_date:'20261104',update_time:'2026-11-04 16:00:00',change_pct:pct,last:100,previous_close:99,source_response_sha256:'f'.repeat(64),membership_sha256:'f'.repeat(64),breadth_alignment:'ALIGNED',rise_count:10,fall_count:10,equal_count:0,member_count:20}))};return value;}
@@ -75,6 +75,18 @@ test('foreign snapshot shows Japan Tokyo/Beijing times and current successful Ko
  const invalid=foreignSnapshot();invalid.context.japan.previous_close=null;assert.equal(observationMarketContext(invalid,day).japan.status,'UNKNOWN');
  const stale=foreignSnapshot();stale.source_date='2026-11-03';assert.throws(()=>observationMarketContext(stale,day),/IDENTITY_CONFLICT/);
 });
+test('three exact Futu index closes remain visible without unrelated market-context receipts',()=>{
+ const snapshot=foreignSnapshot(),us=snapshot.context.us_benchmarks;
+ us.oracle=null;us.market_context={schema:'V4_WORKBENCH_US_MARKET_CONTEXT_DIAGNOSTIC_V1',status:'CANNOT_CONFIRM',error:'EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED'};
+ us.market_context_diagnostics={status:'CANNOT_CONFIRM',error:'EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED'};
+ const view=observationMarketContext(snapshot,day).benchmarks;
+ assert.equal(view.complete,true);assert.equal(view.rows.length,3);assert.equal(view.market_context_diagnostics.error,'EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED');
+ const card=renderMarketCard(new Element(),'US',{benchmarks:view},day,doc);
+ for(const value of ['道指 +3.03%','标普 +1.58%','纳指 +1.44%'])assert.ok(card.textContent.includes(value),value);
+ const stale=foreignSnapshot();stale.context.us_benchmarks.oracle=null;stale.context.us_benchmarks.rows[1].session_date='20261103';
+ const invalid=observationMarketContext(stale,day).benchmarks;assert.equal(invalid.complete,false);assert.equal(invalid.rows.length,2);
+ const missing=renderMarketCard(new Element(),'US',{benchmarks:invalid},day,doc);assert.ok(missing.textContent.includes('标普 暂缺'));
+});
 test('Korea PARTIAL preserves each successful index while only its failed peer stays missing',()=>{
  for(const good of ['KOSPI','KOSDAQ']){
   const ks=good==='KOSPI'?'^KS11 5499.66 (-3.2397%)':'^KS11 UNKNOWN: HTTPError: HTTP Error 403: Forbidden';
@@ -122,10 +134,11 @@ test('Monday consumes only the exact Friday completed session and original Satur
  const view=observationMarketContext(snapshot,monday);assert.equal(view.benchmarks.complete,true);assert.equal(view.usMarket.native.rows.length,6);assert.equal(view.usMarket.artifact_research_date,'20261107');assert.equal(view.usMarket.observation_date,'2026-11-09');
  const card=renderMarketCard(new Element(),'US',{...view.usMarket,benchmarks:view.benchmarks},monday,doc);
  assert.match(card.textContent,/最近美股收盘11\/06 · A观察11\/09/);assert.doesNotMatch(card.children[0].textContent,/昨晚/);
- for(const mutate of [x=>x.oracle.research_date='20261109',x=>x.oracle.session_date='20261102',x=>x.calendar_ref.sha256='bad']){
-  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks);const v=observationMarketContext(invalid,monday);assert.equal(v.usMarket,null);assert.equal(v.benchmarks.complete,false);
+ for(const mutate of [x=>x.oracle.research_date='20261109',x=>x.oracle.session_date='20261102']){
+  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks);const v=observationMarketContext(invalid,monday);assert.equal(v.usMarket,null);assert.equal(v.benchmarks.complete,true);
  }
  for(const mutate of [x=>x.capture_phase='PRE_OPEN',x=>x.us_session_date='20261102',x=>x.orders_sent=true,x=>x.artifact={...x.artifact,sha256:'0'.repeat(64)}]){
-  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks.market_context);assert.equal(observationMarketContext(invalid,monday).usMarket,null);
+  const invalid=structuredClone(snapshot);mutate(invalid.context.us_benchmarks.market_context);const v=observationMarketContext(invalid,monday);assert.equal(v.usMarket,null);assert.equal(v.benchmarks.complete,true);
  }
+ const badCalendar=structuredClone(snapshot);badCalendar.context.us_benchmarks.calendar_ref.sha256='bad';const calendarView=observationMarketContext(badCalendar,monday);assert.equal(calendarView.benchmarks.complete,false);assert.equal(calendarView.usMarket,null);
 });
