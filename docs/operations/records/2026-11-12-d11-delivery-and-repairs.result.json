@@ -1,0 +1,75 @@
+{
+  "status": "DELIVERED_CURRENT_DAY_VERIFIED_WITH_RESEARCH_GAPS_NATURAL_PENDING",
+  "D": "2026-11-11",
+  "O": "2026-11-12",
+  "generation": "270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45",
+  "candidate_count": 426,
+  "group_counts": {
+    "nav_smallk": 269,
+    "original": 44,
+    "nav_pullback": 158,
+    "nav_breakout": 70
+  },
+  "runtime_releases": {
+    "main": {
+      "release_id": "v4-daily-result-receipt-20261112-r1-main",
+      "manifest_sha256": "558d313eb3181ae6bf030b95bc552df40c0a052f4e34e413e05f5e94b1817d55"
+    },
+    "api": {
+      "release_id": "v4-workbench-quote-contract-20261112-r1-api",
+      "manifest_sha256": "3cd2e4a36dffb95b6287b3ff3b9879f13d59616ad25005e7c9460d9ac3e72902"
+    },
+    "stage": {
+      "release_id": "v4-stage-final-owner-repin-20261112-r3-stage",
+      "manifest_sha256": "fb3549044197550ae1351fda787f7084250fa8c08a27cebc6dbeef5f497cc5f1"
+    }
+  },
+  "quote_available": 426,
+  "Top200_count": 200,
+  "registry_state": "READY",
+  "history": {
+    "incomplete_stocks": 318,
+    "missing_label_dates": 947908,
+    "auto_bootstrap": false
+  },
+  "F10": {
+    "scope_observed": 4619,
+    "scope_total": 5809,
+    "candidate_observed": 352,
+    "candidate_total": 426
+  },
+  "natural": "NOT_VERIFIED",
+  "source_code_commits": {
+    "project": "lexi2016/v4",
+    "branch": "codex/d11-functional-closure-20261112",
+    "source_worktree": "/Users/lexi/.codex/worktrees/d11-functional-closure-20261112/v4_app",
+    "Main_code_commit": "ddab09e32dd18d71234d2c699f00f2805934f1a9",
+    "API_code_commit": "222776ac76033cd58af848b7f28f114a862d3c08",
+    "canonical_business_branch_not_merged": true
+  },
+  "scoped_storage": {
+    "new_business_file_bytes": 2156880548,
+    "modified_net_bytes": 85605647,
+    "scoped_business_net_logical_change": 2242486195,
+    "release_file_current_logical_bytes": 1573441150,
+    "cleaned_own_test_and_duplicate_export_logical_bytes": 254858953,
+    "shadow_payload_deleted_after_review": true,
+    "shadow_basis": {
+      "prior_parquet_bytes": 1008174076,
+      "new_parquet_bytes": 28703746,
+      "including_checkpoint_and_seal_bytes": 40604468,
+      "symbols": 5541,
+      "not_current_D11_reclaimed": true,
+      "not_total_daily_growth": true
+    },
+    "D10_bases_reused_bytes": 11101878762,
+    "APFS_exclusive_growth_or_reclaim": "NOT_MEASURED"
+  },
+  "Chat": "PROMPT_DELIVERED_NOT_SENT_BY_CODEX",
+  "Futu": "NOT_IMPORTED_THIS_BATCH",
+  "local_evidence_directory": "agents调试/v4_daily_panel_futu1112_20261111",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

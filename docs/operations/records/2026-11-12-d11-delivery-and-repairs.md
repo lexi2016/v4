@@ -1,15 +1,18 @@
-# D11交付与功能修复接续
+# D11日更、交付与修复最终记录
 
-本记录为2026-11-12凌晨批次接续，D=2026-11-11、O=2026-11-12，不因跨零点切换来源日。实际回执优先于本文快照；RESEARCH_ONLY及三个交易安全false保持。
+D=2026-11-11，O=2026-11-12；generation `270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45`。本批为手动接续闭环，不能冒充17:00自然运行通过。
 
-- 原基础selector/backtest配对已更新，generation `270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45`；两role各17,200,149行、最大日期D11，当日5,541条/证券，与接受源相同。数学处理5,775只，原日包全scope5,809（包括逐项UNKNOWN）。
-- 原逐股检查完成5,809/5,809；四组去重426，导航小K269、原公式44、导航回踩158、导航突破70，保留重叠；971对象有部分未知条件，不等于971只漏选。426行情已从同版原reader导出。
-- 按用户新顺序，完整计算census/名单/表现/结构摘要/海外资料/回包合同等8输入先交网盘和补充prompt。未由Codex发送Chat或导入富途；公开仓库不存股票原始输入及私人文件ID，具体ID/哈希在任务本地交付回执。
-- 随后原owner正式发布426，机械核全股票和组别与已交输入完全相同。五分评分426/426已物化、426原图描述完成；三市场搜索点击实际图形通过（51变量22绘图），不代表所有UI功能逐项通过。原deep-link选择错误另有FAIL与修复候选。
-- 原derivatives失败`FROZEN_REFERENCE_DRIFT`：virtual图形被旧物理读取入口误验。318选中股票缺947,908历史日期，不能日更自动bootstrap。source-close原reader猜旧snapshot旁stage路径且未支持logical源，导致基础已有行情却UI空白。修复候选已独审PASS（36针对性测试，缓存依赖P2已闭合）；尚未在本文快照中声明部署。
-- Stage原历史身份上限8已满，真实旧current/transition均被历史witness使用；有界候选增至16并保留全身份/SHA/时点校验，独审通过。最终Main身份变化后需同builder重生Stage控制绑定，不能激活旧CAS候选。
-- 本轮主控及Writer已删除自身确认无用测试/导出文件合计约213.752MB逻辑字节；不删除当前D11增量、恢复块或D10约11.102GB基块。较早已不存在的6.4GB断点不计本轮释放。APFS独占回收未测。
-- 初次D11文件核算：新增业务2027.012MB，覆盖更新净逻辑变化85.604MB；含一次故障恢复所需块，不是11.1GB历史重拷。三市场抽样1行Parquet各约135.9KB，其中footer约114.1KB；有界批块优化已独审PASS：现有两role各17,200,149行before/after全流式逐值/类型/NULL/顺序一致；5541股票每role23657增量行影子，原Parquet1008.174MB，新Parquet28.704MB，连封签/CP40.604468MB。此数只为基础增量环节影子，不等于整条日更每天40.6MB，也不是清理了当前D11数据。
-- 自动化17已实际更新并读回prompt优先顺序/历史边界；名称、17:00时间、ACTIVE和线程未变。下一自然运行尚待实际回执。
+- 已先交完整426只名单、当天表现及Chat补充prompt，再续行原owner页面发布；正式名单/组别与已交材料全量一致。8份输入和2份入口文件已上传成功，未重复上传旧研究。
+- 原基础selector/backtest各17,200,149行，当日5541证券/行；全scope5809逐项检查完成。去重426：小K269、原式44、回踩158、突破70，组间重叠保留。五分评分426/426物化，426原图描述完成。
+- 现役Main `v4-daily-result-receipt-20261112-r1-main`，manifest `558d313eb3181ae6bf030b95bc552df40c0a052f4e34e413e05f5e94b1817d55`；API `v4-workbench-quote-contract-20261112-r1-api`；Stage `v4-stage-final-owner-repin-20261112-r3-stage`，owner已绑定此Main，历史10项与原transition保留。
+- 最终API核回：426候选/426收盘报价、Top200200、healthz ok、frontend VERIFIED、SOP READ_OK；三市场直接链接/51变量22绘图实际通过，单例报价和源日期标签实际显示。UI验收限定这些对象，未逐项测试所有V4功能。
+- Top200和当天统计完成；318只缺947,908历史标签日仍PARTIAL，日更不自动全历史bootstrap。F10全scope4619/5809，候选352/426已观察、74失败；F10不等于完整基本面研究。v1.9.2当日模型件缺失、海外源缺件及自然阶段回执均保留未知。
+- 原thin-view报价失败已修复；319KB详细回执超128KiB登记预算的收尾故障已修复，完整回执保留，registry只记约1.9KB来源摘要。唯一已DEAD任务经原Claim接口恢复READY、预留归零；没有重算D11。一次预检失败后shell仍继续切换的操作错误已原样留证，后来按独审限定恢复，未倒填PASS。
+- 新业务文件 2156.881 MB；已有文件净变化 85.606 MB；所测业务范围净逻辑变化 2242.486 MB。完整分项见D11_FILE_GROWTH.md。发布源文件当前逻辑总量另列，不等于APFS独占新增。
+- 清理自己确认无用的测试/重复导出/已验证影子约 254.859 MB逻辑字节；保留全部正式D11数据、D10约11.102GB基块、必要失败和恢复证据。影子payload在复核后删除，对账证书、SHA与重现代码保留。未测APFS独占回收。
+- 后续基础增量已接合批实现：5541证券完整影子中原Parquet1008.174MB、新Parquet28.704MB、连CP/封签40.604468MB；不代表当前D11已回收这些字节，也不代表整条日更每天只40MB。
+- SOP、chat-review-loop与自动化17已固定“核基础→完整选股→先名单/表现/prompt→面板发布与核回→后续交付”；17:00触发不等于上游齐备。D/O、交易日与generation动态绑定。
 
-本地完整证据目录：`agents调试/v4_daily_panel_futu1112_20261111`。重点文件：FOUNDATION_D11_VERIFIED.json、FORMAL_PUBLICATION_MATCH.json、DRIVE_D11_INPUT_UPLOAD_RECEIPT.json、DELIVERY_BEFORE_PUBLICATION.json、WORKBENCH_INITIAL_DEEP_LINK_FAILURE.json、WORKBENCH_SYMBOL_CANDIDATE_TEST.json、D11_DERIVATIVE_RESULT.json、D11_FILE_GROWTH.json、CLEANUP_ACTUAL_RECEIPT.json、AUTOMATION17_PROMPT_FIRST_READBACK.json。未发布/未验收项必须在最终结果中继续保留，不能拿本记录当功能完成。
+本批Chat由用户转发，Codex未发新会话；富途目标1112，本批未导入。回包收到后按现有合同验manifest/coverage/source/input_digest再沿原owner接入，不另建数据层。D12开盘阶段及下次17:00自然流程仍待真实回执，不重放历史作业。
+
+唯一轻量交付账本：`DELIVERY_D20261111_O20261112_G270ba879ab1086df.json`。实际现役和原始回执优先。后续先读本账本、FINAL_RUNTIME_API_VERIFICATION.json及launchctl身份；已部署业务源码在工作分支`codex/d11-functional-closure-20261112`，canonical有其他并行修改，未合并此业务分支，不能把它的旧字节当现役重新发布。
