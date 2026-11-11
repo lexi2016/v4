@@ -1,0 +1,9 @@
+# Compact API view close-reference repair
+
+The installed API intentionally strips `row_refs` in `ResearchWorkbenchHost._view`. The preceding reader canary used the full numeric product, so it missed that integration contract. The installed API therefore returned `QUOTE_REFERENCE_PRODUCER_RECEIPT_UNBOUND` even though its source date, generation, manifest and 426 candidates were correct.
+
+Only the existing source-close reader changes. If the compact input lacks row references, it follows the already declared signed numeric manifest and artifact, verifies both file SHAs, schema, D/generation/input/snapshot, full source identity, config, counts, non-sample scope and safety flags, and obtains the original row-reference map. Requested symbols must belong to that bound processed map, so an independent same-source model view can still display its proper scope. The original producer admission/receipt, selector/metadata guards, logical dependency cache guards and date-only close role remain unchanged. There is no CURRENT/latest lookup or new producer/store.
+
+Eight focused integration regressions pass. A read-only canary executes the installed API's real `ResearchLaneSource`, `ResearchWorkbenchHost._view` and `day`: the original reader reproduces the failure; replacing only this reader yields 426/426 close references under the same numeric manifest. SZ/SH/BJ sample price/change/amount match the delivered CSV. D12 observations remain `UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT`; no intraday quote or source timestamp is invented. The actual day sample took approximately0.933s cold and0.031s warm, not a general performance guarantee.
+
+The prior Main, formula, transport, dependency-cache and UI checks are unchanged and not rerun for this isolated input-contract repair. No services, pointers, schedules, formal data, Main source or Stage code were changed by the Writer. Independent affected-scope review and normal API installation remain separate acceptance steps.
