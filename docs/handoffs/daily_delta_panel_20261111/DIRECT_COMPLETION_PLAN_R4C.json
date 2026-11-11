@@ -1,0 +1,40 @@
+{
+  "schema": "qfq_direct_completed_claim_plan.v1",
+  "status": "FROZEN_NOT_EXECUTED_BY_WRITER",
+  "authorization": "Controller explicitly authorized direct final recording of original already-published DEAD claim after original Claim.begin spent minutes in O(N^2) unique_roots; old attempt remained unchanged",
+  "script": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/finalize_completed_qfq_claim_r4.py",
+    "sha256": "dbdb713501c7f3d427b705fba75125f9432671501b1b9f5ece457bf08684d109"
+  },
+  "source_fixture": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/finalize_completed_qfq_claim_r4.py",
+    "sha256": "dbdb713501c7f3d427b705fba75125f9432671501b1b9f5ece457bf08684d109"
+  },
+  "sealed_preconditions_and_summary": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/QFQ_COMPLETED_CLAIM_PLAN_R4.json",
+    "sha256": "ba80a420ff41e5fda2b3c10fd6f05d7fffd460c2064179967f5ced407f2e022b"
+  },
+  "supersedes": "Only old plan execution_steps invoking Claim.begin; exact key/row/token/DEAD/data/receipt/SHA preconditions retained",
+  "method": "Original Registry.save; no admission/Claim.begin/new reservation; finish original row READY while preserving original owner/token/attempt/logical-written-bytes/billing-paths",
+  "execution_command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/finalize_completed_qfq_claim_r4.py",
+    "--execute"
+  ],
+  "read_only_command": [
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/finalize_completed_qfq_claim_r4.py"
+  ],
+  "sequence": [
+    "Controller stops old abnormal control process and confirms it exited; Writer never touches live PID.",
+    "Current old Main only: script requires old exact app/governance source and normal configured_policy, recomputes original key.",
+    "Original retention, publication, Registry.writer locks; transaction exact registrySHA/taskSHA/token/directory/reservation/attempt1/DEAD, reject any other RUNNING/VALIDATING owner.",
+    "Original verified_qfq_current and original artifact_records authenticate same actual D11 gen/pair/date/footer/paths/anchorSHA; validate complete candidate/READY receipt SHA and safety flags; no table computation.",
+    "Persist immutable bounded real-operator intent ref. Under transaction recheck exactCAS/all owners and pointer text/receipt/artifact stability, then original Registry.save only final completion fields and ref.",
+    "Read row READY/reservation0/original owner-token-attempt1/summary-artifacts unchanged and CURRENT text unchanged. Persist completion-result receipt. Never auto-retry drift/failure.",
+    "Only after reviewed gov source integration, root can directly use original SourceContext/governed_product on unchanged270ba D11 data; three existing-reader representative read canaries. No qfq/ready_check/rebuild in this integration."
+  ],
+  "budget_and_gate_changes": false,
+  "producer_invoked": false,
+  "writer_live_execution": false
+}

@@ -1,0 +1,16 @@
+{
+  "status": "REVIEWED_FAIL",
+  "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/QFQ_REGISTRY_SOURCE_REVIEW_R4.json",
+  "sha256": "e9c5b3dcd8f892bb2d3d869d17cd77502f4b0fd5c481e1707600ec4ddb8a73d7",
+  "source_sha256": "e75bade05cdf1c12731f3325d8b118e1da7f17ab29304537da1d9cf92cfe9a0b",
+  "finding": "P2: actual already_current result lacks top-level identity fields",
+  "original_patch": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/main.r4.patch",
+    "sha256": "16e9696af26b84b7328b999b728c1d1e3441bc9f9f844c17261dc44842fe51b3"
+  },
+  "minimal_failed_helper": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/R4_REJECTED_SUMMARY.py",
+    "sha256": "4098120ab940cbbf9968d10e53fccea5a0eb0d3db4b5abcd343bb9f495729339"
+  },
+  "reconciliation_plan_verdict": "PASS for original full result with writer-lock CAS"
+}

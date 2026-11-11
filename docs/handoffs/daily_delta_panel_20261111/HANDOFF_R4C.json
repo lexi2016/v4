@@ -1,0 +1,64 @@
+{
+  "schema": "daily_delta_handoff.v1",
+  "revision": "R4C_QFQ_METADATA_AND_ROOT_ACCOUNTING",
+  "status": "SOURCE_AND_DIRECT_COMPLETION_SCRIPT_FROZEN_AWAITING_REVIEW",
+  "goal": "Bounded original result metadata, exact-linear root filtering, and controller-only final recording of completed original DEAD claim",
+  "baseline_commit": "0f63cdc83f53559714ff798565a1b50516d0fdc8",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/ops/research_storage_governance.py",
+      "sha256": "86e30265aeb9692396767b69342f571e3f36882b7e49496c7d98a3a62e524cdb"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/tests/test_qfq_registry_summary.py",
+      "sha256": "008c61b3b46ac91fc27a005419174abb4128c7cba8178a8bf3f6a97e7250453e"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/tests/test_governance_unique_roots.py",
+      "sha256": "504e2d9bdfb25d6749775b93f5fcd2f320584636816ebae4000b65916568973a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/tests/test_completed_qfq_claim_recording.py",
+      "sha256": "e4417d4f889ae80a945b76ca3b7c89e4b9ef1aa0c82ad1357487fc19116172b4"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/main.r4c.patch",
+      "sha256": "c979d9662be34ee7f80463100b1787a60990fa6c95dece58d587f16c2f9749c6"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/SOURCE_PATCH_BINDINGS_R4C.json",
+      "sha256": "7d89d9a7682b28e43d2b4a2acf7bbb5452247589812cf00177b3e3287014917a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/TEST_RESULTS_R4C.json",
+      "sha256": "61ec8a8d4537e57ac356895db44cf325fa5766ef7631f80f6c6b2ad4b1a6eb2b"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/DIRECT_COMPLETION_PLAN_R4C.json",
+      "sha256": "4be00f14c6b33c6b803298210ce6affe691d2eec8d4e1243b4e8dd0af0f3751f"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/README_R4C.md",
+      "sha256": "a67e75587458c6d418d5afae4d57e1b33bb2ff3e2efc55294df513ec3a4a5ed8"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/finalize_completed_qfq_claim_r4.py",
+      "sha256": "dbdb713501c7f3d427b705fba75125f9432671501b1b9f5ece457bf08684d109"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/REVIEW_REFERENCE_R4_FAIL.json",
+      "sha256": "7bc70e0ffb2bc6693d1f957dc95272bb3af82cebdd37f51b9261d9c5725be413"
+    }
+  ],
+  "script": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/finalize_completed_qfq_claim_r4.py",
+    "sha256": "dbdb713501c7f3d427b705fba75125f9432671501b1b9f5ece457bf08684d109"
+  },
+  "tests": "30 unique affected:19 summary reused+2 roots+9 direct-recording",
+  "source_only": "one Main governance file; qfq/API/UI/data/policy/thresholds unchanged",
+  "live_actions": "NOT_RUN_BY_WRITER",
+  "remaining": [
+    "Reviewer affected new unique_roots and direct-recording script",
+    "root controlled final recording, normal gov-only Main integration and direct original product consumption"
+  ]
+}
