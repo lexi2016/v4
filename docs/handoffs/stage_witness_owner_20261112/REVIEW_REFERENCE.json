@@ -1,0 +1,14 @@
+{
+  "status": "REVIEWED_PASS_CANDIDATE_ONLY",
+  "review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/STAGE_WITNESS_SOURCE_REVIEW.json",
+    "sha256": "532569c2972d22a43d20883b9dd827c6d32c4a1673adbaf46d15fa0e2adc698c"
+  },
+  "original_config_only_STOP": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/STAGE_CURRENT_MAIN_REBIND_STOP.json",
+    "sha256": "f6fa841a7288e07ebfee25212c0e374780c51a34dbdf98d17a33fbafa3892288"
+  },
+  "live_activation": false,
+  "stage_variant_after_sha256": "63408260062e5f32430a00990ef716d81b103b3090cf93374b4cc6112fdf5b17",
+  "future_Main_rebase": "Exact before SHA must match; if actual Main changes generate fresh candidate using the same frozen builder and qualify its actual identities/witness. Old reviewedcandidate does not prove futurelive."
+}

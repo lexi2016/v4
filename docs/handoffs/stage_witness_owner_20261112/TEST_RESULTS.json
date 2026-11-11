@@ -1,0 +1,28 @@
+{
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "unit": {
+    "command": "python -B -m pytest -q tests/test_stage_witness_owner_capacity.py --basetemp=.verification/stage-capacity-20261112-r1-fixed",
+    "result": "16 passed in0.49s",
+    "coverage": [
+      "9 and16 accepted,17 rejected",
+      "old8-cap9-entry block reproduced",
+      "duplicate/current-duplicate/unknown binding fields rejected",
+      "manifest/source-byte/release identity drift rejected",
+      "date-slot-mode invalid rejected",
+      "same source bytes cannot replace completion owner identity",
+      "source/PIT failure propagated without fallback"
+    ]
+  },
+  "retained_error": "Initial collection used pytest-reserved parameter name request; collection stopped with1error. Renamed test parameter only before all16passed.",
+  "candidate_prepare": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/PREPARE_RECEIPT.json",
+    "sha256": "f4ba427b026525df749ad0d104d652229707b8b1254e5cb1483191fa9499e0c9"
+  },
+  "original_identity_and_actual_witness_validation": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/VALIDATION.json",
+    "sha256": "7cd70beced10e3a98726f7dc81160d07c7a318143b59e2fe2ce2f998a259c17e"
+  },
+  "real_results": "D11 original old-current ninth identity PASS; D10 historical PASS; D6 transition PASS; D12FileNotFound remainsCANNOT_CONFIRM; before-cutoffCATALYST_SOURCE_AFTER_AS_OF rejects",
+  "live_actions": "NOT_RUN",
+  "old_daily_math_tests": "Not repeated; no numerical source change"
+}

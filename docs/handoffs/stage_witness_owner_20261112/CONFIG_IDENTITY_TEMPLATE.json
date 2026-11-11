@@ -1,0 +1,13 @@
+{
+  "schema": "stage_witness_control_template.v1",
+  "research_owner_binding": {
+    "app_root": "<actual sealed Main app>",
+    "release_id": "<actual Main release>",
+    "manifest_path": "<actual Main manifest>",
+    "manifest_sha256": "<actual Main manifest SHA>"
+  },
+  "research_historical_owner_bindings": "Preserve existing8, append exact previous current owner as9; finite max16",
+  "research_transition_owner_binding": "Preserve exact original single-day binding",
+  "Main": "No app/release/manifest replacement; policy refs only",
+  "Stage": "Only helper cap8to16 and control config; all algorithms/data roots/limits unchanged"
+}

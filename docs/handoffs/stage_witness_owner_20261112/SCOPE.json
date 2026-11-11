@@ -1,0 +1,32 @@
+{
+  "schema": "stage_witness_scope.v1",
+  "goal": "Normal Stage witness binds actual Main with preserved historical identities and transition; finite history capacity16",
+  "writer": "/root/daily_original_panel_writer",
+  "reviewer": "/root/daily_incremental_io_reviewer",
+  "baseline_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "branch": "codex/stage-witness-owner-20261112",
+  "source_before": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-stage/app/infrastructure/manager_input_attestation.py",
+    "sha256": "e7d6ef73a65e6dec59d197d0fd0097e923ca872585c9844275a607d76fcd05e1"
+  },
+  "source_after": {
+    "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/STAGE_manager_input_attestation.after.py",
+    "sha256": "63408260062e5f32430a00990ef716d81b103b3090cf93374b4cc6112fdf5b17"
+  },
+  "allowed": [
+    "Candidate Stage helper single limit8to16 change",
+    "Candidate config/manifest/proposedStageplist",
+    "Candidate Main external pins/policy/Stage-consumer reader-attestation and proposedMainplist",
+    "Necessary tests and concise evidence"
+  ],
+  "forbidden": [
+    "Live/source/data/CURRENT/service changes",
+    "Main/API/UI business source edits",
+    "Algorithms/BUY/PIT/pool boundary changes",
+    "Historical re-selection or new producer",
+    "Concurrent daily completion Writer files"
+  ],
+  "pass_signal": "9/16 accept,17 reject, all original identity/uniqueness/date/SHA checks preserved; real current/historical read-only witness or exact missing evidence; sealed source inventories and original role identity helpers",
+  "stop_rule": "Unapproved semantic/source/permission expansion or disruptive live action",
+  "activation": "Controller only after D11 delivery; exact before refs must match then-current Main/Stage or regenerate candidate from current owners"
+}

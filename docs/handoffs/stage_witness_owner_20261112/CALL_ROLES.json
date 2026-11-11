@@ -1,0 +1,13 @@
+{
+  "schema": "stage_witness_call_roles.v1",
+  "actual_execution_owner": "com.lexi.stage-center.scheduler",
+  "stage_calls": [
+    "stage_center/research_context.py → read_stage_hourly_attestation via natural A research stages",
+    "stage_center/snapshot_selection.py.context_for_snapshot → same Stage helper for separately labeled supplementary selection"
+  ],
+  "main": "Current Main has helper definition only; no actual calls found in its packaged runtime paths. Hourly producer/publication code remains unchanged.",
+  "API": "Configured SelectionConsumer shared-root mode does not instantiate StageRunner or input producer; GET/ensure read stored Stage results. Supplementary read_for_api reads SupplementStore only, not context/witness.",
+  "manual_collection": "Separate explicit manually triggered fixed old Stage owner; outside normal scheduler/GET witness path; not changed or certified here.",
+  "sync_decision": "Stage helper only. Main controls pin future Stage; API/UI source and Main business source unchanged.",
+  "source_map_scope": "Actual current packaged Stage/Main/API paths, no claim about undocumented future/offline scripts"
+}
