@@ -1,0 +1,18 @@
+{
+  "git_base": "9fdb014ebb24f32359ba31f62f2da1fdba656cbd",
+  "source_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app",
+  "source_path": "ops/research_panel_qfq.py",
+  "runtime_baseline_sha256": "7b1f6b4ef739c7074cfcb1e4b1fda6910d4c02e70f8bf5bf653aaf696a95ca13",
+  "worktree_git_base_file_sha256": "4afe501ed62a0f388c08880d56165363158145d79d8a62911c35be1fd97c1d41",
+  "note": "Git baseline omits prior accepted runtime changes. This bounded patch is against the exact runtime file; no standalone release asserted.",
+  "source_files_allowed": [
+    "ops/research_panel_qfq.py",
+    "ops/macos_research_panel_daily_authority.py"
+  ],
+  "tests_allowed": [
+    "tests/test_qfq_daily_io_reuse.py"
+  ],
+  "not_deployed": true,
+  "authority_source_path": "ops/macos_research_panel_daily_authority.py",
+  "authority_baseline_sha256": "f83f1152ca4a6667bb7751986f80cbfc43dfd29155484635f4fbc862edd78cad"
+}

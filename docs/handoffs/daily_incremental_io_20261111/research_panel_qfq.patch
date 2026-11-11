@@ -1,0 +1,263 @@
+--- a/ops/research_panel_qfq.py
++++ b/ops/research_panel_qfq.py
+@@ -515,35 +515,56 @@
+     return zlib.crc32(code.encode()) % 32
+ 
+ 
+-def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int, Path]:
+-    """One bounded scan, rather than thousands of predicate full-table scans."""
+-    receipt_path = destination / "receipt.json"
+-    if receipt_path.is_file():
+-        receipt = json.loads(receipt_path.read_text())
+-        if receipt.get("source_sha256") == source_sha256 and receipt.get("row_copy") == "ARROW_V1":
+-            files = {int(k): Path(v["path"]) for k, v in receipt["files"].items()}
+-            if all(p.is_file() and sha(p) == receipt["files"][str(k)]["sha256"] for k, p in files.items()):
+-                return files
+-    destination.mkdir(parents=True, exist_ok=True)
+-    schema = pq.ParquetFile(path).schema_arrow
+-    writers, files = {}, {}
+-    try:
+-        for batch in pq.ParquetFile(path).iter_batches(batch_size=32768):
+-            table = pa.Table.from_batches([batch])
+-            buckets = [_bucket(code) for code in table["ts_code"].to_pylist()]
+-            for index in sorted(set(buckets)):
+-                part = table.filter(pa.array([b == index for b in buckets]))
+-                if index not in writers:
+-                    files[index] = destination / f"bucket_{index:02}.parquet"
+-                    writers[index] = pq.ParquetWriter(files[index].with_suffix(".pending"), schema, compression="zstd")
+-                writers[index].write_table(part)
+-    finally:
+-        for writer in writers.values():
+-            writer.close()
+-    for path in files.values():
+-        os.replace(path.with_suffix(".pending"), path)
+-    _json(receipt_path, dict(source_sha256=source_sha256, row_copy="ARROW_V1", files={str(k): dict(path=str(p), sha256=sha(p)) for k, p in files.items()}))
+-    return files
++def _checkpoint_stat(path: Path) -> tuple:
++    stat = path.stat()
++    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns
++
++
++class _CurrentBucketView:
++    """A logical bucket of the immutable CURRENT file, without a second copy."""
++    def __init__(self, path: Path, parquet, stamp: tuple, groups: dict[int, list[str]], index: int):
++        self.path, self.parquet, self.stamp = path, parquet, stamp
++        self.groups, self.index = groups, index
++
++    def read(self, columns=None) -> pa.Table:
++        import pyarrow.compute as pc
++        if _checkpoint_stat(self.path) != self.stamp:
++            raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(self.path))
++        tables = []
++        for group, codes in self.groups.items():
++            # Read the original row groups in order, just as the old spool did.
++            requested = None if columns is None else list(dict.fromkeys([*columns, "ts_code"]))
++            table = self.parquet.read_row_group(group, columns=requested)
++            if any(_bucket(code) != self.index for code in codes):
++                selected = [code for code in codes if _bucket(code) == self.index]
++                table = table.filter(pc.is_in(table["ts_code"], value_set=pa.array(selected)))
++            if columns is not None:
++                table = table.select(columns)
++            tables.append(table)
++        if _checkpoint_stat(self.path) != self.stamp:
++            raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(self.path))
++        return pa.concat_tables(tables)
++
++
++def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int, _CurrentBucketView]:
++    """Keep the guarded owner seam, but return read-only CURRENT bucket views.
++
++    The original owner already hashes and binds CURRENT before calling here.
++    Index only its symbol column once; never create destination or old buckets.
++    Mixed legacy row groups remain supported by exact Arrow filtering.
++    """
++    import pyarrow.compute as pc
++    path = Path(path)
++    stamp = _checkpoint_stat(path)
++    parquet = pq.ParquetFile(path)
++    groups = {}
++    for group in range(parquet.num_row_groups):
++        codes = pc.unique(parquet.read_row_group(group, columns=["ts_code"])["ts_code"]).to_pylist()
++        for index in sorted({_bucket(code) for code in codes}):
++            groups.setdefault(index, {})[group] = codes
++    if _checkpoint_stat(path) != stamp:
++        raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(path))
++    return {index: _CurrentBucketView(path, parquet, stamp, rows, index) for index, rows in groups.items()}
+ 
+ 
+ LEGACY_STATIC_FIELDS = frozenset("""raw_code name total_share_10k float_share_10k market_cap_yi float_market_cap_yi turnover_rate_pct finance_source_date list_date tdx_finance_area_code tdx_finance_industry_code tdx_industry_code sw_industry_code static_fundamental_source fundamental_snapshot_note tdx_industry_name is_st_snapshot research_panel_scope candidate_pool_policy minute_data_policy minute_data_output_root minute_data_contract_path minute_data_default_scope minute_data_required_outputs""".split())
+@@ -575,11 +596,92 @@
+     return canonical_sha([ast.dump(node, include_attributes=False) for node in nodes])
+ 
+ 
++def _partial_checkpoint_io_math_sha(path: Path) -> str:
++    # Only this batch's I/O/control functions are different. Every formula,
++    # adjustment, schema, merge, admission and release-gate definition remains.
++    io_functions = {"spool_current", "_checkpoint_stat", "checkpoint_recovery", "_symbol_checkpoint",
++                    "run_daily_rebuild", "_partial_checkpoint_io_math_sha", "_partial_checkpoint_recovery",
++                    "_partial_checkpoint_file"}
++    return canonical_sha([ast.dump(node, include_attributes=False) for node in ast.parse(path.read_text()).body
++                          if not (isinstance(node, ast.FunctionDef) and node.name in io_functions)
++                          and not (isinstance(node, ast.ClassDef) and node.name == "_CurrentBucketView")])
++
++
++def _partial_checkpoint_recovery(recovery: dict, snapshot: dict, identity: dict,
++                                 baseline: dict, data_root: Path) -> dict:
++    """Exact D11 partial computation reuse; keep its true original provenance.
++
++    Retain the existing typed recovery schema so the existing source-closure
++    owner still pins every referenced original run/artifact. This explicit mode
++    does not relax the original complete/37/38-stock recovery modes.
++    """
++    old, chunks = recovery.get("source_identity", {}), recovery.get("chunks", {})
++    if (snapshot.get("asof_date") != 20261111 or recovery.get("asof_date") != 20261111
++            or recovery.get("recovery_scope") != "D11_PARTIAL_IO_ONLY_V1"
++            or any(recovery.get(k) != v for k, v in FLAGS.items())
++            or recovery.get("baseline_panel_sha256") != baseline
++            or set(old) != set(identity)
++            or any(old[k] != value for k, value in identity.items() if k != "adapter_sha256")
++            or old.get("input_sha256") != canonical_sha(snapshot)
++            or not isinstance(chunks, dict) or not 0 < len(chunks) < len(snapshot["symbols"])
++            or not set(chunks).issubset(snapshot["symbols"])
++            or recovery.get("completed_count") != len(chunks)
++            or recovery.get("total_count") != len(snapshot["symbols"])
++            or recovery.get("retry_original_quarantined") != []
++            or recovery.get("tail_delta") is not None or recovery.get("same_asof_source_repair") is not None):
++        raise QfqGateError("PARTIAL_CHECKPOINT_EXACT_D11_INPUT_SCOPE_CONFLICT")
++    core = _source(recovery["source_core"], owner="D11 original partial computation source")
++    if (recovery["source_core"]["sha256"] != "7b1f6b4ef739c7074cfcb1e4b1fda6910d4c02e70f8bf5bf653aaf696a95ca13"
++            or old["adapter_sha256"] != recovery["source_core"]["sha256"]
++            or computation_kernel_sha(core) != computation_kernel_sha(Path(__file__))
++            or _partial_checkpoint_io_math_sha(core) != _partial_checkpoint_io_math_sha(Path(__file__))):
++        raise QfqGateError("PARTIAL_CHECKPOINT_SOURCE_OR_MATH_CHANGED")
++    run = Path(recovery["source_run"])
++    generation = canonical_sha(dict(target=20261111, baseline_panel_sha256=baseline, **old))
++    original = _source(recovery["original_snapshot"], owner="D11 original partial snapshot")
++    factor_identity = factor_cache_identity(data_root, 20261111, snapshot)
++    if (run.name != "qfq_" + generation[:20] or original != run / "adjustment_input_snapshot.json"
++            or json.loads(original.read_text()) != snapshot
++            or not factor_identity or recovery.get("factor_cache_identity") != factor_identity):
++        raise QfqGateError("PARTIAL_CHECKPOINT_SOURCE_GENERATION_OR_FACTOR_CONFLICT")
++    result = {}
++    for code, item in chunks.items():
++        artifact = _source(item["artifact"], owner="D11 partial artifact " + code)
++        receipt_path = _source(item["receipt"], owner="D11 partial receipt " + code)
++        if (artifact != run / "symbol_checkpoints" / (code + ".parquet")
++                or receipt_path != artifact.with_suffix(".receipt.json")):
++            raise QfqGateError("PARTIAL_CHECKPOINT_PATH_CONFLICT:" + code)
++        fingerprint = canonical_sha(dict(code=code, item=snapshot["symbols"][code], **old))
++        receipt = json.loads(receipt_path.read_text())
++        if (receipt.get("checkpoint_id") != fingerprint
++                or receipt.get("sha256") != item["artifact"]["sha256"]
++                or panel_contract(artifact).get("checkpoint_id") != fingerprint):
++            raise QfqGateError("PARTIAL_CHECKPOINT_FINGERPRINT_CONFLICT:" + code)
++        result[code] = dict(item, read_only_original=True, verified_stat=_checkpoint_stat(artifact),
++                           receipt_verified_stat=_checkpoint_stat(receipt_path))
++    return result
++
++
++def _partial_checkpoint_file(item: dict) -> Path:
++    path = Path(item["artifact"]["path"])
++    receipt = Path(item["receipt"]["path"])
++    if (path.is_symlink() or receipt.is_symlink()
++            or _checkpoint_stat(path) != tuple(item["verified_stat"])
++            or _checkpoint_stat(receipt) != tuple(item["receipt_verified_stat"])):
++        raise QfqGateError("PARTIAL_CHECKPOINT_CHANGED_AFTER_VERIFICATION:" + str(path))
++    return path
++
++
+ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseline: dict, data_root: Path,
+                         *, tail_delta: dict | None = None, same_asof: dict | None = None) -> dict:
+     if not ref:
+         return {}
+     recovery = json.loads(_source(ref, owner="reviewed checkpoint recovery").read_text())
++    if recovery.get("recovery_scope") is not None:
++        if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
++                or tail_delta is not None or same_asof is not None):
++            raise QfqGateError("PARTIAL_CHECKPOINT_RECOVERY_MODE_CONFLICT")
++        return _partial_checkpoint_recovery(recovery, snapshot, identity, baseline, data_root)
+     old = recovery["source_identity"]
+     if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
+             or any(old.get(k) != v for k, v in identity.items() if k not in {"adapter_sha256", "turnover_input_sha256"})
+@@ -2269,6 +2371,8 @@
+         bound = json.loads(checkpoint_receipt.read_text())
+         if check.get("checkpoint_id") == fingerprint and bound.get("sha256") == sha(checkpoint):
+             return code, checkpoint
++    if code in recovered and recovered[code].get("read_only_original") is True:
++        return code, _partial_checkpoint_file(recovered[code])
+     if code in recovered:
+         ref = recovered[code]["artifact"]
+         computed = pq.read_table(_source(ref, owner="reused pure computation " + code)).to_pandas()
+@@ -2788,6 +2892,7 @@
+                     raise
+                 quarantine_reasons[code] = dict(reason=str(exc), original_status=eligible[code])
+                 return code, None
++        checkpoint_files = {}
+         try:
+             if compute_backend == "process":
+                 multiprocessing.set_executable(sys.executable)
+@@ -2812,6 +2917,10 @@
+                                 if incremental or code not in eligible:
+                                     raise QfqGateError(error)
+                                 quarantine_reasons[code] = dict(reason=error, original_status=eligible[code])
++                        else:
++                            code, checkpoint = result
++                        if checkpoint is not None:
++                            checkpoint_files[code] = Path(checkpoint)
+                     _json(run_dir / "progress.json", dict(completed=min(offset + workers, len(codes)), total=len(codes),
+                           generation_id=run_id, compute_backend=compute_backend, workers=workers))
+             # Check all old key sets before either role is written. A key absent
+@@ -2819,8 +2928,8 @@
+             old_spools = {role: spool_current(path, run_dir / ("current_" + role + "_buckets"), baseline_hashes[role])
+                           for role, path in currents.items()}
+             for role, buckets in old_spools.items():
+-                for bucket_path in buckets.values():
+-                    frame = pq.read_table(bucket_path, columns=["ts_code", "trade_date"]).to_pandas()
++                for bucket_source in buckets.values():
++                    frame = bucket_source.read(columns=["ts_code", "trade_date"]).to_pandas()
+                     for code, old_keys in frame.groupby("ts_code"):
+                         if code in legacy_codes:
+                             approved_role = legacy_policy["roles"][role]
+@@ -2832,7 +2941,7 @@
+                                 raise QfqGateError(f"LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED:{role}:{code}")
+                         if code in quarantine_reasons or code in foreign or code in retained_history_codes or code in unchanged_codes:
+                             continue
+-                        rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
++                        rebuilt_keys = pq.read_table(checkpoint_files[code], columns=["trade_date"]).column(0).to_pylist()
+                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
+                         if missing_keys:
+                             if incremental or code not in eligible:
+@@ -2865,7 +2974,7 @@
+                 delta_prefix_changes[role] = []
+                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
+                     for bucket in range(32):
+-                        old_table = pq.read_table(old_buckets[bucket]) if bucket in old_buckets else None
++                        old_table = old_buckets[bucket].read() if bucket in old_buckets else None
+                         old_frame = old_table.to_pandas() if old_table is not None else pd.DataFrame()
+                         old_groups = old_frame.groupby("ts_code", sort=False).indices if not old_frame.empty else {}
+                         if not old_frame.empty:
+@@ -2910,7 +3019,9 @@
+                         for code in (code for code in codes if _bucket(code) == bucket):
+                             if code not in old_symbols[role] and role not in snapshot["symbols"][code]["publish_roles"]:
+                                 continue
+-                            rebuilt = pq.read_table(parts_root / (code + ".parquet")).to_pandas()
++                            if code in recovered and recovered[code].get("read_only_original") is True:
++                                _partial_checkpoint_file(recovered[code])
++                            rebuilt = pq.read_table(checkpoint_files[code]).to_pandas()
+                             old = old_frame.iloc[old_groups[code]].copy() if code in old_groups else pd.DataFrame()
+                             replaced_old_rows += len(old)
+                             if old.empty and history is None and addition is None:
+@@ -2974,6 +3085,13 @@
+                     unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
+                     unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
+             # Revalidate source bytes before CURRENT can change.
++            partial = [item for item in recovered.values() if item.get("read_only_original") is True]
++            if partial:
++                recovery_control = json.loads(_source(checkpoint_resume, owner="D11 partial recovery before publication").read_text())
++                for key in ("source_core", "original_snapshot"):
++                    _source(recovery_control[key], owner="D11 partial original source before publication")
++                for item in partial:
++                    _partial_checkpoint_file(item)
+             if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
+                 raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
+             turnover.verify_binding()

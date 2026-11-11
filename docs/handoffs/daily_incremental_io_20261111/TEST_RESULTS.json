@@ -1,0 +1,59 @@
+{
+  "status": "TARGETED_CHECKS_PASSED_AWAITING_INDEPENDENT_REVIEW",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app",
+  "test_file": "/Users/lexi/.codex/worktrees/daily-incremental-io-20261111/v4_app/tests/test_qfq_daily_io_reuse.py",
+  "all_successful_checks": 29,
+  "commands": [
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--import-mode=importlib", "TEST_FILE"],
+      "result": "FAILED: 6 target/harness failures; pytest default shared temporary-directory housekeeping raised EPERM in an unrelated prior test directory and obscured summary",
+      "correction": "Use explicit unique task-local --basetemp and no cacheprovider; no permission or manual cleanup changes"
+    },
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_r1", "TEST_FILE"],
+      "result": "6 failed, 19 passed",
+      "failures": ["Candidate read-only view missing local pyarrow.compute import", "Authority test module package name omitted ops for relative import", "Assembly extraction harness did not initialize assigned codes local"],
+      "correction": "Added local compute imports; fixed package-qualified harness load and explicit assembly arguments"
+    },
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--tb=short", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_r2", "TEST_FILE"],
+      "result": "24 passed, 1 failed",
+      "remaining_failure": "Assembly harness omitted run_id; source behavior checks passed",
+      "correction": "Added original assembly run_id fixture argument"
+    },
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--tb=short", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_assembly_r3", "TEST_FILE::test_actual_owner_pair_assembly_matches_original_without_old_bucket_outputs"],
+      "result": "1 passed"
+    },
+    {
+      "env": {"V4_TEST_ORIGINAL_APP": "cwd", "V4_TEST_D11_CHECKPOINTS": "1"},
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--tb=short", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_canary_r1", "TEST_FILE", "-k", "process_worker or pinned_full_prefix or three_real"],
+      "result": "3 passed, 25 deselected in 7.93s",
+      "scope": "Added process result path, exact pinned full-prefix 11x90-bar oracle, and real 3/1364 original D11 checkpoint read-only compatibility"
+    },
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--tb=short", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_write_counts_r1", "TEST_FILE::test_actual_owner_pair_assembly_matches_original_without_old_bucket_outputs"],
+      "result": "1 passed; added machine writer/row counting to the changed assembly fixture only",
+      "evidence": "WRITE_COUNTS.json"
+    },
+    {
+      "argv": ["python", "-B", "-m", "pytest", "-q", "--tb=short", "-p", "no:cacheprovider", "--import-mode=importlib", "--basetemp=N/pytest_io_dictionary_r1", "TEST_FILE::test_dictionary_null_and_nan_columns_keep_original_bucket_values"],
+      "result": "1 added boundary check passed"
+    },
+    {"argv": ["git", "diff", "--check"], "cwd": "worktree", "result": "PASS"},
+    {"command": "ast.parse of the two candidate source files", "result": "PASS"}
+  ],
+  "aliases": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+    "TEST_FILE": "/Users/lexi/.codex/worktrees/daily-incremental-io-20261111/v4_app/tests/test_qfq_daily_io_reuse.py",
+    "N": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111",
+    "worktree": "/Users/lexi/.codex/worktrees/daily-incremental-io-20261111/v4_app"
+  },
+  "not_run": ["Full repository test suite", "All 1364 real checkpoint validation", "Full-market historical computation", "Live formula/product producer", "Storage admission override", "Release acceptance change", "Deployment", "API/UI/natural verification", "Commit/push"],
+  "source_or_data_mutation_outside_worktree": "Only task-local diagnosis, fixtures and receipts; no business/live source or original data writes",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
