@@ -1,0 +1,103 @@
+--- a/DATA_LAYER_INTERFACE.py
++++ b/DATA_LAYER_INTERFACE.py
+@@ -6,6 +6,8 @@
+ picked up automatically.
+ """
+ from __future__ import annotations
++
++from ops.research_panel_logical import read_frame as panel_read_frame
+ 
+ from contextlib import contextmanager
+ import json
+@@ -124,7 +126,7 @@
+ 
+ 
+ def _date_values(path: Path) -> list[int]:
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+ 
+     arr = pq.read_table(path, columns=["trade_date"]).column("trade_date").to_pylist()
+     vals = []
+@@ -159,14 +161,14 @@
+ 
+ 
+ def list_columns(panel_path: Optional[str | Path] = None) -> list[str]:
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     path = _resolve_panel_path(panel_path)
+     return list(pq.ParquetFile(path).schema_arrow.names)
+ 
+ 
+ def _canonical_basis(path: Path, parquet_file=None) -> dict:
+     """Read the same generation's saved contract; no network or price rewrite."""
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     pf = parquet_file or pq.ParquetFile(path)
+     raw = (pf.schema_arrow.metadata or {}).get(b"a_share_qfq_contract_v1")
+     if raw is None:
+@@ -226,7 +228,7 @@
+     profile: Optional[str] = None,
+     asof: Optional[str] = None,
+ ) -> dict:
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     if isinstance(panel_path, bool):
+         include_dates = panel_path
+         panel_path = None
+@@ -314,7 +316,7 @@
+     key = str(path)
+     cached = _SCHEMA_CACHE.get(key)
+     if cached is None:
+-        import pyarrow.parquet as pq
++        from ops.research_panel_logical import parquet as pq
+         cached = pq.ParquetFile(path).schema_arrow
+         _SCHEMA_CACHE[key] = cached
+     return cached
+@@ -387,8 +389,18 @@
+         read_columns = None
+     else:
+         read_columns = list(dict.fromkeys(["trade_date", "ts_code", *columns]))
+-    filters = _coerce_filter_literals(filters, path)
+-    df = pd.read_parquet(path, columns=read_columns, filters=filters)
++    bounds=[]
++    if start_date is not None: bounds.append(('trade_date','>=',str(start_date)))
++    if end_date is not None: bounds.append(('trade_date','<=',str(end_date)))
++    if ts_codes is not None:
++        ts_codes=list(map(str,ts_codes));bounds.append(('ts_code','in',ts_codes))
++    bounds=_coerce_filter_literals(bounds,path)
++    if filters and isinstance(filters[0],list):
++        filters=[_coerce_filter_literals(group,path)+bounds for group in filters]
++    else:
++        filters=_coerce_filter_literals(filters,path) or []
++        filters+=bounds
++    df = panel_read_frame(path, columns=read_columns, filters=filters)
+     if start_date is not None:
+         df = df[df["trade_date"].astype(str) >= str(start_date)]
+     if end_date is not None:
+@@ -435,7 +447,7 @@
+         raise RuntimeError("Selector panel has no valid trade_date values")
+     latest = str(max(vals))
+     load_cols = list(columns) if columns is not None else None
+-    return pd.read_parquet(path, columns=load_cols, filters=[("trade_date", "==", latest)])
++    return panel_read_frame(path, columns=load_cols, filters=[("trade_date", "==", latest)])
+ 
+ 
+ def smoke_check(panel_path: Optional[str | Path] = None) -> dict:
+@@ -455,7 +467,7 @@
+         for optional_col in ("market_type", "exchange"):
+             if optional_col in meta["column_names"]:
+                 name_cols.append(optional_col)
+-        name_df = pd.read_parquet(path, columns=name_cols)
++        name_df = panel_read_frame(path, columns=name_cols)
+         date_text = _trade_date_text(name_df["trade_date"])
+         latest_mask = date_text == str(latest) if latest is not None else pd.Series(False, index=name_df.index)
+         missing_mask = _name_missing_mask(name_df["name"])
+@@ -471,7 +483,7 @@
+         latest_hk_connect_name_missing_count = int((missing_mask & latest_mask & hk_connect_mask).sum())
+         latest_core_name_missing_count = int((missing_mask & latest_mask & ~hk_connect_mask).sum())
+     elif latest is not None:
+-        dates = pd.read_parquet(path, columns=["trade_date"])["trade_date"]
++        dates = panel_read_frame(path, columns=["trade_date"])["trade_date"]
+         latest_rows = int((_trade_date_text(dates) == str(latest)).sum())
+     warnings = []
+     if name_missing_total_count and name_missing_total_count > 0:

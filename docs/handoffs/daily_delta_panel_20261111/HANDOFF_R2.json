@@ -1,0 +1,55 @@
+{
+  "schema": "v4.daily_delta.writer_handoff.v1",
+  "status": "SOURCE_FROZEN_R2_TARGETED_PASS_REVIEW_PENDING",
+  "writer": "/root/daily_original_panel_writer",
+  "reviewer": "/root/daily_incremental_io_reviewer",
+  "worktree": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app",
+  "branch": "codex/daily-delta-panel-20261111",
+  "git_base": "efa5b97d825b4eaea7ce576dc90c63fd6b28d511",
+  "source_binding": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/SOURCE_PATCH_BINDINGS_R2.json",
+    "sha256": "78a17f9c00c6008adf9bd8300f150c3885466cb851e31f8282442deabe4e0722"
+  },
+  "test_results": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/TEST_RESULTS_R2.json",
+    "sha256": "942e1b35d1e01e9d9828b85912c5dae703314b9d8002c9bc7cd7c7cdb78eeafd"
+  },
+  "readme": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/README.md",
+    "sha256": "cca91dde66fb270468b5e2db6966269df4afac47585c31ec540089957f390969"
+  },
+  "unique_targeted_tests_pass": 45,
+  "source_only": true,
+  "live_published": false,
+  "D11_foundation_complete": false,
+  "live_integration_blockers": [
+    "Independent REVIEWED/PASS pending",
+    "Normal Main/API/source inventory and typed convention acceptance binding for actual new source hashes",
+    "Original shared reader and every registered consumer/source pin installation before any logical publication",
+    "Actual live admission remains mandatory and has not been executed"
+  ],
+  "CANNOT_CONFIRM": [
+    "All-market natural result and actual daily growth",
+    "Actual integrated API/UI behavior",
+    "Current guard admission outcome"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "revision": "R2",
+  "r1_status": "REVIEWED_FAIL",
+  "r1_handoff": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/HANDOFF.json",
+    "sha256": "8fb4e12824e7887cd273fb9b446831226949ad9b6f1b1604102129d0b6323a8b"
+  },
+  "targeted_r2_tests": 12,
+  "r1_review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/DELTA_INDEPENDENT_REVIEW.json",
+    "sha256": "529a9880b61cc4fa85e800b0b1117b04b055f62f5f074c0f99b1c801d053d212"
+  },
+  "r1_source_snapshots": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/r1_rejected/REJECTION.json",
+    "sha256": "6de109325924d93c94882f4a049bdc1d230543d108bb7c6cf4b2ff453cddcdd3"
+  }
+}

@@ -73,7 +73,7 @@ def _strict_single_ref(reference):
 
 def _single_symbol_direct_qfq_rows(root, candidate, code, start, end, manifest_sha):
     """Read one reviewed27day capture; original73 retain their legacy reader."""
-    import pyarrow.parquet as pq
+    from ops.research_panel_logical import parquet as pq
     source_sha = candidate["source"]["sha256"]
     first, row_count = candidate.get("history_start_date"), candidate.get("row_count")
     if (not re.fullmatch(r"\d{6}\.(SH|SZ)", code) or not isinstance(source_sha, str)
@@ -152,7 +152,7 @@ def _direct_qfq_rows(root, candidate, code, start, end):
     """
     import csv
     import io
-    import pyarrow.parquet as pq
+    from ops.research_panel_logical import parquet as pq
     if (candidate.get("schema") != "futu_direct_qfq76_consumer_candidate_v1"
             or candidate.get("source_kind") != DIRECT_KIND
             or candidate.get("asof_date") != "20261026"
@@ -590,6 +590,9 @@ def _artifact_identity(path, sha, meta, receipt):
 
 @contextmanager
 def _read_lock(cache):
+    if current_binding() is not None:
+        yield
+        return
     # The original publisher owns this existing lock. API never creates it.
     with (cache / "qfq_publish.lock").open("rb") as handle:
         try:
@@ -615,6 +618,10 @@ def _request(code, start, end, version):
         raise ValueError("unsupported formula_version")
 
 
+from ops.research_storage_pair import paired_request, current_binding, bind_shared_reader
+
+
+@paired_request
 def read_history(shared_data_root, code, start, end, version):
     if version == "R19_FROZEN_151_20261027":
         _request(code, start, end, VERSION)
@@ -648,14 +655,15 @@ def read_history(shared_data_root, code, start, end, version):
     pointer = root / "data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt"
     try:
         import pyarrow as pa
-        import pyarrow.parquet as pq
+        from ops.research_panel_logical import parquet as pq
         with _read_lock(cache):
             direct = _profile_direct_qfq(root, cache, code, start, end, numeric283_chart=numeric283_chart)
             if direct is not None:
                 return {**response, **direct}
-            pointer_bytes = pointer.read_bytes()
+            pair = current_binding(root)
+            pointer_bytes = pair.pointer_bytes('selector') if pair else pointer.read_bytes()
             path = Path(pointer_bytes.decode("utf-8-sig").strip())
-            expected, _ = _json(cache / "qfq_expected_current.json")
+            expected = pair.expected(root) if pair else _json(cache / "qfq_expected_current.json")[0]
             bound = expected["roles"]["selector"]
             if (expected.get("schema") != "qfq_expected_current_v1" or bound["pointer_path"] != str(pointer)
                     or bound["pointer_sha256"] != _sha_bytes(pointer_bytes) or bound["target_path"] != str(path)):
@@ -694,12 +702,13 @@ def read_history(shared_data_root, code, start, end, version):
             spec = importlib.util.spec_from_file_location("a_share_default_history_reader", reader_path)
             reader = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(reader)
+            bind_shared_reader(reader, pair)
             kind = pf.schema_arrow.field("trade_date").type
             cast = str if pa.types.is_string(kind) or pa.types.is_large_string(kind) else int
             frame = reader.load_selector_ready(columns=list(COLUMNS), start_date=start, end_date=end,
                 ts_codes=[code], filters=[("ts_code", "=", code), ("trade_date", ">=", cast(start)),
                                          ("trade_date", "<=", cast(end))], panel_path=path, profile=None)
-            if (pointer.read_bytes() != pointer_bytes or _stat(path) != observed):
+            if ((pair is None and pointer.read_bytes() != pointer_bytes) or _stat(path) != observed):
                 raise Unconfirmed("DEFAULT_ARTIFACT_CHANGED_DURING_READ")
             if len(frame) > 20000 or frame[["ts_code", "trade_date"]].duplicated().any():
                 raise Unconfirmed("EXACT_HISTORY_ROW_CONTRACT_CONFLICT")

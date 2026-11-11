@@ -1,0 +1,74 @@
+{
+  "status": "TARGETED_PASS_REVIEW_PENDING",
+  "unique_tests": 45,
+  "full_suite_repeated": false,
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "worktree": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_delta_resume_align_r5 tests/test_delta_owner.py tests/test_logical_panel_delta.py",
+      "result": "21 passed in 0.80s",
+      "note": "Before subsequently added pair/dependency/audit tests; unchanged reader checks reused"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_delta_oracle_r2 tests/test_delta_full_prefix_oracle.py",
+      "result": "11 passed in 5.05s",
+      "note": "Actual pinned canonical driver/original full-prefix; normal/suspend/eight factor events/new stock; logical and full Parquet schema/footer/value equality"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_reader_compat_r1 tests/test_reader_transport_compat.py",
+      "result": "3 passed in 0.28s"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_chart_blocks_r3 tests/test_chart_row_blocks.py",
+      "result": "3 passed in 0.04s",
+      "note": "Initial three row-block tests"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_chart_api_r1 tests/test_chart_row_blocks.py::test_original_api_reader_and_host_bind_virtual_projection tests/test_chart_row_blocks.py::test_shared_html_actual_isolated_canvas",
+      "result": "2 passed in 0.77s"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_pair_closure_r1 tests/test_delta_owner.py::test_actual_pair_lease_and_single_generation_pin_closure",
+      "result": "1 passed in 0.26s"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_dependency_final_r1 tests/test_delta_owner.py tests/test_daily_date_wording.py",
+      "result": "11 passed in 0.82s",
+      "note": "Ten owner tests plus wording at this checkpoint"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_authority_logical_r2 tests/test_delta_owner.py::test_original_authority_target_date_audit_reads_logical_panel",
+      "result": "1 passed in 0.28s"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_final_affected_r1 tests/test_delta_owner.py::test_one_role_failure_never_changes_current_and_resumes tests/test_chart_row_blocks.py::test_shared_html_actual_isolated_canvas",
+      "result": "2 passed in 0.96s",
+      "note": "Only final affected FAILED metadata/safety flags; no broad rerun"
+    },
+    {
+      "command": "python -B -m pytest --collect-only -q -p no:cacheprovider tests/test_delta_owner.py tests/test_logical_panel_delta.py tests/test_delta_full_prefix_oracle.py tests/test_reader_transport_compat.py tests/test_chart_row_blocks.py tests/test_daily_date_wording.py",
+      "result": "45 tests collected in 0.29s"
+    }
+  ],
+  "failures_retained": [
+    "First reader/diff test identified date-only mixed-market key; fixed to ts_code+trade_date.",
+    "First owner fixture identified missing currents binding; fixed; invalid synthetic fixture missing raw_files then corrected.",
+    "Oracle r1 used pre-Parquet pandas object dtype against Pandas3 Arrow StringDtype; oracle now compares original physical Parquet roundtrip, preserving exact schema/footer/types.",
+    "Chart r1 exposed canonical JSON dictionary order vs formula inventory; materialized loader now restores the original inventory order. Invalid test bars/date fixture and mkdir reuse fixed in r3.",
+    "Authority import test exposed isolated Git baseline lacking unchanged live common module; actual target-date audit function is extracted and exercised, actual runtime unchanged module remains required.",
+    "One mistyped production Python path command exited127 before running; corrected absolute interpreter thereafter."
+  ],
+  "NOT_RUN": [
+    "Full-market historical recomputation",
+    "Live publication or new release creation",
+    "Live Main/shared reader/API/UI installation",
+    "Natural daily execution",
+    "Remote commit readback until push"
+  ],
+  "sample_bounds": {
+    "qfq_oracle": "11 symbols x <=90 synthetic trading sessions under actual pinned canonical engine",
+    "reader": "3 A/HK representatives, exact rowgroup selection; null/float/type/future/RAW boundaries",
+    "chart": "3 materialized fixture rows, actual isolated Chrome canvas 51 values/22 drawings; browser closed in finally"
+  }
+}

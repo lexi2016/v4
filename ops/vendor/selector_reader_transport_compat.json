@@ -1,0 +1,19 @@
+{
+  "schema": "v4.reader.transport_equivalence.v1",
+  "scope": "EXACT_ARROW_BLOCK_TRANSPORT_ONLY",
+  "before_sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c",
+  "after_sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565",
+  "before_source": "selector_reader_transport_before.py",
+  "historical_reader": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/DATA_LAYER_INTERFACE.py",
+    "sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c"
+  },
+  "config": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json",
+    "sha256": "0521fceae9fd1d1625bcaee677d95314f2ca00e931f89c9bda78bc292610cfc1"
+  },
+  "oracle": {
+    "file": "selector_reader_transport_oracle.json",
+    "sha256": "dd8f27f88df420a9d2e22e1e29877c7f3263e63f5f2fff1245dadf3a58d55ddf"
+  }
+}

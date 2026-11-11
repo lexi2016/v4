@@ -1,0 +1,299 @@
+{
+  "schema": "v4.daily_workflow.handoff_check.v1",
+  "observed_at": "2026-11-10T16:13:58.974035+08:00",
+  "kind": "READ_ONLY_DOCUMENTATION_SNAPSHOT",
+  "timezone": "Asia/Shanghai",
+  "services": {
+    "api": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist",
+        "sha256": "ae03403a80079c7502eac9d020d9905a50cc4447828e0a3fe07fbc2ec00b6d02",
+        "bytes": 11340
+      },
+      "release_id": "v4-a925-readiness-20261110-r3-api",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-api/app",
+      "manifest_sha256": "dec319be02f69095d5e53b6a4fc96c69b2731ecd32ba8ee31d5b7259acaa57b6"
+    },
+    "main": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+        "sha256": "df6374e18635b7acdf74260462897a9c72c04a75a717895e328f104dea3e6797",
+        "bytes": 17524
+      },
+      "release_id": "v4-a925-readiness-20261110-r3-main",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app",
+      "manifest_sha256": "ef1fe8701ca953eab207428a0913813340588989f1fb34552efb22473a8f0d29"
+    },
+    "stage": {
+      "plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+        "sha256": "3cf0cf8bf678108e213fc3ccc41bad54327c7989af0783778f4330ee193dce0a",
+        "bytes": 6546
+      },
+      "release_id": "v4-a925-readiness-20261110-r3-stage",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-stage/app",
+      "manifest_sha256": "813d595dd27c2af31007e5ee9d3ddf56cadde21170f17221320db4f944c563bc"
+    }
+  },
+  "workloads": [
+    {
+      "workload_id": "hourly_research",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.hourly_research",
+      "run_policy": "NATURAL_DAY",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "slots": [
+        "0700",
+        "0800",
+        "0900",
+        "1000",
+        "1100",
+        "1200",
+        "1300",
+        "1400",
+        "1500",
+        "1530",
+        "1600",
+        "1700",
+        "1800",
+        "1900",
+        "2000",
+        "2100",
+        "2200",
+        "2300"
+      ]
+    },
+    {
+      "workload_id": "research_panel_daily_a",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.research_panel_daily_a",
+      "run_policy": "A_SHARE_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "1540",
+        "1610",
+        "1640"
+      ]
+    },
+    {
+      "workload_id": "research_panel_daily_hk",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.research_panel_daily_hk",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "1720"
+      ]
+    },
+    {
+      "workload_id": "research_panel_runtime_evidence",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.research_panel_runtime_evidence",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "1730"
+      ]
+    },
+    {
+      "workload_id": "wechat_preselection_sync",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.wechat_exact_pair_sync",
+      "run_policy": "NATURAL_DAY",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "slots": [
+        "0901",
+        "2001"
+      ]
+    },
+    {
+      "workload_id": "review_core_pool_pipeline",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.review_core_pool_pipeline",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "2115"
+      ]
+    },
+    {
+      "workload_id": "a_share_close_review",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.a_share_close_review",
+      "run_policy": "A_SHARE_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "1605",
+        "1710"
+      ]
+    },
+    {
+      "workload_id": "hk_connect_close_review",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.hk_connect_close_review",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "1610"
+      ]
+    },
+    {
+      "workload_id": "preselection_pools",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.preselection",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "slots": [
+        "1730",
+        "1800"
+      ]
+    },
+    {
+      "workload_id": "daily_materialize",
+      "enabled": true,
+      "owner_id": "v35_dispatcher.daily_materialize",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
+      "session_requirement": "POST_CLOSE",
+      "slots": [
+        "2140"
+      ]
+    }
+  ],
+  "api": [
+    {
+      "path": "/api/v4/runtime-graph/frontend-build",
+      "http_status": 200,
+      "sha256": "f976d57fbd4aeb4ac5cce106162b17e9a4763405e39b2fa0b29a7e548a50ac0a",
+      "bytes": 369,
+      "business_status": "VERIFIED",
+      "data_date": null,
+      "cannot_confirm": null,
+      "online_sop_contains_new_record": null
+    },
+    {
+      "path": "/api/v4/research/a-share/daily-product?date=20261110&symbol=000410.SZ",
+      "http_status": 200,
+      "sha256": "942f78beabcd6f39c8f78735e874b3c531d779a9cb6b7bce6f446929e752db20",
+      "bytes": 217,
+      "business_status": "NOT_MATERIALIZED",
+      "data_date": "20261110",
+      "cannot_confirm": null,
+      "online_sop_contains_new_record": null
+    },
+    {
+      "path": "/api/v4/operations/sop?doc=overview",
+      "http_status": 200,
+      "sha256": "a31baf0677107f137d843d66222bdf020baf5531492c9db5f474c2aaf4902bd5",
+      "bytes": 1240,
+      "business_status": "READ_OK",
+      "data_date": null,
+      "cannot_confirm": null,
+      "online_sop_contains_new_record": false
+    }
+  ],
+  "files": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app/infrastructure/scheduling/executor_registry.py",
+      "sha256": "6f848524e991ccb3631cb56927d3beb7361f6ee8882a2eceea5b8a58903bcf4f",
+      "bytes": 49124
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app/ops/research_panel_daily_product.py",
+      "sha256": "b1bce39077908c724bcfe4fec7046500b0bc5c93a2e3bc593d1e50f0cfa6a80f",
+      "bytes": 51335
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app/ops/research_panel_top200.py",
+      "sha256": "f6f67cec37ebb632fab0035af531c3cebe3c499dcc97d0b5e78cca05dd8bb584",
+      "bytes": 59481
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-api/app/infrastructure/operations_sop_reader.py",
+      "sha256": "90c330009774891f8547c7f28e095e559e52470406623ef152cea8847d95019e",
+      "bytes": 3584
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_a925_price_readiness_repair_20261110/REPAIR_RESULT.md",
+      "sha256": "5d2acc3fbb052b79d1471a231d5856a19b9b8dead61d82f265604e7bb12db31a",
+      "bytes": 5646
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_a925_price_readiness_repair_20261110/INDEPENDENT_REVIEW_R3.json",
+      "sha256": "155bd90e90e867b177432b19c4fae591c9a27618b8e8ad3fc78ce241adbd40af",
+      "bytes": 6586
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1110_20261109/result.json",
+      "sha256": "640c1ad9b5064282c692461312057ebe892f1c7c1f618ebb88c55513d9846cb6",
+      "bytes": 1971
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_materials_release_repair_20261109/FINAL_DELIVERY.json",
+      "sha256": "71fe9dca5ffc3b3e6258a10bbd0d46bc91d476ed1e535b2c443bb2de367d59d6",
+      "bytes": 2277
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_v192_assets_and_dot_handoff_20261109/FINAL_DELIVERY.json",
+      "sha256": "021a8d66e08d3ebdbec0cfa52cd5776d6927cae29a7f9c2050398d09e580da12",
+      "bytes": 2078
+    }
+  ],
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "catalog": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app/contracts/runtime_workloads.json",
+    "sha256": "19371ddea338448f029b3a22db88326b71380d5d18589cc970b7108fa34f4364",
+    "bytes": 51718
+  },
+  "existing_17_automation": {
+    "path": "/Users/lexi/.codex/automations/17/automation.toml",
+    "sha256": "d800df9345662896ee43a849db0009dd9e702649234fec93f60fefb7557e13e0",
+    "bytes": 4162,
+    "id": "17",
+    "status": "ACTIVE",
+    "local_time": "17:00",
+    "configuration_changed_this_task": false,
+    "natural_delivery_acceptance": "NOT_ESTABLISHED_BY_THIS_DOCUMENT"
+  },
+  "daily_index": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/dashboard_completion_r1/today_full_r1/daily_products/a_share/index.json",
+    "sha256": "854b2b6486a5070cc1073f808ccd67fdb9d6c8555c9d4b48a13bc46c97e3aa8c",
+    "bytes": 133689,
+    "latest_date": "20261109",
+    "dated_product_exists": {
+      "20261109": true,
+      "20261110": false
+    },
+    "descriptor_keys": [
+      "attempts",
+      "company_materials",
+      "company_materials_versions",
+      "dates",
+      "display_names",
+      "event_cases",
+      "exact_metadata_rows",
+      "f10",
+      "history_sync",
+      "latest",
+      "latest_date",
+      "original_charts",
+      "schema_version",
+      "score_action",
+      "top200",
+      "v192_assets"
+    ]
+  },
+  "source_receipt_20261110": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a-20261110.json",
+    "sha256": "4203ecd7e5a02c1a442c33c145c8dae87e9e954d5eb26254921384e622eb4b4c",
+    "bytes": 410,
+    "status": "FAILED",
+    "target_date": "20261110",
+    "error": "SpaceBlocked: CATEGORY_BUDGET_BLOCKED",
+    "exception_type": "SpaceBlocked"
+  }
+}

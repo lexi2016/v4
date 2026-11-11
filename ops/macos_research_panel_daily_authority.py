@@ -975,7 +975,7 @@ def run_windows_a_sync_authority(
 
 def _parquet_max_date(path: Path) -> int | None:
     try:
-        import pyarrow.parquet as pq
+        from ops.research_panel_logical import parquet as pq
 
         table = pq.read_table(path, columns=["trade_date"])
         values = table.column("trade_date").to_pylist()
@@ -1035,7 +1035,7 @@ def run_windows_a_formula_authority(
         tdx_root=tdx, data_root=data, pointers={"selector": selector_ptr, "backtest": backtest_ptr},
         contract_csv=Path(contract_csv).resolve(), return_root=Path(return_root).resolve(), target=target,
         publish=True, workers=int(formula_max_workers or __import__("os").environ.get("RESEARCH_PANEL_QFQ_WORKERS", "2")),
-        refresh_inputs=True,
+        refresh_inputs=True, storage_layout="arrow_blocks_v1",
         **({"checkpoint_resume": checkpoint_resume} if checkpoint_resume is not None else {}),
     )
     artifact = _formula_artifact_binding(Path(result["selector"]), Path(result["backtest"]))

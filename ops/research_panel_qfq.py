@@ -28,7 +28,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-import pyarrow.parquet as pq
+from ops.research_panel_logical import parquet as pq
 
 DRIVER_SHA = "1b5f4caa099add5f0c369b72e0c6b9d8d80c964fe245a662290971e5142dcdae"
 FORMULA_SHA = "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258"
@@ -201,7 +201,7 @@ def _release_tuple_bound() -> bool:
     inventory = {r["path"]: r["sha256"] for r in manifest["application_inventory"]["entries"] if r.get("kind", "file") == "file"}
     paths = ["ops/research_panel_qfq.py", "ops/research_panel_turnover.py", "ops/research_panel_factor_cache.py",
         "ops/research_panel_adjustment_inputs.py", "ops/research_panel_tdx_adjustment_inputs.py",
-        "ops/research_panel_daily_source.py", "contracts/a_share_generation_compatibility.json",
+        "ops/research_panel_daily_source.py", "ops/research_panel_logical.py", "ops/research_panel_delta.py", "contracts/a_share_generation_compatibility.json",
         "contracts/a_share_daily_source_policy.json"]
     return all(inventory.get(p) == sha(root / p) for p in paths)
 
@@ -209,8 +209,18 @@ def _release_tuple_bound() -> bool:
 def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
     readiness = json.loads(snapshot_path.with_name("qfq_readiness.json").read_text())
     refs = readiness["code_refs"]
-    if len(refs) != 3:
+    if len(refs) not in (3,5):
         return False
+    helpers=(('research_panel_logical.py','logical_reader_sha256'),('research_panel_delta.py','delta_owner_sha256'))
+    if len(refs)==3:
+        # Old ordinary-Parquet generations have the original three refs. A
+        # logical generation cannot drop its extra source identities.
+        if any(key in contract for _,key in helpers):return False
+    else:
+        for ref,(name,key) in zip(refs[3:],helpers):
+            expected=Path(__file__).with_name(name)
+            if ref.get('path')!=str(expected) or contract.get(key)!=ref.get('sha256'):
+                return False
     for ref in refs:
         _source(ref, owner="generation original code reference")
     current = dict(driver_sha256=DRIVER_SHA, formula_sha256=FORMULA_SHA,
@@ -638,6 +648,9 @@ def _partial_checkpoint_recovery(recovery: dict, snapshot: dict, identity: dict,
         raise QfqGateError("PARTIAL_CHECKPOINT_SOURCE_OR_MATH_CHANGED")
     run = Path(recovery["source_run"])
     generation = canonical_sha(dict(target=20261111, baseline_panel_sha256=baseline, **old))
+    status_path = run / "stage_status.json"
+    if status_path.is_file() and json.loads(status_path.read_text()).get("status") == "ABANDONED":
+        raise QfqGateError("PARTIAL_CHECKPOINT_RUN_ABANDONED")
     original = _source(recovery["original_snapshot"], owner="D11 original partial snapshot")
     factor_identity = factor_cache_identity(data_root, 20261111, snapshot)
     if (run.name != "qfq_" + generation[:20] or original != run / "adjustment_input_snapshot.json"
@@ -1071,7 +1084,9 @@ def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, c
                 adapter_sha256=sha(Path(__file__)), input_adapter_sha256=sha(Path(__file__).with_name("research_panel_adjustment_inputs.py")),
                 factor_cache_sha256=sha(Path(__file__).with_name("research_panel_factor_cache.py")),
                 tdx_adapter_sha256=sha(Path(__file__).with_name("research_panel_tdx_adjustment_inputs.py")),
-                field_contract_sha256=sha(contract_csv), user_formula_sha256=USER_FORMULA_SHA)
+                field_contract_sha256=sha(contract_csv), user_formula_sha256=USER_FORMULA_SHA,
+                logical_reader_sha256=sha(Path(__file__).with_name('research_panel_logical.py')),
+                delta_owner_sha256=sha(Path(__file__).with_name('research_panel_delta.py')))
 
 
 def refresh_due(data_root: Path, target: int, max_age_hours: int = 6) -> bool:
@@ -1273,6 +1288,9 @@ def publish_pair(pointers: dict[str, Path], candidates: dict[str, Path], expecte
     Two filesystem files cannot be atomically replaced for uncooperating readers.
     The journal preserves that limitation and permits crash recovery by owner.
     """
+    from ops.research_panel_logical import validate_closure
+    for path in candidates.values():
+        validate_closure(path)
     if expected_baseline is not None:
         check_baseline(pointers, expected_baseline)
     for role, pointer in pointers.items():
@@ -2652,7 +2670,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
                       compute_backend: str | None = None,
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
-                      tail_delta: dict | None = None, archive_additions: dict | None = None) -> dict:
+                      tail_delta: dict | None = None, archive_additions: dict | None = None,
+                      storage_layout: str = "arrow_blocks_v1") -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if tail_delta is not None and (history_extension is not None or refresh_inputs):
         raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
@@ -2752,7 +2771,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         _write(destination, source.read_bytes())
                     retained_history_sidecars[role].append(dict(original=ref, retained=dict(path=str(destination), sha256=ref["sha256"]),
                         generation_id=history["baseline_generation_id"], excluded_from_accepted=True, byte_identical=True))
-        retained_snapshot = run_dir / "adjustment_input_snapshot.json"
+        immutable_snapshot = snapshot_file.parent / "adjustment_snapshots" / (sha(snapshot_file) + ".json")
+        retained_snapshot = (immutable_snapshot if storage_layout == "arrow_blocks_v1" else run_dir / "adjustment_input_snapshot.json")
         if retained_snapshot.exists():
             if json.loads(retained_snapshot.read_text()) != snapshot:
                 raise QfqGateError("IMMUTABLE_GENERATION_INPUT_SNAPSHOT_CONFLICT")
@@ -2765,7 +2785,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             source_stats.append(dict(path=ref["path"], size=stat.st_size, mtime_ns=stat.st_mtime_ns))
         readiness = dict(generation_id=run_id, source_stats=source_stats,
                          factor_cache_identity=factor_cache_identity(data_root, target, snapshot),
-                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv)],
+                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv, Path(__file__).with_name("research_panel_logical.py"), Path(__file__).with_name("research_panel_delta.py"))],
                          turnover_watch=turnover_source_watch(data_root, tdx_root, target, turnover))
         if already_current:
             _json(snapshot_file.with_name("qfq_readiness.json"), readiness)
@@ -2868,7 +2888,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         # these fields from the accepted schema and recompute them from prefix.
         if history is not None:
             schemas = {role: user_formula_schema(schema) for role, schema in schemas.items()}
-        role_start = {r: driver.scan_trade_date_min_max(p)[0] for r, p in currents.items()}
+        from ops.research_panel_logical import is_logical
+        def original_start(path):
+            if not is_logical(path): return driver.scan_trade_date_min_max(path)[0]
+            return min(int(value) for batch in pq.ParquetFile(path).iter_batches(columns=['trade_date'])
+                       for value in batch.column(0).to_pylist())
+        role_start = {r: original_start(p) for r,p in currents.items()}
+        if storage_layout == "arrow_blocks_v1" and not any(x is not None for x in (history_extension, tail_delta, archive_additions, same_asof_ref)):
+            from ops.research_panel_delta import run_delta
+            return run_delta(globals(), locals())
+        if storage_layout not in {"arrow_blocks_v1", "monolithic"}:
+            raise QfqGateError("STORAGE_LAYOUT_UNKNOWN")
         parts_root = run_dir / "symbol_checkpoints"
         parts_root.mkdir(exist_ok=True)
         _json(run_dir / "stage_status.json", dict(status="RUNNING", stage="FULL_HISTORY_QFQ_REBUILD", **meta))

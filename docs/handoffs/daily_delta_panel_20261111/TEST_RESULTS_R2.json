@@ -1,0 +1,35 @@
+{
+  "status": "R2_TARGETED_PASS_REVIEW_PENDING",
+  "scope": "Only two reviewer P1 defects",
+  "red": {
+    "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_r2_red tests/test_delta_readiness_r2.py::test_precise_five_refs_are_ready_and_legacy_three_refs_still_work tests/test_delta_owner.py::test_original_final_source_revalidation_refuses_before_any_pointer",
+    "result": "5 failed in0.51s",
+    "exact_failures": [
+      "New exact5refs False",
+      "factor drift published",
+      "turnover watch drift published",
+      "inherited quarantine drift published",
+      "checkpoint recovery source drift published"
+    ]
+  },
+  "green": {
+    "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_r2_green tests/test_delta_readiness_r2.py tests/test_delta_owner.py::test_original_final_source_revalidation_refuses_before_any_pointer tests/test_delta_owner.py::test_original_owner_writes_only_delta_and_idempotent_resume tests/test_delta_owner.py::test_one_role_failure_never_changes_current_and_resumes tests/test_delta_owner.py::test_actual_pair_lease_and_single_generation_pin_closure",
+    "result": "12 passed in0.74s"
+  },
+  "unchanged_scope": "R1 45 targeted cases/math/reader/chart evidence reused; not repeated",
+  "source_diff": [
+    {
+      "source": "ops/research_panel_qfq.py",
+      "r1_sha256": "8f9baf06064d53b9562e70c04a0737dd198926e96ca77342ccc8331b78c16042",
+      "r2_sha256": "2956a11adf16f22e557efeae0f368cc1aa1910a16798fcb9320587967a7a9eb7"
+    },
+    {
+      "source": "ops/research_panel_delta.py",
+      "r1_sha256": "fa9b52023fdebd880f974076b6fbdbf44c4b4c72a1c3f4d1bd306fdb89f1bd93",
+      "r2_sha256": "4d1672abd84ee175d3591033c31095f3eba7580f0e9b3e253d87f7bd4cf8172a"
+    }
+  ],
+  "original_kernel_unchanged": true,
+  "live_execution": false,
+  "commit_push": false
+}

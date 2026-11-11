@@ -1,0 +1,21 @@
+{
+  "status": "REVIEWED_FAIL",
+  "review": {
+    "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_daily_panel_futu1112_20261111/DELTA_INDEPENDENT_REVIEW.json",
+    "sha256": "529a9880b61cc4fa85e800b0b1117b04b055f62f5f074c0f99b1c801d053d212"
+  },
+  "source_snapshots": [
+    {
+      "path": "docs/handoffs/daily_delta_panel_20261111/r1_rejected/research_panel_qfq.py",
+      "sha256": "8f9baf06064d53b9562e70c04a0737dd198926e96ca77342ccc8331b78c16042"
+    },
+    {
+      "path": "docs/handoffs/daily_delta_panel_20261111/r1_rejected/research_panel_delta.py",
+      "sha256": "fa9b52023fdebd880f974076b6fbdbf44c4b4c72a1c3f4d1bd306fdb89f1bd93"
+    }
+  ],
+  "issues": [
+    "P1 readiness len3 rejects new exact5",
+    "P1 original final turnover/factor/recovery/inherited-quarantine checks missing"
+  ]
+}
