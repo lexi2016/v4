@@ -1133,6 +1133,81 @@ def governed_product(function, /, *args, **kwargs):
         return _governed_product(function, *args, **kwargs)
 
 
+def daily_derivatives_registry_summary(result):
+    """Bounded registry metadata; immutable owner receipts retain full detail.
+
+    The daily owner writes its attempt before the F10 continuation. Therefore
+    validate every original field against that attempt, and bind F10 separately
+    to the same exact attempt. Publication index/before hashes are historical
+    CAS evidence: F10 may legitimately advance the shared index afterwards.
+    """
+    from ops.research_storage_retention import FLAGS
+
+    def document(ref):
+        path = safe_path(ref['path'])
+        before = stamp(path)
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != ref['sha256'] or stamp(path) != before:
+            raise RetentionError('DERIVATIVES_OWNER_RECEIPT_DRIFT')
+        return json.loads(raw)
+
+    attempt = document(result['attempt'])
+    original = {key: value for key, value in result.items()
+                if key not in {'attempt', 'f10', 'storage_governance'}}
+    if (original != attempt or attempt.get('schema') != 'V4_A_DAILY_DERIVATIVES_V1'
+            or attempt.get('status') != 'COMPLETE_DESCRIPTIVE_NONPIT'
+            or attempt.get('completeness_scope') != 'CURRENT_DAY_DERIVATIVES'
+            or not attempt.get('data_date') or not attempt.get('source_generation')
+            or any(attempt.get(key) != value for key, value in FLAGS.items())):
+        raise RetentionError('DERIVATIVES_OWNER_RECEIPT_CONFLICT')
+    day, generation = attempt['data_date'], attempt['source_generation']
+    numeric = attempt['completed_source_provenance']['numeric_manifest']
+    # Resolve the immutable published Top200 through the existing owner index.
+    # Do not compare its current bytes to the earlier publication CAS hash.
+    publication = attempt['top200']
+    if publication.get('status') == 'REUSED':
+        top_ref = publication['artifact']
+    elif publication.get('status') == 'PUBLISHED_TOP200':
+        index = json.loads(safe_path(publication['index']['path']).read_bytes())
+        if index.get('dates', {}).get(day) != numeric:
+            raise RetentionError('DERIVATIVES_NUMERIC_BINDING_DRIFT')
+        top_ref = index['top200'][day]
+    else:
+        raise RetentionError('DERIVATIVES_TOP200_NOT_PUBLISHED')
+    top = document(top_ref)
+    if (top.get('schema') != 'V4_A_SHARE_TOP200_V1' or top.get('data_date') != day
+            or top.get('source_generation') != generation or top.get('numeric_manifest') != numeric
+            or any(top.get(key) != value for key, value in FLAGS.items())):
+        raise RetentionError('DERIVATIVES_TOP200_BINDING_DRIFT')
+    summary = dict(schema='v4.a_share.daily_derivatives_registry_summary.v1',
+        status=result['status'], completeness_scope=result['completeness_scope'],
+        data_date=day, source_generation=generation, complete_owner_receipt=result['attempt'],
+        history_status=result['history_status'], historical_completion=result['historical_completion'],
+        history_bootstrap_in_daily_path=result['history_bootstrap_in_daily_path'],
+        history={key: result['history'][key] for key in
+                 ('candidate_count', 'complete_stocks', 'incomplete_stocks', 'missing_label_date_count')
+                 if key in result['history']},
+        top200=dict(status=publication['status'], artifact=top_ref,
+                    top200_count=top.get('top200_count')), **FLAGS)
+    if 'f10' in result:
+        returned = result['f10']
+        f10 = document(returned['receipt'])
+        if (f10.get('schema') not in {'v4.a_share.f10_daily_receipt.v1', 'v4.a_share.f10_daily_failure.v1'}
+                or f10.get('data_date') != day or f10.get('source_generation') != generation
+                or f10.get('upstream_success_receipt') != result['attempt']
+                or f10.get('status') != returned.get('status')
+                or any(f10.get(key) != value for key, value in FLAGS.items())):
+            raise RetentionError('DERIVATIVES_F10_BINDING_DRIFT')
+        summary['f10'] = dict(status=f10['status'], complete_owner_receipt=returned['receipt'])
+        if f10['schema'] == 'v4.a_share.f10_daily_receipt.v1':
+            counts = dict(requested=f10['requested'], observed=f10['observed'],
+                          failure_count=len(f10['failures']), remaining_count=len(f10['remaining']))
+            if any(returned.get(key) != value for key, value in counts.items()):
+                raise RetentionError('DERIVATIVES_F10_COUNTS_DRIFT')
+            summary['f10'].update(counts)
+    return summary
+
+
 def _governed_product(function, /, *args, **kwargs):
     """Actual daily/Top200/recovery callsites; original producer keeps ownership.
 
@@ -1173,7 +1248,10 @@ def _governed_product(function, /, *args, **kwargs):
         if claim:
             index=root/'index.json'
             if index.is_file() and result.get('status') not in {'FAILED','CANNOT_CONFIRM'}:
-                try:claim.finish(result,[index])
+                try:
+                    metadata = (daily_derivatives_registry_summary(result)
+                                if result.get('schema') == 'V4_A_DAILY_DERIVATIVES_V1' else result)
+                    claim.finish(metadata,[index])
                 except (OSError,ValueError,RetentionError) as error:
                     claim.recording_failed=True
                     result['storage_governance']=dict(status='COMMITTED_REGISTRY_RECORDING_BLOCKED',error=str(error)[:1024])
