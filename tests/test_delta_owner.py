@@ -232,3 +232,21 @@ def test_original_final_source_revalidation_refuses_before_any_pointer(fixture,c
     assert {r:p.read_bytes()for r,p in f.pointers.items()}==before
     assert json.loads((f.c['run_dir']/'stage_status.json').read_text())['status']=='FAILED'
     assert not f.c['journal'].exists()
+
+
+def test_cooperative_stop_drains_and_seals_submitted_results(fixture):
+    f=fixture;f.c['workers']=1;original=f.q['rebuild_symbol']
+    def compute(*args):
+        (f.c['run_dir']/'STOP_REQUESTED').touch()
+        return original(*args)
+    f.q['rebuild_symbol']=compute
+    before={r:p.read_bytes()for r,p in f.pointers.items()}
+    with pytest.raises(InterruptedError,match='STOP_REQUESTED_DRAINED'):run_delta(f.q,f.c)
+    checkpoints=list((f.c['run_dir']/'delta_checkpoints').glob('*.json'))
+    assert checkpoints
+    for path in checkpoints:
+        record=json.loads(path.read_bytes())
+        for value in record['roles'].values():assert owner.sha(Path(value['artifact']['path']))==value['artifact']['sha256']
+    progress=json.loads((f.c['run_dir']/'progress.json').read_bytes())
+    assert progress['stage']=='DRAINED' and progress['completed']==len(checkpoints)and progress['maximum_inflight']<=2
+    assert before=={r:p.read_bytes()for r,p in f.pointers.items()}

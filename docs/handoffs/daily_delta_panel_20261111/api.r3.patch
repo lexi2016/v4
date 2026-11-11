@@ -1,0 +1,88 @@
+--- a/ops/research_panel_logical.py
++++ b/ops/research_panel_logical.py
+@@ -6,6 +6,7 @@
+ import base64
+ import hashlib
+ import json
++from contextlib import contextmanager
+ from pathlib import Path
+ from types import SimpleNamespace
+ 
+@@ -111,18 +112,29 @@
+         self.num_row_groups = len(self.groups)
+         self.metadata = SimpleNamespace(num_rows=self.value['rows'], num_row_groups=self.num_row_groups,
+             metadata=self.schema_arrow.metadata,
+-            row_group=lambda i: self._file(self.groups[i][0]).metadata.row_group(self.groups[i][1]))
++            row_group=self._row_group_metadata)
+         self.schema = self.schema_arrow
+ 
+     def _check(self, block):
+         if stamp(block['path']) != block['stat'] or stamp(self.path) != self.anchor_stat:
+             raise ValueError('LOGICAL_BLOCK_CHANGED:' + block['path'])
+ 
+-    def _file(self, index):
++    @contextmanager
++    def _file(self,index):
++        # A request owns this handle. Never cache handles across blocks or
++        # close another thread's reader through a shared LRU.
+         self._check(self.blocks[index])
+-        if index not in self._files:
+-            self._files[index] = physical.ParquetFile(self.blocks[index]['path'])
+-        return self._files[index]
++        handle=physical.ParquetFile(self.blocks[index]['path'])
++        try:
++            yield handle
++        finally:
++            handle.close()
++            self._check(self.blocks[index])
++
++    def _row_group_metadata(self,index):
++        block,group=self.groups[index]
++        with self._file(block) as handle:
++            return handle.metadata.row_group(group)
+ 
+     def _align(self,table,names):
+         fields=[self.schema_arrow.field(name) for name in names]
+@@ -196,11 +208,11 @@
+             if requested_symbols is not None and block.get('symbols') is not None and not requested_symbols.intersection(block['symbols']):
+                 continue
+             self._check(block)
+-            f = self._file(index)
+             group_ids = None
+             if requested_symbols is not None and block.get('key_rows'):
+                 group_ids = sorted({g for c in requested_symbols for g in block['key_rows'].get(c, [])})
+-            table = f.read_row_groups(group_ids, columns=needed) if group_ids is not None else f.read(columns=needed)
++            with self._file(index) as f:
++                table = f.read_row_groups(group_ids, columns=needed) if group_ids is not None else f.read(columns=needed)
+             table = self._align(table,needed)
+             if key_expression is not None:
+                 table = table.filter(key_expression)
+@@ -224,17 +236,18 @@
+         latest = {}
+         # Only overlay keys are indexed. The full historical base is streamed
+         # once, never reread once per stock or assembled into a full DataFrame.
+-        for index in range(1, len(self.blocks)):
+-            for batch in self._file(index).iter_batches(columns=KEYS, batch_size=batch_size):
+-                latest.update((key, index) for key in _keys(pa.Table.from_batches([batch])))
+-        excluded = set(self.value.get('excluded_symbols', []))
++        for index in range(1,len(self.blocks)):
++            with self._file(index) as handle:
++                for batch in handle.iter_batches(columns=KEYS,batch_size=batch_size):
++                    latest.update((key,index)for key in _keys(pa.Table.from_batches([batch])))
++        excluded=set(self.value.get('excluded_symbols',[]))
+         for index in range(len(self.blocks)):
+-            for batch in self._file(index).iter_batches(columns=needed, batch_size=batch_size):
+-                table = self._align(pa.Table.from_batches([batch]),needed)
+-                keep = [latest.get(key, index) == index and key[0] not in excluded for key in _keys(table)]
+-                table = self._project(table.filter(pa.array(keep, type=pa.bool_()))).select(selected)
+-                yield from table.to_batches(max_chunksize=batch_size)
+-            self._check(self.blocks[index])
++            with self._file(index) as handle:
++                for batch in handle.iter_batches(columns=needed,batch_size=batch_size):
++                    table=self._align(pa.Table.from_batches([batch]),needed)
++                    keep=[latest.get(key,index)==index and key[0]not in excluded for key in _keys(table)]
++                    table=self._project(table.filter(pa.array(keep,type=pa.bool_()))).select(selected)
++                    yield from table.to_batches(max_chunksize=batch_size)
+ 
+ 
+ class _Parquet:

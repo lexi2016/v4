@@ -1,0 +1,55 @@
+{
+  "status": "TARGETED_PASS_REVIEW_PENDING",
+  "revision": "R3",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "commands": [
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_process_core_r1 tests/test_delta_owner.py",
+      "result": "15 passed in1.20s"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_parallel_controls_r1 tests/test_delta_parallel_control.py tests/test_delta_owner.py::test_cooperative_stop_drains_and_seals_submitted_results",
+      "result": "7 passed in0.26s",
+      "scope": "Five strict prefix boundaries + AUTO resource clamps + drain"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_real_process_r3 tests/test_delta_parallel_control.py::test_real_spawn_workers_preserve_original_full_prefix_and_turnover tests/test_logical_panel_delta.py tests/test_reader_transport_compat.py::test_three_representative_readers_same_values_and_exact_group_pruning",
+      "result": "16 passed in1.62s",
+      "scope": "Actual2spawn PIDs; actual pinned original engine, normal/factor/suspension; exact schema/null mask/numeric fields incl turnover; logical FD changed scope"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_fd_scope_r1 tests/test_logical_fd_scope.py",
+      "result": "1 passed in1.28s",
+      "scope": "Child-only FDlimit64,280blocks,read/stream/metadata/earlyclose/4concurrentreaders"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_recovery_r3_r2 tests/test_delta_recovery_r3.py",
+      "result": "8 passed in1.76s",
+      "scope": "Real oldR2 wrapper makes synthetic sealed CP; no recompute/copy; wrong base/date/review/artifact/ABANDONED/snapshot rejected; fixed mutable descriptor unchanged"
+    },
+    {
+      "command": "python -B -m pytest -q --tb=short -p no:cacheprovider --basetemp=N/pytest_authority_auto_r1 tests/test_delta_parallel_control.py::test_authority_forwards_auto_without_old_fixed_env_cap",
+      "result": "2 passed in0.21s"
+    }
+  ],
+  "prior_45_scope": "Reused unchanged formula/API/UI/label definition evidence; not broadly repeated",
+  "real_source_prefix_evidence": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/DELTA_301468_BOUND_PREFIX_EVIDENCE.json",
+    "sha256": "efcef76f9221785aba1037de046b6aa5c6ca1bd0ca74001ddd4cfd91f66b872b"
+  },
+  "real_FD_failure_evidence": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/LOGICAL_API_FD_LIMIT_REPRODUCTION.json",
+    "sha256": "f7a5bd5471c33dd68abbf412ab795b99141a45f5413facba1c6f09832858c1d5"
+  },
+  "retained_failures": [
+    "First real process test had a missing whitespace in test conditional, exit4 before execution; fixed.",
+    "Arrow.Table.equals treats NaN!=NaN; replaced with exact schema, Arrow NULL masks and exact pandas value comparison. Actual process values did not change."
+  ],
+  "NOT_RUN": [
+    "Live stop signal or source/pointer/service mutation by Writer",
+    "Actual1184 resume preparation before independent review",
+    "Production worker scaling/throughput claim",
+    "Full-market tests",
+    "Global FD limit changes"
+  ]
+}

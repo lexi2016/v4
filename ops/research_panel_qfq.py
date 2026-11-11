@@ -690,6 +690,10 @@ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseli
     if not ref:
         return {}
     recovery = json.loads(_source(ref, owner="reviewed checkpoint recovery").read_text())
+    if recovery.get('schema')=='qfq_delta_checkpoint_recovery_v1':
+        if tail_delta is not None or same_asof is not None:raise QfqGateError('DELTA_RESUME_MODE_CONFLICT')
+        from ops.research_panel_delta import load_delta_recovery
+        return load_delta_recovery(globals(),recovery,snapshot,identity,baseline,data_root)
     if recovery.get("recovery_scope") is not None:
         if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
                 or tail_delta is not None or same_asof is not None):
@@ -2667,7 +2671,7 @@ def _retained_turnover_context(table: pa.Table, turnover, schema: pa.Schema) -> 
 
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
-                      target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
+                      target: int, publish: bool = False, workers: int | None = None, refresh_inputs: bool = False,
                       compute_backend: str | None = None,
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
                       tail_delta: dict | None = None, archive_additions: dict | None = None,
@@ -2681,12 +2685,20 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         raise QfqGateError("ARCHIVE_ADDITION_MUTUALLY_EXCLUSIVE_MODE")
     if archive_additions is not None and refresh_inputs:
         raise QfqGateError("ARCHIVE_ADDITION_EXPLICIT_SNAPSHOT_ONLY")
-    if not 1 <= workers <= 4:
-        raise QfqGateError("WORKER_LIMIT_MUST_BE_1_TO_4")
-    compute_backend = compute_backend or os.environ.get("V4_A_QFQ_COMPUTE_BACKEND", "thread")
-    if compute_backend not in {"thread", "process"}:
-        raise QfqGateError("QFQ_COMPUTE_BACKEND_INVALID")
     same_asof_ref = _same_asof_repair_reference(target)
+    logical_mode=(storage_layout=='arrow_blocks_v1' and all(x is None for x in (history_extension,tail_delta,archive_additions,same_asof_ref)))
+    requested_workers=workers
+    resource_plan=None
+    compute_backend=compute_backend or os.environ.get('V4_A_QFQ_COMPUTE_BACKEND','process' if logical_mode else 'thread')
+    if compute_backend not in {'thread','process'}:raise QfqGateError('QFQ_COMPUTE_BACKEND_INVALID')
+    if logical_mode and compute_backend=='process':
+        from ops.research_panel_delta import observe_resources,resource_plan as plan_resources
+        resource_plan=plan_resources(observe_resources(),requested_workers)
+        if resource_plan['drained']:raise QfqGateError('DELTA_RESOURCE_RESERVE_REQUIRED')
+        workers=resource_plan['workers']
+    else:
+        workers=workers or 2
+        if not 1<=workers<=4:raise QfqGateError('LEGACY_THREAD_WORKER_LIMIT_MUST_BE_1_TO_4')
     if same_asof_ref is not None and any(x is not None for x in (history_extension, tail_delta, archive_additions)):
         raise QfqGateError("SAME_ASOF_REPAIR_MODE_CONFLICT")
     history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
@@ -2703,7 +2715,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         check_baseline(pointers, frozen_baseline)
         driver, _ = authorities(driver_path, formula_path)
         retained_history = selected_history_retention(accepted_history_retention(pointers), target=target) if history is None else None
-        if refresh_inputs:
+        delta_resume_control=None
+        if checkpoint_resume is not None:
+            from ops.research_panel_delta import fixed_delta_resume_input
+            delta_resume_control=fixed_delta_resume_input(globals(),checkpoint_resume,target,snapshot_file)
+        if refresh_inputs and delta_resume_control is None:
             required_start = required_a_history(pointers)
             from ops.research_panel_adjustment_inputs import prepare_snapshot
             from ops.research_panel_daily_source import build_cache_configuration
@@ -2713,7 +2729,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                              force_refresh=False, research_cache_config_ref=research_config,
                              history_extension=history, retained_history=retained_history,
                              **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None and target != 20261110 else {}))
-        snapshot = load_snapshot(snapshot_file, target)
+        snapshot = (delta_resume_control.pop('_validated_snapshot') if delta_resume_control is not None else load_snapshot(snapshot_file, target))
         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:
             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
         if archive_additions is None and snapshot.get("history_extension") != history_extension:
@@ -2817,7 +2833,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             recovered = checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root,
                                             same_asof=same_asof)
         incremental = incremental or same_asof
-        meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver), checkpoint_recovery=checkpoint_resume,
+        meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver),
+                    checkpoint_recovery=(None if delta_resume_control is not None else checkpoint_resume),
+                    delta_checkpoint_resume=(checkpoint_resume if delta_resume_control is not None else None),
                     turnover_input=dict(binding=turnover.binding, failure=turnover.failure, historical_PIT=False),
                     price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
                     volume_basis="MIXED_BY_MARKET" if foreign else "QFQ_EVENT_VOLUME", amount_basis="MIXED_BY_MARKET" if foreign else "RAW_TURNOVER",

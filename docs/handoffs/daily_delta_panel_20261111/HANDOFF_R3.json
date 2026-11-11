@@ -1,0 +1,31 @@
+{
+  "schema": "v4.daily_delta.writer_handoff.v1",
+  "revision": "R3",
+  "status": "SOURCE_FROZEN_TARGETED_PASS_REVIEW_PENDING",
+  "writer": "/root/daily_original_panel_writer",
+  "reviewer": "/root/daily_incremental_io_reviewer",
+  "source_binding": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/SOURCE_PATCH_BINDINGS_R3.json",
+    "sha256": "cd8cb94b1f12e7f187b126b0abb91622e18ff361869edbce0e775ccbe0c7a2e4"
+  },
+  "test_results": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/TEST_RESULTS_R3.json",
+    "sha256": "014e7068d8f84b54fa8f59bef670d476a5879e17b8ebbb88802713fc0c060fd5"
+  },
+  "readme": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/README_R3.md",
+    "sha256": "b047e75993726e2d3e651b0c52aa17970fe8feb344278e17e770e6cc23b5a1c9"
+  },
+  "base_commit": "4642d7096c10791bcde9ae0b24260097898a6810",
+  "targets": 5,
+  "source_run": "qfq_a50f8be3da0577a81a00",
+  "completed_real_CP_reported_by_controller": 1184,
+  "actual_1184_restored": false,
+  "live_action": false,
+  "original_kernel_unchanged": true,
+  "CANNOT_CONFIRM": [
+    "Live AUTO process throughput",
+    "All1184 actualCP restoration until controller runs sealed generator",
+    "D11 foundation/formal/UI completion"
+  ]
+}
