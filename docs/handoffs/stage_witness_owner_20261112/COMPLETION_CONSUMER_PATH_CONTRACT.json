@@ -1,0 +1,24 @@
+{
+  "status": "EXISTING_ROOT_CONTRACT_MATCH_STATIC_ONLY",
+  "paths": {
+    "Stage_preselection_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "API_preselection_source": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "Main_preselection_inputs": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_inputs",
+    "Stage_selection": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "API_selection": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "Main_selection": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection"
+  },
+  "no_route_or_data_root_changes": true,
+  "content_or_generation_completion": "NOT_CERTIFIED_BY_PATH_MATCH",
+  "controller_reads": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/PRESELECTION_20261111_BEFORE_READBACK.json",
+      "sha256": "56974a8d6bf9cd0a8a0e1c8f3ddaa5d0f57cd4e843ea05866ee3527c74cb2a5e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/PRESELECTION_20261112_BEFORE_READBACK.json",
+      "sha256": "57fb63ea59cf03f5546bdbe802798401b9d2dca9a0d2cb579f952524ee65df8d"
+    }
+  ],
+  "followup_owner": "Separate controller daily-completion Writer owns D11 event/quote/virtual-projection chain. This Stage patch does not certify D12research218 lineage from counts."
+}
