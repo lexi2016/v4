@@ -1,0 +1,77 @@
+{
+  "920202": {
+    "api_pending_groups": "original|nav_pullback",
+    "api_qualification": "CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH",
+    "api_readback_sha256": "ad70af7de3a06c81cc4b904167a3e53660f106ea058f4dc40a7d2e58acd30f81",
+    "api_status": "READY",
+    "expected_groups": {
+      "nav_breakout": "FALSE",
+      "nav_pullback": "UNKNOWN",
+      "nav_smallk": "FALSE",
+      "original": "UNKNOWN"
+    },
+    "future_admission": "CANNOT_CONFIRM_NOT_IMPLEMENTED",
+    "independent_review_receipt_sha256": "c4a77a4b9853dcf36c1468fe5495912ef5f8fa1ed6b9c85f419bcabb33f859dc",
+    "operation_source_sha256": "ee78f5dfdcf4d4e4c89a28f3e59b4b851b515c91b508be72276788d1be36700d",
+    "publication_status": "PUBLISHED_HISTORY_SYNC",
+    "published_event_sha256": "c050804be0a87057659d0b7e38da0b56c4e28e6e06fd02190ebbd9a516931cc1",
+    "published_index_sha256": "8bfc13b140edcac00b1647bbc1bce6a2d15688d535c9786363081db2c134dac6",
+    "same_day_normal_replay_can_replace_completion": true,
+    "source_generation": "231df8b469ade0ba8e6286d6cee624353aa46a5568cca569ffdf286bb7c28f81",
+    "unchanged_other_row_refs": 5808
+  },
+  "RESEARCH_ONLY": true,
+  "acceptance_boundaries": {
+    "UI": "Controller completing original-page Playwright readback; this receipt does not claim final visual acceptance",
+    "natural_run": "NOT_RUN_BY_WRITER; local manual source/process verification is separate",
+    "same_day_replay": "Original full D10 materialization can consume its old immutable checkpoint and replace the single-row correction; exact completion is not a durable scheduler hook",
+    "scope": "Exact D10 generation231 and frozen D10 ranking/D9 technical cutoff; no future-date admission or automatic Top200 refresh added"
+  },
+  "buy_gate_updated": false,
+  "main_source_deployment": {
+    "API_HK_Stage_8910_not_restarted": true,
+    "actual_cwd_verified": true,
+    "bootstrap": "Initial EIO retained; one retry after service unregister succeeded per controller receipt",
+    "natural_slot": "NOT_RUN",
+    "new_pid": 79879,
+    "receipt_sha256": "d2bb83cefeccc06a393b9d6df0eefa724a953b213ff49c58f954b321acdf318f",
+    "source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app",
+    "status": "DEPLOYED_LOCAL_MAIN_SOURCE_PROCESS_VERIFIED"
+  },
+  "orders_sent": false,
+  "production_allowed": false,
+  "runtime_inputs": "Dated local operator receipts and immutable refs remain outside Git; these scripts are not a scheduler hook or a general future-date workflow.",
+  "scope": "D10 original panel exact metadata completions only; no future automation claimed",
+  "top200": {
+    "api_count": 200,
+    "api_date_parameter": "ISO 2026-11-10; compact-date 409 was parameter format, not data failure",
+    "api_numeric_manifest_sha256": "e615a529fce5284bd00ad1dc0f28632477f1fb8050008b742a2c6948afe37fdc",
+    "api_readback_sha256": "ba0f0b9b9dcd727579da3bec23713eda92b63d817c9c93493060fba7367e131c",
+    "api_source_generation": "231df8b469ade0ba8e6286d6cee624353aa46a5568cca569ffdf286bb7c28f81",
+    "api_status": "PARTIAL_DESCRIPTIVE",
+    "formula_calls": 0,
+    "full_market_build_calls": 0,
+    "future_automatic_refresh": false,
+    "independent_review_receipt_sha256": "79e38e388a465664484789e9681fb2f27ab9c921887c0b64940f4381625ae5f2",
+    "independent_review_status": "PASS",
+    "operation_source_sha256": "e178041300542d8829b2a20696e123e630f1c7ba2887c9637a75d1d035e571cd",
+    "publication_receipt_sha256": "2178640a940efab91dd9feb75e8991bbec31bff839eccd650086264e69924615",
+    "publication_status": "PUBLISHED_TOP200",
+    "published_event_sha256": "9bfb38c73a888e820c0ea55716f0927d11d8b7ac6b68e85628befc539731ee96",
+    "published_index_sha256": "86990b1ad4eee0b7a71ce5fa746fba4cc5a845118aaa88861265bed8ab6f7925",
+    "rank200_reused": true,
+    "source_qualification_and_window_warmup_are_separate": true,
+    "status": "PUBLISHED_TOP200_API_VERIFIED",
+    "strict_61_session_gate": "UNCHANGED",
+    "structure_feature_calls": 8,
+    "technical_cutoff": "20261109",
+    "untouched_top200_rows": 196,
+    "verification_sha256": "b0cd8f19112be4316d03c412c27c68e41be381b0db0ca0ecd9856e0b1201eb8a",
+    "window_records": {
+      "002623.SZ": 56,
+      "301314.SZ": 52,
+      "605258.SH": 60,
+      "920202.BJ": 25
+    }
+  }
+}
