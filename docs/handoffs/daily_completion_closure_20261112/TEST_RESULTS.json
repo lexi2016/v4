@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "unique_tests": 36,
+  "command": "PANEL_PYTHON -B -m pytest -q tests/test_daily_completion_closure.py --basetemp=.verification/daily-completion-cache-pass",
+  "result": "36 passed in0.27s",
+  "environment": "macOS, project v4-mac Python3.14.6",
+  "scopes": [
+    "Legacy and immutable-snapshot source-close layouts; physical/logical panel and3 exchanges",
+    "Source/row/receipt/snapshot/stage/date/duplicate-scope rejection",
+    "Original physical and virtual projection SHA + retained row-block join",
+    "Daily history partial or unknown does not run bootstrap or certify complete history; currentTop200/F10 branch retains sameD/gen/flags",
+    "Cross-app continuation revalidates original full reader proof and rejects proof/source/oracle/current reader/config/core/mathematical identity drift",
+    "UNKNOWN model admission does not hide another valid original producer witness",
+    "Virtual reference absolute/no-symlink path and exact ref.path==spec.path remain mandatory"
+  ],
+  "not_run": [
+    "Production publication",
+    "RealF10 collection",
+    "LiveAPI/UI",
+    "Natural daily or stage execution"
+  ],
+  "earlier_failed_runs": "Fixture setup omissions were corrected; initial defaultpytest temp cleanup hit unrelated protected old temp paths and was not repaired. All subsequent runs use explicit task-owned basetemp. No globaltemp permission changes or cleanup.",
+  "actual_read_only_canaries": {
+    "history": {
+      "candidates": 426,
+      "complete": 108,
+      "incomplete": 318,
+      "missing_label_dates": 947908,
+      "bootstrap_calls": 0
+    },
+    "projections": {
+      "markets": [
+        "SZ",
+        "SH",
+        "BJ"
+      ],
+      "fields": 51,
+      "drawings": 22,
+      "original_failure_reproduced": true
+    },
+    "source_close": {
+      "markets": [
+        "SZ",
+        "SH",
+        "BJ"
+      ],
+      "quote_role": "SOURCE_DATE_CLOSE_REFERENCE",
+      "all_three_metrics_match_delivered_csv": true
+    },
+    "top200": {
+      "count": 200,
+      "computed_structures": 5575,
+      "primary_formula_calls": 0,
+      "formal_publication_writes": 0
+    }
+  },
+  "cache_review_delta": {
+    "previous_unique_tests": 30,
+    "new_regressions": 6,
+    "metadata_hashes_per_unique_path_on_cold_read": 1,
+    "unchanged_warm_extra_metadata_hashes": 0,
+    "unchanged_warm_extra_table_reads": 0,
+    "actual_canary": "PASS_REAL_D11_COLD_WARM_AND_ISOLATED_GUARD"
+  }
+}
