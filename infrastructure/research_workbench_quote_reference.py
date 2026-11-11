@@ -36,6 +36,49 @@ def _number(value, minimum=None):
     return value if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and (minimum is None or value >= minimum) else None
 
 
+def _bound_row_references(product):
+    references = product.get('row_refs')
+    if isinstance(references, dict) and references:
+        return references
+    # The API intentionally exposes a compact numeric view without row_refs.
+    # Follow its already-declared signed artifact, never CURRENT or discovery.
+    manifest_ref, artifact_ref = product.get('manifest'), product.get('artifact')
+    if not isinstance(manifest_ref, dict) or not isinstance(artifact_ref, dict):
+        raise ValueError('QUOTE_REFERENCE_PRODUCER_RECEIPT_UNBOUND')
+    values = []
+    for reference in (manifest_ref, artifact_ref):
+        path = _path(reference['path'])
+        if _sha(path) != reference['sha256']:
+            raise ValueError('QUOTE_REFERENCE_NUMERIC_SOURCE_SHA_DRIFT:' + str(path))
+        values.append(json.loads(path.read_bytes()))
+    manifest, full = values
+    if not all(isinstance(value, dict) for value in values):
+        raise ValueError('QUOTE_REFERENCE_NUMERIC_SOURCE_IDENTITY_CONFLICT')
+    if (manifest.get('schema_version') != 'v4.a_share.daily_product_manifest.v1'
+            or full.get('schema_version') != 'v4.a_share.daily_product.v1'
+            or manifest.get('artifact') != artifact_ref
+            or manifest.get('data_date') != product['data_date']
+            or full.get('data_date') != product['data_date']
+            or manifest.get('source_generation') != product['source_generation']
+            or full.get('source_generation') != product['source_generation']
+            or full.get('source_identity') != product['source_identity']
+            or manifest.get('input_sha256') != product['source_identity']['input_sha256']
+            or manifest.get('snapshot') != product['source_identity']['snapshot']
+            or manifest.get('sample_only') is not False or full.get('sample_only') is not False
+            or manifest.get('processed_count') != full.get('processed_count')
+            or full.get('source_config') != product.get('source_config')
+            or full.get('status') != product.get('status')
+            or full.get('processed_count') != product.get('processed_count')
+            or full.get('source_universe_count') != product.get('source_universe_count')
+            or any(value.get(k) != v for value in values for k, v in FLAGS.items())):
+        raise ValueError('QUOTE_REFERENCE_NUMERIC_SOURCE_IDENTITY_CONFLICT')
+    references = full.get('row_refs')
+    if (not isinstance(references, dict)
+            or not {row['symbol'] for row in product['rows']} <= set(references)):
+        raise ValueError('QUOTE_REFERENCE_NUMERIC_SCOPE_UNBOUND')
+    return references
+
+
 def _accepted_stage_path(product, snapshot_path):
     """Resolve the existing producer receipt, without a CURRENT/latest fallback.
 
@@ -46,8 +89,9 @@ def _accepted_stage_path(product, snapshot_path):
     legacy = snapshot_path.parent / 'stage_status.json'
     if legacy.is_file():
         return _path(legacy)
+    references = _bound_row_references(product)
     for first in product['rows']:
-        row_ref = product.get('row_refs', {}).get(first['symbol'])
+        row_ref = references.get(first['symbol'])
         if not row_ref:
             continue
         row_path = _path(row_ref['path'])
