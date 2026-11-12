@@ -2,6 +2,8 @@
 
 登记日期：2026-11-10。全部时间为Asia/Shanghai。唯一入口为V4/8873；本规程记录实际链路、用户要求和验收方法，不创建调度器、producer或第二看板。
 
+最新会话交接：[2026-11-12：1112交付、64来源接入断点与海外二筛](records/2026-11-12-v4-session-handoff.md)。富途已验收、新研究NOT_IMPORTED；该链接为源码文档登记，未随本次发布到在线封签SOP。
+
 当前快照及本轮修复见[交接记录](records/2026-11-10-daily-workflow-handoff.md)；[机器核查](records/2026-11-10-daily-workflow-check.json)仅对其observed_at有效。实际时钟、现役release及当日回执优先于旧记录。
 
 ## 0. 日更强制顺序与基础表验收（用户确认2026-11-11）
