@@ -3,7 +3,7 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_date, source_dir, output_dir, video_dir, force):
+def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_date, source_dir, output_dir, video_dir, force, fupan_only=False):
     """Ensure D-1 fupan and Stage7 lane CSVs exist for a target opening date."""
 
     signal = _v4_global(_v4_scope, '_signal_date')(target_date, signal_date)
@@ -23,24 +23,29 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
         paths["fupan_manifest"],
         paths["stage7_manifest"],
     ]
+    if fupan_only:
+        output_paths = [paths["fupan_pool"], paths["fupan_manifest"]]
     real_stage7_available = _v4_global(_v4_scope, 'bool')(paths["real_stage7_pool"].exists() and _v4_global(_v4_scope, '_read_csv')(paths["real_stage7_pool"]))
     if not force and _v4_global(_v4_scope, 'all')(path.exists() and path.stat().st_size > 5 for path in output_paths):
         fupan_manifest = _v4_global(_v4_scope, '_read_json')(paths["fupan_manifest"])
         stage7_manifest = _v4_global(_v4_scope, '_read_json')(paths["stage7_manifest"])
+        if fupan_only and fupan_manifest.get("lane_scope") != "FUPAN_ONLY_STAGE7_NOT_SYNTHESIZED":
+            return {"ok": False, "status": "FUPAN_SCOPE_CONFLICT"}
         if fupan_manifest.get("fupan_pool_rule") != "AUTO_FUPAN_THEN_VIDEO_SECOND_REVIEW":
             force = True
-        elif real_stage7_available and stage7_manifest.get("source_role") != "real_d1_stage7_tail_replay":
+        elif not fupan_only and real_stage7_available and stage7_manifest.get("source_role") != "real_d1_stage7_tail_replay":
             force = True
         else:
             existing_rows = _v4_global(_v4_scope, '_read_csv')(paths["fupan_pool"])
             return {
                 "ok": True,
-                "status": "PREOPEN_D1_LANES_READY_EXISTING",
+                "status": "PREOPEN_D1_FUPAN_READY_STAGE7_MISSING_EXISTING" if fupan_only else "PREOPEN_D1_LANES_READY_EXISTING",
+                **({"stage7_row_count": 0, "stage7_source_role": "STAGE7_NOT_MATERIALIZED"} if fupan_only else {}),
                 "target_date": target_date,
                 "signal_date": signal,
                 "row_count": _v4_global(_v4_scope, 'len')(existing_rows),
                 "paths": {key: _v4_global(_v4_scope, 'str')(value) for key, value in paths.items() if key not in {"fupan_dir"}},
-                "cannot_confirm": [],
+                "cannot_confirm": list(fupan_manifest.get("cannot_confirm") or []) if fupan_only else [],
             }
 
     missing = [path for path in _v4_global(_v4_scope, '_source_paths')(paths) if not path.exists()]
@@ -93,7 +98,10 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
     fupan_rows = _v4_global(_v4_scope, '_merge_fupan_and_video_rows')(auto_fupan_rows, video_rows)
     real_stage7_manifest: dict[str, Any] = {}
     stage7_source_role = "synthetic_from_d1_fupan_role_table"
-    if real_stage7_available:
+    if fupan_only:
+        stage7_rows = []
+        stage7_source_role = "STAGE7_NOT_MATERIALIZED"
+    elif real_stage7_available:
         stage7_rows, real_stage7_manifest = _v4_global(_v4_scope, '_build_real_stage7_rows')(
             target_date=target_date,
             signal_date=signal,
@@ -107,10 +115,11 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
     else:
         stage7_rows = _v4_global(_v4_scope, '_rows_for_lane')(rows, lane="stage7_lane")
     _v4_global(_v4_scope, '_write_csv')(paths["fupan_pool"], fupan_rows, _v4_global(_v4_scope, 'FIELDS'))
-    _v4_global(_v4_scope, '_write_csv')(paths["stage7_preopen_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
-    _v4_global(_v4_scope, '_write_csv')(paths["stage7_next_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
-    _v4_global(_v4_scope, '_write_csv')(paths["stage7_intraday_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
-    _v4_global(_v4_scope, '_write_csv')(paths["stage7_summary"], _v4_global(_v4_scope, '_build_summary')(stage7_rows, target_date, signal), _v4_global(_v4_scope, 'SUMMARY_FIELDS'))
+    if not fupan_only:
+        _v4_global(_v4_scope, '_write_csv')(paths["stage7_preopen_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
+        _v4_global(_v4_scope, '_write_csv')(paths["stage7_next_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
+        _v4_global(_v4_scope, '_write_csv')(paths["stage7_intraday_pool"], stage7_rows, _v4_global(_v4_scope, 'FIELDS'))
+        _v4_global(_v4_scope, '_write_csv')(paths["stage7_summary"], _v4_global(_v4_scope, '_build_summary')(stage7_rows, target_date, signal), _v4_global(_v4_scope, 'SUMMARY_FIELDS'))
 
     cannot_confirm = [
         f"{target_date} 早盘复盘 lane 来自 {signal} 复盘结构化证据；Stage7 lane 优先来自 {signal} 14:45-15:00 尾盘 1 分钟回放。",
@@ -118,6 +127,12 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
         "该 lane 不能替代正式 1.9.2/FMLA04 selector，只能作为辅助并源。",
     ]
     cannot_confirm.extend(video_context.get("cannot_confirm") or [])
+    if fupan_only:
+        source_receipt = _v4_global(_v4_scope, '_read_json')(paths["fupan_dir"] / "receipt.json")
+        cannot_confirm = [
+            f"{target_date} 复盘池仅来自 {signal} 公开复盘与同日 selector；Stage7 未合成。",
+            *cannot_confirm[1:], *source_receipt.get("cannot_confirm", []),
+        ]
     generated_at = _v4_global(_v4_scope, 'datetime').now().isoformat(timespec="seconds")
     source_path_strings = [_v4_global(_v4_scope, 'str')(path) for path in _v4_global(_v4_scope, '_source_paths')(paths)]
     all_source_path_strings = [*source_path_strings, *(video_context.get("source_paths") or [])]
@@ -125,6 +140,7 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
         paths["fupan_manifest"],
         {
             "status": "FUPAN_WATCHLIST_POOL_READY_DATA_PARTIAL",
+            **({"lane_scope": "FUPAN_ONLY_STAGE7_NOT_SYNTHESIZED"} if fupan_only else {}),
             "fupan_pool_rule": "AUTO_FUPAN_THEN_VIDEO_SECOND_REVIEW",
             "target_date": target_date,
             "signal_date": signal,
@@ -144,40 +160,42 @@ def _ensure_preopen_lane_artifacts_body(_v4_scope, /, target_date, *, signal_dat
             **_v4_global(_v4_scope, 'SAFETY'),
         },
     )
-    _v4_global(_v4_scope, '_write_json')(
-        paths["stage7_manifest"],
-        {
-            "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
-            "target_date": target_date,
-            "signal_date": signal,
-            "row_count": _v4_global(_v4_scope, 'len')(stage7_rows),
-            "source_role": stage7_source_role,
-            "source_paths": (
-                [_v4_global(_v4_scope, 'str')(paths["real_stage7_pool"]), _v4_global(_v4_scope, 'str')(paths["real_stage7_manifest"])]
-                if stage7_source_role == "real_d1_stage7_tail_replay"
-                else source_path_strings
-            ),
-            "pool_paths": [
-                _v4_global(_v4_scope, 'str')(paths["stage7_preopen_pool"]),
-                _v4_global(_v4_scope, 'str')(paths["stage7_next_pool"]),
-                _v4_global(_v4_scope, 'str')(paths["stage7_intraday_pool"]),
-            ],
-            "summary_path": _v4_global(_v4_scope, 'str')(paths["stage7_summary"]),
-            "generated_at": generated_at,
-            "upstream_manifest": real_stage7_manifest if stage7_source_role == "real_d1_stage7_tail_replay" else {},
-            "overlap_note": (
-                "Stage7 lane is generated from the real D-1 14:45-15:00 replay, so full equality with fupan lane is treated as a bug."
-                if stage7_source_role == "real_d1_stage7_tail_replay"
-                else "Fallback lane is distilled from D-1 fupan role evidence and must be treated as inferred, not real tail replay."
-            ),
-            "cannot_confirm": cannot_confirm,
-            **_v4_global(_v4_scope, 'SAFETY'),
-        },
-    )
+    if not fupan_only:
+        _v4_global(_v4_scope, '_write_json')(
+            paths["stage7_manifest"],
+            {
+                "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
+                "target_date": target_date,
+                "signal_date": signal,
+                "row_count": _v4_global(_v4_scope, 'len')(stage7_rows),
+                "source_role": stage7_source_role,
+                "source_paths": (
+                    [_v4_global(_v4_scope, 'str')(paths["real_stage7_pool"]), _v4_global(_v4_scope, 'str')(paths["real_stage7_manifest"])]
+                    if stage7_source_role == "real_d1_stage7_tail_replay"
+                    else source_path_strings
+                ),
+                "pool_paths": [
+                    _v4_global(_v4_scope, 'str')(paths["stage7_preopen_pool"]),
+                    _v4_global(_v4_scope, 'str')(paths["stage7_next_pool"]),
+                    _v4_global(_v4_scope, 'str')(paths["stage7_intraday_pool"]),
+                ],
+                "summary_path": _v4_global(_v4_scope, 'str')(paths["stage7_summary"]),
+                "generated_at": generated_at,
+                "upstream_manifest": real_stage7_manifest if stage7_source_role == "real_d1_stage7_tail_replay" else {},
+                "overlap_note": (
+                    "Stage7 lane is generated from the real D-1 14:45-15:00 replay, so full equality with fupan lane is treated as a bug."
+                    if stage7_source_role == "real_d1_stage7_tail_replay"
+                    else "Fallback lane is distilled from D-1 fupan role evidence and must be treated as inferred, not real tail replay."
+                ),
+                "cannot_confirm": cannot_confirm,
+                **_v4_global(_v4_scope, 'SAFETY'),
+            },
+        )
+
 
     return {
         "ok": True,
-        "status": "PREOPEN_D1_LANES_READY",
+        "status": "PREOPEN_D1_FUPAN_READY_STAGE7_MISSING" if fupan_only else "PREOPEN_D1_LANES_READY",
         "target_date": target_date,
         "signal_date": signal,
         "row_count": _v4_global(_v4_scope, 'len')(fupan_rows),

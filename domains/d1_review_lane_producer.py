@@ -280,7 +280,8 @@ def ensure_preopen_lane_artifacts(
     output_dir: Path,
     video_dir: Path | None = None,
     force: bool = False,
+    fupan_only: bool = False,
 ) -> dict[str, Any]:
     """Ensure D-1 fupan and Stage7 lane CSVs exist for a target opening date."""
     from domains._d1_review_lane_producer_parts.preopen_lanes import _ensure_preopen_lane_artifacts_body as _v4_impl
-    return _v4_impl(globals(), target_date, signal_date=signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir, force=force)
+    return _v4_impl(globals(), target_date, signal_date=signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir, force=force, fupan_only=fupan_only)
