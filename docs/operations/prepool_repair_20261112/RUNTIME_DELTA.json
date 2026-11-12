@@ -1,0 +1,53 @@
+{
+  "schema_version": "v4.prepool.inline_delta.20261112.v1",
+  "baseline_commit": "ddab09e32dd18d71234d2c699f00f2805934f1a9",
+  "origin_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-result-receipt-20261112-r1-main/app",
+  "origin_manifest_sha256": "558d313eb3181ae6bf030b95bc552df40c0a052f4e34e413e05f5e94b1817d55",
+  "reason": "Current Main retains the reviewed inline implementation; maintenance source has split parts and unrelated subsequent behavior. Apply only this exact source delta to a separately prepared Main clone after independent review.",
+  "files": {
+    "domains/preselection_materializer.py": {
+      "before_sha256": "b92f79962bdd4221891ca797af8183f032bb6838ba64ad6955433a1e587de5a1",
+      "after_sha256": "66ade34a422d1facbd29da77b0b2991e2041de4edb5d0203f888235d97cc5d88",
+      "edits": [
+        {
+          "before": "status=\"V192_CANDIDATE_READY\" if rows else \"V192_CANDIDATE_READY_EMPTY\",",
+          "after": "status=\"V192_CANDIDATE_READY\" if rows else \"VALID_EMPTY\","
+        },
+        {
+          "before": "            \"RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY\",",
+          "after": "            \"RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY\",\n            *([] if rows else [\"V192_CANDIDATE_READY_EMPTY\"]),"
+        },
+        {
+          "before": "        stage_selection_eligible=True,",
+          "after": "        stage_selection_eligible=bool(rows),"
+        }
+      ]
+    },
+    "ops/materialize_scheduled_preselection.py": {
+      "before_sha256": "55de5ee5a6a370248018e3060353a839e02054ed916adc935b885aa1c2381b8e",
+      "after_sha256": "108da8807d7e7a55b098be6dd5127190fc79c5cd9ff17d668f8319f58f5f0a0a",
+      "edits": [
+        {
+          "before": "def publish_scheduled_artifacts(\n    store: PreselectionPoolStore, artifacts: Sequence[dict]\n) -> list[dict[str, Any]]:\n    \"\"\"Do not occupy a formal immutable key with a transient missing attempt.\"\"\"\n    results: list[dict[str, Any]] = []\n    for artifact in artifacts:\n        validate_pool_artifact(artifact)\n        pool_id = str(artifact[\"pool_id\"])\n        if pool_id in _FORMAL_IMMUTABLE_POOLS and artifact.get(\"source_role\") == \"EXPECTED_MISSING\":\n            if not _is_exact_expected_missing_placeholder(\n                artifact, trade_date=str(artifact[\"trade_date\"]), pool_id=pool_id,\n            ):\n                raise ValueError(\"INVALID_FORMAL_MISSING_PLACEHOLDER\")\n            results.append({\n                \"trade_date\": str(artifact[\"trade_date\"]), \"pool_id\": pool_id,\n                \"status\": \"DEFERRED\", \"reason_code\": \"FORMAL_INPUT_NOT_READY\",\n                \"source_role\": \"EXPECTED_MISSING\", \"artifact_written\": False,\n                \"cannot_confirm\": list(artifact[\"cannot_confirm\"]),\n                \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n            })\n            continue\n        try:\n            try:\n                results.append(store.materialize(artifact))\n            except ValueError as error:\n                if str(error) != \"conflicting preselection-pool materialization\":\n                    raise\n                expected_role = _AUTO_RECOVERABLE_OPTIONAL_POOLS.get(pool_id)\n                if expected_role is None or artifact.get(\"source_role\") != expected_role:\n                    raise\n                snapshot = store.read_pool_snapshot(str(artifact[\"trade_date\"]), pool_id)\n                if snapshot[\"artifact\"].get(\"source_role\") != \"EXPECTED_MISSING\":\n                    raise\n                results.append(store.recover_expected_missing(\n                    artifact, expected_old_sha256=str(snapshot[\"artifact_sha256\"]),\n                ))\n        except ValueError as error:\n            if str(error) != \"conflicting preselection-pool materialization\":\n                raise\n            results.append({\n                \"trade_date\": str(artifact[\"trade_date\"]), \"pool_id\": pool_id,\n                \"status\": \"REJECTED\", \"reason_code\": \"IMMUTABLE_POOL_CONFLICT\",\n                \"artifact_written\": False, \"detail\": str(error),\n                \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n            })\n    if any(result.get(\"status\") == \"REJECTED\" for result in results):\n        raise ScheduledPoolPublicationError(results)\n    return results\n",
+          "after": "def publish_scheduled_artifacts(\n    store: PreselectionPoolStore, artifacts: Sequence[dict]\n) -> list[dict[str, Any]]:\n    \"\"\"Publish independent pools; retain each invalid lane and finish siblings.\"\"\"\n    results: list[dict[str, Any]] = []\n    for artifact in artifacts:\n        try:\n            validate_pool_artifact(artifact)\n        except ValueError as error:\n            results.append({\n                \"trade_date\": str(artifact.get(\"trade_date\") or \"\"),\n                \"pool_id\": str(artifact.get(\"pool_id\") or \"\"),\n                \"status\": \"REJECTED\", \"reason_code\": \"POOL_CONTRACT_INVALID\",\n                \"artifact_written\": False, \"detail\": str(error),\n                \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n            })\n            continue\n        pool_id = str(artifact[\"pool_id\"])\n        if pool_id in _FORMAL_IMMUTABLE_POOLS and artifact.get(\"source_role\") == \"EXPECTED_MISSING\":\n            if not _is_exact_expected_missing_placeholder(\n                artifact, trade_date=str(artifact[\"trade_date\"]), pool_id=pool_id,\n            ):\n                results.append({\n                    \"trade_date\": str(artifact[\"trade_date\"]), \"pool_id\": pool_id,\n                    \"status\": \"REJECTED\", \"reason_code\": \"POOL_CONTRACT_INVALID\",\n                    \"artifact_written\": False, \"detail\": \"INVALID_FORMAL_MISSING_PLACEHOLDER\",\n                    \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n                })\n                continue\n            results.append({\n                \"trade_date\": str(artifact[\"trade_date\"]), \"pool_id\": pool_id,\n                \"status\": \"DEFERRED\", \"reason_code\": \"FORMAL_INPUT_NOT_READY\",\n                \"source_role\": \"EXPECTED_MISSING\", \"artifact_written\": False,\n                \"cannot_confirm\": list(artifact[\"cannot_confirm\"]),\n                \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n            })\n            continue\n        try:\n            try:\n                results.append(store.materialize(artifact))\n            except ValueError as error:\n                if str(error) != \"conflicting preselection-pool materialization\":\n                    raise\n                expected_role = _AUTO_RECOVERABLE_OPTIONAL_POOLS.get(pool_id)\n                if expected_role is None or artifact.get(\"source_role\") != expected_role:\n                    raise\n                snapshot = store.read_pool_snapshot(str(artifact[\"trade_date\"]), pool_id)\n                if snapshot[\"artifact\"].get(\"source_role\") != \"EXPECTED_MISSING\":\n                    raise\n                results.append(store.recover_expected_missing(\n                    artifact, expected_old_sha256=str(snapshot[\"artifact_sha256\"]),\n                ))\n        except ValueError as error:\n            conflict = str(error) == \"conflicting preselection-pool materialization\"\n            results.append({\n                \"trade_date\": str(artifact[\"trade_date\"]), \"pool_id\": pool_id,\n                \"status\": \"REJECTED\", \"reason_code\": \"IMMUTABLE_POOL_CONFLICT\" if conflict else \"POOL_CONTRACT_INVALID\",\n                \"artifact_written\": False, \"detail\": str(error),\n                \"production_allowed\": False, \"buy_gate_updated\": False, \"orders_sent\": False,\n            })\n    if any(result.get(\"status\") == \"REJECTED\" for result in results):\n        raise ScheduledPoolPublicationError(results)\n    return results\n"
+        },
+        {
+          "before": "    results = publish_scheduled_artifacts(\n        PreselectionPoolStore(args.data_root), artifacts\n    )",
+          "after": "    publication_failed = False\n    try:\n        results = publish_scheduled_artifacts(\n            PreselectionPoolStore(args.data_root), artifacts\n        )\n    except ScheduledPoolPublicationError as error:\n        results = error.results\n        publication_failed = True"
+        },
+        {
+          "before": "    failed = formal_pool_gate[\"status\"] == \"FAILED\"",
+          "after": "    failed = publication_failed or formal_pool_gate[\"status\"] == \"FAILED\""
+        },
+        {
+          "before": "\"failure_class\": \"UPSTREAM_NOT_READY\" if failed else None,",
+          "after": "\"failure_class\": \"POOL_PUBLICATION_REJECTED\" if publication_failed else \"UPSTREAM_NOT_READY\" if failed else None,"
+        }
+      ]
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

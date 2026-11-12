@@ -1256,7 +1256,29 @@ def _governed_product(function, /, *args, **kwargs):
                     claim.recording_failed=True
                     result['storage_governance']=dict(status='COMMITTED_REGISTRY_RECORDING_BLOCKED',error=str(error)[:1024])
             else:claim.finish(error=RetentionError('PRODUCT_PARTIAL_RETAINED'))
+            # The owner has already published numeric/index and committed its
+            # original receipt. Maintenance never changes that result or gate.
+            if claim.finalized and not claim.recording_failed:
+                _after_product_compaction(claim, context, root, args, kwargs, result)
         return result
+
+
+def _after_product_compaction(claim, context, root, args, kwargs, result):
+    if result.get('schema') != 'V4_A_DAILY_DERIVATIVES_V1' or result.get('status') != 'COMPLETE_DESCRIPTIVE_NONPIT':
+        return
+    try:
+        from ops.research_storage_compaction import completed_event
+        receipts = kwargs.get('receipt_root', args[3] if len(args) > 3 else None)
+        if receipts is None:raise RetentionError('COMPACTION_COMPLETION_RECEIPT_ROOT_REQUIRED')
+        completed_event(claim=claim, context=context, product_root=root,
+            receipt_root=Path(receipts), result=result)
+    except Exception as error:
+        # Keep housekeeping failures outside business receipts, registry READY
+        # metadata and delivery eligibility. No exception escapes this seam.
+        try:atomic_json(claim.registry.root/'compaction/last_event_error.json',
+            dict(schema='v4.daily_storage_compaction.v1',status='FAILED',error=str(error)[:1024],
+                RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False))
+        except (OSError,ValueError,RetentionError):pass
 
 
 def reference_source(path):

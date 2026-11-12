@@ -2,6 +2,8 @@
 
 登记日期：2026-11-10。全部时间为Asia/Shanghai。唯一入口为V4/8873；本规程记录实际链路、用户要求和验收方法，不创建调度器、producer或第二看板。
 
+最新会话交接：[2026-11-12：1112交付、64来源接入断点与海外二筛](records/2026-11-12-v4-session-handoff.md)。富途已验收、新研究NOT_IMPORTED；该链接为源码文档登记，未随本次发布到在线封签SOP。
+
 当前快照及本轮修复见[交接记录](records/2026-11-10-daily-workflow-handoff.md)；[机器核查](records/2026-11-10-daily-workflow-check.json)仅对其observed_at有效。实际时钟、现役release及当日回执优先于旧记录。
 
 ## 0. 日更强制顺序与基础表验收（用户确认2026-11-11）
@@ -126,3 +128,14 @@
 本规程及交接已写源码；在线SOP使用封签release，线上状态以本批实际SOP API回读为准，未读回前为NOT_PUBLISHED。由下一次正常发布带入，不能直接改现役文件后绕过manifest校验。
 
 RESEARCH_ONLY=true；production_allowed=false；buy_gate_updated=false；orders_sent=false。
+
+
+## 7. 完成事件后的存储收尾（2026-11-12）
+
+numeric/index、正式清单与原完成回执先发布，17:00交付及研究prompt不以压缩完成为前置门。原Main完成事件在既有registry writer锁内，对已闭合的当日/代次checkpoint、F10、源回执与复权快照做原生透明压缩；原路径、内容SHA、日期/观察时点、manifest和引用不变，API仍按原格式读取。压缩不改变公式、模型、PIT、池边界及BUY权限，不触发采集、研究或全历史重算。
+
+按当次CPU、空闲内存和磁盘测量设置有界并发；大文件和高收益优先。默认维护预算20秒，到点仅停止新增提交、排空在途，不能杀native进程或丢完成结果。维护失败或DEFERRED写独立精简rollup，原业务result/manifest保持原状态；不把PARTIAL升为READY。未完成闭包进入原owner私有pending清单，下一次原完成事件公平续行当前新增与已登记未完项，不新增daemon、轮询或计划任务，不扫描未登记全历史。
+
+已PASS且闭包未变直接复用；压缩flag与原内容一致项复用，后续F10/新闭合文件在原完成事件增量识别。只处理明确闭包内JSON/CSV，已gzip图、原始.day、官方ZIP、D11基块、其他日期/项目及必要失败证据保持。精确重复仅用APFS clone/COW，不用硬链接；每个native变换前后机械核对SHA、单链接、安全路径/同设备、原mtime及owner锁/stamp CAS，失败保留原件并清理本次临时文件。
+
+交付分开报告逻辑字节、st_blocks实际变化、clone个数/共享逻辑量和无法确认的独占空间收益；不把clone块计数当独占空间回收。源码测试、安装、历史手动BACKFILL和次日自然验证分别记录。上传仍只带必要源码、测试及精简结果，不上传原行情、运行目录或大体积逐文件账本。

@@ -1,0 +1,45 @@
+{
+  "source_root": "/Users/lexi/.codex/worktrees/prepool-storage-20261112/v4_app",
+  "baseline_commit": "ddab09e32dd18d71234d2c699f00f2805934f1a9",
+  "branch": "codex/prepool-storage-20261112",
+  "files": {
+    "domains/_preselection_materializer_parts/row_assembly.py": {
+      "before_sha256": "671ce5eca40d0e45680fcb5595f8de83571d9f884767433da3f0fe9ced7376f0",
+      "after_sha256": "d616a32f946807d93a19ab0f3dbbc184c589c2aa9e6d857a68a0dd5fa629cfa9"
+    },
+    "ops/materialize_scheduled_preselection.py": {
+      "before_sha256": "40be529c5c3981e72c4b68b4e4f37c24e28e39fe1f1df731087cd9f1b94a3957",
+      "after_sha256": "950e8c30aece8d110a30a81694a4573b9fcb8347859e33ba3be01cf1e64bef70"
+    },
+    "tests/test_preselection_empty_sibling_publication_20261112.py": {
+      "before_sha256": null,
+      "after_sha256": "9c6c6dec5a8b3e698722cd9ba494464335d413d2e9e35262b4537070202562d0"
+    },
+    "docs/operations/prepool_repair_20261112/RUNTIME_DELTA.json": {
+      "before_sha256": null,
+      "after_sha256": "ed930aa6eb5f03f0195e768086754551ccd6bf4b93f2a4c9e01f02a60e53f6b0"
+    },
+    "docs/operations/prepool_repair_20261112/RUNTIME_DELTA.patch": {
+      "before_sha256": null,
+      "after_sha256": "a03d106d6796b4c5e968cd8f5bc3444a2d858f61903dd8b0517f63128366f63a"
+    },
+    "docs/operations/prepool_repair_20261112/apply_runtime_delta.py": {
+      "before_sha256": null,
+      "after_sha256": "609480876bfa37e36cfd05487f54b9595a6be14446294d3b35e3862c9787422d"
+    },
+    "docs/operations/prepool_repair_20261112/WRITER_HANDOFF.md": {
+      "before_sha256": null,
+      "after_sha256": "4c4f56377815812c20026fa4ede625c6b01cbaaf28e94a254003e3108ef173f9"
+    }
+  },
+  "tests": {
+    "source_regression": "9 PASS",
+    "runtime_regression": "9 PASS",
+    "runtime_delta_apply_verify_rollback": "PASS",
+    "additional_compatibility": "11 PASS / 12 baseline missing-module FAIL; API collection blocked"
+  },
+  "independent_review": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "backfill": "NOT_RUN",
+  "github_sync": "NOT_RUN"
+}
