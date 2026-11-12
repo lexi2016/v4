@@ -1,0 +1,26 @@
+{
+  "status": "WRITER_INCREMENTAL_CHECKS_PASS",
+  "scope": "P2_LEGACY_OPTIONAL_METADATA_COMPATIBILITY_ONLY",
+  "previous_failed_scope_sha256": "a1046317c3814f37376ad080fe38e843a682289961412877915ebbc671694050",
+  "command": "V192_RUNTIME_PRESELECTION=<R3>/main/app/infrastructure/scheduling/executor_registry_preselection.py $PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k \"nonempty_scheduler or actual_legacy\" --basetemp=<evidence>/pytest-legacy-metadata-r4",
+  "result": "2 passed, 7 deselected",
+  "checks": [
+    "legacy nonempty native missing both optional SHAs reuses through actual runtime early return",
+    "source split existing cache uses same helper",
+    "wrong run/artifact/path rejected",
+    "present wrong manifest/receipt SHA rejected",
+    "present None metadata rejected",
+    "wrong selector generation remains rejected",
+    "source helper runtime bytes equal",
+    "refreshed Main/Stage manifest inventory match",
+    "default activation preflight PASS; both day recovery preflights PASS"
+  ],
+  "prior_matching_checks_reused": "Reviewer independently passed other R3 9 focused checks; oracle/CAS/native maintenance not rerun",
+  "not_run": [
+    "activation",
+    "shared/native publication",
+    "API/UI",
+    "natural scheduling",
+    "commit/push"
+  ]
+}

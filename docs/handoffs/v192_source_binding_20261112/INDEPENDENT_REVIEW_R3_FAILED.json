@@ -1,0 +1,58 @@
+{
+  "verdict": "REVIEWED/FAIL",
+  "reviewer": "/root/v192_pool_review",
+  "writer": "/root/v192_pool_writer",
+  "frozen_scope_sha256": "a1046317c3814f37376ad080fe38e843a682289961412877915ebbc671694050",
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P2",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "line": 168,
+      "trigger": "Existing nonempty native A pool has exact matching selector panel, verified shared run ID and artifact SHA, but lacks source_manifest_sha256/source_receipt_sha256 as produced by the old builder.",
+      "error": "V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT; returns None instead of the verified formal reuse/HK-only retry.",
+      "impact": "A valid legacy cache is rejected. Paired producer path reuses the same shared run but new builder metadata changes native payload and ordinary materialize rejects conflicting preselection-pool materialization.",
+      "evidence": "Independent replay of test_actual_legacy_nonempty_cache_guard_accepts_match_and_rejects_wrong_generation with only the two newly introduced optional metadata fields removed: LEGACY_MATCHED_NONEMPTY_REUSE_REJECTED: V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT.",
+      "minimal_fix": "Verify the shared run through its existing reader, bind native run/artifact/path exactly, permit absent legacy manifest/receipt fields while checking any present values exactly. Keep old native bytes unchanged and add this legacy matched reuse case."
+    }
+  ],
+  "focused_checks": [
+    {
+      "command": "V192_TEST_PACKAGE=<R3>/shared-package V192_RUNTIME_PRESELECTION=<R3>/main/app/infrastructure/scheduling/executor_registry_preselection.py PANEL_PYTHON -B -m pytest -q -p no:cacheprovider tests/test_v192_source_binding.py --basetemp=<evidence>/reviewer-pytest",
+      "result": "9 passed in 0.51s"
+    },
+    {
+      "command": "Independent frozen evidence and actual candidate inventories/policy comparison/two-day binding/oracle SHA audit",
+      "result": "PASS",
+      "evidence": "/Users/lexi/Desktop/学习/agents调试/v192_source_binding_20261112/INDEPENDENT_CHECKS_R3.json"
+    },
+    {
+      "command": "PANEL_PYTHON -B activate_reviewed_candidates.py (no --execute)",
+      "result": "PREFLIGHT_PASS_NO_ACTIVATION; active claims 0, Main running/no child, Stage loaded/not running"
+    }
+  ],
+  "behavior_verified": [
+    "isolated logical/physical oracle equality",
+    "wrong source/date and logical block stat change rejection",
+    "same empty CSV/different source CAS preservation",
+    "native two-day CAS/original-builder/sibling preservation",
+    "frozen candidate exact delta inventory and policy limits unchanged",
+    "legacy matched nonempty reuse regression reproduced"
+  ],
+  "cannot_confirm": [
+    "Service activation/rollback under real failure NOT_RUN",
+    "Real shared/native publication NOT_RUN",
+    "Repaired API/UI behavior NOT_RUN",
+    "Natural scheduling NOT_RUN",
+    "Full source facade with pre-existing notifications import gap NOT_RUN",
+    "Full content SHA rehash of all logical closure block data NOT_RUN; existing storage closure stat validation reused"
+  ],
+  "activation_permitted_by_this_receipt": false,
+  "business_files_edited": false,
+  "services_changed": false,
+  "shared_native_data_written": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

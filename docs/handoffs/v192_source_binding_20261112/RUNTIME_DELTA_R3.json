@@ -1,0 +1,75 @@
+{
+  "status": "PREPARED_NOT_ACTIVATED",
+  "source_root": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app",
+  "main_base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app",
+  "shared_base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+  "entries": [
+    {
+      "root": "main",
+      "path": "infrastructure/formula_generation.py",
+      "before_sha256": null,
+      "after_sha256": "2a85cb6b5f91463bd977fd9d1388d1e1eafbcdeaf484d083f50f61dd26a07a71",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/infrastructure/formula_generation.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/infrastructure/formula_generation.py"
+    },
+    {
+      "root": "main",
+      "path": "ops/materialize_shared_v192_preselection.py",
+      "before_sha256": "c55a468410c2ac2fd55508068c19ed2d80b777f116b3476c7e2ca7ad990c0ed7",
+      "after_sha256": "3422ed6d7392db4a8a93d4fc4c1ef2c905b40142d0672b66d2534772effeb22f",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/ops/materialize_shared_v192_preselection.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/ops/materialize_shared_v192_preselection.py"
+    },
+    {
+      "root": "main",
+      "path": "ops/daily_materialize.py",
+      "before_sha256": "cf866ff5780a8eaf9ba403f0d52252be7d3f2364515827b7bc0676e1dfb8dc83",
+      "after_sha256": "058158d7a9c6af8fac6ae3586ac144f69d8ec118273ae1110ff85f948b7b3cf0",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/ops/daily_materialize.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/ops/daily_materialize.py"
+    },
+    {
+      "root": "main",
+      "path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "before_sha256": "0ca574111ca278318d934b8c8b10ff250e318a1792dbe2646626df6b91725d33",
+      "after_sha256": "12fa357c872a31a2e7e83acba8d7afda3dd4270fb1fd2db0e1f48f7875127384",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/infrastructure/scheduling/executor_registry_preselection.py"
+    },
+    {
+      "root": "main",
+      "path": "infrastructure/preselection_pool_store.py",
+      "before_sha256": "8c4acee19ce2cd15996ba48ccc2c75087121c4725b5e215f5096cbb8bf3fba98",
+      "after_sha256": "0e3bad35eccacf6f52186442ca7ba1c5d5b0b4ada6e4227cc0b781e66d8e8c7a",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/infrastructure/preselection_pool_store.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/infrastructure/preselection_pool_store.py"
+    },
+    {
+      "root": "main",
+      "path": "domains/preselection_materializer.py",
+      "before_sha256": "66ade34a422d1facbd29da77b0b2991e2041de4edb5d0203f888235d97cc5d88",
+      "after_sha256": "092dbb62f94f10956cba5c78381ba5c6dd830ac3d353dc63f15a538edcbeaab4",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app/domains/preselection_materializer.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/main/domains/preselection_materializer.py"
+    },
+    {
+      "root": "shared",
+      "path": "shared_data/v192_selector.py",
+      "before_sha256": "3654d9dd77887714fefb9a938a00277e0ab8215fbebf367436a0a6710205e008",
+      "after_sha256": "93b4b4e7537adbef53ed549f835876cc4934429758653a500ee2132ce41bef64",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/shared_data/v192_selector.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/shared/shared_data/v192_selector.py"
+    },
+    {
+      "root": "shared",
+      "path": "shared_data/store.py",
+      "before_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "after_sha256": "0b34b296af9da35cd8a20fa95b4223e25ac934825d6f758fe6f73881b0974e82",
+      "source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/shared_data/store.py",
+      "prepared": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/runtime_delta_r3/shared/shared_data/store.py"
+    }
+  ],
+  "api_changed": false,
+  "oracle_sources_changed": false,
+  "shared_store_written": false
+}

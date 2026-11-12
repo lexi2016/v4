@@ -162,7 +162,7 @@ def _sha256_file(path: Path) -> str:
 
 def _parquet_dates(path: Path) -> set[str]:
     try:
-        import pyarrow.parquet as parquet
+        from ops.research_panel_logical import parquet
 
         parquet_file = parquet.ParquetFile(path)
         if "trade_date" not in parquet_file.schema.names:
@@ -178,6 +178,93 @@ def _parquet_dates(path: Path) -> set[str]:
         raise
     except Exception as error:
         raise FormulaGenerationError(f"generation artifact date audit failed: {path}") from error
+
+
+def read_selector_source_binding(panel: Path | str, *, expected_signal_date: str) -> dict[str, Any]:
+    """Verify the existing QFQ owner's exact selector, without evaluating formulas.
+
+    This is the ARROW_BLOCKS generation contract used by the daily product;
+    CURRENT_FORMULA_GENERATION is the older, separate output-pair contract.
+    """
+    from ops.research_panel_logical import parquet, validate_closure
+
+    day = _normalise_date(expected_signal_date, "signal_date")
+    path = Path(panel).expanduser()
+    if not path.is_absolute() or _has_symlink_ancestor(path) or not path.is_file():
+        raise FormulaGenerationError("selector source path is missing or unsafe")
+    path = path.resolve()
+    validate_closure(path)
+    metadata = parquet.ParquetFile(path).schema_arrow.metadata or {}
+    contract = json.loads(metadata.get(b"a_share_qfq_contract_v1", b"{}"))
+    if not isinstance(contract, dict) or _normalise_date(contract.get("asof_date"), "selector asof") != day:
+        raise FormulaGenerationError("selector source asof date mismatch")
+    generation = contract.get("generation_id")
+    input_sha = contract.get("input_sha256")
+    if any(not isinstance(value, str) or not _SHA256.fullmatch(value) for value in (generation, input_sha)):
+        raise FormulaGenerationError("selector source generation/input SHA is invalid")
+    receipt_path = Path(contract.get("generation_manifest_path") or "")
+    if not receipt_path.is_absolute() or _has_symlink_ancestor(receipt_path) or not receipt_path.is_file():
+        raise FormulaGenerationError("selector source generation receipt is missing or unsafe")
+    raw = receipt_path.read_bytes()
+    receipt = json.loads(raw)
+    panel_sha = _sha256_file(path)
+    if (receipt.get("status") != "CANDIDATE_READY"
+            or receipt.get("generation_id") != generation
+            or receipt.get("input_sha256") != input_sha
+            or _normalise_date(receipt.get("target_date"), "selector receipt date") != day
+            or receipt.get("candidates", {}).get("selector") != str(path)
+            or receipt.get("candidate_sha256", {}).get("selector") != panel_sha):
+        raise FormulaGenerationError("selector source generation receipt identity mismatch")
+    snapshot = receipt.get("adjustment_snapshot")
+    if not isinstance(snapshot, Mapping) or snapshot.get("sha256") != contract.get("snapshot_file_sha256"):
+        raise FormulaGenerationError("selector source adjustment snapshot identity mismatch")
+    snapshot_path = Path(snapshot.get("path") or "")
+    if (not snapshot_path.is_absolute() or _has_symlink_ancestor(snapshot_path)
+            or not snapshot_path.is_file() or _sha256_file(snapshot_path) != snapshot["sha256"]):
+        raise FormulaGenerationError("selector source adjustment snapshot SHA mismatch")
+    if _normalise_date(json.loads(snapshot_path.read_bytes()).get("asof_date"), "snapshot asof") != day:
+        raise FormulaGenerationError("selector source adjustment snapshot date mismatch")
+    return dict(path=str(path), sha256=panel_sha, bytes=path.stat().st_size,
+                generation_id=generation, input_sha256=input_sha, signal_date=day,
+                generation_receipt=dict(path=str(receipt_path), sha256=_sha256_bytes(raw)))
+
+
+def verify_v192_current_source(pool: Any, selector_data_root: Path | None, *, signal_date: str,
+                               generation_pointer: Path | str | None = None) -> dict[str, Any]:
+    """Apply the producer's same-day source identity before scheduler reuse."""
+    if generation_pointer:
+        generation = read_formula_generation(generation_pointer, expected_target_date=signal_date, require_source=True)
+        panel = Path(generation["selector_source"])
+        binding = dict(path=str(panel), sha256=generation["selector_source_evidence"]["sha256"])
+    else:
+        from ops.daily_materialize import resolve_selector_panel
+        from ops.research_panel_logical import is_logical
+        panel = resolve_selector_panel(selector_data_root, signal_date)
+        binding = (read_selector_source_binding(panel, expected_signal_date=signal_date)
+                   if is_logical(panel) else dict(path=str(panel), sha256=_sha256_file(panel)))
+    if pool.run.manifest.get("provenance", {}).get("panel_sha256") != binding["sha256"]:
+        raise FormulaGenerationError("V192_CURRENT_SELECTOR_SOURCE_IDENTITY_CONFLICT")
+    return binding
+
+
+def verify_v192_native_cache_identity(payload: Mapping[str, Any], pool: Any) -> None:
+    """Bind a legacy native cache to the reader's verified immutable trio.
+
+    Older native artifacts omit the two optional manifest/receipt SHA fields.
+    Their exact run, artifact SHA and artifact path must still all agree with
+    the verified shared run. Present optional fields never receive defaults.
+    """
+    proof = pool.run.verification
+    required = (("run_id", "source_run_id"), ("artifact_sha256", "source_sha256"),
+                ("artifact_relative", "source_path"))
+    optional = (("manifest_sha256", "source_manifest_sha256"),
+                ("receipt_sha256", "source_receipt_sha256"),
+                ("artifact_sha256", "source_artifact_sha256"))
+    if (any(not isinstance(proof.get(key), str) or not proof[key]
+            or proof[key] != payload.get(field) for key, field in required)
+            or any(field in payload and (not isinstance(proof.get(key), str)
+                or proof[key] != payload[field]) for key, field in optional)):
+        raise FormulaGenerationError("V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT")
 
 
 def read_legacy_pointer(pointer: Path | str) -> Path:
@@ -363,5 +450,8 @@ __all__ = [
     "is_v4_formula_state_owner",
     "is_v4_formula_state_path",
     "read_formula_generation",
+    "read_selector_source_binding",
+    "verify_v192_current_source",
+    "verify_v192_native_cache_identity",
     "read_legacy_pointer",
 ]

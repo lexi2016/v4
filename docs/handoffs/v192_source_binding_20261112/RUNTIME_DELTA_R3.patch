@@ -1,0 +1,936 @@
+--- a/main/infrastructure/formula_generation.py
++++ b/main/infrastructure/formula_generation.py
+@@ -0,0 +1,457 @@
++"""Read-only verification for one V4 formula generation.
++
++``CURRENT_FORMULA_GENERATION.json`` is the authority for a selector/backtest
++pair.  The legacy text pointers remain compatibility projections and are
++never sufficient to grant strict readiness.  This module deliberately has no
++publication or producer logic; callers may use it at the public entry,
++registry, publisher, and daily-consumer boundaries.
++"""
++
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++import re
++from pathlib import Path
++from typing import Any, Mapping
++
++
++FORMULA_GENERATION_SCHEMA = "v4.a_formula.generation_pointer.v1"
++FORMULA_GENERATION_POINTER_NAME = "CURRENT_FORMULA_GENERATION.json"
++V4_STATE_ROOT = Path.home() / "Library" / "Application Support" / "com.lexi.v4.local" / "state"
++V4_FORMULA_STATE_OWNER = V4_STATE_ROOT / "data" / "a_formula"
++_SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
++_RUN_ID = re.compile(r"^[A-Za-z0-9_.-]{1,160}$")
++
++
++class FormulaGenerationError(ValueError):
++    """Raised when a generation or one of its bound artifacts is unsafe."""
++
++
++def _sha256_bytes(raw: bytes) -> str:
++    return hashlib.sha256(raw).hexdigest()
++
++
++def _canonical_bytes(value: Any) -> bytes:
++    return json.dumps(
++        value,
++        ensure_ascii=False,
++        sort_keys=True,
++        separators=(",", ":"),
++        allow_nan=False,
++    ).encode("utf-8")
++
++
++def _normalise_date(value: Any, label: str) -> str:
++    text = str(value or "").strip().replace("-", "")
++    if not re.fullmatch(r"\d{8}", text):
++        raise FormulaGenerationError(f"{label} is not an exact YYYYMMDD date")
++    try:
++        import datetime as _datetime
++
++        _datetime.datetime.strptime(text, "%Y%m%d")
++    except ValueError as error:
++        raise FormulaGenerationError(f"{label} is not a calendar date") from error
++    return text
++
++
++def _has_symlink_ancestor(path: Path) -> bool:
++    path = Path(path).expanduser()
++    current = path if path.exists() or path.is_symlink() else path.parent
++    while True:
++        if current.is_symlink():
++            return True
++        if current.parent == current:
++            return False
++        current = current.parent
++
++
++def _inside(root: Path, candidate: Path) -> bool:
++    try:
++        candidate.relative_to(root)
++        return True
++    except ValueError:
++        return False
++
++
++def is_v4_formula_state_path(value: Path | str, *, allow_owner: bool = True) -> bool:
++    """Return whether an absolute path belongs to the one V4 A owner.
++
++    This predicate is deliberately narrower than ``Application Support``.  It
++    validates the caller's raw path before resolving it, rejects traversal and
++    symlink ancestry, and then permits only the designated formula state root
++    or its descendants.  Callers still apply their own role-specific
++    containment, schema, and write guards after this identity check.
++    """
++
++    try:
++        raw_text = os.fspath(value)
++    except TypeError:
++        return False
++    if not isinstance(raw_text, str) or not raw_text or "\\" in raw_text or "\x00" in raw_text:
++        return False
++    raw = Path(raw_text)
++    if not raw.is_absolute() or ".." in raw.parts:
++        return False
++    raw = raw.expanduser()
++    if _has_symlink_ancestor(raw):
++        return False
++    try:
++        resolved = raw.resolve(strict=False)
++        owner = V4_FORMULA_STATE_OWNER.expanduser().resolve(strict=False)
++    except OSError:
++        return False
++    if not _inside(owner, resolved):
++        return False
++    return allow_owner or resolved != owner
++
++
++def is_v4_formula_state_owner(value: Path | str) -> bool:
++    """Return whether ``value`` is exactly the designated V4 formula root."""
++
++    return is_v4_formula_state_path(value, allow_owner=True) and (
++        Path(value).expanduser().resolve(strict=False)
++        == V4_FORMULA_STATE_OWNER.expanduser().resolve(strict=False)
++    )
++
++
++def _resolve_bound_file(
++    root: Path,
++    detail: Mapping[str, Any],
++    role: str,
++    *,
++    require_inside: bool = True,
++) -> dict[str, Any]:
++    raw_path = detail.get("path")
++    if not isinstance(raw_path, str) or not raw_path.strip():
++        raise FormulaGenerationError(f"generation {role} path is missing")
++    candidate = Path(raw_path).expanduser()
++    if not candidate.is_absolute():
++        candidate = root / candidate
++    if candidate.is_symlink() or _has_symlink_ancestor(candidate):
++        raise FormulaGenerationError(f"generation {role} path has symlink ancestry")
++    resolved = candidate.resolve(strict=False)
++    if require_inside and not _inside(root, resolved):
++        raise FormulaGenerationError(f"generation {role} path escapes output root")
++    if not resolved.is_file() or resolved.is_symlink():
++        raise FormulaGenerationError(f"generation {role} target is missing or not regular")
++    expected_bytes = detail.get("bytes")
++    expected_sha = detail.get("sha256")
++    if type(expected_bytes) is not int or expected_bytes != resolved.stat().st_size:
++        raise FormulaGenerationError(f"generation {role} bytes mismatch")
++    if not isinstance(expected_sha, str) or not _SHA256.fullmatch(expected_sha):
++        raise FormulaGenerationError(f"generation {role} SHA is invalid")
++    actual_sha = _sha256_file(resolved)
++    if actual_sha != expected_sha.lower():
++        raise FormulaGenerationError(f"generation {role} SHA mismatch")
++    return {
++        "path": resolved,
++        "bytes": expected_bytes,
++        "sha256": actual_sha,
++    }
++
++
++def _sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _parquet_dates(path: Path) -> set[str]:
++    try:
++        from ops.research_panel_logical import parquet
++
++        parquet_file = parquet.ParquetFile(path)
++        if "trade_date" not in parquet_file.schema.names:
++            raise FormulaGenerationError("generation artifact trade_date column is missing")
++        dates: set[str] = set()
++        for batch in parquet_file.iter_batches(columns=["trade_date"], batch_size=100_000):
++            for value in batch.column(0).to_pylist():
++                dates.add(_normalise_date(value, "generation artifact trade_date"))
++        if not dates:
++            raise FormulaGenerationError("generation artifact trade_date column is empty")
++        return dates
++    except FormulaGenerationError:
++        raise
++    except Exception as error:
++        raise FormulaGenerationError(f"generation artifact date audit failed: {path}") from error
++
++
++def read_selector_source_binding(panel: Path | str, *, expected_signal_date: str) -> dict[str, Any]:
++    """Verify the existing QFQ owner's exact selector, without evaluating formulas.
++
++    This is the ARROW_BLOCKS generation contract used by the daily product;
++    CURRENT_FORMULA_GENERATION is the older, separate output-pair contract.
++    """
++    from ops.research_panel_logical import parquet, validate_closure
++
++    day = _normalise_date(expected_signal_date, "signal_date")
++    path = Path(panel).expanduser()
++    if not path.is_absolute() or _has_symlink_ancestor(path) or not path.is_file():
++        raise FormulaGenerationError("selector source path is missing or unsafe")
++    path = path.resolve()
++    validate_closure(path)
++    metadata = parquet.ParquetFile(path).schema_arrow.metadata or {}
++    contract = json.loads(metadata.get(b"a_share_qfq_contract_v1", b"{}"))
++    if not isinstance(contract, dict) or _normalise_date(contract.get("asof_date"), "selector asof") != day:
++        raise FormulaGenerationError("selector source asof date mismatch")
++    generation = contract.get("generation_id")
++    input_sha = contract.get("input_sha256")
++    if any(not isinstance(value, str) or not _SHA256.fullmatch(value) for value in (generation, input_sha)):
++        raise FormulaGenerationError("selector source generation/input SHA is invalid")
++    receipt_path = Path(contract.get("generation_manifest_path") or "")
++    if not receipt_path.is_absolute() or _has_symlink_ancestor(receipt_path) or not receipt_path.is_file():
++        raise FormulaGenerationError("selector source generation receipt is missing or unsafe")
++    raw = receipt_path.read_bytes()
++    receipt = json.loads(raw)
++    panel_sha = _sha256_file(path)
++    if (receipt.get("status") != "CANDIDATE_READY"
++            or receipt.get("generation_id") != generation
++            or receipt.get("input_sha256") != input_sha
++            or _normalise_date(receipt.get("target_date"), "selector receipt date") != day
++            or receipt.get("candidates", {}).get("selector") != str(path)
++            or receipt.get("candidate_sha256", {}).get("selector") != panel_sha):
++        raise FormulaGenerationError("selector source generation receipt identity mismatch")
++    snapshot = receipt.get("adjustment_snapshot")
++    if not isinstance(snapshot, Mapping) or snapshot.get("sha256") != contract.get("snapshot_file_sha256"):
++        raise FormulaGenerationError("selector source adjustment snapshot identity mismatch")
++    snapshot_path = Path(snapshot.get("path") or "")
++    if (not snapshot_path.is_absolute() or _has_symlink_ancestor(snapshot_path)
++            or not snapshot_path.is_file() or _sha256_file(snapshot_path) != snapshot["sha256"]):
++        raise FormulaGenerationError("selector source adjustment snapshot SHA mismatch")
++    if _normalise_date(json.loads(snapshot_path.read_bytes()).get("asof_date"), "snapshot asof") != day:
++        raise FormulaGenerationError("selector source adjustment snapshot date mismatch")
++    return dict(path=str(path), sha256=panel_sha, bytes=path.stat().st_size,
++                generation_id=generation, input_sha256=input_sha, signal_date=day,
++                generation_receipt=dict(path=str(receipt_path), sha256=_sha256_bytes(raw)))
++
++
++def verify_v192_current_source(pool: Any, selector_data_root: Path | None, *, signal_date: str,
++                               generation_pointer: Path | str | None = None) -> dict[str, Any]:
++    """Apply the producer's same-day source identity before scheduler reuse."""
++    if generation_pointer:
++        generation = read_formula_generation(generation_pointer, expected_target_date=signal_date, require_source=True)
++        panel = Path(generation["selector_source"])
++        binding = dict(path=str(panel), sha256=generation["selector_source_evidence"]["sha256"])
++    else:
++        from ops.daily_materialize import resolve_selector_panel
++        from ops.research_panel_logical import is_logical
++        panel = resolve_selector_panel(selector_data_root, signal_date)
++        binding = (read_selector_source_binding(panel, expected_signal_date=signal_date)
++                   if is_logical(panel) else dict(path=str(panel), sha256=_sha256_file(panel)))
++    if pool.run.manifest.get("provenance", {}).get("panel_sha256") != binding["sha256"]:
++        raise FormulaGenerationError("V192_CURRENT_SELECTOR_SOURCE_IDENTITY_CONFLICT")
++    return binding
++
++
++def verify_v192_native_cache_identity(payload: Mapping[str, Any], pool: Any) -> None:
++    """Bind a legacy native cache to the reader's verified immutable trio.
++
++    Older native artifacts omit the two optional manifest/receipt SHA fields.
++    Their exact run, artifact SHA and artifact path must still all agree with
++    the verified shared run. Present optional fields never receive defaults.
++    """
++    proof = pool.run.verification
++    required = (("run_id", "source_run_id"), ("artifact_sha256", "source_sha256"),
++                ("artifact_relative", "source_path"))
++    optional = (("manifest_sha256", "source_manifest_sha256"),
++                ("receipt_sha256", "source_receipt_sha256"),
++                ("artifact_sha256", "source_artifact_sha256"))
++    if (any(not isinstance(proof.get(key), str) or not proof[key]
++            or proof[key] != payload.get(field) for key, field in required)
++            or any(field in payload and (not isinstance(proof.get(key), str)
++                or proof[key] != payload[field]) for key, field in optional)):
++        raise FormulaGenerationError("V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT")
++
++
++def read_legacy_pointer(pointer: Path | str) -> Path:
++    """Read one compatibility text pointer without accepting symlinks."""
++    pointer_path = Path(pointer).expanduser()
++    if _has_symlink_ancestor(pointer_path) or pointer_path.is_symlink() or not pointer_path.is_file():
++        raise FormulaGenerationError("legacy pointer is missing or symlinked")
++    try:
++        raw = pointer_path.read_text(encoding="utf-8-sig").strip()
++    except (OSError, UnicodeError) as error:
++        raise FormulaGenerationError("legacy pointer is unreadable") from error
++    if not raw:
++        raise FormulaGenerationError("legacy pointer is empty")
++    target = Path(raw).expanduser()
++    if not target.is_absolute():
++        target = pointer_path.parent / target
++    if _has_symlink_ancestor(target) or target.is_symlink() or not target.is_file():
++        raise FormulaGenerationError("legacy pointer target is missing or symlinked")
++    return target.resolve()
++
++
++def read_formula_generation(
++    pointer: Path | str,
++    *,
++    expected_target_date: str | int | None = None,
++    require_source: bool = False,
++) -> dict[str, Any]:
++    """Read and verify a generation pointer and its bound artifact files.
++
++    ``require_source`` is used by strict V4 consumers.  It requires the same
++    generation to carry the input manifest, source identity, selector source,
++    and auxiliary sidecar provenance needed by the V192 consumer.  Older
++    direct unit fixtures may call this reader without that strict requirement.
++    """
++    raw_pointer = Path(pointer).expanduser()
++    pointer_path = raw_pointer / FORMULA_GENERATION_POINTER_NAME if raw_pointer.is_dir() else raw_pointer
++    if _has_symlink_ancestor(pointer_path) or pointer_path.is_symlink() or not pointer_path.is_file():
++        raise FormulaGenerationError("formula generation pointer is missing or symlinked")
++    root = pointer_path.parent.resolve()
++    try:
++        raw = pointer_path.read_bytes()
++        payload = json.loads(raw.decode("utf-8"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as error:
++        raise FormulaGenerationError("formula generation pointer is unreadable") from error
++    if not isinstance(payload, dict):
++        raise FormulaGenerationError("formula generation pointer must be an object")
++    if payload.get("schema") != FORMULA_GENERATION_SCHEMA or payload.get("status") != "READY":
++        raise FormulaGenerationError("formula generation schema/status is invalid")
++
++    identity = {"selector": payload.get("selector"), "backtest": payload.get("backtest")}
++    generation_id = payload.get("generation_id")
++    expected_id = _sha256_bytes(_canonical_bytes(identity))
++    if not isinstance(generation_id, str) or generation_id != expected_id:
++        raise FormulaGenerationError("formula generation identity mismatch")
++    selector_detail = payload.get("selector")
++    backtest_detail = payload.get("backtest")
++    if not isinstance(selector_detail, Mapping) or not isinstance(backtest_detail, Mapping):
++        raise FormulaGenerationError("formula generation selector/backtest metadata is missing")
++    selector = _resolve_bound_file(root, selector_detail, "selector")
++    backtest = _resolve_bound_file(root, backtest_detail, "backtest")
++    if selector["path"] == backtest["path"]:
++        raise FormulaGenerationError("formula generation selector/backtest targets must differ")
++
++    expected_date = None
++    if expected_target_date is not None:
++        expected_date = _normalise_date(expected_target_date, "expected_target_date")
++        payload_date = _normalise_date(payload.get("target_date"), "generation target_date")
++        if payload_date != expected_date:
++            raise FormulaGenerationError(
++                f"formula generation target_date mismatch: {payload_date} != {expected_date}"
++            )
++        for role, detail in (("selector", selector), ("backtest", backtest)):
++            if expected_date not in _parquet_dates(detail["path"]):
++                raise FormulaGenerationError(f"generation {role} has no exact target-date rows")
++
++    result: dict[str, Any] = {
++        "path": pointer_path.resolve(),
++        "schema": payload["schema"],
++        "status": payload["status"],
++        "sha256": _sha256_bytes(raw),
++        "bytes": len(raw),
++        "generation_id": generation_id,
++        "target_date": expected_date or payload.get("target_date"),
++        "run_id": payload.get("run_id"),
++        "selector": selector["path"],
++        "backtest": backtest["path"],
++        "selector_evidence": selector,
++        "backtest_evidence": backtest,
++        "source": payload.get("source"),
++        "input_manifest": payload.get("input_manifest"),
++    }
++
++    if require_source:
++        run_id = payload.get("run_id")
++        if not isinstance(run_id, str) or not _RUN_ID.fullmatch(run_id):
++            raise FormulaGenerationError("formula generation run_id is missing or unsafe")
++        source = payload.get("source")
++        if not isinstance(source, Mapping) or not str(source.get("name") or "").strip():
++            raise FormulaGenerationError("formula generation source identity is missing")
++        manifest = payload.get("input_manifest")
++        if not isinstance(manifest, Mapping):
++            raise FormulaGenerationError("formula generation input manifest identity is missing")
++        # A strict V4 generation is self-contained: the manifest that names
++        # its exact input must live below the same owned root as the pointer.
++        # This prevents a legacy release or unrelated state tree from
++        # satisfying the source contract by path alone.
++        manifest_path = _resolve_bound_file(root, manifest, "input_manifest")
++        if manifest_path["sha256"] != str(manifest.get("sha256") or "").lower():
++            raise FormulaGenerationError("formula generation input manifest SHA mismatch")
++        try:
++            manifest_payload = json.loads(manifest_path["path"].read_text(encoding="utf-8-sig"))
++        except (OSError, UnicodeError, json.JSONDecodeError) as error:
++            raise FormulaGenerationError("formula generation input manifest is unreadable") from error
++        if not isinstance(manifest_payload, Mapping):
++            raise FormulaGenerationError("formula generation input manifest is not an object")
++        bound_manifest_sha = manifest.get("manifest_sha256")
++        if not isinstance(bound_manifest_sha, str) or manifest_payload.get("manifest_sha256") != bound_manifest_sha:
++            raise FormulaGenerationError("formula generation input manifest canonical SHA mismatch")
++        if expected_date is not None and str(manifest_payload.get("target_date") or "").replace("-", "") != expected_date:
++            raise FormulaGenerationError("formula generation input manifest target date mismatch")
++        source_sha = source.get("sha256") or source.get("source_sha256")
++        if not isinstance(source_sha, str) or not _SHA256.fullmatch(source_sha):
++            raise FormulaGenerationError("formula generation source SHA is invalid")
++        if str(manifest_payload.get("source_sha256") or "").lower() != source_sha.lower():
++            raise FormulaGenerationError("formula generation source and input manifest SHA mismatch")
++        source_receipt_sha = source.get("sync_receipt_sha256")
++        source_receipt_path = source.get("sync_receipt_path")
++        if not isinstance(source_receipt_path, str) or not source_receipt_path.strip():
++            raise FormulaGenerationError("formula generation sync receipt path is missing")
++        if not isinstance(source_receipt_sha, str) or not _SHA256.fullmatch(source_receipt_sha):
++            raise FormulaGenerationError("formula generation sync receipt SHA is invalid")
++        receipt_path = Path(source_receipt_path).expanduser()
++        if receipt_path.is_symlink() or _has_symlink_ancestor(receipt_path) or not receipt_path.is_file():
++            raise FormulaGenerationError("formula generation sync receipt is missing or symlinked")
++        receipt_resolved = receipt_path.resolve()
++        if not _inside(root, receipt_resolved):
++            raise FormulaGenerationError("formula generation sync receipt escapes output root")
++        receipt_raw = receipt_path.read_bytes()
++        if _sha256_bytes(receipt_raw) != source_receipt_sha.lower():
++            raise FormulaGenerationError("formula generation sync receipt SHA mismatch")
++        try:
++            receipt_payload = json.loads(receipt_raw.decode("utf-8-sig"))
++        except (UnicodeError, json.JSONDecodeError) as error:
++            raise FormulaGenerationError("formula generation sync receipt is unreadable") from error
++        if not isinstance(receipt_payload, Mapping) or str(receipt_payload.get("status") or "").upper() not in {"READY", "PASS"}:
++            raise FormulaGenerationError("formula generation sync receipt is not READY")
++        if expected_date is not None and str(receipt_payload.get("target_date") or "").replace("-", "") != expected_date:
++            raise FormulaGenerationError("formula generation sync receipt target date mismatch")
++        if any(receipt_payload.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent")):
++            raise FormulaGenerationError("formula generation sync receipt safety flags are not false")
++        source_detail = payload.get("selector_source")
++        sidecar_detail = payload.get("selector_sidecar")
++        if not isinstance(source_detail, Mapping) or not isinstance(sidecar_detail, Mapping):
++            raise FormulaGenerationError("formula generation selector source/sidecar metadata is missing")
++        source_file = _resolve_bound_file(root, source_detail, "selector_source")
++        sidecar_file = _resolve_bound_file(root, sidecar_detail, "selector_sidecar")
++        if expected_date is not None:
++            if expected_date not in _parquet_dates(source_file["path"]):
++                raise FormulaGenerationError("generation selector_source has no exact target-date rows")
++            if expected_date not in _parquet_dates(sidecar_file["path"]):
++                raise FormulaGenerationError("generation selector_sidecar has no exact target-date rows")
++        result.update(
++            {
++                "input_manifest_evidence": manifest_path,
++                "selector_source": source_file["path"],
++                "selector_source_evidence": source_file,
++                "selector_sidecar": sidecar_file["path"],
++                "selector_sidecar_evidence": sidecar_file,
++                "strict_source_verified": True,
++            }
++        )
++    else:
++        result["strict_source_verified"] = False
++    return result
++
++
++__all__ = [
++    "FORMULA_GENERATION_POINTER_NAME",
++    "FORMULA_GENERATION_SCHEMA",
++    "V4_FORMULA_STATE_OWNER",
++    "V4_STATE_ROOT",
++    "FormulaGenerationError",
++    "is_v4_formula_state_owner",
++    "is_v4_formula_state_path",
++    "read_formula_generation",
++    "read_selector_source_binding",
++    "verify_v192_current_source",
++    "verify_v192_native_cache_identity",
++    "read_legacy_pointer",
++]
+--- a/main/ops/materialize_shared_v192_preselection.py
++++ b/main/ops/materialize_shared_v192_preselection.py
+@@ -6,6 +6,7 @@
+ import os
+ from pathlib import Path
+ 
++from infrastructure.formula_generation import FormulaGenerationError, read_formula_generation, read_selector_source_binding
+ from infrastructure.isolated_package_loader import load_isolated_package_module
+ 
+ 
+@@ -13,11 +14,99 @@
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--signal-date", required=True)
+     parser.add_argument("--target-date", required=True)
++    parser.add_argument(
++        "--generation-pointer",
++        type=Path,
++        default=None,
++        help="Strict V4 generation pointer whose selector_source is the V192 input",
++    )
++    parser.add_argument(
++        "--source-panel",
++        type=Path,
++        default=None,
++        help="Optional exact source panel override, checked against generation metadata",
++    )
++    parser.add_argument("--historical-backfill", action="store_true")
++    parser.add_argument("--expected-previous-json", type=Path, default=None,
++                        help="Exact verified prior run identity for the existing store CAS")
+     args = parser.parse_args(argv)
+-    package_root = Path(os.environ["V4_SHARED_PACKAGE_ROOT"])
++    package_root = Path(os.environ.get("V4_SHARED_PACKAGE_ROOT") or os.environ["V35_SHARED_PACKAGE_ROOT"])
+     store_root = Path(os.environ["V3_SHARED_DATA_STORE_ROOT"])
+     panel_value = os.environ.get("V3_SHARED_SELECTOR_READY_PANEL")
+     panel = Path(panel_value) if panel_value else None
++    generation_evidence: dict[str, object] | None = None
++    source_evidence: dict[str, object] | None = None
++    expected_previous = None
++    identity_keys = {"run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256",
++                     "artifact_relative", "manifest_relative", "receipt_relative"}
++    try:
++        if args.expected_previous_json is not None:
++            expected_previous = json.loads(args.expected_previous_json.read_bytes())
++            if (not args.historical_backfill or not isinstance(expected_previous, dict)
++                    or set(expected_previous) != identity_keys
++                    or any(not isinstance(value, str) or not value for value in expected_previous.values())):
++                raise ValueError("historical replacement requires complete exact previous identity")
++        if args.historical_backfill and expected_previous is None:
++            raise ValueError("historical replacement requires --expected-previous-json")
++        if args.source_panel is not None and args.generation_pointer is None:
++            panel = args.source_panel.expanduser()
++            source_evidence = read_selector_source_binding(panel, expected_signal_date=args.signal_date)
++        elif panel is not None and args.generation_pointer is None:
++            from ops.research_panel_logical import is_logical
++            if is_logical(panel):
++                source_evidence = read_selector_source_binding(panel, expected_signal_date=args.signal_date)
++            else:
++                # Legacy physical fixtures still bind their actual bytes and
++                # exact signal-day coverage before any prior run can be reused.
++                from infrastructure.formula_generation import _parquet_dates, _sha256_file
++                if max(_parquet_dates(panel)) != args.signal_date.replace("-", ""):
++                    raise ValueError("selector source asof date mismatch")
++                source_evidence = dict(path=str(panel.resolve()), sha256=_sha256_file(panel),
++                                       signal_date=args.signal_date.replace("-", ""))
++        elif args.generation_pointer is None:
++            raise ValueError("A_V192_EXACT_INPUT_MISSING:selector panel unavailable")
++    except (ValueError, OSError, KeyError, TypeError) as error:
++        print(json.dumps(dict(ok=False, status="FAILED", error=str(error),
++              production_allowed=False, buy_gate_updated=False, orders_sent=False), sort_keys=True))
++        return 1
++    if args.generation_pointer is not None:
++        try:
++            generation = read_formula_generation(
++                args.generation_pointer,
++                # The formula generation is dated by the source signal day;
++                # V192 owns the independent next-target-day check below.
++                expected_target_date=args.signal_date,
++                require_source=True,
++            )
++            panel = Path(generation["selector_source"])
++            if args.source_panel is not None:
++                requested = args.source_panel.expanduser().resolve()
++                if requested != panel.resolve():
++                    raise FormulaGenerationError("source panel does not match generation selector_source")
++            generation_evidence = {
++                "path": str(generation["path"]),
++                "sha256": generation["sha256"],
++                "bytes": generation["bytes"],
++                "generation_id": generation["generation_id"],
++                "target_date": generation["target_date"],
++                "selector_source": str(panel),
++                "selector_source_sha256": generation["selector_source_evidence"]["sha256"],
++            }
++        except (FormulaGenerationError, OSError, UnicodeError, ValueError) as error:
++            outcome = {
++                "ok": False,
++                "status": "FAILED",
++                "error": f"strict generation source unavailable: {error}",
++            }
++            outcome.update(
++                {
++                    "production_allowed": False,
++                    "buy_gate_updated": False,
++                    "orders_sent": False,
++                }
++            )
++            print(json.dumps(outcome, ensure_ascii=False, sort_keys=True))
++            return 1
+     selector_module = load_isolated_package_module(
+         package_root,
+         package_directory="shared_data",
+@@ -30,40 +119,63 @@
+     )
+     read_verified_v192_pool = getattr(selector_module, "read_verified_v192_pool")
+ 
++    def materialize():
++        if panel is None or not panel.is_file():
++            raise ValueError("A_V192_EXACT_INPUT_MISSING:selector panel unavailable")
++        options = ({"historical_backfill": True, "expected_previous": expected_previous}
++                   if args.historical_backfill else {})
++        return materialize_frozen_v192_selector(
++            store_root, panel_path=panel, signal_date=args.signal_date,
++            target_date=args.target_date, **options)
++
+     try:
+         existing = read_verified_v192_pool(
+             store_root,
+             target_date=args.target_date,
+             expected_signal_date=args.signal_date,
+         )
+-        outcome = {
+-            "ok": True,
+-            "already_exists": True,
+-            "status": existing.run.receipt["status"],
+-            **existing.run.verification,
++        existing_provenance = existing.run.manifest.get("provenance")
++        existing_panel_sha = (
++            existing_provenance.get("panel_sha256")
++            if isinstance(existing_provenance, dict)
++            else None
++        )
++        expected_sha = (source_evidence["sha256"] if source_evidence is not None else
++                        generation_evidence["selector_source_sha256"] if generation_evidence is not None else
++                        None)
++        if expected_previous is not None and any(
++                existing.run.verification.get(key) != value for key, value in expected_previous.items()):
++            if (existing.run.receipt.get("supersedes") != expected_previous
++                    or expected_sha != existing_panel_sha):
++                raise ValueError("expected_previous identity mismatch")
++            outcome = {"ok": True, "already_exists": True,
++                       "status": existing.run.receipt["status"], **existing.run.verification}
++        elif expected_sha is not None and existing_panel_sha != expected_sha:
++            if not args.historical_backfill:
++                raise ValueError("existing V192 pool source does not match exact selector_source")
++            outcome = {"ok": True, **materialize()}
++        else:
++            outcome = {"ok": True, "already_exists": True,
++                       "status": existing.run.receipt["status"], **existing.run.verification}
++    except StoreError as error:
++        if args.historical_backfill:
++            outcome = {"ok": False, "status": "FAILED", "error": str(error)}
++        else:
++            try:
++                outcome = {"ok": True, **materialize()}
++            except (OSError, RuntimeError, StoreError, ValueError) as failure:
++                outcome = {"ok": False, "status": "FAILED", "error": str(failure)}
++    except (OSError, RuntimeError, ValueError) as error:
++        outcome = {"ok": False, "status": "FAILED", "error": str(error)}
++    if generation_evidence is not None:
++        outcome["formula_generation"] = generation_evidence
++        outcome["source_panel"] = {
++            "path": str(panel.resolve()),
++            "sha256": generation_evidence["selector_source_sha256"],
++            "role": "selector_source",
+         }
+-    except StoreError:
+-        if panel is None or not panel.is_file():
+-            print(json.dumps({
+-                "ok": False,
+-                "status": "CANNOT_CONFIRM",
+-                "failure_class": "UPSTREAM_NOT_READY",
+-                "reason": "A_V192_EXACT_INPUT_MISSING:selector panel unavailable",
+-                "production_allowed": False,
+-                "buy_gate_updated": False,
+-                "orders_sent": False,
+-            }, sort_keys=True))
+-            return 1
+-        try:
+-            outcome = materialize_frozen_v192_selector(
+-                store_root,
+-                panel_path=panel,
+-                signal_date=args.signal_date,
+-                target_date=args.target_date,
+-            )
+-            outcome = {"ok": True, **outcome}
+-        except (OSError, RuntimeError, StoreError, ValueError) as error:
+-            outcome = {"ok": False, "status": "FAILED", "error": str(error)}
++    if source_evidence is not None:
++        outcome["source_panel"] = {**source_evidence, "role": "selector_source"}
+     outcome.update(
+         {
+             "production_allowed": False,
+@@ -72,7 +184,7 @@
+         }
+     )
+     print(json.dumps(outcome, ensure_ascii=False, sort_keys=True))
+-    return 0 if outcome.get("ok") and outcome.get("status") == "READY" else 1
++    return 0 if outcome.get("ok") and outcome.get("status") in {"READY", "READY_EMPTY"} else 1
+ 
+ 
+ if __name__ == "__main__":
+--- a/main/ops/daily_materialize.py
++++ b/main/ops/daily_materialize.py
+@@ -479,7 +479,7 @@
+     def _max_trade_date(panel: Path) -> str:
+         """Read the panel's actual date coverage before accepting a pointer."""
+         try:
+-            import pyarrow.parquet as parquet
++            from ops.research_panel_logical import parquet
+ 
+             parquet_file = parquet.ParquetFile(panel)
+             if "trade_date" not in parquet_file.schema_arrow.names:
+@@ -505,11 +505,21 @@
+     def _accept(panel: Path) -> Path | None:
+         if not panel.is_file():
+             return None
++        from ops.research_panel_logical import is_logical
++        if is_logical(panel):
++            from infrastructure.formula_generation import read_selector_source_binding
++            # An exact logical pointer must never silently fall through to an
++            # old physical generation when its own identity is invalid.
++            try:
++                read_selector_source_binding(panel, expected_signal_date=required_date)
++            except (ValueError, OSError, KeyError, TypeError) as error:
++                raise FileNotFoundError(f"logical selector identity rejected: {error}") from error
++            return panel
+         try:
+             max_date = _max_trade_date(panel)
+         except FileNotFoundError:
+             return None
+-        if max_date < required_date:
++        if max_date != required_date:
+             return None
+         return panel
+ 
+@@ -517,11 +527,12 @@
+     if pointer.is_file():
+         try:
+             target = Path(pointer.read_bytes().decode("utf-8-sig").strip())
++        except (OSError, UnicodeDecodeError):
++            target = None
++        if target is not None:
+             accepted = _accept(target)
+             if accepted is not None:
+                 return accepted
+-        except (OSError, UnicodeDecodeError):
+-            pass
+     for parquet in sorted(
+         root.glob("selector_ready_panels/**/*.parquet"),
+         reverse=True,
+@@ -530,7 +541,7 @@
+         if accepted is not None:
+             return accepted
+     raise FileNotFoundError(
+-        f"no selector panel with max date >= {required_date} under {root}"
++        f"no selector panel with max date == {required_date} under {root}"
+     )
+ 
+ 
+--- a/main/infrastructure/scheduling/executor_registry_preselection.py
++++ b/main/infrastructure/scheduling/executor_registry_preselection.py
+@@ -153,6 +153,22 @@
+                 return reject_hk_or_fallback()
+             if market == "HK" and len(rows) != 100:
+                 return reject_hk_or_fallback()
++            if market == "A":
++                try:
++                    from contracts.trading_calendar import load_market_calendar, previous_session
++                    from infrastructure.formula_generation import verify_v192_current_source, verify_v192_native_cache_identity
++                    from infrastructure.isolated_package_loader import load_isolated_package_module
++                    signal_date = previous_session(load_market_calendar(), trade_date, market="a_share")
++                    module = load_isolated_package_module(self.shared_package_root,
++                        package_directory="shared_data", module_leaf="v192_selector",
++                        namespace_prefix="v192_nonempty_cache_gate")
++                    verified = module.read_verified_v192_pool(self.shared_data_root,
++                        target_date=trade_date, expected_signal_date=signal_date)
++                    verify_v192_current_source(verified, self.selector_data_root, signal_date=signal_date)
++                    verify_v192_native_cache_identity(payload, verified)
++                except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
++                    self._v192_source_reuse_conflict = str(error)
++                    return None  # exact original producer path retains the source conflict
+             if market == "HK":
+                 if payload.get("status") not in {"READY", "STRICT_0_2_READY", "HK_0_2_TOP100_READY"}:
+                     return reject_hk_or_fallback()
+@@ -410,6 +426,7 @@
+             [
+                 "--signal-date", request.business_date,
+                 "--target-date", request.target_date,
++                *(["--source-panel", str(selector)] if selector is not None else []),
+             ],
+             cwd=self.repo_root,
+             env=trusted_env,
+--- a/main/infrastructure/preselection_pool_store.py
++++ b/main/infrastructure/preselection_pool_store.py
+@@ -566,6 +566,70 @@
+             if key in payload:
+                 receipt[key] = payload[key]
+         return receipt
++
++    def refresh_verified_v192_source(self, payload: Mapping[str, Any], *,
++            expected_previous: Mapping[str, str], shared_root: Path,
++            shared_package_root: Path, selector_panel: Path, signal_date: str) -> dict[str, str]:
++        """CAS the two explicitly approved V192 source repairs through this owner."""
++        trade_date = validate_pool_artifact(payload)
++        pool_id = str(payload["pool_id"])
++        if ((signal_date, trade_date) not in {("20261111", "20261112"), ("20261112", "20261113")}
++                or pool_id != "a_d1_premarket_pool" or payload.get("market") != "A"
++                or payload.get("source_role") != "SHARED_VERIFIED_V192"):
++            raise ValueError("V192_SOURCE_REPAIR_EXACT_SCOPE_REQUIRED")
++        required = {"artifact_raw_sha256", "receipt_raw_sha256", "manifest_raw_sha256"}
++        if set(expected_previous) != required or any(_SHA256.fullmatch(str(v)) is None for v in expected_previous.values()):
++            raise ValueError("V192_SOURCE_REPAIR_COMPLETE_CAS_REQUIRED")
++        self._preflight_required_write_context(trade_date, pool_id)
++        from infrastructure.isolated_package_loader import load_isolated_package_module
++        from infrastructure.formula_generation import read_selector_source_binding
++        from domains.preselection_materializer import build_shared_v192_premarket_pool
++        module = load_isolated_package_module(shared_package_root, package_directory="shared_data",
++            module_leaf="v192_selector", namespace_prefix="v192_source_repair")
++        with owned_interprocess_lock(self.root / ".import.lock", timeout_seconds=10,
++                timeout_message="data-root import lock timeout"):
++            self._assert_write_allowed(trade_date, pool_id)
++            self._reconcile_pending_commit_unlocked(trade_date, pool_id)
++            snapshot = self._read_pool_snapshot_unlocked(trade_date, pool_id)
++            if any(snapshot[key] != value for key, value in expected_previous.items()):
++                raise ValueError("V192_SOURCE_REPAIR_PREIMAGE_MISMATCH")
++            pool = module.read_verified_v192_pool(shared_root, target_date=trade_date, expected_signal_date=signal_date)
++            binding = read_selector_source_binding(selector_panel, expected_signal_date=signal_date)
++            if pool.run.manifest.get("provenance", {}).get("panel_sha256") != binding["sha256"]:
++                raise ValueError("V192_SOURCE_REPAIR_SELECTOR_IDENTITY_CONFLICT")
++            old = snapshot["artifact"]
++            supersedes = pool.run.receipt.get("supersedes")
++            if (old.get("source_role") != "SHARED_VERIFIED_V192"
++                    or old.get("status") not in {"VALID_EMPTY", "V192_CANDIDATE_READY"}
++                    or not isinstance(supersedes, Mapping)):
++                raise ValueError("V192_SOURCE_REPAIR_SHARED_SUPERSESSION_CONFLICT")
++            # Legacy native pools did not persist manifest/receipt SHAs.
++            # Recover those facts only by verifying the exact immutable old
++            # shared run, then compare the entire seven-field CAS chain.
++            previous = module.SafeRootStore(shared_root).verify_run(trade_date, module.V192_ROLE,
++                str(old.get("source_run_id") or ""), expected_owner="v3_shared_data")
++            chain_keys = {"run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256",
++                          "artifact_relative", "manifest_relative", "receipt_relative"}
++            if (set(supersedes) != chain_keys
++                    or any(supersedes[key] != previous.get(key) for key in chain_keys)
++                    or old.get("source_sha256") != previous["artifact_sha256"]
++                    or old.get("source_path") != previous["artifact_relative"]
++                    or any(old.get(field) not in (None, previous[key]) for key, field in (
++                        ("manifest_sha256", "source_manifest_sha256"), ("receipt_sha256", "source_receipt_sha256")))):
++                raise ValueError("V192_SOURCE_REPAIR_SHARED_SUPERSESSION_CONFLICT")
++            expected = build_shared_v192_premarket_pool(shared_root, trade_date=trade_date,
++                signal_date=signal_date, shared_package_root=shared_package_root)
++            if dict(payload) != expected:
++                raise ValueError("V192_SOURCE_REPAIR_ORIGINAL_BUILDER_MISMATCH")
++            digest = _sha256(payload)
++            receipt = self._receipt(trade_date=trade_date, pool_id=pool_id,
++                artifact_path=snapshot["artifact_relative"], artifact_sha256=digest, payload=payload)
++            self._archive_recovery_revision(trade_date, pool_id, snapshot["artifact_sha256"], old, snapshot["receipt"])
++            self._archive_recovery_revision(trade_date, pool_id, digest, payload, receipt)
++            manifest = dict(snapshot["manifest"]); manifest[pool_id] = digest
++            self._commit_main_snapshot(snapshot, payload=payload, receipt=receipt, manifest=manifest)
++            return dict(artifact_path=snapshot["artifact_relative"], receipt_path=snapshot["receipt_relative"],
++                sha256=digest, previous_sha256=snapshot["artifact_sha256"])
+ 
+     def materialize(self, payload: Mapping[str, Any]) -> dict[str, str]:
+         trade_date = validate_pool_artifact(payload)
+--- a/main/domains/preselection_materializer.py
++++ b/main/domains/preselection_materializer.py
+@@ -403,6 +403,8 @@
+         ],
+     )
+     artifact["source_run_id"] = str(verification["run_id"])
++    artifact["source_manifest_sha256"] = str(verification["manifest_sha256"])
++    artifact["source_receipt_sha256"] = str(verification["receipt_sha256"])
+     artifact["source_row_count"] = int(verification["row_count"])
+     # Keep the formal shared V3 identity explicit at the artifact boundary.
+     # Consumers must not infer a V2/V3 version from the producer name or path.
+--- a/shared/shared_data/v192_selector.py
++++ b/shared/shared_data/v192_selector.py
+@@ -474,10 +474,16 @@
+     target_date: str,
+     rows: Iterable[Mapping[str, Any]],
+     oracle_sha256s: Mapping[str, str],
++    historical_backfill: bool = False,
++    expected_previous: Mapping[str, Any] | None = None,
+ ) -> dict[str, Any]:
+     """Publish deterministic v1.9.2 rows into the shared single-writer store."""
+     signal_date = validate_date(signal_date)
+     target_date = validate_date(target_date)
++    if historical_backfill and (not isinstance(expected_previous, Mapping) or set(expected_previous) != {
++            "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256",
++            "artifact_relative", "manifest_relative", "receipt_relative"}):
++        raise StoreError("v1.9.2 historical repair requires complete expected_previous identity")
+     if signal_date >= target_date:
+         raise StoreError("target_date must be after signal_date")
+     frozen_hashes = _require_frozen_hashes(oracle_sha256s)
+@@ -509,7 +515,7 @@
+             "fmla04_role_sha256": frozen_hashes["fmla04_role"],
+         }
+         spec = SourceSpec(
+-            source_id="fmla04_v192_frozen_selector",
++            source_id="fmla04_v192_frozen_selector_" + panel_sha256,
+             role=V192_ROLE,
+             trade_date=target_date,
+             market="A_SHARE",
+@@ -546,6 +552,8 @@
+             role=V192_ROLE,
+             source_id=spec.source_id,
+             stage_id=V192_STAGE_ID,
++            historical_backfill=historical_backfill,
++            expected_previous=expected_previous,
+         )
+     read_verified_v192_pool(
+         store_root,
+@@ -644,7 +652,7 @@
+     """
+     try:
+         import pyarrow as pa
+-        import pyarrow.parquet as parquet
++        from ops.research_panel_logical import parquet
+     except ImportError as error:
+         raise StoreError("pyarrow is required for the bounded v1.9.2 oracle panel") from error
+ 
+@@ -729,7 +737,7 @@
+ 
+     path = Path(panel_path)
+     try:
+-        import pyarrow.parquet as parquet
++        from ops.research_panel_logical import parquet
+ 
+         parquet_file = parquet.ParquetFile(path)
+         available = set(parquet_file.schema.names)
+@@ -908,8 +916,15 @@
+     signal_date: str,
+     target_date: str,
+     runner: Callable[[Path | str, str], list[dict[str, Any]]] = run_frozen_v192_oracle,
++    historical_backfill: bool = False,
++    expected_previous: Mapping[str, Any] | None = None,
+ ) -> dict[str, Any]:
++    before = sha256_file(Path(panel_path))
+     rows = runner(panel_path, signal_date)
++    from ops.research_panel_logical import validate_closure
++    validate_closure(panel_path)
++    if sha256_file(Path(panel_path)) != before:
++        raise StoreError("v1.9.2 source panel changed during materialization")
+     return publish_v192_rows(
+         store_root,
+         panel_path=panel_path,
+@@ -917,4 +932,6 @@
+         target_date=target_date,
+         rows=rows,
+         oracle_sha256s=verify_oracle_sources(),
+-    )
++        historical_backfill=historical_backfill,
++        expected_previous=expected_previous,
++    )
+--- a/shared/shared_data/store.py
++++ b/shared/shared_data/store.py
+@@ -351,7 +351,7 @@
+                         if not (matches_current or matches_superseded):
+                             raise ConflictError("expected_previous does not match current run identity")
+                     return {"ok": True, "already_exists": True, **verified}
+-                if historical_backfill and existing.get("status") == READY:
++                if historical_backfill and existing.get("status") in {READY, READY_EMPTY}:
+                     previous_verified = self.verify_run(
+                         trade_date, role, existing["run_id"], expected_owner=owner
+                     )

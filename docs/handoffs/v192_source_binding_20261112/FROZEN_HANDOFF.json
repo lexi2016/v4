@@ -1,0 +1,191 @@
+{
+  "status": "WRITER_READY_FOR_INCREMENTAL_INDEPENDENT_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app",
+  "baseline": "57c381d120a45e0f61687bfac01f26efd350da5e",
+  "scope": "EXACT_V192_SOURCE_AND_TWO_DAY_NATIVE_OWNER_REPAIR",
+  "incremental_scope": "P2_LEGACY_OPTIONAL_NATIVE_METADATA_COMPATIBILITY",
+  "supersedes_failed_scope_sha256": "a1046317c3814f37376ad080fe38e843a682289961412877915ebbc671694050",
+  "candidate_plan": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/INACTIVE_CANDIDATES_R3.json",
+  "evidence_files": [
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/HANDOFF.md",
+      "sha256": "f24807e21faf0d52167ea59ed1326c3ade939b900bf3e7e63c4ec2c8e644546c"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/TEST_RESULTS_R3.json",
+      "sha256": "b1d67570d6973edd3b961cf7934902f824858793c4f36e34e762171c3b719edd"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/TEST_RESULTS_R4.json",
+      "sha256": "9c0100d31ea5b85e4d68f5966e4167e7b33b17e873998834a5a3410c5fd70684"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/SOURCE_DIFF_BINDING_R4.json",
+      "sha256": "8f438bd233327d2f621dd5a5e188345ddfbc001b9671aab13d4a8615cbf8d97a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/FROZEN_ORACLE_UNCHANGED.json",
+      "sha256": "3186f1c7ed38f43374aa86d54fbb8722229c6cf95fdaee70c98869092383c435"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/SOURCE_IDENTITIES.json",
+      "sha256": "0bb38d91113acd71baf9e72e5f64b445c60f2660409ba8804df06d3512193911"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/RUNTIME_DELTA_R3.json",
+      "sha256": "84e6862a566f36570d48655a53262af20c7ee223b62c2b3b92428f43b7ce1edb"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/RUNTIME_DELTA_R3.patch",
+      "sha256": "089096c43088fc542ffa5dbcf11186569ced14d3944be3e73171adf86a810f40"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/INACTIVE_CANDIDATES_R3.json",
+      "sha256": "a40a93e7481774f72ed6fef94bbcc5d6bfc24ffc485d261b10ccb39f03c1be6a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/CANDIDATE_IDENTITY_CHECKS_R4.json",
+      "sha256": "459fa5df61bcfffc29e8fa69694cb0ebbf0b26d2ab355c2ff497f4d20c1c1635"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/UNCHANGED_API_READER_COMPAT.json",
+      "sha256": "ce33c8938175e12ed5518103e70e1ac8011c428606160ff20f027c93ff3ced3e"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/D12_EXPECTED_PREVIOUS.json",
+      "sha256": "8fd3848557be9fddaa1f66c314b1ac692557b4b525544a3bf7364c6e6a891298"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/20261111_NATIVE_PREIMAGE.json",
+      "sha256": "21321048b3df1932aa80953218894d1ecbd081a59379cf5c07af24a7d0c72c07"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/20261112_NATIVE_PREIMAGE.json",
+      "sha256": "4074cbbdede8f4db1bf9da0e7aa25f7cfd530fb5f18646ca5f5be333868c5c77"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/recover_v192_two_days.py",
+      "sha256": "0c363658240ec46731b1c6283024e4ba34112eab7dde11479ddbfedbc2ad3039"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/activate_reviewed_candidates.py",
+      "sha256": "d7ed883ebcdf784c570b5515e26be1aefc7374dd8558e2c1c0c0d63290f568ce"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/prepare_control_assets.py",
+      "sha256": "f936019bad151ce81061ea75ad93439dfd7a9a7d601932696e30801f6b626c9f"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/prepare_runtime_delta.py",
+      "sha256": "8eb10e1eb5b39d3c260f16b9fe6b973f3c5297488e6c0e035df145cb22d57a2f"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/prepare_inactive_candidates.py",
+      "sha256": "481a5e8e66e11cdb5557f0988e3101efb9deeaf90b5b8c8599ce4218240d07e0"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/refresh_inactive_after_review_r4.py",
+      "sha256": "ad78350f617a10665cfb5adfee5b7d33f3a3c2e7c057a3172d357688dfa50119"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/INCREMENTAL_REVIEW_R4.patch",
+      "sha256": "e62e337a192fd8c25f9f6ad583a3aea47eb0ed948bf920162c497c37b27eed2d"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/ACTIVATION_DRY_PREFLIGHT_R4.json",
+      "sha256": "29e39c7ceeed2120652f2f1a07996a05adec97f6e302c0ae69c6b6d22f71ea26"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/D11_RECOVERY_PREFLIGHT_R4.json",
+      "sha256": "633610e1bfe67cac33c48cf74c761ef9edcb5da072f958d42b2fbcc8531d19d4"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/D12_RECOVERY_PREFLIGHT_R4.json",
+      "sha256": "e25e4fe1388bef38bb569cbac9991558d0760f06fa3b952c5dc855e25f216857"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/infrastructure/formula_generation.py",
+      "sha256": "2a85cb6b5f91463bd977fd9d1388d1e1eafbcdeaf484d083f50f61dd26a07a71"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/infrastructure/preselection_pool_store.py",
+      "sha256": "5df265487691ddaae10c0a2e52e486d975090ad1e7ae07fdbf5c7741f588f36c"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "sha256": "15d29fe8a658c93c521fc78635078f54db48a063aeebd2f1a74b5c91b0520e01"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/domains/_preselection_materializer_parts/row_assembly.py",
+      "sha256": "6273ae0bb7277f34064743bec02a09ccac8a08764c3f815d54390ea3b022c97b"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/ops/daily_materialize.py",
+      "sha256": "451c891c1ade195f195911b86f2579b0a6aac49958628b504ec3f4d8d14a842e"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/ops/materialize_shared_v192_preselection.py",
+      "sha256": "3422ed6d7392db4a8a93d4fc4c1ef2c905b40142d0672b66d2534772effeb22f"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/upstreams/v3_shared_data/shared_data/store.py",
+      "sha256": "0b34b296af9da35cd8a20fa95b4223e25ac934825d6f758fe6f73881b0974e82"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/upstreams/v3_shared_data/shared_data/v192_selector.py",
+      "sha256": "7cd27135145dbae8524c95b08269e187e218f7a07073d964e69e339979022a2d"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app/tests/test_v192_source_binding.py",
+      "sha256": "9bfc797e3d576fe85b029219852ad57975dde0544fd583839d4479b470a68e7f"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/release-manifest.json",
+      "sha256": "e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/com.lexi.v4.scheduler.prepared.plist",
+      "sha256": "4129465a470d1fa3b52b7747576d5254d464d4aeba7d61237aa3e6c749a93041"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/stage/release-manifest.json",
+      "sha256": "35cfcb253a1cdfc563bbf550109088a7266b9858428dc195c1772effb4eeea98"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/stage/com.lexi.stage-center.scheduler.prepared.plist",
+      "sha256": "9f768dd0149ebbd7e6f4cf81015acc8d0475780e33bebc24ce41f624a9bc6513"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/research_storage_policy.json",
+      "sha256": "b2f8af4e8ebd20b9111394bfe6440dfb31a023ff6e18d9bdc8d53827ea4fb1a0"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/research_storage_pins.json",
+      "sha256": "95ef828ca7c58ac598d4bc24063251941d2802b8259ea12837cf27a4e26855fe"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/reader-attestation.json",
+      "sha256": "fcc7e5c0934845024405dde05da18c3ec5be45c715796196c7fe43c12a34787a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/r3_review_failed/FROZEN_HANDOFF.json",
+      "sha256": "a1046317c3814f37376ad080fe38e843a682289961412877915ebbc671694050"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/r3_review_failed/INDEPENDENT_REVIEW.json",
+      "sha256": "4592f60ce9b965bce3d6882f0ffe89aff9220e62dc21b227fad2e01bafa71367"
+    },
+    {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v192_source_binding_20261112/r3_review_failed/STATUS.json",
+      "sha256": "6c3a1192d69739a70d79b6adf69a4403cea9ef052a8538d22880fb26f3f68889"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "activation": "NOT_RUN",
+  "shared_native_publication": "NOT_RUN",
+  "tests": "INCREMENTAL_2_PASS_PRIOR_UNCHANGED_PASS_REUSED",
+  "independent_review": "PENDING_INCREMENTAL_REVIEW"
+}

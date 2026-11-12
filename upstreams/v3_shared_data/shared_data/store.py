@@ -351,7 +351,7 @@ class SafeRootStore:
                         if not (matches_current or matches_superseded):
                             raise ConflictError("expected_previous does not match current run identity")
                     return {"ok": True, "already_exists": True, **verified}
-                if historical_backfill and existing.get("status") == READY:
+                if historical_backfill and existing.get("status") in {READY, READY_EMPTY}:
                     previous_verified = self.verify_run(
                         trade_date, role, existing["run_id"], expected_owner=owner
                     )

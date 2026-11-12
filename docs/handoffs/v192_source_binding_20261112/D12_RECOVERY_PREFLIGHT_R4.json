@@ -1,0 +1,47 @@
+{
+  "status": "PREFLIGHT_ONLY_NO_PUBLICATION",
+  "mode": "BACKFILL_NOT_NATURAL",
+  "signal_date": "20261112",
+  "target_date": "20261113",
+  "source_panel": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261112_qfq_953ab5bd32f7de0d/selector_ready_current_to_20261112.parquet",
+    "sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5",
+    "bytes": 4455681,
+    "generation_id": "953ab5bd32f7de0d6041dffe383c14d5565ec9afaec6a8fcc6379d67f65dde7a",
+    "input_sha256": "ebec7a3b9a30f916e1199c0760e1a5fa5bd30f3453b96dee26cefd7d6dd24a63",
+    "signal_date": "20261112",
+    "generation_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_953ab5bd32f7de0d6041/candidate_receipt.json",
+      "sha256": "e7241b1453c8e55448073d4cd16bd40997cc4b24de9fcf826cae36c00b241ef7"
+    }
+  },
+  "producer": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/shared-package/shared_data/v192_selector.py",
+    "sha256": "93b4b4e7537adbef53ed549f835876cc4934429758653a500ee2132ce41bef64"
+  },
+  "wrapper": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/materialize_shared_v192_preselection.py",
+    "sha256": "3422ed6d7392db4a8a93d4fc4c1ef2c905b40142d0672b66d2534772effeb22f"
+  },
+  "original_oracle_sha256s": {
+    "feature_vector": "1685327e016ce7a12ff7982379b91463c7c2bfb311e0b892385e692926970e74",
+    "score_v19_multihead": "2a28049399043194b2f8523c8a2da7248708bf49e01f1d7e167fed933b92e4f2",
+    "fmla04_role": "950b14447cb61049fb44efa46a10dfa6b3d5374188e212f8aff06fee1ab326c1"
+  },
+  "store_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "argv": [
+    "--signal-date",
+    "20261112",
+    "--target-date",
+    "20261113",
+    "--source-panel",
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261112_qfq_953ab5bd32f7de0d/selector_ready_current_to_20261112.parquet",
+    "--historical-backfill",
+    "--expected-previous-json",
+    "/Users/lexi/Desktop/学习/agents调试/v192_source_binding_20261112/D12_EXPECTED_PREVIOUS.json"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

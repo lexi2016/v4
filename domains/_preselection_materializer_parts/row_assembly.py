@@ -258,6 +258,8 @@ def _build_shared_v192_premarket_pool_body(_v4_scope, /, shared_data_root, *, tr
         ],
     )
     artifact["source_run_id"] = _v4_global(_v4_scope, 'str')(verification["run_id"])
+    artifact["source_manifest_sha256"] = str(verification["manifest_sha256"])
+    artifact["source_receipt_sha256"] = str(verification["receipt_sha256"])
     artifact["source_row_count"] = _v4_global(_v4_scope, 'int')(verification["row_count"])
     # Keep the formal shared V3 identity explicit at the artifact boundary.
     # Consumers must not infer a V2/V3 version from the producer name or path.

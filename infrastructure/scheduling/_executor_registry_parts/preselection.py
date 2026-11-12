@@ -102,6 +102,22 @@ def _FixedExecutorRegistry__verified_preselection_source_body(
             reader_arguments["expected_eligibility_source_date"] = eligibility_source_date
         pool = reader(self.shared_data_root, **reader_arguments)
         receipt = _v4_global(_v4_scope, 'dict')(pool.run.receipt)
+        if module_leaf == "v192_selector":
+            from infrastructure.formula_generation import verify_v192_current_source
+            verify_v192_current_source(pool, self.selector_data_root, signal_date=signal_date,
+                generation_pointer=_v4_global(_v4_scope, 'os').environ.get("V35_RESEARCH_PANEL_A_FORMULA_GENERATION_POINTER"))
+            # The split source path may already have a nonempty native cache.
+            # Preserve safe legacy reuse without forcing new metadata writes.
+            native_root = getattr(self, "data_root", None)
+            if native_root is not None:
+                from infrastructure.preselection_pool_store import PreselectionPoolStore
+                from infrastructure.formula_generation import verify_v192_native_cache_identity
+                try:
+                    cached = PreselectionPoolStore(native_root).read_pool(target_date, "a_d1_premarket_pool")
+                except FileNotFoundError:
+                    cached = None
+                if cached is not None and cached.get("rows"):
+                    verify_v192_native_cache_identity(cached, pool)
         if receipt.get("status") != "READY" or _v4_global(_v4_scope, 'any')(
             receipt.get(field) is not False
             for field in ("production_allowed", "buy_gate_updated", "orders_sent")
@@ -398,7 +414,8 @@ def _FixedExecutorRegistry__preselection_pools_body(_v4_scope, /, self, request)
             [
                 "--signal-date", request.business_date,
                 "--target-date", request.target_date,
-                *(["--generation-pointer", generation_pointer] if generation_pointer else []),
+                *(["--generation-pointer", generation_pointer] if generation_pointer else
+                  ["--source-panel", _v4_global(_v4_scope, 'str')(selector)]),
             ],
             cwd=self.repo_root,
             env=trusted_env,
