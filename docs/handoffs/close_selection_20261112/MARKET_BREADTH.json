@@ -1,0 +1,50 @@
+{
+  "scope": 5809,
+  "observed_return": 5540,
+  "unknown": 269,
+  "advancing": 864,
+  "declining": 4613,
+  "unchanged": 63,
+  "median_return_pct": -1.6115305459138196,
+  "mean_return_pct": -1.5039217595986538,
+  "status": "D12_FULL_UNIVERSE_RETURN_DESCRIPTIVE",
+  "source": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261112_qfq_953ab5bd32f7de0d/selector_ready_current_to_20261112.parquet",
+    "sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5"
+  },
+  "source_generation": "953ab5bd32f7de0d6041dffe383c14d5565ec9afaec6a8fcc6379d67f65dde7a",
+  "return_definition": "D12 close / exact D11 close - 1; missing exact row remains UNKNOWN; no stale-date substitution",
+  "by_market": {
+    "SH": {
+      "scope": 2332,
+      "observed_return": 2314,
+      "unknown": 18,
+      "advancing": 424,
+      "declining": 1860,
+      "unchanged": 30,
+      "median_return_pct": -1.4115275142314976,
+      "mean_return_pct": -1.30429634385174
+    },
+    "SZ": {
+      "scope": 2905,
+      "observed_return": 2891,
+      "unknown": 14,
+      "advancing": 409,
+      "declining": 2452,
+      "unchanged": 30,
+      "median_return_pct": -1.757188498402551,
+      "mean_return_pct": -1.6537280831527263
+    },
+    "BJ": {
+      "scope": 572,
+      "observed_return": 335,
+      "unknown": 237,
+      "advancing": 31,
+      "declining": 301,
+      "unchanged": 3,
+      "median_return_pct": -1.7377567140600347,
+      "mean_return_pct": -1.5900206570420432
+    }
+  },
+  "cutoff": "2026-11-12T15:00:00+08:00"
+}

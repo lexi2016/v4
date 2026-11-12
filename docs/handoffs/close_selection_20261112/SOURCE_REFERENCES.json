@@ -1,0 +1,156 @@
+{
+  "runtime_main": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app",
+  "main_manifest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/release-manifest.json",
+    "sha256": "e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328"
+  },
+  "kernel_code": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/research_panel_daily_product.py",
+      "sha256": "a87b8304f69519dc8ce5a492bbda27101e55050fb38a5f59950542e2b3d1cd91"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/research_daily_product_parallel.py",
+      "sha256": "9326bd67c07055e4ddbe3a25256b69655bf379a097efcb9e54fedf00323ab6cc"
+    }
+  ],
+  "source_identity": {
+    "generation": "953ab5bd32f7de0d6041dffe383c14d5565ec9afaec6a8fcc6379d67f65dde7a",
+    "input_sha256": "ebec7a3b9a30f916e1199c0760e1a5fa5bd30f3453b96dee26cefd7d6dd24a63",
+    "snapshot": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/runtime/cache/data_layer_daily_formula_increment_update_v1/adjustment_snapshots/fea54133f7d856f85c84f00b51901de8f5f6553b34732108a53463f7f89731cf.json",
+      "sha256": "fea54133f7d856f85c84f00b51901de8f5f6553b34732108a53463f7f89731cf"
+    },
+    "selector_artifact_sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5",
+    "asof": 20261112,
+    "basis": {
+      "price_basis": "QFQ_ASOF",
+      "volume_basis": "QFQ_EVENT_VOLUME",
+      "amount_basis": "RAW_TURNOVER",
+      "asof_date": 20261112
+    },
+    "historical_PIT": false,
+    "reader_provenance": {
+      "actual_reader": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/DATA_LAYER_INTERFACE.py",
+        "sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565"
+      },
+      "transport_equivalence": {
+        "actual_reader": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/DATA_LAYER_INTERFACE.py",
+          "sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565"
+        },
+        "historical_mathematical_reader": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/DATA_LAYER_INTERFACE.py",
+          "sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c"
+        },
+        "before_source_snapshot": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/vendor/selector_reader_transport_before.py",
+          "sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c"
+        },
+        "equivalence_proof": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/vendor/selector_reader_transport_compat.json",
+          "sha256": "92830a3dc27d58fd6f3c1ac9040f62d8399b280ef3b8a40735121ab69ac88c0f"
+        },
+        "oracle": {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app/ops/vendor/selector_reader_transport_oracle.json",
+          "sha256": "dd8f27f88df420a9d2e22e1e29877c7f3263e63f5f2fff1245dadf3a58d55ddf"
+        }
+      }
+    }
+  },
+  "source_config": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json",
+    "sha256": "0521fceae9fd1d1625bcaee677d95314f2ca00e931f89c9bda78bc292610cfc1"
+  },
+  "selector": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261112_qfq_953ab5bd32f7de0d/selector_ready_current_to_20261112.parquet",
+    "sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5"
+  },
+  "generation_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_953ab5bd32f7de0d6041/candidate_receipt.json",
+    "sha256": "e7241b1453c8e55448073d4cd16bd40997cc4b24de9fcf826cae36c00b241ef7"
+  },
+  "snapshot": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/runtime/cache/data_layer_daily_formula_increment_update_v1/adjustment_snapshots/fea54133f7d856f85c84f00b51901de8f5f6553b34732108a53463f7f89731cf.json",
+    "sha256": "fea54133f7d856f85c84f00b51901de8f5f6553b34732108a53463f7f89731cf"
+  },
+  "scope_count": 5809,
+  "scope_sha256": "b77349fb26aee3b5d3b547fd225b37cd5702002f119dbd046330153e1c9a1a78",
+  "model_refs": {
+    "old_model_identity": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/kb_indicator_training_20261112/ai_research_round/MODEL_IDENTITY.json",
+      "sha256": "17ed4cd2c7912a3082a17edb61a18adc287c4357b26b6c0a239dfd2a2a158e81",
+      "size": 2536
+    },
+    "old_model_freeze": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/kb_indicator_training_20261112/ai_research_round/ablation_run/PREFIT_FREEZE.json",
+      "sha256": "256d7b6ccd9db6ee55ff25cb2a250c8171cae881ed17e32cae9b39ee2d65dc21",
+      "size": 11907
+    },
+    "old_D_fold_1": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/kb_indicator_training_20261112/ai_research_round/ablation_run/fold_1_D.joblib",
+      "sha256": "003b3737ce059923efa21432ead306f88e0033083b6ae11ced9e4e43ecbc30b0",
+      "size": 9482
+    },
+    "old_D_fold_2": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/kb_indicator_training_20261112/ai_research_round/ablation_run/fold_2_D.joblib",
+      "sha256": "7877b27d651838411a57d1317220a6e2716c1b0acc20e5756b9cafe40b981203",
+      "size": 9482
+    },
+    "old_D_fold_3": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/kb_indicator_training_20261112/ai_research_round/ablation_run/fold_3_D.joblib",
+      "sha256": "34fc26e8377590f94c2edc2136c71b81c48dd03f8ebac1a33053b2f039541e10",
+      "size": 9482
+    },
+    "old_17_feature_functions": {
+      "path": "/Users/lexi/Desktop/学习/Z哥方法论/P5_14_7_EVENT_STRUCTURE_WORKTREE/05_EXPERIMENTS/P5_14_7_EVENT_STRUCTURE/kb_supervised_training/features.py",
+      "sha256": "00b01c9b9d2a7374169ca95599b97e7179e090e4dae1e884c39dfab8d0c50ab8",
+      "size": 3512
+    },
+    "old_6_feature_functions": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/claude_kb_role_stage_20261111/run_20261112_000900/source_code/stage_features_corrected.py",
+      "sha256": "b1dd2b7a16a6b90ff3d81457022a2c9553ef2c52335717b791a87ca8a8fc7256",
+      "size": 4733
+    }
+  },
+  "model_features": [
+    "body_over_previous_close",
+    "range_over_previous_close",
+    "close_in_bar",
+    "upper_wick_in_bar",
+    "lower_wick_in_bar",
+    "return_1",
+    "return_5",
+    "return_10",
+    "volume_over_previous_5_mean",
+    "volume_over_previous_20_mean",
+    "close_over_previous_20_high_minus_1",
+    "close_over_previous_20_low_minus_1",
+    "close_over_white_minus_1",
+    "close_over_yellow_minus_1",
+    "close_over_bbi_minus_1",
+    "kdj_j",
+    "kdj_k_minus_d",
+    "pre60_trend_efficiency",
+    "pre60_range_position",
+    "pre_range_compression_5_20",
+    "prev_bear_body_reclaim_margin",
+    "prior20_low_probe_reclaim",
+    "bearish_volume_share_5",
+    "macd_dif_over_close",
+    "macd_dea_over_close",
+    "macd_hist_over_close",
+    "macd_hist_delta_1_over_close",
+    "macd_cross_up",
+    "macd_cross_down",
+    "canonical_brick_value",
+    "canonical_brick_delta",
+    "canonical_brick_turn_red"
+  ],
+  "python_panel_actual": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python_model": "/Users/lexi/Desktop/学习/runtime/venvs/v02-parity/bin/python",
+  "sklearn": "1.8.0",
+  "run_evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_close_selection_20261112",
+  "fit_count": 0
+}
