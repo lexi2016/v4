@@ -1,0 +1,38 @@
+{
+  "status": "SOURCE_REVIEWED_AND_REMOTE_SYNC_VERIFIED",
+  "recorded_at": "2026-11-12T23:27:33.266675+08:00",
+  "source_commit": "bb0de9311b82e0c3f749be3dc7e450bd57524131",
+  "source_tree": "4052e2177c059436e05c130ff5345804b8ea33f0",
+  "branch": "codex/full-source-baseline-20261112",
+  "review": {
+    "verdict": "REVIEWED/PASS",
+    "frozen_handoff_sha256": "bab94ad386af0f9c66442ab211942dea016a5ce19df97f637bfe40b3faa98474",
+    "review_receipt_sha256": "2f8d186afd86e42ebd34f107ce98b7d2c098f759c4fad72dec963df14f8ff9e7"
+  },
+  "source_coverage": {
+    "role_references": 3053,
+    "repository_source_targets": 1746,
+    "canonical_pending_sources": 19,
+    "same_date_branches": 11
+  },
+  "remote_verification": {
+    "commit_matches": true,
+    "tree_matches": true,
+    "sha256_checked_new_or_modified_files": 1335,
+    "reviewed_deletions_checked": 1,
+    "github_connector_entry_readback": "PASS"
+  },
+  "checks": {
+    "backend": "247 passed / 2 skipped; scoped prior passes reused, failed cases corrected and rechecked",
+    "frontend": "48 tests, typecheck, build PASS",
+    "api_frontend_rebuild": "main JS SHA equals observed live bundle",
+    "sensitive_scan": "0 confirmed credential/forbidden payload hits"
+  },
+  "deployment": "NOT_DEPLOYED",
+  "single_commit_three_role_deployment": "CANNOT_CONFIRM_NOT_CERTIFIED",
+  "natural_market_acceptance": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
