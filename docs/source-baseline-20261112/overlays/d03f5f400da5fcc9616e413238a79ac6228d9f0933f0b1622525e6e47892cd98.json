@@ -1,0 +1,132 @@
+{
+  "schema_version": "v4.legacy_api_aliases.v1",
+  "original_openapi_sha256": "045b56a6188e4a25883b60e234d06e39a09443fdbdec5e10d6fc69b0cb79b347",
+  "routes": {
+    "/api/v3/meta/stages": [
+      "GET"
+    ],
+    "/api/v3/preselection-pools": [
+      "GET"
+    ],
+    "/api/v3/workbench/stage": [
+      "GET"
+    ],
+    "/api/v3/workbench/stage/ensure": [
+      "POST"
+    ],
+    "/api/v3/stage-center/selection": [
+      "GET"
+    ],
+    "/api/v3/manager/stage-selection": [
+      "GET"
+    ],
+    "/api/v3/stage-center/selection/ensure": [
+      "POST"
+    ],
+    "/api/v3/tasks/status": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/frontend-build": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/authorities": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/snapshot": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/status": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/events": [
+      "GET"
+    ],
+    "/api/v3/runtime-graph/repair": [
+      "POST"
+    ],
+    "/api/v3/manual-collection": [
+      "POST"
+    ],
+    "/api/v3/manual-collection/{job_id}": [
+      "GET"
+    ],
+    "/api/v3/review/generate": [
+      "POST"
+    ],
+    "/api/v3/review": [
+      "GET"
+    ],
+    "/api/v3/research/a-share/history": [
+      "GET"
+    ],
+    "/api/v3/research/wechat/materials": [
+      "GET"
+    ],
+    "/api/v3/research/wechat/materials/mentions": [
+      "GET"
+    ],
+    "/api/v3/research/wechat/materials/{record_id}": [
+      "GET"
+    ],
+    "/api/v3/research/wechat/materials/{record_id}/mentions": [
+      "GET"
+    ],
+    "/api/v3/research/wechat/materials/{record_id}/artifacts/{artifact_id}": [
+      "GET"
+    ],
+    "/api/v3/research/articles/latest": [
+      "GET"
+    ],
+    "/api/v3/research/day": [
+      "GET"
+    ],
+    "/api/v3/research/zero-to-history-high-position": [
+      "GET"
+    ],
+    "/api/v3/research/single-stock-repair-sop": [
+      "GET"
+    ],
+    "/api/v3/research/selection": [
+      "GET"
+    ],
+    "/api/v3/research/selection/manager-decision": [
+      "GET"
+    ],
+    "/api/v3/research/articles": [
+      "GET"
+    ],
+    "/api/v3/research/hourly": [
+      "GET"
+    ],
+    "/api/v3/research/hourly/latest": [
+      "GET"
+    ],
+    "/api/v3/research/authoritative": [
+      "GET"
+    ],
+    "/api/v3/baimao/x/latest": [
+      "GET"
+    ],
+    "/api/v3/baimao/observations": [
+      "GET"
+    ],
+    "/api/v3/research/lane": [
+      "GET"
+    ],
+    "/api/v3/research/pdf-documents/{document_id}": [
+      "GET"
+    ],
+    "/api/v3/research/dates": [
+      "GET"
+    ],
+    "/api/v3/research/us-market": [
+      "GET"
+    ],
+    "/api/v3/research/latest-event": [
+      "GET"
+    ],
+    "/api/v3/research/events": [
+      "GET"
+    ]
+  }
+}

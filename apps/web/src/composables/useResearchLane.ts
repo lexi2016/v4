@@ -1,7 +1,7 @@
 // Shared derivation helpers for the research decision-desk components.
-import { computed, type ComputedRef, type Ref } from "vue";
+import { computed, ref, watch, type ComputedRef, type Ref } from "vue";
 
-import type { ResearchLane } from "../api/research_lane";
+import { fetchMachineCards, fetchStockClues, type MachineCardsPayload, type ResearchLane, type StockCluesPayload } from "../api/research_lane";
 
 import { sortFeedCardsByFetchedAt, text } from "./researchFeedPresentation";
 
@@ -35,6 +35,8 @@ export interface ResearchStatusPresentation {
   externalFinanceCount: ResearchCountPresentation;
   aiNewsCount: ResearchCountPresentation;
   wechatArticleCount: number;
+  machineCardCount: number;
+  confirmedStockClueCount: number;
   stockMainlineLength: number;
   stockTimelineLength: number;
   keyMessagesCount: ResearchCountPresentation;
@@ -116,7 +118,10 @@ function ocrStatusText(ocr: Record<string, unknown>): string {
 /** Convert one lane payload and its existing derived counts into a reactive consumer-friendly shape. */
 export function researchStatusPresentation(
   payload: ResearchLane,
-  counts: Pick<ResearchStatusPresentation, "wechatArticleCount" | "stockMainlineLength" | "stockTimelineLength">,
+  counts: Pick<
+    ResearchStatusPresentation,
+    "wechatArticleCount" | "machineCardCount" | "confirmedStockClueCount" | "stockMainlineLength" | "stockTimelineLength"
+  >,
 ): ResearchStatusPresentation {
   const quality = statusRecord(payload.research_quality_summary);
   const zsxq = statusRecord(payload.zsxq_hourly);
@@ -132,6 +137,8 @@ export function researchStatusPresentation(
     externalFinanceCount: assessedCount(finance.raw_item_count),
     aiNewsCount: assessedCount(ai.item_count),
     wechatArticleCount: counts.wechatArticleCount,
+    machineCardCount: counts.machineCardCount,
+    confirmedStockClueCount: counts.confirmedStockClueCount,
     stockMainlineLength: counts.stockMainlineLength,
     stockTimelineLength: counts.stockTimelineLength,
     keyMessagesCount: keyMessagesNotMaterialized(payload)
@@ -242,7 +249,11 @@ export interface ResearchState {
   cannotItems: ComputedRef<Array<string>>;
 }
 
-export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: Ref<string>): ResearchState {
+export function useResearchState(
+  payload: Ref<ResearchLane | null>,
+  feedFilter: Ref<string>,
+  stockClues?: Ref<StockCluesPayload | null>,
+): ResearchState {
   const stockDaily = computed(() => (payload.value?.stock_research_daily ?? []) as Array<Record<string, unknown>>);
   const stockTimeline = computed(() => (payload.value?.stock_research_timeline ?? []) as Array<Record<string, unknown>>);
   const quality = computed(() => payload.value?.research_quality_summary ?? {});
@@ -259,10 +270,31 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
 
   const stockMainline = computed<Array<LaneRow>>(() => {
     const byStock = timelineByStock(stockTimeline.value);
-    return stockDaily.value.filter((row) => row.report_subject_eligible === true).slice(0, 8).map((row) => ({
-      ...row,
-      _timeline: compactTimeline(byStock.get(text(row.stock_code || row.code)) ?? []).slice(0, 3),
-    }));
+    const existing: Array<LaneRow> = stockDaily.value
+      .filter((row) => row.report_subject_eligible === true)
+      .slice(0, 8)
+      .map((row) => ({
+        ...row,
+        _timeline: compactTimeline(byStock.get(text(row.stock_code || row.code)) ?? []).slice(0, 3),
+      }));
+    const existingCodes = new Set(existing.map((row) => text(row.stock_code || row.code)).filter(Boolean));
+    // Append confirmed machine-report clues after the untouched lane rows. The
+    // original lane order and data stay authoritative; a code already shown in
+    // the lane is not duplicated as a second card.
+    const clueRows: Array<LaneRow> = (stockClues?.value?.items ?? [])
+      .filter((item) => item.document_count >= 1 && !existingCodes.has(item.ts_code))
+      .slice()
+      .sort((left, right) => right.document_count - left.document_count || left.ts_code.localeCompare(right.ts_code))
+      .map((item) => ({
+        stock_code: item.ts_code,
+        stock_name: item.name || "名称 CANNOT_CONFIRM",
+        source: "MACHINE_CLUE",
+        document_count: item.document_count,
+        link_probability: item.link_probability,
+        document_titles: item.document_titles,
+        _timeline: [],
+      }));
+    return [...existing, ...clueRows];
   });
 
   const feedCards = computed(() => {
@@ -354,4 +386,84 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
     payload, stockDaily, stockTimeline, quality, morning, workbench, zsxq, ai, finance, gaps,
     stockMainline, sourceEntities, titleSubjects, feedCards, feedEmptyMessage, sourceColumns, timelineRows, cannotItems,
   };
+}
+
+export interface MachineCardsState {
+  machineCards: Ref<MachineCardsPayload | null>;
+  machineCardsLoading: Ref<boolean>;
+  machineCardsError: Ref<string>;
+  machineCardItems: ComputedRef<MachineCardsPayload["items"]>;
+}
+
+/** Independent read-only loader; a NOT_MATERIALIZED lane must not hide machine cards. */
+export function useMachineCards(researchDate: Ref<string>): MachineCardsState {
+  const machineCards = ref<MachineCardsPayload | null>(null);
+  const machineCardsLoading = ref(false);
+  const machineCardsError = ref("");
+  let requestVersion = 0;
+
+  watch(researchDate, async (selected) => {
+    const version = ++requestVersion;
+    machineCards.value = null;
+    machineCardsError.value = "";
+    if (!selected) {
+      machineCardsLoading.value = false;
+      return;
+    }
+    machineCardsLoading.value = true;
+    try {
+      const result = await fetchMachineCards(selected);
+      if (version === requestVersion) machineCards.value = result;
+    } catch (reason) {
+      if (version === requestVersion) {
+        machineCardsError.value = reason instanceof Error
+          ? reason.message
+          : "机器研报卡片读取失败；未用其他日期替代。";
+      }
+    } finally {
+      if (version === requestVersion) machineCardsLoading.value = false;
+    }
+  }, { immediate: true });
+
+  const machineCardItems = computed(() => machineCards.value?.items ?? []);
+  return { machineCards, machineCardsLoading, machineCardsError, machineCardItems };
+}
+
+export interface StockCluesState {
+  stockClues: Ref<StockCluesPayload | null>;
+  stockCluesLoading: Ref<boolean>;
+  stockCluesError: Ref<string>;
+}
+
+/** Independent read-only clue loader; no machine-card payload is required to render it. */
+export function useStockClues(researchDate: Ref<string>): StockCluesState {
+  const stockClues = ref<StockCluesPayload | null>(null);
+  const stockCluesLoading = ref(false);
+  const stockCluesError = ref("");
+  let requestVersion = 0;
+
+  watch(researchDate, async (selected) => {
+    const version = ++requestVersion;
+    stockClues.value = null;
+    stockCluesError.value = "";
+    if (!selected) {
+      stockCluesLoading.value = false;
+      return;
+    }
+    stockCluesLoading.value = true;
+    try {
+      const result = await fetchStockClues(selected);
+      if (version === requestVersion) stockClues.value = result;
+    } catch (reason) {
+      if (version === requestVersion) {
+        stockCluesError.value = reason instanceof Error
+          ? reason.message
+          : "研报股票线索读取失败；未用其他日期替代。";
+      }
+    } finally {
+      if (version === requestVersion) stockCluesLoading.value = false;
+    }
+  }, { immediate: true });
+
+  return { stockClues, stockCluesLoading, stockCluesError };
 }

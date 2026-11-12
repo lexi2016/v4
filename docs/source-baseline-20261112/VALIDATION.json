@@ -1,0 +1,56 @@
+{
+  "python": {
+    "initial_scope_cases": 249,
+    "initial_passed": 226,
+    "initial_failed": 21,
+    "initial_skipped": 2,
+    "failed_only_rechecks": [
+      {
+        "log": "pytest-failed-only.log",
+        "result": "21 failed; Desktop test root forbidden"
+      },
+      {
+        "log": "pytest-failed-only-r2.log",
+        "result": "7 passed,14 failed; actual test allowlist root identified; pinned hash normalization corrected"
+      },
+      {
+        "log": "pytest-failed-only-r3.log",
+        "result": "1 passed,13 setup errors; missing parent directory diagnosed"
+      },
+      {
+        "log": "pytest-failed-only-r4.log",
+        "result": "13 passed"
+      }
+    ],
+    "effective_result": "247 passed; 2 skipped; only failed cases rechecked",
+    "initial_sessionfinish_exception": "Unrelated pre-existing global pytest garbage PermissionError hid initial terminal summary; initial progress and lastfailed evidence preserved; subsequent scoped temporary roots used."
+  },
+  "frontend_candidate": {
+    "vitest": "48 passed",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "workbench_symbol_node": "4 passed"
+  },
+  "api_role_reconstruction": {
+    "selected_sources": 1174,
+    "build": "PASS",
+    "bundle": "assets/main-DCRf2b-t.js",
+    "sha256": "6cc9739e0a88c618c7ee412162a09cab1dda070b57ff4a2b6a6f4c87f5f8a675",
+    "same_as_observed_loaded_bundle": true,
+    "claim": "Exact main JavaScript artifact equality only; not an end-to-end deployment certification"
+  },
+  "mechanical": {
+    "role_source_manifest_drift": 0,
+    "python_unique_sources_compile": 1432,
+    "research_ui_js_mjs_syntax": 38,
+    "sensitive_scan_hits": 0,
+    "pre_alias_resolution_source_path_compiles": 1482
+  },
+  "NOT_RUN": [
+    "Deploy/restart/schedulers",
+    "Live API/UI business actions",
+    "Natural market slot acceptance",
+    "Training/backtest/data acquisition",
+    "Certification that one commit directly deploys three existing roles"
+  ]
+}

@@ -613,10 +613,20 @@ class ScheduledPoolPublicationError(ValueError):
 def publish_scheduled_artifacts(
     store: PreselectionPoolStore, artifacts: Sequence[dict]
 ) -> list[dict[str, Any]]:
-    """Do not occupy a formal immutable key with a transient missing attempt."""
+    """Publish independent pools; retain each invalid lane and finish siblings."""
     results: list[dict[str, Any]] = []
     for artifact in artifacts:
-        validate_pool_artifact(artifact)
+        try:
+            validate_pool_artifact(artifact)
+        except ValueError as error:
+            results.append({
+                "trade_date": str(artifact.get("trade_date") or ""),
+                "pool_id": str(artifact.get("pool_id") or ""),
+                "status": "REJECTED", "reason_code": "POOL_CONTRACT_INVALID",
+                "artifact_written": False, "detail": str(error),
+                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+            })
+            continue
         pool_id = str(artifact["pool_id"])
         if (pool_id == "a_share_research_recommendation_pool"
                 and artifact.get("source_role") == "EXPECTED_MISSING"
@@ -632,7 +642,13 @@ def publish_scheduled_artifacts(
             if not _is_exact_expected_missing_placeholder(
                 artifact, trade_date=str(artifact["trade_date"]), pool_id=pool_id,
             ):
-                raise ValueError("INVALID_FORMAL_MISSING_PLACEHOLDER")
+                results.append({
+                    "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
+                    "status": "REJECTED", "reason_code": "POOL_CONTRACT_INVALID",
+                    "artifact_written": False, "detail": "INVALID_FORMAL_MISSING_PLACEHOLDER",
+                    "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+                })
+                continue
             results.append({
                 "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
                 "status": "DEFERRED", "reason_code": "FORMAL_INPUT_NOT_READY",
@@ -657,11 +673,10 @@ def publish_scheduled_artifacts(
                     artifact, expected_old_sha256=str(snapshot["artifact_sha256"]),
                 ))
         except ValueError as error:
-            if str(error) != "conflicting preselection-pool materialization":
-                raise
+            conflict = str(error) == "conflicting preselection-pool materialization"
             results.append({
                 "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
-                "status": "REJECTED", "reason_code": "IMMUTABLE_POOL_CONFLICT",
+                "status": "REJECTED", "reason_code": "IMMUTABLE_POOL_CONFLICT" if conflict else "POOL_CONTRACT_INVALID",
                 "artifact_written": False, "detail": str(error),
                 "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
             })

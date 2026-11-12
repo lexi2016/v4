@@ -1,0 +1,82 @@
+{
+  "status": "WRITER_TARGETED_CHECKS_PASS",
+  "independent_review": "NOT_RUN_BY_WRITER",
+  "commands": [
+    {
+      "command": "$PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k \"logical_pointer or logical_block or exact_oracle\" --basetemp=<evidence>/pytest-r2",
+      "result": "3 passed, 2 deselected"
+    },
+    {
+      "command": "$PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k empty_csv --basetemp=<evidence>/pytest-cas-r2 (selected within original empty_csv-or-wrapper command)",
+      "result": "empty_csv PASS; sibling wrapper failed on READY_EMPTY exit code and was corrected"
+    },
+    {
+      "command": "$PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k wrapper_exact --basetemp=<evidence>/pytest-wrapper-r3",
+      "result": "1 passed, 4 deselected"
+    },
+    {
+      "command": "$PANEL_PYTHON -B -m pytest -q tests/test_a_online_generation_consumer.py -k \"v192_wrapper_uses_generation_source_role or v192_public_entry_reads_real_int64_trade_date_panel or v192_wrapper_rejects_generation_source_date_mismatch\" --basetemp=<evidence>/pytest-legacy",
+      "result": "3 passed, 7 deselected"
+    },
+    {
+      "command": "V192_TEST_PACKAGE=<evidence>/shared_candidate $PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py --basetemp=<evidence>/pytest-runtime",
+      "result": "6 passed; actual live-base sparse shared delta, same source wrapper/resolver"
+    },
+    {
+      "command": "$PANEL_PYTHON -B -m pytest -q tests/test_a_online_generation_consumer.py -k v192_public_entry_reads_real_int64_trade_date_panel --basetemp=<evidence>/pytest-int64-final",
+      "result": "1 passed, 9 deselected; after final legacy source identity binding"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "$PANEL_PYTHON -B <evidence>/prepare_runtime_delta.py",
+      "result": "6 sparse runtime files prepared; no active mutation"
+    },
+    {
+      "command": "$PANEL_PYTHON -B <evidence>/prepare_inactive_candidates.py",
+      "result": "Main4 files, Stage1 config; no service/store mutation"
+    },
+    {
+      "command": "$PANEL_PYTHON -B <evidence>/recover_v192_two_days.py --day 20261111",
+      "result": "PREFLIGHT_ONLY_NO_PUBLICATION"
+    },
+    {
+      "command": "$PANEL_PYTHON -B <evidence>/recover_v192_two_days.py --day 20261112",
+      "result": "PREFLIGHT_ONLY_NO_PUBLICATION"
+    }
+  ],
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "failures_retained": [
+    "Initial default pytest temp cleanup hit another task immutable garbage directory; left untouched; all subsequent tests use task-specific basetemp.",
+    "Initial resolver OSError swallowed identity rejection; moved acceptance outside pointer I/O catch.",
+    "Initial CAS test exposed original store READY_EMPTY incompatibility; controller authorized one-line CAS branch fix.",
+    "Initial wrapper still returned nonzero for READY_EMPTY; now successful materialization, formal empty eligibility unchanged."
+  ],
+  "not_run": [
+    "source publication to shared authority",
+    "service activation",
+    "API real repaired day verification",
+    "UI",
+    "natural scheduling",
+    "commit/push"
+  ],
+  "additional_scope": {
+    "commands": [
+      {
+        "command": "$PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k \"nonempty_scheduler or native_v192\" --basetemp=<evidence>/pytest-reuse-native-r2",
+        "result": "2 passed, 6 deselected"
+      },
+      {
+        "command": "V192_TEST_PACKAGE=<R3>/shared-package V192_RUNTIME_PRESELECTION=<R3>/main/app/infrastructure/scheduling/executor_registry_preselection.py $PANEL_PYTHON -B -m pytest -q tests/test_v192_source_binding.py -k \"nonempty_scheduler or native_v192 or actual_legacy\" --basetemp=<evidence>/pytest-runtime-r3",
+        "result": "3 passed, 6 deselected"
+      }
+    ],
+    "candidate_checks": "FINAL_CANDIDATE_CHECKS_R3.json; ACTUAL_MAIN_IMPORTS_R3.json",
+    "execution_preflights": "D11_RECOVERY_PREFLIGHT_R3.json; D12_RECOVERY_PREFLIGHT_R3.json; ACTIVATION_DRY_PREFLIGHT.json",
+    "source_facade_gap": "Frozen maintenance source facade imports unrelated missing infrastructure.runtime_graph.notifications; changed split body tested directly; actual candidate complete registry import PASS",
+    "activation": "NOT_RUN",
+    "shared_and_native_source_publication": "NOT_RUN"
+  }
+}

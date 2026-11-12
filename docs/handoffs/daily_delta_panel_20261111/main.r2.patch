@@ -1,0 +1,2502 @@
+--- a/ops/research_panel_qfq.py
++++ b/ops/research_panel_qfq.py
+@@ -28,7 +28,7 @@
+ import numpy as np
+ import pandas as pd
+ import pyarrow as pa
+-import pyarrow.parquet as pq
++from ops.research_panel_logical import parquet as pq
+ 
+ DRIVER_SHA = "1b5f4caa099add5f0c369b72e0c6b9d8d80c964fe245a662290971e5142dcdae"
+ FORMULA_SHA = "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258"
+@@ -201,7 +201,7 @@
+     inventory = {r["path"]: r["sha256"] for r in manifest["application_inventory"]["entries"] if r.get("kind", "file") == "file"}
+     paths = ["ops/research_panel_qfq.py", "ops/research_panel_turnover.py", "ops/research_panel_factor_cache.py",
+         "ops/research_panel_adjustment_inputs.py", "ops/research_panel_tdx_adjustment_inputs.py",
+-        "ops/research_panel_daily_source.py", "contracts/a_share_generation_compatibility.json",
++        "ops/research_panel_daily_source.py", "ops/research_panel_logical.py", "ops/research_panel_delta.py", "contracts/a_share_generation_compatibility.json",
+         "contracts/a_share_daily_source_policy.json"]
+     return all(inventory.get(p) == sha(root / p) for p in paths)
+ 
+@@ -209,8 +209,18 @@
+ def _generation_tuple_compatible(contract: dict, snapshot_path: Path) -> bool:
+     readiness = json.loads(snapshot_path.with_name("qfq_readiness.json").read_text())
+     refs = readiness["code_refs"]
+-    if len(refs) != 3:
++    if len(refs) not in (3,5):
+         return False
++    helpers=(('research_panel_logical.py','logical_reader_sha256'),('research_panel_delta.py','delta_owner_sha256'))
++    if len(refs)==3:
++        # Old ordinary-Parquet generations have the original three refs. A
++        # logical generation cannot drop its extra source identities.
++        if any(key in contract for _,key in helpers):return False
++    else:
++        for ref,(name,key) in zip(refs[3:],helpers):
++            expected=Path(__file__).with_name(name)
++            if ref.get('path')!=str(expected) or contract.get(key)!=ref.get('sha256'):
++                return False
+     for ref in refs:
+         _source(ref, owner="generation original code reference")
+     current = dict(driver_sha256=DRIVER_SHA, formula_sha256=FORMULA_SHA,
+@@ -515,35 +525,56 @@
+     return zlib.crc32(code.encode()) % 32
+ 
+ 
+-def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int, Path]:
+-    """One bounded scan, rather than thousands of predicate full-table scans."""
+-    receipt_path = destination / "receipt.json"
+-    if receipt_path.is_file():
+-        receipt = json.loads(receipt_path.read_text())
+-        if receipt.get("source_sha256") == source_sha256 and receipt.get("row_copy") == "ARROW_V1":
+-            files = {int(k): Path(v["path"]) for k, v in receipt["files"].items()}
+-            if all(p.is_file() and sha(p) == receipt["files"][str(k)]["sha256"] for k, p in files.items()):
+-                return files
+-    destination.mkdir(parents=True, exist_ok=True)
+-    schema = pq.ParquetFile(path).schema_arrow
+-    writers, files = {}, {}
+-    try:
+-        for batch in pq.ParquetFile(path).iter_batches(batch_size=32768):
+-            table = pa.Table.from_batches([batch])
+-            buckets = [_bucket(code) for code in table["ts_code"].to_pylist()]
+-            for index in sorted(set(buckets)):
+-                part = table.filter(pa.array([b == index for b in buckets]))
+-                if index not in writers:
+-                    files[index] = destination / f"bucket_{index:02}.parquet"
+-                    writers[index] = pq.ParquetWriter(files[index].with_suffix(".pending"), schema, compression="zstd")
+-                writers[index].write_table(part)
+-    finally:
+-        for writer in writers.values():
+-            writer.close()
+-    for path in files.values():
+-        os.replace(path.with_suffix(".pending"), path)
+-    _json(receipt_path, dict(source_sha256=source_sha256, row_copy="ARROW_V1", files={str(k): dict(path=str(p), sha256=sha(p)) for k, p in files.items()}))
+-    return files
++def _checkpoint_stat(path: Path) -> tuple:
++    stat = path.stat()
++    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns
++
++
++class _CurrentBucketView:
++    """A logical bucket of the immutable CURRENT file, without a second copy."""
++    def __init__(self, path: Path, parquet, stamp: tuple, groups: dict[int, list[str]], index: int):
++        self.path, self.parquet, self.stamp = path, parquet, stamp
++        self.groups, self.index = groups, index
++
++    def read(self, columns=None) -> pa.Table:
++        import pyarrow.compute as pc
++        if _checkpoint_stat(self.path) != self.stamp:
++            raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(self.path))
++        tables = []
++        for group, codes in self.groups.items():
++            # Read the original row groups in order, just as the old spool did.
++            requested = None if columns is None else list(dict.fromkeys([*columns, "ts_code"]))
++            table = self.parquet.read_row_group(group, columns=requested)
++            if any(_bucket(code) != self.index for code in codes):
++                selected = [code for code in codes if _bucket(code) == self.index]
++                table = table.filter(pc.is_in(table["ts_code"], value_set=pa.array(selected)))
++            if columns is not None:
++                table = table.select(columns)
++            tables.append(table)
++        if _checkpoint_stat(self.path) != self.stamp:
++            raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(self.path))
++        return pa.concat_tables(tables)
++
++
++def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int, _CurrentBucketView]:
++    """Keep the guarded owner seam, but return read-only CURRENT bucket views.
++
++    The original owner already hashes and binds CURRENT before calling here.
++    Index only its symbol column once; never create destination or old buckets.
++    Mixed legacy row groups remain supported by exact Arrow filtering.
++    """
++    import pyarrow.compute as pc
++    path = Path(path)
++    stamp = _checkpoint_stat(path)
++    parquet = pq.ParquetFile(path)
++    groups = {}
++    for group in range(parquet.num_row_groups):
++        codes = pc.unique(parquet.read_row_group(group, columns=["ts_code"])["ts_code"]).to_pylist()
++        for index in sorted({_bucket(code) for code in codes}):
++            groups.setdefault(index, {})[group] = codes
++    if _checkpoint_stat(path) != stamp:
++        raise QfqGateError("CURRENT_BUCKET_SOURCE_CHANGED:" + str(path))
++    return {index: _CurrentBucketView(path, parquet, stamp, rows, index) for index, rows in groups.items()}
+ 
+ 
+ LEGACY_STATIC_FIELDS = frozenset("""raw_code name total_share_10k float_share_10k market_cap_yi float_market_cap_yi turnover_rate_pct finance_source_date list_date tdx_finance_area_code tdx_finance_industry_code tdx_industry_code sw_industry_code static_fundamental_source fundamental_snapshot_note tdx_industry_name is_st_snapshot research_panel_scope candidate_pool_policy minute_data_policy minute_data_output_root minute_data_contract_path minute_data_default_scope minute_data_required_outputs""".split())
+@@ -575,11 +606,95 @@
+     return canonical_sha([ast.dump(node, include_attributes=False) for node in nodes])
+ 
+ 
++def _partial_checkpoint_io_math_sha(path: Path) -> str:
++    # Only this batch's I/O/control functions are different. Every formula,
++    # adjustment, schema, merge, admission and release-gate definition remains.
++    io_functions = {"spool_current", "_checkpoint_stat", "checkpoint_recovery", "_symbol_checkpoint",
++                    "run_daily_rebuild", "_partial_checkpoint_io_math_sha", "_partial_checkpoint_recovery",
++                    "_partial_checkpoint_file"}
++    return canonical_sha([ast.dump(node, include_attributes=False) for node in ast.parse(path.read_text()).body
++                          if not (isinstance(node, ast.FunctionDef) and node.name in io_functions)
++                          and not (isinstance(node, ast.ClassDef) and node.name == "_CurrentBucketView")])
++
++
++def _partial_checkpoint_recovery(recovery: dict, snapshot: dict, identity: dict,
++                                 baseline: dict, data_root: Path) -> dict:
++    """Exact D11 partial computation reuse; keep its true original provenance.
++
++    Retain the existing typed recovery schema so the existing source-closure
++    owner still pins every referenced original run/artifact. This explicit mode
++    does not relax the original complete/37/38-stock recovery modes.
++    """
++    old, chunks = recovery.get("source_identity", {}), recovery.get("chunks", {})
++    if (snapshot.get("asof_date") != 20261111 or recovery.get("asof_date") != 20261111
++            or recovery.get("recovery_scope") != "D11_PARTIAL_IO_ONLY_V1"
++            or any(recovery.get(k) != v for k, v in FLAGS.items())
++            or recovery.get("baseline_panel_sha256") != baseline
++            or set(old) != set(identity)
++            or any(old[k] != value for k, value in identity.items() if k != "adapter_sha256")
++            or old.get("input_sha256") != canonical_sha(snapshot)
++            or not isinstance(chunks, dict) or not 0 < len(chunks) < len(snapshot["symbols"])
++            or not set(chunks).issubset(snapshot["symbols"])
++            or recovery.get("completed_count") != len(chunks)
++            or recovery.get("total_count") != len(snapshot["symbols"])
++            or recovery.get("retry_original_quarantined") != []
++            or recovery.get("tail_delta") is not None or recovery.get("same_asof_source_repair") is not None):
++        raise QfqGateError("PARTIAL_CHECKPOINT_EXACT_D11_INPUT_SCOPE_CONFLICT")
++    core = _source(recovery["source_core"], owner="D11 original partial computation source")
++    if (recovery["source_core"]["sha256"] != "7b1f6b4ef739c7074cfcb1e4b1fda6910d4c02e70f8bf5bf653aaf696a95ca13"
++            or old["adapter_sha256"] != recovery["source_core"]["sha256"]
++            or computation_kernel_sha(core) != computation_kernel_sha(Path(__file__))
++            or _partial_checkpoint_io_math_sha(core) != _partial_checkpoint_io_math_sha(Path(__file__))):
++        raise QfqGateError("PARTIAL_CHECKPOINT_SOURCE_OR_MATH_CHANGED")
++    run = Path(recovery["source_run"])
++    generation = canonical_sha(dict(target=20261111, baseline_panel_sha256=baseline, **old))
++    status_path = run / "stage_status.json"
++    if status_path.is_file() and json.loads(status_path.read_text()).get("status") == "ABANDONED":
++        raise QfqGateError("PARTIAL_CHECKPOINT_RUN_ABANDONED")
++    original = _source(recovery["original_snapshot"], owner="D11 original partial snapshot")
++    factor_identity = factor_cache_identity(data_root, 20261111, snapshot)
++    if (run.name != "qfq_" + generation[:20] or original != run / "adjustment_input_snapshot.json"
++            or json.loads(original.read_text()) != snapshot
++            or not factor_identity or recovery.get("factor_cache_identity") != factor_identity):
++        raise QfqGateError("PARTIAL_CHECKPOINT_SOURCE_GENERATION_OR_FACTOR_CONFLICT")
++    result = {}
++    for code, item in chunks.items():
++        artifact = _source(item["artifact"], owner="D11 partial artifact " + code)
++        receipt_path = _source(item["receipt"], owner="D11 partial receipt " + code)
++        if (artifact != run / "symbol_checkpoints" / (code + ".parquet")
++                or receipt_path != artifact.with_suffix(".receipt.json")):
++            raise QfqGateError("PARTIAL_CHECKPOINT_PATH_CONFLICT:" + code)
++        fingerprint = canonical_sha(dict(code=code, item=snapshot["symbols"][code], **old))
++        receipt = json.loads(receipt_path.read_text())
++        if (receipt.get("checkpoint_id") != fingerprint
++                or receipt.get("sha256") != item["artifact"]["sha256"]
++                or panel_contract(artifact).get("checkpoint_id") != fingerprint):
++            raise QfqGateError("PARTIAL_CHECKPOINT_FINGERPRINT_CONFLICT:" + code)
++        result[code] = dict(item, read_only_original=True, verified_stat=_checkpoint_stat(artifact),
++                           receipt_verified_stat=_checkpoint_stat(receipt_path))
++    return result
++
++
++def _partial_checkpoint_file(item: dict) -> Path:
++    path = Path(item["artifact"]["path"])
++    receipt = Path(item["receipt"]["path"])
++    if (path.is_symlink() or receipt.is_symlink()
++            or _checkpoint_stat(path) != tuple(item["verified_stat"])
++            or _checkpoint_stat(receipt) != tuple(item["receipt_verified_stat"])):
++        raise QfqGateError("PARTIAL_CHECKPOINT_CHANGED_AFTER_VERIFICATION:" + str(path))
++    return path
++
++
+ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseline: dict, data_root: Path,
+                         *, tail_delta: dict | None = None, same_asof: dict | None = None) -> dict:
+     if not ref:
+         return {}
+     recovery = json.loads(_source(ref, owner="reviewed checkpoint recovery").read_text())
++    if recovery.get("recovery_scope") is not None:
++        if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
++                or tail_delta is not None or same_asof is not None):
++            raise QfqGateError("PARTIAL_CHECKPOINT_RECOVERY_MODE_CONFLICT")
++        return _partial_checkpoint_recovery(recovery, snapshot, identity, baseline, data_root)
+     old = recovery["source_identity"]
+     if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
+             or any(old.get(k) != v for k, v in identity.items() if k not in {"adapter_sha256", "turnover_input_sha256"})
+@@ -969,7 +1084,9 @@
+                 adapter_sha256=sha(Path(__file__)), input_adapter_sha256=sha(Path(__file__).with_name("research_panel_adjustment_inputs.py")),
+                 factor_cache_sha256=sha(Path(__file__).with_name("research_panel_factor_cache.py")),
+                 tdx_adapter_sha256=sha(Path(__file__).with_name("research_panel_tdx_adjustment_inputs.py")),
+-                field_contract_sha256=sha(contract_csv), user_formula_sha256=USER_FORMULA_SHA)
++                field_contract_sha256=sha(contract_csv), user_formula_sha256=USER_FORMULA_SHA,
++                logical_reader_sha256=sha(Path(__file__).with_name('research_panel_logical.py')),
++                delta_owner_sha256=sha(Path(__file__).with_name('research_panel_delta.py')))
+ 
+ 
+ def refresh_due(data_root: Path, target: int, max_age_hours: int = 6) -> bool:
+@@ -1171,6 +1288,9 @@
+     Two filesystem files cannot be atomically replaced for uncooperating readers.
+     The journal preserves that limitation and permits crash recovery by owner.
+     """
++    from ops.research_panel_logical import validate_closure
++    for path in candidates.values():
++        validate_closure(path)
+     if expected_baseline is not None:
+         check_baseline(pointers, expected_baseline)
+     for role, pointer in pointers.items():
+@@ -2269,6 +2389,8 @@
+         bound = json.loads(checkpoint_receipt.read_text())
+         if check.get("checkpoint_id") == fingerprint and bound.get("sha256") == sha(checkpoint):
+             return code, checkpoint
++    if code in recovered and recovered[code].get("read_only_original") is True:
++        return code, _partial_checkpoint_file(recovered[code])
+     if code in recovered:
+         ref = recovered[code]["artifact"]
+         computed = pq.read_table(_source(ref, owner="reused pure computation " + code)).to_pandas()
+@@ -2548,7 +2670,8 @@
+                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
+                       compute_backend: str | None = None,
+                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
+-                      tail_delta: dict | None = None, archive_additions: dict | None = None) -> dict:
++                      tail_delta: dict | None = None, archive_additions: dict | None = None,
++                      storage_layout: str = "arrow_blocks_v1") -> dict:
+     """Called exclusively by the original Mac daily formula authority entry."""
+     if tail_delta is not None and (history_extension is not None or refresh_inputs):
+         raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
+@@ -2648,7 +2771,8 @@
+                         _write(destination, source.read_bytes())
+                     retained_history_sidecars[role].append(dict(original=ref, retained=dict(path=str(destination), sha256=ref["sha256"]),
+                         generation_id=history["baseline_generation_id"], excluded_from_accepted=True, byte_identical=True))
+-        retained_snapshot = run_dir / "adjustment_input_snapshot.json"
++        immutable_snapshot = snapshot_file.parent / "adjustment_snapshots" / (sha(snapshot_file) + ".json")
++        retained_snapshot = (immutable_snapshot if storage_layout == "arrow_blocks_v1" else run_dir / "adjustment_input_snapshot.json")
+         if retained_snapshot.exists():
+             if json.loads(retained_snapshot.read_text()) != snapshot:
+                 raise QfqGateError("IMMUTABLE_GENERATION_INPUT_SNAPSHOT_CONFLICT")
+@@ -2661,7 +2785,7 @@
+             source_stats.append(dict(path=ref["path"], size=stat.st_size, mtime_ns=stat.st_mtime_ns))
+         readiness = dict(generation_id=run_id, source_stats=source_stats,
+                          factor_cache_identity=factor_cache_identity(data_root, target, snapshot),
+-                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv)],
++                         code_refs=[dict(path=str(p), sha256=sha(p)) for p in (driver_path, formula_path, contract_csv, Path(__file__).with_name("research_panel_logical.py"), Path(__file__).with_name("research_panel_delta.py"))],
+                          turnover_watch=turnover_source_watch(data_root, tdx_root, target, turnover))
+         if already_current:
+             _json(snapshot_file.with_name("qfq_readiness.json"), readiness)
+@@ -2764,7 +2888,17 @@
+         # these fields from the accepted schema and recompute them from prefix.
+         if history is not None:
+             schemas = {role: user_formula_schema(schema) for role, schema in schemas.items()}
+-        role_start = {r: driver.scan_trade_date_min_max(p)[0] for r, p in currents.items()}
++        from ops.research_panel_logical import is_logical
++        def original_start(path):
++            if not is_logical(path): return driver.scan_trade_date_min_max(path)[0]
++            return min(int(value) for batch in pq.ParquetFile(path).iter_batches(columns=['trade_date'])
++                       for value in batch.column(0).to_pylist())
++        role_start = {r: original_start(p) for r,p in currents.items()}
++        if storage_layout == "arrow_blocks_v1" and not any(x is not None for x in (history_extension, tail_delta, archive_additions, same_asof_ref)):
++            from ops.research_panel_delta import run_delta
++            return run_delta(globals(), locals())
++        if storage_layout not in {"arrow_blocks_v1", "monolithic"}:
++            raise QfqGateError("STORAGE_LAYOUT_UNKNOWN")
+         parts_root = run_dir / "symbol_checkpoints"
+         parts_root.mkdir(exist_ok=True)
+         _json(run_dir / "stage_status.json", dict(status="RUNNING", stage="FULL_HISTORY_QFQ_REBUILD", **meta))
+@@ -2788,6 +2922,7 @@
+                     raise
+                 quarantine_reasons[code] = dict(reason=str(exc), original_status=eligible[code])
+                 return code, None
++        checkpoint_files = {}
+         try:
+             if compute_backend == "process":
+                 multiprocessing.set_executable(sys.executable)
+@@ -2812,6 +2947,10 @@
+                                 if incremental or code not in eligible:
+                                     raise QfqGateError(error)
+                                 quarantine_reasons[code] = dict(reason=error, original_status=eligible[code])
++                        else:
++                            code, checkpoint = result
++                        if checkpoint is not None:
++                            checkpoint_files[code] = Path(checkpoint)
+                     _json(run_dir / "progress.json", dict(completed=min(offset + workers, len(codes)), total=len(codes),
+                           generation_id=run_id, compute_backend=compute_backend, workers=workers))
+             # Check all old key sets before either role is written. A key absent
+@@ -2819,8 +2958,8 @@
+             old_spools = {role: spool_current(path, run_dir / ("current_" + role + "_buckets"), baseline_hashes[role])
+                           for role, path in currents.items()}
+             for role, buckets in old_spools.items():
+-                for bucket_path in buckets.values():
+-                    frame = pq.read_table(bucket_path, columns=["ts_code", "trade_date"]).to_pandas()
++                for bucket_source in buckets.values():
++                    frame = bucket_source.read(columns=["ts_code", "trade_date"]).to_pandas()
+                     for code, old_keys in frame.groupby("ts_code"):
+                         if code in legacy_codes:
+                             approved_role = legacy_policy["roles"][role]
+@@ -2832,7 +2971,7 @@
+                                 raise QfqGateError(f"LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED:{role}:{code}")
+                         if code in quarantine_reasons or code in foreign or code in retained_history_codes or code in unchanged_codes:
+                             continue
+-                        rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
++                        rebuilt_keys = pq.read_table(checkpoint_files[code], columns=["trade_date"]).column(0).to_pylist()
+                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
+                         if missing_keys:
+                             if incremental or code not in eligible:
+@@ -2865,7 +3004,7 @@
+                 delta_prefix_changes[role] = []
+                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
+                     for bucket in range(32):
+-                        old_table = pq.read_table(old_buckets[bucket]) if bucket in old_buckets else None
++                        old_table = old_buckets[bucket].read() if bucket in old_buckets else None
+                         old_frame = old_table.to_pandas() if old_table is not None else pd.DataFrame()
+                         old_groups = old_frame.groupby("ts_code", sort=False).indices if not old_frame.empty else {}
+                         if not old_frame.empty:
+@@ -2910,7 +3049,9 @@
+                         for code in (code for code in codes if _bucket(code) == bucket):
+                             if code not in old_symbols[role] and role not in snapshot["symbols"][code]["publish_roles"]:
+                                 continue
+-                            rebuilt = pq.read_table(parts_root / (code + ".parquet")).to_pandas()
++                            if code in recovered and recovered[code].get("read_only_original") is True:
++                                _partial_checkpoint_file(recovered[code])
++                            rebuilt = pq.read_table(checkpoint_files[code]).to_pandas()
+                             old = old_frame.iloc[old_groups[code]].copy() if code in old_groups else pd.DataFrame()
+                             replaced_old_rows += len(old)
+                             if old.empty and history is None and addition is None:
+@@ -2974,6 +3115,13 @@
+                     unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
+                     unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
+             # Revalidate source bytes before CURRENT can change.
++            partial = [item for item in recovered.values() if item.get("read_only_original") is True]
++            if partial:
++                recovery_control = json.loads(_source(checkpoint_resume, owner="D11 partial recovery before publication").read_text())
++                for key in ("source_core", "original_snapshot"):
++                    _source(recovery_control[key], owner="D11 partial original source before publication")
++                for item in partial:
++                    _partial_checkpoint_file(item)
+             if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
+                 raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
+             turnover.verify_binding()
+--- a/ops/macos_research_panel_daily_authority.py
++++ b/ops/macos_research_panel_daily_authority.py
+@@ -975,7 +975,7 @@
+ 
+ def _parquet_max_date(path: Path) -> int | None:
+     try:
+-        import pyarrow.parquet as pq
++        from ops.research_panel_logical import parquet as pq
+ 
+         table = pq.read_table(path, columns=["trade_date"])
+         values = table.column("trade_date").to_pylist()
+@@ -1016,6 +1016,7 @@
+     module_name: str = "macos_windows_formula_authority",
+     formula_max_workers: int | None = None,
+     qfq_original_tdx_root: Path | str | None = None,
++    checkpoint_resume: dict | None = None,
+ ) -> dict[str, Any]:
+     from ops.research_panel_qfq import input_path, pointer_ready, run_daily_rebuild
+     from ops.research_storage_retention import run_with_retention
+@@ -1034,7 +1035,8 @@
+         tdx_root=tdx, data_root=data, pointers={"selector": selector_ptr, "backtest": backtest_ptr},
+         contract_csv=Path(contract_csv).resolve(), return_root=Path(return_root).resolve(), target=target,
+         publish=True, workers=int(formula_max_workers or __import__("os").environ.get("RESEARCH_PANEL_QFQ_WORKERS", "2")),
+-        refresh_inputs=True,
++        refresh_inputs=True, storage_layout="arrow_blocks_v1",
++        **({"checkpoint_resume": checkpoint_resume} if checkpoint_resume is not None else {}),
+     )
+     artifact = _formula_artifact_binding(Path(result["selector"]), Path(result["backtest"]))
+     current_rows = result.get("counts", {}).get("selector", {}).get("target_date_symbols")
+--- a/ops/macos_research_panel_daily_pack.py
++++ b/ops/macos_research_panel_daily_pack.py
+@@ -30,7 +30,8 @@
+     try:
+         import pandas as pd
+ 
+-        frame = pd.read_parquet(panel_path)
++        from ops.research_panel_logical import read_frame
++        frame = read_frame(panel_path)
+         return _rows(frame)
+     except Exception as error:
+         raise SnapshotGateError(f"A seed panel unreadable: {panel_path}") from error
+--- /dev/null
++++ b/ops/research_panel_logical.py
+@@ -0,0 +1,290 @@
++"""Original panel's explicit Arrow block reader; no collector or global patch.
++
++Ordinary Parquet remains unchanged. Logical anchors fail in unadapted Parquet
++readers instead of masquerading as an empty successful panel.
++"""
++import base64
++import hashlib
++import json
++from pathlib import Path
++from types import SimpleNamespace
++
++import pyarrow as pa
++import pyarrow.compute as pc
++import pyarrow.dataset as ds
++import pyarrow.parquet as physical
++
++MAGIC = b'V4_LOGICAL_PANEL_V1\n'
++SCHEMA = 'v4.original_panel.arrow_blocks.v1'
++KEYS = ['ts_code', 'trade_date']
++META = b'a_share_qfq_contract_v1'
++DISPLAY = {
++    'user_v1_hold_yesterday_keyline_display_asof': ['user_v1_hold_yesterday_keyline_daily'],
++    'user_v1_break_yesterday_keyline_display_asof': ['user_v1_break_yesterday_keyline_daily'],
++    'user_v1_sell_signal_display_asof': ['user_v1_break_yesterday_keyline_daily',
++        'user_v1_white_yellow_death_cross', 'user_v1_break_prev_low'],
++}
++
++
++def digest(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def stamp(path):
++    p = Path(path)
++    if not p.is_absolute() or '..' in p.parts or p.resolve() != p or p.is_symlink():
++        raise ValueError('LOGICAL_UNSAFE_SOURCE:' + str(p))
++    s = p.stat()
++    return dict(device=s.st_dev, inode=s.st_ino, size=s.st_size, mtime_ns=s.st_mtime_ns)
++
++
++def is_logical(path):
++    if not isinstance(path, (str, Path)):
++        return False
++    with Path(path).open('rb') as stream:
++        return stream.read(len(MAGIC)) == MAGIC
++
++
++def anchor_bytes(schema, blocks, *, rows, excluded_symbols=(), projection=None):
++    value = dict(schema_version=SCHEMA, arrow_schema=base64.b64encode(schema.serialize()).decode(),
++        blocks=blocks, rows=rows, excluded_symbols=sorted(excluded_symbols), projection=projection or {})
++    return MAGIC + json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode() + b'\n'
++
++
++def descriptor(path, *, sha256=None, symbols=None, key_rows=None):
++    path = Path(path)
++    result = dict(path=str(path), sha256=sha256 or digest(path), stat=stamp(path),
++                  rows=physical.ParquetFile(path).metadata.num_rows,
++                  row_groups=physical.ParquetFile(path).num_row_groups)
++    if symbols is not None:
++        result['symbols'] = sorted(symbols)
++    if key_rows is not None:
++        result['key_rows'] = key_rows
++    meta = (physical.read_schema(path).metadata or {}).get(META)
++    if meta:
++        contract = json.loads(meta)
++        result['metadata_refs'] = [dict(path=contract['generation_manifest_path'],
++            sha256=digest(contract['generation_manifest_path']))]
++        if contract.get('adjustment_snapshot'):
++            result['metadata_refs'].append(contract['adjustment_snapshot'])
++    return result
++
++
++def closure(path):
++    if not is_logical(path):
++        return []
++    return LogicalFile(path).blocks
++
++
++def _key_filters(filters):
++    if filters is None or isinstance(filters, ds.Expression):
++        return None
++    groups = filters if filters and isinstance(filters[0], list) else [filters]
++    # Only keys can be pushed ahead of UPSERT resolution. A revised value can
++    # fail a business predicate while its superseded old value passes it.
++    selected = [[term for term in group if term[0] in KEYS] for group in groups]
++    return selected if all(selected) else None
++
++
++def _keys(table):
++    return list(zip(table['ts_code'].to_pylist(), table['trade_date'].to_pylist()))
++
++
++class LogicalFile:
++    def __init__(self, path):
++        self.path = Path(path)
++        self.anchor_stat = stamp(self.path)
++        raw = self.path.read_bytes()
++        if not raw.startswith(MAGIC):
++            raise ValueError('LOGICAL_MAGIC_REQUIRED')
++        self.value = json.loads(raw[len(MAGIC):])
++        if self.value.get('schema_version') != SCHEMA:
++            raise ValueError('LOGICAL_SCHEMA_UNKNOWN')
++        self.schema_arrow = pa.ipc.read_schema(pa.BufferReader(base64.b64decode(self.value['arrow_schema'])))
++        self.blocks = self.value['blocks']
++        if not self.blocks or len({b['path'] for b in self.blocks}) != len(self.blocks):
++            raise ValueError('LOGICAL_BLOCK_SCOPE_INVALID')
++        self._files = {}
++        self.groups = []
++        for index, block in enumerate(self.blocks):
++            self.groups.extend((index, group) for group in range(block['row_groups']))
++        self.num_row_groups = len(self.groups)
++        self.metadata = SimpleNamespace(num_rows=self.value['rows'], num_row_groups=self.num_row_groups,
++            metadata=self.schema_arrow.metadata,
++            row_group=lambda i: self._file(self.groups[i][0]).metadata.row_group(self.groups[i][1]))
++        self.schema = self.schema_arrow
++
++    def _check(self, block):
++        if stamp(block['path']) != block['stat'] or stamp(self.path) != self.anchor_stat:
++            raise ValueError('LOGICAL_BLOCK_CHANGED:' + block['path'])
++
++    def _file(self, index):
++        self._check(self.blocks[index])
++        if index not in self._files:
++            self._files[index] = physical.ParquetFile(self.blocks[index]['path'])
++        return self._files[index]
++
++    def _align(self,table,names):
++        fields=[self.schema_arrow.field(name) for name in names]
++        arrays=[table[name].cast(field.type) if name in table.column_names else pa.nulls(len(table),type=field.type)
++                for name,field in zip(names,fields)]
++        return pa.Table.from_arrays(arrays,schema=pa.schema(fields,metadata=self.schema_arrow.metadata))
++
++    def _project(self, table):
++        schema = self.schema_arrow
++        target = self.value.get('projection', {}).get('asof_date')
++        if target is not None:
++            codes = table['ts_code'].to_pylist()
++            dates = table['trade_date'].to_pylist()
++            for name, deps in DISPLAY.items():
++                if name not in table.column_names or not all(dep in table.column_names for dep in deps):
++                    continue
++                old = table[name].to_pylist()
++                data = {dep: table[dep].to_pylist() for dep in deps}
++                values = []
++                for i, (code, day) in enumerate(zip(codes, dates)):
++                    if (not isinstance(code, str) or not (len(code) == 9 and code[-2:] in {'SZ','SH','BJ'})
++                            or code in self.value.get('projection', {}).get('skip_symbols', [])):
++                        values.append(old[i]); continue
++                    today = int(day) == int(target)
++                    first = data[deps[0]][i] == 1
++                    value = today and first
++                    if name == 'user_v1_sell_signal_display_asof':
++                        value = value or data[deps[1]][i] == 1 or data[deps[2]][i] == 1
++                    values.append(int(value))
++                table = table.set_column(table.schema.get_field_index(name), schema.field(name), pa.array(values, type=schema.field(name).type))
++            lineage = self.value.get('projection', {}).get('raw_lineage', {})
++            if 'raw_source_ref_sha256' in table.column_names and 'raw_source_role' in table.column_names:
++                values = [lineage.get(c, {}).get(r, previous) for c, r, previous in zip(codes,
++                    table['raw_source_role'].to_pylist(), table['raw_source_ref_sha256'].to_pylist())]
++                name = 'raw_source_ref_sha256'
++                table = table.set_column(table.schema.get_field_index(name), schema.field(name), pa.array(values, type=schema.field(name).type))
++        return table.replace_schema_metadata(schema.metadata)
++
++    def _columns(self, columns, filters):
++        selected = list(self.schema_arrow.names if columns is None else columns)
++        needed = list(dict.fromkeys([*KEYS, *selected]))
++        for name in selected:
++            needed.extend(d for d in DISPLAY.get(name, []) if d in self.schema_arrow.names and d not in needed)
++        if 'raw_source_ref_sha256' in selected and 'raw_source_role' in self.schema_arrow.names:
++            needed.append('raw_source_role')
++        if filters is not None and not isinstance(filters, ds.Expression):
++            groups = filters if isinstance(filters[0], list) else [filters]
++            needed.extend(term[0] for group in groups for term in group)
++        elif isinstance(filters, ds.Expression):
++            # Arrow Expressions do not expose their referenced fields. Explicit
++            # consumer projections should use DNF filters to retain pruning.
++            needed = list(self.schema_arrow.names)
++        for name in list(needed):
++            needed.extend(d for d in DISPLAY.get(name, []) if d in self.schema_arrow.names and d not in needed)
++        return selected, list(dict.fromkeys(needed))
++
++    def read(self, columns=None, filters=None, **kwargs):
++        if isinstance(filters,list) and not filters:filters=None
++        selected, needed = self._columns(columns, filters)
++        key_filters = _key_filters(filters)
++        key_expression = physical.filters_to_expression(key_filters) if key_filters else None
++        excluded = set(self.value.get('excluded_symbols', []))
++        tables, seen = [], set()
++        requested_symbols = None
++        if key_filters and len(key_filters) == 1:
++            for key, op, value in key_filters[0]:
++                if key == 'ts_code' and op in ('=', '==', 'in'):
++                    requested_symbols = {value} if op != 'in' else set(value)
++        for index in range(len(self.blocks) - 1, -1, -1):
++            block = self.blocks[index]
++            if requested_symbols is not None and block.get('symbols') is not None and not requested_symbols.intersection(block['symbols']):
++                continue
++            self._check(block)
++            f = self._file(index)
++            group_ids = None
++            if requested_symbols is not None and block.get('key_rows'):
++                group_ids = sorted({g for c in requested_symbols for g in block['key_rows'].get(c, [])})
++            table = f.read_row_groups(group_ids, columns=needed) if group_ids is not None else f.read(columns=needed)
++            table = self._align(table,needed)
++            if key_expression is not None:
++                table = table.filter(key_expression)
++            keys = _keys(table)
++            keep = [key not in seen and key[0] not in excluded for key in keys]
++            if len(keys) != len(set(keys)):
++                raise ValueError('LOGICAL_DUPLICATE_KEYS_IN_BLOCK:' + block['path'])
++            seen.update(keys)
++            table = table.filter(pa.array(keep, type=pa.bool_()))
++            tables.append(self._project(table))
++            self._check(block)
++        if not tables:
++            return pa.Table.from_batches([], schema=pa.schema([self.schema_arrow.field(c) for c in selected], metadata=self.schema_arrow.metadata))
++        table = pa.concat_tables(list(reversed(tables)))
++        if filters is not None:
++            table = table.filter(physical.filters_to_expression(filters))
++        return table.select(selected).replace_schema_metadata(self.schema_arrow.metadata)
++
++    def iter_batches(self, batch_size=65536, columns=None, **kwargs):
++        selected, needed = self._columns(columns, None)
++        latest = {}
++        # Only overlay keys are indexed. The full historical base is streamed
++        # once, never reread once per stock or assembled into a full DataFrame.
++        for index in range(1, len(self.blocks)):
++            for batch in self._file(index).iter_batches(columns=KEYS, batch_size=batch_size):
++                latest.update((key, index) for key in _keys(pa.Table.from_batches([batch])))
++        excluded = set(self.value.get('excluded_symbols', []))
++        for index in range(len(self.blocks)):
++            for batch in self._file(index).iter_batches(columns=needed, batch_size=batch_size):
++                table = self._align(pa.Table.from_batches([batch]),needed)
++                keep = [latest.get(key, index) == index and key[0] not in excluded for key in _keys(table)]
++                table = self._project(table.filter(pa.array(keep, type=pa.bool_()))).select(selected)
++                yield from table.to_batches(max_chunksize=batch_size)
++            self._check(self.blocks[index])
++
++
++class _Parquet:
++    def __init__(self):
++        self.cache = {}
++    def __getattr__(self, name):
++        return getattr(physical, name)
++    def ParquetFile(self, source, *args, **kwargs):
++        if not is_logical(source):
++            return physical.ParquetFile(source, *args, **kwargs)
++        path = str(source)
++        old = self.cache.get(path)
++        if old is None or stamp(source) != old.anchor_stat:
++            if len(self.cache) >= 4:
++                self.cache.pop(next(iter(self.cache)))
++            self.cache[path] = LogicalFile(source)
++        return self.cache[path]
++    def read_table(self, source, *, columns=None, filters=None, **kwargs):
++        if is_logical(source):
++            return self.ParquetFile(source).read(columns=columns, filters=filters, **kwargs)
++        return physical.read_table(source, columns=columns, filters=filters, **kwargs)
++    def read_schema(self, source, **kwargs):
++        return self.ParquetFile(source).schema_arrow
++    def read_metadata(self, source, **kwargs):
++        return self.ParquetFile(source).metadata
++
++
++parquet = _Parquet()
++
++
++def read_frame(path, **kwargs):
++    if kwargs.get('filters') == []: kwargs['filters'] = None
++    return parquet.read_table(path, **kwargs).to_pandas()
++
++
++def dataset(source, **kwargs):
++    if not is_logical(source):
++        return ds.dataset(source, **kwargs)
++    file = parquet.ParquetFile(source)
++    class View:
++        schema = file.schema_arrow
++        def to_table(self, columns=None, filter=None, **options):
++            return file.read(columns=columns, filters=filter)
++        def scanner(self, columns=None, filter=None, **options):
++            return SimpleNamespace(to_table=lambda: self.to_table(columns=columns, filter=filter),
++                to_batches=lambda: self.to_table(columns=columns, filter=filter).to_batches())
++    return View()
++
++
++def validate_closure(path):
++    for block in closure(path):
++        if stamp(block['path']) != block['stat']:
++            raise ValueError('LOGICAL_BLOCK_CHANGED:' + block['path'])
+--- /dev/null
++++ b/ops/research_panel_delta.py
+@@ -0,0 +1,383 @@
++"""Incremental persistence inside the original QFQ owner and publication lock.
++
++The pinned full-prefix engine remains the numerical oracle. Only changed rows
++are persisted. No new collector, pointer, source authority or periodic worker.
++"""
++import hashlib
++import json
++from pathlib import Path
++
++import numpy as np
++import pandas as pd
++import pyarrow as pa
++import pyarrow.compute as pc
++
++from ops import research_panel_logical as logical
++
++PROJECTED = set(logical.DISPLAY) | {'raw_source_ref_sha256'}
++
++
++def key_index(path):
++    file = logical.physical.ParquetFile(path)
++    index = {}
++    for group in range(file.num_row_groups):
++        for code in pc.unique(file.read_row_group(group, columns=['ts_code'])['ts_code']).to_pylist():
++            index.setdefault(code, []).append(group)
++    return index
++
++
++def raw_identity(frame):
++    fields = ['trade_date', 'open', 'high', 'low', 'close', 'vol', 'amount']
++    # Canonical numeric bytes, not object-array pointers or global run identity.
++    values = frame[fields].to_numpy(dtype='<f8', copy=True)
++    return hashlib.sha256(values.tobytes()).hexdigest()
++
++
++def factor_state(item):
++    # Only the four inputs actually consumed by the unchanged affine QFQ math.
++    # Receipt/time/source SHA differences remain real generation provenance.
++    return [(int(e['ex_date']),float(e['a']),float(e['b']),float(e['volume_a'])) for e in item['events']]
++
++
++def changed_rows(old, fresh):
++    """Exact original output comparison; NULL and NaN remain distinct in Arrow."""
++    previous = {(code,int(day)): i for i, (code,day) in enumerate(zip(old['ts_code'].to_pylist(),old['trade_date'].to_pylist()))}
++    fresh_dates = [(code,int(day)) for code,day in zip(fresh['ts_code'].to_pylist(),fresh['trade_date'].to_pylist())]
++    if len(set(fresh_dates)) != len(fresh_dates) or not set(previous).issubset(fresh_dates):
++        raise ValueError('DELTA_OLD_KEYS_LOST_OR_DUPLICATE')
++    fields = [name for name in fresh.column_names if name not in PROJECTED]
++    keep, positions, old_positions = [], [], []
++    for position, day in enumerate(fresh_dates):
++        before = previous.get(day)
++        if before is None:
++            keep.append(position); continue
++        positions.append(position); old_positions.append(before)
++    if positions:
++        left = old.take(pa.array(old_positions, type=pa.int64()))
++        right = fresh.take(pa.array(positions, type=pa.int64()))
++        changed = np.zeros(len(positions), dtype=bool)
++        for name in fields:
++            a, b = left[name], right[name]
++            equal = pc.or_(pc.fill_null(pc.equal(a, b), False), pc.and_(pc.is_null(a), pc.is_null(b)))
++            if pa.types.is_floating(a.type):
++                equal = pc.or_(equal, pc.fill_null(pc.and_(pc.is_nan(a), pc.is_nan(b)), False))
++            changed |= np.logical_not(equal.to_numpy(zero_copy_only=False))
++        keep.extend(position for position, different in zip(positions, changed) if different)
++    return fresh.take(pa.array(sorted(keep), type=pa.int64()))
++
++
++class _RawDriver:
++    def __init__(self, driver):
++        self.driver, self.cache = driver, {}
++    def __getattr__(self, name):
++        return getattr(self.driver, name)
++    def read_day_tail(self, code, path, tail_records):
++        key = str(path), tail_records
++        if key not in self.cache:
++            self.cache[key] = self.driver.read_day_tail(code, path, tail_records=tail_records)
++        return self.cache[key].copy()
++
++
++def run_delta(q, c):
++    try:
++        return _run_delta(q, c)
++    except BaseException as exc:
++        q['_json'](c['run_dir']/'stage_status.json', dict(status='FAILED', error=str(exc),
++            run_dir=str(c['run_dir']),target_date=c['target'],candidates={r:str(p)for r,p in c['candidates'].items()},
++            storage_layout='ARROW_BLOCKS_V1', **c['meta']))
++        raise
++    finally:
++        pool = c.pop('_delta_pool', None)
++        if pool is not None:
++            pool.shutdown(wait=True)
++
++
++def _run_delta(q, c):
++    """Called by run_daily_rebuild after its original source/identity checks."""
++    target, snapshot, meta = c['target'], c['snapshot'], c['meta']
++    currents, schemas, run = c['currents'], c['schemas'], c['run_dir']
++    driver, data_root = c['driver'], c['data_root']
++    q['_json'](run / 'stage_status.json', dict(status='RUNNING', stage='ORIGINAL_DELTA_STORAGE', **meta))
++    old_snapshot = json.loads(q['_source'](next(iter(c['contracts'].values()))['adjustment_snapshot'],
++                                         owner='delta original committed snapshot').read_text())
++    prior = {}
++    old_views = {}
++    all_old = set().union(*c['old_symbols'].values())
++    for role, path in currents.items():
++        if logical.is_logical(path):
++            original = logical.LogicalFile(path)
++            prior[role] = list(original.blocks)
++        else:
++            old_views[role] = q['spool_current'](path, run / ('current_' + role + '_buckets'), c['baseline_hashes'][role])
++            groups={group:codes for view in old_views[role].values() for group,codes in view.groups.items()}
++            index={}
++            for group,codes in groups.items():
++                for code in codes:index.setdefault(code,[]).append(group)
++            prior[role] = [logical.descriptor(path, sha256=c['baseline_hashes'][role], key_rows=index)]
++    expected = set(snapshot['symbols'])
++    ordered = sorted(all_old | expected)
++    buckets = {i: [code for code in ordered if q['_bucket'](code) == i] for i in range(32)}
++    deltas = {role: [] for role in currents}
++    counts = {role: dict(panel_rows=0, target_date_symbols=0, old_key_conservation=True,
++                        appended_rows=0, revised_rows=0) for role in currents}
++    current_symbols = {role: set() for role in currents}
++    quarantine = dict(snapshot.get('quarantine_symbols', {}))
++    quarantine.update({code:dict(reason=c.get('legacy_policy',{}).get('reason','LEGACY_BASIS_UNKNOWN'),
++        legacy_non_target=True,policy=snapshot.get('legacy_preservation_policy')) for code in c.get('legacy_codes',[])})
++    classifications, resumed, logical_written, reused_bytes = {}, 0, 0, 0
++    source_semantics = {key: meta[key] for key in ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')}
++    source_semantics['kernel_sha256'] = q['computation_kernel_sha'](Path(q['__file__']))
++    for bucket, codes in buckets.items():
++        frames = {}
++        for role, path in currents.items():
++            table = (old_views[role][bucket].read() if role in old_views and bucket in old_views[role]
++                     else q['pq'].read_table(path, filters=[('ts_code', 'in', codes)]) if role not in old_views
++                     else pa.Table.from_batches([], schema=schemas[role]))
++            series=table['ts_code'].to_pandas()
++            positions=series.groupby(series,sort=False).indices
++            frames[role] = {code:table.take(pa.array(rows,type=pa.int64())) for code,rows in positions.items()}
++        pool = q['ThreadPoolExecutor'](max_workers=c['workers'])
++        c['_delta_pool'] = pool
++        pending = {}
++        remaining = iter(code for code in codes if code in expected)
++        def submit_next():
++            code = next(remaining, None)
++            if code is not None:
++                pending[code] = pool.submit(_prepare, q, c, code, frames, old_snapshot, schemas, source_semantics)
++        for _ in range(c['workers'] * 2):
++            submit_next()
++        for code in codes:
++            if code not in expected:
++                for role in currents:
++                    old = frames[role].get(code)
++                    if old is not None and code not in quarantine:
++                        counts[role]['panel_rows'] += len(old)
++                continue
++            try:
++                prepared = pending.pop(code).result()
++            except q['QfqGateError'] as exc:
++                eligible=snapshot.get('original_quarantine_eligible',{})
++                if code not in eligible: raise
++                quarantine[code]=dict(reason=str(exc),original_status=eligible[code])
++                classifications[code]='ORIGINAL_QUARANTINE_ELIGIBLE_FAILURE'
++                submit_next()
++                continue
++            submit_next()
++            item,kind,dependency,checkpoint,computed = (prepared[k] for k in ('item','kind','dependency','checkpoint','computed'))
++            classifications[code] = kind
++            if checkpoint.is_file():
++                saved = json.loads(checkpoint.read_text())
++                if saved['dependency'] != dependency or saved.get('classification')!=kind:
++                    raise ValueError('DELTA_CHECKPOINT_IDENTITY')
++                _validate_resume(q,c,code,dependency,saved,frames,schemas)
++                for role, value in saved['roles'].items():
++                    q['_source'](value['artifact'], owner='delta resume ' + code)
++                    deltas[role].append(value['block'])
++                    reused_bytes += Path(value['artifact']['path']).stat().st_size
++                    for key in ('appended_rows','revised_rows'):
++                        counts[role][key] += value[key]
++                for role in currents:
++                    counts[role]['panel_rows'] += saved['logical_rows'][role]
++                    if saved['has_target'][role]:
++                        current_symbols[role].add(code)
++                resumed += 1
++                continue
++            record = dict(dependency=dependency, classification=kind, roles={}, logical_rows={}, has_target={})
++            for role, schema in schemas.items():
++                old = frames[role].get(code, pa.Table.from_batches([], schema=schema))
++                if not len(old) and role not in item.get('publish_roles', []):
++                    record['logical_rows'][role] = 0
++                    record['has_target'][role] = False
++                    continue
++                if computed is None:
++                    final_rows = len(old)
++                    has_target = target in [int(x) for x in old['trade_date'].to_pylist()]
++                    patch = None
++                else:
++                    rebuilt = computed
++                    if not len(old) and c.get('history') is None and c.get('addition') is None and role in c.get('role_start',{}):
++                        rebuilt = rebuilt.loc[rebuilt.trade_date.ge(c['role_start'][role])].copy()
++                    frame = q['merge_rebuilt'](old.to_pandas(), rebuilt, role=role, driver=driver,
++                                               history_extension=c['retained_history'] is not None)
++                    frame = c['turnover'].apply_target(code, frame)
++                    if role == 'selector' and frame.trade_date.eq(target).any():
++                        gate = driver.validate_new_selector_rows(frame.loc[frame.trade_date.eq(target)], schema, target)
++                        if gate['status'] != 'PASS':
++                            raise ValueError('ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:' + code)
++                    fresh = q['_table'](frame, schema, driver, role, history_extension=c['retained_history'] is not None)
++                    patch = changed_rows(old, fresh)
++                    final_rows, has_target = len(fresh), bool(frame.trade_date.eq(target).any())
++                record['logical_rows'][role] = final_rows
++                record['has_target'][role] = has_target
++                counts[role]['panel_rows'] += final_rows
++                if has_target:
++                    current_symbols[role].add(code)
++                if patch is not None and len(patch):
++                    path = c['candidates'][role].parent / 'delta_blocks' / (code + '.' + dependency + '.parquet')
++                    path.parent.mkdir(parents=True, exist_ok=True)
++                    block_meta = {k:v for k,v in (patch.schema.metadata or {}).items() if k != logical.META}
++                    block_meta[b'v4.original_panel.delta_block.v1'] = json.dumps(dict(
++                        generation_id=c['run_id'], dependency=dependency, role=role, symbol=code,
++                        asof_date=target, input_sha256=c['identity']['input_sha256'])).encode()
++                    patch = patch.replace_schema_metadata(block_meta)
++                    if path.exists():
++                        memory = pa.BufferOutputStream()
++                        logical.physical.write_table(patch, memory, compression='zstd')
++                        if q['sha'](path) != hashlib.sha256(memory.getvalue()).hexdigest():
++                            raise ValueError('DELTA_UNREGISTERED_OUTPUT_CONFLICT:' + str(path))
++                        reused_bytes += path.stat().st_size
++                    else:
++                        q['pq'].write_table(patch, path, compression='zstd')
++                        logical_written += path.stat().st_size
++                    block = logical.descriptor(path, sha256=q['sha'](path), symbols=[code], key_rows={code:list(range(q['pq'].ParquetFile(path).num_row_groups))})
++                    old_dates = {int(x) for x in old['trade_date'].to_pylist()}
++                    appended = sum(int(day) not in old_dates for day in patch['trade_date'].to_pylist())
++                    value = dict(artifact=dict(path=str(path), sha256=block['sha256']), block=block,
++                                 appended_rows=appended, revised_rows=len(patch)-appended)
++                    record['roles'][role] = value
++                    deltas[role].append(block)
++                    counts[role]['appended_rows'] += appended
++                    counts[role]['revised_rows'] += len(patch)-appended
++            q['_json'](checkpoint, record)
++        pool.shutdown(wait=True)
++        c.pop('_delta_pool', None)
++        q['_json'](run / 'progress.json', dict(stage='ORIGINAL_DELTA_STORAGE', completed=len(classifications),
++            total=len(expected), reused_checkpoints=resumed, new_delta_file_bytes=logical_written))
++    projection = dict(asof_date=target, skip_symbols=sorted(c['retained_history_codes']), raw_lineage={code:{
++        r.get('source_role'):r['sha256'] for r in item['raw_files'] if r.get('source_role')}
++        for code,item in snapshot['symbols'].items()})
++    for role, candidate in c['candidates'].items():
++        counts[role]['target_date_symbols'] = len(current_symbols[role])
++        if len(current_symbols[role]) < snapshot.get('accepted_target_date_floor', 1):
++            raise ValueError('ORIGINAL_ACCEPTED_FLOOR_FAILED:' + role)
++        schema = schemas[role].with_metadata({**(schemas[role].metadata or {}), logical.META:json.dumps(meta).encode()})
++        payload = logical.anchor_bytes(schema, prior[role] + deltas[role], rows=counts[role]['panel_rows'],
++                                       excluded_symbols=quarantine, projection=projection)
++        if candidate.exists():
++            if candidate.read_bytes() != payload:
++                raise ValueError('DELTA_IMMUTABLE_ANCHOR_CONFLICT')
++        else:
++            q['_write'](candidate, payload)
++    # Preserve the original closed-source revalidation before any CURRENT
++    # transaction. A consumed recovery artifact is still a checked input.
++    recovered=c.get('recovered',{})
++    partial=[item for item in recovered.values() if item.get('read_only_original') is True]
++    if c.get('checkpoint_resume') is not None:
++        control=json.loads(q['_source'](c['checkpoint_resume'],owner='D11 recovery before publication').read_text())
++        if partial:
++            for key in ('source_core','original_snapshot'):
++                q['_source'](control[key],owner='D11 partial original source before publication')
++    for item in recovered.values():
++        if item.get('read_only_original') is True:q['_partial_checkpoint_file'](item)
++        else:q['_source'](item['artifact'],owner='recovered computation before publication')
++    # Source and paired-baseline checks are identical to the original owner.
++    if q['generation_identity'](q['load_snapshot'](c['snapshot_file'],target),c['driver_path'],c['formula_path'],c['contract_csv']) != {k:v for k,v in c['identity'].items() if k!='turnover_input_sha256'}:
++        raise ValueError('INPUT_CHANGED_DURING_BUILD')
++    c['turnover'].verify_binding()
++    if not q['turnover_watch_unchanged'](c['readiness']['turnover_watch']):
++        raise q['QfqGateError']('TURNOVER_INPUT_STATUS_CHANGED_DURING_BUILD')
++    if q['factor_cache_identity'](data_root,target,snapshot)!=c['readiness']['factor_cache_identity']:
++        raise q['QfqGateError']('FACTOR_CACHE_CHANGED_DURING_BUILD')
++    for ref in c['inherited_quarantine'].values():
++        q['_source'](ref,owner='prior-generation quarantine before publication')
++    for path in c['candidates'].values():
++        logical.validate_closure(path)
++    q['check_baseline'](c['pointers'],c['frozen_baseline'])
++    q['_json'](run / 'quarantine_manifest.json', dict(generation_id=c['run_id'], reasons=quarantine,
++        inherited_quarantine_manifests=list(c['inherited_quarantine'].values()), artifacts={}, counts=counts, excluded_from_accepted=True))
++    receipt = dict(status='CANDIDATE_READY', target_date=target, run_dir=str(run),
++        candidates={r:str(p) for r,p in c['candidates'].items()}, candidate_sha256={r:q['sha'](p) for r,p in c['candidates'].items()},
++        quarantine_manifest=dict(path=str(run/'quarantine_manifest.json'),sha256=q['sha'](run/'quarantine_manifest.json')),
++        counts=counts, storage_layout='ARROW_BLOCKS_V1', dependency_classifications=classifications,
++        reused_delta_checkpoints=resumed, new_delta_file_bytes=logical_written,
++        reused_delta_file_bytes=reused_bytes, **meta)
++    q['_json'](run / 'candidate_receipt.json', receipt)
++    if c['publish']:
++        q['verify_release_gate'](c['snapshot_file'].parent,c['candidates']['selector'],c['identity'],target,snapshot['convention'])
++        q['publish_pair'](c['pointers'],c['candidates'],c['expected'],c['journal'],expected_baseline=c['frozen_baseline'])
++        q['_json'](c['baseline_file'],q['baseline_binding'](c['pointers']))
++        q['_json'](c['snapshot_file'].with_name('qfq_readiness.json'),c['readiness'])
++        receipt.update(status='READY',selector_pointer_ready=True,backtest_pointer_ready=True)
++    receipt.update(selector=str(c['candidates']['selector']),backtest=str(c['candidates']['backtest']),
++        authority=dict(final_status='PASS_QFQ_FULL_HISTORY' if c['publish'] else 'CANDIDATE_READY',
++                       source_sha256=c['identity']['input_sha256'],generation_id=c['run_id']))
++    compatibility = dict(receipt, final_status=receipt['authority']['final_status'], latest_trade_date=target,
++        selector_current_after=receipt['selector'], backtest_current_after=receipt['backtest'], qfq_contract=meta,
++        canonical_rebuild_stage_status='FULL_LOGICAL_HISTORY_ORIGINAL_CANONICAL_PURE_FUNCTION',
++        formula_processing=dict(worker_context=dict(driver_path=str(c['driver_path']),
++            driver_sha256=c['identity']['driver_sha256'], canonical_formula_path=str(c['formula_path']),
++            canonical_formula_sha256=c['identity']['formula_sha256'])))
++    q['_json'](run/'meta.json',compatibility)
++    q['_json'](run/'task_summary.json',compatibility)
++    q['_json'](run/'stage_status.json',receipt)
++    return receipt
++
++
++def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
++    snapshot,target,driver,run=c['snapshot'],c['target'],c['driver'],c['run_dir']
++    currents = c['currents']
++    item = snapshot['symbols'][code]
++    raw_driver = _RawDriver(driver)
++    raw = q['resolved_raw_history'](code, item, target, raw_driver)
++    old_item = old_snapshot.get('symbols', {}).get(code)
++    old_end = max((max(int(x) for x in t['trade_date'].to_pylist()) for t in [frames[r].get(code) for r in currents]
++                   if t is not None and len(t)), default=0)
++    before = None
++    if old_item is not None:
++        before = q['resolved_raw_history'](code, old_item, old_snapshot['asof_date'], raw_driver)
++    events_same = old_item is not None and factor_state(old_item) == factor_state(item)
++    rules_same=all(all(contract.get(key)==source_semantics[key] for key in
++        ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')) for contract in c['contracts'].values())
++    shape_same=old_item is not None and all(old_item.get(key)==item.get(key) for key in
++        ('history_extension','history_start_date','compute_start_date'))
++    prefix_same = before is not None and raw_identity(before) == raw_identity(raw.loc[raw.trade_date.le(int(before.trade_date.max()))])
++    kind = ('NEW_OR_MISSING_HISTORY' if before is None else 'RULE_REVISION' if not rules_same else 'FACTOR_REVISION' if not events_same
++            else 'RAW_REVISION' if not prefix_same or not shape_same else 'APPEND' if int(raw.trade_date.max()) > old_end else 'UNCHANGED')
++    dependency = q['canonical_sha'](dict(code=code, raw=raw_identity(raw), events=factor_state(item),history_extension=item.get('history_extension'),
++        compute_start=item.get('compute_start_date'), rules=source_semantics,
++        baseline=c['baseline_hashes'],turnover_input=c['identity'].get('turnover_input_sha256'),
++        schemas={r: hashlib.sha256(s.remove_metadata().serialize()).hexdigest() for r, s in schemas.items()}))
++    checkpoint = run / 'delta_checkpoints' / (code + '.' + dependency + '.json')
++    computed = None
++    if kind != 'UNCHANGED' and not checkpoint.is_file():
++        recovered=c.get('recovered',{}).get(code)
++        if recovered is not None:
++            path=(q['_partial_checkpoint_file'](recovered) if recovered.get('read_only_original') is True
++                  else q['_source'](recovered['artifact'],owner='delta reviewed pure checkpoint '+code))
++            computed=q['pq'].read_table(path).to_pandas()
++            if set(computed.ts_code.astype(str))!={code}:raise q['QfqGateError']('DELTA_RECOVERED_ROW_CODE_CONFLICT:'+code)
++        else:
++            computed=q['rebuild_symbol'](code, item, target, raw_driver)
++    return dict(item=item,kind=kind,dependency=dependency,checkpoint=checkpoint,computed=computed)
++
++
++def _validate_resume(q,c,code,dependency,saved,frames,schemas):
++    if set(saved['logical_rows'])!=set(schemas) or set(saved['has_target'])!=set(schemas) or not set(saved['roles'])<=set(schemas):
++        raise ValueError('DELTA_CHECKPOINT_ROLE_SCOPE')
++    for role,schema in schemas.items():
++        old=frames[role].get(code,pa.Table.from_batches([],schema=schema))
++        old_keys={int(x) for x in old['trade_date'].to_pylist()}
++        value=saved['roles'].get(role)
++        if value is None:
++            keys=old_keys
++        else:
++            expected=c['candidates'][role].parent/'delta_blocks'/(code+'.'+dependency+'.parquet')
++            if value['artifact']['path']!=str(expected) or value['block']['path']!=str(expected) or value['artifact']['sha256']!=value['block']['sha256']:
++                raise ValueError('DELTA_CHECKPOINT_PATH_OR_SHA')
++            path=q['_source'](value['artifact'],owner='delta resume source '+code)
++            patch=q['pq'].read_table(path)
++            footer=json.loads((patch.schema.metadata or {}).get(b'v4.original_panel.delta_block.v1',b'{}'))
++            required=dict(generation_id=c['run_id'],dependency=dependency,role=role,symbol=code,asof_date=c['target'],input_sha256=c['identity']['input_sha256'])
++            if footer!=required or not patch.schema.equals(schema,check_metadata=False) or set(patch['ts_code'].to_pylist())!={code}:
++                raise ValueError('DELTA_CHECKPOINT_ARTIFACT_IDENTITY')
++            days=[int(x) for x in patch['trade_date'].to_pylist()]
++            if len(set(days))!=len(days) or not days or max(days)>c['target']:
++                raise ValueError('DELTA_CHECKPOINT_KEYS')
++            if value['block']!=logical.descriptor(path,sha256=value['artifact']['sha256'],symbols=[code],key_rows={code:list(range(q['pq'].ParquetFile(path).num_row_groups))}):
++                raise ValueError('DELTA_CHECKPOINT_BLOCK_DESCRIPTOR')
++            appended=len(set(days)-old_keys)
++            if value['appended_rows']!=appended or value['revised_rows']!=len(days)-appended:
++                raise ValueError('DELTA_CHECKPOINT_COUNTS')
++            keys=old_keys|set(days)
++        if saved['logical_rows'][role]!=len(keys) or saved['has_target'][role]!=(c['target'] in keys):
++            raise ValueError('DELTA_CHECKPOINT_LOGICAL_COUNTS')
+--- /dev/null
++++ b/ops/research_panel_chart_blocks.py
+@@ -0,0 +1,161 @@
++"""Materialized original-chart rows: immutable old rows plus exact revisions.
++
++This is the existing daily owner's rendering sidecar, never a formula engine.
++Reads only join already computed rows and verify every referenced byte.
++"""
++import gzip
++import hashlib
++import json
++from pathlib import Path
++
++VERSION = 'v4.original_chart.row_blocks.v1'
++FLAGS = dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
++LIMIT = 64*1024*1024
++
++
++def canonical(value):
++    return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
++
++
++def ref(path):
++    path=Path(path).resolve(strict=True)
++    return dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
++
++
++def checked(reference, read=None):
++    if read is not None:
++        return read(reference)
++    p=Path(reference['path'])
++    if not p.is_absolute() or p.is_symlink() or p.resolve(strict=True)!=p:
++        raise ValueError('CHART_BLOCK_PATH_INVALID')
++    raw=p.read_bytes()
++    if hashlib.sha256(raw).hexdigest()!=reference['sha256']:
++        raise ValueError('CHART_BLOCK_SHA_DRIFT')
++    return raw
++
++
++def decode(raw):
++    import io
++    with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
++        value=stream.read(LIMIT+1)
++    if len(value)>LIMIT:raise ValueError('CHART_BLOCK_SIZE_LIMIT')
++    return json.loads(value)
++
++
++def retained(reference, read=None):
++    """Flat chain, last-write-wins by original trade date; no numerical compute."""
++    current=decode(checked(reference,read))
++    if current.get('storage_schema')!=VERSION:return current
++    rows={}
++    refs=current['history_blocks']
++    if len({r['path'] for r in refs})!=len(refs) or reference['path'] in {r['path'] for r in refs}:
++        raise ValueError('CHART_BLOCK_REFERENCE_CYCLE')
++    for previous in refs:
++        block=decode(checked(previous,read))
++        if (block['symbol']!=current['symbol'] or block['config']!=current['config']
++                or block['formula_result']['formula_sha256']!=current['formula_result']['formula_sha256']):
++            raise ValueError('CHART_BLOCK_IDENTITY_CONFLICT')
++        for row in block['formula_result']['rows']:rows[row['trade_date']]=row
++    for row in current['formula_result']['rows']:rows[row['trade_date']]=row
++    if sorted(rows)!=current['bar_dates']:raise ValueError('CHART_BLOCK_DATE_COVERAGE')
++    names=[item['name'] for item in current['inventory']['assignments']]
++    ordered=[]
++    for day in sorted(rows):
++        row=rows[day]
++        if set(row['values'])!=set(names):raise ValueError('CHART_BLOCK_VALUE_INVENTORY')
++        ordered.append({**row,'values':{name:row['values'][name] for name in names}})
++    current['formula_result']={**current['formula_result'],'rows':ordered}
++    return current
++
++
++def previous_cache(context,symbol):
++    # Only the original owner's registered index; never directory discovery.
++    if not hasattr(context,'_chart_prior_samples'):
++        samples={};index_path=context.root/'index.json'
++        if index_path.is_file():
++            index=json.loads(index_path.read_bytes())
++            dates=sorted((d for d in index.get('original_charts',{}) if d<str(context.target)),reverse=True)
++            for day in dates[:1]:
++                descriptor=index['original_charts'][day]
++                manifest=json.loads(checked(descriptor['manifest']))
++                if manifest.get('RESEARCH_ONLY') is not True:raise ValueError('CHART_PRIOR_SAFETY')
++                samples=manifest.get('samples',{})
++        context._chart_prior_samples=samples
++    sample=context._chart_prior_samples.get(symbol)
++    if not sample:return None
++    candidate=sample['source_cache'];value=retained(candidate)
++    if value['symbol']!=symbol or value['config']!=context.config_ref:return None
++    return candidate,value
++
++
++def retain_owner_result(context,parts,symbol,bars,result):
++    inventory=context.engine().inventory()
++    ready=context.engine().json_ready(result)
++    prior=previous_cache(context,symbol)
++    blocks=[];rows=ready['rows']
++    if prior:
++        old_ref,old=prior
++        before={r['trade_date']:r for r in old['formula_result']['rows']}
++        if not set(before).issubset(r['trade_date'] for r in rows):raise ValueError('CHART_OLD_KEYS_LOST')
++        rows=[r for r in rows if before.get(r['trade_date'])!=r]
++        blocks=list(old.get('history_blocks',[]))+[dict(path=old_ref['path'],sha256=old_ref['sha256'])]
++    payload=dict(storage_schema=VERSION,symbol=symbol,data_date=str(context.target),identity=context.identity,
++        config=context.config_ref,bars_sha256=hashlib.sha256(canonical(bars)).hexdigest(),
++        bar_dates=[b['trade_date'] for b in bars],calendar=context.calendars[symbol[-2:]],inventory=inventory,
++        formula_result={**ready,'rows':rows},history_blocks=blocks,**FLAGS)
++    path=Path(parts)/'original_retained'/(symbol+'.json.gz');path.parent.mkdir(parents=True,exist_ok=True)
++    raw=gzip.compress(canonical(payload),mtime=0)
++    if path.exists():
++        if path.read_bytes()!=raw:raise ValueError('CHART_RETAINED_IMMUTABLE_CONFLICT')
++    else:
++        temporary=path.with_name('.'+path.name+'.pending');temporary.write_bytes(raw);temporary.replace(path)
++
++
++def projection_payload(spec,read=None):
++    if spec.get('storage_schema')!=VERSION:raise ValueError('CHART_SPEC_SCHEMA_UNKNOWN')
++    source=retained(spec['source_cache'],read)
++    if (source['symbol']!=spec['symbol'] or source['data_date']!=spec['data_date']
++            or source['identity']!=spec['source_identity'] or source['config']!=spec['lineage']['config']):
++        raise ValueError('CHART_SPEC_RETAINED_IDENTITY')
++    projection={k:v for k,v in spec.items() if k not in {'storage_schema','source_identity'}}
++    projection.update(inventory=source['inventory'],formula_result=source['formula_result'])
++    return projection
++
++
++def projection_bytes(reference,read=None):
++    spec=json.loads(checked(reference['spec'],read))
++    raw=gzip.compress(canonical(projection_payload(spec,read)),mtime=0)
++    if len(raw)!=reference['bytes'] or hashlib.sha256(raw).hexdigest()!=reference['sha256']:
++        raise ValueError('CHART_VIRTUAL_PROJECTION_SHA_DRIFT')
++    return raw
++
++
++def shared_html(renderer_raw):
++    from ops.render_original_formula_projection import chart_html
++    # Reuse the installed R19 glyph/table/interaction code. Only its bound
++    # transport is replaced; all financial rows arrive from a verified GET.
++    sample=dict(symbol='000000.SZ',data_date='20000101',unsupported_drawings=[],source=dict(
++        adjustment_convention='BOUND_ORIGINAL_OWNER_QFQ',price_basis='qfq',volume_basis='bound'),
++        formula_result=dict(rows=[dict(trade_date=20000101)]))
++    html=chart_html(renderer_raw,sample,{},compress_payload=False)
++    start=html.index('<script>const projectedReady=')
++    end=html.index('</script>',start)+len('</script>')
++    loader=r'''<script>
++const originalFetch=window.fetch.bind(window),q=new URLSearchParams(location.search);
++const projectedReady=(async()=>{const query=new URLSearchParams();for(const k of ['date','symbol','generation','input_sha256']){if(!q.get(k))throw Error('CHART_BINDING_MISSING');query.set(k,q.get(k));}
++let metadataURL='/api/v4/research/a-share/original-chart?'+query;if(location.pathname.includes('/v192-assets/')&&location.pathname.endsWith('/html')){const scoped=new URL(location.href);scoped.pathname=scoped.pathname.slice(0,-5);scoped.searchParams.delete('sha256');metadataURL=scoped.href;}
++const meta=await originalFetch(metadataURL,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('CHART_METADATA');return r.json()});
++if(meta.status!=='READY'||meta.symbol!==q.get('symbol')||meta.data_date!==q.get('date')||meta.source_generation!==q.get('generation')||meta.input_sha256!==q.get('input_sha256'))throw Error('CHART_METADATA_IDENTITY');
++const asset=meta.assets.projection,u=new URL(asset.url,location.href);if(u.origin!==location.origin)throw Error('CHART_ORIGIN');
++const response=await originalFetch(u,{cache:'no-store'});if(!response.ok)throw Error('CHART_PROJECTION');const bytes=new Uint8Array(await response.arrayBuffer());if(bytes.length>8*1024*1024||bytes.length!==asset.bytes)throw Error('CHART_SIZE');
++const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');if(digest!==asset.sha256)throw Error('CHART_SHA');
++const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')),reader=stream.getReader();let size=0,parts=[];for(;;){const r=await reader.read();if(r.done)break;size+=r.value.length;if(size>64*1024*1024){await reader.cancel();throw Error('CHART_DECOMPRESSED_LIMIT');}parts.push(r.value);}const p=JSON.parse(await new Blob(parts).text());
++if(p.symbol!==meta.symbol||p.data_date!==meta.data_date||p.source.generation_id!==meta.source_generation||p.source.source_input_sha256!==meta.input_sha256||p.RESEARCH_ONLY!==true||p.production_allowed!==false||p.orders_sent!==false||p.buy_gate_updated!==false)throw Error('CHART_PROJECTION_IDENTITY');
++const rows=p.formula_result.rows;return {payload:{status:'READY',symbol:p.symbol,target_date:p.data_date,rows,total_rows:rows.length,first_date:rows[0].trade_date,last_date:rows.at(-1).trade_date,source_vendor:'EXISTING_BOUND_QFQ_CACHE',source_kind:p.source.adjustment_convention,projection_source_label:p.source.price_basis+' / '+p.source.volume_basis+'；历史非PIT',projection_lineage:p.lineage,RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false},registry:{entry_count:1,available_count:1,no_target_bar_count:0,pending_count:0,entries:[{symbol:p.symbol,rows:rows.length,source_vendor:'BOUND_CACHE_DERIVATIVE'}]}};})();
++window.fetch=async function(url){const p=await projectedReady,u=new URL(url,location.href);if(u.origin!==location.origin)return new Response('',{status:404});if(u.pathname==='/v1/registry')return new Response(JSON.stringify(p.registry));if(u.pathname==='/v1/research'&&u.searchParams.get('symbol')===p.payload.symbol&&u.searchParams.get('date')===p.payload.target_date)return new Response(JSON.stringify(p.payload));return new Response('',{status:404});};
++</script>'''
++    html=html[:start]+loader+html[end:]
++    # The existing renderer's date input must use the bound source day.
++    html=html.replace("(async()=>{try{const response=await fetch('/v1/registry'", "(async()=>{try{document.querySelectorAll('input[type=date]').forEach(x=>{const d=q.get('date');x.value=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6);});const response=await fetch('/v1/registry'",1)
++    export="""<script>const exportButton=document.createElement('button');exportButton.type='button';exportButton.textContent='导出当前图 PNG';exportButton.onclick=()=>{const canvas=document.querySelector('#chart');if(!document.documentElement.dataset.loaded)return;const a=document.createElement('a');a.download=q.get('symbol')+'-'+q.get('date')+'.png';a.href=canvas.toDataURL('image/png');a.click();};document.querySelector('header').append(exportButton);</script>"""
++    return html.replace('</body>',export+'</body>')
+--- /dev/null
++++ b/ops/research_panel_reader_compat.py
+@@ -0,0 +1,33 @@
++"""One frozen transport equivalence; actual source provenance stays separate."""
++import hashlib
++import json
++from pathlib import Path
++
++
++def _checked(path, expected):
++    path=Path(path)
++    if path.is_symlink() or path.resolve(strict=True)!=path or hashlib.sha256(path.read_bytes()).hexdigest()!=expected:
++        raise ValueError('READER_TRANSPORT_PROOF_SOURCE_DRIFT')
++    return path
++
++
++def semantic_reader_identity(reader_ref,config_ref,*,proof_path=None):
++    proof_path=Path(proof_path) if proof_path else Path(__file__).parent/'vendor/selector_reader_transport_compat.json'
++    if not proof_path.exists():return reader_ref,None
++    proof=json.loads(proof_path.read_bytes())
++    if (proof.get('schema')!='v4.reader.transport_equivalence.v1'
++            or proof.get('scope')!='EXACT_ARROW_BLOCK_TRANSPORT_ONLY'
++            or proof.get('after_sha256')!=reader_ref['sha256'] or proof.get('config')!=config_ref
++            or proof.get('historical_reader',{}).get('path')!=reader_ref['path']
++            or proof.get('historical_reader',{}).get('sha256')!=proof.get('before_sha256')):
++        raise ValueError('READER_TRANSPORT_PROOF_IDENTITY_CONFLICT')
++    before=_checked(proof_path.parent/proof['before_source'],proof['before_sha256'])
++    oracle=_checked(proof_path.parent/proof['oracle']['file'],proof['oracle']['sha256'])
++    result=json.loads(oracle.read_bytes())
++    if result.get('status')!='PASS' or result.get('before_sha256')!=proof['before_sha256'] or result.get('after_sha256')!=proof['after_sha256']:
++        raise ValueError('READER_TRANSPORT_ORACLE_NOT_PASS')
++    _checked(reader_ref['path'],reader_ref['sha256'])
++    return proof['historical_reader'],dict(actual_reader=reader_ref,historical_mathematical_reader=proof['historical_reader'],
++        before_source_snapshot=dict(path=str(before),sha256=proof['before_sha256']),
++        equivalence_proof=dict(path=str(proof_path),sha256=hashlib.sha256(proof_path.read_bytes()).hexdigest()),
++        oracle=dict(path=str(oracle),sha256=proof['oracle']['sha256']))
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -78,7 +78,7 @@
+  target={key:float(last.iloc[0][key])for key in columns}
+  if target!=proof['target_ohlcva'] or not all(math.isfinite(v)and v>0 for v in target.values()):raise ValueError('TYPED_END_TARGET_RAW_VALUES_CONFLICT')
+  import pyarrow as pa
+- import pyarrow.parquet as pq
++ from ops.research_panel_logical import parquet as pq
+  if set(proof['paired_roles'])!={'selector','backtest'}:raise ValueError('TYPED_END_PAIRED_ROLES_CONFLICT')
+  context.unchanged()
+  for role,path in context.receipt['candidates'].items():
+@@ -205,7 +205,7 @@
+    for old_day,sync in sorted(label_index.get('history_sync',{}).items()):
+     if int(old_day)<=self.target:self.label_results.update(sync.get('stock_results',{}))
+   self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
+-  reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
++  reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
+  def cached_sha(self,p):
+   p=Path(p);s=p.stat();stamp=(s.st_size,s.st_mtime_ns,s.st_ino)
+   if str(p) in self.hash_cache:
+@@ -218,7 +218,7 @@
+   s=self.panel.stat()
+   if (self.pair_binding is None and (self.pointer.read_bytes()!=self.pointer_bytes or self.backpointer.read_bytes()!=self.back_bytes)) or (s.st_size,s.st_mtime_ns,s.st_ino)!=(self.panel_stat.st_size,self.panel_stat.st_mtime_ns,self.panel_stat.st_ino):raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
+  def _calendars(self):
+-  import pyarrow.parquet as pq
++  from ops.research_panel_logical import parquet as pq
+   dates={e:set() for e in ('SH','SZ','BJ')}
+   for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
+    for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
+@@ -248,25 +248,14 @@
+     validator=reference(Path(__file__)),snapshot_bytes_unchanged=True))
+   return result
+  def _read_frame(self,symbol):
+-  columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume'];self.unchanged()
+-  cache=getattr(self,'_selector_read_cache',None)
+-  if cache is None:
+-   # The original reader validates profile/basis and the paired publication
+-   # before this context reuses one Dataset's parsed Parquet metadata.
+-   frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
+-   self.unchanged()
+-   import pyarrow.dataset as ds
+-   paths=[self.panel,Path(self.back_bytes.decode('utf-8-sig').strip()),Path(self.receipt_ref['path']),Path(self.reader_ref['path'])]
+-   stamps={p:(p.stat().st_dev,p.stat().st_ino,p.stat().st_size,p.stat().st_mtime_ns) for p in paths}
+-   journal=self.data_root/'runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json'
+-   self._selector_read_cache=dict(dataset=ds.dataset(self.panel,format='parquet'),stamps=stamps,journal=journal,journal_bytes=journal.read_bytes())
+-   return frame
+-  for path,stamp in cache['stamps'].items():
+-   s=path.stat()
+-   if (s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns)!=stamp:raise ValueError('DAILY_READ_BINDING_CHANGED:'+str(path))
+-  if self.pair_binding is None and cache['journal'].read_bytes()!=cache['journal_bytes']:raise ValueError('DAILY_READ_PUBLICATION_JOURNAL_CHANGED')
+-  import pyarrow.dataset as ds
+-  return cache['dataset'].to_table(columns=list(dict.fromkeys(['trade_date','ts_code',*columns])),filter=(ds.field('ts_code')==symbol)&(ds.field('trade_date')<=str(self.target))).to_pandas().reset_index(drop=True)
++  from ops.research_panel_logical import parquet as panel_parquet
++  columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume']
++  self.unchanged()
++  # Preserve original profile/basis/date validation through the shared reader.
++  frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
++  self.unchanged()
++  return frame
++
+  def read(self,symbol):
+   frame=self._read_frame(symbol).sort_values('trade_date',kind='stable')
+   if frame.empty:return [],None
+@@ -370,7 +359,7 @@
+  result=build_daily_event_statistics(close_rows=closes,market_calendar=dates,asof=asof,event_groups=[{**g,'event_dates':[]} for g in groups])
+  basis=context.identity.get('basis')
+  if not isinstance(basis,dict) or not context.reader_ref:raise ValueError('DAILY_CACHE_SEMANTIC_IDENTITY_UNBOUND')
+- identity=dict(symbol=symbol,market=symbol[-2:],basis={k:v for k,v in basis.items() if k!='asof_date'},source_authority=dict(reader=context.reader_ref),rule_sha256=groups[0]['rule_sha256'],formula_sha256=context.config['formula']['sha256'])
++ identity=dict(symbol=symbol,market=symbol[-2:],basis={k:v for k,v in basis.items() if k!='asof_date'},source_authority=dict(reader=getattr(context,'cache_reader_ref',context.reader_ref)),rule_sha256=groups[0]['rule_sha256'],formula_sha256=context.config['formula']['sha256'])
+  cache=EventCaseCache(store);all_groups={};counters=[]
+  try:
+   for original,summary in zip(groups,result['groups']):
+--- a/ops/research_daily_product_parallel.py
++++ b/ops/research_daily_product_parallel.py
+@@ -102,7 +102,8 @@
+     if path.is_symlink() or not path.is_file():return None
+     reference=product.reference(path)
+     if symbol in samples and reference!={key:samples[symbol]['source_cache'][key]for key in ('path','sha256')}:raise ValueError('DAILY_RETAINED_FORMULA_SOURCE_DRIFT')
+-    retained=json.loads(gzip.decompress(product.checked(reference).read_bytes()))
++    from ops.research_panel_chart_blocks import retained as load_retained
++    retained=load_retained(reference,lambda r:product.checked(r).read_bytes())
+     if (retained.get('symbol')!=symbol or retained.get('data_date')!=str(context.target) or
+             retained.get('identity')!=old['source_identity'] or retained.get('config')!=context.config_ref or
+             retained.get('calendar')!=context.calendars[symbol[-2:]] or retained.get('bars_sha256')!=product.digest(bars) or
+--- a/ops/render_original_formula_projection.py
++++ b/ops/render_original_formula_projection.py
+@@ -246,19 +246,10 @@
+ 
+ 
+ def retain_owner_result(context, parts, symbol, bars, result):
+-    """Keep the candidate's existing computation, never invoke compute here."""
+     require(context.config["formula"]["sha256"] == FORMULA_SHA and context.config["engine"]["sha256"] == ENGINE_SHA,
+             "OWNER_FORMULA_ENGINE_CONFLICT")
+-    if not hasattr(context, "_original_chart_inventory"):
+-        context._original_chart_inventory = context.engine().inventory()
+-    payload = {"symbol": symbol, "data_date": str(context.target), "identity": context.identity,
+-        "config": context.config_ref, "bars_sha256": sha(canonical(bars)), "bar_dates": [b["trade_date"] for b in bars],
+-        "calendar": context.calendars[symbol[-2:]], "inventory": context._original_chart_inventory,
+-        "formula_result": context.engine().json_ready(result), **FLAGS}
+-    path = Path(parts) / "original_retained" / (symbol + ".json.gz")
+-    path.parent.mkdir(parents=True, exist_ok=True)
+-    temporary = path.with_name("." + path.name + ".pending")
+-    temporary.write_bytes(gzip.compress(json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode(), mtime=0)); temporary.replace(path)
++    from ops.research_panel_chart_blocks import retain_owner_result as retain
++    return retain(context, parts, symbol, bars, result)
+ 
+ 
+ def owner_pngs(items):
+@@ -289,7 +280,15 @@
+ 
+ def finalize_owner_charts(context, parts, product, manifest_ref, artifact, *, gaps, png_renderer=None):
+     """Numeric hashes are final first; sidecars point to them, never vice versa."""
++    from ops import research_panel_chart_blocks as blocks
+     renderer_raw = pinned(OWNER_RENDERER)
++    shared = blocks.shared_html(renderer_raw).encode()
++    shared_path = context.root / 'shared_original' / (sha(shared) + '.html')
++    shared_path.parent.mkdir(parents=True, exist_ok=True)
++    if shared_path.exists():
++        require(shared_path.read_bytes() == shared, 'SHARED_CHART_IMMUTABLE_CONFLICT')
++    else:
++        shared_path.write_bytes(shared)
+     lineage = {"product": artifact, "manifest": manifest_ref, "config": context.config_ref,
+         "engine": context.config["engine"], "formula": context.config["formula"], "renderer": OWNER_RENDERER}
+     output = Path(manifest_ref["path"]).parent / "original_charts"
+@@ -310,18 +309,15 @@
+                         and prior["source_cache"]["path"] == str(Path(parts) / "original_retained" / (symbol + ".json.gz"))
+                         and prior["source_cache"]["calendar_sha256"] == sha(canonical(context.calendars[symbol[-2:]])), "OWNER_CHART_CACHE_IDENTITY_CONFLICT")
+                 pinned(prior["source_cache"])
+-                for kind in ("html", "PNG", "projection"):
+-                    require(Path(prior[kind]["path"]).is_relative_to(output), "OWNER_CHART_CACHE_PATH_CONFLICT")
+-                    pinned(prior[kind])
++                require(prior.get('storage_schema') == blocks.VERSION, 'OWNER_CHART_STORAGE_CONFLICT')
++                require(prior['html'] == reference(shared_path), 'OWNER_SHARED_CHART_CONFLICT')
++                pinned(prior['html']); blocks.projection_bytes(prior['projection'])
+                 samples[symbol] = prior; records[symbol] = prior
+                 continue
+             retained_path = Path(parts) / "original_retained" / (symbol + ".json.gz")
+             require(retained_path.is_file(), gaps.get(symbol, "RETAINED_FULL_RESULT_MISSING_LEGACY_NUMERIC_CACHE_NO_RECOMPUTE"))
+             retained_ref = reference(retained_path)
+-            with gzip.open(retained_path, "rb") as stream:
+-                raw = stream.read(64 * 1024 * 1024 + 1)
+-            require(len(raw) <= 64 * 1024 * 1024, "OWNER_RETAINED_SIZE_LIMIT")
+-            retained = json.loads(raw)
++            retained = blocks.retained(retained_ref)
+             require(safe(retained) and retained["symbol"] == symbol and retained["data_date"] == str(context.target)
+                     and retained["identity"] == context.identity and retained["config"] == context.config_ref
+                     and retained["calendar"] == context.calendars[symbol[-2:]], "OWNER_RETAINED_BINDING_CONFLICT")
+@@ -347,15 +343,25 @@
+                 "authority": "DERIVED_RENDERING_ONLY", "historical_PIT": False, "source": source, "source_cache": cache,
+                 "product_row_ref": product["row_refs"][symbol], "inventory": inventory, "formula_result": result,
+                 "unsupported_drawings": [], "lineage": lineage, **FLAGS}
+-            projection_path, html_path, png_path = (output / (symbol + suffix) for suffix in (".projection.json.gz", ".html", ".png"))
+-            projection_path.write_bytes(gzip.compress(canonical(projection), mtime=0))
+-            html_path.write_text(chart_html(renderer_raw, projection, lineage, compress_payload=True))
++            spec = {k: v for k, v in projection.items() if k not in ('inventory', 'formula_result')}
++            spec.update(storage_schema=blocks.VERSION, source_identity=context.identity)
++            spec_path = output / (symbol + '.projection.spec.json')
++            spec_raw = canonical(spec) + b'\n'
++            if spec_path.exists():
++                require(spec_path.read_bytes() == spec_raw, 'OWNER_PROJECTION_SPEC_CONFLICT')
++            else:
++                spec_path.write_bytes(spec_raw)
++            projection_raw = gzip.compress(canonical(blocks.projection_payload(spec)), mtime=0)
++            projection_ref = dict(path=str(spec_path), sha256=sha(projection_raw), spec=reference(spec_path),
++                bytes=len(projection_raw), encoding='gzip', virtual=True)
+             item = {"symbol": symbol, "data_date": str(context.target), "source_generation": context.generation,
+                 "source_input_sha256": context.identity["input_sha256"], "formula_sha256": FORMULA_SHA,
+                 "source_binding": lineage, "source_cache": cache, "product_row_ref": product["row_refs"][symbol],
+-                "rows": len(result["rows"]), "projection": reference(projection_path), "html": reference(html_path)}
++                "rows": len(result["rows"]), "projection": projection_ref, "html": reference(shared_path),
++                'storage_schema': blocks.VERSION, 'PNG': None, 'png_export': 'ON_USER_REQUEST_CANVAS'}
+             records[symbol] = item
+-            pending.append({"symbol": symbol, "date": str(context.target), "rows": item["rows"], "html": str(html_path), "png": str(png_path)})
++            write_json(checkpoint, item)
++            samples[symbol] = item
+         except Exception as error:
+             errors[symbol] = str(error)
+     if pending:
+--- a/ops/research_panel_top200.py
++++ b/ops/research_panel_top200.py
+@@ -4,6 +4,7 @@
+ price collection, eligibility inference, manual chart review or trading.
+ """
+ from __future__ import annotations
++from ops.research_panel_logical import dataset as panel_dataset, parquet as pq
+ import ast
+ import collections
+ import csv
+@@ -91,9 +92,9 @@
+ def structure_histories(panel,symbols,expected):
+     """One bounded column/window read; the frozen feature function is unchanged."""
+     import pyarrow.dataset as ds
+-    dataset=ds.dataset(panel,format='parquet')
++    dataset=panel_dataset(panel,format='parquet')
+     columns=[key for key in ('trade_date','ts_code','open','high','low','close','volume','user_v1_breakout','breakout','brick_pullback_shrink')if key in dataset.schema.names]
+-    table=dataset.to_table(columns=columns,filter=ds.field('ts_code').isin(list(symbols))&(ds.field('trade_date')>=str(expected[0]))&(ds.field('trade_date')<=str(expected[-1])))
++    table=pq.read_table(panel,columns=columns,filters=[('ts_code','in',list(symbols)),('trade_date','>=',str(expected[0])),('trade_date','<=',str(expected[-1]))])
+     histories=collections.defaultdict(list)
+     for row in table.to_pylist():row['trade_date']=int(row['trade_date']);histories[row['ts_code']].append(row)
+     return {symbol:sorted(histories[symbol],key=lambda row:row['trade_date'])for symbol in symbols}
+@@ -260,7 +261,7 @@
+ def _prior_generation_proofs(context,caches,bars_by_symbol):
+     """One bounded column read/calendar scan per actual old generation."""
+     from decimal import Decimal
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     grouped={};proofs={symbol:dict(records={},sources=[])for symbol in caches}
+     for symbol,cache in caches.items():
+         for day,item in cache['evaluations'].items():
+--- a/ops/materialize_workbench_score_action.py
++++ b/ops/materialize_workbench_score_action.py
+@@ -4,6 +4,7 @@
+ new daily observations, reuses exact stock-prefix caches, and never runs on GET.
+ """
+ from __future__ import annotations
++from ops.research_panel_logical import dataset as panel_dataset, parquet as pq
+ import ast
+ from concurrent.futures import ProcessPoolExecutor
+ import hashlib
+@@ -226,10 +227,10 @@
+     if not set(requested)<=set(product['row_refs']):raise ValueError('SCORE_SCOPE_CONFLICT')
+     rules=authority_identity()
+     # One shared Parquet scan for this missing output batch, no per-stock scan.
+-    dataset=ds.dataset(context.panel,format='parquet')
++    dataset=panel_dataset(context.panel,format='parquet')
+     columns=[c for c in COLUMNS if c in dataset.schema.names]
+     if set(COLUMNS)-set(columns):raise ValueError('SCORE_INPUT_COLUMNS_UNBOUND')
+-    table=dataset.to_table(columns=columns,filter=ds.field('ts_code').isin(requested)&(ds.field('trade_date')<=target))
++    table=pq.read_table(context.panel,columns=columns,filters=[('ts_code','in',requested),('trade_date','<=',target)])
+     buckets={s:[] for s in requested}
+     for row in table.to_pylist():buckets[row['ts_code']].append(row)
+     args=[]
+--- a/ops/research_panel_f10.py
++++ b/ops/research_panel_f10.py
+@@ -17,7 +17,7 @@
+ 
+ import pyarrow as pa
+ import pyarrow.compute as pc
+-import pyarrow.parquet as pq
++from ops.research_panel_logical import parquet as pq
+ 
+ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+ VENDOR = {
+--- a/ops/research_storage_pair.py
++++ b/ops/research_storage_pair.py
+@@ -51,12 +51,14 @@
+ 
+ 
+ def describe(paths):
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     if set(paths) != {'selector', 'backtest'}:raise RetentionError('PAIR_ROLE_SCOPE')
+     roles = {};identities = []
+     for role, value in paths.items():
+         path = safe_path(value);before = stamp(path)
+         schema = pq.read_schema(path);contract = json.loads((schema.metadata or {})[META])
++        from ops.research_panel_logical import validate_closure
++        validate_closure(path)
+         receipt_path = safe_path(contract['generation_manifest_path']);receipt = read_json(receipt_path)
+         if (receipt['generation_id'] != contract['generation_id'] or receipt['candidates'][role] != str(path)
+                 or receipt.get('input_sha256') != contract.get('input_sha256')):
+@@ -171,6 +173,8 @@
+         for row in self.manifest['roles'].values():
+             if stamp(safe_path(row['path'])) != row['stat']:
+                 raise RetentionError('PAIR_BOUND_ARTIFACT_CHANGED')
++            from ops.research_panel_logical import validate_closure
++            validate_closure(row['path'])
+     def pointer_bytes(self, role):
+         self.assert_open();return (str(self.paths[role])+'\n').encode()
+     def expected(self, data):
+--- a/ops/research_storage_retention.py
++++ b/ops/research_storage_retention.py
+@@ -543,7 +543,7 @@
+         verify(ref)
+     # No formula execution or table scan: only the footer's computation ID plus
+     # already SHA-verified Parquet and original per-symbol receipt identity.
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     fingerprints = {}
+     for item in action["files"]:
+         path = Path(item["path"])
+@@ -755,6 +755,15 @@
+                 safe_path(before, exists=False)
+             else:
+                 pin(before)
++    # Current logical generations own their transitive immutable blocks even
++    # when those bytes were originally published by an older generation.
++    from ops.research_panel_logical import closure
++    for item in keep:
++        for value in item['status']['candidates'].values():
++            for block in closure(Path(value)):
++                pin_ref(block)
++                for ref in block.get('metadata_refs', []):
++                    pin_ref(ref)
+     return protected, evidence, inventory_value
+ 
+ 
+--- a/ops/research_storage_governance.py
++++ b/ops/research_storage_governance.py
+@@ -163,9 +163,13 @@
+         raise RetentionError('ORDINARY_ROLLBACK_RESIDENT_UNKNOWN')
+     retained=[current[0]] if policy.get('keep_completed',2)==1 else [current[0],rollback[0]]
+     paths=[]
++    from ops.research_panel_logical import closure
+     for item in retained:
+         paths.extend(item['status']['candidates'].values())
+-        paths.append(str(item['run']/'symbol_checkpoints'))
++        checkpoints=item['run']/'symbol_checkpoints'
++        if checkpoints.exists():paths.append(str(checkpoints))
++        for path in item['status']['candidates'].values():
++            paths.extend(block['path'] for block in closure(Path(path)))
+     for path in paths:safe_path(path)
+     return paths
+ 
+@@ -858,7 +862,7 @@
+     import pyarrow as pa
+     import pyarrow.compute as pc
+     import pyarrow.dataset as ds
+-    import pyarrow.parquet as pq
++    from ops.research_panel_logical import parquet as pq
+     config=configuration(policy)
+     if config is None:raise RetentionError('DEBUG_GOVERNANCE_REQUIRED')
+     source=safe_path(source);root=safe_path(output_root,exists=False)
+--- /dev/null
++++ b/ops/vendor/selector_reader_transport_before.py
+@@ -0,0 +1,844 @@
++# -*- coding: utf-8 -*-
++"""Current selector_ready panel interface.
++
++This module intentionally does not hardcode a parquet path. It reads
++CURRENT_SELECTOR_READY_PANEL.txt at call time, so daily pointer updates are
++picked up automatically.
++"""
++from __future__ import annotations
++
++from contextlib import contextmanager
++import json
++from pathlib import Path
++from typing import Iterable, Optional, Sequence
++
++POINTER_FILE = Path(__file__).resolve().parent / "CURRENT_SELECTOR_READY_PANEL.txt"
++FORBIDDEN_FUTURE_PATTERNS = (
++    "future", "fwd", "forward", "next_", "nextopen", "nextclose",
++    "target", "label_", "winner", "posthoc", "max_future", "future_ret", "ret_future",
++)
++DEFAULT_REQUIRED_COLUMNS = (
++    "trade_date", "ts_code", "name", "open", "high", "low", "close", "volume", "amount",
++)
++REQUIRED_BASE_COLUMNS = (
++    "trade_date", "ts_code", "name", "market_type", "exchange",
++    "open", "high", "low", "close", "volume", "amount",
++)
++REQUIRED_PRICEVOL_COLUMNS = (
++    "pre_close", "pct_chg", "vol_ratio_60", "ma5", "ma10", "ma20",
++    "high_20", "high_20_prev", "amount_ratio_20",
++    "bar_close_pos", "amplitude_pct", "upper_shadow_pct", "lower_shadow_pct",
++)
++REQUIRED_SIGNAL_COLUMNS = (
++    "B1", "B2", "B3", "BG", "BBI", "zge_white_line", "zge_yellow_line",
++    "J", "macd_dif", "macd_dea", "macd_hist",
++)
++NAME_MISSING_TOKENS = {"", "nan", "none", "null", "--", "<na>", "na", "n/a"}
++DEFAULT_TDX_HQ_HOST = "119.147.212.81"
++DEFAULT_TDX_HQ_PORT = 7709
++DEFAULT_TDX_EXHQ_HOST = "119.147.212.81"
++DEFAULT_TDX_EXHQ_PORT = 7727
++TDX_LOCAL_ROOT = Path(r"C:\new_tdx_mock")
++TDX_VIPDOC_ROOT = TDX_LOCAL_ROOT / "vipdoc"
++TDX_HQ_CACHE_ROOT = TDX_LOCAL_ROOT / "T0002" / "hq_cache"
++TDX_CUSTOM_BLOCK_ROOT = TDX_LOCAL_ROOT / "T0002" / "blocknew"
++TDX_BLOCK_FILES = {
++    "default": "block.dat",
++    "index": "block_zs.dat",
++    "style": "block_fg.dat",
++    "concept": "block_gn.dat",
++}
++FUTU_QFQ_PROFILE_ID = "FUTU_QFQ_ASOF"
++FUTU_QFQ_PROFILE_DIR = (
++    Path(__file__).resolve().parents[3]
++    / "research_panel_daily" / "formula_profiles" / "futu_qfq"
++)
++_FUTU_PROJECTION_MODULE = None
++
++
++def _load_futu_projection_module():
++    """Load the colocated offline projection helper without changing sys.path."""
++    global _FUTU_PROJECTION_MODULE
++    if _FUTU_PROJECTION_MODULE is not None:
++        return _FUTU_PROJECTION_MODULE
++    import importlib.util
++    import sys
++
++    helper_path = Path(__file__).resolve().with_name("futu_formula_projection.py")
++    if not helper_path.is_file():
++        raise RuntimeError(f"FUTU_PROFILE_HELPER_MISSING: {helper_path}")
++    module_name = "_v4_futu_formula_projection"
++    module = sys.modules.get(module_name)
++    if module is None or Path(getattr(module, "__file__", "")).resolve() != helper_path:
++        spec = importlib.util.spec_from_file_location(module_name, helper_path)
++        if spec is None or spec.loader is None:
++            raise RuntimeError(f"FUTU_PROFILE_HELPER_LOAD_FAILED: {helper_path}")
++        module = importlib.util.module_from_spec(spec)
++        sys.modules[module_name] = module
++        try:
++            spec.loader.exec_module(module)
++        except Exception:
++            sys.modules.pop(module_name, None)
++            raise
++    _FUTU_PROJECTION_MODULE = module
++    return module
++
++
++def _read_pointer(pointer_file: Path = POINTER_FILE) -> Path:
++    raw = pointer_file.read_bytes()
++    text = raw.decode("utf-8-sig", errors="strict").strip().lstrip("\ufeff").strip().strip('"')
++    if not text:
++        raise RuntimeError(f"Empty selector_ready pointer: {pointer_file}")
++    fixed = _repair_mojibake_path(text)
++    if fixed is not None:
++        return fixed
++    path = Path(text)
++    if not path.exists():
++        fixed = _repair_mojibake_path(text)
++        if fixed is not None:
++            return fixed
++    if not path.exists():
++        raise FileNotFoundError(f"Selector_ready panel not found: {path}")
++    return path
++
++
++def _repair_mojibake_path(text: str) -> Optional[Path]:
++    try:
++        fixed_text = text.encode("cp936").decode("utf-8")
++    except UnicodeError:
++        return None
++    fixed_path = Path(fixed_text)
++    return fixed_path if fixed_path.exists() else None
++
++
++def _resolve_panel_path(panel_path: Optional[str | Path] = None) -> Path:
++    if panel_path is None:
++        return _read_pointer()
++    fixed = _repair_mojibake_path(str(panel_path))
++    if fixed is not None:
++        return fixed
++    path = Path(panel_path)
++    if not path.exists():
++        raise FileNotFoundError(f"Selector_ready panel not found: {path}")
++    return path
++
++
++def _date_values(path: Path) -> list[int]:
++    import pyarrow.parquet as pq
++
++    arr = pq.read_table(path, columns=["trade_date"]).column("trade_date").to_pylist()
++    vals = []
++    for value in arr:
++        if value is None:
++            continue
++        text = str(value).replace("-", "")[:8]
++        if text.isdigit():
++            vals.append(int(text))
++    return vals
++
++
++def _name_missing_mask(series):
++    text = series.astype("string").str.strip().str.lower()
++    return series.isna() | text.isin(NAME_MISSING_TOKENS)
++
++
++def _trade_date_text(series):
++    return series.astype("string").str.replace("-", "", regex=False).str[:8]
++
++
++def get_current_selector_panel_path() -> str:
++    return str(_read_pointer())
++
++
++def get_current_panel_path() -> str:
++    return get_current_selector_panel_path()
++
++
++def get_selector_ready_path() -> str:
++    return get_current_selector_panel_path()
++
++
++def list_columns(panel_path: Optional[str | Path] = None) -> list[str]:
++    import pyarrow.parquet as pq
++    path = _resolve_panel_path(panel_path)
++    return list(pq.ParquetFile(path).schema_arrow.names)
++
++
++def _canonical_basis(path: Path, parquet_file=None) -> dict:
++    """Read the same generation's saved contract; no network or price rewrite."""
++    import pyarrow.parquet as pq
++    pf = parquet_file or pq.ParquetFile(path)
++    raw = (pf.schema_arrow.metadata or {}).get(b"a_share_qfq_contract_v1")
++    if raw is None:
++        return {"profile_id": "CANONICAL_CURRENT", "price_basis": "UNKNOWN_UNCERTIFIED",
++                "volume_basis": "UNKNOWN_UNCERTIFIED", "price_adjustment_asof": None,
++                "historical_pit_certified": False}
++    try:
++        contract = json.loads(raw)
++        manifest_path = Path(contract["generation_manifest_path"])
++        if not manifest_path.is_absolute():
++            raise ValueError("manifest must be absolute")
++        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
++        required = ("generation_id", "input_sha256", "snapshot_file_sha256", "asof_date", "price_basis", "volume_basis", "convention")
++        if (contract.get("schema") != "a_share_qfq_panel_v1" or contract.get("price_basis") not in ("QFQ_ASOF", "MIXED_BY_MARKET")
++                or any(not contract.get(key) or manifest.get(key) != contract[key] for key in required)
++                or Path(manifest["candidates"]["selector"]).resolve() != path.resolve()):
++            raise ValueError("generation identity conflict")
++        if contract["price_basis"] == "MIXED_BY_MARKET":
++            markets = contract.get("market_basis", {})
++            if markets != manifest.get("market_basis") or markets.get("A", {}).get("price_basis") != "QFQ_ASOF":
++                raise ValueError("market basis binding conflict")
++        if contract.get("field_basis", {}) != manifest.get("field_basis", {}):
++            raise ValueError("field basis binding conflict")
++        # Cooperating CURRENT readers refuse the short two-file transition.
++        if POINTER_FILE.is_file() and Path(POINTER_FILE.read_text(encoding="utf-8-sig").strip()).resolve() == path.resolve():
++            data_root = POINTER_FILE.parent.parent
++            journal = json.loads((data_root / "runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json").read_text())
++            backtest_pointer = data_root / "backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt"
++            backtest_path = Path(backtest_pointer.read_text(encoding="utf-8-sig").strip())
++            backtest_raw = (pq.ParquetFile(backtest_path).schema_arrow.metadata or {}).get(b"a_share_qfq_contract_v1")
++            backtest = json.loads(backtest_raw or b"{}")
++            if journal.get("status") not in ("COMMITTED", "ROLLED_BACK", "ROLLED_BACK_AFTER_INTERRUPTION") or backtest.get("generation_id") != contract["generation_id"]:
++                raise ValueError("paired CURRENT generation unavailable or publication pending")
++        return {"profile_id": "CANONICAL_CURRENT", "price_basis": contract["price_basis"],
++                "volume_basis": contract["volume_basis"], "market_basis": contract.get("market_basis", {}), "amount_basis": contract.get("amount_basis"),
++                "price_adjustment_asof": str(contract["asof_date"]) if contract["price_basis"] == "QFQ_ASOF" else None,
++                "a_share_price_adjustment_asof": str(contract["asof_date"]), "generation_id": contract["generation_id"],
++                "price_provider": contract.get("price_provider"),
++                "adjustment_provider_contract": contract.get("adjustment_provider_contract"),
++                "adjustment_convention": contract["convention"], "manifest_path": str(manifest_path),
++                "field_basis": contract.get("field_basis", {}),
++                "quarantine_manifest_path": contract.get("quarantine_manifest_path"), "coverage": manifest.get("counts", {}),
++                "adjustment_snapshot": contract.get("adjustment_snapshot"),
++                "input_sha256": contract["input_sha256"], "historical_pit_certified": False}
++    except (OSError, ValueError, TypeError, KeyError) as exc:
++        raise RuntimeError(f"CANNOT_CONFIRM_QFQ_GENERATION_BINDING: {path}: {exc}") from exc
++
++
++def _raw_profile_gate(profile, basis: dict) -> None:
++    if profile == "RAW" and basis["price_basis"] != "RAW_VERIFIED":
++        raise ValueError(f"RAW_PROFILE_NOT_AVAILABLE_FOR_CURRENT_BASIS: {basis['price_basis']}")
++
++
++def get_panel_meta(
++    panel_path: Optional[str | Path] = None,
++    include_dates: bool = True,
++    profile: Optional[str] = None,
++    asof: Optional[str] = None,
++) -> dict:
++    import pyarrow.parquet as pq
++    if isinstance(panel_path, bool):
++        include_dates = panel_path
++        panel_path = None
++    path = _resolve_panel_path(panel_path)
++    pf = pq.ParquetFile(path)
++    basis = _canonical_basis(path, pf)
++    _raw_profile_gate(profile, basis)
++    cols = list(pf.schema_arrow.names)
++    future_cols = [c for c in cols if any(p in c.lower() for p in FORBIDDEN_FUTURE_PATTERNS)]
++    meta = {
++        "panel_role": "SELECTOR_READY_CURRENT",
++        "path": str(path),
++        "panel_path": str(path),
++        "rows": pf.metadata.num_rows,
++        "columns": len(cols),
++        "cols": len(cols),
++        "column_names": cols,
++        "future_forbidden_columns": future_cols,
++        "future_like_columns": future_cols,
++        "future_like_count": len(future_cols),
++        **basis,
++        "read_profile": basis,
++    }
++    if include_dates and "trade_date" in cols:
++        vals = _date_values(path)
++        meta["trade_date_min"] = min(vals) if vals else None
++        meta["trade_date_max"] = max(vals) if vals else None
++        meta["latest_date"] = str(meta["trade_date_max"]) if meta["trade_date_max"] is not None else None
++        meta["trade_date_count"] = len(set(vals)) if vals else 0
++    if profile not in (None, "RAW"):
++        if profile != FUTU_QFQ_PROFILE_ID:
++            raise ValueError(f"UNSUPPORTED_SELECTOR_PROFILE: {profile}")
++        projection = _load_futu_projection_module()
++        bound = projection.validate_profile_for_panel(
++            FUTU_QFQ_PROFILE_DIR, path, asof,
++        )
++        meta["read_profile"] = projection.profile_metadata(bound)
++        meta["read_profile"]["legacy_chart_profile"] = True
++    return meta
++
++
++def get_panel_metadata(
++    include_dates: bool = True,
++    panel_path: Optional[str | Path] = None,
++    profile: Optional[str] = None,
++    asof: Optional[str] = None,
++) -> dict:
++    return get_panel_meta(
++        panel_path=panel_path,
++        include_dates=include_dates,
++        profile=profile,
++        asof=asof,
++    )
++
++
++def validate_required_columns(
++    required_columns: Optional[Sequence[str]] = None,
++    panel_path: Optional[str | Path] = None,
++    raise_on_missing: bool = True,
++) -> dict:
++    required = list(required_columns or DEFAULT_REQUIRED_COLUMNS)
++    cols = list_columns(panel_path=panel_path)
++    missing = [c for c in required if c not in cols]
++    result = {
++        "ok": not missing,
++        "panel_path": str(_resolve_panel_path(panel_path)),
++        "exists": True,
++        "column_count": len(cols),
++        "required_columns": required,
++        "missing_columns": missing,
++        "present_columns": [c for c in required if c in cols],
++        "missing_base": [c for c in REQUIRED_BASE_COLUMNS if c not in cols],
++        "missing_pricevol": [c for c in REQUIRED_PRICEVOL_COLUMNS if c not in cols],
++        "missing_signal": [c for c in REQUIRED_SIGNAL_COLUMNS if c not in cols],
++    }
++    if missing and raise_on_missing:
++        raise RuntimeError(f"Selector panel missing required columns: {missing}")
++    return result
++
++
++_SCHEMA_CACHE: dict[str, object] = {}
++
++
++def _panel_schema(path):
++    key = str(path)
++    cached = _SCHEMA_CACHE.get(key)
++    if cached is None:
++        import pyarrow.parquet as pq
++        cached = pq.ParquetFile(path).schema_arrow
++        _SCHEMA_CACHE[key] = cached
++    return cached
++
++
++def _coerce_filter_literals(filters, path):
++    """Align filter literals with the parquet column types.
++
++    pyarrow refuses e.g. trade_date (string) compared to an int literal and
++    raises ArrowNotImplementedError before any row is read.
++    """
++    if not filters:
++        return filters
++    import pyarrow as pa
++    schema = _panel_schema(path)
++    coerced = []
++    for item in filters:
++        try:
++            column, operator, value = item
++        except (TypeError, ValueError):
++            coerced.append(item)
++            continue
++        if column in schema.names and not isinstance(value, bool):
++            field_type = schema.field(column).type
++            if pa.types.is_string(field_type) or pa.types.is_large_string(field_type):
++                if isinstance(value, int):
++                    value = str(value)
++                elif isinstance(value, float) and value.is_integer():
++                    value = str(int(value))
++            elif pa.types.is_integer(field_type) and isinstance(value, str):
++                stripped = value.strip().lstrip("-")
++                if stripped.isdigit():
++                    value = int(value)
++        coerced.append((column, operator, value))
++    return coerced
++
++
++def load_selector_ready(
++    columns: Optional[Sequence[str]] = None,
++    start_date: Optional[str] = None,
++    end_date: Optional[str] = None,
++    ts_codes: Optional[Iterable[str]] = None,
++    filters=None,
++    panel_path: Optional[str | Path] = None,
++    profile: Optional[str] = None,
++    asof: Optional[str] = None,
++):
++    import pandas as pd
++    path = _resolve_panel_path(panel_path)
++    if profile not in (None, "RAW", FUTU_QFQ_PROFILE_ID):
++        raise ValueError(f"UNSUPPORTED_SELECTOR_PROFILE: {profile}")
++    if profile == FUTU_QFQ_PROFILE_ID:
++        projection = _load_futu_projection_module()
++        bound = projection.validate_profile_for_panel(
++            FUTU_QFQ_PROFILE_DIR, path, asof,
++        )
++        result = projection.load_profile_rows(
++            bound,
++            columns=columns,
++            start_date=start_date,
++            end_date=end_date,
++            ts_codes=ts_codes,
++            filters=filters,
++        )
++        result.attrs["legacy_chart_profile"] = True
++        return result
++    basis = _canonical_basis(path)
++    _raw_profile_gate(profile, basis)
++    if columns is None:
++        read_columns = None
++    else:
++        read_columns = list(dict.fromkeys(["trade_date", "ts_code", *columns]))
++    filters = _coerce_filter_literals(filters, path)
++    df = pd.read_parquet(path, columns=read_columns, filters=filters)
++    if start_date is not None:
++        df = df[df["trade_date"].astype(str) >= str(start_date)]
++    if end_date is not None:
++        df = df[df["trade_date"].astype(str) <= str(end_date)]
++    if ts_codes is not None:
++        code_set = set(map(str, ts_codes))
++        df = df[df["ts_code"].astype(str).isin(code_set)]
++    df = df.reset_index(drop=True)
++    if basis["price_basis"] == "MIXED_BY_MARKET" and not df.empty:
++        import re
++        scopes = {"A" if re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(c)) else str(c).rsplit(".", 1)[-1]
++                  for c in df.ts_code}
++        if len(scopes) == 1:
++            market = basis["market_basis"].get(next(iter(scopes)))
++            if market is None:
++                raise RuntimeError("CANNOT_CONFIRM_MARKET_BASIS")
++            basis = dict(basis, price_basis=market["price_basis"], volume_basis=market["volume_basis"], amount_basis=market.get("amount_basis"),
++                         price_adjustment_asof=str(market["asof_date"]) if market.get("asof_date") else None)
++    df.attrs["panel_metadata"] = basis
++    return df
++
++
++def load_selector_panel(columns: Optional[Sequence[str]] = None, filters=None):
++    return load_selector_ready(columns=columns, filters=filters)
++
++
++def load_current_panel(columns: Optional[Sequence[str]] = None, filters=None):
++    return load_selector_ready(columns=columns, filters=filters)
++
++
++def read_panel(columns: Optional[Sequence[str]] = None, filters=None):
++    return load_selector_ready(columns=columns, filters=filters)
++
++
++def load_latest(
++    columns: Optional[Sequence[str]] = None,
++    panel_path: Optional[str | Path] = None,
++):
++    import pandas as pd
++
++    path = _resolve_panel_path(panel_path)
++    vals = _date_values(path)
++    if not vals:
++        raise RuntimeError("Selector panel has no valid trade_date values")
++    latest = str(max(vals))
++    load_cols = list(columns) if columns is not None else None
++    return pd.read_parquet(path, columns=load_cols, filters=[("trade_date", "==", latest)])
++
++
++def smoke_check(panel_path: Optional[str | Path] = None) -> dict:
++    import pandas as pd
++
++    path = _resolve_panel_path(panel_path)
++    meta = get_panel_meta(panel_path=path, include_dates=True)
++    required = validate_required_columns(panel_path=path, raise_on_missing=False)
++    latest = meta.get("trade_date_max")
++    latest_rows = 0
++    name_missing_total_count = None
++    latest_name_missing_count = None
++    latest_core_name_missing_count = None
++    latest_hk_connect_name_missing_count = None
++    if "name" in meta["column_names"]:
++        name_cols = ["trade_date", "name"]
++        for optional_col in ("market_type", "exchange"):
++            if optional_col in meta["column_names"]:
++                name_cols.append(optional_col)
++        name_df = pd.read_parquet(path, columns=name_cols)
++        date_text = _trade_date_text(name_df["trade_date"])
++        latest_mask = date_text == str(latest) if latest is not None else pd.Series(False, index=name_df.index)
++        missing_mask = _name_missing_mask(name_df["name"])
++        if "exchange" in name_df.columns:
++            hk_connect_mask = name_df["exchange"].astype("string").str.upper().eq("HK_CONNECT")
++        elif "market_type" in name_df.columns:
++            hk_connect_mask = name_df["market_type"].astype("string").str.upper().eq("HK")
++        else:
++            hk_connect_mask = pd.Series(False, index=name_df.index)
++        latest_rows = int(latest_mask.sum())
++        name_missing_total_count = int(missing_mask.sum())
++        latest_name_missing_count = int((missing_mask & latest_mask).sum())
++        latest_hk_connect_name_missing_count = int((missing_mask & latest_mask & hk_connect_mask).sum())
++        latest_core_name_missing_count = int((missing_mask & latest_mask & ~hk_connect_mask).sum())
++    elif latest is not None:
++        dates = pd.read_parquet(path, columns=["trade_date"])["trade_date"]
++        latest_rows = int((_trade_date_text(dates) == str(latest)).sum())
++    warnings = []
++    if name_missing_total_count and name_missing_total_count > 0:
++        warnings.append("historical_name_missing")
++    if latest_hk_connect_name_missing_count and latest_hk_connect_name_missing_count > 0:
++        warnings.append("latest_hk_connect_name_missing")
++    name_gate_ok = latest_core_name_missing_count == 0
++    ok = required["ok"] and not meta["future_like_columns"] and name_gate_ok
++    return {
++        "ok": ok,
++        "status": "PASS" if ok else "FAIL",
++        "path": str(path),
++        "panel_path": str(path),
++        "rows": meta["rows"],
++        "total_rows": meta["rows"],
++        "cols": meta["cols"],
++        "total_columns": meta["cols"],
++        "trade_date_min": meta.get("trade_date_min"),
++        "trade_date_max": latest,
++        "latest_date": str(latest) if latest is not None else None,
++        "trade_date_count": meta.get("trade_date_count"),
++        "latest_rows": int(latest_rows),
++        "name_blank_aware_missing_count": name_missing_total_count,
++        "name_missing_total_count": name_missing_total_count,
++        "latest_name_missing_count": latest_name_missing_count,
++        "latest_core_name_missing_count": latest_core_name_missing_count,
++        "latest_hk_connect_name_missing_count": latest_hk_connect_name_missing_count,
++        "warnings": warnings,
++        "future_like_count": meta["future_like_count"],
++        "future_like_columns": meta["future_like_columns"],
++        "required_columns": required,
++        "schema_check": required,
++    }
++
++
++def assert_no_future_columns() -> bool:
++    bad = get_panel_meta(include_dates=False)["future_forbidden_columns"]
++    if bad:
++        raise RuntimeError(f"Selector panel contains forbidden future-like columns: {bad}")
++    return True
++
++
++def get_tdx_local_paths() -> dict:
++    return {
++        "tdx_root": str(TDX_LOCAL_ROOT),
++        "vipdoc": str(TDX_VIPDOC_ROOT),
++        "sh_lday": str(TDX_VIPDOC_ROOT / "sh" / "lday"),
++        "sz_lday": str(TDX_VIPDOC_ROOT / "sz" / "lday"),
++        "bj_lday": str(TDX_VIPDOC_ROOT / "bj" / "lday"),
++        "ds_lday": str(TDX_VIPDOC_ROOT / "ds" / "lday"),
++        "hq_cache": str(TDX_HQ_CACHE_ROOT),
++        "blocknew": str(TDX_CUSTOM_BLOCK_ROOT),
++        "name_cache": str(TDX_HQ_CACHE_ROOT / "ds_stk.dat"),
++    }
++
++
++def _import_pytdx_hq():
++    try:
++        from pytdx.hq import TdxHq_API
++    except Exception as exc:
++        raise ImportError("pytdx.hq is not available. Install with: pip install pytdx") from exc
++    return TdxHq_API
++
++
++def _import_pytdx_exhq():
++    try:
++        from pytdx.exhq import TdxExHq_API
++    except Exception as exc:
++        raise ImportError("pytdx.exhq is not available. Install with: pip install pytdx") from exc
++    return TdxExHq_API
++
++
++def get_pytdx_classes() -> dict:
++    reader_classes = get_pytdx_reader_classes()
++    return {
++        "TdxHq_API": _import_pytdx_hq(),
++        "TdxExHq_API": _import_pytdx_exhq(),
++        **reader_classes,
++    }
++
++
++def get_pytdx_reader_classes() -> dict:
++    try:
++        from pytdx.reader import (
++            BlockReader,
++            CustomerBlockReader,
++            GbbqReader,
++            HistoryFinancialReader,
++            TdxDailyBarReader,
++            TdxExHqDailyBarReader,
++            TdxLCMinBarReader,
++            TdxMinBarReader,
++        )
++    except Exception as exc:
++        raise ImportError("pytdx.reader is not available. Install with: pip install pytdx") from exc
++    return {
++        "BlockReader": BlockReader,
++        "CustomerBlockReader": CustomerBlockReader,
++        "GbbqReader": GbbqReader,
++        "HistoryFinancialReader": HistoryFinancialReader,
++        "TdxDailyBarReader": TdxDailyBarReader,
++        "TdxExHqDailyBarReader": TdxExHqDailyBarReader,
++        "TdxLCMinBarReader": TdxLCMinBarReader,
++        "TdxMinBarReader": TdxMinBarReader,
++    }
++
++
++def get_pytdx_method_inventory() -> dict:
++    inventory = {}
++    for name, cls in get_pytdx_classes().items():
++        methods = []
++        for attr in dir(cls):
++            if attr.startswith("_"):
++                continue
++            value = getattr(cls, attr, None)
++            if callable(value):
++                methods.append(attr)
++        inventory[name] = sorted(methods)
++    return inventory
++
++
++def create_tdx_hq_api(multithread: bool = True):
++    return _import_pytdx_hq()(multithread=multithread)
++
++
++def create_tdx_exhq_api():
++    return _import_pytdx_exhq()()
++
++
++def connect_tdx_hq(
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++    multithread: bool = True,
++):
++    api = create_tdx_hq_api(multithread=multithread)
++    if not api.connect(host, int(port)):
++        raise ConnectionError(f"pytdx TdxHq_API connect failed: {host}:{port}")
++    return api
++
++
++def connect_tdx_exhq(
++    host: str = DEFAULT_TDX_EXHQ_HOST,
++    port: int = DEFAULT_TDX_EXHQ_PORT,
++):
++    api = create_tdx_exhq_api()
++    if not api.connect(host, int(port)):
++        raise ConnectionError(f"pytdx TdxExHq_API connect failed: {host}:{port}")
++    return api
++
++
++@contextmanager
++def tdx_hq_session(
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++    multithread: bool = True,
++):
++    api = connect_tdx_hq(host=host, port=port, multithread=multithread)
++    try:
++        yield api
++    finally:
++        api.disconnect()
++
++
++@contextmanager
++def tdx_exhq_session(
++    host: str = DEFAULT_TDX_EXHQ_HOST,
++    port: int = DEFAULT_TDX_EXHQ_PORT,
++):
++    api = connect_tdx_exhq(host=host, port=port)
++    try:
++        yield api
++    finally:
++        api.disconnect()
++
++
++def fetch_tdx_security_bars(
++    category: int,
++    market: int,
++    code: str,
++    start: int = 0,
++    count: int = 800,
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++    as_dataframe: bool = True,
++):
++    with tdx_hq_session(host=host, port=port) as api:
++        rows = api.get_security_bars(int(category), int(market), str(code), int(start), int(count))
++        return api.to_df(rows) if as_dataframe else rows
++
++
++def fetch_tdx_daily_bars(
++    market: int,
++    code: str,
++    start: int = 0,
++    count: int = 800,
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++    as_dataframe: bool = True,
++):
++    return fetch_tdx_security_bars(
++        category=9,
++        market=market,
++        code=code,
++        start=start,
++        count=count,
++        host=host,
++        port=port,
++        as_dataframe=as_dataframe,
++    )
++
++
++def fetch_tdx_markets(
++    host: str = DEFAULT_TDX_EXHQ_HOST,
++    port: int = DEFAULT_TDX_EXHQ_PORT,
++    as_dataframe: bool = True,
++):
++    with tdx_exhq_session(host=host, port=port) as api:
++        rows = api.get_markets()
++        return api.to_df(rows) if as_dataframe else rows
++
++
++def _tdx_block_result_type(result_type: str | int) -> int:
++    from pytdx.reader.block_reader import BlockReader_TYPE_FLAT, BlockReader_TYPE_GROUP
++
++    if isinstance(result_type, int):
++        return result_type
++    value = str(result_type).strip().lower()
++    if value in {"flat", "row", "rows", "detail", "details"}:
++        return BlockReader_TYPE_FLAT
++    if value in {"group", "groups", "summary"}:
++        return BlockReader_TYPE_GROUP
++    raise ValueError("result_type must be flat/details or group/summary")
++
++
++def _group_block_frame(df):
++    import pandas as pd
++
++    if df.empty or "blockname" not in df.columns or "code" not in df.columns:
++        return df
++    grouped = (
++        df.groupby(["blockname", "block_type"], dropna=False)["code"]
++        .apply(lambda x: ",".join(str(v) for v in x if str(v)))
++        .reset_index(name="code_list")
++    )
++    grouped["stock_count"] = grouped["code_list"].apply(lambda x: 0 if not x else len(x.split(",")))
++    return grouped[["blockname", "block_type", "stock_count", "code_list"]]
++
++
++def list_tdx_block_file_names() -> dict:
++    return dict(TDX_BLOCK_FILES)
++
++
++def list_tdx_local_block_files() -> list[dict]:
++    roots = [TDX_HQ_CACHE_ROOT, TDX_CUSTOM_BLOCK_ROOT]
++    rows = []
++    for root in roots:
++        if not root.exists():
++            continue
++        for path in sorted(root.glob("*block*.dat")):
++            rows.append(
++                {
++                    "path": str(path),
++                    "name": path.name,
++                    "size_bytes": path.stat().st_size,
++                    "mtime": path.stat().st_mtime,
++                    "pytdx_block_reader_supported": path.name in set(TDX_BLOCK_FILES.values()),
++                }
++            )
++    return rows
++
++
++def resolve_tdx_block_file(block_file: str | Path) -> Path:
++    path = Path(block_file)
++    if path.exists():
++        return path
++    if not path.is_absolute():
++        for root in [TDX_HQ_CACHE_ROOT, TDX_CUSTOM_BLOCK_ROOT, TDX_LOCAL_ROOT]:
++            candidate = root / path
++            if candidate.exists():
++                return candidate
++    raise FileNotFoundError(f"TDX block file not found locally: {block_file}")
++
++
++def read_tdx_local_block_file(
++    block_file: str | Path,
++    result_type: str | int = "flat",
++):
++    from pytdx.reader import BlockReader
++
++    path = resolve_tdx_block_file(block_file)
++    return BlockReader().get_df(str(path), _tdx_block_result_type(result_type))
++
++
++def read_tdx_custom_blocks(
++    blocknew_dir: str | Path = TDX_CUSTOM_BLOCK_ROOT,
++    result_type: str | int = "flat",
++):
++    from pytdx.reader import CustomerBlockReader
++
++    path = Path(blocknew_dir)
++    if not path.exists():
++        raise FileNotFoundError(f"TDX custom block directory not found: {path}")
++    return CustomerBlockReader().get_df(str(path), _tdx_block_result_type(result_type))
++
++
++def list_tdx_custom_block_groups(blocknew_dir: str | Path = TDX_CUSTOM_BLOCK_ROOT):
++    return read_tdx_custom_blocks(blocknew_dir=blocknew_dir, result_type="group")
++
++
++def get_tdx_custom_block_codes(
++    blockname: Optional[str] = None,
++    block_type: Optional[str] = None,
++    blocknew_dir: str | Path = TDX_CUSTOM_BLOCK_ROOT,
++) -> list[str]:
++    df = read_tdx_custom_blocks(blocknew_dir=blocknew_dir, result_type="flat")
++    if blockname is not None:
++        df = df[df["blockname"].astype(str) == str(blockname)]
++    if block_type is not None:
++        df = df[df["block_type"].astype(str) == str(block_type)]
++    if "code" not in df.columns:
++        return []
++    return [str(x) for x in df["code"].dropna().tolist()]
++
++
++def fetch_tdx_block_info(
++    block_file: str = TDX_BLOCK_FILES["concept"],
++    result_type: str | int = "flat",
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++):
++    import pandas as pd
++
++    with tdx_hq_session(host=host, port=port) as api:
++        rows = api.get_and_parse_block_info(str(block_file))
++    df = pd.DataFrame(rows)
++    if _tdx_block_result_type(result_type) == _tdx_block_result_type("group"):
++        return _group_block_frame(df)
++    return df
++
++
++def fetch_tdx_block_groups(
++    block_file: str = TDX_BLOCK_FILES["concept"],
++    host: str = DEFAULT_TDX_HQ_HOST,
++    port: int = DEFAULT_TDX_HQ_PORT,
++):
++    return fetch_tdx_block_info(block_file=block_file, result_type="group", host=host, port=port)
++
++
++def search_tdx_block_groups(
++    keyword: str,
++    source: str = "custom",
++    block_file: str = TDX_BLOCK_FILES["concept"],
++):
++    source_value = str(source).strip().lower()
++    if source_value == "custom":
++        df = list_tdx_custom_block_groups()
++    elif source_value == "online":
++        df = fetch_tdx_block_groups(block_file=block_file)
++    elif source_value == "local":
++        df = read_tdx_local_block_file(block_file=block_file, result_type="group")
++    else:
++        raise ValueError("source must be custom, online, or local")
++    if "blockname" not in df.columns:
++        return df
++    return df[df["blockname"].astype(str).str.contains(str(keyword), case=False, na=False)].reset_index(drop=True)
++
++
++if __name__ == "__main__":
++    import json
++    print(json.dumps(get_panel_metadata(include_dates=True), ensure_ascii=False, indent=2))
+--- /dev/null
++++ b/ops/vendor/selector_reader_transport_compat.json
+@@ -0,0 +1,19 @@
++{
++  "schema": "v4.reader.transport_equivalence.v1",
++  "scope": "EXACT_ARROW_BLOCK_TRANSPORT_ONLY",
++  "before_sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c",
++  "after_sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565",
++  "before_source": "selector_reader_transport_before.py",
++  "historical_reader": {
++    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/DATA_LAYER_INTERFACE.py",
++    "sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c"
++  },
++  "config": {
++    "path": "/Users/lexi/Desktop/学习/v4_app/.task_worktrees/a-daily-dashboard-closure-20261029/docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json",
++    "sha256": "0521fceae9fd1d1625bcaee677d95314f2ca00e931f89c9bda78bc292610cfc1"
++  },
++  "oracle": {
++    "file": "selector_reader_transport_oracle.json",
++    "sha256": "dd8f27f88df420a9d2e22e1e29877c7f3263e63f5f2fff1245dadf3a58d55ddf"
++  }
++}
+--- /dev/null
++++ b/ops/vendor/selector_reader_transport_oracle.json
+@@ -0,0 +1,14 @@
++{
++  "status": "PASS",
++  "before_sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c",
++  "after_sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565",
++  "command": "production Python pytest tests/test_reader_transport_compat.py",
++  "result": "3 passed in 0.28s",
++  "test_sha256": "bab4fceb34f4bb6d0419021c97cf0fba4262f79b857d7f678303b7db3942db31",
++  "checks": [
++    "3 exact shared-reader value oracles and exact rowgroup pruning",
++    "RAW/UNKNOWN/future-column reporting preserved",
++    "actual provenance distinct from mathematical historical reference",
++    "existing cache hit; actual price/rule revisions invalidate"
++  ]
++}

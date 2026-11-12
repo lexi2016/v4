@@ -1,0 +1,39 @@
+{
+  "GOAL": "Consume exact original validated delisting SOP and known BJ capability before get_rehab, preserve original quarantine/acceptance/history",
+  "ONE_VARIABLE": "SOP pre-provider dispatch",
+  "WRITER": "Sol Medium advance_a_daily_schedule",
+  "REVIEWER": "Luna Max root/review_a_daily_1530 or root-selected independent Luna",
+  "ALLOWED_PATHS": [
+    "ops/research_panel_factor_cache.py",
+    "ops/research_panel_adjustment_inputs.py",
+    "tests/test_factor_sop_prequery.py",
+    "docs/handoffs/a_daily_sop_prequery_20261029/"
+  ],
+  "FORBIDDEN_PATHS": [
+    "raw/default data",
+    "live release",
+    "plists/services/schedules",
+    "BUY/pools/formula/history",
+    "held1530worktree"
+  ],
+  "PASS_SIGNAL": "Synthetic affected tests PASS; registered r2 real canary must route exact20ERROR identities toSOP_SKIPPED and565BJ identities toknown-prior-capability, zero provider/defaultwrites, then independentLunaPASS",
+  "STOP_RULE": "No old OK cross-date reuse, no weakenedcapture/freshness/GBBQcoverage, no genericERROR=>delisted; stop on authority identity conflict; no defaultwrites/deploy",
+  "BASELINE_COMMIT": "2d19365185fb8e5841ec055ff8fd1c6569b468a0",
+  "ACTIVE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app",
+  "baseline_sha256": {
+    "ops/research_panel_factor_cache.py": "9df2744b724629db3208c05a8f03553ed1f6e24fed3c6f3ac1679a6e34c5d2e9",
+    "ops/research_panel_adjustment_inputs.py": "7636a62fc86c2dba0481a11b9ef8dbca4e7fddacd0203e6f9e82205d51654e3b"
+  },
+  "input_contract": "exacttarget original sync summary SHA + rawsourceSHA + VERIFIED_DELISTED_NO_CURRENT_BARS lifecycle tuple + acceptedSOPrefSHA; BJ exactsamecode verified cachedformaterror capability evidence",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "revision": "r2",
+  "parent_contract": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/sop_prequery_r1/CONTRACT.json",
+    "sha256": "bedf55fe971ed2c6ecb169761ca09d04cbd0a62172585d34288c4f4ed2fa52cc"
+  },
+  "parent_code_commit": "8c0be8e5b",
+  "scope_increment": "Accept fixed-asset legitimate SOP literal variants with original case/review SHA; preserve controller-approved600193 quarantine-only fact, pending/mirror caveat and verify factset+mirror SHA; no quality promotion"
+}

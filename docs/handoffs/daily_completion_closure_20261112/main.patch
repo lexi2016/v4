@@ -1,0 +1,161 @@
+--- a/ops/bootstrap_stock_event_history.py
++++ b/ops/bootstrap_stock_event_history.py
+@@ -122,10 +122,24 @@
+ 
+ def load(reference):
+     path = Path(reference['path'])
+-    if not path.is_absolute() or path.is_symlink() or sha(path) != reference['sha256']:
++    if not path.is_absolute() or path.is_symlink():
++        raise ValueError('FROZEN_REFERENCE_DRIFT:' + str(path))
++    # Chart references may describe the original owner's immutable virtual
++    # projection or retained row blocks. The chart owner verifies every spec,
++    # block and reconstructed byte; a spec file's SHA is not its payload SHA.
++    if reference.get('virtual') is True:
++        if (reference.get('spec') or {}).get('path') != str(path):
++            raise ValueError('FROZEN_REFERENCE_DRIFT:' + str(path))
++        from ops.research_panel_chart_blocks import decode, projection_bytes
++        return decode(projection_bytes(reference))
++    if sha(path) != reference['sha256']:
+         raise ValueError('FROZEN_REFERENCE_DRIFT:' + str(path))
+     raw = path.read_bytes()
+-    return json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
++    value = json.loads(gzip.decompress(raw) if path.suffix == '.gz' else raw)
++    if isinstance(value, dict) and value.get('storage_schema') == 'v4.original_chart.row_blocks.v1':
++        from ops.research_panel_chart_blocks import retained
++        return retained(reference)
++    return value
+ 
+ 
+ def save(path, value):
+--- a/ops/research_panel_top200.py
++++ b/ops/research_panel_top200.py
+@@ -568,6 +568,89 @@
+     return plan if plan['status']=='NO_NEW_COMPLETION'else publish(plan,refresh=lambda:prepare_current_history_view(context,root,output))
+ 
+ 
++def bind_completed_source_provenance(context,root):
++    """Revalidate the completed product's original proof after an app move.
++
++    SourceContext keeps its strict general identity checks. Only this completed
++    same-date/generation continuation may reuse the product's original, fully
++    checked transport proof instead of a byte-identical copy in a new app root.
++    """
++    from ops.research_panel_reader_compat import semantic_reader_identity
++    index=load(reference(Path(root)/'index.json'));day=str(context.target)
++    manifest_ref=index['dates'][day];manifest=load(manifest_ref);product=load(manifest['artifact'])
++    accepted=product.get('source_identity')or{}
++    if (product.get('data_date')!=day or manifest.get('data_date')!=day
++        or product.get('source_generation')!=context.generation
++        or manifest.get('source_generation')!=context.generation
++        or product.get('source_config')!=context.config_ref
++        or any(product.get(k)!=v for k,v in FLAGS.items())):
++        raise ValueError('COMPLETED_SOURCE_PRODUCT_CONFLICT')
++    context.unchanged()
++    if accepted==context.identity:
++        return dict(status='EXACT_COMPLETED_SOURCE',numeric_manifest=manifest_ref)
++    def core(identity):return {k:v for k,v in identity.items()if k!='reader_provenance'}
++    if core(accepted)!=core(context.identity):raise ValueError('COMPLETED_SOURCE_CORE_IDENTITY_DRIFT')
++    previous=context.identity.get('reader_provenance')or{}
++    expected=accepted.get('reader_provenance')or{}
++    if (previous.get('actual_reader')!=context.reader_ref
++        or expected.get('actual_reader')!=context.reader_ref):
++        raise ValueError('COMPLETED_SOURCE_ACTUAL_READER_DRIFT')
++    proof_ref=(expected.get('transport_equivalence')or{}).get('equivalence_proof')
++    if not isinstance(proof_ref,dict):raise ValueError('COMPLETED_SOURCE_ORIGINAL_PROOF_MISSING')
++    mathematical,proof=semantic_reader_identity(context.reader_ref,context.config_ref,
++        proof_path=checked(proof_ref))
++    revalidated=dict(actual_reader=context.reader_ref,transport_equivalence=proof)
++    if mathematical!=context.cache_reader_ref or revalidated!=expected:
++        raise ValueError('COMPLETED_SOURCE_ORIGINAL_PROOF_CONFLICT')
++    context.unchanged()
++    context.identity={**context.identity,'reader_provenance':revalidated}
++    context.reader_transport_provenance=proof
++    return dict(status='REVALIDATED_ORIGINAL_COMPLETED_TRANSPORT_PROOF',numeric_manifest=manifest_ref,
++        original_proof=proof_ref,mathematical_reader=mathematical,core_identity_unchanged=True)
++
++
++def daily_history_coverage(context,root):
++    """Read retained daily coverage; never start the explicit history adapter.
++
++    The numeric owner has already appended today's label and updated available
++    event returns. Missing old labels require the existing explicit bootstrap
++    contract, not an automatic full-history job on every daily completion.
++    """
++    index=load(reference(Path(root)/'index.json'));day=str(context.target)
++    manifest_ref=index['dates'][day];manifest=load(manifest_ref);product=load(manifest['artifact'])
++    if (product.get('data_date')!=day or manifest.get('data_date')!=day
++        or product.get('source_identity')!=context.identity
++        or product.get('source_generation')!=context.generation
++        or product.get('source_config')!=context.config_ref
++        or any(product.get(k)!=v for k,v in FLAGS.items())):
++        raise ValueError('DAILY_HISTORY_COVERAGE_SOURCE_CONFLICT')
++    selected=sorted(row['symbol']for row in product['rows'])
++    if len(selected)!=len(set(selected)):raise ValueError('DAILY_HISTORY_COVERAGE_DUPLICATE')
++    incomplete=[];missing_dates=0
++    for symbol in selected:
++        row=load(product['row_refs'][symbol]);coverage=row.get('historical_coverage')or{}
++        if (row.get('symbol')!=symbol or row.get('data_date')!=day
++            or any(row.get(k)!=v for k,v in FLAGS.items())):
++            raise ValueError('DAILY_HISTORY_COVERAGE_ROW_CONFLICT:'+symbol)
++        available,evaluated=coverage.get('available_prefix_dates'),coverage.get('evaluated_count')
++        if (type(available)is not int or type(evaluated)is not int
++            or not 0<=evaluated<=available):
++            raise ValueError('DAILY_HISTORY_COVERAGE_COUNTS_INVALID:'+symbol)
++        if not coverage.get('known_full_history')or coverage.get('missing'):
++            gap=available-evaluated;missing_dates+=gap
++            incomplete.append(dict(symbol=symbol,available_prefix_dates=available,
++                evaluated_count=evaluated,missing_label_date_count=gap,
++                missing=coverage.get('missing',[]),row=product['row_refs'][symbol]))
++    context.unchanged()
++    return dict(status='PARTIAL_NEEDS_EXPLICIT_BOOTSTRAP'if incomplete else'COMPLETE_NO_HISTORY_GAPS',
++        numeric_manifest=manifest_ref,source_generation=context.generation,candidate_count=len(selected),
++        complete_stocks=len(selected)-len(incomplete),incomplete_stocks=len(incomplete),
++        missing_label_date_count=missing_dates,incomplete=incomplete,
++        history_bootstrap_in_daily_path=False,new_label_evaluations=0,new_return_evaluations=0,
++        daily_update_owner='materialize_daily_product.cached_daily_statistics',
++        required_action='EXPLICIT_EXISTING_BOOTSTRAP_CONTRACT_ONLY'if incomplete else None,**FLAGS)
++
++
+ def complete_daily_derivatives(data_root,target,root,receipt_root,classification_root,upstream_failure=None):
+     """Called once in the original A executor after its producer returns."""
+     import os
+@@ -578,13 +661,18 @@
+         if upstream_failure is not None:raise ValueError('UPSTREAM_DAILY_SOURCE_FAILED:'+str(upstream_failure.get('reason') or upstream_failure.get('status')))
+         os.environ['V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT']=str(root)
+         context=SourceContext(data_root,int(target))
++        completed_source=bind_completed_source_provenance(context,root)
+         history_failure=None
+         try:
+-            history=run_incremental_history(context,root,output/context.generation/'history')
+-            if history['status'] not in {'COMPLETE_DESCRIPTIVE_NONPIT','COMPLETE_NO_HISTORY_GAPS'}:raise ValueError('DAILY_HISTORY_PARTIAL')
+-            history_view=publish_current_history_view(context,root,output/context.generation/'current_history_view')
+-        except HistoryPriorPanelUnavailable as error:
+-            history_failure=dict(status='CANNOT_CONFIRM',error=str(error),reason='VERIFIED_PRIOR_PANEL_UNAVAILABLE',evidence=error.evidence)
++            history=daily_history_coverage(context,root)
++            if history['status']=='COMPLETE_NO_HISTORY_GAPS':
++                history_view=publish_current_history_view(context,root,output/context.generation/'current_history_view')
++            else:history_view=dict(status='NOT_RUN_HISTORY_INCOMPLETE',reason=history['status'])
++        except (ValueError,OSError,KeyError,TypeError) as error:
++            history_failure=dict(status='CANNOT_CONFIRM',error=str(error),
++                reason='VERIFIED_PRIOR_PANEL_UNAVAILABLE'if isinstance(error,HistoryPriorPanelUnavailable)else'HISTORY_COVERAGE_NOT_VERIFIED',
++                history_bootstrap_in_daily_path=False,new_label_evaluations=0,new_return_evaluations=0,
++                **({'evidence':error.evidence}if isinstance(error,HistoryPriorPanelUnavailable)else{}),**FLAGS)
+             history=history_failure;history_view=dict(status='NOT_RUN_HISTORY_INCOMPLETE')
+         official_ref=reference(Path(receipt_root)/'a_sync_authority/official_daily'/day/'input.json')
+         payload,reuse=build(context,root,official_ref,classification_root)
+@@ -597,8 +685,13 @@
+         if statistics_root:
+             from ops.build_mac_workbench import materialize_statistics
+             materialize_statistics(root,Path(statistics_root))
+-        receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='COMPLETE_DESCRIPTIVE_NONPIT',data_date=day,source_generation=context.generation,history=history,history_view=history_view,top200=publication,computation=reuse,**FLAGS)
+-        if history_failure:receipt.update(status='CANNOT_CONFIRM',error=history_failure['error'],reason='HISTORY_INCOMPLETE_TOP200_AVAILABLE')
++        receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='COMPLETE_DESCRIPTIVE_NONPIT',
++            completeness_scope='CURRENT_DAY_DERIVATIVES',data_date=day,source_generation=context.generation,
++            completed_source_provenance=completed_source,
++            history_status=history['status'],historical_completion=history['status']=='COMPLETE_NO_HISTORY_GAPS',
++            history_bootstrap_in_daily_path=False,history=history,history_view=history_view,
++            top200=publication,computation=reuse,**FLAGS)
++        if history_failure:receipt['reason']='CURRENT_DAY_COMPLETE_HISTORY_CANNOT_CONFIRM'
+     except Exception as error:
+         receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='CANNOT_CONFIRM',data_date=day,error=str(error),**FLAGS)
+     save(output/'latest_receipt.json',receipt)

@@ -1,0 +1,45 @@
+{
+  "schema": "v4.storage_compaction.source_binding.v1",
+  "source_root": "/Users/lexi/.codex/worktrees/prepool-storage-20261112/v4_app",
+  "baseline_commit": "ddab09e32dd18d71234d2c699f00f2805934f1a9",
+  "main_origin": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-prepool-publication-20261112-r1/main/app",
+  "main_delta": {
+    "ops/research_storage_compaction.py": {
+      "live_before_sha256": null,
+      "after_sha256": "4328517a6eb872879ab1d2d2a2114624bd907b101a4f60aa3b63a68e36cbdf93"
+    },
+    "ops/research_storage_governance.py": {
+      "live_before_sha256": "bca2fcb8ebc669636ad70f5685c2c68aab17b1ab9195df00489d5c1d6d4bfa7e",
+      "after_sha256": "7a39574fe6ca213c235a3ce2ab0d62d4efd2382490bd99681e5e7103b088efd0"
+    },
+    "docs/operations/DAILY_RESEARCH_DELIVERY_SOP.md": {
+      "live_before_sha256": "d856be45dda623df732568da2218ffa3e809f558fb187517d9090e18f7afc194",
+      "after_sha256": "23b7354184f25779e71418d1f769b5db871a59ac656002feecc5f6577391e842"
+    }
+  },
+  "tests": {
+    "initial": "11 PASS",
+    "incremental": "2 PASS /10 deselected; affected native metadata + added busy recovery",
+    "distinct_cases": 15,
+    "revision_red": "2 real regressions failed as independently reported",
+    "revision_final": "6 PASS / 9 deselected; affected lease/terminal/budget/queue paths only"
+  },
+  "dry_run": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_prepool_storage_repair_20261112/STORAGE_D12_DRY_RUN.json",
+    "sha256": "09b48854871529863e851754c8fbc704e88a31eac278cfb6f071d9dba6ee8e73"
+  },
+  "SOP_adoption": {
+    "path": "/Users/lexi/.codex/worktrees/prepool-storage-20261112/v4_app/docs/operations/storage_compaction_20261112/SOP_ADOPTION.json",
+    "sha256": "59bbe3ab5b4dc43466dd6430c40c992dd6d6140249023da6c27986bf9c6236a3"
+  },
+  "support": {
+    "tests/test_research_storage_compaction.py": "dc7d8a148bf4c2ec9e365dba63f36af69b2e4d17d6171f93985cdc2e26205477",
+    "docs/operations/storage_compaction_20261112/prepare_storage_candidate.py": "061a1738351222165fa1bce11662650c63ed251b747b683b0e20659d7d622aa0",
+    "docs/operations/storage_compaction_20261112/WRITER_HANDOFF.md": "f24183dac9eecdb2f72dad59c1d52d49fb0daed404c85cba648125af636757da",
+    "docs/operations/storage_compaction_20261112/execute_storage_plan.py": "c707b5eaa8b42cb68a0fed2e7c680c2c29b75a5382eec9aa37acb6603cc34f95"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

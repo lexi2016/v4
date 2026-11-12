@@ -1,0 +1,76 @@
+{
+  "schema": "v4.daily_delta.runtime_source_binding.v1",
+  "revision": "R3",
+  "status": "SOURCE_FROZEN_REVIEW_PENDING",
+  "frozen_at": "2026-11-11T15:44:00.262503+00:00",
+  "worktree": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app",
+  "branch": "codex/daily-delta-panel-20261111",
+  "git_base": "4642d7096c10791bcde9ae0b24260097898a6810",
+  "items": [
+    {
+      "owner": "main",
+      "source": "ops/research_panel_qfq.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-delta-20261111-r1/main/app/ops/research_panel_qfq.py",
+      "target_relative": "ops/research_panel_qfq.py",
+      "before_sha256": "2956a11adf16f22e557efeae0f368cc1aa1910a16798fcb9320587967a7a9eb7",
+      "after_sha256": "038c6f66890c2b6c8654cfbaf0a8b0fc7cc9fc2bf68cb70060e76aaeb5896e75",
+      "new_bytes": 220589,
+      "new_file": false
+    },
+    {
+      "owner": "main",
+      "source": "ops/research_panel_delta.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-delta-20261111-r1/main/app/ops/research_panel_delta.py",
+      "target_relative": "ops/research_panel_delta.py",
+      "before_sha256": "4d1672abd84ee175d3591033c31095f3eba7580f0e9b3e253d87f7bd4cf8172a",
+      "after_sha256": "070ca3503320a41e4883e414b9748f6bde590b721236a59f629043b665c17340",
+      "new_bytes": 45451,
+      "new_file": false
+    },
+    {
+      "owner": "main",
+      "source": "ops/macos_research_panel_daily_authority.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-delta-20261111-r1/main/app/ops/macos_research_panel_daily_authority.py",
+      "target_relative": "ops/macos_research_panel_daily_authority.py",
+      "before_sha256": "15c52e13ef9febfdc120885e724a41cbc60e19e11436fe19c3933485bd13f2f7",
+      "after_sha256": "0e8d9035435c86fa910ac58d40fd84d1572a49b089918a4243cbb9d8fd8d764a",
+      "new_bytes": 50182,
+      "new_file": false
+    },
+    {
+      "owner": "main",
+      "source": "ops/research_panel_logical.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-delta-20261111-r1/main/app/ops/research_panel_logical.py",
+      "target_relative": "ops/research_panel_logical.py",
+      "before_sha256": "3d45e2f56f4588131167bd7c3a064d54c6466a7bdbcae991b03e634b84fdb218",
+      "after_sha256": "004ed38525d0e48a1a8a3de01c6845fb01d11caed9462f2883be2d3b7c10150b",
+      "new_bytes": 14558,
+      "new_file": false
+    },
+    {
+      "owner": "api",
+      "source": "ops/research_panel_logical.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-delta-20261111-r1/api/app/ops/research_panel_logical.py",
+      "target_relative": "ops/research_panel_logical.py",
+      "before_sha256": "3d45e2f56f4588131167bd7c3a064d54c6466a7bdbcae991b03e634b84fdb218",
+      "after_sha256": "004ed38525d0e48a1a8a3de01c6845fb01d11caed9462f2883be2d3b7c10150b",
+      "new_bytes": 14558,
+      "new_file": false
+    }
+  ],
+  "patches": {
+    "main": {
+      "file": "main.r3.patch",
+      "sha256": "b84f30b40235213548156b634d4b763001372fb64814095ca0cdcb63b8c6b8ca"
+    },
+    "api": {
+      "file": "api.r3.patch",
+      "sha256": "7098cb974432b79798b101803f2bde4d473e5781373785d82e74ec056bc4928a"
+    }
+  },
+  "scope": "CPU process scheduling, strict authenticated old-prefix view, exact no-copy delta resume/fixed descriptor, block-scoped file handles",
+  "original_computation_kernel": {
+    "before": "cb484e7e26eda40331043d72160d975ddd9fe7e027850655a2b9387038f585b6",
+    "after": "cb484e7e26eda40331043d72160d975ddd9fe7e027850655a2b9387038f585b6"
+  }
+}

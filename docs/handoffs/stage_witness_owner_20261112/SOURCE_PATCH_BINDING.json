@@ -1,0 +1,30 @@
+{
+  "schema": "stage_witness_source_binding.v1",
+  "base_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "items": [
+    {
+      "owner": "stage",
+      "source": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/STAGE_manager_input_attestation.after.py",
+      "target_relative": "infrastructure/manager_input_attestation.py",
+      "before_sha256": "e7d6ef73a65e6dec59d197d0fd0097e923ca872585c9844275a607d76fcd05e1",
+      "after_sha256": "63408260062e5f32430a00990ef716d81b103b3090cf93374b4cc6112fdf5b17"
+    }
+  ],
+  "patch": {
+    "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/stage-capacity.patch",
+    "sha256": "61a66466ce164568529b2baa56b2f6aa589be4005e90af70110918ccea51051d"
+  },
+  "candidate_config": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/stage/app/stage_center_tick_config.json",
+    "sha256": "cca9290d098960a857cb4ce66cc68899b2717f33e716610162ac85517b88e345"
+  },
+  "stage_manifest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/stage/release-manifest.json",
+    "sha256": "fd6fc28267dbe060a1b57e0fc46ab2e2e364a08df911698d43ebcba75644d67b"
+  },
+  "Main_business_identity": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-governance-20261112-r1-main/release-manifest.json",
+    "sha256": "a0200979b41a46643e0d14c335df2903214ababe41c86758625d3057d691f23f"
+  },
+  "main_policy_control_only": true
+}

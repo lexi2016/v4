@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "before_sha256": "ea67286c4548f45ae58e6ec06ae52d16f2687aff4cc31fdc6eb184c22ac1215c",
+  "after_sha256": "4f096d4995aa862296e0b918ca9dd136bd35dd0b1309efa1239f312be5f25565",
+  "command": "production Python pytest tests/test_reader_transport_compat.py",
+  "result": "3 passed in 0.28s",
+  "test_sha256": "bab4fceb34f4bb6d0419021c97cf0fba4262f79b857d7f678303b7db3942db31",
+  "checks": [
+    "3 exact shared-reader value oracles and exact rowgroup pruning",
+    "RAW/UNKNOWN/future-column reporting preserved",
+    "actual provenance distinct from mathematical historical reference",
+    "existing cache hit; actual price/rule revisions invalidate"
+  ]
+}

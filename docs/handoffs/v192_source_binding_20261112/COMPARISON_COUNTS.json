@@ -1,0 +1,56 @@
+{
+  "days": [
+    {
+      "source_date": "20261111",
+      "observation_date": "20261112",
+      "selector_sha256": "c2bc5f53bbc0f918c1652945c778a46390ee807f8233f22caf1ec30707b53d43",
+      "generation": "270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45",
+      "input_sha256": "d145c45464e390a36d34c62ac20b26fa43ab6428a8f00fc31e7967b53d7c230a",
+      "model_run_id": "20261112-a-share-v192-premarket-pool-v3-909733ce40bc",
+      "model_count": 25,
+      "original_count": 44,
+      "intersection_count": 0,
+      "original_only_count": 44,
+      "model_only_count": 25
+    },
+    {
+      "source_date": "20261112",
+      "observation_date": "20261113",
+      "selector_sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5",
+      "generation": "953ab5bd32f7de0d6041dffe383c14d5565ec9afaec6a8fcc6379d67f65dde7a",
+      "input_sha256": "ebec7a3b9a30f916e1199c0760e1a5fa5bd30f3453b96dee26cefd7d6dd24a63",
+      "model_run_id": "20261113-a-share-v192-premarket-pool-v3-7327db46d7bb",
+      "model_count": 10,
+      "original_count": 40,
+      "intersection_count": 1,
+      "original_only_count": 39,
+      "model_only_count": 9
+    }
+  ],
+  "original_only_model_roles": {
+    "20261111": {
+      "AVOID_CHASE": 10,
+      "NEED_MANUAL_REVIEW": 24,
+      "WAIT_PULLBACK": 8,
+      "MAIN_WAVE_HOLD": 2
+    },
+    "20261112": {
+      "NEED_MANUAL_REVIEW": 24,
+      "AVOID_CHASE": 8,
+      "WAIT_PULLBACK": 3,
+      "B3_CONTINUATION_ENTRY": 3,
+      "MAIN_WAVE_HOLD": 1
+    }
+  },
+  "common_latest": [
+    {
+      "symbol": "301071.SZ",
+      "name": "力量钻石"
+    }
+  ],
+  "scope": "Descriptive same-input list/rule comparison; no performance certification",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

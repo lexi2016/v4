@@ -1,0 +1,133 @@
+{
+  "a_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_inputs",
+  "a_research_panel_receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/research_panel_daily/receipts",
+  "a_universe_role": "A_SHARE_STAGE_ACQUISITION_UNIVERSE_V2",
+  "candidate_acquisition_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+  "candidate_producer": "CANONICAL_A_ALL_POOL_ROWS",
+  "close_review_completion_enabled": false,
+  "core_input_policy": "INVALID_OR_MISMATCHED_CORE_BLOCKS",
+  "hk_auction_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+  "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+  "hk_full_market_preflight": "DISABLED_FOR_NODE_PATH",
+  "hk_full_universe_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+  "hk_second_filter_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/opening_second_filter",
+  "hk_snapshot_shared_store_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "hk_stage_replay_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_references",
+  "hk_universe_policy": "FIXED_D1_TOP100_ONLY",
+  "hk_universe_role": "HK_SECURITY_MASTER_EXACT_DATE",
+  "node_calendar_wait_max_seconds": 5,
+  "node_max_attempts": 3,
+  "node_max_nodes_per_run": 10,
+  "node_retry_backoff_seconds": 60,
+  "node_schedule_policy": "EXPLICIT_STAGE_SCOPED_SERIAL_RECOVERY",
+  "node_schedule_version": "20261007-hk-snapshot-precap-r1",
+  "optional_pool_policy": "BAIMAO_WECHAT_MISSING_ALLOWED",
+  "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+  "python_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "raw_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw",
+  "receipt_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts",
+  "release_id": "v4-v192-source-binding-20261112-r3-stage",
+  "report_evidence_sidecar_enabled": false,
+  "research_historical_owner_bindings": [
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-daily-chain-20261031-r6-main/app",
+      "manifest_sha256": "f32d922fafcbf8c1e6f9958d5802eef80e58195502f16410a6d11f744e98ac74",
+      "release_id": "workbench-daily-chain-20261031-r6-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-name-zoom-20261030-r1-main/app",
+      "manifest_sha256": "814499810d0a978810858b18053c24fa2a67bf7b965f3b152190f9d93878d679",
+      "release_id": "a-daily-name-zoom-20261030-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-daily-sop-closure-20261029-r1-main/app",
+      "manifest_sha256": "a9a93e9f0bcb99ea7cd9d14d2cba6d4492e664ceb99943acbc4ee120b95cceb4",
+      "release_id": "a-daily-sop-closure-20261029-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-runtime-evidence-root-20261106-r1/v4-runtime-evidence-root-20261106-r1-main/app",
+      "manifest_sha256": "f87653f013004a7abd02fcad1b44cf8f77f8177248911f7446d697e57da66703",
+      "release_id": "v4-runtime-evidence-root-20261106-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-phase2-20261108-r3/v4-storage-phase2-20261108-r3-main/release-manifest-authority-fixed.json",
+      "manifest_sha256": "f77c64bbf1539c4306deec069f2e28350957b2c803d83e28b330eabb9a952743",
+      "release_id": "v4-storage-phase2-20261108-r3-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-materials-20261109-r4/v4-daily-materials-20261109-r4-main/release-manifest.json",
+      "manifest_sha256": "002c08684ea3077e171808bb30911807189c4915d69e9566c0cbf5e86fcb8187",
+      "release_id": "v4-daily-materials-20261109-r4-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-assets-20261109-r1/v4-v192-assets-20261109-r1-main/release-manifest.json",
+      "manifest_sha256": "29ac5b4f0b5330085b97058a74b3a2f49a822a555e0c5f65537a98bffd2bebdf",
+      "release_id": "v4-v192-assets-20261109-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-a925-readiness-20261110-r3/v4-a925-readiness-20261110-r3-main/release-manifest.json",
+      "manifest_sha256": "ef1fe8701ca953eab207428a0913813340588989f1fb34552efb22473a8f0d29",
+      "release_id": "v4-a925-readiness-20261110-r3-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/release-manifest.json",
+      "manifest_sha256": "544c7cc4ce3a53720af0c9162dee9d234322f8bd135b56c10c330136ca33cbc8",
+      "release_id": "v4-daily-storage-recovery-20261110-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-d11-functional-closure-20261112-r1/main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-d11-functional-closure-20261112-r1/main/release-manifest.json",
+      "manifest_sha256": "176b35a86b3e8587f3343b3d960aeed2b5c8584fccbeeafda2767092c909aa0a",
+      "release_id": "v4-d11-functional-closure-20261112-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-result-receipt-20261112-r1-main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-result-receipt-20261112-r1-main/release-manifest.json",
+      "manifest_sha256": "558d313eb3181ae6bf030b95bc552df40c0a052f4e34e413e05f5e94b1817d55",
+      "release_id": "v4-daily-result-receipt-20261112-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-prepool-publication-20261112-r1/main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-prepool-publication-20261112-r1/main/release-manifest.json",
+      "manifest_sha256": "1ecc6373c11eb36ff09881d925be20607e612ce2eab8a2c19961f16513b99643",
+      "release_id": "v4-prepool-publication-20261112-r1-main"
+    },
+    {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/app",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main/release-manifest.json",
+      "manifest_sha256": "c779dbf846b25891e45687be6ebdbb7c4766e683e117e10901fe601c688e3d30",
+      "release_id": "v4-storage-compaction-20261112-r1-main"
+    }
+  ],
+  "research_mode": "LIVE_EXACT_DATE_READ_ONLY",
+  "research_owner_binding": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/release-manifest.json",
+    "manifest_sha256": "e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328",
+    "release_id": "v4-v192-source-binding-20261112-r3-main"
+  },
+  "research_scheduler_ledger_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher",
+  "research_transition_owner_binding": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-before1700-20261105-r1/v4-daily-before1700-20261105-r1-main/app",
+    "manifest_sha256": "3332482ee7784f1c8fce4ef89a175d032abedbe20c4d4737eb42f5caced480ae",
+    "release_id": "v4-daily-before1700-20261105-r1-main",
+    "trade_date": "20261106"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "stage_center.tick_config.v1",
+  "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+  "shared_data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-ready-status-20261021-r1/app/upstreams/v3_shared_data",
+  "stage_research_producer": "EXISTING_HOURLY_RESEARCH_EXECUTOR",
+  "stage_research_root_role": "V4_HOURLY_RESEARCH_STORE_EXACT_DATE",
+  "v4_morning_news_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+  "v4_research_data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+}

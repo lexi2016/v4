@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, toRef, watch } from "vue";
 
 import { loadResearchLane, loadResearchLaneLatest, type ResearchLane } from "../api/research_lane";
-import { useResearchState } from "../composables/useResearchLane";
+import { useMachineCards, useResearchState, useStockClues } from "../composables/useResearchLane";
 import ResearchStatusStrip from "../components/research/ResearchStatusStrip.vue";
 import ResearchImpactList from "../components/research/ResearchImpactList.vue";
 import ResearchFeedPane from "../components/research/ResearchFeedPane.vue";
-import ResearchSourceColumns from "../components/research/ResearchSourceColumns.vue";
 import ResearchContextPane from "../components/research/ResearchContextPane.vue";
 import ResearchAppendix from "../components/research/ResearchAppendix.vue";
 import "../styles/v3-research-lane.css";
@@ -22,6 +21,15 @@ const requestedMode = ref<"EXACT" | "LATEST">("EXACT");
 const updateDiagnostic = computed(() => payload.value?.update_diagnostic as { state?: string; message?: string } | undefined);
 
 const {
+  machineCards,
+  machineCardsLoading,
+  machineCardsError,
+  machineCardItems,
+} = useMachineCards(toRef(props, "archiveDate"));
+
+const { stockClues } = useStockClues(toRef(props, "archiveDate"));
+
+const {
   stockMainline,
   sourceEntities,
   titleSubjects,
@@ -32,7 +40,7 @@ const {
   timelineRows,
   cannotItems,
   quality,
-} = useResearchState(payload, feedFilter);
+} = useResearchState(payload, feedFilter, stockClues);
 
 const wechatArticleCount = computed(() => {
   const morning = payload.value?.morning_news as Record<string, unknown> | undefined;
@@ -145,6 +153,10 @@ onMounted(() => {
           :archive-date="archiveDate"
           :on-filter="(f: string) => (feedFilter = f)"
           :columns="[]"
+          :machine-cards="machineCards"
+          :machine-cards-loading="machineCardsLoading"
+          :machine-cards-error="machineCardsError"
+          :machine-card-items="machineCardItems"
         />
         <ResearchContextPane :timeline-rows="[]" :quality="{}" />
       </div>
@@ -157,6 +169,8 @@ onMounted(() => {
           :stock-mainline-length="stockMainline.length"
           :stock-timeline-length="stockTimeline.length"
           :wechat-article-count="wechatArticleCount"
+          :machine-card-count="machineCardItems.length"
+          :confirmed-stock-clue-count="stockClues?.confirmed_stock_count ?? 0"
           :on-wechat="scrollToWechat"
         />
 
@@ -170,6 +184,10 @@ onMounted(() => {
             :empty-message="feedEmptyMessage"
             :on-filter="(f: string) => (feedFilter = f)"
             :columns="sourceColumns"
+            :machine-cards="machineCards"
+            :machine-cards-loading="machineCardsLoading"
+            :machine-cards-error="machineCardsError"
+            :machine-card-items="machineCardItems"
           />
 
           <ResearchContextPane :timeline-rows="timelineRows" :quality="quality" />

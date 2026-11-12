@@ -91,8 +91,137 @@ const wechatDetail = () => ({
   report: { status: "READABLE", content: "# 公众号归档全文\n\n仅供研究阅读。" },
   artifacts: [{ artifact_id: "report", filename: "report.md", sha256: "d".repeat(64), bytes: 32, kind: "CHAT_RETURN", status: "HASH_MATCH" }],
 });
-const stubResearchFetch = (payload: unknown) => vi.stubGlobal("fetch", vi.fn(async (url: string) => response(
-  url.includes("/api/v3/research/wechat/materials") ? wechatListing() : payload,
+const machineCards = (researchDate = "20260804", items: unknown[] = [], duplicateCount = 0) => ({
+  schema_version: "v4.pdf_research.machine_cards.v1",
+  status: items.length ? "READY" : "READY_EMPTY",
+  research_date: researchDate,
+  card_count: items.length,
+  matched_count: items.length,
+  duplicate_count: duplicateCount,
+  cannot_confirm_count: 0,
+  cannot_confirm: [],
+  cannot_confirm_document_ids: [],
+  unresolved_document_ids: [],
+  truncated: false,
+  max_cards_per_date: 200,
+  preview_max_chars: 4000,
+  source_index_used: false,
+  items,
+  research_only: true,
+  production_allowed: false,
+  buy_gate_updated: false,
+  orders_sent: false,
+});
+const machineCard = () => ({
+  document_id: "a".repeat(64),
+  research_date: "20260804",
+  status: "SUCCEEDED",
+  batch_id: "batch-001",
+  superseded_batch_ids: [],
+  title: "机器研报标题",
+  title_source: "PDF_FILENAME_STEM",
+  source: {
+    source_group_name: null,
+    source_group_status: "CANNOT_CONFIRM_INGESTION_INDEX_NOT_LINKED",
+    original_filename: "机器研报标题.pdf",
+    source_directory: "示例群",
+    source_relative_path: "知识星球/2026年8月4日/机器研报标题.pdf",
+    source_pdf_path: "/外置/知识星球/2026年8月4日/机器研报标题.pdf",
+  },
+  review: {
+    origin_status: "MODEL_GENERATED",
+    source_review_status: "SOURCE_REVIEW_PENDING",
+    user_acceptance_status: "NOT_ACCEPTED",
+    review_status: "NOT_REVIEWED",
+    human_reviewed: false,
+    user_accepted: false,
+  },
+  report: {
+    path: `batches/batch-001/documents/${"a".repeat(64)}/report.md`,
+    receipt_path: `batches/batch-001/documents/${"a".repeat(64)}/receipt.json`,
+    sha256: "b".repeat(64),
+    bytes: 123,
+    preview: "机器生成正文预览，仅供研究。",
+    preview_max_chars: 4000,
+  },
+  machine_generated: true,
+  read_only: true,
+  research_only: true,
+  production_allowed: false,
+  buy_gate_updated: false,
+  orders_sent: false,
+});
+const machineCardsForUrl = (url: string, items: unknown[] = [], duplicateCount = 0) => {
+  const researchDate = /research_date=(\d{8})/.exec(url)?.[1] ?? "20260804";
+  return machineCards(researchDate, items, duplicateCount);
+};
+const stockClues = (
+  researchDate = "20260804",
+  items: unknown[] = [],
+  genericFiltered: unknown[] = [],
+  weakItems: unknown[] = [],
+) => {
+  const confirmed = items.length;
+  return {
+    schema_version: "v4.research.stock_clues.v1",
+    status: confirmed ? "READY" : "READY_EMPTY",
+    research_date: researchDate,
+    card_count: items.length + weakItems.length,
+    scanned_card_count: items.length + weakItems.length,
+    skipped_card_count: 0,
+    stock_count: items.length + weakItems.length,
+    confirmed_stock_count: confirmed,
+    weak_only_stock_count: weakItems.length,
+    corpus_report_count: 101,
+    corpus_fingerprint: "c".repeat(64),
+    corpus_cache_status: "HIT",
+    generic_filtered: genericFiltered,
+    weak_items: weakItems,
+    clue_limit: 50,
+    name_map_status: "READY",
+    name_map_path: "/tmp/selector_ready.parquet",
+    name_map_trade_date: "20261023",
+    truncated_report_count: 0,
+    cannot_confirm: [],
+    items,
+    research_only: true,
+    production_allowed: false,
+    buy_gate_updated: false,
+    orders_sent: false,
+  };
+};
+const stockClue = () => ({
+  ts_code: "600001.SH",
+  name: "测试股份",
+  document_count: 3,
+  weak_document_count: 0,
+  link_probability: 0.875,
+  confirm_reasons: ["CODE", "CONTEXT"],
+  document_titles: ["报告一", "<b>报告二</b>", "报告三", "报告四"],
+  matched_by: "BOTH",
+  first_seen_date: "20260804",
+  last_seen_date: "20260804",
+});
+const stockCluesForUrl = (
+  url: string,
+  items: unknown[] = [],
+  genericFiltered: unknown[] = [],
+  weakItems: unknown[] = [],
+) => {
+  const researchDate = /research_date=(\d{8})/.exec(url)?.[1] ?? "20260804";
+  return stockClues(researchDate, items, genericFiltered, weakItems);
+};
+const stubResearchFetch = (
+  payload: unknown,
+  machineItems: unknown[] = [],
+  stockClueItems: unknown[] = [],
+  duplicateCount = 0,
+) => vi.stubGlobal("fetch", vi.fn(async (url: string) => response(
+  url.includes("/api/v3/research/machine-cards")
+    ? machineCardsForUrl(url, machineItems, duplicateCount)
+    : url.includes("/api/v3/research/stock-clues")
+      ? stockCluesForUrl(url, stockClueItems)
+      : url.includes("/api/v3/research/wechat/materials") ? wechatListing() : payload,
 )));
 
 const highVolumeFilterLane = () => {
@@ -134,6 +263,127 @@ describe("ResearchView (research lane)", () => {
     expect(screen.getByText(/股票研报/)).toBeTruthy();
     expect(screen.getByText("研报对象 · 标题角色筛选")).toBeTruthy();
     expect(screen.getByText("LEGACY_NAIVE_TIMESTAMP_ASSUMED_ASIA_SHANGHAI")).toBeTruthy();
+  });
+
+  it("renders machine cards inside the existing feed pane machine tab", async () => {
+    stubResearchFetch(lane(), [machineCard()]);
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findAllByText("中材国际");
+    await fireEvent.click(screen.getByRole("button", { name: "机器研报" }));
+
+    const tabLabels = Array.from(document.querySelectorAll("[data-research-filter]"))
+      .map((tab) => tab.textContent?.trim());
+    expect(tabLabels.indexOf("机器研报")).toBeLessThan(tabLabels.indexOf("公众号"));
+
+    const pane = screen.getByRole("region", { name: "情报阅读" });
+    expect(screen.getByRole("button", { name: "机器研报" }).getAttribute("aria-pressed")).toBe("true");
+    expect(within(pane).getByText("机器生成 · 未人工审核 · 不进入信号与买点")).toBeTruthy();
+    expect(await within(pane).findByText("机器研报标题")).toBeTruthy();
+    expect(within(pane).getByText("原始文件名：机器研报标题.pdf")).toBeTruthy();
+    expect(within(pane).getByText("SUCCEEDED")).toBeTruthy();
+    expect(within(pane).getByText("MODEL_GENERATED")).toBeTruthy();
+    expect(within(pane).getByText("未人工审核")).toBeTruthy();
+    expect(within(pane).getByText("机器生成正文预览，仅供研究。")).toBeTruthy();
+  });
+
+  it("shows the duplicate merge notice for deduplicated machine cards", async () => {
+    stubResearchFetch(lane(), [machineCard()], [], 2);
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findAllByText("中材国际");
+    await fireEvent.click(screen.getByRole("button", { name: "机器研报" }));
+
+    const pane = screen.getByRole("region", { name: "情报阅读" });
+    expect(await within(pane).findByText("另有 2 份重复分析已按 document_id 合并。")).toBeTruthy();
+  });
+
+  it("shows an explicit empty state when machine cards are not materialized", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => response(
+      url.includes("/api/v3/research/machine-cards")
+        ? { ...machineCardsForUrl(url), status: "NOT_MATERIALIZED", cannot_confirm: ["PDF_RESEARCH_NOT_MATERIALIZED"] }
+        : url.includes("/api/v3/research/stock-clues")
+          ? stockCluesForUrl(url)
+          : url.includes("/api/v3/research/wechat/materials") ? wechatListing() : lane(),
+    )));
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findAllByText("中材国际");
+    await fireEvent.click(screen.getByRole("button", { name: "机器研报" }));
+
+    const pane = screen.getByRole("region", { name: "情报阅读" });
+    expect(await within(pane).findByText("NOT_MATERIALIZED")).toBeTruthy();
+    expect(within(pane).getByText(/该日期暂无机器卡片/)).toBeTruthy();
+  });
+
+  it("appends confirmed machine clues after the untouched stock mainline", async () => {
+    const laneWithMainline = {
+      ...lane(),
+      stock_research_daily: [
+        { stock_code: "600970", stock_name: "中材国际", report_subject_eligible: true, evidence_level: "L2_MEDIUM" },
+        { stock_code: "600971", stock_name: "第二主线", report_subject_eligible: true, evidence_level: "L1_WEAK" },
+      ],
+    };
+    const fiveDocuments = {
+      ...stockClue(),
+      ts_code: "600002.SZ",
+      name: "五份股份",
+      document_count: 5,
+      document_titles: ["五份报告一", "五份报告二"],
+    };
+    stubResearchFetch(laneWithMainline, [], [stockClue(), fiveDocuments]);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    expect(await screen.findByText("研报提及 ×5")).toBeTruthy();
+
+    const stockPane = container.querySelector<HTMLElement>(".hourly-priority-pane");
+    expect(stockPane).toBeTruthy();
+    if (!stockPane) throw new Error("missing stock pane");
+    const mainline = stockPane.querySelector<HTMLElement>(".hourly-impact-list");
+    expect(mainline).toBeTruthy();
+    if (!mainline) throw new Error("missing stock mainline");
+    const cards = Array.from(mainline.querySelectorAll<HTMLElement>(".hourly-impact-card"));
+    expect(cards.map((card) => card.querySelector(".hourly-impact-title")?.textContent?.trim())).toEqual([
+      "中材国际 600970",
+      "第二主线 600971",
+      "五份股份 600002.SZ",
+      "测试股份 600001.SH",
+    ]);
+    // Original lane rows keep their own rendering and never gain the clue badge.
+    expect(cards[0].querySelector(".machine-clue-badge")).toBeNull();
+    expect(cards[1].querySelector(".machine-clue-badge")).toBeNull();
+    // Clue rows carry the required badge, source tag, first-title reason, and up to three literal titles.
+    expect(cards[2].querySelector(".machine-clue-badge")?.textContent?.trim()).toBe("研报提及 ×5");
+    expect(cards[3].querySelector(".machine-clue-badge")?.textContent?.trim()).toBe("研报提及 ×3");
+    expect(cards[3].querySelector(".hourly-source-tag")?.textContent?.trim()).toBe("机器研报线索");
+    expect(cards[3].querySelector(".hourly-impact-reason")?.textContent?.trim()).toBe("报告一");
+    expect(Array.from(cards[3].querySelectorAll(".machine-clue-titles .stock-timeline-body"))
+      .map((node) => node.textContent?.trim())).toEqual(["报告一", "<b>报告二</b>", "报告三"]);
+    expect(cards[3].textContent).not.toContain("报告四");
+    expect(cards[3].querySelector(".machine-clue-titles b")).toBeNull();
+    expect(stockPane.textContent).toContain("按文本确定性解析，含券商署名已剔除；仅为线索，不是推荐，不进入信号与买点。");
+  });
+
+  it("shows machine card and confirmed clue counts in the existing status strip", async () => {
+    stubResearchFetch(lane(), [machineCard()], [stockClue()]);
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    await waitFor(() => expect(statusCellValue(statusStrip, "机器研报")).toBe("1"));
+    await waitFor(() => expect(statusCellValue(statusStrip, "研报线索")).toBe("1"));
+  });
+
+  it("does not render standalone machine-card or stock-clue sections under the desk", async () => {
+    stubResearchFetch(lane(), [machineCard()], [stockClue()]);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    expect(await screen.findByText("研报提及 ×3")).toBeTruthy();
+
+    expect(screen.queryByRole("region", { name: "机器研报卡片（只读）" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "研报股票线索（只读）" })).toBeNull();
+    expect(container.querySelector(".machine-cards-section")).toBeNull();
+    expect(container.querySelector(".stock-clues-section")).toBeNull();
   });
 
   it("keeps eligible report subjects, source entities, title evidence, and source title priority", async () => {
@@ -796,6 +1046,12 @@ describe("reactive status and peripheral display contracts", () => {
     let resolveSecond: ((value: ReturnType<typeof response>) => void) | undefined;
     let laneRequest = 0;
     const fetchMock = vi.fn((url: string) => {
+      if (url.includes("/api/v3/research/machine-cards")) {
+        return Promise.resolve(response(machineCardsForUrl(url)));
+      }
+      if (url.includes("/api/v3/research/stock-clues")) {
+        return Promise.resolve(response(stockCluesForUrl(url)));
+      }
       if (url.includes("/api/v3/research/wechat/materials")) return Promise.resolve(response(wechatListing()));
       laneRequest += 1;
       return new Promise<ReturnType<typeof response>>((resolve) => {

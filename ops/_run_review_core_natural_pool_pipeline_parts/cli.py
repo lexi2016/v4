@@ -295,7 +295,15 @@ def _build_environment_body(_v4_scope, /, request, *, base_env):
     """Bind package/store roots and remove inherited checkout import paths."""
 
     environment = _v4_global(_v4_scope, 'dict')(base_env if base_env is not None else _v4_global(_v4_scope, 'os').environ)
-    environment["PYTHONPATH"] = _v4_global(_v4_scope, 'str')(request.review_core_package_root)
+    # Review Core imports its own package and, through the shared acquisition
+    # owner, top-level ``scripts``/``shared_data`` modules rooted at the shared
+    # package root; both must stay importable in the subprocess.
+    import_roots = []
+    for root in (request.review_core_package_root, request.shared_package_root):
+        text = _v4_global(_v4_scope, 'str')(root)
+        if text not in import_roots:
+            import_roots.append(text)
+    environment["PYTHONPATH"] = _v4_global(_v4_scope, 'os').pathsep.join(import_roots)
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     environment["V3_SHARED_DATA_PACKAGE_ROOT"] = _v4_global(_v4_scope, 'str')(request.shared_package_root)
     # STORE_ROOT is the explicit adapter contract; the V3_SHARED_DATA alias is

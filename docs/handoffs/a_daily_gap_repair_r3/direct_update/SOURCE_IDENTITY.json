@@ -1,0 +1,87 @@
+{
+  "scope": "Source/test and four ordered minimal effectiveMain patches only; no runtime data or credentials",
+  "source_root": "/Users/lexi/.codex/worktrees/panel-daily-gap-repair-r3-20261111",
+  "base_commit": "8000b140d06de11e30b518b979f294d3031fa199",
+  "branch": "codex/panel-daily-gap-repair-r3-20261111",
+  "runtime_base": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-main/release-manifest.json",
+    "sha256": "544c7cc4ce3a53720af0c9162dee9d234322f8bd135b56c10c330136ca33cbc8"
+  },
+  "effective_runtime": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app",
+    "qfq": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app/ops/research_panel_qfq.py",
+      "sha256": "7b1f6b4ef739c7074cfcb1e4b1fda6910d4c02e70f8bf5bf653aaf696a95ca13"
+    },
+    "daily_source": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app/ops/research_panel_daily_source.py",
+      "sha256": "454907923172ce3c97a0555aa3ae67147f16c71a993210bbc3024ecb563f9122"
+    },
+    "manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/release-manifest.identity-revision.json",
+      "sha256": "d6f97116e99f0f450e2a748a2126d61ac2e86696b27f39ff7c8e6cdf9e16796a"
+    }
+  },
+  "runtime_vs_worktree": "Worktree base8000 lacks earlier accepted Main-only changes. Do not copy worktree qfq wholesale into Main. The four ordered patches target the frozen actual Main identities and preserve prior accepted runtime deltas; this branch is not a self-contained full runtime release.",
+  "pass_scope": {
+    "native_source": "Prior11file independentPASS reused",
+    "retention_control": "Independent qfq metadata/inputPASS",
+    "D10_reuse_and_identity": "Final continuation independentPASS",
+    "canary": {
+      "changed8": [
+        "000972.SZ",
+        "002623.SZ",
+        "002827.SZ",
+        "300237.SZ",
+        "601326.SH",
+        "605258.SH",
+        "688496.SH",
+        "920202.BJ"
+      ],
+      "reused5766": true,
+      "removed0": true,
+      "derived_no_bar0": true,
+      "formula_calls": 0,
+      "panel_files_created": 0
+    },
+    "runtime_publication": "Controller executing; source handoff does not certify deployment/API/UI/natural outcomes"
+  },
+  "source_sha256": {
+    "ops/a_share_daily_sync.py": "cc36a486dafcc1c23a652440635be8c12d189644b0408a30d65da1e4b5a10046",
+    "ops/research_panel_daily_source.py": "326083cf4eef286f91419c93708962862cdbf6fa8ac2d74d69e83e382dcd1d89",
+    "ops/research_panel_qfq.py": "4afe501ed62a0f388c08880d56165363158145d79d8a62911c35be1fd97c1d41",
+    "ops/_a_share_daily_sync_parts/cli_runtime.py": "090c0c0e65ac02552583d9e11ce36b5ec0110192c62fd0169e2197b5113b86cd",
+    "ops/_a_share_daily_sync_parts/day_file_format.py": "20cb7d5dbb7d47b98c832d13dfb18d54ff015bb65be46bade7fe73768247688e",
+    "ops/_a_share_daily_sync_parts/official_daily_package.py": "56c37c898367ac86855cc5462fdd37a8f06444b1dfe414dc887e6b2339a3720e",
+    "ops/_a_share_daily_sync_parts/sync_workflow.py": "15457381812dafb64f287b8050f46671398b5903f23fbad3a74215b09477690e",
+    "ops/_a_share_daily_sync_parts/gap_witness.py": "28913253f402d8cecd81ae6f52e42de5343911d99318ddca70b539dfddc6cd3e",
+    "ops/_a_share_daily_sync_parts/native_io.py": "142146eba1f8df84402b39da846039dcc77cc599364719b850d19e55dd3043ea",
+    "tests/test_a_share_daily_zip_source.py": "0fbdbbd29664f391f39c53e409cac7840d03be56a69a6979391bbb596ec7719d",
+    "tests/test_a_daily_gap_recovery.py": "58ed68f945626fc03a2c94ead8cf102a6b39d85441ed8e6a0d3e6051db1d5ad1",
+    "tests/test_a_daily_cached_replay.py": "b6c1271ab223b389a34659c31cda77e58bd38fcf55bfb35bf027ba537ae15029",
+    "tests/test_qfq_retention_successor_selection.py": "0935a1a0063447cc396f4fd898e9a4b38e4ad465da91994b114254b66a13b860",
+    "tests/test_qfq_d10_existing_reuse_scope.py": "91ab990f40c5f2fb06cb79a0d223b9237956ce6a5f827c8617a9cf1e157fbc3e",
+    "tests/test_daily_identity_revision.py": "8b8a394037aef7772a2a9e619bc0d436205aa616684b70afe44131b3c191efeb"
+  },
+  "patch_sha256": {
+    "01-main-native-source.patch": "c8e38795445c538baf4091afdacae06ca0ad36e0ed353b8cda64b5cb876314e5",
+    "02-main-retention-control.patch": "8bed8205e076c7e089ad68f0303d8e599ec5166359cc5ed7eccca32ab5e7acb8",
+    "03-main-d10-existing-reuse.patch": "561da81c8573a631a37da1a1848ae33e404cbbc3b80516025f96efec64387ffb",
+    "04-main-identity-revision.patch": "13a2cc1f8615ed6889fda33028cbe40c635b15530e57e54d3d7d306423b727e8"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "test_harness_note": "Explicit effectiveMain env was set after adding the no-env skip marker. All8 reuse bodies plus1identity case ran and passed on the final Git harness bytes. Earlier59/17/fullcanary scopes were not rerun.",
+  "final_harness_check": {
+    "command": "V4_TEST_QFQ_REUSE_SOURCE='/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-daily-source-fix-20261111-r2/v4-panel-daily-source-fix-20261111-r2-main/app/ops/research_panel_qfq.py' \"$PANEL_PYTHON\" -m pytest -q --basetemp=/tmp/direct-final-harness-nine-20261111 tests/test_qfq_d10_existing_reuse_scope.py tests/test_daily_identity_revision.py",
+    "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "effective_main_sha256": "7b1f6b4ef739c7074cfcb1e4b1fda6910d4c02e70f8bf5bf653aaf696a95ca13",
+    "result": ".........                                                                [100%]\n9 passed in 0.81s",
+    "log": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/direct_update/final_harness_nine_cases.log",
+      "sha256": "1493fb38a3775e9480851df9569e42eebe3fc0d74d5fa348df95632347be281c"
+    }
+  }
+}

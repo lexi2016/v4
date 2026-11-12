@@ -436,10 +436,16 @@ def publish_v192_rows(
     target_date: str,
     rows: Iterable[Mapping[str, Any]],
     oracle_sha256s: Mapping[str, str],
+    historical_backfill: bool = False,
+    expected_previous: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Publish deterministic v1.9.2 rows into the shared single-writer store."""
     signal_date = validate_date(signal_date)
     target_date = validate_date(target_date)
+    if historical_backfill and (not isinstance(expected_previous, Mapping) or set(expected_previous) != {
+            "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256",
+            "artifact_relative", "manifest_relative", "receipt_relative"}):
+        raise StoreError("v1.9.2 historical repair requires complete expected_previous identity")
     if signal_date >= target_date:
         raise StoreError("target_date must be after signal_date")
     local_bundle = verify_local_oracle_bundle()
@@ -476,7 +482,9 @@ def publish_v192_rows(
             "fmla04_role_sha256": frozen_hashes["fmla04_role"],
         }
         spec = SourceSpec(
-            source_id="fmla04_v192_frozen_selector",
+            # Bind source bytes too: two empty CSVs from different generations
+            # otherwise collide in the store's artifact-based idempotency key.
+            source_id="fmla04_v192_frozen_selector_" + panel_sha256,
             role=V192_ROLE,
             trade_date=target_date,
             market="A_SHARE",
@@ -513,6 +521,8 @@ def publish_v192_rows(
             role=V192_ROLE,
             source_id=spec.source_id,
             stage_id=V192_STAGE_ID,
+            historical_backfill=historical_backfill,
+            expected_previous=expected_previous,
         )
     read_verified_v192_pool(
         store_root,
@@ -603,7 +613,7 @@ def _date_bounded_panel_for_oracle(
     """
     try:
         import pyarrow as pa
-        import pyarrow.parquet as parquet
+        from ops.research_panel_logical import parquet
     except ImportError as error:
         raise StoreError("pyarrow is required for the bounded v1.9.2 oracle panel") from error
 
@@ -688,7 +698,7 @@ def _read_selector_panel_source_rows(
 
     path = Path(panel_path)
     try:
-        import pyarrow.parquet as parquet
+        from ops.research_panel_logical import parquet
 
         parquet_file = parquet.ParquetFile(path)
         available = set(parquet_file.schema.names)
@@ -888,8 +898,15 @@ def materialize_frozen_v192_selector(
     signal_date: str,
     target_date: str,
     runner: Callable[[Path | str, str], list[dict[str, Any]]] = run_frozen_v192_oracle,
+    historical_backfill: bool = False,
+    expected_previous: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    before = sha256_file(Path(panel_path))
     rows = runner(panel_path, signal_date)
+    from ops.research_panel_logical import validate_closure
+    validate_closure(panel_path)
+    if sha256_file(Path(panel_path)) != before:
+        raise StoreError("v1.9.2 source panel changed during materialization")
     return publish_v192_rows(
         store_root,
         panel_path=panel_path,
@@ -897,4 +914,6 @@ def materialize_frozen_v192_selector(
         target_date=target_date,
         rows=rows,
         oracle_sha256s=verify_oracle_sources(),
+        historical_backfill=historical_backfill,
+        expected_previous=expected_previous,
     )

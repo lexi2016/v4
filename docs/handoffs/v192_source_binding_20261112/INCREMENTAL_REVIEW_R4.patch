@@ -1,0 +1,153 @@
+--- a/infrastructure/formula_generation.py
++++ b/infrastructure/formula_generation.py
+@@ -245,6 +245,26 @@
+     if pool.run.manifest.get("provenance", {}).get("panel_sha256") != binding["sha256"]:
+         raise FormulaGenerationError("V192_CURRENT_SELECTOR_SOURCE_IDENTITY_CONFLICT")
+     return binding
++
++
++def verify_v192_native_cache_identity(payload: Mapping[str, Any], pool: Any) -> None:
++    """Bind a legacy native cache to the reader's verified immutable trio.
++
++    Older native artifacts omit the two optional manifest/receipt SHA fields.
++    Their exact run, artifact SHA and artifact path must still all agree with
++    the verified shared run. Present optional fields never receive defaults.
++    """
++    proof = pool.run.verification
++    required = (("run_id", "source_run_id"), ("artifact_sha256", "source_sha256"),
++                ("artifact_relative", "source_path"))
++    optional = (("manifest_sha256", "source_manifest_sha256"),
++                ("receipt_sha256", "source_receipt_sha256"),
++                ("artifact_sha256", "source_artifact_sha256"))
++    if (any(not isinstance(proof.get(key), str) or not proof[key]
++            or proof[key] != payload.get(field) for key, field in required)
++            or any(field in payload and (not isinstance(proof.get(key), str)
++                or proof[key] != payload[field]) for key, field in optional)):
++        raise FormulaGenerationError("V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT")
+ 
+ 
+ def read_legacy_pointer(pointer: Path | str) -> Path:
+@@ -432,5 +452,6 @@
+     "read_formula_generation",
+     "read_selector_source_binding",
+     "verify_v192_current_source",
++    "verify_v192_native_cache_identity",
+     "read_legacy_pointer",
+ ]
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -106,6 +106,18 @@
+             from infrastructure.formula_generation import verify_v192_current_source
+             verify_v192_current_source(pool, self.selector_data_root, signal_date=signal_date,
+                 generation_pointer=_v4_global(_v4_scope, 'os').environ.get("V35_RESEARCH_PANEL_A_FORMULA_GENERATION_POINTER"))
++            # The split source path may already have a nonempty native cache.
++            # Preserve safe legacy reuse without forcing new metadata writes.
++            native_root = getattr(self, "data_root", None)
++            if native_root is not None:
++                from infrastructure.preselection_pool_store import PreselectionPoolStore
++                from infrastructure.formula_generation import verify_v192_native_cache_identity
++                try:
++                    cached = PreselectionPoolStore(native_root).read_pool(target_date, "a_d1_premarket_pool")
++                except FileNotFoundError:
++                    cached = None
++                if cached is not None and cached.get("rows"):
++                    verify_v192_native_cache_identity(cached, pool)
+         if receipt.get("status") != "READY" or _v4_global(_v4_scope, 'any')(
+             receipt.get(field) is not False
+             for field in ("production_allowed", "buy_gate_updated", "orders_sent")
+--- a/tests/test_v192_source_binding.py
++++ b/tests/test_v192_source_binding.py
+@@ -187,7 +187,7 @@
+     assert 'EXACT_INPUT_MISSING' in json.loads(capsys.readouterr().out)['error']
+ 
+ 
+-def test_nonempty_scheduler_reuse_checks_current_selector_before_ready(tmp_path):
++def test_nonempty_scheduler_reuse_checks_current_selector_before_ready(tmp_path, monkeypatch):
+     # Load only the changed split body. The frozen maintenance branch's
+     # unrelated scheduler facade imports a missing notifications module.
+     import sys, types
+@@ -204,13 +204,27 @@
+     pool = SimpleNamespace(run=SimpleNamespace(
+         manifest={'provenance': {'panel_sha256': sha(panel)}},
+         receipt=dict(status='READY', run_id='nonempty', production_allowed=False, buy_gate_updated=False, orders_sent=False),
+-        verification=dict(artifact_sha256='c'*64,row_count=1)), rows=[{'ts_code':'600000.SH'}])
++        verification=dict(run_id='nonempty',artifact_sha256='c'*64,row_count=1,artifact_relative='runs/20261113/A_SHARE_V192_PREMARKET_POOL_V3/nonempty/artifact.csv',manifest_sha256='d'*64,receipt_sha256='e'*64)), rows=[{'ts_code':'600000.SH'}])
+     module = SimpleNamespace(read_verified_v192_pool=lambda *_a, **_k: pool)
+     scope = dict(load_isolated_package_module=lambda *_a, **_k: module, os=os)
+     registry = SimpleNamespace(shared_data_root=tmp_path/'store', shared_package_root=PACKAGE,selector_data_root=tmp_path)
+     kwargs=dict(module_leaf='v192_selector',reader_name='read_verified_v192_pool',target_date='20261113',signal_date='20261112')
+     ready, reason=read(scope,registry,**kwargs)
+     assert ready['run_id']=='nonempty' and reason==''
++    from infrastructure import preselection_pool_store
++    cached=dict(source_run_id='nonempty',source_sha256='c'*64,
++        source_path=pool.run.verification['artifact_relative'],rows=[{'symbol':'A.600000'}])
++    class Cache:
++        def __init__(self,*_a):pass
++        def read_pool(self,*_a):return cached
++    monkeypatch.setattr(preselection_pool_store,'PreselectionPoolStore',Cache)
++    registry.data_root=tmp_path/'native'
++    ready,reason=read(scope,registry,**kwargs)
++    assert ready['run_id']=='nonempty' and reason==''
++    cached['source_path']='wrong'
++    rejected,reason=read(scope,registry,**kwargs)
++    assert rejected is None and 'V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT' in reason
++    cached['source_path']=pool.run.verification['artifact_relative']
+     pool.run.manifest['provenance']['panel_sha256']='0'*64
+     ready, reason=read(scope,registry,**kwargs)
+     assert ready is None and 'V192_CURRENT_SELECTOR_SOURCE_IDENTITY_CONFLICT' in reason
+@@ -265,10 +279,10 @@
+     from infrastructure import isolated_package_loader
+     panel=selector(tmp_path)
+     pointer=tmp_path/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';pointer.parent.mkdir();pointer.write_text(str(panel))
+-    verification=dict(run_id='correct',artifact_sha256='c'*64,manifest_sha256='d'*64,receipt_sha256='e'*64)
++    verification=dict(run_id='correct',artifact_sha256='c'*64,manifest_sha256='d'*64,receipt_sha256='e'*64,artifact_relative='runs/20261113/A_SHARE_V192_PREMARKET_POOL_V3/correct/artifact.csv')
+     verified=SimpleNamespace(run=SimpleNamespace(manifest={'provenance':{'panel_sha256':sha(panel)}},verification=verification))
+     monkeypatch.setattr(isolated_package_loader,'load_isolated_package_module',lambda *_a,**_k:SimpleNamespace(read_verified_v192_pool=lambda *_a,**_k:verified))
+-    payload=dict(pool_id='a_d1_premarket_pool',market='A',trade_date='20261113',target_date='20261113',source_role='SHARED_VERIFIED_V192',stage_selection_eligible=True,status='V192_CANDIDATE_READY',rows=[dict(symbol='A.600000')],source_sha256=verification['artifact_sha256'],source_run_id='correct',source_manifest_sha256=verification['manifest_sha256'],source_receipt_sha256=verification['receipt_sha256'],production_allowed=False,buy_gate_updated=False,orders_sent=False)
++    payload=dict(pool_id='a_d1_premarket_pool',market='A',trade_date='20261113',target_date='20261113',source_role='SHARED_VERIFIED_V192',stage_selection_eligible=True,status='V192_CANDIDATE_READY',rows=[dict(symbol='A.600000')],source_sha256=verification['artifact_sha256'],source_run_id='correct',source_path=verification['artifact_relative'],source_manifest_sha256=verification['manifest_sha256'],source_receipt_sha256=verification['receipt_sha256'],production_allowed=False,buy_gate_updated=False,orders_sent=False)
+     class Store:
+         def __init__(self,*_a):pass
+         def read_pool(self,day,pool_id):
+@@ -280,6 +294,19 @@
+     registry=SimpleNamespace(data_root=tmp_path/'native',shared_data_root=tmp_path/'shared',shared_package_root=PACKAGE,selector_data_root=tmp_path)
+     match=namespace['_verified_formal_pool_reuse'](registry,'20261113')
+     assert match['hk_missing_retry']is True and match['a_identity']['source_sha256']==verification['artifact_sha256']
++    # Reproduce the review failure: a valid old native cache omitted both
++    # optional hashes. It must reuse without writing an upgraded artifact.
++    payload.pop('source_manifest_sha256');payload.pop('source_receipt_sha256')
++    match=namespace['_verified_formal_pool_reuse'](registry,'20261113')
++    assert match['hk_missing_retry'] is True
++    for field in ['source_run_id','source_sha256','source_path','source_manifest_sha256','source_receipt_sha256']:
++        before=dict(payload);payload[field]='wrong'
++        assert namespace['_verified_formal_pool_reuse'](registry,'20261113') is None
++        assert registry._v192_source_reuse_conflict=='V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT'
++        payload.clear();payload.update(before)
++    payload['source_manifest_sha256']=None
++    assert namespace['_verified_formal_pool_reuse'](registry,'20261113') is None
++    payload.pop('source_manifest_sha256')
+     verified.run.manifest['provenance']['panel_sha256']='0'*64
+     assert namespace['_verified_formal_pool_reuse'](registry,'20261113')is None
+     assert registry._v192_source_reuse_conflict=='V192_CURRENT_SELECTOR_SOURCE_IDENTITY_CONFLICT'
+--- a/runtime-preselection.py
++++ b/runtime-preselection.py
+@@ -156,7 +156,7 @@
+             if market == "A":
+                 try:
+                     from contracts.trading_calendar import load_market_calendar, previous_session
+-                    from infrastructure.formula_generation import verify_v192_current_source
++                    from infrastructure.formula_generation import verify_v192_current_source, verify_v192_native_cache_identity
+                     from infrastructure.isolated_package_loader import load_isolated_package_module
+                     signal_date = previous_session(load_market_calendar(), trade_date, market="a_share")
+                     module = load_isolated_package_module(self.shared_package_root,
+@@ -165,10 +165,7 @@
+                     verified = module.read_verified_v192_pool(self.shared_data_root,
+                         target_date=trade_date, expected_signal_date=signal_date)
+                     verify_v192_current_source(verified, self.selector_data_root, signal_date=signal_date)
+-                    if any(verified.run.verification.get(key) != payload.get(field) for key, field in (
+-                            ("run_id", "source_run_id"), ("artifact_sha256", "source_sha256"),
+-                            ("manifest_sha256", "source_manifest_sha256"), ("receipt_sha256", "source_receipt_sha256"))):
+-                        raise ValueError("V192_FORMAL_CACHE_SOURCE_IDENTITY_CONFLICT")
++                    verify_v192_native_cache_identity(payload, verified)
+                 except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
+                     self._v192_source_reuse_conflict = str(error)
+                     return None  # exact original producer path retains the source conflict

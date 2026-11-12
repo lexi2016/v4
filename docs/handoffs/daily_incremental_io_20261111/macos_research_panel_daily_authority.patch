@@ -1,0 +1,18 @@
+--- a/ops/macos_research_panel_daily_authority.py
++++ b/ops/macos_research_panel_daily_authority.py
+@@ -1016,6 +1016,7 @@
+     module_name: str = "macos_windows_formula_authority",
+     formula_max_workers: int | None = None,
+     qfq_original_tdx_root: Path | str | None = None,
++    checkpoint_resume: dict | None = None,
+ ) -> dict[str, Any]:
+     from ops.research_panel_qfq import input_path, pointer_ready, run_daily_rebuild
+     from ops.research_storage_retention import run_with_retention
+@@ -1035,6 +1036,7 @@
+         contract_csv=Path(contract_csv).resolve(), return_root=Path(return_root).resolve(), target=target,
+         publish=True, workers=int(formula_max_workers or __import__("os").environ.get("RESEARCH_PANEL_QFQ_WORKERS", "2")),
+         refresh_inputs=True,
++        **({"checkpoint_resume": checkpoint_resume} if checkpoint_resume is not None else {}),
+     )
+     artifact = _formula_artifact_binding(Path(result["selector"]), Path(result["backtest"]))
+     current_rows = result.get("counts", {}).get("selector", {}).get("target_date_symbols")

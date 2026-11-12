@@ -1,0 +1,34 @@
+{
+  "schema": "a_daily_source_policy.v1",
+  "enabled": true,
+  "source_kind": "TDX_OFFICIAL_G4DAY",
+  "earliest_slot": "1610",
+  "calendar": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/market_calendar_2026.json",
+    "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+  },
+  "calendar_adapter": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/trading_calendar.py",
+    "sha256": "cfac1a96f92519fec24203cfbb9ade1f6d5ee378b7cb88ddfeca5a9000b77eb8"
+  },
+  "observed_provider_only_exceptions": [],
+  "provider_only_exception_scope": "Root-approved empty observed-provider-only exception list: D28/D29 successful-response comparison observed two revisions explained by official events. Unknown future vendor-only revisions remain CANNOT_CONFIRM; not provider-latest or PIT.",
+  "source_comparison_refs": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/SOURCE_COMPARISON.json",
+      "sha256": "47a0539a828e0ba27ba9ab1854d10b2b3ae43e49e7ae6842146c39aadaeabd0f"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/TWO_CHANGED_FACTOR_RESPONSE_DIFF.json",
+      "sha256": "dc13011674b6cfabbc71c5d1bddc0ee5116de1b519f4a1c95bc94630377b83a6"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/TWO_CHANGED_OFFICIAL_CA_MATCH.json",
+      "sha256": "5c2bffcbeae2076eb8fb2c1a953ede412c691b70b4d1e3e9d508abc49d82dec5"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

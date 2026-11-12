@@ -1,0 +1,90 @@
+--- a/ops/research_storage_governance.py
++++ b/ops/research_storage_governance.py
+@@ -176,7 +176,10 @@
+ 
+ def unique_roots(paths):
+     roots={Path(path) for path in paths}
+-    return {path for path in roots if not any(path!=other and under(path,other) for other in roots)}
++    # under(path, other) means equality or lexical parent membership. Equality
++    # was excluded above, so only this path's ancestors can cover it. Looking
++    # those up avoids all-pairs comparisons for logical generations' blocks.
++    return {path for path in roots if not any(parent in roots for parent in path.parents)}
+ 
+ 
+ class Registry:
+@@ -1026,6 +1029,66 @@
+     return {**status,**pair_state,'already_current':True,'selector':str(paths['selector']),'backtest':str(paths['backtest'])}
+ 
+ 
++def qfq_registry_summary(result):
++    """Reference the original complete owner receipts, never copy stock detail.
++
++    Candidate publication precedes registry recording. Both the immutable
++    candidate evidence and its READY completion must match this exact result.
++    The normal Claim.finish artifact validation and metadata budget still apply.
++    """
++    from ops.research_storage_retention import FLAGS
++    run = safe_path(result['run_dir'])
++    refs = {}
++    documents = {}
++    for name in ('candidate_receipt', 'stage_status'):
++        path = safe_path(run / (name + '.json'))
++        before = stamp(path)
++        raw = path.read_bytes()
++        if stamp(path) != before:
++            raise RetentionError('QFQ_OWNER_RECEIPT_CHANGED')
++        documents[name] = json.loads(raw)
++        refs[name] = dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
++    candidate, ready = documents['candidate_receipt'], documents['stage_status']
++    if (result.get('status') != 'READY' or ready.get('status') != 'READY'
++            or candidate.get('status') not in {'CANDIDATE_READY', 'READY'}
++            or not ready.get('generation_id')
++            or set(ready.get('candidates', {})) != {'selector', 'backtest'}
++            or set(ready.get('candidate_sha256', {})) != {'selector', 'backtest'}
++            or any(result.get(role) != ready['candidates'][role] for role in ('selector', 'backtest'))
++            or ready.get('selector_pointer_ready') is not True
++            or ready.get('backtest_pointer_ready') is not True):
++        raise RetentionError('QFQ_OWNER_RECEIPT_NOT_READY')
++    for document in (candidate, ready):
++        if (any(document.get(key) != ready.get(key) for key in
++                ('generation_id', 'target_date', 'run_dir', 'candidates', 'candidate_sha256'))
++                or any(document.get(key) != value for key, value in FLAGS.items())):
++            raise RetentionError('QFQ_OWNER_RECEIPT_CONFLICT')
++    # The original idempotent owner intentionally returns a smaller shape.
++    # Only this exact shape may omit fields present in its complete receipts.
++    identity_keys = ('generation_id', 'candidates', 'candidate_sha256')
++    idempotent = result.get('already_current') is True
++    if (any(result.get(key) != ready.get(key) for key in ('target_date', 'run_dir'))
++            or any(result.get(key) != value for key, value in FLAGS.items())
++            or any((key not in result and not idempotent)
++                   or (key in result and result[key] != ready.get(key)) for key in identity_keys)):
++        raise RetentionError('QFQ_OWNER_RECEIPT_CONFLICT')
++    if idempotent:
++        authority = result.get('authority') or {}
++        if (authority.get('final_status') != 'PASS_QFQ_FULL_HISTORY_IDEMPOTENT'
++                or authority.get('generation_id') != ready['generation_id']
++                or authority.get('source_sha256') != ready.get('input_sha256')
++                or not ready.get('input_sha256')
++                or result.get('selector_pointer_ready') is not True
++                or result.get('backtest_pointer_ready') is not True):
++            raise RetentionError('QFQ_OWNER_IDEMPOTENT_RECEIPT_CONFLICT')
++    return dict(schema='qfq_registry_owner_receipt_summary.v1', status='READY',
++        generation_id=ready['generation_id'], target_date=ready['target_date'],
++        selector=result['selector'], backtest=result['backtest'],
++        candidate_sha256=ready['candidate_sha256'],
++        complete_owner_receipt=refs['candidate_receipt'],
++        ready_owner_receipt=refs['stage_status'], **FLAGS)
++
++
+ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointers, target, **kwargs):
+     import importlib
+     module=importlib.import_module('ops.research_panel_qfq')
+@@ -1040,7 +1103,7 @@
+             if getattr(claim,'pair_recording_error',None):
+                 result['storage_pair']=dict(status='RECONCILIATION_REQUIRED_OLD_IMMUTABLE_PAIR_RETAINED',error=claim.pair_recording_error)
+             if result.get('status')=='READY':
+-                try:claim.finish(result,[result['selector'],result['backtest']])
++                try:claim.finish(qfq_registry_summary(result),[result['selector'],result['backtest']])
+                 except (OSError,ValueError,RetentionError) as error:
+                     claim.recording_failed=True
+                     result['storage_governance']=dict(status='COMMITTED_REGISTRY_RECORDING_BLOCKED',error=str(error)[:1024])

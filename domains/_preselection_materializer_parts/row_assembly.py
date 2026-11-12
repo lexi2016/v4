@@ -239,7 +239,7 @@ def _build_shared_v192_premarket_pool_body(_v4_scope, /, shared_data_root, *, tr
         pool_id="a_d1_premarket_pool",
         display_name="A股 D-1 v1.9.2候选池",
         market="A",
-        status="V192_CANDIDATE_READY" if rows else "V192_CANDIDATE_READY_EMPTY",
+        status="V192_CANDIDATE_READY" if rows else "VALID_EMPTY",
         producer_id="v3_shared_v192_consumer_v1",
         source_role="SHARED_VERIFIED_V192",
         source_path=_v4_global(_v4_scope, 'str')(verification["artifact_relative"]),
@@ -247,6 +247,7 @@ def _build_shared_v192_premarket_pool_body(_v4_scope, /, shared_data_root, *, tr
         rows=rows,
         cannot_confirm=[
             "RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY",
+            *([] if rows else ["V192_CANDIDATE_READY_EMPTY"]),
             *(
                 [
                     "V3_PREMARKET_POOL_SCORE_MISSING:" + ",".join(missing_premarket_score_codes)
@@ -257,6 +258,8 @@ def _build_shared_v192_premarket_pool_body(_v4_scope, /, shared_data_root, *, tr
         ],
     )
     artifact["source_run_id"] = _v4_global(_v4_scope, 'str')(verification["run_id"])
+    artifact["source_manifest_sha256"] = str(verification["manifest_sha256"])
+    artifact["source_receipt_sha256"] = str(verification["receipt_sha256"])
     artifact["source_row_count"] = _v4_global(_v4_scope, 'int')(verification["row_count"])
     # Keep the formal shared V3 identity explicit at the artifact boundary.
     # Consumers must not infer a V2/V3 version from the producer name or path.
@@ -267,7 +270,7 @@ def _build_shared_v192_premarket_pool_body(_v4_scope, /, shared_data_root, *, tr
         signal_date=signal_date,
         target_date=trade_date,
         source_merge_role="MAIN_STAGE_INPUT",
-        stage_selection_eligible=True,
+        stage_selection_eligible=bool(rows),
     )
     return artifact
 

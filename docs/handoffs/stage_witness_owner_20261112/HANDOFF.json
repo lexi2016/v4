@@ -1,0 +1,80 @@
+{
+  "schema": "stage_witness_handoff.v1",
+  "status": "FROZEN_CANDIDATE_AWAITING_INDEPENDENT_REVIEW_NOT_ACTIVATED",
+  "worktree": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app",
+  "branch": "codex/stage-witness-owner-20261112",
+  "base_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/STAGE_manager_input_attestation.after.py",
+      "sha256": "63408260062e5f32430a00990ef716d81b103b3090cf93374b4cc6112fdf5b17"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/prepare_candidate.py",
+      "sha256": "780638dcc0de3c29bc883c29b8c1a742dbf851498e09fe04196a18e7b30b64f2"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/validate_candidate.py",
+      "sha256": "2b47be45666c89e16028100abc8def961407d437c69d03e853bffe7107a51648"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/tests/test_stage_witness_owner_capacity.py",
+      "sha256": "0a579e92f0d685f4f7e8eb6b4faaa16ccb4f7572bb0fd862c3601c7188a3bea1"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/SCOPE.json",
+      "sha256": "e0280f880697e96cdf43ca9cf65892a92c91e39df1d3e961751056d6b2b2b0b4"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/CALL_ROLES.json",
+      "sha256": "54b5b010f9146652d1b598f93ae84012108a7854be6b5de5a4918d7027a95dcb"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/CONFIG_IDENTITY_TEMPLATE.json",
+      "sha256": "335e0a0023be240c125b8a82ddd5a763211b72cf527c6fa22c5947c533c688a6"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/COMPLETION_CONSUMER_PATH_CONTRACT.json",
+      "sha256": "b736c1c8dff2c2db46525b490338fc44d59c8e58364152eb5185817cab414b2a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/TEST_RESULTS.json",
+      "sha256": "2151f8675171bd632e908b72d0bd453ad9975902d8a8e53eb6b11cd885e441b2"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/SOURCE_PATCH_BINDING.json",
+      "sha256": "c11050d64f86cac0feda8ecd74ffb34b254bc1377e7d83e9989ec7019db076bc"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/stage-capacity.patch",
+      "sha256": "61a66466ce164568529b2baa56b2f6aa589be4005e90af70110918ccea51051d"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/README.md",
+      "sha256": "1fbe87336ef00776868ea40f7ad1a8d6cd2ded8f2963d6af597124ae6bb14f75"
+    }
+  ],
+  "candidate_prepare": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/PREPARE_RECEIPT.json",
+    "sha256": "f4ba427b026525df749ad0d104d652229707b8b1254e5cb1483191fa9499e0c9"
+  },
+  "candidate_validation": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-stage-witness-owner-20261112-r1/VALIDATION.json",
+    "sha256": "7cd70beced10e3a98726f7dc81160d07c7a318143b59e2fe2ce2f998a259c17e"
+  },
+  "stage_helper_before": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-storage-recovery-20261110-r1/v4-daily-storage-recovery-20261110-r1-stage/app/infrastructure/manager_input_attestation.py",
+    "sha256": "e7d6ef73a65e6dec59d197d0fd0097e923ca872585c9844275a607d76fcd05e1"
+  },
+  "stage_helper_after": {
+    "path": "/Users/lexi/.codex/worktrees/stage-witness-owner-20261112/v4_app/docs/handoffs/stage_witness_owner_20261112/STAGE_manager_input_attestation.after.py",
+    "sha256": "63408260062e5f32430a00990ef716d81b103b3090cf93374b4cc6112fdf5b17"
+  },
+  "tests": "16passed; original identity/witness/control-helper validationPASS",
+  "scope": "Stage finite identity capacity16+config; Main mechanical control refs only; zero Main/API/UI business diff; no live action",
+  "CANNOT_CONFIRM": [
+    "Natural D12hourly witness absent",
+    "D12 research pool218 actual D11 generation linkage",
+    "Future regenerated candidate after other Main repair until exact fresh helper validation passes"
+  ]
+}

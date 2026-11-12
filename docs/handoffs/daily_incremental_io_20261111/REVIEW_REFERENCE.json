@@ -1,0 +1,25 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "reviewer": "/root/daily_incremental_io_reviewer",
+  "review_round": 1,
+  "review_receipt_name": "INDEPENDENT_IO_REVIEW.json",
+  "review_receipt_sha256": "b89fc388c0dce82ed89430aa23093592a864c49db8289ce6d725732792f9329f",
+  "frozen_handoff_name": "IO_HANDOFF.json",
+  "frozen_handoff_sha256": "37b8b93aec6328c94172f1eb7612270afa89012d79bf4ccd03b9e3094729c4e5",
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "writer_checks_reused": 29,
+  "additional_independent_checks": [
+    "Actual unchanged governance wrapper with 33001 synthetic rows and four mixed rowgroups",
+    "Guard refusal propagation, original checkpoint return path, empty original table"
+  ],
+  "scope": "Exact two runtime-source patches and targeted behavior only; original README and frozen source/handoff bytes retained",
+  "integration": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "live_publication": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -286,6 +286,238 @@ class BatchError(RuntimeError):
         self.code = code
 
 
+_FAILURE_CODE_LIMIT = 96
+_FAILURE_SUMMARY_LIMIT = 200
+_REDACTED_PATH = "<redacted-path>"
+_URL_ADDRESS_RE = re.compile(r"[A-Za-z][A-Za-z0-9+.\-]*://[^\s\"'`<>|]*")
+_ABSOLUTE_POSIX_PATH_RE = re.compile(r"(?<![A-Za-z0-9_.\-])/[^\s\"'`<>|]+")
+_ABSOLUTE_WINDOWS_PATH_RE = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:\\[^\n\r\"'`<>|]*")
+_REDACTED_PATH_RUN_RE = re.compile(r"(?:<redacted-path>)+")
+
+
+def _utc_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _failure_roots(*values: Any) -> list[Path]:
+    roots: list[Path] = []
+    for value in (Path.home(), Path.cwd(), pdf_research.AUTHORITATIVE_DATA_ROOT, R_ROOT, R1_STATE_ROOT, DEFAULT_STATE_ROOT, *values):
+        try:
+            roots.append(Path(value).expanduser().absolute())
+        except (OSError, TypeError, ValueError):
+            continue
+    return roots
+
+
+def _sanitize_failure_summary(message: Any, *, roots: Sequence[Path] = ()) -> str:
+    text = "" if message is None else str(message)
+    text = text[:_FAILURE_SUMMARY_LIMIT]
+    protected_urls: list[str] = []
+
+    def protect_url(match: re.Match[str]) -> str:
+        protected_urls.append(match.group(0))
+        return f"\x00protected-url-{len(protected_urls) - 1}\x00"
+
+    text = _URL_ADDRESS_RE.sub(protect_url, text)
+    for root in sorted(roots, key=lambda value: len(str(value)), reverse=True):
+        root_text = str(root)
+        if root_text and root_text in text:
+            text = text.replace(root_text, _REDACTED_PATH)
+    text = _ABSOLUTE_WINDOWS_PATH_RE.sub(_REDACTED_PATH, text)
+    text = _ABSOLUTE_POSIX_PATH_RE.sub(_REDACTED_PATH, text)
+    text = _REDACTED_PATH_RUN_RE.sub(_REDACTED_PATH, text)
+    for index, url in enumerate(protected_urls):
+        text = text.replace(f"\x00protected-url-{index}\x00", url)
+    return text[:_FAILURE_SUMMARY_LIMIT]
+
+
+def _failure_code_for_exception(exc: BaseException) -> str:
+    code = getattr(exc, "code", None)
+    if not isinstance(code, str) or not code.strip():
+        code = type(exc).__name__
+    return str(code).strip()[:_FAILURE_CODE_LIMIT]
+
+
+def _failure_details_from_outcome(outcome: Mapping[str, Any], *, roots: Sequence[Path] = ()) -> dict[str, Any]:
+    queue_item = outcome.get("queue_item") if isinstance(outcome, Mapping) else None
+    last_error = queue_item.get("last_error") if isinstance(queue_item, Mapping) else None
+    prior_status = outcome.get("prior_status") if isinstance(outcome, Mapping) else None
+    if not (isinstance(prior_status, str) and prior_status.strip()):
+        prior_status = queue_item.get("status") if isinstance(queue_item, Mapping) else None
+    code: str | None = None
+    message: str | None = None
+    if isinstance(last_error, Mapping):
+        raw_code = last_error.get("code")
+        if isinstance(raw_code, str) and raw_code.strip():
+            code = raw_code.strip()[:_FAILURE_CODE_LIMIT]
+        raw_message = last_error.get("message")
+        if isinstance(raw_message, str) and raw_message.strip():
+            message = raw_message
+    if code is None and isinstance(prior_status, str) and prior_status.strip():
+        code = prior_status.strip()[:_FAILURE_CODE_LIMIT]
+    if code is None and isinstance(last_error, Mapping):
+        raw_type = last_error.get("type")
+        if isinstance(raw_type, str) and raw_type.strip():
+            code = raw_type.strip()[:_FAILURE_CODE_LIMIT]
+    if code is None:
+        status = outcome.get("status") if isinstance(outcome, Mapping) else None
+        code = str(status or "FAILED_NO_RETRY")[:_FAILURE_CODE_LIMIT]
+    if message is None:
+        message = code
+    return {"failure_code": code, "failure_summary": _sanitize_failure_summary(message, roots=roots)}
+
+
+def _sanitized_error_view(error: Any, *, roots: Sequence[Path] = ()) -> dict[str, Any] | None:
+    if not isinstance(error, Mapping):
+        return None
+    view: dict[str, Any] = {}
+    for name in ("stage", "code", "type"):
+        if name in error:
+            view[name] = error.get(name)
+    if "message" in error:
+        view["message"] = _sanitize_failure_summary(error.get("message"), roots=roots)
+    return view
+
+
+def _sanitized_attempt_view(attempt: Mapping[str, Any], *, roots: Sequence[Path] = ()) -> dict[str, Any]:
+    view: dict[str, Any] = {}
+    for name in (
+        "number",
+        "consumer_queue_id",
+        "status",
+        "started_at",
+        "finished_at",
+        "duration_seconds",
+        "raw_sha256",
+        "raw_length_bytes",
+        "validated_sha256",
+    ):
+        if name in attempt:
+            view[name] = attempt.get(name)
+    if "error" in attempt:
+        view["error"] = _sanitized_error_view(attempt.get("error"), roots=roots)
+    return view
+
+
+def _failure_chunk_receipt(chunk: Any, outcome: Mapping[str, Any], *, roots: Sequence[Path] = ()) -> dict[str, Any]:
+    receipt: dict[str, Any] = {
+        "chunk_index": chunk.chunk_index,
+        "chunk_sha256": chunk.chunk_sha256,
+        "status": outcome.get("status"),
+        "attempted": outcome.get("attempted"),
+    }
+    prior_status = outcome.get("prior_status")
+    if isinstance(prior_status, str) and prior_status.strip():
+        receipt["prior_status"] = prior_status
+    queue_item = outcome.get("queue_item")
+    if isinstance(queue_item, Mapping):
+        queue_view: dict[str, Any] = {}
+        for name in (
+            "idempotency_key",
+            "queue_id",
+            "model_id",
+            "status",
+            "attempt_count",
+            "max_attempts",
+            "body_length_bytes",
+            "missing_material",
+            "raw_sha256",
+            "validated_sha256",
+        ):
+            if name in queue_item:
+                queue_view[name] = queue_item.get(name)
+        identity = queue_item.get("identity")
+        if isinstance(identity, Mapping):
+            queue_view["identity"] = dict(identity)
+        queue_view["last_error"] = _sanitized_error_view(queue_item.get("last_error"), roots=roots)
+        attempts = queue_item.get("attempts")
+        if isinstance(attempts, list):
+            queue_view["attempts"] = [
+                _sanitized_attempt_view(attempt, roots=roots)
+                for attempt in attempts
+                if isinstance(attempt, Mapping)
+            ]
+        receipt["queue_item"] = queue_view
+    return receipt
+
+
+def _failure_is_terminal(status: str) -> bool:
+    return not (status.startswith("DEFERRED") or status == "STOPPED_GRACEFULLY")
+
+
+def _stop_failure_fields(
+    status: str,
+    chunk_receipts: Sequence[Mapping[str, Any]],
+    outcome: Mapping[str, Any] | None,
+    *,
+    roots: Sequence[Path] = (),
+) -> dict[str, Any]:
+    if not _failure_is_terminal(status):
+        return {}
+    failed_rows = [
+        row
+        for row in chunk_receipts
+        if isinstance(row, Mapping) and isinstance(row.get("error_code"), str) and row.get("error_code")
+    ]
+    if failed_rows:
+        first = failed_rows[0]
+        indexes = [
+            row.get("chunk_index")
+            for row in failed_rows
+            if type(row.get("chunk_index")) is int
+        ]
+        return {
+            "failure_code": str(first["error_code"])[:_FAILURE_CODE_LIMIT],
+            "failure_summary": str(first.get("error_summary") or "")[:_FAILURE_SUMMARY_LIMIT],
+            "failed_chunk_indexes": indexes,
+        }
+    if isinstance(outcome, Mapping):
+        details = _failure_details_from_outcome(outcome, roots=roots)
+        return {**details, "failed_chunk_indexes": []}
+    return {
+        "failure_code": str(status)[:_FAILURE_CODE_LIMIT],
+        "failure_summary": _sanitize_failure_summary(status, roots=roots),
+        "failed_chunk_indexes": [],
+    }
+
+
+def _chunk_failure_record(chunk: Any, exc: BaseException, *, roots: Sequence[Path] = ()) -> dict[str, Any]:
+    return {
+        "chunk_index": chunk.chunk_index,
+        "chunk_sha256": chunk.chunk_sha256,
+        "status": "FAILED_NO_RETRY",
+        "attempted": False,
+        "error_code": _failure_code_for_exception(exc),
+        "error_summary": _sanitize_failure_summary(str(exc), roots=roots),
+        "failed_at_utc": _utc_timestamp(),
+    }
+
+
+def _record_exception_failure(
+    exc: BaseException,
+    *,
+    failure_code: str,
+    failure_summary: str,
+    failed_chunk_indexes: Sequence[int] = (),
+    chunk_records: Sequence[Mapping[str, Any]] = (),
+) -> None:
+    context = getattr(exc, "_batch_failure_context", None)
+    merged = dict(context) if isinstance(context, Mapping) else {}
+    merged.update(
+        {
+            "failure_code": str(failure_code)[:_FAILURE_CODE_LIMIT],
+            "failure_summary": str(failure_summary)[:_FAILURE_SUMMARY_LIMIT],
+            "failed_chunk_indexes": [index for index in failed_chunk_indexes if type(index) is int],
+        }
+    )
+    if chunk_records:
+        merged["chunk_records"] = [dict(row) for row in chunk_records if isinstance(row, Mapping)]
+    try:
+        setattr(exc, "_batch_failure_context", merged)
+    except Exception:
+        pass
+
+
 def _sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
@@ -3832,7 +4064,7 @@ def _perform_request(
             raise BatchError("SUCCEEDED_QUEUE_RESULT_UNAVAILABLE")
         return {"status": "SUCCEEDED_REUSED", "queue_item": queued, "result": accepted, "attempted": False}
     if status in {"FAILED", "OVERSIZE", "MISSING_MATERIAL"}:
-        return {"status": "FAILED_NO_RETRY", "queue_item": queued, "attempted": False}
+        return {"status": "FAILED_NO_RETRY", "queue_item": queued, "attempted": False, "prior_status": status}
     if stop_event is not None and stop_event.is_set():
         return {"status": "STOPPED_GRACEFULLY", "queue_item": queued, "attempted": False}
     priority = dict(priority_reader())
@@ -3905,7 +4137,13 @@ def _perform_request(
         if accepted is None:
             raise BatchError("SUCCEEDED_QUEUE_RESULT_UNAVAILABLE")
         return {"status": "SUCCEEDED", "queue_item": outcome, "result": accepted, "attempted": True, "priority": priority}
-    return {"status": "FAILED_NO_RETRY", "queue_item": outcome, "attempted": attempted, "priority": priority}
+    return {
+        "status": "FAILED_NO_RETRY",
+        "queue_item": outcome,
+        "attempted": attempted,
+        "priority": priority,
+        "prior_status": str(outcome.get("status") or "FAILED_NO_RETRY"),
+    }
 
 
 def _artifact_reference(root: Path, value: Any) -> dict[str, Any]:
@@ -4110,6 +4348,8 @@ def _run_document(
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
             "status": status,
             "failure_code": exc.code,
+            "failure_summary": _sanitize_failure_summary(str(exc), roots=_failure_roots(state_root)),
+            "failed_chunk_indexes": [],
             "manifest_sha256": manifest_sha,
             "document_id": pdf_sha,
             "pdf_sha256": pdf_sha,
@@ -4145,6 +4385,11 @@ def _run_document(
         receipt = {
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
             "status": "TEXT_UNAVAILABLE",
+            "failure_code": str(page_status or "TEXT_UNAVAILABLE")[:_FAILURE_CODE_LIMIT],
+            "failure_summary": _sanitize_failure_summary(
+                str(page_status or "TEXT_UNAVAILABLE"), roots=_failure_roots(state_root)
+            ),
+            "failed_chunk_indexes": [],
             "manifest_sha256": manifest_sha,
             "document_id": pdf_sha,
             "pdf_sha256": pdf_sha,
@@ -4192,6 +4437,18 @@ def _run_document(
         return receipt
 
     if str(source.get("source_repair_status", "")).startswith("FAILED"):
+        failed_source_row = next(
+            (
+                row
+                for row in source.get("page_extraction_sources", []) or []
+                if isinstance(row, dict)
+                and row.get("selected") in {"SOURCE_REPAIR_FAILED_NO_RETRY", "SOURCE_REPAIR_UNSUPPORTED_GEOMETRY"}
+            ),
+            None,
+        )
+        failed_source_code = str(
+            (failed_source_row or {}).get("failure_code") or source.get("source_repair_status")
+        )[:_FAILURE_CODE_LIMIT]
         receipt = {
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
             "status": "SOURCE_REPAIR_FAILED_NO_MODEL",
@@ -4200,6 +4457,9 @@ def _run_document(
             "pdf_sha256": pdf_sha,
             "page_input": page_input_ref,
             "source": source,
+            "failure_code": failed_source_code,
+            "failure_summary": _sanitize_failure_summary(failed_source_code, roots=_failure_roots(state_root)),
+            "failed_chunk_indexes": [],
             "report_metadata": _report_status_metadata(),
             "research_only": True,
             "production_allowed": False,
@@ -4215,6 +4475,11 @@ def _run_document(
         receipt = {
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
             "status": "PARTIAL_SOURCE_NO_MODEL_REQUEST",
+            "failure_code": "PARTIAL_SOURCE_NO_MODEL_REQUEST",
+            "failure_summary": _sanitize_failure_summary(
+                "PARTIAL_SOURCE_NO_MODEL_REQUEST", roots=_failure_roots(state_root)
+            ),
+            "failed_chunk_indexes": [],
             "manifest_sha256": manifest_sha,
             "document_id": pdf_sha,
             "pdf_sha256": pdf_sha,
@@ -4291,6 +4556,7 @@ def _run_document(
     reports: list[dict[str, str]] = []
     chunk_receipts: list[dict[str, Any]] = []
     stop_status: str | None = None
+    failure_outcome: Mapping[str, Any] | None = None
     tool_context = {
         "page_input_sha256": page_input_sha,
         "pages": [
@@ -4319,92 +4585,109 @@ def _run_document(
         progress["synthesis_stage_recovery"] = _synthesis_v3_ref("synthesis-recovery-v3-qualified.json")
         _save_progress(state_root, doc_root, progress)
     for chunk in ([] if synthesis_recovery is not None else chunks):
-        tool_canary = bool(
-            isinstance(continuation, Mapping)
-            and isinstance(continuation.get("entry"), Mapping)
-            and isinstance(continuation["entry"].get("tool_canary"), Mapping)
-        )
-        messages, envelope, payload = _document_chunk_request_material(
-            source_doc,
-            chunk,
-            prompt_document=prompt_document,
-            partial_source=partial_source,
-            tool_canary=tool_canary,
-            binding=binding,
-            page_input_sha256=page_input_sha,
-            page_count=len(pages),
-        )
-        payload, is_recovery_target = _bind_continuation_payload(
-            payload,
-            continuation,
-            allow_frozen_runner_source_rebind=(
+        try:
+            tool_canary = bool(
+                isinstance(continuation, Mapping)
+                and isinstance(continuation.get("entry"), Mapping)
+                and isinstance(continuation["entry"].get("tool_canary"), Mapping)
+            )
+            messages, envelope, payload = _document_chunk_request_material(
+                source_doc,
+                chunk,
+                prompt_document=prompt_document,
+                partial_source=partial_source,
+                tool_canary=tool_canary,
+                binding=binding,
+                page_input_sha256=page_input_sha,
+                page_count=len(pages),
+            )
+            payload, is_recovery_target = _bind_continuation_payload(
+                payload,
+                continuation,
+                allow_frozen_runner_source_rebind=(
+                    isinstance(partial_recovery, Mapping)
+                    or isinstance(recovery_binding, Mapping)
+                    and isinstance(recovery_binding.get("prior_payload"), Mapping)
+                ),
+            )
+            recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
+            prior_queue_root = (
+                recovery_binding.get("prior_queue_root")
+                if isinstance(recovery_binding, dict)
+                else None
+            )
+            recovery_target_pending = bool(
+                isinstance(recovery_binding, dict)
+                and not continuation["recovery_target_reached"].is_set()
+            )
+            outcome = _perform_request(
+                queue,
+                payload,
+                messages,
+                binding=binding,
+                identity=identity,
+                identity_reader=identity_reader,
+                priority_reader=priority_reader,
+                request_fn=request_fn,
+                sleep_fn=sleep_fn,
+                stop_event=stop_event,
+                prior_queue_root=prior_queue_root,
+                recovery_target_pending=recovery_target_pending,
+                analysis_admission=analysis_admission,
+                tool_context=tool_context,
+                allow_frozen_runner_source_rebind=(
+                    isinstance(partial_recovery, Mapping)
+                    or isinstance(recovery_binding, Mapping)
+                    and isinstance(recovery_binding.get("prior_payload"), Mapping)
+                ),
+            )
+            if (
                 isinstance(partial_recovery, Mapping)
-                or isinstance(recovery_binding, Mapping)
-                and isinstance(recovery_binding.get("prior_payload"), Mapping)
-            ),
-        )
-        recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
-        prior_queue_root = (
-            recovery_binding.get("prior_queue_root")
-            if isinstance(recovery_binding, dict)
-            else None
-        )
-        recovery_target_pending = bool(
-            isinstance(recovery_binding, dict)
-            and not continuation["recovery_target_reached"].is_set()
-        )
-        outcome = _perform_request(
-            queue,
-            payload,
-            messages,
-            binding=binding,
-            identity=identity,
-            identity_reader=identity_reader,
-            priority_reader=priority_reader,
-            request_fn=request_fn,
-            sleep_fn=sleep_fn,
-            stop_event=stop_event,
-            prior_queue_root=prior_queue_root,
-            recovery_target_pending=recovery_target_pending,
-            analysis_admission=analysis_admission,
-            tool_context=tool_context,
-            allow_frozen_runner_source_rebind=(
-                isinstance(partial_recovery, Mapping)
-                or isinstance(recovery_binding, Mapping)
-                and isinstance(recovery_binding.get("prior_payload"), Mapping)
-            ),
-        )
-        if (
-            isinstance(partial_recovery, Mapping)
-            and chunk.chunk_index == 1
-            and outcome.get("status") != "SUCCEEDED_REUSED_CONTINUATION_SOURCE"
-        ):
-            raise BatchError("PPI_PARTIAL_RECOVERY_SUCCESS_CHUNK_REUSE_CHANGED")
-        progress["chunk_states"][str(chunk.chunk_index)] = outcome["status"]
-        progress["model_requests"] += int(bool(outcome.get("attempted")))
-        _save_progress(state_root, doc_root, progress)
-        if outcome.get("status", "").startswith("DEFERRED"):
-            stop_status = str(outcome["status"])
-            chunk_receipts.append({"chunk_index": chunk.chunk_index, "chunk_sha256": chunk.chunk_sha256, **dict(outcome)})
-            break
-        if outcome.get("status") not in {
-            "SUCCEEDED",
-            "SUCCEEDED_REUSED",
-            "SUCCEEDED_REUSED_R1",
-            "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
-        }:
-            stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
-            chunk_receipts.append({"chunk_index": chunk.chunk_index, "chunk_sha256": chunk.chunk_sha256, **dict(outcome)})
-            break
-        name = f"chunk-{chunk.chunk_index:06d}-{chunk.chunk_sha256[:12]}"
-        chunk_receipt = _persist_model_result(state_root, doc_root, source_doc, outcome, name=name)
-        chunk_receipt.update({"chunk_index": chunk.chunk_index, "chunk_total": len(chunks), "chunk_sha256": chunk.chunk_sha256})
-        chunk_receipts.append(chunk_receipt)
-        report = outcome["result"]["analysis_markdown"]
-        reports.append({"report_id": name, "text": report})
-        if stop_event is not None and stop_event.is_set():
-            stop_status = "STOPPED_GRACEFULLY"
-            break
+                and chunk.chunk_index == 1
+                and outcome.get("status") != "SUCCEEDED_REUSED_CONTINUATION_SOURCE"
+            ):
+                raise BatchError("PPI_PARTIAL_RECOVERY_SUCCESS_CHUNK_REUSE_CHANGED")
+            progress["chunk_states"][str(chunk.chunk_index)] = outcome["status"]
+            progress["model_requests"] += int(bool(outcome.get("attempted")))
+            _save_progress(state_root, doc_root, progress)
+            if outcome.get("status", "").startswith("DEFERRED"):
+                stop_status = str(outcome["status"])
+                chunk_receipts.append({"chunk_index": chunk.chunk_index, "chunk_sha256": chunk.chunk_sha256, **dict(outcome)})
+                break
+            if outcome.get("status") not in {
+                "SUCCEEDED",
+                "SUCCEEDED_REUSED",
+                "SUCCEEDED_REUSED_R1",
+                "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
+            }:
+                stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
+                failure_outcome = outcome
+                chunk_receipt = _failure_chunk_receipt(chunk, outcome, roots=_failure_roots(state_root))
+                failure_details = _failure_details_from_outcome(outcome, roots=_failure_roots(state_root))
+                chunk_receipt["error_code"] = failure_details["failure_code"]
+                chunk_receipt["error_summary"] = failure_details["failure_summary"]
+                chunk_receipt["failed_at_utc"] = _utc_timestamp()
+                chunk_receipts.append(chunk_receipt)
+                break
+            name = f"chunk-{chunk.chunk_index:06d}-{chunk.chunk_sha256[:12]}"
+            chunk_receipt = _persist_model_result(state_root, doc_root, source_doc, outcome, name=name)
+            chunk_receipt.update({"chunk_index": chunk.chunk_index, "chunk_total": len(chunks), "chunk_sha256": chunk.chunk_sha256})
+            chunk_receipts.append(chunk_receipt)
+            report = outcome["result"]["analysis_markdown"]
+            reports.append({"report_id": name, "text": report})
+            if stop_event is not None and stop_event.is_set():
+                stop_status = "STOPPED_GRACEFULLY"
+                break
+        except Exception as exc:
+            record = _chunk_failure_record(chunk, exc, roots=_failure_roots(state_root))
+            _record_exception_failure(
+                exc,
+                failure_code=record["error_code"],
+                failure_summary=record["error_summary"],
+                failed_chunk_indexes=[chunk.chunk_index],
+                chunk_records=[record],
+            )
+            raise
     if stop_status:
         receipt = {
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
@@ -4423,6 +4706,7 @@ def _run_document(
             "buy_gate_updated": False,
             "orders_sent": False,
         }
+        receipt.update(_stop_failure_fields(stop_status, chunk_receipts, failure_outcome, roots=_failure_roots(state_root)))
         _write_state_json(doc_root / "receipt.json", receipt, state_root)
         _save_progress(state_root, doc_root, {**progress, "status": stop_status, "resume_scope": "UNFINISHED_ONLY"})
         return receipt
@@ -4449,71 +4733,81 @@ def _run_document(
             raise BatchError("SYNTHESIS_DID_NOT_REDUCE_INPUT")
         next_reports: list[dict[str, str]] = []
         for group_index, group in enumerate(groups, start=1):
-            if len(group) == 1:
-                next_reports.append(dict(group[0]))
-                continue
-            output_budget = _synthesis_output_budget(group) if len(groups) > 1 else None
-            messages = _synthesis_messages(pdf_sha, group, synth_level, accepted_boundary, output_budget, synthesis_qualifications)
-            envelope = _request_envelope(messages)
-            payload = _request_payload(
-                source_doc,
-                stage="simple_batch_synthesis_v1",
-                article_id=f"{pdf_sha}:synthesis:{synth_level:02d}:{group_index:06d}:{_sha256(envelope)}",
-                messages=messages,
-                binding=binding,
-                envelope=envelope,
-                source_characters=sum(len(item["text"]) for item in group) + (len(_json_bytes(synthesis_qualifications).decode()) if synthesis_qualifications else 0),
-                source_text_sha256=_sha256(_json_bytes({"reports":group,"source_qualifications":synthesis_qualifications})),
-            )
-            payload, is_recovery_target = _bind_continuation_payload(payload, continuation)
-            recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
-            prior_queue_root = (
-                recovery_binding.get("prior_queue_root")
-                if isinstance(recovery_binding, dict)
-                else None
-            )
-            recovery_target_pending = bool(
-                isinstance(recovery_binding, dict)
-                and not continuation["recovery_target_reached"].is_set()
-            )
-            if synthesis_recovery is not None and progress["model_requests"] >= 2:
-                raise BatchError("SYNTHESIS_RECOVERY_REQUEST_LIMIT_EXCEEDED")
-            outcome = _perform_request(
-                queue,
-                payload,
-                messages,
-                binding=binding,
-                identity=identity,
-                identity_reader=identity_reader,
-                priority_reader=priority_reader,
-                request_fn=request_fn,
-                sleep_fn=sleep_fn,
-                stop_event=stop_event,
-                prior_queue_root=prior_queue_root,
-                recovery_target_pending=recovery_target_pending,
-                analysis_admission=analysis_admission,
-            )
-            progress["model_requests"] += int(bool(outcome.get("attempted")))
-            progress.setdefault("synthesis_states", {})[f"{synth_level}:{group_index}"] = outcome["status"]
-            _save_progress(state_root, doc_root, progress)
-            if outcome.get("status", "").startswith("DEFERRED") or outcome.get("status") not in {
-                "SUCCEEDED",
-                "SUCCEEDED_REUSED",
-                "SUCCEEDED_REUSED_R1",
-                "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
-            }:
-                stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
-                break
-            name = f"synthesis-{synth_level:02d}-{group_index:06d}-{_sha256(envelope)[:12]}"
-            synthesis_receipts.append(
-                _persist_model_result(state_root, doc_root, source_doc, outcome, name=name)
-            )
-            if output_budget is not None and len(outcome["result"]["analysis_markdown"]) > output_budget:
-                raise BatchError("SYNTHESIS_OUTPUT_CHARACTER_BUDGET_EXCEEDED")
-            next_reports.append({"report_id": name, "text": outcome["result"]["analysis_markdown"]})
-            if stop_event is not None and stop_event.is_set():
-                stop_status = "STOPPED_GRACEFULLY"
-                break
+            try:
+                if len(group) == 1:
+                    next_reports.append(dict(group[0]))
+                    continue
+                output_budget = _synthesis_output_budget(group) if len(groups) > 1 else None
+                messages = _synthesis_messages(pdf_sha, group, synth_level, accepted_boundary, output_budget, synthesis_qualifications)
+                envelope = _request_envelope(messages)
+                payload = _request_payload(
+                    source_doc,
+                    stage="simple_batch_synthesis_v1",
+                    article_id=f"{pdf_sha}:synthesis:{synth_level:02d}:{group_index:06d}:{_sha256(envelope)}",
+                    messages=messages,
+                    binding=binding,
+                    envelope=envelope,
+                    source_characters=sum(len(item["text"]) for item in group) + (len(_json_bytes(synthesis_qualifications).decode()) if synthesis_qualifications else 0),
+                    source_text_sha256=_sha256(_json_bytes({"reports":group,"source_qualifications":synthesis_qualifications})),
+                )
+                payload, is_recovery_target = _bind_continuation_payload(payload, continuation)
+                recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
+                prior_queue_root = (
+                    recovery_binding.get("prior_queue_root")
+                    if isinstance(recovery_binding, dict)
+                    else None
+                )
+                recovery_target_pending = bool(
+                    isinstance(recovery_binding, dict)
+                    and not continuation["recovery_target_reached"].is_set()
+                )
+                if synthesis_recovery is not None and progress["model_requests"] >= 2:
+                    raise BatchError("SYNTHESIS_RECOVERY_REQUEST_LIMIT_EXCEEDED")
+                outcome = _perform_request(
+                    queue,
+                    payload,
+                    messages,
+                    binding=binding,
+                    identity=identity,
+                    identity_reader=identity_reader,
+                    priority_reader=priority_reader,
+                    request_fn=request_fn,
+                    sleep_fn=sleep_fn,
+                    stop_event=stop_event,
+                    prior_queue_root=prior_queue_root,
+                    recovery_target_pending=recovery_target_pending,
+                    analysis_admission=analysis_admission,
+                )
+                progress["model_requests"] += int(bool(outcome.get("attempted")))
+                progress.setdefault("synthesis_states", {})[f"{synth_level}:{group_index}"] = outcome["status"]
+                _save_progress(state_root, doc_root, progress)
+                if outcome.get("status", "").startswith("DEFERRED") or outcome.get("status") not in {
+                    "SUCCEEDED",
+                    "SUCCEEDED_REUSED",
+                    "SUCCEEDED_REUSED_R1",
+                    "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
+                }:
+                    stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
+                    failure_outcome = outcome
+                    break
+                name = f"synthesis-{synth_level:02d}-{group_index:06d}-{_sha256(envelope)[:12]}"
+                synthesis_receipts.append(
+                    _persist_model_result(state_root, doc_root, source_doc, outcome, name=name)
+                )
+                if output_budget is not None and len(outcome["result"]["analysis_markdown"]) > output_budget:
+                    raise BatchError("SYNTHESIS_OUTPUT_CHARACTER_BUDGET_EXCEEDED")
+                next_reports.append({"report_id": name, "text": outcome["result"]["analysis_markdown"]})
+                if stop_event is not None and stop_event.is_set():
+                    stop_status = "STOPPED_GRACEFULLY"
+                    break
+            except Exception as exc:
+                _record_exception_failure(
+                    exc,
+                    failure_code=_failure_code_for_exception(exc),
+                    failure_summary=_sanitize_failure_summary(str(exc), roots=_failure_roots(state_root)),
+                    failed_chunk_indexes=[],
+                )
+                raise
         if stop_status:
             break
         _require_synthesis_progress(current_reports, next_reports)
@@ -4537,6 +4831,7 @@ def _run_document(
             "buy_gate_updated": False,
             "orders_sent": False,
         }
+        receipt.update(_stop_failure_fields(stop_status, chunk_receipts, failure_outcome, roots=_failure_roots(state_root)))
         _write_state_json(doc_root / "receipt.json", receipt, state_root)
         _save_progress(state_root, doc_root, {**progress, "status": stop_status, "resume_scope": "UNFINISHED_ONLY"})
         return receipt
@@ -4711,6 +5006,8 @@ def _isolate_known_report_content_failure(
             "document_id": document_id,
             "pdf_sha256": pdf_sha,
             "failure_code": failure_code,
+            "failure_summary": _sanitize_failure_summary(reason, roots=_failure_roots(state_root)),
+            "failed_chunk_indexes": [],
             "review_reason": review_reason,
             "review_reference": reference,
             "research_only": True,
@@ -5140,6 +5437,22 @@ def _run_batch_impl(
                             )
                     except Exception as exc:
                         code = getattr(exc, "code", None) or type(exc).__name__
+                        failure_context = getattr(exc, "_batch_failure_context", None)
+                        if not isinstance(failure_context, Mapping):
+                            failure_context = {}
+                        failure_summary = failure_context.get("failure_summary")
+                        if not isinstance(failure_summary, str) or not failure_summary:
+                            failure_summary = _sanitize_failure_summary(str(exc), roots=_failure_roots(state_root))
+                        failed_chunk_indexes = [
+                            index
+                            for index in failure_context.get("failed_chunk_indexes", ())
+                            if type(index) is int
+                        ]
+                        chunk_records = [
+                            dict(row)
+                            for row in failure_context.get("chunk_records", ())
+                            if isinstance(row, Mapping)
+                        ]
                         outcome = {
                             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
                             "status": "FAILED_DOCUMENT_ISOLATED",
@@ -5147,12 +5460,16 @@ def _run_batch_impl(
                             "document_id": doc_sha,
                             "pdf_sha256": doc_sha,
                             "failure_code": str(code)[:96],
+                            "failure_summary": failure_summary[:_FAILURE_SUMMARY_LIMIT],
+                            "failed_chunk_indexes": failed_chunk_indexes,
                             "report_metadata": _report_status_metadata(),
                             "research_only": True,
                             "production_allowed": False,
                             "buy_gate_updated": False,
                             "orders_sent": False,
                         }
+                        if chunk_records:
+                            outcome["chunks"] = chunk_records
                         doc_root = state_root / "documents" / doc_sha
                         doc_root.mkdir(mode=0o700, parents=True, exist_ok=True)
                         existing_receipt_path = doc_root / "receipt.json"

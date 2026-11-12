@@ -1,0 +1,78 @@
+{
+  "API_changed": false,
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3",
+  "control": {
+    "base_policy": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-storage-compaction-20261112-r1/main-control/research_storage_policy.json",
+      "sha256": "7d0c4c367f864e0d84a37aeb517b446a5eb6a8cf8f06cf84676d82764f28b499"
+    },
+    "pin_inventory": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/research_storage_pins.json",
+      "sha256": "95ef828ca7c58ac598d4bc24063251941d2802b8259ea12837cf27a4e26855fe"
+    },
+    "prepared_policy": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/research_storage_policy.json",
+      "sha256": "b2f8af4e8ebd20b9111394bfe6440dfb31a023ff6e18d9bdc8d53827ea4fb1a0"
+    },
+    "reader_attestation": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main-control/reader-attestation.json",
+      "sha256": "fcc7e5c0934845024405dde05da18c3ec5be45c715796196c7fe43c12a34787a"
+    }
+  },
+  "incremental_review_repair": {
+    "previous_failed_scope_sha256": "a1046317c3814f37376ad080fe38e843a682289961412877915ebbc671694050",
+    "status": "PENDING_INCREMENTAL_REVIEW"
+  },
+  "roles": {
+    "main": {
+      "binding": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/app",
+        "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/release-manifest.json",
+        "manifest_sha256": "e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328",
+        "release_id": "v4-v192-source-binding-20261112-r3-main"
+      },
+      "changed": [
+        "domains/preselection_materializer.py",
+        "infrastructure/formula_generation.py",
+        "infrastructure/preselection_pool_store.py",
+        "infrastructure/scheduling/executor_registry_preselection.py",
+        "ops/daily_materialize.py",
+        "ops/materialize_shared_v192_preselection.py"
+      ],
+      "non_delta_entries_preserved": 1033,
+      "original_plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist",
+        "sha256": "fc954d8122ab79c183094c118743083b9aa7357dfd4dd20a637ae28a84fc5c10"
+      },
+      "prepared_plist": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/main/com.lexi.v4.scheduler.prepared.plist",
+        "sha256": "4129465a470d1fa3b52b7747576d5254d464d4aeba7d61237aa3e6c749a93041"
+      }
+    },
+    "stage": {
+      "binding": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/stage/app",
+        "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/stage/release-manifest.json",
+        "manifest_sha256": "35cfcb253a1cdfc563bbf550109088a7266b9858428dc195c1772effb4eeea98",
+        "release_id": "v4-v192-source-binding-20261112-r3-stage"
+      },
+      "changed": [
+        "stage_center_tick_config.json"
+      ],
+      "non_delta_entries_preserved": 1004,
+      "original_plist": {
+        "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+        "sha256": "6ae46426d9c90a7afc521ba12f20097b5065500031fbc8a39a823cfc80cbb93b"
+      },
+      "prepared_plist": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/stage/com.lexi.stage-center.scheduler.prepared.plist",
+        "sha256": "9f768dd0149ebbd7e6f4cf81015acc8d0475780e33bebc24ce41f624a9bc6513"
+      }
+    }
+  },
+  "services_changed": false,
+  "shared_inventory_sha256": "80da6670c32465bf6a6c4a16c9ea1f363367bc75bab2a22b65952f532c2f93cd",
+  "shared_package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/shared-package",
+  "shared_store_written": false,
+  "status": "PREPARED_NOT_ACTIVATED"
+}

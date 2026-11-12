@@ -1,0 +1,28 @@
+{
+  "commit": "326fbc81bf7f55c6c17759163a4c2cac76ae2c78",
+  "selected": [
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "sha256": "8752fd8ba5e06e3a4d0e09c947eeb3faf426a0b43b64ceb9c5ee5b3bfcea3796",
+      "repository_path": "docs/source-baseline-20261112/overlays/8752fd8ba5e06e3a4d0e09c947eeb3faf426a0b43b64ceb9c5ee5b3bfcea3796.py",
+      "bytes": 60951,
+      "difference_class": "SAME_PATH_DIFFERENT_SOURCE_VARIANT"
+    },
+    {
+      "path": "stage_center/a_share_membership.py",
+      "sha256": "8299051d68e50e4aef2d1989c0736a2c67f388e91bc7ea5581cee2d3f9f6dcb6",
+      "repository_path": "docs/source-baseline-20261112/overlays/8299051d68e50e4aef2d1989c0736a2c67f388e91bc7ea5581cee2d3f9f6dcb6.py",
+      "bytes": 9576,
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_stage_a_authoritative_membership.py",
+      "sha256": "1b0426079b022804c132034ae2a222d83c919dcc62f2145b8ee80d951fe5274f",
+      "repository_path": "docs/source-baseline-20261112/overlays/1b0426079b022804c132034ae2a222d83c919dcc62f2145b8ee80d951fe5274f.py",
+      "bytes": 6264,
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    }
+  ],
+  "excluded": [],
+  "compatibility": "Narrow accepted branch delta, not a complete role tree; use Stage map for actual role. Kept as a variant because branch slot_execution removes historical HK special cases present in canonical/repair baseline."
+}

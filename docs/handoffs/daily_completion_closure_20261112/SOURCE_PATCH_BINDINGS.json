@@ -1,0 +1,37 @@
+{
+  "baseline_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "branch": "codex/daily-completion-closure-20261112",
+  "worktree": "TASK_WORKTREE",
+  "source_files": [
+    {
+      "path": "ops/bootstrap_stock_event_history.py",
+      "before_sha256": "befdec34344d8826e4a6a08ca74977de73a08f862d8292b04b71b9a0be20ed5c",
+      "git_baseline": "Absent at94c2; existing sealed runtime dependency copied without other changes",
+      "after_sha256": "74016c959990833e162e1bdafa520f1a917d0ab2bec71b98c91e8a0fb284a25d",
+      "roles": [
+        "main"
+      ]
+    },
+    {
+      "path": "infrastructure/research_workbench_quote_reference.py",
+      "before_sha256": "fa25facc1dd00689e5bfa5b34473f43b877b099c5144c73af69cdf86861973a5",
+      "git_baseline": "Absent at94c2; existing sealed runtime dependency copied without other changes",
+      "after_sha256": "daf0283b5fea8a9ee160bfdde3fe0fda3318780cdc71f25f181d085233672e9a",
+      "roles": [
+        "api"
+      ]
+    },
+    {
+      "path": "ops/research_panel_top200.py",
+      "before_sha256": "99c57406061edc3581f62bcad05fef817b3a91e383a30b2f920bf93bea3c3811",
+      "git_baseline": "Matches94c2actualMain",
+      "after_sha256": "9e3f622f64efbb91ad6252a0e73c04c22da412d5f24c4d9121a1283dd0686828",
+      "roles": [
+        "main"
+      ]
+    }
+  ],
+  "formal_data_writes": 0,
+  "provider_calls": 0,
+  "deployed": false
+}

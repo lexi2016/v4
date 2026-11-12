@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import os
 import sys
 import types
 from pathlib import Path
@@ -20,17 +21,17 @@ EXPECTED_FILES = {
     "core.py": (59792, "edc10ea4bc837b6f307d897a6bbfde5d555fc289b537cf7f8831edf56428854b"),
     "fupan_pool.py": (12200, "6a3a01e46fa832e8d10d84bbfdd5ac0a873e0eed14fddf50380dcd4da59cf7c3"),
     "fupan_sources.py": (22904, "1d6744f13e5c254ce397b82d001000b030bd77191242ca1545126eced80ee091"),
-    "hk_review.py": (12382, "2da147824393add8ba55244d96da7ec4ef2b811e354f5f4bdacf400e6c2f3294"),
-    "hk_sources.py": (14112, "73500aa92a9751acbee96934fc6f426d6cf66e00eec17e5ac0156ad1a15f427c"),
+    "hk_review.py": (12057, "059843f4068bbcb61b93c89cdebcd982a9f3f307edc5ea3438d853a000b0fedf"),
+    "hk_sources.py": (14566, "f60bdf7afe4c82acd7b593483fd1105cace1932dc82c67669e37e2e1f80d4a95"),
     "pool_pipeline.py": (21453, "a36efa1ca99222740bab34934013ffa7e8a43ceddf0dda3c6602c9fdfdea0c77"),
-    "pool_store.py": (14382, "d449e051effbbd61eaf2f78a3344e5d71474564962a2072f1320681cff4ae21d"),
+    "pool_store.py": (14054, "282c9f57bf8afaf661eaab96aabaf1df4c0fae873906814e26e41a4eb3a1ae52"),
     "producer.py": (87088, "b98b7905302bdad5f3e601b09f566672bfbf1508794085bac10ef6668e7c92c7"),
     "review.py": (58050, "08d6c5e24e7c673be4c9dfa3a5882c4f1f5b0e03c6184c5d64b8d2a4ece37a38"),
     "scheduler.py": (16049, "8e848508559d83fe35f997ef465f84ed7113dcff92d0b16e7889fda55adebbb7"),
     "stage7_pool.py": (14485, "1a07eb58863e92ae09d99d0500d373740dad4df4806db1976be762dc1e442aeb"),
     "stage7_sources.py": (13255, "aa76fa64815048cfcdcde645e62938a85d0ca3bdba4485f3a61a540cca4d56b5"),
 }
-EXPECTED_UNION = "685ca6b7d07baac6383edbe4f06c909cb150ea7429d5be37ae5ed05b00e9d5b9"
+EXPECTED_UNION = "a948690a2ff35e707b10ae63c8768c741e2e0e7a1dd56a7dd8d2665f57c95d9c"
 
 
 def test_owned_review_core_is_exact_regular_closure() -> None:
@@ -166,7 +167,9 @@ def test_natural_adapter_requires_parent_package_root() -> None:
         bundle_root=Path("/tmp/review-core-bundle"),
     )
     environment = adapter.build_environment(request, base_env={"OLD_CHECKOUT": "/old"})
-    assert environment["PYTHONPATH"] == str(PACKAGE_PARENT)
+    assert environment["PYTHONPATH"] == os.pathsep.join(
+        [str(PACKAGE_PARENT), str(request.shared_package_root)]
+    )
     assert environment["V3_SHARED_DATA_PACKAGE_ROOT"] == str(request.shared_package_root)
     assert environment["STORE_ROOT"] == str(request.shared_store_root)
     assert environment["V3_SHARED_DATA_STORE_ROOT"] == str(request.shared_store_root)

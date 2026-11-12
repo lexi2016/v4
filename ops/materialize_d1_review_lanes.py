@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pyarrow.dataset as ds
 
 from domains.d1_review_lane_producer import ensure_preopen_lane_artifacts
 from domains.d1_review_source_producer import materialize_d1_review_sources
@@ -34,9 +33,13 @@ def _load_shared_reader(shared_package_root: Path):
 
 
 def _selector_rows(selector: Path, trade_date: str) -> list[dict[str, Any]]:
-    table = ds.dataset(str(selector), format="parquet").to_table(
+    from ops.research_panel_logical import parquet
+    import pyarrow as pa
+    dtype = parquet.ParquetFile(selector).schema_arrow.field("trade_date").type
+    day = int(trade_date) if pa.types.is_integer(dtype) else trade_date
+    table = parquet.read_table(selector,
         columns=["trade_date", "ts_code", "name", "pct_chg", "amount"],
-        filter=ds.field("trade_date") == trade_date,
+        filters=[("trade_date", "=", day)],
     )
     if table.num_rows <= 0:
         raise ValueError(f"selector panel has no exact-date close rows: {trade_date}")
@@ -121,6 +124,7 @@ def _stage_inputs(
     trade_date: str,
     *,
     stage_selection_root: Path | None = None,
+    stage_receipt_root: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
     root = data_root / "stage_inputs" / trade_date
     result: dict[str, dict[str, Any]] = {}
@@ -138,6 +142,19 @@ def _stage_inputs(
                 trade_date, stage_id, markets=("A_SHARE",)
             )
             result[stage_id] = _stage_selection_payload(selection, trade_date, stage_id)
+        if stage_receipt_root is not None and not (result.get(stage_id, {}).get("rows") or {}).get("A"):
+            receipt_path = stage_receipt_root / trade_date / stage_id / "receipt.json"
+            if receipt_path.is_file():
+                receipt = json.loads(receipt_path.read_bytes())
+                if (receipt.get("trade_date") != trade_date or receipt.get("stage_id") != stage_id
+                        or any(receipt.get(flag) is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+                    raise ValueError("D-1 stage failure receipt identity mismatch")
+                causes = list((receipt.get("markets", {}).get("A_SHARE") or {}).get("cannot_confirm") or [])
+                payload = result[stage_id]
+                payload["cannot_confirm"] = list(dict.fromkeys([*payload.get("cannot_confirm", []), *causes]))
+                payload.setdefault("source_summary", {})["failure_receipt"] = {
+                    "path": str(receipt_path), "sha256": _sha256(receipt_path),
+                }
     stage7 = result.get("STAGE_1445_1500")
     if not isinstance(stage7, dict) or stage7.get("trade_date") != trade_date:
         raise ValueError(f"native Stage7 input is missing for {trade_date}")
@@ -157,7 +174,13 @@ def materialize_daily_d1_lanes(
     shared_package_root: Path,
     selector: Path,
     stage_selection_root: Path | None = None,
+    fupan_only: bool = False,
+    stage_receipt_root: Path | None = None,
 ) -> dict[str, Any]:
+    source_binding = None
+    if fupan_only:
+        from infrastructure.formula_generation import read_selector_source_binding
+        source_binding = read_selector_source_binding(selector, expected_signal_date=trade_date)
     shared = _load_shared_reader(shared_package_root)(shared_data_root, trade_date)
     manifest = shared["manifest"]
     public_manifest_sha256 = hashlib.sha256(
@@ -171,23 +194,27 @@ def materialize_daily_d1_lanes(
         selector_rows=_selector_rows(selector, trade_date),
         selector_sha256=_sha256(selector),
         stage_inputs=_stage_inputs(
-            data_root, trade_date, stage_selection_root=stage_selection_root
+            data_root, trade_date, stage_selection_root=stage_selection_root,
+            stage_receipt_root=stage_receipt_root if fupan_only else None,
         ),
         output_dir=source_dir,
+        fupan_only=fupan_only,
     )
     lane_result = ensure_preopen_lane_artifacts(
         target_date,
         signal_date=trade_date,
         source_dir=source_dir,
         output_dir=preselection_input_root / target_date,
+        fupan_only=fupan_only,
     )
     if lane_result.get("ok") is not True:
         raise ValueError(str(lane_result.get("status") or "D-1 lane materialization failed"))
     return {
-        "status": "READY",
+        "status": "PARTIAL" if fupan_only else "READY",
         "trade_date": trade_date,
         "target_date": target_date,
         "shared_public_run_id": shared["receipt"]["run_id"],
+        **({"source_panel": source_binding} if source_binding is not None else {}),
         "source_receipt": source_receipt,
         "lane_result": lane_result,
         "production_allowed": False,
@@ -206,6 +233,9 @@ def main() -> int:
     parser.add_argument("--shared-package-root", type=Path, required=True)
     parser.add_argument("--selector", type=Path, required=True)
     parser.add_argument("--stage-selection-root", type=Path)
+    parser.add_argument("--stage-receipt-root", type=Path)
+    parser.add_argument("--fupan-only", action="store_true",
+                        help="Materialize only the independent fupan lane; never synthesize missing Stage7")
     args = parser.parse_args()
     try:
         result = materialize_daily_d1_lanes(
@@ -217,6 +247,8 @@ def main() -> int:
             shared_package_root=args.shared_package_root,
             selector=args.selector,
             stage_selection_root=args.stage_selection_root,
+            fupan_only=args.fupan_only,
+            stage_receipt_root=args.stage_receipt_root,
         )
     except (OSError, ValueError, ImportError) as error:
         print(json.dumps({"status": "FAILED", "error": str(error)}, ensure_ascii=False))

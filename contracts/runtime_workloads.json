@@ -790,40 +790,6 @@
   ],
   "workloads": [
     {
-      "aliases": [],
-      "command": [
-        "python",
-        "-m",
-        "ops.run_intraday_research",
-        "--date",
-        "{business_date}",
-        "--slot",
-        "{slot}"
-      ],
-      "enabled": true,
-      "market_scope": "A_SHARE",
-      "owner_id": "v35_dispatcher.vibe_intraday_replacement",
-      "run_policy": "A_SHARE_TRADE_DAY",
-      "safety": {
-        "buy_gate_updated": false,
-        "orders_sent": false,
-        "production_allowed": false
-      },
-      "scheduled_date_role": "SCHEDULED_DATE",
-      "session_requirement": "DAY_ELIGIBILITY_ONLY",
-      "signal_date_role": "BUSINESS_DATE",
-      "slots": [
-        "0925",
-        "0935",
-        "1000",
-        "1130",
-        "1400",
-        "1500"
-      ],
-      "target_date_role": "BUSINESS_DATE",
-      "workload_id": "v4_intraday_research"
-    },
-    {
       "aliases": [
         "hourly_research_delta",
         "v3_hourly_research_delta_0730_1530"
@@ -877,6 +843,42 @@
       ],
       "target_date_role": "BUSINESS_DATE",
       "workload_id": "hourly_research"
+    },
+    {
+      "aliases": [
+        "us_market_digest_capture"
+      ],
+      "command": [
+        "python",
+        "-m",
+        "ops.us_market_digest",
+        "--data-root",
+        "{data_root}",
+        "--trade-date",
+        "{business_date}",
+        "--capture-phase",
+        "{capture_phase}"
+      ],
+      "enabled": false,
+      "market_scope": "CROSS_MARKET",
+      "owner_id": "v35_dispatcher.us_market_digest",
+      "run_policy": "NATURAL_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "0415",
+        "0515",
+        "2100",
+        "2200"
+      ],
+      "target_date_role": "BUSINESS_DATE",
+      "workload_id": "us_market_digest"
     },
     {
       "aliases": [
@@ -1008,7 +1010,7 @@
       "session_requirement": "POST_CLOSE",
       "signal_date_role": "BUSINESS_DATE",
       "slots": [
-        "1700"
+        "1610"
       ],
       "target_date_role": "BUSINESS_DATE",
       "workload_id": "research_panel_daily_a"
@@ -1331,7 +1333,9 @@
         "--business-date",
         "{business_date}",
         "--target-date",
-        "{target_date}"
+        "{target_date}",
+        "--stage-selection-root",
+        "{stage_selection_root}"
       ],
       "enabled": true,
       "market_scope": "CROSS_MARKET",
@@ -1728,42 +1732,6 @@
       ],
       "target_date_role": "BUSINESS_DATE",
       "workload_id": "fupan_8771_verify"
-    },
-    {
-      "aliases": [
-        "us_market_digest_capture"
-      ],
-      "command": [
-        "python",
-        "-m",
-        "ops.us_market_digest",
-        "--data-root",
-        "{data_root}",
-        "--trade-date",
-        "{business_date}",
-        "--capture-phase",
-        "{capture_phase}"
-      ],
-      "enabled": true,
-      "market_scope": "CROSS_MARKET",
-      "owner_id": "v4_dispatcher.us_market_digest",
-      "run_policy": "NATURAL_DAY",
-      "safety": {
-        "buy_gate_updated": false,
-        "orders_sent": false,
-        "production_allowed": false
-      },
-      "scheduled_date_role": "SCHEDULED_DATE",
-      "session_requirement": "DAY_ELIGIBILITY_ONLY",
-      "signal_date_role": "BUSINESS_DATE",
-      "slots": [
-        "0415",
-        "0515",
-        "2100",
-        "2200"
-      ],
-      "target_date_role": "TARGET_DATE",
-      "workload_id": "us_market_digest"
     }
   ]
 }

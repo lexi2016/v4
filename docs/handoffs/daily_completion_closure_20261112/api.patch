@@ -1,0 +1,145 @@
+--- a/infrastructure/research_workbench_quote_reference.py
++++ b/infrastructure/research_workbench_quote_reference.py
+@@ -36,8 +36,96 @@
+     return value if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and (minimum is None or value >= minimum) else None
+ 
+ 
++def _accepted_stage_path(product, snapshot_path):
++    """Resolve the existing producer receipt, without a CURRENT/latest fallback.
++
++    Legacy snapshots lived beside stage_status. Immutable shared snapshots do
++    not. The signed numeric row already retains the exact producer receipt and
++    its SHA, so use that original admission witness for the latter layout.
++    """
++    legacy = snapshot_path.parent / 'stage_status.json'
++    if legacy.is_file():
++        return _path(legacy)
++    for first in product['rows']:
++        row_ref = product.get('row_refs', {}).get(first['symbol'])
++        if not row_ref:
++            continue
++        row_path = _path(row_ref['path'])
++        if _sha(row_path) != row_ref['sha256']:
++            raise ValueError('QUOTE_REFERENCE_ADMISSION_ROW_SHA_DRIFT')
++        row = json.loads(row_path.read_bytes())
++        proof = row.get('qualification') or {}
++        identity = product['source_identity']
++        if (row.get('symbol') != first['symbol'] or row.get('data_date') != product['data_date']
++                or any(row.get(k) != v for k, v in FLAGS.items())):
++            raise ValueError('QUOTE_REFERENCE_ADMISSION_ROW_CONFLICT')
++        if proof.get('status') != 'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
++            continue
++        if (proof.get('source_generation') != product['source_generation']
++                or proof.get('target_date') != product['data_date']
++                or proof.get('snapshot_path') != str(snapshot_path)
++                or proof.get('snapshot_sha256') != identity['snapshot']['sha256']
++                or any(row.get(k) != v for k, v in FLAGS.items())):
++            raise ValueError('QUOTE_REFERENCE_ADMISSION_ROW_CONFLICT')
++        receipt_path = _path(proof['producer_receipt_path'])
++        if _sha(receipt_path) != proof['producer_receipt_sha256']:
++            raise ValueError('QUOTE_REFERENCE_PRODUCER_RECEIPT_SHA_DRIFT')
++        receipt = json.loads(receipt_path.read_bytes())
++        if (receipt.get('generation_id') != product['source_generation']
++                or receipt.get('input_sha256') != identity['input_sha256']
++                or receipt.get('adjustment_snapshot') != identity['snapshot']
++                or receipt.get('candidate_sha256', {}).get('selector') != identity['selector_artifact_sha256']
++                or str(receipt.get('target_date')) != product['data_date']
++                or any(receipt.get(k) != v for k, v in FLAGS.items())):
++            raise ValueError('QUOTE_REFERENCE_PRODUCER_RECEIPT_CONFLICT')
++        return _path(receipt_path.parent / 'stage_status.json')
++    raise ValueError('QUOTE_REFERENCE_PRODUCER_RECEIPT_UNBOUND')
++
++
++def _logical_dependencies(parquet, symbols):
++    """Retain the original reader's guards, not its rows or file handles."""
++    from ops.research_panel_logical import LogicalFile
++    if not isinstance(parquet, LogicalFile):
++        return None
++    selected = set(symbols)
++    blocks = tuple(block for block in parquet.blocks
++                   if block.get('symbols') is None or selected.intersection(block['symbols']))
++    metadata = {}
++    for block in blocks:
++        parquet._check(block)
++        for reference in block.get('metadata_refs', []):
++            path = _path(reference['path'])
++            previous = metadata.get(path)
++            if previous:
++                if previous[0] != reference['sha256']:
++                    raise ValueError('QUOTE_REFERENCE_METADATA_IDENTITY_CONFLICT')
++                continue
++            before = _stamp(path)
++            if _sha(path) != reference['sha256']:
++                raise ValueError('QUOTE_REFERENCE_METADATA_SHA_DRIFT:' + str(path))
++            if _stamp(path) != before:
++                raise ValueError('QUOTE_REFERENCE_METADATA_MOVED:' + str(path))
++            metadata[path] = (reference['sha256'], before)
++    return parquet, blocks, metadata
++
++
++def _check_logical_dependencies(guard):
++    if guard is None:
++        return
++    parquet, blocks, metadata = guard
++    for block in blocks:
++        parquet._check(block)
++    # Many blocks refer to the same large immutable snapshot. A cold read
++    # verifies its SHA once; warm reads check its canonical path/file identity
++    # once and never repeatedly hash unchanged metadata or read table rows.
++    for path, (expected, before) in metadata.items():
++        current = _stamp(_path(path))
++        if current != before:
++            raise ValueError('QUOTE_REFERENCE_METADATA_CHANGED:' + str(path))
++
++
+ class SourceCloseReferences:
+-    """Cache only a small projection keyed by bound source identity and file stats."""
++    """Cache a small projection plus the existing logical dependency guards."""
+     def __init__(self):
+         self._cache = {}
+         self._lock = threading.RLock()
+@@ -52,7 +140,7 @@
+             raise ValueError('QUOTE_REFERENCE_PRODUCT_IDENTITY_CONFLICT')
+         snapshot_ref = identity['snapshot']
+         snapshot_path = _path(snapshot_ref['path'])
+-        stage_path = _path(snapshot_path.parent / 'stage_status.json')
++        stage_path = _accepted_stage_path(product, snapshot_path)
+         stage = json.loads(stage_path.read_bytes())
+         selector = _path(stage['selector'])
+         expected_sha = identity['selector_artifact_sha256']
+@@ -72,11 +160,16 @@
+                snapshot_ref['sha256'], product['manifest']['sha256'], str(selector), stamps, symbols)
+         with self._lock:
+             if key in self._cache:
+-                return copy.deepcopy(self._cache[key])
++                result, guard = self._cache[key]
++                _check_logical_dependencies(guard)
++                return copy.deepcopy(result)
+             if _sha(snapshot_path) != snapshot_ref['sha256'] or _sha(selector) != expected_sha:
+                 raise ValueError('QUOTE_REFERENCE_SOURCE_SHA_DRIFT')
+-            import pyarrow.parquet as pq
++            # This is the same approved physical/logical panel reader used by
++            # the daily owner, not a new store or an observation materializer.
++            from ops.research_panel_logical import parquet as pq
+             parquet = pq.ParquetFile(selector)
++            guard = _logical_dependencies(parquet, symbols)
+             contract = json.loads((parquet.schema_arrow.metadata or {})[b'a_share_qfq_contract_v1'])
+             if (contract.get('generation_id') != product['source_generation']
+                     or contract.get('input_sha256') != identity['input_sha256']
+@@ -90,6 +183,7 @@
+                                    filters=[('trade_date', '=', day), ('ts_code', 'in', list(symbols))]).to_pylist()
+             if stamps != tuple(_stamp(p) for p in (snapshot_path, stage_path, selector)):
+                 raise ValueError('QUOTE_REFERENCE_SOURCE_MOVED')
++            _check_logical_dependencies(guard)
+             rows = {}
+             for row in values:
+                 symbol = row['ts_code']
+@@ -107,7 +201,7 @@
+                           amount_basis='RAW_TURNOVER', historical_PIT=False,
+                           selector=dict(path=str(selector), sha256=expected_sha), snapshot=snapshot_ref,
+                           scope_count=len(symbols), available_count=len(rows), rows=rows, **FLAGS)
+-            self._cache[key] = result
++            self._cache[key] = (result, guard)
+             while len(self._cache) > 4:
+                 self._cache.pop(next(iter(self._cache)))
+             return copy.deepcopy(result)

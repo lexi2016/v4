@@ -1,0 +1,614 @@
+{
+  "observed_source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-v192-source-binding-20261112-r3/shared-package",
+  "selected": [
+    {
+      "path": "scripts/acquire_a_share_security_master.py",
+      "sha256": "a3e2d34b40c634d074e55882e5ce755bc47a2596dfa9e09593d9181f5e8d23d9",
+      "bytes": 1283,
+      "repository_path": "docs/source-baseline-20261112/overlays/a3e2d34b40c634d074e55882e5ce755bc47a2596dfa9e09593d9181f5e8d23d9.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/acquire_hk_security_master.py",
+      "sha256": "9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad",
+      "bytes": 8873,
+      "repository_path": "docs/source-baseline-20261112/overlays/9d65e7016df3529f10c34a9532da3b2ac9236c4446a3bf7adea1531281e6c6ad.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/acquire_stage_bundle.py",
+      "sha256": "def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e",
+      "bytes": 22379,
+      "repository_path": "docs/source-baseline-20261112/overlays/def8901d102c7c39f5ab30aa96e25e7203bdeded67e3486d0760df462c46bb7e.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/acquire_stage_raw.py",
+      "sha256": "2661cbf0c42e7692e62cc8fef5ca548e3e8084f547d711b4882ac1bb54f55fd4",
+      "bytes": 9076,
+      "repository_path": "docs/source-baseline-20261112/overlays/2661cbf0c42e7692e62cc8fef5ca548e3e8084f547d711b4882ac1bb54f55fd4.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/canary_registry.py",
+      "sha256": "cd707d72b241f86427ae4917d26572653b0e2b3fbeb34bb824cc8b4351530455",
+      "bytes": 1821,
+      "repository_path": "docs/source-baseline-20261112/overlays/cd707d72b241f86427ae4917d26572653b0e2b3fbeb34bb824cc8b4351530455.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/capture_public_fupan.py",
+      "sha256": "98c7d1c9dc9a7ac86a94875edc89cca2372b7940e48fc9b95d07428b92e61c54",
+      "bytes": 1192,
+      "repository_path": "docs/source-baseline-20261112/overlays/98c7d1c9dc9a7ac86a94875edc89cca2372b7940e48fc9b95d07428b92e61c54.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/compose_hk_0_2_seed.py",
+      "sha256": "8f187230d7b983b5f71068bce11bc7c77ee7b20d5f2924e540ab737a62de2c68",
+      "bytes": 1041,
+      "repository_path": "docs/source-baseline-20261112/overlays/8f187230d7b983b5f71068bce11bc7c77ee7b20d5f2924e540ab737a62de2c68.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/compute_canary_oracle.py",
+      "sha256": "ed5be7822c510fea14344c9e881508336d7deb060da50063baaecae3d911a044",
+      "bytes": 1513,
+      "repository_path": "docs/source-baseline-20261112/overlays/ed5be7822c510fea14344c9e881508336d7deb060da50063baaecae3d911a044.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/forbidden_scan.py",
+      "sha256": "029ee9eef3b414142c576f85c1c44e0b03a51767cb35c3ee430daf69aff321dd",
+      "bytes": 4962,
+      "repository_path": "docs/source-baseline-20261112/overlays/029ee9eef3b414142c576f85c1c44e0b03a51767cb35c3ee430daf69aff321dd.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/import_frozen_hk_auction_0920.py",
+      "sha256": "2615b9a2c49c393efe91d7880ed741a1691f1a4cfe9d83db168e33512074c1f2",
+      "bytes": 4212,
+      "repository_path": "docs/source-baseline-20261112/overlays/2615b9a2c49c393efe91d7880ed741a1691f1a4cfe9d83db168e33512074c1f2.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/import_hk_0_2_assets.py",
+      "sha256": "58ee72357d32224d730c2c17c551a9d73e1941266cef53658a2d2b9ad7058067",
+      "bytes": 1581,
+      "repository_path": "docs/source-baseline-20261112/overlays/58ee72357d32224d730c2c17c551a9d73e1941266cef53658a2d2b9ad7058067.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/import_morning_news_manifest.py",
+      "sha256": "0cadd75c02403de28bfb2f930e5865cc6d6c4fdc376fffafadecf7ab41906d49",
+      "bytes": 1583,
+      "repository_path": "docs/source-baseline-20261112/overlays/0cadd75c02403de28bfb2f930e5865cc6d6c4fdc376fffafadecf7ab41906d49.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/import_v3_hk_v11_reference.py",
+      "sha256": "f2cfbcbad8a33eaf8cad8c9a6b3ecb57d006c763bac37e9bbb1dd7f6af959e16",
+      "bytes": 1237,
+      "repository_path": "docs/source-baseline-20261112/overlays/f2cfbcbad8a33eaf8cad8c9a6b3ecb57d006c763bac37e9bbb1dd7f6af959e16.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/__init__.py",
+      "sha256": "551b27c10339c29c256d24f87890ebb4371158d5ceca4dffe1fc507c58624977",
+      "bytes": 250,
+      "repository_path": "docs/source-baseline-20261112/overlays/551b27c10339c29c256d24f87890ebb4371158d5ceca4dffe1fc507c58624977.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/contracts.py",
+      "sha256": "776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc",
+      "bytes": 3252,
+      "repository_path": "docs/source-baseline-20261112/overlays/776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/futu_bridge.py",
+      "sha256": "bbb7fab8879ae3ea8acee2199da7afa69e276df9b1053856f90d64bdd83d1795",
+      "bytes": 12777,
+      "repository_path": "docs/source-baseline-20261112/overlays/bbb7fab8879ae3ea8acee2199da7afa69e276df9b1053856f90d64bdd83d1795.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/futu_minute.py",
+      "sha256": "af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+      "bytes": 4507,
+      "repository_path": "docs/source-baseline-20261112/overlays/af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/orchestrator.py",
+      "sha256": "258fc46a0ed6c17aaafb3b1715e43ff643eb31b1f123e674360761f58dd19044",
+      "bytes": 8852,
+      "repository_path": "docs/source-baseline-20261112/overlays/258fc46a0ed6c17aaafb3b1715e43ff643eb31b1f123e674360761f58dd19044.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/pytdx_exhq.py",
+      "sha256": "19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd",
+      "bytes": 8534,
+      "repository_path": "docs/source-baseline-20261112/overlays/19946fd9c09033a77b460fe5a68f70969623d3b1c26f058091349e702d482fdd.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/pytdx_exhq_probe.py",
+      "sha256": "9ce612fb06f022601841828bb25d11d1850cd4e3ab09de775babd56f7b8d0399",
+      "bytes": 5981,
+      "repository_path": "docs/source-baseline-20261112/overlays/9ce612fb06f022601841828bb25d11d1850cd4e3ab09de775babd56f7b8d0399.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/pytdx_hq.py",
+      "sha256": "7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f",
+      "bytes": 19952,
+      "repository_path": "docs/source-baseline-20261112/overlays/7b5f062e6c1231fa5edc7db0de5406066220e69cfe3605bf5b13fd3e0b8ad18f.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/live_acquisition/universe.py",
+      "sha256": "b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b",
+      "bytes": 42582,
+      "repository_path": "docs/source-baseline-20261112/overlays/b586f0bd93c6d3457a174c3851e2ea7860f223ee95cd4127b0c7728b11a3040b.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/materialize_hk_0_2.py",
+      "sha256": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "bytes": 1512,
+      "repository_path": "docs/source-baseline-20261112/overlays/da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/materialize_stage_universes.py",
+      "sha256": "58164f79a7eae44fe0879e26d8d67705679d76c81e754ef54adcb5f03eb0c709",
+      "bytes": 18095,
+      "repository_path": "docs/source-baseline-20261112/overlays/58164f79a7eae44fe0879e26d8d67705679d76c81e754ef54adcb5f03eb0c709.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/materialize_v192_selector.py",
+      "sha256": "315fe0fc3c142bdd7ab4c2674f5d9d575d3dac964b36395d0ac5b5fca790104c",
+      "bytes": 2559,
+      "repository_path": "docs/source-baseline-20261112/overlays/315fe0fc3c142bdd7ab4c2674f5d9d575d3dac964b36395d0ac5b5fca790104c.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/quarantine_hk_0_2_run.py",
+      "sha256": "7b07baa4ca112b89c02c727996f0e0fd5f66931e7011dc400b8fa23949b9bd76",
+      "bytes": 1081,
+      "repository_path": "docs/source-baseline-20261112/overlays/7b07baa4ca112b89c02c727996f0e0fd5f66931e7011dc400b8fa23949b9bd76.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/run_acceptance.py",
+      "sha256": "2cf4b4a07ad792b1ccf32d08da9d7e8118d42e299ebb2c8d75af359b9c81704b",
+      "bytes": 10066,
+      "repository_path": "docs/source-baseline-20261112/overlays/2cf4b4a07ad792b1ccf32d08da9d7e8118d42e299ebb2c8d75af359b9c81704b.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/run_scheduled_hk_auction_0920.py",
+      "sha256": "aa6bd99041d43a98c0840ff70c07b7456ea84141c38bdd7d21f49ff9b3e259f3",
+      "bytes": 4180,
+      "repository_path": "docs/source-baseline-20261112/overlays/aa6bd99041d43a98c0840ff70c07b7456ea84141c38bdd7d21f49ff9b3e259f3.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/run_scheduled_morning_news.py",
+      "sha256": "0811439cf7bfd2ec674aa9f53e950d5f517c5a531b9c903d4c9abeb60882250b",
+      "bytes": 4240,
+      "repository_path": "docs/source-baseline-20261112/overlays/0811439cf7bfd2ec674aa9f53e950d5f517c5a531b9c903d4c9abeb60882250b.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/run_scheduled_public_fupan.py",
+      "sha256": "1e3ac6117e2ecebb2bfad9f8ba0aa82e12817a01408af56dcce3a7a7f88235f5",
+      "bytes": 3292,
+      "repository_path": "docs/source-baseline-20261112/overlays/1e3ac6117e2ecebb2bfad9f8ba0aa82e12817a01408af56dcce3a7a7f88235f5.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "scripts/run_scheduled_stage_bundle.py",
+      "sha256": "28db120d2fa274aabc51d7d5a534cc4ab5db8440bdbff52ef2ba54af8f8ed3ac",
+      "bytes": 15421,
+      "repository_path": "docs/source-baseline-20261112/overlays/28db120d2fa274aabc51d7d5a534cc4ab5db8440bdbff52ef2ba54af8f8ed3ac.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "scripts/update_hk_0_2_panel.py",
+      "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+      "bytes": 1345,
+      "repository_path": "docs/source-baseline-20261112/overlays/45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "shared_data/__init__.py",
+      "sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+      "bytes": 446,
+      "repository_path": "docs/source-baseline-20261112/overlays/f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/__main__.py",
+      "sha256": "e0930aeba5a3e2e2d94ca6c5fac4f72c0c4eb2be9bba283becf98e909091471c",
+      "bytes": 83,
+      "repository_path": "docs/source-baseline-20261112/overlays/e0930aeba5a3e2e2d94ca6c5fac4f72c0c4eb2be9bba283becf98e909091471c.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/a_d1_evidence.py",
+      "sha256": "ab01ba9a95f1484d0d6e7da7a57ccc933b9dea13ffed804f989f912f30618e9e",
+      "bytes": 14691,
+      "repository_path": "docs/source-baseline-20261112/overlays/ab01ba9a95f1484d0d6e7da7a57ccc933b9dea13ffed804f989f912f30618e9e.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/a_share_security_master.py",
+      "sha256": "4c2a3eee41d201a42ca32fcfdef5e6dde8c520c8693146b7bdd6a7ecc7ba0e32",
+      "bytes": 15238,
+      "repository_path": "docs/source-baseline-20261112/overlays/4c2a3eee41d201a42ca32fcfdef5e6dde8c520c8693146b7bdd6a7ecc7ba0e32.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/allowlist.py",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "bytes": 3011,
+      "repository_path": "docs/source-baseline-20261112/overlays/a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/baimao_observations.py",
+      "sha256": "a73c96ff1afb3a2306367a3509723b0a01831bba49568e8a0681eb7557669c96",
+      "bytes": 18318,
+      "repository_path": "docs/source-baseline-20261112/overlays/a73c96ff1afb3a2306367a3509723b0a01831bba49568e8a0681eb7557669c96.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/bundles.py",
+      "sha256": "7e52b50fc11a9fa9d24a8e4c9cdfbfae81a817034615912546b9e826d440f6b9",
+      "bytes": 9194,
+      "repository_path": "docs/source-baseline-20261112/overlays/7e52b50fc11a9fa9d24a8e4c9cdfbfae81a817034615912546b9e826d440f6b9.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/cli.py",
+      "sha256": "1334bea982a39fc6b19bd09eac6c218736d2ef6adf978a2116e8a40eeecee6c7",
+      "bytes": 3803,
+      "repository_path": "docs/source-baseline-20261112/overlays/1334bea982a39fc6b19bd09eac6c218736d2ef6adf978a2116e8a40eeecee6c7.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/collectors.py",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "bytes": 8200,
+      "repository_path": "docs/source-baseline-20261112/overlays/f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/constants.py",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "bytes": 2604,
+      "repository_path": "docs/source-baseline-20261112/overlays/706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/consumer.py",
+      "sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+      "bytes": 2788,
+      "repository_path": "docs/source-baseline-20261112/overlays/bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/hashing.py",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "bytes": 1027,
+      "repository_path": "docs/source-baseline-20261112/overlays/d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/hk_0_2.py",
+      "sha256": "6dde013afb9140728ec60bfc160976caf2e4e10ea181b984d5b1a6e5f33689a1",
+      "bytes": 66097,
+      "repository_path": "docs/source-baseline-20261112/overlays/6dde013afb9140728ec60bfc160976caf2e4e10ea181b984d5b1a6e5f33689a1.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "shared_data/hk_auction_0920.py",
+      "sha256": "c1d2df6e1712b4ce16c673ef4313b23936925f50a1ea2aa9932f6b01bd08685e",
+      "bytes": 22303,
+      "repository_path": "docs/source-baseline-20261112/overlays/c1d2df6e1712b4ce16c673ef4313b23936925f50a1ea2aa9932f6b01bd08685e.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "shared_data/hk_d1_evidence.py",
+      "sha256": "18d48a7e2a7141dc3c7a65abd9caefb10214f51fadfce2dbc27ab6ca72c78084",
+      "bytes": 4746,
+      "repository_path": "docs/source-baseline-20261112/overlays/18d48a7e2a7141dc3c7a65abd9caefb10214f51fadfce2dbc27ab6ca72c78084.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/hk_history_resolution.py",
+      "sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "bytes": 35466,
+      "repository_path": "docs/source-baseline-20261112/overlays/c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/hk_security_master.py",
+      "sha256": "2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847",
+      "bytes": 18794,
+      "repository_path": "docs/source-baseline-20261112/overlays/2703a97e6ac18c03b06184a482857d303d77d49adaf1561a2c82423dea084847.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "shared_data/hk_v11_reference.py",
+      "sha256": "5a9504a8e3eb722a1fe3c387b974d533bbd83031a2afe942bd1a057f93a74489",
+      "bytes": 5446,
+      "repository_path": "docs/source-baseline-20261112/overlays/5a9504a8e3eb722a1fe3c387b974d533bbd83031a2afe942bd1a057f93a74489.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/market_calendar.py",
+      "sha256": "8e48a5aabe6aa15636fe4aef35e9eb8012cb4516810cfd0a25e1524f59b1218f",
+      "bytes": 1919,
+      "repository_path": "docs/source-baseline-20261112/overlays/8e48a5aabe6aa15636fe4aef35e9eb8012cb4516810cfd0a25e1524f59b1218f.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/morning_news.py",
+      "sha256": "73f163d8924d6edbc2e444c24d7ef9eb62f9172606d5726a355e2e9edd059dd9",
+      "bytes": 17917,
+      "repository_path": "docs/source-baseline-20261112/overlays/73f163d8924d6edbc2e444c24d7ef9eb62f9172606d5726a355e2e9edd059dd9.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/names.py",
+      "sha256": "b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7",
+      "bytes": 1531,
+      "repository_path": "docs/source-baseline-20261112/overlays/b774979e1f16111647f7fcbe27861458a73a10804423f03f70289f13d0fe27f7.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "shared_data/paths.py",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "bytes": 3986,
+      "repository_path": "docs/source-baseline-20261112/overlays/3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/public_fupan.py",
+      "sha256": "5f9f64116a6b7b65eb0f5ecaa7481cee4bb042594f817efa3f3cbaa362207319",
+      "bytes": 11027,
+      "repository_path": "docs/source-baseline-20261112/overlays/5f9f64116a6b7b65eb0f5ecaa7481cee4bb042594f817efa3f3cbaa362207319.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/public_morning_news.py",
+      "sha256": "72eb522f4bda03c5faf747adcfae6d0f01e6ec006c9a2f6f92130aa902588700",
+      "bytes": 20070,
+      "repository_path": "docs/source-baseline-20261112/overlays/72eb522f4bda03c5faf747adcfae6d0f01e6ec006c9a2f6f92130aa902588700.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/store.py",
+      "sha256": "0b34b296af9da35cd8a20fa95b4223e25ac934825d6f758fe6f73881b0974e82",
+      "bytes": 27910,
+      "repository_path": "docs/source-baseline-20261112/overlays/0b34b296af9da35cd8a20fa95b4223e25ac934825d6f758fe6f73881b0974e82.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "shared_data/v192_selector.py",
+      "sha256": "93b4b4e7537adbef53ed549f835876cc4934429758653a500ee2132ce41bef64",
+      "bytes": 37632,
+      "repository_path": "docs/source-baseline-20261112/overlays/93b4b4e7537adbef53ed549f835876cc4934429758653a500ee2132ce41bef64.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_acquire_hk_security_master_panel_fallback.py",
+      "sha256": "64a7912c0c572ff56d9fee7b5831aca533797e2c81b829e9d03e78023611458c",
+      "bytes": 2086,
+      "repository_path": "docs/source-baseline-20261112/overlays/64a7912c0c572ff56d9fee7b5831aca533797e2c81b829e9d03e78023611458c.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "tests/test_hk_0_2.py",
+      "sha256": "7478f3a0e2cf3cc009fd7eec10c502884d62e3eb265b161eb5f66225c939c880",
+      "bytes": 4170,
+      "repository_path": "docs/source-baseline-20261112/overlays/7478f3a0e2cf3cc009fd7eec10c502884d62e3eb265b161eb5f66225c939c880.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_live_pytdx_batched_probes.py",
+      "sha256": "6e729bc3e45802eb9f7e4f8a5741e89aadb9914b0286739d33f360dc80b166bf",
+      "bytes": 5623,
+      "repository_path": "docs/source-baseline-20261112/overlays/6e729bc3e45802eb9f7e4f8a5741e89aadb9914b0286739d33f360dc80b166bf.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "tests/test_live_pytdx_hq.py",
+      "sha256": "5680191994c20cff5b6fb5634ffd0bef650120e6465088ad8f1de1263decf7f9",
+      "bytes": 13034,
+      "repository_path": "docs/source-baseline-20261112/overlays/5680191994c20cff5b6fb5634ffd0bef650120e6465088ad8f1de1263decf7f9.py",
+      "difference_class": "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH"
+    },
+    {
+      "path": "tests/test_public_morning_news_exact_search.py",
+      "sha256": "a12faa20119daea68d3bebd2ee0533e41c3296352ec26673e678be3f9740f823",
+      "bytes": 9313,
+      "repository_path": "docs/source-baseline-20261112/overlays/a12faa20119daea68d3bebd2ee0533e41c3296352ec26673e678be3f9740f823.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_scheduled_stage_bundle.py",
+      "sha256": "2c83bd4896ff66c39c63276ddda502c0a2e289ae9fa642adf41d3a459e786260",
+      "bytes": 22370,
+      "repository_path": "docs/source-baseline-20261112/overlays/2c83bd4896ff66c39c63276ddda502c0a2e289ae9fa642adf41d3a459e786260.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_stage_bundle.py",
+      "sha256": "32aaf267def71be21f45c15e1b1dacb4431187d4c081e3fffbc1343f64535db8",
+      "bytes": 31632,
+      "repository_path": "docs/source-baseline-20261112/overlays/32aaf267def71be21f45c15e1b1dacb4431187d4c081e3fffbc1343f64535db8.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    },
+    {
+      "path": "tests/test_v192_selector.py",
+      "sha256": "ee6a0ab90a1e59acfb776fca33b970b60a735363e82074611b50409ab1338f41",
+      "bytes": 28733,
+      "repository_path": "docs/source-baseline-20261112/overlays/ee6a0ab90a1e59acfb776fca33b970b60a735363e82074611b50409ab1338f41.py",
+      "difference_class": "ROLE_ONLY_SOURCE_PATH"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "scripts/__pycache__/materialize_hk_0_2.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "scripts/live_acquisition/__pycache__/__init__.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "scripts/live_acquisition/__pycache__/contracts.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "scripts/live_acquisition/__pycache__/futu_minute.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "scripts/live_acquisition/__pycache__/orchestrator.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "scripts/live_acquisition/__pycache__/pytdx_hq.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/__init__.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/__init__.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/allowlist.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/allowlist.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/collectors.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/collectors.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/constants.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/constants.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/consumer.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/consumer.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hashing.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hashing.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hk_0_2.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hk_0_2.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hk_history_resolution.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hk_history_resolution.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/hk_security_master.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/paths.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/paths.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/store.cpython-313.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/store.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "shared_data/__pycache__/v192_selector.cpython-314.pyc",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/article-01-开盘必读-2gry6ckj55a.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/article-02-盘前纪要-2z7x9l0gmnp.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/article-03-盘前解读-2gry4gqjb90.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/capture-manifest.json",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/homepage.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/search-01-开盘必读.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/search-02-盘前纪要.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    },
+    {
+      "path": "tests/fixtures/exact-search-morning-news-20260824/search-03-盘前解读.html",
+      "reason": "RUNTIME_CACHE_DATA_BACKUP_OR_FIXTURE"
+    }
+  ],
+  "compatibility": "Shared source dependency; Main/Stage manifests point at this package. Not copied to system PYTHONPATH."
+}

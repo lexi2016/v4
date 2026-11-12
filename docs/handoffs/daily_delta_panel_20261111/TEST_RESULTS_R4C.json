@@ -1,0 +1,37 @@
+{
+  "new_tests": [
+    {
+      "command": "python -m pytest -q -s tests/test_governance_unique_roots.py --basetemp=.verification/qfq-roots-r4c-20261112",
+      "result": "2 passed in0.18s; 10000 roots0.087750seconds; original lexical set oracle equal"
+    },
+    {
+      "command": "python -m pytest -q tests/test_completed_qfq_claim_recording.py --basetemp=.verification/qfq-record-r4c-20261112",
+      "result": "9 fixture setup failures: Registry root not created before direct Registry.save; corrected fixture only"
+    },
+    {
+      "command": "python -m pytest -q tests/test_completed_qfq_claim_recording.py --basetemp=.verification/qfq-record-r4c-retry-20261112",
+      "result": "9 passed in0.05s"
+    },
+    {
+      "command": "python -m py_compile /Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/finalize_completed_qfq_claim_r4.py",
+      "result": "exit0"
+    }
+  ],
+  "reused": {
+    "path": "/Users/lexi/.codex/worktrees/daily-delta-panel-20261111/v4_app/docs/handoffs/daily_delta_panel_20261111/TEST_RESULTS_R4B.json",
+    "sha256": "78081604952309ac066e160cecb97dc9bc4810ab95e3adc377b467c46a681db2"
+  },
+  "source_change_since_19_summary_tests": "Only independent unique_roots function; summary source unchanged",
+  "total_unique_affected_tests": 30,
+  "root_real_failure_evidence": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/QFQ_CONTROL_INTERRUPT.json",
+      "sha256": "169cfb1fab713df3969ffd5d160a125d0079350f2255b5cac00a00e9df9411f4"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/QFQ_RECONCILIATION_CPU_SAMPLE.txt",
+      "sha256": "18d176e307d5c19e4ddf06b34dc12acd74bf067dd08c5e8b665d7c780ffb6cb5"
+    }
+  ],
+  "live_actions": "Writer NOT_RUN"
+}

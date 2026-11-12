@@ -1,0 +1,112 @@
+--- a/domains/preselection_materializer.py
++++ b/domains/preselection_materializer.py
+@@ -384,7 +384,7 @@
+         pool_id="a_d1_premarket_pool",
+         display_name="A股 D-1 v1.9.2候选池",
+         market="A",
+-        status="V192_CANDIDATE_READY" if rows else "V192_CANDIDATE_READY_EMPTY",
++        status="V192_CANDIDATE_READY" if rows else "VALID_EMPTY",
+         producer_id="v3_shared_v192_consumer_v1",
+         source_role="SHARED_VERIFIED_V192",
+         source_path=str(verification["artifact_relative"]),
+@@ -392,6 +392,7 @@
+         rows=rows,
+         cannot_confirm=[
+             "RANK_FOR_REVIEW_ONLY_NOT_BUY_PRIORITY",
++            *([] if rows else ["V192_CANDIDATE_READY_EMPTY"]),
+             *(
+                 [
+                     "V3_PREMARKET_POOL_SCORE_MISSING:" + ",".join(missing_premarket_score_codes)
+@@ -412,7 +413,7 @@
+         signal_date=signal_date,
+         target_date=trade_date,
+         source_merge_role="MAIN_STAGE_INPUT",
+-        stage_selection_eligible=True,
++        stage_selection_eligible=bool(rows),
+     )
+     return artifact
+ 
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -375,16 +375,32 @@
+ def publish_scheduled_artifacts(
+     store: PreselectionPoolStore, artifacts: Sequence[dict]
+ ) -> list[dict[str, Any]]:
+-    """Do not occupy a formal immutable key with a transient missing attempt."""
++    """Publish independent pools; retain each invalid lane and finish siblings."""
+     results: list[dict[str, Any]] = []
+     for artifact in artifacts:
+-        validate_pool_artifact(artifact)
++        try:
++            validate_pool_artifact(artifact)
++        except ValueError as error:
++            results.append({
++                "trade_date": str(artifact.get("trade_date") or ""),
++                "pool_id": str(artifact.get("pool_id") or ""),
++                "status": "REJECTED", "reason_code": "POOL_CONTRACT_INVALID",
++                "artifact_written": False, "detail": str(error),
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++            })
++            continue
+         pool_id = str(artifact["pool_id"])
+         if pool_id in _FORMAL_IMMUTABLE_POOLS and artifact.get("source_role") == "EXPECTED_MISSING":
+             if not _is_exact_expected_missing_placeholder(
+                 artifact, trade_date=str(artifact["trade_date"]), pool_id=pool_id,
+             ):
+-                raise ValueError("INVALID_FORMAL_MISSING_PLACEHOLDER")
++                results.append({
++                    "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
++                    "status": "REJECTED", "reason_code": "POOL_CONTRACT_INVALID",
++                    "artifact_written": False, "detail": "INVALID_FORMAL_MISSING_PLACEHOLDER",
++                    "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++                })
++                continue
+             results.append({
+                 "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
+                 "status": "DEFERRED", "reason_code": "FORMAL_INPUT_NOT_READY",
+@@ -409,11 +425,10 @@
+                     artifact, expected_old_sha256=str(snapshot["artifact_sha256"]),
+                 ))
+         except ValueError as error:
+-            if str(error) != "conflicting preselection-pool materialization":
+-                raise
++            conflict = str(error) == "conflicting preselection-pool materialization"
+             results.append({
+                 "trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
+-                "status": "REJECTED", "reason_code": "IMMUTABLE_POOL_CONFLICT",
++                "status": "REJECTED", "reason_code": "IMMUTABLE_POOL_CONFLICT" if conflict else "POOL_CONTRACT_INVALID",
+                 "artifact_written": False, "detail": str(error),
+                 "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+             })
+@@ -468,13 +483,18 @@
+         hk_eligibility_source_date=args.hk_eligibility_source_date,
+         reuse_formal_pools=reuse_formal_pools,
+     )
+-    results = publish_scheduled_artifacts(
+-        PreselectionPoolStore(args.data_root), artifacts
+-    )
++    publication_failed = False
++    try:
++        results = publish_scheduled_artifacts(
++            PreselectionPoolStore(args.data_root), artifacts
++        )
++    except ScheduledPoolPublicationError as error:
++        results = error.results
++        publication_failed = True
+     if any(path.read_bytes() != content for path, content in before.items()):
+         raise RuntimeError("read-only scheduled preselection input changed")
+     formal_pool_gate = _formal_pool_gate(artifacts)
+-    failed = formal_pool_gate["status"] == "FAILED"
++    failed = publication_failed or formal_pool_gate["status"] == "FAILED"
+     # Late V192 publication (including verified artifact reuse) completes the
+     # same missing-view module. A view failure never rolls back formal pools.
+     try:
+@@ -485,7 +505,7 @@
+     print(json.dumps({
+         "trade_date": args.trade_date,
+         "status": "FAILED" if failed else formal_pool_gate["status"],
+-        "failure_class": "UPSTREAM_NOT_READY" if failed else None,
++        "failure_class": "POOL_PUBLICATION_REJECTED" if publication_failed else "UPSTREAM_NOT_READY" if failed else None,
+         "formal_pool_gate": formal_pool_gate,
+         "artifacts": results,
+         "v192_assets": v192_assets,

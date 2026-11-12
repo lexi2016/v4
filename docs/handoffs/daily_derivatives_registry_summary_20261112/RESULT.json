@@ -1,0 +1,96 @@
+{
+  "schema": "DAILY_DERIVATIVES_REGISTRY_SUMMARY_REPAIR_V1",
+  "status": "WRITER_TESTED_REVIEW_PENDING",
+  "baseline_commit": "7d0fc3667bf2ee7dc40ac1f84671bf2db48f10db",
+  "source_root": "/Users/lexi/.codex/worktrees/derivative-registry-summary-20261112/v4_app",
+  "before_governance_sha256": "86e30265aeb9692396767b69342f571e3f36882b7e49496c7d98a3a62e524cdb",
+  "source": {
+    "path": "/Users/lexi/.codex/worktrees/derivative-registry-summary-20261112/v4_app/ops/research_storage_governance.py",
+    "sha256": "bca2fcb8ebc669636ad70f5685c2c68aab17b1ab9195df00489d5c1d6d4bfa7e"
+  },
+  "test": {
+    "path": "/Users/lexi/.codex/worktrees/derivative-registry-summary-20261112/v4_app/tests/test_daily_derivatives_registry_summary.py",
+    "sha256": "255dc286359764b2a4eff6f2961c524a66d47a6923378e14c10350f464d6e72c"
+  },
+  "unit": {
+    "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python -B -m pytest -q tests/test_daily_derivatives_registry_summary.py --basetemp=.verification/derivatives-registry-test",
+    "passed": 12,
+    "failed": 0
+  },
+  "actual_canary": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/derivatives_registry_repair/ACTUAL_D11_CANARY.json",
+    "sha256": "a66bfebe86a97a10fe5dfe76b04a0a1a46a5257dd4b6ea262c82bcdc80ff32b9"
+  },
+  "actual_canary_script": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/derivatives_registry_repair/actual_d11_canary.py",
+    "sha256": "72b56201a6aec06b718cf6e9090d0c643fce8ddf29e6812fb49f73cb56076c06"
+  },
+  "recovery_script": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/derivatives_registry_repair/recover_d11_claim.py",
+    "sha256": "11d8a6e54b0dc50120154a3f9c3b93ad623e516d49d9e57cde74dde0d9645a8e"
+  },
+  "recovery_plan": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/derivatives_registry_repair/RECOVERY_PLAN.json",
+    "sha256": "540191e402817d23ede30fc62bf5076de2c71366d4533671db6e9d71642c1a96"
+  },
+  "frozen_before": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/derivatives_registry_repair/FROZEN_BEFORE_ROW.json",
+    "sha256": "ed16afa445d187cbc81bc252c0fd04d6140378f62eae1819479c30f87ee83d28"
+  },
+  "original_failure": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/D11_DERIVATIVES_AFTER_REPAIR.json",
+    "sha256": "ee8b521a60c5391de2a1e1b5cb53d93653f890e688548c398472ca7edec751a9"
+  },
+  "actual_preflight_denial": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/QUOTE_CONTRACT_PREFLIGHT_DENIAL.json",
+    "sha256": "1706384550d98ab70f053ee0ba01d4c21599324bcb04448765f1009ca5830043"
+  },
+  "measured": {
+    "full_result_json_chars": 332551,
+    "full_result_compact_bytes": 323916,
+    "summary_json_chars": 1908
+  },
+  "semantics": {
+    "registry_ready": "Bounded recording complete only; current-day business status retained",
+    "history_status": "PARTIAL_NEEDS_EXPLICIT_BOOTSTRAP",
+    "historical_completion": false,
+    "incomplete_stocks": 318,
+    "missing_label_date_count": 947908,
+    "f10_status": "PARTIAL",
+    "f10_observed": 4619,
+    "f10_requested": 5809
+  },
+  "verification": {
+    "full_business_return_unchanged": true,
+    "ordinary_path_unchanged": true,
+    "reuse_ready": false,
+    "original_128KiB_limit_unchanged": true,
+    "live_registry_unchanged": true,
+    "formal_refs_unchanged": true,
+    "recovery_preflight": "PREPARED_NOT_EXECUTED",
+    "recovery_cas_negative_tests": [
+      "old_token",
+      "old_owner",
+      "old_row_sha256"
+    ]
+  },
+  "environment_failure": {
+    "command": "python -B /absolute/path/actual_d11_canary.py without PYTHONPATH",
+    "error": "ModuleNotFoundError: ops",
+    "correction": "Set PYTHONPATH explicitly to isolated task worktree; corrected single run PASS"
+  },
+  "not_run": [
+    "recovery execution",
+    "deployment",
+    "producer calculation",
+    "selection",
+    "history bootstrap",
+    "network"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

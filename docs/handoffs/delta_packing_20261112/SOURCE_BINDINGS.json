@@ -1,0 +1,65 @@
+{
+  "status": "WRITER_FROZEN_REVIEW_REQUIRED",
+  "baseline_commit": "94c2a3dd659dc8c24344858dfe9bd7a8e993c231",
+  "branch": "codex/daily-delta-packing-20261112",
+  "source_root": "/Users/lexi/.codex/worktrees/daily-delta-packing-20261112/v4_app",
+  "items": [
+    {
+      "owner": "main",
+      "target_relative": "ops/research_panel_delta.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-governance-20261112-r1-main/app/ops/research_panel_delta.py",
+      "before_sha256": "070ca3503320a41e4883e414b9748f6bde590b721236a59f629043b665c17340",
+      "source": "/Users/lexi/.codex/worktrees/daily-delta-packing-20261112/v4_app/ops/research_panel_delta.py",
+      "after_sha256": "3698a95e27b44717aecb2896127e245db43890c289d0c9b80a3c1f83aa7f05fb"
+    },
+    {
+      "owner": "main",
+      "target_relative": "ops/research_panel_logical.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-governance-20261112-r1-main/app/ops/research_panel_logical.py",
+      "before_sha256": "004ed38525d0e48a1a8a3de01c6845fb01d11caed9462f2883be2d3b7c10150b",
+      "source": "/Users/lexi/.codex/worktrees/daily-delta-packing-20261112/v4_app/ops/research_panel_logical.py",
+      "after_sha256": "b73cb6e3164b81a77620c431229f1e77184d8be18a82a2b598961a05b0637cb6"
+    },
+    {
+      "owner": "api",
+      "target_relative": "ops/research_panel_logical.py",
+      "target": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-parallel-20261111-r1/api/app/ops/research_panel_logical.py",
+      "before_sha256": "004ed38525d0e48a1a8a3de01c6845fb01d11caed9462f2883be2d3b7c10150b",
+      "source": "/Users/lexi/.codex/worktrees/daily-delta-packing-20261112/v4_app/ops/research_panel_logical.py",
+      "after_sha256": "b73cb6e3164b81a77620c431229f1e77184d8be18a82a2b598961a05b0637cb6"
+    }
+  ],
+  "unchanged_math": {
+    "ops/research_panel_delta.py": {
+      "functions": [
+        "changed_rows",
+        "factor_state",
+        "raw_identity"
+      ],
+      "before_ast_sha256": "7d2b4450e90d314dbdc1368d61ff19743b997be58f126fffb3583443987baecf",
+      "after_ast_sha256": "7d2b4450e90d314dbdc1368d61ff19743b997be58f126fffb3583443987baecf",
+      "unchanged": true
+    },
+    "ops/research_panel_logical.py": {
+      "functions": [
+        "_columns",
+        "_project"
+      ],
+      "before_ast_sha256": "a642c0063cec93d119d56943f83006150cdf122057eb9e9fd0b44aa8b5853928",
+      "after_ast_sha256": "a642c0063cec93d119d56943f83006150cdf122057eb9e9fd0b44aa8b5853928",
+      "unchanged": true
+    }
+  },
+  "legacy_logical_schema": "v4.original_panel.arrow_blocks.v1",
+  "new_anchor_schema": false,
+  "scope_semantics": {
+    "absent_or_null_symbols": "All physical members, unchanged legacy behavior",
+    "empty_symbols": "No members; never full allow",
+    "nonempty_symbols": "Only named verified members, consistently applied before UPSERT/latest-key/read/stream"
+  },
+  "deployment_requirements": [
+    "Carry identical logical helper bytes to actual importing app roles, at least Main and API",
+    "Original strict source/config/manifest/SHA checks remain; do not relabel old transport proof as new logical dependency certification",
+    "Controller runs normal candidate validator/source-context check; Writer did not deploy"
+  ]
+}

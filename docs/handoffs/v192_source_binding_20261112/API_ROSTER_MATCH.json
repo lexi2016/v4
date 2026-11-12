@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "days": [
+    {
+      "source_date": "20261111",
+      "target_date": "20261112",
+      "native_count": 25,
+      "workbench_count": 25,
+      "same_run_and_artifact_sha": true,
+      "complete_roster_match": true,
+      "source_selector_sha256": "c2bc5f53bbc0f918c1652945c778a46390ee807f8233f22caf1ec30707b53d43",
+      "mode": "BACKFILL_NOT_NATURAL",
+      "original_count": 44,
+      "intersection": 0
+    },
+    {
+      "source_date": "20261112",
+      "target_date": "20261113",
+      "native_count": 10,
+      "workbench_count": 10,
+      "same_run_and_artifact_sha": true,
+      "complete_roster_match": true,
+      "source_selector_sha256": "5fc512a2660174c3e2fa326eca91ff4a419bb0fb915e0584b38baaa10628ead5",
+      "mode": "BACKFILL_NOT_NATURAL",
+      "original_count": 40,
+      "intersection": 1
+    }
+  ]
+}

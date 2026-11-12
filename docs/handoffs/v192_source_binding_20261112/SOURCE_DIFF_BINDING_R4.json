@@ -1,0 +1,51 @@
+{
+  "source_root": "/Users/lexi/.codex/worktrees/v192-source-binding-20261112/v4_app",
+  "baseline": "57c381d120a45e0f61687bfac01f26efd350da5e",
+  "files": [
+    {
+      "path": "infrastructure/formula_generation.py",
+      "before_sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+      "after_sha256": "2a85cb6b5f91463bd977fd9d1388d1e1eafbcdeaf484d083f50f61dd26a07a71"
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "before_sha256": "98db050ac6bf4c97dde6ee0aae7015030e2c648455270fba8d1d1e55594cfa9f",
+      "after_sha256": "5df265487691ddaae10c0a2e52e486d975090ad1e7ae07fdbf5c7741f588f36c"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "before_sha256": "39e7f70ba44618b4b0df6e1d0eb7bdbb3a9fe31132147818e9e728f6275c571f",
+      "after_sha256": "15d29fe8a658c93c521fc78635078f54db48a063aeebd2f1a74b5c91b0520e01"
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/row_assembly.py",
+      "before_sha256": "d616a32f946807d93a19ab0f3dbbc184c589c2aa9e6d857a68a0dd5fa629cfa9",
+      "after_sha256": "6273ae0bb7277f34064743bec02a09ccac8a08764c3f815d54390ea3b022c97b"
+    },
+    {
+      "path": "ops/daily_materialize.py",
+      "before_sha256": "d5b8f1f661e88f369f3df33f773fcdac4a79de033845a43639ef098231ad96e6",
+      "after_sha256": "451c891c1ade195f195911b86f2579b0a6aac49958628b504ec3f4d8d14a842e"
+    },
+    {
+      "path": "ops/materialize_shared_v192_preselection.py",
+      "before_sha256": "5f0e5deb8974f3c327db60940a9fbba554ae6e67183581994521997a167fb2fa",
+      "after_sha256": "3422ed6d7392db4a8a93d4fc4c1ef2c905b40142d0672b66d2534772effeb22f"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "before_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "after_sha256": "0b34b296af9da35cd8a20fa95b4223e25ac934825d6f758fe6f73881b0974e82"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/v192_selector.py",
+      "before_sha256": "b0c3005965c6ee2c5ed10822fcc7c3b3ef5b3ba9847bcddcdff95644a4e90513",
+      "after_sha256": "7cd27135145dbae8524c95b08269e187e218f7a07073d964e69e339979022a2d"
+    },
+    {
+      "path": "tests/test_v192_source_binding.py",
+      "before_sha256": null,
+      "after_sha256": "9bfc797e3d576fe85b029219852ad57975dde0544fd583839d4479b470a68e7f"
+    }
+  ]
+}

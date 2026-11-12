@@ -1,0 +1,21 @@
+{
+  "main": {
+    "incremental_changed": [
+      "infrastructure/formula_generation.py",
+      "infrastructure/scheduling/executor_registry_preselection.py"
+    ],
+    "manifest_sha256": "e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328"
+  },
+  "stage": {
+    "incremental_changed": [
+      "stage_center_tick_config.json"
+    ],
+    "manifest_sha256": "35cfcb253a1cdfc563bbf550109088a7266b9858428dc195c1772effb4eeea98"
+  },
+  "frozen_scope_sha256": "c407c76cb131ebfc09dd2a2276efaf9fb4009f7fc52248d50f4ffb12e7291e94",
+  "all_frozen_references_match": true,
+  "shared_package_unchanged": true,
+  "source_runtime_helper_bytes_equal": true,
+  "policy_permissions_budget_safety_unchanged": true,
+  "activation_recovery_scripts_unchanged": true
+}

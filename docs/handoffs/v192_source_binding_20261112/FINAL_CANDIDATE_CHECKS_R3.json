@@ -1,0 +1,24 @@
+{
+  "main": {
+    "inventory_matches": true,
+    "manifest_sha256": "58e9208b5ca5a1782abd75baf2952691de02ace03a7b8eab88b10f9394315dee",
+    "aggregate_sha256": "5f1fcdbddd271771b988b95d9c92d811de18f6cece2fd35510375973eb5147d0",
+    "delta": [
+      "domains/preselection_materializer.py",
+      "infrastructure/formula_generation.py",
+      "infrastructure/preselection_pool_store.py",
+      "infrastructure/scheduling/executor_registry_preselection.py",
+      "ops/daily_materialize.py",
+      "ops/materialize_shared_v192_preselection.py"
+    ]
+  },
+  "stage": {
+    "inventory_matches": true,
+    "manifest_sha256": "c789a929f6e9b03a27dba7e850ed7cb79ed4424b760549a80a76ddcdc546194b",
+    "aggregate_sha256": "8d2b8b739203d57462f7f3ceea79a8a3ae26c9d73df64dcc75cffc4c527629c7",
+    "delta": [
+      "stage_center_tick_config.json"
+    ]
+  },
+  "native_maintenance_body_ast_matches_source": true
+}

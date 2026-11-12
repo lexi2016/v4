@@ -567,6 +567,70 @@ class PreselectionPoolStore:
                 receipt[key] = payload[key]
         return receipt
 
+    def refresh_verified_v192_source(self, payload: Mapping[str, Any], *,
+            expected_previous: Mapping[str, str], shared_root: Path,
+            shared_package_root: Path, selector_panel: Path, signal_date: str) -> dict[str, str]:
+        """CAS the two explicitly approved V192 source repairs through this owner."""
+        trade_date = validate_pool_artifact(payload)
+        pool_id = str(payload["pool_id"])
+        if ((signal_date, trade_date) not in {("20261111", "20261112"), ("20261112", "20261113")}
+                or pool_id != "a_d1_premarket_pool" or payload.get("market") != "A"
+                or payload.get("source_role") != "SHARED_VERIFIED_V192"):
+            raise ValueError("V192_SOURCE_REPAIR_EXACT_SCOPE_REQUIRED")
+        required = {"artifact_raw_sha256", "receipt_raw_sha256", "manifest_raw_sha256"}
+        if set(expected_previous) != required or any(_SHA256.fullmatch(str(v)) is None for v in expected_previous.values()):
+            raise ValueError("V192_SOURCE_REPAIR_COMPLETE_CAS_REQUIRED")
+        self._preflight_required_write_context(trade_date, pool_id)
+        from infrastructure.isolated_package_loader import load_isolated_package_module
+        from infrastructure.formula_generation import read_selector_source_binding
+        from domains.preselection_materializer import build_shared_v192_premarket_pool
+        module = load_isolated_package_module(shared_package_root, package_directory="shared_data",
+            module_leaf="v192_selector", namespace_prefix="v192_source_repair")
+        with owned_interprocess_lock(self.root / ".import.lock", timeout_seconds=10,
+                timeout_message="data-root import lock timeout"):
+            self._assert_write_allowed(trade_date, pool_id)
+            self._reconcile_pending_commit_unlocked(trade_date, pool_id)
+            snapshot = self._read_pool_snapshot_unlocked(trade_date, pool_id)
+            if any(snapshot[key] != value for key, value in expected_previous.items()):
+                raise ValueError("V192_SOURCE_REPAIR_PREIMAGE_MISMATCH")
+            pool = module.read_verified_v192_pool(shared_root, target_date=trade_date, expected_signal_date=signal_date)
+            binding = read_selector_source_binding(selector_panel, expected_signal_date=signal_date)
+            if pool.run.manifest.get("provenance", {}).get("panel_sha256") != binding["sha256"]:
+                raise ValueError("V192_SOURCE_REPAIR_SELECTOR_IDENTITY_CONFLICT")
+            old = snapshot["artifact"]
+            supersedes = pool.run.receipt.get("supersedes")
+            if (old.get("source_role") != "SHARED_VERIFIED_V192"
+                    or old.get("status") not in {"VALID_EMPTY", "V192_CANDIDATE_READY"}
+                    or not isinstance(supersedes, Mapping)):
+                raise ValueError("V192_SOURCE_REPAIR_SHARED_SUPERSESSION_CONFLICT")
+            # Legacy native pools did not persist manifest/receipt SHAs.
+            # Recover those facts only by verifying the exact immutable old
+            # shared run, then compare the entire seven-field CAS chain.
+            previous = module.SafeRootStore(shared_root).verify_run(trade_date, module.V192_ROLE,
+                str(old.get("source_run_id") or ""), expected_owner="v3_shared_data")
+            chain_keys = {"run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256",
+                          "artifact_relative", "manifest_relative", "receipt_relative"}
+            if (set(supersedes) != chain_keys
+                    or any(supersedes[key] != previous.get(key) for key in chain_keys)
+                    or old.get("source_sha256") != previous["artifact_sha256"]
+                    or old.get("source_path") != previous["artifact_relative"]
+                    or any(old.get(field) not in (None, previous[key]) for key, field in (
+                        ("manifest_sha256", "source_manifest_sha256"), ("receipt_sha256", "source_receipt_sha256")))):
+                raise ValueError("V192_SOURCE_REPAIR_SHARED_SUPERSESSION_CONFLICT")
+            expected = build_shared_v192_premarket_pool(shared_root, trade_date=trade_date,
+                signal_date=signal_date, shared_package_root=shared_package_root)
+            if dict(payload) != expected:
+                raise ValueError("V192_SOURCE_REPAIR_ORIGINAL_BUILDER_MISMATCH")
+            digest = _sha256(payload)
+            receipt = self._receipt(trade_date=trade_date, pool_id=pool_id,
+                artifact_path=snapshot["artifact_relative"], artifact_sha256=digest, payload=payload)
+            self._archive_recovery_revision(trade_date, pool_id, snapshot["artifact_sha256"], old, snapshot["receipt"])
+            self._archive_recovery_revision(trade_date, pool_id, digest, payload, receipt)
+            manifest = dict(snapshot["manifest"]); manifest[pool_id] = digest
+            self._commit_main_snapshot(snapshot, payload=payload, receipt=receipt, manifest=manifest)
+            return dict(artifact_path=snapshot["artifact_relative"], receipt_path=snapshot["receipt_relative"],
+                sha256=digest, previous_sha256=snapshot["artifact_sha256"])
+
     def refresh_verified_hk_resolution(self, payload: Mapping[str, Any], *,
             expected_previous: Mapping[str, str], shared_root: Path,
             shared_package_root: Path) -> dict[str, str]:

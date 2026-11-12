@@ -20,7 +20,9 @@ from starlette.concurrency import run_in_threadpool
 
 from domains.research_day_product import consume_authoritative_research_day
 from infrastructure.data_store import _date, _sha256
+from infrastructure.pdf_research_cards import MachineCardsError, read_machine_cards
 from infrastructure.research_lane_source import ResearchLaneSource
+from infrastructure.research_stock_clues import StockCluesError, read_stock_clues
 from infrastructure.zsxq_pdf_ingestion import ZsxqPdfError, read_pdf_document_detail, read_pdf_ingestion_projection
 from infrastructure.research_peripheral_store import (
     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
@@ -309,6 +311,41 @@ def create_research_lane_router(
                 raise HTTPException(status_code=404, detail=error.code) from error
             if error.code in {"DOCUMENT_ID_INVALID", "TRADE_DATE_INVALID"}:
                 raise HTTPException(status_code=422, detail=error.code) from error
+            raise HTTPException(status_code=409, detail=error.code) from error
+
+    @router.get("/machine-cards")
+    def research_machine_cards(
+        research_date: str = Query(...),
+        response: Response = None,
+    ) -> dict:
+        """Read-only machine-generated report cards for one exact source date."""
+        if response is not None:
+            response.headers["Cache-Control"] = "no-store"
+        try:
+            _date(research_date)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail="research_date must use YYYYMMDD") from error
+        try:
+            return read_machine_cards(data_root, research_date)
+        except MachineCardsError as error:
+            raise HTTPException(status_code=409, detail=error.code) from error
+
+    @router.get("/stock-clues")
+    def research_stock_clues(
+        research_date: str = Query(...),
+        limit: int = Query(default=50, ge=1, le=200),
+        response: Response = None,
+    ) -> dict:
+        """Read-only stock clues aggregated from machine report cards."""
+        if response is not None:
+            response.headers["Cache-Control"] = "no-store"
+        try:
+            _date(research_date)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail="research_date must use YYYYMMDD") from error
+        try:
+            return read_stock_clues(data_root, research_date, limit=limit)
+        except StockCluesError as error:
             raise HTTPException(status_code=409, detail=error.code) from error
 
     @router.get("/dates")

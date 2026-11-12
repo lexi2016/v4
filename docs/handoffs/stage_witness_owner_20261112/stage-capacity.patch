@@ -1,0 +1,11 @@
+--- a/infrastructure/manager_input_attestation.py
++++ b/infrastructure/manager_input_attestation.py
+@@ -591,7 +591,7 @@
+         raise PublicationError('HOURLY_PROVENANCE_REQUEST_INVALID')
+     config = json.loads(SafeRoot(stage_app).read_bytes('stage_center_tick_config.json'))
+     historical = config.get('research_historical_owner_bindings', [])
+-    if not isinstance(historical, list) or len(historical) > 8:
++    if not isinstance(historical, list) or len(historical) > 16:
+         raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
+     owners = [(current, evidence)]
+     seen = {current}

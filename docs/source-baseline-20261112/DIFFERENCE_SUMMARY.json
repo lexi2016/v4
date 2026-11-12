@@ -1,0 +1,48 @@
+{
+  "explanation": "Mechanical exact-byte classification only. Same-path variants are preserved separately; their business semantics are not auto-unified. Aliases are only exact SHA matches at current candidate root paths. Counts are role references, not unique files.",
+  "per_role": {
+    "Main": {
+      "SAME_PATH_DIFFERENT_SOURCE_VARIANT": 290,
+      "ROLE_ONLY_SOURCE_PATH": 165,
+      "SAME_ROOT_PATH_EXACT_BYTES": 330,
+      "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 85,
+      "SAME_PATH_LINE_ENDING_ONLY": 18
+    },
+    "API": {
+      "SAME_PATH_DIFFERENT_SOURCE_VARIANT": 404,
+      "ROLE_ONLY_SOURCE_PATH": 106,
+      "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 55,
+      "SAME_ROOT_PATH_EXACT_BYTES": 589,
+      "SAME_PATH_LINE_ENDING_ONLY": 20
+    },
+    "Stage": {
+      "SAME_PATH_DIFFERENT_SOURCE_VARIANT": 324,
+      "ROLE_ONLY_SOURCE_PATH": 59,
+      "SAME_PATH_LINE_ENDING_ONLY": 18,
+      "SAME_ROOT_PATH_EXACT_BYTES": 422,
+      "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 47
+    },
+    "SharedPackage": {
+      "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 46,
+      "ROLE_ONLY_SOURCE_PATH": 20
+    },
+    "StageRepairBranch": {
+      "SAME_PATH_DIFFERENT_SOURCE_VARIANT": 1,
+      "ROLE_ONLY_SOURCE_PATH": 2
+    },
+    "APIResearchUI": {
+      "ROLE_ONLY_SOURCE_PATH": 51,
+      "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 1
+    }
+  },
+  "totals": {
+    "SAME_PATH_DIFFERENT_SOURCE_VARIANT": 1019,
+    "ROLE_ONLY_SOURCE_PATH": 403,
+    "SAME_ROOT_PATH_EXACT_BYTES": 1341,
+    "EXACT_BYTES_PRESENT_AT_ANOTHER_ROOT_PATH": 234,
+    "SAME_PATH_LINE_ENDING_ONLY": 56
+  },
+  "unique_overlay_blobs": 1029,
+  "overlay_bytes": 22343975,
+  "symlink_alias_references_resolved_to_tracked_source": 138
+}

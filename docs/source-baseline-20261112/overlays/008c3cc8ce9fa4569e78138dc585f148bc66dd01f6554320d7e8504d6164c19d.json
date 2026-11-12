@@ -1,0 +1,208 @@
+{
+  "schema": "a_daily_source_policy.v1",
+  "enabled": true,
+  "source_kind": "TDX_OFFICIAL_G4DAY",
+  "earliest_slot": "1540",
+  "calendar": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/market_calendar_2026.json",
+    "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
+  },
+  "calendar_adapter": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/contracts/trading_calendar.py",
+    "sha256": "cfac1a96f92519fec24203cfbb9ade1f6d5ee378b7cb88ddfeca5a9000b77eb8"
+  },
+  "observed_provider_only_exceptions": [],
+  "provider_only_exception_scope": "Root-approved empty observed-provider-only exception list: D28/D29 successful-response comparison observed two revisions explained by official events. Unknown future vendor-only revisions remain CANNOT_CONFIRM; not provider-latest or PIT.",
+  "source_comparison_refs": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/SOURCE_COMPARISON.json",
+      "sha256": "47a0539a828e0ba27ba9ab1854d10b2b3ae43e49e7ae6842146c39aadaeabd0f"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/TWO_CHANGED_FACTOR_RESPONSE_DIFF.json",
+      "sha256": "dc13011674b6cfabbc71c5d1bddc0ee5116de1b519f4a1c95bc94630377b83a6"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/TWO_CHANGED_OFFICIAL_CA_MATCH.json",
+      "sha256": "5c2bffcbeae2076eb8fb2c1a953ede412c691b70b4d1e3e9d508abc49d82dec5"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "verified_delisting_additions": [
+    {
+      "ts_code": "301139.SZ",
+      "verified": true,
+      "requires_recent_listed_A_share_bars": false,
+      "delisting_effective_date": "20261028",
+      "last_trading_date": "20261027",
+      "official_notice": {
+        "key": "301139_delist1028",
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/execution/source44/evidence/301139_delist1028.pdf",
+        "sha256": "8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc",
+        "url": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"
+      },
+      "historical_PIT": false
+    }
+  ],
+  "exact_no_current_bar_dispositions": [
+    {
+      "symbol": "002717.SZ",
+      "target_date": 20261030,
+      "expected_native_sha256": "8986aa665fc8a40d6de6030953eb4011686bda3a86999d5e8fb43140e81c24ce",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/dot_inputs/SOP_D30_ZERO_ROWS_002717_002827_20261030.md",
+        "sha256": "9464068283f7e6b2c9e2a02dd7cafeab5d39587213886245fb75af2efbb88d88"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "002827.SZ",
+      "target_date": 20261030,
+      "expected_native_sha256": "0a250d52d84995610d965c8ac7d624c78a3174395ac12cd16950a0c89b90f253",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/dot_inputs/SOP_D30_ZERO_ROWS_002717_002827_20261030.md",
+        "sha256": "9464068283f7e6b2c9e2a02dd7cafeab5d39587213886245fb75af2efbb88d88"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "601326.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "ab6e06e683400e9a43ba877fc27ae23b1f43edeaca80c4282e67984921159741",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "605258.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "d7a6c6512c6b6f88588ef69774b2c92378148a5535f056db4946f35295cce95c",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688121.SH",
+      "target_date": 20261030,
+      "expected_native_sha256": "ae23d6bd580b40f6ef106e770bd91d8585470ef2a4a2e54b4197e7f090fc88e9",
+      "reason": "SOURCE_HAS_NO_VALID_D30_BAR_WITH_RETAINED_SUSPENSION_REASON",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/因子工厂/research/workbench_daily_chain_completion_20261031_r1/source_diagnosis/D30_NO_BAR3_STATUS_EVIDENCE.json",
+        "sha256": "6499d2473b29ed313f2c13f541e418eff305d8a62ffcab55081ba21f140c7a93"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": false,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "000831.SZ",
+      "target_date": 20261110,
+      "expected_native_sha256": "3bbae8604bb88556b063f1c7f95bd169edf9db5fa077ab3752847b62dcc321a2",
+      "reason": "RESTRUCTURING_SUSPENSION",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "002129.SZ",
+      "target_date": 20261110,
+      "expected_native_sha256": "1a4acd52bd4b89837b758fdd58667b43852c861aec4f28fc8e72bfce6afe5ef9",
+      "reason": "RESTRUCTURING_SUSPENSION",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688496.SH",
+      "target_date": 20261110,
+      "expected_native_sha256": "66e71bd15f373955dc13845a0fa2cf3e7141847c7d68f3fab28f24e5171ad014",
+      "reason": "DELISTING_TRIGGER_SUSPENSION_FINAL_TERMINATION_NOT_CERTIFIED",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688121.SH",
+      "target_date": 20261110,
+      "expected_native_sha256": "ae23d6bd580b40f6ef106e770bd91d8585470ef2a4a2e54b4197e7f090fc88e9",
+      "reason": "DELISTING_TRIGGER_SUSPENSION_FINAL_TERMINATION_NOT_CERTIFIED",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688798.SH",
+      "target_date": 20261110,
+      "expected_native_sha256": "e6f8367c25628d8abc04085cedd57692e84780d9b6932671a81d2880bec3728d",
+      "reason": "RESTRUCTURING_SUSPENSION",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "688053.SH",
+      "target_date": 20261110,
+      "expected_native_sha256": "950901fe3b46bcd777ec6fc2bb5afccf77a2ec74e6cc4b08190153562bbdb6d5",
+      "reason": "ONE_DAY_RISK_WARNING_REMOVAL_SUSPENSION",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    },
+    {
+      "symbol": "002717.SZ",
+      "target_date": 20261110,
+      "expected_native_sha256": "8986aa665fc8a40d6de6030953eb4011686bda3a86999d5e8fb43140e81c24ce",
+      "reason": "DELISTING_TRIGGER_SUSPENSION_FINAL_TERMINATION_NOT_CERTIFIED",
+      "evidence": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/Z哥方法论/top200_yesterday_20261110/source_gap_repair_r3/sources/status/OFFICIAL_STATUS_FACTS.json",
+        "sha256": "94a6e6cab89b5e86cd6a42433d1d66c28ef86014d0d14d2838aa51d6a38e34f0"
+      },
+      "historical_PIT": false,
+      "exact_full_day_suspension_certified": true,
+      "price_retry_allowed": false
+    }
+  ]
+}

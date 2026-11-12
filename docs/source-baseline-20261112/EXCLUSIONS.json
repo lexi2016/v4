@@ -1,0 +1,40 @@
+{
+  "removed_from_candidate_only": [
+    {
+      "path": "apps/api/v35_api/research_lane_router.py.pre-key-investment-messages-fix-20260907",
+      "sha256": "fa4af307fd37fd9daa4cfff35a33216739af7bf83518dbda4eb71e53b9e69d13",
+      "reason": "OBSOLETE_BACKUP_NOT_NEEDED_BY_TARGET_CHECKS",
+      "retained_original": "canonical or original repair branch unchanged"
+    },
+    {
+      "path": "docs/handoffs/daily_delta_panel_20261111/r1_rejected/research_panel_delta.py",
+      "sha256": "fa9b52023fdebd880f974076b6fbdbf44c4b4c72a1c3f4d1bd306fdb89f1bd93",
+      "reason": "OBSOLETE_BACKUP_NOT_NEEDED_BY_TARGET_CHECKS",
+      "retained_original": "canonical or original repair branch unchanged"
+    },
+    {
+      "path": "docs/handoffs/daily_delta_panel_20261111/r1_rejected/research_panel_qfq.py",
+      "sha256": "8f9baf06064d53b9562e70c04a0737dd198926e96ca77342ccc8331b78c16042",
+      "reason": "OBSOLETE_BACKUP_NOT_NEEDED_BY_TARGET_CHECKS",
+      "retained_original": "canonical or original repair branch unchanged"
+    },
+    {
+      "path": "docs/handoffs/daily_incremental_io_20261111/macos_research_panel_daily_authority.before.py",
+      "sha256": "f83f1152ca4a6667bb7751986f80cbfc43dfd29155484635f4fbc862edd78cad",
+      "reason": "OBSOLETE_BACKUP_NOT_NEEDED_BY_TARGET_CHECKS",
+      "retained_original": "canonical or original repair branch unchanged"
+    }
+  ],
+  "necessary_source_oracles_retained": [
+    "docs/handoffs/daily_incremental_io_20261111/research_panel_qfq.before.py (tests/test_delta_full_prefix_oracle.py and tests/test_qfq_daily_io_reuse.py)",
+    "ops/vendor/selector_reader_transport_before.py (tests/test_reader_transport_compat.py)"
+  ],
+  "excluded_payloads": [
+    "credentials/auth/env/account/holdings",
+    "raw market/research returns",
+    "dist bundles/images/generated research JSON",
+    "runtime caches/logs/venvs/node_modules",
+    "historical worktrees and generic backups"
+  ],
+  "scope": "Only new isolated candidate tree. Existing source branches and canonical working tree untouched."
+}

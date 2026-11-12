@@ -1,0 +1,91 @@
+{
+  "status": "IMPLEMENTED_REVIEWED_DEPLOYED_BACKFILL_VERIFIED",
+  "date": "2026-11-12",
+  "source_date": "20261112",
+  "target_preselection_date": "20261113",
+  "source_root": "/Users/lexi/.codex/worktrees/prepool-storage-20261112/v4_app",
+  "source_commit": "102edc99b46f861696b1732a8ddbd4d88c470302",
+  "branch": "codex/prepool-storage-20261112",
+  "preselection": {
+    "mode": "BACKFILL_NOT_NATURAL",
+    "status": "PARTIAL_WITH_ROWS",
+    "A_full_union": 264,
+    "HK": 100,
+    "A_source_relationships": {
+      "fupan": 37,
+      "stage7": 10,
+      "research": 229
+    },
+    "v192": {
+      "status": "VALID_EMPTY",
+      "count": 0,
+      "stage_selection_eligible": false
+    },
+    "missing_pools": "Baimao/WeChat retained CANNOT_CONFIRM",
+    "formal_gate": "FAILED because Aformalempty; valid siblings materialized",
+    "full_input_match": "native Aunion264 == API264; missing/extras empty; no display200 truncation"
+  },
+  "storage": {
+    "mode": "EXPLICIT_CLOSED_D12_OWNER_BACKFILL",
+    "status": "PASS",
+    "files": 29629,
+    "logical_bytes": 1308697445,
+    "before_allocated_bytes": 1368731648,
+    "after_allocated_bytes": 432906240,
+    "allocated_block_drop_bytes": 935825408,
+    "allocated_block_drop_pct": 68.37172278199562,
+    "native_compressed_files": 9754,
+    "exact_APFS_clones": 2,
+    "clone_logical_shared_bytes": 10756179,
+    "no_allocated_benefit": 997,
+    "deferred": 0,
+    "failures": 0,
+    "elapsed_seconds": 37.878216582816094,
+    "workers": 14,
+    "max_pending": 28,
+    "before_after_full_content_digest": "ff5cd429d5a9e50eddd44be5b2cecbb1e2b36937c34f84f4eeae4faddf48a411",
+    "retained": "path, contentSHA, logicalbytes, source/observationtimes, originalday/ZIP/D11data",
+    "accounting": "File allocated blocks, not APFSexclusive netfreed space; clone benefit not doublecounted; logicalquota/reservations unchanged",
+    "actual_reuse": {
+      "status": "PASS_REUSED_NO_NATIVE_REWRITE",
+      "new_native_operations": 0,
+      "elapsed_seconds": 2.2379816663451493
+    }
+  },
+  "daily": {
+    "status": "INSTALLED_EXISTING_OWNER_COMPLETION_HOOK",
+    "main_manifest_sha256": "c779dbf846b25891e45687be6ebdbb7c4766e683e117e10901fe601c688e3d30",
+    "stage_manifest_sha256": "af3f7b25c1e9f8b421b9c98f60d084d8cc29f03ded8a43600152886509d4c59b",
+    "main_actual_pid": 8521,
+    "stage_history": 12,
+    "Stage_business_code": "UNCHANGED",
+    "mechanism": "Afteroriginalclaimfinish; boundednativebudget andexistingnextcompletionevent pendingresume; sameclosedincrementPASS/compflagreuse; no newdaemon/timer/historybootstrap",
+    "business_delivery": "numeric/list/prompt not gated bymaintenance",
+    "SOP": {
+      "canonical_updated": true,
+      "sha256": "23b7354184f25779e71418d1f769b5db871a59ac656002feecc5f6577391e842",
+      "operation": "Only reviewedtail appended after exactprefixCAS"
+    },
+    "natural_next_day": "NOT_YET_VERIFIED"
+  },
+  "validation": {
+    "source_and_identity": "IndependentREVIEWED/PASS; storageR1twofindings preserved andfixed",
+    "integrity": "All29629contentidentitysame; 3SH/SZ/BJ row/chartrefsSHAreadPASS",
+    "API": "3representative readers valid;2missingmaterialsremainmissing;SHdynamicreadtimeexcludedfromrawresponsecomparison, materialSHAverified; D13A264/HK100preserved",
+    "remote": "Sourcecommit and6keyfileSHA verified by exactremote ref/fetchedtree"
+  },
+  "excluded": "No fullhistoryrecompute, model/formula/BUY/account/order change; no raw.market data or registry/policy/env uploaded",
+  "local_evidence_root": "/Users/lexi/Desktop/学习/agents调试/v4_prepool_storage_repair_20261112",
+  "retained_failures": [
+    "17:30/18:00originalprepool failures",
+    "staleexistingStagepin stoppedthenexacttransitionaccepted",
+    "firstbackfillwrapper oldPYTHONPATH failedbeforepublish",
+    "storageR1crossday/no-benefit independentFAIL thenboundedrepair",
+    "reuseharness constructorerror beforemutation",
+    "APIrawresponsehash dynamicreadtime mismatch diagnosed"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

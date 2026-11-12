@@ -1,0 +1,44 @@
+{
+  "schema": "a_daily_generation_compatibility.v1",
+  "accepted_old_generations": [
+    {
+      "target": 20261029,
+      "generation_id": "4787511e6c3125fa043fca9dafd2fdd3fa9496970220a3f0792cfe9732ce1a09",
+      "module_tuple": {
+        "driver_sha256": "1b5f4caa099add5f0c369b72e0c6b9d8d80c964fe245a662290971e5142dcdae",
+        "formula_sha256": "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258",
+        "adapter_sha256": "7ce737550d855dd9e95bc62ebef2209bfc1c4b2bbe70f16cb51b75688342f445",
+        "input_adapter_sha256": "7636a62fc86c2dba0481a11b9ef8dbca4e7fddacd0203e6f9e82205d51654e3b",
+        "factor_cache_sha256": "9df2744b724629db3208c05a8f03553ed1f6e24fed3c6f3ac1679a6e34c5d2e9",
+        "tdx_adapter_sha256": "7976204535e427cd85ea6ea133f18b26b7e939a7124f8b1a2e08f55a6160d000",
+        "user_formula_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6",
+        "field_contract_sha256": "feb845426d7d37aaf63791ff1c799b575b36821d647d0977b890c0b4389b583c"
+      },
+      "snapshot_sha256": "6626b611f3e67c59714fabf2873576b23275cbf08122c727d2ebd9838fad07ca",
+      "input_sha256": "4ece54421d52a4ab488f06a06c8598b961c30ffbaf631bc7b9933b74161068b2",
+      "immutable_old_modules": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/ops/research_panel_qfq.py",
+          "sha256": "7ce737550d855dd9e95bc62ebef2209bfc1c4b2bbe70f16cb51b75688342f445"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/ops/research_panel_adjustment_inputs.py",
+          "sha256": "7636a62fc86c2dba0481a11b9ef8dbca4e7fddacd0203e6f9e82205d51654e3b"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/ops/research_panel_factor_cache.py",
+          "sha256": "9df2744b724629db3208c05a8f03553ed1f6e24fed3c6f3ac1679a6e34c5d2e9"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-chain-natural-repair-20261029-r3-main/app/ops/research_panel_tdx_adjustment_inputs.py",
+          "sha256": "7976204535e427cd85ea6ea133f18b26b7e939a7124f8b1a2e08f55a6160d000"
+        }
+      ]
+    }
+  ],
+  "purpose": "Ready/read compatibility only; current generation creation always binds current module identities",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

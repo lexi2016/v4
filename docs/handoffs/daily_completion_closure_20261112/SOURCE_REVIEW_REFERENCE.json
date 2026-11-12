@@ -1,0 +1,62 @@
+{
+  "schema": "v4.source_review_reference.v1",
+  "verdict": "REVIEWED/PASS",
+  "reviewer": "/root/daily_completion_source_reviewer",
+  "writer": "/root/daily_completion_writer",
+  "local_evidence_name": "DAILY_COMPLETION_SOURCE_REVIEW.json",
+  "local_evidence_sha256": "2087fdb3156f6dcb95259e37edd5cba73048ea0db974f7cd1679ae2d02746848",
+  "handoff_sha256": "ba5dfce7ddf81cced88f63ae0650e462c1b277caf886bf4dde992214d63968df",
+  "source_sha256": {
+    "ops/research_panel_top200.py": "9e3f622f64efbb91ad6252a0e73c04c22da412d5f24c4d9121a1283dd0686828",
+    "ops/bootstrap_stock_event_history.py": "74016c959990833e162e1bdafa520f1a917d0ab2bec71b98c91e8a0fb284a25d",
+    "infrastructure/research_workbench_quote_reference.py": "daf0283b5fea8a9ee160bfdde3fe0fda3318780cdc71f25f181d085233672e9a"
+  },
+  "open_findings": [],
+  "resolved_findings": [
+    {
+      "severity": "P2",
+      "file": "infrastructure/research_workbench_quote_reference.py",
+      "initial_candidate_sha256": "9c22e2102adbbf3bb87dbec8df1d08cc364982f0b5f37ce78b4376203ab5dff2",
+      "trigger": "Underlying logical block changes or disappears after the source-close cache is warmed while selector anchor is unchanged",
+      "impact": "Warm cache returned BOUND_SOURCE_CLOSE without original logical guard; cold reads rejected",
+      "initial_independent_reproduction": {
+        "markets": [
+          "SH",
+          "SZ",
+          "BJ"
+        ],
+        "warm_result": "BOUND_SOURCE_CLOSE",
+        "warm_dependency_guard_calls": 0,
+        "cold_result": "REJECTED_BY_LOGICAL_DEPENDENCY_GUARD",
+        "formal_writes": 0,
+        "provider_calls": 0
+      },
+      "resolution": "Cache hit rechecks relevant original logical blocks and deduplicated metadata identities; cold verifies SHA; warm does not reread rows or repeatedly hash unchanged large snapshots",
+      "final_lines": [
+        85,
+        112,
+        162
+      ],
+      "independent_delta_verification": {
+        "real_source_rows": 3,
+        "warm_no_table_reread": true,
+        "injected_block_stat_drift_warm": "LOGICAL_BLOCK_CHANGED",
+        "injected_block_stat_drift_cold": "LOGICAL_BLOCK_CHANGED",
+        "restored_read_equals_original": true,
+        "guarded_blocks": 4,
+        "unique_metadata_refs": 4,
+        "retained_open_files": 0,
+        "formal_writes": 0,
+        "provider_calls": 0
+      }
+    }
+  ],
+  "not_certified": [
+    "Deployment",
+    "Installed API/UI",
+    "Real F10 collection",
+    "Natural daily execution",
+    "Stage changes",
+    "Delta packing"
+  ]
+}

@@ -31,6 +31,150 @@ export interface ResearchPdfDocumentDetail extends Record<string, unknown> {
   pages: Array<Record<string, unknown>>;
 }
 
+export type MachineCardsStatus = "READY" | "READY_EMPTY" | "NOT_MATERIALIZED" | "CANNOT_CONFIRM";
+
+export interface MachineCardSource {
+  source_group_name: string | null;
+  source_group_status: string;
+  original_filename: string;
+  source_directory: string;
+  source_relative_path: string;
+  source_pdf_path: string;
+}
+
+export interface MachineCardReview {
+  origin_status: string | null;
+  source_review_status: string | null;
+  user_acceptance_status: string | null;
+  review_status: "REVIEWED" | "NOT_REVIEWED" | "CANNOT_CONFIRM";
+  human_reviewed: boolean;
+  user_accepted: boolean;
+}
+
+export interface MachineCardReport {
+  path: string;
+  receipt_path: string;
+  sha256: string | null;
+  bytes: number | null;
+  preview: string;
+  preview_max_chars: number;
+}
+
+/** One displayable machine-generated PDF report; never human-reviewed by default. */
+export interface MachineCard {
+  document_id: string;
+  research_date: string;
+  status: string;
+  batch_id: string;
+  superseded_batch_ids: string[];
+  title: string;
+  title_source: string;
+  source: MachineCardSource;
+  review: MachineCardReview;
+  report: MachineCardReport;
+  machine_generated: true;
+  read_only: true;
+  research_only: true;
+  production_allowed: false;
+  buy_gate_updated: false;
+  orders_sent: false;
+}
+
+export interface MachineCardsPayload {
+  schema_version: "v4.pdf_research.machine_cards.v1";
+  status: MachineCardsStatus;
+  research_date: string;
+  card_count: number;
+  matched_count: number;
+  duplicate_count: number;
+  cannot_confirm_count: number;
+  cannot_confirm: string[];
+  cannot_confirm_document_ids: string[];
+  unresolved_document_ids: string[];
+  truncated: boolean;
+  max_cards_per_date: number;
+  preview_max_chars: number;
+  source_index_used: boolean;
+  items: MachineCard[];
+  research_only: true;
+  production_allowed: false;
+  buy_gate_updated: false;
+  orders_sent: false;
+}
+
+export type StockClueStatus = "READY" | "READY_EMPTY" | "NOT_MATERIALIZED" | "CANNOT_CONFIRM";
+
+export type StockClueMatchedBy = "NAME" | "CODE" | "BOTH";
+
+export type StockClueConfirmReason = "CODE" | "CONTEXT" | "COHERENCE";
+
+export type StockClueNameMapStatus = "READY" | "CANNOT_CONFIRM";
+
+export type StockClueCorpusCacheStatus = "HIT" | "BUILT" | "CANNOT_CONFIRM";
+
+/** A low-evidence exclusion: a common word or a company without corpus context. */
+export interface StockClueGenericFiltered {
+  name: string;
+  ts_code: string;
+  link_probability: number;
+  total: number;
+}
+
+/** A weak-only name hit exposed separately from the confirmed list. */
+export interface StockClueWeakItem {
+  name: string;
+  ts_code: string;
+  weak_document_count: number;
+  link_probability: number | null;
+}
+
+/** One stock mentioned by at least one machine research report on the exact date. */
+export interface StockClue {
+  ts_code: string;
+  name: string | null;
+  /** Confirmed report count; weak-only rows keep this at 0. */
+  document_count: number;
+  /** Unconfirmed name-only report count. */
+  weak_document_count: number;
+  /** Corpus-wide raw company-context ratio (evidenced / total), when sampled. */
+  link_probability: number | null;
+  confirm_reasons: StockClueConfirmReason[];
+  document_titles: string[];
+  matched_by: StockClueMatchedBy;
+  first_seen_date: string;
+  last_seen_date: string;
+}
+
+export interface StockCluesPayload {
+  schema_version: "v4.research.stock_clues.v1";
+  status: StockClueStatus;
+  research_date: string;
+  card_count: number;
+  scanned_card_count: number;
+  skipped_card_count: number;
+  stock_count: number;
+  confirmed_stock_count: number;
+  weak_only_stock_count: number;
+  corpus_report_count: number;
+  /** SHA-256 over sorted report paths, mtimes and sizes; empty when unavailable. */
+  corpus_fingerprint: string;
+  corpus_cache_status: StockClueCorpusCacheStatus;
+  generic_filtered: StockClueGenericFiltered[];
+  /** Up to 20 weak-only rows; never mixed into `items`. */
+  weak_items: StockClueWeakItem[];
+  clue_limit: number;
+  name_map_status: StockClueNameMapStatus;
+  name_map_path: string;
+  name_map_trade_date: string;
+  truncated_report_count: number;
+  cannot_confirm: string[];
+  items: StockClue[];
+  research_only: true;
+  production_allowed: false;
+  buy_gate_updated: false;
+  orders_sent: false;
+}
+
 /** Exact-date daily product projected beside the hourly lane. */
 export interface ResearchDayCoverage {
   complete?: boolean;
@@ -125,6 +269,31 @@ const MATERIALIZED_OBJECT_FIELDS = [
 const OPTIONAL_ARRAY_FIELDS = ["cannot_confirm"] as const;
 const OPTIONAL_OBJECT_FIELDS = ["ocr_ingestion", "research_intelligence_timeline"] as const;
 const RESEARCH_DAY_STATUSES = new Set(["READY", "READY_WITH_DECLARED_GAPS", "NOT_MATERIALIZED"]);
+const MACHINE_CARDS_SCHEMA = "v4.pdf_research.machine_cards.v1";
+const MACHINE_CARDS_STATUSES = new Set<MachineCardsStatus>([
+  "READY",
+  "READY_EMPTY",
+  "NOT_MATERIALIZED",
+  "CANNOT_CONFIRM",
+]);
+const STOCK_CLUES_SCHEMA = "v4.research.stock_clues.v1";
+const STOCK_CLUES_STATUSES = new Set<StockClueStatus>([
+  "READY",
+  "READY_EMPTY",
+  "NOT_MATERIALIZED",
+  "CANNOT_CONFIRM",
+]);
+const STOCK_CLUE_MATCHED_BY = new Set<StockClueMatchedBy>(["NAME", "CODE", "BOTH"]);
+const STOCK_CLUE_CONFIRM_REASONS = new Set<StockClueConfirmReason>(["CODE", "CONTEXT", "COHERENCE"]);
+const STOCK_CLUE_NAME_MAP_STATUSES = new Set<StockClueNameMapStatus>(["READY", "CANNOT_CONFIRM"]);
+const STOCK_CLUE_CORPUS_CACHE_STATUSES = new Set<StockClueCorpusCacheStatus>([
+  "HIT",
+  "BUILT",
+  "CANNOT_CONFIRM",
+]);
+const STOCK_CLUE_TITLE_LIMIT = 5;
+const STOCK_CLUE_GENERIC_FILTERED_LIMIT = 30;
+const STOCK_CLUE_WEAK_ITEMS_LIMIT = 20;
 const RESEARCH_DAY_COUNT_FIELDS = [
   "raw_rows",
   "evidence_rows",
@@ -327,7 +496,347 @@ export function validateResearchDayResponse(
   return value as ResearchDayProduct;
 }
 
-type JsonRequestResource = "research lane" | "research day" | "research PDF document";
+function validateNonNegativeInteger(value: unknown, field: string): void {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    invalidResponse(`${field} is invalid`);
+  }
+}
+
+function validateStringArray(value: unknown, field: string): void {
+  if (!Array.isArray(value) || !value.every((item) => typeof item === "string")) {
+    invalidResponse(`${field} must be a string array`);
+  }
+}
+
+function isProbability(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+/** Validate the read-only machine-card projection before Vue renders it. */
+export function validateMachineCardsResponse(
+  value: unknown,
+  expectedResearchDate?: string,
+): MachineCardsPayload {
+  if (!isRecord(value)) invalidResponse("research machine cards response must be an object");
+  if (hasOwn(value, "error")) invalidResponse("research machine cards response contains a top-level error");
+  if (value.schema_version !== MACHINE_CARDS_SCHEMA) {
+    invalidResponse("research machine cards schema_version is invalid");
+  }
+  if (typeof value.status !== "string" || !MACHINE_CARDS_STATUSES.has(value.status as MachineCardsStatus)) {
+    invalidResponse("research machine cards status is invalid");
+  }
+  if (typeof value.research_date !== "string" || !isGregorianDate(value.research_date)) {
+    invalidResponse("research machine cards research_date is invalid");
+  }
+  if (expectedResearchDate !== undefined) {
+    if (!isGregorianDate(expectedResearchDate) || value.research_date !== expectedResearchDate) {
+      invalidResponse("research machine cards research_date does not match the request");
+    }
+  }
+  for (const field of [
+    "card_count",
+    "matched_count",
+    "duplicate_count",
+    "cannot_confirm_count",
+    "max_cards_per_date",
+    "preview_max_chars",
+  ] as const) {
+    validateNonNegativeInteger(value[field], `research machine cards ${field}`);
+  }
+  validateStringArray(value.cannot_confirm, "research machine cards cannot_confirm");
+  validateStringArray(value.cannot_confirm_document_ids, "research machine cards cannot_confirm_document_ids");
+  validateStringArray(value.unresolved_document_ids, "research machine cards unresolved_document_ids");
+  if (typeof value.truncated !== "boolean") invalidResponse("research machine cards truncated is invalid");
+  if (typeof value.source_index_used !== "boolean") {
+    invalidResponse("research machine cards source_index_used is invalid");
+  }
+  if (value.research_only !== true) invalidResponse("research machine cards research_only must be true");
+  for (const safetyField of ["production_allowed", "buy_gate_updated", "orders_sent"] as const) {
+    if (value[safetyField] !== false) invalidResponse(`research machine cards ${safetyField} must be false`);
+  }
+  if (!Array.isArray(value.items) || value.items.some((item) => !isRecord(item))) {
+    invalidResponse("research machine cards items must be an object array");
+  }
+  const items = value.items as Array<Record<string, unknown>>;
+  if (items.length !== value.card_count) invalidResponse("research machine cards card_count does not match items");
+  if (value.status === "READY" && items.length === 0) {
+    invalidResponse("research machine cards READY response has no items");
+  }
+  if (["READY_EMPTY", "NOT_MATERIALIZED"].includes(value.status as string) && items.length !== 0) {
+    invalidResponse("research machine cards empty response has items");
+  }
+  for (const item of items) {
+    if (typeof item.document_id !== "string" || !item.document_id) {
+      invalidResponse("research machine card document_id is invalid");
+    }
+    if (item.research_date !== value.research_date) {
+      invalidResponse("research machine card research_date does not match the response");
+    }
+    if (typeof item.status !== "string" || typeof item.title !== "string") {
+      invalidResponse("research machine card title or status is invalid");
+    }
+    validateStringArray(item.superseded_batch_ids, "research machine card superseded_batch_ids");
+    if (!isRecord(item.source) || typeof item.source.original_filename !== "string") {
+      invalidResponse("research machine card source is invalid");
+    }
+    if (item.source.source_group_name !== null && typeof item.source.source_group_name !== "string") {
+      invalidResponse("research machine card source_group_name is invalid");
+    }
+    if (!isRecord(item.review) || typeof item.review.human_reviewed !== "boolean") {
+      invalidResponse("research machine card review is invalid");
+    }
+    if (!isRecord(item.report) || typeof item.report.preview !== "string") {
+      invalidResponse("research machine card report is invalid");
+    }
+    if (item.machine_generated !== true || item.read_only !== true) {
+      invalidResponse("research machine card flags are invalid");
+    }
+    for (const safetyField of ["production_allowed", "buy_gate_updated", "orders_sent"] as const) {
+      if (item[safetyField] !== false) invalidResponse(`research machine card ${safetyField} must be false`);
+    }
+  }
+  return value as unknown as MachineCardsPayload;
+}
+
+/** Validate the read-only stock clue projection before Vue renders it. */
+export function validateStockCluesResponse(
+  value: unknown,
+  expectedResearchDate?: string,
+): StockCluesPayload {
+  if (!isRecord(value)) invalidResponse("research stock clues response must be an object");
+  if (hasOwn(value, "error")) invalidResponse("research stock clues response contains a top-level error");
+  if (value.schema_version !== STOCK_CLUES_SCHEMA) {
+    invalidResponse("research stock clues schema_version is invalid");
+  }
+  if (typeof value.status !== "string" || !STOCK_CLUES_STATUSES.has(value.status as StockClueStatus)) {
+    invalidResponse("research stock clues status is invalid");
+  }
+  if (typeof value.research_date !== "string" || !isGregorianDate(value.research_date)) {
+    invalidResponse("research stock clues research_date is invalid");
+  }
+  if (expectedResearchDate !== undefined) {
+    if (!isGregorianDate(expectedResearchDate) || value.research_date !== expectedResearchDate) {
+      invalidResponse("research stock clues research_date does not match the request");
+    }
+  }
+  for (const field of [
+    "card_count",
+    "scanned_card_count",
+    "skipped_card_count",
+    "stock_count",
+    "confirmed_stock_count",
+    "weak_only_stock_count",
+    "corpus_report_count",
+    "truncated_report_count",
+  ] as const) {
+    validateNonNegativeInteger(value[field], `research stock clues ${field}`);
+  }
+  if (
+    (value.confirmed_stock_count as number) + (value.weak_only_stock_count as number)
+    !== value.stock_count
+  ) {
+    invalidResponse("research stock clues confirmed and weak-only counts do not match stock_count");
+  }
+  if (
+    typeof value.clue_limit !== "number"
+    || !Number.isInteger(value.clue_limit)
+    || value.clue_limit < 1
+    || value.clue_limit > 200
+  ) {
+    invalidResponse("research stock clues clue_limit is invalid");
+  }
+  if (
+    typeof value.name_map_status !== "string"
+    || !STOCK_CLUE_NAME_MAP_STATUSES.has(value.name_map_status as StockClueNameMapStatus)
+  ) {
+    invalidResponse("research stock clues name_map_status is invalid");
+  }
+  if (typeof value.name_map_path !== "string") {
+    invalidResponse("research stock clues name_map_path is invalid");
+  }
+  if (typeof value.name_map_trade_date !== "string") {
+    invalidResponse("research stock clues name_map_trade_date is invalid");
+  }
+  if (value.name_map_status === "READY" && !isGregorianDate(value.name_map_trade_date)) {
+    invalidResponse("research stock clues name_map_trade_date is invalid");
+  }
+  if (
+    typeof value.corpus_cache_status !== "string"
+    || !STOCK_CLUE_CORPUS_CACHE_STATUSES.has(value.corpus_cache_status as StockClueCorpusCacheStatus)
+  ) {
+    invalidResponse("research stock clues corpus_cache_status is invalid");
+  }
+  if (
+    typeof value.corpus_fingerprint !== "string"
+    || (value.corpus_fingerprint !== "" && !/^[0-9a-f]{64}$/.test(value.corpus_fingerprint))
+  ) {
+    invalidResponse("research stock clues corpus_fingerprint is invalid");
+  }
+  if (!Array.isArray(value.generic_filtered) || value.generic_filtered.some((entry) => !isRecord(entry))) {
+    invalidResponse("research stock clues generic_filtered must be an object array");
+  }
+  const genericFiltered = value.generic_filtered as Array<Record<string, unknown>>;
+  if (genericFiltered.length > STOCK_CLUE_GENERIC_FILTERED_LIMIT) {
+    invalidResponse("research stock clues generic_filtered is too long");
+  }
+  for (const entry of genericFiltered) {
+    if (typeof entry.name !== "string" || !entry.name) {
+      invalidResponse("research stock clue generic_filtered name is invalid");
+    }
+    if (typeof entry.ts_code !== "string" || !entry.ts_code) {
+      invalidResponse("research stock clue generic_filtered ts_code is invalid");
+    }
+    if (!isProbability(entry.link_probability)) {
+      invalidResponse("research stock clue generic_filtered link_probability is invalid");
+    }
+    validateNonNegativeInteger(entry.total, "research stock clue generic_filtered total");
+    if (entry.total === 0) {
+      invalidResponse("research stock clue generic_filtered total must be positive");
+    }
+  }
+  if (value.corpus_cache_status === "CANNOT_CONFIRM" && genericFiltered.length !== 0) {
+    invalidResponse("research stock clues generic_filtered requires a built corpus");
+  }
+  validateStringArray(value.cannot_confirm, "research stock clues cannot_confirm");
+  if (value.research_only !== true) invalidResponse("research stock clues research_only must be true");
+  for (const safetyField of ["production_allowed", "buy_gate_updated", "orders_sent"] as const) {
+    if (value[safetyField] !== false) invalidResponse(`research stock clues ${safetyField} must be false`);
+  }
+  if (!Array.isArray(value.items) || value.items.some((item) => !isRecord(item))) {
+    invalidResponse("research stock clues items must be an object array");
+  }
+  const items = value.items as Array<Record<string, unknown>>;
+  for (const item of items) {
+    if (typeof item.ts_code !== "string" || !item.ts_code) {
+      invalidResponse("research stock clue ts_code is invalid");
+    }
+    if (item.name !== null && typeof item.name !== "string") {
+      invalidResponse("research stock clue name is invalid");
+    }
+    if (
+      typeof item.document_count !== "number"
+      || !Number.isInteger(item.document_count)
+      || item.document_count < 1
+    ) {
+      invalidResponse("research stock clue items must be confirmed rows");
+    }
+    if (
+      typeof item.weak_document_count !== "number"
+      || !Number.isInteger(item.weak_document_count)
+      || item.weak_document_count < 0
+    ) {
+      invalidResponse("research stock clue weak_document_count is invalid");
+    }
+    if (item.link_probability !== null && !isProbability(item.link_probability)) {
+      invalidResponse("research stock clue link_probability is invalid");
+    }
+    if (value.corpus_cache_status === "CANNOT_CONFIRM" && item.link_probability !== null) {
+      invalidResponse("research stock clue link_probability requires a built corpus");
+    }
+    if (!Array.isArray(item.confirm_reasons)) {
+      invalidResponse("research stock clue confirm_reasons must be a string array");
+    }
+    const confirmReasons = item.confirm_reasons as unknown[];
+    if (
+      confirmReasons.some(
+        (reason) => typeof reason !== "string" || !STOCK_CLUE_CONFIRM_REASONS.has(reason as StockClueConfirmReason),
+      )
+      || new Set(confirmReasons).size !== confirmReasons.length
+    ) {
+      invalidResponse("research stock clue confirm_reasons are invalid");
+    }
+    if ((item.document_count === 0) !== (confirmReasons.length === 0)) {
+      invalidResponse("research stock clue confirm_reasons do not match document_count");
+    }
+    validateStringArray(item.document_titles, "research stock clue document_titles");
+    if ((item.document_titles as string[]).length > STOCK_CLUE_TITLE_LIMIT) {
+      invalidResponse("research stock clue document_titles are truncated");
+    }
+    if (
+      typeof item.matched_by !== "string"
+      || !STOCK_CLUE_MATCHED_BY.has(item.matched_by as StockClueMatchedBy)
+    ) {
+      invalidResponse("research stock clue matched_by is invalid");
+    }
+    for (const field of ["first_seen_date", "last_seen_date"] as const) {
+      if (!isGregorianDate(item[field])) invalidResponse(`research stock clue ${field} is invalid`);
+    }
+  }
+  if (!Array.isArray(value.weak_items) || value.weak_items.some((entry) => !isRecord(entry))) {
+    invalidResponse("research stock clues weak_items must be an object array");
+  }
+  const weakItems = value.weak_items as Array<Record<string, unknown>>;
+  if (weakItems.length > STOCK_CLUE_WEAK_ITEMS_LIMIT) {
+    invalidResponse("research stock clues weak_items is too long");
+  }
+  if (weakItems.length !== Math.min(value.weak_only_stock_count as number, STOCK_CLUE_WEAK_ITEMS_LIMIT)) {
+    invalidResponse("research stock clues weak_items does not match the weak-only count");
+  }
+  const weakItemCodes = new Set<string>();
+  for (const item of weakItems) {
+    if (typeof item.name !== "string" || !item.name) {
+      invalidResponse("research stock clue weak_items name is invalid");
+    }
+    if (typeof item.ts_code !== "string" || !item.ts_code) {
+      invalidResponse("research stock clue weak_items ts_code is invalid");
+    }
+    if (
+      typeof item.weak_document_count !== "number"
+      || !Number.isInteger(item.weak_document_count)
+      || item.weak_document_count < 1
+    ) {
+      invalidResponse("research stock clue weak_items weak_document_count is invalid");
+    }
+    if (item.link_probability !== null && !isProbability(item.link_probability)) {
+      invalidResponse("research stock clue weak_items link_probability is invalid");
+    }
+    if (value.corpus_cache_status === "CANNOT_CONFIRM" && item.link_probability !== null) {
+      invalidResponse("research stock clue weak_items link_probability requires a built corpus");
+    }
+    const code = item.ts_code as string;
+    if (weakItemCodes.has(code)) {
+      invalidResponse("research stock clue weak_items contains a duplicate ts_code");
+    }
+    weakItemCodes.add(code);
+  }
+  for (let index = 1; index < weakItems.length; index += 1) {
+    const previous = weakItems[index - 1];
+    const current = weakItems[index];
+    const previousCount = previous.weak_document_count as number;
+    const currentCount = current.weak_document_count as number;
+    if (previousCount < currentCount) {
+      invalidResponse("research stock clue weak_items must be sorted by weak count descending");
+    }
+    if (previousCount === currentCount && String(previous.ts_code) > String(current.ts_code)) {
+      invalidResponse("research stock clue weak_items must be sorted by ts_code ascending");
+    }
+  }
+  const itemCodes = new Set(items.map((item) => item.ts_code as string));
+  for (const code of weakItemCodes) {
+    if (itemCodes.has(code)) {
+      invalidResponse("research stock clue weak_items must not appear in items");
+    }
+  }
+  const status = value.status as StockClueStatus;
+  const confirmedCount = value.confirmed_stock_count as number;
+  const weakOnlyCount = value.weak_only_stock_count as number;
+  if (status === "READY") {
+    if (confirmedCount < 1) invalidResponse("research stock clues READY response has no confirmed stocks");
+  } else if (status === "READY_EMPTY") {
+    if (confirmedCount !== 0) invalidResponse("research stock clues READY_EMPTY response has confirmed stocks");
+    if (weakOnlyCount !== value.stock_count) {
+      invalidResponse("research stock clues READY_EMPTY weak-only count does not match stock_count");
+    }
+  } else if (value.stock_count !== 0 || confirmedCount !== 0 || weakOnlyCount !== 0) {
+    invalidResponse("research stock clues non-ready response has stock counts");
+  }
+  if (items.length !== Math.min(value.confirmed_stock_count as number, value.clue_limit as number)) {
+    invalidResponse("research stock clues items length does not match confirmed_stock_count and clue_limit");
+  }
+  return value as unknown as StockCluesPayload;
+}
+
+type JsonRequestResource = "research lane" | "research day" | "research PDF document" | "research machine cards" | "research stock clues";
 
 /** Shared fetch/JSON transport; endpoint-specific contracts stay in their validators. */
 async function requestJson(
@@ -430,6 +939,37 @@ export async function loadResearchPdfDocumentDetail(
     );
   }
   return payload as ResearchPdfDocumentDetail;
+}
+
+export async function fetchMachineCards(researchDate: string): Promise<MachineCardsPayload> {
+  const url = `/api/v3/research/machine-cards?research_date=${encodeURIComponent(researchDate)}`;
+  const payload = await requestJson(url, "research machine cards", {});
+  try {
+    return validateMachineCardsResponse(payload, researchDate);
+  } catch (reason) {
+    throw new ResearchLaneRequestError(
+      "INVALID_RESPONSE",
+      reason instanceof Error ? reason.message : "research machine cards response shape is invalid",
+      undefined,
+      reason,
+    );
+  }
+}
+
+/** Read-only stock clue aggregation; independent of the machine-card renderer. */
+export async function fetchStockClues(researchDate: string, limit = 50): Promise<StockCluesPayload> {
+  const url = `/api/v3/research/stock-clues?research_date=${encodeURIComponent(researchDate)}&limit=${encodeURIComponent(String(limit))}`;
+  const payload = await requestJson(url, "research stock clues", {});
+  try {
+    return validateStockCluesResponse(payload, researchDate);
+  } catch (reason) {
+    throw new ResearchLaneRequestError(
+      "INVALID_RESPONSE",
+      reason instanceof Error ? reason.message : "research stock clues response shape is invalid",
+      undefined,
+      reason,
+    );
+  }
 }
 
 async function loadDay(

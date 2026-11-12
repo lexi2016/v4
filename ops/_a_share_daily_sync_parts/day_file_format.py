@@ -91,7 +91,7 @@ def _read_hq_day_bars_body(_v4_scope, /, path, tail_records):
     return rows
 
 
-def _append_bars_body(_v4_scope, /, path, bars):
+def _append_bars_body(_v4_scope, /, path, bars, *, expected_source_sha256=Ellipsis):
     failure = _v4_global(_v4_scope, '_local_path_failure')(path)
     if failure is not None:
         raise _v4_global(_v4_scope, 'OSError')(f"A_SYNC_SOURCE_PATH_REJECTED:{path}:{failure}")
@@ -101,6 +101,6 @@ def _append_bars_body(_v4_scope, /, path, bars):
     failure = _v4_global(_v4_scope, '_local_path_failure')(path)
     if failure is not None:
         raise _v4_global(_v4_scope, 'OSError')(f"A_SYNC_SOURCE_PATH_REJECTED:{path}:{failure}")
-    with path.open("ab") as f:
-        for bar in bars:
-            f.write(_v4_global(_v4_scope, 'pack_hq_bar')(bar))
+    from .native_io import commit
+    payload = b''.join(_v4_global(_v4_scope, 'pack_hq_bar')(bar) for bar in bars)
+    return commit(_v4_scope,path,suffix=payload,expected=expected_source_sha256)

@@ -1,0 +1,50 @@
+{
+  "schema": "v4.review_source_baseline.v1",
+  "base_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "integrated_repair_commit": "13d0523fc3311ae370b7441747de9c2b5b2a49e3",
+  "status": "SOURCE_REVIEW_ONLY_NOT_DEPLOYED",
+  "roles": {
+    "Main": {
+      "matrix_path": "roles/Main.json",
+      "sha256": "94bce8eb4d538702c26ef58c089f023bf5b451ed21fefd7954958d6975f2220c",
+      "selected_count": 888,
+      "excluded_count": 151
+    },
+    "API": {
+      "matrix_path": "roles/API.json",
+      "sha256": "cffefb43188c12221c1bf6807722feb2f9de921bc971ebccb9cadffaf0cba754",
+      "selected_count": 1174,
+      "excluded_count": 190
+    },
+    "Stage": {
+      "matrix_path": "roles/Stage.json",
+      "sha256": "621601fca3d5e7acf93ac4732b52fdeba4f147ce1b6c57481821a82a27ba0081",
+      "selected_count": 870,
+      "excluded_count": 135
+    },
+    "SharedPackage": {
+      "matrix_path": "roles/SharedPackage.json",
+      "sha256": "4d722efe98bf3c79b0b323aa960425f271fcb4a2d035a57746df43829b438c83",
+      "selected_count": 66,
+      "excluded_count": 36
+    },
+    "StageRepairBranch": {
+      "matrix_path": "roles/StageRepairBranch.json",
+      "sha256": "1f894b096089865c7d274a27b106dff3a938f4119507513de224f6b1fab28373",
+      "selected_count": 3,
+      "excluded_count": 0
+    },
+    "APIResearchUI": {
+      "matrix_path": "roles/APIResearchUI.json",
+      "sha256": "da4f0cd544324dfb61a58502dade428fa18683fdfffb80c53f01b293df3f0984",
+      "selected_count": 52,
+      "excluded_count": 438
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "drift": [],
+  "layout": "Role matrices are split into individually readable files, each below 1 MiB, with exact SHA references."
+}

@@ -1,0 +1,153 @@
+--- a/ops/research_panel_qfq.py
++++ b/ops/research_panel_qfq.py
+@@ -2360,22 +2360,37 @@
+         raise QfqGateError("SAME_ASOF_REPAIR_MATH_OR_DATE_CHANGED")
+     proof = json.loads(_source(value["factor_equivalence"], owner="reviewed metadata-only factor equivalence").read_text())
+     review = json.loads(_source(proof["independent_review"], owner="factor equivalence independent review").read_text())
+-    factor_ast = json.loads(_source(proof["factor_ast_equivalence"], owner="factor equivalence AST").read_text())
+-    prior_factor = _source(value["baseline_factor_source"], owner="same-asof original factor owner")
+-    current_factor = Path(__file__).with_name("research_panel_factor_cache.py")
+-    accepted_factor = _source(value["accepted_factor_source"], owner="R6 accepted factor owner")
+-    def factor_math(path):
+-        return canonical_sha([ast.dump(n, include_attributes=False) for n in ast.parse(path.read_text()).body
+-            if not (isinstance(n, ast.FunctionDef) and n.name in {"_verified_sop_skip", "_reviewed_policy_lifecycle_fact", "collect_research_metadata", "_same_asof_metadata_records"})])
+-    if (proof.get("status") != "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
+-            or proof.get("independent_review_status") != "PASS" or review.get("status") != "PASS"
+-            or proof.get("reviewer_id") != review.get("reviewer")
+-            or factor_ast.get("baseline", {}).get("sha256") != sha(prior_factor)
+-            or factor_ast.get("candidate", {}).get("sha256") != sha(accepted_factor)
+-            or identity.get("factor_cache_sha256") != sha(current_factor)
+-            or factor_math(prior_factor) != factor_math(accepted_factor)
+-            or factor_math(accepted_factor) != factor_math(current_factor)):
+-        raise QfqGateError("SAME_ASOF_REPAIR_FACTOR_MATH_UNBOUND")
++    if target == 20261110:
++        prior_factor = _source(value["baseline_factor_source"], owner="D10 original factor owner")
++        current_factor = Path(__file__).with_name("research_panel_factor_cache.py")
++        accepted_factor = _source(value["accepted_factor_source"], owner="D10 unchanged factor owner")
++        control = json.loads(_source(proof["metadata_control_equivalence"], owner="reviewed metadata control").read_text())
++        if (proof.get("status") != "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
++                or proof.get("independent_review_status") != "PASS" or review.get("verdict") != "PASS"
++                or proof.get("reviewer_id") != review.get("reviewer")
++                or proof.get("code_binding", {}).get("adapter_sha256") != sha(accepted_owner)
++                or control.get("candidate_source", {}).get("sha256") != sha(accepted_owner)
++                or control.get("mathematical_definitions_changed") is not False
++                or control.get("computation_kernel_sha256") != computation_kernel_sha(core)
++                or not sha(prior_factor) == sha(accepted_factor) == sha(current_factor) == identity.get("factor_cache_sha256")):
++            raise QfqGateError("SAME_ASOF_D10_REVIEWED_MATH_OR_FACTOR_UNBOUND")
++    else:
++        factor_ast = json.loads(_source(proof["factor_ast_equivalence"], owner="factor equivalence AST").read_text())
++        prior_factor = _source(value["baseline_factor_source"], owner="same-asof original factor owner")
++        current_factor = Path(__file__).with_name("research_panel_factor_cache.py")
++        accepted_factor = _source(value["accepted_factor_source"], owner="R6 accepted factor owner")
++        def factor_math(path):
++            return canonical_sha([ast.dump(n, include_attributes=False) for n in ast.parse(path.read_text()).body
++                if not (isinstance(n, ast.FunctionDef) and n.name in {"_verified_sop_skip", "_reviewed_policy_lifecycle_fact", "collect_research_metadata", "_same_asof_metadata_records"})])
++        if (proof.get("status") != "PASS_INPUT_EVENT_VOLUME_EQUIVALENCE"
++                or proof.get("independent_review_status") != "PASS" or review.get("status") != "PASS"
++                or proof.get("reviewer_id") != review.get("reviewer")
++                or factor_ast.get("baseline", {}).get("sha256") != sha(prior_factor)
++                or factor_ast.get("candidate", {}).get("sha256") != sha(accepted_factor)
++                or identity.get("factor_cache_sha256") != sha(current_factor)
++                or factor_math(prior_factor) != factor_math(accepted_factor)
++                or factor_math(accepted_factor) != factor_math(current_factor)):
++            raise QfqGateError("SAME_ASOF_REPAIR_FACTOR_MATH_UNBOUND")
+     policies = [json.loads(_source(value[k], owner=k).read_text())
+                 for k in ("baseline_source_policy", "current_source_policy")]
+     current_policy = Path(__file__).resolve().parents[1] / "contracts/a_share_daily_source_policy.json"
+@@ -2405,12 +2420,33 @@
+                    != {k: v for k, v in price_field_basis.items() if k not in context}):
+             raise QfqGateError("SAME_ASOF_REPAIR_BASELINE_OR_FORMULA_UNBOUND:" + role)
+     source = json.loads(_source(value["source_admission"], owner="same-asof completed source admission").read_text())
+-    if (str(source.get("target_date")) != str(target) or source.get("technical_failure_count") != 0
+-            or source.get("failures") or source.get("RESEARCH_ONLY") is not True):
+-        raise QfqGateError("SAME_ASOF_REPAIR_SOURCE_ADMISSION_UNBOUND")
+-    allowed = value.get("allowed_changed_codes")
+-    if not isinstance(allowed, list) or len(allowed) != 44 or len(set(allowed)) != 44:
+-        raise QfqGateError("SAME_ASOF_REPAIR_EXACT44_SCOPE_UNBOUND")
++    if target == 20261110:
++        plan = json.loads(_source(value["native_execution_plan"], owner="reviewed D10 native input plan").read_text())
++        expected_native = {row["target_path"]:row["expected_after_sha256"] for row in plan["six_native_updates"]}
++        expected_native[plan["archive_688496"]["source"]["path"]] = plan["archive_688496"]["native_expected_after"]["sha256"]
++        expected_native[plan["native_920202"]["target_path"]] = plan["native_920202"]["source"]["sha256"]
++        actual_native = {row["path"]:row["after_sha256"] for row in source.get("items", [])}
++        if (source.get("status") != "EIGHT_NATIVE_COMPLETE_NO_FORMULA_OR_PANEL_BUILD"
++                or source.get("source_mode") != "CAPTURE_REPLAY" or source.get("executed") is not True
++                or source.get("network_requests") != 0 or source.get("target_date") != target
++                or source.get("RESEARCH_ONLY") is not True or len(source.get("items", [])) != 8
++                or actual_native != expected_native
++                or any(row.get("status") not in {"APPLIED_NATIVE_ONLY", "REUSED_ALREADY_APPLIED"} for row in source["items"])):
++            raise QfqGateError("SAME_ASOF_D10_ACTUAL_NATIVE_COMPLETION_UNBOUND")
++        for path, digest in actual_native.items():
++            _source(dict(path=path, sha256=digest), owner="D10 applied original native")
++        allowed = value.get("allowed_changed_codes")
++        expected = {"002623.SZ", "605258.SH", "601326.SH", "000972.SZ", "002827.SZ", "300237.SZ", "688496.SH", "920202.BJ", "301314.SZ"}
++        if not isinstance(allowed, list) or len(allowed) != 9 or set(allowed) != expected:
++            raise QfqGateError("SAME_ASOF_D10_EXACT_AFFECTED_SCOPE_UNBOUND")
++    else:
++        source = json.loads(_source(value["source_admission"], owner="same-asof completed source admission").read_text())
++        if (str(source.get("target_date")) != str(target) or source.get("technical_failure_count") != 0
++                or source.get("failures") or source.get("RESEARCH_ONLY") is not True):
++            raise QfqGateError("SAME_ASOF_REPAIR_SOURCE_ADMISSION_UNBOUND")
++        allowed = value.get("allowed_changed_codes")
++        if not isinstance(allowed, list) or len(allowed) != 44 or len(set(allowed)) != 44:
++            raise QfqGateError("SAME_ASOF_REPAIR_EXACT44_SCOPE_UNBOUND")
+     available = set(snapshot["symbols"]);before = old["symbols"];changed = {};reused = []
+     checked = set()
+     for code, item in snapshot["symbols"].items():
+@@ -2418,15 +2454,43 @@
+             key = (raw["path"], raw["sha256"])
+             if key not in checked:
+                 _source(raw, owner="same-asof current full prefix " + code);checked.add(key)
+-        if code in before and _same_asof_stock_dependencies(before[code]) == _same_asof_stock_dependencies(item):
++        metadata_only = False
++        if target == 20261110 and code == "301314.SZ" and code in before:
++            fact_ref = value["metadata_only_301314_fact"]
++            fact = json.loads(_source(fact_ref, owner="D10 prior accepted source fact").read_text())
++            parity = json.loads(_source(value["metadata_only_301314_parity"], owner="D10 whole native source parity").read_text())
++            metadata_only = (fact_ref in snapshot["history_retention_binding"]["accepted_evidence"]
++                and before[code].get("raw_files") == fact.get("raw_refs")
++                and before[code].get("events") == item.get("events") == fact.get("events")
++                and fact.get("source_generation") == receipt.get("generation_id")
++                and parity.get("matched_prior_both_role_fact") is True and parity.get("rows") == 868
++                and parity.get("source_config") == snapshot["history_retention_binding"]["source_config"]
++                and len(item["raw_files"]) == 1 and item["raw_files"][0]["sha256"] == parity["native"]["sha256"])
++            if not metadata_only:
++                raise QfqGateError("SAME_ASOF_D10_METADATA_ONLY_SOURCE_PARITY_REQUIRED")
++        if metadata_only or (code in before and _same_asof_stock_dependencies(before[code]) == _same_asof_stock_dependencies(item)):
+             reused.append(code)
+         else:
+             changed[code] = dict(reason="CHANGED_OR_NEW_REAL_PRICE_DEPENDENCIES")
+     removed = set(before) - available
+-    if (set(changed) | removed) - set(allowed):
+-        raise QfqGateError("SAME_ASOF_REPAIR_OUTSIDE_EXACT44:" + repr(sorted((set(changed) | removed) - set(allowed))))
++    extra_no_bar = (set(changed) | removed) - set(allowed)
++    if target == 20261110 and extra_no_bar:
++        facts = json.loads(_source(plan["seven_status_policy"]["source_facts"], owner="D10 exact no-bar facts").read_text())
++        symbols = {row["symbol"] for row in facts["rows"] if row.get("target_has_no_current_bar") is True
++                   and row.get("document_verified_status_dates") is True and row.get("target_date") == target}
++        dispositions = {row["symbol"]:row for row in policies[1].get("exact_no_current_bar_dispositions", []) if row.get("target_date") == target}
++        for code in extra_no_bar:
++            eligible = snapshot.get("original_quarantine_eligible", {}).get(code, {})
++            disposition = dispositions.get(code, {})
++            if (code[:6] not in symbols or eligible.get("reason_code") != "EXPECTED_NO_CURRENT_BAR"
++                    or eligible.get("source_sha256_after") != disposition.get("expected_native_sha256")
++                    or disposition.get("evidence") != plan["seven_status_policy"]["source_facts"]):
++                raise QfqGateError("SAME_ASOF_D10_UNPROVEN_ADDITIONAL_NO_BAR:" + code)
++            _source(dict(path=eligible["path"], sha256=eligible["source_sha256_after"]), owner="D10 additional no-bar dependency")
++    elif extra_no_bar:
++        raise QfqGateError("SAME_ASOF_REPAIR_OUTSIDE_EXACT44:" + repr(sorted(extra_no_bar)))
+     return dict(schema="qfq_same_asof_source_repair_v1", codes=changed, reused_codes=sorted(reused),
+-                removed_codes=sorted(removed), binding_ref=ref, baseline_generation=receipt["generation_id"],
++                removed_codes=sorted(removed), derived_no_bar_changes=sorted(extra_no_bar) if target == 20261110 else [], binding_ref=ref, baseline_generation=receipt["generation_id"],
+                 baseline_roles=value["baseline_roles"], baseline_snapshot=value["baseline_snapshot"],
+                 factor_equivalence=value["factor_equivalence"], computation_kernel_sha256=computation_kernel_sha(core))
+ 
+@@ -2525,7 +2589,7 @@
+             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
+                              force_refresh=False, research_cache_config_ref=research_config,
+                              history_extension=history, retained_history=retained_history,
+-                             **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None else {}))
++                             **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None and target != 20261110 else {}))
+         snapshot = load_snapshot(snapshot_file, target)
+         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:
+             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")

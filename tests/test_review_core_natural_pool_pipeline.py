@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -125,6 +126,32 @@ def _request(tmp_path: Path, calendar_path: Path):
     return adapter.validate_request(**_request_kwargs(tmp_path, calendar_path))
 
 
+def _direct_request(
+    root: Path,
+    *,
+    review_core_package_root: Path,
+    shared_package_root: Path,
+):
+    """Build a request directly, bypassing filesystem boundary validation."""
+
+    return adapter.PipelineRequest(
+        trade_date="20260821",
+        previous_trade_date="20260820",
+        target_date="20260824",
+        calendar_path=root / "calendar.json",
+        calendar_sha256="0" * 64,
+        review_core_package_root=review_core_package_root,
+        shared_package_root=shared_package_root,
+        shared_store_root=root / "shared-store",
+        runtime_root=root / "runtime",
+        hk_root=root / "hk-store",
+        close_root=root / "close-store",
+        fupan_store_root=root / "fupan-store",
+        stage7_store_root=root / "stage7-store",
+        bundle_root=root / "bundle-store",
+    )
+
+
 def test_dynamic_calendar_resolves_hk_previous_and_a_share_next_with_weekend_and_holiday(
     tmp_path: Path,
 ) -> None:
@@ -176,10 +203,83 @@ def test_request_binds_all_roots_and_separates_package_from_store_environment(
     assert command[command.index("--stage7-store-root") + 1] == str(request.stage7_store_root)
 
     environment = adapter.build_environment(request, base_env={"PATH": "/usr/bin"})
-    assert environment["PYTHONPATH"] == str(request.review_core_package_root)
+    assert environment["PYTHONPATH"] == os.pathsep.join(
+        [str(request.review_core_package_root), str(request.shared_package_root)]
+    )
     assert environment["V3_SHARED_DATA_PACKAGE_ROOT"] == str(request.shared_package_root)
     assert environment["STORE_ROOT"] == str(request.shared_store_root)
     assert environment["V3_SHARED_DATA_STORE_ROOT"] == str(request.shared_store_root)
+
+
+def test_environment_pythonpath_lists_review_core_then_shared_root_once(
+    tmp_path: Path,
+) -> None:
+    review_root = tmp_path / "review-package"
+    shared_root = tmp_path / "shared-package"
+    request = _direct_request(
+        tmp_path,
+        review_core_package_root=review_root,
+        shared_package_root=shared_root,
+    )
+
+    environment = adapter.build_environment(request, base_env={})
+
+    entries = environment["PYTHONPATH"].split(os.pathsep)
+    assert entries == [str(review_root), str(shared_root)]
+    assert len(entries) == len(set(entries))
+
+
+def test_environment_pythonpath_deduplicates_one_shared_and_review_core_root(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "combined-package"
+    request = _direct_request(
+        tmp_path,
+        review_core_package_root=root,
+        shared_package_root=root,
+    )
+
+    entries = adapter.build_environment(request, base_env={})["PYTHONPATH"].split(
+        os.pathsep
+    )
+
+    assert entries == [str(root)]
+
+
+def test_merged_pythonpath_imports_scripts_and_shared_data_without_network(
+    tmp_path: Path,
+) -> None:
+    review_root = tmp_path / "review-package"
+    (review_root / "review_core").mkdir(parents=True)
+    (review_root / "review_core" / "__init__.py").write_text("", encoding="utf-8")
+    shared_root = tmp_path / "shared-package"
+    (shared_root / "shared_data").mkdir(parents=True)
+    (shared_root / "shared_data" / "__init__.py").write_text("", encoding="utf-8")
+    (shared_root / "scripts" / "live_acquisition").mkdir(parents=True)
+    (shared_root / "scripts" / "live_acquisition" / "__init__.py").write_text(
+        "", encoding="utf-8"
+    )
+    request = _direct_request(
+        tmp_path,
+        review_core_package_root=review_root,
+        shared_package_root=shared_root,
+    )
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import scripts, scripts.live_acquisition, shared_data; print('imports-ok')",
+        ],
+        cwd=tmp_path,
+        env=adapter.build_environment(request, base_env={}),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert completed.stdout.strip() == "imports-ok"
 
 
 def test_symlink_escape_and_desktop_windows_paths_are_rejected(tmp_path: Path) -> None:
@@ -275,7 +375,9 @@ def test_run_uses_shell_false_and_official_module_with_explicit_environment(
     assert result["overall_status"] == "READY"
     assert captured["shell"] is False
     assert captured["cwd"] == str(request.review_core_package_root)
-    assert captured["env"]["PYTHONPATH"] == str(request.review_core_package_root)
+    assert captured["env"]["PYTHONPATH"] == os.pathsep.join(
+        [str(request.review_core_package_root), str(request.shared_package_root)]
+    )
     assert captured["env"]["V3_SHARED_DATA_PACKAGE_ROOT"] == str(request.shared_package_root)
     assert captured["env"]["STORE_ROOT"] == str(request.shared_store_root)
     assert all(result[name] is False for name in SAFETY_FLAGS)
@@ -354,7 +456,9 @@ def test_cli_requires_all_explicit_paths_and_returns_zero_only_for_full_ready(
     payload = json.loads(completed.stdout)
     assert payload["status"] == "READY"
     assert payload["overall_status"] == "READY"
-    assert payload["official_result"]["observed_env"]["PYTHONPATH"] == str(package)
+    assert payload["official_result"]["observed_env"]["PYTHONPATH"] == os.pathsep.join(
+        [str(package), str(kwargs["shared_package_root"])]
+    )
     assert payload["official_result"]["observed_env"]["V3_SHARED_DATA_PACKAGE_ROOT"] == str(
         kwargs["shared_package_root"]
     )

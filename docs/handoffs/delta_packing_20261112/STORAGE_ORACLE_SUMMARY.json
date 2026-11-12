@@ -1,0 +1,46 @@
+{
+  "status": "PASS_SHADOW_ONLY",
+  "source_generation": "270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45",
+  "roles": {
+    "backtest": {
+      "after_parquet_bytes": 9266800,
+      "before_parquet_bytes": 246073298,
+      "columns": 85,
+      "exact_schema_values_nulls_dates": true,
+      "new_physical_files": 44,
+      "old_physical_files": 5541,
+      "rows": 23657,
+      "source_base_rewritten": false,
+      "symbols": 5541
+    },
+    "selector": {
+      "after_parquet_bytes": 19436946,
+      "before_parquet_bytes": 762100778,
+      "columns": 233,
+      "exact_schema_values_nulls_dates": true,
+      "new_physical_files": 44,
+      "old_physical_files": 5541,
+      "rows": 23657,
+      "source_base_rewritten": false,
+      "symbols": 5541
+    }
+  },
+  "checkpoint_and_seal_bytes": 11900722,
+  "total_output_bytes": 40604468,
+  "full_logical_reader_rows": {
+    "selector": 17200149,
+    "backtest": 17200149
+  },
+  "source_bases_rewritten": false,
+  "publishable": false,
+  "evidence": {
+    "full": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/shadow_full_atomic/SHADOW_RESULT.json",
+      "sha256": "48870a7a3a6e49c10458753c64875007905131f1208f12680e0975adbefb79cb"
+    },
+    "current_reader": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_panel_futu1112_20261111/delta_packing_validation/current_reader_r2/CURRENT_READER_CERTIFICATION.json",
+      "sha256": "6c6c6df59b3a29fe308ba71ac6b0798c98957199d3bd6ee591ac5782ff820620"
+    }
+  }
+}

@@ -466,7 +466,7 @@ def resolve_selector_panel(
     def _max_trade_date(panel: Path) -> str:
         """Read the panel's actual date coverage before accepting a pointer."""
         try:
-            import pyarrow.parquet as parquet
+            from ops.research_panel_logical import parquet
 
             parquet_file = parquet.ParquetFile(panel)
             if "trade_date" not in parquet_file.schema_arrow.names:
@@ -492,11 +492,21 @@ def resolve_selector_panel(
     def _accept(panel: Path) -> Path | None:
         if not panel.is_file():
             return None
+        from ops.research_panel_logical import is_logical
+        if is_logical(panel):
+            from infrastructure.formula_generation import read_selector_source_binding
+            # An exact logical pointer must never silently fall through to an
+            # old physical generation when its own identity is invalid.
+            try:
+                read_selector_source_binding(panel, expected_signal_date=required_date)
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                raise FileNotFoundError(f"logical selector identity rejected: {error}") from error
+            return panel
         try:
             max_date = _max_trade_date(panel)
         except FileNotFoundError:
             return None
-        if max_date < required_date:
+        if max_date != required_date:
             return None
         return panel
 
@@ -504,11 +514,12 @@ def resolve_selector_panel(
     if pointer.is_file():
         try:
             target = Path(pointer.read_bytes().decode("utf-8-sig").strip())
+        except (OSError, UnicodeDecodeError):
+            target = None
+        if target is not None:
             accepted = _accept(target)
             if accepted is not None:
                 return accepted
-        except (OSError, UnicodeDecodeError):
-            pass
     for parquet in sorted(
         root.glob("selector_ready_panels/**/*.parquet"),
         reverse=True,
@@ -517,7 +528,7 @@ def resolve_selector_panel(
         if accepted is not None:
             return accepted
     raise FileNotFoundError(
-        f"no selector panel with max date >= {required_date} under {root}"
+        f"no selector panel with max date == {required_date} under {root}"
     )
 
 

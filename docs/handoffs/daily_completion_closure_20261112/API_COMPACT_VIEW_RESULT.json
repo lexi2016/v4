@@ -1,0 +1,38 @@
+{
+  "status": "SOURCE_PREPARED_TESTED_AWAITING_AFFECTED_SCOPE_REVIEW",
+  "base_commit": "86a0253880239cf9e53dfd940735623093f89204",
+  "source_path": "infrastructure/research_workbench_quote_reference.py",
+  "before_sha256": "daf0283b5fea8a9ee160bfdde3fe0fda3318780cdc71f25f181d085233672e9a",
+  "after_sha256": "5fec82dd0874c03b0be3961239fdea17d3e3f2f8d9727a18f9cedcd096914dc5",
+  "unit_tests": {
+    "new_tests": 8,
+    "result": "8 passed in0.25s",
+    "command": "PANEL_PYTHON -B -m pytest -q tests/test_workbench_compact_close_reference.py --basetemp=.verification/compact-api-quote-pass"
+  },
+  "real_canary": {
+    "status": "PASS_ACTUAL_API_VIEW_AND_DAY_WITH_CANDIDATE_READER",
+    "scope_count": 426,
+    "quote_available": 426,
+    "raw_row_refs_present": false,
+    "source_generation": "270ba879ab1086df0c89a8e130ea6352b332cfb244ab9c125e10a29a15481e45",
+    "markets": [
+      "SZ",
+      "SH",
+      "BJ"
+    ],
+    "same_numeric_manifest": true,
+    "source_date": "2026-11-11",
+    "source_asof": null,
+    "quote_role": "SOURCE_DATE_CLOSE_REFERENCE",
+    "observation_status": "UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT"
+  },
+  "preserved_checks": "Original receipt/admission/selector/path/SHA/logical dependency guards unchanged; compact hydration adds explicit signed manifest/artifact identity checks",
+  "not_executed": [
+    "deploy",
+    "formal data writes",
+    "Main/Stage source changes",
+    "provider collection",
+    "primary selection",
+    "UI checks already passed"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "command": "python -m pytest -q tests/test_qfq_registry_summary.py --basetemp=.verification/qfq-summary-r4b-20261112",
+  "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python",
+  "result": "19 passed in 0.36s; exit0",
+  "new_scope": "8 original idempotent shape/negative tests; original11 affected summary tests passed",
+  "actual_readonly": {
+    "classifications": 5775,
+    "full_metadata_chars": 164364,
+    "summary_metadata_chars": 1555,
+    "idempotent_shape_summary_identical": true,
+    "receipt_refs": [
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_270ba879ab1086df0c89/candidate_receipt.json",
+        "sha256": "aa2352f335c2cbceeda0348cd59f72603d7cbed9e6b176e3c6767f33b970534c"
+      },
+      {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_270ba879ab1086df0c89/stage_status.json",
+        "sha256": "ae02d7e47d82c14e33c45dd133a61468db76a4ea7a0e729a1a202c17c77709fd"
+      }
+    ]
+  },
+  "live_actions": "NOT_RUN",
+  "original_environment_failures": "Preserved TEST_RESULTS_R4.json"
+}

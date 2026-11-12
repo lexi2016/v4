@@ -59,7 +59,7 @@ def __protocol_response_details_body(_v4_scope, /, error):
     }
 
 
-def __fetch_valid_target_bars_body(_v4_scope, /, api, target, target_date, previous_close, count, after_date, *, capture_response, field_violations, run_id, recorded_at):
+def __fetch_valid_target_bars_body(_v4_scope, /, api, target, target_date, previous_close, count, after_date, *, capture_response, field_violations, run_id, recorded_at, source_rows=None):
     """Fetch one symbol and validate the provider response in wire order.
 
     Sorting here would turn a provider ordering defect into apparently valid
@@ -69,7 +69,7 @@ def __fetch_valid_target_bars_body(_v4_scope, /, api, target, target_date, previ
     silently dropped.
     """
 
-    bars = api.get_security_bars(9, target.market, target.code, 0, _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)))
+    bars = source_rows if source_rows is not None else api.get_security_bars(9, target.market, target.code, 0, _v4_global(_v4_scope, 'max')(1, _v4_global(_v4_scope, 'int')(count)))
     if capture_response is not None:
         capture_response(bars)
     if not bars:
