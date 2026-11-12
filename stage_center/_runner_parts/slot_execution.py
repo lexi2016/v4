@@ -17,6 +17,44 @@ def _optional_temporal_observation_authorization(_v4_scope, /, source, plan, **k
     return authorizer(source, plan, **kwargs)
 
 
+def _rehydrate_native_a_0925_raw_source(_v4_scope, /, source, plan, config):
+    """Restore selection-only native metadata from the exact committed source.
+
+    The caller has already verified the original RawStore run/receipt and read
+    its frozen19 fields. Its explicit native contract and SHA must match the
+    independently verified native cache, and every raw value must round-trip.
+    A missing/drifted source fails this A lane closed; it never becomes a print.
+    """
+    marker = "native_snapshot_contract=V4_A_OPENING_NATIVE_SNAPSHOT_V1"
+    if marker not in source.source_evidence:
+        return source
+    try:
+        from stage_center.live_collectors import collect_a_share_auction
+        expected = {value for value in source.source_evidence if value.startswith("native_snapshot_sha256=")}
+        if (plan.stage_id != "STAGE_0925" or len(expected) != 1
+                or config.a_auction_root is None):
+            raise ValueError("native raw source identity/root missing")
+        native = collect_a_share_auction(
+            plan, codes=plan.codes_for("A_SHARE"), python_path=config.python_path,
+            shared_root=config.shared_data_root, auction_root=config.a_auction_root,
+        )  # Verified cache-only reader; no late quote or transaction query.
+        actual = {value for value in native.source_evidence if value.startswith("native_snapshot_sha256=")}
+        if (marker not in native.source_evidence or actual != expected or not native.rows
+                or any(row.get("native_quote_snapshot") is not True for row in native.rows)):
+            raise ValueError("native raw source SHA/type cannot be restored")
+        projection = _v4_global(_v4_scope, '_project_raw_rows')(
+            native.rows, trade_date=plan.trade_date, stage_id=plan.stage_id, market="A_SHARE")
+        normalize = lambda rows: tuple({key: "" if row.get(key) in (None, "") else row[key]
+            for key in _v4_global(_v4_scope, 'RAW_FIELDS')} for row in rows)
+        if normalize(projection) != normalize(source.rows):
+            raise ValueError("native source differs from verified immutable raw projection")
+        return _v4_global(_v4_scope, 'replace')(source, rows=native.rows,
+            source_evidence=(*source.source_evidence, "native_raw_rehydration=VERIFIED_NATIVE_SNAPSHOT"))
+    except Exception as error:
+        return _v4_global(_v4_scope, 'replace')(source, status="CANNOT_CONFIRM", rows=(),
+            cannot_confirm=(*source.cannot_confirm, f"NATIVE_RAW_REHYDRATION_ERROR:{type(error).__name__}:{error}"))
+
+
 def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical_backfill, backfill_run_id, historical_markets):
     execution_scope = getattr(self, "_execution_scope", None)
     if historical_backfill and backfill_run_id is None:
@@ -115,6 +153,12 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         )
     if hk_binding is not None:
         universe_bindings["HK_CONNECT"] = hk_binding
+    from stage_center.a_share_membership import resolve_membership
+    a_membership = resolve_membership(
+        candidate.codes, trade_date, candidate_sha256=candidate.current_sha256,
+    )
+    if "A_SHARE" in universe_bindings and not a_candidate_missing:
+        universe_bindings["A_SHARE"] = a_membership.bind(universe_bindings["A_SHARE"])
     candidate_sha_by_market: dict[str, str | None] = {
         market: None for market in markets
     }
@@ -136,7 +180,11 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
     exact_input_errors: dict[str, str] = {}
     sources: dict[str, SourceResult] = {}
     try:
-        self._validate_hk_auction_root_binding(stage_id)
+        if "HK_CONNECT" in markets:
+            try:
+                self._validate_hk_auction_root_binding(stage_id)
+            except _v4_global(_v4_scope, 'RunnerError') as error:
+                hk_binding_error = str(error)
         existing_state, existing = self._existing_slot(
             trade_date,
             stage_id,
@@ -194,7 +242,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     market=market,
                     hk_binding=universe_bindings.get(market),
                 )
-            except _v4_global(_v4_scope, 'RunnerError') as error:
+            except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
                 # Exact-input failures are lane-local. Preserve the
                 # reason for that market while allowing the other lane to
                 # continue through collection and publication.
@@ -271,8 +319,6 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     hk_stage_replay_root=self.config.hk_stage_replay_root,
                 )
         missing_raw_markets = _v4_global(_v4_scope, 'tuple')(market for market in markets if market not in existing_raw_verified)
-        if not _v4_global(_v4_scope, 'set')(missing_raw_markets).issubset(_v4_global(_v4_scope, 'set')(collectors)):
-            raise _v4_global(_v4_scope, 'RunnerError')(f"collectors are missing required markets {missing_raw_markets!r}")
         builders = self.config.selection_builders
         if builders is None and not self.config.injected_test_mode:
             from stage_center.live_collectors import production_selection_builders
@@ -280,14 +326,10 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         if builders is None:
             raise _v4_global(_v4_scope, 'RunnerError')("production selection builders are not installed")
         missing_builders = _v4_global(_v4_scope, 'tuple')(market for market in markets if market not in builders)
-        if missing_builders:
-            raise _v4_global(_v4_scope, 'RunnerError')(
-                f"selection builders are missing required markets {missing_builders!r}"
-            )
         # The stage calendar decides which lanes can run today. Keep the
         # required-market check strict, then discard builders for closed
         # markets so an HK-only observation does not fail on A's builder.
-        builders = {market: builders[market] for market in markets}
+        builders = {market: builders[market] for market in markets if market in builders}
         selection_membership: dict[str, set[str] | None] = {market: None for market in markets}
         if not self.config.injected_test_mode:
             if "HK_CONNECT" in markets and "HK_CONNECT" not in exact_input_errors:
@@ -308,7 +350,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                         assert self.config.hk_second_filter_root is not None
                         second_codes, _second_sha = _v4_global(_v4_scope, '_hk_second_filter_codes')(self.config.hk_second_filter_root, trade_date)
                         selection_membership["HK_CONNECT"] = hk_d1_codes & second_codes
-                except _v4_global(_v4_scope, 'RunnerError') as error:
+                except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
                     exact_input_errors["HK_CONNECT"] = _v4_global(_v4_scope, 'str')(error)
         plan = _v4_global(_v4_scope, 'build_plan')(
             self.config.candidate_acquisition_root,
@@ -323,324 +365,328 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         selection_sources: dict[str, SourceResult] = {}
         temporal_false_observation_contracts: dict[str, str] = {}
         for market in markets:
-            if market in exact_input_errors:
-                error = exact_input_errors[market]
-                result = _v4_global(_v4_scope, 'SourceResult')(
-                    market,
-                    "CANNOT_CONFIRM",
-                    cannot_confirm=(error,),
-                    requested_rows=_v4_global(_v4_scope, 'len')(plan.codes_for(market)) or None,
-                    source_evidence=(f"exact_input_error={error}",),
-                )
-            elif market in existing_raw_verified:
-                result = _v4_global(_v4_scope, '_read_verified_raw_source')(self.config.raw_root, existing_raw_verified[market])
-            else:
+            try:
+                if market in exact_input_errors:
+                    error = exact_input_errors[market]
+                    result = _v4_global(_v4_scope, 'SourceResult')(
+                        market,
+                        "CANNOT_CONFIRM",
+                        cannot_confirm=(error,),
+                        requested_rows=_v4_global(_v4_scope, 'len')(plan.codes_for(market)) or None,
+                        source_evidence=(f"exact_input_error={error}",),
+                    )
+                elif market in existing_raw_verified:
+                    result = _v4_global(_v4_scope, '_read_verified_raw_source')(self.config.raw_root, existing_raw_verified[market])
+                    if stage_id == "STAGE_0925" and market == "A_SHARE":
+                        result = _rehydrate_native_a_0925_raw_source(_v4_scope, result, plan, self.config)
+                else:
+                    try:
+                        _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_START", market=market, stage_id=stage_id, trade_date=trade_date)
+                        from stage_center.collector_capture import retained_collector_call
+                        result = retained_collector_call(collectors[market], plan, market, self.config.raw_root)
+                        _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_END", market=market, stage_id=stage_id, trade_date=trade_date,
+                                             source_observation=_v4_global(_v4_scope, '_deadline').source_observation(result))
+                        if not _v4_global(_v4_scope, 'isinstance')(result, _v4_global(_v4_scope, 'SourceResult')):
+                            raise _v4_global(_v4_scope, 'RunnerError')(f"collector {market} did not return SourceResult")
+                    except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
+                        raise
+                    except _v4_global(_v4_scope, 'Exception') as error:
+                        result = _v4_global(_v4_scope, 'SourceResult')(market, "CANNOT_CONFIRM", cannot_confirm=(f"COLLECTOR_ERROR:{_v4_global(_v4_scope, 'type')(error).__name__}",), requested_rows=_v4_global(_v4_scope, 'len')(plan.codes_for(market)) or None, source_evidence=(f"collector_error={_v4_global(_v4_scope, 'type')(error).__name__}",))
+                if market == "A_SHARE":
+                    result = a_membership.source(result)
+                if result.rows and result.requested_rows is not None and _v4_global(_v4_scope, 'len')(result.rows) < result.requested_rows and result.status == "READY":
+                    result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
+                elif result.rows and result.missing_symbols and result.status == "READY":
+                    result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
+                observation_contract: str | None = None
                 try:
+                    result, observation_contract = _optional_temporal_observation_authorization(
+                        _v4_scope,
+                        result,
+                        plan,
+                        binding=universe_bindings.get("HK_CONNECT") if market == "HK_CONNECT" else None,
+                        market=market,
+                        historical_backfill=historical_backfill,
+                    )
+                    if observation_contract is not None:
+                        temporal_false_observation_contracts[market] = observation_contract
+                    if (
+                        market == "HK_CONNECT"
+                        and result.source_id == "futu_rt_data_afterfact"
+                        and "futu_observation_contract=HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
+                        in result.source_evidence
+                    ):
+                        from stage_center.raw_store import HK_FUTU_RTDATA_OBSERVATION_CONTRACT
+
+                        temporal_false_observation_contracts[market] = (
+                            HK_FUTU_RTDATA_OBSERVATION_CONTRACT
+                        )
+                except _v4_global(_v4_scope, 'RunnerError') as error:
+                    exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
+                    result = _v4_global(_v4_scope, 'replace')(
+                        result,
+                        status="CANNOT_CONFIRM",
+                        rows=(),
+                        cannot_confirm=_v4_global(_v4_scope, 'tuple')(
+                            _v4_global(_v4_scope, 'dict').fromkeys(
+                                (*result.cannot_confirm, _v4_global(_v4_scope, 'str')(error))
+                            )
+                        ),
+                        source_evidence=(*result.source_evidence, f"exact_input_error={error}"),
+                    )
+                # Stage8 selection recovery must re-read the exact replay
+                # provider, never rebuild LIVE lanes from a current Futu
+                # snapshot.  Raw publication intentionally excludes lane
+                # metadata, so a missing selection cannot be reconstructed
+                # from the raw CSV alone.
+                if (
+                    market == "HK_CONNECT"
+                    and stage_id == "STAGE_1545_1555"
+                    and market in existing_raw_verified
+                    and market not in existing_selections
+                    and market not in exact_input_errors
+                    and not self.config.injected_test_mode
+                ):
+                    if self.config.hk_stage_replay_root is None:
+                        raise _v4_global(_v4_scope, 'RunnerError')("HK Stage8 selection recovery requires explicit replay root")
                     _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_START", market=market, stage_id=stage_id, trade_date=trade_date)
                     result = collectors[market](plan, market)
                     _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_END", market=market, stage_id=stage_id, trade_date=trade_date,
                                          source_observation=_v4_global(_v4_scope, '_deadline').source_observation(result))
-                    if not _v4_global(_v4_scope, 'isinstance')(result, _v4_global(_v4_scope, 'SourceResult')):
-                        raise _v4_global(_v4_scope, 'RunnerError')(f"collector {market} did not return SourceResult")
-                except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
-                    raise
-                except _v4_global(_v4_scope, 'Exception') as error:
-                    result = _v4_global(_v4_scope, 'SourceResult')(market, "CANNOT_CONFIRM", cannot_confirm=(f"COLLECTOR_ERROR:{_v4_global(_v4_scope, 'type')(error).__name__}",), requested_rows=_v4_global(_v4_scope, 'len')(plan.codes_for(market)) or None, source_evidence=(f"collector_error={_v4_global(_v4_scope, 'type')(error).__name__}",))
-            if result.rows and result.requested_rows is not None and _v4_global(_v4_scope, 'len')(result.rows) < result.requested_rows and result.status == "READY":
-                result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
-            elif result.rows and result.missing_symbols and result.status == "READY":
-                result = _v4_global(_v4_scope, 'replace')(result, status="PARTIAL_WITH_ROWS")
-            observation_contract: str | None = None
-            try:
-                result, observation_contract = _optional_temporal_observation_authorization(
-                    _v4_scope,
-                    result,
-                    plan,
-                    binding=universe_bindings.get("HK_CONNECT") if market == "HK_CONNECT" else None,
-                    market=market,
-                    historical_backfill=historical_backfill,
-                )
-                if observation_contract is not None:
-                    temporal_false_observation_contracts[market] = observation_contract
+                # Selection-only recovery must re-run the same read-only V3
+                # active trigger when raw is already complete.  Raw bars are
+                # never recollected or rewritten, and the active probe's
+                # canonical SHA must match the evidence bound to that raw run.
                 if (
                     market == "HK_CONNECT"
-                    and result.source_id == "futu_rt_data_afterfact"
-                    and "futu_observation_contract=HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
-                    in result.source_evidence
+                    and stage_id != "STAGE_1545_1555"
+                    and stage_id != "STAGE_0925"
+                    and market in existing_raw_verified
+                    and market not in existing_selections
+                    and market not in exact_input_errors
+                    and not self.config.injected_test_mode
                 ):
-                    from stage_center.raw_store import HK_FUTU_RTDATA_OBSERVATION_CONTRACT
-
-                    temporal_false_observation_contracts[market] = (
-                        HK_FUTU_RTDATA_OBSERVATION_CONTRACT
+                    previous_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_sha256")
+                    previous_codes_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_codes_sha256")
+                    previous_pool_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_pool_artifact_sha256")
+                    hk_binding = universe_bindings.get("HK_CONNECT")
+                    expected_pool_sha = getattr(hk_binding, "sha256", None)
+                    expected_cutoff = _v4_global(_v4_scope, 'next')(
+                        stage.cutoff for stage in _v4_global(_v4_scope, 'EIGHT_STAGES') if stage.stage_id == stage_id
                     )
-            except _v4_global(_v4_scope, 'RunnerError') as error:
-                exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
-                result = _v4_global(_v4_scope, 'replace')(
-                    result,
-                    status="CANNOT_CONFIRM",
-                    rows=(),
-                    cannot_confirm=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (*result.cannot_confirm, _v4_global(_v4_scope, 'str')(error))
+                    previous_status = _v4_global(_v4_scope, '_evidence_value')(
+                        result.source_evidence, "active_snapshot_status"
+                    )
+                    previous_trade_date = _v4_global(_v4_scope, '_evidence_value')(
+                        result.source_evidence, "active_snapshot_trade_date"
+                    )
+                    previous_cutoff = _v4_global(_v4_scope, '_evidence_value')(
+                        result.source_evidence, "active_snapshot_cutoff"
+                    )
+                    previous_temporal = _v4_global(_v4_scope, '_evidence_value')(
+                        result.source_evidence, "active_snapshot_temporal_cutoff_safe"
+                    )
+                    reuse_degraded_observation = (
+                        result.status == "PARTIAL_WITH_ROWS"
+                        and _v4_global(_v4_scope, 'bool')(result.rows)
+                        and previous_temporal == "false"
+                        and _v4_global(_v4_scope, '_evidence_value')(
+                            result.source_evidence,
+                            "active_snapshot_degraded_to_pytdx_observation",
                         )
-                    ),
-                    source_evidence=(*result.source_evidence, f"exact_input_error={error}"),
-                )
-            # Stage8 selection recovery must re-read the exact replay
-            # provider, never rebuild LIVE lanes from a current Futu
-            # snapshot.  Raw publication intentionally excludes lane
-            # metadata, so a missing selection cannot be reconstructed
-            # from the raw CSV alone.
-            if (
-                market == "HK_CONNECT"
-                and stage_id == "STAGE_1545_1555"
-                and market in existing_raw_verified
-                and market not in existing_selections
-                and market not in exact_input_errors
-                and not self.config.injected_test_mode
-            ):
-                if self.config.hk_stage_replay_root is None:
-                    raise _v4_global(_v4_scope, 'RunnerError')("HK Stage8 selection recovery requires explicit replay root")
-                _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_START", market=market, stage_id=stage_id, trade_date=trade_date)
-                result = collectors[market](plan, market)
-                _v4_global(_v4_scope, '_deadline').checkpoint("COLLECTOR_END", market=market, stage_id=stage_id, trade_date=trade_date,
-                                     source_observation=_v4_global(_v4_scope, '_deadline').source_observation(result))
-            # Selection-only recovery must re-run the same read-only V3
-            # active trigger when raw is already complete.  Raw bars are
-            # never recollected or rewritten, and the active probe's
-            # canonical SHA must match the evidence bound to that raw run.
-            if (
-                market == "HK_CONNECT"
-                and stage_id != "STAGE_1545_1555"
-                and stage_id != "STAGE_0925"
-                and market in existing_raw_verified
-                and market not in existing_selections
-                and market not in exact_input_errors
-                and not self.config.injected_test_mode
-            ):
-                previous_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_sha256")
-                previous_codes_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_codes_sha256")
-                previous_pool_sha = _v4_global(_v4_scope, '_evidence_value')(result.source_evidence, "active_snapshot_pool_artifact_sha256")
-                hk_binding = universe_bindings.get("HK_CONNECT")
-                expected_pool_sha = getattr(hk_binding, "sha256", None)
-                expected_cutoff = _v4_global(_v4_scope, 'next')(
-                    stage.cutoff for stage in _v4_global(_v4_scope, 'EIGHT_STAGES') if stage.stage_id == stage_id
-                )
-                previous_status = _v4_global(_v4_scope, '_evidence_value')(
-                    result.source_evidence, "active_snapshot_status"
-                )
-                previous_trade_date = _v4_global(_v4_scope, '_evidence_value')(
-                    result.source_evidence, "active_snapshot_trade_date"
-                )
-                previous_cutoff = _v4_global(_v4_scope, '_evidence_value')(
-                    result.source_evidence, "active_snapshot_cutoff"
-                )
-                previous_temporal = _v4_global(_v4_scope, '_evidence_value')(
-                    result.source_evidence, "active_snapshot_temporal_cutoff_safe"
-                )
-                reuse_degraded_observation = (
-                    result.status == "PARTIAL_WITH_ROWS"
-                    and _v4_global(_v4_scope, 'bool')(result.rows)
-                    and previous_temporal == "false"
-                    and _v4_global(_v4_scope, '_evidence_value')(
-                        result.source_evidence,
-                        "active_snapshot_degraded_to_pytdx_observation",
+                        == "true"
                     )
-                    == "true"
-                )
-                recovery_error: str | None = None
-                if not _v4_global(_v4_scope, 'all')(
-                    (
-                        previous_sha,
-                        previous_codes_sha,
-                        previous_pool_sha,
-                        expected_pool_sha,
-                        previous_status,
-                        previous_trade_date,
-                        previous_cutoff,
-                    )
-                ):
-                    recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_MISSING"
-                elif not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", previous_sha) or not _v4_global(_v4_scope, 're').fullmatch(
-                    r"[0-9a-f]{64}", previous_codes_sha
-                ) or not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", previous_pool_sha) or not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", expected_pool_sha):
-                    recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_INVALID"
-                elif previous_pool_sha != expected_pool_sha:
-                    recovery_error = "HK_ACTIVE_SNAPSHOT_POOL_ARTIFACT_SHA_MISMATCH"
-                elif (
-                    previous_status != "FUTU_HKCONNECT_FULL_SCAN"
-                    or previous_trade_date != trade_date
-                    or previous_cutoff != expected_cutoff
-                ):
-                    recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_INVALID"
-                elif reuse_degraded_observation:
-                    # The raw run is already exact-date/exact-stage and
-                    # carries the historical PyTDX observation marker.  In
-                    # this narrow mode the old runner deliberately reused
-                    # those immutable rows instead of asking for a new
-                    # current snapshot.  The builder will keep this lane
-                    # PARTIAL/WATCH_ONLY and retain the evidence markers.
-                    exact_evidence_by_market[market] = _v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *exact_evidence_by_market.get(market, ()),
-                                "hk_active_selection_recovery=DEGRADED_OBSERVATION_REUSE",
+                    recovery_error: str | None = None
+                    if not _v4_global(_v4_scope, 'all')(
+                        (
+                            previous_sha,
+                            previous_codes_sha,
+                            previous_pool_sha,
+                            expected_pool_sha,
+                            previous_status,
+                            previous_trade_date,
+                            previous_cutoff,
+                        )
+                    ):
+                        recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_MISSING"
+                    elif not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", previous_sha) or not _v4_global(_v4_scope, 're').fullmatch(
+                        r"[0-9a-f]{64}", previous_codes_sha
+                    ) or not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", previous_pool_sha) or not _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", expected_pool_sha):
+                        recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_INVALID"
+                    elif previous_pool_sha != expected_pool_sha:
+                        recovery_error = "HK_ACTIVE_SNAPSHOT_POOL_ARTIFACT_SHA_MISMATCH"
+                    elif (
+                        previous_status != "FUTU_HKCONNECT_FULL_SCAN"
+                        or previous_trade_date != trade_date
+                        or previous_cutoff != expected_cutoff
+                    ):
+                        recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_INVALID"
+                    elif reuse_degraded_observation:
+                        # The raw run is already exact-date/exact-stage and
+                        # carries the historical PyTDX observation marker.  In
+                        # this narrow mode the old runner deliberately reused
+                        # those immutable rows instead of asking for a new
+                        # current snapshot.  The builder will keep this lane
+                        # PARTIAL/WATCH_ONLY and retain the evidence markers.
+                        exact_evidence_by_market[market] = _v4_global(_v4_scope, 'tuple')(
+                            _v4_global(_v4_scope, 'dict').fromkeys(
+                                (
+                                    *exact_evidence_by_market.get(market, ()),
+                                    "hk_active_selection_recovery=DEGRADED_OBSERVATION_REUSE",
+                                )
                             )
                         )
-                    )
-                elif previous_temporal != "true":
-                    # An unsafe or unproven historical cutoff cannot be
-                    # repaired by reading a new active snapshot. Keep the
-                    # HK lane unconfirmed instead of relabelling current
-                    # observations as the completed historical stage.
-                    recovery_error = "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
-                else:
-                    try:
-                        if not plan.codes_for("HK_CONNECT") or self.config.shared_data_root is None or self.config.python_path is None:
-                            raise _v4_global(_v4_scope, 'RunnerError')("HK active-lane recovery requires explicit fixed D1 bridge roots")
-                        from stage_center.live_collectors import refresh_hk_active_lanes
-                        recovery_optional_kwargs = _signature_supported_kwargs(
-                            _v4_scope,
-                            refresh_hk_active_lanes,
-                            snapshot_root=self.config.raw_root,
-                            pool_artifact_sha256=expected_pool_sha,
+                    elif previous_temporal != "true":
+                        # An unsafe or unproven historical cutoff cannot be
+                        # repaired by reading a new active snapshot. Keep the
+                        # HK lane unconfirmed instead of relabelling current
+                        # observations as the completed historical stage.
+                        recovery_error = "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
+                    else:
+                        try:
+                            if not plan.codes_for("HK_CONNECT") or self.config.shared_data_root is None or self.config.python_path is None:
+                                raise _v4_global(_v4_scope, 'RunnerError')("HK active-lane recovery requires explicit fixed D1 bridge roots")
+                            from stage_center.live_collectors import refresh_hk_active_lanes
+                            recovery_optional_kwargs = _signature_supported_kwargs(
+                                _v4_scope,
+                                refresh_hk_active_lanes,
+                                snapshot_root=self.config.raw_root,
+                                pool_artifact_sha256=expected_pool_sha,
+                            )
+                            refreshed = refresh_hk_active_lanes(
+                                result,
+                                codes=plan.codes_for("HK_CONNECT"),
+                                python_path=self.config.python_path,
+                                shared_root=self.config.shared_data_root,
+                                **recovery_optional_kwargs,
+                                trade_date=trade_date,
+                                stage_id=stage_id,
+                                cutoff_at=expected_cutoff,
+                            )
+                            current_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_sha256")
+                            current_codes_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_codes_sha256")
+                            current_pool_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_pool_artifact_sha256")
+                            if not previous_sha or previous_sha != current_sha or not previous_codes_sha or previous_codes_sha != current_codes_sha or not previous_pool_sha or previous_pool_sha != current_pool_sha or current_pool_sha != expected_pool_sha:
+                                recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_CHANGED"
+                            elif "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in refreshed.cannot_confirm:
+                                recovery_error = "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
+                            elif "HK_ACTIVE_GAINER_SNAPSHOT_UNAVAILABLE" in refreshed.cannot_confirm:
+                                recovery_error = "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
+                            else:
+                                result = refreshed
+                        except _v4_global(_v4_scope, 'Exception') as error:
+                            recovery_error = f"HK_ACTIVE_SELECTION_RECOVERY_FAILED:{_v4_global(_v4_scope, 'type')(error).__name__}"
+                    if recovery_error:
+                        exact_input_errors[market] = recovery_error
+                        exact_evidence_by_market[market] = _v4_global(_v4_scope, 'tuple')(
+                            _v4_global(_v4_scope, 'dict').fromkeys(
+                                (
+                                    *exact_evidence_by_market.get(market, ()),
+                                    f"hk_active_selection_recovery_error={recovery_error}",
+                                )
+                            )
                         )
-                        refreshed = refresh_hk_active_lanes(
-                            result,
-                            codes=plan.codes_for("HK_CONNECT"),
-                            python_path=self.config.python_path,
-                            shared_root=self.config.shared_data_root,
-                            **recovery_optional_kwargs,
+                if observation_contract is not None:
+                    # RawStore binds PARTIAL_WITH_ROWS status reasons into the
+                    # raw manifest's source_evidence. Mirror that immutable
+                    # evidence on the selection input so its exact raw/source
+                    # parity check remains true after the readback boundary.
+                    result = _v4_global(_v4_scope, 'replace')(
+                        result,
+                        source_evidence=_v4_global(_v4_scope, 'tuple')(
+                            _v4_global(_v4_scope, 'dict').fromkeys(
+                                (*result.source_evidence, *result.cannot_confirm)
+                            )
+                        ),
+                    )
+                sources[market] = _v4_global(_v4_scope, '_with_candidate_evidence')(
+                    result,
+                    candidate,
+                    (
+                        *exact_evidence_by_market.get(market, ()),
+                        *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
+                        f"due_status={decision.status}",
+                    ),
+                    candidate_sha=candidate_sha_by_market.get(market),
+                    candidate_run_id=candidate_run_id_by_market.get(market),
+                )
+                if market == "A_SHARE" and not self.config.injected_test_mode and market not in exact_input_errors:
+                    selected_source = sources[market]
+                    if self.config.v3_formal_root is not None:
+                        try:
+                            selected_source = _v4_global(_v4_scope, '_attach_a_authority')(selected_source, formal_root=self.config.v3_formal_root, trade_date=trade_date)
+                        except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                            selected_source = _v4_global(_v4_scope, 'replace')(selected_source, source_evidence=(*selected_source.source_evidence, f"a_formal_overlay_unavailable={error}"))
+                    if self.config.a_research_panel_receipt_root is not None:
+                        try:
+                            selected_source = _v4_global(_v4_scope, '_attach_a_name_authority')(
+                                selected_source, candidate_root=self.config.candidate_acquisition_root,
+                                research_panel_receipt_root=self.config.a_research_panel_receipt_root, trade_date=trade_date)
+                        except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                            selected_source = _v4_global(_v4_scope, 'replace')(selected_source, source_evidence=(*selected_source.source_evidence, f"a_name_overlay_unavailable={error}"))
+                    selection_sources[market] = selected_source
+                if (
+                    market == "HK_CONNECT"
+                    and not self.config.injected_test_mode
+                    and self.config.hk_d1_root is not None
+                    and market not in exact_input_errors
+                ):
+                    try:
+                        selection_sources[market] = _v4_global(_v4_scope, '_attach_hk_authority')(
+                            sources[market],
+                            d1_root=self.config.hk_d1_root,
+                            second_root=(
+                                self.config.hk_second_filter_root
+                                if stage_id == "STAGE_0925" or stage_id in _v4_global(_v4_scope, 'HK_CONTINUATION_STAGES')
+                                else None
+                            ),
                             trade_date=trade_date,
                             stage_id=stage_id,
-                            cutoff_at=expected_cutoff,
+                            preselection_source_root=self.config.preselection_source_root,
+                            hk_binding=universe_bindings.get("HK_CONNECT"),
                         )
-                        current_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_sha256")
-                        current_codes_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_codes_sha256")
-                        current_pool_sha = _v4_global(_v4_scope, '_evidence_value')(refreshed.source_evidence, "active_snapshot_pool_artifact_sha256")
-                        if not previous_sha or previous_sha != current_sha or not previous_codes_sha or previous_codes_sha != current_codes_sha or not previous_pool_sha or previous_pool_sha != current_pool_sha or current_pool_sha != expected_pool_sha:
-                            recovery_error = "HK_ACTIVE_SNAPSHOT_EVIDENCE_CHANGED"
-                        elif "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in refreshed.cannot_confirm:
-                            recovery_error = "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"
-                        elif "HK_ACTIVE_GAINER_SNAPSHOT_UNAVAILABLE" in refreshed.cannot_confirm:
-                            recovery_error = "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
-                        else:
-                            result = refreshed
-                    except _v4_global(_v4_scope, 'Exception') as error:
-                        recovery_error = f"HK_ACTIVE_SELECTION_RECOVERY_FAILED:{_v4_global(_v4_scope, 'type')(error).__name__}"
-                if recovery_error:
-                    exact_input_errors[market] = recovery_error
-                    exact_evidence_by_market[market] = _v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (
-                                *exact_evidence_by_market.get(market, ()),
-                                f"hk_active_selection_recovery_error={recovery_error}",
-                            )
-                        )
-                    )
-            if observation_contract is not None:
-                # RawStore binds PARTIAL_WITH_ROWS status reasons into the
-                # raw manifest's source_evidence. Mirror that immutable
-                # evidence on the selection input so its exact raw/source
-                # parity check remains true after the readback boundary.
-                result = _v4_global(_v4_scope, 'replace')(
-                    result,
-                    source_evidence=_v4_global(_v4_scope, 'tuple')(
-                        _v4_global(_v4_scope, 'dict').fromkeys(
-                            (*result.source_evidence, *result.cannot_confirm)
-                        )
-                    ),
-                )
-            sources[market] = _v4_global(_v4_scope, '_with_candidate_evidence')(
-                result,
-                candidate,
-                (
-                    *exact_evidence_by_market.get(market, ()),
-                    *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
-                    f"due_status={decision.status}",
-                ),
-                candidate_sha=candidate_sha_by_market.get(market),
-                candidate_run_id=candidate_run_id_by_market.get(market),
-            )
-            if market == "A_SHARE" and not self.config.injected_test_mode and market not in exact_input_errors:
-                selected_source = sources[market]
-                if self.config.v3_formal_root is not None:
-                    try:
-                        selected_source = _v4_global(_v4_scope, '_attach_a_authority')(selected_source, formal_root=self.config.v3_formal_root, trade_date=trade_date)
-                    except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
-                        selected_source = _v4_global(_v4_scope, 'replace')(selected_source, source_evidence=(*selected_source.source_evidence, f"a_formal_overlay_unavailable={error}"))
-                if self.config.a_research_panel_receipt_root is not None:
-                    try:
-                        selected_source = _v4_global(_v4_scope, '_attach_a_name_authority')(
-                            selected_source, candidate_root=self.config.candidate_acquisition_root,
-                            research_panel_receipt_root=self.config.a_research_panel_receipt_root, trade_date=trade_date)
-                    except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
-                        selected_source = _v4_global(_v4_scope, 'replace')(selected_source, source_evidence=(*selected_source.source_evidence, f"a_name_overlay_unavailable={error}"))
-                selection_sources[market] = selected_source
-            if (
-                market == "HK_CONNECT"
-                and not self.config.injected_test_mode
-                and self.config.hk_d1_root is not None
-                and market not in exact_input_errors
-            ):
-                try:
-                    authorized_selection_source = _v4_global(_v4_scope, '_attach_hk_authority')(
+                    except _v4_global(_v4_scope, 'RunnerError') as error:
+                        exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
+                if market in exact_input_errors and market not in selection_sources:
+                    sources[market] = _v4_global(_v4_scope, 'replace')(
                         sources[market],
-                        d1_root=self.config.hk_d1_root,
-                        second_root=(
-                            self.config.hk_second_filter_root
-                            if stage_id == "STAGE_0925" or stage_id in _v4_global(_v4_scope, 'HK_CONTINUATION_STAGES')
-                            else None
-                        ),
-                        trade_date=trade_date,
-                        stage_id=stage_id,
-                        preselection_source_root=self.config.preselection_source_root,
-                        hk_binding=universe_bindings.get("HK_CONNECT"),
+                        status="CANNOT_CONFIRM",
+                        rows=(),
+                        cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*sources[market].cannot_confirm, exact_input_errors[market]))),
                     )
-                    if (
-                        observation_contract is not None
-                        and authorized_selection_source.source_id == "futu_cached_minute_capture"
-                    ):
-                        # The exact D1 artifact can contain prior-day static
-                        # candidate lanes. The after-fact selection contract
-                        # forbids carrying those labels forward; keep D1
-                        # metadata but score the captured rows without them.
-                        authorized_selection_source = _v4_global(_v4_scope, 'replace')(
-                            authorized_selection_source,
-                            rows=_v4_global(_v4_scope, 'tuple')(
-                                {**row, "candidate_lanes": []}
-                                for row in authorized_selection_source.rows
-                            ),
-                            source_evidence=_v4_global(_v4_scope, 'tuple')(
-                                _v4_global(_v4_scope, 'dict').fromkeys(
-                                    (*authorized_selection_source.source_evidence,
-                                     "historical_d1_candidate_lanes_suppressed=true")
-                                )
-                            ),
-                        )
-                    selection_sources[market] = authorized_selection_source
-                except _v4_global(_v4_scope, 'RunnerError') as error:
-                    exact_input_errors[market] = _v4_global(_v4_scope, 'str')(error)
-            if market in exact_input_errors and market not in selection_sources:
-                sources[market] = _v4_global(_v4_scope, 'replace')(
-                    sources[market],
-                    status="CANNOT_CONFIRM",
-                    rows=(),
-                    cannot_confirm=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*sources[market].cannot_confirm, exact_input_errors[market]))),
+                selection_sources[market] = _v4_global(_v4_scope, '_selection_source')(
+                    selection_sources.get(market, sources[market]),
+                    market=market,
+                    membership=selection_membership.get(market),
                 )
-            selection_sources[market] = _v4_global(_v4_scope, '_selection_source')(
-                selection_sources.get(market, sources[market]),
-                market=market,
-                membership=selection_membership.get(market),
-            )
+            except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
+                raise
+            except Exception as error:
+                reason = f"MARKET_PREPARATION_ERROR:{type(error).__name__}:{error}"
+                exact_input_errors[market] = reason
+                failed_source = _v4_global(_v4_scope, 'SourceResult')(
+                    market, "CANNOT_CONFIRM", cannot_confirm=(reason,),
+                    requested_rows=_v4_global(_v4_scope, 'len')(plan.codes_for(market)) or None,
+                    source_evidence=(f"market_preparation_error={reason}",),
+                )
+                sources[market] = failed_source
+                selection_sources[market] = failed_source
         # Re-read the explicit pointer before any publication: a changed
         # candidate cannot produce a selection artifact for the old input.
-        if not a_candidate_missing:
-            _v4_global(_v4_scope, 'read_candidate_input')(
-                self.config.candidate_acquisition_root,
-                trade_date,
-                expected_current_sha256=candidate.current_sha256,
-            )
+        if not a_candidate_missing and "A_SHARE" in markets:
+            try:
+                _v4_global(_v4_scope, 'read_candidate_input')(
+                    self.config.candidate_acquisition_root,
+                    trade_date,
+                    expected_current_sha256=candidate.current_sha256,
+                )
+            except (_v4_global(_v4_scope, 'CandidateInputError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
+                exact_input_errors["A_SHARE"] = str(error)
+                sources["A_SHARE"] = _v4_global(_v4_scope, 'replace')(
+                    sources["A_SHARE"], status="CANNOT_CONFIRM", rows=(),
+                    cannot_confirm=(*sources["A_SHARE"].cannot_confirm, str(error)),
+                )
+                selection_sources["A_SHARE"] = sources["A_SHARE"]
         if (
             not self.config.injected_test_mode
             and "HK_CONNECT" in universe_bindings
@@ -672,6 +718,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         # store.  A sequential publish must not leave A_SHARE latest
         # behind when HK_CONNECT later violates the 19-field contract.
         projected_rows: dict[str, tuple[dict[str, Any], ...]] = {}
+        raw_lane_errors: dict[str, str] = {}
         for market in markets:
             source = sources[market]
             if source.status == "CANNOT_CONFIRM" and not source.rows:
@@ -687,44 +734,54 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 _v4_scope, project_raw_rows,
                 research_observation_contract=projection_contract,
             )
-            projected_rows[market] = project_raw_rows(
-                source.rows,
-                trade_date=trade_date,
-                stage_id=stage_id,
-                market=market,
-                **projection_optional_kwargs,
-            )
+            try:
+                projected_rows[market] = project_raw_rows(
+                    source.rows,
+                    trade_date=trade_date,
+                    stage_id=stage_id,
+                    market=market,
+                    **projection_optional_kwargs,
+                )
+            except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
+                raise
+            except Exception as error:
+                raw_lane_errors[market] = f"RAW_PROJECTION_ERROR:{type(error).__name__}:{error}"
         for market in markets:
             source = sources[market]
             # A zero-row CANNOT_CONFIRM is a receipt-only outcome.  It
             # must never create a raw latest pointer or selection latest
             # entry that looks like a materialized stage.
-            if source.status == "CANNOT_CONFIRM" and not source.rows:
+            if (source.status == "CANNOT_CONFIRM" and not source.rows) or market in raw_lane_errors:
                 continue
             window = stage_spec.hk_window if stage_id == "STAGE_0925" and market == "HK_CONNECT" else stage_spec.window
             cutoff_at = "09:20:05" if stage_id == "STAGE_0925" and market == "HK_CONNECT" else stage_spec.cutoff
             if market in existing_raw_verified:
                 raw_markets[market] = _v4_global(_v4_scope, 'dict')(existing_raw_verified[market])
                 continue
-            _v4_global(_v4_scope, '_deadline').begin_write("RAW_PUBLISH", market=market, stage_id=stage_id)
-            raw_markets[market] = _v4_global(_v4_scope, 'publish_raw_artifact')(
-                self.config.raw_root,
-                trade_date=trade_date,
-                stage_id=stage_id,
-                market=market,
-                source_id=source.source_id,
-                source_status=source.status,
-                rows=projected_rows[market],
-                cannot_confirm=source.cannot_confirm,
-                source_evidence=source.source_evidence,
-                requested_rows=source.requested_rows,
-                missing_symbols=source.missing_symbols,
-                window=window,
-                cutoff_at=cutoff_at,
-                research_observation_contract=temporal_false_observation_contracts.get(market),
-            )
-            write_performed = True
-            _v4_global(_v4_scope, '_deadline').end_write("RAW_PUBLISH", market=market, artifact_sha256=raw_markets[market].get("artifact_sha256"))
+            try:
+                _v4_global(_v4_scope, '_deadline').begin_write("RAW_PUBLISH", market=market, stage_id=stage_id)
+                raw_markets[market] = _v4_global(_v4_scope, 'publish_raw_artifact')(
+                    self.config.raw_root,
+                    trade_date=trade_date,
+                    stage_id=stage_id,
+                    market=market,
+                    source_id=source.source_id,
+                    source_status=source.status,
+                    rows=projected_rows[market],
+                    cannot_confirm=source.cannot_confirm,
+                    source_evidence=source.source_evidence,
+                    requested_rows=source.requested_rows,
+                    missing_symbols=source.missing_symbols,
+                    window=window,
+                    cutoff_at=cutoff_at,
+                    research_observation_contract=temporal_false_observation_contracts.get(market),
+                )
+                write_performed = True
+                _v4_global(_v4_scope, '_deadline').end_write("RAW_PUBLISH", market=market, artifact_sha256=raw_markets[market].get("artifact_sha256"))
+            except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
+                raise
+            except Exception as error:
+                raw_lane_errors[market] = f"RAW_PUBLISH_ERROR:{type(error).__name__}:{error}"
         raw_bundle: dict[str, Any] = {"markets": raw_markets}
         if not raw_markets:
             raise _v4_global(_v4_scope, 'RunnerError')("all market collectors returned zero-row CANNOT_CONFIRM")
@@ -759,47 +816,12 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 and temporal_false_observation_contracts.get("HK_CONNECT")
                 == _v4_global(_v4_scope, 'HK_0930_TDX_RESEARCH_CONTRACT')
             )
-            from stage_center.raw_store import (
-                HK_MORNING_CACHED_AFTERFACT_SOURCE_ID,
-                HISTORICAL_OBSERVATION_CONTRACT_PREFIX,
-            )
-            exact_hk_only_0925_recovery = (
-                historical_backfill is True
-                and trade_date == "20261015"
-                and stage_id == "STAGE_0925"
-                and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
-                and tuple(markets) == ("HK_CONNECT",)
-                and tuple(raw_markets) == ("HK_CONNECT",)
-                and sources["HK_CONNECT"].source_id == "hk_auction_second_filter"
-                and "second_filter_csv_sha256=c3daa0dc36c9e4319cd87c4639ec0fb37cf3c4ccb7d44f9e3c2ea99616fdf31f"
-                in sources["HK_CONNECT"].source_evidence
-            )
-            exact_hk_only_cached_morning_backfill = (
-                historical_backfill is True
-                and trade_date == "20261015"
-                and stage_id in {
-                    "STAGE_0930_0935",
-                    "STAGE_0935_0940",
-                    "STAGE_0940_0945",
-                }
-                and tuple(stage_spec.markets) == ("A_SHARE", "HK_CONNECT")
-                and tuple(markets) == ("HK_CONNECT",)
-                and tuple(raw_markets) == ("HK_CONNECT",)
-                and sources["HK_CONNECT"].source_id == HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
-                and temporal_false_observation_contracts.get("HK_CONNECT", "").startswith(
-                    HISTORICAL_OBSERVATION_CONTRACT_PREFIX
-                )
-            )
-            if (
-                exact_hk_only_research_backfill
-                or exact_hk_only_0925_recovery
-                or exact_hk_only_cached_morning_backfill
-            ):
+            if exact_hk_only_research_backfill:
                 # The raw bundle contract requires every StageSpec market.
-                # These explicitly HK-only historical observations must not
-                # fabricate an A_SHARE artifact to satisfy that contract. The
-                # verified single-market raw artifact remains the selection
-                # input and is named as such in both receipts.
+                # This one explicitly HK-only historical observation must
+                # not fabricate an A_SHARE artifact to satisfy that contract.
+                # The verified single-market raw artifact remains the input
+                # to selection and is named as such in both receipts.
                 single_market_research_bundle_evidence = (
                     "historical_raw_bundle=OMITTED_HK_ONLY_RESEARCH_BACKFILL"
                 )
@@ -829,48 +851,64 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                     "status": "CANNOT_CONFIRM",
                     "selected_rows": 0,
                     "source_status": sources[market].status,
-                    "cannot_confirm": _v4_global(_v4_scope, 'list')(sources[market].cannot_confirm),
+                    "cannot_confirm": ([raw_lane_errors[market]] if market in raw_lane_errors else _v4_global(_v4_scope, 'list')(sources[market].cannot_confirm)),
                     "write_performed": False,
                 }
                 continue
             if market in existing_selections:
                 published[market] = _v4_global(_v4_scope, 'dict')(existing_selections[market])
                 continue
-            builder_raw = _v4_global(_v4_scope, 'dict')(raw_bundle["markets"][market])
-            # These roots have distinct owners and must remain separate in
-            # the exact-date selection context.
-            _v4_global(_v4_scope, '_attach_stage_research_roots')(
-                builder_raw,
-                self.config,
-                stage_id,
-                market=market,
-            )
-            envelope = _v4_global(_v4_scope, 'dict')(builders[market](selection_sources[market], plan, builder_raw))
-            envelope.setdefault("source_evidence", [])
-            envelope["source_evidence"] = _v4_global(_v4_scope, 'list')(
-                _v4_global(_v4_scope, 'dict').fromkeys(
-                    (
-                        *envelope["source_evidence"],
-                        *(
-                            (
-                                f"candidate_current_sha256={candidate_sha_by_market[market]}",
-                                f"candidate_run_id={candidate_run_id_by_market[market]}",
-                            )
-                            if candidate_sha_by_market.get(market) is not None
-                            else ()
-                        ),
-                        *exact_evidence_by_market.get(market, ()),
-                        *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
-                        *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ()),
-                        f"due_status={decision.status}",
+            try:
+                builder_raw = _v4_global(_v4_scope, 'dict')(raw_bundle["markets"][market])
+                if market == "A_SHARE":
+                    builder_raw = a_membership.builder_raw(builder_raw, selection_sources[market])
+                # These roots have distinct owners and must remain separate in
+                # the exact-date selection context.
+                _v4_global(_v4_scope, '_attach_stage_research_roots')(
+                    builder_raw,
+                    self.config,
+                    stage_id,
+                    market=market,
+                )
+                envelope = _v4_global(_v4_scope, 'dict')(builders[market](selection_sources[market], plan, builder_raw))
+                envelope.setdefault("source_evidence", [])
+                envelope["source_evidence"] = _v4_global(_v4_scope, 'list')(
+                    _v4_global(_v4_scope, 'dict').fromkeys(
+                        (
+                            *envelope["source_evidence"],
+                            *(
+                                (
+                                    f"candidate_current_sha256={candidate_sha_by_market[market]}",
+                                    f"candidate_run_id={candidate_run_id_by_market[market]}",
+                                )
+                                if candidate_sha_by_market.get(market) is not None
+                                else ()
+                            ),
+                            *exact_evidence_by_market.get(market, ()),
+                            *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
+                            *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ()),
+                            f"due_status={decision.status}",
+                        )
                     )
                 )
-            )
-            envelope["raw_artifact_sha256"] = raw_bundle["markets"][market]["artifact_sha256"]
-            _v4_global(_v4_scope, '_deadline').begin_write("SELECTION_PUBLISH", market=market, stage_id=stage_id)
-            published[market] = selection_store.publish(envelope, market=market)
-            _v4_global(_v4_scope, '_deadline').end_write("SELECTION_PUBLISH", market=market, run_id=published[market].get("run_id"))
-            write_performed = True
+                envelope["raw_artifact_sha256"] = raw_bundle["markets"][market]["artifact_sha256"]
+                _v4_global(_v4_scope, '_deadline').begin_write("SELECTION_PUBLISH", market=market, stage_id=stage_id)
+                published[market] = selection_store.publish(envelope, market=market)
+                _v4_global(_v4_scope, '_deadline').end_write("SELECTION_PUBLISH", market=market, run_id=published[market].get("run_id"))
+                write_performed = True
+            except _v4_global(_v4_scope, '_deadline').DeadlineExceeded:
+                raise
+            except Exception as error:
+                # A failed builder or publish is a lane-local receipt; never
+                # invent a selection artifact for a failed market.
+                reason = f"SELECTION_ERROR:{type(error).__name__}:{error}"
+                published[market] = {
+                    "market": market, "status": "CANNOT_CONFIRM",
+                    "selection_status": "CANNOT_CONFIRM", "selected_rows": 0,
+                    "source_status": sources[market].status,
+                    "raw_artifact_sha256": raw_markets[market].get("artifact_sha256"),
+                    "cannot_confirm": [reason], "write_performed": False,
+                }
         statuses = {_v4_global(_v4_scope, 'str')(item.get("selection_status")) for item in published.values()}
         status = "READY" if statuses == {"READY"} and _v4_global(_v4_scope, 'len')(published) == _v4_global(_v4_scope, 'len')(markets) else "READY_EMPTY" if statuses == {"READY_EMPTY"} and _v4_global(_v4_scope, 'len')(published) == _v4_global(_v4_scope, 'len')(markets) else "PARTIAL_WITH_ROWS" if statuses and ("PARTIAL_WITH_ROWS" in statuses or _v4_global(_v4_scope, 'len')(published) < _v4_global(_v4_scope, 'len')(markets) or "READY" in statuses) else "CANNOT_CONFIRM"
         source_evidence = [f"candidate_current_sha256={candidate.current_sha256}", f"candidate_run_id={candidate.run_id}", *exact_evidence]
