@@ -45,6 +45,11 @@ def file_sha(path):
     return value.hexdigest()
 
 
+def native_compressed_copy(source, target, *, pass_fds=()):
+    subprocess.run(['/usr/bin/ditto', '--hfsCompression', '--noclone', str(source), str(target)],
+                   check=True, capture_output=True, pass_fds=pass_fds)
+
+
 def resources():
     cpus = os.cpu_count() or 1
     memory = int(subprocess.check_output(['/usr/sbin/sysctl', '-n', 'hw.memsize'], text=True))
@@ -176,8 +181,7 @@ def transform(item, *, donor=None):
                 raise RetentionError('COMPACTION_CLONE_DONOR_MOVED')
             action = 'EXACT_APFS_CLONE'
         else:
-            subprocess.run(['/usr/bin/ditto', '--hfsCompression', '--noclone', str(path), str(temp)],
-                           check=True, capture_output=True)
+            native_compressed_copy(path, temp)
         # All transforms preserve the recipient's observable file date/mode.
         os.chmod(temp, stat.S_IMODE(original.st_mode))
         os.utime(temp, ns=(original.st_atime_ns, original.st_mtime_ns))

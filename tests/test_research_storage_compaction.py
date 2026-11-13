@@ -7,12 +7,15 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
 
 from ops import research_storage_compaction as c
 from ops import research_storage_governance as governance
+from ops import research_daily_product_parallel as parallel
+from ops import research_panel_daily_product as product
 
 RESOURCE = dict(cpu_count=18, physical_memory_bytes=128*1024**3, memory_free_percent=86,
                 workers=2, pending_limit=4, reserve_bytes=24*1024**3)
@@ -31,6 +34,83 @@ def fixture_job(tmp_path):
 def write(path, content):
     path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(content)
     return path
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='APFS native compression')
+def test_history_owner_replaces_legacy_checkpoint_without_changing_json_contract(tmp_path):
+    path = tmp_path / 'history' / ('a' * 64) / '600809.SH' / 'checkpoint.json'
+    qualification = dict(status='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH', evidence='x' * 10000)
+    value = dict(evaluations={str(day): {'qualification': qualification, 'groups': {'original': 'UNKNOWN'}}
+                              for day in range(2000)})
+    raw = product.canonical(value) + b'\n'
+    write(path, raw)
+    write(path.with_name('.checkpoint.history-source.pending'), b'old interrupted source')
+    write(path.with_name('.checkpoint.history-compressed.pending'), b'old interrupted native copy')
+    legacy = product.reference(path)
+    before = path.stat().st_blocks
+    assert product.save(path, value) == legacy
+    assert path.stat().st_flags & c.COMPRESSED
+    assert path.stat().st_blocks < before // 4
+    assert product.checked(legacy).read_bytes() == raw
+    assert json.loads(path.read_bytes()) == value
+    assert list(path.parent.iterdir()) == [path]
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='APFS native compression')
+def test_small_history_retry_clears_interrupted_staging_without_compressing(tmp_path, monkeypatch):
+    path = tmp_path / 'history' / ('a' * 64) / '600809.SH' / 'checkpoint.json'
+    write(path.with_name('.checkpoint.history-source.pending'), b'old interrupted source')
+    monkeypatch.setattr(c, 'native_compressed_copy', lambda *args, **kwargs: pytest.fail('small checkpoint'))
+    assert product.checked(product.save(path, {'evaluations': {}})) == path
+    assert list(path.parent.iterdir()) == [path]
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='APFS native compression')
+def test_history_compression_failure_preserves_published_checkpoint(tmp_path, monkeypatch):
+    path = write(tmp_path / 'history' / ('a' * 64) / '600809.SH' / 'checkpoint.json', b'{"previous":true}\n')
+    reference = product.reference(path)
+    def fail(source, target, *, pass_fds):
+        assert len(pass_fds) == 1
+        target.write_bytes(b'partial')
+        raise OSError('native copy failed')
+    monkeypatch.setattr(c, 'native_compressed_copy', fail)
+    with pytest.raises(RuntimeError, match='DAILY_HISTORY_COMPRESSION_WRITE_FAILED'):
+        product.save(path, {'evidence': 'x' * product.HISTORY_COMPRESSION_MIN_BYTES})
+    assert product.checked(reference).read_bytes() == b'{"previous":true}\n'
+    assert list(path.parent.iterdir()) == [path]
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='APFS native compression')
+def test_history_checkpoint_refuses_to_clear_staging_alias(tmp_path):
+    path = write(tmp_path / 'history' / ('a' * 64) / '600809.SH' / 'checkpoint.json', b'{"previous":true}\n')
+    outside = write(tmp_path / 'unrelated.json', b'preserve')
+    pending = path.with_name('.checkpoint.history-source.pending')
+    pending.symlink_to(outside)
+    with pytest.raises(RuntimeError, match='DAILY_HISTORY_UNSAFE_STAGING'):
+        product.save(path, {'evidence': 'x' * product.HISTORY_COMPRESSION_MIN_BYTES})
+    assert outside.read_bytes() == b'preserve'
+    assert pending.is_symlink()
+    assert path.read_bytes() == b'{"previous":true}\n'
+
+
+@pytest.mark.parametrize('persist', [True, False])
+def test_parallel_checkpoint_can_keep_row_without_duplicating_history(tmp_path, monkeypatch, persist):
+    symbol = '600809.SH'
+    engine = SimpleNamespace(compute=lambda *args: None)
+    context = SimpleNamespace(scope={symbol}, target=20261113, engine=lambda: engine, unchanged=lambda: None)
+    history = tmp_path / 'history' / ('a' * 64) / symbol / 'checkpoint.json'
+    rows = tmp_path / 'rows'
+    row = {'symbol': symbol, 'data_date': str(context.target)}
+    cache = {'evaluations': {'20261113': {'groups': {'original': 'UNKNOWN'}}}}
+    monkeypatch.setattr(parallel, '_CONTEXT', context)
+    monkeypatch.setattr(parallel, '_PARTS', rows)
+    monkeypatch.setattr(product, 'compute_stock', lambda *args, **kwargs: (row.copy(), cache, history))
+    result = parallel.checkpoint(symbol, **({} if persist else {'persist_history': False}))
+    assert json.loads(product.checked(result['ref']).read_bytes()) == {**row, **product.FLAGS}
+    assert history.is_file() == persist
+    if persist:
+        assert json.loads(history.read_bytes()) == cache
+    assert parallel.checkpoint(symbol, persist_history=persist) == result
 
 
 def test_native_compression_clone_preserves_bytes_dates_and_original_reader(tmp_path):

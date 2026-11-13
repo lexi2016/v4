@@ -4,7 +4,7 @@ No acquisition or GET execution. Historical bootstrap is explicit and bounded;
 the normal daily path evaluates only its target date and reuses validated history.
 """
 from __future__ import annotations
-import ast,hashlib,importlib.util,json,math,os,struct,sys,time,zipfile
+import ast,fcntl,hashlib,importlib.util,json,math,os,stat,struct,subprocess,sys,time,zipfile
 from collections import Counter
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal
@@ -15,6 +15,7 @@ FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,or
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
 CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
 SCHEMA='v4.a_share.daily_product.v1'
+HISTORY_COMPRESSION_MIN_BYTES = 256 * 1024
 
 def canonical(v):return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False,default=lambda x:str(x) if isinstance(x,Decimal) else (_ for _ in ()).throw(TypeError(type(x).__name__))).encode()
 def digest(v):return hashlib.sha256(canonical(v)).hexdigest()
@@ -24,11 +25,65 @@ def checked(r):
  p=Path(r['path'])
  if not p.is_absolute() or p.is_symlink() or p.resolve(strict=True)!=p or sha(p)!=r['sha256']:raise ValueError('DAILY_SOURCE_PIN_DRIFT:'+str(p))
  return p
+
+
+def _clean_history_staging(directory):
+    """Remove only the two staging files used under the symbol directory lock."""
+    for name in ('.checkpoint.history-source.pending', '.checkpoint.history-compressed.pending'):
+        try:
+            entry = os.stat(name, dir_fd=directory, follow_symlinks=False)
+        except FileNotFoundError:
+            continue
+        if not stat.S_ISREG(entry.st_mode) or entry.st_nlink != 1 or entry.st_uid != os.geteuid():
+            raise RuntimeError('DAILY_HISTORY_UNSAFE_STAGING:' + name)
+        os.unlink(name, dir_fd=directory)
+
+
+def _publish_history_checkpoint(path, raw):
+    """Stage APFS compression before publishing the same JSON bytes and SHA."""
+    from ops.research_storage_compaction import COMPRESSED, file_sha, native_compressed_copy
+
+    expected = hashlib.sha256(raw).hexdigest()
+    directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    source = path.with_name('.checkpoint.history-source.pending')
+    compressed = path.with_name('.checkpoint.history-compressed.pending')
+    try:
+        fcntl.flock(directory, fcntl.LOCK_EX)
+        _clean_history_staging(directory)
+        try:
+            with source.open('xb') as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+            if len(raw) >= HISTORY_COMPRESSION_MIN_BYTES:
+                native_compressed_copy(source, compressed, pass_fds=(directory,))
+                source_info = source.stat()
+                candidate = compressed.stat()
+                if candidate.st_size != source_info.st_size or file_sha(compressed) != expected:
+                    raise RuntimeError('DAILY_HISTORY_COMPRESSION_CONTENT_DRIFT:' + str(path))
+                if candidate.st_flags & COMPRESSED and candidate.st_blocks < source_info.st_blocks:
+                    with compressed.open('rb') as stream:
+                        os.fsync(stream.fileno())
+                    source = compressed
+            os.replace(source.name, path.name, src_dir_fd=directory, dst_dir_fd=directory)
+        finally:
+            _clean_history_staging(directory)
+            os.fsync(directory)
+    finally:
+        os.close(directory)
+    return dict(path=str(path.resolve()), sha256=expected)
+
+
 def save(p,v,immutable=False):
  p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);raw=canonical(v)+b'\n'
  if immutable and p.exists():
   if p.read_bytes()!=raw:raise ValueError('DAILY_IMMUTABLE_CONFLICT:'+str(p))
   return reference(p)
+ if sys.platform=='darwin' and p.name=='checkpoint.json' and len(p.parents)>=3 and p.parents[2].name=='history':
+  try:return _publish_history_checkpoint(p,raw)
+  except (OSError,subprocess.CalledProcessError) as error:
+   # A storage error cannot be published as a symbol-level source gap.
+   raise RuntimeError('DAILY_HISTORY_COMPRESSION_WRITE_FAILED:'+str(p)) from error
  tmp=p.with_name('.'+p.name+f'.{os.getpid()}.pending')
  with tmp.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
  os.replace(tmp,p);return reference(p)

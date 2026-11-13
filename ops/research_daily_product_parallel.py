@@ -113,7 +113,8 @@ def retained_same_day_formula(context,symbol,bars):
     return result,dict(source=reference,source_numeric_manifest=manifest_ref,original_identity=old['source_identity'],current_identity=context.identity,full_prefix_sha256=retained['bars_sha256'],calendar_sha256=product.digest(retained['calendar']),rules_config=context.config_ref,prior_row=old['row_refs'][symbol],prior_groups=prior_row['groups'],formula_engine_compute_calls=0)
 
 
-def checkpoint(symbol):
+def checkpoint(symbol, *, persist_history=True):
+    """Persist the daily cache for the owner; isolated callers may keep only the row."""
     context = _CONTEXT
     path = _PARTS / (symbol + '.json')
     if symbol not in context.scope:
@@ -143,7 +144,8 @@ def checkpoint(symbol):
             **({'chart_capture': capture} if _CHARTS else {}))
         if reuse and row['groups']!=reuse['prior_groups']:raise ValueError('DAILY_UNCHANGED_PREFIX_GROUP_PARITY_FAILED')
         if reuse:row['same_day_formula_reuse']=reuse
-        product.save(cachepath, cache)
+        if persist_history:
+            product.save(cachepath, cache)
     except (ValueError, KeyError, TypeError, OSError) as error:
         if str(error).startswith('DAILY_SOURCE_PIN_DRIFT'):
             raise
