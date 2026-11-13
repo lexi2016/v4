@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 import platform
 import sys
+from tempfile import gettempdir
 
 import numpy as np
 import pandas as pd
@@ -86,7 +87,8 @@ EXPERIMENTS = {
     "D_SECTOR": ("D", "support_label", MARKET + SECTOR, ["SUPPORT_HELD", "STRUCTURE_FAILURE"]),
 }
 LEDGER = [
-    "model", "variant", "target", "status", "block_reason", "estimator_fit_count",
+    "model", "variant", "target", "status", "block_reason", "attempt", "last_stage",
+    "estimator_fit_count", "estimator_fit_completed_count",
     "preprocessing_fit_count", "calibration_fit_count", "prediction_calls",
     "train_rows", "train_stocks", "train_events", "train_dates", "dev_rows", "dev_stocks",
     "dev_events", "dev_dates", "feature_count", "label_source", "source_sha256",
@@ -453,24 +455,32 @@ MIN_CONTINUOUS_TRAIN_EVENTS = 20
 MIN_CONTINUOUS_DEV_EVENTS = 8
 
 
-def read_certified_bundle(manifest_path, approved_sha256):
+def read_certified_bundle(manifest_path, approved_sha256, synthetic_root=None):
     """A separate same-run authenticated development bundle, with explicit evidence joins."""
     manifest_bytes = manifest_path.read_bytes()
     if sha256(manifest_bytes).hexdigest() != approved_sha256:
         raise ValueError("Development approval digest does not match this manifest")
     manifest = json.loads(manifest_bytes)
-    if manifest.get("schema") != "p515-certified-development/1" or not manifest.get("independent_reviewer"):
-        raise ValueError("Missing independently reviewed development manifest")
+    schema = "p515-synthetic-fixture/1" if synthetic_root else "p515-certified-development/1"
+    reviewer = manifest.get("independent_reviewer")
+    if manifest.get("schema") != schema or not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("Missing independently reviewed manifest for the selected data mode")
     if manifest.get("runner_sha256") != sha(Path(__file__)):
         raise ValueError("Development approval bound a different runner")
     cutoff = pd.to_datetime(str(manifest["development_label_cutoff"]), format="%Y%m%d", errors="raise")
-    dataset = manifest_path.parent / manifest["dataset"]
+    def bundle_file(relative):
+        path = (manifest_path.parent / relative).resolve()
+        if synthetic_root and not path.is_relative_to(synthetic_root):
+            raise ValueError("Synthetic bundle payload escaped the fixture root")
+        return path
+
+    dataset = bundle_file(manifest["dataset"])
     dataset_bytes = dataset.read_bytes()
     if sha256(dataset_bytes).hexdigest() != manifest["dataset_sha256"]:
         raise ValueError("Certified development dataset SHA mismatch")
     evidence = {"independent_label_adjudication": {}, "historical_pit_and_features": {}}
     for item in manifest["evidence"]:
-        path = manifest_path.parent / item["path"]
+        path = bundle_file(item["path"])
         binding = evidence[item["kind"]]
         if sha(path) != item["sha256"] or item["sha256"] in binding or not item.get("owner"):
             raise ValueError(f"Evidence SHA, owner or kind mismatch: {path}")
@@ -491,15 +501,19 @@ def read_certified_bundle(manifest_path, approved_sha256):
     data["support_label"] = data.support_label.astype("string")
     if data.empty or data[KEY].isna().any().any() or data.duplicated(KEY).any():
         raise ValueError("Certified dataset needs unique and nonempty P5.15 sample keys")
-    if not data.stable_security_id.str.fullmatch(r"\d{6}\.(SH|SZ|BJ)").all():
-        raise ValueError("Certified inputs require stable A-share keys")
+    code_pattern = r"SYNTHETIC_[0-9]{6}" if synthetic_root else r"[0-9]{6}\.(SH|SZ|BJ)"
+    if not data.stable_security_id.str.fullmatch(code_pattern).all():
+        raise ValueError("Sample security keys do not match the selected data mode")
     if not set(data.label_source_sha256.dropna()).issubset(labels) or not set(data.feature_evidence_sha256.dropna()).issubset(features):
         raise ValueError("Evidence hash and certification kind must match")
     if not data.phase_label.isin(PHASES).all() or not data.pullback_label.isin(OUTCOMES).all():
         raise ValueError("Phase and pullback status require explicit contract codes")
     for field in date_columns:
         pd.to_datetime(data[field].dropna().astype(str), format="%Y%m%d", errors="raise")
-    return data.sort_values(KEY).reset_index(drop=True), manifest["dataset_sha256"], int(cutoff.strftime("%Y%m%d"))
+    numeric_targets = targets - {"phase_label", "support_label"}
+    for field in sorted(numeric_targets | set(PRICE + MARKET + STRUCTURE + PERSONALITY + SECTOR)):
+        data[field] = pd.to_numeric(data[field], errors="coerce")
+    return data.sort_values(KEY).reset_index(drop=True), manifest["dataset_sha256"], int(cutoff.strftime("%Y%m%d")), reviewer.strip()
 
 
 def certified_rows(data, target, development_label_cutoff):
@@ -533,7 +547,10 @@ def certified_rows(data, target, development_label_cutoff):
     if target == "support_label":
         return eligible & data.support_label.isin(["SUPPORT_HELD", "STRUCTURE_FAILURE"])
     numeric = pd.to_numeric(data[target], errors="coerce")
-    return eligible & np.isfinite(numeric) & numeric.ge(0)
+    valid_value = np.isfinite(numeric) & numeric.ge(0)
+    if target == "sessions_to_pullback_outcome":
+        valid_value &= numeric.mod(1).eq(0)
+    return eligible & valid_value
 
 
 def groups(frame):
@@ -616,19 +633,25 @@ def select_folds(certified, cutoff):
         candidate = certified.loc[certified_rows(certified, target, cutoff)]
         numeric = candidate[sorted(common_columns[key])].apply(pd.to_numeric, errors="coerce")
         # Valid zero-history rows remain on common support when their prior is available.
-        candidate = candidate.loc[np.isfinite(numeric).all(axis=1)]
+        common_support = np.isfinite(numeric).all(axis=1)
+        if "same_role_history_event_n" in numeric:
+            count = numeric["same_role_history_event_n"]
+            common_support &= count.ge(0) & count.mod(1).eq(0)
+        candidate = candidate.loc[common_support]
         by_target[key] = time_folds(candidate, target, classes)
     return {name: by_target[spec[:2]] for name, spec in EXPERIMENTS.items()}
 
 
-def freeze_payload(variants, environment, cutoff, manifest_sha, dataset_sha, feature_contract_sha, verified_sha, writer):
+def freeze_payload(variants, environment, cutoff, manifest_sha, dataset_sha, feature_contract_sha, verified_sha,
+                   writer, reviewer, synthetic=False, retry_failed_once=False):
     def cohort(frame):
         keys = frame[KEY].sort_values(KEY).to_csv(index=False).encode()
         return {"keys_sha256": sha256(keys).hexdigest(), **stats(frame)}
 
     scope = {
-        "market": "A_SHARE", "use": "RESEARCH_DEVELOPMENT_ONLY",
-        "development_label_cutoff": cutoff,
+        "market": "SYNTHETIC_FIXTURE" if synthetic else "A_SHARE",
+        "use": "SYNTHETIC_FIXTURE_ONLY" if synthetic else "RESEARCH_DEVELOPMENT_ONLY",
+        "development_label_cutoff": cutoff, "retry_failed_once": retry_failed_once,
         "experimental_fit_allowed": True, "production_allowed": False,
         "proposed_variants": {
             name: [{"train": cohort(train), "dev": cohort(dev)} for train, dev in folds]
@@ -637,6 +660,7 @@ def freeze_payload(variants, environment, cutoff, manifest_sha, dataset_sha, fea
     }
     return {
         "schema": "p515-prefit-freeze/1", "plan_author": writer, "scope": scope,
+        "manifest_reviewer": reviewer,
         "certified_manifest_sha256": manifest_sha, "certified_input_sha256": dataset_sha,
         "runner_sha256": sha(Path(__file__)), "feature_contract_sha256": feature_contract_sha,
         "verified_data_sha256": verified_sha, "environment": environment,
@@ -655,10 +679,14 @@ def verify_fit_approval(prefit_path, receipt_path, approval_sha, expected):
     reviewed_at = datetime.fromisoformat(receipt["reviewed_at_utc"])
     if frozen_at.tzinfo is None or reviewed_at.tzinfo is None or reviewed_at <= frozen_at:
         raise ValueError("Review must be dated after the separately frozen plan")
+    if plan.get("feature_contract_sha256") != expected["feature_contract_sha256"]:
+        raise ValueError("Frozen feature contract SHA does not match the runtime contract")
     if plan != expected:
         raise ValueError("Execution context differs from the earlier frozen plan")
+    verdict = ("APPROVED_SYNTHETIC_FIXTURE_FIT" if expected["scope"]["market"] == "SYNTHETIC_FIXTURE"
+               else "APPROVED_RESEARCH_DEVELOPMENT_FIT")
     if (receipt.get("schema") != "p515-fit-approval/1"
-            or receipt.get("verdict") != "APPROVED_RESEARCH_DEVELOPMENT_FIT"
+            or receipt.get("verdict") != verdict
             or receipt.get("prefit_freeze_sha256") != sha256(plan_bytes).hexdigest()):
         raise ValueError("Receipt did not approve this exact PREFIT_FREEZE")
     bindings = ["certified_manifest_sha256", "certified_input_sha256", "runner_sha256",
@@ -668,6 +696,8 @@ def verify_fit_approval(prefit_path, receipt_path, approval_sha, expected):
     reviewer = receipt.get("reviewer")
     if not isinstance(reviewer, str) or not reviewer.strip() or reviewer.strip().casefold() == expected["plan_author"].casefold():
         raise ValueError("Review owner must be recorded and differ from the plan author")
+    if reviewer.strip().casefold() != expected["manifest_reviewer"].casefold():
+        raise ValueError("Approval reviewer differs from the independently reviewed manifest")
     return {
         "approval_receipt_sha256": approval_sha, "reviewer": reviewer,
         "prefit_freeze_sha256": receipt["prefit_freeze_sha256"], "reviewed_at_utc": receipt["reviewed_at_utc"],
@@ -675,17 +705,100 @@ def verify_fit_approval(prefit_path, receipt_path, approval_sha, expected):
     }
 
 
-def run_experiments(out, certified, bound_data_sha, environment, variants, approval):
+WEIGHT_COLUMNS = [
+    "model", "variant", "attempt", "status", "weight_path", "sha256", "reload_max_abs_error",
+]
+
+
+def write_experiment_csv(path, rows, columns):
+    pending = path.with_suffix(".tmp")
+    pd.DataFrame(rows, columns=columns).to_csv(pending, index=False)
+    pending.replace(path)
+
+
+def fit_fold(out, train, dev, spec, record, checkpoint):
+    import joblib
+    from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
+    from threadpoolctl import threadpool_limits
+
+    model, target, names, classes = spec
+    record["last_stage"] = "PREPARE"
+    x_train, x_dev = train[list(names)].astype(float), dev[list(names)].astype(float)
+    estimator_type = HistGradientBoostingClassifier if classes else HistGradientBoostingRegressor
+    estimator = estimator_type(max_iter=60, max_leaf_nodes=7, min_samples_leaf=3, random_state=515, early_stopping=False)
+    basename = record["variant"].replace("/", "_")
+    if record["attempt"] > 1:
+        basename += f"_attempt{record['attempt']}"
+    weight = out / "weights" / f"{basename}.joblib"
+    # Stage before publishing. A weight enters the inventory only after a complete dump.
+    pending = weight.with_suffix(".joblib.pending")
+    with threadpool_limits(limits=1):
+        record.update(last_stage="ESTIMATOR_FIT", status="FIT_STARTED")
+        checkpoint()
+        record["estimator_fit_count"] += 1
+        estimator.fit(x_train, train[target])
+        record["estimator_fit_completed_count"] = 1
+        record["last_stage"] = "WEIGHT_SAVE"
+        if weight.exists() or pending.exists():
+            raise FileExistsError(weight)
+        joblib.dump({"estimator": estimator, "feature_names": list(names), "target": target}, pending)
+        pending.rename(weight)
+        record["weight_sha256"] = sha(weight)
+        record["weight_path"] = str(weight.relative_to(out))
+
+        predict = "predict_proba" if classes else "predict"
+        predict_unloaded = getattr(estimator, predict)
+        record["last_stage"] = "DEV_PREDICT"
+        checkpoint()
+        record["prediction_calls"] += 1
+        value = predict_unloaded(x_dev)
+        record["last_stage"] = "WEIGHT_RELOAD"
+        if sha(weight) != record["weight_sha256"]:
+            raise RuntimeError(f"Weight file changed after save: {weight}")
+        payload = joblib.load(weight)
+        if payload["feature_names"] != list(names) or payload["target"] != target:
+            raise RuntimeError(f"Weight metadata reload mismatch: {weight}")
+        loaded = payload["estimator"]
+        if classes and not np.array_equal(estimator.classes_, loaded.classes_):
+            raise RuntimeError(f"Weight class order mismatch: {weight}")
+        predict_reloaded = getattr(loaded, predict)
+        record["last_stage"] = "RELOADED_PREDICT"
+        checkpoint()
+        record["prediction_calls"] += 1
+        actual = predict_reloaded(x_dev)
+
+    if value.shape != actual.shape:
+        raise RuntimeError(f"Weight reload output shape mismatch: {weight}")
+    difference = float(np.max(np.abs(value - actual)))
+    if np.isfinite(difference):
+        record["reload_max_abs_error"] = difference
+    if difference != 0.0:
+        raise RuntimeError(f"Weight reload mismatch: {weight}")
+    record["last_stage"] = "EVALUATE"
+    estimates = estimator.classes_[np.argmax(value, axis=1)] if classes else value
+    metrics = result_metrics(model, target, classes, dev, estimates, value)
+    return dict(variant=record["variant"], attempt=record["attempt"], **metrics)
+
+
+def run_experiments(out, certified, bound_data_sha, environment, variants, approval, retry_failed_once=False):
     if any(variants.values()) and approval is None:
         raise ValueError("Certified fits require independent approval of a separate frozen plan")
     results = []
     ledger = []
-    weights = []
     source_digest = sha(Path(__file__))
-    for variant, (model, target, names, classes) in EXPERIMENTS.items():
+
+    def checkpoint():
+        write_experiment_csv(out / "EXPERIMENT_LEDGER.csv", ledger, LEDGER)
+        inventory = [row for row in ledger if row.get("weight_sha256")]
+        inventory = [{**row, "sha256": row["weight_sha256"]} for row in inventory]
+        write_experiment_csv(out / "WEIGHT_INVENTORY.csv", inventory, WEIGHT_COLUMNS)
+
+    for variant, spec in EXPERIMENTS.items():
+        model, target, names, _ = spec
         base = dict(model=model, variant=variant, target=target, feature_count=len(names),
-                    status="BLOCKED", block_reason="NO_VERIFIED_DATASET",
-                    estimator_fit_count=0, preprocessing_fit_count=0, calibration_fit_count=0,
+                    status="BLOCKED", block_reason="NO_VERIFIED_DATASET", attempt=0, last_stage="ADMISSION",
+                    estimator_fit_count=0, estimator_fit_completed_count=0,
+                    preprocessing_fit_count=0, calibration_fit_count=0,
                     prediction_calls=0, label_source="", source_sha256=source_digest,
                     environment=json.dumps(environment, sort_keys=True), data_sha256=bound_data_sha,
                     weight_sha256="", reload_max_abs_error=None,
@@ -698,59 +811,28 @@ def run_experiments(out, certified, bound_data_sha, environment, variants, appro
         if not folds:
             ledger.append(base)
             continue
-        if not (out / "weights").is_dir():
-            (out / "weights").mkdir()
-        # Import estimators only on actual passage of the admission and split gates.
-        import joblib
-        from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
-        from threadpoolctl import threadpool_limits
+        (out / "weights").mkdir(exist_ok=True)
 
         for fold_id, (train, dev) in enumerate(folds, start=1):
-            record = dict(base, variant=f"{variant}/F{fold_id}", block_reason="", status="FIT_STARTED")
+            fold_record = dict(base, variant=f"{variant}/F{fold_id}", block_reason="", status="ATTEMPT_STARTED")
             for part, frame in (("train", train), ("dev", dev)):
-                record.update({f"{part}_{key}": count for key, count in stats(frame).items()
-                               if key in {"rows", "stocks", "events", "dates"}})
-            record["label_source"] = "|".join(sorted(set(train.label_source) | set(dev.label_source)))
-            x_train, x_dev = train[list(names)].astype(float), dev[list(names)].astype(float)
-            estimator_type = HistGradientBoostingClassifier if classes else HistGradientBoostingRegressor
-            estimator = estimator_type(max_iter=60, max_leaf_nodes=7, min_samples_leaf=3, random_state=515, early_stopping=False)
-            ledger.append(record)
-            weight = out / "weights" / f"{variant}_F{fold_id}.joblib"
-            inventory_row = None
-            try:
-                with threadpool_limits(limits=1):
-                    record["estimator_fit_count"] += 1
-                    pd.DataFrame(ledger, columns=LEDGER).to_csv(out / "EXPERIMENT_LEDGER.csv", index=False)
-                    estimator.fit(x_train, train[target])
-                    if weight.exists():
-                        raise FileExistsError(weight)
-                    joblib.dump({"estimator": estimator, "feature_names": list(names), "target": target}, weight)
-                    record["weight_sha256"] = sha(weight)
-                    inventory_row = [model, record["variant"], str(weight.relative_to(out)), record["weight_sha256"], None]
-                    weights.append(inventory_row)
-                    predict = "predict_proba" if classes else "predict"
-                    record["prediction_calls"] += 1
-                    value = getattr(estimator, predict)(x_dev)
-                    loaded = joblib.load(weight)["estimator"]
-                    record["prediction_calls"] += 1
-                    actual = getattr(loaded, predict)(x_dev)
-                difference = float(np.max(np.abs(value - actual)))
-                record["reload_max_abs_error"] = inventory_row[-1] = difference
-                if not np.isfinite(difference) or difference != 0.0:
-                    raise RuntimeError(f"Weight reload mismatch: {weight}")
-                estimates = estimator.classes_[np.argmax(value, axis=1)] if classes else value
-                metrics = result_metrics(model, target, classes, dev, estimates, value)
-                results.append(dict(variant=record["variant"], **metrics))
-                record_json(out / "EXPERIMENT_METRICS.json", results)
-                record["status"] = "RELOAD_PASSED"
-            except Exception as error:
-                record.update(status="FIT_OR_RELOAD_FAILED", block_reason=f"{type(error).__name__}: {error}")
-                raise
-            finally:
-                pd.DataFrame(ledger, columns=LEDGER).to_csv(out / "EXPERIMENT_LEDGER.csv", index=False)
-                pd.DataFrame(weights, columns=["model", "variant", "weight_path", "sha256", "reload_max_abs_error"]).to_csv(out / "WEIGHT_INVENTORY.csv", index=False)
-    pd.DataFrame(ledger, columns=LEDGER).to_csv(out / "EXPERIMENT_LEDGER.csv", index=False)
-    pd.DataFrame(weights, columns=["model", "variant", "weight_path", "sha256", "reload_max_abs_error"]).to_csv(out / "WEIGHT_INVENTORY.csv", index=False)
+                fold_record.update({f"{part}_{key}": count for key, count in stats(frame).items()
+                                    if key in {"rows", "stocks", "events", "dates"}})
+            fold_record["label_source"] = "|".join(sorted(set(train.label_source) | set(dev.label_source)))
+            for attempt in range(1, 3 if retry_failed_once else 2):
+                record = dict(fold_record, attempt=attempt)
+                ledger.append(record)
+                try:
+                    result = fit_fold(out, train, dev, spec, record, checkpoint)
+                except Exception as error:
+                    record.update(status="ATTEMPT_FAILED", block_reason=f"{type(error).__name__}: {error}")
+                    checkpoint()
+                    continue
+                record.update(status="RELOAD_PASSED", last_stage="COMPLETE")
+                results.append(result)
+                checkpoint()
+                break
+    checkpoint()
     if results:
         result_by_variant = {item["variant"]: item for item in results}
         contrasts = []
@@ -845,7 +927,8 @@ def write_reports(out, counts, quality, prior, ledger, verified_count):
     like = f"{rows} 条观察、{counts['stocks']} 只股票、{counts['events']} 个现役事件键及 {counts['dates']} 个交易日"
     dates = f"{counts['first']} 至 {counts['last']}"
     by_model = {model: sum(row["estimator_fit_count"] for row in ledger if row["model"] == model) for model in "ABCD"}
-    fit_status = {model: ("DEVELOPMENT_METRICS_SAVED" if total else "NOT_TESTED") for model, total in by_model.items()}
+    fit_status = {model: ("DEVELOPMENT_METRICS_SAVED" if any(row["model"] == model and row["status"] == "RELOAD_PASSED"
+                                                             for row in ledger) else "NOT_TESTED") for model in "ABCD"}
     reports = {
         "P5_15_LOCAL_TRAINING_PLAN.md": f"""# P5.15 Mac 本地知识模型实验
 
@@ -902,8 +985,10 @@ P5.14.6 的静态 TDX 行业剔目标描述可作工程参照。P5.15 的 D 需�
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--research-root", type=Path, required=True)
-    parser.add_argument("--audit", type=Path, required=True)
+    parser.add_argument("--research-root", type=Path)
+    parser.add_argument("--audit", type=Path)
+    parser.add_argument("--synthetic-fixture-root", type=Path, help="SYNTHETIC_* fixture bundle in an OS temporary directory.")
+    parser.add_argument("--retry-failed-once", action="store_true", help="Freeze and approve one retry per unsuccessful attempt.")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--certified-development-manifest", type=Path)
     parser.add_argument("--approved-manifest-sha256", help="Independently approved digest. No default.")
@@ -913,6 +998,19 @@ def main():
     parser.add_argument("--fit-approval-receipt", type=Path, help="Independent review receipt for the exact frozen plan.")
     parser.add_argument("--fit-approval-sha256", help="Receipt digest obtained independently from the reviewer.")
     args = parser.parse_args()
+    synthetic = args.synthetic_fixture_root.resolve() if args.synthetic_fixture_root else None
+    if synthetic:
+        if args.research_root or args.audit or not args.certified_development_manifest:
+            parser.error("synthetic fixtures require their own manifest and no historical source arguments")
+        temp = Path(gettempdir()).resolve()
+        if not synthetic.is_dir() or synthetic.parent not in {temp, Path("/tmp").resolve()} or not synthetic.name.startswith("p515-synthetic-"):
+            parser.error("synthetic fixture root must be a p515-synthetic-* directory in system temporary storage")
+    elif not (args.research_root and args.audit):
+        parser.error("real research mode requires --research-root and --audit")
+    elif args.certified_development_manifest:
+        parser.error("formal execution awaits the authoritative COMMON_TRAINING_MANIFEST.json and its approved SHA")
+    if args.retry_failed_once and not args.certified_development_manifest:
+        parser.error("a retry requires a frozen, approved experiment plan")
     if bool(args.certified_development_manifest) != bool(args.approved_manifest_sha256):
         parser.error("a certified manifest must be paired with its independently approved SHA-256")
     approval_inputs = (args.prefit_freeze, args.fit_approval_receipt, args.fit_approval_sha256)
@@ -924,12 +1022,15 @@ def main():
     elif not args.certified_development_manifest and any(approval_inputs):
         parser.error("fit approval arguments require certified development input")
     output = args.output.resolve()
-    artifacts = args.audit.resolve().parent
-    if artifacts.name != "artifacts" or not output.is_relative_to(artifacts) or not output.name.startswith("p5_15_local_training"):
+    artifacts = synthetic if synthetic else args.audit.resolve().parent
+    if ((not synthetic and artifacts.name != "artifacts") or not output.is_relative_to(artifacts)
+            or not output.name.startswith("p5_15_local_training")):
         parser.error("output must be a P5.15 isolated V4 artifacts directory beside the source audit")
     readonly = [args.audit, args.research_root, args.certified_development_manifest, args.prefit_freeze, args.fit_approval_receipt]
     if any(path and (output.is_relative_to(path.resolve()) or path.resolve().is_relative_to(output)) for path in readonly):
         parser.error("output must be isolated from the prior plan, receipt and other read-only inputs")
+    if synthetic and any(path and not path.resolve().is_relative_to(synthetic) for path in readonly):
+        parser.error("all synthetic inputs and outputs must stay inside the fixture root")
     if args.prefit_freeze and (args.prefit_freeze.name != "PREFIT_FREEZE.json"
             or not args.prefit_freeze.resolve().is_relative_to(artifacts)):
         parser.error("a prior local PREFIT_FREEZE.json is required")
@@ -937,20 +1038,29 @@ def main():
     allowed_existing = {"SCOPE.json", "SOURCE_INTAKE.json"}
     if any(path.name not in allowed_existing for path in output.iterdir()):
         raise FileExistsError(f"Use a new local experiment directory: {output}")
-    paths, binding = bind_sources(args.research_root.resolve(), args.audit.resolve())
-    meta, counts = source_cohort(paths)
-    raw, quality = raw_projection(paths["raw"], meta)
-    history, history_quality = historical_projection(paths, meta)
-    quality.update(history_quality)
-    prior = prior_label_evidence(paths)
-    features = feature_pool(meta, raw, history)
-    labels = label_register(features)
-    features.to_csv(output / "DEVELOPMENT_CANDIDATES.csv", index=False)
-    labels.to_csv(output / "UNKNOWN_AND_EXCLUDED_LABELS.csv", index=False)
+    if synthetic:
+        binding = {"input_mode": "SYNTHETIC_FIXTURE_ONLY"}
+        features = pd.DataFrame()
+        counts = quality = prior = {}
+        labels = pd.DataFrame(columns=["pool_level"])
+        cohort_digest = None
+    else:
+        paths, binding = bind_sources(args.research_root.resolve(), args.audit.resolve())
+        meta, counts = source_cohort(paths)
+        raw, quality = raw_projection(paths["raw"], meta)
+        history, history_quality = historical_projection(paths, meta)
+        quality.update(history_quality)
+        prior = prior_label_evidence(paths)
+        features = feature_pool(meta, raw, history)
+        labels = label_register(features)
+        features.to_csv(output / "DEVELOPMENT_CANDIDATES.csv", index=False)
+        labels.to_csv(output / "UNKNOWN_AND_EXCLUDED_LABELS.csv", index=False)
+        cohort_digest = sha(output / "DEVELOPMENT_CANDIDATES.csv")
     verified = pd.DataFrame(columns=CERTIFIED_COLUMNS)
-    certified_sha = cutoff = None
+    certified_sha = cutoff = reviewer = None
     if args.certified_development_manifest:
-        candidate, certified_sha, cutoff = read_certified_bundle(args.certified_development_manifest, args.approved_manifest_sha256)
+        candidate, certified_sha, cutoff, reviewer = read_certified_bundle(
+            args.certified_development_manifest, args.approved_manifest_sha256, synthetic)
         targets = {spec[1] for spec in EXPERIMENTS.values()}
         eligible = pd.concat([certified_rows(candidate, target, cutoff) for target in sorted(targets)], axis=1).any(axis=1)
         verified = candidate.loc[eligible]
@@ -963,28 +1073,39 @@ def main():
     record_json(output / "FEATURE_CONTRACT_P515.json", contract)
     environment = {"python": sys.version.split()[0], "interpreter": sys.executable, "arch": platform.machine()}
     environment.update({name: version(name) for name in ("pandas", "numpy", "pyarrow", "scikit-learn", "joblib")})
-    cohort_digest = sha(output / "DEVELOPMENT_CANDIDATES.csv")
     variants = select_folds(verified, cutoff)
     approval = None
     if args.certified_development_manifest:
         author = args.plan_author.strip() if args.freeze_only else json.loads(args.prefit_freeze.read_text())["plan_author"]
         frozen = freeze_payload(variants, environment, cutoff, args.approved_manifest_sha256, certified_sha,
-                                sha(output / "FEATURE_CONTRACT_P515.json"), sha(output / "VERIFIED_TRAINING_DATASET.csv"), author)
+                                sha(output / "FEATURE_CONTRACT_P515.json"), sha(output / "VERIFIED_TRAINING_DATASET.csv"),
+                                author, reviewer, bool(synthetic), args.retry_failed_once)
         if args.freeze_only:
             record_json(output / "PREFIT_FREEZE.json", {**frozen, "frozen_at_utc": datetime.now(timezone.utc).isoformat()})
             print("PREFIT_FREEZE_WRITTEN")
             return
         approval = verify_fit_approval(args.prefit_freeze, args.fit_approval_receipt, args.fit_approval_sha256, frozen)
         record_json(output / "FIT_APPROVAL_VERIFICATION.json", approval)
-    ledger = run_experiments(output, verified, certified_sha or cohort_digest, environment, variants, approval)
-    write_reports(output, counts, quality, prior, ledger, len(verified))
+    ledger = run_experiments(output, verified, certified_sha or cohort_digest, environment, variants,
+                             approval, args.retry_failed_once)
+    if not synthetic:
+        write_reports(output, counts, quality, prior, ledger, len(verified))
+    failed = {row["variant"] for row in ledger if row["status"] == "ATTEMPT_FAILED"}
+    passed = {row["variant"] for row in ledger if row["status"] == "RELOAD_PASSED"}
+    terminal_failed = sorted(failed - passed)
+    status = "EXPERIMENT_FAILURES" if terminal_failed else ("DEVELOPMENT_METRICS_SAVED" if passed else "DEVELOPMENT_ONLY")
     record_json(output / "RUN_RECEIPT.json", {
-        "utc": datetime.now(timezone.utc).isoformat(), "flags": FLAGS, "status": "DEVELOPMENT_METRICS_SAVED" if any(row["estimator_fit_count"] for row in ledger) else "DEVELOPMENT_ONLY",
+        "utc": datetime.now(timezone.utc).isoformat(), "flags": FLAGS, "status": status,
+        "input_mode": "SYNTHETIC_FIXTURE_ONLY" if synthetic else "REAL_RESEARCH",
+        "terminal_failed_folds": terminal_failed, "successful_fold_count": len(passed),
+        "failed_attempt_count": sum(row["status"] == "ATTEMPT_FAILED" for row in ledger),
+        "retry_attempt_count": sum(row["attempt"] > 1 for row in ledger),
         "source_sha256": sha(Path(__file__)), "environment": environment, "cohort": counts,
         "data_checks": quality, "prior_label_evidence": prior,
         "verified": stats(verified), "original_development_pool_levels": labels.pool_level.value_counts().to_dict(),
         "replay_586_T2": 0, "market_scan": 0, "sealed_payload_opened": False,
         "estimator_fit_count": sum(row["estimator_fit_count"] for row in ledger),
+        "estimator_fit_completed_count": sum(row["estimator_fit_completed_count"] for row in ledger),
         "preprocessing_fit_count": sum(row["preprocessing_fit_count"] for row in ledger),
         "calibration_fit_count": sum(row["calibration_fit_count"] for row in ledger),
         "prediction_calls": sum(row["prediction_calls"] for row in ledger),
@@ -993,8 +1114,9 @@ def main():
         "certified_input_sha256": certified_sha, "fit_approval": approval, "new_weight_files": sum(bool(row["weight_sha256"]) for row in ledger),
     })
     print(json.dumps({"cohort": counts, "quality": quality, "prior_labels": prior, "verified": len(verified),
-                      "fit_calls": sum(row["estimator_fit_count"] for row in ledger)}, ensure_ascii=False))
+                      "fit_calls": sum(row["estimator_fit_count"] for row in ledger), "status": status}, ensure_ascii=False))
+    return int(bool(terminal_failed))
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
