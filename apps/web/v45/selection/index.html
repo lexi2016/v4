@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>V4.5 · 今日选股</title>
+<link rel="stylesheet" href="/v45/shared/v45.css">
+</head>
+<body>
+<div class="v45-shell">
+<header class="v45-header">
+<div class="v45-brand">
+<h1>今日选股</h1>
+<p>原V4候选与策略只读投影 · A股 / 港股独立规则</p>
+</div>
+<nav class="v45-nav" aria-label="V4.5新入口">
+<a data-page="selection" href="/v45/selection/" aria-current="page">今日选股</a>
+<a data-page="research" href="/v45/research/">个股研究</a>
+<a data-page="review" href="/v45/review/">复盘验证</a>
+<a href="/">返回V4首页</a>
+</nav>
+</header>
+<main id="v45-app">
+<section class="v45-panel">
+<form id="selection-form" class="v45-controls">
+<div class="v45-field">
+<label for="date">观察日期</label>
+<input id="date" name="date" type="date" value="2026-11-13" required>
+</div>
+<div class="v45-field">
+<label for="market">市场</label>
+<select id="market" name="market">
+<option value="ALL">A股 + 港股</option>
+<option value="A">A股</option>
+<option value="HK">港股</option>
+</select>
+</div>
+<div class="v45-field">
+<label for="search">搜索证券</label>
+<input id="search" name="search" type="search" placeholder="代码或名称">
+</div>
+<div class="v45-field">
+<label for="source">来源筛选</label>
+<select id="source">
+<option value="">全部来源</option>
+</select>
+</div>
+<div class="v45-field">
+<label for="pool-state">来源状态</label>
+<select id="pool-state">
+<option value="">全部状态</option>
+<option value="good">可用</option>
+<option value="warn">部分 / 未生成 / 过期</option>
+<option value="bad">失败 / 冲突</option>
+</select>
+</div>
+<button class="primary" type="submit">读取原候选</button>
+</form>
+</section>
+<div id="status" class="v45-status" role="status">等待读取原V4候选API。</div>
+<section id="stats" class="v45-grid" aria-live="polite">
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">原公式 / v1.9.2 对照（A股独立口径）</h2>
+<div id="formula">
+</div>
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">来源池状态</h2>
+<div id="pools" class="v45-list">
+</div>
+</section>
+<section class="v45-panel">
+<div class="v45-row">
+<h2 class="v45-title">完整候选名单</h2>
+<span id="row-count" class="v45-muted">
+</span>
+</div>
+<div class="v45-table-wrap">
+<table>
+<thead>
+<tr>
+<th>市场</th>
+<th>证券</th>
+<th>入选来源</th>
+<th>来源日期</th>
+<th>原排名 / 分数 / 判定</th>
+<th>来源状态</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="candidates">
+<tr>
+<td colspan="7" class="v45-empty">请选择日期并读取候选。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="pagination" class="v45-actions">
+</div>
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">交付状态</h2>
+<div id="delivery" class="v45-two">
+<div class="v45-evidence">
+<h3>历史批次参考</h3>
+<p>2026-11-12 富途：426 / 426，历史回执已验。</p>
+<p>研究回包：426只 PARTIAL，64个来源范围不兼容，NOT_IMPORTED。</p>
+</div>
+<div class="v45-evidence">
+<h3>当前观察日</h3>
+<p>富途最新同步：<strong>CANNOT_CONFIRM</strong>（本次未重新查询）。</p>
+<p>研究收到、校验、导入、页面可见是不同状态。</p>
+</div>
+</div>
+</section>
+</main>
+<footer class="v45-footer">只读展示。不会触发选股计算、富途写入、研究导入、BUY gate或订单。</footer>
+</div>
+<script type="module" src="/v45/selection/main.js">
+</script>
+</body>
+</html>

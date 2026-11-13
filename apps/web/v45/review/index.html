@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>V4.5 · 复盘验证</title>
+<link rel="stylesheet" href="/v45/shared/v45.css">
+</head>
+<body>
+<div class="v45-shell">
+<header class="v45-header">
+<div class="v45-brand">
+<h1>复盘验证</h1>
+<p>同批次、同市场、原始分母与成熟度只读核验</p>
+</div>
+<nav class="v45-nav" aria-label="V4.5新入口">
+<a data-page="selection" href="/v45/selection/">今日选股</a>
+<a data-page="research" href="/v45/research/">个股研究</a>
+<a data-page="review" href="/v45/review/" aria-current="page">复盘验证</a>
+<a href="/">返回V4首页</a>
+</nav>
+</header>
+<main>
+<section class="v45-panel">
+<form id="review-form" class="v45-controls">
+<div class="v45-field">
+<label for="date">复盘交易日</label>
+<input id="date" type="date" value="2026-11-12" required>
+</div>
+<button class="primary" type="submit">读取原复盘</button>
+</form>
+</section>
+<div id="status" class="v45-status">等待读取精确日期复盘。</div>
+<section class="v45-panel">
+<h2 class="v45-title">A股与港股独立复盘</h2>
+<div id="markets" class="v45-two">
+</div>
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">证券级 D+2 / D+5 成熟度</h2>
+<form id="maturity-form" class="v45-controls">
+<div class="v45-field">
+<label for="market">市场</label>
+<select id="market">
+<option value="A">A股</option>
+<option value="HK">港股</option>
+</select>
+</div>
+<div class="v45-field">
+<label for="symbol">证券代码</label>
+<input id="symbol" value="000159.SZ">
+</div>
+<div class="v45-field">
+<label for="source-date">来源日期</label>
+<input id="source-date" type="date" value="2026-11-11">
+</div>
+<div class="v45-field">
+<label for="group">原策略分组</label>
+<select id="group">
+<option value="nav_pullback">导航回踩</option>
+<option value="original">原公式</option>
+<option value="nav_smallk">导航小K</option>
+<option value="nav_breakout">导航突破</option>
+</select>
+</div>
+<button type="submit">核对成熟度</button>
+</form>
+<div id="maturity" class="v45-two">
+</div>
+</section>
+<section id="personal-attention" class="v45-panel">
+<h2 class="v45-title">个人关注</h2>
+<p>本页尚未取得用户关注名单，状态 CANNOT_CONFIRM。以下原策略数据不代表个人关注收益。</p>
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">批次边界</h2>
+<p>候选批次、用户关注名单和原策略结果分别统计。未成熟、缺价、排除、未覆盖和未执行不能并为淘汰或零收益。</p>
+<p>历史回补与自然运行分开；HTTP 200不代表复盘envelope内A/HK子结果全部READY。</p>
+<div class="v45-actions">
+<a id="selection-link" data-page="selection" href="/v45/selection/">返回今日选股</a>
+<a id="research-link" data-page="research" href="/v45/research/">打开个股研究</a>
+</div>
+</section>
+</main>
+<footer class="v45-footer">只读复盘。不会生成新复盘、回补历史、修改原始分母或写入交易。</footer>
+</div>
+<script type="module" src="/v45/review/main.js">
+</script>
+</body>
+</html>

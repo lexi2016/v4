@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>V4.5 · 个股研究</title>
+<link rel="stylesheet" href="/v45/shared/v45.css">
+</head>
+<body>
+<div class="v45-shell">
+<header class="v45-header">
+<div class="v45-brand">
+<h1>个股研究</h1>
+<p>复用V4原数值日包、原图、公司材料及市场专属证据</p>
+</div>
+<nav class="v45-nav" aria-label="V4.5新入口">
+<a data-page="selection" href="/v45/selection/">今日选股</a>
+<a data-page="research" href="/v45/research/" aria-current="page">个股研究</a>
+<a data-page="review" href="/v45/review/">复盘验证</a>
+<a href="/">返回V4首页</a>
+</nav>
+</header>
+<main>
+<section class="v45-panel">
+<form id="research-form" class="v45-controls">
+<div class="v45-field">
+<label for="market">市场</label>
+<select id="market">
+<option value="A">A股</option>
+<option value="HK">港股通</option>
+</select>
+</div>
+<div class="v45-field">
+<label for="symbol">证券代码</label>
+<input id="symbol" value="000159.SZ" required>
+</div>
+<div class="v45-field">
+<label for="date">材料来源日</label>
+<input id="date" type="date" value="2026-11-11" required>
+</div>
+<button class="primary" type="submit">读取原研究资料</button>
+</form>
+</section>
+<div id="status" role="status" class="v45-status">请指定证券并读取原研究接口。</div>
+<section id="overview" class="v45-grid">
+</section>
+<section id="evidence" class="v45-two">
+</section>
+<section id="chart-host" class="v45-panel v45-hidden">
+</section>
+<section class="v45-panel">
+<h2 class="v45-title">证据时点与缺口</h2>
+<div id="lineage">
+</div>
+<div class="v45-actions">
+<a id="review-link" href="/v45/review/">打开复盘验证</a>
+<a id="selection-link" href="/v45/selection/">返回今日选股</a>
+</div>
+</section>
+</main>
+<footer class="v45-footer">研究材料按原来源日期与generation读取。未导入不等于已接入；UNKNOWN不填0；不产生买卖评级。</footer>
+</div>
+<script type="module" src="/v45/research/main.js">
+</script>
+</body>
+</html>
