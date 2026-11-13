@@ -262,19 +262,21 @@ function evidenceIdentity(item, symbol, date, product) {
   const materialized=['READY','PARTIAL_RECEIVED'].includes(item.status);
   const manifests=[item.numeric_manifest,item.product_manifest,item.manifest].filter(ref=>ref!=null);
   const manifestShas=manifests.map(ref=>ref.sha256);
+  const inputShas=[item.input_sha256,item.source_identity?.input_sha256].filter(sha=>sha!=null);
   let identityConflict=false;
   try {
     identityConflict=(actualDate && normaliseDate(actualDate)!==date)
       || (actualSymbol && apiSymbol("A",actualSymbol)!==symbol);
   } catch { identityConflict=true; }
   const conflict=identityConflict
+    || new Set(inputShas).size>1
+    || new Set(manifestShas).size>1
     || (product?.source_generation && item.source_generation && product.source_generation!==item.source_generation)
-    || (product?.source_identity?.input_sha256 && (item.input_sha256 || item.source_identity?.input_sha256)
-      && product.source_identity.input_sha256!==(item.input_sha256 || item.source_identity?.input_sha256))
+    || (product?.source_identity?.input_sha256 && inputShas.some(sha=>sha!==product.source_identity.input_sha256))
     || (product?.manifest?.sha256 && manifestShas.some(sha=>sha!==product.manifest.sha256));
   if(conflict)return {status:"CONFLICT",cannot_confirm:["证券、来源日或generation/input/manifest身份冲突，已隔离该项"]};
-  const inputSha=item.input_sha256 || item.source_identity?.input_sha256;
-  if(materialized && (!actualDate || !actualSymbol || !item.source_generation || !inputSha
+  if(materialized && (!actualDate || !actualSymbol || !item.source_generation
+    || !inputShas.length || inputShas.some(sha=>typeof sha!=="string" || !sha)
     || !manifestShas.length || manifestShas.some(sha=>typeof sha!=="string" || !sha))) {
     return {status:'CANNOT_CONFIRM',original_status:item.status,cannot_confirm:['来源日期 / 证券 / generation / input SHA / numeric manifest 身份缺失，不能绑定本批证据']};
   }
@@ -346,7 +348,13 @@ export async function loadEventCases({symbol,date,group,horizon,product},fetcher
 
 export async function loadDailyProduct({symbol,date},fetcher=fetch) {
   const resolved=apiSymbol("A",symbol),safeDate=normaliseDate(date);
-  return evidenceIdentity(await optionalJson("/api/v4/research/a-share/daily-product?"+new URLSearchParams({date:safeDate,symbol:resolved}),fetcher),resolved,safeDate);
+  const item=await optionalJson("/api/v4/research/a-share/daily-product?"+new URLSearchParams({date:safeDate,symbol:resolved}),fetcher);
+  const checked=evidenceIdentity(item,resolved,safeDate);
+  if (checked.status==="READY" && (!checked.source_identity?.input_sha256 || !checked.manifest?.sha256)) {
+    return {status:"CANNOT_CONFIRM",original_status:checked.status,
+      cannot_confirm:["数值日包缺少原始 source_identity.input_sha256 或 manifest.sha256"]};
+  }
+  return checked;
 }
 
 export async function loadResearchBundle({ market: marketValue, symbol, date, observationDate, runId }, fetcher = fetch) {

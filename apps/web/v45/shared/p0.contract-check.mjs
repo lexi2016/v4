@@ -212,6 +212,51 @@ test("received company materials need a ready matching numeric product while the
   assert.equal(unbound.company.status, "CANNOT_CONFIRM");
   assert.equal(unbound.company.materials, undefined);
 });
+
+test("only the numeric owner's canonical manifest and input identity can bind company materials", async () => {
+  const product = researchPayloads["daily-product"];
+  const company = {
+    status: "PARTIAL_RECEIVED", symbol: "000159.SZ", data_date: "20261112",
+    source_generation: "g1", input_sha256: "input-1", numeric_manifest: {sha256: "old-manifest"},
+    materials: {report: "must remain hidden"},
+  };
+  const context = {market: "A", symbol: "000159", date: "20261112"};
+  const invalidProducts = [
+    {...product, manifest: undefined, product_manifest: product.manifest},
+    {...product, manifest: undefined, numeric_manifest: product.manifest},
+    {...product, source_identity: undefined, input_sha256: "input-1"},
+  ];
+  for (const invalid of invalidProducts) {
+    const bundle = await data.loadResearchBundle(context, fetchResearch({
+      "daily-product": invalid, "company-materials": company,
+    }));
+    assert.equal(bundle.product.status, "CANNOT_CONFIRM");
+    assert.equal(bundle.product.row, undefined);
+    assert.equal(bundle.chart.status, "READY");
+    assert.equal(bundle.company.materials, undefined);
+  }
+});
+
+test("contradictory input SHA aliases cannot bind numeric or company evidence", async () => {
+  const product = researchPayloads["daily-product"];
+  const context = {market: "A", symbol: "000159", date: "20261112"};
+  const badProduct = await data.loadDailyProduct(context, fetchResearch({
+    "daily-product": {...product, input_sha256: "old-input"},
+  }));
+  assert.equal(badProduct.status, "CONFLICT");
+  assert.equal(badProduct.row, undefined);
+
+  const company = {
+    status: "PARTIAL_RECEIVED", symbol: "000159.SZ", data_date: "20261112",
+    source_generation: "g1", input_sha256: "input-1", source_identity: {input_sha256: "old-input"},
+    numeric_manifest: {sha256: "manifest-1"}, materials: {report: "must remain hidden"},
+  };
+  const bundle = await data.loadResearchBundle(context, fetchResearch({"company-materials": company}));
+  assert.equal(bundle.product.status, "READY");
+  assert.equal(bundle.chart.status, "READY");
+  assert.equal(bundle.company.status, "CONFLICT");
+  assert.equal(bundle.company.materials, undefined);
+});
 test("historical D+2 wins do not mature the latest pullback signal",()=>{
   assert.equal(typeof data.maturityGroups,"function");
   const groups=data.maturityGroups({row:{statistics:{groups:[{group_id:"nav_pullback",horizons:{d2:{total:2,valid:1,not_matured:1,cases:[{event_date:"2026-11-11",target_date:"2026-11-13",status:"not_matured",return_pct:null},{event_date:"2026-11-06",target_date:"2026-11-10",status:"negative",return_pct:-1.47}]},d5:{total:2,valid:0,not_matured:2}}}]}}});
