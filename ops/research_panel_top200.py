@@ -18,6 +18,7 @@ import struct
 import zipfile
 
 from ops.research_panel_daily_product import FLAGS, canonical, checked, digest, reference, save
+from ops import research_panel_history_checkpoint as history_checkpoint
 
 TRIAL = Path('/Users/lexi/Desktop/学习/因子工厂/research/top200_review_trial_20261030_r1')
 TRIAL_SHA = 'f640e88dad6062dc28574c002095887ecb49f157a8a5266600d0499c503290f4'
@@ -309,7 +310,8 @@ def prepare_incremental_history(context,root,output):
         chart=charts['samples'][symbol];projection=adapter.load(chart['projection']);source_cache={key:projection['source_cache'][key]for key in ('path','sha256')}
         _,bars=adapter.retained_sample(projection,adapter.load(source_cache))
         if adapter.projection_identity(projection)!=context.identity:raise ValueError('HISTORY_CURRENT_PROJECTION_IDENTITY_CONFLICT')
-        cache_ref=reference(root/'history'/adapter.RULE/symbol/'checkpoint.json');cache=load(cache_ref)
+        cache_ref,cache=history_checkpoint.read_checkpoint_state(root/'history'/adapter.RULE/symbol/'checkpoint.json',asof=context.target)
+        if cache_ref is None:raise ValueError('HISTORY_CURRENT_CHECKPOINT_MISSING:'+symbol)
         symbols.append(symbol);caches[symbol]=cache;bars_by_symbol[symbol]=bars
         entries[symbol]=dict(projection=chart['projection'],source_cache=source_cache,prior_row=product['row_refs'][symbol],prior_cache=cache_ref,bars_sha256=digest(bars),rows=len(bars),first=bars[0]['trade_date'],last=bars[-1]['trade_date'],missing_dates=sorted(set(str(bar['trade_date'])for bar in bars)-set(cache['evaluations'])),qualification_sha256=digest(row['qualification']),display_name=row.get('display_name'),unchanged_chart={key:chart[key]for key in ('html','projection','PNG')})
     if not symbols:return None
@@ -331,7 +333,7 @@ def prepare_incremental_history(context,root,output):
     available=sum(values.get(key,0)for key in ('Pages free','Pages inactive','Pages speculative'))*page
     workers=max(1,min(cpu-4,max(1,int(min(64,available/2**30-24)//4)),len(symbols)))
     calendar_ref=save(output/'CALENDARS.json',dict(dates=context.calendars,source_generation=context.generation,input_sha256=context.identity['input_sha256']))
-    code=[reference(Path(adapter.__file__)),reference(Path(__import__('ops.research_panel_daily_product',fromlist=['digest']).__file__)),reference(Path(rule.__file__)),reference(Path(statistics.__file__)),reference(Path(__file__))]
+    code=[reference(Path(adapter.__file__)),reference(Path(__import__('ops.research_panel_daily_product',fromlist=['digest']).__file__)),reference(Path(rule.__file__)),reference(Path(statistics.__file__)),reference(Path(__file__)),reference(Path(history_checkpoint.__file__))]
     settings=dict(target=context.target,symbols=sorted(symbols),candidate_symbols=selected,canary=min(symbols,key=lambda symbol:(entries[symbol]['rows'],symbol)),reuse_complete=[],workers=workers,queue=workers*2,canary_parity_prefix_indices=sorted({0,min(40,min(entries[symbol]['rows'] for symbol in symbols)-1),max(0,min(entries[symbol]['rows'] for symbol in symbols)-6)}),job_memory_limit_GiB=64,system_available_reserve_GiB=24)
     refs=dict(index=index_ref,numeric_manifest=manifest_ref,numeric_product=product_ref,charts=charts_ref,calendar=calendar_ref,source_config=product['source_config'],receipt=context.receipt_ref,snapshot=context.snapshot_ref,quarantine=context.quarantine_ref,reader=context.reader_ref,pointers=[reference(context.pointer),reference(context.backpointer)])
     contract=dict(schema='v4.stock_history_catchup.v1',status='PREPARED_ORIGINAL_OWNER_INCREMENT',GOAL='Fill only actual missing accepted daily candidate history from retained original results',BASELINE_ID='CURRENT_DATED_ORIGINAL_PRODUCT',ONE_VARIABLE='missing_history_cache_initialization',WRITER='original_A_daily_owner',source_generation=context.generation,input_sha256=context.identity['input_sha256'],source_identity=context.identity,refs=refs,pins=context.config,code=code,config=settings,config_sha256=digest(settings),entries=entries,selector=dict(path=str(context.panel),stat={key:getattr(context.panel_stat,key)for key in ('st_size','st_mtime_ns','st_ino')}),output_root=str(output.resolve()),PASS_SIGNAL='Exact missing scope complete; current selection/chart unchanged; repeated read zero computations',STOP_RULE='Retain source revisions/ambiguity and checkpoint; never clear prior entries or change rules',resources=dict(cpu=cpu,available_bytes=available),**FLAGS)
@@ -410,7 +412,7 @@ def prepare_exact_metadata_row(context,root,output,computation_ref):
     if (done.get('status')!='PREPARED_ORIGINAL_SINGLE_ROW_NOT_PUBLISHED'or done.get('symbol')!=symbol or done.get('target_date')!=context.target
         or context.target!=20261030 or done.get('source_identity')!=context.identity or done.get('source_config')!=context.config_ref
         or done.get('code',{}).get('sha256')!=reference(Path(owner.__file__))['sha256']):raise ValueError('EXACT_ROW_COMPUTATION_BINDING_CONFLICT')
-    checked(done['code']);checked(done['typed_fact']);row=load(done['row']);cache=load(done['cache'])
+    checked(done['code']);checked(done['typed_fact']);row=load(done['row']);cache=history_checkpoint.load_checkpoint_ref(done['cache'])
     if (row['symbol']!=symbol or row['data_date']!=day or row['groups'] or row['pending_groups']
         or row['qualification']['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
         or cache['source_identity']!=context.identity or any(row.get(k)!=v for k,v in FLAGS.items())):raise ValueError('EXACT_ROW_OBSERVED_UNSELECTED_ORACLE_CONFLICT')
@@ -465,8 +467,9 @@ def prepare_exact_metadata_row(context,root,output,computation_ref):
     new_event={**event,'manifest':new_manifest_ref,'artifact':artifact,'original_charts':new_descriptor,'event_cases':new_index['event_cases'][day],
         'unknown_count':updated['unknown_count'],'event_id':digest(dict(manifest=new_manifest_ref,exact_metadata_row=computation_ref))};new_event.pop('top200',None)
     rule=cache['rule_sha256'];cache_path=root/'history'/rule/symbol/'checkpoint.json'
-    if reference(cache_path)!=done['original_cache']:raise ValueError('EXACT_ROW_ORIGINAL_CACHE_MOVED')
-    previous_cache=writer.immutable('exact_metadata_rows/'+day,'previous_cache.json',load(done['original_cache']));candidate_cache=save(output/'current_cache.json',cache)
+    original_ref,original_cache=history_checkpoint.read_checkpoint_state(cache_path,asof=context.target)
+    if original_ref!=done['original_cache']:raise ValueError('EXACT_ROW_ORIGINAL_CACHE_MOVED')
+    previous_cache=writer.immutable('exact_metadata_rows/'+day,'previous_cache.json',original_cache);candidate_cache=save(output/'current_cache.json',cache)
     lock=DEFAULT_OWNER_LOCK.stat();plan=dict(status='PREPARED_EXACT_METADATA_ROW',expected_index=index_ref,expected_event=event_ref,staged_index=save(output/'index.json',new_index),staged_event=save(output/'event.json',new_event),
         immutable_files=writer.files,completed=[symbol],owner_publisher=reference(Path(owner.__file__)),shared_owner_lock=dict(path=str(DEFAULT_OWNER_LOCK),device=lock.st_dev,inode=lock.st_ino),
         target_root=str(root),stage=str(output),computation=computation_ref,expected_cache=done['original_cache'],previous_cache=previous_cache,candidate_cache=candidate_cache,cache_path=str(cache_path),
@@ -479,11 +482,14 @@ def publish_exact_metadata_row(context,root,output,computation_ref):
     from ops import research_panel_daily_product as owner
     plan=prepare_exact_metadata_row(context,root,output,computation_ref)
     if plan['status']=='NO_NEW_COMPLETION':return plan
-    if reference(plan['cache_path'])!=plan['expected_cache']:raise ValueError('EXACT_ROW_CACHE_CAS_MOVED')
+    expected,previous=history_checkpoint.read_checkpoint_state(plan['cache_path'],asof=context.target)
+    if expected!=plan['expected_cache']:raise ValueError('EXACT_ROW_CACHE_CAS_MOVED')
     receipt=publish(plan)
     try:
-        if reference(plan['cache_path'])!=plan['expected_cache']:raise ValueError('EXACT_ROW_CACHE_CAS_MOVED_AFTER_INDEX')
-        after=owner.save(Path(plan['cache_path']),load(plan['candidate_cache']))
+        candidate=load(plan['candidate_cache']);same_rules=all(candidate.get(k)==previous.get(k)for k in ('rule_sha256','rules_signature'))
+        after=owner.save_history_checkpoint(Path(plan['cache_path']),candidate,dict(expected_ref=expected,
+            base_ref=expected if same_rules else None,base_cache=previous if same_rules else None,
+            retain_base=same_rules and Path(expected['path']).name=='checkpoint.json'))
     except BaseException:
         rollback={**plan,'status':'PREPARED_EXACT_METADATA_ROW_ROLLBACK','expected_index':receipt['index'],'expected_event':receipt['event'],
             'staged_index':save(Path(output)/'rollback_index.json',receipt['before']['index']),'staged_event':save(Path(output)/'rollback_event.json',receipt['before']['event']),'immutable_files':{}}
@@ -514,7 +520,7 @@ def prepare_current_history_view(context,root,output):
             and old.get('completed_symbols')==selected and proof.get('current_rows')==current_rows
             and proof.get('source_identity')==context.identity and proof.get('source_config')==context.config_ref
             and proof.get('chart_manifest')==chart_ref):
-            for row in proof['stocks'].values():checked(row['cache'])
+            for row in proof['stocks'].values():history_checkpoint.load_checkpoint_ref(row['cache'])
             context.unchanged();return dict(status='NO_NEW_COMPLETION',reason='CURRENT_HISTORY_VIEW_ALREADY_EXACT',proof=old['current_view_validation'],completed=selected,**FLAGS)
     caches={};bars_by_symbol={};cache_refs={};projections={};rows={}
     for symbol in selected:
@@ -526,7 +532,8 @@ def prepare_current_history_view(context,root,output):
         try:
             adapter.TARGET=context.target;_,bars=adapter.retained_sample(projection,adapter.load(source_cache))
         finally:adapter.TARGET=previous_target
-        cache_ref=reference(root/'history'/adapter.RULE/symbol/'checkpoint.json');cache=load(cache_ref)
+        cache_ref,cache=history_checkpoint.read_checkpoint_state(root/'history'/adapter.RULE/symbol/'checkpoint.json',asof=context.target)
+        if cache_ref is None:raise ValueError('HISTORY_CURRENT_CHECKPOINT_MISSING:'+symbol)
         if set(cache['evaluations'])!={str(bar['trade_date'])for bar in bars}:raise ValueError('CURRENT_HISTORY_VIEW_PREFIX_COVERAGE_CONFLICT')
         if (coverage.get('evaluated_count')!=len(cache['evaluations']) or row.get('symbol')!=symbol or row.get('data_date')!=day
             or cache['evaluations'][day]['groups']!={g:row['evaluation']['groups'][g]['status']for g in GROUPS}):raise ValueError('CURRENT_HISTORY_VIEW_CURRENT_LABEL_CONFLICT')
@@ -540,7 +547,7 @@ def prepare_current_history_view(context,root,output):
             calendar_sha256=digest(context.calendars[symbol[-2:]]),basis=context.identity['basis'],prior_sources=proofs[symbol]['sources'],prior_records_sha256=digest(proofs[symbol]['records']))
     retained_results=dict((old or {}).get('stock_results',{}));retained_checks={}
     for symbol,result_ref in retained_results.items():
-        result=load(result_ref);cache_ref=result['history_cache'];cache=load(cache_ref)
+        result=load(result_ref);cache_ref=result['history_cache'];cache=history_checkpoint.load_checkpoint_ref(cache_ref)
         if (result['symbol']!=symbol or result['status']!='COMPLETE_DESCRIPTIVE_NONPIT' or any(result.get(k)!=v for k,v in FLAGS.items())):raise ValueError('CURRENT_HISTORY_VIEW_RETAINED_RESULT_INVALID')
         if symbol in caches:
             current=caches[symbol]

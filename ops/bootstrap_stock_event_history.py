@@ -312,6 +312,7 @@ class PurePrefixCache:
 
 def prepare(output):
     owner, _, paths = load_runtime()
+    from ops import research_panel_history_checkpoint as history_checkpoint
     index_ref = ref(DAILY / 'index.json')
     index = load(index_ref)
     manifest_ref = index['dates'][str(TARGET)]
@@ -349,8 +350,9 @@ def prepare(output):
         qualification = context.qualify(symbol)
         if qualification != row['qualification'] or qualification['status'] != 'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
             raise ValueError('SOURCE_ADMISSION_CONFLICT:' + symbol)
-        cache_ref = ref(DAILY / 'history' / RULE / symbol / 'checkpoint.json')
-        cache = load(cache_ref)
+        cache_ref, cache = history_checkpoint.read_checkpoint_state(DAILY / 'history' / RULE / symbol / 'checkpoint.json', asof=TARGET)
+        if cache_ref is None:
+            raise ValueError('HISTORY_CURRENT_CHECKPOINT_MISSING:' + symbol)
         prior_proof = prove_retained_entries(owner, cache, bars, context, previous, symbol)
         validate_cache(owner, cache, bars, context.identity, config, prior_proof)
         missing = sorted(set(str(bar['trade_date']) for bar in bars) - set(cache['evaluations']))
@@ -370,7 +372,7 @@ def prepare(output):
         calendar=calendar_ref, source_config=config_ref, receipt=context.receipt_ref, snapshot=context.snapshot_ref,
         quarantine=context.quarantine_ref, reader=context.reader_ref,
         pointers=[ref(context.pointer), ref(context.backpointer)], runtime_manifest=ref(MAIN.parent / 'release-manifest.json'))
-    code = [ref(Path(__file__)), *[ref(path) for path in paths.values()]]
+    code = [ref(Path(__file__)), *[ref(path) for path in paths.values()], ref(Path(history_checkpoint.__file__))]
     settings = dict(target=TARGET, symbols=symbols, candidate_symbols=selected, canary=SETTINGS.get('canary','001328.SZ'), reuse_complete=[] if SETTINGS else ['002003.SZ'], workers=SETTINGS.get('workers',14), queue=SETTINGS.get('queue',28),
         job_memory_limit_GiB=64, system_available_reserve_GiB=24, checkpoint_seconds=5, checkpoint_dates=25,
         percentile_window=250, percentile_edges=[0, .2, .4, .6, .8, 1], event_cases='ALL',
@@ -495,6 +497,7 @@ def stats_date(day):
 
 def worker(symbol):
     owner, stats, context, contract, contract_ref = _STATE
+    from ops import research_panel_history_checkpoint as history_checkpoint
     entry = contract['entries'][symbol]
     output = Path(contract['output_root'])
     done = output / 'stocks' / symbol / 'RESULT.json'
@@ -511,7 +514,7 @@ def worker(symbol):
     if owner.digest(bars) != entry['bars_sha256'] or projection_identity(projection) != context.identity:
         raise ValueError('WORKER_PREFIX_DRIFT:' + symbol)
     prior_row = load(entry['prior_row'])
-    cache = load(entry['prior_cache'])
+    cache = history_checkpoint.load_checkpoint_ref(entry['prior_cache'])
     validate_cache(owner, cache, bars, context.identity, context.config, entry.get('prior_entry_reuse'))
     qualification = prior_row['qualification']
     binding = dict(contract=contract_ref, symbol=symbol, source_identity=context.identity, config=contract['refs']['source_config'],
@@ -594,6 +597,9 @@ def worker(symbol):
         if symbol in contract['config']['reuse_complete']:
             row = copy.deepcopy(prior_row)
             cache_path_ref = entry['prior_cache']
+            if Path(cache_path_ref['path']).name.startswith('delta-'):
+                # Installed completion consumes a plain JSON RESULT cache.
+                cache_path_ref = owner.save(cache_path, cache, immutable=True)
         else:
             # Seed once, not at every checkpoint. Subsequent durable blocks are
             # compact groups only; final consumer-compatible cache is saved once.

@@ -1311,6 +1311,21 @@ def product_write_seams(modules, claim):
                     claim.observe(path)
                 return result
             return call
+        def history_write(original):
+            def call(*args, **kwargs):
+                if not lease.owns():
+                    return original(*args, **kwargs)
+                caller_observe = kwargs.get('observe')
+                def observe(path, size, committed):
+                    if committed:
+                        claim.observe(path)
+                    else:
+                        claim.watch(path)
+                        claim.checkpoint(incoming=size)
+                    if caller_observe is not None:
+                        caller_observe(path, size, committed)
+                return original(*args, **{**kwargs, 'observe': observe})
+            return call
         def boundary(original):
             def call(*args, **kwargs):
                 if not lease.owns():
@@ -1360,17 +1375,22 @@ def product_write_seams(modules, claim):
                         return self.inner.submit(function, *args, **kwargs)
                     paths = []
                     symbol = args[0] if args and isinstance(args[0], str) else None
+                    def history_paths():
+                        if self.root is None or symbol is None:
+                            return []
+                        return [path for directory in self.root.glob('history/*/'+symbol)
+                                for path in directory.iterdir() if path.name == 'checkpoint.json'
+                                or path.name.startswith(('delta-', 'head-', 'seed-')) and path.suffix == '.json']
                     if self.parts is not None and symbol is not None:
                         paths = [self.parts/(symbol+'.json'), self.parts/'original_retained'/(symbol+'.json.gz')]
-                        for path in paths:
+                        for path in (*paths, *history_paths()):
                             claim.watch(path)
                     claim.checkpoint()
                     if threaded:
                         function = lease.thread_call(function)
                     future = self.inner.submit(function, *args, **kwargs)
                     def observe():
-                        if self.root is not None and symbol is not None:
-                            paths.extend(self.root.glob('history/*/'+symbol+'/checkpoint.json'))
+                        paths.extend(history_paths())
                         for path in paths:
                             if path not in claim.baselines:
                                 claim.baselines[path] = (0, 0)
@@ -1384,6 +1404,8 @@ def product_write_seams(modules, claim):
                         replace(module, name, executor_type(getattr(module, name), threaded=name == 'ThreadPoolExecutor'))
                 if hasattr(module, 'save'):
                     replace(module, 'save', save(module.save))
+                if hasattr(module, 'save_history_checkpoint'):
+                    replace(module, 'save_history_checkpoint', history_write(module.save_history_checkpoint))
                 if hasattr(module, 'write_json'):
                     replace(module, 'write_json', save(module.write_json))
                 for name in ('compute_stock', 'run_incremental_history', 'publish_current_history_view', 'build', 'stage', 'record_daily_attempt', 'retain_owner_result', 'finalize_owner_charts', 'owner_pngs'):

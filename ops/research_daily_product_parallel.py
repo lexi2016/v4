@@ -24,7 +24,8 @@ def bound_main_sources():
     ref = dict(path=os.environ['V4_RELEASE_MANIFEST_PATH'], sha256=os.environ['V4_RELEASE_MANIFEST_SHA256'])
     manifest = json.loads(product.checked(ref).read_text())
     app = Path(manifest['app_root']).resolve()
-    paths = [Path(product.__file__).resolve(), Path(__file__).resolve()]
+    paths = [Path(product.__file__).resolve(), Path(__file__).resolve(),
+             Path(product.history_checkpoint.__file__).resolve()]
     inventory = {r['path']: r['sha256'] for r in manifest['application_inventory']['entries'] if r.get('kind', 'file') == 'file'}
     for path in paths:
         if app != path.parents[1] or inventory.get(str(path.relative_to(app))) != product.sha(path):
@@ -139,13 +140,15 @@ def checkpoint(symbol):
         return result
     engine.compute=reuse_compute
     try:
-        row, cache, cachepath = product.compute_stock(context, symbol, history_dates=(),
+        checkpoint_input = {}
+        row, cache, cachepath = product.compute_stock(context, symbol, history_dates=(), checkpoint_input=checkpoint_input,
             **({'chart_capture': capture} if _CHARTS else {}))
         if reuse and row['groups']!=reuse['prior_groups']:raise ValueError('DAILY_UNCHANGED_PREFIX_GROUP_PARITY_FAILED')
         if reuse:row['same_day_formula_reuse']=reuse
-        product.save(cachepath, cache)
+        context.unchanged()
+        product.save_history_checkpoint(cachepath, cache, checkpoint_input)
     except (ValueError, KeyError, TypeError, OSError) as error:
-        if str(error).startswith('DAILY_SOURCE_PIN_DRIFT'):
+        if isinstance(error, product.history_checkpoint.HistoryCheckpointError) or str(error).startswith('DAILY_SOURCE_PIN_DRIFT'):
             raise
         row = dict(symbol=symbol, display_name=None, data_date=str(context.target), groups='',
             pending_groups='|'.join(product.GROUPS), latest_new_anchor='', reasons='SOURCE_ISOLATED:' + str(error),

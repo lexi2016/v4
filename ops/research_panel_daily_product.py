@@ -11,6 +11,8 @@ from decimal import Decimal
 from pathlib import Path
 from contextlib import nullcontext
 
+from ops import research_panel_history_checkpoint as history_checkpoint
+
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
 CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
@@ -196,14 +198,8 @@ class SourceContext:
   self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
   if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
   self.panel_stat=self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
-  self.label_results={}
   label_root=os.environ.get('V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')
-  if label_root:
-   label_root=Path(label_root)
-   if not label_root.is_absolute() or label_root.is_symlink() or label_root.resolve(strict=True)!=label_root:raise ValueError('DAILY_LABEL_SOURCE_ROOT_INVALID')
-   label_index=json.loads((label_root/'index.json').read_text())
-   for old_day,sync in sorted(label_index.get('history_sync',{}).items()):
-    if int(old_day)<=self.target:self.label_results.update(sync.get('stock_results',{}))
+  self.label_results,self.label_bindings,self.label_retained=label_index_bindings(Path(label_root),self.target) if label_root else ({},{},{})
   self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
   reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
  def cached_sha(self,p):
@@ -337,15 +333,61 @@ def source_inputs(context,symbol,bars,asof,qualification,*,retain=None,prefix_re
  baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
  return dict(original_breakout_by_date=breakout,baseline_memberships=baseline,old_main_anchor_date=summary.get('main_anchor_date'),qualification_status=qualification['status'],raw_g4_reference=context.g4_reference(symbol,asof,qualification))
 
-def accepted_label_cache(context,symbol,rule_sha,cache):
+def label_index_bindings(root,target):
+ """Bind the indexed results and the exact proof for a republished dated view."""
+ if not root.is_absolute() or root.is_symlink() or root.resolve(strict=True)!=root:raise ValueError('DAILY_LABEL_SOURCE_ROOT_INVALID')
+ index=json.loads((root/'index.json').read_bytes());results={};bindings={};retained={}
+ for day,sync in sorted(index.get('history_sync',{}).items()):
+  if int(day)>target:continue
+  refs=sync.get('stock_results',{});proof_ref=sync.get('current_view_validation');origins={}
+  if refs and proof_ref:
+   proof=json.loads(checked(proof_ref).read_bytes());identity=proof.get('source_identity',{})
+   if (proof.get('schema')!='CURRENT_COMPLETED_HISTORY_VIEW_V1' or proof.get('status')!='VERIFIED_REUSED_NO_COMPUTE'
+       or proof.get('numeric_manifest')!=sync.get('numeric_manifest') or str(identity.get('asof'))!=day
+       or identity.get('generation')!=sync['source_generation'] or identity.get('input_sha256')!=sync['input_sha256']
+       or any(proof.get(k)!=v for k,v in FLAGS.items())):
+    raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_VIEW_PROOF_CONFLICT')
+   origins=proof.get('retained_results',{})
+   if not isinstance(origins,dict) or set(origins)!=set(refs) or any(not isinstance(origins[symbol],dict) or origins[symbol].get('result')!=ref for symbol,ref in refs.items()):
+    raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_VIEW_RETAINED_RESULTS_CONFLICT')
+  for symbol,ref in refs.items():
+   results[symbol]=ref
+   bindings[symbol]=(int(day),sync['source_generation'],sync['input_sha256'],sync.get('contract'))
+   if symbol in origins:retained[symbol]=origins[symbol]
+   else:retained.pop(symbol,None)
+ return results,bindings,retained
+
+
+def accepted_label_cache(context,symbol,rule_sha,cache,*,checkpoint_input=None):
  """Restore the original completed labels by their saved result/cache SHA."""
  ref=getattr(context,'label_results',{}).get(symbol)
  if not ref:return cache
  result=json.loads(checked(ref).read_text())
- if result.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT' or result.get('symbol')!=symbol or any(result.get(k)!=v for k,v in FLAGS.items()):raise ValueError('DAILY_ACCEPTED_LABEL_RESULT_INVALID')
- previous=json.loads(checked(result['history_cache']).read_text())
+ if result.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT' or result.get('symbol')!=symbol or result.get('historical_PIT') is not False or any(result.get(k)!=v for k,v in FLAGS.items()):raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_RESULT_INVALID')
+ cache_ref=result['history_cache'];dependencies={}
+ previous=history_checkpoint.load_checkpoint_ref(cache_ref,dependencies=dependencies)
  if previous.get('rule_sha256')!=rule_sha or previous.get('rules_signature')!=digest(context.config):raise ValueError('DAILY_ACCEPTED_LABEL_RULE_IDENTITY_CONFLICT')
- return previous if len(previous.get('evaluations',{}))>len(cache.get('evaluations',{})) else cache
+ identity=previous['source_identity'];asof=int(identity['asof']);coverage=previous['coverage'];count=len(previous['evaluations'])
+ binding=getattr(context,'label_bindings',{}).get(symbol)
+ retained=getattr(context,'label_retained',{}).get(symbol)
+ binding_matches=(binding is None or (asof==binding[0] and result.get('contract')==binding[3]
+     and (retained is not None or (identity.get('generation'),identity.get('input_sha256'))==binding[1:3])))
+ if retained is not None and (retained.get('result')!=ref or retained.get('original_cache')!=cache_ref or retained.get('original_source_identity')!=identity):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_VIEW_ORIGIN_CONFLICT')
+ if (asof>context.target or coverage.get('requested_end')!=asof or identity.get('historical_PIT') is not False
+     or coverage.get('historical_PIT') is not False or coverage.get('known_full_history') is not True or coverage.get('missing')!=[]
+     or coverage.get('evaluated_dates')!=sorted(map(int,previous['evaluations'])) or coverage.get('evaluated_count')!=count
+     or result.get('evaluated_dates')!=count or result.get('available_dates')!=count or result.get('remaining_dates')!=[]
+     or not binding_matches):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_DATE_OR_COVERAGE_CONFLICT')
+ if count<=len(cache['evaluations']):return cache
+ if checkpoint_input is not None:checkpoint_input.update(base_ref=cache_ref,base_dependencies=dependencies,retain_base=False)
+ return previous
+
+
+def save_history_checkpoint(path,cache,checkpoint_input,*,observe=None):
+ """Commit the delta selected by compute_stock after the caller's checks."""
+ return history_checkpoint.write_checkpoint(path,cache,observe=observe,**checkpoint_input)
 
 
 def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
@@ -376,7 +418,7 @@ def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
  return result,all_groups,counters
 
 
-def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False):
+def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False,checkpoint_input=None):
  from domains.research_daily_product import evaluate_daily_product
  from domains.research_daily_statistics import build_daily_event_statistics
  history_dates=tuple(history_dates)
@@ -385,13 +427,30 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
  captured=[]
  current_inputs=source_inputs(context,symbol,bars,target,q,**({'retain':captured.append} if chart_capture is not None or (reuse_history_prefix and history_dates) else {})) if bars and q['status']=='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH' else dict(original_breakout_by_date={},baseline_memberships={},old_main_anchor_date=None,qualification_status=q['status'],raw_g4_reference=None)
  current=evaluate(symbol=symbol,asof=target,fullprefix=bars,exchange_calendar=calendar,**current_inputs)
- history_root=context.root/'history'/rule_sha/symbol;cachefile=history_root/'checkpoint.json';cache=json.loads(cachefile.read_text()) if cachefile.is_file() else dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
- cache=accepted_label_cache(context,symbol,rule_sha,cache)
- rules_signature=digest(context.config)
- if cache.get('rules_signature',rules_signature)!=rules_signature or q['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
+ cachefile=context.root/'history'/rule_sha/symbol/'checkpoint.json'
+ dependencies={}
+ local_ref,cache=history_checkpoint.read_checkpoint_state(cachefile,asof=target,dependencies=dependencies)
+ base_ref=local_ref
+ seed_root=getattr(context,'history_checkpoint_seed_root',None)
+ if cache is None and seed_root is not None:
+  dependencies={}
+  base_ref,cache=history_checkpoint.read_checkpoint_state(Path(seed_root)/cachefile.relative_to(context.root),asof=target,dependencies=dependencies)
+ if cache is None:cache=dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
+ inputs={'base_ref':base_ref,'base_dependencies':dependencies,'expected_ref':local_ref,'retain_base':bool(base_ref and Path(base_ref['path']).name=='checkpoint.json')}
+ cache=accepted_label_cache(context,symbol,rule_sha,cache,checkpoint_input=inputs)
+ base_cache=cache;rules_signature=digest(context.config)
+ if cache.get('rule_sha256')!=rule_sha:raise history_checkpoint.HistoryCheckpointError('DAILY_HISTORY_CACHE_RULE_IDENTITY_CONFLICT')
+ if cache.get('rules_signature',rules_signature)!=rules_signature or q['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
+  cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
+ else:cache={**cache,'evaluations':dict(cache['evaluations'])}
  cache['rules_signature']=rules_signature
  old_end=max(map(int,cache['evaluations']),default=0);old_prefix=[b for b in bars if b['trade_date']<=old_end]
  if cache.get('prefix_sha256') and digest(old_prefix)!=cache['prefix_sha256']:cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
+ if checkpoint_input is not None:
+  if (cache.get('invalidated_previous_source') and not cache['evaluations']) or base_cache.get('rules_signature')!=cache.get('rules_signature'):
+   inputs['base_ref']=None
+  inputs['base_cache']=base_cache if inputs['base_ref'] is not None else None
+  checkpoint_input.update(inputs)
  cache['evaluations'][str(target)]=dict(groups={g:current['groups'][g]['status'] for g in GROUPS},source_identity=context.identity,qualification=q,exact_full_conditions=True)
  # Explicit reuse is opt-in. Census/G4/qualification still use each cutoff;
  # only proven causal formula fields may come from the exact same full start.
@@ -459,8 +518,11 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   if checkpoint.is_file():row=json.loads(checkpoint.read_text())
   else:
    try:
-    row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,**({'chart_capture':capture} if original_charts else {}));save(path,cache)
+    checkpoint_input={}
+    row,cache,path=compute_stock(context,symbol,evaluate=evaluate,history_dates=history_dates,checkpoint_input=checkpoint_input,**({'chart_capture':capture} if original_charts else {}))
+    context.unchanged();save_history_checkpoint(path,cache,checkpoint_input)
    except (ValueError,KeyError,TypeError,OSError) as error:
+    if isinstance(error,history_checkpoint.HistoryCheckpointError):raise
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
    row.update(FLAGS);save(checkpoint,row,immutable=True)
   rows.append(row);row_refs[symbol]=reference(checkpoint);save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
