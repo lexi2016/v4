@@ -135,7 +135,7 @@ def build_fixture(root):
             target = group["target"]
             judges.append({
                 **keys, "observation_date": row["observation_date"], "comparison_group_id": group_name,
-                "label_maturity_date": row["label_maturity_date"],
+                "label_maturity_date": row["label_maturity_date"], "raw_prefix_sha256": row["raw_prefix_sha256"],
                 "target_name": target, "target_value": row[target], "judge_a": "SYNTHETIC_JUDGE_A",
                 "judge_b": "SYNTHETIC_JUDGE_B", "judge_a_value": row[target], "judge_b_value": row[target],
                 "arbitrator": "", "resolution_status": "AGREED",
@@ -332,6 +332,8 @@ def run_tests(root):
         "sector_membership", "published_at", "2026-01-09T16:00+08:00", 10))
     reject("H1_JUDGES_NOT_INDEPENDENT", "two distinct independent judges", mutate_side_evidence(
         "independent_label_adjudication", "judge_b", "SYNTHETIC_JUDGE_A", 0))
+    reject("H1_JUDGMENT_FOR_DIFFERENT_RAW_PREFIX", "Independent adjudication RAW prefix SHA conflicts",
+           mutate_side_evidence("independent_label_adjudication", "raw_prefix_sha256", "0" * 64, 0))
 
     prep = root / "preparation"
     shutil.copytree(manifest_path.parent, prep)
@@ -361,6 +363,22 @@ def run_tests(root):
         raise AssertionError("Pending adjudication preparation escaped into portable supervised export")
     results.append(result("H1_RAW_PREP_WITH_UNCERTIFIED_HISTORY", "PASS_PREP_ONLY",
                           "Two exposed D-only samples hash verified; none assigned; supervised export refused"))
+    for name, change in (
+        ("H1_PREP_UNKNOWN_EVENT_WITH_ASSERTED_ID", {"event_identity_status": "UNKNOWN", "event_id": "FABRICATED_1"}),
+        ("H1_PREP_UNKNOWN_EVENT_WITH_ASSERTED_LIFECYCLE",
+         {"event_identity_status": "UNKNOWN", "wave_id": "FABRICATED_1", "attack_start_date": "20260107"}),
+        ("H1_PREP_ASSERTED_CERTIFIED_EVENT", {"event_identity_status": "CERTIFIED_REAL_EVENT"}),
+    ):
+        corrupted_rows = [{**prep_rows[0], **change}, *prep_rows[1:]]
+        corrupt = write_tables(prep, fixture, corrupted_rows, [], exclusions_for(corrupted_rows, []))
+        try:
+            common.validate_manifest(corrupt, common.digest_file(corrupt))
+        except ValueError as error:
+            if "H1 preparation cannot assert an event, root, wave or lifecycle" not in str(error):
+                raise AssertionError(f"{name} rejected for wrong reason: {error}") from error
+            results.append(result(name, "REJECT: invalid preparation event claim", str(error)))
+        else:
+            raise AssertionError(f"{name} unexpectedly passed")
 
     runner = Path(common.__file__).with_name("p515_local_training.py")
     formal = subprocess.run([sys.executable, str(runner), "--output", str(root / "not_written"),

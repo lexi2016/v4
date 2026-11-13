@@ -73,9 +73,10 @@ EVENT_EVIDENCE_FIELDS = (
     "raw_root_anchor_id", "raw_root_anchor_date", "wave_id", "attack_start_date", "attack_end_date",
     "pullback_start_date", "pullback_end_date", "support_role",
 )
+EVENTLESS_FIELDS = (*EVENT_EVIDENCE_FIELDS[4:], "root_anchor_id", "event_lineage_sha256")
 JUDGMENT_FIELDS = (
     "sample_id", "comparison_group_id", *OBSERVATION_KEY, "target_name", "target_value",
-    "label_maturity_date", "judge_a", "judge_b", "judge_a_value", "judge_b_value", "arbitrator",
+    "label_maturity_date", "raw_prefix_sha256", "judge_a", "judge_b", "judge_a_value", "judge_b_value", "arbitrator",
     "resolution_status",
 )
 HISTORY_FIELDS = (
@@ -193,6 +194,9 @@ def contract_hashes(task_specific=False):
         "required_statuses": STATUS_CERTIFIED,
         "unknown_statuses": "retained_for_review_preparation_excluded_from_assigned_required_supervised_folds",
         "structural_controls": "H1 NO_REAL_EVENT and blank event_id; no fake roots",
+        "preparation": "H1 RAW preparation carries no asserted event identity or lifecycle fields",
+        "judgment_binding": "independent per-sample per-task judgments bind exact RAW prefix SHA",
+        "H1_UNKNOWN": "abstention or independent holdout outcome outside the seven supervised classes",
         "exposure": "EXPOSED_DEV cannot enter FROZEN_SUPERVISED train or development assignments",
         "raw_prefix": "bound bytes, RAW_UNADJUSTED, exact security, ordered OHLCVA through D close",
         "H2": "certified raw root and real wave with separated attack and pullback dates and support role",
@@ -443,6 +447,8 @@ class TaskEvidence:
         target = group["target"]
         if any(judgment[field] != row[field] for field in (*OBSERVATION_KEY, "label_maturity_date")):
             raise ValueError("Independent adjudication identity or maturity conflicts with the sample")
+        if judgment["raw_prefix_sha256"] != row["raw_prefix_sha256"]:
+            raise ValueError("Independent adjudication RAW prefix SHA conflicts with the sample")
         judges = judgment["judge_a"].casefold(), judgment["judge_b"].casefold()
         if (not all(is_identifier(value) for value in judges) or judges[0] == judges[1]
                 or self.plan_author in judges):
@@ -713,10 +719,11 @@ def validate_manifest(manifest_path: Path, approved_manifest_sha256: str, *, all
                     raise ValueError(f"Invalid {field} value")
             if row["event_identity_status"] not in {"NO_REAL_EVENT", "CERTIFIED_REAL_EVENT", "UNKNOWN"}:
                 raise ValueError("Invalid event_identity_status")
-            if row["event_identity_status"] == "NO_REAL_EVENT":
-                no_event_fields = (*EVENT_EVIDENCE_FIELDS[4:], "root_anchor_id", "event_lineage_sha256")
-                if row["event_id"] or any(row[field].upper() not in PLACEHOLDERS for field in no_event_fields):
-                    raise ValueError("H1 NO_REAL_EVENT requires blank event_id and no invented event lineage")
+            has_event_claim = row["event_id"] or any(row[field].upper() not in PLACEHOLDERS for field in EVENTLESS_FIELDS)
+            if is_preparation and (row["event_identity_status"] == "CERTIFIED_REAL_EVENT" or has_event_claim):
+                raise ValueError("H1 preparation cannot assert an event, root, wave or lifecycle")
+            if row["event_identity_status"] == "NO_REAL_EVENT" and has_event_claim:
+                raise ValueError("H1 NO_REAL_EVENT requires blank event_id and no invented event lineage")
         samples_by_id[sid] = row
 
     fold_header, fold_rows = loaded["fold_assignments"][1:3]
