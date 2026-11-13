@@ -7,12 +7,17 @@ import hashlib
 import json
 import os
 import re
-import tempfile
+import stat
 from pathlib import Path
 from typing import Any, Iterator
 from infrastructure.owned_io import SafeRoot
 
-from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
+from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, digest, validate_date
+
+
+_DEFAULT_READ_LIMIT = 64 * 1024 * 1024
+_PLAN_READ_LIMIT = 128 * 1024 * 1024
+_INPUT_READ_LIMIT = 128 * 1024 * 1024
 
 
 class StorageConflict(Exception):
@@ -58,9 +63,9 @@ class WorkbenchStore:
         with self.io.kernel_lock(f"locks/{lock_key}.lock", timeout=10):
             yield
 
-    def _read(self, path: Path) -> dict[str, Any] | None:
+    def _read(self, path: Path, *, max_bytes: int = _DEFAULT_READ_LIMIT) -> dict[str, Any] | None:
         try:
-            raw = self.io.read_bytes(str(path.relative_to(self.root)))
+            raw = self.io.read_bytes(str(path.relative_to(self.root)), max_bytes=max_bytes)
         except FileNotFoundError:
             return None
         obj = json.loads(raw)
@@ -76,19 +81,39 @@ class WorkbenchStore:
         finally:
             os.close(fd)
 
-    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool) -> None:
+    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool,
+               collision_read_limit: int = _DEFAULT_READ_LIMIT) -> None:
         data = canonical(obj)
         try:
             self.io.write_bytes(str(path.relative_to(self.root)),data,require_absent=immutable)
         except FileExistsError:
-            if self._read(path) != obj:
+            if self._read(path, max_bytes=collision_read_limit) != obj:
                 raise StorageConflict("IMMUTABLE_COLLISION")
 
     def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
         if len(input_sha) != 64 or any(c not in "0123456789abcdef" for c in input_sha):
             raise ValueError("INPUT_SHA_INVALID")
         with self.lock("input:" + input_sha):
-            self._write(self._path("input_snapshots", input_sha), data, immutable=True)
+            self._write(self._path("input_snapshots", input_sha), data, immutable=True,
+                        collision_read_limit=_INPUT_READ_LIMIT)
+
+    def save_input_checkpoint(self, job_id: str, data: dict[str, Any]) -> str:
+        """Persist the immutable input body plus the legacy inline resume checkpoint."""
+        input_sha = digest(data)
+        self.save_input(input_sha, data)
+        self.save_checkpoint(job_id, "LOAD_INPUTS", data)
+        return input_sha
+
+    def load_input_checkpoint(
+        self, job_id: str
+    ) -> tuple[dict[str, Any] | None, str | None]:
+        """Read the backwards-compatible full JSON LOAD_INPUTS checkpoint."""
+        checkpoint = self.load_checkpoint(job_id, "LOAD_INPUTS")
+        if checkpoint is None:
+            return None, None
+        if "context" not in checkpoint or "batches" not in checkpoint:
+            raise StorageUnavailable("INPUT_CHECKPOINT_INVALID")
+        return checkpoint, digest(checkpoint)
 
     def save_job(self, job: JobRecord) -> None:
         # Attempts are mutable; successful plans are not.
@@ -117,7 +142,8 @@ class WorkbenchStore:
                 previous=self.read_plan(before["run_id"]) if before else None
                 snap=merger(previous,snap)
             d = snap.model_dump(mode="json")
-            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
+            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True,
+                        collision_read_limit=_PLAN_READ_LIMIT)
             saved = self.read_plan(snap.run_id)
             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
                 raise StorageConflict("READBACK_MISMATCH")
@@ -136,7 +162,7 @@ class WorkbenchStore:
             return saved
 
     def read_plan(self, run_id: str) -> PlanSnapshot:
-        obj = self._read(self._path("snapshots", _key(run_id)))
+        obj = self._read(self._path("snapshots", _key(run_id)), max_bytes=_PLAN_READ_LIMIT)
         if obj is None:
             raise KeyError("PLAN_NOT_FOUND")
         saved = PlanSnapshot.model_validate(obj)
@@ -238,13 +264,111 @@ class WorkbenchStore:
 
     def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
         with self.lock(f"checkpoint:{job_id}:{step}"):
-            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload, immutable=True)
+            limit = _PLAN_READ_LIMIT if step in {"PUBLISH", "LOAD_INPUTS"} else _DEFAULT_READ_LIMIT
+            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload,
+                        immutable=True, collision_read_limit=limit)
+
+    def _file_fingerprint(self, path: Path, *, max_bytes: int) -> tuple[int, str, int, int, int, int, int] | None:
+        relative = str(path.relative_to(self.root))
+        try:
+            with self.io.parent(relative) as (parent, name):
+                fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+                try:
+                    before = os.fstat(fd)
+                    if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                            or before.st_size < 0 or before.st_size > max_bytes):
+                        return None
+                    hasher = hashlib.sha256()
+                    size = 0
+                    while True:
+                        chunk = os.read(fd, 1024 * 1024)
+                        if not chunk:
+                            break
+                        size += len(chunk)
+                        if size > max_bytes:
+                            return None
+                        hasher.update(chunk)
+                    after = os.fstat(fd)
+                    visible = os.stat(name, dir_fd=parent, follow_symlinks=False)
+                    identity_before = (before.st_dev, before.st_ino, before.st_size,
+                                       before.st_mtime_ns, before.st_ctime_ns)
+                    identity_after = (after.st_dev, after.st_ino, after.st_size,
+                                      after.st_mtime_ns, after.st_ctime_ns)
+                    identity_visible = (visible.st_dev, visible.st_ino, visible.st_size,
+                                        visible.st_mtime_ns, visible.st_ctime_ns)
+                    if (size != before.st_size or identity_before != identity_after
+                            or identity_before != identity_visible):
+                        return None
+                    return (size, hasher.hexdigest(), before.st_dev, before.st_ino,
+                            before.st_size, before.st_mtime_ns, before.st_ctime_ns)
+                finally:
+                    os.close(fd)
+        except FileNotFoundError:
+            return None
+
+    def _remove_checkpoint_if_peer(self, job_id: str, step: str, peer: Path, *, max_bytes: int) -> bool:
+        with self.lock(f"checkpoint:{job_id}:{step}"):
+            checkpoint = self._path("checkpoints", _key(job_id), _key(step))
+            checkpoint_fp = self._file_fingerprint(checkpoint, max_bytes=max_bytes)
+            peer_fp = self._file_fingerprint(peer, max_bytes=max_bytes)
+            if checkpoint_fp is None or peer_fp is None or checkpoint_fp[:2] != peer_fp[:2]:
+                return False
+            relative = str(checkpoint.relative_to(self.root))
+            with self.io.parent(relative) as (parent, name):
+                try:
+                    visible = os.stat(name, dir_fd=parent, follow_symlinks=False)
+                except FileNotFoundError:
+                    return False
+                identity = (visible.st_dev, visible.st_ino, visible.st_size,
+                            visible.st_mtime_ns, visible.st_ctime_ns)
+                expected = checkpoint_fp[2:]
+                if not stat.S_ISREG(visible.st_mode) or identity != expected:
+                    return False
+                peer_relative = str(peer.relative_to(self.root))
+                with self.io.parent(peer_relative) as (peer_parent, peer_name):
+                    try:
+                        peer_visible = os.stat(peer_name, dir_fd=peer_parent, follow_symlinks=False)
+                    except FileNotFoundError:
+                        return False
+                    peer_identity = (peer_visible.st_dev, peer_visible.st_ino,
+                                     peer_visible.st_size, peer_visible.st_mtime_ns,
+                                     peer_visible.st_ctime_ns)
+                    if (not stat.S_ISREG(peer_visible.st_mode)
+                            or peer_identity != peer_fp[2:]):
+                        return False
+                os.unlink(name, dir_fd=parent)
+                os.fsync(parent)
+                return True
+
+    def remove_input_checkpoint_if_snapshot(self, job_id: str) -> bool:
+        """Retire LOAD_INPUTS only when its canonical bytes match its SHA-named snapshot."""
+        checkpoint = self._path("checkpoints", _key(job_id), "LOAD_INPUTS")
+        fingerprint = self._file_fingerprint(checkpoint, max_bytes=_INPUT_READ_LIMIT)
+        if fingerprint is None:
+            return False
+        peer = self._path("input_snapshots", fingerprint[1])
+        return self._remove_checkpoint_if_peer(
+            job_id, "LOAD_INPUTS", peer, max_bytes=_INPUT_READ_LIMIT)
+
+    def remove_publish_checkpoint_if_plan(self, job_id: str, date: str, phase: str,
+                                          run_id: str) -> bool:
+        """Retire PUBLISH only when its canonical bytes equal the durable plan snapshot."""
+        validate_date(date)
+        key = _key(run_id)
+        catalog = self._read(self._path("catalog", date, phase, key))
+        if (catalog is None or catalog.get("run_id") != run_id
+                or not isinstance(catalog.get("product_sha256"), str)):
+            return False
+        peer = self._path("snapshots", key)
+        return self._remove_checkpoint_if_peer(
+            job_id, "PUBLISH", peer, max_bytes=_PLAN_READ_LIMIT)
 
     def load_checkpoint(self, job_id: str, step: str) -> dict[str, Any] | None:
-        return self._read(self._path("checkpoints", _key(job_id), _key(step)))
+        limit = _PLAN_READ_LIMIT if step in {"PUBLISH", "LOAD_INPUTS"} else _DEFAULT_READ_LIMIT
+        return self._read(self._path("checkpoints", _key(job_id), _key(step)), max_bytes=limit)
 
     def load_input(self, input_sha: str) -> dict[str, Any] | None:
-        return self._read(self._path("input_snapshots", input_sha))
+        return self._read(self._path("input_snapshots", input_sha), max_bytes=_INPUT_READ_LIMIT)
 
     @staticmethod
     def _pid_alive(pid: int) -> bool:

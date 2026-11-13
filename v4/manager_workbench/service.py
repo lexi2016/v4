@@ -221,7 +221,7 @@ class ManagerService:
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
 
         resume_job = ctx.scope_refs.get("resume_from_job",job.job_id)
-        frozen_input = self.store.load_checkpoint(resume_job,"LOAD_INPUTS")
+        frozen_input, frozen_input_sha = self.store.load_input_checkpoint(resume_job)
         try:
             if frozen_input:
                 saved_context = RunContext.model_validate(frozen_input["context"])
@@ -251,9 +251,7 @@ class ManagerService:
             raise StepFailure("INPUT_CONTRACT_MISMATCH")
         input_body = {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY", "context": ctx.model_dump(mode="json"),
                       "batches": [b.model_dump(mode="json") for b in inputs]}
-        input_snapshot_sha = digest(input_body)
-        self.store.save_input(input_snapshot_sha, input_body)
-        self.store.save_checkpoint(job.job_id,"LOAD_INPUTS",input_body)
+        input_snapshot_sha = frozen_input_sha or digest(input_body)
         # Volatile job identifiers and server cutoff are not producer-input identity.
         # A must reflect any actual as-of evidence changes in each InputBatch SHA.
         input_sha = digest({"target_date": ctx.target_date, "phase": ctx.phase.value,
@@ -268,6 +266,9 @@ class ManagerService:
         reuse = self.store.find_reusable(ctx.target_date, ctx.phase.value, signature)
         if reuse:
             return reuse.run_id, JobState.PARTIAL if reuse.gaps else JobState.SUCCEEDED
+        if self.store.load_checkpoint(job.job_id, "LOAD_INPUTS") is None:
+            self.store.save_input_checkpoint(
+                job.job_id, frozen_input if frozen_input is not None else input_body)
         self.jobs.update(job, step="RUN_LANES")
         audit = AuditedExecutor(self.executor,store=self.store,job_id=job.job_id,resume_job_id=resume_job)
         if resume_job != job.job_id:

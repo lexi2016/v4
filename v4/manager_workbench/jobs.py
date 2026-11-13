@@ -89,6 +89,11 @@ class JobCoordinator:
             result_run_id, result_state = worker(job)
             job.run_id = result_run_id
             self.update(job, state=result_state, step="DONE", finished=True)
+            try:
+                self._retire_terminal_checkpoints(job)
+            except Exception:
+                # DONE is durable; cleanup faults must not downgrade the result.
+                pass
         except StepFailure as e:
             job.failed_steps = list(dict.fromkeys([*job.failed_steps, job.step]))
             job.failure_code = e.code
@@ -107,6 +112,22 @@ class JobCoordinator:
                 claim = self.store.active_claim(scope)
                 if claim is None or claim.job_id == job.job_id:
                     self.store.set_claim(scope,None)
+
+    def _retire_terminal_checkpoints(self, job: JobRecord) -> None:
+        """Drop only exact input/plan duplicates after their result is durably terminal."""
+        if (job.context.scope_refs.get("capture_operation")
+                or job.state not in (JobState.SUCCEEDED, JobState.PARTIAL) or job.retryable):
+            return
+        try:
+            self.store.remove_input_checkpoint_if_snapshot(job.job_id)
+        except Exception:
+            pass
+        try:
+            if job.run_id == job.job_id:
+                self.store.remove_publish_checkpoint_if_plan(
+                    job.job_id, job.context.target_date, job.context.phase.value, job.run_id)
+        except Exception:
+            pass
 
     def update(self, job: JobRecord, *, state: JobState | None = None,
                step: str | None = None, finished: bool = False) -> None:
