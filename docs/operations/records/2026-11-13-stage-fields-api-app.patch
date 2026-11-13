@@ -1,0 +1,10 @@
+--- a/apps/api/v4_api/app.py
++++ b/apps/api/v4_api/app.py
+@@ -759,6 +759,7 @@
+         configured_pool_source=configured_pool_source,
+         resolved_pool_source=resolved_pool_source,
+         configured_morning_news_root=configured_morning_news_root,
++        research_root=resolved_research_root,
+         morning_history_observation=_hk_morning_history_observation,
+         morning_selection_recovery_bindings=_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE,
+     )

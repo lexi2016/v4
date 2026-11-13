@@ -56,7 +56,11 @@ export type StageRow = {
   latest_research_slot?: string; news_quality_score?: number; research_quality_score?: number;
   news_research_reason?: string; source_health?: string;
   news_missing_reason?: string; research_missing_reason?: string;
-  news_link?: { score: number; article_count: number; mode: string };
+  news_link?: { score: number; article_count: number; mode: string; cutoff?: string;
+    articles?: { source_title?: string; source_url?: string; published_at?: string; logic_excerpt?: string }[] };
+  research_link?: { score: number; slot: string; trade_date: string; available_at?: string; mode: string };
+  research_context_check?: { status: string; reason: string; trade_date: string; cutoff: string; slot?: string };
+  structure_missing_reason?: string;
   cannot_confirm?: string[]; data_level?: string; recommendation_status?: string;
   support_primary_price?: number | string; pressure_price?: number | string;
   invalidation_price?: number | string;

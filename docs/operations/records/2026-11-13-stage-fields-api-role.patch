@@ -1,0 +1,94 @@
+--- a/stage_center/research_context.py
++++ b/stage_center/research_context.py
+@@ -263,6 +263,10 @@
+         # Independently compare the original, unchanged archive projection.
+         # Hash matching alone must not associate arbitrary source data with it.
+         projected = build_research_archive(source, source_input_sha256=paths["source_input_sha256"])
++        legacy_warning_evidence = ()
++        if _payload_base_sha(projected) != _payload_base_sha(payload):
++            from stage_center.stage_card_context_projection import exact_legacy_warning_projection
++            projected, legacy_warning_evidence = exact_legacy_warning_projection(projected, source, payload)
+         if _payload_base_sha(projected) != _payload_base_sha(payload):
+             raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
+         rows = project_hourly_stage_fields(source)
+@@ -277,6 +281,7 @@
+         f"v4_hourly_source_pit_cutoff={source['source_manifest'].get('pit_cutoff', '')}",
+         f"v4_hourly_source_pit_cutoff_bound={source_cutoff.isoformat(timespec='seconds')}",
+         "v4_research_delta_scope=SOURCE_DECLARED_FLAGS_NOT_INDEPENDENT_NEWNESS_VERIFICATION",
++        *legacy_warning_evidence,
+     )
+ 
+ 
+@@ -618,6 +623,7 @@
+         f"v4_hourly_receipt_sha256={paths['receipt_sha256']}",
+         f"v4_hourly_receipt_payload_sha256={_canonical_sha256(payload)}",
+         f"v4_hourly_source_input_sha256={paths['source_input_sha256']}",
++        f"v4_hourly_actual_source_generated_at={payload.get('source_generated_at', '')}",
+         f"v4_hourly_slot={slot}",
+         f"v4_stage_cutoff={stage_cutoff}",
+         *morning_evidence,
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -522,13 +522,22 @@
+                 <div><dt>涨幅</dt><dd>{{ formatPercent(aShareChangePct(row)) }}</dd></div>
+                 <div><dt>阶段分</dt><dd>{{ rowScore(row) }}</dd></div>
+                 <div><dt>新闻分</dt><dd>{{ typeof row.news_quality_score === 'number' ? qualityScore(row.news_quality_score) : row.news_link ? `${qualityScore(row.news_link.score)} · 补关联（${row.news_link.article_count}篇）` : row.news_missing_reason || '新闻评分来源未确认' }}</dd></div>
+-                <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
++                <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_link ? `${qualityScore(row.research_link.score)} · 盘前研报补充（${row.research_link.slot}）` : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
+                 <div><dt>支撑位</dt><dd>{{ evidenceValue(rowSupport(row)) }}</dd></div>
+                 <div><dt>压力位</dt><dd>{{ evidenceValue(rowPressure(row)) }}</dd></div>
+                 <div><dt>失效位</dt><dd>{{ evidenceValue(rowInvalidation(row)) }}</dd></div>
+                 <div><dt>{{ row.next_validation_time ? "下次" : "数据截止" }}</dt><dd>{{ rowNextEvidence(row) || "当前阶段未提供验证时间" }}</dd></div>
+               </dl>
+               <p v-if="row.news_link" class="evidence-note">{{ row.news_missing_reason }}</p>
++            <details v-if="row.news_link?.articles?.length" class="evidence-note">
++              <summary>盘前新闻来源 · 截至 {{ row.news_link.cutoff }} · 抓取PIT未验证</summary>
++              <div v-for="article in row.news_link.articles" :key="`${article.source_url}:${article.source_title}`">
++                <a v-if="article.source_url?.startsWith('https://')" :href="article.source_url" target="_blank" rel="noopener noreferrer">{{ article.source_title }}</a><span v-else>{{ article.source_title }}</span>
++                <span> · {{ article.published_at }}</span><p>{{ article.logic_excerpt }}</p>
++              </div>
++            </details>
++            <p v-if="row.research_link" class="evidence-note">{{ row.research_missing_reason }} · {{ row.research_link.trade_date }} · 来源时间 {{ row.research_link.available_at }}</p>
++            <p v-if="row.structure_missing_reason" class="evidence-note">{{ row.structure_missing_reason }}</p>
+             </article>
+           </template>
+           <article v-for="row in aRows" :key="rowCode(row)" class="candidate-card">
+@@ -537,13 +546,22 @@
+               <div><dt>涨幅</dt><dd>{{ formatPercent(aShareChangePct(row)) }}</dd></div>
+               <div><dt>阶段分</dt><dd>{{ rowScore(row) }}</dd></div>
+               <div><dt>新闻分</dt><dd>{{ typeof row.news_quality_score === 'number' ? qualityScore(row.news_quality_score) : row.news_link ? `${qualityScore(row.news_link.score)} · 补关联（${row.news_link.article_count}篇）` : row.news_missing_reason || '新闻评分来源未确认' }}</dd></div>
+-              <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
++              <div><dt>研报分</dt><dd>{{ typeof row.research_quality_score === 'number' ? qualityScore(row.research_quality_score) : row.research_link ? `${qualityScore(row.research_link.score)} · 盘前研报补充（${row.research_link.slot}）` : row.research_missing_reason || '该时段未提供可核验的研报质量分' }}</dd></div>
+               <div><dt>支撑位</dt><dd>{{ evidenceValue(rowSupport(row)) }}</dd></div>
+               <div><dt>压力位</dt><dd>{{ evidenceValue(rowPressure(row)) }}</dd></div>
+               <div><dt>失效位</dt><dd>{{ evidenceValue(rowInvalidation(row)) }}</dd></div>
+               <div><dt>{{ row.next_validation_time ? "下次" : "数据截止" }}</dt><dd>{{ rowNextEvidence(row) || "当前阶段未提供验证时间" }}</dd></div>
+             </dl>
+             <p v-if="row.news_link" class="evidence-note">{{ row.news_missing_reason }}</p>
++            <details v-if="row.news_link?.articles?.length" class="evidence-note">
++              <summary>盘前新闻来源 · 截至 {{ row.news_link.cutoff }} · 抓取PIT未验证</summary>
++              <div v-for="article in row.news_link.articles" :key="`${article.source_url}:${article.source_title}`">
++                <a v-if="article.source_url?.startsWith('https://')" :href="article.source_url" target="_blank" rel="noopener noreferrer">{{ article.source_title }}</a><span v-else>{{ article.source_title }}</span>
++                <span> · {{ article.published_at }}</span><p>{{ article.logic_excerpt }}</p>
++              </div>
++            </details>
++            <p v-if="row.research_link" class="evidence-note">{{ row.research_missing_reason }} · {{ row.research_link.trade_date }} · 来源时间 {{ row.research_link.available_at }}</p>
++            <p v-if="row.structure_missing_reason" class="evidence-note">{{ row.structure_missing_reason }}</p>
+           </article>
+         </section>
+         <section class="market-column" :aria-label="stageWorkbench?.markets?.HK?.display_mode === 'OBSERVATION_UNVERIFIED' ? '港股通观察行' : '港股通候选'">
+--- a/apps/web/src/app_shell/types.ts
++++ b/apps/web/src/app_shell/types.ts
+@@ -57,7 +57,11 @@
+   latest_research_slot?: string; news_quality_score?: number; research_quality_score?: number;
+   news_research_reason?: string; source_health?: string;
+   news_missing_reason?: string; research_missing_reason?: string;
+-  news_link?: { score: number; article_count: number; mode: string };
++  news_link?: { score: number; article_count: number; mode: string; cutoff?: string;
++    articles?: { source_title?: string; source_url?: string; published_at?: string; logic_excerpt?: string }[] };
++  research_link?: { score: number; slot: string; trade_date: string; available_at?: string; mode: string };
++  research_context_check?: { status: string; reason: string; trade_date: string; cutoff: string; slot?: string };
++  structure_missing_reason?: string;
+   cannot_confirm?: string[]; data_level?: string; recommendation_status?: string;
+   support_primary_price?: number | string; pressure_price?: number | string;
+   invalidation_price?: number | string;

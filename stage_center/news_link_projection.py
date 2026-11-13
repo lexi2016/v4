@@ -14,10 +14,20 @@ def _number(value: Any) -> bool:
 
 
 def project_news_links(rows: list[dict], market: dict, *, trade_date: str,
-                       morning_root: Path | str | None) -> list[dict]:
+                       morning_root: Path | str | None,
+                       research_root: Path | str | None = None) -> list[dict]:
     """Caller supplies the already verified SelectionStore market and names."""
+    if market.get("market") == "HK_CONNECT":
+        return [dict(row) for row in rows]
+    from stage_center.stage_card_context_projection import stage_card_cutoff, research_card_context
     evidence = market.get("source_evidence") or []
-    cutoffs = {v.split("=", 1)[1] for v in evidence if isinstance(v, str) and v.startswith("v4_stage_cutoff=")}
+    native = "route=a_share_native_quote_snapshot" in evidence
+    cutoff = ""
+    cutoff_error = ""
+    try:
+        cutoff = stage_card_cutoff(market, trade_date=trade_date)
+    except (OSError, ValueError, TypeError, KeyError):
+        cutoff_error = "阶段截止时间缺失或冲突，无法关联新闻"
     slots = {v.split("=", 1)[1] for v in evidence if isinstance(v, str) and v.startswith("v4_hourly_slot=")}
     reasons = set(market.get("cannot_confirm") or [])
     candidates = []
@@ -32,13 +42,10 @@ def project_news_links(rows: list[dict], market: dict, *, trade_date: str,
         link_error = "股票来源校验未通过，无法关联新闻"
     elif not morning_root:
         link_error = "新闻数据入口未配置"
-    elif len(cutoffs) != 1:
-        link_error = "阶段截止时间缺失或冲突，无法关联新闻"
+    elif cutoff_error:
+        link_error = cutoff_error
     else:
         try:
-            cutoff = next(iter(cutoffs))
-            if len(cutoff) == 5:
-                cutoff += ":00"
             linked = SharedMorningNewsReader(morning_root).link_candidates(
                 trade_date, candidates, cutoff=cutoff)
         except (OSError, ValueError, TypeError, KeyError) as error:
@@ -66,6 +73,7 @@ def project_news_links(rows: list[dict], market: dict, *, trade_date: str,
                                  for m in matches],
                     "mode": linked["mode"], "pit_capture_verified": False,
                     "articles_sha256": linked["articles_sha256"],
+                    "source_input_sha256": linked.get("source_input_sha256"),
                     "candidate_identity_sha256": linked["candidate_identity_sha256"],
                     "selection_artifact_sha256": market.get("selection_artifact_sha256"),
                     "trade_date": trade_date, "cutoff": linked["cutoff"],
@@ -83,5 +91,14 @@ def project_news_links(rows: list[dict], market: dict, *, trade_date: str,
                 f"{label}无该股记录" if code_missing in reasons
                 else f"{label}未提供可核验的个股质量分"
             )
+        if native:
+            missing = [label for field, label in (("support_primary_price", "支撑位"),
+                       ("pressure_price", "压力位"), ("invalidation_price", "失效位"))
+                       if not _number(row.get(field))]
+            if missing:
+                row["structure_missing_reason"] = "、".join(missing) + "：该竞价快照未提供可核验的结构价位"
         result.append(row)
+    if native and cutoff and market.get("selection_manifest_receipt_verified") is True:
+        result = research_card_context(result, market, trade_date=trade_date, cutoff=cutoff,
+                                       research_root=research_root, morning_root=morning_root)
     return result

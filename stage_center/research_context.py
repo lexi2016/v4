@@ -523,6 +523,10 @@ def _bound_source_rows(
             ),
         )
         if _payload_base_sha(projected) != _payload_base_sha(payload):
+            from stage_center.stage_card_context_projection import exact_legacy_warning_projection
+            projected, legacy_warning_evidence = exact_legacy_warning_projection(projected, source, payload)
+            projection_compat_evidence = (*projection_compat_evidence, *legacy_warning_evidence)
+        if _payload_base_sha(projected) != _payload_base_sha(payload):
             raise ValueError("SOURCE_ARCHIVE_PROJECTION_SHA_MISMATCH")
         rows = project_hourly_stage_fields(source)
     except (TypeError, ValueError, UnicodeError) as error:

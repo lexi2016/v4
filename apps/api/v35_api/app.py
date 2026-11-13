@@ -4873,6 +4873,7 @@ def create_app(
                 rows = project_news_links(
                     rows, market_payload, trade_date=str(payload.get("trade_date") or ""),
                     morning_root=configured_morning_news_root,
+                    research_root=resolved_research_root,
                 )
             projected_rows = rows
             frontend_markets[alias] = {
