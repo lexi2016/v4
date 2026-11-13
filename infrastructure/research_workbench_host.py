@@ -12,6 +12,11 @@ import re
 import threading
 from urllib.parse import urlencode
 from starlette.requests import Request
+from infrastructure.research_workbench_workflow_evidence import (
+    BAD_RECEIPT, GROUPS as WORKFLOW_GROUPS, NEXT_POOL_STAGE, SHANGHAI, SOURCE_ERRORS,
+    UNCONFIRMED, bound_projection, checked_event, checked_node, file_revision,
+    original_references, planned_times,
+)
 
 GROUPS=('nav_smallk','original','nav_pullback','nav_breakout')
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
@@ -602,19 +607,20 @@ class ResearchWorkbenchHost:
             result['event_id']=digest(result['modules'])
             return result
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
+        index=self._index()
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         def version(module,day):
             try:return self._module_reference(module,day)
             except (ValueError,OSError,KeyError,TypeError) as error:return {'error':str(error)}
         try:quote=self._observation_commit(observation)
         except (ValueError,OSError,KeyError,TypeError) as error:quote={'error':str(error)}
-        modules=dict(catalog=digest({key:self._index().get(key,{})for key in ('dates','attempts')}),top200=digest(self._index().get('top200',{}).get(compact(source_date))),classification=self.classifications.version(),list=digest([p['manifest'],self._index().get('display_names',{}).get(compact(source_date))]),
-                     company=digest([self._index().get('latest_date'),{key:{day:value for day,value in self._index().get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]),
+        modules=dict(catalog=digest({key:index.get(key,{})for key in ('dates','attempts')}),top200=digest(index.get('top200',{}).get(compact(source_date))),classification=self.classifications.version(),list=digest([p['manifest'],index.get('display_names',{}).get(compact(source_date))]),
+                     company=digest([index.get('latest_date'),{key:{day:value for day,value in index.get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]),
                      statistics=digest(version('statistics',source_date)),observations=digest(quote),
-                     score_action=digest(self._index().get('score_action',{}).get(compact(source_date))),
+                     score_action=digest(index.get('score_action',{}).get(compact(source_date))),
                      v192=digest(self._v192_version(source_date)),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
-                     workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
+                     workflow=digest(self._workflow_revision(source_date,observation,index)))
         return dict(schema='V4_WORKBENCH_VERSIONS_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],modules=modules,event_id=digest(modules),**FLAGS)
 
     def history(self):
@@ -843,33 +849,187 @@ class ResearchWorkbenchHost:
         if not self._is_skill_date(source_date):raise KeyError('SKILL_R2_ASSET_NOT_FOUND')
         return self.skill_r2.asset(symbol,kind,sha,revision)
 
-    def workflow(self,source_date=None):
-        plan=checked(self.binding['workflow_plan']);nodes=[];error=None
-        observation=self._observation_date(source_date) if source_date else self.binding.get('workflow_date')
+    def _legacy_workflow_evidence(self, observation):
+        """Retain the date-bound execution module for existing observation dates."""
+        ref = self._module_reference('execution', observation)
+        if ref is None and self.binding.get('workflow_execution'):
+            fallback = self.binding['workflow_execution']
+            candidate = checked(fallback)
+            if candidate.get('observation_date') == observation:
+                return fallback, candidate.get('nodes', {})
+        evidence = checked(ref) if ref else {}
+        if ref and evidence.get('observation_date') != observation:
+            raise ValueError('WORKBENCH_EXECUTION_DATE_CONFLICT')
+        return ref, evidence.get('nodes', {})
+
+    def _legacy_workflow_node(self, node_id, observation, actual, verify_original):
+        for reference in actual.get('evidence', []):
+            verify_original(reference)
+        # The aggregate owner receipt may supplement the primary slot; it has
+        # no distinct 16:10, 16:40 or 17:00 result.
+        if node_id != 15 or not observation:
+            return actual
+        owner = self._owner_execution(node_id, observation)
+        if not owner or not owner.get('evidence'):
+            return actual
+        event = dict(
+            label='A 股日更汇总回执', status=owner['status'],
+            recorded_at=owner.get('recorded_at'), evidence=owner['evidence'],
+            error=owner.get('error'), missing=owner.get('missing', []),
+        )
+        return {**actual, 'events': [event]}
+
+    def _workflow_revision(self, source_date, observation, index):
+        """Poll descriptors and file identities. GET verifies original bytes."""
+        now = self._clock().astimezone(SHANGHAI)
+        today = now.date().isoformat()
+        plan = self.binding['workflow_plan']
+        projection_ref = self.binding.get('workflow_node_evidence', {}).get(observation)
+        fallback = self.binding.get('workflow_execution')
+        refs = [plan, projection_ref, fallback, self.binding.get('calendar')]
+        for day in (source_date, observation):
+            refs.append(self.binding.get('observation_dates', {}).get(day, {}).get('authority'))
+        paths = {ref['path'] for ref in refs if ref}
+        versions = [refs, []]
+        if projection_ref:
+            try:
+                projection = checked(projection_ref)
+                projection_nodes = projection['nodes'] if observation and observation <= today else {}
+                paths.update(original_references(projection_nodes, projection.get('preopen_input')))
+            except SOURCE_ERRORS as exc:
+                versions[1].append(str(exc))
+        if observation and observation <= today:
+            owner = self.binding.get('workflow_receipt_sources', {}).get('15', {}).get('root')
+            if owner:
+                paths.add(Path(owner) / ('a-' + compact(observation) + '.json'))
+                versions.append(index.get('dates', {}).get(compact(observation)))
+            root = self.binding.get('execution_root')
+            if root:
+                paths.add(Path(root) / observation / 'latest.json')
+            try:
+                legacy_ref, legacy_nodes = self._legacy_workflow_evidence(observation)
+                versions.append(legacy_ref)
+                paths.update(original_references(legacy_nodes))
+            except SOURCE_ERRORS as exc:
+                versions[1].append(str(exc))
+        if observation == today:
+            try:
+                clock = now.strftime('%H:%M:%S')
+                due = []
+                for item in [*checked(plan)['stages'], NEXT_POOL_STAGE]:
+                    timing = planned_times(item)
+                    boundary = timing['planned_start_local'] or timing['planned_end_local']
+                    if boundary and clock >= boundary:
+                        due.append(item['id'])
+                versions.append(due)
+            except SOURCE_ERRORS as exc:
+                versions[1].append(str(exc))
+        versions.append(observation > today if observation else None)
+        versions.append({str(path): file_revision(path) for path in paths})
+        return versions
+
+    def workflow(self, source_date=None):
+        plan = checked(self.binding['workflow_plan'])
+        items = plan['stages']
+        if [item['id'] for item in items] != list(range(1, 21)):
+            raise ValueError('WORKBENCH_WORKFLOW_PLAN_IDS_CONFLICT')
+        observation = self._observation_date(source_date) if source_date else None
+        next_target = None
+        if observation:
+            try:
+                next_target = self._observation_date(observation)
+            except SOURCE_ERRORS:
+                # A missing next-year calendar must not erase the current day.
+                pass
+        now = self._clock().astimezone(SHANGHAI)
+        observed_day = date.fromisoformat(observation) if observation else None
+        future = observed_day is not None and observed_day > now.date()
+        projection_ref = self.binding.get('workflow_node_evidence', {}).get(observation)
+        projection = {}
+        legacy_nodes = {}
+        execution_ref = None
+        projection_error = None
+        legacy_error = None
         try:
-            ref=self._module_reference('execution',observation) if observation else None
-            if ref is None and self.binding.get('workflow_execution'):
-                fallback=self.binding['workflow_execution'];candidate=checked(fallback)
-                if not observation or candidate.get('observation_date')==observation:ref=fallback
-            evidence=checked(ref) if ref else {}
-            if evidence and observation and evidence.get('observation_date')!=observation:raise ValueError('WORKBENCH_EXECUTION_DATE_CONFLICT')
-        except (ValueError,OSError,KeyError,TypeError) as exc:evidence={};error=str(exc)
-        for item in plan.get('stages',[]):
-            text=item.get('time_bjt','');match=re.match(r'^(\d\d:\d\d)',text)
-            actual=evidence.get('nodes',{}).get(str(item['id']),{});node_error=error
+            if projection_ref and observation:
+                projection = bound_projection(checked(projection_ref), source_date, observation, next_target)
+                execution_ref = projection_ref if not future else None
+        except SOURCE_ERRORS as exc:
+            projection_error = str(exc)
+        if observation and not future and not projection_error:
             try:
-                owner=self._owner_execution(item['id'],observation)
-                if owner:actual={**actual,**owner}
-            except (ValueError,OSError,KeyError,TypeError) as exc:node_error=str(exc)
+                legacy_ref, legacy_nodes = self._legacy_workflow_evidence(observation)
+                execution_ref = execution_ref or legacy_ref
+            except SOURCE_ERRORS as exc:
+                legacy_error = str(exc)
+
+        verified = set()
+
+        def verify_original(reference):
+            key = (reference['path'], reference['sha256'])
+            if key not in verified:
+                checked_bytes(reference)
+                verified.add(key)
+
+        preopen_input = None
+        if projection.get('preopen_input') is not None:
             try:
-                for reference in actual.get('evidence',[]):checked_bytes(reference)
-            except (ValueError,OSError,KeyError,TypeError) as exc:node_error=str(exc)
-            status='DEFERRED_USER' if item['id']==3 else 'CANNOT_CONFIRM_BAD_RECEIPT' if node_error else actual.get('status','CANNOT_CONFIRM_NO_RECEIPT')
-            now=self._clock()
-            if status=='NOT_DUE' and observation and match and (observation<now.date().isoformat() or observation==now.date().isoformat() and match.group(1)<=now.strftime('%H:%M')):
-                status='CANNOT_CONFIRM_OVERDUE'
-            nodes.append(dict(id='plan_'+str(item['id']),label_zh=item['name'],kind='PLAN_WITH_RECEIPT_STATUS',timezone='Asia/Shanghai',planned_start_local=match.group(1)+':00' if match else None,planned_end_local=None,stage_index=0 if item['id']<=3 else 1 if item['id']<=5 else 2 if item['id']<=9 else 3 if item['id']<=13 else 4,rule_zh=item['action'],execution_status=status,recorded_at=actual.get('recorded_at'),source_asof=actual.get('source_asof'),materials=actual.get('materials',[]),missing=actual.get('missing',[]),error=node_error or actual.get('error'),execution_evidence=actual.get('evidence',[])))
-        return dict(time_contract=dict(nodes=nodes),visual_stages=[dict(label=label) for label in ['夜间研究','海外验证','盘前交付','盘中观察','收盘复盘']],source_ref=self.binding['workflow_plan'],execution_ref=ref if not error else None,observation_date=observation,**FLAGS)
+                preopen_input = checked_event(projection['preopen_input'], date.fromisoformat(source_date), now, verify_original)
+                if not preopen_input['recorded_at'] and preopen_input['status'] in {'PARTIAL', 'COMPLETED'}:
+                    raise ValueError('WORKBENCH_PREOPEN_INPUT_TIME_UNCONFIRMED')
+            except SOURCE_ERRORS as exc:
+                preopen_input = dict(label='盘前候选输入', status=BAD_RECEIPT, error=str(exc))
+
+        nodes = []
+        for item in [*items, NEXT_POOL_STAGE]:
+            node_id = item['id']
+            timings = planned_times(item)
+            actual = {}
+            if node_id == 3:
+                status = 'DEFERRED_USER'
+            elif future:
+                status = 'NOT_DUE'
+            else:
+                try:
+                    if projection_error:
+                        raise ValueError(projection_error)
+                    projected = projection.get('nodes', {}).get(str(node_id))
+                    if projected is not None:
+                        actual = checked_node(projected, observed_day, now, verify_original, overnight=node_id == 20)
+                    else:
+                        if legacy_error:
+                            raise ValueError(legacy_error)
+                        actual = self._legacy_workflow_node(
+                            node_id, observation, legacy_nodes.get(str(node_id), {}), verify_original
+                        )
+                    status = actual.get('status', UNCONFIRMED)
+                    boundary = timings['planned_start_local'] or timings['planned_end_local']
+                    if observed_day == now.date() and boundary and now.strftime('%H:%M:%S') < boundary and status == UNCONFIRMED:
+                        status = 'NOT_DUE'
+                    elif status == 'NOT_DUE':
+                        status = UNCONFIRMED
+                except SOURCE_ERRORS as exc:
+                    status = BAD_RECEIPT
+                    actual = dict(error=str(exc))
+            missing = actual.get('missing', [])
+            if not missing and status == UNCONFIRMED:
+                missing = ['该观察日的原执行回执或交付产物待核']
+            nodes.append(dict(
+                id='plan_' + str(node_id), label_zh=item['name'], kind='PLAN_WITH_RECEIPT_STATUS',
+                timezone='Asia/Shanghai', **timings,
+                stage_index=0 if node_id <= 3 else 1 if node_id <= 5 else 2 if node_id <= 9 else 3 if node_id <= 13 else 4,
+                rule_zh=item['action'], expected_outputs=item.get('outputs'), execution_status=status,
+                result=actual.get('result'), recorded_at=actual.get('recorded_at'), source_asof=actual.get('source_asof'),
+                materials=actual.get('materials', []), missing=missing, error=actual.get('error'),
+                events=actual.get('events', []), execution_evidence=actual.get('evidence', []),
+            ))
+        visual_stages = [dict(label=label, start_local=start, end_local=end) for label, start, end in WORKFLOW_GROUPS]
+        return dict(
+            time_contract=dict(nodes=nodes), visual_stages=visual_stages,
+            source_ref=self.binding['workflow_plan'], execution_ref=execution_ref,
+            source_date=source_date, observation_date=observation, next_target_date=next_target,
+            preopen_input=preopen_input, **FLAGS,
+        )
 
 
 def create_workbench_router(source):

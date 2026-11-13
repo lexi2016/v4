@@ -3,7 +3,7 @@ import {requestedEntry,resolveCatalogRequest,entryUrl,preferredCatalogEntry,shan
 import {matchesClassification} from '../../classification-local.mjs';
 const candidateSourceNote=s=>`行情日 ${s?.observation_date??'未知'} · 候选来源日 ${day?.source_date??'未绑定'}`;
 const observationHeader=(snapshot,now)=>snapshot?.capture_kind==='OFFICIAL_DAILY_ARCHIVE'?`官方日包收盘行情 · ${candidateSourceNote(snapshot)} · 行情源精确时刻 UNKNOWN · 保存 ${snapshot.recorded_at} · 行情覆盖 ${snapshot.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${snapshot.rows.length}`:originalObservationHeader(snapshot,now);
-const archiveMini=s=>{if(s?.capture_kind==='OFFICIAL_DAILY_ARCHIVE')document.getElementById('observationMini').textContent=`官方日包行情 · ${candidateSourceNote(s)} · 行情覆盖 ${s.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${s.rows.length} · 行情源精确时刻未知`};const renderPhase=(...args)=>{originalRenderPhase(...args);archiveMini(args[1])};const renderContext=(...args)=>{originalRenderContext(...args);archiveMini(args[1])};
+const archiveMini=s=>{if(s?.capture_kind==='OFFICIAL_DAILY_ARCHIVE')document.getElementById('observationMini').textContent=`官方日包行情 · ${candidateSourceNote(s)} · 行情覆盖 ${s.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${s.rows.length} · 行情源精确时刻未知`};const renderPhase=(...args)=>{originalRenderPhase(...args);archiveMini(args[1])};
 import {sortDisplayStocks,displayQuote,rowValidity,STATUS_ZH,shanghaiParts,validateSnapshot,volumeLabel,volumeCoverage,priceLabel,amountLabel} from '../../observation-local.mjs';
 import {renderContext as originalRenderContext,renderPhase as originalRenderPhase,observationHeader as originalObservationHeader} from './workbench-context.mjs';
 import {loadProjection} from '../src/projection-view.mjs';
@@ -46,6 +46,81 @@ const selection=()=>{const [date,revision]=$('date').value.split('|');return {da
 const endpoint=part=>preview?`./preview/${part==='history'?'history.json':part==='charts'?'charts.json':part==='projections'?'projections.json':part.startsWith('company/')?part+'.json':'day.json'}`:`${integrationBase}/${part==='history'?'history':`days/${selection().date}${part==='day'?'':part==='charts'?'/charts':part==='projections'?'/projections':'/'+part}${selection().revision?'?revision='+selection().revision:''}`}`;
 const name=r=>displayName(r,names);
 function safeLink(label,url){try{const u=new URL(url,location.href);if(!['http:','https:'].includes(u.protocol))return node('span',label);const a=node('a',label);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';return a}catch{return node('span',label)}}
+const workflowStatus={
+ COMPLETED:'已完成',PARTIAL:'部分交付',PARTIAL_OWNER_READY_PRODUCT_UNCONFIRMED:'日更产物待核',
+ BLOCKED:'上游阻塞',FAILED:'执行失败',EXPIRED:'等待到期',MISSED:'漏过原时点',
+ DEFERRED_USER:'用户后置',NOT_DUE:'待到时',CANNOT_CONFIRM_NO_RECEIPT:'执行回执待核',
+ CANNOT_CONFIRM_BAD_RECEIPT:'回执校验失败',CANNOT_CONFIRM_OVERDUE:'执行回执待核'
+};
+const workflowTime=value=>{
+ const local=shanghaiParts(value);
+ return local?`${local.date} ${local.clock}`:value;
+};
+function paintWorkflowRecord(host,record){
+ const status=record.execution_status??record.status;
+ const line=workflowStatus[status]??status;
+ host.append(node('strong',record.label?`${record.label} · ${line}`:line));
+ if(record.recorded_at)host.append(node('p',`实际记录 ${workflowTime(record.recorded_at)}`));
+ else if(!['NOT_DUE','DEFERRED_USER'].includes(status))host.append(node('p','实际记录时间待核'));
+ if(record.source_asof)host.append(node('p',`来源时点 ${workflowTime(record.source_asof)}`));
+ if(record.result)host.append(node('p',record.result));
+ for(const missing of record.missing??[])host.append(node('p',`缺口 ${missing}`));
+ if(record.error)host.append(node('p',`错误 ${record.error}`));
+ for(const material of record.materials??[])host.append(safeLink(material.label,material.url));
+ const refs=record.execution_evidence??record.evidence??[];
+ if(refs.length){
+  const details=node('details','');
+  details.append(node('summary',`原始证据 · ${refs.length} 项`));
+  for(const ref of refs)details.append(node('pre',`${ref.path.split('/').at(-1)}\nSHA256 ${ref.sha256}`));
+  host.append(details);
+ }
+}
+function renderContext(contract,snapshot){
+ const timetable=$('fullTimetable'),note=$('scheduleContractRef');
+ const previous=Array.from(timetable.querySelectorAll('.timetable-item[open]'),item=>item.dataset.nodeId);
+ const previousObservation=timetable.dataset.observationDate;
+ originalRenderContext(contract,snapshot);
+ archiveMini(snapshot);
+ const activeDate=contract?.observation_date??'';
+ timetable.dataset.observationDate=activeDate;
+ if(!activeDate){
+  note.textContent='所选观察日的时间表待绑定。';
+  return;
+ }
+ note.textContent=`北京时间 · 候选来源 ${contract.source_date} · 观察 ${activeDate} · 次日目标 ${contract.next_target_date??'待核'}`;
+ if(contract.preopen_input){
+  const li=node('li',''),detail=node('details','');
+  detail.append(node('summary',`盘前输入 · ${workflowStatus[contract.preopen_input.status]??contract.preopen_input.status}`));
+  const body=node('div','');body.className='node-materials';
+  paintWorkflowRecord(body,contract.preopen_input);
+  detail.append(body);li.append(detail);timetable.prepend(li);
+ }
+ for(const item of contract.time_contract.nodes){
+  const detail=timetable.querySelector(`.timetable-item[data-node-id="${item.id}"]`);
+  if(!detail)continue;
+  const summary=detail.querySelector('summary'),time=summary.querySelector('.timetable-time');
+  const label=summary.querySelector('.timetable-name');
+  summary.style.gridTemplateColumns='minmax(0, 1fr)';
+  time.textContent=item.planned_time_zh;
+  label.textContent=`${item.label_zh} · ${workflowStatus[item.execution_status]??item.execution_status}`;
+  detail.querySelector('p').textContent=item.rule_zh;
+  const body=detail.querySelector('.node-materials');
+  body.replaceChildren();
+  paintWorkflowRecord(body,item);
+  for(const event of item.events??[]){
+   const eventBody=node('div','');
+   paintWorkflowRecord(eventBody,event);
+   body.append(eventBody);
+  }
+  detail.open=activeDate===previousObservation&&previous.includes(item.id);
+ }
+}
+async function readWorkflow(entry){
+ const query=new URLSearchParams({source_date:entry.source_date});
+ const value=await loadJson(integrationBase+'/workflow-contract?'+query);
+ if(value?.source_date!==entry.source_date||value.observation_date!==entry.observation_date)return null;
+ return value;
+}
 let v192ReadToken=0;
 async function refreshV192Group(render=true){
  const bound=day,mine=++v192ReadToken;if(!bound)return;
@@ -93,12 +168,14 @@ function amount(f){if(f?.value===null||f?.value===undefined)return '待核';cons
 async function loadCompany(r,token){const request=beginCompanyRequest({symbol:r.symbol,source_date:day.source_date,observation_date:day.observation_date,generation:day.generation,input_sha256:day.input_sha256});renderCompanyStatus(document,'LOADING',r.symbol);try{const x=await loadJson(endpoint('company/'+r.symbol));if(!isCurrentCompanyRequest(request))return;if(!x){renderCompanyStatus(document,'MISSING',r.symbol);return}validateCompany(x,r.symbol);if(x.status==='NOT_MATERIALIZED'){renderCompanyStatus(document,'MISSING',r.symbol);return}renderCompanyStatus(document,'READY',r.symbol);$('companyMetrics').replaceChildren();$('companySummary').replaceChildren(node('p',x.business?.summary?.value??'主营资料待核'));const controller=x.actual_controller;const line=node('p',`实际控制人：${controller?.value??'待核（保留原件空值或隔离）'}`);$('companySummary').append(line,node('p','公司材料仅作解释；全部历史PIT未认证，不参与选股评分。'));if(x.received_actual_controller){const warning=node('div','');warning.className='notice';warning.append(node('strong','控制人资料有缺漏，已隔离'),node('p',`原回包：${x.received_actual_controller.value}；年报抽查：${x.independent_field_audit?.primary_report_value??'待核'}。展示字段保留待核，不静默覆盖原件。`));$('companySummary').append(warning)}const finance=x.latest_financial;$('companyMetrics').append(node('p',`${finance?.report_period??'期间待核'} · ${finance?.period_kind??''}（不与不同期间混比）`));for(const [label,f] of explanationFacts(x).filter(([label])=>!['主营业务','实际控制人（派生展示字段）'].includes(label))){const p=node('div','');p.className='stat-row';p.append(node('span',label),node('strong',amount(f)));$('companyMetrics').append(p)}$('companyMetrics').append(node('p',`研报公开索引 ${x.reports?.metadata_only_count??0} 条；不是全文逐一核验。订单/业务候选 ${x.order_business_candidate_count??'待核'}，不等同销售订单。`));for(const [label,f]of explanationFacts(x))$('companyEvidence').append(factBox(label,f));window.StockPanelHost.paintCompanyReports(x);if(x.independent_field_audit)$('companyEvidence').append(node('pre',JSON.stringify({received_actual_controller:x.received_actual_controller,independent_field_audit:x.independent_field_audit},null,2)))}catch{if(isCurrentCompanyRequest(request))renderCompanyStatus(document,'ERROR',r.symbol)}}
 function renderSecondary(){for(const id of ['workflow','materials'])$(id).replaceChildren();for(const item of day.workflow){const li=node('li','');li.append(node('strong',item.label),node('p',item.status));$('workflow').append(li)}for(const item of [...day.materials,...day.reference_links]){const li=node('li','');li.append(safeLink(item.label,item.url));$('materials').append(li)}$('sourceDetails').textContent=JSON.stringify({source_refs:day.source_refs,v192_source:day.v192_group?{status:day.v192_group.status,reason:day.v192_group.reason,source_count:day.v192_group.source_count,valid_count:day.v192_group.valid_count,pending_count:day.v192_group.pending_count,excluded_rows:day.v192_group.excluded_rows,run_id:day.v192_group.source_run_id,artifact_sha256:day.v192_group.source_artifact_sha256,manifest_sha256:day.v192_group.source_manifest_sha256,receipt_sha256:day.v192_group.source_receipt_sha256,selector_sha256:day.v192_group.selector_sha256,reader:day.v192_group.reader_source,quote_reference:day.v192_group.source_close_reference?{status:day.v192_group.source_close_reference.status,source_date:day.v192_group.source_close_reference.source_date,selector:day.v192_group.source_close_reference.selector,scope_count:day.v192_group.source_close_reference.scope_count,available_count:day.v192_group.source_close_reference.available_count,price_basis:day.v192_group.source_close_reference.price_basis,amount_basis:day.v192_group.source_close_reference.amount_basis}:null}:null,generation:day.generation,input_sha256:day.input_sha256,formula_review:day.formula_review,chart_review:day.chart_review,original_observation_date:day.original_observation_date,observation_status:day.observation_status},null,2)}
 function resetDateDependentView(){group='all';page=0;selected=null;const filters=$('groupFilters');if(filters){filters.replaceChildren();const empty=node('button','当前日期未物化 · CANNOT_CONFIRM');empty.type='button';empty.disabled=true;empty.setAttribute('aria-disabled','true');filters.append(empty)}const scope=$('scope');if(scope?.options?.length>=2){scope.options[0].textContent='数值候选 · 待绑定';scope.options[1].textContent='已接入台账 · 待绑定';}if(scope)scope.value='candidates';const query=$('query');if(query)query.value='';const classificationQuery=$('classificationQuery');if(classificationQuery)classificationQuery.value='';}
-async function loadDay(){const routeSelection=requestedSelectionFromSearch(location.search);window.StockPanelHost.unbindDay();observationLoading=false;$('refreshObservations').disabled=false;const token=++loadToken;++stockToken;clearInteractive();++observationToken;observationSnapshot=null;observationRows=new Map;projections=new Map;day=null;selected=null;chartSet=null;charts=new Map;names={};timeContract=null;renderContext(null,null);resetDateDependentView();$('macLegacyStockPage').href='legacy-daily.html?'+new URLSearchParams({date:selection().date});$('observationSummary').textContent='正在读取所选日期快照，不沿用旧日数据。';$('content').hidden=true;$('stockList').replaceChildren();$('loadingState').textContent='正在读取该日资料…';if(!entryBinding?.entry){$('loadingState').textContent=`${entryBinding?.status??'NOT_MATERIALIZED'} · CANNOT_CONFIRM；未采用其他日期。`;return;}try{const data=await loadJson(endpoint('day'));if(token!==loadToken)return;if(!data){$('loadingState').textContent=`${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。`;return}day=validateDay(data);await refreshV192Group(false);if(token!==loadToken)return;configureGroups(day);setRulePresentation(day);if(day.source_date!==selection().date)throw Error('DATE');try{const c=await loadJson(endpoint('charts'));if(token!==loadToken)return;if(c){chartSet=c;charts=new Map((c.rows??[]).map(r=>[r.symbol,r]));names=Object.fromEntries((c.name_overlay?.rows??[]).map(r=>[r.symbol,r.name]));}}catch{/* Chart failure cannot silently substitute other date. */}if(token!==loadToken)return;try{const p=await loadJson(endpoint('projections'));if(token!==loadToken)return;projections=new Map((p?.rows??[]).map(r=>[r.symbol,r]));}catch{}if(token!==loadToken)return;try{timeContract=await loadJson(integrationBase+'/workflow-contract?source_date='+day.source_date)}catch{timeContract=null}if(token!==loadToken)return;renderContext(timeContract,null);group='all';page=0;$('scope').value='candidates';const count=day.rows.filter(r=>r.eligible_candidate).length;$('scope').options[0].textContent=`数值候选 · ${count}只`;$('scope').options[1].textContent=`已接入台账（仅冻结候选）· ${day.rows.length}只`;window.StockPanelHost.bindDay(day);renderFilters();renderSecondary();const initial=renderList(true,routeSelection);if(initial&&['INVALID','NOT_FOUND'].includes(initial.status))$('loadingState').textContent=initial.status==='INVALID'?`链接指定股票代码无效 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`:`链接指定股票 ${initial.symbol} 不在 ${day.source_date} 当前候选中 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`;await refreshObservationData();window.StockPanelHost.paintWorkflow(timeContract)}catch{if(token===loadToken){resetDateDependentView();$('content').hidden=true;$('loadingState').textContent='该日期读取失败，未用旧池替代。'}}}
+async function loadDay(){const routeSelection=requestedSelectionFromSearch(location.search);window.StockPanelHost.unbindDay();observationLoading=false;$('refreshObservations').disabled=false;const token=++loadToken;++stockToken;clearInteractive();++observationToken;observationSnapshot=null;observationRows=new Map;projections=new Map;day=null;selected=null;chartSet=null;charts=new Map;names={};timeContract=null;renderContext(null,null);resetDateDependentView();$('macLegacyStockPage').href='legacy-daily.html?'+new URLSearchParams({date:selection().date});$('observationSummary').textContent='正在读取所选日期快照，不沿用旧日数据。';$('content').hidden=true;$('stockList').replaceChildren();$('loadingState').textContent='正在读取该日资料…';const entry=entryBinding?.entry;if(!entry){$('loadingState').textContent=`${entryBinding?.status??'NOT_MATERIALIZED'} · CANNOT_CONFIRM；未采用其他日期。`;return;}const workflowPromise=readWorkflow(entry).catch(()=>null);
+try{const contract=await workflowPromise;if(token!==loadToken)return;timeContract=contract;renderContext(timeContract,null);
+const data=await loadJson(endpoint('day'));if(token!==loadToken)return;if(!data){$('loadingState').textContent=`${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。`;return}day=validateDay(data);await refreshV192Group(false);if(token!==loadToken)return;configureGroups(day);setRulePresentation(day);if(day.source_date!==selection().date)throw Error('DATE');try{const c=await loadJson(endpoint('charts'));if(token!==loadToken)return;if(c){chartSet=c;charts=new Map((c.rows??[]).map(r=>[r.symbol,r]));names=Object.fromEntries((c.name_overlay?.rows??[]).map(r=>[r.symbol,r.name]));}}catch{/* Chart failure cannot silently substitute other date. */}if(token!==loadToken)return;try{const p=await loadJson(endpoint('projections'));if(token!==loadToken)return;projections=new Map((p?.rows??[]).map(r=>[r.symbol,r]));}catch{}if(token!==loadToken)return;group='all';page=0;$('scope').value='candidates';const count=day.rows.filter(r=>r.eligible_candidate).length;$('scope').options[0].textContent=`数值候选 · ${count}只`;$('scope').options[1].textContent=`已接入台账（仅冻结候选）· ${day.rows.length}只`;window.StockPanelHost.bindDay(day);renderFilters();renderSecondary();const initial=renderList(true,routeSelection);if(initial&&['INVALID','NOT_FOUND'].includes(initial.status))$('loadingState').textContent=initial.status==='INVALID'?`链接指定股票代码无效 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`:`链接指定股票 ${initial.symbol} 不在 ${day.source_date} 当前候选中 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`;await refreshObservationData()}catch{if(token===loadToken){resetDateDependentView();$('content').hidden=true;$('loadingState').textContent='该日期读取失败，未用旧池替代。'}}}
 async function init(){
  if(!apiBound){renderContext(null,null);$('loadingState').textContent='公共协作视觉壳：尚未绑定可信同源服务；不加载真实研究数据。';return}
  try{
   try{entryIntent=requestedEntry(location.search);}catch{$('loadingState').textContent='请求日期无效或冲突 · CANNOT_CONFIRM；未自动选择其他日期。';return;}
-  try{timeContract=await loadJson(integrationBase+'/workflow-contract')}catch{}renderContext(timeContract,null);
+  renderContext(null,null);
   const h=await loadJson(endpoint('history'))??{days:[]};if(!Array.isArray(h.days))throw Error('INVALID_HISTORY_CATALOG');researchCalendarDays=h.days;
   $('date').replaceChildren();
   for(const d of h.days){const o=node('option',`${d.source_date}收盘 → ${d.observation_date}观察${d.ruleset_id==='ZGE_SKILL_DAILY_CANDIDATES_R2'?' · Z哥技能R2':''}`);o.value=catalogKey(d);$('date').append(o);}
@@ -150,7 +227,7 @@ window.StockPanelHost.installCompletion({
    if(changed.includes('top200'))await window.StockPanelHost.paintTop200();
    if(changed.includes('observations'))await refreshObservationData();
    if(mine!==completionSerial||selection().date!==wanted)return;
-   if(changed.includes('workflow')){const contract=await loadJson(integrationBase+'/workflow-contract?source_date='+wanted);if(mine!==completionSerial||selection().date!==wanted)return;timeContract=contract;renderContext(timeContract,observationSnapshot);window.StockPanelHost.paintWorkflow(contract);}
+   if(changed.includes('workflow')){const contract=await readWorkflow(oldDay);if(mine!==completionSerial||selection().date!==wanted)return;timeContract=contract;renderContext(timeContract,observationSnapshot);}
    window.StockPanelHost.paintContext();
   }catch(error){if(mine===completionSerial)$('loadingState').textContent='已保存更新尚未确认：'+error.message;}
  },
@@ -158,6 +235,6 @@ window.StockPanelHost.installCompletion({
   window.StockPanelHost.unbindDay();++completionSerial;return this.catalog(true);
  }
 });
-const originalRefresh=refreshObservationData;refreshObservationData=async(...args)=>{const answer=await originalRefresh(...args);window.StockPanelHost.paintContext(observationSnapshot);window.StockPanelHost.paintWorkflow(timeContract);return answer};
+const originalRefresh=refreshObservationData;refreshObservationData=async(...args)=>{const answer=await originalRefresh(...args);window.StockPanelHost.paintContext(observationSnapshot);return answer};
 
 $('classificationQuery').addEventListener('input',()=>{page=0;renderList(true)});for(const checkbox of document.querySelectorAll('[data-classification-label]'))checkbox.addEventListener('change',()=>{page=0;renderList(true)});const stockGridViewport=$('stockGridViewport');$('showStockNames').onclick=()=>stockGridViewport.scrollTo({left:0,behavior:'smooth'});$('showStockRates').onclick=()=>stockGridViewport.scrollTo({left:stockGridViewport.scrollWidth,behavior:'smooth'});
