@@ -1,0 +1,64 @@
+{
+  "schema": "v4.stage_fields_application_result.v1",
+  "verified_at": "2026-11-13T02:42:32.891383+00:00",
+  "source_commit": "937d0650902f4278c803ce7a241d74f50a36469b",
+  "runtime_release_id": "v4-stage-card-context-20261113-r1-api",
+  "runtime_manifest_sha256": "800127cf5179e0088eb188b3ab2d3f13d987c59834cc32d854af704aeff8f292",
+  "independent_review": "REVIEWED/PASS",
+  "implemented": true,
+  "tested": {
+    "writer_api_role_python": "21 passed",
+    "writer_api_role_frontend": "1 passed",
+    "build": "PASS",
+    "independent_new_target_tests": "14 passed"
+  },
+  "local_research_api_applied": true,
+  "API_verified": "HTTP200; A10/HK10 full selection identity/rank/score/gates unchanged; HK full payload unchanged",
+  "UI_verified": {
+    "url": "http://127.0.0.1:8873/?stage=STAGE_0925&date=20261113",
+    "cards_rendered": 20,
+    "representatives": [
+      "A.002205",
+      "A.605169",
+      "A.603725"
+    ],
+    "news": "each 2 articles, supplemental score48, verified market cutoff09:25:05; original stage score100 unchanged",
+    "navigation_preserved": [
+      "阶段选股",
+      "D-1 预选池",
+      "研报决策台",
+      "研究看板",
+      "经理选股工作台",
+      "SOP",
+      "任务状态",
+      "A股复盘",
+      "研究复盘",
+      "原版 Vibe · 8910"
+    ],
+    "input_handoff": "own Chrome tab closed, original window/tab selection restored; no keyboard/mouse actions"
+  },
+  "research": {
+    "A.002205": "0900 verified archive has no stock record",
+    "A.605169": "0900 verified archive has no stock record",
+    "A.603725": "0900 verified archive has stock record but no original quality score"
+  },
+  "structural_levels": "support/pressure/invalidation remain null: native preopen snapshot and checked D-1 sources do not provide defined verified levels",
+  "compatibility": "only exact legacy warning representation reconstructed from identical verified raw source/audit; full archive SHA and date/time validation retained; no witness rewritten",
+  "news_capture_PIT": "CANNOT_CONFIRM",
+  "natural_validation": "NOT_RUN",
+  "runtime_overall_identity": "CANNOT_CONFIRM retained from baseline missing runtime inventory/receipt; release manifest/app root verified",
+  "application_incident": "initial bootstrap raced asynchronous prior job removal; original version restored and healthy; second attempt waited for job removal and applied successfully; original failure evidence retained locally",
+  "non_delta_runtime_bytes": "1355 original entries preserved; no old runtime/static file deleted",
+  "GitHub_source_sync": {
+    "repository": "https://github.com/lexi2016/v4",
+    "branch": "refs/heads/codex/stage-fields-20261113",
+    "commit": "937d0650902f4278c803ce7a241d74f50a36469b",
+    "all_15_changed_file_sha256": "VERIFIED via SSH remote readback"
+  },
+  "Main_Stage_8910_changed": false,
+  "original_workspace_changed": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
