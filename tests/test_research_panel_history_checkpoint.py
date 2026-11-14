@@ -14,6 +14,11 @@ SYMBOL = '600809.SH'
 DAY1, DAY2, DAY3 = 20261110, 20261111, 20261112
 
 
+def test_parallel_checkpoint_requires_explicit_history_policy():
+    with pytest.raises(TypeError, match='persist_history'):
+        parallel.checkpoint(SYMBOL)
+
+
 def cache(day, values, *, rules='rules'):
     evaluations = {str(date): {'groups': dict.fromkeys(owner.GROUPS, state)} for date, state in values.items()}
     return dict(rule_sha256='rule', rules_signature=rules, source_identity=dict(asof=day),
@@ -191,10 +196,10 @@ def test_parallel_does_not_publish_a_row_if_history_write_fails(tmp_path, monkey
             raise OSError('simulated interruption')
         patch.setattr(history, '_publish', fail_publish)
         with pytest.raises(history.HistoryCheckpointError, match='WRITE_FAILED'):
-            parallel.checkpoint(SYMBOL)
+            parallel.checkpoint(SYMBOL, persist_history=True)
     assert not (parts / (SYMBOL + '.json')).exists()
     assert history._publish is real_publish
-    assert parallel.checkpoint(SYMBOL)['ref']['path'] == str(parts / (SYMBOL + '.json'))
+    assert parallel.checkpoint(SYMBOL, persist_history=True)['ref']['path'] == str(parts / (SYMBOL + '.json'))
     assert history.read_checkpoint(path) == value
 
 
