@@ -7,7 +7,7 @@ import pytest
 from v4.manager_workbench import store as storage
 from v4.manager_workbench.config import WorkbenchConfig
 from v4.manager_workbench.contracts import (
-    Coverage, InputBatch, JobState, Lane, LaneResult, LaneState, Phase, canonical, digest,
+    Coverage, InputBatch, JobRecord, JobState, Lane, LaneResult, LaneState, Phase, canonical, digest,
 )
 from v4.manager_workbench.service import ManagerService
 from v4.manager_workbench.store import StorageConflict, StorageUnavailable, WorkbenchStore
@@ -234,6 +234,35 @@ def test_overlay_is_written_once_across_attempts_and_batch_contexts(tmp_path, mo
             store.get_job(first.job_id)
         with pytest.raises(StorageUnavailable, match="OVERLAY_SHA_MISMATCH"):
             store.load_input_checkpoint(first.job_id)
+    finally:
+        service.stop()
+
+
+def test_missing_overlay_does_not_let_dead_attempt_block_other_jobs(tmp_path, monkeypatch):
+    service = _service(tmp_path, Engines())
+    store = service.store
+    try:
+        ctx = service.context(DATE, Phase.MANUAL, trigger="MANUAL", cutoff=CUTOFF, lanes=LANES)
+        overlay = [{"value": "missing owner bytes"}]
+        ctx.scope_refs["US_MAPPING"] = {"full_overlay_projection": overlay}
+        for name in ("orphan", "claimant"):
+            store.save_job(JobRecord(job_id=name, run_id=name, context=ctx,
+                                     state=JobState.RUNNING, step="RUN_LANES"))
+        source = store.root / "overlay_blobs" / f"{digest(overlay)}.json"
+        source.unlink()
+        monkeypatch.setattr(store, "_pid_alive", lambda _pid: False)
+        scope = service.jobs._scope(ctx)
+        with store.lock("submission:" + scope):
+            store.set_claim(scope, "claimant")
+            assert store.active_claim(scope) is None
+        assert store.recover_orphan_attempts() == 1
+        for name in ("orphan", "claimant"):
+            raw = store._read(store._path("attempts", name))
+            assert raw["state"] == "INTERRUPTED" and raw["retryable"]
+            assert raw["context"]["scope_refs"]["US_MAPPING"]["full_overlay_projection"]["sha256"] == digest(overlay)
+            with pytest.raises(StorageUnavailable, match="OVERLAY_MISSING"):
+                store.get_job(name)
+        assert not source.exists()
     finally:
         service.stop()
 

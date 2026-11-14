@@ -305,7 +305,10 @@ class WorkbenchStore:
         with self.lock("job:" + job.job_id):
             body = job.model_dump(mode="json")
             body["context"] = self._map_overlay_fields(body["context"], self._overlay_writer())
-            self._write(self._path("attempts", _key(job.job_id)), body, immutable=False)
+            self._write_job_record(job.job_id, body)
+
+    def _write_job_record(self, job_id: str, body: dict[str, Any]) -> None:
+        self._write(self._path("attempts", _key(job_id)), body, immutable=False)
 
     def get_job(self, job_id: str) -> JobRecord | None:
         obj = self._read(self._path("attempts", _key(job_id)))
@@ -443,20 +446,33 @@ class WorkbenchStore:
             if path.is_symlink():
                 raise StorageUnavailable("SYMLINK_DENIED")
             obj = self._read(path)
-            if (obj and obj.get("state") in (JobState.QUEUED, JobState.RUNNING)
-                    and obj.get("job_id") not in active_ids):
-                owner = next((r.get("pid") for r in obj.get("execution_refs", [])
-                              if isinstance(r, dict) and r.get("kind") == "host"), None)
-                if isinstance(owner,int) and self._pid_alive(owner):
+            if (not obj or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING)
+                    or obj.get("job_id") in active_ids):
+                continue
+            # Recheck under the same lock as progress before changing a live record.
+            with self.lock("job:" + path.stem):
+                obj = self._read(path)
+                if (not obj or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING)
+                        or obj.get("job_id") in active_ids):
                     continue
-                item = self._job_from_obj(obj)
-                item.state = JobState.INTERRUPTED
-                item.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
-                item.retryable = True
-                item.failed_steps = list(dict.fromkeys([*item.failed_steps, item.step]))
-                self.save_job(item)
+                item = JobRecord.model_validate(obj)
+                if item.job_id != path.stem:
+                    raise StorageUnavailable("JOB_ID_MISMATCH")
+                owner = next((r.get("pid") for r in item.execution_refs if r.get("kind") == "host"), None)
+                if isinstance(owner, int) and self._pid_alive(owner):
+                    continue
+                self._mark_interrupted(item, failed_step=True)
                 count += 1
         return count
+
+    def _mark_interrupted(self, job: JobRecord, *, failed_step: bool = False) -> None:
+        """Update only attempt metadata, retaining overlay refs even if a blob is missing."""
+        job.state = JobState.INTERRUPTED
+        job.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
+        job.retryable = True
+        if failed_step:
+            job.failed_steps = list(dict.fromkeys([*job.failed_steps, job.step]))
+        self._write_job_record(job.job_id, job.model_dump(mode="json"))
 
     def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
         with self.lock(f"checkpoint:{job_id}:{step}"):
@@ -491,17 +507,18 @@ class WorkbenchStore:
         claim = self._read(self._path("claims", key))
         if not claim or not claim.get("job_id"):
             return None
-        obj = self._read(self._path("attempts", _key(claim["job_id"])))
-        if obj is None or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING):
-            return None
-        current = self._job_from_obj(obj)
-        if not self._pid_alive(claim.get("pid", -1)):
-            current.state = JobState.INTERRUPTED
-            current.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
-            current.retryable = True
-            self.save_job(current)
-            return None
-        return current
+        job_id = _key(claim["job_id"])
+        with self.lock("job:" + job_id):
+            obj = self._read(self._path("attempts", job_id))
+            if obj is None or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING):
+                return None
+            if not self._pid_alive(claim.get("pid", -1)):
+                current = JobRecord.model_validate(obj)
+                if current.job_id != job_id:
+                    raise StorageUnavailable("JOB_ID_MISMATCH")
+                self._mark_interrupted(current)
+                return None
+        return self._job_from_obj(obj)
 
     def set_claim(self, scope: str, job_id: str | None) -> None:
         key = hashlib.sha256(scope.encode()).hexdigest()
