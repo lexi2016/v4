@@ -323,7 +323,40 @@ class WorkbenchStore:
     def _catalog(self, snap: PlanSnapshot) -> Path:
         return self._path("catalog", snap.context.target_date, snap.context.phase.value, _key(snap.run_id))
 
-    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False, merger=None) -> PlanSnapshot:
+    def _write_plan(self, snap: PlanSnapshot, checkpoint_job_id: str | None) -> None:
+        target = self._path("snapshots", _key(snap.run_id))
+        payload = snap.model_dump(mode="json")
+        if checkpoint_job_id != snap.run_id:
+            self._write(target, payload, immutable=True, collision_read_limit=_PLAN_READ_LIMIT)
+            return
+        existing = self._read(target, max_bytes=_PLAN_READ_LIMIT)
+        if existing is not None:
+            if existing != payload:
+                raise StorageConflict("IMMUTABLE_COLLISION")
+            with self.io.directory("snapshots") as directory:
+                os.fsync(directory)
+            return
+        source = self._path("checkpoints", _key(checkpoint_job_id), "PUBLISH")
+        raw = canonical(payload)
+        if len(raw) > _PLAN_READ_LIMIT:
+            raise StorageUnavailable("PLAN_SNAPSHOT_TOO_LARGE")
+        with self.lock(f"checkpoint:{checkpoint_job_id}:PUBLISH"):
+            try:
+                if self.io.link_exact_bytes(str(source.relative_to(self.root)),
+                                            str(target.relative_to(self.root)), raw):
+                    return
+            except FileExistsError:
+                if self._read(target, max_bytes=_PLAN_READ_LIMIT) != payload:
+                    raise StorageConflict("IMMUTABLE_COLLISION") from None
+                with self.io.directory("snapshots") as directory:
+                    os.fsync(directory)
+                return
+        # A merge can alter the payload. Its prior checkpoint remains intact to
+        # support replay, and the final plan then needs its own contents.
+        self._write(target, payload, immutable=True, collision_read_limit=_PLAN_READ_LIMIT)
+
+    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False, merger=None,
+                    checkpoint_job_id: str | None = None) -> PlanSnapshot:
         """Publication is atomic only after immutable readback passes model+run+SHA checks."""
         date, phase = snap.context.target_date, snap.context.phase.value
         key = f"publish:{date}:{phase}"
@@ -337,9 +370,7 @@ class WorkbenchStore:
             if merger is not None:
                 previous=self.read_plan(before["run_id"]) if before else None
                 snap=merger(previous,snap)
-            d = snap.model_dump(mode="json")
-            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True,
-                        collision_read_limit=_PLAN_READ_LIMIT)
+            self._write_plan(snap, checkpoint_job_id)
             saved = self.read_plan(snap.run_id)
             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
                 raise StorageConflict("READBACK_MISMATCH")

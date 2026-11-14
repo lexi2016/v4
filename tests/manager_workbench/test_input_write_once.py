@@ -1,10 +1,13 @@
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
 from v4.manager_workbench import store as storage
+from infrastructure.owned_io import OwnedIOError
 from v4.manager_workbench.config import WorkbenchConfig
 from v4.manager_workbench.contracts import (
     Coverage, InputBatch, JobRecord, JobState, Lane, LaneResult, LaneState, Phase, canonical, digest,
@@ -113,6 +116,69 @@ def test_normal_jobs_write_once_and_reuse_before_any_input_write(tmp_path, monke
         assert len(list((service.store.root / "input_snapshots").iterdir())) == 2
     finally:
         service.stop()
+
+
+def test_publish_writes_one_body_and_can_resume_after_pointer_failure(tmp_path, monkeypatch):
+    engines = Engines()
+    service = _service(tmp_path, engines)
+    writes = []
+    write = service.store.io.write_bytes
+    fail_pointer = True
+
+    def record(relative, raw, **kwargs):
+        writes.append((relative, len(raw)))
+        if fail_pointer and relative.startswith("pointers/"):
+            raise OSError("interrupted after canonical snapshot creation")
+        return write(relative, raw, **kwargs)
+
+    monkeypatch.setattr(service.store.io, "write_bytes", record)
+    try:
+        job = _await(service, _submit(service))
+        assert job.state == JobState.FAILED and job.failure_code == "PUBLISH_UNAVAILABLE"
+        assert job.retryable
+        checkpoint = service.store.root / "checkpoints" / job.job_id / "PUBLISH.json"
+        snapshot = service.store.root / "snapshots" / f"{job.job_id}.json"
+        assert checkpoint.samefile(snapshot)
+        source_bytes = checkpoint.read_bytes()
+        assert source_bytes == snapshot.read_bytes()
+        assert sum(Path(name).name == "PUBLISH.json" for name, _ in writes) == 1
+        assert not any(name.startswith("snapshots/") for name, _ in writes)
+        assert service.store.get_plan(DATE, Phase.MANUAL.value) is None
+        assert service.store.list_plans(DATE, Phase.MANUAL.value) == []
+
+        fail_pointer = False
+        writes.clear()
+        resumed = _await(service, service.retry(job.job_id))
+        assert resumed.state == JobState.SUCCEEDED and resumed.job_id == job.job_id
+        assert service.store.get_plan(DATE, Phase.MANUAL.value).run_id == job.job_id
+        assert checkpoint.samefile(snapshot) and checkpoint.read_bytes() == source_bytes
+        assert not any(name.startswith(("snapshots/", "checkpoints/")) for name, _ in writes)
+        assert len(engines.executions) == 1
+    finally:
+        service.stop()
+
+
+def test_publish_link_rejects_symlink_swapped_during_link(tmp_path, monkeypatch):
+    store = WorkbenchStore(tmp_path)
+    source = "checkpoints/job/PUBLISH.json"
+    target = "snapshots/job.json"
+    body = b"verified publication bytes"
+    store.io.write_bytes(source, body)
+    original_link = os.link
+    outside = tmp_path / "outside"
+    outside.write_bytes(b"unowned bytes")
+
+    def swap(src, dst, *, src_dir_fd, dst_dir_fd, follow_symlinks):
+        os.unlink(src, dir_fd=src_dir_fd)
+        os.symlink(outside, src, dir_fd=src_dir_fd)
+        original_link(src, dst, src_dir_fd=src_dir_fd, dst_dir_fd=dst_dir_fd,
+                      follow_symlinks=follow_symlinks)
+
+    monkeypatch.setattr(os, "link", swap)
+    with pytest.raises(OwnedIOError, match="OWNED_LINK_SOURCE_CHANGED"):
+        store.io.link_exact_bytes(source, target, body)
+    assert not os.path.lexists(store.root / target)
+    assert outside.read_bytes() == b"unowned bytes"
 
 
 def test_partial_retry_reuses_legacy_inline_body_and_only_reexecutes_failed_lane(tmp_path, monkeypatch):

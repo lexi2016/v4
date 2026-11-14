@@ -163,6 +163,60 @@ class SafeRoot:
             except FileNotFoundError:
                 return False
 
+    def link_exact_bytes(self, source: str, target: str, expected: bytes) -> bool:
+        """Publish a second name for an immutable, byte-matching owned file.
+
+        The caller holds the source and target writer locks. A byte mismatch
+        leaves the target absent; an existing target raises FileExistsError.
+        """
+        with self.parent(source) as (src_dir, src_name):
+            fd = os.open(src_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=src_dir)
+            try:
+                source_info = os.fstat(fd)
+                if not stat.S_ISREG(source_info.st_mode):
+                    raise OwnedIOError('OWNED_FILE_NOT_REGULAR')
+                if source_info.st_size != len(expected):
+                    return False
+                view = memoryview(expected)
+                with os.fdopen(fd, 'rb', closefd=False) as handle:
+                    for offset in range(0, len(view), 1024 * 1024):
+                        block = view[offset:offset + 1024 * 1024]
+                        if handle.read(len(block)) != block:
+                            return False
+                    if handle.read(1):
+                        return False
+                after = os.fstat(fd)
+                if (source_info.st_size, source_info.st_mtime_ns, source_info.st_ctime_ns) != (
+                        after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+                    raise OwnedIOError('OWNED_LINK_SOURCE_CHANGED')
+                identity = (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)
+                visible = os.stat(src_name, dir_fd=src_dir, follow_symlinks=False)
+                if (visible.st_dev, visible.st_ino, visible.st_size, visible.st_mtime_ns) != identity:
+                    raise OwnedIOError('OWNED_LINK_SOURCE_CHANGED')
+                with self.parent(target, create=True) as (dst_dir, dst_name):
+                    os.link(src_name, dst_name, src_dir_fd=src_dir, dst_dir_fd=dst_dir,
+                            follow_symlinks=False)
+                    # APFS can delay visibility of a new dir entry. Stat without
+                    # following links so a source swap can also be rolled back.
+                    for attempt in range(25):
+                        try:
+                            linked = os.stat(dst_name, dir_fd=dst_dir, follow_symlinks=False)
+                            break
+                        except FileNotFoundError:
+                            if attempt == 24:
+                                raise
+                            time.sleep(0.004)
+                    if (linked.st_dev, linked.st_ino, linked.st_size, linked.st_mtime_ns) != identity:
+                        current = os.stat(dst_name, dir_fd=dst_dir, follow_symlinks=False)
+                        if (current.st_dev, current.st_ino) == (linked.st_dev, linked.st_ino):
+                            os.unlink(dst_name, dir_fd=dst_dir)
+                            os.fsync(dst_dir)
+                        raise OwnedIOError('OWNED_LINK_SOURCE_CHANGED')
+                    os.fsync(dst_dir)
+                return True
+            finally:
+                os.close(fd)
+
     def files(self, relative: str | None = None, *, suffix: str = '.json') -> list[str]:
         try:
             with self.directory(relative) as fd:

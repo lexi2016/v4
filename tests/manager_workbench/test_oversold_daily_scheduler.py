@@ -471,7 +471,9 @@ def test_phase_pointer_merges_lane_results_without_rewriting_history(tmp_path):
     second=make_plan("oversold-run",Lane.OVERSOLD,datetime(2026,10,16,17,35,tzinfo=HK),"oversold-fp")
     first_saved=service._commit_plan(first)
     historical_sha=service.store.read_plan("us-run").product_sha256
-    latest=service._commit_plan(second)
+    checkpoint_body = second.model_dump(mode="json")
+    service.store.save_checkpoint(second.run_id, "PUBLISH", checkpoint_body)
+    latest=service._commit_plan(second, checkpoint_job_id=second.run_id)
     pointed=service.store.get_plan(TARGET,Phase.NEXT_DAY.value)
     assert pointed.run_id=="oversold-run"==latest.run_id
     assert {lane.lane for lane in pointed.lanes}=={Lane.US_MAPPING,Lane.OVERSOLD}
@@ -479,4 +481,8 @@ def test_phase_pointer_merges_lane_results_without_rewriting_history(tmp_path):
     assert pointed.changes["phase_lane_sources"]=={"US_MAPPING":"us-run","OVERSOLD":"oversold-run"}
     assert service.store.read_plan("us-run").product_sha256==historical_sha
     assert first_saved.run_id=="us-run"
+    assert service.store.load_checkpoint(second.run_id, "PUBLISH") == checkpoint_body
+    checkpoint = service.store.root / "checkpoints" / second.run_id / "PUBLISH.json"
+    published = service.store.root / "snapshots" / f"{second.run_id}.json"
+    assert not checkpoint.samefile(published)
 

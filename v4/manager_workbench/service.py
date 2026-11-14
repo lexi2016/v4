@@ -326,10 +326,10 @@ class ManagerService:
         validate_selected_evidence(merged)
         return merged
 
-    def _commit_plan(self,snapshot):
+    def _commit_plan(self,snapshot,*,checkpoint_job_id=None):
         single_us=(snapshot.context.phase==Phase.NEXT_DAY and [l.lane for l in snapshot.lanes]==[Lane.US_MAPPING])
         merger=self._merge_phase_lane_snapshots if snapshot.context.scope_refs.get("merge_phase_lanes") or single_us else None
-        return self.store.commit_plan(snapshot,merger=merger)
+        return self.store.commit_plan(snapshot,merger=merger,checkpoint_job_id=checkpoint_job_id)
 
     def retry(self, job_id: str) -> JobRecord:
         previous = self.jobs.get(job_id)
@@ -362,7 +362,7 @@ class ManagerService:
                 raise StepFailure("CHECKPOINT_RUN_MISMATCH")
             self.jobs.update(job, step="PUBLISH")
             try:
-                saved = self._commit_plan(snap)
+                saved = self._commit_plan(snap, checkpoint_job_id=job.job_id)
             except (StorageUnavailable, OSError) as exc:
                 raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
@@ -511,7 +511,7 @@ class ManagerService:
         self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
         self.jobs.update(job, step="PUBLISH")
         try:
-            saved = self._commit_plan(snap)
+            saved = self._commit_plan(snap, checkpoint_job_id=job.job_id)
         except (StorageUnavailable, OSError) as exc:
             raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
         return saved.run_id, JobState.PARTIAL if partial else JobState.SUCCEEDED
