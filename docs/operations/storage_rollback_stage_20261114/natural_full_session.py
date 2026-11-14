@@ -16,6 +16,7 @@ import natural_receipt as scan
 
 
 DAY = "20261116"
+INSTALL_RECEIPT_SHA = "d384e66d55fab10388e9f4671ef260d2e065eb00f89eb74c822413471541370d"
 STAGES = {
     "STAGE_0925": ("A_SHARE", "HK_CONNECT"),
     "STAGE_0930_0935": ("A_SHARE", "HK_CONNECT"),
@@ -348,6 +349,8 @@ def workbench_writes(rows, day):
     classified = {"session_attempts": [], "session_checkpoints": [], "session_input_blobs": [],
                   "preexisting_referenced": [], "session_result_files": []}
     for row in rows:
+        if row.get("superseded_after_rollback"):
+            continue
         for key in ("attempt", "input_checkpoint", "publish_checkpoint", "input_body", "final_plan"):
             item = row.get(key)
             if not item:
@@ -393,9 +396,32 @@ def late_workbench(row, day):
         and scan.local(day) + timedelta(hours=16, minutes=30) <= point < scan.local(day) + timedelta(days=1))
 
 
+def matching_daily_dispatch(daily, rows, day, variant):
+    written = timestamp((daily.get("receipt") or {}).get("mtime"))
+    if written is None or written.strftime("%Y%m%d") != day:
+        return []
+    matches = []
+    for dispatch in rows:
+        if (dispatch.get("observed_release_variant") != variant or not dispatch["native_start_seen"]
+                or "research_panel_daily_a" not in (dispatch["successful_workload_ids"] or ())):
+            continue
+        observed_start = [timestamp(item.get("actual_started_at")) for item in dispatch.get("scheduler_observations", ())
+                          if item["status"] == "RUNNING" and timestamp(item.get("actual_started_at"))]
+        dispatch_start = min(observed_start, default=None)
+        for task in dispatch["workload"]:
+            finish = timestamp(task.get("finished_at") or dispatch.get("finished_at"))
+            start = timestamp(task.get("started_at")) or dispatch_start
+            if (task["id"] == "research_panel_daily_a" and str(task["target_date"]) == day
+                    and start and finish and start <= written <= finish):
+                matches.append(dispatch["run_id"])
+                break
+    return matches
+
+
 def proved_workbench(row):
     return row["state"] in {"SUCCEEDED", "PARTIAL"} and not row.get("storage_failure") and (
-        row.get("hydrated_logical_sha_verified") or row.get("reused_prior_run_without_input_write"))
+        row.get("hydrated_logical_sha_verified") or row.get("legacy_inline_companion_verified")
+        or row.get("reused_prior_run_without_input_write"))
 
 
 def evidence_status(report, day):
@@ -408,17 +434,19 @@ def evidence_status(report, day):
         if market == "HK_CONNECT"
     )
     workbench = report.get("workbench", [])
-    active_jobs = [row["job_id"] for row in workbench if row["state"] in WORKBENCH_ACTIVE]
+    active_jobs = [row["job_id"] for row in workbench
+                   if row.get("settled_state_after_rollback", row["state"]) in WORKBENCH_ACTIVE
+                   and not row.get("superseded_after_rollback")]
     active_jobs.extend(row["job_id"] for row in report.get("workbench_unentered_active_claims", ()))
     daily = report.get("formal_daily", {})
     pending_daily = [task["key"] for task in daily.get("registry_tasks", ()) if task["state"] in REGISTRY_ACTIVE]
     slots = daily.get("scheduler_slots", {})
     pending_slots = [slot for slot, item in slots.items() if item and item["status"] in SCHEDULER_ACTIVE]
     missing_slots = [slot for slot in DAILY_SLOTS if not slots.get(slot)]
-    success = [row["run_id"] for row in report.get("main_dispatch", ())
-               if row["native_start_seen"] and "research_panel_daily_a" in (row["successful_workload_ids"] or ())
-               and any(task["id"] == "research_panel_daily_a" and str(task["target_date"]) == day
-                       for task in row["workload"])]
+    daily_variant = daily.get("observed_release_variant")
+    success = []
+    if daily_variant in {"FORWARD", "COMPAT_ROLLBACK"}:
+        success = matching_daily_dispatch(daily, report.get("main_dispatch", ()), day, daily_variant)
     proved_daily = bool(success) and set(daily.get("artifacts_written", {})) == {"artifact", "manifest"}
     late = [row["job_id"] for row in workbench if late_workbench(row, day) and proved_workbench(row)]
     gaps = []
@@ -454,7 +482,7 @@ def evidence_status(report, day):
             "daily_dispatch_run_ids": success}
 
 
-def enrich_workbench(rows, data, day):
+def enrich_workbench(rows, data, day, release_variant, rollback_completed, baseline):
     # Old collector already binds the installed jobs.py SHA and natural
     # scheduler context. Recover the genuine stage/task and late-run fields.
     filtered = []
@@ -474,11 +502,45 @@ def enrich_workbench(rows, data, day):
         if value.get("started_at") != row.get("started_at") or value.get("state") != row.get("state"):
             continue
         row["entered_at"] = entry["observed_at"]
+        row["observed_release_variant"] = release_variant
         row["requested_lanes"] = scope.get("requested_lanes") or []
+        if release_variant == "COMPAT_ROLLBACK":
+            classify_rollback_input(row, value, data, rollback_completed, baseline)
         if row.get("reused_prior_run_without_input_write") and "final_plan" not in row:
             row["reused_prior_run_without_input_write"] = False
         filtered.append(row)
     return filtered
+
+
+def classify_rollback_input(row, attempt, data, rollback_completed, baseline):
+    checkpoint = row.get("input_checkpoint")
+    if not checkpoint:
+        return
+    wb = data["workbench"]
+    if row.get("input_checkpoint_schema") == scan.WORKBENCH_SCHEMA:
+        row["checkpoint_format"] = "REFERENCE_READ_BY_COMPAT"
+        return
+    row["checkpoint_format"] = ("LEGACY_INLINE_WRITTEN_AFTER_COMPAT_ROLLBACK"
+        if timestamp(checkpoint["mtime"]) >= rollback_completed else "LEGACY_INLINE_INHERITED_BY_COMPAT")
+    raw = scan.limited(Path(checkpoint["path"]))
+    if not isinstance(raw.get("context"), dict) or not isinstance(raw.get("batches"), list):
+        row["storage_failure"] = "COMPAT_LEGACY_INPUT_SHAPE_INVALID"
+        return
+    sha = checkpoint["sha256"]
+    body = wb / "input_snapshots" / (sha + ".json")
+    if not body.is_file() or scan.info(body)["sha256"] != sha:
+        row["storage_failure"] = "COMPAT_LEGACY_INPUT_COMPANION_UNPROVEN"
+        return
+    row.update(logical_input_sha256=sha, input_body=scan.info(body), input_body_reused=sha in baseline["input_ids_before"],
+               legacy_inline_companion_verified=True)
+    row.pop("storage_failure", None)
+    row["shared_blobs"] = []
+    for key in sorted(set(scan.find_markers(attempt))):
+        blob = wb / "overlay_blobs" / (key + ".json")
+        if not blob.is_file() or scan.info(blob)["sha256"] != key:
+            row["storage_failure"] = "COMPAT_ATTEMPT_OVERLAY_UNPROVEN"
+            break
+        row["shared_blobs"].append({**scan.info(blob), "present_before_trade_day": key in baseline["overlay_ids_before"]})
 
 
 def queued_workbench(data, day, rows):
@@ -516,37 +578,97 @@ def checked_baseline(day):
     return baseline
 
 
-def collect(day, baseline):
+def rollback_authority(day):
+    """Only the reviewed controller's completed switch may change collection roots."""
+    path = scan.OUT / "ROLLBACK_RESULT.json"
+    if not path.is_file():
+        return None
+    result = scan.limited(path)
+    if result.get("status") != "DEPLOYED_AND_READ_BACK":
+        return None
+    activation = scan.limited(scan.ACTIVATION)
+    install = result.get("install", {})
+    install_path = scan.release.INSTALL / "INSTALL_RECEIPT.json"
+    completed = timestamp(result.get("completed"))
+    if (result.get("mode") != "rollback" or result.get("automatic_gc") is not False
+            or install != activation.get("install") or install.get("path") != str(install_path)
+            or install.get("sha256") != INSTALL_RECEIPT_SHA or scan.info(install_path)["sha256"] != INSTALL_RECEIPT_SHA
+            or completed is None or completed < timestamp(activation["completed"]) or completed > scan.instant()):
+        raise ValueError("NATURAL_COMPAT_ROLLBACK_AUTHORITY_INVALID")
+    installed = scan.limited(install_path)
+    after = result["after"]
+    for role in scan.release.ROLE:
+        before = result["before"][role]
+        forward = activation["after"]["roles"][role]
+        rollback = after["roles"][role]
+        expected = installed["rollback"]["roles"][role]
+        live_path = scan.release.live(role)
+        manifest = Path(expected["manifest"]["path"])
+        if (any(before[key] != forward[key] for key in ("app_root", "release_id", "manifest_sha256", "plist"))
+                or rollback["plist"]["path"] != str(live_path)
+                or rollback["plist"]["sha256"] != expected["proposed_plist"]["sha256"]
+                or rollback["app_root"] != expected["app_root"]
+                or rollback["manifest_sha256"] != expected["manifest"]["sha256"]
+                or scan.info(manifest)["sha256"] != expected["manifest"]["sha256"]
+                or scan.limited(manifest)["release_id"] != rollback["release_id"]
+                or scan.info(live_path)["sha256"] != rollback["plist"]["sha256"]):
+            raise ValueError("NATURAL_COMPAT_ROLLBACK_ROLE_MISMATCH:" + role)
+    controls = after["controls"]
+    policy = installed["rollback"]["control"]["policy"]
+    if (controls.get("dry_run") is not True or controls.get("auto_gc_enabled") is not False
+            or controls.get("actual_plist_paths") is not True
+            or controls["policy"]["path"] != policy["path"] or controls["policy"]["sha256"] != policy["sha256"]
+            or scan.info(Path(policy["path"]))["sha256"] != policy["sha256"]):
+        raise ValueError("NATURAL_COMPAT_ROLLBACK_POLICY_MISMATCH")
+    return {"after": after, "completed": completed, "receipt": scan.info(path),
+            "trade_date": day, "result": result}
+
+
+def collect(day, baseline, rollback=None):
     # Use the old collector's exact deployed identity, local health contract,
     # workbench input hydration, business dispatch and fault classification.
-    readers = scan.stage_result, scan.workbench_result, scan.daily_result
+    readers = scan.stage_result, scan.workbench_result, scan.daily_result, scan.limited
+    variant = "COMPAT_ROLLBACK" if rollback else "FORWARD"
     scan.stage_result = stage_result
     scan.workbench_result = lambda data, target, expected, base: enrich_workbench(
-        readers[1](data, target, expected, base), data, target)
+        readers[1](data, target, expected, base), data, target, variant,
+        rollback["completed"] if rollback else None, base)
     scan.daily_result = daily_result
+    if rollback:
+        scan.limited = lambda path: {"after": rollback["after"]} if path == scan.ACTIVATION else readers[3](path)
     try:
         row = scan.check_once(day, baseline)
     finally:
-        scan.stage_result, scan.workbench_result, scan.daily_result = readers
+        scan.stage_result, scan.workbench_result, scan.daily_result, scan.limited = readers
     row["observer"] = "NATURAL_FULL_SESSION_V1"
+    row["observed_release_variant"] = variant
+    if rollback:
+        row["rollback_authority"] = rollback["receipt"]
     if "workbench" in row:
         data = {key: Path(path) for key, path in baseline["roots"].items()}
         row["workbench_unentered_active_claims"] = queued_workbench(data, day, row["workbench"])
-    row["session_evidence"] = evidence_status(row, day)
     for stage in row.get("stage", ()):
         for attempt in stage["attempts"]:
+            attempt["observed_release_variant"] = variant
             for reason in attempt["source_failures"]:
                 row["release_storage_failures"].append({"kind": reason, "stage_id": stage["stage_id"]})
     row["release_storage_failures"] = sorted(
         {json.dumps(fault, sort_keys=True): fault for fault in row.get("release_storage_failures", ())}.values(),
         key=lambda fault: json.dumps(fault, sort_keys=True),
     )
+    for dispatch in row.get("main_dispatch", ()):
+        dispatch["observed_release_variant"] = variant
+    if "formal_daily" in row:
+        daily = row["formal_daily"]
+        matching = matching_daily_dispatch(daily, row.get("main_dispatch", ()), day, variant)
+        daily["observed_release_variant"] = variant if matching else "OWNER_RELEASE_UNPROVEN"
+    row["session_evidence"] = evidence_status(row, day)
     return row
 
 
-def observed(day, baseline):
+def observed(day, baseline, rollback=None):
     try:
-        return collect(day, baseline)
+        return collect(day, baseline, rollback)
     except Exception as error:
         row = {"status": "PROBE_ERROR", "observer": "NATURAL_FULL_SESSION_V1", "trade_date": day,
                "observed_at": scan.instant().isoformat(), "error": repr(error),
@@ -556,7 +678,8 @@ def observed(day, baseline):
         try:
             unloaded = "LIVE_LAUNCHD_PATH_DRIFT" in str(error) and any(
                 not scan.release.state(role)[0]["loaded"] for role in scan.release.ROLE)
-            activation = scan.limited(scan.ACTIVATION)["after"]["roles"]
+            authority = rollback["after"] if rollback else scan.limited(scan.ACTIVATION)["after"]
+            activation = authority["roles"]
             identity = all(scan.release.sha(scan.release.live(role)) == activation[role]["plist"]["sha256"]
                            for role in scan.release.ROLE)
         except (OSError, RuntimeError, KeyError, subprocess.TimeoutExpired):
@@ -564,18 +687,106 @@ def observed(day, baseline):
         if (isinstance(error, (OSError, RuntimeError)) and identity
                 and (unloaded or any(token in str(error) for token in health_tokens))):
             row["release_storage_failures"] = [{"kind": "REPEATED_DEPLOYED_RUNTIME_HEALTH_FAILURE"}]
+        row["observed_release_variant"] = "COMPAT_ROLLBACK" if rollback else "FORWARD"
         return row
 
 
 def finish_status(report, day, at):
     evidence = report.get("session_evidence") or {}
     date = scan.local(day)
-    if (at >= date + timedelta(hours=17, minutes=15) and evidence.get("complete")
+    terminal_at = date + (timedelta(hours=23, minutes=58) if report.get("rollback_authority")
+                          else timedelta(hours=17, minutes=15))
+    if (at >= terminal_at and evidence.get("complete")
             and not report.get("release_storage_failures")):
-        return "NATURAL_SESSION_EVIDENCE_VERIFIED"
+        return ("NATURAL_SESSION_EVIDENCE_VERIFIED_AFTER_COMPAT_ROLLBACK"
+                if report.get("rollback_authority") else "NATURAL_SESSION_EVIDENCE_VERIFIED")
     if at >= date + timedelta(hours=23, minutes=58):
         return "TRADING_DAY_WINDOW_ENDED_WITH_MISSING_RECEIPTS"
     return None
+
+
+def merge_release_evidence(forward, rollback, day):
+    if not forward:
+        return rollback
+    if rollback["status"] == "PROBE_ERROR":
+        # A post-switch probe failure cannot settle forward work or establish
+        # covered slots. Preserve the previous observations but keep the gap.
+        return {**forward, **rollback,
+                "session_evidence": {**forward.get("session_evidence", evidence_status(forward, day)),
+                    "complete": False, "gaps": [
+                        *forward.get("session_evidence", {}).get("gaps", ()),
+                        {"kind": "COMPAT_ROLLBACK_SESSION_PROBE_FAILED"}]}}
+    combined = dict(rollback)
+    stages = {row["stage_id"]: row for row in forward.get("stage", ())}
+    for row in rollback.get("stage", ()):
+        prior = stages.get(row["stage_id"])
+        if not prior:
+            stages[row["stage_id"]] = row
+            continue
+        attempts = {(item["execution"]["attempt_id"], item["observed_release_variant"]): item
+                    for item in prior["attempts"] + row["attempts"]}
+        stages[row["stage_id"]] = {**row, "attempts": sorted(attempts.values(), reverse=True,
+            key=lambda attempt: timestamp(attempt["recorded_at"])), "matched_natural": bool(attempts),
+            "gap": None if attempts else row["gap"]}
+    combined["stage"] = list(stages.values())
+    workbench = {(row["job_id"], row.get("observed_release_variant", "FORWARD")): row
+                 for row in [*forward.get("workbench", ()), *rollback.get("workbench", ())]}
+    after_jobs = {row["job_id"] for row in rollback.get("workbench", ())}
+    # Keep the forward state as historical evidence, while only the latest
+    # execution per job contributes to the active-work verdict.
+    for key, row in tuple(workbench.items()):
+        if key[1] != "FORWARD":
+            continue
+        if key[0] in after_jobs:
+            workbench[key] = {**row, "superseded_after_rollback": True}
+        elif row["state"] in WORKBENCH_ACTIVE and row.get("attempt"):
+            path = Path(row["attempt"]["path"])
+            try:
+                latest = scan.limited(path)
+                if latest.get("job_id") != row["job_id"] or not isinstance(latest.get("state"), str):
+                    raise ValueError("FORWARD_ATTEMPT_READBACK_IDENTITY_MISMATCH")
+                workbench[key] = {**row, "settled_state_after_rollback": latest["state"],
+                                  "settlement_readback": scan.info(path)}
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                workbench[key] = {**row, "rollback_settlement_gap": str(error)}
+    combined["workbench"] = list(workbench.values())
+    dispatch = {row["run_id"]: row for row in [*forward.get("main_dispatch", ()), *rollback.get("main_dispatch", ())]}
+    combined["main_dispatch"] = list(dispatch.values())
+    prior_daily = forward.get("formal_daily", {})
+    current_daily = rollback.get("formal_daily", {})
+    if not current_daily.get("receipt") and prior_daily.get("receipt"):
+        combined["formal_daily"] = {**prior_daily, **{key: current_daily[key] for key in (
+            "registry_tasks", "scheduler_slots") if key in current_daily}}
+    elif current_daily.get("observed_release_variant") == "OWNER_RELEASE_UNPROVEN" and (
+            current_daily.get("receipt", {}).get("sha256") == prior_daily.get("receipt", {}).get("sha256")):
+        combined["formal_daily"] = {**current_daily,
+            "observed_release_variant": prior_daily.get("observed_release_variant", "OWNER_RELEASE_UNPROVEN")}
+    combined["session_evidence"] = evidence_status(combined, day)
+    return combined
+
+
+def preserve_forward(row, day):
+    path = scan.MONITOR / "FORWARD_BEFORE_COMPAT_ROLLBACK.json"
+    payload = {**row, "trade_date": day,
+               "activation": scan.info(scan.ACTIVATION), "evidence_role": "FORWARD_BEFORE_COMPAT_ROLLBACK"}
+    scan.release.save(path, payload)
+    directory = os.open(scan.MONITOR, os.O_RDONLY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+    return scan.info(path)
+
+
+def prior_forward(day):
+    path = scan.MONITOR / "FORWARD_BEFORE_COMPAT_ROLLBACK.json"
+    if not path.is_file():
+        return None
+    value = scan.limited(path)
+    if (value.get("trade_date") != day or value.get("evidence_role") != "FORWARD_BEFORE_COMPAT_ROLLBACK"
+            or value.get("activation", {}).get("sha256") != scan.info(scan.ACTIVATION)["sha256"]):
+        raise ValueError("FORWARD_BEFORE_COMPAT_ROLLBACK_EVIDENCE_DRIFT")
+    return value
 
 
 def final_receipts(row, day):
@@ -584,6 +795,9 @@ def final_receipts(row, day):
                "bytes_scope": BYTES_SCOPE, "RESEARCH_ONLY": True,
                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
                "auto_gc_enabled": False}
+    for key in ("observed_release_variant", "rollback_authority", "forward_evidence_before_rollback"):
+        if key in row:
+            headers[key] = row[key]
     stage = row.get("stage", [])
     workbench = row.get("workbench", [])
     daily = row.get("formal_daily", {})
@@ -610,7 +824,8 @@ def final_receipts(row, day):
     summary = {"status": row["status"], "trade_date": day, "observed_at": row["observed_at"],
                "session_evidence": evidence, "write_receipts": result, "bytes_scope": BYTES_SCOPE,
                "release_storage_failures": row.get("release_storage_failures", ()),
-               **{key: row[key] for key in ("rollback", "rollback_error", "error") if key in row}}
+               **{key: row[key] for key in ("rollback", "rollback_error", "error", "observed_release_variant",
+                    "rollback_authority", "forward_evidence_before_rollback") if key in row}}
     scan.release.save(scan.MONITOR / "NATURAL_RESULT.json", summary)
     directory = os.open(scan.MONITOR, os.O_RDONLY)
     try:
@@ -626,15 +841,51 @@ def monitor(day, mode):
     latest_path = scan.MONITOR / "LATEST.json"
     deadline = scan.local(day) + timedelta(hours=23, minutes=58)
     signature, strikes = None, 0
+    successful_rollback = False
+    rollback_uncertain = False
+    failure_receipt = scan.MONITOR / "ROLLBACK_ATTEMPT.json"
+    if failure_receipt.is_file():
+        failed = scan.limited(failure_receipt)
+        rollback_uncertain = (failed.get("status") == "DEFERRED_OR_FAILED"
+                              and not any(token in failed.get("reason", "") for token in DEFER_ROLLBACK))
     previous_good = None
+    preserved = prior_forward(day)
     if latest_path.is_file():
         previous = scan.limited(latest_path)
         if previous.get("observer") == "NATURAL_FULL_SESSION_V1" and previous.get("status") == "OBSERVING":
             previous_good = previous
+            successful_rollback = bool(previous.get("rollback_authority"))
     while True:
-        row = observed(day, baseline)
-        if row["status"] == "OBSERVING":
-            previous_good = row
+        authority_error = None
+        try:
+            rollback = rollback_authority(day)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            rollback, authority_error = None, repr(error)
+        if rollback or authority_error:
+            # An operator or prior observer may have completed rollback before
+            # this process woke. Preserve any last confirmed forward read.
+            if not preserved and previous_good and previous_good.get("observed_release_variant") == "FORWARD":
+                preserve_forward(previous_good, day)
+                preserved = prior_forward(day)
+        if rollback:
+            successful_rollback = True
+        elif successful_rollback and not authority_error:
+            authority_error = "PREVIOUSLY_VERIFIED_COMPAT_ROLLBACK_RECEIPT_UNAVAILABLE"
+        if authority_error:
+            row = {"status": "PROBE_ERROR", "observer": "NATURAL_FULL_SESSION_V1",
+                   "trade_date": day, "observed_at": scan.instant().isoformat(), "error": authority_error,
+                   "observed_release_variant": "CANNOT_CONFIRM_COMPAT_ROLLBACK"}
+        else:
+            fresh = observed(day, baseline, rollback)
+            merge_base = previous_good if fresh["status"] == "PROBE_ERROR" and previous_good else preserved
+            row = merge_release_evidence(merge_base, fresh, day) if rollback else fresh
+            if rollback:
+                row["rollback_authority"] = rollback["receipt"]
+                if preserved:
+                    row["forward_evidence_before_rollback"] = scan.info(
+                        scan.MONITOR / "FORWARD_BEFORE_COMPAT_ROLLBACK.json")
+            if fresh["status"] == "OBSERVING":
+                previous_good = row
         scan.release.save(latest_path, row)
         if mode == "once":
             print(json.dumps({"status": row["status"], "at": row["observed_at"],
@@ -645,23 +896,35 @@ def monitor(day, mode):
         strikes = (strikes + 1 if current == signature else 1) if faults else 0
         signature = current
         status = None
-        if strikes >= 2:
+        if strikes >= 2 and not (successful_rollback or rollback_uncertain or authority_error):
             scan.release.save(scan.MONITOR / "ROLLBACK_TRIGGER.json", {
                 "reason": "VERIFIED_RELEASE_STORAGE_FAILURE", "checks": faults, "observed_at": scan.instant().isoformat()})
+            preserve_forward(previous_good or row, day)
+            preserved = prior_forward(day)
             try:
                 row["rollback"] = scan.release.operation("rollback")
-                status = "ROLLED_BACK_COMPAT"
+                # Never treat the switch itself as the day's terminal result.
+                # The next loop binds the controller's independently read-back receipt.
+                successful_rollback = True
+                signature, strikes = None, 0
+                continue
             except (RuntimeError, OSError, subprocess.TimeoutExpired) as error:
                 reason = str(error)
                 scan.release.save(scan.MONITOR / "ROLLBACK_ATTEMPT.json", {
                     "status": "DEFERRED_OR_FAILED", "reason": reason, "at": scan.instant().isoformat()})
                 if not any(token in reason for token in DEFER_ROLLBACK):
-                    status = "COMPAT_ROLLBACK_CANNOT_CONFIRM"
                     row["rollback_error"] = reason
+                    rollback_uncertain = True
+                    signature, strikes = None, 0
         status = status or finish_status(row, day, scan.instant())
         if status:
             information = dict(previous_good or {})
             information.update(row, status=status)
+            if row["status"] == "PROBE_ERROR":
+                evidence = dict(information.get("session_evidence") or evidence_status(information, day))
+                evidence["complete"] = False
+                evidence["gaps"] = [*evidence["gaps"], {"kind": "FINAL_SESSION_PROBE_UNAVAILABLE"}]
+                information["session_evidence"] = evidence
             final_receipts(information, day)
             return
         if scan.instant() < scan.local(day) + timedelta(hours=8):
