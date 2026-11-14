@@ -198,6 +198,44 @@ def test_parallel_does_not_publish_a_row_if_history_write_fails(tmp_path, monkey
     assert history.read_checkpoint(path) == value
 
 
+def test_independent_close_reads_original_seed_without_history_write(tmp_path, monkeypatch):
+    root = tmp_path / 'close'
+    original = tmp_path / 'original'
+    source = original / 'history' / 'rule' / SYMBOL / 'checkpoint.json'
+    prior = cache(DAY1, {DAY1: 'TRUE'})
+    owner.save(source, prior)
+    source_before = {p.relative_to(original): p.read_bytes() for p in original.rglob('*.json')}
+    context = SimpleNamespace(root=root, target=DAY2, scope=[SYMBOL],
+                              engine=lambda: SimpleNamespace(compute=lambda *_: None),
+                              unchanged=lambda: None)
+    calls = []
+
+    def compute(context_arg, symbol, *, history_dates, checkpoint_input):
+        assert context_arg is context and symbol == SYMBOL and not history_dates
+        detached_path = context.root / source.relative_to(original)
+        loaded = history.read_checkpoint(context.history_checkpoint_seed_root / detached_path.relative_to(root))
+        calls.append(loaded)
+        return {'symbol': symbol, 'data_date': str(DAY2), 'seed_asof': loaded['source_identity']['asof']}, loaded, detached_path
+
+    def unexpected_history_write(*args):
+        pytest.fail('independent close must not call the history writer')
+
+    monkeypatch.setattr(parallel, '_CONTEXT', context)
+    monkeypatch.setattr(parallel, '_PARTS', root / 'rows')
+    monkeypatch.setattr(owner, 'compute_stock', compute)
+    monkeypatch.setattr(owner, 'save_history_checkpoint', unexpected_history_write)
+    first = parallel.checkpoint_independent_close(SYMBOL, history_root=original)
+    repeat = parallel.checkpoint_independent_close(SYMBOL, history_root=original)
+    assert calls == [prior]
+    assert first == repeat
+    assert json.loads(owner.checked(first['ref']).read_bytes())['seed_asof'] == DAY1
+    assert not hasattr(context, 'history_checkpoint_seed_root')
+    assert not (root / 'history').exists()
+    assert {p.relative_to(original): p.read_bytes() for p in original.rglob('*.json')} == source_before
+    with pytest.raises(ValueError, match='HISTORY_NAMESPACE_CONFLICT'):
+        parallel.checkpoint_independent_close(SYMBOL, history_root=root)
+
+
 def test_republished_view_uses_pinned_original_result_and_rejects_missing_proof(tmp_path):
     previous = cache(DAY1, {DAY1: 'TRUE'}, rules=owner.digest({}))
     original = dict(asof=DAY1, generation='old', input_sha256='old-input', historical_PIT=False)

@@ -18,11 +18,139 @@ from .store import StorageConflict, StorageUnavailable, WorkbenchStore
 ALL_LANES = tuple(Lane)
 
 
+def _lane_contexts(snapshot):
+    stored=snapshot.changes.get('phase_lane_contexts',{})
+    fallback=snapshot.context.model_dump(mode='json')
+    fallback['scope_refs'].pop('decision_lane_contexts',None)
+    return {lane.lane.value:stored.get(lane.lane.value,fallback) for lane in snapshot.lanes}
+
+
+def _merge_context(context, contexts):
+    ctx=context.model_copy(deep=True)
+    ctx.scope_refs['decision_lane_contexts']=contexts
+    return ctx
+
+
+def _selection_identity(context):
+    if "US_MAPPING" not in context.scope_refs.get("requested_lanes", []): return {}
+    from .engines.strict_us_selection import engine_identity
+    from .engines.us_mapping_policy import POLICY_SHA256
+    return dict(us_selection_engine_identity=engine_identity(), us_selection_policy_sha256=POLICY_SHA256)
+
+
+def _publication_context(context, processing_cutoff):
+    """Keep the US decision as-of and original quote capture distinct from clock."""
+    ctx=context.model_copy(deep=True)
+    if ctx.phase==Phase.PREOPEN:return ctx
+    if 'US_MAPPING' in ctx.scope_refs.get('requested_lanes',[]):
+        ctx.scope_refs.setdefault('source_cutoff',None)
+        ctx.scope_refs.setdefault('source_execution_cutoff',ctx.cutoff)
+        ctx.scope_refs['decision_input_cutoff']=ctx.cutoff
+        ctx.scope_refs['processing_cutoff']=processing_cutoff
+    else:
+        ctx.scope_refs.setdefault('source_cutoff',ctx.cutoff)
+        ctx.cutoff=processing_cutoff
+    return ctx
+
+
+def project_preopen_lane(lane, *, cutoff: str):
+    """Pure projection of one saved lane; retains candidate context and causes."""
+    from .contracts import GateDecision
+    source = LaneResult.model_validate(lane) if isinstance(lane,dict) else lane
+    projected = source.model_copy(deep=True)
+    end = datetime.fromisoformat(cutoff)
+    def before(value):
+        try:return bool(value and datetime.fromisoformat(value)<=end)
+        except (ValueError,TypeError):return False
+    refs={e.evidence_id:e for e in source.evidence_refs if e.verification.value=="VERIFIED" and before(e.available_at)}
+    completed=[]; rejected={}; causes={}; by_symbol={}
+    for row in source.rows:
+        if row.get('source_diagnostic') and source.selection is not None:
+            completed.append(dict(row));continue
+        reasons=[]
+        if row.get('decision') not in {'SELECTED','CONDITIONAL_WATCH','NOT_SELECTED','OBSERVATION_ONLY'}:reasons.append('PREOPEN_DECISION_INCOMPLETE')
+        if not row.get('evidence_ids'):reasons.append('PREOPEN_ROW_EVIDENCE_MISSING')
+        elif not set(row['evidence_ids']).issubset(refs):reasons.append('PREOPEN_ROW_EVIDENCE_UNVERIFIED_OR_AFTER_CUTOFF')
+        if not before(row.get('available_at')):reasons.append('PREOPEN_ROW_AVAILABLE_AFTER_CUTOFF_OR_UNKNOWN')
+        reviewed=(row.get('semantic') or {}).get('reviewed_at')
+        if reviewed and not before(reviewed):reasons.append('PREOPEN_ROW_REVIEW_AFTER_CUTOFF')
+        by_symbol[row.get('symbol')]=reasons
+        if not reasons:completed.append(dict(row))
+        else:
+            for r in reasons:rejected[r]=rejected.get(r,0)+1
+            for r in set(row.get('reasons') or [row.get('reason') or 'UNKNOWN']):causes[r]=causes.get(r,0)+1
+    if source.selection is not None:
+        selection=projected.selection
+        decisions={d.symbol:d for d in selection.strict_decisions}
+        canonical={r.get('symbol'):r for r in source.rows if r.get('record_role')=='CANONICAL_SELECTION'}
+        # Replace copied canonical rows with one projection per saved candidate.
+        completed=[r for r in completed if r.get('record_role')!='CANONICAL_SELECTION']
+        for c in selection.candidates:
+            d=decisions[c.symbol]; reasons=by_symbol.get(c.symbol,['PREOPEN_CANONICAL_ROW_MISSING'])
+            body=d.model_dump(mode='json')
+            body['gates'].append(GateDecision(gate='preopen',state='PENDING' if reasons else 'PASS',actual=dict(cutoff=cutoff),
+                threshold='FROZEN_SOURCE_AND_EVIDENCE_AVAILABLE_BY_STAGE_CUTOFF',reasons=reasons).model_dump(mode='json'))
+            if reasons:
+                body.update(reasons=list(dict.fromkeys([*d.reasons,*reasons])),qualified=False,rank=None)
+                if d.state!='REJECT':body.update(state='PENDING',decision='PENDING')
+            d=type(d).model_validate(body);decisions[c.symbol]=d
+            row=dict(canonical.get(c.symbol) or {},market='HK_CONNECT',symbol=c.symbol,name=c.name,
+                record_role='CANONICAL_SELECTION',source_diagnostic=False,strict_selection=d.model_dump(mode='json'),
+                decision={'SELECTED':'SELECTED','QUALIFIED_NOT_SELECTED':'NOT_SELECTED','REJECTED':'NOT_SELECTED','PENDING':'UNASSESSED'}[d.decision],
+                reason=(d.reasons or ['ALL_STRICT_GATES_PASSED'])[0],reasons=d.reasons)
+            completed.append(row)
+        selection.strict_decisions=list(decisions.values())
+        if selection.focus is not None:
+            from .engines.strict_us_selection import triggered_focus
+            selection.focus=triggered_focus(dict(target_date=selection.target_date,cutoff=cutoff,
+                source_sessions=dict(us=selection.source_session,hk_price=selection.price_session)),
+                selection.candidates,selection.strict_decisions)
+        for key in ['selected','qualified_not_selected','rejected','pending']:selection.counts[key]=0
+        for d in decisions.values():selection.counts[{'SELECTED':'selected','QUALIFIED_NOT_SELECTED':'qualified_not_selected','REJECTED':'rejected','PENDING':'pending'}[d.decision]]+=1
+        selection.gaps=sorted({*selection.gaps,*(r for d in decisions.values() for g in d.gates if g.state=='PENDING' for r in g.reasons)})
+        if any(g.state=='PENDING' for d in decisions.values() for g in d.gates):
+            selection.evaluation_complete=False
+            selection.gaps=sorted(set([*selection.gaps,'STRICT_EVALUATION_INCOMPLETE']))
+        from .engines.strict_us_selection import legacy_mapping_projection
+        for row in completed:
+            if isinstance(row.get('us_factor_summary'),dict):
+                row['us_factor_summary']={**row['us_factor_summary'],
+                    'single_day_mapping':legacy_mapping_projection(selection),
+                    'strict_selection':selection.model_dump(mode='json')}
+    diagnostic=dict(source_state=source.state.value,source_run_id=source.run_id,input_sha256=source.input_sha256,
+        source_row_count=len(source.rows),accepted_row_count=len(completed),rejected_reason_counts=rejected,source_reason_counts=causes)
+    if rejected:
+        projected.state=LaneState.PARTIAL
+        projected.gaps=list(dict.fromkeys([*projected.gaps,'PREOPEN_ROWS_INCOMPLETE']))
+        completed.append(dict(market='HK_CONNECT',symbol=None,decision='UNASSESSED',source_diagnostic=True,
+            reason='PREOPEN_ROWS_INCOMPLETE',preopen_filter_diagnostics=diagnostic))
+    projected.rows=completed
+    projected.evidence_refs=list(refs.values())
+    return projected
+
+
 def validate_selected_evidence(snapshot):
     evidence = {e.evidence_id:e for lane in snapshot.lanes for e in lane.evidence_refs}
     cutoff = datetime.fromisoformat(snapshot.context.cutoff)
+    contexts=_lane_contexts(snapshot)
+    by_lane={lane.lane.value:{e.evidence_id:e for e in lane.evidence_refs} for lane in snapshot.lanes}
     for stock in snapshot.stocks:
         if stock.decision != Decision.SELECTED: continue
+        if (snapshot.changes.get('phase_lane_contexts') and stock.lane_decisions
+                and all(isinstance(rows,list) for rows in stock.lane_decisions.values())):
+            bound=set()
+            for name,rows in stock.lane_decisions.items():
+                lane_cutoff=datetime.fromisoformat(contexts[name]['cutoff'])
+                refs=by_lane.get(name,{})
+                for row in rows:
+                    for eid in row.get('evidence_ids') or []:
+                        bound.add(eid);ref=refs.get(eid)
+                        if (ref is None or ref.verification.value!='VERIFIED' or not ref.available_at
+                                or datetime.fromisoformat(ref.available_at)>lane_cutoff):
+                            raise ValueError('SELECTED_EVIDENCE_AFTER_CUTOFF_OR_UNKNOWN')
+            if not stock.evidence_ids or not set(stock.evidence_ids).issubset(bound):
+                raise ValueError('SELECTED_EVIDENCE_AFTER_CUTOFF_OR_UNKNOWN')
+            continue
         if not stock.evidence_ids or any(eid not in evidence or evidence[eid].verification.value != "VERIFIED"
                 or not evidence[eid].available_at or datetime.fromisoformat(evidence[eid].available_at) > cutoff
                 for eid in stock.evidence_ids):
@@ -126,8 +254,10 @@ class ManagerService:
         cutoffs={}
         sessions={}
         fingerprints={}
+        contexts={}
         requested=set(incoming.context.scope_refs.get("requested_lanes",[]))
         if previous is not None:
+            contexts.update(_lane_contexts(previous))
             requested.update(previous.context.scope_refs.get("requested_lanes",[]))
             previous_sources=previous.changes.get("phase_lane_sources",{})
             previous_inputs=previous.changes.get("phase_lane_inputs",{})
@@ -144,13 +274,27 @@ class ManagerService:
                 fingerprints[lane.lane.value]=previous_fingerprints.get(lane.lane.value,
                     previous.changes.get("fingerprint"))
         requested.update(lane.lane.value for lane in incoming.lanes)
+        incoming_contexts=_lane_contexts(incoming)
         for lane in incoming.lanes:
+            if lane.lane == Lane.US_MAPPING and lane.lane.value in lanes:
+                old_sessions=sessions[lane.lane.value]
+                old_us=old_sessions.get('us') or old_sessions.get('US')
+                new_us=incoming.context.source_sessions.get('us') or incoming.context.source_sessions.get('US')
+                new_cutoff=incoming.context.scope_refs.get('source_cutoff',incoming.context.cutoff)
+                try:old_time=datetime.fromisoformat(cutoffs[lane.lane.value])
+                except (TypeError,ValueError):old_time=None
+                try:new_time=datetime.fromisoformat(new_cutoff)
+                except (TypeError,ValueError):new_time=None
+                if old_us and (not new_us or new_us<old_us or (new_us==old_us and
+                        old_time is not None and (new_time is None or new_time<old_time))):
+                    raise StorageConflict('STALE_US_SOURCE_OVERWRITE')
             lanes[lane.lane.value]=lane
             sources[lane.lane.value]=incoming.changes.get("phase_lane_sources",{}).get(lane.lane.value,incoming.run_id)
             inputs[lane.lane.value]=lane.input_sha256
             cutoffs[lane.lane.value]=incoming.context.scope_refs.get("source_cutoff",incoming.context.cutoff)
             sessions[lane.lane.value]=incoming.context.source_sessions
             fingerprints[lane.lane.value]=incoming.changes.get("fingerprint")
+            contexts[lane.lane.value]=incoming_contexts[lane.lane.value]
         if previous is not None and previous.run_id==incoming.run_id:
             prior={lane.lane.value:lane for lane in previous.lanes}
             if all(name in prior and prior[name].input_sha256==lane.input_sha256
@@ -161,7 +305,7 @@ class ManagerService:
         ctx.scope_refs["requested_lanes"]=sorted(requested)
         merged_lanes=[lane.model_copy(update={"run_id":incoming.run_id},deep=True)
             for _,lane in sorted(lanes.items())]
-        stocks=[StockDecision.model_validate(row) for row in self.engines.merge_decisions(ctx,merged_lanes)]
+        stocks=[StockDecision.model_validate(row) for row in self.engines.merge_decisions(_merge_context(ctx,contexts),merged_lanes)]
         stocks=sort_stocks(stocks,merged_lanes)
         incomplete=len(merged_lanes)<len(requested)
         partial=incomplete or any(lane.state in (LaneState.NOT_RUN,LaneState.RUNNING,LaneState.PARTIAL,
@@ -171,7 +315,7 @@ class ManagerService:
         if partial and not gaps:gaps.append("LANE_PARTIAL")
         changes=dict(incoming.changes)
         changes.update(phase_lane_sources=sources,phase_lane_inputs=inputs,phase_lane_cutoffs=cutoffs,
-            phase_lane_source_sessions=sessions,phase_lane_fingerprints=fingerprints)
+            phase_lane_source_sessions=sessions,phase_lane_fingerprints=fingerprints,phase_lane_contexts=contexts)
         body=incoming.model_dump(mode="json")
         body.update(context=ctx.model_dump(mode="json"),input_sha256=digest({"phase_lane_inputs":inputs}),
             lanes=[lane.model_dump(mode="json") for lane in merged_lanes],
@@ -183,7 +327,8 @@ class ManagerService:
         return merged
 
     def _commit_plan(self,snapshot):
-        merger=self._merge_phase_lane_snapshots if snapshot.context.scope_refs.get("merge_phase_lanes") else None
+        single_us=(snapshot.context.phase==Phase.NEXT_DAY and [l.lane for l in snapshot.lanes]==[Lane.US_MAPPING])
+        merger=self._merge_phase_lane_snapshots if snapshot.context.scope_refs.get("merge_phase_lanes") or single_us else None
         return self.store.commit_plan(snapshot,merger=merger)
 
     def retry(self, job_id: str) -> JobRecord:
@@ -209,6 +354,8 @@ class ManagerService:
         ctx.scope_refs["mwb_run_id"] = job.run_id
         ctx.scope_refs["run_id"] = job.run_id
         previous = self.store.load_checkpoint(job.job_id, "PUBLISH")
+        if previous and _selection_identity(ctx) and previous.get('changes',{}).get('us_selection_engine_identity') != _selection_identity(ctx)['us_selection_engine_identity']:
+            previous=None
         if previous:
             snap = PlanSnapshot.model_validate(previous)
             if snap.run_id != job.run_id:
@@ -221,9 +368,11 @@ class ManagerService:
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
 
         resume_job = ctx.scope_refs.get("resume_from_job",job.job_id)
-        frozen_input = self.store.load_checkpoint(resume_job,"LOAD_INPUTS")
         try:
-            if frozen_input:
+            frozen_input, input_snapshot_sha = self.store.load_input_checkpoint(job.job_id)
+            if frozen_input is None and resume_job != job.job_id:
+                frozen_input, input_snapshot_sha = self.store.load_input_checkpoint(resume_job)
+            if frozen_input is not None:
                 saved_context = RunContext.model_validate(frozen_input["context"])
                 # Preserve original source cutoff/scope and replace only execution identity.
                 ctx = saved_context.model_copy(deep=True)
@@ -249,11 +398,6 @@ class ManagerService:
         allowed = set(ctx.scope_refs["requested_lanes"])
         if len({i.lane.value for i in inputs}) != len(inputs) or any(i.context.target_date != ctx.target_date or i.lane.value not in allowed for i in inputs):
             raise StepFailure("INPUT_CONTRACT_MISMATCH")
-        input_body = {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY", "context": ctx.model_dump(mode="json"),
-                      "batches": [b.model_dump(mode="json") for b in inputs]}
-        input_snapshot_sha = digest(input_body)
-        self.store.save_input(input_snapshot_sha, input_body)
-        self.store.save_checkpoint(job.job_id,"LOAD_INPUTS",input_body)
         # Volatile job identifiers and server cutoff are not producer-input identity.
         # A must reflect any actual as-of evidence changes in each InputBatch SHA.
         input_sha = digest({"target_date": ctx.target_date, "phase": ctx.phase.value,
@@ -265,9 +409,20 @@ class ManagerService:
                             "reasoning_effort":self.config.announcement_reasoning_effort,
                             "stage": ctx.scope_refs.get("stage_run_id"),
                             "canary_article_id": ctx.scope_refs.get("canary_article_id")})
+        if _selection_identity(ctx):
+            signature=digest(dict(base=signature,**_selection_identity(ctx)))
         reuse = self.store.find_reusable(ctx.target_date, ctx.phase.value, signature)
         if reuse:
             return reuse.run_id, JobState.PARTIAL if reuse.gaps else JobState.SUCCEEDED
+        try:
+            input_body = (frozen_input if frozen_input is not None else
+                          {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY",
+                           "context": ctx.model_dump(mode="json"),
+                           "batches": [b.model_dump(mode="json") for b in inputs]})
+            input_snapshot_sha = self.store.save_input_checkpoint(job.job_id, input_body,
+                                                                  input_sha=input_snapshot_sha)
+        except (StorageConflict, StorageUnavailable, OSError, ValueError) as exc:
+            raise StepFailure("LOAD_INPUTS_FAILED", retryable=True) from exc
         self.jobs.update(job, step="RUN_LANES")
         audit = AuditedExecutor(self.executor,store=self.store,job_id=job.job_id,resume_job_id=resume_job)
         if resume_job != job.job_id:
@@ -282,6 +437,8 @@ class ManagerService:
                 remaining = {}
                 for lane_name, value in engine_inputs.items():
                     cached = self.store.load_checkpoint(resume_job,"lane_"+lane_name)
+                    if lane_name=='US_MAPPING' and cached and (cached.get('selection') or {}).get('engine_identity')!=_selection_identity(ctx).get('us_selection_engine_identity'):
+                        cached=None
                     if cached:
                         previous_lanes.append(LaneResult.model_validate(cached).model_copy(update={"run_id":job.run_id}))
                     else:
@@ -305,9 +462,10 @@ class ManagerService:
         finally:
             job.execution_refs.extend(audit.refs)
             self.store.save_job(job)
-        if ctx.phase != Phase.PREOPEN:
-            ctx.scope_refs["source_cutoff"] = ctx.cutoff
-            ctx.cutoff = now()
+        decision_context=ctx.model_copy(deep=True)
+        ctx=_publication_context(ctx,now())
+        decision_context.scope_refs=dict(ctx.scope_refs)
+        lane_contexts={lane.lane.value:decision_context.model_dump(mode='json') for lane in lanes}
         job.total_count = len(inputs)
         job.completed_count = sum(l.state in (LaneState.READY,LaneState.READY_EMPTY,LaneState.NOT_APPLICABLE) for l in lanes)
         retry_lanes = [l.lane.value for l in lanes if l.state == LaneState.FAILED or any(r.get("failure_code") for r in l.rows)]
@@ -327,7 +485,7 @@ class ManagerService:
                 raise StepFailure("LANE_NOT_REQUESTED")
         self.jobs.update(job, step="MERGE_DECISIONS")
         try:
-            stocks = [StockDecision.model_validate(s) for s in self.engines.merge_decisions(ctx, lanes)]
+            stocks = [StockDecision.model_validate(s) for s in self.engines.merge_decisions(_merge_context(ctx,lane_contexts), lanes)]
         except Exception as exc:
             raise StepFailure("MERGE_FAILED") from exc
         stocks = sort_stocks(stocks, lanes)
@@ -345,8 +503,9 @@ class ManagerService:
                 "counts": (Counts() if not stocks and partial else count_rows(stocks)).model_dump(mode="json"),
                 "changes": {"fingerprint": signature, "prompt_version": self.config.prompt_version,
                             "model": self.config.model, "input_snapshot_sha256": input_snapshot_sha,
-                            "stage_run_id": ctx.scope_refs.get("stage_run_id")},
+                            "stage_run_id": ctx.scope_refs.get("stage_run_id"),"phase_lane_contexts":lane_contexts},
                 "review_refs": audit.refs, "gaps": gaps}
+        data['changes'].update(_selection_identity(ctx))
         snap = seal_snapshot(data)
         validate_selected_evidence(snap)
         self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
@@ -384,23 +543,9 @@ class ManagerService:
             for lane in current.lanes:
                 if lane.state not in (LaneState.READY, LaneState.READY_EMPTY,LaneState.PARTIAL):
                     continue
-                refs={e.evidence_id:e for e in lane.evidence_refs if e.verification.value=="VERIFIED" and e.available_at
-                      and datetime.fromisoformat(e.available_at)<=cutoff}
-                completed=[]
-                for row in lane.rows:
-                    available=row.get("available_at")
-                    reviewed=row.get("semantic",{}).get("reviewed_at")
-                    if (row.get("decision") in {"SELECTED","CONDITIONAL_WATCH","NOT_SELECTED","OBSERVATION_ONLY"}
-                            and row.get("evidence_ids") and set(row["evidence_ids"]).issubset(refs)
-                            and available and datetime.fromisoformat(available)<=cutoff
-                            and (not reviewed or datetime.fromisoformat(reviewed)<=cutoff)):
-                        completed.append(row)
-                if lane.rows and not completed:continue
-                if lane.state==LaneState.PARTIAL and not completed:continue
-                accepted=lane.model_copy(update={"rows":completed,"evidence_refs":list(refs.values())},deep=True)
-                if len(completed)!=len(lane.rows):
-                    accepted.state=LaneState.PARTIAL
-                    accepted.gaps=list(dict.fromkeys([*accepted.gaps,"PREOPEN_ROWS_INCOMPLETE"]))
+                accepted = project_preopen_lane(lane, cutoff=cutoff.isoformat())
+                if not accepted.rows and accepted.selection is None:
+                    continue
                 acceptable.append(accepted)
                 names.add(lane.lane)
             ctx.source_sessions=dict(current.context.source_sessions)
@@ -414,7 +559,7 @@ class ManagerService:
         # A owns classification; we never reclassify. Only rows supported by frozen lanes survive.
         ids = {e.evidence_id for l in acceptable for e in l.evidence_refs}
         if current and getattr(self.engines,"__name__","").startswith("v4.manager_workbench.engines"):
-            stocks=self.engines.merge_decisions(ctx,lanes)
+            stocks=self.engines.merge_decisions(_merge_context(ctx,_lane_contexts(current)),lanes)
         else:
             stocks = [s for s in current.stocks if s.evidence_ids and set(s.evidence_ids).issubset(ids)] if current else []
         ts = now()
@@ -424,7 +569,8 @@ class ManagerService:
                   "generated_at":ts, "available_at":ts, "lanes":[l.model_dump(mode="json") for l in lanes],
                   "stocks":[s.model_dump(mode="json") for s in stocks],
                   "counts":(Counts() if not stocks and len(names)<len(ALL_LANES) else count_rows(stocks)).model_dump(mode="json"),
-                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None},
+                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None,
+                      "phase_lane_contexts":_lane_contexts(current) if current else {}},
                   "gaps":["PREOPEN_PARTIAL"] if len(names) < len(ALL_LANES) or any(l.state==LaneState.PARTIAL for l in lanes) else []})
         validate_selected_evidence(snap)
         try:

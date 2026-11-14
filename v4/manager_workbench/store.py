@@ -14,6 +14,11 @@ from infrastructure.owned_io import SafeRoot
 
 from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
 
+_DEFAULT_READ_LIMIT = 64 * 1024 * 1024
+_PLAN_READ_LIMIT = 128 * 1024 * 1024
+_INPUT_READ_LIMIT = 128 * 1024 * 1024
+_INPUT_REF_SCHEMA = "v4.manager_workbench.input_snapshot_ref.v1"
+
 
 class StorageConflict(Exception):
     pass
@@ -58,9 +63,9 @@ class WorkbenchStore:
         with self.io.kernel_lock(f"locks/{lock_key}.lock", timeout=10):
             yield
 
-    def _read(self, path: Path) -> dict[str, Any] | None:
+    def _read(self, path: Path, *, max_bytes: int = _DEFAULT_READ_LIMIT) -> dict[str, Any] | None:
         try:
-            raw = self.io.read_bytes(str(path.relative_to(self.root)))
+            raw = self.io.read_bytes(str(path.relative_to(self.root)), max_bytes=max_bytes)
         except FileNotFoundError:
             return None
         obj = json.loads(raw)
@@ -76,19 +81,91 @@ class WorkbenchStore:
         finally:
             os.close(fd)
 
-    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool) -> None:
+    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool,
+               collision_read_limit: int = _DEFAULT_READ_LIMIT) -> None:
         data = canonical(obj)
         try:
             self.io.write_bytes(str(path.relative_to(self.root)),data,require_absent=immutable)
         except FileExistsError:
-            if self._read(path) != obj:
+            if self._read(path, max_bytes=collision_read_limit) != obj:
                 raise StorageConflict("IMMUTABLE_COLLISION")
 
-    def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
-        if len(input_sha) != 64 or any(c not in "0123456789abcdef" for c in input_sha):
+    def _input_path(self, input_sha: str) -> str:
+        if not isinstance(input_sha, str) or re.fullmatch(r"[0-9a-f]{64}", input_sha) is None:
             raise ValueError("INPUT_SHA_INVALID")
+        return str(self._path("input_snapshots", input_sha).relative_to(self.root))
+
+    def _read_input_bytes(self, input_sha: str) -> bytes | None:
+        try:
+            raw = self.io.read_bytes(self._input_path(input_sha), max_bytes=_INPUT_READ_LIMIT)
+        except FileNotFoundError:
+            return None
+        if hashlib.sha256(raw).hexdigest() != input_sha:
+            raise StorageUnavailable("INPUT_SNAPSHOT_SHA_MISMATCH")
+        return raw
+
+    def _ensure_input(self, input_sha: str, data: dict[str, Any], raw: bytes | None = None) -> None:
+        path = self._input_path(input_sha)
         with self.lock("input:" + input_sha):
-            self._write(self._path("input_snapshots", input_sha), data, immutable=True)
+            if self._read_input_bytes(input_sha) is not None:
+                return
+            raw = canonical(data) if raw is None else raw
+            if len(raw) > _INPUT_READ_LIMIT:
+                raise StorageUnavailable("INPUT_SNAPSHOT_TOO_LARGE")
+            if hashlib.sha256(raw).hexdigest() != input_sha:
+                raise StorageConflict("INPUT_SNAPSHOT_SHA_MISMATCH")
+            self.io.write_bytes(path, raw, require_absent=True)
+
+    def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
+        raw = canonical(data)
+        if hashlib.sha256(raw).hexdigest() != input_sha:
+            raise StorageConflict("INPUT_SNAPSHOT_SHA_MISMATCH")
+        self._ensure_input(input_sha, data, raw)
+
+    @staticmethod
+    def _validate_input_body(body: Any) -> None:
+        if (not isinstance(body, dict) or not isinstance(body.get("context"), dict)
+                or not isinstance(body.get("batches"), list)):
+            raise StorageUnavailable("INPUT_CHECKPOINT_INVALID")
+
+    def _checkpoint_input_sha(self, checkpoint: dict[str, Any]) -> str:
+        if "schema" not in checkpoint:
+            self._validate_input_body(checkpoint)
+            return hashlib.sha256(canonical(checkpoint)).hexdigest()  # legacy inline data
+        if (checkpoint["schema"] != _INPUT_REF_SCHEMA
+                or set(checkpoint) != {"schema", "input_snapshot_sha256"}):
+            raise StorageUnavailable("INPUT_CHECKPOINT_INVALID")
+        return checkpoint["input_snapshot_sha256"]
+
+    def load_input_checkpoint(self, job_id: str) -> tuple[dict[str, Any] | None, str | None]:
+        checkpoint = self.load_checkpoint(job_id, "LOAD_INPUTS")
+        if checkpoint is None:
+            return None, None
+        input_sha = self._checkpoint_input_sha(checkpoint)
+        if "schema" not in checkpoint:
+            return checkpoint, input_sha
+        body = self.load_input(input_sha)
+        if body is None:
+            raise StorageUnavailable("INPUT_SNAPSHOT_MISSING")
+        self._validate_input_body(body)
+        return body, input_sha
+
+    def save_input_checkpoint(self, job_id: str, data: dict[str, Any], *, input_sha: str | None = None) -> str:
+        """Publish the full body before the small resume reference; never replace a checkpoint."""
+        self._validate_input_body(data)
+        raw = None
+        if input_sha is None:
+            raw = canonical(data)
+            input_sha = hashlib.sha256(raw).hexdigest()
+        with self.lock(f"checkpoint:{job_id}:LOAD_INPUTS"):
+            existing = self.load_checkpoint(job_id, "LOAD_INPUTS")
+            if existing is not None and self._checkpoint_input_sha(existing) != input_sha:
+                raise StorageConflict("INPUT_CHECKPOINT_COLLISION")
+            self._ensure_input(input_sha, data, raw)
+            if existing is None:
+                self._write(self._path("checkpoints", _key(job_id), "LOAD_INPUTS"),
+                            {"schema": _INPUT_REF_SCHEMA, "input_snapshot_sha256": input_sha}, immutable=True)
+        return input_sha
 
     def save_job(self, job: JobRecord) -> None:
         # Attempts are mutable; successful plans are not.
@@ -117,7 +194,8 @@ class WorkbenchStore:
                 previous=self.read_plan(before["run_id"]) if before else None
                 snap=merger(previous,snap)
             d = snap.model_dump(mode="json")
-            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
+            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True,
+                        collision_read_limit=_PLAN_READ_LIMIT)
             saved = self.read_plan(snap.run_id)
             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
                 raise StorageConflict("READBACK_MISMATCH")
@@ -136,7 +214,7 @@ class WorkbenchStore:
             return saved
 
     def read_plan(self, run_id: str) -> PlanSnapshot:
-        obj = self._read(self._path("snapshots", _key(run_id)))
+        obj = self._read(self._path("snapshots", _key(run_id)), max_bytes=_PLAN_READ_LIMIT)
         if obj is None:
             raise KeyError("PLAN_NOT_FOUND")
         saved = PlanSnapshot.model_validate(obj)
@@ -238,13 +316,23 @@ class WorkbenchStore:
 
     def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
         with self.lock(f"checkpoint:{job_id}:{step}"):
-            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload, immutable=True)
+            limit = _PLAN_READ_LIMIT if step == "PUBLISH" else _DEFAULT_READ_LIMIT
+            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload,
+                        immutable=True, collision_read_limit=limit)
 
     def load_checkpoint(self, job_id: str, step: str) -> dict[str, Any] | None:
-        return self._read(self._path("checkpoints", _key(job_id), _key(step)))
+        limits = {"PUBLISH": _PLAN_READ_LIMIT, "LOAD_INPUTS": _INPUT_READ_LIMIT}
+        limit = limits.get(step, _DEFAULT_READ_LIMIT)
+        return self._read(self._path("checkpoints", _key(job_id), _key(step)), max_bytes=limit)
 
     def load_input(self, input_sha: str) -> dict[str, Any] | None:
-        return self._read(self._path("input_snapshots", input_sha))
+        raw = self._read_input_bytes(input_sha)
+        if raw is None:
+            return None
+        body = json.loads(raw)
+        if not isinstance(body, dict):
+            raise StorageUnavailable("CORRUPT_RECORD")
+        return body
 
     @staticmethod
     def _pid_alive(pid: int) -> bool:

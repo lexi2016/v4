@@ -114,7 +114,8 @@ def retained_same_day_formula(context,symbol,bars):
     return result,dict(source=reference,source_numeric_manifest=manifest_ref,original_identity=old['source_identity'],current_identity=context.identity,full_prefix_sha256=retained['bars_sha256'],calendar_sha256=product.digest(retained['calendar']),rules_config=context.config_ref,prior_row=old['row_refs'][symbol],prior_groups=prior_row['groups'],formula_engine_compute_calls=0)
 
 
-def checkpoint(symbol):
+def checkpoint(symbol, *, persist_history=True):
+    """Use the same history inputs for the row; independent close may skip the history write."""
     context = _CONTEXT
     path = _PARTS / (symbol + '.json')
     if symbol not in context.scope:
@@ -146,7 +147,8 @@ def checkpoint(symbol):
         if reuse and row['groups']!=reuse['prior_groups']:raise ValueError('DAILY_UNCHANGED_PREFIX_GROUP_PARITY_FAILED')
         if reuse:row['same_day_formula_reuse']=reuse
         context.unchanged()
-        product.save_history_checkpoint(cachepath, cache, checkpoint_input)
+        if persist_history:
+            product.save_history_checkpoint(cachepath, cache, checkpoint_input)
     except (ValueError, KeyError, TypeError, OSError) as error:
         if isinstance(error, product.history_checkpoint.HistoryCheckpointError) or str(error).startswith('DAILY_SOURCE_PIN_DRIFT'):
             raise
@@ -159,6 +161,28 @@ def checkpoint(symbol):
     context.unchanged()
     row.update(product.FLAGS)
     return dict(symbol=symbol, ref=product.save(path, row, immutable=True), chart_gaps=gaps)
+
+
+def checkpoint_independent_close(symbol, *, history_root):
+    """Use the bound original history as a read-only seed for a detached close row."""
+    context = _CONTEXT
+    output = Path(context.root).resolve()
+    seed = Path(history_root)
+    if (not seed.is_absolute() or seed.resolve() != seed or not (seed / 'history').is_dir()
+            or (seed / 'history').is_symlink() or output.is_relative_to(seed)
+            or seed.is_relative_to(output) or not _PARTS.resolve().is_relative_to(output)
+            or (output / 'history').exists() or (output / 'history').is_symlink()):
+        raise ValueError('DAILY_INDEPENDENT_CLOSE_HISTORY_NAMESPACE_CONFLICT')
+    marker = object()
+    old_seed = getattr(context, 'history_checkpoint_seed_root', marker)
+    context.history_checkpoint_seed_root = seed
+    try:
+        return checkpoint(symbol, persist_history=False)
+    finally:
+        if old_seed is marker:
+            del context.history_checkpoint_seed_root
+        else:
+            context.history_checkpoint_seed_root = old_seed
 
 
 def run_pending(context, parts, selected, pending, *, original_charts, resources, sources):
