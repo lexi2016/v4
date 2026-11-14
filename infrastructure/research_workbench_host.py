@@ -12,6 +12,7 @@ import re
 import threading
 from urllib.parse import urlencode
 from starlette.requests import Request
+from infrastructure.research_workbench_us_context import standalone_benchmarks, us_context_dates
 from infrastructure.research_workbench_workflow_evidence import (
     BAD_RECEIPT, GROUPS as WORKFLOW_GROUPS, NEXT_POOL_STAGE, SHANGHAI, SOURCE_ERRORS,
     UNCONFIRMED, bound_projection, checked_event, checked_node, file_revision,
@@ -798,10 +799,29 @@ class ResearchWorkbenchHost:
         if receipt.get('status')!='COMMITTED' or receipt.get('snapshot')!=pointer['snapshot'] or receipt.get('korea')!=pointer['korea']:raise ValueError('WORKBENCH_OBSERVATION_RECEIPT_CONFLICT')
         return pointer
 
+    def _standalone_us_context(self, observation):
+        try:
+            dates = us_context_dates(observation, self._clock())
+        except SOURCE_ERRORS:
+            return dict(us_context=dict(status='CANNOT_CONFIRM', reason='US_SESSION_CALENDAR_UNBOUND'))
+        if not dates['session_completed']:
+            return dict(us_context={**dates, 'status': 'WAITING_FOR_EXPECTED_US_CLOSE'})
+        reference = self.binding.get('us_benchmarks', {}).get(dates['us_session_date'])
+        context = {**dates, 'status': 'SESSION_BOUND'}
+        if not reference:
+            return dict(us_context=context)
+        try:
+            benchmarks = standalone_benchmarks(
+                reference, observation, dates, checked=checked, checked_bytes=checked_bytes, flags=FLAGS,
+            )
+        except SOURCE_ERRORS as error:
+            return dict(us_context={**context, 'benchmark_status': 'CANNOT_CONFIRM', 'benchmark_reason': str(error)})
+        return dict(us_context=context, us_benchmarks=benchmarks)
+
     def source_context(self,source_date,revision=None):
         if self._is_skill_date(source_date):
             version=self.skill_r2.versions(self._observation_date(source_date),revision)
-            return dict(source_date=source_date,observation_date=version['observation_date'],generation=version['generation'],input_sha256=version['input_sha256'],markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']},intraday_status='UNKNOWN',**FLAGS)
+            return dict(source_date=source_date,observation_date=version['observation_date'],generation=version['generation'],input_sha256=version['input_sha256'],markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']},intraday_status='UNKNOWN',**self._standalone_us_context(version['observation_date']),**FLAGS)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         packet=self._module_reference('overseas',observation)
         markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']}
@@ -822,7 +842,7 @@ class ResearchWorkbenchHost:
             for row in kr['indices']:
                 if row.get('value') is not None and (not str(row.get('source_asof','')).startswith(observation) or row.get('exchangeTimezoneName')!='Asia/Seoul'):raise ValueError('WORKBENCH_KOREA_DATE_CONFLICT')
             markets['KR']=dict(status=kr['status'],summary=' / '.join(f"{r['symbol']} {r['value'] if r.get('value') is not None else 'UNKNOWN'} ({r.get('change_pct')}%)" if r.get('value') is not None else f"{r['symbol']} UNKNOWN: {r.get('error','未取得')}" for r in kr['indices'])+' · 后到留档',source_asof=' / '.join(r.get('source_asof') or 'UNKNOWN' for r in kr['indices']),recorded_at=kr['recorded_at'],limitation=kr['limitation'],source=commit['korea'])
-        return dict(source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],markets=markets,intraday_status='UNKNOWN',**FLAGS)
+        return dict(source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],markets=markets,intraday_status='UNKNOWN',**self._standalone_us_context(observation),**FLAGS)
 
     def _owner_execution(self,node_id,observation):
         config=self.binding.get('workflow_receipt_sources',{}).get(str(node_id))
