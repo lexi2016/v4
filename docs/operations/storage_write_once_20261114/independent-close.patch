@@ -1,0 +1,120 @@
+--- a/writer/run_fresh_engine.py
++++ b/writer/run_fresh_engine.py
+@@ -1,3 +1,2 @@
+-"""D12 one-batch glue around unchanged live original daily kernel; not a producer.
+-Writes only this research batch. Original history labels are read; sqlite cache is
+-an online read-only source backup in the batch namespace. No canonical writes.
++"""D12 independent close around the sealed candidate owner's read-only history path.
++Use the existing immutable D12 pair lease and write to a detached batch directory.
+@@ -7,3 +6,7 @@
+-import concurrent.futures as cf,datetime,hashlib,json,multiprocessing,pathlib,plistlib,resource,sqlite3,sys,time,traceback
+-N=pathlib.Path(__file__).resolve().parents[1];DATE=20261112
+-CTX=None;PAR=None;PROD=None;SOURCES=None
++import concurrent.futures as cf,datetime,fcntl,hashlib,json,multiprocessing,pathlib,plistlib,resource,sys,time,traceback
++ARCHIVE=pathlib.Path(__file__).resolve().parents[1];DATE=20261112
++N=None
++CTX=None;PAR=None;PROD=None;SOURCES=None;HISTORY_ROOT=None;PAIR_BINDING=None
++ROLE_ENV=('V4_APP_ROOT','V4_RELEASE_MANIFEST_PATH','V4_RELEASE_MANIFEST_SHA256',
++          'V4_RESEARCH_PANEL_A_DATA_ROOT','V4_RESEARCH_DAILY_PRODUCT_CONFIG',
++          'V4_STORAGE_PAIR_ROOT','V4_STORAGE_PAIR_DATA_ROOT','V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')
+@@ -14,0 +18,2 @@
++ sys.dont_write_bytecode=True
++ os.environ.pop('V4_RESEARCH_EVENT_CASE_CACHE',None)
+@@ -16,2 +21,32 @@
+-def initialize(env,root,parts,identity,config_ref,scope,sources,lock):
+- global CTX,PAR,PROD,SOURCES
++
++def bind_dated_pair(env,pair_id,dated_origin):
++ global PAIR_BINDING
++ from ops import research_storage_pair as pair
++ if PAIR_BINDING is not None:
++  PAIR_BINDING.assert_open()
++  return
++ root=pathlib.Path(env['V4_STORAGE_PAIR_ROOT'])
++ if len(pair_id)!=64 or any(c not in '0123456789abcdef' for c in pair_id):
++  raise ValueError('INDEPENDENT_CLOSE_INVALID_PAIR_ID')
++ with (root/'metadata.lock').open('rb') as coordinator:
++  fcntl.flock(coordinator,fcntl.LOCK_SH)
++  manifest=json.loads((root/'generations'/(pair_id+'.json')).read_bytes())
++  unsigned={k:v for k,v in manifest.items() if k!='id'}
++  selector=manifest['roles']['selector']
++  if (manifest['schema']!=pair.SCHEMA or manifest['id']!=pair_id or pair.canonical(unsigned)!=pair_id
++      or (root/'retired'/pair_id).exists()
++      or manifest['identity']['generation_id']!=dated_origin['source_identity']['generation']
++      or any(selector[k]!=dated_origin['selector'][k] for k in ('path','sha256'))):
++   raise ValueError('INDEPENDENT_CLOSE_FROZEN_PAIR_MISMATCH')
++  handle=(root/'leases'/(pair_id+'.lock')).open('rb')
++  try:
++   fcntl.flock(handle,fcntl.LOCK_SH)
++   binding=pair.Binding(manifest,handle);binding.assert_open()
++  except BaseException:
++   handle.close()
++   raise
++ PAIR_BINDING=binding;pair._ACTIVE.set(binding)
++
++def initialize(env,root,parts,identity,config_ref,scope,sources,lock,output,history_root,pair_id):
++ global CTX,PAR,PROD,SOURCES,N,HISTORY_ROOT
++ N=pathlib.Path(output);HISTORY_ROOT=pathlib.Path(history_root)
+@@ -18,0 +54 @@
++ bind_dated_pair(env,pair_id,json.loads((ARCHIVE/'RUN_FREEZE.json').read_bytes()))
+@@ -28 +64 @@
+- result=PAR.checkpoint(symbol);row=json.loads(PROD.checked(result['ref']).read_bytes())
++ result=PAR.checkpoint_independent_close(symbol,history_root=HISTORY_ROOT);row=json.loads(PROD.checked(result['ref']).read_bytes())
+@@ -37 +73,18 @@
+- live=pathlib.Path('/Users/lexi/Library/LaunchAgents/com.lexi.v4.scheduler.plist');env=plistlib.loads(live.read_bytes())['EnvironmentVariables'];setup_env(env)
++ global N
++ if len(sys.argv)!=5:
++  raise ValueError('Usage: run_fresh_engine.py CANDIDATE_MAIN_PLIST DETACHED_OUTPUT ORIGINAL_HISTORY_ROOT DATED_PAIR_ID')
++ role,output,history_root=map(pathlib.Path,sys.argv[1:4]);pair_id=sys.argv[4]
++ if any(not p.is_absolute() or p.resolve()!=p for p in (role,output,history_root)):
++  raise ValueError('INDEPENDENT_CLOSE_ABSOLUTE_PATHS_REQUIRED')
++ proposed=plistlib.loads(role.read_bytes())['EnvironmentVariables'];env={key:proposed[key] for key in ROLE_ENV}
++ manifest_path=pathlib.Path(env['V4_RELEASE_MANIFEST_PATH'])
++ if sha(manifest_path)!=env['V4_RELEASE_MANIFEST_SHA256']:
++  raise ValueError('INDEPENDENT_CLOSE_ROLE_SHA_MISMATCH')
++ manifest=json.loads(manifest_path.read_bytes())
++ if manifest.get('activation_status')!='PREPARED_NOT_ACTIVATED' or manifest.get('app_root')!=env['V4_APP_ROOT']:
++  raise ValueError('INDEPENDENT_CLOSE_CANDIDATE_ROLE_REQUIRED')
++ protected=(ARCHIVE,history_root,*[pathlib.Path(env[key]).resolve() for key in
++     ('V4_APP_ROOT','V4_RESEARCH_PANEL_A_DATA_ROOT','V4_STORAGE_PAIR_ROOT','V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')])
++ if any(output.is_relative_to(path) or path.is_relative_to(output) for path in protected):
++  raise ValueError('INDEPENDENT_CLOSE_OUTPUT_NOT_DETACHED')
++ setup_env(env)
+@@ -39,7 +92,5 @@
+- scope=json.loads((N/'SCOPE.json').read_text());assert scope['NEW_FIT_COUNT']==0 and scope['source_date']=='2026-11-12'
+- assert sha(N/'P5_14_6_TRAINING_MASTER_CN_20261110.remote_baseline.md')=='83dd962a5650e8314127f4c5e76909b1069435ba3046bc5063949975906a7e10'
+- root=N/'original_kernel_namespace';root.mkdir(exist_ok=True);clone=N/'cache/event_outcomes.sqlite3';clone.parent.mkdir(exist_ok=True)
+- source=pathlib.Path(env['V4_RESEARCH_EVENT_CASE_CACHE'])
+- if not clone.exists():
+-  source_db=sqlite3.connect(source.as_uri()+'?mode=ro',uri=True);dest=sqlite3.connect(clone);source_db.backup(dest);dest.close();source_db.close()
+- env['V4_RESEARCH_EVENT_CASE_CACHE']=str(clone);setup_env(env)
++ scope=json.loads((ARCHIVE/'SCOPE.json').read_text());assert scope['NEW_FIT_COUNT']==0 and scope['source_date']=='2026-11-12'
++ assert sha(ARCHIVE/'P5_14_6_TRAINING_MASTER_CN_20261110.remote_baseline.md')=='83dd962a5650e8314127f4c5e76909b1069435ba3046bc5063949975906a7e10'
++ dated_origin=json.loads((ARCHIVE/'RUN_FREEZE.json').read_bytes())
++ bind_dated_pair(env,pair_id,dated_origin)
++ root=output/'original_kernel_namespace'
+@@ -47 +98,6 @@
+- assert context.target==DATE and context.identity['basis']['price_basis']=='QFQ_ASOF'
++ if (context.target!=DATE or context.identity['generation']!=dated_origin['source_identity']['generation']
++     or prod.reference(context.panel)!=dated_origin['selector'] or context.config_ref!=dated_origin['source_config']):
++  raise ValueError('INDEPENDENT_CLOSE_FROZEN_SOURCE_MISMATCH')
++ if not (history_root/'history').is_dir() or (history_root/'history').is_symlink():
++  raise ValueError('INDEPENDENT_CLOSE_ORIGINAL_HISTORY_REQUIRED')
++ N=output;N.mkdir(parents=True,exist_ok=True);root.mkdir(exist_ok=True)
+@@ -49 +105 @@
+- freeze=dict(status='FROZEN_BEFORE_D12_FRESH_COMPUTE',D=DATE,cutoff=scope['information_cutoff'],observed_at=datetime.datetime.now().astimezone().isoformat(),scope_sha256=sha(N/'SCOPE.json'),script_sha256=sha(__file__),env=env,source_binding=sources,source_identity=context.identity,source_config=context.config_ref,selector=prod.reference(context.panel),receipt=context.receipt_ref,snapshot=context.snapshot_ref,quarantine=context.quarantine_ref,scope=selected,scope_count=len(selected),parts=str(parts),output_root=str(root),history_dates=[],cache_backup=dict(source=str(source),source_stat=list(source.stat()),backup=str(clone),backup_initial_sha256=sha(clone)),kernel='original research_daily_product_parallel.checkpoint -> original compute_stock -> original formula engine.compute; same-day retained formula source absent in isolated namespace',NEW_FIT_COUNT=0,**prod.FLAGS)
++ freeze=dict(status='FROZEN_BEFORE_D12_FRESH_COMPUTE',D=DATE,cutoff=scope['information_cutoff'],observed_at=datetime.datetime.now().astimezone().isoformat(),scope_sha256=sha(ARCHIVE/'SCOPE.json'),script_sha256=sha(__file__),env=env,source_binding=sources,source_identity=context.identity,source_config=context.config_ref,selector=prod.reference(context.panel),receipt=context.receipt_ref,snapshot=context.snapshot_ref,quarantine=context.quarantine_ref,scope=selected,scope_count=len(selected),parts=str(parts),output_root=str(root),history_dates=[],history_seed_root=str(history_root),dated_pair_id=pair_id,kernel='research_daily_product_parallel.checkpoint_independent_close -> original compute_stock',NEW_FIT_COUNT=0,**prod.FLAGS)
+@@ -52 +108 @@
+-  old=json.loads(fp.read_text());assert all(old[k]==freeze[k] for k in ('source_identity','source_config','selector','receipt','snapshot','quarantine','scope','parts','output_root','script_sha256')),'RESUME_IDENTITY_DRIFT'
++  old=json.loads(fp.read_text());assert all(old[k]==freeze[k] for k in ('source_identity','source_config','selector','receipt','snapshot','quarantine','scope','parts','output_root','script_sha256','history_seed_root','source_binding','dated_pair_id')),'RESUME_IDENTITY_DRIFT'
+@@ -57 +113 @@
+- ctx=multiprocessing.get_context('spawn');lock=ctx.Lock();initialize(env,str(root),str(parts),context.identity,context.config_ref,selected,sources,lock)
++ ctx=multiprocessing.get_context('spawn');lock=ctx.Lock();worker_args=(env,str(root),str(parts),context.identity,context.config_ref,selected,sources,lock,str(N),str(history_root),pair_id);initialize(*worker_args)
+@@ -74 +130 @@
+-  with cf.ProcessPoolExecutor(max_workers=resources['workers'],mp_context=ctx,initializer=initialize,initargs=(env,str(root),str(parts),context.identity,context.config_ref,selected,sources,lock)) as pool:
++  with cf.ProcessPoolExecutor(max_workers=resources['workers'],mp_context=ctx,initializer=initialize,initargs=worker_args) as pool:
+@@ -100 +156,3 @@
+- except BaseException as e:save(N/'ENGINE_RUN_FAILURE.json',dict(error_type=type(e).__name__,error=str(e),traceback=traceback.format_exc()));raise
++ except BaseException as e:
++  if N is not None:save(N/'ENGINE_RUN_FAILURE.json',dict(error_type=type(e).__name__,error=str(e),traceback=traceback.format_exc()))
++  raise
