@@ -52,56 +52,111 @@ def configure(path):
         raise ValueError('HISTORY_SETTINGS_SCOPE_INVALID')
 
 
-def previous_prefix_proofs(owner, context, symbols):
-    """Read each prior panel once, proving retained labels across generations.
+TRANSPORT_WITNESSES = {'before_source_snapshot', 'equivalence_proof', 'oracle'}
 
-    No label is recalculated or relabelled. Old entry identities remain intact.
-    OHLCV, original config/rule and dated calendars must match their old cutoff.
-    """
+
+def bind_product_identity(context, expected):
+    """Permit relocation of exactly the original transport proof bytes."""
+    actual = context.identity
+    if actual == expected:
+        return []
+    live, frozen = copy.deepcopy(actual), copy.deepcopy(expected)
+    refs = []
+    for key in sorted(TRANSPORT_WITNESSES):
+        try:
+            a = live['reader_provenance']['transport_equivalence'].pop(key)
+            b = frozen['reader_provenance']['transport_equivalence'].pop(key)
+        except (KeyError, TypeError) as error:
+            raise ValueError('FROZEN_GENERATION_CONFLICT') from error
+        if set(a) != {'path', 'sha256'} or set(b) != set(a) or a['sha256'] != b['sha256']:
+            raise ValueError('FROZEN_GENERATION_CONFLICT')
+        for reference in (a, b):
+            path = Path(reference['path'])
+            if path.resolve(strict=True) != path or ref(path) != reference:
+                raise ValueError('FROZEN_TRANSPORT_WITNESS_DRIFT:' + str(path))
+            if reference not in refs:
+                refs.append(reference)
+    if live != frozen:
+        raise ValueError('FROZEN_GENERATION_CONFLICT')
+    context.identity = copy.deepcopy(expected)
+    return refs
+
+
+def prefix_at(bars, cutoff):
+    return [bar for bar in bars if bar['trade_date'] <= int(cutoff)]
+
+
+def same_prices(left, right):
+    return len(left) == len(right) and all(
+        a['trade_date'] == b['trade_date']
+        and all(Decimal(a[k]) == Decimal(b[k]) for k in ('open', 'high', 'low', 'close', 'vol'))
+        for a, b in zip(left, right))
+
+
+def prove_retained_entries(owner, cache, bars, context, index, symbol):
+    """Bind each unchanged label as published; re-read the two delivery cutoffs."""
     if not SETTINGS:
         return {}
-    import pyarrow.parquet as pq
-    receipt_ref = SETTINGS['prior_receipt']
-    receipt = load(receipt_ref)
-    prior_asof = int(receipt['asof_date'])
-    panel = Path(receipt['candidates']['selector'])
-    stat = panel.stat()
-    table = pq.read_table(panel, columns=['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'volume'],
-        filters=[('ts_code', 'in', symbols), ('trade_date', '<=', str(prior_asof))])
-    grouped = {symbol: [] for symbol in symbols}
-    for row in table.to_pylist():
-        grouped[row['ts_code']].append(dict(trade_date=int(row['trade_date']),
-            **{key: str(row[key if key != 'vol' else 'volume']) for key in ('open', 'high', 'low', 'close', 'vol')}))
-    for bars in grouped.values():
-        bars.sort(key=lambda bar: bar['trade_date'])
-    prior_index = load(ref(DAILY / 'index.json'))
-    prior_product = load(load(prior_index['dates'][str(prior_asof)])['artifact'])
-    if prior_product['source_config'] != context.config_ref or prior_product['source_generation'] != receipt['generation_id']:
-        raise ValueError('HISTORY_PRIOR_RULE_CONFIG_IDENTITY_DRIFT')
-    if panel.stat() != stat:
-        raise ValueError('HISTORY_PRIOR_PANEL_CHANGED')
-    return dict(receipt=receipt_ref, panel=str(panel), panel_stat={key: getattr(stat, key) for key in ('st_size','st_mtime_ns','st_ino')},
-                source_identity=prior_product['source_identity'], asof=prior_asof, bars=grouped)
+    from ops.research_panel_qfq import panel_contract
+    from ops.research_panel_logical import parquet as pq, validate_closure
 
-
-def prove_retained_entries(owner, cache, bars, context, prior, symbol):
-    other = {day: item for day, item in cache['evaluations'].items() if item['source_identity'] != context.identity}
-    if not other:
-        return {}
-    if not prior or any(item['source_identity'] != prior['source_identity'] or int(day) > prior['asof'] for day,item in other.items()):
-        raise ValueError('HISTORY_PREVIOUS_GENERATION_UNBOUND:' + symbol)
-    old = prior['bars'][symbol]
-    current = [bar for bar in bars if bar['trade_date'] <= prior['asof']]
-    if len(old) != len(current) or any(left['trade_date'] != right['trade_date'] or any(Decimal(left[key]) != Decimal(right[key]) for key in ('open','high','low','close','vol')) for left,right in zip(old,current)):
-        raise ValueError('HISTORY_PREVIOUS_PREFIX_PRICE_DRIFT:' + symbol)
-    # The same pinned source config owns the causal formula, rule, dated G4 and
-    # calendar policy. Dates are explicit exchange dates, never bar ordinals.
-    exchange = symbol[-2:]
-    if not set(bar['trade_date'] for bar in old) <= set(context.calendars[exchange]):
-        raise ValueError('HISTORY_PREVIOUS_CALENDAR_GAP:' + symbol)
-    return dict(dates=sorted(other), source_identity=prior['source_identity'], prior_receipt=prior['receipt'],
-                prior_panel=prior['panel'], prior_panel_stat=prior['panel_stat'], prefix_sha256=owner.digest(current),
-                config=context.config_ref, rule_sha256=RULE, calendar_dates_sha256=owner.digest([day for day in context.calendars[exchange] if day <= prior['asof']]))
+    dates = {}
+    for day, item in sorted(cache['evaluations'].items()):
+        manifest_ref = index['dates'][day]
+        manifest = load(manifest_ref)
+        product_ref = manifest['artifact']
+        product = load(product_ref)
+        row_ref = product['row_refs'][symbol]
+        row = load(row_ref)
+        identity = item['source_identity']
+        generation = identity['generation']
+        qualification = row['qualification']
+        receipt_ref = dict(path=qualification['producer_receipt_path'], sha256=qualification['producer_receipt_sha256'])
+        receipt = load(receipt_ref)
+        selector = dict(path=receipt['candidates']['selector'], sha256=receipt['candidate_sha256']['selector'])
+        prefix = prefix_at(bars, day)
+        if (manifest['data_date'] != day or product['data_date'] != day or row['data_date'] != day or row['symbol'] != symbol
+                or product['source_identity'] != identity or identity['asof'] != int(day)
+                or manifest['source_generation'] != generation or product['source_generation'] != generation or receipt['generation_id'] != generation
+                or manifest['input_sha256'] != identity['input_sha256'] or receipt['input_sha256'] != identity['input_sha256']
+                or manifest['snapshot'] != identity['snapshot'] or receipt['adjustment_snapshot'] != identity['snapshot']
+                or int(receipt['asof_date']) != int(day) or selector['sha256'] != identity['selector_artifact_sha256']
+                or product['source_config'] != context.config_ref or item['qualification'] != qualification
+                or qualification['status'] != 'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
+                or item['exact_full_conditions'] is not True
+                or {g: row['evaluation']['groups'][g]['status'] for g in owner.GROUPS} != item['groups']
+                or any(g['rule_sha256'] != RULE or g['source_identity']['formula'] != context.config['formula']['sha256']
+                       for g in row['statistics']['groups'])
+                or not prefix or prefix[-1]['trade_date'] != int(day) or len(prefix) != row['evaluation']['history_bars']):
+            raise ValueError('HISTORY_DATED_RETAINED_LABEL_DRIFT:' + symbol + ':' + day)
+        path = Path(selector['path'])
+        proof = dict(source_identity=identity, manifest=manifest_ref, product=product_ref, row=row_ref, producer_receipt=receipt_ref,
+            selector=selector, evaluation_sha256=owner.digest(item), selector_replay='ARCHIVAL_LABEL_WITH_DATED_OWNER_ROW')
+        if not path.is_file():
+            proof['selector_replay'] = 'CANNOT_CONFIRM_DATED_SELECTOR_RETIRED'
+        if receipt_ref == SETTINGS['prior_receipt'] or int(day) == TARGET:
+            if ref(path) != selector:
+                raise ValueError('HISTORY_DATED_SELECTOR_SHA_DRIFT:' + symbol + ':' + day)
+            footer = panel_contract(path)
+            if (int(footer['asof_date']) != int(day) or footer['generation_id'] != generation
+                    or footer['input_sha256'] != identity['input_sha256'] or footer['market_basis']['A'] != identity['basis']):
+                raise ValueError('HISTORY_DATED_SELECTOR_IDENTITY_DRIFT:' + symbol + ':' + day)
+            validate_closure(path)
+            columns = ['ts_code', 'trade_date', 'open', 'high', 'low', 'close', 'volume']
+            table = pq.read_table(path, columns=columns, filters=[('ts_code', '=', symbol), ('trade_date', '<=', day)])
+            former = sorted((dict(trade_date=int(row['trade_date']), **{key: str(row[key if key != 'vol' else 'volume'])
+                for key in ('open','high','low','close','vol')}) for row in table.to_pylist()), key=lambda row: row['trade_date'])
+            if not same_prices(former, prefix) or not {x['trade_date'] for x in former} <= set(context.calendars[symbol[-2:]]):
+                raise ValueError('HISTORY_DATED_SELECTOR_PREFIX_DRIFT:' + symbol + ':' + day)
+            if ref(path) != selector:
+                raise ValueError('HISTORY_DATED_SELECTOR_SHA_DRIFT:' + symbol + ':' + day)
+            proof.update(selector_replay='EXACT_LOGICAL_SELECTOR_OHLCV', prefix_sha256=owner.digest(prefix),
+                         calendar_prefix_sha256=owner.digest([d for d in context.calendars[symbol[-2:]] if d <= int(day)]))
+        dates[day] = proof
+    prior_set = [day for day, proof in dates.items() if proof['producer_receipt'] == SETTINGS['prior_receipt']]
+    if len(prior_set) != 1 or int(prior_set[0]) >= TARGET:
+        raise ValueError('HISTORY_REQUESTED_PRIOR_CUTOFF_UNBOUND:' + symbol)
+    return dict(dates=dates, prior_cutoff=prior_set[0], config=context.config_ref, rule_sha256=RULE)
 
 
 def canonical(value):
@@ -142,6 +197,18 @@ def load(reference):
     return value
 
 
+def check_chart_reference(reference):
+    if reference is None:  # A dated manifest may explicitly omit the optional PNG.
+        return
+    if reference.get('virtual') is True:
+        from ops.research_panel_chart_blocks import projection_bytes
+        if reference.get('spec', {}).get('path') != reference['path']:
+            raise ValueError('FROZEN_CHART_PROJECTION_PATH_DRIFT')
+        projection_bytes(reference)
+    elif ref(reference['path']) != {key: reference[key] for key in ('path', 'sha256')}:
+        raise ValueError('FROZEN_CHART_REFERENCE_DRIFT:' + reference['path'])
+
+
 def save(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -156,10 +223,23 @@ def save(path, value):
 
 def load_runtime():
     """Bind the actual owner, frozen rule, and accepted additive C9 statistics."""
+    # Some installed candidate roles carry already accepted domain files that
+    # are absent from this checkout. Freeze the actual loaded installed paths.
+    def domain_path(name):
+        local = ROOT / 'domains' / (name + '.py')
+        return local if local.is_file() or not SETTINGS else MAIN / 'domains' / (name + '.py')
+
+    owner_path = MAIN / 'ops/research_panel_daily_product.py'
+    if SETTINGS:
+        local_owner = ROOT / 'ops/research_panel_daily_product.py'
+        if domain_path('research_daily_product').is_relative_to(ROOT):
+            owner_path = local_owner
+        elif sha(owner_path) != sha(local_owner):
+            raise ValueError('FROZEN_INSTALLED_OWNER_DRIFT')
     paths = {
-        'ops.research_panel_daily_product': (ROOT if SETTINGS else MAIN) / 'ops/research_panel_daily_product.py',
-        'domains.research_daily_product': ROOT / 'domains/research_daily_product.py',
-        'domains.research_daily_statistics': ROOT / 'domains/research_daily_statistics.py',
+        'ops.research_panel_daily_product': owner_path,
+        'domains.research_daily_product': domain_path('research_daily_product'),
+        'domains.research_daily_statistics': domain_path('research_daily_statistics'),
     }
 
     class PinnedImports(importlib.abc.MetaPathFinder):
@@ -264,8 +344,9 @@ def validate_cache(owner, cache, bars, identity, config, prior_proof=None):
     if cache.get('prefix_sha256') != owner.digest([bar for bar in bars if bar['trade_date'] <= end]):
         raise ValueError('HISTORY_PREFIX_DRIFT')
     for day, item in cache['evaluations'].items():
-        prior_ok = bool(prior_proof and day in prior_proof['dates'] and item['source_identity'] == prior_proof['source_identity'])
-        if (item['source_identity'] != identity and not prior_ok) or set(item['groups']) != set(owner.GROUPS):
+        proof = prior_proof.get('dates', {}).get(day) if prior_proof else None
+        prior_ok = bool(proof and item['source_identity'] == proof['source_identity'] and owner.digest(item) == proof['evaluation_sha256'])
+        if ((item['source_identity'] != identity or prior_proof) and not prior_ok) or set(item['groups']) != set(owner.GROUPS):
             raise ValueError('HISTORY_EVALUATION_BINDING_DRIFT')
         if any(value not in {'TRUE', 'FALSE', 'UNKNOWN'} for value in item['groups'].values()):
             raise ValueError('HISTORY_TRISTATE_INVALID')
@@ -321,15 +402,15 @@ def prepare(output):
     config_ref = product['source_config']
     config = load(config_ref)
     context = owner.SourceContext(DATA, TARGET, source_config=(config, config_ref))
-    if context.generation != GENERATION or context.identity['input_sha256'] != INPUT or context.identity != product['source_identity']:
+    if context.generation != GENERATION or context.identity['input_sha256'] != INPUT:
         raise ValueError('FROZEN_GENERATION_CONFLICT')
+    witness_refs = bind_product_identity(context, product['source_identity'])
     charts_ref = index['original_charts'][str(TARGET)]['manifest'] if SETTINGS else ref(BASE / 'original_formula_charts_247/MANIFEST.json')
     charts = load(charts_ref)
     symbols = sorted(SETTINGS['symbols'] if SETTINGS else charts['samples'])
     selected = sorted(row['symbol'] for row in product['rows'] if row['groups'])
     if not set(symbols) <= set(selected) or (not SETTINGS and (len(symbols) != 247 or symbols != selected)):
         raise ValueError('CANDIDATE_SCOPE_CONFLICT')
-    previous = previous_prefix_proofs(owner, context, symbols)
     calendar_ref = save(output / 'CALENDARS.json', dict(dates=context.calendars, source_generation=GENERATION, input_sha256=INPUT, future_calendar=config['future_calendar']))
     entries = {}
     for symbol in symbols:
@@ -353,7 +434,7 @@ def prepare(output):
         cache_ref, cache = history_checkpoint.read_checkpoint_state(DAILY / 'history' / RULE / symbol / 'checkpoint.json', asof=TARGET)
         if cache_ref is None:
             raise ValueError('HISTORY_CURRENT_CHECKPOINT_MISSING:' + symbol)
-        prior_proof = prove_retained_entries(owner, cache, bars, context, previous, symbol)
+        prior_proof = prove_retained_entries(owner, cache, bars, context, index, symbol)
         validate_cache(owner, cache, bars, context.identity, config, prior_proof)
         missing = sorted(set(str(bar['trade_date']) for bar in bars) - set(cache['evaluations']))
         if not SETTINGS and symbol == '002003.SZ' and (missing or not cache['coverage']['known_full_history']):
@@ -362,6 +443,10 @@ def prepare(output):
             bars_sha256=owner.digest(bars), rows=len(bars), first=bars[0]['trade_date'], last=bars[-1]['trade_date'], missing_dates=missing,
             qualification_sha256=owner.digest(qualification), display_name=row.get('display_name') if SETTINGS else sample['display_name'], prior_entry_reuse=prior_proof,
             unchanged_chart={key: chart[key] for key in ('html', 'projection', 'PNG')})
+        if SETTINGS:
+            entries[symbol]['parity_dates'] = [int(missing[i]) for i in (0, 40, -1)] if len(missing) > 41 else list(map(int, missing))
+            for reference in entries[symbol]['unchanged_chart'].values():
+                check_chart_reference(reference)
         if not SETTINGS and symbol == '002003.SZ':
             entries[symbol]['accepted_event_cases'] = ref(BASE / 'readable_stock_materials/event_cases/002003.SZ.json')
             accepted_cases = load(entries[symbol]['accepted_event_cases'])
@@ -371,7 +456,7 @@ def prepare(output):
     refs = dict(index=index_ref, numeric_manifest=manifest_ref, numeric_product=manifest['artifact'], charts=charts_ref,
         calendar=calendar_ref, source_config=config_ref, receipt=context.receipt_ref, snapshot=context.snapshot_ref,
         quarantine=context.quarantine_ref, reader=context.reader_ref,
-        pointers=[ref(context.pointer), ref(context.backpointer)], runtime_manifest=ref(MAIN.parent / 'release-manifest.json'))
+        pointers=[ref(context.pointer), ref(context.backpointer)], reader_transport_witnesses=witness_refs, runtime_manifest=ref(MAIN.parent / 'release-manifest.json'))
     code = [ref(Path(__file__)), *[ref(path) for path in paths.values()], ref(Path(history_checkpoint.__file__))]
     settings = dict(target=TARGET, symbols=symbols, candidate_symbols=selected, canary=SETTINGS.get('canary','001328.SZ'), reuse_complete=[] if SETTINGS else ['002003.SZ'], workers=SETTINGS.get('workers',14), queue=SETTINGS.get('queue',28),
         job_memory_limit_GiB=64, system_available_reserve_GiB=24, checkpoint_seconds=5, checkpoint_dates=25,
@@ -379,13 +464,19 @@ def prepare(output):
         pure_prefix_cache='ORIGINAL_NORMALIZE_AND_FUND_KEYS_ONCE_EXACT_PREFIX_ARGUMENTS',
         canary_parity_prefix_indices=[0, 40, -6],
         original_formula_engine_compute_calls=0, historical_PIT=False, maximum_claim='DIRECTION_ONLY')
-    contract = dict(schema='v4.stock_history_catchup.v1', status='PREPARED_WAIT_ROOT_RUN_STARTED', GOAL='Fill only missing current-generation historical evaluations for candidate247 using retained formula results',
-        WRITER='/root/daily_chain_completion_writer' if SETTINGS else '/root/stock_history_catchup_writer', BASELINE_ID='D29candidate247; accepted0020035266dates', ONE_VARIABLE='missing_history_cache_initialization',
+    if SETTINGS:
+        code.extend(ref(Path(sys.modules[name].__file__)) for name in
+            ('ops.research_panel_logical', 'ops.research_panel_reader_compat', 'ops.research_panel_chart_blocks'))
+    contract = dict(schema='v4.stock_history_catchup.v1', status='PREPARED_WAIT_ROOT_RUN_STARTED',
+        GOAL='Fill only explicitly missing dated evaluations using retained formula results',
+        WRITER='/root/st_history_writer' if SETTINGS else '/root/stock_history_catchup_writer',
+        BASELINE_ID=manifest['source_generation'] if SETTINGS else 'D29candidate247; accepted0020035266dates',
+        ONE_VARIABLE='missing_history_cache_initialization',
         source_generation=GENERATION, input_sha256=INPUT, source_identity=context.identity, refs=refs, pins=config,
         code=code, config=settings, config_sha256=hashlib.sha256(canonical(settings)).hexdigest(), entries=entries,
         selector=dict(path=str(context.panel), stat={key: getattr(context.panel_stat, key) for key in ('st_size', 'st_mtime_ns', 'st_ino')}),
         output_root=str(output.resolve()), ALLOWED_PATHS=[str(output.resolve())],
-        PASS_SIGNAL='247 exact coverage; same source/rule/calendar; current selection and original chart bytes unchanged; allcases reconcile; resumable',
+        PASS_SIGNAL='Only requested symbols and missing dates; all retained labels and current selection unchanged; same rule; full cases reconcile; resumable',
         STOP_RULE='Isolate source drift/semantic conflict with checkpoint; never silently invalidate or restart all', **FLAGS)
     frozen_path = output / ('CONTRACT_' + hashlib.sha256(canonical(contract)).hexdigest() + '.json')
     if frozen_path.exists() and json.loads(frozen_path.read_bytes()) != contract:
@@ -521,13 +612,14 @@ def worker(symbol):
         rule_sha256=RULE, projection=entry['projection'], calendar=contract['refs']['calendar'], qualification_sha256=entry['qualification_sha256'])
     journal = Journal(output / 'journals' / symbol, binding, owner.GROUPS)
     known_dates = {str(bar['trade_date']) for bar in bars}
-    if not set(journal.values) <= known_dates:
-        raise ValueError('JOURNAL_DATE_OUTSIDE_PREFIX')
+    if not set(journal.values) <= set(entry['missing_dates']):
+        raise ValueError('JOURNAL_DATE_OUTSIDE_FROZEN_MISSING_DATES')
+    retained_entries = cache['evaluations'].copy()
+    resumed_dates = len(journal.values)
+    missing_dates_set = set(entry['missing_dates'])
     template = dict(source_identity=context.identity, qualification=qualification, exact_full_conditions=True,
         historical_PIT=False, historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION')
     for day, states in journal.values.items():
-        if day in cache['evaluations'] and states != cache['evaluations'][day]['groups']:
-            raise ValueError('JOURNAL_PRIOR_CACHE_CONFLICT')
         cache['evaluations'][day] = dict(template, groups=states)
     cache_path = output / 'daily_products/a_share/history' / RULE / symbol / 'checkpoint.json'
     context.root = output / 'daily_products/a_share'
@@ -551,11 +643,12 @@ def worker(symbol):
             # sequence; hashes are the same original canonical list digests.
             return hashes[len(value)]
         return original_digest(value)
-    formula_calls = 0
+    evaluated_dates = set()
     reused_results = 0
     rule = sys.modules['domains.research_daily_product']
     pure_cache = None if symbol in contract['config']['reuse_complete'] else PurePrefixCache(rule, bars, projection['formula_result']['rows'])
-    parity_dates = {bars[index]['trade_date'] for index in contract['config']['canary_parity_prefix_indices']} if symbol == contract['config']['canary'] else set()
+    parity_dates = (set(entry['parity_dates']) if 'parity_dates' in entry
+        else {bars[index]['trade_date'] for index in contract['config']['canary_parity_prefix_indices']}) if symbol == contract['config']['canary'] else set()
     parity_path = output / 'stocks' / symbol / 'PURE_PREFIX_PARITY.json'
     parity = []
     if parity_path.exists():
@@ -571,8 +664,13 @@ def worker(symbol):
         return projection['formula_result']
     def evaluate(**kwargs):
         from domains.research_daily_product import evaluate_daily_product
-        value = evaluate_daily_product(**kwargs)
         day = int(kwargs['asof'])
+        if day == TARGET and str(day) in retained_entries and SETTINGS:
+            return prior_row['evaluation']
+        if SETTINGS and (str(day) in retained_entries or str(day) not in missing_dates_set or day in evaluated_dates):
+            raise ValueError('EVALUATION_OUTSIDE_FROZEN_MISSING_DATES:' + str(day))
+        value = evaluate_daily_product(**kwargs)
+        evaluated_dates.add(day)
         if day in parity_dates and day not in {item['date'] for item in parity}:
             pure_cache.restore()
             try:
@@ -618,6 +716,12 @@ def worker(symbol):
                 raise ValueError('HISTORY_REMAINING_DATES')
             if parity_dates and set(item['date'] for item in parity) != parity_dates:
                 raise ValueError('CANARY_PREFIX_PARITY_COVERAGE_MISSING')
+            if SETTINGS and str(TARGET) in retained_entries:
+                accepted_current = retained_entries[str(TARGET)]
+                if (final_cache['evaluations'][str(TARGET)]['groups'] != accepted_current['groups']
+                        or final_cache['evaluations'][str(TARGET)]['source_identity'] != accepted_current['source_identity']):
+                    raise ValueError('HISTORY_CURRENT_REUSE_DRIFT:' + symbol)
+                final_cache['evaluations'][str(TARGET)] = accepted_current
             cache = final_cache
             for key in ('groups', 'pending_groups', 'latest_new_anchor', 'reasons', 'risk_clear', 'evaluation', 'qualification'):
                 if owner.canonical(row[key]) != owner.canonical(prior_row[key]):
@@ -627,6 +731,10 @@ def worker(symbol):
         journal.flush()
         if set(cache['evaluations']) != known_dates:
             raise ValueError('FULL_HISTORY_DATE_COVERAGE_FAILED')
+        if SETTINGS and (any(cache['evaluations'][day] != original for day, original in retained_entries.items())
+                or (set(cache['evaluations']) - set(retained_entries)) != set(entry['missing_dates'])
+                or set(journal.values) != set(entry['missing_dates'])):
+            raise ValueError('FROZEN_HISTORY_REUSE_OR_DELTA_DRIFT:' + symbol)
         row.update(FLAGS)
         row_ref = save(output / 'rows' / (symbol + '.json'), row)
         cases = (load(entry['accepted_event_cases']) if symbol in contract['config']['reuse_complete'] else
@@ -638,7 +746,9 @@ def worker(symbol):
         result = dict(status='COMPLETE_DESCRIPTIVE_NONPIT', symbol=symbol, contract=contract_ref, row=row_ref,
             history_cache=cache_path_ref, event_cases=cases_ref, available_dates=len(bars), evaluated_dates=len(cache['evaluations']),
             unknown_by_group=cache['coverage']['unknown_by_group'], remaining_dates=[], reused_complete=symbol in contract['config']['reuse_complete'],
-            resumed_dates=len(journal.values), formula_engine_compute_calls=formula_calls, retained_formula_result_reads=reused_results,
+            resumed_dates=resumed_dates, newly_evaluated_count=len(evaluated_dates),
+            retained_dates=sorted(retained_entries), retained_labels_sha256=original_digest(retained_entries),
+            formula_engine_compute_calls=0, retained_formula_result_reads=reused_results,
             pure_prefix_parity=parity,
             elapsed_seconds=time.perf_counter() - started, peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
             historical_PIT=False, maximum_claim='DIRECTION_ONLY', **FLAGS)
@@ -670,7 +780,7 @@ def run(output, authorization, phase):
         if sha(reference['path']) != reference['sha256']:
             raise ValueError('FROZEN_CODE_DRIFT')
     for key, reference in contract['refs'].items():
-        if key == 'pointers':
+        if key in {'pointers', 'reader_transport_witnesses'}:
             for pointer in reference:
                 if ref(pointer['path']) != pointer:
                     raise ValueError('SOURCE_POINTER_DRIFT')
@@ -684,7 +794,7 @@ def run(output, authorization, phase):
         context = owner.SourceContext(DATA, TARGET, source_config=(load(contract['refs']['source_config']), contract['refs']['source_config']))
     finally:
         owner.SourceContext._calendars = original_calendars
-    if context.identity != contract['source_identity']:
+    if bind_product_identity(context, contract['source_identity']) != contract['refs'].get('reader_transport_witnesses', []):
         raise ValueError('REGISTERED_SOURCE_IDENTITY_DRIFT')
     if any(getattr(context.panel.stat(), key) != value for key, value in contract['selector']['stat'].items()):
         raise ValueError('REGISTERED_SELECTOR_DRIFT')
@@ -739,8 +849,7 @@ def run(output, authorization, phase):
     # formula/rule evaluation is repeated by this final integrity check.
     for symbol, entry in contract['entries'].items():
         for reference in entry['unchanged_chart'].values():
-            if ref(reference['path']) != {key: reference[key] for key in ('path', 'sha256')}:
-                raise ValueError('PROTECTED_ORIGINAL_CHART_DRIFT:' + symbol)
+            check_chart_reference(reference)
     for key in ('index', 'numeric_manifest', 'numeric_product'):
         if ref(contract['refs'][key]['path']) != contract['refs'][key]:
             raise ValueError('PROTECTED_NUMERIC_PRODUCT_DRIFT')
