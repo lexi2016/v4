@@ -114,8 +114,8 @@ def retained_same_day_formula(context,symbol,bars):
     return result,dict(source=reference,source_numeric_manifest=manifest_ref,original_identity=old['source_identity'],current_identity=context.identity,full_prefix_sha256=retained['bars_sha256'],calendar_sha256=product.digest(retained['calendar']),rules_config=context.config_ref,prior_row=old['row_refs'][symbol],prior_groups=prior_row['groups'],formula_engine_compute_calls=0)
 
 
-def checkpoint(symbol, *, persist_history=True):
-    """Use the same history inputs for the row; independent close may skip the history write."""
+def checkpoint(symbol, *, persist_history):
+    """Write a row and persist reusable history only when the caller opts in."""
     context = _CONTEXT
     path = _PARTS / (symbol + '.json')
     if symbol not in context.scope:
@@ -210,7 +210,7 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
                 symbol = next(iterator)
             except StopIteration:
                 return
-            inflight[pool.submit(checkpoint, symbol)] = symbol
+            inflight[pool.submit(checkpoint, symbol, persist_history=True)] = symbol
         for _ in range(min(resources['max_pending'], len(pending))):
             submit_next()
         while inflight:
