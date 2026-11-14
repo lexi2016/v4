@@ -50,6 +50,8 @@ def configure(path):
     MAIN, DATA, DAILY = (Path(SETTINGS[key]).resolve(strict=True) for key in ('main_root', 'data_root', 'daily_root'))
     if len(set(SETTINGS['symbols'])) != len(SETTINGS['symbols']) or SETTINGS['canary'] not in SETTINGS['symbols']:
         raise ValueError('HISTORY_SETTINGS_SCOPE_INVALID')
+    if SETTINGS.get('reuse_accepted_returns') and SETTINGS['symbols'] != [SETTINGS['canary']]:
+        raise ValueError('ACCEPTED_RETURN_REUSE_REQUIRES_SINGLE_STOCK')
 
 
 TRANSPORT_WITNESSES = {'before_source_snapshot', 'equivalence_proof', 'oracle'}
@@ -401,12 +403,29 @@ def prepare(output):
     product = load(manifest['artifact'])
     config_ref = product['source_config']
     config = load(config_ref)
-    context = owner.SourceContext(DATA, TARGET, source_config=(config, config_ref))
+    calibration = SETTINGS.get('calendar_source')
+    original_calendars = owner.SourceContext._calendars
+    if calibration:
+        saved_calendar = load(calibration)
+        if any(saved_calendar.get(key) != value for key, value in dict(
+                source_generation=GENERATION, input_sha256=INPUT, future_calendar=config['future_calendar']).items()):
+            raise ValueError('ACCEPTED_CALENDAR_BINDING_DRIFT')
+        owner.SourceContext._calendars = lambda self: saved_calendar['dates']
+    try:
+        context = owner.SourceContext(DATA, TARGET, source_config=(config, config_ref))
+    finally:
+        owner.SourceContext._calendars = original_calendars
     if context.generation != GENERATION or context.identity['input_sha256'] != INPUT:
         raise ValueError('FROZEN_GENERATION_CONFLICT')
     witness_refs = bind_product_identity(context, product['source_identity'])
     charts_ref = index['original_charts'][str(TARGET)]['manifest'] if SETTINGS else ref(BASE / 'original_formula_charts_247/MANIFEST.json')
     charts = load(charts_ref)
+    cases_index_ref = index['event_cases'][str(TARGET)] if SETTINGS.get('reuse_accepted_returns') else None
+    cases_index = load(cases_index_ref) if cases_index_ref else None
+    if cases_index is not None and any(cases_index.get(key) != value for key, value in dict(
+            data_date=str(TARGET), numeric_manifest=manifest_ref, source_generation=GENERATION,
+            input_sha256=INPUT, **FLAGS).items()):
+        raise ValueError('ACCEPTED_EVENT_INDEX_BINDING_DRIFT')
     symbols = sorted(SETTINGS['symbols'] if SETTINGS else charts['samples'])
     selected = sorted(row['symbol'] for row in product['rows'] if row['groups'])
     if not set(symbols) <= set(selected) or (not SETTINGS and (len(symbols) != 247 or symbols != selected)):
@@ -447,6 +466,15 @@ def prepare(output):
             entries[symbol]['parity_dates'] = [int(missing[i]) for i in (0, 40, -1)] if len(missing) > 41 else list(map(int, missing))
             for reference in entries[symbol]['unchanged_chart'].values():
                 check_chart_reference(reference)
+        if cases_index is not None:
+            reference = cases_index['items'][symbol]
+            accepted = load(reference)
+            expected = dict(symbol=symbol, data_date=str(TARGET), numeric_manifest=manifest_ref,
+                source_generation=GENERATION, input_sha256=INPUT, projection=chart['projection'],
+                statistics_sha256=owner.digest(row['statistics']), **FLAGS)
+            if any(accepted.get(key) != value for key, value in expected.items()):
+                raise ValueError('ACCEPTED_EVENT_CASE_BINDING_DRIFT:' + symbol)
+            entries[symbol]['accepted_event_cases'] = reference
         if not SETTINGS and symbol == '002003.SZ':
             entries[symbol]['accepted_event_cases'] = ref(BASE / 'readable_stock_materials/event_cases/002003.SZ.json')
             accepted_cases = load(entries[symbol]['accepted_event_cases'])
@@ -467,9 +495,16 @@ def prepare(output):
     if SETTINGS:
         code.extend(ref(Path(sys.modules[name].__file__)) for name in
             ('ops.research_panel_logical', 'ops.research_panel_reader_compat', 'ops.research_panel_chart_blocks'))
+    if cases_index_ref:
+        from domains import research_event_case_cache
+        refs['accepted_event_index'] = cases_index_ref
+        code.append(ref(Path(research_event_case_cache.__file__)))
+        settings['reuse_accepted_returns'] = True
+    if calibration:
+        refs['calendar_source'] = calibration
     contract = dict(schema='v4.stock_history_catchup.v1', status='PREPARED_WAIT_ROOT_RUN_STARTED',
         GOAL='Fill only explicitly missing dated evaluations using retained formula results',
-        WRITER='/root/st_history_writer' if SETTINGS else '/root/stock_history_catchup_writer',
+        WRITER=SETTINGS.get('writer', '/root/st_history_writer') if SETTINGS else '/root/stock_history_catchup_writer',
         BASELINE_ID=manifest['source_generation'] if SETTINGS else 'D29candidate247; accepted0020035266dates',
         ONE_VARIABLE='missing_history_cache_initialization',
         source_generation=GENERATION, input_sha256=INPUT, source_identity=context.identity, refs=refs, pins=config,
@@ -575,10 +610,72 @@ def full_event_cases(stats, row, cache, bars, calendar, contract, entry):
             value['cases'] = strata['horizons'][key]['cases']
             value['conditional'] = strata['horizons'][key]['conditional']
         groups[group] = horizons
+    return event_cases_document(row, contract, entry, groups)
+
+
+def event_cases_document(row, contract, entry, groups):
     return dict(schema_version='v4.a_share.event_cases.v1', symbol=row['symbol'], data_date=str(TARGET),
         numeric_manifest=contract['refs']['numeric_manifest'], source_generation=GENERATION, input_sha256=INPUT,
         statistics_sha256=hashlib.sha256(canonical(row['statistics'])).hexdigest(), projection=entry['projection'],
         calendar=contract['refs']['calendar'], groups=groups, **FLAGS)
+
+
+def accepted_event_statistics(*, original_statistics, source, prior_row, prior_entries, context, store,
+                              close_rows, market_calendar, asof, event_groups):
+    from domains.research_event_case_cache import EventCaseCache
+
+    # Outcomes are group-independent after a dated label admits the event.
+    seeds = {'d2': {}, 'd5': {}}
+    statistics = original_statistics(close_rows=close_rows, market_calendar=market_calendar, asof=asof,
+        event_groups=[{**group, 'event_dates': []} for group in event_groups])
+    prior_statistics = {group['group_id']: group for group in prior_row['statistics']['groups']}
+    if set(source['groups']) != set(prior_statistics) or prior_row['statistics']['asof'] != asof:
+        raise ValueError('ACCEPTED_EVENT_STATISTICS_SCOPE_DRIFT')
+    case_keys = ('event_date', 'target_date', 'status', 'detail_status', 'return_pct')
+    for group in event_groups:
+        name = group['group_id']
+        retained_events = {stats_date(day) for day, item in prior_entries.items() if item['groups'][name] == 'TRUE'}
+        if not retained_events <= set(group['event_dates']) or set(source['groups'][name]) != set(seeds):
+            raise ValueError('ACCEPTED_EVENT_LABEL_DRIFT:' + name)
+        for horizon, prior in source['groups'][name].items():
+            original = prior_statistics[name]['horizons'][horizon]
+            cases = prior['cases']
+            outcomes = {case['event_date']: case for case in cases}
+            if (set(outcomes) != retained_events or len(cases) != len(outcomes)
+                    or {k: v for k, v in prior.items() if k not in ('cases', 'conditional')} !=
+                        {k: v for k, v in original.items() if k != 'cases'}
+                    or [{k: case[k] for k in case_keys} for case in cases[:20]] != original['cases']):
+                raise ValueError('ACCEPTED_EVENT_STATISTICS_DRIFT:' + name + ':' + horizon)
+            if any(seeds[horizon].get(day, case) != case for day, case in outcomes.items()):
+                raise ValueError('ACCEPTED_EVENT_SEED_CONFLICT:' + name + ':' + horizon)
+            seeds[horizon].update(outcomes)
+
+    symbol = source['symbol']
+    identity = dict(symbol=symbol, market=symbol[-2:],
+        basis={key: value for key, value in context.identity['basis'].items() if key != 'asof_date'},
+        source_authority=dict(reader=context.cache_reader_ref), rule_sha256=RULE,
+        formula_sha256=context.config['formula']['sha256'])
+    cache = EventCaseCache(store)
+    groups = {}
+    counters = []
+    try:
+        for original, summary in zip(event_groups, statistics['groups']):
+            name = original['group_id']
+            events = original['event_dates']
+            result = cache.build(identity=identity, event_dates=events, close_rows=close_rows, calendar=market_calendar,
+                asof=asof, accepted_seed=seeds)
+            groups[name] = result['horizons']
+            counters.append(dict(group=name, **result['cache']))
+            summary.update(status='AVAILABLE' if events else 'EMPTY_EVENT_SET', eligible_event_count=len(events))
+            for horizon, value in result['horizons'].items():
+                after = {case['event_date']: case for case in value['cases']}
+                if any(after.get(day) != case for day, case in seeds[horizon].items() if day in after):
+                    raise ValueError('ACCEPTED_EVENT_OUTCOME_DRIFT:' + name + ':' + horizon)
+                summary['horizons'][horizon] = {k: v for k, v in value.items() if k not in ('cases', 'conditional')}
+                summary['horizons'][horizon]['cases'] = [{k: case[k] for k in case_keys} for case in value['cases'][:20]]
+    finally:
+        cache.close()
+    return statistics, groups, counters
 
 
 def stats_date(day):
@@ -615,6 +712,8 @@ def worker(symbol):
     if not set(journal.values) <= set(entry['missing_dates']):
         raise ValueError('JOURNAL_DATE_OUTSIDE_FROZEN_MISSING_DATES')
     retained_entries = cache['evaluations'].copy()
+    accepted_returns = contract['config'].get('reuse_accepted_returns')
+    accepted_cases = load(entry['accepted_event_cases']) if accepted_returns else None
     resumed_dates = len(journal.values)
     missing_dates_set = set(entry['missing_dates'])
     template = dict(source_identity=context.identity, qualification=qualification, exact_full_conditions=True,
@@ -624,6 +723,7 @@ def worker(symbol):
     cache_path = output / 'daily_products/a_share/history' / RULE / symbol / 'checkpoint.json'
     context.root = output / 'daily_products/a_share'
     original_digest, original_census = owner.digest, owner._census
+    original_statistics = stats.build_daily_event_statistics
     original_read, original_qualify = context.read, context.qualify
     engine = context.engine()
     original_compute = engine.compute
@@ -644,6 +744,15 @@ def worker(symbol):
             return hashes[len(value)]
         return original_digest(value)
     evaluated_dates = set()
+    cached_event_groups = {}
+    cached_event_counts = []
+    def build_accepted_statistics(**kwargs):
+        statistics, groups, counters = accepted_event_statistics(original_statistics=original_statistics,
+            source=accepted_cases, prior_row=prior_row, prior_entries=retained_entries, context=context,
+            store=output / 'event-case-cache.sqlite3', **kwargs)
+        cached_event_groups.update(groups)
+        cached_event_counts.extend(counters)
+        return statistics
     reused_results = 0
     rule = sys.modules['domains.research_daily_product']
     pure_cache = None if symbol in contract['config']['reuse_complete'] else PurePrefixCache(rule, bars, projection['formula_result']['rows'])
@@ -709,6 +818,10 @@ def worker(symbol):
             owner.digest = memo_digest
             owner._census = cached_census
             pure_cache.install()
+            if accepted_returns:
+                if os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE'):
+                    raise ValueError('SHARED_EVENT_CACHE_NOT_ALLOWED_IN_ACCEPTED_RETURN_CANARY')
+                stats.build_daily_event_statistics = build_accepted_statistics
             missing = [bar['trade_date'] for bar in bars if str(bar['trade_date']) not in cache['evaluations']]
             row, final_cache, final_path = owner.compute_stock(context, symbol, evaluate=evaluate,
                 history_dates=missing, reuse_history_prefix=True)
@@ -737,8 +850,14 @@ def worker(symbol):
             raise ValueError('FROZEN_HISTORY_REUSE_OR_DELTA_DRIFT:' + symbol)
         row.update(FLAGS)
         row_ref = save(output / 'rows' / (symbol + '.json'), row)
-        cases = (load(entry['accepted_event_cases']) if symbol in contract['config']['reuse_complete'] else
-            full_event_cases(stats, row, cache, bars, context.calendars[symbol[-2:]], contract, entry))
+        if accepted_returns:
+            if set(cached_event_groups) != set(owner.GROUPS):
+                raise ValueError('ACCEPTED_EVENT_STATISTICS_UNAVAILABLE')
+            cases = event_cases_document(row, contract, entry, cached_event_groups)
+            cases.update(accepted_event_source=entry['accepted_event_cases'], cache_reuse=cached_event_counts)
+        else:
+            cases = (load(entry['accepted_event_cases']) if symbol in contract['config']['reuse_complete'] else
+                full_event_cases(stats, row, cache, bars, context.calendars[symbol[-2:]], contract, entry))
         cases['accepted_cache'] = cache_path_ref
         cases['contract'] = contract_ref
         cases_ref = save(output / 'event_cases' / (symbol + '.json'), cases)
@@ -752,6 +871,8 @@ def worker(symbol):
             pure_prefix_parity=parity,
             elapsed_seconds=time.perf_counter() - started, peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
             historical_PIT=False, maximum_claim='DIRECTION_ONLY', **FLAGS)
+        if accepted_returns:
+            result.update(accepted_event_source=entry['accepted_event_cases'], return_cache_reuse=cached_event_counts)
         save(done, result)
         return result
     except Exception as error:
@@ -761,6 +882,7 @@ def worker(symbol):
         raise
     finally:
         owner.digest, owner._census = original_digest, original_census
+        stats.build_daily_event_statistics = original_statistics
         context.read, context.qualify = original_read, original_qualify
         engine.compute = original_compute
         if pure_cache is not None:
