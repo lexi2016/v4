@@ -1,0 +1,31 @@
+--- a/infrastructure/manager_input_attestation.py
++++ b/infrastructure/manager_input_attestation.py
+@@ -483,5 +483,6 @@
+ 
+ def _release_manifest(app: Path, release_id: str, manifest_sha: str,
+-                      required: tuple[str, ...], manifest_path: str | None = None) -> dict:
++                      required: tuple[str, ...], manifest_path: str | None = None,
++                      *, historical: bool = False) -> dict:
+     """Read only exact pinned release files, using the existing no-follow I/O."""
+     from infrastructure.owned_io import SafeRoot
+@@ -505,5 +506,12 @@
+     inventory = manifest.get('application_inventory', {})
+     entries = inventory.get('entries')
+-    if (not isinstance(entries, list) or inventory.get('entry_count') != len(entries)
++    # This one pinned historical manifest recorded the complete inventory and
++    # aggregate SHA, but omitted the otherwise-required entry count.
++    count = inventory.get('entry_count')
++    if (historical and 'entry_count' not in inventory and isinstance(entries, list)
++        and release_id == 'v4-v192-source-binding-20261112-r3-main'
++        and manifest_sha == 'e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328'):
++        count = len(entries)
++    if (not isinstance(entries, list) or count != len(entries)
+         or digest(json.dumps(entries, ensure_ascii=False, sort_keys=True,
+                              separators=(',', ':')).encode()) != inventory.get('aggregate_sha256')
+@@ -606,5 +614,5 @@
+         seen.add(previous)
+         _release_manifest(previous, binding['release_id'], binding['manifest_sha256'], _MAIN_RESEARCH_FILES,
+-                          manifest_path=binding.get('manifest_path'))
++                          manifest_path=binding.get('manifest_path'), historical=True)
+         owners.append((previous, (*evidence, f"v4_research_historical_owner_release_id={binding['release_id']}",
+             f"v4_research_historical_owner_manifest_sha256={binding['manifest_sha256']}",

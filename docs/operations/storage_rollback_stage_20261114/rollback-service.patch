@@ -1,0 +1,49 @@
+--- a/v4/manager_workbench/service.py
++++ b/v4/manager_workbench/service.py
+@@ -369,7 +369,11 @@
+ 
+         resume_job = ctx.scope_refs.get("resume_from_job",job.job_id)
+-        frozen_input = self.store.load_checkpoint(resume_job,"LOAD_INPUTS")
+         try:
+-            if frozen_input:
++            input_job = job.job_id
++            frozen_input, input_snapshot_sha = self.store.load_input_checkpoint(input_job)
++            if frozen_input is None and resume_job != job.job_id:
++                input_job = resume_job
++                frozen_input, input_snapshot_sha = self.store.load_input_checkpoint(input_job)
++            if frozen_input is not None:
+                 saved_context = RunContext.model_validate(frozen_input["context"])
+                 # Preserve original source cutoff/scope and replace only execution identity.
+@@ -397,9 +401,18 @@
+         if len({i.lane.value for i in inputs}) != len(inputs) or any(i.context.target_date != ctx.target_date or i.lane.value not in allowed for i in inputs):
+             raise StepFailure("INPUT_CONTRACT_MISMATCH")
+-        input_body = {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY", "context": ctx.model_dump(mode="json"),
+-                      "batches": [b.model_dump(mode="json") for b in inputs]}
+-        input_snapshot_sha = digest(input_body)
+-        self.store.save_input(input_snapshot_sha, input_body)
+-        self.store.save_checkpoint(job.job_id,"LOAD_INPUTS",input_body)
++        try:
++            if frozen_input is None:
++                input_body = {"derivative": True, "authority": "ORIGINAL_OWNERS_ONLY",
++                              "context": ctx.model_dump(mode="json"),
++                              "batches": [b.model_dump(mode="json") for b in inputs]}
++                input_snapshot_sha = digest(input_body)
++                self.store.save_input(input_snapshot_sha, input_body)
++                self.store.save_checkpoint(job.job_id, "LOAD_INPUTS", input_body)
++            else:
++                # Keep inherited immutable checkpoints and add only a ref for a new retry attempt.
++                input_snapshot_sha = self.store.reuse_input_checkpoint(job.job_id, input_job, input_snapshot_sha,
++                                                                        frozen_input)
++        except (StorageConflict, StorageUnavailable, OSError, ValueError) as exc:
++            raise StepFailure("LOAD_INPUTS_FAILED", retryable=True) from exc
+         # Volatile job identifiers and server cutoff are not producer-input identity.
+         # A must reflect any actual as-of evidence changes in each InputBatch SHA.
+@@ -431,5 +444,7 @@
+                 remaining = {}
+                 for lane_name, value in engine_inputs.items():
+-                    cached = self.store.load_checkpoint(resume_job,"lane_"+lane_name)
++                    cached = self.store.load_checkpoint(job.job_id,"lane_"+lane_name)
++                    if cached is None and resume_job != job.job_id:
++                        cached = self.store.load_checkpoint(resume_job,"lane_"+lane_name)
+                     if lane_name=='US_MAPPING' and cached and (cached.get('selection') or {}).get('engine_identity')!=_selection_identity(ctx).get('us_selection_engine_identity'):
+                         cached=None

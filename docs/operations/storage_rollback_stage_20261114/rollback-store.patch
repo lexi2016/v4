@@ -1,0 +1,63 @@
+--- a/v4/manager_workbench/store.py
++++ b/v4/manager_workbench/store.py
+@@ -230,5 +230,6 @@
+         return body
+ 
+-    def _ensure_input(self, input_sha: str, data: dict[str, Any], raw: bytes | None = None) -> None:
++    def _ensure_input(self, input_sha: str, data: dict[str, Any], raw: bytes | None = None,
++                      *, compact: bool = True) -> None:
+         path = self._content_path("input_snapshots", input_sha)
+         with self.lock("input:" + input_sha):
+@@ -243,7 +244,7 @@
+             if hashlib.sha256(raw).hexdigest() != input_sha:
+                 raise StorageConflict("INPUT_SNAPSHOT_SHA_MISMATCH")
+-            compact = self._map_input_contexts(data, self._overlay_writer())
+-            if compact is not data:
+-                raw = canonical({"schema": _INPUT_BODY_SCHEMA, "body": compact})
++            projected = self._map_input_contexts(data, self._overlay_writer()) if compact else data
++            if projected is not data:
++                raw = canonical({"schema": _INPUT_BODY_SCHEMA, "body": projected})
+                 if len(raw) > _INPUT_READ_LIMIT:
+                     raise StorageUnavailable("INPUT_SNAPSHOT_TOO_LARGE")
+@@ -254,5 +255,6 @@
+         if hashlib.sha256(raw).hexdigest() != input_sha:
+             raise StorageConflict("INPUT_SNAPSHOT_SHA_MISMATCH")
+-        self._ensure_input(input_sha, data, raw)
++        # Fresh rollback jobs keep the pre-cutover inline snapshot encoding.
++        self._ensure_input(input_sha, data, raw, compact=False)
+ 
+     @staticmethod
+@@ -299,4 +301,25 @@
+                 self._write(self._path("checkpoints", _key(job_id), "LOAD_INPUTS"),
+                             {"schema": _INPUT_REF_SCHEMA, "input_snapshot_sha256": input_sha}, immutable=True)
++        return input_sha
++
++    def reuse_input_checkpoint(self, job_id: str, source_job_id: str, input_sha: str,
++                               body: dict[str, Any]) -> str:
++        """Carry an existing input forward without restaging its immutable bytes."""
++        with self.lock(f"checkpoint:{job_id}:LOAD_INPUTS"):
++            existing = self.load_checkpoint(job_id, "LOAD_INPUTS")
++            source = self.load_checkpoint(source_job_id, "LOAD_INPUTS")
++            if source is None or self._checkpoint_input_sha(source) != input_sha:
++                raise StorageConflict("INPUT_CHECKPOINT_COLLISION")
++            if existing is not None and self._checkpoint_input_sha(existing) != input_sha:
++                raise StorageConflict("INPUT_CHECKPOINT_COLLISION")
++            if self.load_input(input_sha) is None:
++                if "schema" in source:
++                    raise StorageUnavailable("INPUT_SNAPSHOT_MISSING")
++                # Recover a missing legacy companion only from its exact inline bytes.
++                self.save_input(input_sha, body)
++            if existing is None:
++                payload = {"schema": _INPUT_REF_SCHEMA, "input_snapshot_sha256": input_sha}
++                self._write(self._path("checkpoints", _key(job_id), "LOAD_INPUTS"), payload,
++                            immutable=True, collision_read_limit=_INPUT_READ_LIMIT)
+         return input_sha
+ 
+@@ -477,5 +500,6 @@
+     def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
+         with self.lock(f"checkpoint:{job_id}:{step}"):
+-            limit = _PLAN_READ_LIMIT if step == "PUBLISH" else _DEFAULT_READ_LIMIT
++            limits = {"PUBLISH": _PLAN_READ_LIMIT, "LOAD_INPUTS": _INPUT_READ_LIMIT}
++            limit = limits.get(step, _DEFAULT_READ_LIMIT)
+             self._write(self._path("checkpoints", _key(job_id), _key(step)), payload,
+                         immutable=True, collision_read_limit=limit)
