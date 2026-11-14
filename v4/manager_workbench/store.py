@@ -8,8 +8,9 @@ import json
 import os
 import re
 import tempfile
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 from infrastructure.owned_io import SafeRoot
 
 from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
@@ -18,6 +19,9 @@ _DEFAULT_READ_LIMIT = 64 * 1024 * 1024
 _PLAN_READ_LIMIT = 128 * 1024 * 1024
 _INPUT_READ_LIMIT = 128 * 1024 * 1024
 _INPUT_REF_SCHEMA = "v4.manager_workbench.input_snapshot_ref.v1"
+_INPUT_BODY_SCHEMA = "v4.manager_workbench.input_snapshot_body.v1"
+_OVERLAY_REF_SCHEMA = "v4.manager_workbench.full_overlay_ref.v1"
+_OVERLAY_FIELDS = ("full_overlay_projection", "full_overlay_stock_identities")
 
 
 class StorageConflict(Exception):
@@ -90,30 +94,159 @@ class WorkbenchStore:
             if self._read(path, max_bytes=collision_read_limit) != obj:
                 raise StorageConflict("IMMUTABLE_COLLISION")
 
-    def _input_path(self, input_sha: str) -> str:
-        if not isinstance(input_sha, str) or re.fullmatch(r"[0-9a-f]{64}", input_sha) is None:
+    def _content_path(self, directory: str, sha: str) -> str:
+        if not isinstance(sha, str) or re.fullmatch(r"[0-9a-f]{64}", sha) is None:
             raise ValueError("INPUT_SHA_INVALID")
-        return str(self._path("input_snapshots", input_sha).relative_to(self.root))
+        return str(self._path(directory, sha).relative_to(self.root))
 
-    def _read_input_bytes(self, input_sha: str) -> bytes | None:
+    def _read_content(self, path: str) -> bytes | None:
         try:
-            raw = self.io.read_bytes(self._input_path(input_sha), max_bytes=_INPUT_READ_LIMIT)
+            return self.io.read_bytes(path, max_bytes=_INPUT_READ_LIMIT)
         except FileNotFoundError:
             return None
-        if hashlib.sha256(raw).hexdigest() != input_sha:
+
+    @staticmethod
+    def _map_overlay_fields(context: Any, convert: Callable[[Any], Any]) -> Any:
+        """Change only the owner's named US mapping fields, not arbitrary nested data."""
+        if not isinstance(context, dict) or not isinstance(context.get("scope_refs"), dict):
+            return context
+        scope = context["scope_refs"]
+
+        def map_binding(binding):
+            if not isinstance(binding, dict):
+                return binding
+            for field in _OVERLAY_FIELDS:
+                if field in binding:
+                    value = convert(binding[field])
+                    if value is not binding[field]:
+                        binding = {**binding, field: value}
+            return binding
+
+        mapping = scope.get("US_MAPPING")
+        mapped = map_binding(mapping)
+        if mapped is not mapping:
+            scope = {**scope, "US_MAPPING": mapped}
+        owners = scope.get("owner_bindings")
+        if isinstance(owners, dict):
+            binding = owners.get("us_mapping")
+            mapped = map_binding(binding)
+            if mapped is not binding:
+                scope = {**scope, "owner_bindings": {**owners, "us_mapping": mapped}}
+        return context if scope is context["scope_refs"] else {**context, "scope_refs": scope}
+
+    @classmethod
+    def _map_input_contexts(cls, body: dict[str, Any],
+                            convert: Callable[[Any], Any]) -> dict[str, Any]:
+        context = cls._map_overlay_fields(body.get("context"), convert)
+        batches = body.get("batches")
+        if not isinstance(batches, list):
+            return body
+        changed = context is not body.get("context")
+        result = []
+        for batch in batches:
+            if isinstance(batch, dict):
+                context_before = batch.get("context")
+                context_after = cls._map_overlay_fields(context_before, convert)
+                if context_after is not context_before:
+                    batch = {**batch, "context": context_after}
+                    changed = True
+            result.append(batch)
+        return {**body, "context": context, "batches": result} if changed else body
+
+    def _overlay_writer(self) -> Callable[[Any], Any]:
+        reused: dict[str, dict[str, str]] = {}
+        by_identity: dict[int, dict[str, str]] = {}
+
+        def convert(value: Any) -> Any:
+            if not isinstance(value, list) or not value:
+                return value
+            prior = by_identity.get(id(value))
+            if prior is not None:
+                return prior
+            raw = canonical(value)
+            if len(raw) > _INPUT_READ_LIMIT:
+                raise StorageUnavailable("OVERLAY_TOO_LARGE")
+            sha = hashlib.sha256(raw).hexdigest()
+            prior = reused.get(sha)
+            if prior is not None:
+                by_identity[id(value)] = prior
+                return prior
+            path = self._content_path("overlay_blobs", sha)
+            with self.lock("overlay:" + sha):
+                existing = self._read_content(path)
+                if existing is None:
+                    self.io.write_bytes(path, raw, require_absent=True)
+                elif existing != raw:
+                    raise StorageUnavailable("OVERLAY_SHA_MISMATCH")
+            ref = {"schema": _OVERLAY_REF_SCHEMA, "sha256": sha}
+            reused[sha] = by_identity[id(value)] = ref
+            return ref
+
+        return convert
+
+    def _overlay_reader(self) -> Callable[[Any], Any]:
+        loaded: dict[str, tuple[list, int]] = {}
+        expanded_bytes = 0
+
+        def convert(value: Any) -> Any:
+            nonlocal expanded_bytes
+            if not isinstance(value, dict) or value.get("schema") != _OVERLAY_REF_SCHEMA:
+                return value
+            if set(value) != {"schema", "sha256"}:
+                raise StorageUnavailable("OVERLAY_REF_INVALID")
+            sha = value["sha256"]
+            path = self._content_path("overlay_blobs", sha)
+            repeated = sha in loaded
+            if not repeated:
+                raw = self._read_content(path)
+                if raw is None:
+                    raise StorageUnavailable("OVERLAY_MISSING")
+                if hashlib.sha256(raw).hexdigest() != sha:
+                    raise StorageUnavailable("OVERLAY_SHA_MISMATCH")
+                projection = json.loads(raw)
+                if not isinstance(projection, list):
+                    raise StorageUnavailable("OVERLAY_INVALID")
+                loaded[sha] = (projection, len(raw))
+            projection, size = loaded[sha]
+            expanded_bytes += size
+            if expanded_bytes > _INPUT_READ_LIMIT:
+                raise StorageUnavailable("OVERLAY_HYDRATION_TOO_LARGE")
+            return deepcopy(projection) if repeated else projection
+
+        return convert
+
+    def _decode_input(self, raw: bytes, sha: str) -> dict[str, Any]:
+        body = json.loads(raw)
+        if not isinstance(body, dict):
+            raise StorageUnavailable("CORRUPT_RECORD")
+        exact = raw
+        if body.get("schema") == _INPUT_BODY_SCHEMA:
+            if set(body) != {"schema", "body"} or not isinstance(body["body"], dict):
+                raise StorageUnavailable("INPUT_SNAPSHOT_ENVELOPE_INVALID")
+            body = self._map_input_contexts(body["body"], self._overlay_reader())
+            exact = canonical(body)
+        if len(exact) > _INPUT_READ_LIMIT or hashlib.sha256(exact).hexdigest() != sha:
             raise StorageUnavailable("INPUT_SNAPSHOT_SHA_MISMATCH")
-        return raw
+        return body
 
     def _ensure_input(self, input_sha: str, data: dict[str, Any], raw: bytes | None = None) -> None:
-        path = self._input_path(input_sha)
+        path = self._content_path("input_snapshots", input_sha)
         with self.lock("input:" + input_sha):
-            if self._read_input_bytes(input_sha) is not None:
+            existing = self._read_content(path)
+            if existing is not None:
+                if hashlib.sha256(existing).hexdigest() != input_sha:
+                    self._decode_input(existing, input_sha)
                 return
             raw = canonical(data) if raw is None else raw
             if len(raw) > _INPUT_READ_LIMIT:
                 raise StorageUnavailable("INPUT_SNAPSHOT_TOO_LARGE")
             if hashlib.sha256(raw).hexdigest() != input_sha:
                 raise StorageConflict("INPUT_SNAPSHOT_SHA_MISMATCH")
+            compact = self._map_input_contexts(data, self._overlay_writer())
+            if compact is not data:
+                raw = canonical({"schema": _INPUT_BODY_SCHEMA, "body": compact})
+                if len(raw) > _INPUT_READ_LIMIT:
+                    raise StorageUnavailable("INPUT_SNAPSHOT_TOO_LARGE")
             self.io.write_bytes(path, raw, require_absent=True)
 
     def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
@@ -170,11 +303,19 @@ class WorkbenchStore:
     def save_job(self, job: JobRecord) -> None:
         # Attempts are mutable; successful plans are not.
         with self.lock("job:" + job.job_id):
-            self._write(self._path("attempts", _key(job.job_id)), job.model_dump(mode="json"), immutable=False)
+            body = job.model_dump(mode="json")
+            body["context"] = self._map_overlay_fields(body["context"], self._overlay_writer())
+            self._write(self._path("attempts", _key(job.job_id)), body, immutable=False)
 
     def get_job(self, job_id: str) -> JobRecord | None:
         obj = self._read(self._path("attempts", _key(job_id)))
-        return JobRecord.model_validate(obj) if obj is not None else None
+        if obj is None:
+            return None
+        return self._job_from_obj(obj)
+
+    def _job_from_obj(self, obj: dict[str, Any]) -> JobRecord:
+        obj["context"] = self._map_overlay_fields(obj.get("context"), self._overlay_reader())
+        return JobRecord.model_validate(obj)
 
     def _catalog(self, snap: PlanSnapshot) -> Path:
         return self._path("catalog", snap.context.target_date, snap.context.phase.value, _key(snap.run_id))
@@ -301,11 +442,14 @@ class WorkbenchStore:
         for path in root.glob("*.json"):
             if path.is_symlink():
                 raise StorageUnavailable("SYMLINK_DENIED")
-            item = self.get_job(path.stem)
-            if item and item.state in (JobState.QUEUED, JobState.RUNNING) and item.job_id not in active_ids:
-                owner = next((r.get("pid") for r in item.execution_refs if r.get("kind") == "host"), None)
+            obj = self._read(path)
+            if (obj and obj.get("state") in (JobState.QUEUED, JobState.RUNNING)
+                    and obj.get("job_id") not in active_ids):
+                owner = next((r.get("pid") for r in obj.get("execution_refs", [])
+                              if isinstance(r, dict) and r.get("kind") == "host"), None)
                 if isinstance(owner,int) and self._pid_alive(owner):
                     continue
+                item = self._job_from_obj(obj)
                 item.state = JobState.INTERRUPTED
                 item.failure_code = "PROCESS_IDENTITY_UNVERIFIED"
                 item.retryable = True
@@ -326,13 +470,8 @@ class WorkbenchStore:
         return self._read(self._path("checkpoints", _key(job_id), _key(step)), max_bytes=limit)
 
     def load_input(self, input_sha: str) -> dict[str, Any] | None:
-        raw = self._read_input_bytes(input_sha)
-        if raw is None:
-            return None
-        body = json.loads(raw)
-        if not isinstance(body, dict):
-            raise StorageUnavailable("CORRUPT_RECORD")
-        return body
+        raw = self._read_content(self._content_path("input_snapshots", input_sha))
+        return self._decode_input(raw, input_sha) if raw is not None else None
 
     @staticmethod
     def _pid_alive(pid: int) -> bool:
@@ -352,9 +491,10 @@ class WorkbenchStore:
         claim = self._read(self._path("claims", key))
         if not claim or not claim.get("job_id"):
             return None
-        current = self.get_job(claim["job_id"])
-        if current is None or current.state not in (JobState.QUEUED, JobState.RUNNING):
+        obj = self._read(self._path("attempts", _key(claim["job_id"])))
+        if obj is None or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING):
             return None
+        current = self._job_from_obj(obj)
         if not self._pid_alive(claim.get("pid", -1)):
             current.state = JobState.INTERRUPTED
             current.failure_code = "PROCESS_IDENTITY_UNVERIFIED"

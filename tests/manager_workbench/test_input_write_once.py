@@ -1,3 +1,4 @@
+import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -57,8 +58,8 @@ def _service(tmp_path, engines):
     return ManagerService(WorkbenchConfig(state_root=tmp_path, workers=1), object(), engines, object())
 
 
-def _submit(service, *, cutoff=CUTOFF, lanes=LANES):
-    return service.submit(DATE, Phase.MANUAL, cutoff=cutoff, lanes=lanes)
+def _submit(service, *, cutoff=CUTOFF, lanes=LANES, scope_refs=None):
+    return service.submit(DATE, Phase.MANUAL, cutoff=cutoff, lanes=lanes, scope_refs=scope_refs)
 
 
 def _await(service, job):
@@ -72,7 +73,7 @@ def _record_writes(monkeypatch, store):
     original = store.io.write_bytes
 
     def write(relative, raw, **kwargs):
-        if relative.startswith(("input_snapshots/", "checkpoints/")):
+        if relative.startswith(("input_snapshots/", "checkpoints/", "overlay_blobs/", "attempts/")):
             writes.append((relative, len(raw)))
         return original(relative, raw, **kwargs)
 
@@ -92,8 +93,9 @@ def test_normal_jobs_write_once_and_reuse_before_any_input_write(tmp_path, monke
         body, verified = service.store.load_input_checkpoint(first.job_id)
         assert verified == digest(body) == sha
         assert service.store.load_input(sha) == body
-        assert writes[0][0] == f"input_snapshots/{sha}.json" and writes[0][1] > 100_000
-        assert writes[1][0] == f"checkpoints/{first.job_id}/LOAD_INPUTS.json" and writes[1][1] < 256
+        input_writes = [entry for entry in writes if not entry[0].startswith("attempts/")]
+        assert input_writes[0][0] == f"input_snapshots/{sha}.json" and input_writes[0][1] > 100_000
+        assert input_writes[1][0] == f"checkpoints/{first.job_id}/LOAD_INPUTS.json" and input_writes[1][1] < 256
         assert service.store.load_checkpoint(first.job_id, "PUBLISH") is not None
         files_before = tuple(writes)
         reused = _await(service, _submit(service, cutoff=CUTOFF.replace(minute=5)))
@@ -101,7 +103,7 @@ def test_normal_jobs_write_once_and_reuse_before_any_input_write(tmp_path, monke
         assert reused.state == JobState.SUCCEEDED and reused.step == "DONE"
         assert service.store.read_plan(reused.run_id).product_sha256 == plan.product_sha256
         assert service.store.load_input_checkpoint(reused.job_id) == (None, None)
-        assert tuple(writes) == files_before
+        assert all(path.startswith("attempts/") for path, _ in writes[len(files_before):])
         assert engines.loads == 2 and len(engines.executions) == 1
 
         # A changed producer SHA is a cache miss, even with the same date and lanes.
@@ -149,7 +151,8 @@ def test_partial_retry_reuses_legacy_inline_body_and_only_reexecutes_failed_lane
             **source_lane, "run_id": resumed.run_id
         }
         assert not any(path.startswith("input_snapshots/") for path, _ in writes)
-        assert writes[0][0] == f"checkpoints/{resumed.job_id}/LOAD_INPUTS.json" and writes[0][1] < 256
+        ref_bytes = next(size for path, size in writes if path == f"checkpoints/{resumed.job_id}/LOAD_INPUTS.json")
+        assert ref_bytes < 256
         assert engines.loads == 1
         assert engines.executions == [("OVERSOLD", "STAGE_REFERENCE"), ("STAGE_REFERENCE",)]
     finally:
@@ -185,6 +188,54 @@ def test_input_commit_interruption_and_concurrent_writers_do_not_stage_body_agai
     with pytest.raises(StorageConflict, match="INPUT_CHECKPOINT_COLLISION"):
         store.save_input_checkpoint("first", {"context": {"changed": True}, "batches": []})
     assert store.load_input_checkpoint("first") == store.load_input_checkpoint("second") == (body, sha)
+
+
+def test_overlay_is_written_once_across_attempts_and_batch_contexts(tmp_path, monkeypatch):
+    engines = Engines()
+    service = _service(tmp_path, engines)
+    store = service.store
+    writes = _record_writes(monkeypatch, store)
+    overlay = [{"value": "x" * 150_000, "flag": 1}]
+    identities = ["HK.00001"]
+    scope = {
+        "US_MAPPING": {"full_overlay_projection": overlay, "full_overlay_stock_identities": identities},
+        "owner_bindings": {"us_mapping": {
+            "full_overlay_projection": [dict(overlay[0])], "full_overlay_stock_identities": list(identities)}},
+    }
+    try:
+        first = _await(service, _submit(service, scope_refs=scope))
+        assert first.state == JobState.SUCCEEDED
+        assert first.context.scope_refs["US_MAPPING"] == scope["US_MAPPING"]
+        assert first.context.scope_refs["owner_bindings"] == scope["owner_bindings"]
+        journal = store._read(store._path("attempts", first.job_id))
+        raw_scope = journal["context"]["scope_refs"]
+        sha = digest(overlay)
+        marker = {"schema": storage._OVERLAY_REF_SCHEMA, "sha256": sha}
+        assert raw_scope["US_MAPPING"]["full_overlay_projection"] == marker
+        assert raw_scope["owner_bindings"]["us_mapping"]["full_overlay_projection"] == marker
+        assert [p for p, _ in writes if p.startswith("overlay_blobs/")] == [
+            f"overlay_blobs/{sha}.json", f"overlay_blobs/{digest(identities)}.json",
+        ]
+        body, input_sha = store.load_input_checkpoint(first.job_id)
+        assert input_sha == digest(body)
+        physical = store.io.read_bytes(f"input_snapshots/{input_sha}.json")
+        assert json.loads(physical)["schema"] == storage._INPUT_BODY_SCHEMA
+        assert len(physical) < len(canonical(body)) - 6 * 149_000
+        for context in [body["context"], *(batch["context"] for batch in body["batches"])]:
+            assert context["scope_refs"]["US_MAPPING"] == scope["US_MAPPING"]
+        assert all(size < 3_000 for path, size in writes if path.startswith("attempts/"))
+        start = len(writes)
+        reused = _await(service, _submit(service, scope_refs=scope))
+        assert reused.run_id == first.run_id
+        assert all(path.startswith("attempts/") and size < 3_000 for path, size in writes[start:])
+        projection = store.root / "overlay_blobs" / f"{sha}.json"
+        projection.write_bytes(canonical([{"value": "unverified"}]))
+        with pytest.raises(StorageUnavailable, match="OVERLAY_SHA_MISMATCH"):
+            store.get_job(first.job_id)
+        with pytest.raises(StorageUnavailable, match="OVERLAY_SHA_MISMATCH"):
+            store.load_input_checkpoint(first.job_id)
+    finally:
+        service.stop()
 
 
 @pytest.mark.parametrize("problem", ["missing", "sha_mismatch", "oversize", "schema", "traversal"])
