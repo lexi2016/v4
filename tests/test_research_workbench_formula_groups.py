@@ -1,0 +1,123 @@
+from copy import deepcopy
+import hashlib
+import json
+from types import SimpleNamespace
+from threading import RLock
+
+import pytest
+
+from infrastructure.research_workbench_host import FLAGS, ResearchWorkbenchHost
+
+
+@pytest.fixture
+def group_fixture():
+    product = {
+        'data_date': '20261113', 'source_generation': 'a' * 64,
+        'source_identity': {'input_sha256': 'b' * 64, 'selector_artifact_sha256': 'c' * 64},
+        'manifest': {'path': '/test/numeric.json', 'sha256': 'd' * 64},
+        'artifact': {'path': '/test/product.json', 'sha256': 'e' * 64},
+        'processed_count': 3,
+        'formula_group_admitted_symbols': {'600001.SH', '000001.SZ', '600002.SH'},
+        'rows': [{'symbol': '600002.SH', 'groups': 'original', 'display_name': '历史候选'}],
+    }
+    bundle = {
+        **FLAGS, 'schema': 'V4_WORKBENCH_FORMULA_GROUP_OVERRIDE_V1',
+        'source_date': '2026-11-13', 'observation_date': '2026-11-16',
+        'generation': product['source_generation'], 'input_sha256': product['source_identity']['input_sha256'],
+        'selector_sha256': product['source_identity']['selector_artifact_sha256'],
+        'numeric_manifest': product['manifest'], 'formula_sha256': {'pb2_confirm': 'f' * 64, 'b23_entry': '0' * 64},
+        'group_counts': {'pb2_confirm': 1, 'b23_entry': 2},
+        'rows': [
+            {'symbol': '600001.SH', 'display_name': '候选甲', 'groups': ['pb2_confirm', 'b23_entry']},
+            {'symbol': '000001.SZ', 'display_name': '候选乙', 'groups': ['b23_entry']},
+        ],
+    }
+    return product, bundle
+
+
+def bind_fixture(tmp_path, product, bundle, *, binding_date='2026-11-13'):
+    path = tmp_path / 'groups.json'
+    raw = json.dumps(bundle).encode()
+    path.write_bytes(raw)
+    ref = {'path': str(path), 'sha256': hashlib.sha256(raw).hexdigest()}
+    host = object.__new__(ResearchWorkbenchHost)
+    host.binding = {'candidate_group_override': {'source_date': binding_date, 'artifact': ref}}
+    host.skill_r2 = None
+    host._view = lambda source_date, revision: product
+    host._observation_date = lambda source_date: '2026-11-16'
+    host._module_reference = lambda name, source_date: None
+    host.workflow = lambda source_date: {'time_contract': {'nodes': []}}
+    host.classifications = SimpleNamespace(root=None)
+    host._quote_references = SimpleNamespace(read=lambda view: {'test_symbols': [r['symbol'] for r in view['rows']]})
+    host._lock = RLock()
+    host._row_cache = {}
+    return host, path
+
+
+def test_day_replaces_groups_and_quote_scope_only_for_bound_date(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    original = deepcopy(product)
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    result = host.day('2026-11-13')
+    assert result['formula_groups']['group_counts'] == {'pb2_confirm': 1, 'b23_entry': 2}
+    assert list(result['formula_groups']['labels']) == ['pb2_confirm', 'b23_entry']
+    assert result['scope_count'] == 2
+    assert result['rows'][0]['group_states'] == {'pb2_confirm': 'TRUE', 'b23_entry': 'TRUE'}
+    assert result['rows'][1]['group_states'] == {'pb2_confirm': 'FALSE', 'b23_entry': 'TRUE'}
+    assert result['statistics_status'] == 'NOT_MATERIALIZED_FOR_SELECTED_FORMULAS'
+    assert result['source_close_reference']['test_symbols'] == ['600001.SH', '000001.SZ']
+    assert product == original
+
+    other_date = host.day('2026-11-12')
+    assert 'formula_groups' not in other_date
+    assert other_date['rows'][0]['symbol'] == '600002.SH'
+    assert other_date['rows'][0]['group_states']['original'] == 'TRUE'
+    host.binding.pop('candidate_group_override')
+    assert host.day('2026-11-13')['rows'] == other_date['rows']
+
+
+@pytest.mark.parametrize(('key', 'value'), [
+    ('source_date', '2026-11-12'),
+    ('observation_date', '2026-11-17'),
+    ('generation', '1' * 64),
+    ('input_sha256', '2' * 64),
+    ('selector_sha256', '3' * 64),
+    ('numeric_manifest', {}),
+])
+def test_stale_or_different_bundle_fails_closed(tmp_path, group_fixture, key, value):
+    product, bundle = group_fixture
+    bundle[key] = value
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_SOURCE_CONFLICT'):
+        host.day('2026-11-13')
+
+
+def test_changed_bytes_or_extra_group_cannot_appear(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, path = bind_fixture(tmp_path, product, bundle)
+    path.write_text('{}')
+    with pytest.raises(ValueError, match='WORKBENCH_SOURCE_SHA_DRIFT'):
+        host.day('2026-11-13')
+
+    bundle['rows'][0]['groups'].append('original')
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_ROW_INVALID'):
+        host.day('2026-11-13')
+
+
+def test_unadmitted_symbol_cannot_appear(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    bundle['rows'][0]['symbol'] = '600999.SH'
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_ROW_INVALID'):
+        host.day('2026-11-13')
+
+
+def test_two_group_labels_allow_verified_empty_membership(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    bundle['rows'] = []
+    bundle['group_counts'] = {'pb2_confirm': 0, 'b23_entry': 0}
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    result = host.day('2026-11-13')
+    assert result['scope_count'] == 0
+    assert result['formula_groups']['group_counts'] == bundle['group_counts']

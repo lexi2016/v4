@@ -15,6 +15,10 @@ from starlette.requests import Request
 
 GROUPS=('nav_smallk','original','nav_pullback','nav_breakout')
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
+FORMULA_GROUP_LABELS = {
+    'pb2_confirm': 'PB2确认型回调',
+    'b23_entry': 'B2/B3入场',
+}
 
 
 def compact(value):
@@ -54,6 +58,60 @@ def checked_bytes(reference):
 
 def checked(reference):
     return json.loads(checked_bytes(reference))
+
+
+def _formula_group_rows(reference, product, source_date, observation_date):
+    bundle = checked(reference)
+    identity = product['source_identity']
+    if (not isinstance(bundle, dict)
+            or bundle.get('schema') != 'V4_WORKBENCH_FORMULA_GROUP_OVERRIDE_V1'
+            or compact(source_date) != product['data_date']
+            or bundle.get('source_date') != source_date
+            or bundle.get('observation_date') != observation_date
+            or bundle.get('generation') != product['source_generation']
+            or bundle.get('input_sha256') != identity['input_sha256']
+            or bundle.get('selector_sha256') != identity['selector_artifact_sha256']
+            or bundle.get('numeric_manifest') != product['manifest']
+            or any(bundle.get(key) is not value for key, value in FLAGS.items())):
+        raise ValueError('WORKBENCH_FORMULA_GROUP_SOURCE_CONFLICT')
+    formula_hashes = bundle.get('formula_sha256')
+    counts = bundle.get('group_counts')
+    items = bundle.get('rows')
+    if (not isinstance(formula_hashes, dict) or set(formula_hashes) != set(FORMULA_GROUP_LABELS)
+            or any(not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value)
+                   for value in formula_hashes.values())
+            or not isinstance(counts, dict) or set(counts) != set(FORMULA_GROUP_LABELS)
+            or any(type(value) is not int or value < 0 for value in counts.values())
+            or not isinstance(items, list)):
+        raise ValueError('WORKBENCH_FORMULA_GROUP_CONTRACT_INVALID')
+
+    rows = []
+    seen = set()
+    actual_counts = dict.fromkeys(FORMULA_GROUP_LABELS, 0)
+    available = product['formula_group_admitted_symbols']
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError('WORKBENCH_FORMULA_GROUP_ROW_INVALID')
+        symbol, name, hits = item.get('symbol'), item.get('display_name'), item.get('groups')
+        if (not isinstance(symbol, str) or not re.fullmatch(r'[0-9]{6}\.(SH|SZ|BJ)', symbol)
+                or symbol in seen or symbol not in available
+                or (name is not None and (not isinstance(name, str) or not name.strip()))
+                or not isinstance(hits, list) or not hits
+                or any(not isinstance(group, str) or group not in FORMULA_GROUP_LABELS for group in hits)
+                or len(set(hits)) != len(hits)):
+            raise ValueError('WORKBENCH_FORMULA_GROUP_ROW_INVALID')
+        seen.add(symbol)
+        for group in hits:
+            actual_counts[group] += 1
+        source_row = dict(symbol=symbol, display_name=name, data_date=product['data_date'], groups='|'.join(hits))
+        rows.append(dict(symbol=symbol, enriched_display_name=name, source_row=source_row,
+                         group_states={group: 'TRUE' if group in hits else 'FALSE' for group in FORMULA_GROUP_LABELS},
+                         eligible_candidate=True, in_fifth=False, history_rates={}))
+    if actual_counts != counts:
+        raise ValueError('WORKBENCH_FORMULA_GROUP_COUNT_CONFLICT')
+    summary = dict(labels=dict(FORMULA_GROUP_LABELS), group_counts=counts, formula_sha256=formula_hashes,
+                   artifact=reference)
+    return summary, rows
 
 
 def checked_single_display_projection(binding,identity):
@@ -266,6 +324,11 @@ class ResearchWorkbenchHost:
         self._lock=threading.RLock()
         if binding.get('schema')!='V4_MAC_WORKBENCH_BINDING_V1' or binding.get('RESEARCH_ONLY') is not True or any(binding.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent')):
             raise ValueError('WORKBENCH_HOST_BINDING_REQUIRED')
+        override = self.binding.get('candidate_group_override')
+        if override is not None:
+            if not isinstance(override, dict) or not isinstance(override.get('artifact'), dict):
+                raise ValueError('WORKBENCH_FORMULA_GROUP_BINDING_INVALID')
+            compact(override.get('source_date'))
         self.skill_r2=None
         if binding.get('skill_r2_d28'):
             from infrastructure.research_workbench_skill_r2 import SkillR2Workbench
@@ -292,12 +355,20 @@ class ResearchWorkbenchHost:
                 # stock checkpoints, historical labels, or raw OHLCV on a GET.
                 view={k:product[k] for k in ('data_date','source_generation','source_identity','source_config','manifest','artifact','processed_count','source_universe_count','status','rows')}
                 view['original_charts']=product.get('original_charts')
+                if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
+                    view['formula_group_admitted_symbols'] = frozenset(product['processed_universe']).intersection(product['row_refs'])
                 self._cache[key]=view
                 while len(self._cache)>8:self._cache.pop(next(iter(self._cache)))
             view=self._cache[key]
         if revision is not None and revision!=view['source_generation']:
             raise ValueError('WORKBENCH_SOURCE_REVISION_CONFLICT')
         return view
+
+    def _formula_groups(self, product, source_date, observation_date):
+        binding = self.binding.get('candidate_group_override')
+        if binding and binding['source_date'] == source_date:
+            return _formula_group_rows(binding['artifact'], product, source_date, observation_date)
+        return None
 
     def v192_group(self,source_date,revision=None):
         """Independent same-source candidate group; never changes four-group rows."""
@@ -655,8 +726,9 @@ class ResearchWorkbenchHost:
             return self.skill_r2.day(self._observation_date(source_date),self.workflow(source_date),revision)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         if observation is None:raise ValueError('WORKBENCH_OBSERVATION_DATE_UNBOUND')
-        rows=[]
-        for row in p['rows']:
+        override = self._formula_groups(p, source_date, observation)
+        formula_groups, rows = override if override is not None else (None, [])
+        for row in p['rows'] if override is None else ():
             row_sha=hashlib.sha256(json.dumps(row,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
             row_key=(p['data_date'],p['source_generation'],p['source_identity']['input_sha256'],row_sha)
             with self._lock:
@@ -672,8 +744,10 @@ class ResearchWorkbenchHost:
         # The completion owner materializes this light projection once. A GET
         # never loops through stock detail readers or historical checkpoints.
         statistics_ref=None;summaries={};statistics_status='CANNOT_CONFIRM_PROJECTION_MISSING'
+        if override is not None:
+            statistics_status = 'NOT_MATERIALIZED_FOR_SELECTED_FORMULAS'
         try:
-            statistics_ref=self._module_reference('statistics',source_date)
+            statistics_ref=self._module_reference('statistics',source_date) if override is None else None
             if statistics_ref:
                 key=(source_date,p['manifest']['sha256'],statistics_ref['sha256'])
                 with self._lock:
@@ -692,15 +766,20 @@ class ResearchWorkbenchHost:
         except (ValueError,OSError,KeyError,TypeError) as error:
             statistics_status='CANNOT_CONFIRM:'+str(error)
         rows=[{**r,'history_rates':summaries.get(r['symbol'],{})} for r in rows] if summaries else rows
-        try:classification=self.classifications.join(p['rows']) if self.classifications.root else None
+        source_rows = [row['source_row'] for row in rows] if override is not None else p['rows']
+        try:classification=self.classifications.join(source_rows) if self.classifications.root else None
         except (ValueError,OSError,KeyError,TypeError) as error:
             classification=dict(rows={r['symbol']:dict(identity_status='CANNOT_CONFIRM_SOURCE_INVALID',classification=None,error=str(error)) for r in rows},catalogs={},identity_counts={'CANNOT_CONFIRM_SOURCE_INVALID':len(rows)},status='CANNOT_CONFIRM:'+str(error))
         if classification:rows=[{**r,'classification':classification['rows'][r['symbol']]} for r in rows]
-        try:quote_reference=self._quote_references.read(p)
+        try:quote_reference=self._quote_references.read({**p, 'rows': source_rows}) if source_rows or override is None else None
         except (ValueError,OSError,KeyError,TypeError) as error:
             quote_reference=dict(status='CANNOT_CONFIRM:'+str(error),rows={})
         execution=self.workflow(source_date)
-        return dict(source_close_reference=quote_reference,source_selector_sha256=p['source_identity']['selector_artifact_sha256'],schema='RESEARCH_SYSTEM_DAY_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],revision=p['source_generation'],numeric_manifest=p['manifest'],rows=rows,scope_count=len(rows),original_processed_count=p['processed_count'],row_scope='FROZEN_CANDIDATE_UNION_ONLY_NOT_FULL_POOL',formula_review='PENDING',chart_review='UNKNOWN_NOT_REVIEWED',execution_status='DEFERRED_USER',classification_catalogs=classification['catalogs'] if classification else {},classification_identity_counts=classification['identity_counts'] if classification else {},classification_status=classification['status'] if classification else 'CANNOT_CONFIRM_SOURCE_NOT_BOUND',statistics_status=statistics_status,statistics_version=statistics_ref['sha256'] if statistics_ref else None,workflow=[dict(label=n['label_zh'],status=n['execution_status'],recorded_at=n.get('recorded_at'),materials=n.get('materials',[])) for n in execution['time_contract']['nodes']],materials=[],reference_links=[dict(label='旧版单股归档',url='/research-panel/legacy-daily.html?'+urlencode(dict(date=source_date)))],source_refs=dict(numeric_manifest=p['manifest'],artifact=p['artifact'],date_binding=self.binding.get('observation_dates',{}).get(source_date) or dict(calendar=self.binding.get('calendar'),method='NEXT_AUTHORITY_SESSION')),**FLAGS)
+        result = dict(source_close_reference=quote_reference,source_selector_sha256=p['source_identity']['selector_artifact_sha256'],schema='RESEARCH_SYSTEM_DAY_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],revision=p['source_generation'],numeric_manifest=p['manifest'],rows=rows,scope_count=len(rows),original_processed_count=p['processed_count'],row_scope='FROZEN_CANDIDATE_UNION_ONLY_NOT_FULL_POOL',formula_review='PENDING',chart_review='UNKNOWN_NOT_REVIEWED',execution_status='DEFERRED_USER',classification_catalogs=classification['catalogs'] if classification else {},classification_identity_counts=classification['identity_counts'] if classification else {},classification_status=classification['status'] if classification else 'CANNOT_CONFIRM_SOURCE_NOT_BOUND',statistics_status=statistics_status,statistics_version=statistics_ref['sha256'] if statistics_ref else None,workflow=[dict(label=n['label_zh'],status=n['execution_status'],recorded_at=n.get('recorded_at'),materials=n.get('materials',[])) for n in execution['time_contract']['nodes']],materials=[],reference_links=[dict(label='旧版单股归档',url='/research-panel/legacy-daily.html?'+urlencode(dict(date=source_date)))],source_refs=dict(numeric_manifest=p['manifest'],artifact=p['artifact'],date_binding=self.binding.get('observation_dates',{}).get(source_date) or dict(calendar=self.binding.get('calendar'),method='NEXT_AUTHORITY_SESSION')),**FLAGS)
+        if formula_groups is not None:
+            result['formula_groups'] = formula_groups
+            result['row_scope'] = 'BOUND_FORMULA_CANDIDATE_UNION_ONLY'
+        return result
 
     def classification_catalog(self,market):
         return self.classifications.catalog(market)
@@ -747,8 +826,13 @@ class ResearchWorkbenchHost:
         p=self._view(source_date,revision)
         extra={}
         if not any(row.get('symbol')==symbol for row in p['rows']):
-            model=self.v192_group(source_date,revision)
-            if not any(row.get('symbol')==symbol for row in model['rows']):raise KeyError('V192_SYMBOL_NOT_BOUND')
+            override = self._formula_groups(p, source_date, self._observation_date(source_date))
+            if override is None:
+                candidates = self.v192_group(source_date, revision)['rows']
+                if not any(row['symbol'] == symbol for row in candidates):
+                    raise KeyError('V192_SYMBOL_NOT_BOUND')
+            elif not any(row['symbol'] == symbol for row in override[1]):
+                raise KeyError('WORKBENCH_FORMULA_GROUP_SYMBOL_NOT_BOUND')
             extra['allow_processed_symbol']=True
         answer=self.source.read_a_daily_company_materials(p['data_date'],symbol,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],**extra)
         if answer.get('status')!='PARTIAL_RECEIVED':
