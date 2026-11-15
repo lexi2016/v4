@@ -1,6 +1,7 @@
 import {sortHistoryRates,rateLabel,historyRate} from '../../rate-sort.mjs';
 import {requestedEntry,resolveCatalogRequest,entryUrl,preferredCatalogEntry,shanghaiToday} from '../../entry-date.mjs';
 import {matchesClassification} from '../../classification-local.mjs';
+import {renderDailyChart,validateDailyChart} from './formula-daily-chart.mjs';
 const candidateSourceNote=s=>`行情日 ${s?.observation_date??'未知'} · 候选来源日 ${day?.source_date??'未绑定'}`;
 const observationHeader=(snapshot,now)=>snapshot?.capture_kind==='OFFICIAL_DAILY_ARCHIVE'?`官方日包收盘行情 · ${candidateSourceNote(snapshot)} · 行情源精确时刻 UNKNOWN · 保存 ${snapshot.recorded_at} · 行情覆盖 ${snapshot.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${snapshot.rows.length}`:originalObservationHeader(snapshot,now);
 const archiveMini=s=>{if(s?.capture_kind==='OFFICIAL_DAILY_ARCHIVE')document.getElementById('observationMini').textContent=`官方日包行情 · ${candidateSourceNote(s)} · 行情覆盖 ${s.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${s.rows.length} · 行情源精确时刻未知`};const renderPhase=(...args)=>{originalRenderPhase(...args);archiveMini(args[1])};const renderContext=(...args)=>{originalRenderContext(...args);archiveMini(args[1])};
@@ -25,6 +26,7 @@ function configureDayGroups(currentDay) {
  const scope=$('scope');
  scope.hidden=Boolean(formulaGroups);
  $('originalScreenshot').hidden=Boolean(formulaGroups);
+ $('interactivePanel').querySelector('h2').textContent=formulaGroups?'前复权日K':'原式图';
  $('showStockRates').disabled=Boolean(formulaGroups);
  document.querySelector('label[for="scope"]').hidden=Boolean(formulaGroups);
  for(const option of $('stockSort').options){
@@ -43,7 +45,11 @@ function setRulePresentation(day){const skill=day?.ruleset_id==='ZGE_SKILL_DAILY
 let day=null,chartSet=null,charts=new Map,names={},selected=null,group='all',page=0,loadToken=0,stockToken=0,filtered=[];const pageSize=40;
 export function requestedSelectionFromSearch(search){const values=new URLSearchParams(search).getAll('symbol');if(!values.length)return {status:'ABSENT',symbol:null};if(values.length!==1||!/^[0-9]{6}\.(SH|SZ|BJ)$/.test(values[0]))return {status:'INVALID',symbol:values[0]??null};return {status:'REQUESTED',symbol:values[0]};}
 export function resolveRequestedSelection(rows,request){if(request?.status!=='REQUESTED')return {status:request?.status??'ABSENT',symbol:request?.symbol??null,row:rows[0]??null,index:rows.length?0:-1};const index=rows.findIndex(row=>row.symbol===request.symbol);return index<0?{status:'NOT_FOUND',symbol:request.symbol,row:rows[0]??null,index:rows.length?0:-1}:{status:'MATCHED',symbol:request.symbol,row:rows[index],index};}
-let projections=new Map,projectionAbort=null,interactiveLoaded=null;
+let projections=new Map,projectionAbort=null,interactiveLoaded=null,clearDailyChart=null;
+const dailyChartHost=node('div','');
+dailyChartHost.id='formulaDailyChart';
+dailyChartHost.hidden=true;
+$('interactiveChart').before(dailyChartHost);
 let observationSnapshot=null,observationRows=new Map,observationToken=0,timeContract=null,lastClockSignature=null,observationLoading=false,lastObservationRead=0;
 let researchCalendarDays=[],entryIntent=null,entryBinding=null;
 const catalogKey=entry=>entry.source_date+(entry.revision?'|'+entry.revision:'');
@@ -124,10 +130,25 @@ function selectedObservation(r){
 function tickObservationPresentation(){refreshCurrentDay();if(!day||!observationSnapshot)return;const now=new Date().toISOString(),states=observationSnapshot.rows.map(r=>rowValidity(r,observationSnapshot,'percent',now).state).join('|'),signature=observationSnapshot.snapshot_sha256+'|'+$('stockSort').value+'|'+states;renderPhase(timeContract,observationSnapshot,now);if(signature===lastClockSignature)return;lastClockSignature=signature;const focused=document.activeElement?.dataset?.symbol;$('observationSummary').textContent=observationHeader(observationSnapshot,now)+($('stockSort').value.startsWith('cumulative')?' '+volumeCoverage(observationSnapshot):'');if(selected){selectedObservation(selected);renderClassification(selected);}renderList(false);if(focused)$('stockList').querySelector(`[data-symbol="${focused}"]`)?.focus({preventScroll:true});}
 setInterval(tickObservationPresentation,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tickObservationPresentation()});
 async function refreshObservationData(){const mine=++observationToken,identity=selection().date+'|'+selection().revision,currentDay=day;if(!currentDay)return;try{const url=preview?'./preview/observations.json':`${integrationBase}/days/${currentDay.source_date}/observations?observation_date=${currentDay.observation_date}${selection().revision?'&revision='+selection().revision:''}`;observationLoading=true;lastObservationRead=Date.now();$('refreshObservations').disabled=true;const value=await loadJson(url,(u,o)=>fetch(u,{...o,signal:AbortSignal.timeout(15000)}));if(mine!==observationToken||day!==currentDay||identity!==selection().date+'|'+selection().revision)return;const next=validateSnapshot(value?.latest??null,currentDay,selection().revision),contextChanged=next?.context_sha256!==observationSnapshot?.context_sha256;observationSnapshot=next;$('observationMini').dataset.fetchState='ready';observationRows=new Map((observationSnapshot?.rows??[]).map(r=>[r.symbol,r]));$('observationSummary').textContent=observationHeader(observationSnapshot)+($('stockSort').value.startsWith('cumulative')?' '+volumeCoverage(observationSnapshot):'');if(contextChanged)renderContext(timeContract,observationSnapshot);else renderPhase(timeContract,observationSnapshot);if(selected){selectedObservation(selected);renderClassification(selected);}renderList(false);}catch{if(mine!==observationToken||day!==currentDay)return;$('observationMini').dataset.fetchState='failed';$('observationSummary').textContent='本次刷新未完成；'+(observationSnapshot?'保留本日最后成功快照，按源时间标记过期。 '+observationHeader(observationSnapshot):'无本日合格快照，不沿用旧日数据。');renderContext(timeContract,observationSnapshot);if(selected){selectedObservation(selected);renderClassification(selected);}renderList(false);}finally{if(mine===observationToken){observationLoading=false;$('refreshObservations').disabled=false;}}}
-function clearInteractive(){projectionAbort?.abort();projectionAbort=null;interactiveLoaded=null;window.OriginalFullChart?.clear?.();$('interactiveChart').hidden=true;$('exactValues').textContent='';}
+function clearInteractive(){projectionAbort?.abort();projectionAbort=null;interactiveLoaded=null;clearDailyChart?.();clearDailyChart=null;dailyChartHost.hidden=true;window.OriginalFullChart?.clear?.();$('interactiveChart').hidden=true;$('exactValues').textContent='';}
 async function loadInteractive(r,token){clearInteractive();$('interactivePanel').hidden=false;
  if(day.formula_groups){
-  $('projectionStatus').textContent='用户公式的原式交互图与同定义历史统计尚未物化。';
+  const bound=day,controller=new AbortController();
+  projectionAbort=controller;
+  $('projectionStatus').textContent=`${r.symbol} · 正在读取同源日K…`;
+  try{
+   await window.StockPanelHost.open(bound,r,group,{renderChart:false});
+   const value=await loadJson(endpoint('formula-daily-k/'+r.symbol),(url,options)=>fetch(url,{...options,signal:controller.signal}));
+   if(token!==stockToken||controller.signal.aborted)return;
+   const chart=validateDailyChart(value,bound,r.symbol);
+   dailyChartHost.hidden=false;
+   clearDailyChart=renderDailyChart(dailyChartHost,chart);
+   $('projectionStatus').textContent=`${r.symbol} · ${chart.rows.length}根 · 截至 ${chart.source_date} · 同组历史统计待核`;
+  }catch(error){
+   if(token!==stockToken||controller.signal.aborted)return;
+   dailyChartHost.hidden=true;
+   $('projectionStatus').textContent=`${r.symbol} · 本日行情待核：${error.message}`;
+  }
   return;
  }
 $('projectionStatus').textContent='正在读取同源原图及历史统计…';try{const bundle=await window.StockPanelHost.open(day,r,group);if(token!==stockToken)return;if(bundle?.status==='NOT_MATERIALIZED'){clearInteractive();$('projectionStatus').textContent='v1.9.2候选 · '+bundle.reason+'；同定义D+2/D+5统计未接入。';return}interactiveLoaded=bundle.projection;$('interactiveChart').hidden=false;$('projectionStatus').textContent=`${bundle.projection.data.rows.length}根原式历史 · ${day.ruleset_id?'新R2同定义历史统计未物化':'已物化统计'} · 图审状态见分组` ;}catch(error){if(token!==stockToken)return;clearInteractive();$('projectionStatus').textContent='本股来源或统计暂未闭环：'+error.message;}}

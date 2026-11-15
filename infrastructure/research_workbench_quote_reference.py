@@ -5,6 +5,7 @@ No acquisition, historical calculation, persistent store, or observation snapsho
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timedelta
 import hashlib
 import json
 import math
@@ -13,6 +14,23 @@ import re
 import threading
 
 FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+_DAILY_CHART_BARS = 120
+_DAILY_CHART_FIELDS = ('open', 'high', 'low', 'close', 'volume')
+
+
+def _daily_chart_rows(values, symbols, first, day):
+    histories = {symbol: {} for symbol in symbols}
+    for row in values:
+        symbol, date = row['ts_code'], str(row['trade_date'])
+        if symbol not in histories or not re.fullmatch(r'\d{8}', date) or not first <= date <= day or date in histories[symbol]:
+            raise ValueError('WORKBENCH_DAILY_K_ROW_IDENTITY_CONFLICT')
+        bar = {field: _number(row[field], 0 if field == 'volume' else None) for field in _DAILY_CHART_FIELDS}
+        if (any(value is None for value in bar.values()) or bar['low'] > min(bar['open'], bar['close'])
+                or bar['high'] < max(bar['open'], bar['close'])):
+            raise ValueError('WORKBENCH_DAILY_K_BAR_INVALID')
+        histories[symbol][date] = dict(trade_date=date, **bar)
+    return {symbol: [history[k] for k in sorted(history)[-_DAILY_CHART_BARS:]]
+            for symbol, history in histories.items() if day in history}
 
 
 def _path(value):
@@ -175,6 +193,23 @@ class SourceCloseReferences:
         self._lock = threading.RLock()
 
     def read(self, product):
+        return self._read(product, chart_symbol=None)
+
+    def read_daily_chart(self, product, symbol):
+        if symbol not in {row['symbol'] for row in product['rows']}:
+            raise KeyError('WORKBENCH_DAILY_K_SYMBOL_NOT_BOUND')
+        return self._read(product, chart_symbol=symbol)
+
+    @staticmethod
+    def _select_result(result, chart_symbol):
+        if chart_symbol is None:
+            return copy.deepcopy(result)
+        bars = result['rows'].get(chart_symbol)
+        if not bars:
+            raise KeyError('WORKBENCH_DAILY_K_SOURCE_DAY_NOT_AVAILABLE')
+        return copy.deepcopy(dict(result['chart_identity'], symbol=chart_symbol, rows=bars))
+
+    def _read(self, product, *, chart_symbol):
         identity = product['source_identity']
         day = product['data_date']
         symbols = tuple(sorted(row['symbol'] for row in product['rows']))
@@ -202,18 +237,22 @@ class SourceCloseReferences:
         stamps = tuple(_stamp(p) for p in (snapshot_path, stage_path, selector))
         key = (day, product['source_generation'], identity['input_sha256'], expected_sha,
                snapshot_ref['sha256'], product['manifest']['sha256'], str(selector), stamps, symbols)
+        cache_key = (key, bool(chart_symbol))
         with self._lock:
-            if key in self._cache:
-                result, guard = self._cache[key]
+            if cache_key in self._cache:
+                result, guard = self._cache[cache_key]
                 _check_logical_dependencies(guard)
-                return copy.deepcopy(result)
-            if _sha(snapshot_path) != snapshot_ref['sha256'] or _sha(selector) != expected_sha:
+                return self._select_result(result, chart_symbol)
+            accepted_close = self._cache.get((key, False))
+            if accepted_close is None and (_sha(snapshot_path) != snapshot_ref['sha256'] or _sha(selector) != expected_sha):
                 raise ValueError('QUOTE_REFERENCE_SOURCE_SHA_DRIFT')
             # This is the same approved physical/logical panel reader used by
             # the daily owner, not a new store or an observation materializer.
             from ops.research_panel_logical import parquet as pq
             parquet = pq.ParquetFile(selector)
-            guard = _logical_dependencies(parquet, symbols)
+            guard = accepted_close[1] if accepted_close is not None else _logical_dependencies(parquet, symbols)
+            if accepted_close is not None:
+                _check_logical_dependencies(guard)
             contract = json.loads((parquet.schema_arrow.metadata or {})[b'a_share_qfq_contract_v1'])
             if (contract.get('generation_id') != product['source_generation']
                     or contract.get('input_sha256') != identity['input_sha256']
@@ -223,29 +262,41 @@ class SourceCloseReferences:
                     or identity.get('basis', {}).get('price_basis') != 'QFQ_ASOF'
                     or identity.get('basis', {}).get('amount_basis') != 'RAW_TURNOVER'):
                 raise ValueError('QUOTE_REFERENCE_PARQUET_IDENTITY_CONFLICT')
-            values = pq.read_table(selector, columns=['ts_code', 'trade_date', 'close', 'pct_chg', 'amount'],
-                                   filters=[('trade_date', '=', day), ('ts_code', 'in', list(symbols))]).to_pylist()
+            source_date = f'{day[:4]}-{day[4:6]}-{day[6:]}'
+            if chart_symbol is not None:
+                # Read only recent columns for the already admitted display scope.
+                first = (datetime.strptime(day, '%Y%m%d') - timedelta(days=250)).strftime('%Y%m%d')
+                values = pq.read_table(selector, columns=['ts_code', 'trade_date', *_DAILY_CHART_FIELDS],
+                    filters=[('trade_date', '>=', first), ('trade_date', '<=', day), ('ts_code', 'in', list(symbols))]).to_pylist()
+                chart_identity = dict(schema='V4_WORKBENCH_DAILY_K_V1', source_date=source_date,
+                    generation=product['source_generation'], input_sha256=identity['input_sha256'],
+                    numeric_manifest=product['manifest'], selector=dict(path=str(selector), sha256=expected_sha),
+                    snapshot=snapshot_ref, price_basis='QFQ_ASOF_' + day, volume_basis=identity['basis']['volume_basis'],
+                    historical_PIT=False, **FLAGS)
+                result = dict(chart_identity=chart_identity, rows=_daily_chart_rows(values, symbols, first, day))
+            else:
+                values = pq.read_table(selector, columns=['ts_code', 'trade_date', 'close', 'pct_chg', 'amount'],
+                    filters=[('trade_date', '=', day), ('ts_code', 'in', list(symbols))]).to_pylist()
+                rows = {}
+                for row in values:
+                    symbol = row['ts_code']
+                    if symbol not in symbols or str(row['trade_date']) != day or symbol in rows:
+                        raise ValueError('QUOTE_REFERENCE_ROW_IDENTITY_CONFLICT')
+                    price = _number(row['close'], 0)
+                    rows[symbol] = dict(symbol=symbol, price=price if price and price > 0 else None,
+                                        change_percent_source=_number(row['pct_chg']), amount_source=_number(row['amount'], 0))
+                result = dict(schema='V4_WORKBENCH_SOURCE_CLOSE_REFERENCE_V1', status='BOUND_SOURCE_CLOSE',
+                    quote_role='SOURCE_DATE_CLOSE_REFERENCE', source_date=source_date,
+                    generation=product['source_generation'], input_sha256=identity['input_sha256'],
+                    numeric_manifest=product['manifest'], currency='CNY', source_asof=None,
+                    source_asof_precision='DATE_ONLY', price_basis='QFQ_ASOF_' + day,
+                    amount_basis='RAW_TURNOVER', historical_PIT=False,
+                    selector=dict(path=str(selector), sha256=expected_sha), snapshot=snapshot_ref,
+                    scope_count=len(symbols), available_count=len(rows), rows=rows, **FLAGS)
             if stamps != tuple(_stamp(p) for p in (snapshot_path, stage_path, selector)):
                 raise ValueError('QUOTE_REFERENCE_SOURCE_MOVED')
             _check_logical_dependencies(guard)
-            rows = {}
-            for row in values:
-                symbol = row['ts_code']
-                if symbol not in symbols or str(row['trade_date']) != day or symbol in rows:
-                    raise ValueError('QUOTE_REFERENCE_ROW_IDENTITY_CONFLICT')
-                price = _number(row['close'], 0)
-                rows[symbol] = dict(symbol=symbol, price=price if price and price > 0 else None,
-                                    change_percent_source=_number(row['pct_chg']), amount_source=_number(row['amount'], 0))
-            source_date = f'{day[:4]}-{day[4:6]}-{day[6:]}'
-            result = dict(schema='V4_WORKBENCH_SOURCE_CLOSE_REFERENCE_V1', status='BOUND_SOURCE_CLOSE',
-                          quote_role='SOURCE_DATE_CLOSE_REFERENCE', source_date=source_date,
-                          generation=product['source_generation'], input_sha256=identity['input_sha256'],
-                          numeric_manifest=product['manifest'], currency='CNY', source_asof=None,
-                          source_asof_precision='DATE_ONLY', price_basis='QFQ_ASOF_' + day,
-                          amount_basis='RAW_TURNOVER', historical_PIT=False,
-                          selector=dict(path=str(selector), sha256=expected_sha), snapshot=snapshot_ref,
-                          scope_count=len(symbols), available_count=len(rows), rows=rows, **FLAGS)
-            self._cache[key] = (result, guard)
+            self._cache[cache_key] = (result, guard)
             while len(self._cache) > 4:
                 self._cache.pop(next(iter(self._cache)))
-            return copy.deepcopy(result)
+            return self._select_result(result, chart_symbol)

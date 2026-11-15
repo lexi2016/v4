@@ -784,6 +784,15 @@ class ResearchWorkbenchHost:
     def classification_catalog(self,market):
         return self.classifications.catalog(market)
 
+    def formula_daily_chart(self, source_date, symbol, revision=None):
+        product = self._view(source_date, revision)
+        override = self._formula_groups(product, source_date, self._observation_date(source_date))
+        if override is None:
+            raise KeyError('WORKBENCH_DAILY_K_FORMULA_GROUP_NOT_BOUND')
+        summary, rows = override
+        value = self._quote_references.read_daily_chart({**product, 'rows': [row['source_row'] for row in rows]}, symbol)
+        return dict(value, formula_group_sha256=summary['artifact']['sha256'])
+
     def chart_views(self,source_date,revision=None):
         if self._is_skill_date(source_date):return self.skill_r2.chart_views(revision)
         p=self._view(source_date,revision);descriptor=p.get('original_charts')
@@ -1010,6 +1019,8 @@ def create_workbench_router(source):
         return Response(raw,media_type=mime,headers=headers)
     @router.get('/days/{source_date}/top200')
     def top200(source_date:str,revision:str|None=None):return call('top200',source_date,revision)
+    @router.get('/days/{source_date}/formula-daily-k/{symbol}')
+    def formula_daily_chart(source_date:str,symbol:str,revision:str|None=None):return call('formula_daily_chart',source_date,symbol,revision)
     @router.get('/days/{source_date}/charts')
     def charts(source_date:str,revision:str|None=None):return call('chart_views',source_date,revision)['charts']
     @router.get('/days/{source_date}/projections')

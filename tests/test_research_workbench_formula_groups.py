@@ -121,3 +121,27 @@ def test_two_group_labels_allow_verified_empty_membership(tmp_path, group_fixtur
     result = host.day('2026-11-13')
     assert result['scope_count'] == 0
     assert result['formula_groups']['group_counts'] == bundle['group_counts']
+
+
+def test_formula_chart_rejects_a_stock_outside_the_bound_group():
+    from infrastructure.research_workbench_quote_reference import SourceCloseReferences
+
+    with pytest.raises(KeyError, match='WORKBENCH_DAILY_K_SYMBOL_NOT_BOUND'):
+        SourceCloseReferences().read_daily_chart({'rows': [{'symbol': '600001.SH'}]}, '600002.SH')
+
+
+def test_daily_chart_rows_keep_actual_sessions_and_require_source_day():
+    from infrastructure.research_workbench_quote_reference import _daily_chart_rows
+
+    values = [dict(ts_code='600001.SH', trade_date=date, open=11, low=10, high=13, close=12, volume=100)
+              for date in ('20261113', '20261111')]
+    values.append(dict(values[1], ts_code='600002.SH'))
+    projected = _daily_chart_rows(values, ['600001.SH', '600002.SH'], '20260801', '20261113')
+    assert list(projected) == ['600001.SH']
+    assert [row['trade_date'] for row in projected['600001.SH']] == ['20261111', '20261113']
+    assert projected['600001.SH'][-1]['close'] == 12
+
+    with pytest.raises(ValueError, match='WORKBENCH_DAILY_K_ROW_IDENTITY_CONFLICT'):
+        _daily_chart_rows(values[:1] * 2, ['600001.SH'], '20260801', '20261113')
+    with pytest.raises(ValueError, match='WORKBENCH_DAILY_K_BAR_INVALID'):
+        _daily_chart_rows([dict(values[0], high=11)], ['600001.SH'], '20260801', '20261113')
