@@ -12,6 +12,7 @@ import hashlib
 import os
 import re
 from datetime import datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -108,18 +109,124 @@ def _month_ranges_backwards(trade_date: str):
 
 def _load_a_name_map(trade_date: str) -> tuple[str, dict[str, str]]:
     from ops.research_storage_pair import request_binding
+
     root = os.environ.get('V4_A_SHARE_HISTORY_DATA_ROOT')
-    if not root:return '', {}
+    if not root:
+        return "", {}
+    data_root = Path(root)
     try:
-        with request_binding(root):
-            return _load_a_name_map_bound(trade_date)
-    except (OSError,ValueError,RuntimeError):
+        with request_binding(data_root) as pair:
+            if pair is not None:
+                selector = pair.paths["selector"]
+                blocks = _verified_name_blocks(selector)
+                cache_key = f"{pair.manifest['id']}|{trade_date}"
+                result = _read_a_name_map(selector, trade_date, cache_key)
+                _assert_name_blocks_unchanged(blocks)
+                pair.assert_open()
+            else:
+                from apps.api.v4_api.a_share_panel_history import _read_lock
+
+                cache = data_root / "runtime/cache/data_layer_daily_formula_increment_update_v1"
+                with _read_lock(cache):
+                    result, cache_key = _load_legacy_a_name_map(data_root, cache, trade_date)
+            if result[1]:
+                _A_NAME_CACHE[cache_key] = result
+            return result
+    except (ImportError, OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError):
         # Preserve this display-only fallback's established empty-name behavior
-        # on unavailable binding; never fall back to a newly resolved pointer.
-        return '', {}
+        # on unavailable binding.
+        return "", {}
 
 
-def _load_a_name_map_bound(trade_date: str) -> tuple[str, dict[str, str]]:
+def _load_legacy_a_name_map(
+    data_root: Path, cache: Path, trade_date: str,
+) -> tuple[tuple[str, dict[str, str]], str]:
+    """Resolve the compatibility pointer under the original publisher lock."""
+    from apps.api.v4_api.a_share_panel_history import _hash_new_generation_once
+    from ops.research_panel_logical import META, parquet
+    from ops.research_storage_pair import pointers
+    from ops.research_storage_retention import safe_path, stamp
+
+    pointer = safe_path(pointers(data_root)["selector"])
+    pointer_bytes = pointer.read_bytes()
+    selector = safe_path(pointer_bytes.decode("utf-8-sig").strip())
+    acceptance = (cache / "qfq_expected_current.json").read_bytes()
+    expected = json.loads(acceptance)
+    bound = expected["roles"]["selector"]
+    target_sha = bound["target_sha256"]
+    if (expected["schema"] != "qfq_expected_current_v1"
+            or bound["pointer_path"] != str(pointer)
+            or bound["pointer_sha256"] != hashlib.sha256(pointer_bytes).hexdigest()
+            or bound["target_path"] != str(selector)
+            or not _is_sha256(target_sha)):
+        raise ValueError("NAME_SELECTOR_OWNER_ACCEPTANCE_CONFLICT")
+
+    journal_path = cache / "qfq_publication.json"
+    journal_bytes = journal_path.read_bytes()
+    journal = json.loads(journal_bytes)
+    if journal.get("status") not in {"COMMITTED", "ROLLED_BACK", "ROLLED_BACK_AFTER_INTERRUPTION"}:
+        raise ValueError("NAME_SELECTOR_PUBLICATION_NOT_TERMINAL")
+    before = stamp(selector)
+    if not _hash_new_generation_once(str(selector), target_sha, tuple(before.values())):
+        raise ValueError("NAME_SELECTOR_ARTIFACT_SHA_CONFLICT")
+    contract = json.loads((parquet.read_schema(selector).metadata or {})[META])
+    manifest_path = safe_path(contract["generation_manifest_path"])
+    manifest_bytes = manifest_path.read_bytes()
+    manifest = json.loads(manifest_bytes)
+    if (contract["schema"] != "a_share_qfq_panel_v1"
+            or not contract["generation_id"] or manifest["generation_id"] != contract["generation_id"]
+            or not contract["input_sha256"] or manifest["input_sha256"] != contract["input_sha256"]
+            or manifest["candidates"]["selector"] != str(selector)
+            or manifest["candidate_sha256"]["selector"] != target_sha):
+        raise ValueError("NAME_SELECTOR_PRODUCER_MANIFEST_CONFLICT")
+
+    blocks = _verified_name_blocks(selector)
+    cache_key = f"{selector}|{target_sha}|{tuple(before.values())}|{trade_date}"
+    result = _read_a_name_map(selector, trade_date, cache_key)
+    if (stamp(selector) != before or pointer.read_bytes() != pointer_bytes
+            or (cache / "qfq_expected_current.json").read_bytes() != acceptance
+            or journal_path.read_bytes() != journal_bytes
+            or manifest_path.read_bytes() != manifest_bytes):
+        raise ValueError("NAME_SELECTOR_CHANGED_DURING_READ")
+    _assert_name_blocks_unchanged(blocks)
+    return result, cache_key
+
+
+# A current selector can reference thousands of immutable blocks. Keep several
+# closures resident so a sequential verification does not evict its own hits.
+@lru_cache(maxsize=32768)
+def _name_block_sha_matches(path, expected_sha, file_identity):
+    from ops.research_storage_retention import digest
+
+    return digest(path) == expected_sha
+
+
+def _verified_name_blocks(selector):
+    from ops.research_panel_logical import closure
+    from ops.research_storage_retention import safe_path, stamp
+
+    verified = {}
+    for block in closure(selector):
+        path = safe_path(block["path"])
+        identity = stamp(path)
+        expected_sha = block["sha256"]
+        if ({key: identity[key] for key in ("device", "inode", "size", "mtime_ns")} != block["stat"]
+                or not _is_sha256(expected_sha)
+                or not _name_block_sha_matches(path, expected_sha, tuple(identity.values()))
+                or stamp(path) != identity):
+            raise ValueError("NAME_SELECTOR_BLOCK_IDENTITY_CONFLICT")
+        verified[path] = identity
+    return verified
+
+
+def _assert_name_blocks_unchanged(blocks):
+    from ops.research_storage_retention import stamp
+
+    if any(stamp(path) != expected for path, expected in blocks.items()):
+        raise ValueError("NAME_SELECTOR_BLOCK_CHANGED_DURING_READ")
+
+
+def _read_a_name_map(selector: Path, trade_date: str, cache_key: str) -> tuple[str, dict[str, str]]:
     """Load a display-only A-share name fallback from the selector history.
 
     The live A panel's recent ``name`` column can be empty while older exact
@@ -128,34 +235,12 @@ def _load_a_name_map_bound(trade_date: str) -> tuple[str, dict[str, str]]:
     The returned date is the exact latest non-empty selector date in the
     first month that has a usable name population, not a month-end guess.
     """
-    root_value = os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT")
-    if not root_value:
-        return "", {}
-    root = Path(root_value)
-    pointer = root / "data_layer_interface_current" / "CURRENT_SELECTOR_READY_PANEL.txt"
-    try:
-        from ops.research_storage_pair import current_binding
-        pair = current_binding(root)
-        selector = pair.paths['selector'] if pair else Path(pointer.read_text(encoding='utf-8').strip())
-        if not selector.is_absolute():
-            selector = root / selector
-        cache_key = f"{selector}|{selector.stat().st_mtime_ns}|{trade_date}"
-    except (OSError, ValueError):
-        return "", {}
     if cache_key in _A_NAME_CACHE:
         return _A_NAME_CACHE[cache_key]
-    try:
-        import pyarrow.dataset as dataset_module
-    except ImportError:
-        return "", {}
-    try:
-        from ops.research_panel_logical import dataset as panel_dataset
-        dataset = panel_dataset(selector, format="parquet")
-    except (OSError, ValueError):
-        return "", {}
+    from ops.research_panel_logical import parquet as pq
+
     for month_start, month_end in _month_ranges_backwards(trade_date):
         try:
-            from ops.research_panel_logical import parquet as pq
             table = pq.read_table(selector,columns=["trade_date","ts_code","name"],
                 filters=[('trade_date','>=',month_start),('trade_date','<=',month_end)])
         except (OSError, ValueError, TypeError):
@@ -177,7 +262,6 @@ def _load_a_name_map_bound(trade_date: str) -> tuple[str, dict[str, str]]:
         for exact_date in sorted(by_date, reverse=True):
             names = by_date[exact_date]
             if len(names) >= 100:
-                _A_NAME_CACHE[cache_key] = (exact_date, names)
                 return exact_date, names
     return "", {}
 

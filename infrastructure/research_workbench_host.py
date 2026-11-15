@@ -3,9 +3,11 @@ from __future__ import annotations
 import copy
 import gzip
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from zoneinfo import ZoneInfo
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -15,6 +17,11 @@ from starlette.requests import Request
 
 GROUPS=('nav_smallk','original','nav_pullback','nav_breakout')
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
+ARCHIVED_SELECTOR_DEFAULT = 'open,high,low,close,volume,amount'
+ARCHIVED_SELECTOR_FIELDS = frozenset(ARCHIVED_SELECTOR_DEFAULT.split(',')) | {
+    'name', 'BBI', 'J', 'kb_b1', 'kb_b2', 'kb_b3', 'kb_violence_k', 'kb_yidong',
+    'kb_hold_score', 'kb_hold_score_min', 'kb_hold_score_max', 'kb_hold_score_status',
+}
 
 
 def compact(value):
@@ -249,6 +256,13 @@ def checked_relocated_parquet(reference, relocation_ref):
     return raw
 
 
+@lru_cache(maxsize=8)
+def _archived_selector_sha_matches(path, expected_sha, identity):
+    from ops.research_storage_retention import digest
+
+    return digest(path) == expected_sha
+
+
 class ResearchWorkbenchHost:
     """Compact view cache keys follow the actual current numeric manifest."""
     def __init__(self,source,binding,clock=None):
@@ -264,6 +278,7 @@ class ResearchWorkbenchHost:
         from infrastructure.research_classification_view import ReceivedClassificationStore
         self.classifications=ReceivedClassificationStore(binding.get('classification_store_root'))
         self._lock=threading.RLock()
+        self._archive_hash_lock=threading.Lock()
         if binding.get('schema')!='V4_MAC_WORKBENCH_BINDING_V1' or binding.get('RESEARCH_ONLY') is not True or any(binding.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent')):
             raise ValueError('WORKBENCH_HOST_BINDING_REQUIRED')
         self.skill_r2=None
@@ -376,6 +391,118 @@ class ResearchWorkbenchHost:
                 bound=load(self.source,product,model['source_artifact_sha256'])
                 value=read_score_action(Path(bound['module']['artifact_root']),bound['module']['score_action'],p,source_date,symbol)
         return dict(**value,**common)
+
+    def archived_selector(self, source_date, symbol, generation, trade_date, fields):
+        """Read one exact row of a frozen Top200 selector through the shared reader."""
+        reference = self.binding.get('top200_frozen_selector_archive')
+        if reference is None or source_date != '2026-10-30':
+            raise KeyError('ARCHIVED_SELECTOR_NOT_BOUND')
+        asof, requested_day = compact(source_date), compact(trade_date)
+        if not re.fullmatch(r'[a-f0-9]{64}', generation):
+            raise ValueError('ARCHIVED_SELECTOR_GENERATION_REQUIRED')
+        if not re.fullmatch(r'[0-9]{6}\.(SH|SZ|BJ)', symbol) or requested_day > asof:
+            raise ValueError('ARCHIVED_SELECTOR_DATE_OR_MARKET_CONFLICT')
+        columns = fields.split(',')
+        if len(columns) != len(set(columns)) or not set(columns) <= ARCHIVED_SELECTOR_FIELDS:
+            raise ValueError('ARCHIVED_SELECTOR_COLUMNS_NOT_ALLOWED')
+
+        manifest = checked(reference)
+        if (manifest.get('schema') != 'v4.panel_retirement_batch.v1'
+                or manifest.get('status') != 'EXACT_COLD_ARCHIVE_VERIFIED_ORIGINALS_RETAINED'):
+            raise ValueError('ARCHIVED_SELECTOR_ARCHIVE_MANIFEST_INVALID')
+        entries = manifest['source']
+        if (len(entries) != 2 or {item['number'] for item in entries} != {17, 18}
+                or len({item['generation'] for item in entries}) != 2):
+            raise ValueError('ARCHIVED_SELECTOR_ARCHIVE_SCOPE_CONFLICT')
+        matches = [item for item in entries if item['generation'] == generation]
+        if not matches:
+            raise KeyError('ARCHIVED_SELECTOR_GENERATION_NOT_BOUND')
+        entry = matches[0]
+        receipt = checked(entry['receipt'])
+        if (receipt['schema'] != {17: 'qfq_scoped_kb_candidate.v3', 18: 'qfq_scoped_kb_candidate.v2'}[entry['number']]
+                or receipt['scope'] != 'TOP200_PARTIAL' or receipt['generation_id'] != generation
+                or receipt['candidate_sha256']['selector'] != entry['sha256']
+                or receipt['historical_PIT'] is not False or any(receipt.get(k) != v for k, v in FLAGS.items())):
+            raise ValueError('ARCHIVED_SELECTOR_RECEIPT_IDENTITY_CONFLICT')
+        per_symbol = receipt['per_symbol']
+        roster = {row['symbol']: row for row in per_symbol}
+        covered = {'UPDATED', 'REUSED'}
+        if (len(per_symbol) != 200 or len(roster) != 200
+                or any(row['status'] not in covered | {'UNKNOWN'} for row in per_symbol)
+                or sum(row['status'] in covered for row in per_symbol) != 197):
+            raise ValueError('ARCHIVED_SELECTOR_ROSTER_CONFLICT')
+        if symbol not in roster:
+            raise KeyError('ARCHIVED_SELECTOR_SYMBOL_OUTSIDE_TOP200')
+        evidence = roster[symbol]
+        source = dict(archive_number=entry['number'], archive_manifest_sha256=reference['sha256'],
+            artifact_sha256=entry['sha256'], artifact_bytes=entry['bytes'],
+            producer_receipt_sha256=entry['receipt']['sha256'], source_generation=receipt['source_generation'])
+        response = dict(source_date=source_date, trade_date=trade_date, symbol=symbol,
+            generation=generation, historical_PIT=False, source=source, **FLAGS)
+        if evidence['status'] == 'UNKNOWN':
+            return dict(**response, status='CANNOT_CONFIRM', row=None, reason=evidence['reason'])
+        if requested_day < str(evidence['first_date']):
+            raise ValueError('ARCHIVED_SELECTOR_OUTSIDE_OBSERVED_PREFIX')
+
+        row, contract = self._read_archived_selector(entry, receipt, asof, symbol, requested_day, columns)
+        source.update(input_sha256=contract['input_sha256'], market_basis=contract['market_basis']['A'])
+        if row is None:
+            return dict(**response, status='CANNOT_CONFIRM', row=None, reason='ARCHIVED_SELECTOR_EXACT_ROW_MISSING')
+        return dict(**response, status='READY', row=row)
+
+    def _read_archived_selector(self, entry, receipt, asof, symbol, requested_day, columns):
+        import pyarrow as pa
+        from ops.research_panel_logical import META, is_logical, parquet
+        from ops.research_storage_retention import RetentionError, safe_path, stamp
+
+        try:
+            path = safe_path(entry['retention_path'])
+            with self._archive_hash_lock:
+                identity = stamp(path)
+                if (identity['size'] != entry['bytes']
+                        or not _archived_selector_sha_matches(path, entry['sha256'], tuple(identity.values()))
+                        or stamp(path) != identity or is_logical(path)):
+                    raise ValueError('ARCHIVED_SELECTOR_ARTIFACT_IDENTITY_CONFLICT')
+            schema = parquet.read_schema(path)
+            contract = json.loads((schema.metadata or {}).get(META, b'{}'))
+            scoped = contract.get('kb_scoped_upgrade') or {}
+            basis = (contract.get('market_basis') or {}).get('A') or {}
+            if (contract.get('schema') != 'a_share_qfq_panel_v1'
+                    or contract.get('generation_id') != entry['generation']
+                    or str(contract.get('asof_date')) != asof or str(basis.get('asof_date')) != asof
+                    or basis.get('price_basis') != 'QFQ_ASOF'
+                    or not re.fullmatch(r'[a-f0-9]{64}', contract.get('input_sha256', ''))
+                    or contract.get('generation_manifest_path') != receipt['planned_receipt']
+                    or scoped.get('scope') != receipt['scope']
+                    or scoped.get('scope_ref') != receipt['scope_ref']
+                    or scoped.get('source_generation') != receipt['source_generation']
+                    or contract.get('historical_PIT') is not False or any(contract.get(k) != v for k, v in FLAGS.items())):
+                raise ValueError('ARCHIVED_SELECTOR_FOOTER_IDENTITY_CONFLICT')
+            keys = ['ts_code', 'trade_date', 'market_type']
+            if not set(keys + columns) <= set(schema.names):
+                raise ValueError('ARCHIVED_SELECTOR_FIELDS_MISSING')
+            date_type = schema.field('trade_date').type
+            if pa.types.is_integer(date_type):
+                date_value = int(requested_day)
+            elif pa.types.is_string(date_type) or pa.types.is_large_string(date_type):
+                date_value = requested_day
+            else:
+                raise ValueError('ARCHIVED_SELECTOR_TRADE_DATE_TYPE_CONFLICT')
+            matches = parquet.read_table(path, columns=keys + columns,
+                filters=[('ts_code', '=', symbol), ('trade_date', '=', date_value)]).to_pylist()
+            if stamp(path) != identity:
+                raise ValueError('ARCHIVED_SELECTOR_ARTIFACT_CHANGED_DURING_READ')
+        except RetentionError as error:
+            raise ValueError('ARCHIVED_SELECTOR_ARTIFACT_IDENTITY_CONFLICT') from error
+        if not matches:
+            return None, contract
+        market_type = 'BJ' if symbol.endswith('.BJ') else 'A_SHARE'
+        if (len(matches) != 1 or matches[0]['market_type'] != market_type
+                or matches[0]['ts_code'] != symbol or matches[0]['trade_date'] != date_value
+                or any(isinstance(value, float) and not math.isfinite(value) for value in matches[0].values())):
+            raise ValueError('ARCHIVED_SELECTOR_EXACT_ROW_CONTRACT_CONFLICT')
+        matches[0]['trade_date'] = requested_day
+        return matches[0], contract
 
     def single_stock_research(self,source_date,symbol,revision=None):
         """A separately bound, precomputed single-stock research artifact."""
@@ -932,6 +1059,9 @@ def create_workbench_router(source):
     def projections(source_date:str,revision:str|None=None):return call('chart_views',source_date,revision)['projections']
     @router.get('/days/{source_date}/single-research/{symbol}')
     def single_research(source_date:str,symbol:str,revision:str|None=None):return call('single_stock_research',source_date,symbol,revision)
+    @router.get('/days/{source_date}/single-research/{symbol}/archived-selector')
+    def archived_selector(source_date:str,symbol:str,generation:str,trade_date:str,columns:str=ARCHIVED_SELECTOR_DEFAULT):
+        return call('archived_selector',source_date,symbol,generation,trade_date,columns)
     @router.get('/days/{source_date}/single-research/{symbol}/assets/{kind}')
     def single_research_asset(source_date:str,symbol:str,kind:str,sha256:str,revision:str|None=None,panel_revision:str|None=None):
         content,media=call('single_stock_asset',source_date,symbol,kind,sha256,revision,panel_revision)
