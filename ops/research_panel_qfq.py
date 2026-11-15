@@ -2676,7 +2676,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
                       tail_delta: dict | None = None, archive_additions: dict | None = None,
                       storage_layout: str = "arrow_blocks_v1") -> dict:
-    """Called exclusively by the original Mac daily formula authority entry."""
+    """Run the Mac daily formula authority; legacy maintenance requires monolithic opt-in."""
+    if storage_layout not in ("arrow_blocks_v1", "monolithic"):
+        raise QfqGateError("STORAGE_LAYOUT_UNKNOWN")
     if tail_delta is not None and (history_extension is not None or refresh_inputs):
         raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
     if tail_delta is not None and checkpoint_resume is not None and publish:
@@ -2686,7 +2688,14 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
     if archive_additions is not None and refresh_inputs:
         raise QfqGateError("ARCHIVE_ADDITION_EXPLICIT_SNAPSHOT_ONLY")
     same_asof_ref = _same_asof_repair_reference(target)
-    logical_mode=(storage_layout=='arrow_blocks_v1' and all(x is None for x in (history_extension,tail_delta,archive_additions,same_asof_ref)))
+    if same_asof_ref is not None and any(x is not None for x in (history_extension, tail_delta, archive_additions)):
+        raise QfqGateError("SAME_ASOF_REPAIR_MODE_CONFLICT")
+    logical_mode = storage_layout == "arrow_blocks_v1"
+    if logical_mode:
+        for mode, ref in (("history_extension", history_extension), ("tail_delta", tail_delta),
+                          ("archive_additions", archive_additions), ("same_asof_source_repair", same_asof_ref)):
+            if ref is not None:
+                raise QfqGateError(f"STORAGE_LAYOUT_MONOLITHIC_REQUIRED:{mode}")
     requested_workers=workers
     resource_plan=None
     compute_backend=compute_backend or os.environ.get('V4_A_QFQ_COMPUTE_BACKEND','process' if logical_mode else 'thread')
@@ -2699,8 +2708,6 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
     else:
         workers=workers or 2
         if not 1<=workers<=4:raise QfqGateError('LEGACY_THREAD_WORKER_LIMIT_MUST_BE_1_TO_4')
-    if same_asof_ref is not None and any(x is not None for x in (history_extension, tail_delta, archive_additions)):
-        raise QfqGateError("SAME_ASOF_REPAIR_MODE_CONFLICT")
     history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
                                         pointers=pointers, publish=publish) if history_extension is not None else None)
     with publication_lock(data_root):
@@ -2912,11 +2919,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             return min(int(value) for batch in pq.ParquetFile(path).iter_batches(columns=['trade_date'])
                        for value in batch.column(0).to_pylist())
         role_start = {r: original_start(p) for r,p in currents.items()}
-        if storage_layout == "arrow_blocks_v1" and not any(x is not None for x in (history_extension, tail_delta, archive_additions, same_asof_ref)):
+        if logical_mode:
             from ops.research_panel_delta import run_delta
             return run_delta(globals(), locals())
-        if storage_layout not in {"arrow_blocks_v1", "monolithic"}:
-            raise QfqGateError("STORAGE_LAYOUT_UNKNOWN")
         parts_root = run_dir / "symbol_checkpoints"
         parts_root.mkdir(exist_ok=True)
         _json(run_dir / "stage_status.json", dict(status="RUNNING", stage="FULL_HISTORY_QFQ_REBUILD", **meta))

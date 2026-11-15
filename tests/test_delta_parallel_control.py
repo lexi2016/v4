@@ -10,6 +10,78 @@ from ops import research_panel_qfq as owner
 from ops import research_panel_delta as delta
 
 
+@pytest.fixture
+def rebuild_entry(tmp_path, monkeypatch):
+    for key in ("V4_A_QFQ_SOURCE_REPAIR_DATE", "V4_A_QFQ_SOURCE_REPAIR_INPUT",
+                "V4_A_QFQ_SOURCE_REPAIR_INPUT_SHA256", "V4_A_QFQ_COMPUTE_BACKEND"):
+        monkeypatch.delenv(key, raising=False)
+    root = tmp_path / "must-stay-absent"
+    kwargs = dict(driver_path=root / "driver", formula_path=root / "formula", tdx_root=root / "tdx",
+                  data_root=root / "data", pointers={}, contract_csv=root / "fields", return_root=root / "runs",
+                  target=20261111)
+    return root, kwargs
+
+
+def _maintenance_options(mode, monkeypatch):
+    ref = dict(path="/unused/reference", sha256="a" * 64)
+    if mode == "same_asof_source_repair":
+        monkeypatch.setenv("V4_A_QFQ_SOURCE_REPAIR_DATE", "20261111")
+        monkeypatch.setenv("V4_A_QFQ_SOURCE_REPAIR_INPUT", ref["path"])
+        monkeypatch.setenv("V4_A_QFQ_SOURCE_REPAIR_INPUT_SHA256", ref["sha256"])
+        return {}
+    return {mode: ref}
+
+
+@pytest.mark.parametrize("mode", ["history_extension", "tail_delta", "archive_additions", "same_asof_source_repair"])
+@pytest.mark.parametrize("layout", [{}, {"storage_layout": "arrow_blocks_v1"}], ids=["default", "explicit-arrow"])
+def test_arrow_rebuild_refuses_legacy_maintenance_before_writes(rebuild_entry, monkeypatch, mode, layout):
+    root, kwargs = rebuild_entry
+
+    def unexpected(*args, **kw):
+        pytest.fail("rejected request reached history binding or publication lock")
+
+    monkeypatch.setattr(owner, "history_extension_binding", unexpected)
+    monkeypatch.setattr(owner, "publication_lock", unexpected)
+    with pytest.raises(owner.QfqGateError, match=f"^STORAGE_LAYOUT_MONOLITHIC_REQUIRED:{mode}$"):
+        owner.run_daily_rebuild(**kwargs, **layout, **_maintenance_options(mode, monkeypatch))
+    assert not root.exists()
+
+
+def test_rebuild_rejects_unknown_storage_layout_before_writes(rebuild_entry, monkeypatch):
+    root, kwargs = rebuild_entry
+
+    def unexpected(_):
+        pytest.fail("unknown layout reached the publication lock")
+
+    monkeypatch.setattr(owner, "publication_lock", unexpected)
+    with pytest.raises(owner.QfqGateError, match="^STORAGE_LAYOUT_UNKNOWN$"):
+        owner.run_daily_rebuild(**kwargs, storage_layout="incorrect")
+    assert not root.exists()
+
+
+@pytest.mark.parametrize("mode", [None, "history_extension", "tail_delta", "archive_additions", "same_asof_source_repair"])
+def test_rebuild_permits_daily_arrow_and_explicit_monolithic_maintenance(rebuild_entry, monkeypatch, mode):
+    root, kwargs = rebuild_entry
+    history_calls = []
+    monkeypatch.setattr(owner, "history_extension_binding", lambda ref, **kw: history_calls.append(ref))
+    monkeypatch.setattr(delta, "observe_resources", lambda: {"fixture": True})
+    monkeypatch.setattr(delta, "resource_plan", lambda observed, workers: {"drained": False, "workers": 2})
+
+    class PublicationLockReached(Exception):
+        pass
+
+    def stop_at_lock(data_root):
+        assert data_root == kwargs["data_root"]
+        raise PublicationLockReached
+
+    monkeypatch.setattr(owner, "publication_lock", stop_at_lock)
+    options = {} if mode is None else {"storage_layout": "monolithic", **_maintenance_options(mode, monkeypatch)}
+    with pytest.raises(PublicationLockReached):
+        owner.run_daily_rebuild(**kwargs, **options)
+    assert history_calls == ([options["history_extension"]] if mode == "history_extension" else [])
+    assert not root.exists()
+
+
 @pytest.mark.parametrize('bad',['none','old_revision','new_sha','slicing','future'])
 def test_baseline_prefix_requires_exact_both_sources(tmp_path,bad):
     dates=[20261109,20261110,20261111]
