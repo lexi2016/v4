@@ -36,3 +36,14 @@
      }catch(error){if(mine===moduleSerial&&activeDay===bound)add(box,'p','本日 Top200 待确认：'+error.message);}
    },
    paintContext,
+@@ -267,6 +277,10 @@
+ const refreshReceivedCompany=createReceivedCompanyRefresh({getContext:()=>context,begin:beginCompanyRequest,isCurrent:isCurrentCompanyRequest,validate:validateCompany,
+   fetchCompany:async identity=>{const response=await fetch('/api/v4/research/workbench/days/'+identity.source_date+'/company/'+identity.symbol+'?'+new URLSearchParams({revision:identity.generation}),{credentials:'same-origin',redirect:'error',cache:'no-store'});if(!response.ok)throw Error('RECEIVED_COMPANY_REFRESH_FAILED');return response.json();},
+   apply:value=>{renderCompanyStatus(document,'READY',value.symbol);el('companyEvidence').replaceChildren();paintCompanyReports(value);},
++  onMissing:value=>{
++    if(!activeDay?.formula_groups)return false;
++    renderCompanyStatus(document,'MISSING',value.symbol);return true;
++  },
+   onError:identity=>renderCompanyStatus(document,'ERROR',identity.symbol)});
+ events.addEventListener('a_share_daily_completed',event=>{try{const e=JSON.parse(event.data),action=completionAction(context,e);if((e.f10||e.score_action)&&activeDay&&e.data_date===activeDay.source_date.replaceAll('-','')&&e.source_generation===activeDay.generation&&e.input_sha256===activeDay.input_sha256)singleResearch.refresh();if(action==='catalog')completionCallback?.catalog?.();else if(action==='refresh'){completionCallback?.refresh?.();if(e.company_materials)refreshReceivedCompany(e);}else if(action==='source_changed'){window.OriginalFullChart.clear();completionCallback?.sourceChanged?.();}else if(action==='gap')el('projectionStatus').textContent='完成事件来源字段待核；当前已绑定版本未替换。';}catch{}});
+ window.addEventListener('pagehide',()=>{events.close();moduleEvents?.close();++moduleSerial;bridge.clear()},{once:true});

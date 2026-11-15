@@ -1,0 +1,18 @@
+--- a/workbench-host/received-research.mjs
++++ b/workbench-host/received-research.mjs
+@@ -141,5 +141,5 @@
+ // Reuse company-local's request ticket: a later stock/day request invalidates
+ // this fetch even when the user switches away and back to the same symbol.
+-export function createReceivedCompanyRefresh({getContext,begin,isCurrent,validate,fetchCompany,apply,onError}){
++export function createReceivedCompanyRefresh({getContext,begin,isCurrent,validate,fetchCompany,apply,onMissing,onError}){
+   return async event=>{
+     const context=getContext();if(!context||!event?.company_materials||event.data_date!==compact(context.source_date)
+@@ -150,5 +150,7 @@
+       const value=await fetchCompany(identity);
+       if(!current())return false;
+-      validate(value,identity.symbol);if(value.status==='NOT_MATERIALIZED'||(!receivedView(value)&&!value.business?.summary))throw Error('RECEIVED_COMPANY_REFRESH_MATERIALS_MISSING');
++      validate(value,identity.symbol);
++      if(value.status==='NOT_MATERIALIZED'&&onMissing?.(value))return true;
++      if(value.status==='NOT_MATERIALIZED'||(!receivedView(value)&&!value.business?.summary))throw Error('RECEIVED_COMPANY_REFRESH_MATERIALS_MISSING');
+       apply(value);return true;
+     }catch{if(current())onError(identity);return false;}
