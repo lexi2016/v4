@@ -85,8 +85,17 @@ function renderFilters(){
  const counts=day.formula_groups?.group_counts??Object.fromEntries(Object.keys(GROUPS).map(g=>[g,day.rows.filter(r=>r.group_states[g]==='TRUE').length]));
  const groups=Object.entries(GROUPS).map(([id,label])=>[id,`${label} ${counts[id]}`]);
  const options=day.formula_groups?groups:[['all','全部候选'],...groups,['v192',`v1.9.2候选 ${!day.v192_group||day.v192_group.status==='CANNOT_CONFIRM'?'待核 · 数量未知':day.v192_group.status==='PARTIAL'?day.v192_group.valid_count+' / 来源 '+day.v192_group.source_count+' · 待核 '+day.v192_group.pending_count:day.v192_group.count}`],['pending',day.ruleset_id==='ZGE_SKILL_DAILY_CANDIDATES_R2'?'数值待核':'有组别待核'],['fifth',day.ruleset_id==='ZGE_SKILL_DAILY_CANDIDATES_R2'?'风险复核':'风险 / 待核披露'],...(day.ruleset_id==='ZGE_SKILL_DAILY_CANDIDATES_R2'?[['review_keep','图审保留'],['review_watch','图审观察'],['review_defer','图审暂缓']]:[])];
- $('groupFilters').replaceChildren();
- for(const [key,label] of options){const b=node('button',label);b.classList.toggle('active',key===group);b.setAttribute('aria-pressed',String(key===group));b.type='button';b.dataset.group=key;b.onclick=()=>{group=day.formula_groups&&group===key?'all':key;page=0;renderFilters();renderList(true)};$('groupFilters').append(b)}let modelNote=$('v192GroupStatus');if(!modelNote){modelNote=node('p','');modelNote.id='v192GroupStatus';modelNote.className='field-note';$('groupFilters').after(modelNote)}modelNote.hidden=group!=='v192';modelNote.textContent=v192Summary(day.v192_group)}
+ const host=$('groupFilters');
+ // A completion refresh may arrive during a click. Keep matching group buttons connected.
+ const reuseButtons=Boolean(day.formula_groups)&&host.children.length===options.length&&options.every(([key],index)=>host.children[index].dataset.group===key);
+ if(!reuseButtons)host.replaceChildren();
+ for(const [index,[key,label]] of options.entries()){
+  const b=reuseButtons?host.children[index]:node('button',label);
+  if(b.textContent!==label)b.textContent=label;
+  b.classList.toggle('active',key===group);b.setAttribute('aria-pressed',String(key===group));
+  if(!reuseButtons){b.type='button';b.dataset.group=key;b.onclick=()=>{group=day.formula_groups&&group===key?'all':key;page=0;renderFilters();renderList(true)};host.append(b);}
+ }
+ let modelNote=$('v192GroupStatus');if(!modelNote){modelNote=node('p','');modelNote.id='v192GroupStatus';modelNote.className='field-note';$('groupFilters').after(modelNote)}modelNote.hidden=group!=='v192';modelNote.textContent=v192Summary(day.v192_group)}
 function renderList(selectFirst=false,requestedSelection=null){
  if(!day)return;filtered=filterStocks(day,{scope:$('scope').value,query:$('query').value,group,names});filtered=filtered.filter(r=>matchesClassification(r,{query:$('classificationQuery').value,labels:Array.from(document.querySelectorAll('[data-classification-label]:checked')).map(n=>n.value)}));filtered=/^d[25]_/.test($('stockSort').value)?(group==='v192'?filtered:sortHistoryRates(filtered,group,$('stockSort').value)):sortDisplayStocks(filtered,{day:quoteContext(day,{v192_member:group==='v192'}),snapshot:observationSnapshot,mode:$('stockSort').value,names});page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1)));$('stockList').replaceChildren();
  const initialSelection=selectFirst?resolveRequestedSelection(filtered,requestedSelection):null;if(initialSelection?.status==='MATCHED')page=Math.floor(initialSelection.index/pageSize);page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(filtered.length/pageSize)-1)));$('stockList').replaceChildren();
