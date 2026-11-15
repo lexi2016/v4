@@ -438,12 +438,7 @@ def resolve_selector_panel(
     *,
     formula_generation_pointer: Path | str | None = None,
 ) -> Path:
-    """Resolve the selector panel parquet/pointer under a selector data root.
-
-    Tries, in order:
-    1. The CURRENT_SELECTOR_READY_PANEL.txt pointer under data_layer_interface_current.
-    2. Any selector_ready_*.parquet whose filename embeds the trade date.
-    """
+    """Resolve only an explicitly bound, verified selector for the business date."""
     required_date = _date(trade_date)
 
     if formula_generation_pointer is not None:
@@ -461,75 +456,25 @@ def resolve_selector_panel(
 
     if selector_data_root is None:
         raise FileNotFoundError(f"selector data root missing for {required_date}")
-    root = Path(selector_data_root)
+    from infrastructure.formula_generation import read_selector_source_binding
 
-    def _max_trade_date(panel: Path) -> str:
-        """Read the panel's actual date coverage before accepting a pointer."""
-        try:
-            from ops.research_panel_logical import parquet
-
-            parquet_file = parquet.ParquetFile(panel)
-            if "trade_date" not in parquet_file.schema_arrow.names:
-                raise ValueError("trade_date column missing")
-            max_date = ""
-            for batch in parquet_file.iter_batches(
-                columns=["trade_date"], batch_size=100_000
-            ):
-                for value in batch.column(0).to_pylist():
-                    if value is None:
-                        continue
-                    candidate = _date(str(value))
-                    if candidate > max_date:
-                        max_date = candidate
-            if not max_date:
-                raise ValueError("trade_date column is empty")
-            return max_date
-        except (OSError, ValueError, ImportError, TypeError) as error:
-            raise FileNotFoundError(
-                f"selector panel unreadable for {required_date}: {panel} ({error})"
-            ) from error
-
-    def _accept(panel: Path) -> Path | None:
-        if not panel.is_file():
-            return None
-        from ops.research_panel_logical import is_logical
-        if is_logical(panel):
-            from infrastructure.formula_generation import read_selector_source_binding
-            # An exact logical pointer must never silently fall through to an
-            # old physical generation when its own identity is invalid.
-            try:
-                read_selector_source_binding(panel, expected_signal_date=required_date)
-            except (ValueError, OSError, KeyError, TypeError) as error:
-                raise FileNotFoundError(f"logical selector identity rejected: {error}") from error
-            return panel
-        try:
-            max_date = _max_trade_date(panel)
-        except FileNotFoundError:
-            return None
-        if max_date != required_date:
-            return None
-        return panel
-
+    root = Path(selector_data_root).resolve()
     pointer = root / "data_layer_interface_current" / "CURRENT_SELECTOR_READY_PANEL.txt"
-    if pointer.is_file():
-        try:
-            target = Path(pointer.read_bytes().decode("utf-8-sig").strip())
-        except (OSError, UnicodeDecodeError):
-            target = None
-        if target is not None:
-            accepted = _accept(target)
-            if accepted is not None:
-                return accepted
-    for parquet in sorted(
-        root.glob("selector_ready_panels/**/*.parquet"),
-        reverse=True,
-    ):
-        accepted = _accept(parquet)
-        if accepted is not None:
-            return accepted
-    raise FileNotFoundError(
-        f"no selector panel with max date == {required_date} under {root}"
-    )
+    try:
+        if pointer.resolve() != pointer:
+            raise ValueError("CURRENT selector pointer is a symlink")
+        raw = pointer.read_bytes()
+        panel = Path(raw.decode("utf-8-sig").strip())
+        if not panel.is_absolute() or not panel.resolve().is_relative_to(root):
+            raise ValueError("CURRENT selector target is outside the selector data root")
+        read_selector_source_binding(panel, expected_signal_date=required_date)
+        if pointer.read_bytes() != raw:
+            raise ValueError("CURRENT selector pointer changed during verification")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise FileNotFoundError(
+            f"CURRENT selector unresolved for {required_date}: {error}"
+        ) from error
+    return panel
 
 
 def run_daily(

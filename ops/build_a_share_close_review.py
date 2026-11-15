@@ -7,13 +7,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pyarrow.dataset as ds
-
 from domains.a_share_close_model import build_close_model
 from domains.a_share_review import build_a_share_review
 from domains.close_review_chain import build_close_review_chain
 from infrastructure.a_share_review_store import AShareReviewStore
 from infrastructure.data_store import _sha256
+from ops.research_panel_logical import parquet
 
 
 _COLUMNS = [
@@ -68,9 +67,10 @@ def build_review_from_panel(
     pointer_before = panel_pointer.read_bytes()
     panel = _panel_path(panel_pointer)
     panel_stat = (panel.stat().st_size, panel.stat().st_mtime_ns)
-    table = ds.dataset(str(panel), format="parquet").to_table(
+    table = parquet.read_table(
+        panel,
         columns=_COLUMNS,
-        filter=ds.field("trade_date") == trade_date,
+        filters=[("trade_date", "==", trade_date)],
     )
     model = build_close_model(
         table.to_pandas(),

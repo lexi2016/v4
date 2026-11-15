@@ -609,9 +609,10 @@ def computation_kernel_sha(source: Path) -> str:
 def _partial_checkpoint_io_math_sha(path: Path) -> str:
     # Only this batch's I/O/control functions are different. Every formula,
     # adjustment, schema, merge, admission and release-gate definition remains.
+    # The retired physical turnover copier never participates in checkpoint math.
     io_functions = {"spool_current", "_checkpoint_stat", "checkpoint_recovery", "_symbol_checkpoint",
                     "run_daily_rebuild", "_partial_checkpoint_io_math_sha", "_partial_checkpoint_recovery",
-                    "_partial_checkpoint_file"}
+                    "_partial_checkpoint_file", "build_turnover_overlay_candidate"}
     return canonical_sha([ast.dump(node, include_attributes=False) for node in ast.parse(path.read_text()).body
                           if not (isinstance(node, ast.FunctionDef) and node.name in io_functions)
                           and not (isinstance(node, ast.ClassDef) and node.name == "_CurrentBucketView")])
@@ -895,130 +896,8 @@ def _overlay_turnover_table(table: pa.Table, overlay, schema: pa.Schema) -> tupl
 
 
 def build_turnover_overlay_candidate(*, overlay_ref: dict, panels: dict[str, Path], output_root: Path) -> dict:
-    """Build an isolated pair through the original owner; never touch CURRENT.
-
-    This opt-in path copies existing Arrow row groups and changes only missing
-    turnover/context fields. It does not call the formula engine or collect data.
-    """
-    from ops.research_panel_turnover import HistoricalOverlay, POLICY
-    overlay = HistoricalOverlay(overlay_ref)
-    if set(panels) != {"selector", "backtest"} or not Path(output_root).is_absolute():
-        raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_SCOPE_INVALID")
-    root = Path(output_root).resolve()
-    if root.exists() and any(root.iterdir()):
-        raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_ROOT_NOT_EMPTY")
-    contracts, originals, original_stats = {}, {}, {}
-    for role, source in panels.items():
-        bound = overlay.value["baseline_roles"][role]
-        path = _source(bound, owner="turnover baseline " + role)
-        if path != Path(source) or path.resolve().is_relative_to(root):
-            raise QfqGateError("TURNOVER_BASELINE_PATH_CONFLICT:" + role)
-        contract = panel_contract(path)
-        if (contract.get("schema") != "a_share_qfq_panel_v1"
-                or contract.get("generation_id") != overlay.value["baseline_generation_id"]
-                or contract.get("asof_date") != overlay.value["baseline_asof_date"]
-                or contract.get("generation_manifest_path") != overlay.baseline_receipt_ref["path"]
-                or contract.get("RESEARCH_ONLY") is not True
-                or any(contract.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
-            raise QfqGateError("TURNOVER_BASELINE_GENERATION_CONFLICT:" + role)
-        source_parquet = pq.ParquetFile(path)
-        baseline_receipt = overlay.baseline_receipt
-        if (baseline_receipt.get("candidates", {}).get(role) != str(path)
-                or baseline_receipt.get("candidate_sha256", {}).get(role) != bound["sha256"]
-                or baseline_receipt.get("counts", {}).get(role, {}).get("panel_rows") != source_parquet.metadata.num_rows):
-            raise QfqGateError("TURNOVER_BASELINE_RECEIPT_ARTIFACT_CONFLICT:" + role)
-        originals[role], contracts[role] = path, contract
-        stat = path.stat()
-        original_stats[role] = (stat.st_size, stat.st_mtime_ns, bound["sha256"])
-    generation = canonical_sha(dict(kind="TURNOVER_ONLY_OVERLAY",
-        projection_generation_id=overlay.value["projection_generation_id"],
-        projection_baseline_roles=overlay.value["projection_baseline_roles"],
-        baseline_generation_id=overlay.value["baseline_generation_id"],
-        baseline_asof_date=overlay.value["baseline_asof_date"],
-        baseline_roles=overlay.value["baseline_roles"],
-        baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
-        input=overlay_ref, owner_sha256=sha(Path(__file__)),
-        helper_sha256=sha(Path(__file__).with_name("research_panel_turnover.py"))))
-    root.mkdir(parents=True, exist_ok=True)
-    outputs, counts, quarantine = {}, {}, None
-    for role, source in originals.items():
-        original = pq.ParquetFile(source)
-        old_schema = original.schema_arrow
-        if not {"ts_code", "trade_date"}.issubset(old_schema.names):
-            raise QfqGateError("TURNOVER_BASELINE_SCHEMA_MISSING:" + role)
-        original_receipt = json.loads(Path(contracts[role]["generation_manifest_path"]).read_text()) if contracts[role].get("quarantine_manifest_path") else {}
-        ref = original_receipt.get("quarantine_manifest")
-        if contracts[role].get("quarantine_manifest_path") and (not ref or ref["path"] != contracts[role]["quarantine_manifest_path"]):
-            raise QfqGateError("TURNOVER_BASELINE_QUARANTINE_BINDING_INVALID:" + role)
-        if ref:
-            _source(ref, owner="turnover retained quarantine")
-            if quarantine is not None and quarantine != ref:
-                raise QfqGateError("TURNOVER_BASELINE_QUARANTINE_PAIR_CONFLICT")
-            quarantine = ref
-        fields = list(old_schema)
-        for name, typ in (("turnover_rate_pct", pa.float64()), ("float_share_10k", pa.float64()),
-                          ("turnover_rate_status", pa.string()), ("turnover_rate_volume_source", pa.string()),
-                          ("turnover_rate_denominator_10k", pa.float64())):
-            if name not in old_schema.names:
-                fields.append(pa.field(name, typ, nullable=True))
-        meta = dict(contracts[role], generation_id=generation,
-            generation_manifest_path=str(root / "candidate_receipt.json"),
-            turnover_overlay=dict(source=overlay_ref, policy=POLICY,
-                projection_generation_id=overlay.value["projection_generation_id"],
-                projection_asof_date=overlay.value["projection_asof_date"],
-                projection_baseline_roles=overlay.value["projection_baseline_roles"],
-                baseline_generation_id=overlay.value["baseline_generation_id"],
-                baseline_asof_date=overlay.value["baseline_asof_date"],
-                baseline_roles=overlay.value["baseline_roles"],
-                baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
-                cutoff=overlay.cutoff, owner_sha256=sha(Path(__file__)), historical_PIT=False, free_float=False,
-                scope="EXISTING_KEYS_AND_NULL_TURNOVER_ONLY"))
-        basis = dict(meta.get("field_basis", {}))
-        for name in ("turnover_rate_pct", "float_share_10k", *TURNOVER_CONTEXT_FIELDS):
-            basis[name] = dict(basis="TDX_G4_NATIVE_SHARES_AND_DATED_GBBQ_ORDINARY_FLOAT",
-                scope="A", historical_values="PRESERVE_NON_NULL_FILL_BOUND_MISSING_ONLY", historical_PIT=False, free_float=False)
-        meta["field_basis"] = basis
-        schema = pa.schema(fields, metadata={**(old_schema.metadata or {}), META_KEY: json.dumps(meta).encode()})
-        final = root / (role + ".parquet")
-        pending = root / (role + ".pending.parquet")
-        if final.exists() or pending.exists():
-            raise QfqGateError("TURNOVER_OVERLAY_OUTPUT_EXISTS:" + role)
-        tally = dict(source_rows=0, output_rows=0, matched_existing_keys=0, preserved_non_null=0, filled=0, unknown=0)
-        for scope in ("A_SHARE", "BJ", "HK", "HK_CONNECT", "HK_FUND", "OTHER"):
-            for metric in ("baseline_rows", "matched_existing_keys", "filled", "unknown"):
-                tally[f"{metric}_{scope}"] = 0
-        with pq.ParquetWriter(pending, schema, compression="zstd") as writer:
-            for i in range(original.num_row_groups):
-                table = original.read_row_group(i)
-                tally["source_rows"] += len(table)
-                table, part = _overlay_turnover_table(table, overlay, schema)
-                for key, value in part.items():
-                    tally[key] += value
-                writer.write_table(table)
-                tally["output_rows"] += len(table)
-        if tally["source_rows"] != tally["output_rows"]:
-            raise QfqGateError("TURNOVER_OVERLAY_ROW_COUNT_CHANGED:" + role)
-        os.link(pending, final)  # Atomic create, never overwrite an existing candidate.
-        pending.unlink()
-        outputs[role] = dict(path=str(final), sha256=sha(final), rows=tally["output_rows"])
-        counts[role] = tally
-    overlay.verify_sources()
-    for role, source in originals.items():
-        stat = source.stat()
-        if ((stat.st_size, stat.st_mtime_ns) != original_stats[role][:2]
-                or sha(source) != original_stats[role][2]):
-            raise QfqGateError("TURNOVER_BASELINE_CHANGED_DURING_BUILD:" + role)
-    receipt = dict(schema="a_share_turnover_overlay_candidate_v2", status="READY_ISOLATED",
-        generation_id=generation, baseline_generation_id=overlay.value["baseline_generation_id"],
-        baseline_asof_date=overlay.value["baseline_asof_date"],
-        baseline_generation_receipt=overlay.value["baseline_generation_receipt"],
-        projection_generation_id=overlay.value["projection_generation_id"],
-        projection_asof_date=overlay.value["projection_asof_date"],
-        projection_baseline_roles=overlay.value["projection_baseline_roles"], cutoff=overlay.cutoff,
-        overlay_ref=overlay_ref, candidates=outputs, counts=counts, quarantine_manifest=quarantine,
-        historical_PIT=False, no_formula_recomputation=True, current_updated=False, **FLAGS)
-    _json(root / "candidate_receipt.json", receipt)
-    return receipt
+    """The historical turnover copier would create a second full pair."""
+    raise QfqGateError("PHYSICAL_PANEL_MATERIALIZATION_DISABLED")
 
 
 def history_extension_binding(ref: dict, *, data_root: Path, return_root: Path,
@@ -2686,7 +2565,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
     if archive_additions is not None and refresh_inputs:
         raise QfqGateError("ARCHIVE_ADDITION_EXPLICIT_SNAPSHOT_ONLY")
     same_asof_ref = _same_asof_repair_reference(target)
+    if storage_layout not in {"arrow_blocks_v1", "monolithic"}:
+        raise QfqGateError("STORAGE_LAYOUT_UNKNOWN")
     logical_mode=(storage_layout=='arrow_blocks_v1' and all(x is None for x in (history_extension,tail_delta,archive_additions,same_asof_ref)))
+    if not logical_mode:
+        raise QfqGateError("PHYSICAL_PANEL_MATERIALIZATION_DISABLED")
     requested_workers=workers
     resource_plan=None
     compute_backend=compute_backend or os.environ.get('V4_A_QFQ_COMPUTE_BACKEND','process' if logical_mode else 'thread')

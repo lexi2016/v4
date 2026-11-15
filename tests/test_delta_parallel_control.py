@@ -102,10 +102,62 @@ def test_authority_forwards_auto_without_old_fixed_env_cap(tmp_path,monkeypatch,
     path=Path(owner.__file__).with_name('macos_research_panel_daily_authority.py')
     node=next(n for n in ast.parse(path.read_text()).body if isinstance(n,ast.FunctionDef)and n.name=='run_windows_a_formula_authority')
     captured={}
+    class DeltaOwnerReachedLock(Exception):
+        pass
+
+    def before_write(_):
+        raise DeltaOwnerReachedLock
+
     def run(rebuild,**kwargs):
-        captured.update(kwargs);return dict(selector=str(tmp_path/'s'),backtest=str(tmp_path/'b'),authority={},counts={})
+        captured.update(kwargs)
+        with pytest.raises(DeltaOwnerReachedLock):
+            rebuild(**{key:value for key,value in kwargs.items() if key != 'ready_check'})
+        return dict(selector=str(tmp_path/'s'),backtest=str(tmp_path/'b'),authority={},counts={})
+
     monkeypatch.setattr(retention,'run_with_retention',run);monkeypatch.setenv('RESEARCH_PANEL_QFQ_WORKERS','4')
+    monkeypatch.setattr(owner,'publication_lock',before_write)
+    monkeypatch.setenv('V4_A_QFQ_SOURCE_REPAIR_DATE','20261110')
+    monkeypatch.setenv('V4_A_QFQ_COMPUTE_BACKEND','process')
+    monkeypatch.setattr(delta,'observe_resources',lambda:dict(cpu_cores=18,physical_memory_bytes=128*1024**3,
+        available_bytes=100*1024**3,parent_rss_bytes=0,cumulative_rss_bytes=0,maximum_worker_rss_bytes=0))
     scope=dict(Path=Path,Any=object,__file__=str(path),_date=lambda x:x,_ensure_pointer_seed=lambda *a:None,_formula_artifact_binding=lambda *a:{})
     exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),scope)
-    scope['run_windows_a_formula_authority'](tmp_path/'legacy',tdx_root=tmp_path,data_root=tmp_path,selector_pointer=tmp_path/'s.txt',backtest_pointer=tmp_path/'b.txt',selector_seed=None,backtest_seed=None,contract_csv=tmp_path/'fields',canonical_formula_path=tmp_path/'formula',return_root=tmp_path,target_date='20261111',formula_max_workers=cap)
+    scope['run_windows_a_formula_authority'](tmp_path/'legacy',tdx_root=tmp_path,data_root=tmp_path,selector_pointer=tmp_path/'s.txt',backtest_pointer=tmp_path/'b.txt',selector_seed=None,backtest_seed=None,contract_csv=tmp_path/'fields',canonical_formula_path=tmp_path/'formula',return_root=tmp_path,target_date='20261116',formula_max_workers=cap)
     assert captured['workers']is cap and captured['refresh_inputs']is True and captured['storage_layout']=='arrow_blocks_v1'
+
+
+@pytest.mark.parametrize(('profile','message'), [
+    ({'storage_layout':'monolithic'}, 'PHYSICAL_PANEL_MATERIALIZATION_DISABLED'),
+    ({'storage_layout':'typo'}, 'STORAGE_LAYOUT_UNKNOWN'),
+    ({'history_extension':{}}, 'PHYSICAL_PANEL_MATERIALIZATION_DISABLED'),
+    ({'tail_delta':{}}, 'PHYSICAL_PANEL_MATERIALIZATION_DISABLED'),
+    ({'archive_additions':{}}, 'PHYSICAL_PANEL_MATERIALIZATION_DISABLED'),
+    ({'target':20261110}, 'PHYSICAL_PANEL_MATERIALIZATION_DISABLED'),
+])
+def test_physical_panel_profiles_fail_before_publication_lock(tmp_path,monkeypatch,profile,message):
+    def unexpected_lock(_):
+        pytest.fail('Physical profile reached publication lock before storage rejection')
+
+    monkeypatch.setattr(owner,'publication_lock',unexpected_lock)
+    monkeypatch.setenv('V4_A_QFQ_SOURCE_REPAIR_DATE','20261110')
+    monkeypatch.setenv('V4_A_QFQ_SOURCE_REPAIR_INPUT',str(tmp_path/'unused-source.json'))
+    monkeypatch.setenv('V4_A_QFQ_SOURCE_REPAIR_INPUT_SHA256','a'*64)
+    args=dict(driver_path=tmp_path/'driver',formula_path=tmp_path/'formula',tdx_root=tmp_path/'tdx',
+        data_root=tmp_path/'data',pointers={},contract_csv=tmp_path/'fields',return_root=tmp_path/'runs',
+        target=20261116,publish=True,compute_backend='thread')
+    with pytest.raises(owner.QfqGateError,match=message):
+        owner.run_daily_rebuild(**(args | profile))
+    assert not list(tmp_path.iterdir())
+
+
+def test_isolated_turnover_copy_rejected_before_overlay_initialization(tmp_path,monkeypatch):
+    import sys
+
+    def unexpected_overlay(_):
+        pytest.fail('Retired turnover copier initialized the historical overlay')
+
+    monkeypatch.setitem(sys.modules,'ops.research_panel_turnover',
+        SimpleNamespace(HistoricalOverlay=unexpected_overlay,POLICY=None))
+    with pytest.raises(owner.QfqGateError,match='PHYSICAL_PANEL_MATERIALIZATION_DISABLED'):
+        owner.build_turnover_overlay_candidate(overlay_ref={},panels={},output_root=tmp_path/'new-pair')
+    assert not list(tmp_path.iterdir())

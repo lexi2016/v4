@@ -26,7 +26,7 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def selector(tmp_path, day='20261112', *, suffix='', table=None):
+def selector(tmp_path, day='20261112', *, suffix='', table=None, is_logical=True):
     directory = tmp_path / ('source' + suffix)
     directory.mkdir()
     if table is None:
@@ -42,8 +42,11 @@ def selector(tmp_path, day='20261112', *, suffix='', table=None):
         generation_id=generation, input_sha256=input_sha, generation_manifest_path=str(receipt),
         snapshot_file_sha256=sha(snapshot))).encode()
     panel = directory / 'selector.parquet'
-    panel.write_bytes(logical.anchor_bytes(table.schema.with_metadata(metadata),
-        [logical.descriptor(block)], rows=len(table)))
+    if is_logical:
+        panel.write_bytes(logical.anchor_bytes(table.schema.with_metadata(metadata),
+            [logical.descriptor(block)], rows=len(table)))
+    else:
+        physical.write_table(table.replace_schema_metadata(metadata), panel)
     receipt.write_text(json.dumps(dict(status='CANDIDATE_READY', target_date=int(day),
         generation_id=generation, input_sha256=input_sha, candidates={'selector': str(panel)},
         candidate_sha256={'selector': sha(panel)}, adjustment_snapshot={'path': str(snapshot), 'sha256': sha(snapshot)})))
@@ -74,6 +77,32 @@ def test_logical_pointer_wins_and_invalid_identity_never_falls_back(tmp_path):
     panel.write_bytes(panel.read_bytes() + b' ')
     with pytest.raises(FileNotFoundError, match='receipt identity mismatch'):
         resolve_selector_panel(tmp_path, '20261112')
+
+
+@pytest.mark.parametrize("mode", ["missing", "broken", "unverified", "outside"])
+def test_selector_resolver_never_accepts_a_stray_same_day_copy(tmp_path, mode):
+    root = tmp_path / "owner"
+    stray = root / "selector_ready_panels/selector_ready_20261112.parquet"
+    stray.parent.mkdir(parents=True)
+    physical.write_table(pa.table({"trade_date": ["20261112"]}), stray)
+    pointer = root / "data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt"
+    if mode != "missing":
+        pointer.parent.mkdir()
+        target = selector(tmp_path) if mode == "outside" else {
+            "broken": root / "missing.parquet", "unverified": stray,
+        }[mode]
+        pointer.write_text(str(target))
+
+    with pytest.raises(FileNotFoundError):
+        resolve_selector_panel(root, "20261112")
+
+
+def test_selector_resolver_preserves_explicit_verified_physical_current(tmp_path):
+    panel = selector(tmp_path, is_logical=False)
+    pointer = tmp_path / "data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt"
+    pointer.parent.mkdir()
+    pointer.write_text(str(panel))
+    assert resolve_selector_panel(tmp_path, "20261112") == panel
 
 
 def test_logical_block_mutation_is_rejected(tmp_path):

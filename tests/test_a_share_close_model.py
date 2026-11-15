@@ -3,12 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
 import pytest
 
 from domains.a_share_close_model import build_close_model
 from domains.a_share_review import validate_a_share_review
 from infrastructure.a_share_review_store import AShareReviewStore
 from ops.build_a_share_close_review import build_review_from_panel
+from ops.research_panel_logical import anchor_bytes, descriptor
 
 
 def _rows(trade_date: str = "20260731") -> pd.DataFrame:
@@ -88,6 +90,32 @@ def test_exact_date_panel_builds_native_review_and_keeps_external_input_read_onl
     assert before == (
         pointer.read_bytes(), panel.read_bytes(), pointer.stat().st_mtime_ns, panel.stat().st_mtime_ns
     )
+
+
+def test_exact_date_close_review_reads_the_logical_selector_with_revisions(tmp_path: Path) -> None:
+    date = "20260731"
+    table = _rows(date)
+    base = tmp_path / "base.parquet"
+    pd.concat([_rows("20260730"), table, _rows("20260803")], ignore_index=True).to_parquet(base, index=False)
+    # A revised row must replace the original row for this exact date.
+    table.loc[0, "pct_chg"] = -8.25
+    revision = tmp_path / "revision.parquet"
+    table.iloc[[0]].to_parquet(revision, index=False)
+    panel = tmp_path / "selector.parquet"
+    panel.write_bytes(anchor_bytes(
+        pa.Schema.from_pandas(table, preserve_index=False),
+        [descriptor(base), descriptor(revision)],
+        rows=len(table) * 3,
+    ))
+    pointer = tmp_path / "CURRENT_SELECTOR_READY_PANEL.txt"
+    pointer.write_text(str(panel), encoding="utf-8")
+    before = {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in (pointer, panel, base, revision)}
+
+    review = build_review_from_panel(tmp_path / "data", date, panel_pointer=pointer)["review"]
+    assert review["model_review"] == build_close_model(table, date, f"REPLAY_RESEARCH_V1_{date}_001")
+    assert review["source_evidence"][0]["row_count"] == len(table)
+    assert AShareReviewStore(tmp_path / "data").read_review(date) == review
+    assert before == {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in before}
 
 
 @pytest.mark.parametrize(
