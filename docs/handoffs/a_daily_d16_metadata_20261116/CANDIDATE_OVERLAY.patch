@@ -1,0 +1,148 @@
+--- a/ops/research_panel_adjustment_inputs.py
++++ b/ops/research_panel_adjustment_inputs.py
+@@ -232,7 +232,8 @@
+ def raw_bindings(tdx_root: Path, driver, binding_file: Path, *, required_start: dict[str, int] | None = None, target: int | None = None,
+                  quarantine_eligible: dict | None = None, history_extension: dict | None = None,
+                  retained_history: dict | None = None,
+-                 _exclude_codes: set[str] | None = None) -> dict[str, dict]:
++                 _exclude_codes: set[str] | None = None,
++                 _observed_ends: dict[str, int] | None = None) -> dict[str, dict]:
+     """Bind existing archive + current .day, never collect a second history.
+ 
+     Optional explicit archive bindings are required where the daily cache is
+@@ -246,7 +247,7 @@
+         # current members outside that set. Their original default gates apply.
+         current = raw_bindings(tdx_root, driver, binding_file, required_start=required_start,
+                                target=target, quarantine_eligible=quarantine_eligible,
+-                               _exclude_codes=set(historical))
++                               _exclude_codes=set(historical), _observed_ends=_observed_ends)
+         return {**current, **historical}
+     supplied = json.loads(binding_file.read_text()) if binding_file.is_file() else {}
+     archive = None
+@@ -303,6 +304,8 @@
+         first_output = (required_start or {}).get(code, min((required_start or {}).values(), default=ordered[0]))
+         first_index = int(np.searchsorted(ordered, first_output))
+         compute_index = max(0, first_index - driver.DAILY_FORMULA_LOOKBACK_RECORDS)
++        if _observed_ends is not None:
++            _observed_ends[code] = ordered[-1]
+         result[code] = dict(raw_files=refs, history_start_date=min(starts), publish_roles=["selector", "backtest"],
+                             compute_start_date=ordered[compute_index], required_output_start_date=first_output,
+                             warmup_records=first_index - compute_index, warmup_policy="ORIGINAL_DRIVER_260_PRECEDING_RECORDS")
+@@ -330,6 +333,52 @@
+     if floor < 1:
+         raise QfqGateError("ORIGINAL_ACCEPTED_FLOOR_UNCONFIRMED")
+     return dict(path=str(path), sha256=sha(path)), eligible, floor
++
++
++def _official_admission_inputs(summary: dict, config_ref: dict, target: int):
++    """Use the immutable sync receipt already bound by the research cache plan."""
++    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage, SOURCE_KIND
++    from ops.research_panel_factor_cache import _sync_prequery_rows
++
++    try:
++        config = json.loads(_source(config_ref, owner="daily admission cache config").read_text())
++        sync_ref = config["prequery_sync_ref"]
++        frozen = json.loads(_source(sync_ref, owner="daily admission original sync").read_text())
++        if frozen != summary or frozen.get("dry_run") is not False:
++            return None
++        official = frozen["official_daily_source"]
++        if not isinstance(official, dict) or official.get("source_kind") != SOURCE_KIND:
++            return None
++        package = OfficialDailyPackage(official["input_ref"], target)
++        if (official["package"] != package.package_ref or official["members"] != package.summary["members"]
++                or official["previous_session"] != package.previous):
++            return None
++        return _sync_prequery_rows(sync_ref, target), package, [sync_ref, package.input_ref, package.package_ref, config_ref]
++    except (OSError, KeyError, TypeError, ValueError, QfqGateError, zipfile.BadZipFile):
++        return None
++
++
++def _official_symbol_admission(code, binding, history_end, target, admission_inputs, factor_refs):
++    if admission_inputs is None or history_end != target or not factor_refs:
++        return {}
++    sync_rows, package, common_refs = admission_inputs
++    row = sync_rows.get(code, {})
++    native = binding["raw_files"][-1]
++    if (row.get("classification") != "ACCEPTED" or row.get("quarantine") is not False
++            or row.get("target_date_ready") is not True or row.get("last_date_after") != target
++            or row.get("path") != native["path"] or row.get("source_sha256_after") != native["sha256"]):
++        return {}
++    lineage = row.get("source_lineage")
++    expected = package.lineage(row["market"], code[:6])
++    # An accepted row may carry earlier recovery siblings. Bind the current
++    # official record and refs without altering the accepted recovery history.
++    identity_keys = ("source_kind", "source_url", "package", "input_ref", "calendar",
++                     "calendar_adapter", "previous_session", "record", "target_date", "market", "code")
++    if (not isinstance(lineage, dict) or expected["record"] is None or row.get("source_kind") != expected["source_kind"]
++            or any(lineage.get(key) != expected[key] for key in identity_keys)):
++        return {}
++    evidence = {ref["path"]: ref for ref in [*common_refs, *factor_refs]}
++    return dict(history_end_date=history_end, accepted_evidence=list(evidence.values()))
+ 
+ 
+ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
+@@ -357,8 +406,10 @@
+     legacy_codes = (legacy_codes & set(required_start or {})) - current_codes
+     # Defensive market boundary also applies to manual first-generation callers.
+     required_start = {c: d for c, d in (required_start or {}).items() if CODE.fullmatch(c) and c not in legacy_codes}
++    observed_ends = {}
+     bindings = raw_bindings(tdx_root, driver, root / "qfq_raw_history_binding.json", required_start=required_start,
+-                            target=target, quarantine_eligible=eligible, history_extension=history_extension, retained_history=retained_history)
++                            target=target, quarantine_eligible=eligible, history_extension=history_extension,
++                            retained_history=retained_history, _observed_ends=observed_ends)
+     retained_codes = sorted(code for code, item in bindings.items() if retained_history is not None
+                             and code in required_start and item.get("history_end_date", target) < target)
+     bindings = {code: item for code, item in bindings.items() if code not in retained_codes}
+@@ -403,6 +454,8 @@
+         fallback = build_fallback(root, unsupported, target, refresh_stale_capture=True, capture_ref=captured)
+     else:
+         fallback = json.loads(fallback_file.read_text()) if fallback_file.is_file() else {}
++    admission_inputs = (_official_admission_inputs(summary, research_cache_config_ref, target)
++                        if research_cache_config_ref is not None and observed_ends else None)
+     sources, symbols, missing = {sync_ref["path"]: sync_ref}, {}, []
+     if history_extension is not None:
+         for ref in [history_extension["binding_ref"], history_extension["source_config"], history_extension["source_policy"],
+@@ -425,6 +478,7 @@
+         if code in quarantine:
+             continue
+         response_scope = None
++        factor_refs = []
+         if receipt["status"] == "RESEARCH_CACHE_CARRY_FORWARD":
+             if research_cache_config_ref is None:
+                 raise QfqGateError("RESEARCH_CACHE_REQUIRES_EXPLICIT_BUILDER_OPT_IN")
+@@ -434,11 +488,13 @@
+             sources[ref["path"]] = ref
+             sources[research_cache_config_ref["path"]] = research_cache_config_ref
+             method = "RESEARCH_CACHE_CARRY_FORWARD"
++            factor_refs = [ref]
+         elif receipt["status"] in ("OK", "EMPTY"):
+             ref = receipt["response"]
+             events, response_scope = _full_provider_response_events(receipt, code, target, binding["compute_start_date"], metadata)
+             sources[ref["path"]] = ref
+             method = "FUTU_GET_REHAB_AFFINE"
++            factor_refs = [ref]
+         else:
+             item = fallback.get("symbols", {}).get(code, {})
+             # Official TDX terms may cover Futu-unsupported symbols only when
+@@ -468,7 +524,20 @@
+                 _source(ref, owner=code)
+                 sources[ref["path"]] = ref
+             events, method = item["events"], "TDX_OFFICIAL_TERMS_BOUND_CONVERSION"
+-        symbols[code] = dict(**binding, events=events, source_method=method, event_coverage_complete=True)
++            if (admission_inputs is not None and observed_ends.get(code) == target and code.endswith(".BJ")
++                    and receipt["status"] == "UNSUPPORTED_MARKET"
++                    and history_event_coverage_bound(item, binding["history_start_date"], target)):
++                try:
++                    symbol_rows = json.loads(Path(item["source_files"][-1]["path"]).read_text())
++                except (OSError, UnicodeError, ValueError):
++                    symbol_rows = None
++                if (isinstance(symbol_rows, dict) and symbol_rows.get("ts_code") == code
++                        and isinstance(symbol_rows.get("rows"), list)):
++                    factor_refs = [*item["source_files"], item["conversion_receipt"]]
++        admission = _official_symbol_admission(code, binding, observed_ends.get(code), target, admission_inputs, factor_refs)
++        for ref in admission.get("accepted_evidence", []):
++            sources[ref["path"]] = ref
++        symbols[code] = dict(**binding, **admission, events=events, source_method=method, event_coverage_complete=True)
+         if response_scope is not None:
+             symbols[code]["provider_response_scope"] = response_scope
+     if missing:
