@@ -1,0 +1,113 @@
+--- a/ops/_a_share_daily_sync_parts/progress.py
++++ b/ops/_a_share_daily_sync_parts/progress.py
+@@ -625,11 +625,99 @@
+     return record['status']=='EXPLAINED_DELISTING_FIRST_SESSION_NO_PRICE_LIMIT'
+ 
+ 
++_CHINEXT_LISTING_NOTICE = ('https://disc.static.szse.cn/download/disc/disk03/finalpage/2026-09-21/a0cbf77b-8220-4217-967b-52972dec77b3.PDF',
++                           '2e405725f04d6e4ad0cd4ef15d24993c1f3f5f1cc30850e22cf4e4081663e87d')
++
++
++def _explain_exact_chinext_seed(scope, context, bundle, spec, symbol, previous_date, current_date,
++                                previous_close, close, seed_bars, source_path):
++    """Accept the single reviewed IPO boundary against retained native-prefix bytes."""
++    import struct
++
++    sessions = (20260922, 20260923, 20260924, 20260928, 20260929)
++    record = dict(symbol=symbol, previous_date=previous_date, current_date=current_date,
++                  previous_close=previous_close, close=close, raw_ratio=close / previous_close,
++                  method='SZSE_CHINEXT_EXACT_NATIVE_IPO_BOUNDARY', status='UNEXPLAINED',
++                  descriptor_sha256=bundle['descriptor_sha256'])
++    try:
++        if (spec['symbol'] != symbol or spec['listing_date'] != sessions[0] or
++                current_date > bundle['coverage']):
++            raise ValueError('chinext_exact_seed_identity_conflict')
++        source = Path(source_path)
++        if (source.parts[-3:] != ('sz', 'lday', 'sz301686.day') or source.is_symlink() or
++                not source.is_absolute() or source.resolve(strict=True) != source):
++            raise ValueError('chinext_exact_seed_source_path')
++        if ((spec['listing_notice_url'], spec['listing_notice']['sha256']) != _CHINEXT_LISTING_NOTICE or
++                not _evidence_bytes(spec['listing_notice'], limit=1024 * 1024).startswith(b'%PDF-')):
++            raise ValueError('chinext_exact_seed_listing_document')
++        proof = _evidence_json(spec['first_five'])
++        if (proof['status'] != 'EXACT_OFFICIAL_FIRST_FIVE_RAW_CLOSES_VERIFIED' or
++                proof['symbol'] != symbol or proof['formal_data_written'] is not False or
++                tuple(row['date'] for row in proof['series']) != sessions):
++            raise ValueError('chinext_exact_seed_first_five_scope')
++        for ref in (proof['calendar'], proof['calendar_adapter']):
++            _evidence_bytes(ref, limit=1024 * 1024)
++        codec = _v4_global(scope, 'DAY_STRUCT')
++        size = spec['native_prefix_bytes']
++        if type(size) is not int or size != 32 * codec.size or len(seed_bars) < size // codec.size:
++            raise ValueError('chinext_exact_seed_prefix_shape')
++        with source.open('rb') as native:
++            prefix = native.read(size)
++        if (len(prefix) != size or
++                hashlib.sha256(prefix).hexdigest() != proof['native']['sha256']):
++            raise ValueError('chinext_exact_seed_native_prefix_drift')
++        if any(_v4_global(scope, 'day_int')(bar) != raw[0] or
++               tuple(int(round(float(bar[key]) * 100)) for key in ('open', 'high', 'low', 'close')) != raw[1:5]
++               for bar, raw in zip(seed_bars[:size // codec.size], codec.iter_unpack(prefix), strict=True)):
++            raise ValueError('chinext_exact_seed_decoded_prefix_drift')
++        prior = None
++        row_hashes = []
++        for i, row in enumerate(proof['series']):
++            day = sessions[i]
++            native_row = prefix[i * codec.size:(i + 1) * codec.size]
++            row_hash = hashlib.sha256(native_row).hexdigest()
++            raw = codec.unpack(native_row)
++            cod = bytes.fromhex(row['official_cod_record_hex'])
++            md1 = bytes.fromhex(row['official_md1_record_hex'])
++            lineage = row['official_lineage']
++            if (row['url'] != f'https://www.tdx.com.cn/products/data/data/g4day/{day}.zip' or
++                    lineage['source_kind'] != 'TDX_OFFICIAL_G4DAY' or lineage['market'] != 0 or
++                    lineage['code'] != '301686' or lineage['target_date'] != day or
++                    lineage['cod_member']['name'] != f'sz{str(day)[2:]}.cod' or
++                    lineage['md1_member']['name'] != f'sz{str(day)[2:]}.md1' or
++                    len(cod) != 150 or len(md1) != 512 or cod[:6] != b'301686' or
++                    struct.unpack_from('<H', cod, 32)[0] != lineage['seq'] or
++                    raw[0] != day or row['raw_local_record_sha256'] != row_hash or
++                    tuple(row['raw_local_ohlc_cents']) != raw[1:5]):
++                raise ValueError('chinext_exact_seed_retained_record_identity')
++            previous, op, hi, lo, last = struct.unpack_from('<5d', md1, 4)
++            if (not math.isfinite(previous) or previous <= 0 or
++                    previous != row['official_pre_close'] or (prior is not None and previous != prior) or
++                    tuple(round(p * 100) for p in (op, hi, lo, last)) != raw[1:5]):
++                raise ValueError('chinext_exact_seed_official_native_price_conflict')
++            if i < 2 and last != (previous_close, close)[i]:
++                raise ValueError('chinext_exact_seed_boundary_close_conflict')
++            prior = last
++            row_hashes.append(row_hash)
++        record.update(status='EXPLAINED_EXACT_SZSE_CHINEXT_IPO_BOUNDARY',
++                      listing_notice=spec['listing_notice'], first_five=spec['first_five'],
++                      sessions=sessions, native_prefix_sha256=proof['native']['sha256'],
++                      native_prefix_bytes=size, first_five_native_row_sha256=row_hashes)
++    except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError, struct.error) as error:
++        record['reason'] = str(error)
++    context.setdefault('records', []).append(record)
++    return record['status'] == 'EXPLAINED_EXACT_SZSE_CHINEXT_IPO_BOUNDARY'
++
++
+ def _explain_historical_seed_pair(scope, context, symbol, target_date, previous_date, current_date,
+-                                  previous_close, close, seed_bars):
++                                  previous_close, close, seed_bars, *, source_path=None):
+     # Non-IPO descriptors/symbols retain the exact R3 affine implementation.
+     try:
+         bundle = _seed_evidence_bundle(context, target_date)
++        exact = bundle['descriptor'].get('szse_chinext_exact_seed')
++        if exact is not None and (symbol, previous_date, current_date) == ('301686.SZ', 20260922, 20260923):
++            return _explain_exact_chinext_seed(scope, context, bundle, exact, symbol, previous_date,
++                                               current_date, previous_close, close, seed_bars, source_path)
+         if symbol in bundle['descriptor'].get('delisting_first_session_boundaries', {}):
+             return _explain_delisting_first_session(scope,context,bundle,symbol,previous_date,current_date,previous_close,close)
+         ipo = bundle['descriptor'].get('ipo_seed_boundaries', {})
+@@ -706,7 +794,8 @@
+             ratio = close / previous_close
+             if ratio > _v4_global(_v4_scope, 'MAX_CROSS_DAY_CLOSE_RATIO') or ratio < 1.0 / _v4_global(_v4_scope, 'MAX_CROSS_DAY_CLOSE_RATIO'):
+                 if (seed_evidence is None or symbol is None or not _explain_historical_seed_pair(
+-                        _v4_scope, seed_evidence, symbol, target_date, dates[-1], date_value, previous_close, close, bars)):
++                        _v4_scope, seed_evidence, symbol, target_date, dates[-1], date_value,
++                        previous_close, close, bars, source_path=path)):
+                     return bars, _v4_global(_v4_scope, 'CROSS_DAY_CLOSE_RATIO')
+         dates.append(date_value)
+         previous_close = close
