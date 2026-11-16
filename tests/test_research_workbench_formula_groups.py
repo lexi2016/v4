@@ -145,3 +145,21 @@ def test_daily_chart_rows_keep_actual_sessions_and_require_source_day():
         _daily_chart_rows(values[:1] * 2, ['600001.SH'], '20260801', '20261113')
     with pytest.raises(ValueError, match='WORKBENCH_DAILY_K_BAR_INVALID'):
         _daily_chart_rows([dict(values[0], high=11)], ['600001.SH'], '20260801', '20261113')
+
+
+def test_formula_f10_projects_only_verified_source_labels():
+    from infrastructure.research_workbench_host import _formula_f10_source_detail
+
+    text = ('｜★主营业务:专用仪器研发、生产与服务。 ｜\n'
+            '｜★股东户数变化:截止2026-09-30,公司股东数1234,比上期增加12户。 ｜\n'
+            '｜概念描述:其他产品。 ｜')
+    stock = {'category': {'name': '最新提示'}, 'source_text': text,
+             'source_text_sha256': hashlib.sha256(text.encode()).hexdigest(), 'financials': {'holder_count': 1234.0}}
+    expected = {'main_business': '专用仪器研发、生产与服务。', 'shareholder_record_date': '2026-09-30'}
+    assert _formula_f10_source_detail(stock, '20261113') == expected
+    assert _formula_f10_source_detail({**stock, 'source_text_sha256': 'a' * 64}, '20261113') == dict.fromkeys(expected)
+    assert _formula_f10_source_detail({**stock, 'financials': {'holder_count': 555}}, '20261113')['shareholder_record_date'] is None
+    assert _formula_f10_source_detail(stock, '20260929')['shareholder_record_date'] is None
+    ambiguous = text + '\n｜★主营业务:其他。｜'
+    assert _formula_f10_source_detail({**stock, 'source_text': ambiguous,
+        'source_text_sha256': hashlib.sha256(ambiguous.encode()).hexdigest()}, '20261113')['main_business'] is None

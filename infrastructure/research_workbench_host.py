@@ -27,6 +27,37 @@ def compact(value):
     return value.replace('-','')
 
 
+def _formula_f10_source_detail(stock, day):
+    """Whitelist two explicit labels from the exact, already verified F10 stock object."""
+    result = dict(main_business=None, shareholder_record_date=None)
+    text = stock.get('source_text')
+    category = stock.get('category')
+    if (not isinstance(text, str) or len(text) > 64_000 or not isinstance(category, dict) or category.get('name') != '最新提示'
+            or hashlib.sha256(text.encode('utf-8')).hexdigest() != stock.get('source_text_sha256')):
+        return result
+    lines = [line.strip(' ｜|\t') for line in text.splitlines()[:100]]
+    descriptions = {match.group(1).strip() for line in lines
+                    if (match := re.fullmatch(r'★主营业务\s*[:：]\s*([^★｜|]{1,320})', line))}
+    if len(descriptions) == 1:
+        result['main_business'] = descriptions.pop() or None
+    financials = stock.get('financials')
+    holder_count = financials.get('holder_count') if isinstance(financials, dict) else None
+    reported_dates = set()
+    for line in lines:
+        match = re.match(r'★股东户数变化\s*[:：]\s*(?:截止|截至)(\d{4}-\d{2}-\d{2})[,，]\s*'
+                         r'(?:公司)?股东(?:人数|数)\s*(\d{1,9})(?=[户人,，\s]|$)', line)
+        if match is None or isinstance(holder_count, bool) or int(match.group(2)) != holder_count:
+            continue
+        try:
+            if compact(match.group(1)) <= day:
+                reported_dates.add(match.group(1))
+        except ValueError:
+            continue
+    if len(reported_dates) == 1:
+        result['shareholder_record_date'] = reported_dates.pop()
+    return result
+
+
 def next_workbench_session(calendar,trade_date):
     """Bounded A-share next-session projection using the installed calendar.
 
@@ -608,7 +639,11 @@ class ResearchWorkbenchHost:
     def f10(self,source_date,symbol,revision=None):
         """Read the existing completion-index F10 snapshot, never acquire it on GET."""
         p=self._view(source_date,revision)
-        if not any(row.get('symbol')==symbol for row in p.get('rows',[])):
+        override = None
+        if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
+            override = self._formula_groups(p, source_date, self._observation_date(source_date))
+        formula_member = override is not None and any(row['symbol'] == symbol for row in override[1])
+        if not formula_member and not any(row.get('symbol')==symbol for row in p.get('rows',[])):
             self.single_stock_research(source_date,symbol,revision)
         root=self.source._a_product_root()
         if root is None:raise ValueError('F10_PRODUCT_ROOT_UNBOUND')
@@ -627,8 +662,10 @@ class ResearchWorkbenchHost:
         stock=self.source._a_product_reference(stock_ref)
         if stock.get('symbol')!=symbol or stock.get('status')!='OBSERVED' or stock.get('historical_PIT') is not False:
             raise ValueError('F10_STOCK_SOURCE_CONFLICT')
-        return dict(status='OBSERVED',receipt=ref,stock_ref=stock_ref,
-            f10={k:stock.get(k) for k in ('captured_at','source_updated_date','finance_updated_date','concepts','concept_status','industry','financials','source_text_sha256')},**common)
+        projected = {k:stock.get(k) for k in ('captured_at','source_updated_date','finance_updated_date','concepts','concept_status','industry','financials','source_text_sha256')}
+        if formula_member:
+            projected['source_detail'] = _formula_f10_source_detail(stock, day)
+        return dict(status='OBSERVED',receipt=ref,stock_ref=stock_ref,f10=projected,**common)
 
     def _observation_date(self,source_date):
         item=self.binding.get('observation_dates',{}).get(source_date)
