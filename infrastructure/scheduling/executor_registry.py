@@ -738,6 +738,16 @@ class FixedExecutorRegistry:
             if failed is not None:
                 raise failed
             return {**result, "daily_derivatives": {"status": "SKIPPED_OUTSIDE_WINDOW", "data_date": request.business_date}}
+        upstream_failure = (
+            result
+            if failed is not None
+            or result.get("status") in {"FAILED", "CANNOT_CONFIRM", "TIMEOUT", "INTERRUPTED"}
+            else None
+        )
+        if upstream_failure is not None:
+            if failed is not None:
+                raise failed
+            return result
         root = os.environ.get("V4_A_SHARE_DAILY_PRODUCT_ROOT")
         data = os.environ.get("V4_RESEARCH_PANEL_A_DATA_ROOT")
         receipts = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
@@ -749,7 +759,7 @@ class FixedExecutorRegistry:
             return missing
         from ops.research_panel_top200 import complete_daily_derivatives
         from ops.research_storage_governance import governed_product
-        derivatives = governed_product(complete_daily_derivatives, Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), result if failed is not None or result.get("status") in {"FAILED", "CANNOT_CONFIRM", "TIMEOUT", "INTERRUPTED"} else None)
+        derivatives = governed_product(complete_daily_derivatives, Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), upstream_failure)
         completed = {**result, "daily_derivatives": derivatives}
         if failed is not None:
             raise WorkloadExecutionError(completed)
