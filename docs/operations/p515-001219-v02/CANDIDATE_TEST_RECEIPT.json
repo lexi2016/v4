@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "owner": "CODEX_MAC",
+  "patch_sha256": "64a63edd50719b9ddbac21c83812396437dbd4de541a5400fbce8a9484c839c9",
+  "tests": {
+    "OPEN_NULL_END_BUILDER": "PASS",
+    "GAP_UNKNOWN_CENSORING": "PASS",
+    "LATER_EXTREME_EXCLUDED_FROM_OLD_EVENT_REFERENCE": "PASS",
+    "ARCHIVED_001219_THREE_TABLE_BYTE_PARITY": "PASS"
+  },
+  "baseline_byte_parity": {
+    "EVENT_LEDGER_V0_2.csv": {
+      "candidate_sha256": "cffa9500c3fc928b8e18ca0541e85843f014501e2e802e1224d7b9b8efba0380",
+      "baseline_sha256": "cffa9500c3fc928b8e18ca0541e85843f014501e2e802e1224d7b9b8efba0380",
+      "exact_bytes": true
+    },
+    "DAILY_STATE_OBSERVATIONS_V0_2.csv": {
+      "candidate_sha256": "37c726cac96f4c5b32a188f34dacc5622d43965bedb725eba431e2c5cfd01266",
+      "baseline_sha256": "37c726cac96f4c5b32a188f34dacc5622d43965bedb725eba431e2c5cfd01266",
+      "exact_bytes": true
+    },
+    "OUTCOME_LEDGER_V0_2.csv": {
+      "candidate_sha256": "726e9f8dc1c4de5190b16c8586666f9aaade1cf2e6cd77b5331ebc04082ac30e",
+      "baseline_sha256": "726e9f8dc1c4de5190b16c8586666f9aaade1cf2e6cd77b5331ebc04082ac30e",
+      "exact_bytes": true
+    }
+  },
+  "scope": {
+    "fit": 0,
+    "preprocessor_fit": 0,
+    "predict": 0,
+    "new_weights": 0,
+    "labels_changed": 0,
+    "production_changes": 0,
+    "frozen_asset_changes": 0
+  }
+}

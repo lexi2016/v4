@@ -1,0 +1,32 @@
+--- a/build_v0_2.py
++++ b/build_v0_2.py
+@@ -174,8 +174,16 @@
+             lock_date = first["wave_end_confirmed_at"]; lock_status = "LOCKED_FROZEN"; immutable = True
+             ref_kind = "FROZEN_WAVE_HIGH_LOW"
+         else:
+-            ref_high = bars.running_max_high(origin, end); ref_start = origin
+-            ref_end = bars.date_of_max(origin, end); lock_date = ref_end
++            # A family without a terminal date is observed only through its own
++            # last emitted event row. Never use a null end date as an array index
++            # or let later unrelated bars enter its provisional range.
++            family_days = [x.get("candidate_date") for x in o2
++                           if x.get("event_id") == fid and x.get("candidate_date") in bars.idx]
++            observed_end = end if end in bars.idx else (
++                max(family_days, key=lambda d: bars.idx[d]) if family_days else origin
++            )
++            ref_high = bars.running_max_high(origin, observed_end); ref_start = origin
++            ref_end = bars.date_of_max(origin, observed_end); lock_date = ref_end
+             lock_status = "PROVISIONAL_RUNNING"; immutable = False; ref_kind = "WAVE_HIGH_WITH_ORIGIN_LOW"
+         events.append({
+             "event_id": fid, "event_namespace": "R2_RESEARCH_FAMILY", "security_id": SYM,
+@@ -440,7 +448,9 @@
+             "max_depth_close_pct": max(vals_close) if vals_close else None,
+             "sessions_to_terminal": bars.age(ev["event_origin_date"], ev["terminal_date"]) if pd.notna(ev["terminal_date"]) else None,
+             "terminal_event_state": ev["terminal_state"], "terminal_rule_outcome": ev["terminal_rule_outcome"],
+-            "censoring_status": "MATURE" if pd.notna(ev["terminal_date"]) else "RIGHT_CENSORED_AT_D",
++            "censoring_status": ("MATURE" if pd.notna(ev["terminal_date"]) else
++                                 "UNKNOWN" if ev["terminal_rule_outcome"] == "UNKNOWN_DATA_GAP" else
++                                 "RIGHT_CENSORED_AT_D"),
+             "state_label_source": "RULE_WEAK", "economic_label_ref": None,
+             "economic_label_status": "NOT_COMPUTED", "evidence_path": "DAILY_STATE_OBSERVATIONS_V0.csv"})
+     outcome_df = pd.DataFrame(outcomes).sort_values("event_id").reset_index(drop=True)
