@@ -92,6 +92,36 @@ def test_two_group_mode_hides_legacy_members_when_approved_date_is_missing(tmp_p
     assert pending['rows'] == []
 
 
+def test_historical_skill_day_uses_same_date_identity_with_two_pending_groups(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    revision = product['source_generation']
+    receipt = {'path': '/test/d28-receipt.json', 'sha256': '1' * 64}
+    host.binding = {'candidate_group_overrides': {}, 'candidate_group_formula_sha256': bundle['formula_sha256']}
+    host._index = lambda: {'dates': {}}
+    host._observation_date = lambda _: '2026-10-29'
+
+    def versions(observation, requested_revision):
+        assert observation == '2026-10-29'
+        if requested_revision != revision:
+            raise ValueError('SKILL_R2_REVISION_CONFLICT')
+        return {'source_date': '2026-10-28', 'observation_date': observation, 'generation': revision,
+                'input_sha256': product['source_identity']['input_sha256'], 'numeric_manifest': receipt}
+
+    host.skill_r2 = SimpleNamespace(versions=versions)
+    pending = host.day('2026-10-28', revision)
+    assert (pending['source_date'], pending['observation_date']) == ('2026-10-28', '2026-10-29')
+    assert pending['numeric_manifest'] == receipt and pending['revision'] == revision
+    assert pending['scope_count'] == 0 and pending['rows'] == []
+    assert pending['formula_groups'] == {
+        'labels': {'b23_entry': '192选股', 'pb2_confirm': '回测选股'},
+        'group_counts': {'b23_entry': None, 'pb2_confirm': None},
+        'formula_sha256': bundle['formula_sha256'], 'artifact': None, 'status': 'CANNOT_CONFIRM_NOT_MATERIALIZED',
+    }
+    with pytest.raises(ValueError, match='SKILL_R2_REVISION_CONFLICT'):
+        host.day('2026-10-28', 'wrong-revision')
+
+
 def test_two_group_mode_reads_exact_date_owner_commit_and_pins_formulas(tmp_path, group_fixture):
     product, bundle = group_fixture
     host, _ = bind_fixture(tmp_path, product, bundle)

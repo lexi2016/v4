@@ -12,6 +12,7 @@ import re
 import threading
 from urllib.parse import urlencode
 from starlette.requests import Request
+from infrastructure.research_workbench_us_context import standalone_benchmarks, us_context_dates
 
 GROUPS=('nav_smallk','original','nav_pullback','nav_breakout')
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
@@ -416,6 +417,11 @@ class ResearchWorkbenchHost:
 
     def _uses_only_formula_groups(self):
         return 'candidate_group_overrides' in self.binding
+
+    def _pending_formula_groups(self):
+        return dict(labels=dict(FORMULA_GROUP_LABELS), group_counts=dict.fromkeys(FORMULA_GROUP_LABELS),
+                    formula_sha256=self.binding['candidate_group_formula_sha256'], artifact=None,
+                    status='CANNOT_CONFIRM_NOT_MATERIALIZED')
 
     def _legacy_formula_group_binding(self, source_date):
         binding = self.binding.get('candidate_group_override')
@@ -863,15 +869,29 @@ class ResearchWorkbenchHost:
         return {key:item for key,item in value.items() if key!='coverage'}|dict(artifact=reference)
 
     def day(self,source_date,revision=None):
-        if not self._uses_only_formula_groups() and self._is_skill_date(source_date):
-            return self.skill_r2.day(self._observation_date(source_date),self.workflow(source_date),revision)
+        if self._is_skill_date(source_date):
+            observation = self._observation_date(source_date)
+            if not self._uses_only_formula_groups():
+                return self.skill_r2.day(observation, self.workflow(source_date), revision)
+            version = self.skill_r2.versions(observation, revision)
+            nodes = self.workflow(source_date)['time_contract']['nodes']
+            return dict(schema='RESEARCH_SYSTEM_DAY_V1', source_date=version['source_date'],
+                        observation_date=version['observation_date'], generation=version['generation'],
+                        input_sha256=version['input_sha256'], revision=version['generation'],
+                        numeric_manifest=version['numeric_manifest'], rows=[], scope_count=0,
+                        row_scope='BOUND_FORMULA_CANDIDATE_UNION_ONLY', formula_groups=self._pending_formula_groups(),
+                        formula_review='PENDING', chart_review='UNKNOWN_NOT_REVIEWED', execution_status='DEFERRED_USER',
+                        classification_catalogs={}, classification_identity_counts={},
+                        classification_status='CANNOT_CONFIRM_NOT_BOUND',
+                        statistics_status='NOT_MATERIALIZED_FOR_SELECTED_FORMULAS', statistics_version=None,
+                        workflow=[dict(label=n['label_zh'], status=n['execution_status'],
+                                       recorded_at=n.get('recorded_at'), materials=n.get('materials', [])) for n in nodes],
+                        materials=[], reference_links=[], source_refs=dict(receipt=version['numeric_manifest']), **FLAGS)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         if observation is None:raise ValueError('WORKBENCH_OBSERVATION_DATE_UNBOUND')
         override = self._formula_groups(p, source_date, observation)
         if override is None and self._uses_only_formula_groups():
-            override = (dict(labels=dict(FORMULA_GROUP_LABELS), group_counts=dict.fromkeys(FORMULA_GROUP_LABELS),
-                             formula_sha256=self.binding['candidate_group_formula_sha256'], artifact=None,
-                             status='CANNOT_CONFIRM_NOT_MATERIALIZED'), [])
+            override = (self._pending_formula_groups(), [])
         formula_groups, rows = override if override is not None else (None, [])
         for row in p['rows'] if override is None else ():
             row_sha=hashlib.sha256(json.dumps(row,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
@@ -1040,10 +1060,29 @@ class ResearchWorkbenchHost:
         if receipt.get('status')!='COMMITTED' or receipt.get('snapshot')!=pointer['snapshot'] or receipt.get('korea')!=pointer['korea']:raise ValueError('WORKBENCH_OBSERVATION_RECEIPT_CONFLICT')
         return pointer
 
+    def _standalone_us_context(self, observation):
+        try:
+            dates = us_context_dates(observation, self._clock())
+        except (ValueError, OSError, KeyError, TypeError):
+            return dict(us_context=dict(status='CANNOT_CONFIRM', reason='US_SESSION_CALENDAR_UNBOUND'))
+        if not dates['session_completed']:
+            return dict(us_context={**dates, 'status': 'WAITING_FOR_EXPECTED_US_CLOSE'})
+        reference = self.binding.get('us_benchmarks', {}).get(dates['us_session_date'])
+        context = {**dates, 'status': 'SESSION_BOUND'}
+        if not reference:
+            return dict(us_context=context)
+        try:
+            benchmarks = standalone_benchmarks(
+                reference, observation, dates, checked=checked, checked_bytes=checked_bytes, flags=FLAGS,
+            )
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            return dict(us_context={**context, 'benchmark_status': 'CANNOT_CONFIRM', 'benchmark_reason': str(error)})
+        return dict(us_context=context, us_benchmarks=benchmarks)
+
     def source_context(self,source_date,revision=None):
         if self._is_skill_date(source_date):
             version=self.skill_r2.versions(self._observation_date(source_date),revision)
-            return dict(source_date=source_date,observation_date=version['observation_date'],generation=version['generation'],input_sha256=version['input_sha256'],markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']},intraday_status='UNKNOWN',**FLAGS)
+            return dict(source_date=source_date,observation_date=version['observation_date'],generation=version['generation'],input_sha256=version['input_sha256'],markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']},intraday_status='UNKNOWN',**self._standalone_us_context(version['observation_date']),**FLAGS)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         packet=self._module_reference('overseas',observation)
         markets={name:dict(status='UNKNOWN',summary='未绑定该观察日来源') for name in ['US','JP','KR']}
@@ -1064,7 +1103,7 @@ class ResearchWorkbenchHost:
             for row in kr['indices']:
                 if row.get('value') is not None and (not str(row.get('source_asof','')).startswith(observation) or row.get('exchangeTimezoneName')!='Asia/Seoul'):raise ValueError('WORKBENCH_KOREA_DATE_CONFLICT')
             markets['KR']=dict(status=kr['status'],summary=' / '.join(f"{r['symbol']} {r['value'] if r.get('value') is not None else 'UNKNOWN'} ({r.get('change_pct')}%)" if r.get('value') is not None else f"{r['symbol']} UNKNOWN: {r.get('error','未取得')}" for r in kr['indices'])+' · 后到留档',source_asof=' / '.join(r.get('source_asof') or 'UNKNOWN' for r in kr['indices']),recorded_at=kr['recorded_at'],limitation=kr['limitation'],source=commit['korea'])
-        return dict(source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],markets=markets,intraday_status='UNKNOWN',**FLAGS)
+        return dict(source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],markets=markets,intraday_status='UNKNOWN',**self._standalone_us_context(observation),**FLAGS)
 
     def _owner_execution(self,node_id,observation):
         config=self.binding.get('workflow_receipt_sources',{}).get(str(node_id))

@@ -52,11 +52,14 @@ try {
   assert.deepEqual(duplicateGroupRequests, []);
   assert.deepEqual(errors, []);
 
-  await page.goto(pageUrl('2026-11-12'),{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(() => document.querySelector('#loadingState')?.textContent?.includes('两组选股待物化'));
-  assert.deepEqual(await filters.allTextContents(), ['192选股 待物化','回测选股 待物化']);
-  assert.equal(await filters.locator(':enabled').count(), 0);
-  assert.equal(await rows.count(), 0);
+  const pendingDates = ['2026-11-12', '2026-10-28'];
+  for (const date of pendingDates) {
+    await page.goto(pageUrl(date),{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(() => document.querySelector('#loadingState')?.textContent?.includes('两组选股待物化'));
+    assert.deepEqual(await filters.allTextContents(), ['192选股 待物化','回测选股 待物化']);
+    assert.equal(await filters.locator(':enabled').count(), 0);
+    assert.equal(await rows.count(), 0);
+  }
 
   console.log(JSON.stringify({
     status:'PASS_TWO_FORMULA_BOARD_SCOPE', origin, source_date:day.source_date,
@@ -64,7 +67,7 @@ try {
     input_sha256:day.input_sha256, numeric_manifest:day.numeric_manifest,
     group_counts:day.formula_groups.group_counts, union:day.rows.length,
     browser_paginated_membership:'EXACT_ALL_ROWS', duplicate_v192_route_requests:duplicateGroupRequests.length,
-    missing_source_date:'2026-11-12', browser_errors:errors,
+    missing_source_dates:pendingDates, browser_errors:errors,
   }));
 } finally {
   await browser.close();
