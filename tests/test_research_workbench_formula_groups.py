@@ -1,6 +1,7 @@
 from copy import deepcopy
 import hashlib
 import json
+from pathlib import Path
 from types import SimpleNamespace
 from threading import RLock
 
@@ -163,3 +164,51 @@ def test_formula_f10_projects_only_verified_source_labels():
     ambiguous = text + '\n｜★主营业务:其他。｜'
     assert _formula_f10_source_detail({**stock, 'source_text': ambiguous,
         'source_text_sha256': hashlib.sha256(ambiguous.encode()).hexdigest()}, '20261113')['main_business'] is None
+
+
+def test_f10_only_receipt_advances_formula_event_and_ignores_unbound_receipts(tmp_path, group_fixture):
+    from infrastructure.research_workbench_host import checked
+
+    product, bundle = group_fixture
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    host.classifications.version = lambda: 'classification'
+    host._observation_commit = lambda day: None
+    host._v192_version = lambda day: None
+    index = {'f10': {}}
+    host._index = lambda: index
+    host.source = SimpleNamespace(_a_product_reference=checked)
+    source_date = '2026-11-13'
+    day = product['data_date']
+    receipt = dict(schema='v4.a_share.f10_daily_receipt.v1', status='PARTIAL', data_date=day,
+                   source_generation=product['source_generation'], input_sha256=product['source_identity']['input_sha256'],
+                   selector_sha256=product['source_identity']['selector_artifact_sha256'], historical_PIT=False, **FLAGS)
+
+    def publish(name, **changes):
+        path = tmp_path / name
+        raw = json.dumps({**receipt, **changes}).encode()
+        path.write_bytes(raw)
+        reference = {'path': str(path), 'sha256': hashlib.sha256(raw).hexdigest()}
+        index['f10'][day] = reference
+        return reference
+
+    absent = host.versions(source_date)
+    publish('f10-first.json', observed=50)
+    first = host.versions(source_date)
+    publish('f10-second.json', observed=51)
+    fresh = host.versions(source_date)
+    assert first['event_id'] != absent['event_id'] != fresh['event_id']
+    assert fresh['event_id'] != first['event_id']
+    assert first['modules']['f10'] != fresh['modules']['f10']
+    assert {key: value for key, value in fresh['modules'].items() if key != 'f10'} == absent['modules']
+    assert 'f10' not in host.versions('2026-11-12')['modules']
+
+    for key, value in [('source_generation', 'd' * 64), ('input_sha256', 'd' * 64),
+                       ('data_date', '20261112'), ('selector_sha256', 'd' * 64),
+                       ('historical_PIT', True), ('production_allowed', True)]:
+        bad = publish(f'f10-bad-{key}.json', **{key: value})
+        assert host.versions(source_date) == absent
+        with pytest.raises(ValueError, match='F10_RECEIPT'):
+            host._f10_receipt(product, bad, formula=True)
+    drift = publish('f10-drift.json')
+    Path(drift['path']).write_text('{}')
+    assert host.versions(source_date) == absent

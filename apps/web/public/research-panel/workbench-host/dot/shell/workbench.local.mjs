@@ -2,7 +2,7 @@ import {sortHistoryRates,rateLabel,historyRate} from '../../rate-sort.mjs';
 import {requestedEntry,resolveCatalogRequest,entryUrl,preferredCatalogEntry,shanghaiToday} from '../../entry-date.mjs';
 import {matchesClassification} from '../../classification-local.mjs';
 import {renderDailyChart,validateDailyChart} from './formula-daily-chart.mjs';
-import {createFormulaF10Cards} from './formula-f10.mjs';
+import {createFormulaF10Cards,isFormulaF10Completion} from './formula-f10.mjs';
 const candidateSourceNote=s=>`行情日 ${s?.observation_date??'未知'} · 候选来源日 ${day?.source_date??'未绑定'}`;
 const observationHeader=(snapshot,now)=>snapshot?.capture_kind==='OFFICIAL_DAILY_ARCHIVE'?`官方日包收盘行情 · ${candidateSourceNote(snapshot)} · 行情源精确时刻 UNKNOWN · 保存 ${snapshot.recorded_at} · 行情覆盖 ${snapshot.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${snapshot.rows.length}`:originalObservationHeader(snapshot,now);
 const archiveMini=s=>{if(s?.capture_kind==='OFFICIAL_DAILY_ARCHIVE')document.getElementById('observationMini').textContent=`官方日包行情 · ${candidateSourceNote(s)} · 行情覆盖 ${s.rows.filter(r=>r.status==='DATED_DAILY_ARCHIVE').length}/${s.rows.length} · 行情源精确时刻未知`};const renderPhase=(...args)=>{originalRenderPhase(...args);archiveMini(args[1])};const renderContext=(...args)=>{originalRenderContext(...args);archiveMini(args[1])};
@@ -202,7 +202,14 @@ window.StockPanelHost.installCompletion({
  },
  refresh(){this.modules(['list','statistics']);},
  async modules(changed,event){
-  if(!day)return;const mine=++completionSerial,wanted=selection().date,oldDay=day;
+  if(!day)return;
+  if(changed.includes('f10')){
+   if(selected&&selection().date===day.source_date&&isFormulaF10Completion(day,event)){
+    void f10Cards.refresh(day,selected.symbol,endpoint('f10/'+selected.symbol));
+   }
+   if(changed.every(key=>key==='f10'))return;
+  }
+  const mine=++completionSerial,wanted=selection().date,oldDay=day;
   try{
    if(event&&(event.generation!==day.generation||event.input_sha256!==day.input_sha256)){await this.sourceChanged();return;}
    if(changed.some(k=>['list','statistics'].includes(k))){

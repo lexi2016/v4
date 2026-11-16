@@ -1,6 +1,6 @@
 import {strict as assert} from 'node:assert';
 import {test} from 'node:test';
-import {createFormulaF10Cards, formulaF10CardContent, validateFormulaF10} from '../../apps/web/public/research-panel/workbench-host/dot/shell/formula-f10.mjs';
+import {createFormulaF10Cards, formulaF10CardContent, isFormulaF10Completion, validateFormulaF10} from '../../apps/web/public/research-panel/workbench-host/dot/shell/formula-f10.mjs';
 
 const day = {source_date:'2026-11-13',generation:'a'.repeat(64),input_sha256:'b'.repeat(64)};
 const ref = {path:'/f10-snapshot',sha256:'c'.repeat(64)};
@@ -59,4 +59,50 @@ test('a late previous-symbol F10 response cannot restore content that was cleare
   cards.configure(false);
   assert.equal(summary.hidden,true);
   assert.deepEqual(summary.children,[]);
+});
+
+
+test('only an exact formula-day F10 completion can trigger a fresh read', () => {
+  const bound={...day,observation_date:'2026-11-16',formula_groups:{},numeric_manifest:ref};
+  const event={...bound,schema:'V4_WORKBENCH_VERSIONS_V1',RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,
+    modules:{f10:'e'.repeat(64)}};
+  assert.equal(isFormulaF10Completion(bound,event),true);
+  assert.equal(isFormulaF10Completion({...bound,formula_groups:null},event),false);
+  for (const [key,value] of Object.entries({source_date:'2026-11-12',observation_date:'2026-11-17',generation:'e'.repeat(64),
+    input_sha256:'e'.repeat(64),numeric_manifest:{...ref,sha256:'e'.repeat(64)},modules:{company:'e'.repeat(64)},orders_sent:true})) {
+    assert.equal(isFormulaF10Completion(bound,{...event,[key]:value}),false,key);
+  }
+});
+
+
+test('an F10 refresh preserves the verified card on failure and replaces it with an accepted source gap', async () => {
+  const document=testDocument(), requests=[];
+  const cards=createFormulaF10Cards(document,(url,signal)=>new Promise((resolve,reject)=>requests.push({signal,resolve,reject})));
+  cards.configure(true);
+  const symbol='603658.SH', summary=document.getElementById('formulaCompanySummary');
+  const values=()=>summary.children.map(node=>node.textContent);
+  const initial=cards.show(day,symbol,'/f10');
+  requests[0].resolve(response(symbol,'OBSERVED'));
+  await initial;
+  const failing=cards.refresh(day,symbol,'/f10');
+  assert.ok(values().includes('主营业务：仪器研发。'));
+  requests[1].reject(Error('HTTP 503'));
+  await failing;
+  assert.ok(values().includes('主营业务：仪器研发。'));
+  assert.ok(values().includes('F10 更新待核 · 保留本股上次已校验资料'));
+
+  const stale=cards.refresh(day,symbol,'/f10');
+  const changed=cards.show(day,'000860.SZ','/f10/000860.SZ');
+  assert.ok(requests[2].signal.aborted);
+  assert.ok(!values().includes('主营业务：仪器研发。'));
+  requests[2].resolve(response(symbol,'OBSERVED'));
+  requests[3].resolve(response('000860.SZ','OBSERVED',{source_detail:{main_business:'酒类生产。'}}));
+  await Promise.all([stale,changed]);
+  assert.ok(values().includes('主营业务：酒类生产。'));
+
+  const knownGap=cards.refresh(day,'000860.SZ','/f10/000860.SZ');
+  requests[4].resolve(response('000860.SZ','CANNOT_CONFIRM_SOURCE_GAP'));
+  await knownGap;
+  assert.match(values()[0],/000860\.SZ.*缺少可用快照/);
+  assert.ok(!values().includes('主营业务：酒类生产。'));
 });

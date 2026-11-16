@@ -6,6 +6,15 @@ const text = value => typeof value === 'string' && value.trim() ? value.trim() :
 const iso = value => typeof value === 'string' && /^\d{8}$/.test(value) ? `${value.slice(0,4)}-${value.slice(4,6)}-${value.slice(6)}` : text(value);
 const number = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
 
+export function isFormulaF10Completion(day, event) {
+  return Boolean(day?.formula_groups && event?.schema === 'V4_WORKBENCH_VERSIONS_V1' &&
+    event.source_date === day.source_date && event.observation_date === day.observation_date &&
+    event.generation === day.generation && event.input_sha256 === day.input_sha256 &&
+    boundRef(day.numeric_manifest) && event.numeric_manifest?.path === day.numeric_manifest.path &&
+    event.numeric_manifest?.sha256 === day.numeric_manifest.sha256 && digest(event.modules?.f10) &&
+    event.RESEARCH_ONLY === true && safetyFlags.every(key => event[key] === false));
+}
+
 export function validateFormulaF10(value, day, symbol) {
   if (!['OBSERVED', 'CANNOT_CONFIRM_SOURCE_GAP', 'NOT_MATERIALIZED'].includes(value?.status) ||
       value.symbol !== symbol || value.data_date !== day.source_date.replaceAll('-', '') ||
@@ -50,12 +59,14 @@ export function formulaF10CardContent(f10) {
 
 export function createFormulaF10Cards(document, load) {
   const legacy = ['companySummary','companyMetrics'].map(id => document.getElementById(id));
-  let slots, received, receivedBody, inFlight;
+  let slots, received, receivedBody, inFlight, verified, notice;
   let enabled = false;
 
   function cancel() {
     inFlight?.abort();
     inFlight = null;
+    verified = null;
+    notice = null;
     slots?.forEach(slot => {slot.replaceChildren(); slot.removeAttribute('data-company-symbol');});
   }
 
@@ -100,11 +111,15 @@ export function createFormulaF10Cards(document, load) {
     });
   }
 
-  async function show(day, symbol, url) {
-    cancel();
+  async function show(day, symbol, url, refresh=false) {
+    const identity = JSON.stringify([symbol, day.source_date, day.observation_date, day.generation,
+      day.input_sha256, day.numeric_manifest?.path, day.numeric_manifest?.sha256]);
+    const retain = refresh && verified === identity;
+    if (retain) inFlight?.abort();
+    else cancel();
     const controller = new AbortController();
     inFlight = controller;
-    paint(symbol, [`${symbol} · 正在读取 F10 公司资料…`], [`${symbol} · 正在读取 F10 财务与股东资料…`]);
+    if (!retain) paint(symbol, [`${symbol} · 正在读取 F10 公司资料…`], [`${symbol} · 正在读取 F10 财务与股东资料…`]);
     try {
       const value = await load(url, controller.signal);
       if (inFlight !== controller) return;
@@ -112,16 +127,26 @@ export function createFormulaF10Cards(document, load) {
       if (accepted.status === 'OBSERVED') {
         const content = formulaF10CardContent(accepted.f10);
         paint(symbol, content.company, content.financial);
-        return;
+      } else {
+        const gap = accepted.status === 'CANNOT_CONFIRM_SOURCE_GAP' ? '当日 F10 有采集回执，本股缺少可用快照' : '当日 F10 尚未物化';
+        paint(symbol, [`${symbol} · ${gap} · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
       }
-      const gap = accepted.status === 'CANNOT_CONFIRM_SOURCE_GAP' ? '当日 F10 有采集回执，本股缺少可用快照' : '当日 F10 尚未物化';
-      paint(symbol, [`${symbol} · ${gap} · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
+      verified = identity;
+      notice = null;
     } catch {
-      if (inFlight === controller) {
+      if (inFlight !== controller) return;
+      if (retain) {
+        if (!notice) {
+          notice = document.createElement('p');
+          notice.setAttribute('role', 'status');
+          notice.textContent = 'F10 更新待核 · 保留本股上次已校验资料';
+          slots[0].append(notice);
+        }
+      } else {
         paint(symbol, [`${symbol} · F10 来源读取或校验失败 · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
       }
     }
   }
 
-  return {configure, cancel, show};
+  return {configure, cancel, show, refresh:(day,symbol,url)=>show(day,symbol,url,true)};
 }

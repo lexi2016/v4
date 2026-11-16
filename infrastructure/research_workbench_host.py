@@ -680,6 +680,19 @@ class ResearchWorkbenchHost:
             for source in refs:checked_bytes(source)
         return raw,{'kb':'application/octet-stream','projection':'application/octet-stream','html':'text/html; charset=utf-8','history':'application/octet-stream','company':'application/octet-stream'}[kind]
 
+    def _f10_receipt(self, product, reference, *, formula=False):
+        receipt = self.source._a_product_reference(reference)
+        if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date') != product['data_date']
+                or receipt.get('source_generation') != product['source_generation']
+                or receipt.get('input_sha256') != product['source_identity']['input_sha256']
+                or receipt.get('status') not in {'COMPLETE', 'PARTIAL'}):
+            raise ValueError('F10_RECEIPT_SOURCE_CONFLICT')
+        if formula and (receipt.get('selector_sha256') != product['source_identity']['selector_artifact_sha256']
+                        or receipt.get('historical_PIT') is not False
+                        or any(receipt.get(key) is not value for key, value in FLAGS.items())):
+            raise ValueError('F10_RECEIPT_SELECTOR_OR_SAFETY_CONFLICT')
+        return receipt
+
     def f10(self,source_date,symbol,revision=None):
         """Read the existing completion-index F10 snapshot, never acquire it on GET."""
         p=self._view(source_date,revision)
@@ -694,10 +707,7 @@ class ResearchWorkbenchHost:
         index=json.loads((root/'index.json').read_bytes());day=compact(source_date);ref=index.get('f10',{}).get(day)
         common=dict(symbol=symbol,data_date=day,source_generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],historical_PIT=False,**FLAGS)
         if not ref:return dict(status='NOT_MATERIALIZED',**common)
-        receipt=self.source._a_product_reference(ref)
-        if (receipt.get('schema')!='v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date')!=day
-            or receipt.get('source_generation')!=p['source_generation'] or receipt.get('input_sha256')!=p['source_identity']['input_sha256']
-            or receipt.get('status') not in {'COMPLETE','PARTIAL'}):raise ValueError('F10_RECEIPT_SOURCE_CONFLICT')
+        receipt = self._f10_receipt(p, ref, formula=formula_member)
         checkpoint=self.source._a_product_reference(receipt['checkpoint']);identity=checkpoint.get('identity',{})
         if (identity.get('data_date')!=day or identity.get('source_generation')!=p['source_generation']
             or identity.get('input_sha256')!=p['source_identity']['input_sha256']):raise ValueError('F10_CHECKPOINT_SOURCE_CONFLICT')
@@ -767,6 +777,15 @@ class ResearchWorkbenchHost:
                      v192=digest(self._v192_version(source_date)),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
+        if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
+            try:
+                reference = self._index().get('f10', {}).get(p['data_date'])
+                if reference and self._formula_groups(p, source_date, observation):
+                    self._f10_receipt(p, reference, formula=True)
+                    modules['f10'] = digest(reference)
+            except (KeyError, OSError, TypeError, ValueError):
+                # A broken receipt cannot invalidate a previously verified card.
+                pass
         return dict(schema='V4_WORKBENCH_VERSIONS_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],modules=modules,event_id=digest(modules),**FLAGS)
 
     def history(self):
