@@ -69,9 +69,14 @@ def _exact_typed_end_fact(context,symbol):
  checked(helper);checked(proof['snapshot']);checked(proof['producer_receipt'])
  native=proof['native']
  if native not in item['raw_files'] or native['sha256']!='87c5e2c62f250f72a87cee8dafac4bddd69d38f36a23e6330539911e6dca50af':raise ValueError('TYPED_END_NATIVE_BINDING_CONFLICT')
- checked(native)
- from ops import research_panel_qfq as q
- if sha(Path(q.__file__))!=proof['resolved_owner']['sha256']:raise ValueError('TYPED_END_ORIGINAL_RAW_OWNER_DRIFT')
+ if context.d30_projection:
+  checked(context.d30_projection.raw_ref(native))
+  item=context.d30_projection.raw_item(item)
+  q=module(proof['resolved_owner'],'dated_d30_original_raw_owner')
+ else:
+  checked(native)
+  from ops import research_panel_qfq as q
+  if sha(Path(q.__file__))!=proof['resolved_owner']['sha256']:raise ValueError('TYPED_END_ORIGINAL_RAW_OWNER_DRIFT')
  checked(proof['resolved_owner']);driver,_=q.authorities(checked(proof['driver']),checked(proof['formula']))
  raw=q.resolved_raw_history(symbol,item,context.target,driver)
  if len(raw)!=2819 or int(raw.trade_date.max())!=context.target:raise ValueError('TYPED_END_RESOLVED_HISTORY_CONFLICT')
@@ -84,15 +89,22 @@ def _exact_typed_end_fact(context,symbol):
  if set(proof['paired_roles'])!={'selector','backtest'}:raise ValueError('TYPED_END_PAIRED_ROLES_CONFLICT')
  context.unchanged()
  for role,path in context.receipt['candidates'].items():
-  bound=proof['paired_roles'][role];p=Path(path);stamp=p.stat();schema=pq.read_schema(p)
+  bound=proof['paired_roles'][role]
   if (bound['path']!=path or bound['sha256']!=context.receipt['candidate_sha256'][role]
-      or bound['generation_id']!=context.generation or bound['stat']!={'size':stamp.st_size,'mtime_ns':stamp.st_mtime_ns}
-      or q.panel_contract(p).get('generation_id')!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
-  volume='volume'if'volume'in schema.names else'vol';date=context.target if pa.types.is_integer(schema.field('trade_date').type)else str(context.target)
-  table=pq.read_table(p,columns=['ts_code','trade_date','open','high','low','close',volume,'amount'],filters=[('ts_code','=',symbol),('trade_date','=',date)])
+      or bound['generation_id']!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
+  if context.d30_projection and role=='selector':
+   volume='volume'
+   table=context.d30_projection.read(symbol,['open','high','low','close',volume,'amount'],start=context.target)
+  else:
+   p=Path(path);stamp=p.stat();schema=pq.read_schema(p)
+   if (bound['stat']!={'size':stamp.st_size,'mtime_ns':stamp.st_mtime_ns}
+       or q.panel_contract(p).get('generation_id')!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
+   volume='volume'if'volume'in schema.names else'vol';date=context.target if pa.types.is_integer(schema.field('trade_date').type)else str(context.target)
+   table=pq.read_table(p,columns=['ts_code','trade_date','open','high','low','close',volume,'amount'],filters=[('ts_code','=',symbol),('trade_date','=',date)])
+   if p.stat()!=stamp:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
   if len(table)!=1:raise ValueError('TYPED_END_PAIRED_TARGET_ROW_MISSING')
   record=table.to_pylist()[0];values={key:float(record[volume if key=='vol'else key])for key in columns}
-  if values!=target or values!=bound['target_row'] or p.stat()!=stamp:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
+  if values!=target or values!=bound['target_row']:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
  _exact_typed_acceptance_references(context,proof)
  context.unchanged();return proof,ref
 
@@ -131,7 +143,9 @@ def _exact_typed_acceptance_references(context,proof):
      or boundary.get('raw_source')!=entries[0]['candidate']):raise ValueError('TYPED_SOURCE_HISTORICAL_EXCEPTION_SCOPE_CONFLICT')
  checked(boundary['official_notice']);publication=json.loads(checked(evidence['paired_publication']).read_bytes())
  if publication.get('status')!='ACTUAL_PAIRED_READY_POINTERS_COMMITTED'or publication.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_PUBLICATION_CONFLICT')
- journal=json.loads(checked(publication['publication_journal']).read_bytes());published=json.loads(checked(publication['producer_receipt']).read_bytes())
+ journal_ref=publication['publication_journal']
+ if context.d30_projection:journal_ref=context.d30_projection.journal_ref(journal_ref)
+ journal=json.loads(checked(journal_ref).read_bytes());published=json.loads(checked(publication['producer_receipt']).read_bytes())
  if journal.get('status')!='COMMITTED'or published.get('status')!='READY'or published.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_ACTUAL_STATUS_CONFLICT')
  for role,path in context.receipt['candidates'].items():
   if (publication['pointers'][role]['actual_target']!=path or journal['after'][role].strip()!=path
@@ -183,25 +197,156 @@ def _census(r,asof,observation):
    return node
  env={'math':math};exec(compile(ast.fix_missing_locations(ast.Module(body=[BindDate().visit(fn)],type_ignores=[])),str(p),'exec'),env);return env['analyze']
 
+class D30SelectorProjection:
+ """Read the exact historical 002731 source through its pinned V4 projection."""
+ symbol='002731.SZ'
+ target=20261030
+ schema='v4.a_share.d30_frozen_selector.v1'
+
+ @classmethod
+ def configured(cls,target):
+  if target!=cls.target:return None
+  path=os.environ.get('V4_A_DAILY_D30_SELECTOR_BINDING_PATH')
+  expected=os.environ.get('V4_A_DAILY_D30_SELECTOR_BINDING_SHA256')
+  if not path and not expected:return None
+  if not path or not expected:raise ValueError('D30_SELECTOR_BINDING_INCOMPLETE')
+  return cls(dict(path=path,sha256=expected))
+
+ def __init__(self,binding_ref):
+  self.ref=binding_ref
+  self._identities={}
+  binding=self._pinned_json(binding_ref)
+  typed=dict(path=os.environ.get('V4_A_DAILY_TYPED_END_FACT_PATH'),
+             sha256=os.environ.get('V4_A_DAILY_TYPED_END_FACT_SHA256'))
+  if binding.get('schema')!=self.schema or binding.get('typed_fact')!=typed:
+   raise ValueError('D30_SELECTOR_TYPED_FACT_BINDING')
+  proof=self._pinned_json(typed)
+  self.selector=proof['paired_roles']['selector']
+  self.backtest=proof['paired_roles']['backtest']
+  self.footer=binding['selector_contract']
+  self.calendars=binding['observed_calendars']
+  if (proof.get('schema')!='V4_EXACT_002731_D30_TYPED_METADATA_V2' or proof.get('symbol')!=self.symbol
+      or proof.get('target_date')!=self.target or proof.get('source_generation')!=self.footer.get('generation_id')
+      or self.footer.get('asof_date')!=self.target or self.footer.get('generation_manifest_path')!=proof['producer_receipt']['path']
+      or self.footer['market_basis']['A']['price_basis']!='QFQ_ASOF' or self.footer.get('historical_PIT') is not False
+      or set(self.calendars)!={'SH','SZ','BJ'}
+      or any(not days or days!=sorted(set(days)) or days[-1]>self.target for days in self.calendars.values())):
+   raise ValueError('D30_SELECTOR_ORIGINAL_METADATA_BINDING')
+  self.native_relocation=binding['native_source_relocation']
+  self.journal_relocation=binding['journal_relocation']
+  witness=self._pinned_json(proof['accepted_evidence'][0])
+  publication=self._pinned_json(witness['paired_publication'])
+  if (self.native_relocation['original']!=proof['native']
+      or self.journal_relocation['original']!=publication['publication_journal']):
+   raise ValueError('D30_SELECTOR_RELOCATED_INPUT_IDENTITY')
+  for relocation in (self.native_relocation,self.journal_relocation):
+   original,retained=relocation['original'],relocation['retained']
+   if original['sha256']!=retained['sha256'] or original['path']==retained['path']:
+    raise ValueError('D30_SELECTOR_RELOCATED_INPUT_SHA_BINDING')
+   path=checked(retained)
+   self._identities[path]=self._stamp(path)
+  producer=self._pinned_json(proof['producer_receipt'])
+  for role,original in (('selector',self.selector),('backtest',self.backtest)):
+   if (original['generation_id']!=proof['source_generation'] or producer['candidates'][role]!=original['path']
+       or producer['candidate_sha256'][role]!=original['sha256']):
+    raise ValueError('D30_SELECTOR_PAIRED_RECEIPT_BINDING')
+  overlay=self._pinned_json(binding['overlay'])
+  target=overlay['targets']['13']
+  exact=self._pinned_json(binding['exact_replay'])
+  if (not target.get('physical_reference_only') or target['path']!=self.selector['path']
+      or target['old_sha256']!=self.selector['sha256'] or target['generation']!=self.footer['generation_id']
+      or target['asof']!=str(self.target) or exact.get('status')!='OS_DENIED_ORIGINALS_FULL_FORWARD_INVERSE_EXACT_PASS'
+      or any(binding[key]!={field:exact[section][field] for field in ('path','sha256')}
+             for key,section in (('reader','source'),('overlay','manifest')))
+      or exact['totals']['13']['old_rows']!=target['totals']['old_rows']):
+   raise ValueError('D30_SELECTOR_OVERLAY_IDENTITY_BINDING')
+  backtest=Path(self.backtest['path'])
+  observed=backtest.stat()
+  if self.backtest['stat']!={'size':observed.st_size,'mtime_ns':observed.st_mtime_ns}:
+   raise ValueError('D30_SELECTOR_BACKTEST_STAT_BINDING')
+  from ops.research_panel_qfq import panel_contract,sha as file_sha
+  if file_sha(backtest)!=self.backtest['sha256'] or panel_contract(backtest)!=self.footer:
+   raise ValueError('D30_SELECTOR_BACKTEST_SHA_OR_FOOTER_BINDING')
+  self._identities[backtest]=self._stat_identity(observed)
+  reader_path=checked(binding['reader'])
+  before=self._stamp(reader_path)
+  reader=module(binding['reader'],'v4_d30_frozen_selector_reader')
+  self._identities[reader_path]=before
+  self.overlay=reader.FrozenOverlay(Path(binding['overlay']['path']),binding['overlay']['sha256'],symbols={self.symbol})
+  self.unchanged()
+
+ def _pinned_json(self,ref):
+  path=Path(ref['path'])
+  self._identities[path]=self._stamp(path)
+  raw=checked(ref).read_bytes()
+  if hashlib.sha256(raw).hexdigest()!=ref['sha256']:raise ValueError('D30_SELECTOR_BINDING_CHANGED')
+  return json.loads(raw)
+
+ @staticmethod
+ def _stat_identity(s):
+  return s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns
+
+ @classmethod
+ def _stamp(cls,path):
+  return cls._stat_identity(path.stat())
+
+ def raw_ref(self,ref):
+  if ref['path']!=self.native_relocation['original']['path']:return ref
+  if ref!=self.native_relocation['original']:raise ValueError('D30_SELECTOR_NATIVE_RELOCATION_CONFLICT')
+  return {**ref,**self.native_relocation['retained']}
+
+ def raw_item(self,item):
+  return {**item,'raw_files':[self.raw_ref(ref) for ref in item['raw_files']]}
+
+ def journal_ref(self,ref):
+  if ref!=self.journal_relocation['original']:raise ValueError('D30_SELECTOR_JOURNAL_RELOCATION_CONFLICT')
+  return self.journal_relocation['retained']
+
+ def unchanged(self):
+  if any(self._stamp(path)!=stamp for path,stamp in self._identities.items()):
+   raise ValueError('D30_SELECTOR_BINDING_CHANGED')
+  self.overlay.base.unchanged()
+
+ def read(self,symbol,columns,*,start=None):
+  if symbol!=self.symbol:raise ValueError('D30_SELECTOR_SYMBOL_OUTSIDE_TYPED_SCOPE')
+  self.unchanged()
+  table=self.overlay.read('13',symbols=[symbol],columns=columns,start=start,end=self.target)
+  self.unchanged()
+  return table
+
+
 class SourceContext:
  def __init__(self,data_root,target,*,source_config=None):
   from ops.research_panel_qfq import panel_contract
   self.data_root=Path(data_root).resolve();self.target=int(target);self.config,self.config_ref=(source_config if source_config else config());self.root=self.data_root/'daily_products/a_share'
   from ops.research_storage_pair import current_binding
   self.pair_binding=current_binding(self.data_root)
-  self.pointer=self.data_root/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';self.backpointer=self.data_root/'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt';self.pointer_bytes=self.pair_binding.pointer_bytes('selector') if self.pair_binding else self.pointer.read_bytes();self.back_bytes=self.pair_binding.pointer_bytes('backtest') if self.pair_binding else self.backpointer.read_bytes()
-  self.panel=Path(self.pointer_bytes.decode('utf-8-sig').strip());self.footer=panel_contract(self.panel);back=panel_contract(Path(self.back_bytes.decode('utf-8-sig').strip()))
-  if self.footer.get('asof_date')!=self.target or self.footer.get('generation_id')!=back.get('generation_id'):raise ValueError('DAILY_PAIRED_GENERATION_OR_DATE_CONFLICT')
+  self.pointer=self.data_root/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';self.backpointer=self.data_root/'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt'
+  self.d30_projection=D30SelectorProjection.configured(self.target)
+  if self.d30_projection:
+   if Path(self.d30_projection.selector['path']).parents[3]!=self.data_root:
+    raise ValueError('D30_SELECTOR_DATA_ROOT_BINDING')
+   self.panel=Path(self.d30_projection.selector['path'])  # Original lineage identity only.
+   self.footer=self.d30_projection.footer
+  else:
+   self.pointer_bytes=self.pair_binding.pointer_bytes('selector') if self.pair_binding else self.pointer.read_bytes();self.back_bytes=self.pair_binding.pointer_bytes('backtest') if self.pair_binding else self.backpointer.read_bytes()
+   self.panel=Path(self.pointer_bytes.decode('utf-8-sig').strip());self.footer=panel_contract(self.panel);back=panel_contract(Path(self.back_bytes.decode('utf-8-sig').strip()))
+   if self.footer.get('asof_date')!=self.target or self.footer.get('generation_id')!=back.get('generation_id'):raise ValueError('DAILY_PAIRED_GENERATION_OR_DATE_CONFLICT')
   self.generation=self.footer['generation_id'];self.receipt_ref=reference(Path(self.footer['generation_manifest_path']));self.receipt=json.loads(checked(self.receipt_ref).read_text());self.snapshot_ref=self.receipt['adjustment_snapshot'];self.snapshot=json.loads(checked(self.snapshot_ref).read_text());self.quarantine_ref=self.receipt['quarantine_manifest'];self.quarantine=json.loads(checked(self.quarantine_ref).read_text())
   if self.receipt.get('generation_id')!=self.generation or self.quarantine.get('generation_id')!=self.generation or self.snapshot.get('asof_date')!=self.target:raise ValueError('DAILY_RECEIPT_SNAPSHOT_IDENTITY_CONFLICT')
   if (self.footer.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt['candidates']['selector']!=str(self.panel)):raise ValueError('DAILY_SNAPSHOT_SHA_CONFLICT')
   self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
   if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
-  self.panel_stat=self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
+  self.panel_stat=None if self.d30_projection else self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
   label_root=os.environ.get('V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')
   self.label_results,self.label_bindings,self.label_retained=label_index_bindings(Path(label_root),self.target) if label_root else ({},{},{})
-  self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
+  admission_snapshot=self.snapshot
+  if self.d30_projection:
+   symbol=self.d30_projection.symbol;items=self.snapshot['symbols']
+   admission_snapshot={**self.snapshot,'symbols':{**items,symbol:self.d30_projection.raw_item(items[symbol])}}
+  self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:admission_snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
   reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
+  if self.d30_projection:self.identity['selector_projection']=self.d30_projection.ref
  def cached_sha(self,p):
   p=Path(p);s=p.stat();stamp=(s.st_size,s.st_mtime_ns,s.st_ino)
   if str(p) in self.hash_cache:
@@ -211,14 +356,19 @@ class SourceContext:
   h=sha(p);self.hash_cache[str(p)]=(stamp,h);return h
  def unchanged(self):
   if self.pair_binding:self.pair_binding.assert_open()
+  if self.d30_projection:
+   self.d30_projection.unchanged();return
   s=self.panel.stat()
   if (self.pair_binding is None and (self.pointer.read_bytes()!=self.pointer_bytes or self.backpointer.read_bytes()!=self.back_bytes)) or (s.st_size,s.st_mtime_ns,s.st_ino)!=(self.panel_stat.st_size,self.panel_stat.st_mtime_ns,self.panel_stat.st_ino):raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
  def _calendars(self):
   from ops.research_panel_logical import parquet as pq
   dates={e:set() for e in ('SH','SZ','BJ')}
-  for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
-   for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
-    if e in dates and int(d)<=self.target:dates[e].add(int(d))
+  if self.d30_projection:
+   dates={e:set(days) for e,days in self.d30_projection.calendars.items()}
+  else:
+   for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
+    for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
+     if e in dates and int(d)<=self.target:dates[e].add(int(d))
   if self.config.get('future_calendar'):
    pinned=json.loads(checked(self.config['future_calendar']).read_text());periods=pinned['markets']['a_share']['holiday_periods'];day=datetime.strptime(str(self.target),'%Y%m%d')+timedelta(days=1)
    while day.year==pinned['year']:
@@ -247,8 +397,11 @@ class SourceContext:
   from ops.research_panel_logical import parquet as panel_parquet
   columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume']
   self.unchanged()
-  # Preserve original profile/basis/date validation through the shared reader.
-  frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
+  if self.d30_projection:
+   frame=self.d30_projection.read(symbol,columns).to_pandas()
+  else:
+   # Preserve original profile/basis/date validation through the shared reader.
+   frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
   self.unchanged()
   return frame
 
@@ -497,6 +650,8 @@ from ops.research_storage_pair import paired_request
 def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
  """Called once from original run_a; no historical loop in normal daily mode."""
  context=SourceContext(data_root,target)
+ if context.d30_projection and (symbols is None or tuple(symbols)!=(context.d30_projection.symbol,) or formula_result):
+  raise ValueError('D30_SELECTOR_TYPED_SCOPE_REQUIRES_EXPLICIT_SINGLE_STOCK')
  if output_root is not None:context.root=Path(output_root).resolve()
  root=context.root;context.unchanged()
  index_start=(root/'index.json').read_bytes() if (root/'index.json').is_file() else None
