@@ -1,0 +1,949 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "P515_CODEX_MAC_COMMON_A_FORWARD_READINESS_CF01_CLOCK_V2 freeze and exposure registry",
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "required": [
+        "artifact_id",
+        "sha256",
+        "frozen_at"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "frozen_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "sha256",
+        "source_manifest_sha256",
+        "available_at",
+        "max_feature_time",
+        "reference_version"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "available_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "max_feature_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reference_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "arm": {
+      "type": "object",
+      "required": [
+        "pair_key",
+        "input_sha256",
+        "model_sha256",
+        "history_manifest_sha256",
+        "contract_sha256",
+        "output_sha256"
+      ],
+      "properties": {
+        "pair_key": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "model_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "history_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "paired": {
+      "type": "object",
+      "required": [
+        "A",
+        "B"
+      ],
+      "properties": {
+        "A": {
+          "$ref": "#/$defs/arm"
+        },
+        "B": {
+          "$ref": "#/$defs/arm"
+        }
+      },
+      "additionalProperties": false
+    },
+    "training": {
+      "type": "object",
+      "required": [
+        "security",
+        "pb",
+        "mother",
+        "D",
+        "source_sha256",
+        "source_permission",
+        "result_mature_at",
+        "target",
+        "y"
+      ],
+      "properties": {
+        "security": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pb": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mother": {
+          "type": "string",
+          "minLength": 1
+        },
+        "D": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_permission": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result_mature_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "target": {
+          "const": "Y_PB_PATH_15D"
+        },
+        "y": {
+          "enum": [
+            0,
+            1
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "history": {
+      "type": "object",
+      "required": [
+        "security",
+        "pb",
+        "mother",
+        "D",
+        "history_id",
+        "origin",
+        "prefix_sha256",
+        "available_at",
+        "ordinal_group",
+        "pb_age",
+        "at_risk_at_k3",
+        "result_pb",
+        "result_mother"
+      ],
+      "properties": {
+        "security": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pb": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mother": {
+          "type": "string",
+          "minLength": 1
+        },
+        "D": {
+          "type": "string",
+          "format": "date"
+        },
+        "history_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "available_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ordinal_group": {
+          "enum": [
+            "PB1",
+            "PB2_PLUS"
+          ]
+        },
+        "pb_age": {
+          "const": 3
+        },
+        "at_risk_at_k3": {
+          "type": "boolean"
+        },
+        "result_pb": {
+          "$ref": "#/$defs/result_evidence"
+        },
+        "result_mother": {
+          "$ref": "#/$defs/result_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "security",
+        "pb",
+        "mother",
+        "D",
+        "pb_age",
+        "ordinal_group",
+        "exposure",
+        "mother_formed_at",
+        "D_cutoff",
+        "first_evaluation_bar_at",
+        "input",
+        "history_refs",
+        "outputs",
+        "status",
+        "global_F_binding_sha256",
+        "generated_at",
+        "output_frozen_at"
+      ],
+      "properties": {
+        "security": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pb": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mother": {
+          "type": "string",
+          "minLength": 1
+        },
+        "D": {
+          "type": "string",
+          "format": "date"
+        },
+        "pb_age": {
+          "const": 3
+        },
+        "ordinal_group": {
+          "enum": [
+            "PB1",
+            "PB2_PLUS"
+          ]
+        },
+        "exposure": {
+          "enum": [
+            "FIRST_SEEN_AFTER_F",
+            "UNKNOWN",
+            "EXPOSED"
+          ]
+        },
+        "mother_formed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "D_cutoff": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "first_evaluation_bar_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/input"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "history_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "outputs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/paired"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "PAIRED_FROZEN",
+            "INPUT_MISSING",
+            "INPUT_LATE",
+            "OUTPUT_LATE",
+            "EXPOSURE_UNKNOWN"
+          ]
+        },
+        "global_F_binding_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "generated_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output_frozen_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "exposure": {
+      "type": "object",
+      "required": [
+        "seq",
+        "prior_sha256",
+        "sha256",
+        "record_id",
+        "recorded_at",
+        "kind",
+        "scope",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prior_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "kind": {
+          "enum": [
+            "EXPOSED_ARCHIVE",
+            "CANDIDATE_PROPOSED",
+            "FIRST_SEEN",
+            "MISSING",
+            "LATE",
+            "CORRECTION",
+            "REVOKED"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "related_record_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "result_evidence": {
+      "type": "object",
+      "required": [
+        "history_member_id",
+        "result_id",
+        "result_role",
+        "result_object_id",
+        "hop",
+        "source_id",
+        "outcome",
+        "mature_at",
+        "acquired_at",
+        "evidence_payload",
+        "evidence_sha256"
+      ],
+      "properties": {
+        "history_member_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mature_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "acquired_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_payload": {
+          "type": "object",
+          "required": [
+            "history_member_id",
+            "result_id",
+            "result_role",
+            "result_object_id",
+            "hop",
+            "source_id",
+            "outcome",
+            "mature_at"
+          ],
+          "properties": {
+            "history_member_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "result_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "outcome": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mature_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "result_role": {
+              "enum": [
+                "PB",
+                "MOTHER"
+              ]
+            },
+            "result_object_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hop": {
+              "enum": [
+                "PB15",
+                "MOTHER_FINAL"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "evidence_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "result_role": {
+          "enum": [
+            "PB",
+            "MOTHER"
+          ]
+        },
+        "result_object_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hop": {
+          "enum": [
+            "PB15",
+            "MOTHER_FINAL"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "history_manifest": {
+      "type": "object",
+      "required": [
+        "manifest_id",
+        "seal_status",
+        "frozen_at",
+        "member_count",
+        "member_ids",
+        "rows_sha256",
+        "sha256"
+      ],
+      "properties": {
+        "manifest_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seal_status": {
+          "const": "SEALED"
+        },
+        "frozen_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "member_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rows_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "required": [
+    "schema_version",
+    "mode",
+    "permissions",
+    "new_counts",
+    "panel",
+    "fit_completed_at",
+    "readiness_binding",
+    "actual_freezes",
+    "training_rows",
+    "history_rows",
+    "forward_rows",
+    "exposure_log",
+    "exposure_head_sha256",
+    "global_F",
+    "global_F_sha256",
+    "history_manifest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "P515_CODEX_MAC_COMMON_A_FORWARD_READINESS_CF01_CLOCK_V2"
+    },
+    "mode": {
+      "enum": [
+        "PREPARATION_ONLY",
+        "SYNTHETIC_FIXTURE"
+      ]
+    },
+    "permissions": {
+      "type": "object",
+      "required": [
+        "fit",
+        "predict",
+        "forward_enroll",
+        "production",
+        "buy_gate_update",
+        "frozen_abcd_write"
+      ],
+      "properties": {
+        "fit": {
+          "const": false
+        },
+        "predict": {
+          "const": false
+        },
+        "forward_enroll": {
+          "const": false
+        },
+        "production": {
+          "const": false
+        },
+        "buy_gate_update": {
+          "const": false
+        },
+        "frozen_abcd_write": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "new_counts": {
+      "type": "object",
+      "required": [
+        "fit",
+        "preprocess_fit",
+        "model_predictions",
+        "new_weights",
+        "formal_labels"
+      ],
+      "properties": {
+        "fit": {
+          "const": 0
+        },
+        "preprocess_fit": {
+          "const": 0
+        },
+        "model_predictions": {
+          "const": 0
+        },
+        "new_weights": {
+          "const": 0
+        },
+        "formal_labels": {
+          "const": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "panel": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]{6}\\.(SZ|SH|BJ)$"
+      }
+    },
+    "fit_completed_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "readiness_binding": {
+      "type": "object",
+      "required": [
+        "master_route_sha256",
+        "inventory_sha256",
+        "panel_proposal_sha256",
+        "engine_candidate_sha256",
+        "old_riskset_sha256",
+        "schema_sha256",
+        "gate_validator_sha256"
+      ],
+      "properties": {
+        "master_route_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "inventory_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "panel_proposal_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "engine_candidate_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "old_riskset_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "gate_validator_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actual_freezes": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "preprocessor",
+            "training_manifest",
+            "model_code",
+            "mapping_contract",
+            "panel_manifest",
+            "history_manifest"
+          ],
+          "properties": {
+            "model": {
+              "$ref": "#/$defs/identity"
+            },
+            "preprocessor": {
+              "$ref": "#/$defs/identity"
+            },
+            "training_manifest": {
+              "$ref": "#/$defs/identity"
+            },
+            "model_code": {
+              "$ref": "#/$defs/identity"
+            },
+            "mapping_contract": {
+              "$ref": "#/$defs/identity"
+            },
+            "panel_manifest": {
+              "$ref": "#/$defs/identity"
+            },
+            "history_manifest": {
+              "$ref": "#/$defs/identity"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "training_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/training"
+      }
+    },
+    "history_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/history"
+      }
+    },
+    "forward_rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "exposure_log": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/exposure"
+      }
+    },
+    "exposure_head_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "global_F": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "global_F_sha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "history_manifest": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/history_manifest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "PREPARATION_ONLY"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "fit_completed_at": {
+            "type": "null"
+          },
+          "actual_freezes": {
+            "type": "null"
+          },
+          "training_rows": {
+            "maxItems": 0
+          },
+          "history_rows": {
+            "maxItems": 0
+          },
+          "forward_rows": {
+            "maxItems": 0
+          },
+          "global_F": {
+            "type": "null"
+          },
+          "global_F_sha256": {
+            "type": "null"
+          },
+          "history_manifest": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "F": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fit_completed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_freezes": {
+            "type": "object",
+            "required": [
+              "model",
+              "preprocessor",
+              "training_manifest",
+              "model_code",
+              "mapping_contract",
+              "panel_manifest",
+              "history_manifest"
+            ],
+            "properties": {
+              "model": {
+                "$ref": "#/$defs/identity"
+              },
+              "preprocessor": {
+                "$ref": "#/$defs/identity"
+              },
+              "training_manifest": {
+                "$ref": "#/$defs/identity"
+              },
+              "model_code": {
+                "$ref": "#/$defs/identity"
+              },
+              "mapping_contract": {
+                "$ref": "#/$defs/identity"
+              },
+              "panel_manifest": {
+                "$ref": "#/$defs/identity"
+              },
+              "history_manifest": {
+                "$ref": "#/$defs/identity"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
+}
