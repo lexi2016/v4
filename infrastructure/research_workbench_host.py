@@ -457,6 +457,41 @@ class ResearchWorkbenchHost:
         try:return dict(model=version(self._observation_date(source_date)),assets=self._index().get('v192_assets',{}).get(compact(source_date)))
         except (ValueError,OSError,KeyError,TypeError) as error:return dict(status='CANNOT_CONFIRM',reason=str(error))
 
+    def _formula_score_replay(self, source_date, symbol, product, original_descriptor):
+        override = self.binding.get('candidate_group_override') or {}
+        bound = override.get('score_action') if override.get('source_date') == source_date else None
+        if not bound:
+            return None
+        groups = self._formula_groups(product, source_date, self._observation_date(source_date))
+        members = {row['symbol'] for row in groups[1]}
+        if symbol not in members:
+            return None
+        replay = checked(bound['receipt'])
+        status = replay['statuses']
+        descriptor = replay['descriptor']
+        if (replay.get('status') != 'PREPARED_EXACT_OWNER_REPLAY' or replay.get('same_rule_sha') is not True
+                or descriptor.get('status') != 'READY' or any(descriptor.get(key) is not value for key, value in FLAGS.items())
+                or len(status) != descriptor['counts']['total'] or not status.keys() <= members):
+            raise ValueError('WORKBENCH_FORMULA_SCORE_RECEIPT_CONFLICT')
+        if symbol not in status:
+            return None
+        root = Path(bound['artifact_root'])
+        index_path = Path(descriptor['index']['path'])
+        if (root.resolve(strict=True) != root or not root.is_dir() or not index_path.is_relative_to(root)
+                or index_path.stat().st_size > 8 * 1024 * 1024):
+            raise ValueError('WORKBENCH_FORMULA_SCORE_INDEX_UNBOUND')
+        index = checked(descriptor['index'])
+        original = self.source._a_product_reference(original_descriptor['index'])
+        if index['items'].keys() != status.keys() or index['rules'] != original['rules'] or index['price_basis'] != original['price_basis']:
+            raise ValueError('WORKBENCH_FORMULA_SCORE_RULE_OR_SCOPE_CONFLICT')
+        from infrastructure.research_workbench_score_action import read_score_action
+        value = read_score_action(root, descriptor, product, source_date, symbol)
+        hold = (value.get('row') or {}).get('hold_score') or {}
+        if (value['status'] != status[symbol]['record_status'] or hold.get('kb_hold_score_status') != status[symbol]['score_status']
+                or hold.get('kb_hold_score') != status[symbol]['score']):
+            raise ValueError('WORKBENCH_FORMULA_SCORE_RESULT_CONFLICT')
+        return value
+
     def daily_score_action(self,source_date,symbol,revision=None):
         """Read an exact-day materialized score; no market reads or computation."""
         p=self._view(source_date,revision)
@@ -470,13 +505,22 @@ class ResearchWorkbenchHost:
         from infrastructure.research_workbench_score_action import read_score_action
         value=(read_score_action(root,descriptor,p,source_date,symbol) if descriptor and descriptor.get('index')
             else dict(status='UNKNOWN',reason=(descriptor or {}).get('reason','SCORE_NOT_MATERIALIZED_FOR_DATE'),row=None))
+        missing = dict(status='UNKNOWN', reason='SYMBOL_NOT_MATERIALIZED_FOR_DATE', row=None)
+        daily_missing = bool(descriptor and descriptor.get('index')) and value == missing
+        model_missing = False
         if value.get('status')=='UNKNOWN' and value.get('row') is None:
             model=self.v192_group(source_date,revision)
-            if any(row['symbol']==symbol and row.get('v192_assets') for row in model['rows']):
+            model_row = next((row for row in model['rows'] if row['symbol'] == symbol), None)
+            if model_row and model_row.get('v192_assets'):
                 product=self.source.read_a_daily_product(p['data_date'],include_display_names=False)
                 from infrastructure.research_workbench_v192_assets import load
                 bound=load(self.source,product,model['source_artifact_sha256'])
                 value=read_score_action(Path(bound['module']['artifact_root']),bound['module']['score_action'],p,source_date,symbol)
+                model_missing = value == missing
+            elif model_row is None and model.get('status') in {'READY', 'READY_EMPTY'}:
+                model_missing = True
+        if daily_missing and model_missing:
+            value = self._formula_score_replay(source_date, symbol, p, descriptor) or value
         return dict(**value,**common)
 
     def single_stock_research(self,source_date,symbol,revision=None):
@@ -828,7 +872,17 @@ class ResearchWorkbenchHost:
             raise KeyError('WORKBENCH_DAILY_K_FORMULA_GROUP_NOT_BOUND')
         summary, rows = override
         value = self._quote_references.read_daily_chart({**product, 'rows': [row['source_row'] for row in rows]}, symbol)
-        return dict(value, formula_group_sha256=summary['artifact']['sha256'])
+        value['formula_group_sha256'] = summary['artifact']['sha256']
+        marks_ref = self.binding['candidate_group_override'].get('d35c_marks')
+        if marks_ref is not None:
+            from infrastructure.research_workbench_d35c_marks import chart_original_marks
+
+            try:
+                value['original_marks'] = chart_original_marks(checked(marks_ref), marks_ref, value,
+                                                               [row['symbol'] for row in rows])
+            except (KeyError, OSError, TypeError, ValueError, AttributeError):
+                value['original_marks'] = dict(status='CANNOT_CONFIRM', reason='ORIGINAL_D35C_BINDING_INVALID')
+        return value
 
     def chart_views(self,source_date,revision=None):
         if self._is_skill_date(source_date):return self.skill_r2.chart_views(revision)

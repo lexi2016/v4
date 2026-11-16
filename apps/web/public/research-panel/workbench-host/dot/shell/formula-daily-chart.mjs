@@ -1,6 +1,77 @@
 const unsafeFlags = ['production_allowed', 'buy_gate_updated', 'orders_sent'];
 const priceFields = ['open', 'high', 'low', 'close'];
 const isoDate = date => `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6)}`;
+const originalFormula = 'd35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac';
+const originalEngine = 'ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c';
+const markColors = {COLORRED:'#ff7c82',COLORGREEN:'#6bd3a0',COLORYELLOW:'#fbcd2d',COLORFFFFFF:'#edf4fc',COLORFF00FF:'#e3a2ff'};
+
+export function verifiedOriginalMarks(chart) {
+  const marks = chart.original_marks;
+  if (marks?.status !== 'READY' || marks.schema !== 'V4_WORKBENCH_ORIGINAL_D35C_MARKS_V1' ||
+      marks.formula_sha256 !== originalFormula || marks.engine_sha256 !== originalEngine ||
+      !/^[a-f0-9]{64}$/.test(marks.sidecar?.sha256 ?? '') ||
+      ['symbol','source_date','generation','input_sha256','formula_group_sha256','price_basis','volume_basis'].some(key => marks[key] !== chart[key]) ||
+      ['numeric_manifest','selector','snapshot'].some(key => marks[key]?.sha256 !== chart[key]?.sha256 || marks[key]?.path !== chart[key]?.path) ||
+      !Number.isSafeInteger(marks.unresolved_conditions) || marks.unresolved_conditions < 0 || marks.unresolved_conditions > chart.rows.length*22 ||
+      !Array.isArray(marks.marks) || marks.marks.length > chart.rows.length*22) return null;
+  const dates = new Set(chart.rows.map(row=>row.trade_date));
+  const seen = new Set();
+  for (const mark of marks.marks) {
+    if (!mark || !dates.has(mark.trade_date) || !Number.isSafeInteger(mark.id) || mark.id<1 || mark.id>22 ||
+        typeof mark.y !== 'string' || !mark.y.trim() || !Number.isFinite(Number(mark.y)) ||
+        typeof mark.payload !== 'string' || !Array.isArray(mark.styles)) return null;
+    const icon = mark.kind==='DRAWICON' && (mark.payload==='1'||mark.payload==='2') && mark.styles.length===0;
+    const text = mark.kind==='DRAWTEXT' && mark.payload.length>0 && mark.payload.length<=24 && mark.styles.length===1 && Object.hasOwn(markColors,mark.styles[0]);
+    const key = `${mark.trade_date}/${mark.id}`;
+    if ((!icon&&!text)||seen.has(key))return null;
+    seen.add(key);
+  }
+  return marks;
+}
+
+const markLabel = mark => mark.kind==='DRAWICON' ? (mark.payload==='1'?'▲':'▼') : mark.payload;
+
+function drawOriginalMarks(ctx, markers, left, right, top, bottom) {
+  const occupied = [];
+  const priority = entry => entry.selected ? 0 : ['守线','破线'].includes(entry.mark.payload) ? 2 : 1;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(left,top,right-left,bottom-top); ctx.clip();
+  ctx.font = '600 12px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const entry of [...markers].sort((a,b)=>priority(a)-priority(b))) {
+    const {mark,x,y} = entry;
+    const color = markColors[mark.styles[0]] ?? markColors.COLORRED;
+    ctx.fillStyle = color;
+    if (mark.kind==='DRAWICON') {
+      const direction = mark.payload==='1' ? -1 : 1;
+      ctx.beginPath(); ctx.moveTo(x,y+direction*5);
+      ctx.lineTo(x-4,y-direction*3); ctx.lineTo(x+4,y-direction*3); ctx.closePath();
+      ctx.strokeStyle = '#031726'; ctx.lineWidth = 2; ctx.stroke(); ctx.fill();
+      occupied.push({x0:x-4,x1:x+4,y0:y-5,y1:y+5});
+      continue;
+    }
+    const width = ctx.measureText(mark.payload).width+6;
+    const center = Math.max(left+width/2,Math.min(right-width/2,x));
+    const label = [0,14,-14,28,-28].map(offset=>y+offset).find(yy=>{
+      if (yy-7<top||yy+7>bottom)return false;
+      const box={x0:center-width/2,x1:center+width/2,y0:yy-7,y1:yy+7};
+      if (occupied.some(other=>box.x0<other.x1&&box.x1>other.x0&&box.y0<other.y1&&box.y1>other.y0))return false;
+      occupied.push(box);
+      return true;
+    });
+    // Crowded candles keep their exact anchor. Selecting the date lists every original mark.
+    if (label === undefined || Math.abs(label-y)>3 || Math.abs(center-x)>3) {
+      ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();
+    }
+    if (label !== undefined) {
+      ctx.strokeStyle='#031726';ctx.lineWidth=3;ctx.lineJoin='round';
+      ctx.strokeText(mark.payload,center,label);ctx.fillText(mark.payload,center,label);
+    }
+  }
+  ctx.restore();
+
+}
 
 export function validateDailyChart(chart, day, symbol) {
   const rows = chart?.rows;
@@ -31,9 +102,16 @@ export function renderDailyChart(host, chart) {
     toolbar.append(button);
     return button;
   });
+  const original = verifiedOriginalMarks(chart);
+  const markDates = new Map();
+  for (const marker of original?.marks ?? []) {
+    if (!markDates.has(marker.trade_date)) markDates.set(marker.trade_date, []);
+    markDates.get(marker.trade_date).push(marker);
+  }
+  const markLegend = make('small', original ? '原 V4 主图 · D35C' : '原主图标记待核');
   const dateSelect = make('select', '');
   dateSelect.setAttribute('aria-label', '定位日K交易日');
-  toolbar.append(dateSelect);
+  toolbar.append(dateSelect, markLegend);
   for (const row of chart.rows) dateSelect.add(new Option(isoDate(row.trade_date), row.trade_date));
   const canvas = make('canvas', '前复权日K和成交量');
   canvas.style.cssText = 'display:block;width:100%;height:340px';
@@ -41,7 +119,10 @@ export function renderDailyChart(host, chart) {
   canvas.setAttribute('role', 'img');
   const readout = make('p', '');
   readout.className = 'readout';
-  host.replaceChildren(toolbar, canvas, readout);
+  const marksReadout = make('p', '');
+  marksReadout.className = 'readout';
+  host.replaceChildren(toolbar, canvas, readout, marksReadout);
+  host.dataset.originalMarkCount = String(original?.marks.length ?? 0);
   Object.assign(host.dataset, {symbol: chart.symbol, sourceDate: chart.source_date, rowCount: String(chart.rows.length)});
   let windowSize = 120;
   let end = chart.rows.length;
@@ -60,8 +141,10 @@ export function renderDailyChart(host, chart) {
     ctx.scale(ratio, ratio);
     ctx.font = '11px system-ui';
     const visible = chart.rows.slice(Math.max(0, end-windowSize), end);
-    const low = Math.min(...visible.map(row => row.low));
-    const high = Math.max(...visible.map(row => row.high));
+    const anchors = visible.flatMap((row,index) => (markDates.get(row.trade_date) ?? []).map(mark => ({mark,index,selected:row===chart.rows[selected]})));
+    const prices = anchors.map(entry=>Number(entry.mark.y));
+    const low = Math.min(...visible.map(row => row.low),...prices);
+    const high = Math.max(...visible.map(row => row.high),...prices);
     const delta = high !== low ? (high-low)*0.04 : Math.max(Math.abs(high)*0.04, 0.01);
     const volumeTop = height*0.74, bottom = height-24;
     const maxVolume = Math.max(1, ...visible.map(row => row.volume));
@@ -95,7 +178,13 @@ export function renderDailyChart(host, chart) {
         ctx.textAlign = 'left';
       }
     });
+    drawOriginalMarks(ctx, anchors.map(entry=>({...entry,x:xOffset+(entry.index+0.5)*step,y:y(Number(entry.mark.y))})),
+      xOffset, plotWidth+xOffset, 3, volumeTop-9);
     const bar = chart.rows[selected];
+    const marked = markDates.get(bar.trade_date) ?? [];
+    const unknown = original?.unresolved_conditions > 0 ? '；窗口有待核条件' : '';
+    marksReadout.textContent = original ? '本根原主图标记 · '+
+      (marked.length ? marked.map(mark=>`${markLabel(mark)} @${mark.y}`).join(' / ') : '无已确认标记')+unknown : '';
     dateSelect.value = bar.trade_date;
     readout.textContent = `${chart.symbol} · ${isoDate(bar.trade_date)} · 开 ${bar.open.toFixed(2)} / 高 ${bar.high.toFixed(2)} / 低 ${bar.low.toFixed(2)} / 收 ${bar.close.toFixed(2)} · 成交量 ${bar.volume.toLocaleString('zh-CN',{maximumFractionDigits:3})}`;
   }
@@ -117,5 +206,5 @@ export function renderDailyChart(host, chart) {
   const watch = new ResizeObserver(draw);
   watch.observe(canvas);
   draw();
-  return () => { watch.disconnect(); host.replaceChildren(); delete host.dataset.symbol; };
+  return () => { watch.disconnect(); host.replaceChildren(); delete host.dataset.symbol; delete host.dataset.originalMarkCount; };
 }
