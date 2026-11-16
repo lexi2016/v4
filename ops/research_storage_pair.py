@@ -10,10 +10,12 @@ holding metadata coordination: nonblocking exclusive acquisition or BLOCKED.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
+import base64
 import fcntl
 import hashlib
 import json
 import os
+import tempfile
 from pathlib import Path
 from types import MappingProxyType
 
@@ -143,6 +145,99 @@ def seed_configured(*, rollback_paths=None):
     with publication_lock(data):
         return commit(root,data,{role:Path(path.read_text(encoding='utf-8-sig').strip()) for role,path in pointers(data).items()},initial_rollback_paths=rollback_paths)
 
+
+
+def _write_missing_pointer(pointer, value):
+    """Publish one complete, fsynced file without replacing an existing name."""
+    import ctypes
+
+    try:
+        rename_exclusive = ctypes.CDLL(None, use_errno=True).renameatx_np
+    except (AttributeError, OSError) as exc:
+        raise RetentionError("PAIR_RECOVERY_EXCLUSIVE_RENAME_UNAVAILABLE") from exc
+    rename_exclusive.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    rename_exclusive.restype = ctypes.c_int
+    pointer.parent.mkdir(exist_ok=True)
+    directory = os.open(pointer.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        fd, temporary = tempfile.mkstemp(dir=pointer.parent, prefix=".pointer-recovery-")
+        try:
+            with os.fdopen(fd, "wb") as source:
+                source.write(value)
+                source.flush()
+                os.fsync(source.fileno())
+            # macOS RENAME_EXCL leaves a concurrently created destination intact.
+            if rename_exclusive(directory, os.fsencode(Path(temporary).name),
+                                directory, os.fsencode(pointer.name), 0x00000004) != 0:
+                error = ctypes.get_errno()
+                raise OSError(error, os.strerror(error), pointer)
+            os.fsync(directory)
+        finally:
+            Path(temporary).unlink(missing_ok=True)
+    finally:
+        os.close(directory)
+
+
+def restore_compatibility_pointers(data, requested):
+    """Recreate missing text pointers from a leased, terminal canonical pair."""
+    from ops.research_panel_logical import is_logical
+    from ops.research_panel_qfq import publication_lock
+
+    configured = settings(data)
+    if configured is None:
+        raise RetentionError("PAIR_CONFIG_REQUIRED")
+    root, data = configured
+    official = pointers(data)
+    if requested != official:
+        raise RetentionError("PAIR_RECOVERY_POINTER_SCOPE")
+
+    journal = data / "runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json"
+    with publication_lock(data), acquire(root) as binding:
+        record = read_json(journal, max_bytes=64 * 1024)
+        if (not isinstance(record, dict) or set(record) != {"after", "before_base64", "pointers", "status"}
+                or record["pointers"] != {role: str(pointer) for role, pointer in official.items()}
+                or any(not isinstance(record[key], dict) or set(record[key]) != set(official)
+                       for key in ("after", "before_base64"))):
+            raise RetentionError("PAIR_RECOVERY_JOURNAL_SCOPE")
+        status = record["status"]
+        if status not in ("COMMITTED", "ROLLED_BACK", "ROLLED_BACK_AFTER_INTERRUPTION"):
+            raise RetentionError("PAIR_RECOVERY_JOURNAL_NOT_TERMINAL")
+
+        missing = set()
+        expected = {}
+        for role, pointer in official.items():
+            role_ref = binding.manifest["roles"][role]
+            target = binding.paths[role]
+            if not is_logical(target) or digest(target) != role_ref["sha256"] or stamp(target) != role_ref["stat"]:
+                raise RetentionError(f"PAIR_RECOVERY_ANCHOR_DRIFT:{role}")
+            try:
+                value = (record["after"][role].encode() if status == "COMMITTED"
+                         else base64.b64decode(record["before_base64"][role], validate=True))
+                target_text = value.decode("utf-8-sig").strip()
+            except (AttributeError, TypeError, ValueError) as exc:
+                raise RetentionError(f"PAIR_RECOVERY_JOURNAL_DRIFT:{role}") from exc
+            if target_text != str(target) or (status == "COMMITTED" and value != (str(target) + "\n").encode()):
+                raise RetentionError(f"PAIR_RECOVERY_JOURNAL_DRIFT:{role}")
+            expected[role] = value
+            safe_path(pointer, exists=False)
+            if not pointer.exists():
+                missing.add(role)
+                continue
+            before = stamp(pointer)
+            if pointer.read_bytes() != value or stamp(pointer) != before:
+                raise RetentionError(f"PAIR_RECOVERY_POINTER_CONFLICT:{role}")
+
+        for role, pointer in official.items():
+            if role not in missing:
+                continue
+            try:
+                _write_missing_pointer(pointer, expected[role])
+            except FileExistsError as exc:
+                raise RetentionError(f"PAIR_RECOVERY_POINTER_CONFLICT:{role}") from exc
+
+        if any(pointer.read_bytes() != expected[role] for role, pointer in official.items()):
+            raise RetentionError("PAIR_RECOVERY_READBACK_DRIFT")
+        return missing
 
 def publication_preflight():
     configured=settings()

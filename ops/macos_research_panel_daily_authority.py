@@ -984,20 +984,15 @@ def _parquet_max_date(path: Path) -> int | None:
         raise SnapshotGateError(f"parquet target-date audit failed: {path}") from error
 
 
-def _ensure_pointer_seed(pointer: Path, seed: Path | str | None) -> Path:
-    if pointer.exists():
+def _ensure_pointer_seed(data: Path, pointers: dict[str, Path]) -> None:
+    # The legacy public module re-exports this private name. Recovery is now paired.
+    if any(not pointer.exists() for pointer in pointers.values()):
+        from ops.research_storage_pair import restore_compatibility_pointers
+        restore_compatibility_pointers(data, pointers)
+    for pointer in pointers.values():
         target = Path(pointer.read_text(encoding="utf-8-sig").strip())
-        if target.is_file():
-            return target
-        raise SnapshotGateError(f"pointer target missing: {pointer}")
-    if seed is None:
-        raise SnapshotGateError(f"pointer missing and no seed: {pointer}")
-    target = Path(seed).resolve()
-    if not target.is_file():
-        raise SnapshotGateError(f"pointer seed missing: {target}")
-    pointer.parent.mkdir(parents=True, exist_ok=True)
-    _atomic_write(pointer, (str(target) + "\n").encode())
-    return target
+        if not target.is_file():
+            raise SnapshotGateError(f"pointer target missing: {pointer}")
 
 
 def run_windows_a_formula_authority(
@@ -1025,14 +1020,15 @@ def run_windows_a_formula_authority(
     target = int(_date(target_date))
     data = Path(data_root).resolve()
     tdx = Path(qfq_original_tdx_root or tdx_root).resolve()
-    selector_ptr, backtest_ptr = Path(selector_pointer).resolve(), Path(backtest_pointer).resolve()
-    _ensure_pointer_seed(selector_ptr, selector_seed)
-    _ensure_pointer_seed(backtest_ptr, backtest_seed)
+    selector_ptr, backtest_ptr = Path(selector_pointer).absolute(), Path(backtest_pointer).absolute()
+    pointers = {"selector": selector_ptr, "backtest": backtest_ptr}
+    # Launch bindings still pass the legacy seed arguments for CLI compatibility.
+    _ensure_pointer_seed(data, pointers)
     pinned_driver = Path(__file__).resolve().parent / "vendor/data_layer_daily_formula_increment_update_v1.py"
     result = run_with_retention(run_daily_rebuild,
         ready_check=lambda: pointer_ready(selector_ptr, target, input_path(data)),
         driver_path=pinned_driver, formula_path=Path(canonical_formula_path).resolve(),
-        tdx_root=tdx, data_root=data, pointers={"selector": selector_ptr, "backtest": backtest_ptr},
+        tdx_root=tdx, data_root=data, pointers=pointers,
         contract_csv=Path(contract_csv).resolve(), return_root=Path(return_root).resolve(), target=target,
         publish=True, workers=(int(formula_max_workers) if formula_max_workers is not None else None),
         refresh_inputs=True, storage_layout="arrow_blocks_v1",
