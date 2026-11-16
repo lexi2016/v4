@@ -61,7 +61,7 @@ def test_day_replaces_groups_and_quote_scope_only_for_bound_date(tmp_path, group
     host, _ = bind_fixture(tmp_path, product, bundle)
     result = host.day('2026-11-13')
     assert result['formula_groups']['group_counts'] == {'pb2_confirm': 1, 'b23_entry': 2}
-    assert list(result['formula_groups']['labels']) == ['pb2_confirm', 'b23_entry']
+    assert result['formula_groups']['labels'] == {'b23_entry': '192选股', 'pb2_confirm': '回测选股'}
     assert result['scope_count'] == 2
     assert result['rows'][0]['group_states'] == {'pb2_confirm': 'TRUE', 'b23_entry': 'TRUE'}
     assert result['rows'][1]['group_states'] == {'pb2_confirm': 'FALSE', 'b23_entry': 'TRUE'}
@@ -75,6 +75,55 @@ def test_day_replaces_groups_and_quote_scope_only_for_bound_date(tmp_path, group
     assert other_date['rows'][0]['group_states']['original'] == 'TRUE'
     host.binding.pop('candidate_group_override')
     assert host.day('2026-11-13')['rows'] == other_date['rows']
+
+
+def test_two_group_mode_hides_legacy_members_when_approved_date_is_missing(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    binding = host.binding.pop('candidate_group_override')
+    host.binding['candidate_group_overrides'] = {'2026-11-13': binding}
+    host.binding['candidate_group_formula_sha256'] = bundle['formula_sha256']
+    assert host.day('2026-11-13')['scope_count'] == 2
+
+    pending = host.day('2026-11-12')
+    assert pending['formula_groups']['labels'] == {'b23_entry': '192选股', 'pb2_confirm': '回测选股'}
+    assert pending['formula_groups']['status'] == 'CANNOT_CONFIRM_NOT_MATERIALIZED'
+    assert pending['formula_groups']['group_counts'] == {'b23_entry': None, 'pb2_confirm': None}
+    assert pending['rows'] == []
+
+
+def test_two_group_mode_reads_exact_date_owner_commit_and_pins_formulas(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    host.binding = {'candidate_group_overrides': {}, 'candidate_group_formula_sha256': dict(bundle['formula_sha256']),
+                    'formula_groups_root': str(tmp_path)}
+    host._module_reference = ResearchWorkbenchHost._module_reference.__get__(host)
+    day = tmp_path / '2026-11-13'
+    day.mkdir()
+
+    def put(path, value):
+        raw = json.dumps(value).encode()
+        path.write_bytes(raw)
+        return {'path': str(path), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+    artifact = put(day / 'artifact.json', bundle)
+    receipt = put(day / 'receipt.json', {'status': 'COMMITTED', 'artifact': artifact})
+    pointer = {**FLAGS, 'schema': 'V4_WORKBENCH_MODULE_COMMIT_V1', 'module': 'formula_groups',
+               'date': day.name, 'artifact': artifact, 'receipt': receipt}
+    put(day / 'latest.json', pointer)
+    assert host.day(day.name)['scope_count'] == 2
+
+    bundle['formula_sha256']['b23_entry'] = '3' * 64
+    pointer['artifact'] = put(day / 'artifact.json', bundle)
+    pointer['receipt'] = put(day / 'receipt.json', {'status': 'COMMITTED', 'artifact': pointer['artifact']})
+    put(day / 'latest.json', pointer)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_CONTRACT_INVALID'):
+        host.day(day.name)
+
+    pointer['artifact'] = put(tmp_path / 'outside.json', bundle)
+    put(day / 'latest.json', pointer)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_REFERENCE_OUTSIDE_OWNER'):
+        host.day(day.name)
 
 
 @pytest.mark.parametrize(('key', 'value'), [
@@ -103,6 +152,18 @@ def test_changed_bytes_or_extra_group_cannot_appear(tmp_path, group_fixture):
     bundle['rows'][0]['groups'].append('original')
     host, _ = bind_fixture(tmp_path, product, bundle)
     with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_ROW_INVALID'):
+        host.day('2026-11-13')
+
+
+def test_selected_member_can_have_unknown_in_the_other_formula(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    bundle['rows'][1]['group_states'] = {'b23_entry': 'TRUE', 'pb2_confirm': 'UNKNOWN'}
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    assert host.day('2026-11-13')['rows'][1]['group_states']['pb2_confirm'] == 'UNKNOWN'
+
+    bundle['rows'][1]['group_states']['pb2_confirm'] = 'TRUE'
+    host, _ = bind_fixture(tmp_path, product, bundle)
+    with pytest.raises(ValueError, match='WORKBENCH_FORMULA_GROUP_STATE_CONFLICT'):
         host.day('2026-11-13')
 
 

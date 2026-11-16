@@ -16,8 +16,8 @@ from starlette.requests import Request
 GROUPS=('nav_smallk','original','nav_pullback','nav_breakout')
 FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 FORMULA_GROUP_LABELS = {
-    'pb2_confirm': 'PB2确认型回调',
-    'b23_entry': 'B2/B3入场',
+    'b23_entry': '192选股',
+    'pb2_confirm': '回测选股',
 }
 
 
@@ -91,7 +91,7 @@ def checked(reference):
     return json.loads(checked_bytes(reference))
 
 
-def _formula_group_rows(reference, product, source_date, observation_date):
+def _formula_group_rows(reference, product, source_date, observation_date, approved_formula_sha256=None):
     bundle = checked(reference)
     identity = product['source_identity']
     if (not isinstance(bundle, dict)
@@ -111,6 +111,7 @@ def _formula_group_rows(reference, product, source_date, observation_date):
     if (not isinstance(formula_hashes, dict) or set(formula_hashes) != set(FORMULA_GROUP_LABELS)
             or any(not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value)
                    for value in formula_hashes.values())
+            or (approved_formula_sha256 is not None and formula_hashes != approved_formula_sha256)
             or not isinstance(counts, dict) or set(counts) != set(FORMULA_GROUP_LABELS)
             or any(type(value) is not int or value < 0 for value in counts.values())
             or not isinstance(items, list)):
@@ -131,17 +132,23 @@ def _formula_group_rows(reference, product, source_date, observation_date):
                 or any(not isinstance(group, str) or group not in FORMULA_GROUP_LABELS for group in hits)
                 or len(set(hits)) != len(hits)):
             raise ValueError('WORKBENCH_FORMULA_GROUP_ROW_INVALID')
+        states = item.get('group_states')
+        if states is None:
+            states = {group: 'TRUE' if group in hits else 'FALSE' for group in FORMULA_GROUP_LABELS}
+        if (not isinstance(states, dict) or set(states) != set(FORMULA_GROUP_LABELS)
+                or any(value not in ('TRUE', 'FALSE', 'UNKNOWN') for value in states.values())
+                or {group for group, value in states.items() if value == 'TRUE'} != set(hits)):
+            raise ValueError('WORKBENCH_FORMULA_GROUP_STATE_CONFLICT')
         seen.add(symbol)
         for group in hits:
             actual_counts[group] += 1
         source_row = dict(symbol=symbol, display_name=name, data_date=product['data_date'], groups='|'.join(hits))
         rows.append(dict(symbol=symbol, enriched_display_name=name, source_row=source_row,
-                         group_states={group: 'TRUE' if group in hits else 'FALSE' for group in FORMULA_GROUP_LABELS},
-                         eligible_candidate=True, in_fifth=False, history_rates={}))
+                         group_states=states, eligible_candidate=True, in_fifth=False, history_rates={}))
     if actual_counts != counts:
         raise ValueError('WORKBENCH_FORMULA_GROUP_COUNT_CONFLICT')
     summary = dict(labels=dict(FORMULA_GROUP_LABELS), group_counts=counts, formula_sha256=formula_hashes,
-                   artifact=reference)
+                   artifact=reference, status='READY' if rows else 'READY_EMPTY')
     return summary, rows
 
 
@@ -360,6 +367,18 @@ class ResearchWorkbenchHost:
             if not isinstance(override, dict) or not isinstance(override.get('artifact'), dict):
                 raise ValueError('WORKBENCH_FORMULA_GROUP_BINDING_INVALID')
             compact(override.get('source_date'))
+        if self._uses_only_formula_groups():
+            overrides = self.binding['candidate_group_overrides']
+            formula_hashes = self.binding.get('candidate_group_formula_sha256')
+            if (not isinstance(overrides, dict) or not isinstance(formula_hashes, dict)
+                    or set(formula_hashes) != set(FORMULA_GROUP_LABELS)
+                    or any(not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value)
+                           for value in formula_hashes.values())):
+                raise ValueError('WORKBENCH_FORMULA_GROUP_BINDING_INVALID')
+            for source_date, override in overrides.items():
+                compact(source_date)
+                if not isinstance(override, dict) or not isinstance(override.get('artifact'), dict):
+                    raise ValueError('WORKBENCH_FORMULA_GROUP_BINDING_INVALID')
         self.skill_r2=None
         if binding.get('skill_r2_d28'):
             from infrastructure.research_workbench_skill_r2 import SkillR2Workbench
@@ -386,7 +405,7 @@ class ResearchWorkbenchHost:
                 # stock checkpoints, historical labels, or raw OHLCV on a GET.
                 view={k:product[k] for k in ('data_date','source_generation','source_identity','source_config','manifest','artifact','processed_count','source_universe_count','status','rows')}
                 view['original_charts']=product.get('original_charts')
-                if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
+                if self._uses_only_formula_groups() or self._legacy_formula_group_binding(source_date):
                     view['formula_group_admitted_symbols'] = frozenset(product['processed_universe']).intersection(product['row_refs'])
                 self._cache[key]=view
                 while len(self._cache)>8:self._cache.pop(next(iter(self._cache)))
@@ -395,10 +414,27 @@ class ResearchWorkbenchHost:
             raise ValueError('WORKBENCH_SOURCE_REVISION_CONFLICT')
         return view
 
-    def _formula_groups(self, product, source_date, observation_date):
+    def _uses_only_formula_groups(self):
+        return 'candidate_group_overrides' in self.binding
+
+    def _legacy_formula_group_binding(self, source_date):
         binding = self.binding.get('candidate_group_override')
-        if binding and binding['source_date'] == source_date:
-            return _formula_group_rows(binding['artifact'], product, source_date, observation_date)
+        return binding if binding and binding['source_date'] == source_date else None
+
+    def _formula_group_binding(self, source_date):
+        if not self._uses_only_formula_groups():
+            return self._legacy_formula_group_binding(source_date)
+        static = self.binding['candidate_group_overrides'].get(source_date)
+        reference = self._module_reference('formula_groups', source_date)
+        if reference is not None:
+            return {'artifact': reference}
+        return static
+
+    def _formula_groups(self, product, source_date, observation_date):
+        binding = self._formula_group_binding(source_date)
+        if binding:
+            return _formula_group_rows(binding['artifact'], product, source_date, observation_date,
+                                       self.binding.get('candidate_group_formula_sha256'))
         return None
 
     def v192_group(self,source_date,revision=None):
@@ -458,8 +494,7 @@ class ResearchWorkbenchHost:
         except (ValueError,OSError,KeyError,TypeError) as error:return dict(status='CANNOT_CONFIRM',reason=str(error))
 
     def _formula_score_replay(self, source_date, symbol, product, original_descriptor):
-        override = self.binding.get('candidate_group_override') or {}
-        bound = override.get('score_action') if override.get('source_date') == source_date else None
+        bound = (self._formula_group_binding(source_date) or {}).get('score_action')
         if not bound:
             return None
         groups = self._formula_groups(product, source_date, self._observation_date(source_date))
@@ -696,9 +731,7 @@ class ResearchWorkbenchHost:
     def f10(self,source_date,symbol,revision=None):
         """Read the existing completion-index F10 snapshot, never acquire it on GET."""
         p=self._view(source_date,revision)
-        override = None
-        if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
-            override = self._formula_groups(p, source_date, self._observation_date(source_date))
+        override = self._formula_groups(p, source_date, self._observation_date(source_date))
         formula_member = override is not None and any(row['symbol'] == symbol for row in override[1])
         if not formula_member and not any(row.get('symbol')==symbol for row in p.get('rows',[])):
             self.single_stock_research(source_date,symbol,revision)
@@ -746,6 +779,11 @@ class ResearchWorkbenchHost:
             pointer=json.loads(path.read_text())
             if pointer.get('schema')!='V4_WORKBENCH_MODULE_COMMIT_V1' or pointer.get('module')!=module or pointer.get('date')!=day or any(pointer.get(k)!=v for k,v in FLAGS.items()):
                 raise ValueError('WORKBENCH_MODULE_POINTER_IDENTITY_CONFLICT')
+            if module == 'formula_groups':
+                for key in ('artifact', 'receipt'):
+                    reference_path = Path(pointer[key]['path'])
+                    if not reference_path.is_relative_to(path.parent):
+                        raise ValueError('WORKBENCH_FORMULA_GROUP_REFERENCE_OUTSIDE_OWNER')
             checked(pointer['artifact']);checked(pointer['receipt'])
             receipt=checked(pointer['receipt'])
             if receipt.get('status')!='COMMITTED' or receipt.get('artifact')!=pointer['artifact']:raise ValueError('WORKBENCH_MODULE_RECEIPT_CONFLICT')
@@ -777,7 +815,10 @@ class ResearchWorkbenchHost:
                      v192=digest(self._v192_version(source_date)),
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
-        if (self.binding.get('candidate_group_override') or {}).get('source_date') == source_date:
+        if self._uses_only_formula_groups():
+            static = self.binding['candidate_group_overrides'].get(source_date, {}).get('artifact')
+            modules['list'] = digest([modules['list'], static, version('formula_groups', source_date)])
+        if self._uses_only_formula_groups() or self._legacy_formula_group_binding(source_date):
             try:
                 reference = self._index().get('f10', {}).get(p['data_date'])
                 if reference and self._formula_groups(p, source_date, observation):
@@ -822,11 +863,15 @@ class ResearchWorkbenchHost:
         return {key:item for key,item in value.items() if key!='coverage'}|dict(artifact=reference)
 
     def day(self,source_date,revision=None):
-        if self._is_skill_date(source_date):
+        if not self._uses_only_formula_groups() and self._is_skill_date(source_date):
             return self.skill_r2.day(self._observation_date(source_date),self.workflow(source_date),revision)
         p=self._view(source_date,revision);observation=self._observation_date(source_date)
         if observation is None:raise ValueError('WORKBENCH_OBSERVATION_DATE_UNBOUND')
         override = self._formula_groups(p, source_date, observation)
+        if override is None and self._uses_only_formula_groups():
+            override = (dict(labels=dict(FORMULA_GROUP_LABELS), group_counts=dict.fromkeys(FORMULA_GROUP_LABELS),
+                             formula_sha256=self.binding['candidate_group_formula_sha256'], artifact=None,
+                             status='CANNOT_CONFIRM_NOT_MATERIALIZED'), [])
         formula_groups, rows = override if override is not None else (None, [])
         for row in p['rows'] if override is None else ():
             row_sha=hashlib.sha256(json.dumps(row,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
@@ -892,7 +937,7 @@ class ResearchWorkbenchHost:
         summary, rows = override
         value = self._quote_references.read_daily_chart({**product, 'rows': [row['source_row'] for row in rows]}, symbol)
         value['formula_group_sha256'] = summary['artifact']['sha256']
-        marks_ref = self.binding['candidate_group_override'].get('d35c_marks')
+        marks_ref = (self._formula_group_binding(source_date) or {}).get('d35c_marks')
         if marks_ref is not None:
             from infrastructure.research_workbench_d35c_marks import chart_original_marks
 

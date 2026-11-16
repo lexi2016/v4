@@ -20,3 +20,23 @@ The default fixture pins the November 13 source and November 16 observation. It 
 The three negative controls simulate missing Canvas text, a missing score and a company response in the F10 route. A pass requires all three controls to fail for their respective reasons. The successful path checks the candidate's real HTTP responses, matching date and generation, current-stock DOM and Canvas paint. Save the command and its final JSON with the release evidence.
 
 The `f10` completion fingerprint is derived from the same validated published receipt used by the formula group's `/f10` reader. The completion check tests wrong-generation rejection and a fresh GET for the selected stock from a same-generation F10-only notification. A failed or rejected refresh retains the current verified card with an update status. A verified missing-data response can replace it, and changing the stock or date clears the prior card. The test changes the notification in the test browser and uses the candidate's actual F10 response. The candidate release bundles the host change alongside `workbench.local.mjs` and `formula-f10.mjs` in the existing static allowlist.
+
+## Publish a subsequent source date
+
+The approved board labels are 192选股 for `b23_entry` and 回测选股 for `pb2_confirm`. Dates with no committed result show both groups as pending. Run the existing exact formula projection from the V4 Reader after the source day's normal product has completed. Use its small `RESULT.json`, `NAME_BINDING.json`, `CANDIDATES.csv` and `CANDIDATES_NAMED.csv` batch to prepare the dated overlay.
+
+```sh
+python3 docs/handoffs/v4-formula-groups-workbench/prepare-formula-group-artifact.py \
+  --batch "$FORMULA_RESULT_DIR" --output "$TASK_ARTIFACT_DIR/formula-groups.json"
+```
+
+After approving the prepared cohort, pass the installed API role's `V4_WORKBENCH_HOST_BINDING` and `V4_WORKBENCH_HOST_BINDING_SHA256` and the existing A_LONG owner lock. `--expected-current ABSENT` is for a new date. To replace the same day's reviewed result after its numeric manifest changes, pass the observed SHA-256 of that date's current `latest.json`.
+
+```sh
+python3 docs/handoffs/v4-formula-groups-workbench/publish-formula-group-artifact.py \
+  --batch "$FORMULA_RESULT_DIR" \
+  --binding "$V4_WORKBENCH_HOST_BINDING" --binding-sha256 "$V4_WORKBENCH_HOST_BINDING_SHA256" \
+  --owner-lock "$EXISTING_A_LONG_OWNER_LOCK" --expected-current ABSENT
+```
+
+Publication uses the existing daily-product and calendar endpoints to verify the date and canonical manifest, saves a tiny immutable artifact and receipt under the configured Workbench owner directory, and advances only that date's pointer. List completion observes the pointer through the existing date event route. Read back the exact date's Workbench API and group buttons after the commit. The board request path performs no formula computation.
