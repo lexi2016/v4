@@ -1,0 +1,29 @@
+{
+  "baseline_manifest_sha256": "058b9f200b893569d4d7e47071950fbe6e2ca00165d431990d8b71d50276b24c",
+  "files": {
+    "contracts/runtime_workloads.json": {
+      "after_sha256": "ad0900b4be944e105a339aa4a09396236d127025fdc36284c364a3e9028fa0fa",
+      "before_sha256": "19371ddea338448f029b3a22db88326b71380d5d18589cc970b7108fa34f4364"
+    },
+    "infrastructure/scheduling/executor_registry.py": {
+      "after_sha256": "614dc9a59702162744b12e7b81c6ab495d8458cc5fa29e228dc7b160b5e23ef3",
+      "before_sha256": "899cb2cc9cc2d3ecb5b3c4572b5caf5d3a9c8597b1a58d0390ec331a470bbc83"
+    },
+    "ops/macos_research_panel_daily_gate.py": {
+      "after_sha256": "83b39b522597e9d6abb89c57c2b5a0494eabe75a2e8d21700d38bce9461d4975",
+      "before_sha256": "651ddf4fbf17a6990ea1a0d114feb11f29001ed6b16797a56bdfe9fcfd439f06"
+    },
+    "ops/research_panel_daily_source.py": {
+      "after_sha256": "427f2cacf14883e5308f35f4831b05e204bf6f0410835184806fb467e34848a5",
+      "before_sha256": "454907923172ce3c97a0555aa3ae67147f16c71a993210bbc3024ecb563f9122"
+    }
+  },
+  "git_baseline": "1049e419c",
+  "patch_sha256": "7a14181116697c9d025f77cfe3c6313114b04153c4144ff340da22d79a0b1ae5",
+  "release": "v4-single-panel-daily-20261116-r2-main",
+  "schema": "v4.a_daily_official_ready_overlay.v1",
+  "unchanged_source_policy": {
+    "path": "contracts/a_share_daily_source_policy.json",
+    "sha256": "008c3cc8ce9fa4569e78138dc585f148bc66dd01f6554320d7e8504d6164c19d"
+  }
+}

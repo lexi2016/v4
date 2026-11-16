@@ -1,0 +1,134 @@
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1010,7 +1010,6 @@
+       "session_requirement": "POST_CLOSE",
+       "signal_date_role": "BUSINESS_DATE",
+       "slots": [
+-        "1540",
+         "1610",
+         "1640"
+       ],
+--- a/ops/research_panel_daily_source.py
++++ b/ops/research_panel_daily_source.py
+@@ -49,7 +49,9 @@
+         ref = dict(path=str(past_cache.resolve()),sha256=sha(past_cache))
+         OfficialDailyPackage(ref,target)
+         return bind_cached_history(ref)
+-    if int(local.strftime("%Y%m%d")) != target or local.strftime("%H%M") < policy["earliest_slot"]:
++    # Historical sync receipts bind the entire source policy, including its
++    # original 15:40 field. Apply the stricter live acquisition floor here.
++    if int(local.strftime("%Y%m%d")) != target or local.strftime("%H%M") < "1610":
+         raise QfqGateError("OFFICIAL_DAILY_SOURCE_WAIT_WINDOW")
+     calendar_ref, adapter_ref = policy["calendar"], policy["calendar_adapter"]
+     calendar = load_market_calendar(_source(calendar_ref, owner="A daily calendar"))
+@@ -65,6 +67,12 @@
+         ref = dict(path=str(cached.resolve()), sha256=sha(cached))
+         OfficialDailyPackage(ref, target)
+         return bind_cached_history(ref)
++    # The scheduled minute can start before TDX finishes publishing the dated ZIP.
++    first_get = local.replace(hour=16, minute=10, second=15, microsecond=0)
++    current = local if now is not None else datetime.now(timezone.utc)
++    remaining = (first_get - current).total_seconds()
++    if remaining > 0:
++        sleep(remaining)
+     url = SOURCE_URL.format(date=target)
+     def download():
+         with urllib.request.urlopen(url, timeout=30) as response:
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -166,7 +166,7 @@
+     lane: str | None = None,
+     now: _datetime.datetime | None = None,
+ ) -> dict[str, Any]:
+-    """Idempotently ensure A after 15:40 and other lanes after 17:00.
++    """Idempotently ensure A from 16:10 and other lanes after 17:00.
+ 
+     StartInterval can invoke this function repeatedly.  Explicit lane callers
+     use only their exact dated receipt as a fast path: A requires selector and
+@@ -208,7 +208,7 @@
+         "buy_gate_updated": False,
+         "orders_sent": False,
+     }
+-    earliest_slot = "1540" if requested_lane == "A" else "1700"
++    earliest_slot = "1610" if requested_lane == "A" else "1700"
+     if moment.strftime("%H%M") < earliest_slot:
+         return restore_context({**common, "status": f"BEFORE_{earliest_slot}", "runner_called": False, "idempotent": True})
+     selector_ready = selector_pointer_is_ready(selector_pointer, target)
+@@ -319,7 +319,7 @@
+     status = str(result.get("status") or "")
+     if "lane_ready" in result:
+         lane_ready = result.get("lane_ready") is True
+-        if status in {"BEFORE_1540", "BEFORE_1700"}:
++        if status in {"BEFORE_1540", "BEFORE_1610", "BEFORE_1700"}:
+             return 0
+         if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
+             return 0
+@@ -336,7 +336,7 @@
+                     backtest_pointer = formula.get("backtest_pointer_ready")
+     if backtest_pointer is False:
+         pointer_ready = False
+-    if status in {"BEFORE_1540", "BEFORE_1700"}:
++    if status in {"BEFORE_1540", "BEFORE_1610", "BEFORE_1700"}:
+         return 0
+     if status == "ALREADY_READY" and pointer_ready:
+         return 0
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -268,7 +268,7 @@
+ 
+ 
+ def _read_exact_dated_receipt(
+-    module: str, arguments: list[str], *, allow_a_failure: bool = False
++    module: str, arguments: list[str], *, allow_a_failure: bool = False, allow_missing_a_start: bool = False
+ ) -> tuple[dict[str, Any] | None, str | None]:
+     """Read the fixed daily-panel receipt only as a bounded fallback seam."""
+ 
+@@ -286,6 +286,13 @@
+         return None, None
+     path = Path(root).expanduser() / f"{lane.lower()}-{date}.json"
+     try:
++        if allow_missing_a_start and lane == "A":
++            if path.parent.resolve() != path.parent:
++                return None, "EXACT_DATED_RECEIPT_INVALID"
++            try:
++                path.lstat()  # A broken symlink also occupies the dated receipt path.
++            except FileNotFoundError:
++                return None, "EXACT_DATED_RECEIPT_MISSING"
+         if path.is_symlink() or not path.is_file():
+             return None, "EXACT_DATED_RECEIPT_UNAVAILABLE"
+         payload = _strict_json_object(path.read_text(encoding="utf-8-sig"))
+@@ -771,18 +778,20 @@
+         try:
+             # A slot migration must not re-acquire an already completed date.
+             # Preserve the strict receipt status; this is dated artifact reuse,
+-            # never evidence that the new 15:40 provider run occurred.
++            # never evidence that a provider run occurred.
+             if request.mode.value == "LIVE" and request.slot in {"1540", "1610", "1640"}:
+                 moment = shanghai_now()
+-                in_window = moment.strftime("%Y%m%d") == request.business_date and "1540" <= moment.strftime("%H%M") < "1700"
++                in_window = (request.slot != "1540" and moment.strftime("%Y%m%d") == request.business_date
++                             and "1610" <= moment.strftime("%H%M") < "1700")
+                 root = os.environ.get("V4_RESEARCH_PANEL_RECEIPT_ROOT")
+                 selector = os.environ.get("V4_RESEARCH_PANEL_A_SELECTOR_POINTER")
+                 backtest = os.environ.get("V4_RESEARCH_PANEL_A_BACKTEST_POINTER")
+                 if root and selector and backtest:
+-                    receipt, _ = _read_exact_dated_receipt(
++                    receipt, receipt_error = _read_exact_dated_receipt(
+                         "ops.macos_research_panel_daily",
+                         ["--date", request.business_date, "--lane", "A", "--receipt-root", root],
+                         allow_a_failure=request.slot in {"1610", "1640"},
++                        allow_missing_a_start=request.slot == "1610",
+                     )
+                     from ops.macos_research_panel_daily_receipts import validate_a_receipt
+                     status = validate_a_receipt(receipt, request.business_date,
+@@ -882,7 +891,9 @@
+                             raise WorkloadExecutionError({**reused, "status": "FAILED", "exit_code": 1,
+                                 "reason": "A_DAILY_PRODUCT_LEAF_RECOVERY_FAILED"})
+                         return reused
+-                    if request.slot in {"1610", "1640"} and (not isinstance(receipt, dict) or receipt.get("status") not in {"FAILED", "CANNOT_CONFIRM"}):
++                    first_start = request.slot == "1610" and receipt_error == "EXACT_DATED_RECEIPT_MISSING"
++                    exact_failure = isinstance(receipt, dict) and receipt.get("status") in {"FAILED", "CANNOT_CONFIRM"}
++                    if request.slot in {"1610", "1640"} and not (first_start or exact_failure):
+                         raise WorkloadExecutionError(self._failure_result("research_panel_daily_a", [],
+                             "A_DAILY_RETRY_REQUIRES_EXACT_DATED_FAILED_RECEIPT"))
+                 elif request.slot in {"1610", "1640"}:
