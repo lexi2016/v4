@@ -333,7 +333,81 @@ def source_inputs(context,symbol,bars,asof,qualification,*,retain=None,prefix_re
   rows=list(prefix_reuse['rows'][:len(bars)])
  last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
  answer=dict(symbol=symbol,rows=rows,source_bar_exact={'amount':0},index_sha256=context.config_ref['sha256'])
- summary,_=_census(context.config['census'],asof,asof)(answer);stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
+ census=_census(context.config['census'],asof,asof)
+ summary,_=census(answer);stage=summary.get('stage','UNKNOWN')
+ if stage=='UNKNOWN_NONPOSITIVE_OR_INVALID_PRICE':
+  def verified_clean_suffix():
+   identity=getattr(context,'identity',{});basis=identity.get('basis',{})
+   if (not isinstance(qualification,dict)
+       or qualification.get('status')!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
+       or not symbol.endswith(('.SH','.SZ','.BJ')) or type(asof)is not int
+       or type(context.target)is not int or asof!=context.target or identity.get('asof')!=asof
+       or identity.get('generation')!=context.generation or not identity.get('input_sha256')
+       or not identity.get('selector_artifact_sha256') or not isinstance(identity.get('snapshot'),dict)
+       or not identity['snapshot'].get('sha256') or basis.get('asof_date')!=context.target
+       or basis.get('price_basis')!='QFQ_ASOF' or basis.get('volume_basis')!='QFQ_EVENT_VOLUME'
+       or basis.get('amount_basis')!='RAW_TURNOVER' or len(rows)!=len(bars) or len(rows)<3):
+    return None
+   dates=tuple(row.get('trade_date') for row in rows)
+   input_dates=tuple(bar.get('trade_date') for bar in bars)
+   if (not all(type(day)is int for day in dates) or dates!=input_dates
+       or not all(dates[index]<dates[index+1] for index in range(len(dates)-1))
+       or tuple(breakout)!=dates or summary.get('symbol')!=symbol
+       or summary.get('history_bars')!=len(rows) or summary.get('first')!=dates[0]
+       or summary.get('last')!=dates[-1] or dates[-1]!=asof):
+    return None
+   parsed=[];last_nonpositive=None
+   for index,(row,bar) in enumerate(zip(rows,bars)):
+    values=row.get('values');ohlcv=row.get('ohlcv')
+    if not isinstance(values,dict) or '突破' not in values or not isinstance(ohlcv,dict):
+     return None
+    raw=[ohlcv.get(key) for key in ('open','high','low','close','vol')]
+    source_raw=[bar.get(key) for key in ('open','high','low','close','vol')]
+    if any(value is None or isinstance(value,bool) for value in (*raw,*source_raw)):
+     return None
+    try:numeric=[float(value) for value in raw];source_numeric=[float(value) for value in source_raw]
+    except (TypeError,ValueError,OverflowError):
+     return None
+    if (not all(math.isfinite(value) for value in (*numeric,*source_numeric))
+        or numeric!=source_numeric):
+     return None
+    parsed.append(numeric)
+    if any(value<=0 for value in numeric[:4]):last_nonpositive=index
+   if last_nonpositive is None:return None
+   suffix_start=last_nonpositive+1;suffix_rows=rows[suffix_start:];suffix_dates=dates[suffix_start:]
+   if len(suffix_rows)<2:return None
+   for open_,high,low,close,volume in parsed[suffix_start:]:
+    if (min(open_,high,low,close)<=0 or volume<0
+        or not low<=min(open_,close)<=max(open_,close)<=high):
+     return None
+   # The unchanged census receives the same indexed original formula rows;
+   # only its structural window starts after the final finite nonpositive OHLC.
+   suffix_summary,_=census({**answer,'rows':suffix_rows})
+   anchor=suffix_summary.get('main_anchor_date')
+   positions=[index for index,day in enumerate(dates) if day==anchor]
+   if (suffix_summary.get('symbol')!=symbol or suffix_summary.get('history_bars')!=len(suffix_rows)
+       or suffix_summary.get('history_first')!=suffix_dates[0] or suffix_summary.get('history_last')!=asof
+       or str(suffix_summary.get('stage','UNKNOWN')).startswith('UNKNOWN')
+       or type(anchor)is not int or len(positions)!=1):
+    return None
+   anchor_index=positions[0]
+   if (anchor<=dates[last_nonpositive] or anchor_index-1<suffix_start
+       or anchor_index>=len(rows)-1):
+    return None
+   # A later unknown breakout can hide a newer original key. It is safe only
+   # when the original census's independent bullish volume key is provable.
+   for index in range(anchor_index+1,len(rows)-1):
+    if breakout[dates[index]]!='UNKNOWN':continue
+    previous_volume=parsed[index-1][4]
+    open_,close,volume=parsed[index][0],parsed[index][3],parsed[index][4]
+    if not (previous_volume>0 and close>open_ and volume>=2*previous_volume):
+     return None
+   return suffix_summary
+  suffix_summary=verified_clean_suffix()
+  if suffix_summary is not None:
+   # Change only the census stage and its selected original key anchor.
+   summary={**summary,'stage':suffix_summary['stage'],'main_anchor_date':suffix_summary['main_anchor_date']}
+ stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
  baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
  return dict(original_breakout_by_date=breakout,baseline_memberships=baseline,old_main_anchor_date=summary.get('main_anchor_date'),qualification_status=qualification['status'],raw_g4_reference=context.g4_reference(symbol,asof,qualification))
 
