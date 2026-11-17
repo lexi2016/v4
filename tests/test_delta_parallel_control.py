@@ -5,33 +5,129 @@ from pathlib import Path
 from types import SimpleNamespace
 import struct
 import pandas as pd
+import pyarrow as pa
 import pytest
 from ops import research_panel_qfq as owner
 from ops import research_panel_delta as delta
 
 
-@pytest.mark.parametrize('bad',['none','old_revision','new_sha','slicing','future'])
-def test_baseline_prefix_requires_exact_both_sources(tmp_path,bad):
+@pytest.mark.parametrize('bad', ['none', 'old_revision', 'new_sha', 'slicing', 'future',
+    'late_prefix', 'duplicate', 'out_of_order', 'path', 'policy', 'trailing_bytes', 'stamp'])
+def test_baseline_prefix_requires_exact_both_sources(tmp_path, monkeypatch, bad):
     dates=[20261109,20261110,20261111]
     record=struct.Struct('<I28s');original=b''.join(record.pack(d,b'x'*28)for d in dates[:2])
     raw=original+record.pack(dates[-1],b'x'*28)
     if bad=='old_revision':raw=record.pack(dates[0],b'changed'.ljust(28,b'x'))+raw[32:]
     if bad=='future':raw+=record.pack(20261112,b'x'*28)
+    if bad=='late_prefix':
+        original = raw
+        raw += record.pack(20261112, b'x'*28)
+    if bad=='duplicate':raw+=record.pack(20261111,b'x'*28)
+    if bad=='out_of_order':raw+=record.pack(20261108,b'x'*28)
+    if bad=='trailing_bytes':raw+=b'x'
     path=tmp_path/'source.day';path.write_bytes(raw)
     old=dict(path=str(path),sha256=hashlib.sha256(original).hexdigest(),from_date_exclusive=20261101)
     new={**old,'sha256':hashlib.sha256(raw).hexdigest()}
     if bad=='new_sha':new['sha256']='f'*64
     if bad=='slicing':new['from_date_exclusive']=20261102
+    if bad=='path':
+        replacement = tmp_path / 'replacement.day'
+        replacement.write_bytes(raw)
+        new['path'] = str(replacement)
+
     def read(code,path,tail_records):
-        days=[record.unpack_from(path.read_bytes(),i)[0]for i in range(0,path.stat().st_size,32)]
+        with path.open('rb') as stream:
+            days = [day for day, _ in record.iter_unpack(stream.read())]
         return pd.DataFrame(dict(trade_date=days,open=10.,high=11.,low=9.,close=10.,vol=100.,amount=1000.))
     driver=SimpleNamespace(DAY_STRUCT=record,read_day_tail=read)
-    before=dict(raw_files=[old]);after=dict(raw_files=[new]);current=read('000001.SZ',path,0)
+    before=dict(raw_files=[old]);after=dict(raw_files=[new])
+    target = 20261112 if bad == 'late_prefix' else 20261111
+    if bad == 'policy':
+        after['raw_resolution'] = owner.HISTORY_RESOLUTION
+    if bad == 'stamp':
+        stamp = delta.logical.stamp(path)
+        observed = iter([stamp, stamp, {**stamp, 'mtime_ns': stamp['mtime_ns'] + 1}])
+        monkeypatch.setattr(delta.logical, 'stamp', lambda _: next(observed))
     if bad=='none':
-        frame,proof=delta.baseline_raw_history(vars(owner),'000001.SZ',before,after,20261110,20261111,driver,current)
+        frame,proof=delta.baseline_raw_history(vars(owner),'000001.SZ',before,after,20261110,target,driver)
         assert frame.trade_date.tolist()==dates[:2]and proof[0]['prefix_sha256']==old['sha256']and proof[0]['added_dates']==[20261111]
     else:
-        with pytest.raises(owner.QfqGateError):delta.baseline_raw_history(vars(owner),'000001.SZ',before,after,20261110,20261111,driver,current)
+        expected = 'BASELINE_PREFIX_CURRENT_CHANGED' if bad == 'stamp' else 'SOURCE_BINDING_FAILED'
+        with pytest.raises(owner.QfqGateError, match=expected):
+            delta.baseline_raw_history(vars(owner), '000001.SZ', before, after, 20261110, target, driver)
+
+
+@pytest.mark.parametrize('archive_first', [False, True])
+def test_baseline_prefix_recovers_source_rows_before_late_catchup(tmp_path, archive_first):
+    record = struct.Struct('<I28s')
+    archive_dates = [20261016, 20261019]
+    native_dates = [20261019, 20261020, 20261112]
+    added_dates = [20261113, 20261116, 20261117]
+
+    def payload(dates, mark):
+        return b''.join(record.pack(day, mark * 28) for day in dates)
+
+    def source(name, raw):
+        path = tmp_path / (name + '.day')
+        path.write_bytes(raw)
+        return dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
+
+    archive = source('archive', payload(archive_dates, b'a'))
+    old_native = payload(native_dates, b'n')
+    native = source('native', old_native + payload(added_dates, b'n'))
+    frozen = source('frozen_native', old_native)
+    if archive_first:
+        policy = dict(raw_resolution=owner.HISTORY_RESOLUTION)
+        archive['source_role'] = 'archive'
+        native['source_role'] = frozen['source_role'] = 'native'
+    else:
+        policy = {}
+        native['from_date_exclusive'] = frozen['from_date_exclusive'] = archive_dates[-1]
+
+    def read(code, path, tail_records):
+        with path.open('rb') as stream:
+            rows = list(record.iter_unpack(stream.read()))[-tail_records:]
+        return pd.DataFrame(dict(trade_date=[day for day, _ in rows],
+            open=[float(mark[0]) for _, mark in rows], high=120., low=90.,
+            close=100., vol=100., amount=1000.))
+
+    driver = SimpleNamespace(DAY_STRUCT=record, read_day_tail=read)
+    frozen_item = dict(raw_files=[archive, frozen], events=[], **policy)
+    before = dict(frozen_item, raw_files=[archive, {**frozen, 'path': native['path']}])
+    after = dict(frozen_item, raw_files=[archive, native])
+    expected = owner.resolved_raw_history('301686.SZ', frozen_item, 20261116, driver)
+    current = owner.resolved_raw_history('301686.SZ', after, 20261117, driver)
+    frame, proofs = delta.baseline_raw_history(vars(owner), '301686.SZ', before, after,
+        20261116, 20261117, driver)
+
+    pd.testing.assert_frame_equal(frame, expected, check_exact=True)
+    assert frame.trade_date.tolist() == [20261016, 20261019, 20261020, 20261112]
+    assert current.trade_date.tolist() == frame.trade_date.tolist() + added_dates
+    assert len(proofs) == 1
+    assert proofs[0]['prefix_rows'] == len(native_dates)
+    assert proofs[0]['prefix_sha256'] == frozen['sha256']
+    assert proofs[0]['prefix_end_date'] == native_dates[-1]
+    assert proofs[0]['added_dates'] == added_dates
+
+    code = '301686.SZ'
+    rules = {key: 'stable' for key in ('driver_sha256', 'formula_sha256',
+        'user_formula_sha256', 'field_contract_sha256')}
+    state = dict(snapshot=dict(symbols={code: after}), target=20261117, driver=driver,
+        run_dir=tmp_path / 'run', currents={'backtest': tmp_path / 'baseline'},
+        contracts={'backtest': rules}, baseline_hashes={'backtest': 'baseline'}, identity={})
+    old_snapshot = dict(asof_date=20261116, symbols={code: before})
+    old_frames = {'backtest': {code: pa.table({'trade_date': expected.trade_date})}}
+    rebuilds = []
+
+    def rebuild(*args):
+        rebuilds.append(args[0])
+        return current
+
+    prepared = delta._prepare({**vars(owner), 'rebuild_symbol': rebuild}, state, code,
+        old_frames, old_snapshot, {'backtest': old_frames['backtest'][code].schema}, rules)
+    assert prepared['kind'] == 'RAW_REVISION'
+    assert prepared['baseline_proof'] == proofs
+    assert rebuilds == [code]
 
 
 def test_resource_selection_maximum_and_pressure_clamp():
@@ -47,7 +143,6 @@ def test_resource_selection_maximum_and_pressure_clamp():
 
 def test_real_spawn_workers_preserve_original_full_prefix_and_turnover(tmp_path):
     import multiprocessing,os
-    import pyarrow as pa
     from concurrent.futures import ProcessPoolExecutor
     from ops.research_panel_turnover import DailyTurnover
     from ops import research_panel_logical as logical

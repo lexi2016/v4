@@ -5,7 +5,11 @@ are persisted. No new collector, pointer, source authority or periodic worker.
 """
 import hashlib
 import json
+import struct
+from bisect import bisect_right
+from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -541,13 +545,23 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
                    if t is not None and len(t)), default=0)
     before = None;baseline_proof=[]
     if old_item is not None:
-        before,baseline_proof = baseline_raw_history(q,code,old_item,item,old_snapshot['asof_date'],target,raw_driver,raw)
+        before,baseline_proof = baseline_raw_history(q,code,old_item,item,old_snapshot['asof_date'],target,raw_driver)
     events_same = old_item is not None and factor_state(old_item) == factor_state(item)
     rules_same=all(all(contract.get(key)==source_semantics[key] for key in
         ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')) for contract in c['contracts'].values())
     shape_same=old_item is not None and all(old_item.get(key)==item.get(key) for key in
         ('history_extension','history_start_date','compute_start_date'))
-    prefix_same = before is not None and raw_identity(before) == raw_identity(raw.loc[raw.trade_date.le(int(before.trade_date.max()))])
+    prefix_same = False
+    if before is not None:
+        cutoff = int(before.trade_date.max())
+        if baseline_proof:
+            # Catch-up within the old generation can change its logical rows.
+            cutoff = max(cutoff, old_snapshot['asof_date'], old_end)
+        historical = raw.loc[raw.trade_date.le(cutoff)]
+        prefix_same = raw_identity(before) == raw_identity(historical)
+        source_fields = ['raw_source_role', 'raw_source_record_index']
+        if prefix_same and baseline_proof and 'raw_source_role' in before:
+            prefix_same = before[source_fields].equals(historical[source_fields].reset_index(drop=True))
     kind = ('NEW_OR_MISSING_HISTORY' if before is None else 'RULE_REVISION' if not rules_same else 'FACTOR_REVISION' if not events_same
             else 'RAW_REVISION' if not prefix_same or not shape_same else 'APPEND' if int(raw.trade_date.max()) > old_end else 'UNCHANGED')
     dependency = q['canonical_sha'](dict(code=code, raw=raw_identity(raw), events=factor_state(item),history_extension=item.get('history_extension'),
@@ -656,41 +670,89 @@ def _validate_resume(q,c,code,dependency,saved,frames,schemas):
             raise ValueError('DELTA_CHECKPOINT_LOGICAL_COUNTS')
 
 
-def baseline_raw_history(q,code,old_item,item,old_asof,target,driver,current):
-    """Authenticate old bytes, including an exact prefix of an appended file.
+def _matching_prefix_rows(raw, size, limit, expected):
+    """Find the old whole-file SHA at a nonempty record boundary."""
+    view = memoryview(raw)
+    if limit and hashlib.sha256(view[:limit * size]).hexdigest() == expected:
+        return limit
+    digest = hashlib.sha256()
+    for rows in range(1, limit):
+        digest.update(view[(rows - 1) * size:rows * size])
+        if digest.hexdigest() == expected:
+            return rows
+    return None
 
-    _source remains unchanged. The fallback accepts only identical source paths
-    and slicing semantics, independently authenticated new whole bytes and the
-    exact old whole SHA reconstructed as a contiguous prefix. A revision fails.
-    """
+
+def baseline_raw_history(q, code, old_item, item, old_asof, target, driver):
+    """Resolve old rows from whole files or their exact, SHA-bound prefixes."""
     try:
-        return q['resolved_raw_history'](code,old_item,old_asof,driver),[]
+        return q['resolved_raw_history'](code, old_item, old_asof, driver), []
     except q['QfqGateError'] as error:
-        if not str(error).startswith('SOURCE_BINDING_FAILED:'):raise
-        original=error
-    previous,current_refs=old_item['raw_files'],item['raw_files']
-    semantic=lambda ref:{k:v for k,v in ref.items() if k!='sha256'}
-    if (len(previous)!=len(current_refs) or any(semantic(a)!=semantic(b) for a,b in zip(previous,current_refs))
-            or any(old_item.get(k)!=item.get(k) for k in ('raw_resolution','history_start_date','compute_start_date'))):
+        if not str(error).startswith('SOURCE_BINDING_FAILED:'):
+            raise
+        original = error
+
+    previous, current_refs = old_item['raw_files'], item['raw_files']
+    semantic = lambda ref: {k: v for k, v in ref.items() if k != 'sha256'}
+    if (len(previous) != len(current_refs)
+            or any(semantic(a) != semantic(b) for a, b in zip(previous, current_refs))
+            or any(old_item.get(k) != item.get(k)
+                   for k in ('raw_resolution', 'history_start_date', 'compute_start_date'))):
         raise original
-    import struct
-    proofs=[]
-    for before,after in zip(previous,current_refs):
-        path=q['_source'](after,owner='current whole for baseline '+code)
-        stamp=logical.stamp(path);raw=path.read_bytes()
-        if hashlib.sha256(raw).hexdigest()!=after['sha256'] or logical.stamp(path)!=stamp:
-            raise q['QfqGateError']('BASELINE_PREFIX_CURRENT_CHANGED:'+code)
-        if before['sha256']==after['sha256']:continue
-        size=driver.DAY_STRUCT.size
-        if size!=32 or len(raw)%size:raise original
-        days=[struct.unpack_from('<I',raw,i)[0] for i in range(0,len(raw),size)]
-        if days!=sorted(set(days)) or not days or max(days)>target:raise original
-        n=sum(day<=old_asof for day in days);prefix=raw[:n*size]
-        if hashlib.sha256(prefix).hexdigest()!=before['sha256'] or not all(d>old_asof for d in days[n:]):raise original
-        proofs.append(dict(original=before,current=after,old_asof=old_asof,prefix_rows=n,
-            prefix_sha256=before['sha256'],added_dates=days[n:]))
-    if not proofs:raise original
-    return current.loc[current.trade_date.le(old_asof)].copy(),proofs
+
+    size = driver.DAY_STRUCT.size
+    proofs, payloads, stamps, historical_sha = [], {}, {}, {}
+    for before, after in zip(previous, current_refs):
+        path = q['_source'](after, owner='current whole for baseline ' + code)
+        stamp = logical.stamp(path)
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != after['sha256'] or logical.stamp(path) != stamp:
+            raise q['QfqGateError']('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
+        if old_item.get('raw_resolution'):
+            historical_key = (before.get('source_role'), after['sha256'])
+            if historical_sha.setdefault(historical_key, before['sha256']) != before['sha256']:
+                raise original
+        if before['sha256'] != after['sha256']:
+            if size != 32 or not raw or len(raw) % size:
+                raise original
+            days = [struct.unpack_from('<I', raw, i)[0] for i in range(0, len(raw), size)]
+            if days != sorted(set(days)) or days[0] <= 19000101 or days[-1] > target:
+                raise original
+            limit = min(bisect_right(days, old_asof), len(days) - 1)
+            rows = _matching_prefix_rows(raw, size, limit, before['sha256'])
+            if rows is None:
+                raise original
+            raw = raw[:rows * size]
+            proofs.append(dict(original=before, current=after, old_asof=old_asof,
+                prefix_rows=rows, prefix_end_date=days[rows - 1],
+                prefix_sha256=before['sha256'], added_dates=days[rows:]))
+        if path in payloads and (payloads[path] != raw or stamps[path] != stamp):
+            raise original
+        payloads[path], stamps[path] = raw, stamp
+    if not proofs:
+        raise original
+
+    decoder = driver.driver if isinstance(driver, _RawDriver) else driver
+
+    def read_bound_rows(code, path, tail_records):
+        payload = payloads[path]
+        # The original decoder reads the proved bytes in file order.
+        source = SimpleNamespace(stat=lambda: SimpleNamespace(st_size=len(payload)),
+                                 open=lambda mode: BytesIO(payload))
+        return decoder.read_day_tail(code, source, tail_records=len(payload) // size)
+
+    # The resolver still validates the current on-disk refs. It applies the old
+    # slicing and overlap policy to the proved bytes supplied to its decoder.
+    resolver_driver = SimpleNamespace(DAY_STRUCT=driver.DAY_STRUCT, read_day_tail=read_bound_rows)
+    baseline = q['resolved_raw_history'](code, dict(old_item, raw_files=current_refs),
+                                         old_asof, resolver_driver)
+    if any(logical.stamp(path) != stamp for path, stamp in stamps.items()):
+        raise q['QfqGateError']('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
+    if 'raw_source_ref_sha256' in baseline:
+        baseline['raw_source_ref_sha256'] = [
+            historical_sha[(role, sha)] for role, sha in
+            zip(baseline.raw_source_role, baseline.raw_source_ref_sha256)]
+    return baseline, proofs
 
 
 def observe_resources():
