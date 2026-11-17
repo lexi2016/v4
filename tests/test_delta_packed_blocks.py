@@ -1,6 +1,8 @@
 """Storage-only packing and partial-member recovery; no formula replacement."""
 import copy
+import hashlib
 import json
+import struct
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -142,11 +144,12 @@ def test_partial_batch_member_recovery_never_imports_other_members(fixture, othe
     if other == 'no_target':
         f.raw['002152.SZ'].drop(f.raw['002152.SZ'].index[-1], inplace=True)
     if other == 'quarantine':
-        original = f.q['resolved_raw_history']
-        def raw(code, *args):
-            if code == '002152.SZ': raise owner.QfqGateError('FIXTURE_SOURCE_ISOLATED')
+        original = f.q['rebuild_symbol']
+        def rebuild(code, *args):
+            if code == '002152.SZ':
+                raise owner.QfqGateError('ORIGINAL_RAW_FIELD_SIGNATURE_QUARANTINED:002152.SZ:[3]')
             return original(code, *args)
-        f.q['resolved_raw_history'] = raw
+        f.q['rebuild_symbol'] = rebuild
     delta.run_delta(f.q, c)
     for path in c['candidates'].values():
         blocks = logical.closure(path)
@@ -163,6 +166,207 @@ def test_partial_batch_member_recovery_never_imports_other_members(fixture, othe
             expected = pa.Table.from_pandas(f.compute('002152.SZ',None,3,None),schema=f.schema,preserve_index=False)
             exact(got, expected)
             if other == 'no_target': assert 3 not in got['trade_date'].to_pylist()
+
+
+def bind_missing_old_raw(f, links):
+    old_ref = f.c['contracts']['selector']['adjustment_snapshot']
+    snapshot_path = Path(old_ref['path'])
+    old = json.loads(snapshot_path.read_text())
+    for code, path in links.items():
+        old['symbols'][code]['raw_files'] = [
+            dict(path=str(path), sha256=hashlib.sha256(b'fixture old raw').hexdigest())]
+    owner._json(snapshot_path, old)
+    old_ref['sha256'] = owner.sha(snapshot_path)
+
+
+def test_unresolved_old_stock_does_not_prevent_late_healthy_checkpoints(fixture):
+    f = one_bucket(fixture)
+    f.c.update(workers=1, resource_plan={'max_pending': 1}, publish=True)
+    accepted, eligible, last = '000001.SZ', '002152.SZ', '688053.SH'
+    accepted_path, eligible_path = f.tmp / 'old-accepted.day', f.tmp / 'old-eligible.day'
+    bind_missing_old_raw(f, {accepted: accepted_path, eligible: eligible_path})
+    original_status = {'reason_code': 'FIXTURE_POLICY_EVIDENCE'}
+    f.c['snapshot']['original_quarantine_eligible'] = {eligible: original_status}
+    refresh_snapshot(f)
+    original = f.q['resolved_raw_history']
+    attempts = []
+
+    def raw(code, item, *args):
+        if item['raw_kind'] == 'new':
+            attempts.append(code)
+        for ref in item.get('raw_files', []):
+            owner._source(ref, owner=code)
+        return original(code, item, *args)
+
+    f.q['resolved_raw_history'] = raw
+    pointers = {role: path.read_bytes() for role, path in f.pointers.items()}
+    with pytest.raises(owner.QfqGateError, match='DELTA_OLD_BASELINE_STOCKS_UNRESOLVED:1'):
+        delta.run_delta(f.q, f.c)
+
+    assert attempts == [accepted, eligible, '002717.SZ', last]
+    assert f.calls == [last]
+    failed = {accepted: f'SOURCE_BINDING_FAILED:{accepted}:{accepted_path}'}
+    run = f.c['run_dir']
+    status = json.loads((run / 'stage_status.json').read_text())
+    progress = json.loads((run / 'progress.json').read_text())
+    for state in [status, progress]:
+        assert state['failed_stocks'] == failed and state['failed_stock_count'] == 1
+    assert status['status'] == 'FAILED'
+    assert progress['stage'] == 'BASELINE_STOCKS_UNRESOLVED' and progress['completed'] == 3
+    assert not any(path.exists() for path in f.c['candidates'].values())
+    assert pointers == {role: path.read_bytes() for role, path in f.pointers.items()}
+    cp_dir = run / 'delta_checkpoints'
+    assert {path.name.split('.')[0] for path in cp_dir.glob('*.json')} == {'002717', '688053'}
+    record = delta._load_checkpoint(f.q, next(cp_dir.glob(last + '.*.json')), last)
+    assert set(record['roles']) == set(f.pointers)
+
+    accepted_path.write_bytes(b'fixture old raw')
+    result = delta.run_delta(f.q, f.c)
+    assert result['status'] == 'READY' and result['reused_delta_checkpoints'] == 2
+    assert f.calls == [last, accepted]
+    assert result['dependency_classifications'][eligible] == 'ORIGINAL_QUARANTINE_ELIGIBLE_FAILURE'
+    manifest = json.loads(Path(result['quarantine_manifest']['path']).read_text())
+    assert manifest['reasons'] == {eligible: dict(
+        reason=f'SOURCE_BINDING_FAILED:{eligible}:{eligible_path}', original_status=original_status)}
+    assert all(f.pointers[role].read_text().strip() == str(path) for role, path in f.c['candidates'].items())
+
+
+@pytest.mark.parametrize('failure_kind', ['current_raw', 'eligible_current_raw',
+    'eligible_current_reread', 'eligible_current_format', 'shared_old_raw', 'shared_old_alias',
+    'other_old_owner', 'checkpoint'])
+def test_unclassified_worker_failure_stops_pending_submissions(fixture, failure_kind):
+    f = one_bucket(fixture)
+    f.c.update(workers=1, resource_plan={'max_pending': 1}, publish=True)
+    first = '000001.SZ'
+    path = f.tmp / 'missing.day'
+    if failure_kind == 'shared_old_alias':
+        alias = f.tmp / 'alias.day'
+        alias.symlink_to(path.name)
+        assert alias.is_symlink() and not alias.exists()
+        bind_missing_old_raw(f, {first: alias, '002152.SZ': path})
+    elif failure_kind in {'shared_old_raw', 'other_old_owner'}:
+        links = {first: path}
+        if failure_kind == 'shared_old_raw':
+            links['002152.SZ'] = path
+        bind_missing_old_raw(f, links)
+    eligibility = {first: {'reason_code': 'FIXTURE'}}
+    if failure_kind == 'shared_old_alias':
+        eligibility['002152.SZ'] = {'reason_code': 'FIXTURE'}
+        f.c['snapshot']['accepted_target_date_floor'] = 1
+    eligible = failure_kind.startswith('eligible_') or failure_kind in {'shared_old_raw', 'shared_old_alias', 'checkpoint'}
+    if eligible:
+        f.c['snapshot']['original_quarantine_eligible'] = eligibility
+        refresh_snapshot(f)
+    if failure_kind == 'checkpoint':
+        f.c['recovered'] = {first: dict(read_only_delta=True, checkpoint=dict(path=str(path), sha256='0' * 64))}
+    original = f.q['resolved_raw_history']
+    attempts = []
+
+    def raw(code, item, *args):
+        if item['raw_kind'] == 'new':
+            attempts.append(code)
+            if failure_kind in {'current_raw', 'eligible_current_raw'}:
+                owner._source(dict(path=str(path), sha256='0' * 64), owner=code)
+            if failure_kind == 'eligible_current_format':
+                raise owner.QfqGateError(f'RAW_TRAILING_BYTES:{code}:{path}')
+        else:
+            for ref in item.get('raw_files', []):
+                owner._source(ref, owner='different owner' if failure_kind == 'other_old_owner' else code)
+        return original(code, item, *args)
+
+    f.q['resolved_raw_history'] = raw
+    if failure_kind == 'eligible_current_reread':
+        def rebuild(code, *args):
+            owner._source(dict(path=str(path), sha256='0' * 64), owner=code)
+        f.q['rebuild_symbol'] = rebuild
+    expected = 'RAW_TRAILING_BYTES' if failure_kind == 'eligible_current_format' else 'SOURCE_BINDING_FAILED'
+    with pytest.raises(owner.QfqGateError, match=expected):
+        delta.run_delta(f.q, f.c)
+    assert attempts == [first]
+    status = json.loads((f.c['run_dir'] / 'stage_status.json').read_text())
+    progress = json.loads((f.c['run_dir'] / 'progress.json').read_text())
+    assert status['failed_stocks'] == {} and status['failed_stock_count'] == 0
+    if failure_kind == 'shared_old_alias':
+        assert status['error'] == f'SOURCE_BINDING_FAILED:{first}:{alias}'
+    assert progress['stage'] == 'DRAINED'
+    assert not any(path.exists() for path in f.c['candidates'].values())
+
+
+@pytest.mark.parametrize('first_proven', [True, False], ids=['first-proven', 'neither-proven'])
+def test_prefix_failure_for_stock_with_shared_raw_source_is_fatal(fixture, first_proven):
+    f = one_bucket(fixture)
+    f.c.update(target=20261117, workers=1, resource_plan={'max_pending': 1}, publish=True)
+    first, second = '000001.SZ', '002152.SZ'
+    record = struct.Struct('<I28s')
+    f.c['driver'].DAY_STRUCT = record
+
+    def bind(name, before, current):
+        path = f.tmp / name
+        path.write_bytes(current)
+        return [dict(path=str(path), sha256=hashlib.sha256(payload).hexdigest())
+                for payload in (before, current)]
+
+    prefix = record.pack(20261112, b'a' * 28)
+    tail = record.pack(20261117, b'b' * 28)
+    first_current = prefix if first_proven else record.pack(20261112, b'd' * 28)
+    old_a, new_a = bind('first-private.day', prefix, first_current + tail)
+    old_b, new_b = bind('later-shared.day', prefix, record.pack(20261112, b'c' * 28) + tail)
+    old_ref = f.c['contracts']['selector']['adjustment_snapshot']
+    path = Path(old_ref['path'])
+    snapshot = json.loads(path.read_text())
+    snapshot['asof_date'] = 20261116
+    snapshot['symbols'][first]['raw_files'] = [old_a, old_b]
+    snapshot['symbols'][second]['raw_files'] = [old_b]
+    owner._json(path, snapshot)
+    old_ref['sha256'] = owner.sha(path)
+
+    f.c['snapshot']['symbols'][first]['raw_files'] = [new_a, new_b]
+    f.c['snapshot']['original_quarantine_eligible'] = {first: {'reason_code': 'FIXTURE'}}
+    refresh_snapshot(f)
+    attempts = []
+    original = f.q['resolved_raw_history']
+
+    def raw(code, item, *args):
+        if item['raw_kind'] == 'new':
+            attempts.append(code)
+        for ref in item.get('raw_files', ()):
+            owner._source(ref, owner=code)
+        return original(code, item, *args)
+
+    f.q['resolved_raw_history'] = raw
+    pointers = {role: path.read_bytes() for role, path in f.pointers.items()}
+    failed = old_b if first_proven else old_a
+    reason = f"SOURCE_BINDING_FAILED:{first}:{failed['path']}"
+    with pytest.raises(owner.QfqGateError) as caught:
+        delta.run_delta(f.q, f.c)
+    assert str(caught.value) == reason
+    assert str(caught.value.__cause__) == f"SOURCE_BINDING_FAILED:{first}:{old_a['path']}"
+    assert attempts == [first]
+    status = json.loads((f.c['run_dir'] / 'stage_status.json').read_text())
+    assert status['error'] == reason and status['failed_stock_count'] == 0
+    assert not any(path.exists() for path in f.c['candidates'].values())
+    assert pointers == {role: path.read_bytes() for role, path in f.pointers.items()}
+
+
+def _old_reference_failure_in_spawn_worker(ref):
+    delta.baseline_raw_history(vars(owner), '000001.SZ', {'raw_files': [ref]},
+        {'raw_files': []}, 20261116, 20261117, None)
+
+
+def test_old_reference_failure_preserves_original_reason_across_spawn(tmp_path):
+    import multiprocessing
+    import sys
+    from concurrent.futures import ProcessPoolExecutor
+
+    path = tmp_path / 'missing.day'
+    ref = dict(path=str(path), sha256='0' * 64)
+    multiprocessing.set_executable(sys.executable)
+    with ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context('spawn')) as pool:
+        future = pool.submit(_old_reference_failure_in_spawn_worker, ref)
+        with pytest.raises(delta._OldBaselineSourceBindingError) as caught:
+            future.result()
+    assert str(caught.value) == f'SOURCE_BINDING_FAILED:000001.SZ:{path}'
+    assert caught.value.source_path == path
 
 
 def test_checkpoint_and_shared_file_sha_drift_fail_closed(fixture):

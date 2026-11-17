@@ -17,6 +17,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 from ops import research_panel_logical as logical
+from ops.research_panel_factor_cache import QfqGateError
 
 PROJECTED = set(logical.DISPLAY) | {'raw_source_ref_sha256'}
 
@@ -305,13 +306,58 @@ def _add_scoped_block(blocks, code, block):
     previous['key_rows'][code] = list(block['key_rows'][code])
 
 
-def run_delta(q, c):
+class _OldBaselineSourceBindingError(QfqGateError):
+    """The committed snapshot's per-symbol raw reference could not be proved."""
+
+    def __init__(self, reason, source_path):
+        super().__init__(reason, source_path)
+        self.source_path = source_path
+
+    def __str__(self):
+        return self.args[0]
+
+
+class _ProtectedDeltaReadError(QfqGateError):
+    """Current input or durable checkpoint integrity failed."""
+
+
+# rebuild_symbol also reads current raw history through the original owner.
+_CURRENT_RAW_SOURCE_GATES = {
+    'SOURCE_BINDING_FAILED', 'RAW_RESOLUTION_UNSUPPORTED', 'RAW_TRAILING_BYTES',
+    'HISTORY_WHOLE_ROW_POLICY_CONFLICT', 'HISTORY_SOURCE_DUPLICATE_DATE',
+    'HISTORY_AMBIGUOUS_SOURCE_ROLE', 'RAW_SOURCE_OVERLAP_CONFLICT',
+    'RAW_HISTORY_START_MISMATCH',
+}
+
+
+def _protected_read(q, reader, *args, **kwargs):
     try:
-        return _run_delta(q, c)
+        return q[reader](*args, **kwargs)
+    except q['QfqGateError'] as error:
+        raise _ProtectedDeltaReadError(str(error)) from error
+
+
+def _stocks_with_shared_raw_paths(*symbol_sets):
+    owners, shared = {}, set()
+    for symbols in symbol_sets:
+        for code, item in symbols.items():
+            for ref in item.get('raw_files', ()):
+                path = Path(ref['path']).resolve(strict=False)
+                first_owner = owners.setdefault(path, code)
+                if first_owner != code:
+                    shared.update((first_owner, code))
+    return shared
+
+
+def run_delta(q, c):
+    stock_failures = {}
+    try:
+        return _run_delta(q, c, stock_failures)
     except BaseException as exc:
         q['_json'](c['run_dir']/'stage_status.json', dict(status='FAILED', error=str(exc),
             run_dir=str(c['run_dir']),target_date=c['target'],candidates={r:str(p)for r,p in c['candidates'].items()},
-            storage_layout='ARROW_BLOCKS_V1', **c['meta']))
+            storage_layout='ARROW_BLOCKS_V1', failed_stock_count=len(stock_failures),
+            failed_stocks=stock_failures, **c['meta']))
         raise
     finally:
         pool = c.pop('_delta_pool', None)
@@ -319,7 +365,7 @@ def run_delta(q, c):
             pool.shutdown(wait=True)
 
 
-def _run_delta(q, c):
+def _run_delta(q, c, stock_failures):
     """Called by run_daily_rebuild after its original source/identity checks."""
     target, snapshot, meta = c['target'], c['snapshot'], c['meta']
     currents, schemas, run = c['currents'], c['schemas'], c['run_dir']
@@ -327,6 +373,8 @@ def _run_delta(q, c):
     q['_json'](run / 'stage_status.json', dict(status='RUNNING', stage='ORIGINAL_DELTA_STORAGE', **meta))
     old_snapshot = json.loads(q['_source'](next(iter(c['contracts'].values()))['adjustment_snapshot'],
                                          owner='delta original committed snapshot').read_text())
+    stocks_with_shared_raw = _stocks_with_shared_raw_paths(old_snapshot['symbols'], snapshot['symbols'])
+    eligible = snapshot.get('original_quarantine_eligible', {})
     prior = {}
     old_views = {}
     all_old = set().union(*c['old_symbols'].values())
@@ -381,6 +429,7 @@ def _run_delta(q, c):
     stop=run/'STOP_REQUESTED'
     def progress(stage='ORIGINAL_DELTA_STORAGE'):
         q['_json'](run/'progress.json',dict(stage=stage,completed=len(classifications),total=len(expected),
+            failed_stock_count=len(stock_failures),failed_stocks=stock_failures,
             reused_checkpoints=resumed,new_delta_file_bytes=packer.written_bytes,compute_backend=backend,
             buffered_computations=len(packer.pending),buffered_patch_bytes=packer.bytes,packing_limits=packer.limits,
             workers=c['workers'],max_pending=limit,maximum_inflight=maximum_inflight,
@@ -413,36 +462,53 @@ def _run_delta(q, c):
             done,_=wait(pending,return_when=FIRST_COMPLETED)
             for future in done:
                 code=pending.pop(future)
+                processed_results += 1
                 try:
-                    prepared=future.result()
-                    processed_results += 1
-                    worker_pids.add(prepared['worker_pid']);cpu_seconds+=prepared['cpu_seconds']
-                    item,kind,dependency,checkpoint=(prepared[k]for k in ('item','kind','dependency','checkpoint'))
-                    if checkpoint.is_file():
-                        saved=_load_checkpoint(q,checkpoint,code)
-                        if saved['dependency']!=dependency or saved.get('classification')!=kind:raise ValueError('DELTA_CHECKPOINT_IDENTITY')
-                        origin=prepared.get('origin');validation=c
-                        if origin:
-                            validation={**c,'run_id':origin['source_generation'],'run_dir':Path(origin.get('source_run',c['run_dir'])),'candidates':{r:Path(p)for r,p in origin['source_candidates'].items()}}
-                        _validate_resume(q,validation,code,dependency,saved,frames,schemas)
-                        record=saved;resumed+=1
-                        for value in record['roles'].values(): packer.reused(value['artifact']['path'])
-                        if prepared.get('checkpoint_member') and not origin:
-                            q['_json'](run/'delta_checkpoints'/(code+'.'+dependency+'.json'),_thin_record(record))
-                        accept(code,kind,record)
+                    try:
+                        prepared = future.result()
+                    except q['QfqGateError'] as error:
+                        reason = str(error)
+                        gate = reason.partition(':')[0]
+                        old_reference_failed = isinstance(error, _OldBaselineSourceBindingError)
+                        if (isinstance(error, _ProtectedDeltaReadError)
+                                or (old_reference_failed and code in stocks_with_shared_raw)
+                                or (not old_reference_failed and gate in _CURRENT_RAW_SOURCE_GATES)):
+                            raise
+                        if code in eligible:
+                            quarantine[code] = dict(reason=reason, original_status=eligible[code])
+                            classifications[code] = 'ORIGINAL_QUARANTINE_ELIGIBLE_FAILURE'
+                        elif old_reference_failed:
+                            stock_failures[code] = reason
+                        else:
+                            raise
                     else:
-                        for completed in packer.add(prepared):
-                            accept(completed['code'],completed['kind'],completed['record'])
+                        worker_pids.add(prepared['worker_pid']);cpu_seconds+=prepared['cpu_seconds']
+                        item,kind,dependency,checkpoint=(prepared[k]for k in ('item','kind','dependency','checkpoint'))
+                        if checkpoint.is_file():
+                            saved=_load_checkpoint(q,checkpoint,code)
+                            if saved['dependency']!=dependency or saved.get('classification')!=kind:raise ValueError('DELTA_CHECKPOINT_IDENTITY')
+                            origin=prepared.get('origin');validation=c
+                            if origin:
+                                validation={**c,'run_id':origin['source_generation'],'run_dir':Path(origin.get('source_run',c['run_dir'])),'candidates':{r:Path(p)for r,p in origin['source_candidates'].items()}}
+                            _validate_resume(q,validation,code,dependency,saved,frames,schemas)
+                            record=saved;resumed+=1
+                            for value in record['roles'].values(): packer.reused(value['artifact']['path'])
+                            if prepared.get('checkpoint_member') and not origin:
+                                q['_json'](run/'delta_checkpoints'/(code+'.'+dependency+'.json'),_thin_record(record))
+                            accept(code,kind,record)
+                        else:
+                            for completed in packer.add(prepared):
+                                accept(completed['code'],completed['kind'],completed['record'])
                 except BaseException as error:
-                    eligible=snapshot.get('original_quarantine_eligible',{})
-                    if isinstance(error,q['QfqGateError']) and code in eligible:
-                        quarantine[code]=dict(reason=str(error),original_status=eligible[code]);classifications[code]='ORIGINAL_QUARANTINE_ELIGIBLE_FAILURE'
-                    elif failure is None:failure=error
+                    if failure is None:
+                        failure = error
                 if backend=='process' and processed_results%32==0 and failure is None:
                     plan=resource_plan(observe_resources(),c.get('requested_workers'))
                     limit=min(2*c['workers'],plan['max_pending'])
                     if plan['drained']:failure=MemoryError('DELTA_RESOURCE_LIMIT_DRAINED')
-                if len(classifications)%max(1,min(16,c['workers']))==0 or failure is not None:progress('DRAINING'if failure else'ORIGINAL_DELTA_STORAGE')
+                settled = len(classifications) + len(stock_failures)
+                if code in stock_failures or settled % max(1, min(16, c['workers'])) == 0 or failure is not None:
+                    progress('DRAINING' if failure else 'ORIGINAL_DELTA_STORAGE')
             if failure is not None:exhausted=True
         if packer.failed is None:
             try:
@@ -453,6 +519,9 @@ def _run_delta(q, c):
         progress('DRAINED'if failure else'ORIGINAL_DELTA_STORAGE')
         if failure is not None:raise failure
     pool.shutdown(wait=True);c.pop('_delta_pool',None)
+    if stock_failures:
+        progress('BASELINE_STOCKS_UNRESOLVED')
+        raise QfqGateError(f'DELTA_OLD_BASELINE_STOCKS_UNRESOLVED:{len(stock_failures)}')
     logical_written,reused_bytes=packer.written_bytes,packer.reused_bytes
     for role in deltas:
         deltas[role].sort(key=lambda block:(q['_bucket'](block['symbols'][0]),block['symbols'][0]))
@@ -539,7 +608,7 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
     currents = c['currents']
     item = snapshot['symbols'][code]
     raw_driver = _RawDriver(driver)
-    raw = q['resolved_raw_history'](code, item, target, raw_driver)
+    raw = _protected_read(q, 'resolved_raw_history', code, item, target, raw_driver)
     old_item = old_snapshot.get('symbols', {}).get(code)
     old_end = max((max(int(x) for x in t['trade_date'].to_pylist()) for t in [frames[r].get(code) for r in currents]
                    if t is not None and len(t)), default=0)
@@ -573,20 +642,21 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
     restored=c.get('recovered',{}).get(code)
     if not checkpoint.is_file() and restored is not None and restored.get('read_only_delta') is True:
         origin=restored
-        checkpoint=q['_source'](restored['checkpoint'],owner='sealed original delta checkpoint '+code)
+        checkpoint=_protected_read(q, '_source', restored['checkpoint'], owner='sealed original delta checkpoint '+code)
         checkpoint_member=restored['checkpoint'].get('member')
     sealed=c.get('sealed_records',{}).get(code)
     if not checkpoint.is_file() and sealed is not None and sealed['dependency']==dependency:
-        checkpoint=q['_source'](sealed['reference'],owner='completed same-run batch member '+code)
+        checkpoint=_protected_read(q, '_source', sealed['reference'], owner='completed same-run batch member '+code)
         checkpoint_member=code
     computed = None
     if kind != 'UNCHANGED' and not checkpoint.is_file():
         recovered=c.get('recovered',{}).get(code)
         if recovered is not None:
-            path=(q['_partial_checkpoint_file'](recovered) if recovered.get('read_only_original') is True
-                  else q['_source'](recovered['artifact'],owner='delta reviewed pure checkpoint '+code))
+            path=(_protected_read(q, '_partial_checkpoint_file', recovered) if recovered.get('read_only_original') is True
+                  else _protected_read(q, '_source', recovered['artifact'], owner='delta reviewed pure checkpoint '+code))
             computed=q['pq'].read_table(path).to_pandas()
-            if set(computed.ts_code.astype(str))!={code}:raise q['QfqGateError']('DELTA_RECOVERED_ROW_CODE_CONFLICT:'+code)
+            if set(computed.ts_code.astype(str)) != {code}:
+                raise _ProtectedDeltaReadError('DELTA_RECOVERED_ROW_CODE_CONFLICT:' + code)
         else:
             computed=q['rebuild_symbol'](code, item, target, raw_driver)
     return dict(code=code,item=item,kind=kind,dependency=dependency,checkpoint=checkpoint,checkpoint_member=checkpoint_member,computed=computed,origin=origin,baseline_proof=baseline_proof)
@@ -693,44 +763,55 @@ def baseline_raw_history(q, code, old_item, item, old_asof, target, driver):
         original = error
 
     previous, current_refs = old_item['raw_files'], item['raw_files']
+    unresolved = original
+    for ref in previous:
+        path = Path(ref['path'])
+        if path.is_absolute() and str(original) == f'SOURCE_BINDING_FAILED:{code}:{path}':
+            unresolved = _OldBaselineSourceBindingError(str(original), path)
+            break
     semantic = lambda ref: {k: v for k, v in ref.items() if k != 'sha256'}
     if (len(previous) != len(current_refs)
             or any(semantic(a) != semantic(b) for a, b in zip(previous, current_refs))
             or any(old_item.get(k) != item.get(k)
                    for k in ('raw_resolution', 'history_start_date', 'compute_start_date'))):
-        raise original
+        raise unresolved
 
     size = driver.DAY_STRUCT.size
     proofs, payloads, stamps, historical_sha = [], {}, {}, {}
     for before, after in zip(previous, current_refs):
-        path = q['_source'](after, owner='current whole for baseline ' + code)
+        path = _protected_read(q, '_source', after, owner='current whole for baseline ' + code)
         stamp = logical.stamp(path)
         raw = path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != after['sha256'] or logical.stamp(path) != stamp:
-            raise q['QfqGateError']('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
+            raise _ProtectedDeltaReadError('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
         if old_item.get('raw_resolution'):
             historical_key = (before.get('source_role'), after['sha256'])
             if historical_sha.setdefault(historical_key, before['sha256']) != before['sha256']:
-                raise original
+                raise _ProtectedDeltaReadError(str(original)) from original
         if before['sha256'] != after['sha256']:
             if size != 32 or not raw or len(raw) % size:
-                raise original
+                raise _ProtectedDeltaReadError(str(original)) from original
             days = [struct.unpack_from('<I', raw, i)[0] for i in range(0, len(raw), size)]
             if days != sorted(set(days)) or days[0] <= 19000101 or days[-1] > target:
-                raise original
+                raise _ProtectedDeltaReadError(str(original)) from original
             limit = min(bisect_right(days, old_asof), len(days) - 1)
             rows = _matching_prefix_rows(raw, size, limit, before['sha256'])
             if rows is None:
+                if isinstance(unresolved, _OldBaselineSourceBindingError):
+                    # Earlier changed refs can already have proved their prefixes.
+                    failed_path = Path(before['path'])
+                    raise _OldBaselineSourceBindingError(
+                        f'SOURCE_BINDING_FAILED:{code}:{failed_path}', failed_path) from original
                 raise original
             raw = raw[:rows * size]
             proofs.append(dict(original=before, current=after, old_asof=old_asof,
                 prefix_rows=rows, prefix_end_date=days[rows - 1],
                 prefix_sha256=before['sha256'], added_dates=days[rows:]))
         if path in payloads and (payloads[path] != raw or stamps[path] != stamp):
-            raise original
+            raise _ProtectedDeltaReadError(str(original)) from original
         payloads[path], stamps[path] = raw, stamp
     if not proofs:
-        raise original
+        raise _ProtectedDeltaReadError(str(original)) from original
 
     decoder = driver.driver if isinstance(driver, _RawDriver) else driver
 
@@ -744,10 +825,10 @@ def baseline_raw_history(q, code, old_item, item, old_asof, target, driver):
     # The resolver still validates the current on-disk refs. It applies the old
     # slicing and overlap policy to the proved bytes supplied to its decoder.
     resolver_driver = SimpleNamespace(DAY_STRUCT=driver.DAY_STRUCT, read_day_tail=read_bound_rows)
-    baseline = q['resolved_raw_history'](code, dict(old_item, raw_files=current_refs),
-                                         old_asof, resolver_driver)
+    baseline = _protected_read(q, 'resolved_raw_history', code,
+                               dict(old_item, raw_files=current_refs), old_asof, resolver_driver)
     if any(logical.stamp(path) != stamp for path, stamp in stamps.items()):
-        raise q['QfqGateError']('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
+        raise _ProtectedDeltaReadError('BASELINE_PREFIX_CURRENT_CHANGED:' + code)
     if 'raw_source_ref_sha256' in baseline:
         baseline['raw_source_ref_sha256'] = [
             historical_sha[(role, sha)] for role, sha in
