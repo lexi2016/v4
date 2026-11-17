@@ -2,17 +2,22 @@ from __future__ import annotations
 
 import copy
 from contextlib import contextmanager
+import errno
 import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
+import stat
+import sys
 
 import pytest
 
 from ops import research_storage_compaction as c
 from ops import research_storage_governance as governance
+from ops import research_daily_product_parallel as parallel
+from ops import research_panel_daily_product as product
 
 RESOURCE = dict(cpu_count=18, physical_memory_bytes=128*1024**3, memory_free_percent=86,
                 workers=2, pending_limit=4, reserve_bytes=24*1024**3)
@@ -230,3 +235,136 @@ def test_no_benefit_prefix_is_terminal_across_budgets_and_new_files(tmp_path,mon
     (root/'0.json').write_bytes(b'changed'*4000)
     c.compact_job(job,output=out,resource=resource)
     assert calls[-1]=='0.json' and len(calls)==7
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='Darwin native row storage')
+@pytest.mark.parametrize('parallel_worker', [False, True])
+def test_daily_row_write_is_byte_exact_for_readers_and_governance(tmp_path, monkeypatch, parallel_worker):
+    from infrastructure.research_lane_source import ResearchLaneSource
+
+    root = tmp_path / 'daily_products'
+    symbol, day = '600000.SH', '20261117'
+    context = SimpleNamespace(root=root, target=int(day), scope=[symbol], identity={'input_sha256': 'fixture'},
+        generation='fixture', snapshot_ref={}, config_ref={},
+        engine=lambda: SimpleNamespace(compute=lambda *_: None), unchanged=lambda: None)
+    row = dict(symbol=symbol, data_date=day, groups='', pending_groups='',
+        evaluation={'groups': {name: {'status': 'FALSE'} for name in product.GROUPS}},
+        statistics={'history': ['历史标签' * 10] * 2000}, **product.FLAGS)
+    expected = product.canonical(row) + b'\n'
+    legacy_ref = product.save(tmp_path / 'legacy.json', row, immutable=True)
+    monkeypatch.delenv('V4_STORAGE_PAIR_ROOT', raising=False)
+    monkeypatch.delenv('V4_STORAGE_PAIR_DATA_ROOT', raising=False)
+    monkeypatch.setattr(product, 'SourceContext', lambda *_: context)
+    monkeypatch.setattr(product, 'compute_stock', lambda *_args, **_kwargs: (dict(row), None, None))
+    monkeypatch.setattr(product, 'save_history_checkpoint', lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(parallel, '_CONTEXT', context)
+    monkeypatch.setattr(parallel, '_PARTS', parallel.checkpoint_parts(context, [symbol]))
+    monkeypatch.setattr(parallel, '_CHARTS', False)
+    watched, observed = [], {}
+    claim = SimpleNamespace(watch=watched.append, checkpoint=lambda **_kwargs: None,
+        observe=lambda path: observed.__setitem__(path, path.stat().st_blocks * 512))
+
+    def materialize_ref():
+        if parallel_worker:
+            return parallel.checkpoint(symbol)['ref']
+        result = product.materialize_daily_product(data_root=tmp_path, target=int(day),
+            symbols=[symbol], original_charts=False)
+        return json.loads(product.checked(result['artifact']).read_bytes())['row_refs'][symbol]
+
+    token = governance._ACTIVE.set(claim)
+    try:
+        with governance.product_write_seams([product, parallel], claim):
+            reference = materialize_ref()
+            path = parallel._PARTS / (symbol + '.json')
+            source = ResearchLaneSource.__new__(ResearchLaneSource)
+            source._a_product_root = lambda: tmp_path
+            assert reference == {'path': str(path), 'sha256': legacy_ref['sha256']}
+            assert source._a_product_reference(reference) == source._a_product_reference(legacy_ref) == row
+            assert path.read_bytes() == product.checked(legacy_ref).read_bytes() == expected
+            assert path in watched and observed[path] < Path(legacy_ref['path']).stat().st_blocks * 512
+            assert path.stat().st_flags & stat.UF_COMPRESSED
+            assert stat.S_IMODE(path.stat().st_mode) == stat.S_IMODE(Path(legacy_ref['path']).stat().st_mode)
+            before = c.stamp(path)
+            assert materialize_ref() == reference and c.stamp(path) == before
+    finally:
+        governance._ACTIVE.reset(token)
+    assert not list(path.parent.glob('.daily-row-*.pending'))
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='Darwin native row storage')
+@pytest.mark.parametrize('native_outcome', ['unsupported', 'no_gain', 'hash', 'mode', 'io'])
+def test_daily_row_uses_verified_plain_bytes_only_for_known_no_benefit(tmp_path, monkeypatch, native_outcome):
+    path = tmp_path / '000001.SZ.json'
+    row = {'row': 'ab' * 10000}
+    original = product.canonical(row) + b'\n'
+
+    def native(source, candidate):
+        if native_outcome == 'unsupported':
+            raise OSError(errno.ENOTSUP, 'unsupported test filesystem')
+        if native_outcome == 'io':
+            raise OSError(errno.EIO, 'native test I/O error')
+        candidate.write_bytes(original if native_outcome != 'hash' else b'x' + original[1:])
+        mode = stat.S_IMODE(source.stat().st_mode)
+        os.chmod(candidate, mode ^ stat.S_IXUSR if native_outcome == 'mode' else mode)
+
+    monkeypatch.setattr(c, 'native_compressed_copy', native)
+    if native_outcome in {'unsupported', 'no_gain'}:
+        reference = product.save(path, row, immutable=True, compress_row=True)
+        assert product.checked(reference).read_bytes() == original
+        assert not path.stat().st_flags & stat.UF_COMPRESSED
+    else:
+        with pytest.raises((c.RetentionError, OSError)):
+            product.save(path, row, immutable=True, compress_row=True)
+        assert not path.exists()
+    assert not list(tmp_path.glob('.daily-row-*.pending'))
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='Darwin native row storage')
+def test_concurrent_different_values_never_overwrite_immutable_row(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    path = tmp_path / '000001.SZ.json'
+    barrier = Barrier(2)
+
+    def write_row(text):
+        barrier.wait(timeout=5)
+        try:
+            return product.save(path, {'row': text * 20000}, immutable=True, compress_row=True)
+        except ValueError as error:
+            assert str(error).startswith('DAILY_IMMUTABLE_CONFLICT:')
+            return None
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first, second = pool.map(write_row, ['a', 'b'])
+    winner = [x for x in (first, second) if x is not None]
+    assert winner == [product.reference(path)] and product.checked(winner[0]) == path
+    assert not list(tmp_path.glob('.daily-row-*.pending'))
+
+
+@pytest.mark.skipif(sys.platform != 'darwin', reason='Darwin native row storage')
+def test_large_daily_row_uses_single_stage(tmp_path, monkeypatch):
+    monkeypatch.setattr(c, 'native_compressed_copy', lambda *_: pytest.fail('oversized row compressed'))
+    value = {'row': 'x' * c.MAX_DAILY_ROW_COMPRESSION_BYTES}
+    path = tmp_path / '000001.SZ.json'
+    reference = product.save(path, value, immutable=True, compress_row=True)
+    assert product.checked(reference).read_bytes() == product.canonical(value) + b'\n'
+    assert not list(tmp_path.glob('.daily-row-*.pending'))
+
+
+def test_spawn_binding_includes_daily_row_storage_code(tmp_path, monkeypatch):
+    app = Path(product.__file__).resolve().parents[1]
+    sources = [Path(module.__file__) for module in (product, parallel, product.history_checkpoint, c)]
+    entries = [{'path': str(path.relative_to(app)), 'sha256': product.sha(path)} for path in sources]
+    release = tmp_path / 'release.json'
+
+    def bind(items):
+        ref = product.save(release, {'app_root': str(app), 'application_inventory': {'entries': items}})
+        monkeypatch.setenv('V4_RELEASE_MANIFEST_PATH', ref['path'])
+        monkeypatch.setenv('V4_RELEASE_MANIFEST_SHA256', ref['sha256'])
+
+    bind(entries)
+    assert product.reference(sources[-1]) in parallel.bound_main_sources()['code']
+    bind(entries[:-1])
+    with pytest.raises(ValueError, match='DAILY_PARALLEL_MAIN_SOURCE_BINDING:.*research_storage_compaction'):
+        parallel.bound_main_sources()

@@ -300,12 +300,13 @@ class Registry:
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
 
-def abandon_task(policy, *, key, expected_registry_sha256, expected_token, reason):
+def abandon_task(policy, *, key, expected_registry_sha256, expected_token, reason, preserve_billing_paths: bool = False):
     """Explicit controller operation, never called by normal failure recovery.
 
     Serializes with the pool writer and CAS-binds the exact registry/token.
     The terminal row remains evidence and denies automatic same-key recovery.
     No payload or stage file is removed; deletion is a separate reviewed action.
+    An explicit preserve request leaves the retained payload in ordinary accounting.
     """
     if not reason or len(reason) > 1024:
         raise RetentionError('ABANDON_REASON_REQUIRED')
@@ -325,8 +326,9 @@ def abandon_task(policy, *, key, expected_registry_sha256, expected_token, reaso
                    logical_written_bytes=0, abandonment=dict(reason=reason,
                    previous_sha256=canonical(before), previous_state=before['state'],
                    released_reserved_bytes=before['reserved_bytes'],
-                   released_billing_paths=before.get('billing_paths', [])))
-        row['billing_paths'] = []
+                   released_billing_paths=[] if preserve_billing_paths else before.get('billing_paths', [])))
+        if not preserve_billing_paths:
+            row['billing_paths'] = []
         registry.save(state)
         return row
 

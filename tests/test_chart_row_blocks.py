@@ -73,6 +73,108 @@ def test_real_row_revisions_retained_and_bad_source_rejected(tmp_path):
     with pytest.raises(ValueError,match='SHA_DRIFT'):blocks.retained(source)
 
 
+def test_recent_missing_symbol_reuses_nearest_dated_chart_and_preserves_exact_projection(tmp_path):
+    symbol = '000001.SZ'
+    index = tmp_path / 'index.json'
+    prior_descriptors = {}
+
+    def register(day, descriptor):
+        prior_descriptors[str(day)] = descriptor
+        index.write_bytes(blocks.canonical({'original_charts': prior_descriptors}))
+
+    def capture(day, *, revised=False):
+        current = context(tmp_path, day)
+        parts = tmp_path / str(day)
+        value = result(day, revised)
+        bars = [row['ohlcv'] for row in value['rows']]
+        render.retain_owner_result(current, parts, symbol, bars, value)
+        ref = blocks.ref(parts / 'original_retained' / (symbol + '.json.gz'))
+        return current, parts, value, ref
+
+    first, parts, _, first_ref = capture(20261109)
+    register(first.target, finalize(first, parts))
+    nearest, parts, _, nearest_ref = capture(20261110)
+    register(nearest.target, finalize(nearest, parts))
+    empty = tmp_path / 'empty-manifest.json'
+    empty.write_bytes(blocks.canonical({'samples': {}, **blocks.FLAGS}))
+    register(20261111, {'manifest': blocks.ref(empty)})
+
+    current, parts, expected, ref = capture(20261112, revised=True)
+    storage = blocks.decode(blocks.checked(ref))
+    assert storage['history_blocks'] == [first_ref, nearest_ref]
+    assert [row['trade_date'] for row in storage['formula_result']['rows']] == [20261109, 20261111, 20261112]
+    assert blocks.canonical(blocks.retained(ref)['formula_result']) == blocks.canonical(expected)
+    sample = json.loads(blocks.checked(finalize(current, parts)['manifest']))['samples'][symbol]
+    projection = json.loads(gzip.decompress(blocks.projection_bytes(sample['projection'])))
+    assert blocks.canonical(projection['formula_result']) == blocks.canonical(expected)
+
+
+def test_chart_lookback_stops_at_four_and_replays_identical_existing_shard(tmp_path):
+    symbol = '000001.SZ'
+    old = context(tmp_path, 20261109)
+    old_parts = tmp_path / 'old'
+    old_result = result(old.target)
+    render.retain_owner_result(old, old_parts, symbol, [row['ohlcv'] for row in old_result['rows']], old_result)
+    original = finalize(old, old_parts)
+    recent = tmp_path / 'other-symbol-manifest.json'
+    recent.write_bytes(blocks.canonical({'samples': {}, **blocks.FLAGS}))
+    recent_ref = blocks.ref(recent)
+    dates = {str(day): {'manifest': recent_ref} for day in range(20261110, 20261114)}
+    index = tmp_path / 'index.json'
+    # The fifth manifest's corrupted SHA must never be consulted.
+    index.write_bytes(blocks.canonical({'original_charts': {**dates, '20261109': {'manifest': {
+        **original['manifest'], 'sha256': 'f' * 64}}}}))
+    current = context(tmp_path, 20261114)
+    parts = tmp_path / 'current'
+    expected = result(current.target)
+    bars = [row['ohlcv'] for row in expected['rows']]
+    render.retain_owner_result(current, parts, symbol, bars, expected)
+    path = parts / 'original_retained' / (symbol + '.json.gz')
+    ref = blocks.ref(path)
+    assert blocks.decode(blocks.checked(ref))['history_blocks'] == []
+
+    # A resumed pre-patch shard remains pinned even if the current lookup
+    # now sees a usable prior, provided the full source payload still agrees.
+    index.write_bytes(blocks.canonical({'original_charts': {'20261109': original}}))
+    retry_context = context(tmp_path, 20261114)
+    render.retain_owner_result(retry_context, parts, symbol, bars, expected)
+    assert blocks.ref(path) == ref
+    with pytest.raises(ValueError, match='CHART_RETAINED_IMMUTABLE_CONFLICT'):
+        render.retain_owner_result(retry_context, parts, symbol, bars, result(current.target, True))
+
+
+@pytest.mark.parametrize('recent_missing', [False, True])
+def test_chart_delta_preserves_json_number_and_boolean_representation(tmp_path, recent_missing):
+    symbol = '000001.SZ'
+    previous = context(tmp_path, 20261110)
+    parts = tmp_path / 'previous'
+    old = result(previous.target)
+    old['rows'][0]['values']['f0'] = 0.0
+    render.retain_owner_result(previous, parts, symbol, [row['ohlcv'] for row in old['rows']], old)
+    history = {'20261110': finalize(previous, parts)}
+    if recent_missing:
+        empty = tmp_path / 'empty.json'
+        empty.write_bytes(blocks.canonical({'samples': {}, **blocks.FLAGS}))
+        history['20261111'] = {'manifest': blocks.ref(empty)}
+    (tmp_path / 'index.json').write_bytes(blocks.canonical({'original_charts': history}))
+    current = context(tmp_path, 20261112)
+    parts = tmp_path / 'current'
+    exact = result(current.target)
+    exact['rows'][0]['values'].update(f0=-0.0, f1=1.0)
+    exact['rows'][1]['values']['f1'] = True
+    assert old['rows'] == exact['rows'][:2]
+    bars = [row['ohlcv'] for row in exact['rows']]
+    render.retain_owner_result(current, parts, symbol, bars, exact)
+    retained_path = parts / 'original_retained' / (symbol + '.json.gz')
+    ref = blocks.ref(retained_path)
+    assert blocks.canonical(blocks.retained(ref)['formula_result']) == blocks.canonical(exact)
+    sample = json.loads(blocks.checked(finalize(current, parts)['manifest']))['samples'][symbol]
+    projection = json.loads(gzip.decompress(blocks.projection_bytes(sample['projection'])))
+    assert blocks.canonical(projection['formula_result']) == blocks.canonical(exact)
+    render.retain_owner_result(current, parts, symbol, bars, exact)
+    assert blocks.ref(retained_path) == ref
+
+
 def test_shared_html_transport_is_same_origin_bound_and_export_only():
     html=blocks.shared_html(render.pinned(render.OWNER_RENDERER))
     assert "u.origin!==location.origin" in html

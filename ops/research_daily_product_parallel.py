@@ -21,11 +21,13 @@ _CHARTS = False
 
 
 def bound_main_sources():
+    from ops import research_storage_compaction
+
     ref = dict(path=os.environ['V4_RELEASE_MANIFEST_PATH'], sha256=os.environ['V4_RELEASE_MANIFEST_SHA256'])
     manifest = json.loads(product.checked(ref).read_text())
     app = Path(manifest['app_root']).resolve()
     paths = [Path(product.__file__).resolve(), Path(__file__).resolve(),
-             Path(product.history_checkpoint.__file__).resolve()]
+             Path(product.history_checkpoint.__file__).resolve(), Path(research_storage_compaction.__file__).resolve()]
     inventory = {r['path']: r['sha256'] for r in manifest['application_inventory']['entries'] if r.get('kind', 'file') == 'file'}
     for path in paths:
         if app != path.parents[1] or inventory.get(str(path.relative_to(app))) != product.sha(path):
@@ -160,7 +162,7 @@ def checkpoint(symbol, *, persist_history=True):
     finally:engine.compute=original_compute
     context.unchanged()
     row.update(product.FLAGS)
-    return dict(symbol=symbol, ref=product.save(path, row, immutable=True), chart_gaps=gaps)
+    return dict(symbol=symbol, ref=product.save(path, row, immutable=True, compress_row=True), chart_gaps=gaps)
 
 
 def checkpoint_independent_close(symbol, *, history_root):

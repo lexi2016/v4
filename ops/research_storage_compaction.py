@@ -8,6 +8,7 @@ from __future__ import annotations
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from contextlib import ExitStack, contextmanager
 from collections import Counter
+import errno
 import fcntl
 import hashlib
 import json
@@ -26,6 +27,7 @@ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=Fals
 SCHEMA = 'v4.daily_storage_compaction.v1'
 COMPRESSED = getattr(stat, 'UF_COMPRESSED', 32)
 MIN_BYTES = 8192
+MAX_DAILY_ROW_COMPRESSION_BYTES = 1024 * 1024
 
 
 def canonical(value):
@@ -43,6 +45,82 @@ def file_sha(path):
         for block in iter(lambda: stream.read(1024 * 1024), b''):
             value.update(block)
     return value.hexdigest()
+
+
+def native_compressed_copy(source, destination):
+    subprocess.run(['/usr/bin/ditto', '--hfsCompression', '--noclone', str(source), str(destination)],
+                   check=True, capture_output=True)
+
+
+def publish_daily_row(path, raw):
+    """Publish an immutable JSON row, using a verified native copy when smaller."""
+    path = safe_path(path, exists=False)
+    expected_sha = hashlib.sha256(raw).hexdigest()
+    reference = dict(path=str(path), sha256=expected_sha)
+    source = path.with_name('.daily-row-' + uuid.uuid4().hex + '.pending')
+    compressed = source.with_suffix('.compressed.pending')
+    directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    staged = []
+    try:
+        source_fd = os.open(source.name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                            0o666, dir_fd=directory)
+        staged.append(source)
+        with os.fdopen(source_fd, 'wb') as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        source_info = source.lstat()
+        source_stamp = stamp(source)
+        chosen = source
+        chosen_stamp = source_stamp
+        if MIN_BYTES <= len(raw) <= MAX_DAILY_ROW_COMPRESSION_BYTES:
+            if os.path.lexists(compressed):
+                raise RetentionError('DAILY_ROW_STAGE_PATH_CONFLICT:' + str(compressed))
+            staged.append(compressed)
+            try:
+                native_compressed_copy(source, compressed)
+            except OSError as error:
+                # Missing native utility or explicit filesystem non-support.
+                if error.errno not in {errno.ENOENT, errno.ENOTSUP, errno.EOPNOTSUPP}:
+                    raise
+            else:
+                info = compressed.lstat()
+                compressed_stamp = stamp(compressed)
+                if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                        or (info.st_dev, info.st_size, info.st_mode, info.st_uid, info.st_gid)
+                        != (source_info.st_dev, len(raw), source_info.st_mode, source_info.st_uid, source_info.st_gid)
+                        or info.st_flags & ~COMPRESSED != source_info.st_flags
+                        or file_sha(compressed) != expected_sha):
+                    raise RetentionError('DAILY_ROW_COMPRESSION_CONTENT_OR_METADATA_DRIFT:' + str(path))
+                if info.st_flags & COMPRESSED and info.st_blocks < source_info.st_blocks:
+                    chosen = compressed
+                    chosen_stamp = compressed_stamp
+                    with compressed.open('rb') as stream:
+                        os.fsync(stream.fileno())
+        if chosen == source and file_sha(source) != expected_sha:
+            raise RetentionError('DAILY_ROW_STAGED_CONTENT_DRIFT:' + str(path))
+        # Different rows prepare independently. Only the immutable commit is serialized.
+        fcntl.flock(directory, fcntl.LOCK_EX)
+        safe_path(path, exists=False)
+        if not os.path.samestat(os.fstat(directory), path.parent.lstat()):
+            raise RetentionError('DAILY_ROW_PARENT_DRIFT:' + str(path))
+        if stamp(chosen) != chosen_stamp or stamp(source) != source_stamp:
+            raise RetentionError('DAILY_ROW_STAGE_IDENTITY_DRIFT:' + str(path))
+        if path.exists():
+            stamp(path)
+            if file_sha(path) != expected_sha:
+                raise ValueError('DAILY_IMMUTABLE_CONFLICT:' + str(path))
+            return reference
+        os.replace(chosen.name, path.name, src_dir_fd=directory, dst_dir_fd=directory)
+        return reference
+    finally:
+        try:
+            for pending in staged:
+                try: os.unlink(pending.name, dir_fd=directory)
+                except FileNotFoundError: pass
+            os.fsync(directory)
+        finally:
+            os.close(directory)
 
 
 def resources():
@@ -176,8 +254,7 @@ def transform(item, *, donor=None):
                 raise RetentionError('COMPACTION_CLONE_DONOR_MOVED')
             action = 'EXACT_APFS_CLONE'
         else:
-            subprocess.run(['/usr/bin/ditto', '--hfsCompression', '--noclone', str(path), str(temp)],
-                           check=True, capture_output=True)
+            native_compressed_copy(path, temp)
         # All transforms preserve the recipient's observable file date/mode.
         os.chmod(temp, stat.S_IMODE(original.st_mode))
         os.utime(temp, ns=(original.st_atime_ns, original.st_mtime_ns))

@@ -11,6 +11,7 @@ from pathlib import Path
 VERSION = 'v4.original_chart.row_blocks.v1'
 FLAGS = dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 LIMIT = 64*1024*1024
+PRIOR_MANIFEST_LIMIT = 4
 
 
 def canonical(value):
@@ -68,42 +69,60 @@ def retained(reference, read=None):
     return current
 
 
-def previous_cache(context,symbol):
+def previous_cache(context,symbol,current_dates):
     # Only the original owner's registered index; never directory discovery.
-    if not hasattr(context,'_chart_prior_samples'):
-        samples={};index_path=context.root/'index.json'
+    if not hasattr(context,'_chart_prior_manifests'):
+        manifests={};index_path=context.root/'index.json'
         if index_path.is_file():
             index=json.loads(index_path.read_bytes())
-            dates=sorted((d for d in index.get('original_charts',{}) if d<str(context.target)),reverse=True)
-            for day in dates[:1]:
-                descriptor=index['original_charts'][day]
-                manifest=json.loads(checked(descriptor['manifest']))
-                if manifest.get('RESEARCH_ONLY') is not True:raise ValueError('CHART_PRIOR_SAFETY')
-                samples=manifest.get('samples',{})
-        context._chart_prior_samples=samples
-    sample=context._chart_prior_samples.get(symbol)
-    if not sample:return None
-    candidate=sample['source_cache'];value=retained(candidate)
-    if value['symbol']!=symbol or value['config']!=context.config_ref:return None
-    return candidate,value
+            manifests={day: descriptor['manifest'] for day, descriptor in index.get('original_charts',{}).items()
+                       if day<str(context.target) and descriptor.get('manifest')}
+        days=sorted(manifests,reverse=True)[:PRIOR_MANIFEST_LIMIT]
+        context._chart_prior_manifests=[(day,manifests[day]) for day in days]
+        context._chart_prior_samples={}
+    for position,(day,reference) in enumerate(context._chart_prior_manifests):
+        if day not in context._chart_prior_samples:
+            manifest=json.loads(checked(reference))
+            if manifest.get('RESEARCH_ONLY') is not True:raise ValueError('CHART_PRIOR_SAFETY')
+            context._chart_prior_samples[day]=manifest.get('samples',{})
+        sample=context._chart_prior_samples[day].get(symbol)
+        if not sample:continue
+        candidate=sample['source_cache'];value=retained(candidate)
+        if value['symbol']!=symbol or value['data_date']!=day:raise ValueError('CHART_PRIOR_RETAINED_IDENTITY')
+        if value['config']!=context.config_ref:continue
+        if position and (value.get('storage_schema')!=VERSION or not set(value['bar_dates'])<=current_dates):continue
+        return candidate,value
+    return None
 
 
 def retain_owner_result(context,parts,symbol,bars,result):
     inventory=context.engine().inventory()
     ready=context.engine().json_ready(result)
-    prior=previous_cache(context,symbol)
-    blocks=[];rows=ready['rows']
-    if prior:
-        old_ref,old=prior
-        before={r['trade_date']:r for r in old['formula_result']['rows']}
-        if not set(before).issubset(r['trade_date'] for r in rows):raise ValueError('CHART_OLD_KEYS_LOST')
-        rows=[r for r in rows if before.get(r['trade_date'])!=r]
-        blocks=list(old.get('history_blocks',[]))+[dict(path=old_ref['path'],sha256=old_ref['sha256'])]
     payload=dict(storage_schema=VERSION,symbol=symbol,data_date=str(context.target),identity=context.identity,
         config=context.config_ref,bars_sha256=hashlib.sha256(canonical(bars)).hexdigest(),
         bar_dates=[b['trade_date'] for b in bars],calendar=context.calendars[symbol[-2:]],inventory=inventory,
-        formula_result={**ready,'rows':rows},history_blocks=blocks,**FLAGS)
-    path=Path(parts)/'original_retained'/(symbol+'.json.gz');path.parent.mkdir(parents=True,exist_ok=True)
+        formula_result=ready,history_blocks=[],**FLAGS)
+    path=Path(parts)/'original_retained'/(symbol+'.json.gz')
+    if path.is_symlink():raise ValueError('CHART_RETAINED_IMMUTABLE_CONFLICT')
+    if path.exists():
+        existing=retained(ref(path))
+        if canonical({**existing,'history_blocks':[]})!=canonical(payload):raise ValueError('CHART_RETAINED_IMMUTABLE_CONFLICT')
+        return
+    rows=ready['rows']
+    dates={r['trade_date'] for r in rows}
+    prior=previous_cache(context,symbol,dates)
+    if prior:
+        old_ref,old=prior
+        before={r['trade_date']:r for r in old['formula_result']['rows']}
+        if not set(before)<=dates:raise ValueError('CHART_OLD_KEYS_LOST')
+        changed=[]
+        for row in rows:
+            previous=before.get(row['trade_date'])
+            # Python equates some numbers and booleans whose JSON bytes differ.
+            if previous!=row or canonical(previous)!=canonical(row):changed.append(row)
+        payload['formula_result']={**ready,'rows':changed}
+        payload['history_blocks']=list(old.get('history_blocks',[]))+[dict(path=old_ref['path'],sha256=old_ref['sha256'])]
+    path.parent.mkdir(parents=True,exist_ok=True)
     raw=gzip.compress(canonical(payload),mtime=0)
     if path.exists():
         if path.read_bytes()!=raw:raise ValueError('CHART_RETAINED_IMMUTABLE_CONFLICT')
