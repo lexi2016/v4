@@ -154,9 +154,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
     if hk_binding is not None:
         universe_bindings["HK_CONNECT"] = hk_binding
     from stage_center.a_share_membership import resolve_membership
-    a_membership = resolve_membership(
-        candidate.codes, trade_date, candidate_sha256=candidate.current_sha256,
-    )
+    a_membership = resolve_membership(candidate, trade_date)
     if "A_SHARE" in universe_bindings and not a_candidate_missing:
         universe_bindings["A_SHARE"] = a_membership.bind(universe_bindings["A_SHARE"])
     candidate_sha_by_market: dict[str, str | None] = {

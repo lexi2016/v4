@@ -1,0 +1,65 @@
+{
+  "actual_canary": {
+    "PIT_certification": "NOT_ESTABLISHED_BY_MEMBERSHIP",
+    "candidate_codes": 318,
+    "candidate_current_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/current/20261117/A_SHARE_STAGE_ACQUISITION_UNIVERSE_V3/current.json",
+    "candidate_current_sha256": "0903d6cffe905ee71190e0450e90897ecc358f99634778636419075ec7134ca3",
+    "candidate_original_codes": 318,
+    "elapsed_seconds": 0.424,
+    "generation_id": "022ca185b762d8616522dbd95b7094bbc2797ef109a5ea98285a3603d9008d8e",
+    "generation_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/a_formula_runs/qfq_022ca185b762d8616522/candidate_receipt.json",
+    "generation_receipt_sha256": "0181744d3ac3f4e80b27a72fd4024aeeec5e45bfc90c633b09b022d1e9027ad0",
+    "input_reader_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-panel-throughput-storage-20261118-r3/forward/stage/app/stage_center/candidate_input.py",
+    "input_reader_sha256": "096c7662fd0852856edf9355a4acb689d4d278501b59bdcdd013cb14c1981f27",
+    "inventory_rows": 5842,
+    "inventory_sha256": "5b0c75a743afe16cb52f5b2cb537fc01810c8355a016571c783302b3e5932700",
+    "membership_status": "BOUND_POSITIVE_INVENTORY",
+    "outer_A_receipt": "NOT_READ",
+    "pair": "D16 2026-11-16 QFQ -> O17 2026-11-17 Stage candidate",
+    "selector_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/selector_ready_panels/data_layer_daily_formula_increment_update_v1/selector_ready_current_to_20261116_qfq_022ca185b762d861/selector_ready_current_to_20261116.parquet",
+    "selector_pointer_used": "task-local temporary pointer only",
+    "selector_sha256": "ce57e78cbe4cad6248b6eeb5ea07e50a6235252c68ff0bfabede7c87855f891e",
+    "signal_date": "20261116",
+    "snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/runtime/cache/data_layer_daily_formula_increment_update_v1/adjustment_snapshots/4aabaf92f45dbae411c433b9c3589dfab61dd5c12ed42ccdae455a72c6c0de61.json",
+    "snapshot_sha256": "4aabaf92f45dbae411c433b9c3589dfab61dd5c12ed42ccdae455a72c6c0de61"
+  },
+  "base_commit": "326fbc81bf7f55c6c17759163a4c2cac76ae2c78",
+  "branch": "codex/stage7-auto-day-binding-20261118",
+  "deployment_env": {
+    "V4_STAGE_A_MEMBERSHIP_SELECTOR_POINTER": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/数据/data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt",
+    "legacy_D12_config_envs_required": false
+  },
+  "negative_controls": {
+    "O19_current": {
+      "reason": "strict current is missing or unavailable",
+      "status": "CANNOT_CONFIRM"
+    },
+    "wrong_candidate_current_sha": {
+      "reason": "ValueError:MEMBERSHIP_CANDIDATE_CURRENT_SHA_MISMATCH",
+      "status": "UNKNOWN"
+    },
+    "wrong_trade_date": {
+      "reason": "ValueError:MEMBERSHIP_CANDIDATE_DATE_MISMATCH",
+      "requested_trade_date": "20261118",
+      "status": "UNKNOWN"
+    }
+  },
+  "recorded_at_local": "2026-11-19T00:36:31+08:00",
+  "recorded_at_utc": "2026-11-18T16:36:31Z",
+  "schema": "stage7.auto_day_binding.evidence.v1",
+  "source_sha256": {
+    "stage_center/_runner_parts/slot_execution.py": "5a1fa904ae99ae4768603f1a583ac1d81c02f52a556984b995faa74b327acd44",
+    "stage_center/a_share_membership.py": "e188ae888773e619f97bb7d9b668d5bab07b76769ada7ed434831df1c0addad8",
+    "tests/test_stage_a_authoritative_membership.py": "15efc3e3aef9ea3e35436fc4a23c059e3e91884a28cd8b91e411f1928cc1b8fe"
+  },
+  "verification": {
+    "O19_stage_natural_run": "NOT_RUN",
+    "deployed": false,
+    "focused_test_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v4-mac/bin/python' -B -m pytest -p no:cacheprovider --tb=short --basetemp=/Users/lexi/.codex/worktrees/stage7-auto-day-binding-20261118/.pytest-stage7-tmp -q tests/test_stage_a_authoritative_membership.py",
+    "focused_tests": "12 passed",
+    "git_diff_check": "PASS",
+    "live_pointer_written": false,
+    "py_compile": "PASS",
+    "service_restarted": false
+  }
+}
