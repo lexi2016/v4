@@ -360,9 +360,30 @@ def run_delta(q, c):
             failed_stocks=stock_failures, **c['meta']))
         raise
     finally:
+        bucket_future = c.pop('_delta_bucket_future', None)
+        if bucket_future is not None:
+            bucket_future.cancel()
+        bucket_loader = c.pop('_delta_bucket_loader', None)
+        if bucket_loader is not None:
+            bucket_loader.shutdown(wait=True, cancel_futures=True)
         pool = c.pop('_delta_pool', None)
         if pool is not None:
             pool.shutdown(wait=True)
+
+
+def _read_delta_bucket(q, currents, old_views, bucket, codes, schemas):
+    import time
+    started = time.perf_counter()
+    frames = {}
+    for role, path in currents.items():
+        table = (old_views[role][bucket].read() if role in old_views and bucket in old_views[role]
+                 else q['pq'].read_table(path, filters=[('ts_code', 'in', codes)]) if role not in old_views
+                 else pa.Table.from_batches([], schema=schemas[role]))
+        series = table['ts_code'].to_pandas()
+        positions = series.groupby(series, sort=False).indices
+        frames[role] = {code: table.take(pa.array(rows, type=pa.int64()))
+                        for code, rows in positions.items()}
+    return frames, time.perf_counter() - started
 
 
 def _run_delta(q, c, stock_failures):
@@ -414,7 +435,7 @@ def _run_delta(q, c, stock_failures):
         classifications[code] = kind
     source_semantics = {key: meta[key] for key in ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')}
     source_semantics['kernel_sha256'] = q['computation_kernel_sha'](Path(q['__file__']))
-    from concurrent.futures import wait,FIRST_COMPLETED
+    from concurrent.futures import ThreadPoolExecutor,wait,FIRST_COMPLETED
     import multiprocessing,os,time
     backend=c.get('compute_backend','thread')
     if backend=='process':
@@ -426,6 +447,7 @@ def _run_delta(q, c, stock_failures):
     c['_delta_pool']=pool
     limit=(c.get('resource_plan')or{}).get('max_pending',2*c['workers'])
     maximum_inflight=0;worker_pids=set();cpu_seconds=0.;started=time.perf_counter();failure=None
+    bucket_read_seconds=0.;bucket_wait_seconds=0.
     stop=run/'STOP_REQUESTED'
     def progress(stage='ORIGINAL_DELTA_STORAGE'):
         q['_json'](run/'progress.json',dict(stage=stage,completed=len(classifications),total=len(expected),
@@ -433,15 +455,34 @@ def _run_delta(q, c, stock_failures):
             reused_checkpoints=resumed,new_delta_file_bytes=packer.written_bytes,compute_backend=backend,
             buffered_computations=len(packer.pending),buffered_patch_bytes=packer.bytes,packing_limits=packer.limits,
             workers=c['workers'],max_pending=limit,maximum_inflight=maximum_inflight,
-            worker_pids=sorted(worker_pids),worker_cpu_seconds=cpu_seconds,elapsed_seconds=time.perf_counter()-started))
-    for bucket,codes in buckets.items():
-        frames={}
-        for role,path in currents.items():
-            table=(old_views[role][bucket].read() if role in old_views and bucket in old_views[role]
-                else q['pq'].read_table(path,filters=[('ts_code','in',codes)]) if role not in old_views
-                else pa.Table.from_batches([],schema=schemas[role]))
-            series=table['ts_code'].to_pandas();positions=series.groupby(series,sort=False).indices
-            frames[role]={code:table.take(pa.array(rows,type=pa.int64()))for code,rows in positions.items()}
+            worker_pids=sorted(worker_pids),worker_cpu_seconds=cpu_seconds,
+            bucket_read_seconds=bucket_read_seconds,bucket_wait_seconds=bucket_wait_seconds,
+            elapsed_seconds=time.perf_counter()-started))
+    bucket_loader = ThreadPoolExecutor(max_workers=1, thread_name_prefix='delta-bucket-read')
+    c['_delta_bucket_loader'] = bucket_loader
+    bucket_items = iter(buckets.items())
+    current_bucket = next(bucket_items, None)
+    if current_bucket is not None:
+        bucket, codes = current_bucket
+        bucket_future = bucket_loader.submit(_read_delta_bucket, q, currents, old_views,
+                                             bucket, codes, schemas)
+        c['_delta_bucket_future'] = bucket_future
+    else:
+        bucket_future = None
+    while current_bucket is not None:
+        bucket,codes=current_bucket
+        wait_started=time.perf_counter()
+        frames,read_seconds=bucket_future.result()
+        bucket_wait_seconds += time.perf_counter()-wait_started
+        bucket_read_seconds += read_seconds
+        current_bucket = next(bucket_items, None)
+        bucket_future = None
+        c.pop('_delta_bucket_future', None)
+        if current_bucket is not None:
+            next_bucket, next_codes = current_bucket
+            bucket_future = bucket_loader.submit(_read_delta_bucket, q, currents, old_views,
+                                                 next_bucket, next_codes, schemas)
+            c['_delta_bucket_future'] = bucket_future
         for code in codes:
             if code not in expected and code not in quarantine:
                 for role in currents:counts[role]['panel_rows']+=len(frames[role].get(code,[]))

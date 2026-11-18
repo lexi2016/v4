@@ -3,6 +3,8 @@ import copy
 import hashlib
 import json
 import struct
+import threading
+import time
 from types import SimpleNamespace
 from pathlib import Path
 
@@ -80,6 +82,103 @@ def test_packed_three_markets_exact_and_single_physical_reference(fixture):
     again = delta.run_delta(f.q, f.c)
     assert f.calls == calls and again['new_delta_file_bytes'] == 0
     assert again['reused_delta_checkpoints'] == 5
+
+
+def test_next_bucket_read_overlaps_current_bucket_work_and_preserves_rows(fixture, monkeypatch):
+    f = fixture
+    bucket_for = lambda code: 0 if code == '000001.SZ' else 1
+    f.q['_bucket'] = bucket_for
+    intervals = []
+    lock = threading.Lock()
+    original_work = delta._stock_work
+
+    def spool(path, *args):
+        table = logical.physical.read_table(path)
+        groups = delta.key_index(path)
+        views = {}
+        for bucket in (0, 1):
+            bucket_codes = [code for code in table['ts_code'].to_pylist()
+                            if bucket_for(code) == bucket]
+
+            def read(bucket=bucket, bucket_codes=bucket_codes):
+                started = time.perf_counter()
+                if bucket == 1:
+                    time.sleep(0.08)
+                selected = pc.is_in(table['ts_code'], value_set=pa.array(bucket_codes))
+                result = table.filter(selected)
+                ended = time.perf_counter()
+                if bucket == 1:
+                    with lock:
+                        intervals.append(('read', started, ended))
+                return result
+
+            views[bucket] = SimpleNamespace(read=read, groups=groups)
+        return views
+
+    def work(q, c, code, *args):
+        started = time.perf_counter()
+        if code == '000001.SZ':
+            time.sleep(0.08)
+        result = original_work(q, c, code, *args)
+        ended = time.perf_counter()
+        if code == '000001.SZ':
+            with lock:
+                intervals.append(('work', started, ended))
+        return result
+
+    f.q['spool_current'] = spool
+    monkeypatch.setattr(delta, '_stock_work', work)
+    result = delta.run_delta(f.q, f.c)
+    assert result['status'] == 'CANDIDATE_READY'
+    reads = [(start, end) for kind, start, end in intervals if kind == 'read']
+    read = (min(start for start, _ in reads), max(end for _, end in reads))
+    work_interval = next((start, end) for kind, start, end in intervals if kind == 'work')
+    overlap = min(read[1], work_interval[1]) - max(read[0], work_interval[0])
+    sequential_span = (read[1] - read[0]) + (work_interval[1] - work_interval[0])
+    observed_span = max(read[1], work_interval[1]) - min(read[0], work_interval[0])
+    assert overlap >= 0.04
+    assert observed_span < sequential_span * 0.75
+
+    expected_rows = []
+    for code in f.raw:
+        expected_rows.extend(f.compute(code, None, 3, None).to_dict('records'))
+    expected_rows.append(dict(ts_code='00005.HK', trade_date=2, close=None,
+                              signal=None, name='HK'))
+    expected = pa.Table.from_pylist(expected_rows, schema=f.schema)
+    for path in f.c['candidates'].values():
+        exact(logical.parquet.read_table(path), expected)
+
+
+def test_prefetch_read_failure_drains_pool_and_preserves_current(fixture):
+    f = fixture
+    bucket_for = lambda code: 0 if code == '000001.SZ' else 1
+    f.q['_bucket'] = bucket_for
+    original = {role: path.read_bytes() for role, path in f.pointers.items()}
+
+    def spool(path, *args):
+        table = logical.physical.read_table(path)
+        groups = delta.key_index(path)
+        views = {}
+        for bucket in (0, 1):
+            bucket_codes = [code for code in table['ts_code'].to_pylist()
+                            if bucket_for(code) == bucket]
+
+            def read(bucket=bucket, bucket_codes=bucket_codes):
+                if bucket == 1:
+                    raise OSError('INJECTED_LOOKAHEAD_READ_FAILURE')
+                return table.filter(pc.is_in(table['ts_code'], value_set=pa.array(bucket_codes)))
+
+            views[bucket] = SimpleNamespace(read=read, groups=groups)
+        return views
+
+    f.q['spool_current'] = spool
+    with pytest.raises(OSError, match='LOOKAHEAD_READ_FAILURE'):
+        delta.run_delta(f.q, f.c)
+
+    assert original == {role: path.read_bytes() for role, path in f.pointers.items()}
+    assert '_delta_bucket_loader' not in f.c
+    assert '_delta_bucket_future' not in f.c
+    assert '_delta_pool' not in f.c
 
 
 def test_no_member_checkpoint_before_both_roles_are_durable(fixture, monkeypatch):
