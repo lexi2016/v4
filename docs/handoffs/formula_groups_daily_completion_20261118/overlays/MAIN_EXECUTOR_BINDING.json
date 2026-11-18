@@ -1,0 +1,12 @@
+{
+  "schema": "V4_MAIN_EXECUTOR_FOCUSED_OVERLAY_V1",
+  "runtime_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-d17-official-tail-backfill-20261117-r2/main/app/infrastructure/scheduling/executor_registry.py",
+  "preimage_sha256": "614dc9a59702162744b12e7b81c6ab495d8458cc5fa29e228dc7b160b5e23ef3",
+  "postimage_sha256": "8656962fc46be7c7d110ade2fc3541ac43ac0922b14717e4fe7b907cfc5ec533",
+  "patch_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/docs/handoffs/formula_groups_daily_completion_20261118/overlays/main-executor.patch",
+  "patch_sha256": "5a20fd07ceecfd04240d7abc40d49b5f9830cb56c5ea3a9bc4511f4bfbe3c295",
+  "source_commit": "4d2804cb016d12db2cfa0fde2dbf90a82c39a676",
+  "release_manifest": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-d17-official-tail-backfill-20261117-r2/main/release-manifest.json",
+  "release_manifest_sha256": "01da16fe8add4e5e64fd5d2c5618b19994bb9ac0ea91c740acb9d3b97495a845",
+  "behavior": "After natural LIVE A daily source completion, invoke the research-only two-formula group projection before slower Top200/derivative completion. Formula failures stay in the separate formula_groups status and do not change daily or derivative outcomes."
+}

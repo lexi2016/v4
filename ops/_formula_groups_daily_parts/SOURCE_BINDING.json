@@ -1,0 +1,47 @@
+{
+  "schema": "V4_FORMULA_GROUP_DAILY_CODE_ASSETS_V1",
+  "required_runtime_assets": {
+    "root": "ops/_formula_groups_daily_parts/formula_assets/",
+    "b23_entry.txt": "7834657819023edfbe5c77628e478c0fca996e728689b7dcc609f3a8c3254581",
+    "pb2_confirm.txt": "f7b5f5a543325c2e681671ca23c4039cb9cf6749931eb7c262b36e77d38a2307",
+    "provisioning": "Copy the two approved Downloads source bytes into the detached Main release only; do not alter formula bytes or commit them."
+  },
+  "sources": {
+    "project.py": {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_two_formula_20261115/formula/project.py",
+      "sha256": "7e7ea6942601e8882f78806ff7e75ea9a26213936340cd6787f697020aae526c",
+      "packaged_sha256": "7e7ea6942601e8882f78806ff7e75ea9a26213936340cd6787f697020aae526c",
+      "source_sha256": "7e7ea6942601e8882f78806ff7e75ea9a26213936340cd6787f697020aae526c",
+      "runtime_asset_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/project.py"
+    },
+    "resolve_names.py": {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_two_formula_20261115/formula/resolve_names.py",
+      "sha256": "ba3612dcb7b5f0479cac903cbea36024c72027a14ad0df14779d0dea54dc79c4",
+      "packaged_sha256": "ba3612dcb7b5f0479cac903cbea36024c72027a14ad0df14779d0dea54dc79c4",
+      "source_sha256": "ba3612dcb7b5f0479cac903cbea36024c72027a14ad0df14779d0dea54dc79c4",
+      "runtime_asset_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/resolve_names.py"
+    },
+    "prepare-formula-group-artifact.py": {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_two_formula_20261118/original_group_publication/prepare-formula-group-artifact.py",
+      "sha256": "8ed647524c70ae2b7f57bde27bbed91e7c84c3864b33d1cbfe1ae589a48f003e",
+      "packaged_sha256": "8ed647524c70ae2b7f57bde27bbed91e7c84c3864b33d1cbfe1ae589a48f003e",
+      "runtime_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/prepare-formula-group-artifact.py",
+      "source_sha256": "8ed647524c70ae2b7f57bde27bbed91e7c84c3864b33d1cbfe1ae589a48f003e",
+      "runtime_asset_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/prepare-formula-group-artifact.py"
+    },
+    "publish-formula-group-artifact.py": {
+      "path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_two_formula_20261118/original_group_publication/publish-formula-group-artifact.py",
+      "sha256": "461373870270f6ef306f3bfb01337bf04547a2aeebc58317d4cf1439a55b5aa1",
+      "packaged_sha256": "79d0e232d82ecab6b1003e95a537047d7df8bd3e65ca92c4a408d3a65775e0b1",
+      "runtime_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/publish-formula-group-artifact.py",
+      "source_sha256": "461373870270f6ef306f3bfb01337bf04547a2aeebc58317d4cf1439a55b5aa1",
+      "permitted_delta": "optional --owner-fd duplicates the already-validated inherited A_LONG lock descriptor; publication/CAS logic unchanged",
+      "source_path": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/v4_two_formula_20261118/original_group_publication/publish-formula-group-artifact.py",
+      "runtime_asset_path": "/Users/lexi/.codex/worktrees/v4-auto-two-formula-groups-20261118/ops/_formula_groups_daily_parts/publish-formula-group-artifact.py"
+    }
+  },
+  "formula_sha256": {
+    "b23_entry": "7834657819023edfbe5c77628e478c0fca996e728689b7dcc609f3a8c3254581",
+    "pb2_confirm": "f7b5f5a543325c2e681671ca23c4039cb9cf6749931eb7c262b36e77d38a2307"
+  }
+}
