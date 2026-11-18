@@ -1,0 +1,39 @@
+--- a/ops/research_panel_daily_product.py
++++ b/ops/research_panel_daily_product.py
+@@ -19,0 +20,19 @@
++CURRENT_UNIVERSE_EXCLUSION_REASONS=frozenset({'VERIFIED_BSE_OLD_CODE_REPLACED','VERIFIED_DELISTED_NO_CURRENT_BARS'})
++
++def current_daily_universe(snapshot):
++ source=sorted(snapshot.get('original_target_codes') or snapshot['symbols'])
++ eligible=snapshot.get('original_quarantine_eligible',{})
++ if not isinstance(eligible,dict):raise ValueError('DAILY_QUARANTINE_ELIGIBILITY_INVALID')
++ excluded={}
++ for symbol in source:
++  record=eligible.get(symbol)
++  if not isinstance(record,dict):continue
++  reason=record.get('reason_code')
++  if (record.get('classification')=='QUARANTINED' and record.get('quarantine') is True
++      and record.get('target_date_ready') is False and reason in CURRENT_UNIVERSE_EXCLUSION_REASONS):
++   excluded[symbol]=reason
++ active=[symbol for symbol in source if symbol not in excluded]
++ return source,active,excluded
++
++def current_universe_exclusion_summary(excluded):
++ return dict(count=len(excluded),by_reason_code=dict(sorted(Counter(excluded.values()).items())))
+@@ -341,2 +360,2 @@
+-  self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
+-  if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
++  self.source_scope,self.scope,self.current_universe_exclusions=current_daily_universe(self.snapshot)
++  if len(self.source_scope)!=len(set(self.source_scope)) or not self.source_scope or len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
+@@ -762,2 +781,3 @@
+- product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
+- content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
++ exclusions=current_universe_exclusion_summary(context.current_universe_exclusions)
++ product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
++ content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
+@@ -815 +835 @@
+-  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS)
++  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,unknown_count=unknown,status=product['status'],**FLAGS)
+@@ -822 +842 @@
+- return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
++ return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
