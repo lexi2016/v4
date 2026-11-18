@@ -8,6 +8,7 @@ date's close, winners, or post-close validation.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import os
 import tempfile
@@ -23,6 +24,14 @@ SAFETY = {
     "buy_gate_updated": False,
     "orders_sent": False,
 }
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 FIELDS = [
     "pool_rank",
@@ -115,7 +124,14 @@ def _write_json(path: Path, payload: object) -> None:
 
 
 def _market_suffix(code: str) -> str:
-    code = str(code or "").zfill(6)
+    code = str(code or "").strip().upper()
+    if "." in code:
+        suffix = code.rsplit(".", 1)[-1]
+        if suffix in {"SH", "SZ", "BJ"}:
+            return f".{suffix}"
+    code = code.zfill(6)
+    if code.startswith("920"):
+        return ".BJ"
     if code.startswith(("6", "9")):
         return ".SH"
     if code.startswith(("0", "2", "3")):
@@ -280,7 +296,8 @@ def ensure_preopen_lane_artifacts(
     output_dir: Path,
     video_dir: Path | None = None,
     force: bool = False,
+    fupan_only: bool = False,
 ) -> dict[str, Any]:
     """Ensure D-1 fupan and Stage7 lane CSVs exist for a target opening date."""
     from domains._d1_review_lane_producer_parts.preopen_lanes import _ensure_preopen_lane_artifacts_body as _v4_impl
-    return _v4_impl(globals(), target_date, signal_date=signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir, force=force)
+    return _v4_impl(globals(), target_date, signal_date=signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir, force=force, fupan_only=fupan_only)

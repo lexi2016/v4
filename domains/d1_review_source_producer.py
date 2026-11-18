@@ -294,6 +294,8 @@ def _build_handoff(board_rows: list[dict[str, object]], stage7_counts: Counter) 
 
 def _market_suffix(code: str) -> str:
     text = str(code or "").zfill(6)
+    if text.startswith("920"):
+        return ".BJ"
     if text.startswith(("5", "6", "9")):
         return ".SH"
     if text.startswith(("4", "8")):
@@ -398,6 +400,8 @@ def _stage7_source_evidence(stage_inputs: Mapping[str, Mapping[str, Any]]) -> di
     } if isinstance(quote_coverage, Mapping) else {}
     source_summary_cannot_confirm = _dedupe_texts(source_summary.get("cannot_confirm"))
     payload_cannot_confirm = _dedupe_texts(payload.get("cannot_confirm"))
+    observation_witness = payload.get("stage7_observation_witness")
+    observation_witness = dict(observation_witness) if isinstance(observation_witness, Mapping) else {}
     market_status_reason = ""
     if market_status:
         market_status_reason = "STAGE7_MARKET_STATUS:" + ";".join(
@@ -412,6 +416,7 @@ def _stage7_source_evidence(stage_inputs: Mapping[str, Mapping[str, Any]]) -> di
         "source_summary_cannot_confirm": source_summary_cannot_confirm,
         "quote_coverage": quote_coverage,
         "market_status": market_status,
+        "observation_witness": observation_witness,
         "cannot_confirm": upstream_cannot_confirm,
     }
 
@@ -422,6 +427,8 @@ def _source_inputs_sha256(
     public_manifest_sha256: str,
     selector_sha256: str,
     stage_inputs: Mapping[str, Mapping[str, Any]],
+    selector_binding: Mapping[str, Any] | None = None,
+    fupan_only: bool = False,
 ) -> str:
     """Hash source data together with the producer's semantic identity."""
 
@@ -431,6 +438,7 @@ def _source_inputs_sha256(
         "trade_date": trade_date,
         "public_manifest_sha256": public_manifest_sha256,
         "selector_sha256": selector_sha256,
+        "selector_binding": dict(selector_binding or {}),
         "stage_input_sha256s": {
             key: hashlib.sha256(
                 json.dumps(
@@ -443,11 +451,22 @@ def _source_inputs_sha256(
             for key, value in sorted(stage_inputs.items())
         },
     }
+    if fupan_only:
+        identity["lane_scope"] = "FUPAN_ONLY_STAGE7_NOT_SYNTHESIZED"
     return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
 
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def _emitted_outputs(paths: Mapping[str, Path], *, fupan_only: bool) -> dict[str, dict[str, str]]:
+    """Hash only files emitted; fupan-only intentionally has no Stage7 CSV."""
+    return {
+        key: {"path": str(path), "sha256": _sha256_bytes(path.read_bytes())}
+        for key, path in paths.items()
+        if not (fupan_only and key == "stage7_tail_replay")
+    }
 
 
 def _atomic_bytes(path: Path, data: bytes) -> None:
@@ -489,6 +508,8 @@ def materialize_d1_review_sources(
     selector_sha256: str,
     stage_inputs: Mapping[str, Mapping[str, Any]],
     output_dir: Path,
+    selector_binding: Mapping[str, Any] | None = None,
+    fupan_only: bool = False,
 ) -> dict[str, Any]:
     plate_bytes = public_files.get("plate.json")
     if not isinstance(plate_bytes, bytes):
@@ -514,20 +535,41 @@ def materialize_d1_review_sources(
     anchors = _build_anchor_roles(theme_stocks, daily_by_code)
     prior = _build_prior_plan(enriched, counts)
     handoff = _build_handoff(enriched, counts["stage7"])
-    if not anchors or not prior or not handoff or not stage7:
+    if not anchors or not prior or not handoff or (not stage7 and not fupan_only):
         raise ValueError("D-1 source producer evidence incomplete")
+    if fupan_only and not stage7:
+        stage7_source_evidence["cannot_confirm"] = _dedupe_texts([
+            "STAGE7_NOT_MATERIALIZED: owner/raw witness did not pass the natural exact-cutoff gate",
+            *stage7_source_evidence["cannot_confirm"],
+        ])
+        for row in anchors:
+            row["confirmed_by"] = "短线侠涨停池 + 同日 selector 日线；阶段验证缺失。"
+        for row in prior:
+            row.update(
+                prior_expectation="仅承接 D-1 复盘观察池；Stage7 未物化。",
+                open_realization="阶段证据不完整，不能确认开盘阶段实现。",
+                intraday_validation="Stage7 CANNOT_CONFIRM；保留原阶段失败原因。",
+            )
+        for row in handoff:
+            row.update(
+                morning_status="阶段证据不完整；不声明开盘四阶段已接入。",
+                afternoon_handoff="Stage7 CANNOT_CONFIRM；没有合成尾盘观察行。",
+            )
 
     output_dir = Path(output_dir)
     inputs_sha = _source_inputs_sha256(
         trade_date=trade_date,
         public_manifest_sha256=public_manifest_sha256,
         selector_sha256=selector_sha256,
+        selector_binding=selector_binding,
         stage_inputs=stage_inputs,
+        fupan_only=fupan_only,
     )
     receipt_path = output_dir / "receipt.json"
     if receipt_path.is_file():
         existing = json.loads(receipt_path.read_text(encoding="utf-8"))
-        if existing.get("inputs_sha256") == inputs_sha and existing.get("status") == "READY":
+        expected_status = "PARTIAL" if fupan_only else "READY"
+        if existing.get("inputs_sha256") == inputs_sha and existing.get("status") == expected_status:
             return {**existing, "already_exists": True}
         raise ValueError("D-1 derived source slot already contains different inputs")
 
@@ -545,20 +587,22 @@ def materialize_d1_review_sources(
         (paths["intraday_handoff"], handoff),
         (paths["stage7_tail_replay"], stage7),
     ):
-        _write_csv(path, rows)
+        if rows:
+            _write_csv(path, rows)
     stage_manifest = {
         "schema_version": "v3_5.d1_stage7_source.v2",
-        "status": "DATA_PARTIAL_OBSERVE_ONLY",
+        "status": "DATA_PARTIAL_OBSERVE_ONLY" if stage7 else "CANNOT_CONFIRM",
         "trade_date": trade_date,
         "stage_id": "STAGE_1445_1500",
         "row_count": len(stage7),
-        "source_role": "real_d1_stage7_tail_replay",
+        "source_role": "real_d1_stage7_tail_replay" if stage7 else "STAGE7_NOT_MATERIALIZED",
         "producer_semantic_version": D1_SOURCE_PRODUCER_VERSION,
         "source_oracle_sha256": V3_D1_SOURCE_ORACLE_SHA256,
         "source_summary": stage7_source_evidence["source_summary"],
         "source_summary_cannot_confirm": stage7_source_evidence["source_summary_cannot_confirm"],
         "quote_coverage": stage7_source_evidence["quote_coverage"],
         "market_status": stage7_source_evidence["market_status"],
+        "observation_witness": stage7_source_evidence["observation_witness"],
         "cannot_confirm": _dedupe_texts([
             "No L2 order queue, cancellation or unmatched auction evidence.",
             *stage7_source_evidence["cannot_confirm"],
@@ -566,20 +610,27 @@ def materialize_d1_review_sources(
         **SAFETY,
     }
     _atomic_bytes(output_dir / "stage7_tail_replay.manifest.json", (json.dumps(stage_manifest, ensure_ascii=False, indent=2) + "\n").encode())
-    outputs = {key: {"path": str(path), "sha256": _sha256_bytes(path.read_bytes())} for key, path in paths.items()}
+    outputs = _emitted_outputs(paths, fupan_only=fupan_only)
     receipt = {
         "schema_version": "v3_5.d1_review_sources.v2",
-        "status": "READY",
+        "status": "PARTIAL" if fupan_only else "READY",
+        **({"lane_scope": "FUPAN_ONLY_STAGE7_NOT_SYNTHESIZED"} if fupan_only else {}),
         "trade_date": trade_date,
         "inputs_sha256": inputs_sha,
         "producer_semantic_version": D1_SOURCE_PRODUCER_VERSION,
         "source_oracle_sha256": V3_D1_SOURCE_ORACLE_SHA256,
         "public_manifest_sha256": public_manifest_sha256,
         "selector_sha256": selector_sha256,
+        "selector_source_binding": dict(selector_binding or {}),
+        "stage7_observation_witness": (
+            stage_inputs.get("STAGE_1445_1500", {}).get("stage7_observation_witness")
+            if isinstance(stage_inputs.get("STAGE_1445_1500"), Mapping) else None
+        ),
         "stage7_source_summary": stage7_source_evidence["source_summary"],
         "stage7_source_summary_cannot_confirm": stage7_source_evidence["source_summary_cannot_confirm"],
         "stage7_quote_coverage": stage7_source_evidence["quote_coverage"],
         "stage7_market_status": stage7_source_evidence["market_status"],
+        "stage7_observation_witness": stage7_source_evidence["observation_witness"],
         "stage7_cannot_confirm": stage7_source_evidence["cannot_confirm"],
         "cannot_confirm": _dedupe_texts([
             "No L2 order queue, cancellation or unmatched auction evidence.",
