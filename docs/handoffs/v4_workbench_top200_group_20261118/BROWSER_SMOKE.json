@@ -1,0 +1,62 @@
+{
+  "schema": "v4.workbench.top200_group.browser_smoke.v1",
+  "status": "PASS_CANDIDATE_ONLY_NOT_DEPLOYED",
+  "tested_at_utc": "2026-11-18 12:04:47 UTC",
+  "worktree": "/Users/lexi/.codex/worktrees/v4-workbench-top200-group-20261118",
+  "baseline_commit": "4d2804cb016d12db2cfa0fde2dbf90a82c39a676",
+  "browser": {
+    "engine": "Chromium via Playwright",
+    "version": "157.0.8103.79",
+    "headless": true,
+    "mode": "isolated browser context"
+  },
+  "page": "http://127.0.0.1:8873/research-panel/workbench.html?date=2026-11-18",
+  "intercepted_assets_only": [
+    {
+      "path": "/research-panel/workbench-host/bootstrap.mjs",
+      "sha256": "403207bb80597b8f46e9e279018ce6a7a1f0a4a52286e61e5db4587b3e06be22"
+    },
+    {
+      "path": "/research-panel/workbench-host/dot/shell/workbench.local.mjs",
+      "sha256": "83587177505456c9bf526b31eb3a8fe9f46d155b072acfb01d68eb42bd4d1084"
+    },
+    {
+      "path": "/research-panel/workbench-host/top200-group.mjs",
+      "sha256": "c673b7f74205982b9ca8cff46618c9a34cba410fb3a605dd7b0832880390e0fa"
+    }
+  ],
+  "live_api_assertions": {
+    "date": "2026-11-18",
+    "top200_rows": 200,
+    "display_order": "rank 1 through 200 preserved",
+    "rank_1": {
+      "symbol": "920924.BJ",
+      "visible_text": "1. 广脉科技; 920924.BJ; 15.34; +30.00%; 1.55亿"
+    },
+    "rank_200": {
+      "symbol": "002959.SZ",
+      "visible_text": "200. 小熊电器; 002959.SZ; 41.52; +4.06%; 8.4亿"
+    },
+    "formula_rows": 29,
+    "top200_formula_intersection": 17,
+    "b23_count_after_switch": 24,
+    "pb2_count_after_switch": 6,
+    "outside_formula_example": "920924.BJ",
+    "outside_formula_detail": "Top200 第 1 名 · 独立收盘名单",
+    "outside_formula_chart_status": "WORKBENCH_DAILY_K_SYMBOL_NOT_BOUND"
+  },
+  "archive_switch": {
+    "date": "2026-10-28",
+    "top200_status": "CANNOT_CONFIRM_NOT_MATERIALIZED",
+    "list_empty_state": "2026-10-28 Top200 尚未物化 · CANNOT_CONFIRM",
+    "ranked_rows_after_switch": 0,
+    "stale_2026_11_18_event_injected": true,
+    "stale_rows_after_event": false
+  },
+  "top200_gets": {
+    "2026-11-18": 1,
+    "2026-10-28": 1
+  },
+  "uncaught_page_errors": [],
+  "candidate_deployment": "NOT_RUN"
+}
