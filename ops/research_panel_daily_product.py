@@ -17,6 +17,25 @@ FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,or
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
 CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
 SCHEMA='v4.a_share.daily_product.v1'
+CURRENT_UNIVERSE_EXCLUSION_REASONS=frozenset({'VERIFIED_BSE_OLD_CODE_REPLACED','VERIFIED_DELISTED_NO_CURRENT_BARS'})
+
+def current_daily_universe(snapshot):
+ source=sorted(snapshot.get('original_target_codes') or snapshot['symbols'])
+ eligible=snapshot.get('original_quarantine_eligible',{})
+ if not isinstance(eligible,dict):raise ValueError('DAILY_QUARANTINE_ELIGIBILITY_INVALID')
+ excluded={}
+ for symbol in source:
+  record=eligible.get(symbol)
+  if not isinstance(record,dict):continue
+  reason=record.get('reason_code')
+  if (record.get('classification')=='QUARANTINED' and record.get('quarantine') is True
+      and record.get('target_date_ready') is False and reason in CURRENT_UNIVERSE_EXCLUSION_REASONS):
+   excluded[symbol]=reason
+ active=[symbol for symbol in source if symbol not in excluded]
+ return source,active,excluded
+
+def current_universe_exclusion_summary(excluded):
+ return dict(count=len(excluded),by_reason_code=dict(sorted(Counter(excluded.values()).items())))
 
 def canonical(v):return json.dumps(v,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False,default=lambda x:str(x) if isinstance(x,Decimal) else (_ for _ in ()).throw(TypeError(type(x).__name__))).encode()
 def digest(v):return hashlib.sha256(canonical(v)).hexdigest()
@@ -72,9 +91,14 @@ def _exact_typed_end_fact(context,symbol):
  checked(helper);checked(proof['snapshot']);checked(proof['producer_receipt'])
  native=proof['native']
  if native not in item['raw_files'] or native['sha256']!='87c5e2c62f250f72a87cee8dafac4bddd69d38f36a23e6330539911e6dca50af':raise ValueError('TYPED_END_NATIVE_BINDING_CONFLICT')
- checked(native)
- from ops import research_panel_qfq as q
- if sha(Path(q.__file__))!=proof['resolved_owner']['sha256']:raise ValueError('TYPED_END_ORIGINAL_RAW_OWNER_DRIFT')
+ if context.d30_projection:
+  checked(context.d30_projection.raw_ref(native))
+  item=context.d30_projection.raw_item(item)
+  q=module(proof['resolved_owner'],'dated_d30_original_raw_owner')
+ else:
+  checked(native)
+  from ops import research_panel_qfq as q
+  if sha(Path(q.__file__))!=proof['resolved_owner']['sha256']:raise ValueError('TYPED_END_ORIGINAL_RAW_OWNER_DRIFT')
  checked(proof['resolved_owner']);driver,_=q.authorities(checked(proof['driver']),checked(proof['formula']))
  raw=q.resolved_raw_history(symbol,item,context.target,driver)
  if len(raw)!=2819 or int(raw.trade_date.max())!=context.target:raise ValueError('TYPED_END_RESOLVED_HISTORY_CONFLICT')
@@ -87,15 +111,22 @@ def _exact_typed_end_fact(context,symbol):
  if set(proof['paired_roles'])!={'selector','backtest'}:raise ValueError('TYPED_END_PAIRED_ROLES_CONFLICT')
  context.unchanged()
  for role,path in context.receipt['candidates'].items():
-  bound=proof['paired_roles'][role];p=Path(path);stamp=p.stat();schema=pq.read_schema(p)
+  bound=proof['paired_roles'][role]
   if (bound['path']!=path or bound['sha256']!=context.receipt['candidate_sha256'][role]
-      or bound['generation_id']!=context.generation or bound['stat']!={'size':stamp.st_size,'mtime_ns':stamp.st_mtime_ns}
-      or q.panel_contract(p).get('generation_id')!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
-  volume='volume'if'volume'in schema.names else'vol';date=context.target if pa.types.is_integer(schema.field('trade_date').type)else str(context.target)
-  table=pq.read_table(p,columns=['ts_code','trade_date','open','high','low','close',volume,'amount'],filters=[('ts_code','=',symbol),('trade_date','=',date)])
+      or bound['generation_id']!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
+  if context.d30_projection and role=='selector':
+   volume='volume'
+   table=context.d30_projection.read(symbol,['open','high','low','close',volume,'amount'],start=context.target)
+  else:
+   p=Path(path);stamp=p.stat();schema=pq.read_schema(p)
+   if (bound['stat']!={'size':stamp.st_size,'mtime_ns':stamp.st_mtime_ns}
+       or q.panel_contract(p).get('generation_id')!=context.generation):raise ValueError('TYPED_END_PAIRED_REFERENCE_CONFLICT')
+   volume='volume'if'volume'in schema.names else'vol';date=context.target if pa.types.is_integer(schema.field('trade_date').type)else str(context.target)
+   table=pq.read_table(p,columns=['ts_code','trade_date','open','high','low','close',volume,'amount'],filters=[('ts_code','=',symbol),('trade_date','=',date)])
+   if p.stat()!=stamp:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
   if len(table)!=1:raise ValueError('TYPED_END_PAIRED_TARGET_ROW_MISSING')
   record=table.to_pylist()[0];values={key:float(record[volume if key=='vol'else key])for key in columns}
-  if values!=target or values!=bound['target_row'] or p.stat()!=stamp:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
+  if values!=target or values!=bound['target_row']:raise ValueError('TYPED_END_PAIRED_TARGET_VALUES_CONFLICT')
  _exact_typed_acceptance_references(context,proof)
  context.unchanged();return proof,ref
 
@@ -134,7 +165,9 @@ def _exact_typed_acceptance_references(context,proof):
      or boundary.get('raw_source')!=entries[0]['candidate']):raise ValueError('TYPED_SOURCE_HISTORICAL_EXCEPTION_SCOPE_CONFLICT')
  checked(boundary['official_notice']);publication=json.loads(checked(evidence['paired_publication']).read_bytes())
  if publication.get('status')!='ACTUAL_PAIRED_READY_POINTERS_COMMITTED'or publication.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_PUBLICATION_CONFLICT')
- journal=json.loads(checked(publication['publication_journal']).read_bytes());published=json.loads(checked(publication['producer_receipt']).read_bytes())
+ journal_ref=publication['publication_journal']
+ if context.d30_projection:journal_ref=context.d30_projection.journal_ref(journal_ref)
+ journal=json.loads(checked(journal_ref).read_bytes());published=json.loads(checked(publication['producer_receipt']).read_bytes())
  if journal.get('status')!='COMMITTED'or published.get('status')!='READY'or published.get('generation_id')!=context.generation:raise ValueError('TYPED_SOURCE_PAIRED_ACTUAL_STATUS_CONFLICT')
  for role,path in context.receipt['candidates'].items():
   if (publication['pointers'][role]['actual_target']!=path or journal['after'][role].strip()!=path
@@ -186,25 +219,156 @@ def _census(r,asof,observation):
    return node
  env={'math':math};exec(compile(ast.fix_missing_locations(ast.Module(body=[BindDate().visit(fn)],type_ignores=[])),str(p),'exec'),env);return env['analyze']
 
+class D30SelectorProjection:
+ """Read the exact historical 002731 source through its pinned V4 projection."""
+ symbol='002731.SZ'
+ target=20261030
+ schema='v4.a_share.d30_frozen_selector.v1'
+
+ @classmethod
+ def configured(cls,target):
+  if target!=cls.target:return None
+  path=os.environ.get('V4_A_DAILY_D30_SELECTOR_BINDING_PATH')
+  expected=os.environ.get('V4_A_DAILY_D30_SELECTOR_BINDING_SHA256')
+  if not path and not expected:return None
+  if not path or not expected:raise ValueError('D30_SELECTOR_BINDING_INCOMPLETE')
+  return cls(dict(path=path,sha256=expected))
+
+ def __init__(self,binding_ref):
+  self.ref=binding_ref
+  self._identities={}
+  binding=self._pinned_json(binding_ref)
+  typed=dict(path=os.environ.get('V4_A_DAILY_TYPED_END_FACT_PATH'),
+             sha256=os.environ.get('V4_A_DAILY_TYPED_END_FACT_SHA256'))
+  if binding.get('schema')!=self.schema or binding.get('typed_fact')!=typed:
+   raise ValueError('D30_SELECTOR_TYPED_FACT_BINDING')
+  proof=self._pinned_json(typed)
+  self.selector=proof['paired_roles']['selector']
+  self.backtest=proof['paired_roles']['backtest']
+  self.footer=binding['selector_contract']
+  self.calendars=binding['observed_calendars']
+  if (proof.get('schema')!='V4_EXACT_002731_D30_TYPED_METADATA_V2' or proof.get('symbol')!=self.symbol
+      or proof.get('target_date')!=self.target or proof.get('source_generation')!=self.footer.get('generation_id')
+      or self.footer.get('asof_date')!=self.target or self.footer.get('generation_manifest_path')!=proof['producer_receipt']['path']
+      or self.footer['market_basis']['A']['price_basis']!='QFQ_ASOF' or self.footer.get('historical_PIT') is not False
+      or set(self.calendars)!={'SH','SZ','BJ'}
+      or any(not days or days!=sorted(set(days)) or days[-1]>self.target for days in self.calendars.values())):
+   raise ValueError('D30_SELECTOR_ORIGINAL_METADATA_BINDING')
+  self.native_relocation=binding['native_source_relocation']
+  self.journal_relocation=binding['journal_relocation']
+  witness=self._pinned_json(proof['accepted_evidence'][0])
+  publication=self._pinned_json(witness['paired_publication'])
+  if (self.native_relocation['original']!=proof['native']
+      or self.journal_relocation['original']!=publication['publication_journal']):
+   raise ValueError('D30_SELECTOR_RELOCATED_INPUT_IDENTITY')
+  for relocation in (self.native_relocation,self.journal_relocation):
+   original,retained=relocation['original'],relocation['retained']
+   if original['sha256']!=retained['sha256'] or original['path']==retained['path']:
+    raise ValueError('D30_SELECTOR_RELOCATED_INPUT_SHA_BINDING')
+   path=checked(retained)
+   self._identities[path]=self._stamp(path)
+  producer=self._pinned_json(proof['producer_receipt'])
+  for role,original in (('selector',self.selector),('backtest',self.backtest)):
+   if (original['generation_id']!=proof['source_generation'] or producer['candidates'][role]!=original['path']
+       or producer['candidate_sha256'][role]!=original['sha256']):
+    raise ValueError('D30_SELECTOR_PAIRED_RECEIPT_BINDING')
+  overlay=self._pinned_json(binding['overlay'])
+  target=overlay['targets']['13']
+  exact=self._pinned_json(binding['exact_replay'])
+  if (not target.get('physical_reference_only') or target['path']!=self.selector['path']
+      or target['old_sha256']!=self.selector['sha256'] or target['generation']!=self.footer['generation_id']
+      or target['asof']!=str(self.target) or exact.get('status')!='OS_DENIED_ORIGINALS_FULL_FORWARD_INVERSE_EXACT_PASS'
+      or any(binding[key]!={field:exact[section][field] for field in ('path','sha256')}
+             for key,section in (('reader','source'),('overlay','manifest')))
+      or exact['totals']['13']['old_rows']!=target['totals']['old_rows']):
+   raise ValueError('D30_SELECTOR_OVERLAY_IDENTITY_BINDING')
+  backtest=Path(self.backtest['path'])
+  observed=backtest.stat()
+  if self.backtest['stat']!={'size':observed.st_size,'mtime_ns':observed.st_mtime_ns}:
+   raise ValueError('D30_SELECTOR_BACKTEST_STAT_BINDING')
+  from ops.research_panel_qfq import panel_contract,sha as file_sha
+  if file_sha(backtest)!=self.backtest['sha256'] or panel_contract(backtest)!=self.footer:
+   raise ValueError('D30_SELECTOR_BACKTEST_SHA_OR_FOOTER_BINDING')
+  self._identities[backtest]=self._stat_identity(observed)
+  reader_path=checked(binding['reader'])
+  before=self._stamp(reader_path)
+  reader=module(binding['reader'],'v4_d30_frozen_selector_reader')
+  self._identities[reader_path]=before
+  self.overlay=reader.FrozenOverlay(Path(binding['overlay']['path']),binding['overlay']['sha256'],symbols={self.symbol})
+  self.unchanged()
+
+ def _pinned_json(self,ref):
+  path=Path(ref['path'])
+  self._identities[path]=self._stamp(path)
+  raw=checked(ref).read_bytes()
+  if hashlib.sha256(raw).hexdigest()!=ref['sha256']:raise ValueError('D30_SELECTOR_BINDING_CHANGED')
+  return json.loads(raw)
+
+ @staticmethod
+ def _stat_identity(s):
+  return s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns
+
+ @classmethod
+ def _stamp(cls,path):
+  return cls._stat_identity(path.stat())
+
+ def raw_ref(self,ref):
+  if ref['path']!=self.native_relocation['original']['path']:return ref
+  if ref!=self.native_relocation['original']:raise ValueError('D30_SELECTOR_NATIVE_RELOCATION_CONFLICT')
+  return {**ref,**self.native_relocation['retained']}
+
+ def raw_item(self,item):
+  return {**item,'raw_files':[self.raw_ref(ref) for ref in item['raw_files']]}
+
+ def journal_ref(self,ref):
+  if ref!=self.journal_relocation['original']:raise ValueError('D30_SELECTOR_JOURNAL_RELOCATION_CONFLICT')
+  return self.journal_relocation['retained']
+
+ def unchanged(self):
+  if any(self._stamp(path)!=stamp for path,stamp in self._identities.items()):
+   raise ValueError('D30_SELECTOR_BINDING_CHANGED')
+  self.overlay.base.unchanged()
+
+ def read(self,symbol,columns,*,start=None):
+  if symbol!=self.symbol:raise ValueError('D30_SELECTOR_SYMBOL_OUTSIDE_TYPED_SCOPE')
+  self.unchanged()
+  table=self.overlay.read('13',symbols=[symbol],columns=columns,start=start,end=self.target)
+  self.unchanged()
+  return table
+
+
 class SourceContext:
  def __init__(self,data_root,target,*,source_config=None):
   from ops.research_panel_qfq import panel_contract
   self.data_root=Path(data_root).resolve();self.target=int(target);self.config,self.config_ref=(source_config if source_config else config());self.root=self.data_root/'daily_products/a_share'
   from ops.research_storage_pair import current_binding
   self.pair_binding=current_binding(self.data_root)
-  self.pointer=self.data_root/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';self.backpointer=self.data_root/'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt';self.pointer_bytes=self.pair_binding.pointer_bytes('selector') if self.pair_binding else self.pointer.read_bytes();self.back_bytes=self.pair_binding.pointer_bytes('backtest') if self.pair_binding else self.backpointer.read_bytes()
-  self.panel=Path(self.pointer_bytes.decode('utf-8-sig').strip());self.footer=panel_contract(self.panel);back=panel_contract(Path(self.back_bytes.decode('utf-8-sig').strip()))
-  if self.footer.get('asof_date')!=self.target or self.footer.get('generation_id')!=back.get('generation_id'):raise ValueError('DAILY_PAIRED_GENERATION_OR_DATE_CONFLICT')
+  self.pointer=self.data_root/'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt';self.backpointer=self.data_root/'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt'
+  self.d30_projection=D30SelectorProjection.configured(self.target)
+  if self.d30_projection:
+   if Path(self.d30_projection.selector['path']).parents[3]!=self.data_root:
+    raise ValueError('D30_SELECTOR_DATA_ROOT_BINDING')
+   self.panel=Path(self.d30_projection.selector['path'])  # Original lineage identity only.
+   self.footer=self.d30_projection.footer
+  else:
+   self.pointer_bytes=self.pair_binding.pointer_bytes('selector') if self.pair_binding else self.pointer.read_bytes();self.back_bytes=self.pair_binding.pointer_bytes('backtest') if self.pair_binding else self.backpointer.read_bytes()
+   self.panel=Path(self.pointer_bytes.decode('utf-8-sig').strip());self.footer=panel_contract(self.panel);back=panel_contract(Path(self.back_bytes.decode('utf-8-sig').strip()))
+   if self.footer.get('asof_date')!=self.target or self.footer.get('generation_id')!=back.get('generation_id'):raise ValueError('DAILY_PAIRED_GENERATION_OR_DATE_CONFLICT')
   self.generation=self.footer['generation_id'];self.receipt_ref=reference(Path(self.footer['generation_manifest_path']));self.receipt=json.loads(checked(self.receipt_ref).read_text());self.snapshot_ref=self.receipt['adjustment_snapshot'];self.snapshot=json.loads(checked(self.snapshot_ref).read_text());self.quarantine_ref=self.receipt['quarantine_manifest'];self.quarantine=json.loads(checked(self.quarantine_ref).read_text())
   if self.receipt.get('generation_id')!=self.generation or self.quarantine.get('generation_id')!=self.generation or self.snapshot.get('asof_date')!=self.target:raise ValueError('DAILY_RECEIPT_SNAPSHOT_IDENTITY_CONFLICT')
   if (self.footer.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt.get('snapshot_file_sha256')!=self.snapshot_ref['sha256'] or self.receipt['candidates']['selector']!=str(self.panel)):raise ValueError('DAILY_SNAPSHOT_SHA_CONFLICT')
-  self.scope=sorted(self.snapshot.get('original_target_codes') or self.snapshot['symbols'])
-  if len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
-  self.panel_stat=self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
+  self.source_scope,self.scope,self.current_universe_exclusions=current_daily_universe(self.snapshot)
+  if len(self.source_scope)!=len(set(self.source_scope)) or not self.source_scope or len(self.scope)!=len(set(self.scope)) or not self.scope:raise ValueError('DAILY_PROCESSED_UNIVERSE_INVALID')
+  self.panel_stat=None if self.d30_projection else self.panel.stat();self.identity=dict(generation=self.generation,input_sha256=self.footer['input_sha256'],snapshot=self.snapshot_ref,selector_artifact_sha256=self.receipt['candidate_sha256']['selector'],asof=self.target,basis=self.footer['market_basis']['A'],historical_PIT=False)
   label_root=os.environ.get('V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT')
   self.label_results,self.label_bindings,self.label_retained=label_index_bindings(Path(label_root),self.target) if label_root else ({},{},{})
-  self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:self.snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
+  admission_snapshot=self.snapshot
+  if self.d30_projection:
+   symbol=self.d30_projection.symbol;items=self.snapshot['symbols']
+   admission_snapshot={**self.snapshot,'symbols':{**items,symbol:self.d30_projection.raw_item(items[symbol])}}
+  self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:admission_snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
   reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
+  if self.d30_projection:self.identity['selector_projection']=self.d30_projection.ref
  def cached_sha(self,p):
   p=Path(p);s=p.stat();stamp=(s.st_size,s.st_mtime_ns,s.st_ino)
   if str(p) in self.hash_cache:
@@ -214,14 +378,19 @@ class SourceContext:
   h=sha(p);self.hash_cache[str(p)]=(stamp,h);return h
  def unchanged(self):
   if self.pair_binding:self.pair_binding.assert_open()
+  if self.d30_projection:
+   self.d30_projection.unchanged();return
   s=self.panel.stat()
   if (self.pair_binding is None and (self.pointer.read_bytes()!=self.pointer_bytes or self.backpointer.read_bytes()!=self.back_bytes)) or (s.st_size,s.st_mtime_ns,s.st_ino)!=(self.panel_stat.st_size,self.panel_stat.st_mtime_ns,self.panel_stat.st_ino):raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
  def _calendars(self):
   from ops.research_panel_logical import parquet as pq
   dates={e:set() for e in ('SH','SZ','BJ')}
-  for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
-   for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
-    if e in dates and int(d)<=self.target:dates[e].add(int(d))
+  if self.d30_projection:
+   dates={e:set(days) for e,days in self.d30_projection.calendars.items()}
+  else:
+   for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
+    for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
+     if e in dates and int(d)<=self.target:dates[e].add(int(d))
   if self.config.get('future_calendar'):
    pinned=json.loads(checked(self.config['future_calendar']).read_text());periods=pinned['markets']['a_share']['holiday_periods'];day=datetime.strptime(str(self.target),'%Y%m%d')+timedelta(days=1)
    while day.year==pinned['year']:
@@ -250,8 +419,11 @@ class SourceContext:
   from ops.research_panel_logical import parquet as panel_parquet
   columns=['ts_code','trade_date','name','market_type','exchange','open','high','low','close','volume']
   self.unchanged()
-  # Preserve original profile/basis/date validation through the shared reader.
-  frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
+  if self.d30_projection:
+   frame=self.d30_projection.read(symbol,columns).to_pandas()
+  else:
+   # Preserve original profile/basis/date validation through the shared reader.
+   frame=self.reader.load_selector_ready(columns=columns,filters=[('ts_code','=',symbol),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
   self.unchanged()
   return frame
 
@@ -332,7 +504,81 @@ def source_inputs(context,symbol,bars,asof,qualification,*,retain=None,prefix_re
   rows=list(prefix_reuse['rows'][:len(bars)])
  last=rows[-1];signals=context.core.signals(last['values']);breakout={r['trade_date']:tristate(engine.boolean(r['values'].get('突破'))) for r in rows}
  answer=dict(symbol=symbol,rows=rows,source_bar_exact={'amount':0},index_sha256=context.config_ref['sha256'])
- summary,_=_census(context.config['census'],asof,asof)(answer);stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
+ census=_census(context.config['census'],asof,asof)
+ summary,_=census(answer);stage=summary.get('stage','UNKNOWN')
+ if stage=='UNKNOWN_NONPOSITIVE_OR_INVALID_PRICE':
+  def verified_clean_suffix():
+   identity=getattr(context,'identity',{});basis=identity.get('basis',{})
+   if (not isinstance(qualification,dict)
+       or qualification.get('status')!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
+       or not symbol.endswith(('.SH','.SZ','.BJ')) or type(asof)is not int
+       or type(context.target)is not int or asof!=context.target or identity.get('asof')!=asof
+       or identity.get('generation')!=context.generation or not identity.get('input_sha256')
+       or not identity.get('selector_artifact_sha256') or not isinstance(identity.get('snapshot'),dict)
+       or not identity['snapshot'].get('sha256') or basis.get('asof_date')!=context.target
+       or basis.get('price_basis')!='QFQ_ASOF' or basis.get('volume_basis')!='QFQ_EVENT_VOLUME'
+       or basis.get('amount_basis')!='RAW_TURNOVER' or len(rows)!=len(bars) or len(rows)<3):
+    return None
+   dates=tuple(row.get('trade_date') for row in rows)
+   input_dates=tuple(bar.get('trade_date') for bar in bars)
+   if (not all(type(day)is int for day in dates) or dates!=input_dates
+       or not all(dates[index]<dates[index+1] for index in range(len(dates)-1))
+       or tuple(breakout)!=dates or summary.get('symbol')!=symbol
+       or summary.get('history_bars')!=len(rows) or summary.get('first')!=dates[0]
+       or summary.get('last')!=dates[-1] or dates[-1]!=asof):
+    return None
+   parsed=[];last_nonpositive=None
+   for index,(row,bar) in enumerate(zip(rows,bars)):
+    values=row.get('values');ohlcv=row.get('ohlcv')
+    if not isinstance(values,dict) or '突破' not in values or not isinstance(ohlcv,dict):
+     return None
+    raw=[ohlcv.get(key) for key in ('open','high','low','close','vol')]
+    source_raw=[bar.get(key) for key in ('open','high','low','close','vol')]
+    if any(value is None or isinstance(value,bool) for value in (*raw,*source_raw)):
+     return None
+    try:numeric=[float(value) for value in raw];source_numeric=[float(value) for value in source_raw]
+    except (TypeError,ValueError,OverflowError):
+     return None
+    if (not all(math.isfinite(value) for value in (*numeric,*source_numeric))
+        or numeric!=source_numeric):
+     return None
+    parsed.append(numeric)
+    if any(value<=0 for value in numeric[:4]):last_nonpositive=index
+   if last_nonpositive is None:return None
+   suffix_start=last_nonpositive+1;suffix_rows=rows[suffix_start:];suffix_dates=dates[suffix_start:]
+   if len(suffix_rows)<2:return None
+   for open_,high,low,close,volume in parsed[suffix_start:]:
+    if (min(open_,high,low,close)<=0 or volume<0
+        or not low<=min(open_,close)<=max(open_,close)<=high):
+     return None
+   # The unchanged census receives the same indexed original formula rows;
+   # only its structural window starts after the final finite nonpositive OHLC.
+   suffix_summary,_=census({**answer,'rows':suffix_rows})
+   anchor=suffix_summary.get('main_anchor_date')
+   positions=[index for index,day in enumerate(dates) if day==anchor]
+   if (suffix_summary.get('symbol')!=symbol or suffix_summary.get('history_bars')!=len(suffix_rows)
+       or suffix_summary.get('history_first')!=suffix_dates[0] or suffix_summary.get('history_last')!=asof
+       or str(suffix_summary.get('stage','UNKNOWN')).startswith('UNKNOWN')
+       or type(anchor)is not int or len(positions)!=1):
+    return None
+   anchor_index=positions[0]
+   if (anchor<=dates[last_nonpositive] or anchor_index-1<suffix_start
+       or anchor_index>=len(rows)-1):
+    return None
+   # A later unknown breakout can hide a newer original key. It is safe only
+   # when the original census's independent bullish volume key is provable.
+   for index in range(anchor_index+1,len(rows)-1):
+    if breakout[dates[index]]!='UNKNOWN':continue
+    previous_volume=parsed[index-1][4]
+    open_,close,volume=parsed[index][0],parsed[index][3],parsed[index][4]
+    if not (previous_volume>0 and close>open_ and volume>=2*previous_volume):
+     return None
+   return suffix_summary
+  suffix_summary=verified_clean_suffix()
+  if suffix_summary is not None:
+   # Change only the census stage and its selected original key anchor.
+   summary={**summary,'stage':suffix_summary['stage'],'main_anchor_date':suffix_summary['main_anchor_date']}
+ stage=summary.get('stage','UNKNOWN');known=not stage.startswith('UNKNOWN')
  baseline=dict(original={'YES':'TRUE','NO':'FALSE','UNKNOWN':'UNKNOWN'}[signals['membership']],nav_pullback='UNKNOWN' if not known else 'TRUE' if stage in {'D28_RECOVERY_BELOW_KEY_HIGH','PULLBACK_SUPPORT_OBSERVATION_NOT_CONFIRMED'} else 'FALSE',nav_breakout='UNKNOWN' if not known else 'TRUE' if stage in {'D28_BREAKOUT','ABOVE_KEY_CONTINUATION_DISTANCE_DISCLOSED'} else 'FALSE')
  return dict(original_breakout_by_date=breakout,baseline_memberships=baseline,old_main_anchor_date=summary.get('main_anchor_date'),qualification_status=qualification['status'],raw_g4_reference=context.g4_reference(symbol,asof,qualification))
 
@@ -500,6 +746,8 @@ from ops.research_storage_pair import paired_request
 def materialize_daily_product(*,data_root,target,formula_result=None,symbols=None,history_dates=(),evaluate=None,output_root=None,original_charts=True,chart_png_renderer=None):
  """Called once from original run_a; no historical loop in normal daily mode."""
  context=SourceContext(data_root,target)
+ if context.d30_projection and (symbols is None or tuple(symbols)!=(context.d30_projection.symbol,) or formula_result):
+  raise ValueError('D30_SELECTOR_TYPED_SCOPE_REQUIRES_EXPLICIT_SINGLE_STOCK')
  if output_root is not None:context.root=Path(output_root).resolve()
  root=context.root;context.unchanged()
  index_start=(root/'index.json').read_bytes() if (root/'index.json').is_file() else None
@@ -530,8 +778,9 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    row.update(FLAGS);save(checkpoint,row,immutable=True,compress_row=True)
   rows.append(row);row_refs[symbol]=reference(checkpoint);save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
  context.unchanged();counts={g:dict(Counter(r['evaluation']['groups'][g]['status'] for r in rows)) for g in GROUPS};candidates=[r for r in rows if r['groups']];unknown=sum(bool(r['pending_groups']) for r in rows)
- product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
- content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
+ exclusions=current_universe_exclusion_summary(context.current_universe_exclusions)
+ product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
+ content_sha=digest(product);version=root/'versions'/str(target)/context.generation/content_sha;artifact=save(version/'product.json',product,immutable=True);manifest=dict(schema_version='v4.a_share.daily_product_manifest.v1',data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],snapshot=context.snapshot_ref,artifact=artifact,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,counts=counts,status=product['status'],sample_only=symbols is not None,history_status=product['history_status'],**FLAGS);manifest_ref=save(version/'manifest.json',manifest,immutable=True)
  chart_descriptor=None
  if original_charts:
   try:
@@ -583,11 +832,11 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
     materialize_statistics(root,Path(statistics_root))
    except (ValueError,OSError,KeyError,TypeError) as error:
     save(parts/'workbench_statistics_error.json',dict(status='CANNOT_CONFIRM',error=str(error),numeric_manifest=manifest_ref,**FLAGS))
-  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),unknown_count=unknown,status=product['status'],**FLAGS)
+  event=dict(schema_version='v4.a_share.daily_completion.v1',event_id=digest(manifest),data_date=str(target),source_generation=context.generation,input_sha256=context.identity['input_sha256'],artifact=artifact,manifest=manifest_ref,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,unknown_count=unknown,status=product['status'],**FLAGS)
   if chart_descriptor is not None:
    event['original_charts']=chart_descriptor;event['event_id']=digest(dict(numeric_manifest=manifest_ref,original_charts=chart_descriptor))
   event['score_action']=score_action
   event['v192_assets']=index['v192_assets'][str(target)]
   event['event_id']=digest({k:v for k,v in event.items() if k!='event_id'})
   save(root/'events/latest.json',event)
- return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
+ return dict(manifest=manifest_ref,artifact=artifact,status=product['status'],data_date=str(target),source_generation=context.generation,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,unique_count=len(candidates),unknown_count=unknown,history_status=product['history_status'],**FLAGS)
