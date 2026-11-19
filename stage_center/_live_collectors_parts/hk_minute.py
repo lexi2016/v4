@@ -4,8 +4,48 @@ from typing import Any, Mapping
 import hashlib
 import json
 import os
+import time
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from ._namespace import read_global as _v4_global
+
+
+def _hk_futu_scan_clock():
+    return datetime.now(ZoneInfo("Asia/Hong_Kong"))
+
+
+def _hk_futu_scan_evidence(scope, plan, started_at, finished_at, elapsed_seconds):
+    """Record the invocation clock independently of provider and snapshot clocks."""
+    stage = _v4_global(scope, "STAGE_BY_ID")[plan.stage_id]
+    cutoff = datetime.strptime(
+        f"{plan.trade_date} {stage.cutoff}", "%Y%m%d %H:%M:%S"
+    ).replace(tzinfo=ZoneInfo("Asia/Hong_Kong"))
+    clock_valid = (
+        started_at.tzinfo is not None
+        and finished_at.tzinfo is not None
+        and started_at.utcoffset() is not None
+        and finished_at.utcoffset() is not None
+    )
+    if clock_valid:
+        started_at = started_at.astimezone(cutoff.tzinfo)
+        finished_at = finished_at.astimezone(cutoff.tzinfo)
+        clock_valid = (
+            started_at.date() == finished_at.date() == cutoff.date()
+            and started_at <= finished_at
+        )
+    started_before = str(started_at < cutoff).lower() if clock_valid else "CANNOT_CONFIRM"
+    finished_before = str(finished_at < cutoff).lower() if clock_valid else "CANNOT_CONFIRM"
+    return (
+        f"futu_scan_started_at={started_at.isoformat()}",
+        f"futu_scan_finished_at={finished_at.isoformat()}",
+        f"futu_scan_cutoff_at={cutoff.isoformat()}",
+        f"futu_scan_elapsed_seconds={elapsed_seconds:.6f}",
+        f"futu_scan_clock_status={'RECORDED' if clock_valid else 'CANNOT_CONFIRM'}",
+        f"futu_scan_started_before_cutoff={started_before}",
+        f"futu_scan_finished_before_cutoff={finished_before}",
+        "futu_scan_clock_scope=LOCAL_BRIDGE_INVOCATION",
+    )
 
 
 _FUTU_AFTERFACT_DATASET_PROFILES = {
@@ -687,14 +727,28 @@ def _collect_hk_minute_body(_v4_scope, /, plan, *, codes, python_path, shared_ro
         # Reuse the proven Futu bridge; keep the fixed D-1 input and stage window.
         root = _v4_global(_v4_scope, '_shared_scripts_root')(shared_root)
         module = _v4_global(_v4_scope, '_load_shared_module')(root, "scripts.live_acquisition.futu_bridge")
+        timed_afternoon = plan.stage_id in {"STAGE_1300_1315", "STAGE_1445_1500"}
+        if timed_afternoon:
+            scan_started = _hk_futu_scan_clock()
+            scan_monotonic = time.perf_counter()
         result = module.collect_futu_minute(
             python_path, plan.trade_date, plan.stage_id, list(codes), market="HK_CONNECT",
             process_runner=_v4_global(_v4_scope, '_scoped_process_runner')(root, process_runner),
             capture_root=snapshot_root,
         )
+        if timed_afternoon:
+            scan_elapsed = time.perf_counter() - scan_monotonic
+            scan_finished = _hk_futu_scan_clock()
         source = _v4_global(_v4_scope, '_to_source')(
             result, source_id="futu", route="shared_futu_hkconnect_minute", requested=len(codes),
         )
+        if timed_afternoon:
+            source = _v4_global(_v4_scope, 'replace')(
+                source,
+                source_evidence=(*source.source_evidence, *_hk_futu_scan_evidence(
+                    _v4_scope, plan, scan_started, scan_finished, scan_elapsed,
+                )),
+            )
         if not source.rows:
             return source
         provenance = tuple(dict.fromkeys(

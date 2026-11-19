@@ -1,5 +1,6 @@
 """Afternoon Futu bars must reach the existing lane/observation flow."""
 from dataclasses import replace
+from datetime import datetime
 from types import SimpleNamespace
 import inspect
 
@@ -7,6 +8,8 @@ import pytest
 
 from stage_center.acquisition import SourceResult
 from stage_center._live_collectors_parts.hk_minute import _collect_hk_minute_body
+from stage_center._live_collectors_parts.hk_minute import _hk_futu_scan_evidence
+import stage_center._live_collectors_parts.hk_minute as hk_minute
 import stage_center.live_collectors as live
 
 
@@ -103,3 +106,71 @@ def test_capture_pit_metadata_preserves_real_data_errors():
     assert "HK_ACTIVE_SNAPSHOT_CORRUPT" in result.cannot_confirm
     assert "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" not in result.cannot_confirm
     assert "futu_pit_cannot_confirm=HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF" in result.source_evidence
+
+
+@pytest.mark.parametrize(
+    "stage,started,finished,start_before,finish_before",
+    [
+        ("STAGE_1300_1315", "13:14:50", "13:14:59", "true", "true"),
+        ("STAGE_1300_1315", "13:14:59", "13:15:01", "true", "false"),
+        ("STAGE_1445_1500", "15:00:01", "15:00:04", "false", "false"),
+    ],
+)
+def test_afternoon_invocation_clock_reaches_source_evidence(
+    monkeypatch, stage, started, finished, start_before, finish_before
+):
+    clocks = iter(datetime.fromisoformat(f"2026-10-13T{value}+08:00") for value in (started, finished))
+    monkeypatch.setattr(hk_minute, "_hk_futu_scan_clock", lambda: next(clocks))
+    result, _ = collect(stage)
+    evidence = result.source_evidence
+    assert f"futu_scan_started_at=2026-10-13T{started}+08:00" in evidence
+    assert f"futu_scan_finished_at=2026-10-13T{finished}+08:00" in evidence
+    assert f"futu_scan_started_before_cutoff={start_before}" in evidence
+    assert f"futu_scan_finished_before_cutoff={finish_before}" in evidence
+    assert "futu_scan_clock_status=RECORDED" in evidence
+    assert "futu_scan_clock_scope=LOCAL_BRIDGE_INVOCATION" in evidence
+    assert "futu_full_chain_pit_status=CANNOT_CONFIRM" in evidence
+    assert result.status == "PARTIAL_WITH_ROWS"
+    assert result.rows[0]["temporal_cutoff_safe"] is True
+
+
+def test_empty_afternoon_result_keeps_invocation_clock(monkeypatch):
+    clocks = iter(datetime.fromisoformat(value) for value in (
+        "2026-10-13T13:15:01+08:00", "2026-10-13T13:15:02+08:00",
+    ))
+    monkeypatch.setattr(hk_minute, "_hk_futu_scan_clock", lambda: next(clocks))
+    result, _ = collect("STAGE_1300_1315", empty=True)
+    assert not result.rows
+    assert "futu_scan_clock_status=RECORDED" in result.source_evidence
+    assert "futu_scan_finished_before_cutoff=false" in result.source_evidence
+
+
+@pytest.mark.parametrize(
+    "started,finished",
+    [
+        ("2026-10-13T13:14:00", "2026-10-13T13:14:01"),
+        ("2026-10-12T13:14:00+08:00", "2026-10-12T13:14:01+08:00"),
+        ("2026-10-13T13:14:01+08:00", "2026-10-13T13:14:00+08:00"),
+    ],
+)
+def test_invalid_invocation_clock_cannot_confirm_cutoff(started, finished):
+    plan = SimpleNamespace(stage_id="STAGE_1300_1315", trade_date="20261013")
+    evidence = _hk_futu_scan_evidence(
+        vars(live), plan, datetime.fromisoformat(started), datetime.fromisoformat(finished), 1.0,
+    )
+    assert "futu_scan_clock_status=CANNOT_CONFIRM" in evidence
+    assert "futu_scan_started_before_cutoff=CANNOT_CONFIRM" in evidence
+    assert "futu_scan_finished_before_cutoff=CANNOT_CONFIRM" in evidence
+
+
+def test_invocation_clock_normalizes_utc_to_cutoff_timezone():
+    plan = SimpleNamespace(stage_id="STAGE_1445_1500", trade_date="20261013")
+    evidence = _hk_futu_scan_evidence(
+        vars(live), plan,
+        datetime.fromisoformat("2026-10-13T06:59:50+00:00"),
+        datetime.fromisoformat("2026-10-13T06:59:59+00:00"), 9.0,
+    )
+    assert "futu_scan_started_at=2026-10-13T14:59:50+08:00" in evidence
+    assert "futu_scan_cutoff_at=2026-10-13T15:00:00+08:00" in evidence
+    assert "futu_scan_clock_status=RECORDED" in evidence
+    assert "futu_scan_finished_before_cutoff=true" in evidence
