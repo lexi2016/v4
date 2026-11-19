@@ -4,7 +4,7 @@ No acquisition or GET execution. Historical bootstrap is explicit and bounded;
 the normal daily path evaluates only its target date and reuses validated history.
 """
 from __future__ import annotations
-import ast,hashlib,importlib.util,json,math,os,struct,sys,time,zipfile
+import ast,hashlib,importlib.util,json,math,os,stat,struct,sys,time,zipfile
 from collections import Counter
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal
@@ -58,6 +58,55 @@ def save(p,v,immutable=False,*,compress_row=False):
  os.replace(tmp,p);return reference(p)
 def module(r,name):
  p=checked(r);raw=p.read_bytes();spec=importlib.util.spec_from_file_location(name,p);m=importlib.util.module_from_spec(spec);sys.modules[name]=m;exec(compile(raw,str(p),'exec'),m.__dict__);return m
+
+def read_complete_daily_rows(parts,selected,target,*,workers=8,batch_size=128):
+ """Read an already-complete daily checkpoint set concurrently and in scope order."""
+ from concurrent.futures import ThreadPoolExecutor
+ parts=Path(parts)
+ if (not selected or selected!=sorted(set(selected)) or type(workers)is not int or workers<1
+     or type(batch_size)is not int or batch_size<1):
+  raise ValueError('DAILY_CHECKPOINT_BATCH_REQUEST_INVALID')
+ paths=[(symbol,parts/(symbol+'.json')) for symbol in selected]
+ if any(path.is_symlink() or not path.is_file() for _,path in paths):
+  return None
+
+ def read_one(entry):
+  symbol,path=entry
+  try:
+   descriptor=os.open(path,os.O_RDONLY|getattr(os,'O_NOFOLLOW',0))
+  except OSError as error:
+   raise ValueError('DAILY_CHECKPOINT_UNREADABLE:'+str(path)) from error
+  try:
+   with os.fdopen(descriptor,'rb') as stream:
+    before=os.fstat(stream.fileno())
+    raw=stream.read()
+    after=os.fstat(stream.fileno())
+   def stamp(value):
+    return value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns,value.st_ctime_ns
+   try:
+    current=path.stat(follow_symlinks=False)
+   except OSError as error:
+    raise ValueError('DAILY_CHECKPOINT_MOVED:'+str(path)) from error
+   if (stamp(before)!=stamp(after) or stamp(before)!=stamp(current)
+       or not stat.S_ISREG(after.st_mode)):
+    raise ValueError('DAILY_CHECKPOINT_MOVED:'+str(path))
+  except OSError as error:
+   raise ValueError('DAILY_CHECKPOINT_UNREADABLE:'+str(path)) from error
+  try:
+   row=json.loads(raw)
+  except (UnicodeError,json.JSONDecodeError) as error:
+   raise ValueError('DAILY_CHECKPOINT_UNREADABLE:'+str(path)) from error
+  if row.get('symbol')!=symbol or row.get('data_date')!=str(target):
+   raise ValueError('DAILY_PARALLEL_CHECKPOINT_IDENTITY:'+symbol)
+  ref=dict(path=str(path.resolve()),sha256=hashlib.sha256(raw).hexdigest())
+  return row,ref
+
+ ordered=[]
+ worker_count=min(workers,len(paths))
+ with ThreadPoolExecutor(max_workers=worker_count,thread_name_prefix='daily-checkpoint-read') as pool:
+  for start in range(0,len(paths),batch_size):
+   ordered.extend(pool.map(read_one,paths[start:start+batch_size]))
+ return ordered
 
 def iso(d):return datetime.strptime(str(d),'%Y%m%d').strftime('%Y-%m-%d')
 def tristate(v):return 'TRUE' if v is True else 'FALSE' if v is False else 'UNKNOWN'
@@ -830,9 +879,14 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
  if symbols is None and not history_dates and evaluate is None:
   from ops.research_daily_product_parallel import prefill_missing
   chart_gaps.update(prefill_missing(context,parts,selected,original_charts=original_charts)['chart_gaps'])
+ completed_rows=None
+ if symbols is None and not history_dates and evaluate is None:
+  completed_rows=read_complete_daily_rows(parts,selected,target)
  for i,symbol in enumerate(selected):
   checkpoint=parts/(symbol+'.json')
-  if checkpoint.is_file():row=json.loads(checkpoint.read_text())
+  if completed_rows is not None:
+   row,row_ref=completed_rows[i]
+  elif checkpoint.is_file():row=json.loads(checkpoint.read_text());row_ref=reference(checkpoint)
   else:
    try:
     checkpoint_input={}
@@ -841,8 +895,11 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    except (ValueError,KeyError,TypeError,OSError) as error:
     if isinstance(error,history_checkpoint.HistoryCheckpointError):raise
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
-   row.update(FLAGS);save(checkpoint,row,immutable=True,compress_row=True)
-  rows.append(row);row_refs[symbol]=reference(checkpoint);save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
+   row.update(FLAGS);save(checkpoint,row,immutable=True,compress_row=True);row_ref=reference(checkpoint)
+  rows.append(row);row_refs[symbol]=row_ref
+  if completed_rows is None or (i+1)%64==0 or i+1==len(selected):
+   save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
+ completed_rows=None
  context.unchanged();counts={g:dict(Counter(r['evaluation']['groups'][g]['status'] for r in rows)) for g in GROUPS};candidates=[r for r in rows if r['groups']];unknown=sum(bool(r['pending_groups']) for r in rows)
  exclusions=current_universe_exclusion_summary(context.current_universe_exclusions)
  product=dict(schema_version=SCHEMA,status='PARTIAL_WITH_ROWS' if unknown else 'READY',data_date=str(target),observation_date=None,source_generation=context.generation,source_identity=context.identity,source_config=context.config_ref,processed_universe=selected,processed_count=len(rows),source_universe_count=len(context.scope),original_target_universe_count=len(context.source_scope),current_universe_exclusions=exclusions,sample_only=symbols is not None,unique_count=len(candidates),group_counts={g:counts[g].get('TRUE',0) for g in GROUPS},three_value_counts=counts,unknown_count=unknown,rows=[{k:v for k,v in row.items() if k in ('symbol','display_name','data_date','groups','pending_groups','latest_new_anchor','reasons','risk_clear')} for row in candidates],row_refs=row_refs,history_status='PARTIAL_NEEDS_BOOTSTRAP',history_bootstrap_in_daily_path=False,**FLAGS)
