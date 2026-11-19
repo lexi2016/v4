@@ -273,7 +273,8 @@ def test_existing_same_day_gate_remains_strict_and_builder_explicit(case, monkey
     canonical = current.parent / "adjustment_snapshots" / (qfq.canonical_sha(out) + ".json")
     by_bytes = current.parent / "adjustment_snapshots" / (qfq.sha(current) + ".json")
     assert current.read_bytes() == canonical.read_bytes() == by_bytes.read_bytes()
-    assert len({path.stat().st_ino for path in (current, canonical, by_bytes)}) == 1
+    assert len({(path.stat().st_dev, path.stat().st_ino) for path in (current, canonical, by_bytes)}) == 3
+    assert all(path.stat().st_nlink == 1 for path in (current, canonical, by_bytes))
 
 
 @pytest.mark.parametrize("issue", ["identity", "coverage", "original_proof"])

@@ -11,7 +11,9 @@ import multiprocessing
 from contextlib import contextmanager
 import base64
 import ast
+import ctypes
 from datetime import datetime, timezone
+import errno
 import fcntl
 import hashlib
 import importlib.util
@@ -101,6 +103,7 @@ def _snapshot_file_identity(root, relative: str, *, hash_content: bool = True) -
                     size=info.st_size,
                     device=info.st_dev,
                     inode=info.st_ino,
+                    nlink=info.st_nlink,
                 )
             finally:
                 os.close(fd)
@@ -110,74 +113,267 @@ def _snapshot_file_identity(root, relative: str, *, hash_content: bool = True) -
 
 def _verify_adjustment_snapshot(root, relative: str, *, expected_sha256: str, expected_size: int) -> dict:
     identity = _snapshot_file_identity(root, relative)
-    if identity is None or identity["sha256"] != expected_sha256 or identity["size"] != expected_size:
+    if (identity is None or identity["sha256"] != expected_sha256
+            or identity["size"] != expected_size or identity["nlink"] != 1):
         from infrastructure.owned_io import OwnedIOError
 
         raise OwnedIOError("ADJUSTMENT_SNAPSHOT_IDENTITY_CONFLICT:" + relative)
     return identity
 
 
-def _link_adjustment_snapshot(root, source: str, destination: str) -> bool:
-    """Atomically add a same-filesystem alias without copying snapshot bytes."""
+def _fclonefileat_function():
+    """Return macOS's descriptor-bound APFS clone primitive, failing closed elsewhere."""
+    if sys.platform != "darwin":
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_APFS_CLONE_UNSUPPORTED")
     try:
-        with root.parent(source) as (source_parent, source_name):
-            with root.parent(destination, create=True) as (destination_parent, destination_name):
-                source_info = os.stat(source_name, dir_fd=source_parent, follow_symlinks=False)
-                if not stat.S_ISREG(source_info.st_mode):
-                    from infrastructure.owned_io import OwnedIOError
-
-                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_NOT_REGULAR")
-                try:
-                    os.link(source_name, destination_name, src_dir_fd=source_parent,
-                            dst_dir_fd=destination_parent, follow_symlinks=False)
-                except FileExistsError:
-                    return False
-                os.fsync(destination_parent)
-                return True
-    except OSError as error:
-        # A same-filesystem hardlink is required to keep every bound path on
-        # the exact immutable inode. Never fall back to writing another copy.
-        raise QfqGateError("ADJUSTMENT_SNAPSHOT_HARDLINK_FAILED:" + str(error)) from error
+        function = ctypes.CDLL(None, use_errno=True).fclonefileat
+    except (AttributeError, OSError) as error:
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_APFS_CLONE_UNAVAILABLE") from error
+    function.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32)
+    function.restype = ctypes.c_int
+    return function
 
 
-def _replace_adjustment_current_with_link(root, source: str, destination: str) -> None:
-    """Atomically point the mutable current name at its immutable snapshot inode."""
+def _clonefileat(source_fd: int, destination_parent: int, destination_name: str) -> None:
+    """Create an exclusive APFS COW clone through already-open descriptors."""
+    function = _fclonefileat_function()
+    source_info = os.fstat(source_fd)
+    parent_info = os.fstat(destination_parent)
+    if not stat.S_ISREG(source_info.st_mode):
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_SOURCE_NOT_REGULAR")
+    if source_info.st_dev != parent_info.st_dev:
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_CLONE_CROSS_DEVICE")
+    ctypes.set_errno(0)
+    result = function(source_fd, destination_parent, os.fsencode(destination_name), 0)
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number == errno.EEXIST:
+        raise FileExistsError(error_number, os.strerror(error_number), destination_name)
+    raise OSError(error_number, os.strerror(error_number), destination_name)
+
+
+def _hash_open_file(fd: int) -> str:
+    digest = hashlib.sha256()
+    os.lseek(fd, 0, os.SEEK_SET)
+    while True:
+        block = os.read(fd, 1024 * 1024)
+        if not block:
+            break
+        digest.update(block)
+    return digest.hexdigest()
+
+
+def _verify_clone_at(parent_fd: int, name: str, *, expected_sha256: str,
+                     expected_size: int, expected_device: int) -> dict:
     from infrastructure.owned_io import OwnedIOError
 
-    temporary = ".adjustment-current-" + uuid.uuid4().hex + ".pending"
+    fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent_fd)
+    try:
+        before = os.fstat(fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                or before.st_dev != expected_device or before.st_size != expected_size):
+            raise OwnedIOError("ADJUSTMENT_SNAPSHOT_CLONE_METADATA_CONFLICT:" + name)
+        actual_sha256 = _hash_open_file(fd)
+        os.fsync(fd)
+        after = os.fstat(fd)
+        if ((after.st_dev, after.st_ino, after.st_nlink, after.st_size)
+                != (before.st_dev, before.st_ino, 1, expected_size)
+                or actual_sha256 != expected_sha256):
+            raise OwnedIOError("ADJUSTMENT_SNAPSHOT_CLONE_CONTENT_CONFLICT:" + name)
+        return dict(sha256=actual_sha256, size=after.st_size, device=after.st_dev,
+                    inode=after.st_ino, nlink=after.st_nlink)
+    finally:
+        os.close(fd)
+
+
+def _cleanup_snapshot_pending(root, directory: str | None) -> None:
+    """Reap only exact digest-named private clone stages left by a dead writer."""
+    import re
+
+    patterns = (
+        re.compile(r"^\.adjustment-snapshot-([0-9a-f]{64})-([0-9]+)-([0-9a-f]{32})\.pending$"),
+        re.compile(r"^\.adjustment-current-([0-9a-f]{64})-([0-9a-f]{32})\.pending$"),
+    )
+    changed = False
+    with root.directory(directory) as parent:
+        for name in os.listdir(parent):
+            kind = next((index for index, pattern in enumerate(patterns)
+                         if pattern.fullmatch(name) is not None), None)
+            match = patterns[kind].fullmatch(name) if kind is not None else None
+            if match is None:
+                continue
+            expected_sha256 = match.group(1)
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+            try:
+                info = os.fstat(fd)
+                parent_info = os.fstat(parent)
+                if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                        or info.st_dev != parent_info.st_dev
+                        or stat.S_IMODE(info.st_mode) != 0o600):
+                    raise QfqGateError("ADJUSTMENT_SNAPSHOT_PENDING_METADATA_CONFLICT:" + name)
+                actual_sha256 = _hash_open_file(fd)
+                if kind == 0:
+                    expected_size = int(match.group(2))
+                    if expected_size <= 0 or info.st_size > expected_size:
+                        raise QfqGateError("ADJUSTMENT_SNAPSHOT_PENDING_SIZE_CONFLICT:" + name)
+                    # A crash during the initial private write leaves a short
+                    # staging file; its exact private name/mode and singleton
+                    # inode identify it as our disposable incomplete stage.
+                    if info.st_size == expected_size and actual_sha256 != expected_sha256:
+                        raise QfqGateError("ADJUSTMENT_SNAPSHOT_PENDING_CONTENT_CONFLICT:" + name)
+                elif actual_sha256 != expected_sha256:
+                    raise QfqGateError("ADJUSTMENT_SNAPSHOT_PENDING_CONTENT_CONFLICT:" + name)
+                after = os.fstat(fd)
+                if (after.st_dev, after.st_ino, after.st_nlink, after.st_size) != (
+                        info.st_dev, info.st_ino, 1, info.st_size):
+                    raise QfqGateError("ADJUSTMENT_SNAPSHOT_PENDING_IDENTITY_DRIFT:" + name)
+            finally:
+                os.close(fd)
+            os.unlink(name, dir_fd=parent)
+            changed = True
+        if changed:
+            os.fsync(parent)
+
+
+def _create_immutable_adjustment_snapshot(root, relative: str, payload: bytes,
+                                          expected_sha256: str) -> bool:
+    """Stage once, then atomically publish an exclusive APFS clone at its immutable name."""
+    from infrastructure.owned_io import OwnedIOError
+
+    with root.parent(relative, create=True) as (parent, final_name):
+        parent_info = os.fstat(parent)
+        temporary = (".adjustment-snapshot-" + expected_sha256 + "-" + str(len(payload)) + "-"
+                     + uuid.uuid4().hex + ".pending")
+        fd = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+                     0o600, dir_fd=parent)
+        try:
+            view = memoryview(payload)
+            offset = 0
+            while offset < len(view):
+                written = os.write(fd, view[offset:])
+                if written <= 0 or written > len(view) - offset:
+                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_STAGE_WRITE_INVALID")
+                offset += written
+            os.fsync(fd)
+            staged = os.fstat(fd)
+            if (not stat.S_ISREG(staged.st_mode) or staged.st_nlink != 1
+                    or staged.st_dev != parent_info.st_dev or staged.st_size != len(payload)):
+                raise OwnedIOError("ADJUSTMENT_SNAPSHOT_STAGE_METADATA_CONFLICT")
+            source_fd = os.open(temporary, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                dir_fd=parent)
+            try:
+                try:
+                    _clonefileat(source_fd, parent, final_name)
+                    created = True
+                except FileExistsError:
+                    created = False
+                except OSError as error:
+                    raise QfqGateError("ADJUSTMENT_SNAPSHOT_APFS_CLONE_FAILED:" + str(error)) from error
+            finally:
+                os.close(source_fd)
+            if created:
+                _verify_clone_at(parent, final_name, expected_sha256=expected_sha256,
+                                 expected_size=len(payload), expected_device=parent_info.st_dev)
+                os.fsync(parent)
+            return created
+        finally:
+            os.close(fd)
+            try:
+                os.unlink(temporary, dir_fd=parent)
+                os.fsync(parent)
+            except FileNotFoundError:
+                pass
+
+
+def _clone_adjustment_snapshot(root, source: str, destination: str, *,
+                               expected_sha256: str, expected_size: int) -> bool:
+    """Add an exclusive COW clone; a matching preexisting path remains untouched."""
+    from infrastructure.owned_io import OwnedIOError
+
     try:
         with root.parent(source) as (source_parent, source_name):
             with root.parent(destination, create=True) as (destination_parent, destination_name):
-                source_info = os.stat(source_name, dir_fd=source_parent, follow_symlinks=False)
-                if not stat.S_ISREG(source_info.st_mode):
-                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_NOT_REGULAR")
+                source_fd = os.open(source_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                    dir_fd=source_parent)
                 try:
-                    current_info = os.stat(destination_name, dir_fd=destination_parent, follow_symlinks=False)
-                except FileNotFoundError:
-                    current_info = None
-                if current_info is not None and not stat.S_ISREG(current_info.st_mode):
-                    raise OwnedIOError("ADJUSTMENT_CURRENT_DESTINATION_NOT_REGULAR")
-                os.link(source_name, temporary, src_dir_fd=source_parent,
-                        dst_dir_fd=destination_parent, follow_symlinks=False)
+                    source_info = os.fstat(source_fd)
+                    if (not stat.S_ISREG(source_info.st_mode) or source_info.st_nlink != 1
+                            or source_info.st_size != expected_size):
+                        raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_METADATA_CONFLICT")
+                    try:
+                        _clonefileat(source_fd, destination_parent, destination_name)
+                        created = True
+                    except FileExistsError:
+                        created = False
+                    if created:
+                        _verify_clone_at(destination_parent, destination_name,
+                                         expected_sha256=expected_sha256,
+                                         expected_size=expected_size,
+                                         expected_device=source_info.st_dev)
+                        os.fsync(destination_parent)
+                    return created
+                finally:
+                    os.close(source_fd)
+    except OSError as error:
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_APFS_CLONE_FAILED:" + str(error)) from error
+
+
+def _replace_adjustment_current_with_clone(root, source: str, destination: str, *,
+                                           expected_sha256: str, expected_size: int) -> None:
+    """Clone to a private stage, then atomically replace current with an independent inode."""
+    from infrastructure.owned_io import OwnedIOError
+
+    temporary = ".adjustment-current-" + expected_sha256 + "-" + uuid.uuid4().hex + ".pending"
+    try:
+        with root.parent(source) as (source_parent, source_name):
+            with root.parent(destination, create=True) as (destination_parent, destination_name):
+                source_fd = os.open(source_name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                    dir_fd=source_parent)
                 try:
+                    source_info = os.fstat(source_fd)
+                    if (not stat.S_ISREG(source_info.st_mode) or source_info.st_nlink != 1
+                            or source_info.st_size != expected_size):
+                        raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_METADATA_CONFLICT")
+                    try:
+                        current_info = os.stat(destination_name, dir_fd=destination_parent,
+                                               follow_symlinks=False)
+                    except FileNotFoundError:
+                        current_info = None
+                    if current_info is not None and (not stat.S_ISREG(current_info.st_mode)
+                                                     or current_info.st_nlink != 1):
+                        raise OwnedIOError("ADJUSTMENT_CURRENT_DESTINATION_METADATA_CONFLICT")
+                    try:
+                        _clonefileat(source_fd, destination_parent, temporary)
+                    except OSError as error:
+                        raise QfqGateError("ADJUSTMENT_CURRENT_APFS_CLONE_FAILED:" + str(error)) from error
+                    _verify_clone_at(destination_parent, temporary,
+                                     expected_sha256=expected_sha256,
+                                     expected_size=expected_size,
+                                     expected_device=source_info.st_dev)
                     os.replace(temporary, destination_name,
                                src_dir_fd=destination_parent, dst_dir_fd=destination_parent)
                     os.fsync(destination_parent)
                 finally:
-                    try:
-                        os.unlink(temporary, dir_fd=destination_parent)
-                    except FileNotFoundError:
-                        pass
-    except OSError as error:
-        raise QfqGateError("ADJUSTMENT_CURRENT_HARDLINK_FAILED:" + str(error)) from error
+                    os.close(source_fd)
+    finally:
+        # Normal exceptions remove their stage; a dead process is recovered by
+        # _cleanup_snapshot_pending on the next serialized QFQ publication.
+        try:
+            with root.parent(destination) as (parent, _name):
+                os.unlink(temporary, dir_fd=parent)
+                os.fsync(parent)
+        except FileNotFoundError:
+            pass
 
 
 def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
-    """Write one immutable payload, then bind current and byte-SHA refs by hardlink.
+    """Publish canonical, byte-SHA and current names as independent APFS COW clones.
 
-    The canonical-SHA filename remains the first immutable owner. The
-    byte-SHA filename consumed by QFQ and the mutable current filename point
-    to that inode. Existing matching immutable paths are reused as-is.
+    Every visible path keeps its own inode and ``st_nlink == 1`` for the
+    existing retention/compaction stamps. APFS clones share extents until a
+    write, so aliases do not trigger three full snapshot writes. Callers use
+    the existing QFQ publication lock to serialize this producer.
     """
     from infrastructure.owned_io import OwnedIOError, SafeRoot
 
@@ -192,11 +388,14 @@ def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
     byte_sha_relative = "adjustment_snapshots/" + byte_sha_name
     root = SafeRoot(current_path.parent)
     root.ensure_directory("adjustment_snapshots")
+    _fclonefileat_function()
+    _cleanup_snapshot_pending(root, "adjustment_snapshots")
+    _cleanup_snapshot_pending(root, None)
 
     canonical_identity = _snapshot_file_identity(root, canonical_relative)
     if canonical_identity is None:
         try:
-            root.write_bytes(canonical_relative, payload, require_absent=True)
+            _create_immutable_adjustment_snapshot(root, canonical_relative, payload, payload_sha256)
         except FileExistsError:
             # Another exact writer completed the immutable owner first.
             pass
@@ -207,8 +406,11 @@ def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
     if byte_sha_relative != canonical_relative:
         byte_identity = _snapshot_file_identity(root, byte_sha_relative, hash_content=False)
         if byte_identity is None:
-            _link_adjustment_snapshot(root, canonical_relative, byte_sha_relative)
-            byte_identity = _snapshot_file_identity(root, byte_sha_relative, hash_content=False)
+            _clone_adjustment_snapshot(root, canonical_relative, byte_sha_relative,
+                                       expected_sha256=payload_sha256, expected_size=len(payload))
+            byte_identity = _verify_adjustment_snapshot(
+                root, byte_sha_relative, expected_sha256=payload_sha256, expected_size=len(payload)
+            )
         if byte_identity is None or byte_identity["size"] != len(payload):
             from infrastructure.owned_io import OwnedIOError
 
@@ -222,11 +424,19 @@ def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
     else:
         byte_identity = canonical_identity
 
-    _replace_adjustment_current_with_link(root, canonical_relative, current_path.name)
-    current_identity = _snapshot_file_identity(root, current_path.name, hash_content=False)
-    if current_identity is None or current_identity["size"] != len(payload) or (
-        current_identity["device"], current_identity["inode"]
-    ) != (canonical_identity["device"], canonical_identity["inode"]):
+    current_identity = _snapshot_file_identity(root, current_path.name)
+    current_reused = (current_identity is not None
+                      and current_identity["sha256"] == payload_sha256
+                      and current_identity["size"] == len(payload))
+    if not current_reused:
+        _replace_adjustment_current_with_clone(root, canonical_relative, current_path.name,
+                                                expected_sha256=payload_sha256,
+                                                expected_size=len(payload))
+        current_identity = _snapshot_file_identity(root, current_path.name, hash_content=False)
+    if (current_identity is None or current_identity["size"] != len(payload)
+            or current_identity["nlink"] != 1
+            or current_identity["device"] != canonical_identity["device"]
+            or current_identity["inode"] == canonical_identity["inode"]):
         from infrastructure.owned_io import OwnedIOError
 
         raise OwnedIOError("ADJUSTMENT_CURRENT_SNAPSHOT_IDENTITY_CONFLICT")
@@ -236,8 +446,14 @@ def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
         canonical_path=str(current_path.parent / canonical_relative),
         byte_sha_path=str(current_path.parent / byte_sha_relative),
         bytes=len(payload),
-        same_inode=(len({(item["device"], item["inode"]) for item in
-                         (canonical_identity, byte_identity, current_identity)}) == 1),
+        current_reused=current_reused,
+        independent_paths=(len({(item["device"], item["inode"]) for item in
+                                ((canonical_identity, current_identity) if byte_sha_relative == canonical_relative
+                                 else (canonical_identity, byte_identity, current_identity))})
+                           == (2 if byte_sha_relative == canonical_relative else 3)),
+        every_path_single_link=all(item["nlink"] == 1 for item in
+                                   ((canonical_identity, current_identity) if byte_sha_relative == canonical_relative
+                                    else (canonical_identity, byte_identity, current_identity))),
     )
 
 
