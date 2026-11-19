@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 
 const origin = process.argv[2] ?? 'http://127.0.0.1:18974';
 const {chromium} = await import(process.env.WORKBENCH_PLAYWRIGHT ?? 'playwright');
@@ -8,35 +9,86 @@ const pageUrl = date => origin + '/research-panel/workbench.html?source_date=' +
 const sourceDate = '2026-11-16';
 const ids = ['b23_entry', 'pb2_confirm'];
 const pendingLabels = ['192选股 待物化', '回测选股 待物化'];
+const allowedGroups = [...ids, 'top200'];
 const allowControlledResponses = process.argv.includes('--controlled-startup');
+const sourceOverride = process.env.WORKBENCH_SOURCE_OVERRIDE ? await readFile(process.env.WORKBENCH_SOURCE_OVERRIDE, 'utf8') : null;
+
+async function newPage() {
+  const page = await browser.newPage();
+  if (sourceOverride) {
+    await page.route(url => url.pathname.endsWith('/workbench.local.mjs'), route =>
+      route.fulfill({status:200, contentType:'text/javascript; charset=utf-8', body:sourceOverride}));
+  }
+  return page;
+}
 
 async function watchLegacyTabs(page) {
-  await page.addInitScript(ids => {
+  await page.addInitScript(allowedGroups => {
     window.unexpectedWorkbenchTabs = [];
     new MutationObserver(changes => {
       for (const change of changes) {
         if (change.target.id !== 'groupFilters') continue;
         for (const tab of change.addedNodes) {
-          if (tab.nodeName === 'BUTTON' && !ids.includes(tab.dataset.group)) {
+          if (tab.nodeName === 'BUTTON' && !allowedGroups.includes(tab.dataset.group)) {
             window.unexpectedWorkbenchTabs.push(tab.textContent);
           }
         }
       }
     }).observe(document, {childList:true, subtree:true});
-  }, ids);
+  }, allowedGroups);
+}
+
+async function formulaFilterLabels(page) {
+  return page.locator('#groupFilters button').evaluateAll(buttons => buttons
+    .filter(button => ['b23_entry','pb2_confirm'].includes(button.dataset.group))
+    .map(button => button.textContent));
 }
 
 async function readPending(page) {
   await page.waitForFunction(() => document.querySelector('#loadingState')?.textContent?.includes('两组选股待物化'));
-  const filters = page.locator('#groupFilters button');
-  assert.deepEqual(await filters.allTextContents(), pendingLabels);
-  assert.equal(await page.locator('#groupFilters button:enabled').count(), 0);
+  assert.deepEqual(await formulaFilterLabels(page), pendingLabels);
+  for (const id of ids) assert.equal(await page.locator(`#groupFilters button[data-group="${id}"]:enabled`).count(), 0);
   assert.equal(await page.locator('#stockList [data-symbol]').count(), 0);
   assert.deepEqual(await page.evaluate(() => window.unexpectedWorkbenchTabs), []);
 }
 
+async function checkDateSwitchClearsPriorCounts(page, day) {
+  const group = page.locator('#groupFilters button[data-group="pb2_confirm"]');
+  if (await group.getAttribute('aria-pressed') === 'true') await group.click();
+  const top200 = page.locator('#groupFilters button[data-group="top200"]');
+  const top200Label = await top200.count() ? await top200.textContent() : null;
+  const candidateCount = day.rows.filter(row => row.eligible_candidate).length;
+  const readyCount = await page.locator('#listCount').textContent();
+  assert.ok(readyCount.includes(`总候选 ${candidateCount}只`));
+
+  const missingDate = '2999-01-01';
+  await page.locator('#researchCalendar').fill(missingDate);
+  await page.waitForFunction(date => {
+    const status = document.querySelector('#researchDateStatus')?.textContent ?? '';
+    return status.includes(date) && status.includes('CANNOT_CONFIRM');
+  }, missingDate);
+  await page.waitForFunction(() => document.querySelector('#loadingState')?.textContent?.includes('CANNOT_CONFIRM'));
+  const pendingCount = await page.locator('#listCount').textContent();
+  assert.match(pendingCount, /待绑定/);
+  assert.doesNotMatch(pendingCount, /总候选 \d+只|筛选后 \d+只/);
+  assert.equal(await page.locator('#listPage').textContent(), '所选日期资料待绑定');
+  assert.equal(await page.locator('#stockList [data-symbol]').count(), 0);
+  assert.equal(await page.locator('#prevList').isDisabled(), true);
+  assert.equal(await page.locator('#nextList').isDisabled(), true);
+  assert.equal(await page.locator('#groupFilters button[data-group="top200"]').count(), 0);
+
+  await page.locator('#researchCalendar').fill(day.observation_date);
+  await page.waitForFunction(sourceDate => document.querySelector('#researchDateStatus')?.textContent?.includes('来源 ' + sourceDate), day.source_date);
+  await page.locator('#groupFilters button[data-group="b23_entry"]:enabled').waitFor();
+  assert.deepEqual(await formulaFilterLabels(page), ['192选股 105','回测选股 49']);
+  assert.ok((await page.locator('#listCount').textContent()).includes(`总候选 ${candidateCount}只`));
+  const restoredTop200 = page.locator('#groupFilters button[data-group="top200"]');
+  assert.equal(await restoredTop200.count(), top200Label === null ? 0 : 1);
+  if (top200Label !== null) assert.equal(await restoredTop200.textContent(), top200Label);
+}
+
 async function checkStartupCatalogueRace() {
-  const page = await browser.newPage();
+  const page = await newPage();
   const initialWorkflow = Promise.withResolvers(), releaseWorkflow = Promise.withResolvers();
   const firstObservation = Promise.withResolvers(), releaseObservation = Promise.withResolvers();
   const previousDate = '2026-11-13';
@@ -113,7 +165,7 @@ async function checkUnexpectedLegacyResponse() {
     },
   };
   for (const [name, mutate] of Object.entries(cases)) {
-    const page = await browser.newPage();
+    const page = await newPage();
     await watchLegacyTabs(page);
     await page.route(url => url.pathname === endpoint(sourceDate), async route => {
       const response = await route.fetch();
@@ -126,7 +178,7 @@ async function checkUnexpectedLegacyResponse() {
       if (name === 'verified_empty') {
         const filters = page.locator('#groupFilters button:enabled');
         await filters.filter({hasText:'192选股 0'}).waitFor();
-        assert.deepEqual(await filters.allTextContents(), ['192选股 0', '回测选股 0']);
+        assert.deepEqual(await formulaFilterLabels(page), ['192选股 0', '回测选股 0']);
         assert.equal(await page.locator('#stockList [data-symbol]').count(), 0);
         assert.deepEqual(await page.evaluate(() => window.unexpectedWorkbenchTabs), []);
       } else {
@@ -156,7 +208,7 @@ try {
   assert.equal(day.rows.length, 133);
   assert.equal(day.rows.filter(row => ids.every(id => row.group_states[id] === 'TRUE')).length, 21);
 
-  const page = await browser.newPage();
+  const page = await newPage();
   await watchLegacyTabs(page);
   const duplicateGroupRequests = [];
   const errors = [];
@@ -165,9 +217,8 @@ try {
     if (new URL(request.url()).pathname.endsWith('/v192')) duplicateGroupRequests.push(request.url());
   });
   await page.goto(pageUrl(sourceDate),{waitUntil:'domcontentloaded'});
-  const filters = page.locator('#groupFilters button');
   await page.locator('#groupFilters button[data-group="b23_entry"]:enabled').waitFor({timeout:20000});
-  assert.deepEqual(await filters.allTextContents(), ['192选股 105','回测选股 49']);
+  assert.deepEqual(await formulaFilterLabels(page), ['192选股 105','回测选股 49']);
 
   const pagesRead = {};
   async function readAll(group, expected) {
@@ -213,13 +264,14 @@ try {
     assert.equal(await button.getAttribute('aria-pressed'), 'true');
     await readAll(id, day.rows.filter(row => row.group_states[id] === 'TRUE').map(row => row.symbol));
   }
+  await checkDateSwitchClearsPriorCounts(page, day);
   assert.deepEqual(await page.evaluate(() => window.unexpectedWorkbenchTabs), []);
 
   const previous = await fetch(origin + endpoint('2026-11-13')).then(response => response.json());
   await page.locator('#researchCalendar').fill(previous.observation_date);
   await page.waitForFunction(() => document.querySelector('#researchDateStatus')?.textContent?.includes('来源 2026-11-13'));
   await page.locator('#groupFilters button[data-group="b23_entry"]:enabled').waitFor();
-  assert.deepEqual(await filters.allTextContents(), [
+  assert.deepEqual(await formulaFilterLabels(page), [
     '192选股 ' + previous.formula_groups.group_counts.b23_entry,
     '回测选股 ' + previous.formula_groups.group_counts.pb2_confirm,
   ]);
@@ -239,7 +291,7 @@ try {
     input_sha256:day.input_sha256, numeric_manifest:day.numeric_manifest,
     group_counts:day.formula_groups.group_counts, union:day.rows.length,
     browser_paginated_membership:'EXACT_ALL_ROWS', duplicate_v192_route_requests:duplicateGroupRequests.length,
-    pages:pagesRead, next_selected_source_date:previous.source_date, missing_source_dates:pendingDates,
+    pages:pagesRead, date_switch_count_reset:'PASS', next_selected_source_date:previous.source_date, missing_source_dates:pendingDates,
     startup_race:allowControlledResponses?'PASS':'NOT_RUN', controlled_group_payloads:controlledCases, browser_errors:errors,
   }));
 } finally {
