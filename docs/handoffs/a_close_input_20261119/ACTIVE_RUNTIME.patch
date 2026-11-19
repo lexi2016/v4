@@ -1,0 +1,121 @@
+--- a/ops/a_share_daily_sync.py
++++ b/ops/a_share_daily_sync.py
+@@ -236,10 +236,21 @@
+         indexed[code] = row
+     from ops._a_share_daily_sync_parts.progress import _evidence_bytes
+     for row in _daily_source_policy_additions().get('verified_delisting_additions',[]):
+-        if (row.get('ts_code')!='301139.SZ' or row.get('delisting_effective_date')!='20261028' or
+-                row.get('last_trading_date')!='20261027' or row.get('verified') is not True or
++        identities = {
++            '301139.SZ': ('20261028', '20261027', None,
++                         '8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc',
++                         'https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF'),
++            '002731.SZ': ('20261113', '20261112', '20261120',
++                         '26788d351ebfd99bd32b4df65aeaa00f2b528cb5e975ad40b420106a78daaac3',
++                         'https://disc.static.szse.cn/download/disc/disk03/finalpage/2026-11-13/f0878011-459d-4e1b-88c4-4f50876ae48f.PDF'),
++        }
++        notice = row.get('official_notice', {})
++        identity = (row.get('delisting_effective_date'), row.get('last_trading_date'),
++                    row.get('apply_from_date'), notice.get('sha256'), notice.get('url'))
++        if (row.get('ts_code') not in identities or identity != identities[row['ts_code']] or
++                row.get('verified') is not True or row.get('historical_PIT') is not False or
+                 row.get('requires_recent_listed_A_share_bars') is not False or
+-                row.get('official_notice',{}).get('sha256')!='8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc'):
++                row['ts_code'] in indexed):
+             raise RuntimeError('SOURCE_POLICY_DELISTING_IDENTITY')
+         _evidence_bytes(row['official_notice'])
+         if row['ts_code'] in indexed and indexed[row['ts_code']]!=row:raise RuntimeError('SOURCE_POLICY_DELISTING_CONFLICT')
+@@ -281,9 +292,11 @@
+         return None
+     try:
+         datetime.strptime(day, "%Y%m%d")
+-    except ValueError:
+-        return None
+-    return row if int(target) >= int(day) else None
++        apply_from = row.get("apply_from_date", day)
++        datetime.strptime(apply_from, "%Y%m%d")
++    except (TypeError, ValueError):
++        return None
++    return row if int(target) >= max(int(day), int(apply_from)) else None
+ 
+ _COMPAT_FAILURE_TYPES = {
+     EMPTY_RESPONSE: "empty_response",
+--- a/ops/research_panel_factor_cache.py
++++ b/ops/research_panel_factor_cache.py
+@@ -234,10 +234,21 @@
+     return result
+ 
+ 
+-def _reviewed_policy_lifecycle_fact(code: str, row: dict, fact: dict, effective: str) -> bool:
++def _reviewed_policy_lifecycle_fact(code: str, row: dict, fact: dict, effective: str, target: int) -> bool:
+     """Consume the exact reviewed addition; legacy fixed-asset routes stay separate."""
+-    if (code != "301139.SZ" or effective != "20261028"
+-            or fact.get("last_trading_date") != "20261027"
++    identities = {
++        "301139.SZ": ("20261028", "20261027", None,
++                      "8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc",
++                      "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"),
++        "002731.SZ": ("20261113", "20261112", "20261120",
++                      "26788d351ebfd99bd32b4df65aeaa00f2b528cb5e975ad40b420106a78daaac3",
++                      "https://disc.static.szse.cn/download/disc/disk03/finalpage/2026-11-13/f0878011-459d-4e1b-88c4-4f50876ae48f.PDF"),
++    }
++    notice = fact.get("official_notice", {})
++    identity = (effective, fact.get("last_trading_date"), fact.get("apply_from_date"),
++                notice.get("sha256"), notice.get("url"))
++    if (code not in identities or identity != identities[code]
++            or target < int(fact.get("apply_from_date") or effective)
+             or fact.get("historical_PIT") is not False):
+         return False
+     ref = row.get("lifecycle_policy_ref")
+@@ -254,13 +265,11 @@
+             or any(policy.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+         return False
+     original = {k: v for k, v in fact.items() if k != "source_policy_ref"}
+-    if policy.get("verified_delisting_additions") != [original]:
+-        return False
+-    notice = fact.get("official_notice", {})
+-    if (notice.get("sha256") != "8025a2df17603df345975e66d33e7c9e845d49e57ce5c7fd96cb8faa994f47dc"
+-            or notice.get("url") != "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"):
+-        return False
+-    _source(notice, owner="301139 official delisting notice")
++    matches = [item for item in policy.get("verified_delisting_additions", [])
++               if item.get("ts_code") == code]
++    if matches != [original]:
++        return False
++    _source(notice, owner=code + " official delisting notice")
+     return True
+ 
+ 
+@@ -288,7 +297,7 @@
+         raw = dict(path=row["path"], sha256=row["source_sha256_after"])
+         _source(raw, owner="original lifecycle raw identity")
+         if row.get("lifecycle_policy_ref") is not None:
+-            if not _reviewed_policy_lifecycle_fact(code, row, fact, effective):
++            if not _reviewed_policy_lifecycle_fact(code, row, fact, effective, target):
+                 return None
+             proof_route = "REVIEWED_SOURCE_POLICY_OFFICIAL_DELISTING"
+         elif row.get("lifecycle_asset_sha256") != _LIFECYCLE_ASSET_SHA:
+--- a/contracts/a_share_daily_source_policy.json
++++ b/contracts/a_share_daily_source_policy.json
+@@ -45,6 +45,21 @@
+         "url": "https://static.cninfo.com.cn/finalpage/2026-10-28/1225629444.PDF"
+       },
+       "historical_PIT": false
++    },
++    {
++      "ts_code": "002731.SZ",
++      "verified": true,
++      "requires_recent_listed_A_share_bars": false,
++      "delisting_effective_date": "20261113",
++      "last_trading_date": "20261112",
++      "apply_from_date": "20261120",
++      "official_notice": {
++        "key": "002731_delist1113",
++        "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_shared_calendar_20261119/recovery_000766/followup/a_close_input_20261119/002731_delisting_20261113.pdf",
++        "sha256": "26788d351ebfd99bd32b4df65aeaa00f2b528cb5e975ad40b420106a78daaac3",
++        "url": "https://disc.static.szse.cn/download/disc/disk03/finalpage/2026-11-13/f0878011-459d-4e1b-88c4-4f50876ae48f.PDF"
++      },
++      "historical_PIT": false
+     }
+   ],
+   "exact_no_current_bar_dispositions": [

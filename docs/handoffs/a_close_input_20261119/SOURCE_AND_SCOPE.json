@@ -1,0 +1,73 @@
+{
+  "baseline_commit": "0925638e99367224a79396b37f940523e57bb9c9",
+  "active_main": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/main/app",
+  "sources": [
+    {
+      "path": "ops/a_share_daily_sync.py",
+      "git_base_sha256": "cc36a486dafcc1c23a652440635be8c12d189644b0408a30d65da1e4b5a10046",
+      "active_before_sha256": "a882d7a3e8a8fe4a61aea51d605600ee5fa3088dab63df8eb452d5cd5df243ae",
+      "active_bytes": 39808,
+      "candidate_path": "/Users/lexi/.codex/worktrees/v4-a-close-input-20261119/ops/a_share_daily_sync.py",
+      "candidate_sha256": "d68cfbdf1d040a9bb175ec2e78c0e1858d7a2f5c47a3bad0e1663bd0c3f77a4d"
+    },
+    {
+      "path": "ops/research_panel_factor_cache.py",
+      "git_base_sha256": "33b2abe30026749c22bf83bff4370d9b2ec1d9280491610518871853421b6fe7",
+      "active_before_sha256": "158f1d26b1a803c280b27139cb8b2f3ab0d9c9fe418bff91f6a0bfc9ef1f04f9",
+      "active_bytes": 49008,
+      "candidate_path": "/Users/lexi/.codex/worktrees/v4-a-close-input-20261119/ops/research_panel_factor_cache.py",
+      "candidate_sha256": "d2cc96763ad0ff4e92f3e40d2ca41162993f6d9594a150021ef051a36dcb7b0a"
+    },
+    {
+      "path": "contracts/a_share_daily_source_policy.json",
+      "git_base_sha256": "dc4de47fc1721cf41436fd3717cfa9bcb4b3c28f5de1b3b8b591469046a6a54f",
+      "active_before_sha256": "008c3cc8ce9fa4569e78138dc585f148bc66dd01f6554320d7e8504d6164c19d",
+      "active_bytes": 10159,
+      "candidate_path": "/Users/lexi/.codex/worktrees/v4-a-close-input-20261119/contracts/a_share_daily_source_policy.json",
+      "candidate_sha256": "2c883e0373400fb302bdba4197d23abae4e79f0127e2c1087a8eeee0d983aef0"
+    }
+  ],
+  "scope": "Prospective original-exchange delisting quarantine for 002731.SZ from 20261120; no new READY authority",
+  "source_notice": {
+    "source_url": "https://disc.static.szse.cn/download/disc/disk03/finalpage/2026-11-13/f0878011-459d-4e1b-88c4-4f50876ae48f.PDF",
+    "path": "/Users/lexi/Desktop/学习/agents调试/v4_daily_shared_calendar_20261119/recovery_000766/followup/a_close_input_20261119/002731_delisting_20261113.pdf",
+    "bytes": 117964,
+    "sha256": "26788d351ebfd99bd32b4df65aeaa00f2b528cb5e975ad40b420106a78daaac3",
+    "observed_at": "2026-11-19T20:26:08.758574+08:00",
+    "HTTP_status": 200
+  },
+  "runtime_patch_sha256": "56b60a306d6674023d9b2d59c7c3f3c3f76693421cd5eb145c01a31c581e6bd7",
+  "test_command": "PANEL_PYTHON -B -m pytest -q tests/test_a_close_forward_lifecycle.py tests/test_factor_sop_prequery.py --basetemp=OWNED_TEMP_DIR",
+  "test_result": "35 passed in 0.26s",
+  "raw_notice_committed": false,
+  "history_recomputed": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "active_owner_fixture": {
+    "status": "PASS_ACTIVE_OWNER_OFFLINE_FIXTURE",
+    "active_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/main/app",
+    "candidate_modules": [
+      "/Users/lexi/.codex/worktrees/v4-a-close-input-20261119/ops/a_share_daily_sync.py",
+      "/Users/lexi/.codex/worktrees/v4-a-close-input-20261119/ops/research_panel_factor_cache.py"
+    ],
+    "actual_workflow_module": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/main/app/ops/_a_share_daily_sync_parts/sync_workflow.py",
+    "raw_sha256": "a3d6e63727889a26280141d21c423a42cca35f584eb79e16828464fcffbf57a5",
+    "raw_changed": false,
+    "source_rows_written": 0,
+    "provider_calls": 0,
+    "sync_status": "FAILED",
+    "accepted_count": 0,
+    "quarantine_count": 1,
+    "lifecycle_skipped_count": 1,
+    "technical_failure_count": 0,
+    "original_day_20261119_has_skip": false,
+    "factor_skip": "REVIEWED_SOURCE_POLICY_OFFICIAL_DELISTING"
+  },
+  "unresolved": [
+    "A lane still has other invalid/missing-bar and status exceptions. A 17:30 formal READY remains unverified.",
+    "Independent review, integration, release packaging and natural Nov20 acceptance pending."
+  ],
+  "prior_test_environment_failure": "Initial 35 tests reached 100% then pytest global temp retention cleanup hit an unrelated immutable file from older tests. An owned basetemp completed exit 0, 35 passed. No old temp tree was changed."
+}
