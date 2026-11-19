@@ -599,7 +599,7 @@ def read_stage_hourly_attestation(*, stage_app: Path, data_root: Path, date: str
         raise PublicationError('HOURLY_PROVENANCE_REQUEST_INVALID')
     config = json.loads(SafeRoot(stage_app).read_bytes('stage_center_tick_config.json'))
     historical = config.get('research_historical_owner_bindings', [])
-    if not isinstance(historical, list) or len(historical) > 19:
+    if not isinstance(historical, list) or len(historical) > 20:
         raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
     owners = [(current, evidence)]
     seen = {current}
