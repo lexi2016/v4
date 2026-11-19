@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from ops import research_panel_factor_cache as fc
+from ops import research_panel_qfq as qfq
 from ops import research_panel_tdx_adjustment_inputs as td
 
 CODES = ["600001.SH", "000001.SZ", "000002.SZ"]
@@ -248,6 +249,7 @@ def test_existing_same_day_gate_remains_strict_and_builder_explicit(case, monkey
     for name in ("_json", "_source", "canonical_sha", "sha"):
         setattr(stub, name, getattr(fc, name))
     stub._write = lambda *args: None
+    stub.publish_adjustment_snapshot = qfq.publish_adjustment_snapshot
     stub.CODE = re.compile(r"\d{6}\.(SH|SZ|BJ)")
     stub.legacy_preservation = lambda _: {}
     stub.input_path = lambda data: data / "inputs" / "snapshot.json"
@@ -267,6 +269,11 @@ def test_existing_same_day_gate_remains_strict_and_builder_explicit(case, monkey
     assert out["provider_revision_coverage"] == "CANNOT_CONFIRM"
     assert all(r["source_method"] == fc.RESEARCH_CARRY_LABEL for r in out["symbols"].values())
     assert out["research_factor_receipts"]["provider_call_count"] == 0
+    current = root / "output" / "inputs" / "snapshot.json"
+    canonical = current.parent / "adjustment_snapshots" / (qfq.canonical_sha(out) + ".json")
+    by_bytes = current.parent / "adjustment_snapshots" / (qfq.sha(current) + ".json")
+    assert current.read_bytes() == canonical.read_bytes() == by_bytes.read_bytes()
+    assert len({path.stat().st_ino for path in (current, canonical, by_bytes)}) == 1
 
 
 @pytest.mark.parametrize("issue", ["identity", "coverage", "original_proof"])

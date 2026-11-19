@@ -11,7 +11,17 @@ import zipfile
 from typing import Any, Callable
 import numpy as np
 
-from ops.research_panel_qfq import _json, _source, _write, canonical_sha, input_path, sha, CODE, legacy_preservation
+from ops.research_panel_qfq import (
+    _json,
+    _source,
+    _write,
+    canonical_sha,
+    input_path,
+    sha,
+    CODE,
+    legacy_preservation,
+    publish_adjustment_snapshot,
+)
 from ops.research_panel_factor_cache import QfqGateError, collect_metadata, _event_rows
 
 
@@ -505,8 +515,5 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     if existing.get("revision") == snapshot["revision"]:
         return existing
     snapshot["observed_at"] = metadata.get("completed_at") or metadata["finished_at"]
-    immutable = root / "adjustment_snapshots" / (canonical_sha(snapshot) + ".json")
-    if not immutable.exists():
-        _json(immutable, snapshot)
-    _json(path, snapshot)
+    publish_adjustment_snapshot(path, snapshot)
     return snapshot

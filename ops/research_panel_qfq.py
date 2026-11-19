@@ -20,8 +20,10 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 import tempfile
+import uuid
 import zlib
 from typing import Any
 
@@ -75,6 +77,168 @@ def _write(path: Path, payload: bytes) -> None:
 
 def _json(path: Path, value: Any) -> None:
     _write(path, (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n").encode())
+
+
+def _snapshot_file_identity(root, relative: str, *, hash_content: bool = True) -> dict | None:
+    """Stream one SHA-bound snapshot through SafeRoot without copying it into memory."""
+    from infrastructure.owned_io import OwnedIOError
+
+    try:
+        with root.parent(relative) as (parent, name):
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+            try:
+                info = os.fstat(fd)
+                if not stat.S_ISREG(info.st_mode):
+                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_NOT_REGULAR")
+                digest = None
+                if hash_content:
+                    digest = hashlib.sha256()
+                    with os.fdopen(fd, "rb", closefd=False) as handle:
+                        for block in iter(lambda: handle.read(1024 * 1024), b""):
+                            digest.update(block)
+                return dict(
+                    sha256=digest.hexdigest() if digest is not None else None,
+                    size=info.st_size,
+                    device=info.st_dev,
+                    inode=info.st_ino,
+                )
+            finally:
+                os.close(fd)
+    except FileNotFoundError:
+        return None
+
+
+def _verify_adjustment_snapshot(root, relative: str, *, expected_sha256: str, expected_size: int) -> dict:
+    identity = _snapshot_file_identity(root, relative)
+    if identity is None or identity["sha256"] != expected_sha256 or identity["size"] != expected_size:
+        from infrastructure.owned_io import OwnedIOError
+
+        raise OwnedIOError("ADJUSTMENT_SNAPSHOT_IDENTITY_CONFLICT:" + relative)
+    return identity
+
+
+def _link_adjustment_snapshot(root, source: str, destination: str) -> bool:
+    """Atomically add a same-filesystem alias without copying snapshot bytes."""
+    try:
+        with root.parent(source) as (source_parent, source_name):
+            with root.parent(destination, create=True) as (destination_parent, destination_name):
+                source_info = os.stat(source_name, dir_fd=source_parent, follow_symlinks=False)
+                if not stat.S_ISREG(source_info.st_mode):
+                    from infrastructure.owned_io import OwnedIOError
+
+                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_NOT_REGULAR")
+                try:
+                    os.link(source_name, destination_name, src_dir_fd=source_parent,
+                            dst_dir_fd=destination_parent, follow_symlinks=False)
+                except FileExistsError:
+                    return False
+                os.fsync(destination_parent)
+                return True
+    except OSError as error:
+        # A same-filesystem hardlink is required to keep every bound path on
+        # the exact immutable inode. Never fall back to writing another copy.
+        raise QfqGateError("ADJUSTMENT_SNAPSHOT_HARDLINK_FAILED:" + str(error)) from error
+
+
+def _replace_adjustment_current_with_link(root, source: str, destination: str) -> None:
+    """Atomically point the mutable current name at its immutable snapshot inode."""
+    from infrastructure.owned_io import OwnedIOError
+
+    temporary = ".adjustment-current-" + uuid.uuid4().hex + ".pending"
+    try:
+        with root.parent(source) as (source_parent, source_name):
+            with root.parent(destination, create=True) as (destination_parent, destination_name):
+                source_info = os.stat(source_name, dir_fd=source_parent, follow_symlinks=False)
+                if not stat.S_ISREG(source_info.st_mode):
+                    raise OwnedIOError("ADJUSTMENT_SNAPSHOT_SOURCE_NOT_REGULAR")
+                try:
+                    current_info = os.stat(destination_name, dir_fd=destination_parent, follow_symlinks=False)
+                except FileNotFoundError:
+                    current_info = None
+                if current_info is not None and not stat.S_ISREG(current_info.st_mode):
+                    raise OwnedIOError("ADJUSTMENT_CURRENT_DESTINATION_NOT_REGULAR")
+                os.link(source_name, temporary, src_dir_fd=source_parent,
+                        dst_dir_fd=destination_parent, follow_symlinks=False)
+                try:
+                    os.replace(temporary, destination_name,
+                               src_dir_fd=destination_parent, dst_dir_fd=destination_parent)
+                    os.fsync(destination_parent)
+                finally:
+                    try:
+                        os.unlink(temporary, dir_fd=destination_parent)
+                    except FileNotFoundError:
+                        pass
+    except OSError as error:
+        raise QfqGateError("ADJUSTMENT_CURRENT_HARDLINK_FAILED:" + str(error)) from error
+
+
+def publish_adjustment_snapshot(current_path: Path, snapshot: dict) -> dict:
+    """Write one immutable payload, then bind current and byte-SHA refs by hardlink.
+
+    The canonical-SHA filename remains the first immutable owner. The
+    byte-SHA filename consumed by QFQ and the mutable current filename point
+    to that inode. Existing matching immutable paths are reused as-is.
+    """
+    from infrastructure.owned_io import OwnedIOError, SafeRoot
+
+    current_path = Path(current_path)
+    payload = (
+        json.dumps(snapshot, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    ).encode()
+    payload_sha256 = hashlib.sha256(payload).hexdigest()
+    canonical_name = canonical_sha(snapshot) + ".json"
+    byte_sha_name = payload_sha256 + ".json"
+    canonical_relative = "adjustment_snapshots/" + canonical_name
+    byte_sha_relative = "adjustment_snapshots/" + byte_sha_name
+    root = SafeRoot(current_path.parent)
+    root.ensure_directory("adjustment_snapshots")
+
+    canonical_identity = _snapshot_file_identity(root, canonical_relative)
+    if canonical_identity is None:
+        try:
+            root.write_bytes(canonical_relative, payload, require_absent=True)
+        except FileExistsError:
+            # Another exact writer completed the immutable owner first.
+            pass
+    canonical_identity = _verify_adjustment_snapshot(
+        root, canonical_relative, expected_sha256=payload_sha256, expected_size=len(payload)
+    )
+
+    if byte_sha_relative != canonical_relative:
+        byte_identity = _snapshot_file_identity(root, byte_sha_relative, hash_content=False)
+        if byte_identity is None:
+            _link_adjustment_snapshot(root, canonical_relative, byte_sha_relative)
+            byte_identity = _snapshot_file_identity(root, byte_sha_relative, hash_content=False)
+        if byte_identity is None or byte_identity["size"] != len(payload):
+            from infrastructure.owned_io import OwnedIOError
+
+            raise OwnedIOError("ADJUSTMENT_SNAPSHOT_IDENTITY_CONFLICT:" + byte_sha_relative)
+        if (byte_identity["device"], byte_identity["inode"]) != (
+            canonical_identity["device"], canonical_identity["inode"]
+        ):
+            byte_identity = _verify_adjustment_snapshot(
+                root, byte_sha_relative, expected_sha256=payload_sha256, expected_size=len(payload)
+            )
+    else:
+        byte_identity = canonical_identity
+
+    _replace_adjustment_current_with_link(root, canonical_relative, current_path.name)
+    current_identity = _snapshot_file_identity(root, current_path.name, hash_content=False)
+    if current_identity is None or current_identity["size"] != len(payload) or (
+        current_identity["device"], current_identity["inode"]
+    ) != (canonical_identity["device"], canonical_identity["inode"]):
+        from infrastructure.owned_io import OwnedIOError
+
+        raise OwnedIOError("ADJUSTMENT_CURRENT_SNAPSHOT_IDENTITY_CONFLICT")
+    return dict(
+        current_path=str(current_path),
+        current_sha256=payload_sha256,
+        canonical_path=str(current_path.parent / canonical_relative),
+        byte_sha_path=str(current_path.parent / byte_sha_relative),
+        bytes=len(payload),
+        same_inode=(len({(item["device"], item["inode"]) for item in
+                         (canonical_identity, byte_identity, current_identity)}) == 1),
+    )
 
 
 def input_path(data_root: Path) -> Path:
