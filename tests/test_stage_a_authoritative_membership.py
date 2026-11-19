@@ -7,7 +7,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from stage_center.a_share_membership import SELECTOR_POINTER_ENV, resolve_membership
+from stage_center.a_share_membership import PRELISTING_AUTHORITY_ENV, SELECTOR_POINTER_ENV, resolve_membership
 from stage_center.acquisition import SourceResult, StageUniverseBinding, build_plan
 
 CODES = ("A.600000", "A.920045", "A.920985", "A.000660", "A.515880")
@@ -149,6 +149,86 @@ def make_inputs(tmp_path, *, mutate_receipt=None, mutate_snapshot=None, signal_d
 
 def _membership(candidate, pointer_path, trade_date=TRADE_DATE):
     return resolve_membership(candidate, trade_date, selector_pointer_path=pointer_path)
+
+
+def _prelisting_inputs(tmp_path, monkeypatch, *, trade_date="20261120", signal_date="20261119"):
+    monkeypatch.setitem(globals(), "CODES", (*CODES, "A.920319"))
+    inputs = make_inputs(tmp_path, trade_date=trade_date, signal_date=signal_date)
+    sources = {}
+    for role in ("CODE_TRANSITION_NOTICE", "OFFERING_INQUIRY_NOTICE"):
+        path = tmp_path / "issuer" / f"{role}.pdf"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        raw = f"synthetic issuer fixture {role}".encode()
+        path.write_bytes(raw)
+        sources[role] = {"path": str(path), "sha256": _sha(raw), "url": f"https://example.test/{role}.pdf"}
+    authority = {
+        "schema_version": "stage_center.a_share_prelisting_authority.v1",
+        "trade_date": "20261120", "code": "920319.BJ", "previous_code": "874070.BJ",
+        "code_status": "PRE_LISTING", "published_date": "20261116",
+        "subscription_date": "20261125", "transition_date": "20261127", "sources": sources,
+        "RESEARCH_ONLY": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+    }
+    path = tmp_path / "issuer" / "prelisting.json"
+    raw = _write_json(path, authority)
+    reference = {"path": str(path), "sha256": _sha(raw)}
+    return inputs, authority, reference
+
+
+def test_exact_prelisting_event_filters_next_date_and_retains_original_unknowns(tmp_path, monkeypatch):
+    inputs, authority, reference = _prelisting_inputs(tmp_path, monkeypatch)
+    candidate, pointer, current, *_ = inputs
+    original_current = current.read_bytes()
+    membership = resolve_membership(candidate, "20261120", selector_pointer_path=pointer,
+                                    environ={PRELISTING_AUTHORITY_ENV: json.dumps(reference)})
+    assert "A.920319" not in membership.codes
+    assert "A.515880" not in membership.codes
+    assert membership.report["unknown_codes"] == ["A.000660"]
+    assert membership.report["prelisting_authority"]["event"] == authority
+    assert membership.report["prelisting_authority"]["status"] == "VERIFIED"
+    assert membership.report["quarantined"][-1] == {
+        "code": "A.920319", "reason": "VERIFIED_PRE_LISTING_BEFORE_SUBSCRIPTION",
+        "classification": "VERIFIED_PRE_LISTING", "authority_sha256": reference["sha256"],
+    }
+    assert candidate.codes == CODES and current.read_bytes() == original_current
+    assert membership.report["original_requested_rows"] == len(CODES)
+    assert membership.report["effective_requested_rows"] == len(CODES) - 2
+    raw = SourceResult("provider", "PARTIAL_WITH_ROWS", rows=({"code": "BJ.920319"}, {"code": "SH.600000"}),
+                       requested_rows=2, missing_symbols=("BJ.920319",), cannot_confirm=())
+    filtered = membership.source(raw)
+    assert filtered.rows == ({"code": "SH.600000"},)
+    assert filtered.missing_symbols == ()
+    assert membership.source(raw, "HK_CONNECT") is raw
+
+
+def test_prelisting_event_does_not_apply_to_original_nov19_date(tmp_path, monkeypatch):
+    inputs, _, reference = _prelisting_inputs(tmp_path, monkeypatch, trade_date="20261119", signal_date="20261118")
+    candidate, pointer, *_ = inputs
+    membership = resolve_membership(candidate, "20261119", selector_pointer_path=pointer,
+                                    environ={PRELISTING_AUTHORITY_ENV: json.dumps(reference)})
+    assert "A.920319" in membership.codes
+    assert membership.report["unknown_codes"] == ["A.000660", "A.920319"]
+    assert membership.report["prelisting_authority"]["status"] == "OUTSIDE_EXACT_DATE"
+
+
+@pytest.mark.parametrize("bad_input", ["manifest_sha", "original_sha", "event_order", "unsafe_flag"])
+def test_unverified_prelisting_authority_preserves_stock_shaped_unknown(tmp_path, monkeypatch, bad_input):
+    inputs, event, reference = _prelisting_inputs(tmp_path, monkeypatch)
+    candidate, pointer, *_ = inputs
+    if bad_input == "manifest_sha":
+        reference["sha256"] = "0" * 64
+    elif bad_input == "original_sha":
+        Path(event["sources"]["CODE_TRANSITION_NOTICE"]["path"]).write_bytes(b"changed fixture")
+    else:
+        if bad_input == "event_order":
+            event["subscription_date"] = "20261119"
+        else:
+            event["production_allowed"] = True
+        reference["sha256"] = _sha(_write_json(Path(reference["path"]), event))
+    membership = resolve_membership(candidate, "20261120", selector_pointer_path=pointer,
+                                    environ={PRELISTING_AUTHORITY_ENV: json.dumps(reference)})
+    assert "A.920319" in membership.codes
+    assert membership.report["unknown_codes"] == ["A.000660", "A.920319"]
+    assert membership.report["prelisting_authority"]["status"] == "CANNOT_CONFIRM"
 
 
 def test_exact_d_minus_one_selector_binds_full_inventory_and_preserves_etf_guard(tmp_path, monkeypatch):

@@ -22,6 +22,7 @@ from .calendar import TradingDayState, resolve_market_states
 SCHEMA = "stage_center.a_share_membership.v1"
 SELECTOR_POINTER_ENV = "V4_STAGE_A_MEMBERSHIP_SELECTOR_POINTER"
 SELECTOR_POINTER_NAME = "CURRENT_SELECTOR_READY_PANEL.txt"
+PRELISTING_AUTHORITY_ENV = "V4_STAGE_A_PRELISTING_AUTHORITY"
 _SHA = re.compile(r"[0-9a-f]{64}")
 
 
@@ -51,6 +52,59 @@ def _safe_file(path: Path, *, root: Path | None = None) -> Path:
         except ValueError as error:
             raise ValueError("AUTHORITY_PATH_OUTSIDE_ROOT") from error
     return path
+
+
+def _prelisting_authority(value: str, trade_date: str) -> tuple[dict, dict | None]:
+    """Verify one dated issuer event without changing the stock-family policy."""
+    reference = json.loads(value)
+    if (not isinstance(reference, dict) or set(reference) != {"path", "sha256"}
+            or not _SHA.fullmatch(str(reference.get("sha256") or ""))):
+        raise ValueError("PRELISTING_AUTHORITY_REF_INVALID")
+    path = _safe_file(Path(reference["path"]))
+    if path.stat().st_size > 64 * 1024:
+        raise ValueError("PRELISTING_AUTHORITY_TOO_LARGE")
+    raw = path.read_bytes()
+    if _sha256_bytes(raw) != reference["sha256"]:
+        raise ValueError("PRELISTING_AUTHORITY_SHA_MISMATCH")
+    event = json.loads(raw)
+    fields = {"schema_version", "trade_date", "code", "previous_code", "code_status",
+              "published_date", "subscription_date", "transition_date", "sources",
+              "RESEARCH_ONLY", "production_allowed", "buy_gate_updated", "orders_sent"}
+    if (not isinstance(event, dict) or set(event) != fields
+            or event["schema_version"] != "stage_center.a_share_prelisting_authority.v1"
+            or event["code_status"] != "PRE_LISTING"
+            or event["RESEARCH_ONLY"] is not True
+            or any(event[flag] is not False for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise ValueError("PRELISTING_AUTHORITY_EVENT_INVALID")
+    for field in ("trade_date", "published_date", "subscription_date", "transition_date"):
+        if not isinstance(event[field], str) or not re.fullmatch(r"\d{8}", event[field]):
+            raise ValueError("PRELISTING_AUTHORITY_DATE_INVALID")
+        datetime.strptime(event[field], "%Y%m%d")
+    if not event["published_date"] <= event["trade_date"] < event["subscription_date"] < event["transition_date"]:
+        raise ValueError("PRELISTING_AUTHORITY_EVENT_ORDER_INVALID")
+    if (re.fullmatch(r"920\d{3}\.BJ", str(event["code"])) is None
+            or re.fullmatch(r"(?:43|83|87)\d{4}\.BJ", str(event["previous_code"])) is None):
+        raise ValueError("PRELISTING_AUTHORITY_CODE_INVALID")
+    sources = event["sources"]
+    if not isinstance(sources, dict) or set(sources) != {"CODE_TRANSITION_NOTICE", "OFFERING_INQUIRY_NOTICE"}:
+        raise ValueError("PRELISTING_AUTHORITY_SOURCES_INVALID")
+    for source in sources.values():
+        if (not isinstance(source, dict) or set(source) != {"path", "sha256", "url"}
+                or not _SHA.fullmatch(str(source.get("sha256") or ""))
+                or not str(source.get("url") or "").startswith("https://")):
+            raise ValueError("PRELISTING_AUTHORITY_SOURCE_REF_INVALID")
+        document = _safe_file(Path(source["path"]), root=path.parent)
+        if document.stat().st_size > 8 * 1024 * 1024 or _sha256_file(document) != source["sha256"]:
+            raise ValueError("PRELISTING_AUTHORITY_SOURCE_SHA_MISMATCH")
+    report = {"status": "VERIFIED" if event["trade_date"] == trade_date else "OUTSIDE_EXACT_DATE",
+              "reference": reference, "event": event}
+    if event["trade_date"] != trade_date:
+        return report, None
+    exclusion = {"code": _canonical_code(event["code"]),
+                 "reason": "VERIFIED_PRE_LISTING_BEFORE_SUBSCRIPTION",
+                 "classification": "VERIFIED_PRE_LISTING",
+                 "authority_sha256": reference["sha256"]}
+    return report, exclusion
 
 
 def _previous_a_trade_date(trade_date: str) -> str:
@@ -342,8 +396,21 @@ def resolve_membership(candidate, trade_date, *, selector_pointer_path=None, env
         if not codes or len(codes) != len(set(codes)) or any(not isinstance(code, str) for code in codes):
             raise ValueError("MEMBERSHIP_CANDIDATE_CODES_INVALID")
         codes, candidate_sha, candidate_run_id = _candidate_identity(candidate, trade_date)
-        signal = _previous_a_trade_date(trade_date)
         env = os.environ if environ is None else environ
+        prelisting_ref = env.get(PRELISTING_AUTHORITY_ENV)
+        if prelisting_ref:
+            try:
+                authority, exclusion = _prelisting_authority(prelisting_ref, trade_date)
+            except (OSError, TypeError, ValueError) as error:
+                report["prelisting_authority"] = {"status": "CANNOT_CONFIRM", "reason": str(error)}
+            else:
+                report["prelisting_authority"] = authority
+                if exclusion and exclusion["code"] in {_canonical_code(code) for code in effective}:
+                    affected = tuple(code for code in effective if _canonical_code(code) == exclusion["code"])
+                    quarantine.extend({**exclusion, "code": code} for code in affected)
+                    effective = tuple(code for code in effective if code not in affected)
+                    report["effective_requested_rows"] = len(effective)
+        signal = _previous_a_trade_date(trade_date)
         pointer_value = selector_pointer_path or env.get(SELECTOR_POINTER_ENV)
         if not pointer_value:
             raise ValueError("MEMBERSHIP_SELECTOR_POINTER_REQUIRED")

@@ -1,0 +1,325 @@
+--- a/domains/research.py
++++ b/domains/research.py
+@@ -2,6 +2,7 @@
+ from __future__ import annotations
+ 
+ import hashlib
++import json
+ import re
+ from collections import Counter, defaultdict
+ from copy import deepcopy
+@@ -91,6 +92,140 @@
+             redactions += count
+         return output, redactions
+     return value, 0
++
++
++_STAGE_ITEM_FIELDS = (
++    "item_id",
++    "raw_id",
++    "stock_code",
++    "item_quality",
++    "quality_score",
++    "quality_score_raw",
++    "is_new_since_last_slot",
++    "is_recheck_duplicate",
++    "source_path",
++    "source_title",
++    "url",
++    "cannot_confirm",
++)
++
++
++def _canonical_payload_sha(value: Mapping[str, Any]) -> str:
++    return hashlib.sha256(
++        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++
++
++def _stage_evidence_from_source(
++    source: Mapping[str, Any],
++    *,
++    archive_date: str,
++    source_input_sha256: str,
++    payload: Mapping[str, Any],
++) -> dict[str, Any] | None:
++    """Project already-produced item facts into the optional stage extension.
++
++    The converter is not a producer of quality or delta facts.  It copies
++    strict values supplied by the existing hourly input only when that input
++    also supplies the slot/manifest/receipt provenance needed to bind them.
++    Incomplete provenance is left out so the stage reader reports
++    ``CANNOT_CONFIRM`` instead of accepting an unbound projection.
++    """
++    manifest = source.get("source_manifest") if isinstance(source.get("source_manifest"), Mapping) else {}
++    supplied = source.get("stage_evidence_v1")
++    supplied = dict(supplied) if isinstance(supplied, Mapping) else {}
++    slot = _text(supplied.get("slot") or source.get("slot") or manifest.get("hourly_slot"))
++    manifest_sha = _text(
++        supplied.get("manifest_sha256")
++        or source.get("manifest_sha256")
++        or manifest.get("manifest_sha256")
++    ).lower()
++    receipt_sha = _text(
++        supplied.get("receipt_sha256")
++        or source.get("receipt_sha256")
++        or manifest.get("receipt_sha256")
++    ).lower()
++    if not re.fullmatch(r"(?:[01]\d|2[0-3])[0-5]\d", slot):
++        return None
++    if not all(re.fullmatch(r"[0-9a-f]{64}", value) for value in (manifest_sha, receipt_sha)):
++        return None
++
++    def item_projection(row: Mapping[str, Any]) -> dict[str, Any] | None:
++        if not isinstance(row, Mapping):
++            return None
++        if (
++            not str(row.get("stock_code") or row.get("code") or "").strip()
++            or not isinstance(row.get("item_quality"), str)
++            or not row.get("item_quality", "").strip()
++            or type(row.get("is_new_since_last_slot")) is not bool
++            or type(row.get("is_recheck_duplicate")) is not bool
++        ):
++            return None
++        output = {
++            field: row[field]
++            for field in _STAGE_ITEM_FIELDS
++            if field in row
++        }
++        output["stock_code"] = _text(row.get("stock_code") or row.get("code"))
++        if "cannot_confirm" in output and not isinstance(output["cannot_confirm"], list):
++            return None
++        return output
++
++    def evidence_projection(row: Mapping[str, Any]) -> dict[str, Any] | None:
++        if not isinstance(row, Mapping):
++            return None
++        required = (
++            "stock_code",
++            "is_new_since_last_slot",
++            "is_recheck_duplicate",
++            "evidence_level",
++            "confidence",
++        )
++        if (
++            not str(row.get("stock_code") or row.get("code") or "").strip()
++            or any(type(row.get(field)) is not bool for field in required[1:3])
++            or any(not isinstance(row.get(field), str) for field in required[3:])
++        ):
++            return None
++        quality_flags = row.get("quality_flags", [])
++        cannot_confirm = row.get("cannot_confirm", [])
++        if not isinstance(quality_flags, (list, tuple)) or not isinstance(cannot_confirm, (list, tuple)):
++            return None
++        return {
++            "evidence_id": _text(row.get("evidence_id")) or _sha_text(
++                f"stage-evidence|{archive_date}|{row.get('stock_code') or row.get('code')}|{row.get('source_title') or row.get('title')}"
++            ),
++            "stock_code": _text(row.get("stock_code") or row.get("code")),
++            "is_new_since_last_slot": row["is_new_since_last_slot"],
++            "is_recheck_duplicate": row["is_recheck_duplicate"],
++            "evidence_level": row["evidence_level"],
++            "confidence": row["confidence"],
++            "quality_flags": [str(item) for item in quality_flags],
++            "cannot_confirm": [str(item) for item in cannot_confirm],
++        }
++
++    raw_items = supplied.get("items") if isinstance(supplied.get("items"), list) else source.get("research_items")
++    raw_evidence = supplied.get("evidence") if isinstance(supplied.get("evidence"), list) else source.get("stock_research_timeline")
++    items = [projected for row in (raw_items or []) if (projected := item_projection(row)) is not None]
++    evidence = [projected for row in (raw_evidence or []) if (projected := evidence_projection(row)) is not None]
++    if not supplied and not items and not evidence:
++        return None
++    base_sha = _canonical_payload_sha(payload)
++    extension = {
++        "schema_version": "v4.stage_evidence.v1",
++        "trade_date": archive_date,
++        "slot": slot,
++        "source_input_sha256": source_input_sha256.lower(),
++        "payload_sha256_scope": "ARCHIVE_WITHOUT_STAGE_EVIDENCE_V1",
++        "payload_base_sha256": base_sha,
++        "manifest_sha256": manifest_sha,
++        "receipt_sha256": receipt_sha,
++        "items": items,
++        "evidence": evidence,
++    }
++    sanitized, _ = _redact_legacy_runtime_paths(extension)
++    return sanitized
++
+ 
+ 
+ def _dedupe_timeline(rows: list[Any]) -> list[dict[str, Any]]:
+@@ -277,6 +412,14 @@
+             **dict(ready_empty_source_proof),
+             "source_input_sha256": source_input_sha256.lower(),
+         }
++    stage_evidence = _stage_evidence_from_source(
++        source,
++        archive_date=archive_date,
++        source_input_sha256=source_input_sha256,
++        payload=payload,
++    )
++    if stage_evidence is not None:
++        payload["stage_evidence_v1"] = stage_evidence
+     validate_research_archive(payload)
+     return payload
+ 
+--- a/contracts/research.py
++++ b/contracts/research.py
+@@ -2,6 +2,7 @@
+ from __future__ import annotations
+ 
+ import re
++import math
+ from datetime import datetime
+ from typing import Any, Mapping
+ from zoneinfo import ZoneInfo
+@@ -82,6 +83,48 @@
+     "buy_gate_updated",
+     "orders_sent",
+ }
++_STAGE_EVIDENCE_FIELDS = {
++    "schema_version",
++    "trade_date",
++    "slot",
++    "source_input_sha256",
++    "payload_sha256_scope",
++    "payload_base_sha256",
++    "manifest_sha256",
++    "receipt_sha256",
++    "items",
++    "evidence",
++}
++
++
++_STAGE_ITEM_FIELDS = {
++    "item_id",
++    "raw_id",
++    "stock_code",
++    "item_quality",
++    "quality_score",
++    "quality_score_raw",
++    "is_new_since_last_slot",
++    "is_recheck_duplicate",
++    "source_path",
++    "source_title",
++    "url",
++    "cannot_confirm",
++}
++
++
++_STAGE_EVIDENCE_ROW_FIELDS = {
++    "evidence_id",
++    "stock_code",
++    "is_new_since_last_slot",
++    "is_recheck_duplicate",
++    "evidence_level",
++    "confidence",
++    "quality_flags",
++    "cannot_confirm",
++}
++
++
+ _READY_EMPTY_EVIDENCE_FIELDS = {
+     "schema_version", "trade_date", "slot", "status", "source_input_sha256",
+     "source_receipt_path", "source_receipt_sha256", "fetch_ok", "fetch_success",
+@@ -175,11 +218,85 @@
+         raise ValueError("research ready-empty time provenance mismatch")
+ 
+ 
++def _stage_evidence(value: Any, archive_date: str, source_sha: str) -> None:
++    """Validate the optional research-to-stage projection.
++
++    The projection is deliberately additive.  Existing archive payloads do
++    not carry it, while a producer that does carry it must provide enough
++    identity to bind the stage reader to one exact archive slot.  The
++    ``payload_base_sha256`` names the canonical payload digest before this
++    extension is attached; a self-referential whole-payload digest would not
++    be meaningful.  The store still verifies the final payload digest and
++    receipt independently.
++    """
++    if not isinstance(value, Mapping) or set(value) != _STAGE_EVIDENCE_FIELDS:
++        raise ValueError("invalid research stage_evidence_v1 fields")
++    if value.get("schema_version") != "v4.stage_evidence.v1":
++        raise ValueError("invalid research stage_evidence_v1 schema")
++    if value.get("trade_date") != archive_date:
++        raise ValueError("research stage evidence date mismatch")
++    slot = value.get("slot")
++    if not isinstance(slot, str) or re.fullmatch(r"(?:[01]\d|2[0-3])[0-5]\d", slot) is None:
++        raise ValueError("research stage evidence slot is invalid")
++    if value.get("source_input_sha256") != source_sha:
++        raise ValueError("research stage evidence source SHA mismatch")
++    if value.get("payload_sha256_scope") != "ARCHIVE_WITHOUT_STAGE_EVIDENCE_V1":
++        raise ValueError("research stage evidence payload scope mismatch")
++    for field in (
++        "payload_base_sha256",
++        "source_input_sha256",
++        "manifest_sha256",
++        "receipt_sha256",
++    ):
++        if not _SHA256.fullmatch(str(value.get(field) or "")):
++            raise ValueError(f"invalid research stage evidence {field}")
++    items = value.get("items")
++    if not isinstance(items, list):
++        raise ValueError("research stage evidence items must be a list")
++    for item in items:
++        if not isinstance(item, Mapping):
++            raise ValueError("invalid research stage evidence item")
++        if not {"stock_code", "item_quality", "is_new_since_last_slot", "is_recheck_duplicate"}.issubset(item):
++            raise ValueError("research stage evidence item identity is incomplete")
++        if set(item) - _STAGE_ITEM_FIELDS:
++            raise ValueError("invalid research stage evidence item fields")
++        if not str(item.get("stock_code") or "").strip():
++            raise ValueError("research stage evidence item stock code is missing")
++        if not isinstance(item.get("item_quality"), str) or not item["item_quality"].strip():
++            raise ValueError("research stage evidence item quality is invalid")
++        if type(item.get("is_new_since_last_slot")) is not bool or type(item.get("is_recheck_duplicate")) is not bool:
++            raise ValueError("research stage evidence flags must be strict booleans")
++        if "quality_score" in item:
++            score = item.get("quality_score")
++            if isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(float(score)):
++                raise ValueError("research stage evidence quality score is invalid")
++        if "quality_score_raw" in item and not isinstance(item.get("quality_score_raw"), str):
++            raise ValueError("research stage evidence raw quality score is invalid")
++        if "cannot_confirm" in item:
++            _string_list(item.get("cannot_confirm"), "stage_evidence.item.cannot_confirm")
++    evidence = value.get("evidence")
++    if not isinstance(evidence, list):
++        raise ValueError("research stage evidence rows must be a list")
++    for row in evidence:
++        if not isinstance(row, Mapping) or set(row) != _STAGE_EVIDENCE_ROW_FIELDS:
++            raise ValueError("invalid research stage evidence row fields")
++        if not str(row.get("evidence_id") or "").strip() or not str(row.get("stock_code") or "").strip():
++            raise ValueError("research stage evidence row identity is missing")
++        if type(row.get("is_new_since_last_slot")) is not bool or type(row.get("is_recheck_duplicate")) is not bool:
++            raise ValueError("research stage evidence row flags must be strict booleans")
++        for field in ("quality_flags", "cannot_confirm"):
++            _string_list(row.get(field), f"stage_evidence.evidence.{field}")
++        for field in ("evidence_level", "confidence"):
++            if not isinstance(row.get(field), str):
++                raise ValueError(f"research stage evidence row {field} is invalid")
++
++
++
+ def validate_research_archive(payload: Mapping[str, Any]) -> str:
+     if (
+         not isinstance(payload, Mapping)
+         or not _TOP_LEVEL_FIELDS.issubset(payload)
+-        or set(payload) - (_TOP_LEVEL_FIELDS | {"ready_empty_evidence_v1"})
++        or set(payload) - (_TOP_LEVEL_FIELDS | {"ready_empty_evidence_v1", "stage_evidence_v1"})
+     ):
+         raise ValueError("invalid research archive fields")
+     if payload.get("schema_version") != SCHEMA_VERSION:
+@@ -272,6 +389,12 @@
+     cannot_confirm = _string_list(payload.get("cannot_confirm"), "cannot_confirm")
+     if cannot_confirm != sorted(set(cannot_confirm)):
+         raise ValueError("research cannot_confirm must be sorted and unique")
++    if "stage_evidence_v1" in payload:
++        _stage_evidence(
++            payload["stage_evidence_v1"],
++            archive_date,
++            str(payload.get("source_input_sha256") or ""),
++        )
+     return archive_date
+ 
+ 

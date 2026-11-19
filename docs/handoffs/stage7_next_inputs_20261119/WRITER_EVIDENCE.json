@@ -1,0 +1,62 @@
+{
+  "recorded_at": "2026-11-19T20:30:55.114416+08:00",
+  "writer": "/root/stage7_next_inputs",
+  "branch": "codex/v4-stage7-next-inputs-20261119-r1",
+  "base_commit": "426563ac5",
+  "files": [
+    {
+      "path": "stage_center/a_share_membership.py",
+      "sha256": "aee7c8122c8cff3c14cd9e03e6e3b59fdf488c28b6c03936277bcdf3e0d4440e",
+      "bytes": 24635
+    },
+    {
+      "path": "tests/test_stage_a_authoritative_membership.py",
+      "sha256": "3ff12d530ac5f7fe0f9aee4f0b311dc954ab8fa001277d2890423d3921cf5985",
+      "bytes": 18403
+    },
+    {
+      "path": "docs/handoffs/stage7_next_inputs_20261119/MAIN_OPTIONAL_STAGE_EVIDENCE.patch",
+      "sha256": "126dd966b719e7d92171ac3a4044d0cbcc4ffb02378d0d76ce68c7170c434d17",
+      "bytes": 13362
+    },
+    {
+      "path": "docs/handoffs/stage7_next_inputs_20261119/check_main_projection.py",
+      "sha256": "d3a297233c865a556e100e8753d47a4fd612287970a597d9f9fa3ac49d15d371",
+      "bytes": 3773
+    }
+  ],
+  "membership_scope": "Exact-date issuer PRE_LISTING authority before provider acquisition, original candidate retained, other unknowns retained, HK unaffected",
+  "model_fit": 0,
+  "production_recomputations": 0,
+  "original_business_files_mutated": 0,
+  "deployment": "NOT_RUN",
+  "independent_review": "PENDING",
+  "checks": [
+    {
+      "command": "v4-mac/bin/python -B -m pytest -q tests/test_stage_a_authoritative_membership.py --basetemp .pytest-stage7-inputs -p no:cacheprovider",
+      "status": "PASS",
+      "tests": 18,
+      "seconds": 0.24
+    },
+    {
+      "command": "v4-mac/bin/python -B docs/handoffs/stage7_next_inputs_20261119/check_main_projection.py",
+      "status": "PASS",
+      "checks": 6
+    },
+    {
+      "command": "_prelisting_authority with original Nov16 issuer PDF refs",
+      "status": "PASS",
+      "dates": {
+        "20261119": "OUTSIDE_EXACT_DATE",
+        "20261120": "VERIFIED",
+        "20261123": "OUTSIDE_EXACT_DATE"
+      }
+    }
+  ],
+  "retained_failure": "Initial pytest invocation passed 18 tests then exit 1 on pre-existing global pytest garbage cleanup PermissionError. Isolated --basetemp run passed with exit 0. Global historical files left intact.",
+  "remaining_gaps": [
+    "Nov19 archived hourly input has no numeric quality_score. Existing source fallback already preserves delta flags. Future quality remains CANNOT_CONFIRM without real producer facts.",
+    "Nov20 natural Stage7 input and actual publication have not yet occurred.",
+    "Main patch preserves supplied future optional fields, existing Nov19 payloads remain frozen."
+  ]
+}

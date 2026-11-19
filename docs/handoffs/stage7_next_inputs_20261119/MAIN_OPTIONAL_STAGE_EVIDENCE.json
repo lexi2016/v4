@@ -1,0 +1,35 @@
+{
+  "goal": "Preserve exact optional hourly item evidence through existing Main converter",
+  "active_main": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/main/app",
+  "reference_stage": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/stage/app",
+  "files": [
+    {
+      "path": "domains/research.py",
+      "before_sha256": "dfeea8475446cc42c43bf1b9e31ec3878fadd87069c079cf53d3ef139316d5fc",
+      "after_sha256": "49bfd62826ee295cc2e40d7370a86a5096b1fe38f16a1e05e13bf8bea44e49ef",
+      "candidate": "/Users/lexi/Desktop/学习/agents调试/v4_daily_shared_calendar_20261119/recovery_000766/followup/forward_inputs/main_projection_candidate/domains/research.py",
+      "reference_sha256": "b36dcbdc4b4afa0a144dd96643ac3e77cdc5cd1745c16b68f279e7c4a7b11b4c"
+    },
+    {
+      "path": "contracts/research.py",
+      "before_sha256": "9456f395d4740e0d24197251af39a1e1d5348f256af5c45c84938b0b2d4a0bac",
+      "after_sha256": "5832f5fa4a6774f6efef728165dee6bfad37849e1a189283ce464ccea4c10655",
+      "candidate": "/Users/lexi/Desktop/学习/agents调试/v4_daily_shared_calendar_20261119/recovery_000766/followup/forward_inputs/main_projection_candidate/contracts/research.py",
+      "reference_sha256": "fae35041181fd46bf83c575233f0cd6f967caabecbd4c20404b7c7dae01bb28d"
+    }
+  ],
+  "preserves": [
+    "existing report-subject policy",
+    "existing ready-empty proof",
+    "all absent optional-source behavior"
+  ],
+  "status": "ISOLATED_SYNTHETIC_CHECK_PASS_NOT_DEPLOYED",
+  "checks": {
+    "valid_supplied_extension": "PASS",
+    "original_base_payload_unchanged": "PASS",
+    "source_input_unchanged": "PASS",
+    "incomplete_provenance_original_behavior": "PASS",
+    "boolean_quality_rejected": "PASS",
+    "ready_empty_validator_retained": "PASS"
+  }
+}
