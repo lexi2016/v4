@@ -9,7 +9,7 @@ from collections import Counter
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal
 from pathlib import Path
-from contextlib import nullcontext
+from contextlib import contextmanager
 
 from ops import research_panel_history_checkpoint as history_checkpoint
 
@@ -338,7 +338,9 @@ class D30SelectorProjection:
 
 
 class SourceContext:
- def __init__(self,data_root,target,*,source_config=None):
+ def __init__(self,data_root,target,*,source_config=None,calendar_seed=None,timing_enabled=False):
+  init_started=time.perf_counter() if timing_enabled else None
+  self._timing_enabled=bool(timing_enabled);self._shared_calendar_seed_used=calendar_seed is not None;self._timing={'read_seconds':0.0,'event_cache_lock_wait_seconds':0.0,'event_cache_lock_hold_seconds':0.0}
   from ops.research_panel_qfq import panel_contract
   self.data_root=Path(data_root).resolve();self.target=int(target);self.config,self.config_ref=(source_config if source_config else config());self.root=self.data_root/'daily_products/a_share'
   from ops.research_storage_pair import current_binding
@@ -367,8 +369,48 @@ class SourceContext:
    symbol=self.d30_projection.symbol;items=self.snapshot['symbols']
    admission_snapshot={**self.snapshot,'symbols':{**items,symbol:self.d30_projection.raw_item(items[symbol])}}
   self.helper=module(self.config['admission_helper'],'dated_original_admission');self.hash_cache={};original_read=self.helper.read_json;self.helper.read_json=lambda p:admission_snapshot if Path(p)==Path(self.snapshot_ref['path']) else original_read(p);self.helper.sha256_file=self.cached_sha
-  reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None;self.calendars=self._calendars();self._g4={}
+  reader=self.pointer.with_name('DATA_LAYER_INTERFACE.py');self.reader_ref=reference(reader);from ops.research_panel_reader_compat import semantic_reader_identity;self.cache_reader_ref,self.reader_transport_provenance=semantic_reader_identity(self.reader_ref,self.config_ref);self.identity['reader_provenance']=dict(actual_reader=self.reader_ref,transport_equivalence=self.reader_transport_provenance);self.reader=module(self.reader_ref,'dated_original_shared_reader');from_binding=__import__('ops.research_storage_pair',fromlist=['bind_shared_reader']);from_binding.bind_shared_reader(self.reader,self.pair_binding);self._engine=None
   if self.d30_projection:self.identity['selector_projection']=self.d30_projection.ref
+  calendar_started=time.perf_counter() if timing_enabled else None
+  self._calendar_source_scan_seconds=0.0
+  self.calendars=self._restore_calendar_seed(calendar_seed) if calendar_seed is not None else self._calendars()
+  if timing_enabled:
+   self._calendar_init_seconds=time.perf_counter()-calendar_started
+   self._context_init_seconds=time.perf_counter()-init_started
+  self._g4={}
+ def export_calendar_seed(self):
+  payload=dict(schema='v4.a_share.daily_product_calendar_seed.v1',generation=self.generation,target=self.target,
+      source_identity_sha256=digest(self.identity),config_ref=self.config_ref,
+      calendars={exchange:list(days) for exchange,days in self.calendars.items()})
+  return dict(payload=payload,sha256=digest(payload))
+ def _restore_calendar_seed(self,seed):
+  payload=seed.get('payload') if isinstance(seed,dict) else None
+  if (not isinstance(payload,dict) or seed.get('sha256')!=digest(payload)
+      or payload.get('schema')!='v4.a_share.daily_product_calendar_seed.v1'
+      or payload.get('generation')!=self.generation or payload.get('target')!=self.target
+      or payload.get('source_identity_sha256')!=digest(self.identity)
+      or payload.get('config_ref')!=self.config_ref):
+   raise ValueError('DAILY_SHARED_CALENDAR_SOURCE_IDENTITY_CONFLICT')
+  if self.config.get('future_calendar'):checked(self.config['future_calendar'])
+  calendars=payload.get('calendars')
+  if not isinstance(calendars,dict) or set(calendars)!= {'SH','SZ','BJ'}:
+   raise ValueError('DAILY_SHARED_CALENDAR_SHAPE_CONFLICT')
+  restored={}
+  for exchange,values in calendars.items():
+   if not isinstance(values,(list,tuple)) or any(type(day) is not int for day in values):
+    raise ValueError('DAILY_SHARED_CALENDAR_DATE_TYPE_CONFLICT')
+   if list(values)!=sorted(set(values)):
+    raise ValueError('DAILY_SHARED_CALENDAR_ORDER_CONFLICT')
+   try:
+    if any(datetime.strptime(str(day),'%Y%m%d').strftime('%Y%m%d')!=str(day) for day in values):
+     raise ValueError('DAILY_SHARED_CALENDAR_DATE_VALUE_CONFLICT')
+   except ValueError as error:
+    raise ValueError('DAILY_SHARED_CALENDAR_DATE_VALUE_CONFLICT') from error
+   restored[exchange]=list(values)
+  return restored
+ @property
+ def timing_snapshot(self):
+  return dict(self._timing)
  def cached_sha(self,p):
   p=Path(p);s=p.stat();stamp=(s.st_size,s.st_mtime_ns,s.st_ino)
   if str(p) in self.hash_cache:
@@ -388,9 +430,11 @@ class SourceContext:
   if self.d30_projection:
    dates={e:set(days) for e,days in self.d30_projection.calendars.items()}
   else:
+   scan_started=time.perf_counter() if self._timing_enabled else None
    for batch in pq.ParquetFile(self.panel).iter_batches(columns=['exchange','trade_date'],batch_size=131072):
     for e,d in zip(batch.column(0).to_pylist(),batch.column(1).to_pylist()):
      if e in dates and int(d)<=self.target:dates[e].add(int(d))
+   if self._timing_enabled:self._calendar_source_scan_seconds=time.perf_counter()-scan_started
   if self.config.get('future_calendar'):
    pinned=json.loads(checked(self.config['future_calendar']).read_text());periods=pinned['markets']['a_share']['holiday_periods'];day=datetime.strptime(str(self.target),'%Y%m%d')+timedelta(days=1)
    while day.year==pinned['year']:
@@ -428,13 +472,17 @@ class SourceContext:
   return frame
 
  def read(self,symbol):
-  frame=self._read_frame(symbol).sort_values('trade_date',kind='stable')
-  if frame.empty:return [],None
-  if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
-  bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
-  names=frame.name[frame.name.map(lambda value:isinstance(value,str) and bool(value.strip()))]
-  name=names.iloc[-1].strip() if len(names) else None
-  return bars,name
+  started=time.perf_counter() if self._timing_enabled else None
+  try:
+   frame=self._read_frame(symbol).sort_values('trade_date',kind='stable')
+   if frame.empty:return [],None
+   if frame.trade_date.duplicated().any() or not frame.ts_code.eq(symbol).all() or not frame.exchange.astype(str).eq(symbol[-2:]).all() or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}:raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+symbol)
+   bars=[dict(trade_date=int(r.trade_date),open=str(r.open),high=str(r.high),low=str(r.low),close=str(r.close),vol=str(r.volume)) for r in frame.itertuples()]
+   names=frame.name[frame.name.map(lambda value:isinstance(value,str) and bool(value.strip()))]
+   name=names.iloc[-1].strip() if len(names) else None
+   return bars,name
+  finally:
+   if started is not None:self._timing['read_seconds']+=time.perf_counter()-started
  def engine(self):
   if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')
   return self._engine
@@ -667,6 +715,24 @@ def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
  return result,all_groups,counters
 
 
+@contextmanager
+def event_case_cache_lock(context):
+ lock=getattr(context,'_event_case_cache_lock',None)
+ if lock is None:
+  yield
+  return
+ if not getattr(context,'_timing_enabled',False):
+  with lock:yield
+  return
+ started=time.perf_counter();lock.acquire();acquired=time.perf_counter()
+ context._timing['event_cache_lock_wait_seconds']+=acquired-started
+ try:
+  yield
+ finally:
+  context._timing['event_cache_lock_hold_seconds']+=time.perf_counter()-acquired
+  lock.release()
+
+
 def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=None,reuse_history_prefix=False,checkpoint_input=None):
  from domains.research_daily_product import evaluate_daily_product
  from domains.research_daily_statistics import build_daily_event_statistics
@@ -731,7 +797,7 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
  store=os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE');cached_groups=None;reuse=None
  if store:
   if not Path(store).is_absolute() or not Path(store).is_file():raise ValueError('EXISTING_DAILY_EVENT_CACHE_REQUIRED')
-  with getattr(context,'_event_case_cache_lock',None) or nullcontext():
+  with event_case_cache_lock(context):
    statistics,cached_groups,reuse=cached_daily_statistics(context,symbol,bars,calendar,groups,Path(store))
  else:statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
  row=dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q)

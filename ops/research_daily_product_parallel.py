@@ -66,11 +66,12 @@ def checkpoint_parts(context, selected):
     return context.root / 'checkpoints' / str(context.target) / runkey
 
 
-def initialize(data_root, target, output_root, parts, identity, config_ref, scope, sources, cache_lock, charts):
+def initialize(data_root, target, output_root, parts, identity, config_ref, scope, sources, cache_lock, charts,
+               calendar_seed=None, timing_enabled=False):
     global _CONTEXT, _PARTS, _CHARTS
     if bound_main_sources() != sources:
         raise ValueError('DAILY_PARALLEL_WORKER_SOURCE_DRIFT')
-    _CONTEXT = product.SourceContext(data_root, target)
+    _CONTEXT = product.SourceContext(data_root, target, calendar_seed=calendar_seed, timing_enabled=timing_enabled)
     _CONTEXT.root = Path(output_root)
     _CONTEXT._event_case_cache_lock = cache_lock
     if (_CONTEXT.identity != identity or _CONTEXT.config_ref != config_ref or sorted(_CONTEXT.scope) != scope
@@ -165,6 +166,34 @@ def checkpoint(symbol, *, persist_history=True):
     return dict(symbol=symbol, ref=product.save(path, row, immutable=True, compress_row=True), chart_gaps=gaps)
 
 
+def timed_checkpoint(symbol, submitted_ns=None, *, history_root=None):
+    """Run the ordinary checkpoint path and return opt-in timing outside the stock row."""
+    context = _CONTEXT
+    before = context.timing_snapshot
+    started_wall = time.perf_counter()
+    started_cpu = time.process_time()
+    started_ns = time.time_ns()
+    if history_root is None:
+        result = checkpoint(symbol)
+    else:
+        result = checkpoint_independent_close(symbol, history_root=history_root)
+    ended_cpu = time.process_time()
+    ended_wall = time.perf_counter()
+    after = context.timing_snapshot
+    timing = dict(worker_pid=os.getpid(), task_wall_seconds=ended_wall-started_wall,
+        task_cpu_seconds=ended_cpu-started_cpu, data_read_seconds=after['read_seconds']-before['read_seconds'],
+        event_cache_lock_wait_seconds=after['event_cache_lock_wait_seconds']-before['event_cache_lock_wait_seconds'],
+        event_cache_lock_hold_seconds=after['event_cache_lock_hold_seconds']-before['event_cache_lock_hold_seconds'],
+        context_init_seconds=getattr(context,'_context_init_seconds',None),
+        calendar_init_seconds=getattr(context,'_calendar_init_seconds',None),
+        calendar_source_scan_seconds=getattr(context,'_calendar_source_scan_seconds',None),
+        shared_calendar_seed_used=bool(getattr(context,'_shared_calendar_seed_used',False)))
+    if submitted_ns is not None:
+        # Same-host wall clock includes process queueing and dispatch. It is not a monotonic cross-process clock.
+        timing['submission_to_start_wall_seconds']=(started_ns-int(submitted_ns))/1_000_000_000
+    return {**result,'timing':timing}
+
+
 def checkpoint_independent_close(symbol, *, history_root):
     """Use the bound original history as a read-only seed for a detached close row."""
     context = _CONTEXT
@@ -191,18 +220,24 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
     """One bounded wave scheduler; existing jobs drain on failure or pressure."""
     ctx = multiprocessing.get_context('spawn')
     lock = ctx.Lock()
+    calendar_seed = context.export_calendar_seed() if hasattr(context,'export_calendar_seed') else None
+    timing_enabled = os.environ.get('V4_DAILY_PRODUCT_TIMING') == '1'
     complete = sum((parts / (symbol + '.json')).is_file() for symbol in selected)
     state = dict(status='RUNNING', completed=complete, total=len(selected), generation=context.generation,
         target_date=context.target, source_binding=sources, resource_plan=resources, history_dates=[], **product.FLAGS)
+    if calendar_seed is not None:
+        state['calendar_seed'] = dict(sha256=calendar_seed['sha256'], exchanges={key:len(value) for key,value in calendar_seed['payload']['calendars'].items()})
+    if timing_enabled:state['timing_enabled']=True
     record = parts / ('parallel_run_' + str(os.getpid()) + '_' + str(time.time_ns()) + '.json')
     product.save(record, state)
     started = time.perf_counter()
     failure = None
     gaps = {}
+    timing_samples = []
     peak = resources['observed']['cumulative_rss_bytes']
     with ProcessPoolExecutor(max_workers=resources['workers'], mp_context=ctx, initializer=initialize,
             initargs=(str(context.data_root), context.target, str(context.root), str(parts), context.identity,
-                      context.config_ref, selected, sources, lock, original_charts)) as pool:
+                      context.config_ref, selected, sources, lock, original_charts, calendar_seed, timing_enabled)) as pool:
         iterator = iter(pending)
         inflight = {}
         def submit_next():
@@ -212,7 +247,11 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
                 symbol = next(iterator)
             except StopIteration:
                 return
-            inflight[pool.submit(checkpoint, symbol)] = symbol
+            if timing_enabled:
+                submitted_ns=time.time_ns()
+                future=pool.submit(timed_checkpoint,symbol,submitted_ns)
+            else:future=pool.submit(checkpoint,symbol)
+            inflight[future] = symbol
         for _ in range(min(resources['max_pending'], len(pending))):
             submit_next()
         while inflight:
@@ -231,6 +270,7 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
                     if result['symbol'] != symbol:
                         raise ValueError('DAILY_PARALLEL_WORKER_SYMBOL_CONFLICT')
                     product.checked(result['ref'])
+                    if timing_enabled and isinstance(result.get('timing'),dict):timing_samples.append(result['timing'])
                     complete += 1
                     gaps.update(result['chart_gaps'])
                 except Exception as error:
@@ -243,6 +283,7 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
             for _ in done:
                 submit_next()
     state.update(status='FAILED_DRAINED' if failure else 'CHECKPOINTS_FILLED', wall_seconds=time.perf_counter() - started)
+    if timing_enabled:state['timing_summary']=summarize_timing(timing_samples)
     if failure:
         state.update(error_type=type(failure).__name__, error=str(failure))
     product.save(record, state)
@@ -250,6 +291,28 @@ def run_pending(context, parts, selected, pending, *, original_charts, resources
         raise failure
     context.unchanged()
     return dict(chart_gaps=gaps, record=product.reference(record))
+
+
+def summarize_timing(samples):
+    fields=('task_wall_seconds','task_cpu_seconds','data_read_seconds','submission_to_start_wall_seconds',
+            'event_cache_lock_wait_seconds','event_cache_lock_hold_seconds')
+    summary=dict(sample_count=len(samples),workers={})
+    by_worker=summary['workers']
+    for sample in samples:
+        pid=str(sample['worker_pid'])
+        worker=by_worker.setdefault(pid,dict(context_init_seconds=sample.get('context_init_seconds'),
+            calendar_init_seconds=sample.get('calendar_init_seconds'),
+            calendar_source_scan_seconds=sample.get('calendar_source_scan_seconds'),
+            shared_calendar_seed_used=sample.get('shared_calendar_seed_used')))
+        worker.setdefault('task_count',0);worker['task_count']+=1
+    for field in fields:
+        values=sorted(float(sample[field]) for sample in samples if sample.get(field) is not None)
+        if not values:continue
+        p50=values[(len(values)-1)//2]
+        p95=values[max(0,(95*len(values)+99)//100-1)]
+        summary[field]=dict(total_seconds=sum(values),mean_seconds=sum(values)/len(values),
+            p50_seconds=p50,p95_seconds=p95,max_seconds=values[-1],sample_count=len(values))
+    return summary
 
 
 def prefill_missing(context, parts, selected, *, original_charts):
