@@ -255,7 +255,19 @@ class PlanSnapshot(Safety):
         return self
 
 
+def job_scope(context: RunContext) -> str:
+    lanes = ",".join(sorted(context.scope_refs.get("requested_lanes", [])))
+    stage = str(context.scope_refs.get("stage_run_id", "")) + ":" + str(context.scope_refs.get("stage_input_sha256", ""))
+    canary = str(context.scope_refs.get("canary_article_id", ""))
+    capture = str(context.scope_refs.get("capture_operation", "")) + ":" + str(context.scope_refs.get("capture_input_sha256", "")) + ":" + str(context.scope_refs.get("capture_analysis_identity", ""))
+    base = f"{context.target_date}:{context.phase.value}:{lanes}:{stage}:{canary}"
+    if context.scope_refs.get("capture_operation"):
+        return f"{capture}:{context.cutoff}:{base}"
+    return f"{capture}:{base}" if context.scope_refs.get("capture_input_sha256") else base
+
+
 class JobRecord(StrictModel):
+    attempt_id: str | None = None  # absent in legacy records
     job_id: str
     run_id: str
     context: RunContext

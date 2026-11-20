@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterator
 from infrastructure.owned_io import SafeRoot
 
-from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
+from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date, job_scope
 
 _DEFAULT_READ_LIMIT = 64 * 1024 * 1024
 _PLAN_READ_LIMIT = 128 * 1024 * 1024
@@ -300,9 +300,16 @@ class WorkbenchStore:
                             {"schema": _INPUT_REF_SCHEMA, "input_snapshot_sha256": input_sha}, immutable=True)
         return input_sha
 
-    def save_job(self, job: JobRecord) -> None:
+    def save_job(self, job: JobRecord, *, expected_attempt_id: str | None = None,
+                 replace_attempt: bool = False) -> None:
         # Attempts are mutable; successful plans are not.
         with self.lock("job:" + job.job_id):
+            current = self._read(self._path("attempts", _key(job.job_id)))
+            if expected_attempt_id is not None:
+                if current is None or current.get("attempt_id") != expected_attempt_id:
+                    raise StorageConflict("STALE_JOB_ATTEMPT")
+            elif current is not None and not replace_attempt and current.get("attempt_id") != job.attempt_id:
+                raise StorageConflict("STALE_JOB_ATTEMPT")
             body = job.model_dump(mode="json")
             body["context"] = self._map_overlay_fields(body["context"], self._overlay_writer())
             self._write_job_record(job.job_id, body)
@@ -449,8 +456,10 @@ class WorkbenchStore:
             if (not obj or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING)
                     or obj.get("job_id") in active_ids):
                 continue
-            # Recheck under the same lock as progress before changing a live record.
-            with self.lock("job:" + path.stem):
+            # Match submit lock order so QUEUED + owner + claim cannot be split
+            # by startup recovery, even in a different coordinator/process.
+            scope = job_scope(JobRecord.model_validate(obj).context)
+            with self.lock("submission:" + scope), self.lock("job:" + path.stem):
                 obj = self._read(path)
                 if (not obj or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING)
                         or obj.get("job_id") in active_ids):
@@ -458,8 +467,7 @@ class WorkbenchStore:
                 item = JobRecord.model_validate(obj)
                 if item.job_id != path.stem:
                     raise StorageUnavailable("JOB_ID_MISMATCH")
-                owner = next((r.get("pid") for r in item.execution_refs if r.get("kind") == "host"), None)
-                if isinstance(owner, int) and self._pid_alive(owner):
+                if self._owner_alive(item, self._claim(scope)):
                     continue
                 self._mark_interrupted(item, failed_step=True)
                 count += 1
@@ -501,26 +509,57 @@ class WorkbenchStore:
         except PermissionError:
             return True  # unknown owner: do not assume it is safe to duplicate
 
-    def active_claim(self, scope: str) -> JobRecord | None:
-        """Caller holds submission lock; checks persisted active owner."""
+    def _claim(self, scope: str) -> dict[str, Any] | None:
         key = hashlib.sha256(scope.encode()).hexdigest()
-        claim = self._read(self._path("claims", key))
-        if not claim or not claim.get("job_id"):
-            return None
-        job_id = _key(claim["job_id"])
-        with self.lock("job:" + job_id):
-            obj = self._read(self._path("attempts", job_id))
-            if obj is None or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING):
-                return None
-            if not self._pid_alive(claim.get("pid", -1)):
+        return self._read(self._path("claims", key))
+
+    def _owner_alive(self, job: JobRecord, claim: dict[str, Any] | None) -> bool:
+        hosts = [r for r in job.execution_refs if r.get("kind") == "host"]
+        if job.attempt_id is not None:
+            hosts = [r for r in hosts if r.get("attempt_id") == job.attempt_id]
+        # Pre-fix retries could retain an obsolete host ref while the claim
+        # held their live owner. Preserve that live legacy work conservatively.
+        if job.attempt_id is None and claim and claim.get("job_id") == job.job_id:
+            hosts.append(claim)
+        return any(type(r.get("pid")) is int and self._pid_alive(r["pid"]) for r in hosts)
+
+    def active_claim(self, scope: str) -> JobRecord | None:
+        """Caller holds submission lock; reconcile legacy/unclaimed active rows too."""
+        claim = self._claim(scope)
+        ids = []
+        if claim and claim.get("job_id"):
+            ids.append(_key(claim["job_id"]))
+        # A crash between saving QUEUED and saving its claim must not make that
+        # attempt invisible. Legacy rows have no attempt token or scope field.
+        folder = self.root / "attempts"
+        if folder.is_symlink():
+            raise StorageUnavailable("SYMLINK_DENIED")
+        if folder.exists():
+            ids.extend(path.stem for path in sorted(folder.glob("*.json")) if path.stem not in ids)
+        for job_id in ids:
+            with self.lock("job:" + job_id):
+                obj = self._read(self._path("attempts", _key(job_id)))
+                if obj is None or obj.get("state") not in (JobState.QUEUED, JobState.RUNNING):
+                    continue
                 current = JobRecord.model_validate(obj)
                 if current.job_id != job_id:
                     raise StorageUnavailable("JOB_ID_MISMATCH")
-                self._mark_interrupted(current)
-                return None
-        return self._job_from_obj(obj)
+                if job_scope(current.context) != scope:
+                    continue
+                if not self._owner_alive(current, claim):
+                    if claim and claim.get("job_id") == job_id:
+                        self._mark_interrupted(current)
+                    continue
+                return self._job_from_obj(obj)
+        return None
 
-    def set_claim(self, scope: str, job_id: str | None) -> None:
+    def set_claim(self, scope: str, job_id: str | None, *, attempt_id: str | None = None) -> None:
         key = hashlib.sha256(scope.encode()).hexdigest()
-        self._write(self._path("claims", key), {"job_id":job_id, "pid":os.getpid() if job_id else None},immutable=False)
+        self._write(self._path("claims", key), {"job_id": job_id,
+                    "pid": os.getpid() if job_id else None, "attempt_id": attempt_id}, immutable=False)
 
+    def clear_claim(self, scope: str, job_id: str, attempt_id: str | None) -> None:
+        """Release only this attempt; an old worker cannot clear a newer retry."""
+        claim = self._claim(scope)
+        if claim and claim.get("job_id") == job_id and claim.get("attempt_id") == attempt_id:
+            self.set_claim(scope, None)

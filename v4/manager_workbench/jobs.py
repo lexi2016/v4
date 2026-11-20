@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Callable
 from uuid import uuid4
 
-from .contracts import HK, JobRecord, JobState, RunContext
+from .contracts import HK, JobRecord, JobState, RunContext, job_scope
 from .store import WorkbenchStore
 
 
@@ -32,30 +32,17 @@ class JobCoordinator:
         self.store = store
         self.pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="mwb-worker")
         self._mutex = threading.RLock()
-        self._active: dict[str, str] = {}
+        self._active: dict[str, tuple[str, str]] = {}
         self.store.recover_orphan_attempts()
 
     @staticmethod
     def _scope(context: RunContext) -> str:
-        lanes = ",".join(sorted(context.scope_refs.get("requested_lanes", [])))
-        stage = str(context.scope_refs.get("stage_run_id", "")) + ":" + str(context.scope_refs.get("stage_input_sha256", ""))
-        canary = str(context.scope_refs.get("canary_article_id", ""))
-        capture = str(context.scope_refs.get("capture_operation", "")) + ":" + str(context.scope_refs.get("capture_input_sha256", "")) + ":" + str(context.scope_refs.get("capture_analysis_identity", ""))
-        base = f"{context.target_date}:{context.phase.value}:{lanes}:{stage}:{canary}"
-        if context.scope_refs.get("capture_operation"):
-            return f"{capture}:{context.cutoff}:{base}"
-        return f"{capture}:{base}" if context.scope_refs.get("capture_input_sha256") else base
+        return job_scope(context)
 
     def submit(self, context: RunContext, worker: Callable[[JobRecord], tuple[str, JobState]], *,
                retry_job_id: str | None = None) -> JobRecord:
         scope = self._scope(context)
         with self._mutex, self.store.lock("submission:" + scope):
-            if scope in self._active:
-                candidate = self.store.get_job(self._active[scope])
-                if candidate and candidate.state in (JobState.QUEUED, JobState.RUNNING):
-                    if retry_job_id:
-                        raise JobConflict("ACTIVE_JOB_CONFLICT")
-                    return candidate
             shared = self.store.active_claim(scope)
             if shared is not None:
                 if retry_job_id:
@@ -76,11 +63,23 @@ class JobCoordinator:
             else:
                 id_ = uuid4().hex
                 job = JobRecord(job_id=id_, run_id=id_, context=context,
-                                state=JobState.QUEUED, step="QUEUED", execution_refs=[{"kind":"host", "pid":os.getpid()}])
-            self.store.save_job(job)
-            self.store.set_claim(scope,job.job_id)
-            self._active[scope] = job.job_id
-            self.pool.submit(self._execute, job, worker, scope)
+                                state=JobState.QUEUED, step="QUEUED")
+            job.attempt_id = uuid4().hex
+            # Only this attempt's host owns the work; retain non-host evidence.
+            job.execution_refs = [r for r in job.execution_refs if r.get("kind") != "host"]
+            job.execution_refs.append({"kind": "host", "pid": os.getpid(), "attempt_id": job.attempt_id})
+            self.store.save_job(job, replace_attempt=True)
+            try:
+                self.store.set_claim(scope, job.job_id, attempt_id=job.attempt_id)
+                self._active[scope] = (job.job_id, job.attempt_id)
+                self.pool.submit(self._execute, job, worker, scope)
+            except Exception:
+                self._active.pop(scope, None)
+                job.failure_code = "ENQUEUE_FAILED"
+                job.retryable = True
+                self.update(job, state=JobState.INTERRUPTED, finished=True)
+                self.store.clear_claim(scope, job.job_id, job.attempt_id)
+                raise
             return job
 
     def _execute(self, job: JobRecord, worker: Callable[[JobRecord], tuple[str, JobState]], scope: str) -> None:
@@ -102,11 +101,9 @@ class JobCoordinator:
             self.update(job, state=JobState.FAILED, finished=True)
         finally:
             with self._mutex, self.store.lock("submission:" + scope):
-                if self._active.get(scope) == job.job_id:
+                if self._active.get(scope) == (job.job_id, job.attempt_id):
                     del self._active[scope]
-                claim = self.store.active_claim(scope)
-                if claim is None or claim.job_id == job.job_id:
-                    self.store.set_claim(scope,None)
+                self.store.clear_claim(scope, job.job_id, job.attempt_id)
 
     def update(self, job: JobRecord, *, state: JobState | None = None,
                step: str | None = None, finished: bool = False) -> None:
@@ -120,7 +117,7 @@ class JobCoordinator:
         job.last_progress_at = instant
         if finished:
             job.finished_at = instant
-        self.store.save_job(job)
+        self.store.save_job(job, expected_attempt_id=job.attempt_id)
 
     def get(self, id_: str) -> JobRecord:
         job = self.store.get_job(id_)
