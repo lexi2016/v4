@@ -19,7 +19,7 @@ MAX_MIGRATIONS = 16
 
 def _policy_identity(policy):
     governance = {key:value for key,value in (policy.get('governance') or {}).items()
-                  if key != 'qfq_legacy_resume'}
+                  if key not in {'qfq_legacy_resume', 'qfq_legacy_classification'}}
     return canonical({**policy, 'governance':governance})
 
 
@@ -49,7 +49,7 @@ def _read_reference(ref):
 
 
 def _identity(module, data_root, target, kwargs, old_root):
-    from ops.research_storage_governance import qfq_invocation_key
+    from ops.research_storage_governance import qfq_invocation_key, qfq_helper_identity
     owner = safe_path(module.__file__)
     if owner.name != 'research_panel_qfq.py' or owner.parent.name != 'ops':
         raise RetentionError('QFQ_MIGRATION_OWNER_ROLE_REQUIRED')
@@ -66,12 +66,15 @@ def _identity(module, data_root, target, kwargs, old_root):
             raise RetentionError('QFQ_MIGRATION_DRIVER_BYTES_CHANGED')
         old_kwargs['driver_path'] = old_driver
     old_module = SimpleNamespace(__file__=str(old_owner), input_path=module.input_path)
+    if qfq_helper_identity(old_module) != qfq_helper_identity(module):
+        raise RetentionError('QFQ_MIGRATION_GENERATION_HELPER_BYTES_CHANGED')
     old_key = qfq_invocation_key(old_module, data_root, target, old_kwargs, legacy=True)
     key = qfq_invocation_key(module, data_root, target, kwargs)
     return old_key, key
 
 
 def _validate_owner_evidence(module, target, kwargs, directory, snapshot, owner_receipt, evidence_refs):
+    from ops.research_storage_governance import qfq_helper_identity
     receipt = _read_reference(owner_receipt)
     snapshot_value = _read_reference(snapshot)
     if (receipt.get('target_date') != target or snapshot_value.get('asof_date') != target
@@ -82,6 +85,8 @@ def _validate_owner_evidence(module, target, kwargs, directory, snapshot, owner_
             or receipt.get('field_contract_sha256') != digest(Path(kwargs['contract_csv']))
             or receipt.get('input_sha256') != canonical(snapshot_value)):
         raise RetentionError('QFQ_MIGRATION_OWNER_INPUT_EVIDENCE_CONFLICT')
+    if any(receipt.get(field) != sha256 for field,sha256 in qfq_helper_identity(module).items()):
+        raise RetentionError('QFQ_MIGRATION_GENERATION_HELPER_EVIDENCE_CONFLICT')
     generation = receipt.get('generation_id')
     run = safe_path(receipt['run_dir'])
     if (not isinstance(generation, str) or len(generation) != 64
@@ -111,7 +116,7 @@ def prepare_qfq_migration(module, policy, *, data_root, return_root, target, kwa
                           old_root, expected_registry_sha256, expected_token,
                           owner_receipt, evidence_refs, linkage_review):
     """Prepare exact, bounded metadata only. No locks or registry writes."""
-    from ops.research_storage_governance import Registry, configuration
+    from ops.research_storage_governance import Registry, configuration, qfq_helper_identity
     config = configuration(policy)
     if config is None:
         raise RetentionError('QFQ_MIGRATION_GOVERNANCE_REQUIRED')
@@ -138,7 +143,7 @@ def prepare_qfq_migration(module, policy, *, data_root, return_root, target, kwa
                       directory=directory, snapshot=snapshot, owner_receipt=owner_receipt)
     sources = {name:_reference(kwargs[name]) for name in ('driver_path', 'formula_path', 'contract_csv')}
     result = dict(schema=SCHEMA, old_key=old_key, key=key, target=target,
-        policy_identity_sha256=_policy_identity(policy),
+        policy_identity_sha256=_policy_identity(policy), generation_helpers=qfq_helper_identity(module),
         pool_id=config['pool_id'], registry_root=str(registry.root), data_root=str(safe_path(data_root)),
         directory=directory, old_root=str(safe_path(old_root)), owner=_reference(module.__file__),
         sources=sources, snapshot=snapshot, owner_receipt=owner_receipt, evidence_refs=evidence_refs,
@@ -151,7 +156,7 @@ def prepare_qfq_migration(module, policy, *, data_root, return_root, target, kwa
 
 
 def _validate_plan(module, policy, plan, data_root, return_root, target, kwargs):
-    from ops.research_storage_governance import Registry, configuration
+    from ops.research_storage_governance import Registry, configuration, qfq_helper_identity
     if not isinstance(plan, dict) or plan.get('schema') != SCHEMA or type(plan.get('target')) is not int:
         raise RetentionError('QFQ_MIGRATION_SCHEMA')
     config = configuration(policy)
@@ -159,7 +164,7 @@ def _validate_plan(module, policy, plan, data_root, return_root, target, kwargs)
         raise RetentionError('QFQ_MIGRATION_GOVERNANCE_REQUIRED')
     _check_owner_roots(policy, data_root, return_root)
     registry = Registry(config, data_root)
-    expected = dict(policy_identity_sha256=_policy_identity(policy), pool_id=config['pool_id'], registry_root=str(registry.root),
+    expected = dict(policy_identity_sha256=_policy_identity(policy), generation_helpers=qfq_helper_identity(module), pool_id=config['pool_id'], registry_root=str(registry.root),
         data_root=str(safe_path(data_root)), directory=str(safe_path(return_root)), target=target,
         arguments=json.loads(json.dumps(kwargs, default=str)))
     if any(plan.get(k) != v for k,v in expected.items()):
@@ -257,3 +262,89 @@ def require_migrated_resume(module, policy, data_root, return_root, target, kwar
             or record.get('state') != 'COMMITTED' or key not in state['tasks']):
         raise RetentionError('QFQ_LEGACY_RESUME_MIGRATION_REQUIRED')
     return plan
+
+
+QFQ_NONTERMINAL = {'FAILED_RECOVERABLE', 'SPACE_BLOCKED', 'RUNNING', 'VALIDATING'}
+
+
+def unclassified_qfq_rows(state, directory, current_key):
+    committed = {record.get('key') for record in state.get(JOURNAL, {}).values()
+                 if isinstance(record, dict) and record.get('state') == 'COMMITTED'}
+    result = {}
+    for key,row in state['tasks'].items():
+        if (key == current_key or row.get('directory') != str(directory)
+                or row.get('category') != 'ordinary' or row.get('state') not in QFQ_NONTERMINAL):
+            continue
+        marker = row.get('qfq_identity') or {}
+        known = (isinstance(marker, dict) and marker.get('schema') == 'v4.qfq_operation_identity.v2'
+                 and marker.get('key') == key)
+        if key not in committed and not known:
+            result[key] = canonical(row)
+    return result
+
+
+def check_unclassified_qfq_rows(state, directory, key, classified_rows):
+    unknown = unclassified_qfq_rows(state, directory, key)
+    if any(classified_rows.get(old_key) != row_sha for old_key,row_sha in unknown.items()):
+        raise RetentionError('QFQ_UNCLASSIFIED_LEGACY_RESERVATION')
+
+
+def _classified_for_other_dates(proof, unknown, state, target):
+    entries = proof.get('classified_rows')
+    if not isinstance(entries, dict) or len(entries) > 512:
+        raise RetentionError('QFQ_LEGACY_CLASSIFICATION_UNPROVEN')
+    result = {}
+    for old_key,row_sha in unknown.items():
+        item = entries.get(old_key)
+        if (not isinstance(item, dict) or item.get('row_sha256') != row_sha
+                or type(item.get('target')) is not int or item['target'] == target):
+            raise RetentionError('QFQ_UNCLASSIFIED_LEGACY_RESERVATION')
+        refs = item.get('owner_receipts')
+        if not isinstance(refs, list) or not 1 <= len(refs) <= 16:
+            raise RetentionError('QFQ_LEGACY_CLASSIFICATION_UNPROVEN')
+        for ref in refs:
+            receipt = _read_reference(ref)
+            if (not isinstance(receipt, dict) or receipt.get('target_date') != item['target']
+                    or not isinstance(receipt.get('run_dir'), str)
+                    or safe_path(ref['path']).parent != safe_path(receipt['run_dir'])
+                    or not safe_path(receipt['run_dir']).is_relative_to(Path(state['tasks'][old_key]['directory']))):
+                raise RetentionError('QFQ_LEGACY_CLASSIFICATION_UNPROVEN')
+        result[old_key] = row_sha
+    return result
+
+
+def qfq_admission_context(module, policy, data_root, return_root, target, key):
+    from ops.research_storage_governance import Registry, configuration, qfq_helper_identity
+    config = configuration(policy)
+    if config is None:
+        return None
+    registry = Registry(config, data_root)
+    state = registry.read()
+    unknown = unclassified_qfq_rows(state, return_root, key)
+    if not unknown:
+        return dict(target=target, classified_rows={})
+    ref = (policy.get('governance') or {}).get('qfq_legacy_classification')
+    if not ref:
+        raise RetentionError('QFQ_UNCLASSIFIED_LEGACY_RESERVATION')
+    proof = _read_reference(ref)
+    common = dict(evidence_closed=True, pool_id=config['pool_id'], registry_root=str(registry.root),
+        data_root=str(safe_path(data_root)), directory=str(safe_path(return_root)))
+    if (not isinstance(proof, dict) or not isinstance(proof.get('reviewer'), str)
+            or not proof['reviewer'].strip() or any(proof.get(k) != v for k,v in common.items())):
+        raise RetentionError('QFQ_LEGACY_CLASSIFICATION_UNPROVEN')
+    if (proof.get('schema') == 'v4.qfq_legacy_task_scope.v1'
+            and proof.get('status') == 'REVIEWED_TASK_SCOPES'):
+        # Frozen old task scope can distinguish later dates without a daily
+        # re-attestation. Same-date inputs always require the exact bridge or
+        # the more specific distinct-operation proof below.
+        classified = _classified_for_other_dates(proof, unknown, state, target)
+    else:
+        expected = dict(schema='v4.qfq_legacy_task_classification.v1', status='REVIEWED_DISTINCT_OPERATION',
+            key=key, target=target, generation_helpers=qfq_helper_identity(module),
+            snapshot=_reference(module.input_path(data_root)))
+        if (any(proof.get(k) != v for k,v in expected.items())
+                or not isinstance(proof.get('classified_rows'), dict) or len(proof['classified_rows']) > 512):
+            raise RetentionError('QFQ_LEGACY_CLASSIFICATION_UNPROVEN')
+        classified = proof['classified_rows']
+    check_unclassified_qfq_rows(state, return_root, key, classified)
+    return dict(target=target, classified_rows=classified)

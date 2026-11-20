@@ -359,7 +359,7 @@ def validate_artifacts(records):
 
 
 class Claim:
-    def __init__(self, registry, key, directory, predicted, *, category='ordinary', optional_full=False, category_used=0, preserve_existing=False, required_migration=None, forbidden_legacy_key=None):
+    def __init__(self, registry, key, directory, predicted, *, category='ordinary', optional_full=False, category_used=0, preserve_existing=False, required_migration=None, forbidden_legacy_key=None, qfq_context=None):
         self.registry, self.key = registry, key
         self.directory, self.predicted = str(directory), predicted
         self.category, self.optional_full, self.category_used = category, optional_full, category_used
@@ -375,6 +375,7 @@ class Claim:
         self.preserve_existing = preserve_existing
         self.required_migration = required_migration
         self.forbidden_legacy_key = forbidden_legacy_key
+        self.qfq_context = qfq_context
         self.previous_written = 0
         self.previous_logical = 0
 
@@ -384,6 +385,9 @@ class Claim:
         with self.registry.transaction():
             state = self.registry.read()
             old = state['tasks'].get(self.key)
+            if self.qfq_context is not None:
+                from ops.research_qfq_task_continuity import check_unclassified_qfq_rows
+                check_unclassified_qfq_rows(state, self.directory, self.key, self.qfq_context['classified_rows'])
             legacy = state['tasks'].get(self.forbidden_legacy_key)
             if legacy and legacy['state'] in {'FAILED_RECOVERABLE', 'SPACE_BLOCKED', 'RUNNING', 'VALIDATING'}:
                 raise RetentionError('QFQ_LEGACY_RESUME_CONTROL_REQUIRED')
@@ -453,6 +457,10 @@ class Claim:
                 resumed=bool(old),heartbeat=time.time(),space=sample,
                 category_baseline_bytes=self.category_used,initial_children=self.initial_children,
                 billing_paths=sorted(set((old or {}).get('billing_paths',[]))|set(self.new_billing_paths())))
+            if self.qfq_context is not None:
+                state['tasks'][self.key]['qfq_identity'] = dict(
+                    schema='v4.qfq_operation_identity.v2', key=self.key,
+                    target=self.qfq_context['target'])
             self.registry.save(state, admitting=True)
         directory=Path(self.directory)
         if directory.exists():
@@ -558,7 +566,7 @@ class Claim:
 
 
 @contextmanager
-def admission(policy, *, key, directory, predicted, category='ordinary', optional_full=False, category_used=0, reuse_ready=True, preserve_existing=False, required_migration=None, forbidden_legacy_key=None):
+def admission(policy, *, key, directory, predicted, category='ordinary', optional_full=False, category_used=0, reuse_ready=True, preserve_existing=False, required_migration=None, forbidden_legacy_key=None, qfq_context=None):
     config = configuration(policy)
     if category not in {'ordinary','debug'}:raise RetentionError('UNREGISTERED_BILLING_CATEGORY')
     if config is None:
@@ -586,7 +594,7 @@ def admission(policy, *, key, directory, predicted, category='ordinary', optiona
     with registry.writer():
         claim=Claim(registry,key,directory,predicted,category=category,optional_full=optional_full,category_used=category_used,
                     preserve_existing=preserve_existing, required_migration=required_migration,
-                    forbidden_legacy_key=forbidden_legacy_key)
+                    forbidden_legacy_key=forbidden_legacy_key, qfq_context=qfq_context)
         cached=claim.begin(reuse_ready=reuse_ready)
         if cached is not None:
             yield None,cached
@@ -1000,6 +1008,20 @@ def read_only_status(policy):
         return dict(status='REGISTRY_UNAVAILABLE_SAFE_READS_UNAFFECTED',error=str(error)[:1024],auto_gc_enabled=False,dry_run=True)
 
 
+QFQ_HELPER_FIELDS = {
+    'input_adapter_sha256': 'research_panel_adjustment_inputs.py',
+    'factor_cache_sha256': 'research_panel_factor_cache.py',
+    'tdx_adapter_sha256': 'research_panel_tdx_adjustment_inputs.py',
+    'logical_reader_sha256': 'research_panel_logical.py',
+    'delta_owner_sha256': 'research_panel_delta.py',
+}
+
+
+def qfq_helper_identity(module):
+    root = safe_path(module.__file__).parent
+    return {field:digest(safe_path(root / name)) for field,name in QFQ_HELPER_FIELDS.items()}
+
+
 def qfq_invocation_key(module, data_root, target, kwargs, *, legacy=False):
     snapshot=module.input_path(data_root)
     files={key:dict(path=str(kwargs[key]),sha256=digest(safe_path(kwargs[key])))
@@ -1019,6 +1041,8 @@ def qfq_invocation_key(module, data_root, target, kwargs, *, legacy=False):
                   if owner_path.name == 'research_panel_qfq.py' and owner_path.parent.name == 'ops'
                   else str(owner_path))
     files['owner']=dict(path=str(owner_path) if legacy else owner_role, sha256=digest(owner_path))
+    if not legacy:
+        files['generation_helpers'] = qfq_helper_identity(module)
     bundled_driver = owner_path.parent / 'vendor/data_layer_daily_formula_increment_update_v1.py'
     if not legacy and Path(kwargs['driver_path']) == bundled_driver:
         files['driver_path']['path'] = 'ops/vendor/data_layer_daily_formula_increment_update_v1.py'
@@ -1141,8 +1165,9 @@ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointe
     import importlib
     module=importlib.import_module('ops.research_panel_qfq')
     key=qfq_invocation_key(module,data_root,target,kwargs)
-    from ops.research_qfq_task_continuity import require_migrated_resume
+    from ops.research_qfq_task_continuity import require_migrated_resume, qfq_admission_context
     resume_plan = require_migrated_resume(module, policy, data_root, return_root, target, kwargs, key)
+    qfq_context = qfq_admission_context(module, policy, data_root, return_root, target, key)
     legacy_key = (qfq_invocation_key(module, data_root, target, kwargs, legacy=True)
                   if configuration(policy) is not None else None)
     # Root is unchanged: QFQ chooses its exact generation directory and resumes
@@ -1150,7 +1175,7 @@ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointe
     with admission(policy,key=key,directory=return_root,predicted=reservation['predicted_bytes'],
             category_used=0,reuse_ready=False,preserve_existing=True,
             required_migration=canonical(resume_plan) if resume_plan else None,
-            forbidden_legacy_key=legacy_key) as (claim,_):
+            forbidden_legacy_key=legacy_key, qfq_context=qfq_context) as (claim,_):
         if claim is not None:
             claim.qfq_resume_snapshot = resume_plan['snapshot'] if resume_plan else None
         with qfq_write_seams(module,claim), input_write_seams(claim):

@@ -27,6 +27,8 @@ def fixture(tmp_path):
         ops = root / 'ops'
         (ops / 'vendor').mkdir(parents=True)
         (ops / 'research_panel_qfq.py').write_text('same owner bytes\n')
+        for helper in g.QFQ_HELPER_FIELDS.values():
+            (ops / helper).write_text('same ' + helper + ' bytes\n')
         (ops / 'vendor/data_layer_daily_formula_increment_update_v1.py').write_text('same driver bytes\n')
     data = tmp_path / 'data'; data.mkdir()
     runs = tmp_path / 'runs'; runs.mkdir()
@@ -51,7 +53,8 @@ def fixture(tmp_path):
         run_dir=str(checkpoint.parent), snapshot_file_sha256=g.digest(snapshot_path),
         input_sha256=g.canonical(json.loads(snapshot_path.read_bytes())),
         adapter_sha256=g.digest(Path(module.__file__)), driver_sha256=g.digest(kwargs['driver_path']),
-        formula_sha256=g.digest(formula), field_contract_sha256=g.digest(contract))
+        formula_sha256=g.digest(formula), field_contract_sha256=g.digest(contract),
+        **g.qfq_helper_identity(module))
     receipt_ref = put(checkpoint.parent / 'candidate_receipt.json', receipt)
     row = dict(state='FAILED_RECOVERABLE', owner=dict(pid=999999999, started='dead fixture'),
         token='original-token', directory=str(runs), attempts=1, reserved_bytes=1024 * 1024,
@@ -442,4 +445,101 @@ def test_policy_budget_or_owner_root_drift_rejects_migration(fixture):
     assert f.registry.path.read_bytes()==before
     f.policy['data_root']=str(f.runs)
     with pytest.raises(g.RetentionError,match='POLICY_OWNER_ROOT_DRIFT'):move(f)
+    assert f.registry.path.read_bytes()==before
+
+
+def test_cross_root_unknown_row_blocks_actual_governed_owner_without_bridge(fixture,monkeypatch):
+    from ops import research_panel_qfq as q
+    f=fixture;before=f.registry.path.read_bytes();calls=[]
+    monkeypatch.setattr(q,'__file__',f.module.__file__)
+    monkeypatch.setattr(q,'input_path',f.module.input_path)
+    def producer(**kwargs):calls.append('called');return {'status':'FAILED'}
+    with pytest.raises(g.RetentionError,match='UNCLASSIFIED_LEGACY_RESERVATION'):
+        g.governed_qfq(producer,f.policy,{'predicted_bytes':1024},data_root=f.data,
+                      return_root=f.runs,pointers={},target=TARGET,**f.kwargs)
+    assert calls==[] and f.registry.path.read_bytes()==before
+    assert set(f.registry.read()['tasks'])=={f.legacy}
+
+
+def test_cross_root_unknown_row_created_after_preflight_is_fenced_at_claim(fixture):
+    f=fixture;before=f.registry.path.read_bytes()
+    context={'target':TARGET,'classified_rows':{}}
+    with pytest.raises(g.RetentionError,match='UNCLASSIFIED_LEGACY_RESERVATION'):
+        with g.admission(f.policy,key=f.key,directory=f.runs,predicted=1024,
+                         preserve_existing=True,qfq_context=context):
+            pytest.fail('racing old root task cannot create another reservation')
+    assert f.registry.path.read_bytes()==before
+
+
+@pytest.mark.parametrize('helper_field',list(g.QFQ_HELPER_FIELDS))
+def test_generation_helper_changes_fail_before_migration_and_make_new_identity(fixture,helper_field):
+    f=fixture;helper=g.QFQ_HELPER_FIELDS[helper_field]
+    legacy=g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs,legacy=True)
+    path=Path(f.module.__file__).parent/helper
+    path.write_bytes(path.read_bytes()+b' altered helper computation')
+    assert g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs)!=f.key
+    assert g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs,legacy=True)==legacy
+    before=f.registry.path.read_bytes()
+    with pytest.raises(g.RetentionError):move(f)
+    assert f.registry.path.read_bytes()==before
+
+
+def classify_old_task_date(f):
+    row=f.registry.read()['tasks'][f.legacy]
+    proof=dict(schema='v4.qfq_legacy_task_scope.v1',status='REVIEWED_TASK_SCOPES',
+        evidence_closed=True,reviewer='synthetic scope reviewer',pool_id='test-pool',
+        registry_root=str(f.registry.root),data_root=str(f.data),directory=str(f.runs),
+        classified_rows={f.legacy:dict(row_sha256=g.canonical(row),target=TARGET,
+                                      owner_receipts=[f.plan['owner_receipt']])})
+    ref=put(f.data/'legacy-scope.json',proof)
+    f.policy['governance']['qfq_legacy_classification']=ref
+    return proof
+
+
+def test_reviewed_old_target_allows_future_date_as_independent_budgeted_operation(fixture,monkeypatch):
+    from ops import research_panel_qfq as q
+    f=fixture;classify_old_task_date(f)
+    monkeypatch.setattr(q,'__file__',f.module.__file__)
+    monkeypatch.setattr(q,'input_path',f.module.input_path)
+    before=copy.deepcopy(f.registry.read()['tasks'][f.legacy]);calls=[]
+    new_target=20261123
+    put(f.snapshot,{'asof_date':new_target,'input':'new date actual input'})
+    key=g.qfq_invocation_key(f.module,f.data,new_target,f.kwargs)
+    assert key!=f.key
+    def producer(**kwargs):
+        calls.append(kwargs['target'])
+        return {'status':'FAILED'}
+    result=g.governed_qfq(producer,f.policy,{'predicted_bytes':1024},data_root=f.data,
+                         return_root=f.runs,pointers={},target=new_target,**f.kwargs)
+    rows=f.registry.read()['tasks']
+    assert result['status']=='FAILED' and calls==[new_target]
+    assert rows[f.legacy]==before and rows[key]['reserved_bytes']==1024
+    assert rows[key]['space']['other_remaining_bytes']==f.registry.remaining(before)
+    assert rows[key]['qfq_identity']=={'schema':'v4.qfq_operation_identity.v2','key':key,'target':new_target}
+    assert len(rows)==2
+
+
+def test_reviewed_scope_never_approves_same_date_or_stale_legacy_row(fixture):
+    f=fixture;proof=classify_old_task_date(f)
+    before=f.registry.path.read_bytes()
+    with pytest.raises(g.RetentionError,match='UNCLASSIFIED_LEGACY_RESERVATION'):
+        continuity.qfq_admission_context(f.module,f.policy,f.data,f.runs,TARGET,f.key)
+    assert f.registry.path.read_bytes()==before
+    state=f.registry.read();state['tasks'][f.legacy]['heartbeat']=123;f.registry.save(state)
+    key=g.qfq_invocation_key(f.module,f.data,20261123,f.kwargs)
+    with pytest.raises(g.RetentionError,match='UNCLASSIFIED_LEGACY_RESERVATION'):
+        continuity.qfq_admission_context(f.module,f.policy,f.data,f.runs,20261123,key)
+
+
+def test_even_rekeyed_hand_built_plan_cannot_reuse_receipt_with_old_helper_tuple(fixture):
+    f=fixture
+    helper='research_panel_delta.py'
+    for root in f.roots:
+        path=root/'ops'/helper
+        path.write_bytes(path.read_bytes()+b' matching new helper bytes')
+    f.plan['generation_helpers']=g.qfq_helper_identity(f.module)
+    f.plan['key']=g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs)
+    before=f.registry.path.read_bytes()
+    with pytest.raises(g.RetentionError,match='GENERATION_HELPER_EVIDENCE_CONFLICT'):
+        move(f)
     assert f.registry.path.read_bytes()==before
