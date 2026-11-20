@@ -70,11 +70,11 @@ describe("research lane JSON transport", () => {
     });
 
     expect(fetchMock).toHaveBeenNthCalledWith(1,
-      "/api/v3/research/lane?research_date=20260804",
+      "/api/v4/research/lane?research_date=20260804",
       { cache: "no-store", signal: controller.signal },
     );
     expect(fetchMock).toHaveBeenNthCalledWith(2,
-      "/api/v3/research/day?archive_date=20260804",
+      "/api/v4/research/day?archive_date=20260804",
       { cache: "no-store", signal: controller.signal },
     );
   });
@@ -89,8 +89,8 @@ describe("research lane JSON transport", () => {
     await expect(loadResearchLane("20260804")).resolves.toEqual(legacyPayload);
     await expect(loadResearchLaneLatest()).resolves.toEqual(legacyPayload);
 
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v3/research/lane?research_date=20260804");
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/v3/research/lane");
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v4/research/lane?research_date=20260804");
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/v4/research/lane");
   });
 
   it("retains strict transport errors and the legacy raw JSON rejection", async () => {

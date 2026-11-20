@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { researchStatusPresentation } from "../../composables/useResearchLane";
+import { researchStatusPresentation, type ResearchAuxCountPresentation } from "../../composables/useResearchLane";
 import type { ResearchLane } from "../../api/research_lane";
 
 const props = defineProps<{
@@ -9,11 +9,15 @@ const props = defineProps<{
   stockMainlineLength: number;
   stockTimelineLength: number;
   wechatArticleCount: number;
+  machineCardCount: ResearchAuxCountPresentation;
+  confirmedStockClueCount: ResearchAuxCountPresentation;
   onWechat: () => void;
 }>();
 
 const presentation = computed(() => researchStatusPresentation(props.payload, {
   wechatArticleCount: props.wechatArticleCount,
+  machineCardCount: props.machineCardCount,
+  confirmedStockClueCount: props.confirmedStockClueCount,
   stockMainlineLength: props.stockMainlineLength,
   stockTimelineLength: props.stockTimelineLength,
 }));
@@ -29,6 +33,8 @@ const presentation = computed(() => researchStatusPresentation(props.payload, {
     <button type="button" class="hourly-status-cell hourly-status-button" data-wechat-entry="view" @click="onWechat">
       <span class="hourly-label">公众号归档/查看</span><strong>查看</strong><small>小时情报 {{ presentation.wechatArticleCount }} 条</small>
     </button>
+    <div class="hourly-status-cell"><span class="hourly-label">机器研报</span><strong>{{ presentation.machineCardCount }}</strong></div>
+    <div class="hourly-status-cell"><span class="hourly-label">研报线索</span><strong>{{ presentation.confirmedStockClueCount }}</strong></div>
     <div class="hourly-status-cell"><span class="hourly-label">股票主线</span><strong>{{ presentation.stockMainlineLength }}</strong></div>
     <div class="hourly-status-cell"><span class="hourly-label">直接事件</span><strong>{{ presentation.stockTimelineLength }}</strong></div>
     <div class="hourly-status-cell"><span class="hourly-label">重点消息</span><strong>{{ presentation.keyMessagesCount }}</strong></div>

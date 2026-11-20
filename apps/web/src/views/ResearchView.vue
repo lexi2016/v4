@@ -12,7 +12,7 @@ import {
   loadSingleStockRepairSop,
   type SingleStockRepairSopResult,
 } from "../api/singleStockRepairSop";
-import { useResearchState } from "../composables/useResearchLane";
+import { useMachineCards, useResearchState, useStockClues } from "../composables/useResearchLane";
 import ResearchStatusStrip from "../components/research/ResearchStatusStrip.vue";
 import ResearchImpactList from "../components/research/ResearchImpactList.vue";
 import ResearchFeedPane from "../components/research/ResearchFeedPane.vue";
@@ -38,6 +38,48 @@ const repairSopLoading = ref(false);
 const repairSopError = ref("");
 const repairSopResult = ref<SingleStockRepairSopResult | null>(null);
 
+const actualResearchDate = computed(() => payload.value?.research_date || "");
+
+const {
+  machineCards,
+  machineCardsLoading,
+  machineCardsError,
+  machineCardItems,
+} = useMachineCards(actualResearchDate);
+
+const { stockClues, stockCluesLoading, stockCluesError } = useStockClues(actualResearchDate);
+
+const machineCardCountLabel = computed(() => {
+  if (machineCardsLoading.value) return "读取中";
+  const result = machineCards.value;
+  if (machineCardsError.value || !result || result.research_date !== actualResearchDate.value) {
+    return actualResearchDate.value ? "CANNOT_CONFIRM" : "—";
+  }
+  return result.status === "READY" || result.status === "READY_EMPTY"
+    ? result.card_count
+    : result.status;
+});
+
+const stockClueCountLabel = computed(() => {
+  if (stockCluesLoading.value) return "读取中";
+  const result = stockClues.value;
+  if (stockCluesError.value || !result || result.research_date !== actualResearchDate.value) {
+    return actualResearchDate.value ? "CANNOT_CONFIRM" : "—";
+  }
+  if (result.status !== "READY" && result.status !== "READY_EMPTY") return result.status;
+  const sourceIncomplete = result.name_map_status !== "READY"
+    || result.corpus_cache_status === "CANNOT_CONFIRM"
+    || result.skipped_card_count > 0
+    || result.truncated_report_count > 0
+    || result.cannot_confirm.length > 0;
+  if (sourceIncomplete) {
+    return result.confirmed_stock_count > 0
+      ? `${result.confirmed_stock_count} · 来源不完整` as const
+      : "来源不完整";
+  }
+  return result.confirmed_stock_count;
+});
+
 const {
   stockMainline,
   stockTimeline,
@@ -46,7 +88,7 @@ const {
   timelineRows,
   cannotItems,
   quality,
-} = useResearchState(payload, feedFilter);
+} = useResearchState(payload, feedFilter, stockClues);
 
 const wechatArticleCount = computed(() => {
   const morning = payload.value?.morning_news as Record<string, unknown> | undefined;
@@ -182,6 +224,29 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
       <span>{{ payload.reason }}</span>
     </div>
 
+    <section
+      v-if="!loading && !error && payload?.status === 'NOT_MATERIALIZED'"
+      class="hourly-desk hourly-desk-archive-only"
+      id="hourlyInvestmentDesk"
+      aria-label="公众号归档阅读区"
+    >
+      <div class="hourly-desk-grid">
+        <ResearchImpactList :rows="[]" />
+        <ResearchFeedPane
+          :feed-cards="[]"
+          :feed-filter="feedFilter"
+          :archive-date="actualResearchDate"
+          :on-filter="(f: string) => (feedFilter = f)"
+          :columns="[]"
+          :machine-cards="machineCards"
+          :machine-cards-loading="machineCardsLoading"
+          :machine-cards-error="machineCardsError"
+          :machine-card-items="machineCardItems"
+        />
+        <ResearchContextPane :timeline-rows="[]" :quality="{}" />
+      </div>
+    </section>
+
     <template v-else-if="payload">
       <section class="hourly-desk" id="hourlyInvestmentDesk" aria-label="研报决策台三栏">
         <ResearchStatusStrip
@@ -189,6 +254,8 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
           :stock-mainline-length="stockMainline.length"
           :stock-timeline-length="stockTimeline.length"
           :wechat-article-count="wechatArticleCount"
+          :machine-card-count="machineCardCountLabel"
+          :confirmed-stock-clue-count="stockClueCountLabel"
           :on-wechat="scrollToWechat"
         />
 
@@ -198,8 +265,13 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
           <ResearchFeedPane
             :feed-cards="feedCards"
             :feed-filter="feedFilter"
+            :archive-date="actualResearchDate"
             :on-filter="(f: string) => (feedFilter = f)"
             :columns="sourceColumns"
+            :machine-cards="machineCards"
+            :machine-cards-loading="machineCardsLoading"
+            :machine-cards-error="machineCardsError"
+            :machine-card-items="machineCardItems"
           />
 
           <ResearchContextPane :timeline-rows="timelineRows" :quality="quality" />
