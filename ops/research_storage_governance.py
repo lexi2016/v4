@@ -359,7 +359,7 @@ def validate_artifacts(records):
 
 
 class Claim:
-    def __init__(self, registry, key, directory, predicted, *, category='ordinary', optional_full=False, category_used=0):
+    def __init__(self, registry, key, directory, predicted, *, category='ordinary', optional_full=False, category_used=0, preserve_existing=False, required_migration=None, forbidden_legacy_key=None):
         self.registry, self.key = registry, key
         self.directory, self.predicted = str(directory), predicted
         self.category, self.optional_full, self.category_used = category, optional_full, category_used
@@ -372,6 +372,11 @@ class Claim:
         self.paused = False
         self.finalized = False
         self.recording_failed = False
+        self.preserve_existing = preserve_existing
+        self.required_migration = required_migration
+        self.forbidden_legacy_key = forbidden_legacy_key
+        self.previous_written = 0
+        self.previous_logical = 0
 
     def begin(self, *, reuse_ready=True):
         if self.owner is None or not isinstance(self.predicted,int) or self.predicted <= 0:
@@ -379,6 +384,14 @@ class Claim:
         with self.registry.transaction():
             state = self.registry.read()
             old = state['tasks'].get(self.key)
+            legacy = state['tasks'].get(self.forbidden_legacy_key)
+            if legacy and legacy['state'] in {'FAILED_RECOVERABLE', 'SPACE_BLOCKED', 'RUNNING', 'VALIDATING'}:
+                raise RetentionError('QFQ_LEGACY_RESUME_CONTROL_REQUIRED')
+            if self.required_migration is not None:
+                migration = state.get('qfq_root_migrations', {}).get(self.required_migration)
+                if (not old or not migration or migration.get('state') != 'COMMITTED'
+                        or migration.get('key') != self.key or migration.get('old_key') in state['tasks']):
+                    raise RetentionError('QFQ_LEGACY_RESUME_MIGRATION_REQUIRED')
             if old and old['state'] == 'ABANDONED':
                 raise RetentionError('TASK_USER_ABANDONED_NO_RESUME')
             if old and old['directory'] != self.directory:
@@ -393,6 +406,19 @@ class Claim:
                         raise RetentionError('OWNER_LIVE_OR_UNKNOWN_NO_STEAL')
                     if key != self.key:
                         raise RetentionError('DEAD_OWNER_RECONCILIATION_REQUIRED')
+            continuing = old is not None and old['state'] != 'READY' and self.preserve_existing
+            if continuing:
+                if (old['category'] != self.category
+                        or (old.get('owner') != self.owner and owner_state(old.get('owner')) != 'DEAD')):
+                    raise RetentionError('QFQ_RESUME_OWNER_OR_CATEGORY_CONFLICT')
+                if self.predicted > old['reserved_bytes']:
+                    raise RetentionError('QFQ_RESUME_FORECAST_EXCEEDS_ORIGINAL_RESERVATION')
+                self.predicted = old['reserved_bytes']
+                self.previous_written = old['written_bytes']
+                self.previous_logical = old.get('logical_written_bytes', self.previous_written)
+                if (type(self.previous_logical) is not int or self.previous_logical < 0
+                        or self.previous_logical > self.predicted):
+                    raise RetentionError('QFQ_RESUME_ACCOUNTING_CONFLICT')
             attempts = old.get('attempts',0)+1 if old and old['state'] != 'READY' else 1
             if attempts > self.registry.config['max_attempts']:
                 raise RetentionError('RETRY_BOUND_RECOVERY_REQUIRES_NEW_EVIDENCE')
@@ -418,11 +444,12 @@ class Claim:
             seen=set()
             measured=sum(billing_bytes(path,seen=seen) for path in roots if path.exists())
             self.category_used=max(self.category_used,measured)
-            sample = self.registry.space(state,self.key,self.predicted,category=self.category,
-                optional_full=self.optional_full,category_used=self.category_used)
-            state['tasks'][self.key] = dict(state='RUNNING',owner=self.owner,token=self.token,
-                directory=self.directory, reserved_bytes=self.predicted,written_bytes=0,
-                logical_written_bytes=0,category=self.category,attempts=attempts,
+            sample = self.registry.space(state,self.key,self.predicted-self.previous_written,category=self.category,
+                optional_full=self.optional_full,category_used=self.category_used,
+                category_remaining_bytes=self.predicted-self.previous_logical)
+            state['tasks'][self.key] = dict(old if continuing else {}, state='RUNNING',owner=self.owner,token=self.token,
+                directory=self.directory, reserved_bytes=self.predicted,written_bytes=self.previous_written,
+                logical_written_bytes=self.previous_logical,category=self.category,attempts=attempts,
                 resumed=bool(old),heartbeat=time.time(),space=sample,
                 category_baseline_bytes=self.category_used,initial_children=self.initial_children,
                 billing_paths=sorted(set((old or {}).get('billing_paths',[]))|set(self.new_billing_paths())))
@@ -488,8 +515,8 @@ class Claim:
             for logical_bytes,written_bytes,inode in self.observed.values():
                 old=unique.get(inode,(0,0))
                 unique[inode]=(max(old[0],logical_bytes),max(old[1],written_bytes))
-            logical = sum(v[0] for v in unique.values())
-            written = sum(v[1] for v in unique.values())
+            logical = self.previous_logical + sum(v[0] for v in unique.values())
+            written = self.previous_written + sum(v[1] for v in unique.values())
             if self.category == 'debug' and logical+incoming > self.registry.config['max_debug_job_bytes']:
                 self.paused=True
                 raise SpaceBlocked('DEBUG_JOB_BUDGET')
@@ -500,7 +527,7 @@ class Claim:
                 billing_paths=sorted(set(row.get('billing_paths',[]))|set(self.new_billing_paths())))
             try:
                 row['space'] = self.registry.space(state,self.key,max(incoming,self.registry.remaining(row)),
-                    category=self.category,optional_full=self.optional_full,category_used=self.category_used+logical,
+                    category=self.category,optional_full=self.optional_full,category_used=self.category_used+logical-self.previous_logical,
                     category_remaining_bytes=max(incoming,row['reserved_bytes']-logical))
             except SpaceBlocked:
                 self.paused=True
@@ -531,7 +558,7 @@ class Claim:
 
 
 @contextmanager
-def admission(policy, *, key, directory, predicted, category='ordinary', optional_full=False, category_used=0, reuse_ready=True):
+def admission(policy, *, key, directory, predicted, category='ordinary', optional_full=False, category_used=0, reuse_ready=True, preserve_existing=False, required_migration=None, forbidden_legacy_key=None):
     config = configuration(policy)
     if category not in {'ordinary','debug'}:raise RetentionError('UNREGISTERED_BILLING_CATEGORY')
     if config is None:
@@ -557,7 +584,9 @@ def admission(policy, *, key, directory, predicted, category='ordinary', optiona
         raise RetentionError('OUTPUT_OUTSIDE_VERIFIED_SHARED_POOL')
     registry = Registry(config, policy['data_root'])
     with registry.writer():
-        claim=Claim(registry,key,directory,predicted,category=category,optional_full=optional_full,category_used=category_used)
+        claim=Claim(registry,key,directory,predicted,category=category,optional_full=optional_full,category_used=category_used,
+                    preserve_existing=preserve_existing, required_migration=required_migration,
+                    forbidden_legacy_key=forbidden_legacy_key)
         cached=claim.begin(reuse_ready=reuse_ready)
         if cached is not None:
             yield None,cached
@@ -678,6 +707,7 @@ def qfq_write_seams(module, claim):
             if not lease.owns():
                 return originals['_write'](path, payload)
             path = Path(path)
+            _guard_qfq_resume_snapshot(claim, path, payload)
             claim.watch(path)
             control = str(path) in getattr(claim, 'control_paths', set()) and len(payload) <= 192*1024
             final_receipt = (getattr(claim, 'publication_committed', False)
@@ -844,6 +874,14 @@ def qfq_write_seams(module, claim):
             return call
         try:
             replace('_write', write)
+            if getattr(claim, 'qfq_resume_snapshot', None):
+                original_load = module.load_snapshot
+                def load_snapshot(path, *args, **kwargs):
+                    ref = claim.qfq_resume_snapshot
+                    if lease.owns() and (str(path) != ref['path'] or digest(safe_path(path)) != ref['sha256']):
+                        raise RetentionError('QFQ_RESUME_SNAPSHOT_CHANGED')
+                    return original_load(path, *args, **kwargs)
+                replace('load_snapshot', load_snapshot)
             replace('pq', ParquetProxy())
             replace('spool_current', guarded(module.spool_current))
             for name in ('publish_pair', 'recover_pair'):
@@ -962,7 +1000,7 @@ def read_only_status(policy):
         return dict(status='REGISTRY_UNAVAILABLE_SAFE_READS_UNAFFECTED',error=str(error)[:1024],auto_gc_enabled=False,dry_run=True)
 
 
-def qfq_invocation_key(module, data_root, target, kwargs):
+def qfq_invocation_key(module, data_root, target, kwargs, *, legacy=False):
     snapshot=module.input_path(data_root)
     files={key:dict(path=str(kwargs[key]),sha256=digest(safe_path(kwargs[key])))
            for key in ('driver_path','formula_path','contract_csv')}
@@ -974,8 +1012,16 @@ def qfq_invocation_key(module, data_root, target, kwargs):
     # and recorded in its result; offline explicit snapshots still bind SHA.
     files['snapshot']=dict(path=str(snapshot),sha256=('OWNER_REFRESHED_TARGET_BOUND_IN_RESULT' if refreshing
         else digest(snapshot) if snapshot.exists() else 'MISSING_PRE_REFRESH'))
-    # Exact source bytes, not governance code or an entire repository commit.
-    files['owner']=dict(path=module.__file__,sha256=digest(Path(module.__file__)))
+    # A release-root relocation keeps the logical owner and its bundled driver.
+    # External input paths and every consumed source hash remain bound.
+    owner_path = safe_path(module.__file__)
+    owner_role = ('ops/research_panel_qfq.py'
+                  if owner_path.name == 'research_panel_qfq.py' and owner_path.parent.name == 'ops'
+                  else str(owner_path))
+    files['owner']=dict(path=str(owner_path) if legacy else owner_role, sha256=digest(owner_path))
+    bundled_driver = owner_path.parent / 'vendor/data_layer_daily_formula_increment_update_v1.py'
+    if not legacy and Path(kwargs['driver_path']) == bundled_driver:
+        files['driver_path']['path'] = 'ops/vendor/data_layer_daily_formula_increment_update_v1.py'
     return computation_identity(inputs=files,scope=dict(target=target,market='A',input_scope='OWNER_MANAGED_REFRESH_OPERATION' if refreshing else 'OWNER_SNAPSHOT'),
         calculation=dict(owner_mode='EXISTING_QFQ_GENERATION_AUTHORITY',arguments=json.loads(json.dumps({key:value for key,value in kwargs.items() if key not in {'workers','publish','driver_path','formula_path','contract_csv'}},default=str))),
         schema='a_share_qfq_panel_v1',environment=dict(python=__import__('sys').version))
@@ -1095,10 +1141,18 @@ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointe
     import importlib
     module=importlib.import_module('ops.research_panel_qfq')
     key=qfq_invocation_key(module,data_root,target,kwargs)
+    from ops.research_qfq_task_continuity import require_migrated_resume
+    resume_plan = require_migrated_resume(module, policy, data_root, return_root, target, kwargs, key)
+    legacy_key = (qfq_invocation_key(module, data_root, target, kwargs, legacy=True)
+                  if configuration(policy) is not None else None)
     # Root is unchanged: QFQ chooses its exact generation directory and resumes
     # compatible completed stocks using its existing full identity checks.
     with admission(policy,key=key,directory=return_root,predicted=reservation['predicted_bytes'],
-            category_used=0,reuse_ready=False) as (claim,_):
+            category_used=0,reuse_ready=False,preserve_existing=True,
+            required_migration=canonical(resume_plan) if resume_plan else None,
+            forbidden_legacy_key=legacy_key) as (claim,_):
+        if claim is not None:
+            claim.qfq_resume_snapshot = resume_plan['snapshot'] if resume_plan else None
         with qfq_write_seams(module,claim), input_write_seams(claim):
             result=rebuild(data_root=data_root,return_root=return_root,pointers=pointers,target=target,**kwargs)
         if claim:
@@ -1484,6 +1538,16 @@ def input_preflight(*, tdx_root, receipt_root, target):
             claim.finish(dict(status='SOURCE_OPERATION_COMPLETED'),[receipt])
 
 
+def _guard_qfq_resume_snapshot(claim, path, payload, *, json_value=False):
+    ref = getattr(claim, 'qfq_resume_snapshot', None)
+    if ref is None or str(path) != ref['path']:
+        return
+    raw = ((json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+           if json_value else payload)
+    if hashlib.sha256(raw).hexdigest() != ref['sha256']:
+        raise RetentionError('QFQ_RESUME_SNAPSHOT_CHANGED')
+
+
 @contextmanager
 def input_write_seams(claim):
     """Catch imported-by-value helper aliases at their real existing boundaries.
@@ -1501,16 +1565,29 @@ def input_write_seams(claim):
         if lease is None:yield;return
         originals=[]
         for module in selected:
-            for name in ('_write','_save_bytes','_json'):
+            for name in ('_write','_save_bytes','_json','publish_adjustment_snapshot'):
                 if not hasattr(module,name):continue
                 original=getattr(module,name);originals.append((module,name,original))
                 def guarded(path,payload,*args,_original=original,_name=name,**kwargs):
                     if not lease.owns():return _original(path,payload,*args,**kwargs)
-                    path=Path(path);claim.watch(path)
-                    size=len(json.dumps(payload,default=str).encode())*2 if _name=='_json' else len(payload)
+                    path=Path(path)
+                    is_json = _name in {'_json', 'publish_adjustment_snapshot'}
+                    _guard_qfq_resume_snapshot(claim, path, payload, json_value=is_json)
+                    paths = [path]
+                    size=len(json.dumps(payload,default=str).encode())*2 if is_json else len(payload)
+                    if _name == 'publish_adjustment_snapshot':
+                        raw = (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+                        snapshots = path.parent / 'adjustment_snapshots'
+                        paths.extend([snapshots / (canonical(payload) + '.json'),
+                                      snapshots / (hashlib.sha256(raw).hexdigest() + '.json')])
+                        size = len(raw) * 3
+                    for owned_path in paths:
+                        claim.watch(owned_path)
                     claim.checkpoint(incoming=size)
                     result=_original(path,payload,*args,**kwargs)
-                    if lease.owns():claim.observe(path)
+                    if lease.owns():
+                        for owned_path in paths:
+                            claim.observe(owned_path)
                     return result
                 setattr(module,name,guarded)
         tdx=next(m for m in selected if m.__name__.endswith('research_panel_tdx_adjustment_inputs'))
