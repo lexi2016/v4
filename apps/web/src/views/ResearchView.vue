@@ -47,9 +47,29 @@ const stockClueCountLabel = computed(() => {
   if (stockCluesError.value || !result || result.research_date !== actualResearchDate.value) {
     return actualResearchDate.value ? "CANNOT_CONFIRM" : "—";
   }
+  const partial = result.cannot_confirm.length > 0
+    || result.name_map_status !== "READY"
+    || result.corpus_cache_status === "CANNOT_CONFIRM";
+  if (partial && result.confirmed_stock_count === 0) return "CANNOT_CONFIRM";
   return result.status === "READY" || result.status === "READY_EMPTY"
     ? result.confirmed_stock_count
     : result.status;
+});
+
+const stockClueCoveragePartial = computed(() => {
+  const result = stockClues.value;
+  return Boolean(
+    result
+    && result.research_date === actualResearchDate.value
+    && !stockCluesLoading.value
+    && !stockCluesError.value
+    && result.confirmed_stock_count > 0
+    && (
+      result.cannot_confirm.length > 0
+      || result.name_map_status !== "READY"
+      || result.corpus_cache_status === "CANNOT_CONFIRM"
+    ),
+  );
 });
 
 const {
@@ -196,6 +216,7 @@ onMounted(() => {
           :confirmed-stock-clue-count="stockClueCountLabel"
           :on-wechat="scrollToWechat"
         />
+        <p v-if="stockClueCoveragePartial" class="research-message" role="status">研报线索部分覆盖</p>
 
         <section class="hourly-desk-grid">
           <ResearchImpactList :rows="stockMainline" :source-entities="sourceEntities" :title-subjects="titleSubjects" />

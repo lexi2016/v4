@@ -722,6 +722,44 @@ def test_corpus_cache_reports_built_then_hit(tmp_path: Path) -> None:
     assert first["corpus_report_count"] == second["corpus_report_count"] == 1
 
 
+def test_corpus_cache_invalidates_when_name_table_pointer_changes_at_same_mtime(
+    tmp_path: Path,
+) -> None:
+    data_root = _data_root(tmp_path)
+    rows_a = [
+        {"trade_date": "20261016", "ts_code": "600001.SH", "name": "测试股份", "tdx_industry_code": "T0101"},
+    ]
+    rows_b = [
+        {"trade_date": "20261016", "ts_code": "600002.SH", "name": "测试股份", "tdx_industry_code": "T0101"},
+    ]
+    name_table_a = _write_name_table(tmp_path, data_root, rows=rows_a)
+    name_table_b = tmp_path / "names-b.parquet"
+    pd.DataFrame(rows_b).to_parquet(name_table_b, index=False)
+    pointer = data_root.parent / NAME_MAP_RELATIVE
+    shared_mtime_ns = 1_700_000_000_000_000_000
+    os.utime(name_table_a, ns=(shared_mtime_ns, shared_mtime_ns))
+    os.utime(name_table_b, ns=(shared_mtime_ns, shared_mtime_ns))
+    assert name_table_a.stat().st_mtime_ns == name_table_b.stat().st_mtime_ns
+
+    for index in range(3):
+        _write_card(
+            data_root,
+            seed=f"name-pointer-{index}",
+            batch=f"name-pointer-{index}",
+            report_text="测试股份公司发布公告。",
+        )
+
+    first = read_stock_clues(data_root, "20261016")
+    assert first["corpus_cache_status"] == "BUILT"
+    assert [item["ts_code"] for item in first["items"]] == ["600001.SH"]
+
+    pointer.write_text(f"{name_table_b}\n", encoding="utf-8")
+    second = read_stock_clues(data_root, "20261016")
+
+    assert second["corpus_cache_status"] == "BUILT"
+    assert [item["ts_code"] for item in second["items"]] == ["600002.SH"]
+
+
 def test_corpus_cache_does_not_reuse_stats_after_a_report_is_deleted(tmp_path: Path) -> None:
     data_root = _data_root(tmp_path)
     _write_name_table(

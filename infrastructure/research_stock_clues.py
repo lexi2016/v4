@@ -95,8 +95,8 @@ Link corpus cache
 -----------------
 The corpus statistics are cached in process under a lock with the key
 ``(research_root, report_count, max(report.md mtime_ns), corpus_fingerprint,
-name_table mtime_ns)``.  The fingerprint is the SHA-256 of the sorted
-``relative_path:mtime_ns:size`` records of every deduplicated corpus report,
+name_table path, name_table mtime_ns)``.  The fingerprint is the SHA-256 of the
+sorted ``relative_path:mtime_ns:size`` records of every deduplicated corpus report,
 so deleting a non-newest report or restoring a report with a preserved mtime
 invalidates the cache.  Cached report bodies are reused by later requests, so
 a warm request does not reread the corpus.  Per-report match decisions are
@@ -205,10 +205,17 @@ class StockCluesError(ValueError):
 _name_map_lock = threading.Lock()
 _name_map_cache: dict[tuple[str, int], dict[str, Any]] = {}
 _link_corpus_lock = threading.Lock()
-_link_corpus_cache: dict[tuple[str, str, str, int, int, str, int], dict[str, Any]] = {}
+_link_corpus_cache: dict[
+    tuple[str, str, str, int, int, str, str, int], dict[str, Any]
+] = {}
 _card_match_lock = threading.Lock()
 _card_match_cache: dict[
-    tuple[str, int, tuple[str, str, str, int, int, str, int] | None], tuple[Any, ...]
+    tuple[
+        str,
+        int,
+        tuple[str, str, str, int, int, str, str, int] | None,
+    ],
+    tuple[Any, ...],
 ] = {}
 
 
@@ -593,6 +600,7 @@ def _load_link_corpus(
         len(sources),
         max_mtime_ns,
         fingerprint,
+        str(name_map.get("path") or ""),
         int(name_map.get("mtime_ns") or 0),
     )
     with _link_corpus_lock:

@@ -378,6 +378,52 @@ describe("ResearchView (research lane)", () => {
     await waitFor(() => expect(statusCellValue(statusStrip, "研报线索")).toBe("1"));
   });
 
+  it("does not show an uncertain code-only empty result as a confirmed zero", async () => {
+    const clues = {
+      ...stockClues("20260804"),
+      corpus_report_count: 0,
+      corpus_fingerprint: "",
+      corpus_cache_status: "CANNOT_CONFIRM",
+      cannot_confirm: ["LINK_CORPUS_EMPTY"],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => response(
+      url.includes("/api/v4/research/machine-cards")
+        ? machineCardsForUrl(url)
+        : url.includes("/api/v4/research/stock-clues")
+          ? clues
+          : url.includes("/api/v3/research/wechat/materials") ? wechatListing() : lane("20260804"),
+    )));
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    await waitFor(() => expect(statusCellValue(statusStrip, "研报线索")).toBe("CANNOT_CONFIRM"));
+    expect(statusCellValue(statusStrip, "研报线索")).not.toBe("0");
+  });
+
+  it("retains confirmed clue counts while marking partial coverage", async () => {
+    const clues = {
+      ...stockClues("20260804", [{ ...stockClue(), link_probability: null }]),
+      corpus_report_count: 0,
+      corpus_fingerprint: "",
+      corpus_cache_status: "CANNOT_CONFIRM",
+      cannot_confirm: ["LINK_CORPUS_EMPTY"],
+    };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => response(
+      url.includes("/api/v4/research/machine-cards")
+        ? machineCardsForUrl(url)
+        : url.includes("/api/v4/research/stock-clues")
+          ? clues
+          : url.includes("/api/v3/research/wechat/materials") ? wechatListing() : lane("20260804"),
+    )));
+
+    render(ResearchView, { props: { archiveDate: "20260804" } });
+
+    const statusStrip = await screen.findByRole("region", { name: "研报状态条" });
+    await waitFor(() => expect(statusCellValue(statusStrip, "研报线索")).toBe("1"));
+    expect(screen.getByText("研报线索部分覆盖")).toBeTruthy();
+  });
+
   it("binds auxiliary V4 reads and the displayed source date to the resolved latest lane date", async () => {
     const machineRequests: string[] = [];
     const clueRequests: string[] = [];
