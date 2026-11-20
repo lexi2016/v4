@@ -171,7 +171,8 @@ def test_missing_observation_coverage_keeps_valid_counts_unknown(tmp_path):
     assert result['latest'] is None
     assert result['status'] == 'UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT'
     assert result['coverage'] == {
-        'schema': 'V4_WORKBENCH_OBSERVATION_COVERAGE_V1', 'status': 'UNKNOWN_MISSING',
+        'schema': 'V4_WORKBENCH_OBSERVATION_COVERAGE_V1', 'scope_kind': 'SOURCE_PRODUCT',
+        'status': 'UNKNOWN_MISSING',
         'source_date': SOURCE_DATE, 'observation_date': OBSERVATION_DATE,
         'generation': GENERATION, 'input_sha256': INPUT,
         'numeric_manifest': {'path': '/fixture/manifest.json', 'sha256': 'c' * 64},

@@ -31,7 +31,7 @@ def _observation_coverage(source_date, observation_date, *, generation=None, inp
     validity remains evaluated by the existing observation reader at display
     time, where source age and ranking eligibility are known.
     """
-    return dict(schema='V4_WORKBENCH_OBSERVATION_COVERAGE_V1', status=status,
+    return dict(schema='V4_WORKBENCH_OBSERVATION_COVERAGE_V1', scope_kind='SOURCE_PRODUCT', status=status,
                 source_date=source_date, observation_date=observation_date,
                 generation=generation, input_sha256=input_sha256,
                 numeric_manifest=numeric_manifest, expected_count=expected_count,
