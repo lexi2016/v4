@@ -47,6 +47,8 @@ from infrastructure.research_peripheral_store import (
     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
     ResearchPeripheralStore,
 )
+from infrastructure.pdf_research_cards import read_machine_cards
+from infrastructure.research_stock_clues import read_stock_clues
 from infrastructure.research_store import ResearchArchiveStore
 from infrastructure.shared_morning_news_reader import SharedMorningNewsReader
 
@@ -1071,6 +1073,31 @@ def create_research_lane_router(
             result["update_diagnostic"] = source.update_diagnostic(
                 resolved, artifact_verified=result.get("status") in {"READY", "LIVE_HOURLY"})
         return result
+
+    @router.get("/machine-cards")
+    def research_machine_cards(
+        research_date: str = Query(...),
+        response: Response = None,
+    ) -> dict:
+        if response is not None:
+            response.headers["Cache-Control"] = "no-store"
+        selected = resolve_requested_date(research_date, None)
+        if selected is None:  # Query(...) already requires the value; keep the contract explicit.
+            raise HTTPException(status_code=422, detail="research_date is required")
+        return read_machine_cards(data_root, selected)
+
+    @router.get("/stock-clues")
+    def research_stock_clues(
+        research_date: str = Query(...),
+        limit: int = Query(default=50, ge=1, le=200),
+        response: Response = None,
+    ) -> dict:
+        if response is not None:
+            response.headers["Cache-Control"] = "no-store"
+        selected = resolve_requested_date(research_date, None)
+        if selected is None:  # Query(...) already requires the value; keep the contract explicit.
+            raise HTTPException(status_code=422, detail="research_date is required")
+        return read_stock_clues(data_root, selected, limit=limit)
 
     @router.get("/pdf-relations")
     def research_pdf_relations(

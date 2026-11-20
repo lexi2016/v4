@@ -6,6 +6,8 @@ import { researchStatusPresentation } from "./useResearchLane";
 
 const counts = {
   wechatArticleCount: 3,
+  machineCardCount: 2,
+  confirmedStockClueCount: 4,
   stockMainlineLength: 2,
   stockTimelineLength: 4,
 };
@@ -69,7 +71,9 @@ describe("research status presentation", () => {
     });
     const display = researchStatusPresentation(payload, counts);
     expect(display.zsxqTopicCount).toBe(5);
-    expect(display.ocr).toBe("部分完成 · 2/1");
+    expect(display.ocr).toBe("部分完成 · 完成2 · 失败1");
+    expect(display.machineCardCount).toBe(2);
+    expect(display.confirmedStockClueCount).toBe(4);
 
     payload.zsxq_hourly = { topic_count: 0, zsxq_topic_count_0800_0900: 9 };
     expect(researchStatusPresentation(payload, counts).zsxqTopicCount).toBe(0);
