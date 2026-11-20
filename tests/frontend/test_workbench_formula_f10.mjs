@@ -1,6 +1,6 @@
 import {strict as assert} from 'node:assert';
 import {test} from 'node:test';
-import {createFormulaF10Cards, formulaF10CardContent, isFormulaF10Completion, validateFormulaF10} from '../../apps/web/public/research-panel/workbench-host/dot/shell/formula-f10.mjs';
+import {createFormulaF10Cards, formulaF10CardContent, formulaCompanyResearchCardContent, isFormulaF10Completion, validateFormulaCompanyResearch, validateFormulaF10} from '../../apps/web/public/research-panel/workbench-host/dot/shell/formula-f10.mjs';
 
 const day = {source_date:'2026-11-13',generation:'a'.repeat(64),input_sha256:'b'.repeat(64)};
 const ref = {path:'/f10-snapshot',sha256:'c'.repeat(64)};
@@ -10,6 +10,30 @@ const response = (symbol, status, fields={}) => ({status,symbol,data_date:'20261
     finance_updated_date:'20261026', industry:{tdx_finance_industry_code:9},concept_status:'OBSERVED',concepts:[{name:'测试概念'}],
     financials:{report_period:'2026-09-30',revenue_text:'2.1亿',net_profit_text:'1.1亿',holder_count:1234},
     source_detail:{main_business:'仪器研发。',shareholder_record_date:'2026-09-30'},...fields}});
+
+const researchDay = {...day,source_date:'2026-11-19',observation_date:'2026-11-20',
+  generation:'f'.repeat(64),input_sha256:'e'.repeat(64),numeric_manifest:{path:'/numeric/20261119',sha256:'1'.repeat(64)},
+  formula_groups:{artifact:{sha256:'2'.repeat(64)}},rows:Array.from({length:29},()=>({}))};
+function companyResearch(symbol,business) {
+  const roster=researchDay.formula_groups.artifact.sha256, owner={path:`/owner/${symbol}`,sha256:'3'.repeat(64)};
+  const scope={schema:'V4_FORMULA_GROUP_SCOPED_IMPORT_V1',source_date:'20261119',observation_date:'20261120',
+    source_generation:researchDay.generation,input_sha256:researchDay.input_sha256,numeric_manifest:researchDay.numeric_manifest,
+    roster_sha256:roster,candidate_count:29};
+  const membership={symbol,source_date:'20261119',observation_date:'20261120',roster_sha256:roster,owner_row_ref:owner};
+  return {schema:'V4_RECEIVED_COMPANY_VIEW_V1',symbol,source_date:researchDay.source_date,observation_date:researchDay.observation_date,
+    generation:researchDay.generation,input_sha256:researchDay.input_sha256,numeric_manifest:researchDay.numeric_manifest,
+    company_scope_status:'FORMULA_ROSTER_EXACT_MATCH',formula_roster_sha256:roster,RESEARCH_ONLY:true,
+    production_allowed:false,buy_gate_updated:false,orders_sent:false,
+    received_materials:{symbol,data_date:'20261119',
+      source_generation:researchDay.generation,input_sha256:researchDay.input_sha256,numeric_manifest:researchDay.numeric_manifest,
+      RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false,
+      formula_group_scope:scope,formula_group_membership:membership,
+      business_reported:{value:business,evidence_status:'RECEIVED_RESEARCH_NOT_FULLY_VERIFIED'},
+      received_fundamentals:{status:'PARTIAL',evidence_status:'RECEIVED_RESEARCH_NOT_FULLY_VERIFIED',
+        business,latest_financial_period:'2026Q3_YTD'},
+      financials_reported:{latest_report_period:'2026Q3_YTD'},shareholders_reported:{},
+      received_batch_summary:{package_id:'V4_A_FORMULA_D20261119_O20261120_CHAT_RESEARCH_V2'},source_refs:{fundamentals:owner}}};
+}
 
 test('F10 cards keep the source accounting labels and distinguish exact text from source gaps', () => {
   const value = response('603658.SH','OBSERVED');
@@ -24,6 +48,28 @@ test('F10 cards keep the source accounting labels and distinguish exact text fro
   assert.throws(() => validateFormulaF10({...value,data_date:'20261112'},day,value.symbol), /IDENTITY_CONFLICT/);
   assert.throws(() => validateFormulaF10({...value,input_sha256:'e'.repeat(64)},day,value.symbol), /IDENTITY_CONFLICT/);
   assert.ok(formulaF10CardContent({concepts:[{name:'概念文字',desc:'不转成主营'}]}).company[0].includes('未提供'));
+});
+
+test('the same-date exact 29-stock company return is visible with honest PARTIAL finance status', () => {
+  const cases=[
+    ['001328.SZ','牙膏、牙刷和口腔护理产品。'],
+    ['688728.SH','CIS及显示驱动芯片研发和制造。'],
+    ['000410.SZ','机床及高端装备制造。'],
+  ];
+  for (const [symbol,business] of cases) {
+    const company=validateFormulaCompanyResearch(companyResearch(symbol,business),researchDay,symbol);
+    const content=formulaCompanyResearchCardContent(company,'NOT_MATERIALIZED');
+    assert.ok(content.company.some(line=>line===`研究回传主营：${business}`));
+    assert.ok(content.company.some(line=>line.includes('PARTIAL')));
+    assert.ok(content.company.some(line=>line.includes('V4_A_FORMULA_D20261119_O20261120_CHAT_RESEARCH_V2')));
+    assert.ok(content.company.some(line=>line.includes('FORMULA_ROSTER_EXACT_MATCH · 29 只研究范围')));
+    assert.ok(content.financial.some(line=>line.includes('未提供可确认数值')));
+    assert.ok(content.financial.some(line=>line.includes('待核')));
+  }
+  const value=companyResearch('000410.SZ','机床及高端装备制造。');
+  assert.throws(()=>validateFormulaCompanyResearch({...value,generation:'4'.repeat(64)},researchDay,'000410.SZ'),/IDENTITY_CONFLICT/);
+  assert.throws(()=>validateFormulaCompanyResearch({...value,formula_roster_sha256:'5'.repeat(64)},researchDay,'000410.SZ'),/IDENTITY_CONFLICT/);
+  assert.throws(()=>validateFormulaCompanyResearch({...value,received_materials:{...value.received_materials,source_generation:'6'.repeat(64)}},researchDay,'000410.SZ'),/IDENTITY_CONFLICT/);
 });
 
 function testDocument() {
@@ -59,6 +105,25 @@ test('a late previous-symbol F10 response cannot restore content that was cleare
   cards.configure(false);
   assert.equal(summary.hidden,true);
   assert.deepEqual(summary.children,[]);
+});
+
+test('bound company research fills the card while F10 loads, then observed F10 takes precedence', async () => {
+  const document=testDocument(),requests=[];
+  const cards=createFormulaF10Cards(document,(url,signal)=>new Promise(resolve=>requests.push({url,signal,resolve})));
+  cards.configure(true);
+  const summary=document.getElementById('formulaCompanySummary');
+  const symbol='000410.SZ',business='机床及高端装备制造。';
+  const pendingF10=cards.show(researchDay,symbol,'/f10/000410.SZ');
+  cards.showResearch(researchDay,symbol,companyResearch(symbol,business));
+  assert.ok(summary.children.some(item=>item.textContent===`研究回传主营：${business}`));
+  assert.ok(summary.children.some(item=>item.textContent.includes('PARTIAL')));
+  assert.ok(!summary.children.some(item=>item.textContent.includes('F10')) || summary.children.some(item=>item.textContent.includes('F10')));
+  requests[0].resolve({...response(symbol,'OBSERVED',{source_detail:{main_business:'F10 实际描述。'}}),
+    data_date:'20261119',source_generation:researchDay.generation,input_sha256:researchDay.input_sha256,
+    numeric_manifest:researchDay.numeric_manifest});
+  await pendingF10;
+  assert.ok(summary.children.some(item=>item.textContent==='主营业务：F10 实际描述。'));
+  assert.ok(!summary.children.some(item=>item.textContent===`研究回传主营：${business}`));
 });
 
 

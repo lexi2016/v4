@@ -27,6 +27,75 @@ export function validateFormulaF10(value, day, symbol) {
   return value;
 }
 
+export function validateFormulaCompanyResearch(value, day, symbol) {
+  const received = value?.received_materials;
+  const scope = received?.formula_group_scope;
+  const membership = received?.formula_group_membership;
+  const sameRef = (left, right) => boundRef(left) && boundRef(right) &&
+    left.path === right.path && left.sha256 === right.sha256;
+  const sourceDate = day.source_date.replaceAll('-', '');
+  const observationDate = day.observation_date.replaceAll('-', '');
+  const rosterSha = day.formula_groups?.artifact?.sha256;
+  const expectedCount = Array.isArray(day.rows) ? day.rows.length : day.scope_count;
+  if (value?.schema !== 'V4_RECEIVED_COMPANY_VIEW_V1' || value.symbol !== symbol ||
+      value.source_date !== day.source_date || value.observation_date !== day.observation_date ||
+      value.generation !== day.generation || value.input_sha256 !== day.input_sha256 ||
+      !sameRef(value.numeric_manifest, day.numeric_manifest) ||
+      value.company_scope_status !== 'FORMULA_ROSTER_EXACT_MATCH' || !digest(rosterSha) ||
+      value.formula_roster_sha256 !== rosterSha ||
+      value.RESEARCH_ONLY !== true || safetyFlags.some(key => value[key] !== false) ||
+      received?.symbol !== symbol || received.data_date !== sourceDate ||
+      received.source_generation !== day.generation || received.input_sha256 !== day.input_sha256 ||
+      !sameRef(received.numeric_manifest, day.numeric_manifest) ||
+      received.RESEARCH_ONLY !== true || safetyFlags.some(key => received[key] !== false) ||
+      scope?.schema !== 'V4_FORMULA_GROUP_SCOPED_IMPORT_V1' || scope.source_date !== sourceDate ||
+      scope.observation_date !== observationDate || scope.source_generation !== day.generation ||
+      scope.input_sha256 !== day.input_sha256 || !sameRef(scope.numeric_manifest, day.numeric_manifest) ||
+      scope.roster_sha256 !== value.formula_roster_sha256 || !Number.isInteger(expectedCount) ||
+      scope.candidate_count !== expectedCount ||
+      membership?.symbol !== symbol || membership.source_date !== sourceDate ||
+      membership.observation_date !== observationDate ||
+      membership.roster_sha256 !== value.formula_roster_sha256 || !boundRef(membership.owner_row_ref)) {
+    throw Error('FORMULA_COMPANY_RESEARCH_IDENTITY_CONFLICT');
+  }
+  return value;
+}
+
+export function formulaCompanyResearchCardContent(company, f10Status) {
+  const received = company.received_materials;
+  const fundamentals = received.received_fundamentals ?? {};
+  const business = received.business_reported ?? {};
+  const value = text(business.value);
+  const packageId = text(received.received_batch_summary?.package_id) ?? '批次身份待核';
+  const scopeLabel = company.company_scope_status;
+  const f10Label = f10Status === 'NOT_MATERIALIZED' ? '本日 F10 尚未物化' :
+    f10Status === 'CANNOT_CONFIRM_SOURCE_GAP' ? '本日 F10 已回执，本股快照缺失' :
+      f10Status === 'ERROR' ? '本日 F10 读取待核' : '本日 F10 正在读取';
+  const reportPeriod = text(fundamentals.latest_financial_period) ??
+    text(received.financials_reported?.latest_report_period);
+  const hasReportedValues = fields => Object.entries(fields ?? {}).some(([key, item]) =>
+    key !== 'latest_report_period' && item !== null && item !== undefined &&
+    typeof item !== 'object' && text(String(item)) !== null);
+  const hasFinancialValues = hasReportedValues(received.financials_reported);
+  const hasShareholderValues = hasReportedValues(received.shareholders_reported);
+  return {
+    company: [
+      `研究回传主营：${value ?? '本股未提供可展示主营描述'}`,
+      `研究资料状态：${text(fundamentals.status) ?? '待核'} · ${text(fundamentals.evidence_status) ?? '证据状态待核'}`,
+      `来源批次：${packageId} · D ${company.source_date} · O ${company.observation_date}`,
+      `名单绑定：${scopeLabel} · ${received.formula_group_scope.candidate_count} 只研究范围`,
+      `${f10Label} · 历史 PIT 未认证。`,
+    ],
+    financial: [
+      `研究回传财务状态：${text(fundamentals.status) ?? '待核'}${reportPeriod ? ` · 报告期 ${reportPeriod}` : ''}`,
+      `财务字段：${hasFinancialValues ? '有回传值，逐字段状态见进一步研究回传' : '未提供可确认数值，待核'}`,
+      `股东字段：${hasShareholderValues ? '有回传值，逐字段状态见进一步研究回传' : '未提供可确认数值，待核'}`,
+      `${f10Label}。`,
+      `资料来源 ${Object.keys(received.source_refs ?? {}).length} 类文件绑定；仅供研究。`,
+    ],
+  };
+}
+
 export function formulaF10CardContent(f10) {
   const captured = Date.parse(f10.captured_at);
   const updated = iso(f10.source_updated_date);
@@ -59,7 +128,8 @@ export function formulaF10CardContent(f10) {
 
 export function createFormulaF10Cards(document, load) {
   const legacy = ['companySummary','companyMetrics'].map(id => document.getElementById(id));
-  let slots, received, receivedBody, inFlight, verified, notice;
+  let slots, received, receivedBody, inFlight, verified, notice, currentDay, currentSymbol;
+  let f10Value, researchValue, f10Status;
   let enabled = false;
 
   function cancel() {
@@ -67,7 +137,25 @@ export function createFormulaF10Cards(document, load) {
     inFlight = null;
     verified = null;
     notice = null;
+    f10Value = null;
+    researchValue = null;
+    f10Status = null;
     slots?.forEach(slot => {slot.replaceChildren(); slot.removeAttribute('data-company-symbol');});
+  }
+
+  function render(symbol) {
+    if (f10Value?.status === 'OBSERVED') {
+      const content = formulaF10CardContent(f10Value.f10);
+      paint(symbol, content.company, content.financial);
+    } else if (researchValue) {
+      const content = formulaCompanyResearchCardContent(researchValue, f10Status);
+      paint(symbol, content.company, content.financial);
+    } else if (f10Status) {
+      const gap = f10Status === 'CANNOT_CONFIRM_SOURCE_GAP' ? '当日 F10 有采集回执，本股缺少可用快照' :
+        f10Status === 'NOT_MATERIALIZED' ? '当日 F10 尚未物化' :
+          f10Status === 'ERROR' ? 'F10 来源读取或校验失败' : '正在读取 F10';
+      paint(symbol, [`${symbol} · ${gap} · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
+    }
   }
 
   function configure(nextEnabled) {
@@ -117,6 +205,9 @@ export function createFormulaF10Cards(document, load) {
     const retain = refresh && verified === identity;
     if (retain) inFlight?.abort();
     else cancel();
+    currentDay = day;
+    currentSymbol = symbol;
+    f10Status = 'LOADING';
     const controller = new AbortController();
     inFlight = controller;
     if (!retain) paint(symbol, [`${symbol} · 正在读取 F10 公司资料…`], [`${symbol} · 正在读取 F10 财务与股东资料…`]);
@@ -125,12 +216,12 @@ export function createFormulaF10Cards(document, load) {
       if (inFlight !== controller) return;
       const accepted = validateFormulaF10(value, day, symbol);
       if (accepted.status === 'OBSERVED') {
-        const content = formulaF10CardContent(accepted.f10);
-        paint(symbol, content.company, content.financial);
+        f10Value = accepted;
       } else {
-        const gap = accepted.status === 'CANNOT_CONFIRM_SOURCE_GAP' ? '当日 F10 有采集回执，本股缺少可用快照' : '当日 F10 尚未物化';
-        paint(symbol, [`${symbol} · ${gap} · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
+        f10Value = accepted;
       }
+      f10Status = accepted.status;
+      render(symbol);
       verified = identity;
       notice = null;
     } catch {
@@ -143,10 +234,24 @@ export function createFormulaF10Cards(document, load) {
           slots[0].append(notice);
         }
       } else {
-        paint(symbol, [`${symbol} · F10 来源读取或校验失败 · 待核`], [`${symbol} · 本日 F10 财务与股东资料待核`]);
+        f10Status = 'ERROR';
+        render(symbol);
       }
     }
   }
 
-  return {configure, cancel, show, refresh:(day,symbol,url)=>show(day,symbol,url,true)};
+  function showResearch(day, symbol, value) {
+    if (currentSymbol !== symbol || !currentDay ||
+        currentDay.source_date !== day.source_date || currentDay.observation_date !== day.observation_date ||
+        currentDay.generation !== day.generation || currentDay.input_sha256 !== day.input_sha256) return;
+    try {
+      researchValue = validateFormulaCompanyResearch(value, day, symbol);
+      render(symbol);
+    } catch {
+      researchValue = null;
+      render(symbol);
+    }
+  }
+
+  return {configure, cancel, show, showResearch, refresh:(day,symbol,url)=>show(day,symbol,url,true)};
 }
