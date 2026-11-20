@@ -4,6 +4,13 @@ const isoDate = date => `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6)}`
 const originalFormula = 'd35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac';
 const originalEngine = 'ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c';
 const markColors = {COLORRED:'#ff7c82',COLORGREEN:'#6bd3a0',COLORYELLOW:'#fbcd2d',COLORFFFFFF:'#edf4fc',COLORFF00FF:'#e3a2ff'};
+const originalLineColors = {'白线':'#FFFFFF','黄线':'#FBCD2D'};
+const decimalString = value => {
+  if (typeof value!=='string' || value.length>64 || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return false;
+  const number=Number(value);
+  const mantissa=value.trim().split(/[eE]/,1)[0];
+  return Number.isFinite(number) && !(number===0&&/[1-9]/.test(mantissa));
+};
 
 export function verifiedOriginalMarks(chart) {
   const marks = chart.original_marks;
@@ -14,6 +21,22 @@ export function verifiedOriginalMarks(chart) {
       ['numeric_manifest','selector','snapshot'].some(key => marks[key]?.sha256 !== chart[key]?.sha256 || marks[key]?.path !== chart[key]?.path) ||
       !Number.isSafeInteger(marks.unresolved_conditions) || marks.unresolved_conditions < 0 || marks.unresolved_conditions > chart.rows.length*22 ||
       !Array.isArray(marks.marks) || marks.marks.length > chart.rows.length*22) return null;
+  if (marks.lines !== undefined) {
+    const names=Object.keys(originalLineColors);
+    if (!marks.lines || typeof marks.lines!=='object' || Array.isArray(marks.lines) ||
+        Object.keys(marks.lines).sort().join('/')!==names.slice().sort().join('/')) return null;
+    for (const name of names) {
+      const points=marks.lines[name];
+      if (!Array.isArray(points) || points.length!==chart.rows.length) return null;
+      for (let index=0;index<points.length;index++) {
+        const point=points[index];
+        if (!point || typeof point!=='object' || Array.isArray(point) ||
+            Object.keys(point).sort().join('/')!=='trade_date/y' ||
+            point.trade_date!==chart.rows[index].trade_date ||
+            (point.y!==null&&!decimalString(point.y))) return null;
+      }
+    }
+  }
   const dates = new Set(chart.rows.map(row=>row.trade_date));
   const seen = new Set();
   for (const mark of marks.marks) {
@@ -73,6 +96,33 @@ function drawOriginalMarks(ctx, markers, left, right, top, bottom) {
 
 }
 
+function drawOriginalLines(ctx, lines, start, count, left, right, top, bottom, step, y) {
+  if (!lines) return;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(left,top,right-left,bottom-top); ctx.clip();
+  ctx.lineWidth=2; ctx.lineJoin='round'; ctx.lineCap='round';
+  for (const [name,color] of Object.entries(originalLineColors)) {
+    ctx.strokeStyle=color;
+    const points=lines[name].slice(start,start+count);
+    let drawing=false;
+    ctx.beginPath();
+    points.forEach((point,index)=>{
+      if (point.y===null) {
+        if (drawing) ctx.stroke();
+        ctx.beginPath();
+        drawing=false;
+        return;
+      }
+      const x=left+(index+0.5)*step;
+      const value=y(Number(point.y));
+      if (drawing) ctx.lineTo(x,value);
+      else {ctx.moveTo(x,value);drawing=true;}
+    });
+    if (drawing) ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function validateDailyChart(chart, day, symbol) {
   const rows = chart?.rows;
   const sourceDate = day.source_date.replaceAll('-', '');
@@ -109,9 +159,23 @@ export function renderDailyChart(host, chart) {
     markDates.get(marker.trade_date).push(marker);
   }
   const markLegend = make('small', original ? '原 V4 主图 · D35C' : '原主图标记待核');
+  const lineLegend = make('small', '');
+  lineLegend.className = 'chart-line-legend';
+  if (original?.lines) {
+    lineLegend.style.cssText='display:inline-flex;gap:10px;margin-left:8px';
+    for (const [name,color] of Object.entries(originalLineColors)) {
+      const item=make('span','');
+      item.style.cssText='display:inline-flex;align-items:center;gap:3px';
+      const swatch=make('span','━━');
+      swatch.style.cssText=`color:${color}`;
+      const label=make('span',name);
+      item.append(swatch,label);
+      lineLegend.append(item);
+    }
+  }
   const dateSelect = make('select', '');
   dateSelect.setAttribute('aria-label', '定位日K交易日');
-  toolbar.append(dateSelect, markLegend);
+  toolbar.append(dateSelect, markLegend, lineLegend);
   for (const row of chart.rows) dateSelect.add(new Option(isoDate(row.trade_date), row.trade_date));
   const canvas = make('canvas', '前复权日K和成交量');
   canvas.style.cssText = 'display:block;width:100%;height:340px';
@@ -140,11 +204,14 @@ export function renderDailyChart(host, chart) {
     const ctx = canvas.getContext('2d');
     ctx.scale(ratio, ratio);
     ctx.font = '11px system-ui';
-    const visible = chart.rows.slice(Math.max(0, end-windowSize), end);
+    const start = Math.max(0, end-windowSize);
+    const visible = chart.rows.slice(start, end);
     const anchors = visible.flatMap((row,index) => (markDates.get(row.trade_date) ?? []).map(mark => ({mark,index,selected:row===chart.rows[selected]})));
     const prices = anchors.map(entry=>Number(entry.mark.y));
-    const low = Math.min(...visible.map(row => row.low),...prices);
-    const high = Math.max(...visible.map(row => row.high),...prices);
+    const linePrices = original?.lines ? Object.values(original.lines).flatMap(points => points.slice(start,end)
+      .filter(point=>point.y!==null).map(point=>Number(point.y))) : [];
+    const low = Math.min(...visible.map(row => row.low),...prices,...linePrices);
+    const high = Math.max(...visible.map(row => row.high),...prices,...linePrices);
     const delta = high !== low ? (high-low)*0.04 : Math.max(Math.abs(high)*0.04, 0.01);
     const volumeTop = height*0.74, bottom = height-24;
     const maxVolume = Math.max(1, ...visible.map(row => row.volume));
@@ -178,13 +245,18 @@ export function renderDailyChart(host, chart) {
         ctx.textAlign = 'left';
       }
     });
+    drawOriginalLines(ctx, original?.lines, start, visible.length, xOffset, plotWidth+xOffset,
+      3, volumeTop-9, step, y);
     drawOriginalMarks(ctx, anchors.map(entry=>({...entry,x:xOffset+(entry.index+0.5)*step,y:y(Number(entry.mark.y))})),
       xOffset, plotWidth+xOffset, 3, volumeTop-9);
     const bar = chart.rows[selected];
     const marked = markDates.get(bar.trade_date) ?? [];
     const unknown = original?.unresolved_conditions > 0 ? '；窗口有待核条件' : '';
-    marksReadout.textContent = original ? '本根原主图标记 · '+
+    const markerText = original ? '本根原主图标记 · '+
       (marked.length ? marked.map(mark=>`${markLabel(mark)} @${mark.y}`).join(' / ') : '无已确认标记')+unknown : '';
+    const lineText = original?.lines ? '原主图线 · '+Object.keys(originalLineColors).map(name=>
+      `${name} ${original.lines[name][selected].y ?? '缺值'}`).join(' / ') : '';
+    marksReadout.textContent = [markerText,lineText].filter(Boolean).join('；');
     dateSelect.value = bar.trade_date;
     readout.textContent = `${chart.symbol} · ${isoDate(bar.trade_date)} · 开 ${bar.open.toFixed(2)} / 高 ${bar.high.toFixed(2)} / 低 ${bar.low.toFixed(2)} / 收 ${bar.close.toFixed(2)} · 成交量 ${bar.volume.toLocaleString('zh-CN',{maximumFractionDigits:3})}`;
   }

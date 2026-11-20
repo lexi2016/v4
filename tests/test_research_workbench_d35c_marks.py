@@ -38,6 +38,23 @@ def test_exact_d35c_payload_and_source_window(sample):
         chart_original_marks(bundle, reference, chart, ['603658.SH', '000860.SZ'])
 
 
+def test_original_line_sidecar_requires_full_ordered_window_and_preserves_gaps(sample):
+    chart, bundle, reference = sample
+    dates = [row['trade_date'] for row in chart['rows']]
+    item = bundle['items']['603658.SH']
+    item['lines'] = {
+        '白线': [dict(trade_date=dates[0], y='13.58671489947057447652402281')],
+        '黄线': [dict(trade_date=dates[0], y=None)],
+    }
+    result = chart_original_marks(bundle, reference, chart, ['603658.SH'])
+    assert result['lines']['白线'][0]['y'] == '13.58671489947057447652402281'
+    assert result['lines']['黄线'][0]['y'] is None
+
+    item['lines']['白线'][0]['trade_date'] = '20261112'
+    with pytest.raises(ValueError, match='LINE_DATE_CONFLICT'):
+        chart_original_marks(bundle, reference, chart, ['603658.SH'])
+
+
 def test_stale_and_duplicate_marks_are_never_plotted(sample):
     chart, bundle, reference = sample
     mark = bundle['items']['603658.SH']['marks'][0]
@@ -106,6 +123,7 @@ def test_native_original_projection_reuses_only_exact_120_qfq_window():
     assert len(result['marks']) == 120
     assert result['marks'][-1] == dict(trade_date='20261119', id=1, kind='DRAWTEXT',
                                        payload='守线', styles=['COLORFFFFFF'], y='10.5')
+    assert 'lines' not in result  # A legacy projection never gets close-price approximations.
 
     changed = deepcopy(chart)
     changed['rows'][-1]['close'] = 11.01
@@ -113,6 +131,44 @@ def test_native_original_projection_reuses_only_exact_120_qfq_window():
         chart_original_marks_from_projection(raw, reference, changed)
     with pytest.raises(ValueError, match='PROJECTION_SHA_CONFLICT'):
         chart_original_marks_from_projection(raw + b'x', reference, chart)
+
+
+def test_native_original_projection_passes_through_only_complete_named_formula_values():
+    chart, projection, _, old_reference = native_projection_fixture()
+    rows = projection['formula_result']['rows']
+    for index, row in enumerate(rows):
+        row['values'] = {
+            '白线': '13.58671489947057447652402281' if index == 119 else f'{10 + index / 100:.2f}',
+            '黄线': None if index == 60 else ('14.00682487468671679197994987' if index == 119 else f'{11 + index / 100:.2f}'),
+        }
+    raw = gzip.compress(json.dumps(projection, sort_keys=True, separators=(',', ':')).encode(), mtime=0)
+    reference = {**old_reference, 'sha256': hashlib.sha256(raw).hexdigest()}
+    result = chart_original_marks_from_projection(raw, reference, chart)
+    assert list(result['lines']) == ['白线', '黄线']
+    assert [point['trade_date'] for point in result['lines']['白线']] == [row['trade_date'] for row in chart['rows']]
+    assert len(result['lines']['黄线']) == len(chart['rows']) == 120
+    assert result['lines']['白线'][-1]['y'] == '13.58671489947057447652402281'
+    assert result['lines']['黄线'][-1]['y'] == '14.00682487468671679197994987'
+    assert result['lines']['黄线'][60]['y'] is None
+
+
+def test_native_original_projection_rejects_partial_or_unbounded_line_values():
+    chart, projection, _, reference = native_projection_fixture()
+    rows = projection['formula_result']['rows']
+    for row in rows:
+        row['values'] = {'白线': '13.5', '黄线': '14.0'}
+    rows[25]['values'].pop('黄线')
+    raw = gzip.compress(json.dumps(projection, sort_keys=True, separators=(',', ':')).encode(), mtime=0)
+    bad_reference = {**reference, 'sha256': hashlib.sha256(raw).hexdigest()}
+    with pytest.raises(ValueError, match='LINE_COVERAGE_CONFLICT'):
+        chart_original_marks_from_projection(raw, bad_reference, chart)
+
+    rows[25]['values']['黄线'] = '14.0'
+    rows[0]['values']['白线'] = '1e-999999999'
+    raw = gzip.compress(json.dumps(projection, sort_keys=True, separators=(',', ':')).encode(), mtime=0)
+    bad_reference = {**reference, 'sha256': hashlib.sha256(raw).hexdigest()}
+    with pytest.raises(ValueError, match='LINE_VALUE_INVALID'):
+        chart_original_marks_from_projection(raw, bad_reference, chart)
 
 
 def test_native_original_projection_rejects_date_or_window_drift():

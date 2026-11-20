@@ -16,6 +16,8 @@ FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=Fals
 IDENTITY_FIELDS = ('source_date', 'generation', 'input_sha256', 'numeric_manifest', 'selector', 'snapshot',
                    'formula_group_sha256', 'price_basis', 'volume_basis')
 SOURCE_KINDS = {'REUSED_ORIGINAL_V4_PROJECTION', 'DERIVED_BOUND_SELECTOR_PREFIX'}
+LINE_NAMES = ('白线', '黄线')
+DECIMAL_TEXT = re.compile(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?')
 COLOR = re.compile(r'COLOR(?:RED|GREEN|YELLOW|FFFFFF|FF00FF)')
 
 
@@ -37,6 +39,45 @@ def _validate_mark(mark, dates):
             and isinstance(mark['styles'][0], str) and COLOR.fullmatch(mark['styles'][0])):
         return
     raise ValueError('ORIGINAL_D35C_STYLE_INVALID')
+
+
+def _decimal_string(value):
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        raise ValueError('ORIGINAL_D35C_LINE_VALUE_INVALID')
+    text = str(value).strip()
+    if len(text) > 64 or not DECIMAL_TEXT.fullmatch(text):
+        raise ValueError('ORIGINAL_D35C_LINE_VALUE_INVALID')
+    try:
+        number = Decimal(text)
+        binary = float(text)
+    except (InvalidOperation, ValueError) as error:
+        raise ValueError('ORIGINAL_D35C_LINE_VALUE_INVALID') from error
+    if (not number.is_finite() or not math.isfinite(binary)
+            or (number != 0 and binary == 0)):
+        raise ValueError('ORIGINAL_D35C_LINE_VALUE_INVALID')
+    return text
+
+
+def _validate_lines(lines, chart_rows):
+    if not isinstance(lines, dict) or set(lines) != set(LINE_NAMES):
+        raise ValueError('ORIGINAL_D35C_LINE_SCHEMA_INVALID')
+    dates = [row.get('trade_date') for row in chart_rows]
+    result = {}
+    for name in LINE_NAMES:
+        points = lines[name]
+        if not isinstance(points, list) or len(points) != len(dates):
+            raise ValueError('ORIGINAL_D35C_LINE_COVERAGE_CONFLICT')
+        checked = []
+        for point, expected_date in zip(points, dates):
+            if (not isinstance(point, dict) or set(point) != {'trade_date', 'y'}
+                    or point.get('trade_date') != expected_date):
+                raise ValueError('ORIGINAL_D35C_LINE_DATE_CONFLICT')
+            value = point['y']
+            if value is not None:
+                value = _decimal_string(value)
+            checked.append(dict(trade_date=expected_date, y=value))
+        result[name] = checked
+    return result
 
 
 def chart_original_marks(bundle, reference, chart, symbols):
@@ -68,8 +109,11 @@ def chart_original_marks(bundle, reference, chart, symbols):
         if key in identities:
             raise ValueError('ORIGINAL_D35C_DUPLICATE_MARK')
         identities.add(key)
-    return dict(metadata, status='READY', source_kind=item['source_kind'], marks=item['marks'],
-                unresolved_conditions=item['unresolved_conditions'])
+    result = dict(metadata, status='READY', source_kind=item['source_kind'], marks=item['marks'],
+                  unresolved_conditions=item['unresolved_conditions'])
+    if 'lines' in item:
+        result['lines'] = _validate_lines(item['lines'], chart['rows'])
+    return result
 
 
 def chart_original_marks_from_projection(raw, reference, chart):
@@ -155,7 +199,8 @@ def chart_original_marks_from_projection(raw, reference, chart):
 
     marks = []
     unresolved = 0
-    for row in rows[-len(chart_rows):]:
+    window_rows = rows[-len(chart_rows):]
+    for row in window_rows:
         drawings = row.get('drawings')
         if not isinstance(drawings, list) or len(drawings) != 22:
             raise ValueError('ORIGINAL_D35C_DRAWING_COVERAGE_CONFLICT')
@@ -179,9 +224,29 @@ def chart_original_marks_from_projection(raw, reference, chart):
                         payload=drawing.get('payload'), styles=drawing['styles'], y=drawing.get('y'))
             marks.append(mark)
 
+    # Reuse the formula engine's stored values verbatim. Older retained
+    # projections may not contain these two named fields, so their existing
+    # drawing-only behavior remains valid.
+    value_rows = [row.get('values') for row in window_rows]
+    line_fields_present = any(isinstance(values, dict) and any(name in values for name in LINE_NAMES)
+                              for values in value_rows)
+    lines = None
+    if line_fields_present:
+        if not all(isinstance(values, dict) and all(name in values for name in LINE_NAMES)
+                   for values in value_rows):
+            raise ValueError('ORIGINAL_D35C_LINE_COVERAGE_CONFLICT')
+        lines = {
+            name: [dict(trade_date=current['trade_date'],
+                        y=None if values[name] is None else _decimal_string(values[name]))
+                   for values, current in zip(value_rows, chart_rows)]
+            for name in LINE_NAMES
+        }
+
     bundle = dict(schema=SCHEMA, formula_sha256=FORMULA_SHA, engine_sha256=ENGINE_SHA,
                   items={chart['symbol']: dict(status='READY', marks=marks,
                       source_kind='REUSED_ORIGINAL_V4_PROJECTION', source_sha256=reference['sha256'],
                       unresolved_conditions=unresolved, chart_rows_sha256=canonical_sha(chart_rows))},
                   **{key: chart[key] for key in IDENTITY_FIELDS}, **FLAGS)
+    if lines is not None:
+        bundle['items'][chart['symbol']]['lines'] = lines
     return chart_original_marks(bundle, reference, chart, [chart['symbol']])
