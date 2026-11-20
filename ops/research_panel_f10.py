@@ -79,6 +79,23 @@ def _safe_number(value):
     return value if math.isfinite(value) else None
 
 
+def _grab_optional_number(fetch, text, label):
+    """Treat the pinned collector's literal dash as a missing F10 number.
+
+    The pinned collector converts its regex capture directly with ``float``;
+    a source field containing ``-`` therefore raises and discards the entire
+    otherwise valid stock snapshot. Keep the adjustment narrow so malformed
+    numeric text and unrelated collector errors remain failures.
+    """
+    try:
+        return fetch.grab(text, label)
+    except ValueError:
+        match = re.search(re.escape(label) + r"[^｜]*｜\s*([^｜\s]+)", text)
+        if match is not None and match.group(1) == '-':
+            return None
+        raise
+
+
 def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
     if exchange is None:
         return {'symbol':symbol, 'exchange':None, 'status':'SOURCE_IDENTITY_UNAVAILABLE', 'reason':'BOUND_PANEL_EXCHANGE_MISSING'}
@@ -119,8 +136,9 @@ def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
               'industry':{'tdx_finance_industry_code':finance.get('industry'),'name':None,'status':'CODE_ONLY_NAME_UNMAPPED'},
               'financials':{'report_period':period.group(1) if period else None,
                   'holder_count':_safe_number(finance.get('gudongrenshu')),
-                  'eps':fetch.grab(text,'每股收益(元)'),'bps':fetch.grab(text,'每股净资产(元)'),
-                  'roe_pct':fetch.grab(text,'净资产收益率(%)'),
+                  'eps':_grab_optional_number(fetch,text,'每股收益(元)'),
+                  'bps':_grab_optional_number(fetch,text,'每股净资产(元)'),
+                  'roe_pct':_grab_optional_number(fetch,text,'净资产收益率(%)'),
                   'revenue_text':income.group(1) if income else None,'net_profit_text':net.group(1) if net else None},
               'finance_native_raw':{str(k):_safe_number(v) if isinstance(v,(float,int)) else v for k,v in finance.items()},
               'historical_PIT':False,**FLAGS}

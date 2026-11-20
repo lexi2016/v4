@@ -433,6 +433,13 @@ class ResearchWorkbenchHost:
         static = self.binding['candidate_group_overrides'].get(source_date)
         reference = self._module_reference('formula_groups', source_date)
         if reference is not None:
+            # A date's committed roster may advance independently from its
+            # exact-scope chart/score supplements. Reuse those supplements
+            # only when they were frozen against the same roster bytes.
+            if (isinstance(static, dict)
+                    and isinstance(static.get('artifact'), dict)
+                    and static['artifact'].get('sha256') == reference.get('sha256')):
+                return {**static, 'artifact': reference}
             return {'artifact': reference}
         return static
 
@@ -838,8 +845,23 @@ class ResearchWorkbenchHost:
                      context=digest([version('overseas',observation),version('japan',observation),quote.get('korea') if quote else None]),
                      workflow=digest([self.binding.get('workflow_plan'),version('execution',observation),self.binding.get('workflow_execution'),self.workflow(source_date)]))
         if self._uses_only_formula_groups():
-            static = self.binding['candidate_group_overrides'].get(source_date, {}).get('artifact')
-            modules['list'] = digest([modules['list'], static, version('formula_groups', source_date)])
+            static_binding = self.binding['candidate_group_overrides'].get(source_date, {})
+            static = static_binding.get('artifact')
+            supplemental = {}
+            if any(key in static_binding for key in ('d35c_marks', 'score_action')):
+                try:
+                    supplemental = self._formula_group_binding(source_date) or {}
+                except (ValueError, OSError, KeyError, TypeError):
+                    # Keep the established guarded-pointer behavior: a bad
+                    # optional supplement cannot make the versions endpoint
+                    # fail or alter dates that have no supplement binding.
+                    supplemental = {}
+            list_version = [modules['list'], static, version('formula_groups', source_date)]
+            if supplemental.get('d35c_marks') is not None:
+                list_version.append(supplemental['d35c_marks'])
+            modules['list'] = digest(list_version)
+            if supplemental.get('score_action') is not None:
+                modules['score_action'] = digest([modules['score_action'], supplemental['score_action']])
         if self._uses_only_formula_groups() or self._legacy_formula_group_binding(source_date):
             try:
                 reference = self._index().get('f10', {}).get(p['data_date'])

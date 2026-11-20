@@ -156,6 +156,45 @@ def test_two_group_mode_reads_exact_date_owner_commit_and_pins_formulas(tmp_path
         host.day(day.name)
 
 
+def test_dynamic_formula_group_keeps_only_same_roster_supplements(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, path = bind_fixture(tmp_path, product, bundle)
+    reference = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    marks = {'path': '/isolated/d19-marks.json', 'sha256': '1' * 64}
+    score = {'receipt': {'path': '/isolated/d19-score-receipt.json', 'sha256': '2' * 64},
+             'artifact_root': '/isolated/d19-score'}
+    host.binding = {
+        'candidate_group_overrides': {
+            '2026-11-13': {'artifact': reference, 'd35c_marks': marks, 'score_action': score}},
+        'candidate_group_formula_sha256': dict(bundle['formula_sha256']),
+        'formula_groups_root': str(tmp_path),
+    }
+    host._module_reference = lambda module, source_date: reference
+
+    resolved = host._formula_group_binding('2026-11-13')
+    assert resolved == {'artifact': reference, 'd35c_marks': marks, 'score_action': score}
+    assert host._formula_groups(product, '2026-11-13', '2026-11-16')[0]['artifact'] == reference
+
+
+def test_dynamic_formula_group_drops_supplements_bound_to_different_roster(tmp_path, group_fixture):
+    product, bundle = group_fixture
+    host, path = bind_fixture(tmp_path, product, bundle)
+    reference = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    stale = {'path': '/isolated/previous-roster.json', 'sha256': 'f' * 64}
+    host.binding = {
+        'candidate_group_overrides': {
+            '2026-11-13': {'artifact': stale,
+                           'd35c_marks': {'path': '/isolated/stale-marks.json', 'sha256': '1' * 64},
+                           'score_action': {'receipt': {'path': '/isolated/stale-score.json', 'sha256': '2' * 64}}}},
+        'candidate_group_formula_sha256': dict(bundle['formula_sha256']),
+        'formula_groups_root': str(tmp_path),
+    }
+    host._module_reference = lambda module, source_date: reference
+
+    assert host._formula_group_binding('2026-11-13') == {'artifact': reference}
+    assert host._formula_groups(product, '2026-11-13', '2026-11-16')[0]['artifact'] == reference
+
+
 @pytest.mark.parametrize(('key', 'value'), [
     ('source_date', '2026-11-12'),
     ('observation_date', '2026-11-17'),
@@ -303,3 +342,33 @@ def test_f10_only_receipt_advances_formula_event_and_ignores_unbound_receipts(tm
     drift = publish('f10-drift.json')
     Path(drift['path']).write_text('{}')
     assert host.versions(source_date) == absent
+
+
+def test_invalid_formula_group_pointer_does_not_break_versions_when_supplement_is_optional(tmp_path, group_fixture):
+    from infrastructure.research_workbench_host import checked
+
+    product, bundle = group_fixture
+    host, path = bind_fixture(tmp_path, product, bundle)
+    reference = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    host.binding = {
+        'candidate_group_overrides': {
+            '2026-11-13': {'artifact': reference,
+                           'd35c_marks': {'path': '/isolated/d19-marks.json', 'sha256': '1' * 64},
+                           'score_action': {'receipt': {'path': '/isolated/d19-score.json', 'sha256': '2' * 64}}}},
+        'candidate_group_formula_sha256': dict(bundle['formula_sha256']),
+    }
+    host._index = lambda: {}
+    host.source = SimpleNamespace(_a_product_reference=checked)
+    host.classifications.version = lambda: 'classification'
+    host._observation_commit = lambda day: None
+    host._v192_version = lambda day: None
+    def invalid_optional_pointer(module, day):
+        if module == 'formula_groups':
+            raise ValueError('bad optional pointer')
+        return None
+    host._module_reference = invalid_optional_pointer
+
+    value = host.versions('2026-11-13')
+
+    assert value['source_date'] == '2026-11-13'
+    assert value['modules']['score_action']
