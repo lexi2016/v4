@@ -627,4 +627,47 @@ describe("exact-active ResearchView machine cards and clues", () => {
     await waitFor(() => expect(statusCellValue(strip, "研报线索")).toBe(confirmed ? "1 · 来源不完整" : "来源不完整"));
     expect(statusCellValue(strip, "研报线索")).not.toBe("0");
   });
+
+  it("deduplicates equivalent A-share clues while retaining lane authority and HK identities", async () => {
+    const authoritative = [
+      { stock_code: "600970", stock_name: "权威沪股", source: "LANE_SOURCE", report_subject_eligible: true },
+      { stock_code: "00001", market: "HK", stock_name: "权威港股", source: "HK_SOURCE", report_subject_eligible: true },
+    ];
+    const clues = [
+      { ...stockClue(), ts_code: "600970.SH", name: "重复沪股线索" },
+      { ...stockClue(), ts_code: "00001.HK", name: "重复港股线索" },
+      { ...stockClue(), ts_code: "000001.SZ", name: "独立深股线索" },
+    ];
+    const payload = { ...lane(), stock_research_daily: authoritative };
+    stubResearchFetch(payload, [], clues);
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    expect(await screen.findByText("独立深股线索 000001.SZ")).toBeTruthy();
+    const cards = Array.from(container.querySelectorAll(".hourly-priority-pane .hourly-impact-card"));
+    expect(cards.map((card) => card.querySelector(".hourly-impact-title")?.textContent?.trim())).toEqual([
+      "权威沪股 600970", "权威港股 00001", "独立深股线索 000001.SZ",
+    ]);
+    expect(cards[0].querySelector(".machine-clue-badge")).toBeNull();
+    expect(cards[1].querySelector(".machine-clue-badge")).toBeNull();
+    expect(container.textContent).not.toContain("重复沪股线索");
+    expect(container.textContent).not.toContain("重复港股线索");
+    expect(payload.stock_research_daily).toEqual(authoritative);
+  });
+
+  it("shows accepted exact-date clues beside a missing lane without binding date-less latest", async () => {
+    const missingLane = { ...lane(), status: "NOT_MATERIALIZED", reason: "LANE_MISSING", stock_research_daily: [] };
+    const fetchMock = vi.fn(async (url: string) => response(url.includes("/machine-cards") ? machineCardsForUrl(url)
+      : url.includes("/stock-clues") ? stockCluesForUrl(url, [stockClue()])
+      : url.includes("/lane?") ? missingLane
+      : { ...missingLane, endpoint_mode: "LATEST", research_date: "", reason: "NO_RESEARCH_ARCHIVE_LATEST" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    expect(await screen.findByText("研报提及 ×3")).toBeTruthy();
+    expect(container.querySelector(".hourly-priority-pane")?.textContent).toContain("测试股份 600001.SH");
+    expect(screen.getByText("LANE_MISSING")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "查看 latest" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("响应缺少 research_date");
+    expect(screen.queryByText("研报提及 ×3")).toBeNull();
+    expect(fetchMock.mock.calls.filter(([url]) => url.includes("/stock-clues"))).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([url]) => url.includes("/machine-cards"))).toHaveLength(1);
+  });
 });

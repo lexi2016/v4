@@ -231,7 +231,7 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
       aria-label="公众号归档阅读区"
     >
       <div class="hourly-desk-grid">
-        <ResearchImpactList :rows="[]" />
+        <ResearchImpactList :rows="stockMainline" />
         <ResearchFeedPane
           :feed-cards="[]"
           :feed-filter="feedFilter"

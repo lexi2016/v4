@@ -250,6 +250,23 @@ export interface ResearchState {
   cannotItems: ComputedRef<Array<string>>;
 }
 
+/** Compare equivalent securities without stripping their market identity. */
+function stockIdentity(codeValue: unknown, marketValue?: unknown): string {
+  const code = text(codeValue).toUpperCase();
+  const market = text(marketValue).toUpperCase();
+  const suffix = /^(\d+)\.(SH|SZ|BJ|HK)$/.exec(code);
+  if (suffix) return `${suffix[2]}:${suffix[1]}`;
+  const prefix = /^(SH|SZ|BJ|HK)\.(\d+)$/.exec(code);
+  if (prefix) return `${prefix[1]}:${prefix[2]}`;
+  if (market && !["A", "A_SHARE", "CN"].includes(market)) return `${market}:${code}`;
+  if (/^\d{6}$/.test(code)) {
+    if (/^6/.test(code)) return `SH:${code}`;
+    if (/^[03]/.test(code)) return `SZ:${code}`;
+    if (/^[48]|^92/.test(code)) return `BJ:${code}`;
+  }
+  return code;
+}
+
 export function useResearchState(
   payload: Ref<ResearchLane | null>,
   feedFilter: Ref<string>,
@@ -278,7 +295,7 @@ export function useResearchState(
         ...row,
         _timeline: compactTimeline(byStock.get(text(row.stock_code || row.code)) ?? []).slice(0, 3),
       }));
-    const existingCodes = new Set(existing.map((row) => text(row.stock_code || row.code)).filter(Boolean));
+    const existingCodes = new Set(existing.map((row) => stockIdentity(row.stock_code || row.code, row.market)).filter(Boolean));
     // Append confirmed machine-report clues after the untouched lane rows. The
     // original lane order and data stay authoritative; a code already shown in
     // the lane is not duplicated as a second card.
@@ -287,7 +304,7 @@ export function useResearchState(
       ? cluePayload.items
       : [];
     const clueRows: Array<LaneRow> = (dateBoundClues ?? [])
-      .filter((item) => item.document_count >= 1 && !existingCodes.has(item.ts_code))
+      .filter((item) => item.document_count >= 1 && !existingCodes.has(stockIdentity(item.ts_code)))
       .slice()
       .sort((left, right) => right.document_count - left.document_count || left.ts_code.localeCompare(right.ts_code))
       .map((item) => ({
