@@ -204,7 +204,7 @@ try {
     async function expectView(code, condition, args) {
       try { await page.waitForFunction(condition,args,{timeout:fault==='none'?15000:4500}); }
       catch (cause) {
-        const state=await page.evaluate(()=>Object.fromEntries(['stockCode','dates','kbSingleScore','formulaCompanySummary','formulaCompanyMetrics','loadingState','observationSummary','observationMini','listCount']
+        const state=await page.evaluate(()=>Object.fromEntries(['stockCode','dates','kbSingleScore','formulaCompanySummary','formulaCompanyMetrics','loadingState','observationSummary','observationMini','selectedObservation','listCount']
           .map(id=>[id,document.getElementById(id)?.innerText]))).catch(()=>({}));
         const relevant=requests.filter(path=>path.includes('/observations')||path.includes('/days/'));
         throw Object.assign(new Error(`${code}: ${JSON.stringify({fault,state,errors,routeHits,relevant})}`,{cause}),{code});
@@ -240,9 +240,11 @@ try {
           const price=await page.locator(`#stockList [data-symbol="${missingVisible.symbol}"] .grid-price`).innerText();
           assert.equal(price,'—','A visible symbol absent from the saved observation set must stay unavailable');
           await page.locator(`#stockList [data-symbol="${missingVisible.symbol}"]`).click();
-          await page.waitForFunction(symbol=>document.getElementById('stockCode')?.textContent===symbol&&
+          await page.locator('details.evidence-panel summary').filter({hasText:'当日快照与研究边界'}).click();
+          await expectView('MISSING_OBSERVATION_DETAIL_NOT_RENDERED',({symbol})=>
+            document.getElementById('stockCode')?.textContent===symbol&&
             document.getElementById('selectedObservation')?.innerText.includes('本股未出现在已保存的源产品观察集'),
-          missingVisible.symbol,{timeout:5000});
+          {symbol:missingVisible.symbol});
         }
         assert.deepEqual(errors,[]);
         return;

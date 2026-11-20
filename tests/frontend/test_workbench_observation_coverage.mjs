@@ -124,16 +124,20 @@ test('unknown coverage stays unknown and keeps every visible symbol unavailable'
   assert.ok(result.visibleSnapshot.rows.every(row => row.price === null));
 });
 
-test('zero-valid and empty snapshots remain distinct from a missing snapshot', () => {
-  const sourceError = 'CANNOT_CONFIRM_INTRADAY_SOURCE: original owner has no date-certified cumulative quote';
-  const errorPayload = {...snapshot([
+test('zero-valid 265-row source-error placeholders retain the exact source cause', () => {
+  const sourceError = 'CANNOT_CONFIRM_INTRADAY_SOURCE: original owner has no date-certified cumulative quote; shared_pytdx_hq minute turnover cannot substitute';
+  const placeholderRows = [
     {symbol: '600001.SH', error: sourceError},
     {symbol: '000001.SZ', error: sourceError},
-  ]), context: {}, snapshot_sha256: 'd'.repeat(64)};
+    ...Array.from({length: 263}, (_, index) => ({
+      symbol: `${String(100000 + index).padStart(6, '0')}.SH`, error: sourceError,
+    })),
+  ];
+  const errorPayload = {...snapshot(placeholderRows), context: {}, snapshot_sha256: 'd'.repeat(64)};
   const emptyPayload = {...snapshot([]), context: {}, snapshot_sha256: 'e'.repeat(64)};
   const {validateObservationResponse} = loadFunctions(() => { throw new Error('empty snapshots use their identity guard'); });
   const zero = validateObservationResponse(response(errorPayload, coverage('ZERO_VALID', {
-    expected_count: 3, observed_count: 2, valid_count: 0, missing_count: 3,
+    expected_count: 265, observed_count: 265, valid_count: 0, missing_count: 265,
   }, ['ZERO_VALID_OBSERVATION_ROWS', sourceError])), DAY);
   const empty = validateObservationResponse(response(emptyPayload, coverage('EMPTY', {
     expected_count: 0, observed_count: 0, valid_count: 0, missing_count: 0,
@@ -142,13 +146,18 @@ test('zero-valid and empty snapshots remain distinct from a missing snapshot', (
   assert.equal(zero.snapshot, errorPayload);
   assert.equal(zero.coverage.status, 'ZERO_VALID');
   assert.equal(empty.coverage.status, 'EMPTY');
-  assert.equal(zero.coverage.observed_count, 2);
+  assert.equal(zero.snapshot.rows.length, 265);
+  assert.equal(zero.coverage.observed_count, 265);
   assert.equal(zero.coverage.valid_count, 0);
+  assert.equal(zero.coverage.missing_count, 265);
   assert.ok(zero.missingVisibleSymbols.has('600001.SH'));
   assert.ok(zero.visibleSnapshot.rows.every(row=>row.status==='UNKNOWN_SOURCE_OBSERVATION_ERROR'));
+  assert.equal(zero.visibleSnapshot.rows[0].error, sourceError);
   assert.ok(zero.visibleSnapshot.rows.every(row => row.price === null));
   assert.ok(empty.visibleSnapshot.rows.every(row => row.price === null));
-  assert.ok(loadFunctions(() => {}).observationCoverageLabel(zero.coverage).includes(sourceError));
+  const label = loadFunctions(() => {}).observationCoverageLabel(zero.coverage);
+  assert.ok(label.includes('0 有效 / 应有 265'), label);
+  assert.ok(label.includes(sourceError), label);
 });
 
 test('coverage labels retain counts and the reason for every state', () => {
