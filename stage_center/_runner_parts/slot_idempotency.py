@@ -195,7 +195,15 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
                 market=market,
                 expected_sha=expected,
             ):
-                selections[market] = envelope
+                verified_raw = raw_verified.get(market)
+                if verified_raw is None or envelope.get("raw_artifact_sha256") != verified_raw.get("artifact_sha256"):
+                    pending_errors[market] = (
+                        f"EXISTING_SELECTION_RAW_IDENTITY_MISMATCH:{market}:"
+                        f"selection={envelope.get('raw_artifact_sha256')}:"
+                        f"raw={(verified_raw or {}).get('artifact_sha256', 'CANNOT_CONFIRM')}"
+                    )
+                else:
+                    selections[market] = envelope
             else:
                 candidate_binding_errors[market] = f"existing selection candidate SHA mismatch: {market}"
     if raw_bundle_entry is not None and _v4_global(_v4_scope, 'len')(raw_verified) == _v4_global(_v4_scope, 'len')(markets):

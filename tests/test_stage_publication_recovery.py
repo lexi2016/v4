@@ -102,13 +102,14 @@ def test_csv_failure_can_resume_explicit_identical_input(monkeypatch, tmp_path, 
     assert call()
 
 
-def seeded(tmp_path):
+def seeded(tmp_path, *, a_selection_raw_sha=None):
     raw_root, selection_root = tmp_path / 'raw', tmp_path / 'selection'
     rs, ss = raw.RawStore(raw_root), selection.SelectionStore(selection_root)
     results = {market: rs.publish(**raw_kwargs(market)) for market in MARKETS}
     bundle = rs.publish_bundle(trade_date=DATE, stage_id=STAGE, status='READY', markets=results)
     for market in MARKETS:
-        ss.publish(envelope(market, results[market]['artifact_sha256']), market=market)
+        selection_raw_sha = a_selection_raw_sha if market == 'A_SHARE' and a_selection_raw_sha is not None else results[market]['artifact_sha256']
+        ss.publish(envelope(market, selection_raw_sha), market=market)
     dummy = SimpleNamespace(config=SimpleNamespace(raw_root=raw_root, selection_root=selection_root, backfill_run_id=None))
     return rs, ss, dummy, bundle
 
@@ -425,3 +426,59 @@ def test_corrupt_pending_receipt_metadata_is_rejected_before_filling_file(tmp_pa
     assert state == 'PARTIAL' and 'A_SHARE' in result['pending_errors']
     assert not (run_dir / 'receipt.json').exists()
     assert snapshot(tmp_path) == before
+
+
+@pytest.mark.parametrize('recover_raw_pointer', [False, True])
+def test_same_candidate_selection_requires_exact_verified_raw_generation(tmp_path, recover_raw_pointer):
+    rs, ss, dummy, _ = seeded(tmp_path, a_selection_raw_sha='b' * 64)
+    if recover_raw_pointer:
+        latest = json.loads(rs.latest_path.read_text())
+        del latest['entries'][f'{DATE}/{STAGE}/A_SHARE']
+        rs.latest_path.write_text(json.dumps(latest))
+    before = snapshot(tmp_path)
+    state, result = existing(dummy)
+    assert state == 'PARTIAL'
+    assert set(result['selections']) == {'HK_CONNECT'}
+    assert set(result['raw_verified']) == set(MARKETS)
+    assert result['pending_errors']['A_SHARE'].startswith('EXISTING_SELECTION_RAW_IDENTITY_MISMATCH:')
+    assert result['commit_recovery_performed'] is recover_raw_pointer
+    after = snapshot(tmp_path)
+    for name, data in before.items():
+        if recover_raw_pointer and name == 'raw/latest.json':
+            continue
+        assert after[name] == data
+    assert set(after) == set(before)
+    # Neither an existing pointer nor a recovered raw may adopt the stale
+    # selection on the next attempt, and rejection does not rewrite it.
+    second_before = snapshot(tmp_path)
+    second_state, second = existing(dummy)
+    assert second_state == 'PARTIAL' and set(second['selections']) == {'HK_CONNECT'}
+    assert snapshot(tmp_path) == second_before
+
+
+@pytest.mark.parametrize('recover_raw_pointer', [False, True])
+def test_runner_same_candidate_cross_raw_selection_fails_lane_without_recapture(monkeypatch, tmp_path, recover_raw_pointer):
+    from stage_center.candidate_input import CandidateInput
+    rs, ss, _dummy, _ = seeded(tmp_path, a_selection_raw_sha='b' * 64)
+    if recover_raw_pointer:
+        latest = json.loads(rs.latest_path.read_text())
+        del latest['entries'][f'{DATE}/{STAGE}/A_SHARE']
+        rs.latest_path.write_text(json.dumps(latest))
+    selection_before = snapshot(ss.root)
+    candidate = CandidateInput(tmp_path, DATE, 'current.json', SHA, 'fixture-run', ('A.000001',), SHA, SHA, SHA, SHA, ())
+    monkeypatch.setattr(runner_module, 'read_candidate_input', lambda *args, **kwargs: candidate)
+    calls = []
+    def forbidden(*args, **kwargs):
+        calls.append('source-or-builder')
+        raise AssertionError('cross-raw recovery called a source or builder')
+    config = runner_module.RunnerConfig(tmp_path / 'candidate', rs.root, ss.root,
+        tmp_path / 'receipts', selection_builders={market: forbidden for market in MARKETS})
+    instance = runner_module.StageCenterRunner(config, collectors={market: forbidden for market in MARKETS})
+    result = instance._run_one(SimpleNamespace(trade_date=DATE, stage_id=STAGE, status='LATE_CATCHUP_REPLAY'))
+    assert result['status'] == 'PARTIAL_WITH_ROWS'
+    assert result['markets']['A_SHARE']['selection_status'] == 'CANNOT_CONFIRM'
+    assert result['markets']['A_SHARE']['selected_rows'] == 0
+    assert result['markets']['A_SHARE']['cannot_confirm'][0].startswith('EXISTING_SELECTION_RAW_IDENTITY_MISMATCH:')
+    assert result['markets']['HK_CONNECT']['selected_rows'] == 1
+    assert calls == []
+    assert snapshot(ss.root) == selection_before
