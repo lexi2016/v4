@@ -704,8 +704,9 @@ def label_index_bindings(root,target):
  return results,bindings,retained
 
 
-def accepted_label_cache(context,symbol,rule_sha,cache,*,checkpoint_input=None):
+def accepted_label_cache(context,symbol,rule_sha,cache,*,checkpoint_input=None,lineage_out=None):
  """Restore the original completed labels by their saved result/cache SHA."""
+ if lineage_out is not None:lineage_out.clear()
  ref=getattr(context,'label_results',{}).get(symbol)
  if not ref:return cache
  result=json.loads(checked(ref).read_text())
@@ -726,14 +727,52 @@ def accepted_label_cache(context,symbol,rule_sha,cache,*,checkpoint_input=None):
      or result.get('evaluated_dates')!=count or result.get('available_dates')!=count or result.get('remaining_dates')!=[]
      or not binding_matches):
   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_DATE_OR_COVERAGE_CONFLICT')
- if count<=len(cache['evaluations']):return cache
+ restored=count>len(cache['evaluations'])
+ same_checkpoint=(isinstance(checkpoint_input,dict) and isinstance(checkpoint_input.get('base_ref'),dict)
+                  and checkpoint_input['base_ref'].get('sha256')==cache_ref.get('sha256') and cache==previous)
+ if lineage_out is not None and (restored or same_checkpoint):
+  lineage_out.update(
+   label_result_ref={key:ref[key] for key in ('path','sha256')},
+   result_contract=result.get('contract'),
+   history_checkpoint_ref=dict(cache_ref),
+   historical_asof=asof,
+   source_identity=dict(identity),
+   rule_identity=dict(rule_sha256=previous['rule_sha256'],rules_signature=previous['rules_signature']),
+   group_event_dates={group:sorted(date for date,row in previous['evaluations'].items()
+                                  if isinstance(row,dict) and isinstance(row.get('groups'),dict)
+                                  and row['groups'].get(group)=='TRUE') for group in GROUPS},
+  )
+ if not restored:return cache
  if checkpoint_input is not None:checkpoint_input.update(base_ref=cache_ref,base_dependencies=dependencies,retain_base=False)
  return previous
+
+
+def contributing_label_lineage(candidate,initial_evaluations,final_evaluations,*,target):
+ """Bind accepted provenance only to historical TRUE events retained in the final cache."""
+ if not candidate:return {}
+ group_event_dates={}
+ for group,dates in candidate['group_event_dates'].items():
+  retained=[]
+  for date in dates:
+   if int(date)>=int(target):continue
+   first=initial_evaluations.get(date,{})
+   final=final_evaluations.get(date,{})
+   if (isinstance(first,dict) and isinstance(final,dict)
+       and first.get('groups',{}).get(group)=='TRUE' and final.get('groups',{}).get(group)=='TRUE'):
+    retained.append(iso(int(date)))
+  if retained:group_event_dates[group]=retained
+ if not group_event_dates:return {}
+ return {key:value for key,value in candidate.items() if key!='group_event_dates'} | {'group_event_dates':group_event_dates}
 
 
 def save_history_checkpoint(path,cache,checkpoint_input,*,observe=None):
  """Commit the delta selected by compute_stock after the caller's checks."""
  return history_checkpoint.write_checkpoint(path,cache,observe=observe,**checkpoint_input)
+
+
+def daily_checkpoint_payload(row):
+ """Keep accepted-label provenance confined to its event-case shard."""
+ return {key:value for key,value in row.items() if key!='_daily_accepted_label_lineage'}
 
 
 def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
@@ -801,15 +840,18 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
   base_ref,cache=history_checkpoint.read_checkpoint_state(Path(seed_root)/cachefile.relative_to(context.root),asof=target,dependencies=dependencies)
  if cache is None:cache=dict(rule_sha256=rule_sha,evaluations={},price_prefix_dates=[])
  inputs={'base_ref':base_ref,'base_dependencies':dependencies,'expected_ref':local_ref,'retain_base':bool(base_ref and Path(base_ref['path']).name=='checkpoint.json')}
- cache=accepted_label_cache(context,symbol,rule_sha,cache,checkpoint_input=inputs)
+ accepted_lineage_candidate={}
+ cache=accepted_label_cache(context,symbol,rule_sha,cache,checkpoint_input=inputs,lineage_out=accepted_lineage_candidate)
+ initial_evaluations=cache['evaluations']
  base_cache=cache;rules_signature=digest(context.config)
  if cache.get('rule_sha256')!=rule_sha:raise history_checkpoint.HistoryCheckpointError('DAILY_HISTORY_CACHE_RULE_IDENTITY_CONFLICT')
  if cache.get('rules_signature',rules_signature)!=rules_signature or q['status']!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH':
-  cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
+  cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True);accepted_lineage_candidate.clear();initial_evaluations={}
  else:cache={**cache,'evaluations':dict(cache['evaluations'])}
  cache['rules_signature']=rules_signature
  old_end=max(map(int,cache['evaluations']),default=0);old_prefix=[b for b in bars if b['trade_date']<=old_end]
- if cache.get('prefix_sha256') and digest(old_prefix)!=cache['prefix_sha256']:cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True)
+ if cache.get('prefix_sha256') and digest(old_prefix)!=cache['prefix_sha256']:
+  cache=dict(rule_sha256=rule_sha,evaluations={},invalidated_previous_source=True);accepted_lineage_candidate.clear();initial_evaluations={}
  if checkpoint_input is not None:
   if (cache.get('invalidated_previous_source') and not cache['evaluations']) or base_cache.get('rules_signature')!=cache.get('rules_signature'):
    inputs['base_ref']=None
@@ -842,6 +884,7 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
  evaluated=sorted(map(int,cache['evaluations']));expected=[b['trade_date'] for b in bars];complete=set(expected)<=set(evaluated)
  cache['prefix_sha256']=digest(bars);cache['source_identity']=context.identity;cache['coverage']=dict(requested_start=bars[0]['trade_date'] if bars else None,requested_end=target,evaluated_dates=evaluated,evaluated_count=len(evaluated),available_prefix_dates=len(expected),known_full_history=complete,historical_PIT=False,maximum_claim='DIRECTION_ONLY',historical_qualification_basis='CURRENT_GENERATION_FULL_PREFIX_NOT_HISTORICAL_ASOF_CERTIFICATION',unknown_by_group={g:sum(r['groups'][g]=='UNKNOWN' for r in cache['evaluations'].values()) for g in GROUPS},missing=[] if complete else ['HISTORICAL_FULL_CONDITION_BOOTSTRAP'])
  identity=dict(generation=context.generation,input=context.identity['input_sha256'],formula=context.config['formula']['sha256'],rule_sha256=rule_sha,asof=iso(target),market=symbol[-2:],basis='QFQ_ASOF',pit_status='NONPIT')
+ accepted_label_lineage=contributing_label_lineage(accepted_lineage_candidate,initial_evaluations,cache['evaluations'],target=target)
  groups=[dict(group_id=g,event_dates=[iso(int(d)) for d,r in sorted(cache['evaluations'].items()) if r['groups'][g]=='TRUE'],rule_sha256=rule_sha,source_identity=identity) for g in GROUPS]
  store=os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE');cached_groups=None;reuse=None
  if store:
@@ -850,6 +893,7 @@ def compute_stock(context,symbol,*,evaluate=None,history_dates=(),chart_capture=
    statistics,cached_groups,reuse=cached_daily_statistics(context,symbol,bars,calendar,groups,Path(store))
  else:statistics=build_daily_event_statistics(close_rows=[dict(date=iso(b['trade_date']),close=float(b['close']) if b['close'] is not None else None) for b in bars],market_calendar=[iso(d) for d in calendar],asof=iso(target),event_groups=groups)
  row=dict(symbol=symbol,display_name=name,data_date=str(target),groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='TRUE'),pending_groups='|'.join(g for g in GROUPS if current['groups'][g]['status']=='UNKNOWN'),latest_new_anchor=str(next((current['groups'][g].get('anchor_date') for g in GROUPS if current['groups'][g].get('anchor_date')), '') or ''),reasons='|'.join(sorted({s for g in GROUPS for s in current['groups'][g].get('reasons',[])})),risk_clear=current.get('risk',{}).get('status','UNKNOWN'),evaluation=current,statistics=statistics,historical_coverage=cache['coverage'],qualification=q)
+ if accepted_label_lineage:row['_daily_accepted_label_lineage']=accepted_label_lineage
  if cached_groups is not None:row['_daily_cached_groups']=cached_groups;row['_daily_cache_reuse']=reuse
  if chart_capture is not None and row['groups'] and captured:chart_capture(symbol,bars,captured[0])
  return row,cache,cachefile
@@ -895,7 +939,8 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    except (ValueError,KeyError,TypeError,OSError) as error:
     if isinstance(error,history_checkpoint.HistoryCheckpointError):raise
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
-   row.update(FLAGS);save(checkpoint,row,immutable=True,compress_row=True);row_ref=reference(checkpoint)
+   row.update(FLAGS)
+   save(checkpoint,daily_checkpoint_payload(row),immutable=True,compress_row=True);row_ref=reference(checkpoint)
   rows.append(row);row_refs[symbol]=row_ref
   if completed_rows is None or (i+1)%64==0 or i+1==len(selected):
    save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
@@ -925,6 +970,7 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    for row in candidates:
     if row.get('_daily_cached_groups') is None:continue
     shard=dict(schema_version='v4.a_share.event_cases.v1',symbol=row['symbol'],data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],statistics_sha256=digest(row['statistics']),projection=(json.loads(checked(chart_descriptor['manifest']).read_text()).get('samples',{}).get(row['symbol'],{}).get('projection') if chart_descriptor and chart_descriptor.get('manifest') else None),groups=row['_daily_cached_groups'],cache_reuse=row['_daily_cache_reuse'],**FLAGS)
+    if row.get('_daily_accepted_label_lineage'):shard['accepted_label_lineage']=row['_daily_accepted_label_lineage']
     items[row['symbol']]=save(version/'event_cases'/(row['symbol']+'.json'),shard,immutable=True)
    cases_index=dict(schema_version='v4.a_share.event_cases_index.v1',data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],items=items,**FLAGS)
    index.setdefault('event_cases',{})[str(target)]=save(version/'event_cases_index.json',cases_index,immutable=True)

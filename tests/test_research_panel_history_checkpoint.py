@@ -165,9 +165,161 @@ def test_accepted_result_requires_exact_index_identity_and_coverage(tmp_path):
     with pytest.raises(ValueError, match='RULE_IDENTITY_CONFLICT') as incompatible:
         owner.accepted_label_cache(context, SYMBOL, 'new-rule', {'evaluations': {}})
     assert not isinstance(incompatible.value, history.HistoryCheckpointError)
-    context.label_bindings[SYMBOL] = (DAY1, 'other', 'input', contract)
+    context.label_bindings[SYMBOL] = (DAY2, 'old', 'input', contract)
     with pytest.raises(history.HistoryCheckpointError, match='DATE_OR_COVERAGE'):
         owner.accepted_label_cache(context, SYMBOL, 'rule', {'evaluations': {}})
+
+
+def test_event_case_lineage_tracks_accepted_result_identity_without_rewriting_cache(tmp_path):
+    rule_sha = 'f' * 64
+    config = {'frozen_rule_fixture': 'main-a-share-event-return'}
+    rules_signature = owner.digest(config)
+    previous = cache(DAY1, {DAY1: 'TRUE'}, rules=rules_signature)
+    previous['rule_sha256'] = rule_sha
+    previous['source_identity'].update(generation='frozen-generation', input_sha256='frozen-input',
+                                       asof=DAY1, historical_PIT=False)
+    previous['coverage'].update(requested_end=DAY1, historical_PIT=False, known_full_history=True, missing=[])
+    checkpoint_path = tmp_path / 'accepted' / 'checkpoint.json'
+    checkpoint_ref = owner.save(checkpoint_path, previous)
+    contract = {'path': str(tmp_path / 'frozen-manifest.json'), 'sha256': 'a' * 64}
+    binding = (DAY1, 'frozen-generation', 'frozen-input', contract)
+    refs = []
+    for result_id in ('accepted-a', 'accepted-b'):
+        refs.append(owner.save(tmp_path / f'{result_id}.json', dict(
+            status='COMPLETE_DESCRIPTIVE_NONPIT', symbol=SYMBOL, historical_PIT=False,
+            history_cache=checkpoint_ref, evaluated_dates=1, available_dates=1, remaining_dates=[],
+            contract=contract, accepted_result_id=result_id, **owner.FLAGS)))
+    original_checkpoint = checkpoint_path.read_bytes()
+
+    def accepted_cases(result_ref):
+        context = SimpleNamespace(target=DAY2, config=config, label_results={SYMBOL: result_ref},
+                                  label_bindings={SYMBOL: binding})
+        local = history.load_checkpoint_ref(checkpoint_ref)
+        candidate = {}
+        accepted = owner.accepted_label_cache(context, SYMBOL, rule_sha, local,
+            checkpoint_input={'base_ref': checkpoint_ref}, lineage_out=candidate)
+        assert accepted is local
+        lineage = owner.contributing_label_lineage(candidate, local['evaluations'],
+            accepted['evaluations'], target=DAY2)
+        groups = {'original': {'d2': {'cases': [
+            {'event_date': owner.iso(DAY1), 'target_date': owner.iso(DAY2), 'return_pct': 2.0},
+            {'event_date': owner.iso(DAY2), 'target_date': owner.iso(DAY3), 'return_pct': 3.0},
+        ]}}}
+        shard = {'symbol': SYMBOL, 'numeric_manifest': contract, 'groups': groups,
+                 'accepted_label_lineage': lineage}
+        return accepted, candidate, lineage, shard
+
+    accepted_a, candidate_a, lineage_a, cases_a = accepted_cases(refs[0])
+    accepted_b, candidate_b, lineage_b, cases_b = accepted_cases(refs[1])
+    assert refs[0]['sha256'] != refs[1]['sha256']
+    assert accepted_a == accepted_b == previous
+    assert candidate_a['history_checkpoint_ref'] == candidate_b['history_checkpoint_ref'] == checkpoint_ref
+    assert candidate_a['label_result_ref'] == refs[0]
+    assert candidate_b['label_result_ref'] == refs[1]
+    assert candidate_a['rule_identity'] == candidate_b['rule_identity'] == {
+        'rule_sha256': rule_sha, 'rules_signature': rules_signature,
+    }
+    assert candidate_a['historical_asof'] == candidate_b['historical_asof'] == DAY1
+    assert lineage_a['label_result_ref'] == refs[0]
+    assert lineage_b['label_result_ref'] == refs[1]
+    assert lineage_a['history_checkpoint_ref'] == lineage_b['history_checkpoint_ref'] == checkpoint_ref
+    assert lineage_a['result_contract'] == contract
+    assert lineage_a['historical_asof'] == DAY1
+    assert lineage_a['rule_identity'] == lineage_b['rule_identity']
+    assert lineage_a['group_event_dates']['original'] == lineage_b['group_event_dates']['original'] == [owner.iso(DAY1)]
+    assert cases_a['groups'] == cases_b['groups']
+    assert all('label_lineage' not in case for case in cases_b['groups']['original']['d2']['cases'])
+    invalidated = owner.contributing_label_lineage(candidate_b, accepted_b['evaluations'],
+        {str(DAY2): {'groups': dict.fromkeys(owner.GROUPS, 'TRUE')}}, target=DAY2)
+    assert invalidated == {}
+    assert checkpoint_path.read_bytes() == original_checkpoint
+
+
+def test_compute_stock_binds_only_surviving_accepted_history_to_event_cases(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    symbol = SYMBOL
+    target = DAY2
+    bars = [
+        {'trade_date': DAY1, 'open': 10.0, 'high': 10.0, 'low': 10.0, 'close': 10.0, 'volume': 100.0},
+        {'trade_date': DAY2, 'open': 11.0, 'high': 11.0, 'low': 11.0, 'close': 11.0, 'volume': 110.0},
+    ]
+    config = {'formula': {'sha256': 'c' * 64}, 'frozen_rule_fixture': 'main-a-share-event-return'}
+    fixture_root = tmp_path / 'frozen-rule-source'
+    rule_path = fixture_root / 'domains' / 'research_daily_product.py'
+    rule_path.parent.mkdir(parents=True)
+    rule_path.write_bytes(b'frozen main a-share event return rule fixture\n')
+    monkeypatch.setattr(owner, '__file__', str(fixture_root / 'ops' / 'research_panel_daily_product.py'))
+    rule_sha = owner.sha(rule_path)
+    rules_signature = owner.digest(config)
+    previous = cache(DAY1, {DAY1: 'TRUE'}, rules=rules_signature)
+    previous.update(rule_sha256=rule_sha, prefix_sha256=owner.digest(bars[:1]))
+    previous['source_identity'].update(generation='accepted-generation', input_sha256='accepted-input',
+                                       asof=DAY1, historical_PIT=False)
+    previous['coverage'].update(requested_end=DAY1, historical_PIT=False, known_full_history=True, missing=[])
+    checkpoint_ref = owner.save(tmp_path / 'accepted' / 'checkpoint.json', previous)
+    contract = {'path': str(tmp_path / 'frozen-manifest.json'), 'sha256': 'd' * 64}
+    result_refs = [owner.save(tmp_path / f'accepted-{suffix}.json', dict(
+        status='COMPLETE_DESCRIPTIVE_NONPIT', symbol=symbol, historical_PIT=False,
+        history_cache=checkpoint_ref, evaluated_dates=1, available_dates=1, remaining_dates=[],
+        contract=contract, accepted_result_id=suffix, **owner.FLAGS)) for suffix in ('a', 'b')]
+    checkpoint_bytes = Path(checkpoint_ref['path']).read_bytes()
+    event_cache_path = tmp_path / 'existing-event-cache.sqlite'
+    event_cache_path.write_bytes(b'fixture placeholder; compute is intercepted')
+    monkeypatch.setenv('V4_RESEARCH_EVENT_CASE_CACHE', str(event_cache_path))
+    domains_package = types.ModuleType('domains')
+    domains_package.__path__ = []
+    monkeypatch.setitem(sys.modules, 'domains', domains_package)
+    statistics_module = types.ModuleType('domains.research_daily_statistics')
+    statistics_module.build_daily_event_statistics = lambda **_kwargs: pytest.fail('event cache path must be used')
+    monkeypatch.setitem(sys.modules, 'domains.research_daily_statistics', statistics_module)
+    product_module = types.ModuleType('domains.research_daily_product')
+    product_module.evaluate_daily_product = lambda **_kwargs: {
+        'groups': {group: {'status': 'TRUE', 'anchor_date': None, 'reasons': []} for group in owner.GROUPS},
+        'risk': {'status': 'CLEAR'},
+    }
+    monkeypatch.setitem(sys.modules, 'domains.research_daily_product', product_module)
+
+    captured = []
+
+    def capture_cases(_context, _symbol, _bars, _calendar, groups, _store):
+        captured.append(groups)
+        return {'groups': []}, {group: {'d2': {}, 'd5': {}} for group in owner.GROUPS}, []
+
+    monkeypatch.setattr(owner, 'source_inputs', lambda *_args, **_kwargs: {})
+    monkeypatch.setattr(owner, 'cached_daily_statistics', capture_cases)
+    context = SimpleNamespace(
+        target=target, root=tmp_path / 'current', scope=[symbol], config=config,
+        identity={'input_sha256': 'current-input', 'basis': {'asof_date': target, 'price_basis': 'QFQ_ASOF'}},
+        generation='current-generation', reader_ref={'path': '/fixture/reader.py', 'sha256': 'e' * 64},
+        calendars={'SH': [DAY1, DAY2, DAY3]}, read=lambda _symbol: (bars, 'Fixture stock'),
+        qualify=lambda _symbol: {'status': 'CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH',
+                                 'history_start_date': str(DAY1)},
+        label_results={symbol: result_refs[0]},
+        label_bindings={symbol: (DAY1, 'accepted-generation', 'accepted-input', contract)},
+    )
+    outputs = []
+    for result_ref in result_refs:
+        context.label_results = {symbol: result_ref}
+        row, _cache, _path = owner.compute_stock(context, symbol)
+        outputs.append((row, captured[-1]))
+    lineage_a = outputs[0][0]['_daily_accepted_label_lineage']
+    lineage_b = outputs[1][0]['_daily_accepted_label_lineage']
+    assert lineage_a['label_result_ref'] == result_refs[0]
+    assert lineage_b['label_result_ref'] == result_refs[1]
+    assert lineage_a['history_checkpoint_ref'] == lineage_b['history_checkpoint_ref'] == checkpoint_ref
+    assert lineage_a['group_event_dates']['original'] == lineage_b['group_event_dates']['original'] == [owner.iso(DAY1)]
+    assert outputs[0][1] == outputs[1][1]
+    checkpoint_payload = owner.daily_checkpoint_payload(outputs[0][0])
+    assert '_daily_accepted_label_lineage' not in checkpoint_payload
+    assert checkpoint_payload['statistics'] == outputs[0][0]['statistics']
+    assert Path(checkpoint_ref['path']).read_bytes() == checkpoint_bytes
+
+    context.qualify = lambda _symbol: {'status': 'UNKNOWN', 'history_start_date': str(DAY1)}
+    row, _cache, _path = owner.compute_stock(context, symbol)
+    assert '_daily_accepted_label_lineage' not in row
+    assert all(group['event_dates'] == [owner.iso(DAY2)] for group in captured[-1])
 
 
 def test_parallel_does_not_publish_a_row_if_history_write_fails(tmp_path, monkeypatch):
