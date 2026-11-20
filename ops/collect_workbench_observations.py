@@ -51,6 +51,101 @@ def missing(symbol,reason,**extra):
     return dict(symbol=symbol,price=None,change_percent_source=None,amount_source=None,source_asof=None,currency='CNY',status='SOURCE_ERROR',error=reason,percent_change_rank_eligible=False,volume_rank_eligible=False,comparable_volume_shares=None,**extra)
 
 
+def a_share_snapshot(day,symbols,acceptance,clock,quote_factory=None):
+    """Disabled without a SHA-bound provider source acceptance receipt.
+
+    Receipt schema V4_WORKBENCH_OPEND_ACCEPTANCE_V1 binds this collector's
+    bytes, provider identity, units and evidence refs. Daily identity and roster
+    remain bound by the existing snapshot, without a daily manual approval.
+    A close-price crosscheck alone cannot certify intraday freshness.
+    """
+    raw={};quote=None
+    try:
+        proof=checked(acceptance)
+        if not isinstance(proof,dict):raise ValueError('OPEND_ACCEPTANCE_INVALID')
+        expected=dict(schema='V4_WORKBENCH_OPEND_ACCEPTANCE_V1',status='PASS',
+                      source='FUTU_OPEND_READ_ONLY_SNAPSHOT',api='get_market_snapshot',market='A_SHARE_SH_SZ',
+                      provider_timezone='Asia/Shanghai',units=dict(price='CNY',amount='CNY',volume='SHARES'),
+                      collector_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),**FLAGS)
+        if any(proof.get(k)!=v for k,v in expected.items()):raise ValueError('OPEND_ACCEPTANCE_BINDING_INVALID')
+        if len(set(symbols))!=len(symbols):raise ValueError('OPEND_DUPLICATE_ADMISSION')
+        if proof.get('checks')!=dict(source_identity='PASS',units='PASS',intraday_freshness='PASS'):
+            raise ValueError('OPEND_ACCEPTANCE_CHECKS_INCOMPLETE')
+        checked(proof['evidence']['unit_crosscheck'])
+        freshness=checked(proof['evidence']['intraday_freshness'])
+        age=proof.get('max_age_seconds')
+        if type(age) is not int or not 0<age<=120:raise ValueError('OPEND_FRESHNESS_BOUND_INVALID')
+        now=clock()
+        if now.tzinfo is None or now.astimezone(SH).date().isoformat()!=day:raise ValueError('OPEND_CAPTURE_DATE_INVALID')
+        if (not isinstance(freshness,dict) or freshness.get('status')!='PASS' or freshness.get('capture_kind')!='NATURAL_SESSION'
+                or any(freshness.get(k)!=expected[k] for k in ('source','api','market','provider_timezone','units'))
+                or not freshness.get('samples')):raise ValueError('OPEND_NATURAL_FRESHNESS_EVIDENCE_REQUIRED')
+        for sample in freshness['samples']:
+            if not isinstance(sample,dict):raise ValueError('OPEND_FRESHNESS_SAMPLE_INVALID')
+            source_at=datetime.fromisoformat(sample['source_asof']);received_at=datetime.fromisoformat(sample['received_at'])
+            if (source_at.tzinfo is None or received_at.tzinfo is None
+                    or source_at.utcoffset()!=timedelta(hours=8) or received_at.utcoffset()!=timedelta(hours=8)
+                    or source_at.date()!=received_at.date() or received_at>now or not 0<=(received_at-source_at).total_seconds()<=age
+                    or not re.fullmatch(r'(SH|SZ)\.\d{6}',sample['code'])
+                    or not (570<=source_at.hour*60+source_at.minute<=690 or 780<=source_at.hour*60+source_at.minute<900)):
+                raise ValueError('OPEND_NATURAL_FRESHNESS_SAMPLE_INVALID')
+        minute=now.astimezone(SH).hour*60+now.astimezone(SH).minute
+        if not (570<=minute<=690 or 780<=minute<900):raise ValueError('OPEND_CONTINUOUS_SESSION_REQUIRED')
+    except (OSError,ValueError,KeyError,TypeError) as error:
+        return [missing(s,'CANNOT_CONFIRM_INTRADAY_SOURCE: '+str(error)) for s in symbols],raw
+    supported={s:s[-2:]+'.'+s[:6] for s in symbols if re.fullmatch(r'\d{6}\.(SH|SZ)',s)}
+    rows={s:missing(s,'CANNOT_CONFIRM_INTRADAY_SOURCE: OPEND_MARKET_UNBOUND') for s in symbols}
+    raw=dict(acceptance=acceptance,source=expected['source'],api=expected['api'],batches=[])
+    try:
+        if supported:
+            if quote_factory is None:
+                from infrastructure.futu_quote_provider import _default_context
+                quote_factory=_default_context
+            quote=quote_factory()
+        items=list(supported.items())
+        for offset in range(0,len(items),50):
+            batch=items[offset:offset+50];codes=[code for _,code in batch]
+            try:
+                ret,frame=quote.get_market_snapshot(codes)
+                if ret!=0:raise ValueError('OPEND_SNAPSHOT_FAILED')
+                records=json.loads(frame.to_json(orient='records',force_ascii=False));received=clock()
+                raw['batches'].append(dict(symbols=codes,records=records,received_at=received.isoformat()))
+                returned=[r.get('code') for r in records]
+                if len(set(returned))!=len(returned) or set(returned)-set(codes):raise ValueError('OPEND_RETURNED_ROSTER_CONFLICT')
+                by_code={r['code']:r for r in records}
+                for symbol,code in batch:
+                    try:
+                        row=by_code[code]
+                        stamp=datetime.strptime(row['update_time'],'%Y-%m-%d %H:%M:%S').replace(tzinfo=SH)
+                        minute=stamp.hour*60+stamp.minute
+                        if (stamp.date().isoformat()!=day or received.tzinfo is None or stamp>received
+                                or (received-stamp).total_seconds()>age
+                                or not (570<=minute<=690 or 780<=minute<900)):
+                            raise ValueError('OPEND_SOURCE_DATE_TIME_OR_FRESHNESS_INVALID')
+                        values=[number(row.get(k)) if not isinstance(row.get(k),bool) else None
+                                for k in ('last_price','prev_close_price','turnover','volume')]
+                        price,prev,amount,volume=values
+                        if (None in values or price<=0 or prev<=0 or amount<0 or volume<0 or not volume.is_integer()):
+                            raise ValueError('OPEND_PRICE_OR_CUMULATIVE_UNITS_INVALID')
+                        rows[symbol]=dict(symbol=symbol,price=price,prev_close=prev,change_percent_source=round((price/prev-1)*100,4),
+                            amount_source=amount,comparable_volume_shares=volume,source_date=day,source_asof=stamp.isoformat(),
+                            observed_at_upper_bound=received.isoformat(),currency='CNY',status='DATED_INTRADAY_SNAPSHOT',
+                            capture_kind='FUTU_OPEND_SNAPSHOT',source=expected['source'],source_ref=acceptance,
+                            units=expected['units'],percent_change_rank_eligible=True,volume_rank_eligible=True,error=None)
+                    except (ValueError,KeyError,TypeError) as error:rows[symbol]=missing(symbol,'CANNOT_CONFIRM_INTRADAY_SOURCE: '+str(error))
+            except (ValueError,KeyError,TypeError) as error:
+                for symbol,_ in batch:rows[symbol]=missing(symbol,'CANNOT_CONFIRM_INTRADAY_SOURCE: '+str(error))
+    except Exception as error:
+        for symbol in supported:rows[symbol]=missing(symbol,'CANNOT_CONFIRM_INTRADAY_SOURCE: '+type(error).__name__+': '+str(error))
+    finally:
+        if quote is not None:
+            try:quote.close()
+            except Exception as error:
+                raw['close_error']=type(error).__name__+': '+str(error)
+                for symbol in supported:rows[symbol]=missing(symbol,'CANNOT_CONFIRM_INTRADAY_SOURCE: OPEND_CONTEXT_CLOSE_FAILED')
+    return [rows[s] for s in symbols],raw
+
+
 def official_close(day,symbols,input_ref,recorded):
     """Project the original owner's saved daily package; never download it."""
     import struct
@@ -284,14 +379,16 @@ def us_benchmarks(day,clock,read=None,prior=None):
     return result,raw
 
 
-def collect(day,slot,identity,symbols,*,now=None,kr_read=None,official_input=None,clock=None,prior_snapshot=None,prior_korea=None,foreign_context=None,quote_factory=None,us_read=None):
+def collect(day,slot,identity,symbols,*,now=None,kr_read=None,official_input=None,clock=None,prior_snapshot=None,prior_korea=None,foreign_context=None,quote_factory=None,us_read=None,intraday_quote_acceptance=None):
     clock=clock or (lambda:datetime.now(SH));started=now or clock();rows=[];raw={}
-    all_symbols=list(symbols);retained={r['symbol']:r for r in (prior_snapshot or {}).get('rows',[]) if not r.get('error')}
+    all_symbols=list(symbols);retained={r['symbol']:r for r in (prior_snapshot or {}).get('rows',[]) if not r.get('error') and r.get('capture_kind')!='FUTU_OPEND_SNAPSHOT'}
     symbols=[s for s in all_symbols if s not in retained]
     if not symbols:rows=[];raw=dict(reused_completed_symbols=list(retained))
     elif official_input and started.hour>=15:
         try:rows,raw=official_close(day,symbols,official_input,clock())
         except (ValueError,OSError,KeyError,TypeError) as error:rows=[missing(s,'OFFICIAL_DAILY_'+type(error).__name__+': '+str(error)) for s in symbols]
+    elif intraday_quote_acceptance:
+        rows,raw=a_share_snapshot(day,symbols,intraday_quote_acceptance,clock,quote_factory)
     else:
         # The actual shared connector probe and native source-date gap are
         # preserved by Root. A timer must not repeat a known 80-host failure.
@@ -299,6 +396,8 @@ def collect(day,slot,identity,symbols,*,now=None,kr_read=None,official_input=Non
     new_rows={r['symbol']:r for r in rows};rows=[retained[s] if s in retained else new_rows[s] for s in all_symbols]
     finished=clock();archive=bool(rows) and all(r.get('capture_kind')=='OFFICIAL_DAILY_ARCHIVE' for r in rows)
     snapshot=dict(schema='OBSERVATION_SNAPSHOT_VIEW_V1',source_date=identity['source_date'],observation_date=day,parent_admission_sha256=identity['generation'],source_generation=identity['generation'],input_sha256=identity['input_sha256'],daily_contract_sha256=digest(sorted(all_symbols)),analysis_admission='NOT_GRANTED',formula_review='PENDING',slot=slot,rows=rows,request_started_at=started.isoformat(),recorded_at=finished.isoformat(),capture_kind='OFFICIAL_DAILY_ARCHIVE' if archive else 'INTRADAY_UNVERIFIED',source_asof_min=None,source_asof_max=None,observed_upper_bound_max=finished.isoformat(),**FLAGS)
+    native_times=[r['source_asof'] for r in rows if r.get('capture_kind')=='FUTU_OPEND_SNAPSHOT']
+    if native_times:snapshot.update(capture_kind='FUTU_OPEND_SNAPSHOT' if len(native_times)==len(rows) else 'PARTIAL_INTRADAY_SNAPSHOT',source_asof_min=min(native_times),source_asof_max=max(native_times))
     kr_retained={r['symbol']:r for r in (prior_korea or {}).get('indices',[]) if r.get('value') is not None}
     missing_kr=[s for s in ('^KS11','^KQ11') if s not in kr_retained]
     kr=korea(day,finished,kr_read,clock=clock,symbols=missing_kr)

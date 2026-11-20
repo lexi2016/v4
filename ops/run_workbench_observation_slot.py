@@ -65,6 +65,8 @@ def run(config,*,now=None,collector=collect,manual=False):
                 import hashlib
                 official_input=dict(path=str(path.resolve()),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
         kwargs=dict(now=now,official_input=official_input,prior_snapshot=snapshot if previous else None,prior_korea=kr if previous else None)
+        if config.get('intraday_quote_acceptance'):
+            kwargs['intraday_quote_acceptance']=config['intraday_quote_acceptance']
         # Reuse only foreign context from the last exact-identity daily pointer;
         # never carry A-share intraday rows from a previous slot.
         latest=root/day/'latest.json'

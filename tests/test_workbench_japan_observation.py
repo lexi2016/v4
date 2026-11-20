@@ -227,8 +227,10 @@ def test_runner_passes_only_foreign_context_across_slots_and_preserves_schedule(
     def collector(day,slot,identity,symbols,**kwargs):
         seen.update(kwargs);return dict(observation_date=day,slot=slot,recorded_at=NOW.isoformat(),rows=[{'symbol':s,'error':'original-gap'} for s in symbols]),{'indices':[{'value':None}]},{}
     monkeypatch.setattr(runner,'publish',lambda *args:{'test_pointer':True})
-    result=runner.run(dict(state_root=str(state),product_root=str(product_root),host_binding=binding),now=NOW,collector=collector,manual=True)
+    acceptance={'path':'/test-only/provider-acceptance.json','sha256':'c'*64}
+    result=runner.run(dict(state_root=str(state),product_root=str(product_root),host_binding=binding,intraday_quote_acceptance=acceptance),now=NOW,collector=collector,manual=True)
     assert seen['foreign_context']==foreign and seen['prior_snapshot'] is None and seen['prior_korea'] is None
+    assert seen['intraday_quote_acceptance']==acceptance
     assert result['scope']==1 and len(runner.SLOTS)==35
 
 
