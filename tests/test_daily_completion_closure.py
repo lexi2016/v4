@@ -179,9 +179,10 @@ def test_daily_history_reports_complete_without_inventing_missing_values(tmp_pat
 
 @pytest.mark.parametrize('history_status',['PARTIAL_NEEDS_EXPLICIT_BOOTSTRAP','CANNOT_CONFIRM'])
 def test_daily_current_modules_continue_while_history_remains_partial(tmp_path,monkeypatch,history_status):
-    context=SimpleNamespace(target=int(DAY),generation=GEN)
+    context=SimpleNamespace(target=int(DAY),generation=GEN,
+        identity={'input_sha256':INPUT,'selector_artifact_sha256':'d'*64},unchanged=lambda:None)
     monkeypatch.setattr(owner,'SourceContext',lambda *a:context)
-    monkeypatch.setattr(daily,'bind_completed_source_provenance',lambda *a:{'status':'EXACT_COMPLETED_SOURCE'})
+    monkeypatch.setattr(daily,'bind_completed_source_provenance',lambda *a:{'status':'EXACT_COMPLETED_SOURCE','numeric_manifest':manifest_ref})
     monkeypatch.setattr(daily,'run_incremental_history',lambda *a,**k:pytest.fail('must not bootstrap'))
     monkeypatch.setattr(daily,'publish_current_history_view',lambda *a,**k:pytest.fail('must not certify incomplete history'))
     if history_status=='CANNOT_CONFIRM':
@@ -192,26 +193,63 @@ def test_daily_current_modules_continue_while_history_remains_partial(tmp_path,m
     monkeypatch.setattr(daily,'build',lambda *a:({'actual_current_payload':True},{'reused':False}))
     monkeypatch.setattr(daily,'stage',lambda *a:{'original_owner_plan':True})
     monkeypatch.setattr(daily,'record_daily_attempt',lambda root,receipt:daily.save(root/'attempt.json',receipt))
+    product_ref=write(tmp_path/'numeric-product.json',dict(schema_version='v4.a_share.daily_product.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=DAY,source_generation=GEN,
+        source_identity=context.identity,**FLAGS))
+    manifest_ref=write(tmp_path/'numeric-manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=DAY,source_generation=GEN,
+        input_sha256=INPUT,artifact=product_ref,**FLAGS))
+    write(tmp_path/'index.json',dict(dates={DAY:manifest_ref}))
+    write(tmp_path/'events'/'latest.json',dict(schema_version='v4.a_share.daily_completion.v1',
+        status='PARTIAL_WITH_ROWS',data_date=DAY,source_generation=GEN,
+        input_sha256=INPUT,artifact=product_ref,manifest=manifest_ref,**FLAGS))
     calls=[]
     def publish(plan):calls.append(('top200',plan));return {'status':'PUBLISHED_CURRENT_TOP200'}
     monkeypatch.setitem(sys.modules,'ops.sync_stock_history_completion',SimpleNamespace(publish=publish))
-    def f10(ctx,receipt_ref,root,**kwargs):
-        receipt=daily.load(receipt_ref)
-        assert receipt['data_date']==DAY and receipt['source_generation']==GEN and all(receipt[k]==v for k,v in FLAGS.items())
-        assert receipt['status']=='COMPLETE_DESCRIPTIVE_NONPIT' and receipt['completeness_scope']=='CURRENT_DAY_DERIVATIVES'
-        assert receipt['history_status']==history_status and receipt['historical_completion']is False
-        calls.append(('f10',receipt_ref));return {'receipt':{'fake_offline_fixture':True}}
-    monkeypatch.setitem(sys.modules,'ops.research_panel_f10',SimpleNamespace(complete_f10=f10,publish_f10_completion=lambda *a:{'status':'OFFLINE_FIXTURE'}))
+    monkeypatch.setitem(sys.modules,'ops.research_panel_f10',SimpleNamespace(
+        exact_daily_source_receipt=lambda *a,**k:pytest.fail('daily derivatives must not start F10'),
+        complete_f10=lambda *a,**k:pytest.fail('daily derivatives must not start full-universe F10'),
+        publish_f10_completion=lambda *a,**k:pytest.fail('daily derivatives must not publish F10')))
     monkeypatch.delenv('V4_WORKBENCH_STATISTICS_ROOT',raising=False)
-    write(tmp_path/'index.json',{})
     write(tmp_path/'a_sync_authority'/'official_daily'/DAY/'input.json',{'offline_source_fixture':True})
     result=daily.complete_daily_derivatives(tmp_path,int(DAY),tmp_path,tmp_path,tmp_path)
     assert result['status']=='COMPLETE_DESCRIPTIVE_NONPIT' and result['historical_completion']is False
-    assert result['history']['status']==history_status and [x[0]for x in calls]==['top200','f10']
+    assert result['history']['status']==history_status and [x[0]for x in calls]==['top200']
+    assert 'f10' not in result
     if history_status.startswith('PARTIAL'):
         assert result['history']['missing_label_date_count']==947908
     else:assert result['history']['error']=='OLD_HISTORY_PROOF_UNAVAILABLE'
     assert not (tmp_path/'continuations'/DAY/GEN/'history').exists()
+
+
+def test_daily_full_market_f10_is_not_run_after_top200_failure(tmp_path,monkeypatch):
+    context=SimpleNamespace(target=int(DAY),generation=GEN,
+        identity={'input_sha256':INPUT,'selector_artifact_sha256':'d'*64},unchanged=lambda:None)
+    monkeypatch.setattr(owner,'SourceContext',lambda *a:context)
+    monkeypatch.setattr(daily,'bind_completed_source_provenance',lambda *a:{'status':'EXACT_COMPLETED_SOURCE','numeric_manifest':manifest_ref})
+    monkeypatch.setattr(daily,'daily_history_coverage',lambda *a:{'status':'PARTIAL_NEEDS_EXPLICIT_BOOTSTRAP'})
+    monkeypatch.setattr(daily,'build',lambda *a:(_ for _ in ()).throw(ValueError('TOP200_TEST_FAILURE')))
+    monkeypatch.setattr(daily,'record_daily_attempt',lambda root,receipt:daily.save(root/'attempt.json',receipt))
+    product_ref=write(tmp_path/'numeric-product.json',dict(schema_version='v4.a_share.daily_product.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=DAY,source_generation=GEN,
+        source_identity=context.identity,**FLAGS))
+    manifest_ref=write(tmp_path/'numeric-manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=DAY,source_generation=GEN,
+        input_sha256=INPUT,artifact=product_ref,**FLAGS))
+    write(tmp_path/'index.json',dict(dates={DAY:manifest_ref}))
+    write(tmp_path/'events'/'latest.json',dict(schema_version='v4.a_share.daily_completion.v1',
+        status='PARTIAL_WITH_ROWS',data_date=DAY,source_generation=GEN,
+        input_sha256=INPUT,artifact=product_ref,manifest=manifest_ref,**FLAGS))
+    monkeypatch.setitem(sys.modules,'ops.research_panel_f10',SimpleNamespace(
+        exact_daily_source_receipt=lambda *a,**k:pytest.fail('Top200 failure must not start F10'),
+        complete_f10=lambda *a,**k:pytest.fail('daily derivatives must not start F10'),
+        publish_f10_completion=lambda *a,**k:pytest.fail('daily derivatives must not publish F10')))
+    monkeypatch.setitem(sys.modules,'ops.sync_stock_history_completion',SimpleNamespace(publish=lambda *a:pytest.fail('Top200 stage must not run')))
+    monkeypatch.delenv('V4_WORKBENCH_STATISTICS_ROOT',raising=False)
+    write(tmp_path/'a_sync_authority'/'official_daily'/DAY/'input.json',{'offline_source_fixture':True})
+    result=daily.complete_daily_derivatives(tmp_path,int(DAY),tmp_path,tmp_path,tmp_path)
+    assert result['status']=='CANNOT_CONFIRM' and result['error']=='TOP200_TEST_FAILURE'
+    assert 'f10' not in result
 
 
 def provenance_fixture(tmp_path):

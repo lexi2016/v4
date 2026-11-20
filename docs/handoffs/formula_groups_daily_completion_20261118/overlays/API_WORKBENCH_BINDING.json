@@ -1,0 +1,32 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "patch_apply_args": [
+    "git",
+    "apply",
+    "--unidiff-zero"
+  ],
+  "patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/api-workbench.patch",
+  "patch_sha256": "38788b0d0ecc6628a1bd06da70805c0ecd58e283fa611eeeb8f1e5a34be54b2a",
+  "production_allowed": false,
+  "required_runtime_files": [
+    "infrastructure/research_workbench_formula_group_supplement.py"
+  ],
+  "schema": "V4_FORMULA_GROUP_API_OVERLAY_BINDING_V1",
+  "scope": [
+    "dynamic exact-roster supplement binding",
+    "versions list and score refresh fingerprints",
+    "formula-group score replay for missing canonical rows",
+    "same-day original projection fallback",
+    "same-symbol prior F10 receipt and company snapshot fallback on current F10 gaps",
+    "prior snapshots preserve original D/O identity and are bounded by the selected source-date cutoff",
+    "exact formula-roster score replay when canonical score index is absent, using rule and price-basis refs pinned by its immutable owner receipt"
+  ],
+  "score_rule_pin_sha256": "f369ed1502b4d9feda93d163758335eb8ea8afa7e53d0f9f37ac4b8a4dec9dc6",
+  "score_rule_pin_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/app",
+  "source_commit": "active-api-candidate-v4-audit-repairs-20261120-api-r1",
+  "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-api-r1/app/infrastructure/research_workbench_host.py",
+  "source_sha256": "5068086995facf47e48f42326971f661066a11406e9c14bc3b01fa46aa1a3a42",
+  "target": "infrastructure/research_workbench_host.py"
+}

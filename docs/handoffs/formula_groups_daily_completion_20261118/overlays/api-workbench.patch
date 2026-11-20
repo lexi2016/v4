@@ -1,0 +1,188 @@
+--- a/infrastructure/research_workbench_host.py
++++ b/infrastructure/research_workbench_host.py
+@@ -450 +450 @@
+-    def _formula_group_binding(self, source_date):
++    def _formula_group_binding(self, source_date, product=None):
+@@ -455,10 +455,19 @@
+-        if reference is not None:
+-            # A date's committed roster may advance independently from its
+-            # exact-scope chart/score supplements. Reuse those supplements
+-            # only when they were frozen against the same roster bytes.
+-            if (isinstance(static, dict)
+-                    and isinstance(static.get('artifact'), dict)
+-                    and static['artifact'].get('sha256') == reference.get('sha256')):
+-                return {**static, 'artifact': reference}
+-            return {'artifact': reference}
+-        return static
++        if reference is None:
++            return static
++        if (isinstance(static, dict)
++                and isinstance(static.get('artifact'), dict)
++                and static['artifact'].get('sha256') == reference.get('sha256')):
++            bound = {**static, 'artifact': reference}
++        else:
++            bound = {'artifact': reference}
++        try:
++            if product is None:
++                product = self._view(source_date)
++            from infrastructure.research_workbench_formula_group_supplement import load
++            dynamic = load(self.binding['formula_groups_root'], source_date, product, reference,
++                           self._observation_date(source_date))
++            return {**bound, **dynamic}
++        except (ValueError, OSError, KeyError, TypeError, AttributeError):
++            # An optional supplement cannot replace an exact current roster
++            # binding or make the pre-existing same-date product unreadable.
++            return bound
+@@ -467 +476 @@
+-        binding = self._formula_group_binding(source_date)
++        binding = self._formula_group_binding(source_date, product)
+@@ -529,2 +538,2 @@
+-    def _formula_score_replay(self, source_date, symbol, product, original_descriptor):
+-        bound = (self._formula_group_binding(source_date) or {}).get('score_action')
++    def _formula_score_replay(self, source_date, symbol, product, original_descriptor=None):
++        bound = (self._formula_group_binding(source_date, product) or {}).get('score_action')
+@@ -541 +550,2 @@
+-                or descriptor.get('status') != 'READY' or any(descriptor.get(key) is not value for key, value in FLAGS.items())
++                or descriptor.get('status') not in {'READY', 'PARTIAL_WITH_UNKNOWN'}
++                or any(descriptor.get(key) is not value for key, value in FLAGS.items())
+@@ -552,2 +562,21 @@
+-        original = self.source._a_product_reference(original_descriptor['index'])
+-        if index['items'].keys() != status.keys() or index['rules'] != original['rules'] or index['price_basis'] != original['price_basis']:
++        legacy_replay_identity = replay.get('score_rules') is None and replay.get('price_basis') is None
++        if isinstance(original_descriptor, dict) and isinstance(original_descriptor.get('index'), dict):
++            original = self.source._a_product_reference(original_descriptor['index'])
++            expected_rules, expected_basis = original.get('rules'), original.get('price_basis')
++        else:
++            # New receipts pin the exact score owner rule map and price basis.
++            # Legacy receipts require the existing canonical index for comparison.
++            from infrastructure.research_workbench_formula_group_supplement import (
++                PINNED_SCORE_RULES_MAP_SHA256, PINNED_SCORE_RULES_SHA256)
++            expected_rules, expected_basis = replay.get('score_rules'), replay.get('price_basis')
++            if (expected_rules != PINNED_SCORE_RULES_SHA256
++                    or replay.get('score_rule_map_sha256') != PINNED_SCORE_RULES_MAP_SHA256):
++                raise ValueError('WORKBENCH_FORMULA_SCORE_RULE_PIN_CONFLICT')
++        if (not isinstance(expected_rules, dict) or not isinstance(expected_basis, dict)
++                or (legacy_replay_identity and not (isinstance(original_descriptor, dict)
++                    and isinstance(original_descriptor.get('index'), dict)))
++                or ((replay.get('score_rules') is None) != (replay.get('price_basis') is None))
++                or index['items'].keys() != status.keys()
++                or index['rules'] != expected_rules or index['price_basis'] != expected_basis
++                or (not legacy_replay_identity and (replay.get('score_rules') != expected_rules
++                    or replay.get('price_basis') != expected_basis))):
+@@ -590,2 +619,8 @@
+-        if daily_missing and model_missing:
+-            value = self._formula_score_replay(source_date, symbol, p, descriptor) or value
++        if value.get('status') == 'UNKNOWN' and value.get('row') is None:
++            try:
++                groups = self._formula_groups(p, source_date, self._observation_date(source_date))
++                formula_member = groups is not None and any(row['symbol'] == symbol for row in groups[1])
++            except (ValueError, OSError, KeyError, TypeError):
++                formula_member = False
++            if formula_member or (daily_missing and model_missing):
++                value = self._formula_score_replay(source_date, symbol, p, descriptor) or value
+@@ -765 +800 @@
+-        """Read the existing completion-index F10 snapshot, never acquire it on GET."""
++        """Read current F10; attach a separate as-of prior company snapshot only on gaps."""
+@@ -767,2 +802,60 @@
+-        override = self._formula_groups(p, source_date, self._observation_date(source_date))
+-        formula_member = override is not None and any(row['symbol'] == symbol for row in override[1])
++        observation=self._observation_date(source_date)
++        override=self._formula_groups(p,source_date,observation)
++        formula_member=override is not None and any(row['symbol']==symbol for row in override[1])
++        def with_prior_company(value):
++            if not formula_member:return value
++            try:
++                artifact=override[0].get('artifact')
++                if not isinstance(artifact,dict) or not isinstance(artifact.get('sha256'),str):
++                    raise ValueError('WORKBENCH_FORMULA_GROUP_ROSTER_SHA_MISSING')
++                try:
++                    from infrastructure.research_workbench_formula_group_supplement import prior_f10_snapshot
++                    prior_f10=prior_f10_snapshot(self.source,p,source_date,observation,symbol)
++                    if prior_f10 is not None:
++                        prior_stock=self.source._a_product_reference(prior_f10['stock_ref'])
++                        prior_f10['f10']['source_detail']=_formula_f10_source_detail(
++                            prior_stock,prior_f10['source_date'])
++                        value['prior_f10']=prior_f10
++                except (ValueError,OSError,KeyError,TypeError,AttributeError):
++                    value['prior_f10_status']='CANNOT_CONFIRM'
++                from infrastructure.research_workbench_formula_group_supplement import (
++                    prior_company_snapshot, prior_company_snapshot_from_answer)
++                prior=prior_company_snapshot(self.source,p,source_date,observation,symbol,artifact['sha256'])
++                if prior is not None:
++                    value['prior_company']=prior
++                    return value
++                index=self._index()
++                scoped=index.get('company_materials_scoped',{})
++                if not isinstance(scoped,dict):raise ValueError('WORKBENCH_PRIOR_COMPANY_SCOPE_INDEX_INVALID')
++                for prior_day in sorted(scoped,reverse=True):
++                    if not isinstance(prior_day,str) or not re.fullmatch(r'\d{8}',prior_day) or prior_day>=day:
++                        continue
++                    scopes=scoped.get(prior_day)
++                    if not isinstance(scopes,dict) or not scopes:continue
++                    prior_date=f'{prior_day[:4]}-{prior_day[4:6]}-{prior_day[6:]}'
++                    try:
++                        prior_product=self._view(prior_date)
++                        prior_observation=self._observation_date(prior_date)
++                        prior_groups=self._formula_groups(prior_product,prior_date,prior_observation)
++                        if not prior_groups or not any(row.get('symbol')==symbol for row in prior_groups[1]):
++                            continue
++                        prior_ref=prior_groups[0].get('artifact')
++                        if not isinstance(prior_ref,dict) or prior_ref.get('sha256') not in scopes:
++                            continue
++                        answer=self.source.read_a_daily_company_materials(prior_day,symbol,
++                            generation=prior_product['source_generation'],
++                            input_sha256=prior_product['source_identity']['input_sha256'],
++                            allow_processed_symbol=True,formula_roster_sha256=prior_ref['sha256'],
++                            formula_observation_date=compact(prior_observation))
++                        prior=prior_company_snapshot_from_answer(answer,p,source_date,observation,
++                            symbol,artifact['sha256'],prior_product=prior_product,
++                            prior_source_date=prior_date,prior_observation_date=prior_observation,
++                            prior_roster_ref=prior_ref)
++                        if prior is not None:
++                            value['prior_company']=prior
++                            return value
++                    except (ValueError,OSError,KeyError,TypeError,AttributeError):
++                        continue
++            except (ValueError,OSError,KeyError,TypeError,AttributeError):
++                value['prior_company_status']='CANNOT_CONFIRM'
++            return value
+@@ -775 +868 @@
+-        if not ref:return dict(status='NOT_MATERIALIZED',**common)
++        if not ref:return with_prior_company(dict(status='NOT_MATERIALIZED',**common))
+@@ -781 +874 @@
+-        if not stock_ref:return dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,**common)
++        if not stock_ref:return with_prior_company(dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,**common))
+@@ -783,2 +876,3 @@
+-        if stock.get('symbol')!=symbol or stock.get('status')!='OBSERVED' or stock.get('historical_PIT') is not False:
+-            raise ValueError('F10_STOCK_SOURCE_CONFLICT')
++        if stock.get('symbol')!=symbol:raise ValueError('F10_STOCK_SOURCE_CONFLICT')
++        if stock.get('status')!='OBSERVED' or stock.get('historical_PIT') is not False:
++            return with_prior_company(dict(status='CANNOT_CONFIRM_SOURCE_GAP',receipt=ref,stock_ref=stock_ref,**common))
+@@ -872,8 +966,6 @@
+-            if any(key in static_binding for key in ('d35c_marks', 'score_action')):
+-                try:
+-                    supplemental = self._formula_group_binding(source_date) or {}
+-                except (ValueError, OSError, KeyError, TypeError):
+-                    # Keep the established guarded-pointer behavior: a bad
+-                    # optional supplement cannot make the versions endpoint
+-                    # fail or alter dates that have no supplement binding.
+-                    supplemental = {}
++            try:
++                supplemental = self._formula_group_binding(source_date, p) or {}
++            except (ValueError, OSError, KeyError, TypeError):
++                # A bad optional supplement cannot make the versions endpoint
++                # fail or alter dates that have no supplement binding.
++                supplemental = {}
+@@ -882,0 +975,2 @@
++            if supplemental.get('supplement_pointer') is not None:
++                list_version.append(supplemental['supplement_pointer'])
+@@ -885 +979,2 @@
+-                modules['score_action'] = digest([modules['score_action'], supplemental['score_action']])
++                modules['score_action'] = digest([modules['score_action'], supplemental['score_action'],
++                                                   supplemental.get('supplement_pointer')])
+@@ -1043 +1138 @@
+-        marks_ref = (self._formula_group_binding(source_date) or {}).get('d35c_marks')
++        marks_ref = (self._formula_group_binding(source_date, product) or {}).get('d35c_marks')
+@@ -1052 +1147 @@
+-        elif isinstance(product.get('original_charts'), dict):
++        if (marks_ref is None or value.get('original_marks', {}).get('status') != 'READY') and isinstance(product.get('original_charts'), dict):

@@ -335,6 +335,34 @@ def _run_publisher(stage: Path, binding_path: Path, binding_sha: str, owner_lock
     return publisher.publish(args)
 
 
+def _complete_workbench_supplements(day: str, scheduler_env: dict, binding: dict,
+                                   committed: dict, source: dict) -> dict:
+    """Run exact-roster supplements only after the dated group is committed."""
+    try:
+        data_root = _absolute(Path(scheduler_env['V4_RESEARCH_PANEL_A_DATA_ROOT']))
+        product_base = _absolute(Path(scheduler_env['V4_A_SHARE_DAILY_PRODUCT_ROOT']))
+        product_root = _absolute(product_base / 'daily_products' / 'a_share')
+        _require((product_root / 'index.json').is_file()
+                 and not (product_root / 'index.json').is_symlink(),
+                 'FORMULA_SUPPLEMENT_EXPLICIT_PRODUCT_ROOT_NOT_READY')
+        from ops.research_panel_daily_product import SourceContext
+        from ops._formula_groups_daily_parts.workbench_supplements import complete
+
+        context = SourceContext(data_root, int(day))
+        # The A producer uses an explicitly bound product root; SourceContext's
+        # legacy default is only the data-root sibling and is not authoritative.
+        context.root = product_root
+        if (context.generation != source['generation']
+                or context.identity.get('input_sha256') != source['input_sha256']
+                or context.identity.get('selector_artifact_sha256') != source['selector_sha256']):
+            raise ValueError('FORMULA_SUPPLEMENT_SOURCE_CONTEXT_MISMATCH')
+        return complete(context, Path(binding['formula_groups_root']), committed['artifact'],
+                        committed['receipt'])
+    except Exception as error:
+        return dict(status='CANNOT_CONFIRM', reason=type(error).__name__ + ':' + str(error)[:240],
+                    data_date=day, **FLAGS)
+
+
 def complete_daily_formula_groups(data_date: str | int) -> dict:
     """Publish date-scoped groups, retaining daily/derivative outcome on failures."""
     day = str(data_date)
@@ -352,7 +380,9 @@ def complete_daily_formula_groups(data_date: str | int) -> dict:
         expected_current, committed = _current_pointer(root, source)
         owner_lock, owner_fd = _inherited_owner_fd(day)
         if committed is not None:
-            return {**result, "status": "ALREADY_COMMITTED", **committed}
+            supplements = _complete_workbench_supplements(day, scheduler_env, binding, committed, source)
+            return {**result, "status": "ALREADY_COMMITTED", **committed,
+                    "workbench_supplements": supplements}
 
         formula_assets = _checked_assets(FORMULA_ASSET_ROOT)
         with tempfile.TemporaryDirectory(prefix="v4-formula-groups-") as temporary:
@@ -363,7 +393,12 @@ def complete_daily_formula_groups(data_date: str | int) -> dict:
                                         owner_fd, expected_current)
         status = published.get("status")
         _require(status in {"COMMITTED", "ALREADY_COMMITTED"}, "FORMULA_PUBLICATION_STATUS_INVALID")
-        return {**result, **published, "workers": workers}
+        committed_result = published if isinstance(published.get('artifact'), dict) else committed
+        supplements = _complete_workbench_supplements(day, scheduler_env, binding,
+            committed_result, source) if committed_result else dict(status='CANNOT_CONFIRM',
+                reason='FORMULA_COMMIT_REFERENCES_MISSING', data_date=day, **FLAGS)
+        return {**result, **published, "workers": workers,
+                "workbench_supplements": supplements}
     except Exception as error:
         return {**result, "status": "CANNOT_CONFIRM",
                 "reason": f"{type(error).__name__}:{str(error)[:240]}"}

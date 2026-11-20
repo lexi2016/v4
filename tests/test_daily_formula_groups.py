@@ -1,5 +1,7 @@
 import hashlib
 import json
+import os
+from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 import sys
@@ -148,3 +150,47 @@ def test_spawned_worker_imports_exact_project_and_date():
             sys.modules.pop("project", None)
         else:
             sys.modules["project"] = prior_project
+
+
+@pytest.mark.parametrize(('mode', 'expected_status'), [
+    ('published', 'COMMITTED'),
+    ('already_committed', 'ALREADY_COMMITTED'),
+])
+def test_daily_owner_runs_supplement_after_new_or_existing_commit_and_isolates_failure(
+        tmp_path, monkeypatch, mode, expected_status):
+    source = _source()
+    binding = {'formula_groups_root':str(tmp_path / 'formula-groups')}
+    artifact = {'path':str(tmp_path / 'artifact.json'), 'sha256':'a' * 64}
+    receipt = {'path':str(tmp_path / 'receipt.json'), 'sha256':'b' * 64}
+    committed = {'artifact':artifact, 'receipt':receipt}
+    order = []
+    owner_fd = os.open(os.devnull, os.O_RDONLY)
+
+    monkeypatch.setattr(groups, '_load_plist', lambda _: {'EnvironmentVariables':{
+        'V4_RESEARCH_PANEL_A_DATA_ROOT':str(tmp_path),
+        'V4_A_SHARE_DAILY_PRODUCT_ROOT':str(tmp_path / 'products')}})
+    monkeypatch.setattr(groups, '_api_binding', lambda: (tmp_path / 'binding.json', 'c' * 64, binding))
+    monkeypatch.setattr(groups, '_source_identity', lambda _: source)
+    monkeypatch.setattr(groups, '_inherited_owner_fd', lambda _: (tmp_path / 'owner.lock', owner_fd))
+    monkeypatch.setattr(groups, '_current_pointer', lambda *args: ('old-sha', committed)
+        if mode == 'already_committed' else ('ABSENT', None))
+    monkeypatch.setattr(groups, '_complete_workbench_supplements',
+        lambda *args: order.append('supplement') or {'status':'CANNOT_CONFIRM','reason':'isolated test failure'})
+    if mode == 'published':
+        monkeypatch.setattr(groups, '_checked_assets', lambda *_: {})
+        monkeypatch.setattr(groups, '_run_projection', lambda *args: order.append('projection'))
+        monkeypatch.setattr(groups, 'choose_workers', lambda: 1)
+        def publish(*args):
+            order.append('publish')
+            return {'status':'COMMITTED', **committed}
+        monkeypatch.setattr(groups, '_run_publisher', publish)
+
+    result = groups.complete_daily_formula_groups(source['source_date'].replace('-', ''))
+
+    assert result['status'] == expected_status
+    assert result['workbench_supplements']['status'] == 'CANNOT_CONFIRM'
+    assert order[-1] == 'supplement'
+    if mode == 'published':
+        assert order == ['projection', 'publish', 'supplement']
+    else:
+        assert order == ['supplement']
