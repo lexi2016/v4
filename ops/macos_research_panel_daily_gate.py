@@ -40,6 +40,7 @@ from .macos_research_panel_daily_pack import (
     _panel_frame,
     bootstrap_a_vipdoc_from_panel,
     pack_hk_day,
+    validate_hk_volume_sidecars,
 )
 
 
@@ -673,16 +674,55 @@ def main() -> int:
             target_date=target,
             minimum_rows=600,
             expected_codes=expected_panel_codes,
+            source_capture_sha256=capture["capture_sha256"],
+            source_capture_raw_sha256=raw_sha256,
         )
+        sidecar_validation = validate_hk_volume_sidecars(
+            args.hk_tdx_root,
+            capture["rows"],
+            target_date=target,
+        )
+        overflow_codes = set(sidecar_validation.get("codes") or ())
+        if not overflow_codes <= expected_panel_codes:
+            raise SnapshotGateError("HK overflow sidecar contains codes outside the capture rows")
+        if packed.get("volume_overflow_sidecar") != sidecar_validation:
+            packed_sidecar = packed.get("volume_overflow_sidecar")
+            if not isinstance(packed_sidecar, Mapping) or (
+                packed_sidecar.get("ledger_path") != sidecar_validation.get("ledger_path")
+                or packed_sidecar.get("ledger_sha256") != sidecar_validation.get("ledger_sha256")
+                or set(packed_sidecar.get("codes") or ()) != overflow_codes
+                or packed_sidecar.get("source_capture_sha256") != sidecar_validation.get("source_capture_sha256")
+                or packed_sidecar.get("source_capture_raw_sha256") != sidecar_validation.get("source_capture_raw_sha256")
+            ):
+                raise SnapshotGateError("HK overflow sidecar gate readback mismatch")
         packed_day_root = Path(args.hk_tdx_root).expanduser().resolve() / "vipdoc" / "ds" / "lday"
-        expected_day_names = {f"71#{code[3:]}.day" for code in expected_panel_codes}
+        expected_day_names = {f"71#{code[3:]}.day" for code in expected_panel_codes - overflow_codes}
         packed_files = packed.get("files") if isinstance(packed, Mapping) else None
         if not isinstance(packed_files, list):
             raise SnapshotGateError("HK packed panel file ledger missing")
         packed_paths: set[Path] = set()
+        packed_codes: set[str] = set()
         for item in packed_files:
-            if not isinstance(item, Mapping) or not item.get("path"):
+            if not isinstance(item, Mapping) or not item.get("path") or not item.get("code"):
                 raise SnapshotGateError("HK packed panel file ledger invalid")
+            code = str(item["code"])
+            if code in packed_codes or code not in expected_panel_codes:
+                raise SnapshotGateError("HK packed panel code set mismatch")
+            packed_codes.add(code)
+            if item.get("storage") == "VOLUME_SIDECAR":
+                source_row = next((row for row in capture["rows"] if str(row.get("code") or "") == code), None)
+                expected_volume = int(round(float(source_row.get("volume", source_row.get("vol", 1))))) if isinstance(source_row, Mapping) else None
+                if (
+                    code not in overflow_codes
+                    or item.get("path") != sidecar_validation.get("ledger_path")
+                    or item.get("sha256") != sidecar_validation.get("ledger_sha256")
+                    or item.get("volume_shares") != expected_volume
+                    or item.get("volume_unit") != "shares"
+                ):
+                    raise SnapshotGateError("HK packed overflow row does not match the validated capture")
+                continue
+            if item.get("storage") != "TDX_DAY" or code in overflow_codes:
+                raise SnapshotGateError("HK packed file storage set mismatch")
             path = Path(str(item["path"])).expanduser().resolve()
             try:
                 path.relative_to(packed_day_root)
@@ -690,14 +730,21 @@ def main() -> int:
                 raise SnapshotGateError("HK packed panel file escapes TDX root") from error
             if not path.is_file():
                 raise SnapshotGateError("HK packed panel file missing")
+            if path.name != f"71#{code[3:]}.day":
+                raise SnapshotGateError("HK packed .day path does not match its code")
             packed_paths.add(path)
         actual_day_names = {path.name for path in packed_paths}
-        if len(packed_paths) != len(packed_files) or actual_day_names != expected_day_names:
-            raise SnapshotGateError(f"HK packed panel code set mismatch: actual={len(actual_day_names)},expected={len(expected_day_names)}")
+        if (
+            packed_codes != expected_panel_codes
+            or len(packed_paths) != len(expected_day_names)
+            or actual_day_names != expected_day_names
+            or {str(item.get("code")) for item in packed_files if item.get("storage") == "VOLUME_SIDECAR"} != overflow_codes
+        ):
+            raise SnapshotGateError(f"HK packed panel code set mismatch: actual={len(packed_codes)},expected={len(expected_panel_codes)}")
         stale_files: list[dict[str, Any]] = []
         orphan_files: list[dict[str, Any]] = []
         for path in sorted(packed_day_root.glob("*.day")):
-            if not path.is_file() or path.name in expected_day_names:
+            if not path.is_file() or path.name in expected_day_names or path.name in {f"71#{code[3:]}.day" for code in overflow_codes}:
                 continue
             entry = {"path": str(path), "size_bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
             bucket = stale_files if path.name.startswith("71#") and path.name[3:-4].isdigit() and len(path.name[3:-4]) == 5 else orphan_files

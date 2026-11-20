@@ -486,6 +486,152 @@ def _vipdoc_lday_root(tdx_root: Path) -> Path:
     raise StoreError("HK 0.2 VIPDOC lday source is missing")
 
 
+def _read_hk_volume_overflow_sidecars(
+    lday_root: Path,
+    *,
+    after_date: str,
+    through_date: str,
+    native_rows: list[dict[str, Any]],
+    sidecar_evidence: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    sidecar_root = lday_root / ".v4_hk_volume_overflow"
+    if sidecar_root.is_symlink():
+        raise StoreError("HK 0.2 volume sidecar directory must not be a symlink")
+    if not sidecar_root.is_dir():
+        return []
+    sidecar_rows: list[dict[str, Any]] = []
+    for path in sorted(sidecar_root.glob("*.json")):
+        if path.is_symlink():
+            raise StoreError("HK 0.2 volume sidecar ledger must not be a symlink")
+        try:
+            ledger_bytes = path.read_bytes()
+            ledger = json.loads(ledger_bytes.decode("utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise StoreError("HK 0.2 volume sidecar ledger is unreadable") from error
+        if not isinstance(ledger, Mapping):
+            raise StoreError("HK 0.2 volume sidecar ledger is invalid")
+        target = str(ledger.get("target_date") or "")
+        if not target.isdigit() or len(target) != 8 or path.stem != target:
+            raise StoreError("HK 0.2 volume sidecar date binding is invalid")
+        if target <= str(after_date) or target > str(through_date):
+            continue
+        if ledger.get("schema_version") != "v4.hk_daily_volume_overflow_sidecar.v1":
+            raise StoreError("HK 0.2 volume sidecar schema is unsupported")
+        ledger_sha256 = ledger.get("ledger_sha256")
+        body = dict(ledger)
+        body.pop("ledger_sha256", None)
+        if ledger_sha256 != hashlib.sha256(canonical_bytes(body)).hexdigest():
+            raise StoreError("HK 0.2 volume sidecar ledger checksum mismatch")
+        for key in ("source_capture_sha256", "source_capture_raw_sha256"):
+            value = ledger.get(key)
+            if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value.lower()):
+                raise StoreError("HK 0.2 volume sidecar capture checksum is invalid")
+        entries = ledger.get("rows")
+        if not isinstance(entries, list) or not entries:
+            raise StoreError("HK 0.2 volume sidecar row set is empty or invalid")
+        seen_codes: set[str] = set()
+        selected_codes: list[str] = []
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                raise StoreError("HK 0.2 volume sidecar row is invalid")
+            code = _normalize_code(entry.get("code"))
+            raw_code = code.removeprefix("HK.")
+            source_row = entry.get("source_row")
+            if (
+                not code
+                or code in seen_codes
+                or not isinstance(source_row, Mapping)
+                or source_row.get("code") != code
+                or str(source_row.get("trade_date") or "") != target
+                or source_row.get("source") != "FUTU_HKCONNECT_SNAPSHOT"
+            ):
+                raise StoreError("HK 0.2 volume sidecar row identity mismatch")
+            seen_codes.add(code)
+            selected_codes.append(code)
+            volume_shares = entry.get("volume_shares")
+            source_volume = source_row.get("volume", source_row.get("vol"))
+            if (
+                entry.get("volume_unit") != "shares"
+                or not isinstance(volume_shares, int)
+                or isinstance(volume_shares, bool)
+                or volume_shares <= (1 << 32) - 1
+                or int(source_volume) != volume_shares
+                or entry.get("source_row_sha256") != hashlib.sha256(canonical_bytes(source_row)).hexdigest()
+            ):
+                raise StoreError("HK 0.2 volume sidecar share count or row checksum mismatch")
+            prefix = entry.get("native_prefix")
+            if not isinstance(prefix, Mapping) or prefix.get("path") != f"71#{raw_code}.day":
+                raise StoreError("HK 0.2 volume sidecar native binding is invalid")
+            day_path = lday_root / f"71#{raw_code}.day"
+            if day_path.is_symlink():
+                raise StoreError("HK 0.2 volume sidecar native file must not be a symlink")
+            day_bytes = day_path.read_bytes() if day_path.is_file() else b""
+            size = prefix.get("size_bytes")
+            prefix_sha256 = prefix.get("sha256")
+            if (
+                not isinstance(size, int)
+                or isinstance(size, bool)
+                or size < 0
+                or len(day_bytes) < size
+                or not isinstance(prefix_sha256, str)
+                or hashlib.sha256(day_bytes[:size]).hexdigest() != prefix_sha256
+                or len(day_bytes) % _VIPDOC_DAY_STRUCT.size
+            ):
+                raise StoreError("HK 0.2 volume sidecar native prefix changed")
+            native_dates = [
+                int(_VIPDOC_DAY_STRUCT.unpack(day_bytes[offset:offset + _VIPDOC_DAY_STRUCT.size])[0])
+                for offset in range(0, len(day_bytes), _VIPDOC_DAY_STRUCT.size)
+            ]
+            if int(target) in native_dates or (native_dates and int(target) < max(native_dates)):
+                raise StoreError("HK 0.2 volume sidecar conflicts with native .day history")
+            row = {
+                "trade_date": int(target),
+                "trade_date_compact": target,
+                "code_norm": code,
+                "ts_code": f"{raw_code}.HK_CONNECT",
+                "raw_code": raw_code,
+                "market_type": "HK",
+                "exchange": "HK_CONNECT",
+                "open": float(source_row["open"]),
+                "high": float(source_row["high"]),
+                "low": float(source_row["low"]),
+                "close": float(source_row["close"]),
+                "amount": float(source_row.get("turnover", source_row.get("amount"))),
+                "trade": volume_shares,
+                "position": 0,
+                "source": "FUTU_HKCONNECT_SNAPSHOT_VOLUME_OVERFLOW",
+                "source_path": f"vipdoc/ds/lday/.v4_hk_volume_overflow/{path.name}",
+                "name": str(source_row.get("name") or ""),
+            }
+            same_key = [
+                prior for prior in native_rows
+                if prior.get("code_norm") == code and prior.get("trade_date_compact") == target
+            ] + [
+                prior for prior in sidecar_rows
+                if prior.get("code_norm") == code and prior.get("trade_date_compact") == target
+            ]
+            if same_key:
+                fields = ("open", "high", "low", "close", "amount", "trade")
+                if any(any(prior.get(field) != row.get(field) for field in fields) for prior in same_key):
+                    raise StoreError("HK 0.2 same-code same-date volume sidecar conflicts with existing row")
+                continue
+            sidecar_rows.append(row)
+        if sidecar_evidence is not None:
+            sidecar_evidence.append({
+                "source_relative": f"vipdoc/ds/lday/.v4_hk_volume_overflow/{path.name}",
+                "sha256": hashlib.sha256(ledger_bytes).hexdigest(),
+                "size_bytes": len(ledger_bytes),
+                "selected_rows": len(selected_codes),
+                "codes": sorted(selected_codes),
+                "storage": "immutable_json_sidecar",
+                "volume_unit": "shares",
+                "volume_source": "FUTU_HKCONNECT_SNAPSHOT.source_row.volume",
+                "source_capture_sha256": ledger["source_capture_sha256"],
+                "source_capture_raw_sha256": ledger["source_capture_raw_sha256"],
+            })
+    return sidecar_rows
+
+
 def _read_vipdoc_increment(
     lday_root: Path,
     *,
@@ -536,7 +682,13 @@ def _read_vipdoc_increment(
                         "name": "",
                     }
                 )
-    return rows, len(files)
+    sidecar_rows = _read_hk_volume_overflow_sidecars(
+        lday_root,
+        after_date=after_date,
+        through_date=through_date,
+        native_rows=rows,
+    )
+    return rows + sidecar_rows, len(files)
 
 
 def _enrich_vipdoc_increment(existing, increment):

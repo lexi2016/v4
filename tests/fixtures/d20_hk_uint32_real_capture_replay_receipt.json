@@ -1,0 +1,47 @@
+{
+  "schema_version": "v4.d20_hk_uint32_real_capture_replay.v1",
+  "status": "PASS_ISOLATED_REAL_D20_CAPTURE_STATIC_READER",
+  "scope": "One D20 HK capture packed and read in temporary storage through the static active-reader patch; no updater or publication call.",
+  "target_date": "20261120",
+  "capture": {
+    "row_count": 705,
+    "unique_code_count": 705,
+    "envelope_sha256": "d5e605a99726429c632e162b940e7c2f2dbe34988b1efd0edcaac416ff8b6457",
+    "raw_sha256": "61997483a37656cd18c4ab5be03776730e98b5575eab3d590cc6607bf71ebe2a"
+  },
+  "active_reader_patch": {
+    "base_sha256": "45a5091cb26800b7ccf8d7c3c75b680e951d492ac8ceb5f30b80a1ff9a6eebac",
+    "patched_sha256": "7f6e8f036350c42b2c12a24ca61dcba9d12df7c4b577bf0e4747bef27ebbcb0f",
+    "patch_sha256": "d94b0646577e0e2daadc4fa2400905f9b5265e19f29a8f826cbf1b8978cd54ec"
+  },
+  "native_prefix": {
+    "bytes": 2080,
+    "sha256": "df9c7221125818b43cc29996cacbd1f7d86cdad326fc2fec1f0ebb7063ce7d43"
+  },
+  "existing_native_reconciliation": {
+    "receipt_sha256": "576ca835952edf32a979618a6f520e67d68b6bfb7855e0806e66391846776503",
+    "matching_d20_rows": 491,
+    "mismatched_d20_rows": 0
+  },
+  "temporary_static_reader_replay": {
+    "reader_increment_rows": 705,
+    "reader_source_file_count": 705,
+    "overflow_sidecar_count": 1,
+    "overflow_share_and_turnover_match_capture": true,
+    "same_source_row_with_new_capture_sha_idempotent": true,
+    "scratch_removed": true
+  },
+  "tracked_fixture_test_sha256": "d94c3eb31c0dff853f1025f0050c3904fc888f0267a328775e9f872109ed9ff0",
+  "flags": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "not_run": [
+    "production updater",
+    "formal publication",
+    "natural run",
+    "API or UI verification"
+  ]
+}
