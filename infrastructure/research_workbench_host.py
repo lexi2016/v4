@@ -982,6 +982,31 @@ class ResearchWorkbenchHost:
                                                                [row['symbol'] for row in rows])
             except (KeyError, OSError, TypeError, ValueError, AttributeError):
                 value['original_marks'] = dict(status='CANNOT_CONFIRM', reason='ORIGINAL_D35C_BINDING_INVALID')
+        elif isinstance(product.get('original_charts'), dict):
+            # Formula-group bindings may be committed dynamically and omit the
+            # optional drawing sidecar. Reuse only a same-date native owner
+            # projection already listed by the existing chart reader.
+            try:
+                projection_ref = next((row for row in self.chart_views(source_date, revision)
+                                       ['projections'].get('rows', []) if row.get('symbol') == symbol), None)
+                if projection_ref is not None:
+                    original = self.source.read_original_chart(product['data_date'], symbol,
+                        generation=product['source_generation'],
+                        input_sha256=product['source_identity']['input_sha256'],
+                        asset='projection', asset_sha256=projection_ref['sha256'])
+                    asset_ref = original['assets']['projection']
+                    if (original.get('status') != 'READY' or original.get('symbol') != symbol
+                            or original.get('data_date') != product['data_date']
+                            or original.get('source_generation') != product['source_generation']
+                            or original.get('input_sha256') != product['source_identity']['input_sha256']
+                            or original.get('product_manifest') != product['manifest']
+                            or asset_ref.get('sha256') != projection_ref['sha256']):
+                        raise ValueError('ORIGINAL_D35C_NATIVE_PROJECTION_BINDING_CONFLICT')
+                    from infrastructure.research_workbench_d35c_marks import chart_original_marks_from_projection
+                    value['original_marks'] = chart_original_marks_from_projection(
+                        original['_asset_bytes'], asset_ref, value)
+            except (KeyError, OSError, TypeError, ValueError, AttributeError):
+                value['original_marks'] = dict(status='CANNOT_CONFIRM', reason='ORIGINAL_D35C_NATIVE_PROJECTION_INVALID')
         return value
 
     def chart_views(self,source_date,revision=None):
