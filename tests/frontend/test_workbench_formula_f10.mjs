@@ -117,7 +117,8 @@ test('bound company research fills the card while F10 loads, then observed F10 t
   cards.showResearch(researchDay,symbol,companyResearch(symbol,business));
   assert.ok(summary.children.some(item=>item.textContent===`研究回传主营：${business}`));
   assert.ok(summary.children.some(item=>item.textContent.includes('PARTIAL')));
-  assert.ok(!summary.children.some(item=>item.textContent.includes('F10')) || summary.children.some(item=>item.textContent.includes('F10')));
+  assert.ok(summary.children.some(item=>item.textContent.includes('本日 F10 正在读取')));
+  assert.ok(!summary.children.some(item=>item.textContent==='主营业务：F10 实际描述。'));
   requests[0].resolve({...response(symbol,'OBSERVED',{source_detail:{main_business:'F10 实际描述。'}}),
     data_date:'20261119',source_generation:researchDay.generation,input_sha256:researchDay.input_sha256,
     numeric_manifest:researchDay.numeric_manifest});

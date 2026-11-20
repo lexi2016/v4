@@ -47,7 +47,7 @@ test('invalid, duplicated, and out-of-candidate URL symbols fall back explicitly
 });
 
 test('loadDay captures the route before asynchronous reads and passes it into first render', () => {
-  assert.match(source, /async function loadDay\(\)\{const routeSelection=requestedSelectionFromSearch\(location\.search\);/);
+  assert.match(source, /async function loadDay\(onListBound\)\{const routeSelection=requestedSelectionFromSearch\(location\.search\);/);
   assert.match(source, /const initial=renderList\(true,routeSelection\);/);
   assert.match(source, /initial\.status==='INVALID'\?`链接指定股票代码无效 · CANNOT_CONFIRM/);
   assert.match(source, /链接指定股票 \$\{initial\.symbol\} 不在 \$\{day\.source_date\} 当前候选中 · CANNOT_CONFIRM/);

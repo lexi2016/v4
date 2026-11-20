@@ -19,8 +19,8 @@ const fixture = options.fixture ? JSON.parse(await readFile(options.fixture,'utf
 const {sourceDate,observationDate,positive,gapSymbol} = fixture;
 assert.match(sourceDate,/^\d{4}-\d{2}-\d{2}$/);
 assert.match(observationDate,/^\d{4}-\d{2}-\d{2}$/);
-for (const symbol of [positive.symbol,gapSymbol]) assert.match(symbol,/^\d{6}\.(SH|SZ|BJ)$/);
-assert.ok(positive.symbol!==gapSymbol && Number.isInteger(positive.score) && positive.marker && positive.anchor);
+for (const symbol of [positive.symbol,...(gapSymbol?[gapSymbol]:[]),...(fixture.companyCases??[]).map(item=>item.symbol)]) assert.match(symbol,/^\d{6}\.(SH|SZ|BJ)$/);
+assert.ok((!gapSymbol||positive.symbol!==gapSymbol) && Number.isInteger(positive.score) && positive.marker && positive.anchor);
 assert.ok(positive.company.length && positive.financial.length);
 const base = new URL(options.base);
 assert.ok(base.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(base.hostname)&&
@@ -33,8 +33,10 @@ const dayCode = sourceDate.replaceAll('-','');
 const url = new URL('/research-panel/workbench.html',base);
 url.search = new URLSearchParams({source_date:sourceDate,observation_date:observationDate,symbol:positive.symbol});
 const f10Path = symbol => `${dayPath}/f10/${symbol}`;
+const companyPath = symbol => `${dayPath}/company/${symbol}`;
 const scorePath = `${dayPath}/single-research/${positive.symbol}`;
 const chartPath = `${dayPath}/formula-daily-k/${positive.symbol}`;
+const top200Path = `${dayPath}/top200`;
 const sha = value => typeof value==='string' && /^[a-f0-9]{64}$/.test(value);
 const flags = {RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false};
 
@@ -43,16 +45,19 @@ async function get(path) {
   assert.equal(response.status,200,path);
   return response.json();
 }
-const [day,chart,score,f10,gap] = await Promise.all([get(dayPath),get(chartPath),get(scorePath),get(f10Path(positive.symbol)),get(f10Path(gapSymbol))]);
+const [day,chart,score,f10,top200] = await Promise.all([get(dayPath),get(chartPath),get(scorePath),get(f10Path(positive.symbol)),get(top200Path)]);
+const gap = gapSymbol ? await get(f10Path(gapSymbol)) : null;
+const company = fixture.mode==='company-research' ? await get(companyPath(positive.symbol)) : null;
+const companyForFault = options['exercise-regressions']&&fixture.mode!=='company-research' ? await get(companyPath(positive.symbol)) : null;
 assert.ok(day.formula_groups && day.source_date===sourceDate && day.observation_date===observationDate);
 assert.ok(sha(day.generation)&&sha(day.input_sha256)&&sha(day.numeric_manifest?.sha256));
-for (const symbol of [positive.symbol,gapSymbol]) assert.ok(day.rows.some(row=>row.symbol===symbol),symbol);
-for (const value of [day,chart,score,f10,gap]) {
+for (const symbol of [positive.symbol,...(gapSymbol?[gapSymbol]:[]),...(fixture.companyCases??[]).map(item=>item.symbol)]) assert.ok(day.rows.some(row=>row.symbol===symbol),symbol);
+for (const value of [day,chart,score,f10,top200,company,gap].filter(Boolean)) {
   for (const [key,expected] of Object.entries(flags)) assert.equal(value[key],expected,key);
   assert.equal(value.generation??value.source_generation,day.generation);
   assert.equal(value.input_sha256,day.input_sha256);
 }
-for (const value of [chart,score,f10]) assert.equal(value.symbol,positive.symbol);
+for (const value of [chart,score,f10,company].filter(Boolean)) assert.equal(value.symbol,positive.symbol);
 for (const value of [chart,score]) {
   assert.equal(value.source_date,sourceDate);
   assert.deepEqual(value.numeric_manifest,day.numeric_manifest);
@@ -63,15 +68,42 @@ assert.equal(chart.original_marks.symbol,positive.symbol);
 assert.equal(chart.original_marks.generation,day.generation);
 assert.equal(chart.original_marks.input_sha256,day.input_sha256);
 assert.ok(chart.original_marks.marks.some(mark=>mark.trade_date===dayCode&&mark.payload===positive.marker&&mark.y===positive.anchor),'API has no golden original mark');
+for (const [name,value] of Object.entries(positive.lines??{})) {
+  const point=chart.original_marks.lines?.[name]?.at(-1);
+  assert.deepEqual(point,{trade_date:dayCode,y:value},`API has no exact ${name} point`);
+}
 assert.equal(score.status,'MATERIALIZED');
 assert.equal(score.row?.hold_score?.kb_hold_score,positive.score);
-assert.equal(f10.status,'OBSERVED');
 assert.equal(f10.data_date,dayCode);
-assert.ok(sha(f10.receipt?.sha256)&&sha(f10.stock_ref?.sha256));
-assert.equal(gap.symbol,gapSymbol);
-assert.equal(gap.data_date,dayCode);
-assert.equal(gap.status,'CANNOT_CONFIRM_SOURCE_GAP');
-assert.ok(sha(gap.receipt?.sha256)&&!gap.f10);
+assert.equal(top200.schema,'V4_A_SHARE_TOP200_V1');
+assert.equal(top200.data_date,dayCode);
+assert.equal(top200.status,'PARTIAL_DESCRIPTIVE');
+assert.equal(top200.top200_count,200);
+assert.equal(top200.top200?.length,200);
+assert.deepEqual(top200.numeric_manifest,day.numeric_manifest);
+if (fixture.mode==='company-research') {
+  assert.equal(f10.status,'NOT_MATERIALIZED');
+  assert.equal(f10.symbol,positive.symbol);
+  assert.equal(company.company_scope_status,'FORMULA_ROSTER_EXACT_MATCH');
+  assert.equal(company.source_date,sourceDate);
+  assert.equal(company.observation_date,observationDate);
+  assert.deepEqual(company.numeric_manifest,day.numeric_manifest);
+  const received=company.received_materials;
+  assert.equal(received.business_reported?.value,positive.company[0].replace('研究回传主营：',''));
+  assert.equal(received.received_fundamentals?.status,'PARTIAL');
+  assert.equal(received.formula_group_scope?.candidate_count,day.rows.length);
+  assert.equal(received.received_batch_summary?.package_id,'V4_A_FORMULA_D20261119_O20261120_CHAT_RESEARCH_V2');
+  assert.ok(positive.financial.every(value=>typeof value==='string'));
+} else {
+  assert.equal(f10.status,'OBSERVED');
+  assert.ok(sha(f10.receipt?.sha256)&&sha(f10.stock_ref?.sha256));
+}
+if (gap) {
+  assert.equal(gap.symbol,gapSymbol);
+  assert.equal(gap.data_date,dayCode);
+  assert.equal(gap.status,'CANNOT_CONFIRM_SOURCE_GAP');
+  assert.ok(sha(gap.receipt?.sha256)&&!gap.f10);
+}
 
 const completion = options['require-f10-completion'] ? await get(`${dayPath}/versions`) : null;
 if (completion) {
@@ -97,6 +129,7 @@ try {
     page.on('pageerror',error=>errors.push(error.message));
     await page.addInitScript(({fault,marker})=>{
       window.__acceptedDraws=new Set();
+      window.__linePaints=[];
       window.__completionStreams=new Map();
       const nativeEventSource=window.EventSource;
       window.EventSource=class extends nativeEventSource {
@@ -118,18 +151,19 @@ try {
           return result;
         };
       }
+      const nativeStroke=CanvasRenderingContext2D.prototype.stroke;
+      CanvasRenderingContext2D.prototype.stroke=function(...args){
+        if(this.canvas.closest('#formulaDailyChart')?.dataset.symbol)window.__linePaints.push(String(this.strokeStyle).toLowerCase());
+        return nativeStroke.apply(this,args);
+      };
     },{fault,marker:positive.marker});
-    if (fault==='omit-score') await page.route(requestUrl=>requestUrl.pathname===scorePath,async route=>{
-      const actual=await route.fetch();
-      await route.fulfill({response:actual,json:{...await actual.json(),status:'UNKNOWN',reason:'SYMBOL_NOT_MATERIALIZED_FOR_DATE',row:null}});
-    });
+    if (fault==='omit-score') await page.route(requestUrl=>requestUrl.pathname===scorePath,route=>
+      route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...score,status:'UNKNOWN',reason:'SYMBOL_NOT_MATERIALIZED_FOR_DATE',row:null})}));
     if (fault==='company-instead-of-f10') await page.route(requestUrl=>requestUrl.pathname===f10Path(positive.symbol),async route=>{
-      const legacy=new URL(route.request().url());
-      legacy.pathname=`${dayPath}/company/${positive.symbol}`;
-      await route.fulfill({response:await route.fetch({url:legacy.href})});
+      await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(companyForFault)});
     });
     async function expectView(code, condition, args) {
-      try { await page.waitForFunction(condition,args,{timeout:fault==='none'?15000:4500}); }
+      try { await page.waitForFunction(condition,args,{timeout:15000}); }
       catch (cause) {
         const state=await page.evaluate(()=>Object.fromEntries(['stockCode','dates','kbSingleScore','formulaCompanySummary','formulaCompanyMetrics']
           .map(id=>[id,document.getElementById(id)?.innerText]))).catch(()=>({}));
@@ -145,6 +179,15 @@ try {
           !host.hidden&&canvas?.getBoundingClientRect().width>100&&canvas.getBoundingClientRect().height>100&&
           host.querySelector('select')?.value===dayCode&&host.innerText.includes(`${marker} @${anchor}`)&&window.__acceptedDraws.has(symbol);
       },{symbol:positive.symbol,dayCode,marker:positive.marker,anchor:positive.anchor});
+      if (positive.lines) {
+        for (const color of ['#ffffff','#fbcd2d']) {
+          await page.waitForFunction(color=>window.__linePaints.includes(color),color,{timeout:10000});
+        }
+        await expectView('ORIGINAL_LINE_VALUES_NOT_RENDERED',({lines})=>{
+          const text=document.getElementById('formulaDailyChart')?.innerText??'';
+          return Object.entries(lines).every(([name,value])=>text.includes(`${name} ${value}`));
+        },{lines:positive.lines});
+      }
       await expectView('EXACT_SCORE_NOT_RENDERED',({symbol,sourceDate,score})=>{
         const get=id=>document.getElementById(id);
         const card=get('kbSingleResearch');
@@ -152,12 +195,12 @@ try {
           get('kbSingleCode')?.textContent===symbol&&get('kbSingleStatus')?.innerText.includes(sourceDate)&&
           get('kbSingleScore')?.innerText.includes(`${score}/5`);
       },{symbol:positive.symbol,sourceDate,score:positive.score});
-      await expectView('EXACT_F10_NOT_RENDERED',({symbol,company,financial})=>{
+      await expectView(fixture.mode==='company-research'?'COMPANY_RESEARCH_NOT_RENDERED':'EXACT_F10_NOT_RENDERED',({symbol,company,financial})=>{
         const a=document.getElementById('formulaCompanySummary'),b=document.getElementById('formulaCompanyMetrics');
         return a?.getBoundingClientRect().height>0&&b?.getBoundingClientRect().height>0&&a.dataset.companySymbol===symbol&&b.dataset.companySymbol===symbol&&
           company.every(value=>a.innerText.includes(value))&&financial.every(value=>b.innerText.includes(value));
       },positive);
-      for (const path of [chartPath,scorePath,f10Path(positive.symbol)]) assert.ok(reads.includes(path),`Missing browser response ${path}`);
+      for (const path of [chartPath,scorePath,f10Path(positive.symbol),top200Path,...(company?[companyPath(positive.symbol)]:[])]) assert.ok(reads.includes(path),`Missing browser response ${path}`);
       if (fault==='none'&&completion) {
         const streamPath=`${dayPath}/events`;
         const handle=await page.waitForFunction(({path,marker})=>window.__completionStreams.get(path)?.latest?.modules?.f10 &&
@@ -184,26 +227,58 @@ try {
         assert.equal(refreshed.source_generation,day.generation);
         assert.equal(refreshed.input_sha256,day.input_sha256);
       }
-      await page.locator('#query').fill(gapSymbol);
-      await expectView('F10_GAP_NOT_RENDERED',({symbol,oldRevenue})=>{
-        const get=id=>document.getElementById(id),company=get('formulaCompanySummary'),metrics=get('formulaCompanyMetrics');
-        return get('stockCode')?.textContent===symbol&&company?.getBoundingClientRect().height>0&&metrics?.getBoundingClientRect().height>0&&
-          company.dataset.companySymbol===symbol&&metrics.dataset.companySymbol===symbol&&company.innerText.includes('本股缺少可用快照')&&
-          metrics.innerText.includes('本日 F10 财务与股东资料待核')&&oldRevenue.every(value=>!metrics.innerText.includes(value));
-      },{symbol:gapSymbol,oldRevenue:positive.financial});
-      assert.ok(reads.includes(f10Path(gapSymbol)));
+      if (company) {
+        for (const item of fixture.companyCases??[]) {
+          const path=companyPath(item.symbol),value=await get(path);
+          assert.equal(value.symbol,item.symbol);
+          assert.equal(value.generation,day.generation);
+          assert.equal(value.input_sha256,day.input_sha256);
+          assert.equal(value.company_scope_status,'FORMULA_ROSTER_EXACT_MATCH');
+          assert.equal(value.received_materials?.business_reported?.value,item.business);
+          assert.equal(value.received_materials?.received_fundamentals?.status,'PARTIAL');
+          await page.locator('#query').fill(item.symbol);
+          await page.locator(`#stockList button[data-symbol="${item.symbol}"]`).click();
+          await expectView('COMPANY_RESEARCH_SYMBOL_NOT_UPDATED',({symbol,business})=>{
+            const summary=document.getElementById('formulaCompanySummary'),metrics=document.getElementById('formulaCompanyMetrics');
+            return document.getElementById('stockCode')?.textContent===symbol&&summary?.dataset.companySymbol===symbol&&
+              metrics?.dataset.companySymbol===symbol&&summary.innerText.includes(`研究回传主营：${business}`)&&
+              summary.innerText.includes('PARTIAL')&&metrics.innerText.includes('待核');
+          },item);
+          assert.ok(reads.includes(path),`Missing company research response ${path}`);
+        }
+      }
+      if (gapSymbol) {
+        await page.locator('#query').fill(gapSymbol);
+        await expectView('F10_GAP_NOT_RENDERED',({symbol,oldRevenue})=>{
+          const get=id=>document.getElementById(id),company=get('formulaCompanySummary'),metrics=get('formulaCompanyMetrics');
+          return get('stockCode')?.textContent===symbol&&company?.getBoundingClientRect().height>0&&metrics?.getBoundingClientRect().height>0&&
+            company.dataset.companySymbol===symbol&&metrics.dataset.companySymbol===symbol&&company.innerText.includes('本股缺少可用快照')&&
+            metrics.innerText.includes('本日 F10 财务与股东资料待核')&&oldRevenue.every(value=>!metrics.innerText.includes(value));
+        },{symbol:gapSymbol,oldRevenue:positive.financial});
+        assert.ok(reads.includes(f10Path(gapSymbol)));
+      }
+      await page.locator('#query').fill('');
+      await page.locator('#groupFilters button[data-group="top200"]').click();
+      await expectView('TOP200_GROUP_NOT_RENDERED',()=>{
+        const button=document.querySelector('#groupFilters button[data-group="top200"]');
+        const rows=document.querySelectorAll('#stockList button[data-symbol]');
+        return button?.innerText.includes('Top200 200')&&document.getElementById('listCount')?.innerText.includes('Top200 200只')&&rows.length>0;
+      },{});
       assert.deepEqual(errors,[]);
     } finally { await page.close(); }
   }
   await check('none');
   const caught=[];
   if (options['exercise-regressions']) {
-    for (const [fault,code] of [['omit-chart-paint','ORIGINAL_MARK_NOT_PAINTED'],['omit-score','EXACT_SCORE_NOT_RENDERED'],['company-instead-of-f10','EXACT_F10_NOT_RENDERED']]) {
+    const controls=[['omit-chart-paint','ORIGINAL_MARK_NOT_PAINTED'],['omit-score','EXACT_SCORE_NOT_RENDERED']];
+    if (fixture.mode!=='company-research') controls.push(['company-instead-of-f10','EXACT_F10_NOT_RENDERED']);
+    for (const [fault,code] of controls) {
       await assert.rejects(()=>check(fault),error=>error.code===code,`${fault} must fail for its own reason`);
       caught.push(code);
     }
   }
   console.log(JSON.stringify({status:'PASS_FORMULA_WORKBENCH_BROWSER',base:base.origin,sourceDate,observationDate,generation:day.generation,
     input_sha256:day.input_sha256,marker:positive.marker,score:positive.score,observed:positive.symbol,gap:gapSymbol,
+    company_research_checked:Boolean(company),top200_count:top200.top200_count,white_yellow_lines_checked:Boolean(positive.lines),
     f10_completion_checked:Boolean(completion),negative_controls:caught}));
 } finally { await browser.close(); }
