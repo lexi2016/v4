@@ -1300,7 +1300,239 @@ class ResearchLaneSource:
         timestamp = cls._company_time(value)
         return timestamp is not None and timestamp > cutoff
 
-    def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None, allow_processed_symbol=False):
+    def _validate_formula_company_binding(self, binding, manifest, product, symbol, date,
+                                          observation_date, roster_sha256):
+        """Validate an additive company-materials subset against its exact formula roster."""
+        scope = manifest.get("formula_group_scope")
+        expected_input = product.get("source_identity", {}).get("input_sha256")
+        if (not isinstance(scope, Mapping)
+                or scope.get("schema") != "V4_FORMULA_GROUP_SCOPED_IMPORT_V1"
+                or scope.get("roster_sha256") != roster_sha256
+                or scope.get("candidate_count") != len(manifest.get("items", {}))
+                or scope.get("source_date") != date
+                or scope.get("observation_date") != observation_date
+                or scope.get("source_generation") != product.get("source_generation")
+                or scope.get("input_sha256") != expected_input
+                or manifest.get("data_date") != date or manifest.get("numeric_manifest") != product.get("manifest")
+                or manifest.get("source_generation") != product.get("source_generation")
+                or manifest.get("input_sha256") != expected_input
+                or any(scope.get(key) is not value for key, value in dict(
+                    RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False).items())
+                or any(manifest.get(key) is not value for key, value in dict(
+                    RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False).items())):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SCOPE_CONFLICT")
+        manifest_sources = manifest.get("source_refs")
+        source_refs = manifest_sources.get("formula_scope") if isinstance(manifest_sources, Mapping) else None
+        source_roster_refs = {
+            "roster_pointer": scope.get("source_roster_pointer_ref"),
+            "roster_artifact": scope.get("source_roster_artifact_ref"),
+            "roster_receipt": scope.get("source_roster_receipt_ref"),
+            "input_zip": scope.get("input_zip_ref"),
+        }
+        if (not isinstance(source_refs, Mapping)
+                or source_refs.get("schema") != scope.get("schema")
+                or any(source_refs.get(key) != value for key, value in source_roster_refs.items())
+                or not isinstance(scope.get("roster_artifact_ref"), Mapping)
+                or scope["roster_artifact_ref"].get("sha256") != roster_sha256
+                or not isinstance(scope.get("roster_pointer_ref"), Mapping)
+                or not isinstance(scope.get("roster_receipt_ref"), Mapping)
+                or any(not isinstance(reference, Mapping)
+                       or not isinstance(reference.get("path"), str)
+                       or not isinstance(reference.get("sha256"), str)
+                       or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"])
+                       for reference in source_roster_refs.values())):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_BINDING_CONFLICT")
+
+        pointer = self._a_product_reference(scope["roster_pointer_ref"])
+        roster = self._a_product_reference(scope["roster_artifact_ref"])
+        receipt = self._a_product_reference(scope["roster_receipt_ref"])
+        roster_artifact = scope["source_roster_artifact_ref"]
+        roster_receipt = scope.get("source_roster_receipt_ref")
+        if (not isinstance(roster_artifact, Mapping) or not isinstance(roster_receipt, Mapping)
+                or roster_artifact.get("sha256") != roster_sha256
+                or scope["roster_pointer_ref"].get("sha256") != scope["source_roster_pointer_ref"].get("sha256")
+                or scope["roster_receipt_ref"].get("sha256") != roster_receipt.get("sha256")
+                or pointer.get("schema") != "V4_WORKBENCH_MODULE_COMMIT_V1"
+                or pointer.get("module") != "formula_groups"
+                or pointer.get("date") != f"{date[:4]}-{date[4:6]}-{date[6:]}"
+                or pointer.get("artifact") != roster_artifact
+                or pointer.get("receipt") != roster_receipt
+                or receipt.get("status") != "COMMITTED"
+                or receipt.get("artifact") != roster_artifact
+                or str(receipt.get("source_date", "")).replace("-", "") != date
+                or receipt.get("generation") != product.get("source_generation")
+                or receipt.get("numeric_manifest") != product.get("manifest")
+                or roster.get("schema") != "V4_WORKBENCH_FORMULA_GROUP_OVERRIDE_V1"
+                or str(roster.get("source_date", "")).replace("-", "") != date
+                or str(roster.get("observation_date", "")).replace("-", "") != scope.get("observation_date")
+                or roster.get("generation") != product.get("source_generation")
+                or roster.get("input_sha256") != expected_input
+                or roster.get("numeric_manifest") != product.get("manifest")
+                or any(pointer.get(key) is not value for key, value in dict(
+                    RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False).items())
+                or any(receipt.get(key) is not value for key, value in dict(
+                    RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False).items())
+                or any(roster.get(key) is not value for key, value in dict(
+                    RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False).items())):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_ROSTER_IDENTITY_CONFLICT")
+
+        rows = roster.get("rows")
+        group_counts = roster.get("group_counts")
+        if not isinstance(rows, list) or not isinstance(group_counts, Mapping):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_ROSTER_ROWS_INVALID")
+        group_names = {"b23_entry", "pb2_confirm"}
+        actual_counts = {name: 0 for name in group_names}
+        roster_rows = {}
+        overlap_count = 0
+        for row in rows:
+            if not isinstance(row, Mapping):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_ROSTER_ROW_INVALID")
+            code, name, groups = row.get("symbol"), row.get("display_name"), row.get("groups")
+            if (not isinstance(code, str) or not re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", code)
+                    or code in roster_rows or not isinstance(name, str) or not name.strip()
+                    or not isinstance(groups, list) or not groups or len(groups) != len(set(groups))
+                    or not set(groups) <= group_names):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_ROSTER_ROW_INVALID")
+            for group in groups:
+                actual_counts[group] += 1
+            overlap_count += len(groups) > 1
+            roster_rows[code] = {"name": name, "groups": sorted(groups)}
+        if (set(group_counts) != group_names
+                or any(type(group_counts[group]) is not int or group_counts[group] <= 0 for group in group_names)
+                or type(scope.get("candidate_count")) is not int
+                or type(scope.get("overlap_count")) is not int
+                or dict(group_counts) != actual_counts
+                or scope.get("group_counts") != dict(group_counts)
+                or scope.get("overlap_count") != overlap_count
+                or scope.get("candidate_count") != len(roster_rows)
+                or scope.get("formula_sha256") != roster.get("formula_sha256")
+                or set(manifest.get("items", {})) != set(roster_rows)):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_ROSTER_SCOPE_CONFLICT")
+        if symbol not in roster_rows:
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SYMBOL_NOT_IN_ROSTER")
+
+        item_ref = manifest["items"][symbol]
+        shard = self._a_product_reference(item_ref)
+        membership = shard.get("formula_group_membership")
+        owner_ref = product.get("row_refs", {}).get(symbol)
+        bound_owner_ref = membership.get("owner_row_ref") if isinstance(membership, Mapping) else None
+        expected_member = roster_rows[symbol]
+        if (not isinstance(owner_ref, Mapping) or not isinstance(bound_owner_ref, Mapping)
+                or owner_ref.get("path") != bound_owner_ref.get("path")
+                or owner_ref.get("sha256") != bound_owner_ref.get("sha256")
+                or membership.get("symbol") != symbol or membership.get("name") != expected_member["name"]
+                or membership.get("groups") != expected_member["groups"]
+                or membership.get("roster_sha256") != roster_sha256
+                or str(membership.get("source_date", "")).replace("-", "") != date
+                or str(membership.get("observation_date", "")).replace("-", "")
+                    != str(scope.get("observation_date", "")).replace("-", "")
+                or shard.get("formula_group_scope") != scope
+                or shard.get("symbol") != symbol or shard.get("data_date") != date
+                or shard.get("numeric_manifest") != product.get("manifest")
+                or shard.get("source_generation") != product.get("source_generation")
+                or shard.get("input_sha256") != expected_input):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SHARD_BINDING_CONFLICT")
+        owner_row = self._a_product_reference(owner_ref)
+        self._a_daily_checkpoint_binding(owner_row, product, symbol, date)
+        if owner_row.get("display_name") != expected_member["name"]:
+            raise ValueError("COMPANY_MATERIALS_FORMULA_NAME_BINDING_CONFLICT")
+
+        fund = shard.get("received_fundamentals")
+        performance = shard.get("daily_performance")
+        if (not isinstance(fund, Mapping) or fund.get("status") != "PARTIAL"
+                or fund.get("formula_group_membership") != membership
+                or set(fund.get("source_bindings", {})) != set(fund.get("source_ids", []))
+                or not isinstance(performance, Mapping)
+                or performance.get("future_d2") is not None or performance.get("future_d5") is not None
+                or performance.get("current_target_day_return_pct") is not None
+                or performance.get("current_target_day_performance_status") != "NOT_MATERIALIZED_NOT_READ"):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_ROW_CONTENT_CONFLICT")
+        source_record = fund.get("received_source_record")
+        if not isinstance(source_record, Mapping) or source_record.get("research_status") != "PARTIAL":
+            raise ValueError("COMPANY_MATERIALS_FORMULA_PARTIAL_SOURCE_CONFLICT")
+        try:
+            original_source_ids = json.loads(source_record.get("source_ids") or "[]")
+        except (ValueError, TypeError) as error:
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_IDS_INVALID") from error
+        source_ids = fund.get("source_ids")
+        bindings = fund.get("source_bindings")
+        if (not isinstance(original_source_ids, list) or any(not isinstance(value, str) or not value for value in original_source_ids)
+                or not isinstance(source_ids, list) or not isinstance(bindings, Mapping)
+                or set(original_source_ids) != set(source_ids) or len(original_source_ids) != len(set(original_source_ids))):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_IDS_DRIFT")
+        selected_rows = fund.get("sources", [])
+        quarantined_rows = fund.get("quarantined_sources", [])
+        if (not isinstance(selected_rows, list) or not isinstance(quarantined_rows, list)
+                or any(not isinstance(row, Mapping) for row in selected_rows + quarantined_rows)):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_ROWS_INVALID")
+        selected = {row.get("source_id"): row for row in selected_rows}
+        quarantined = {row.get("source_id"): row for row in quarantined_rows}
+        if len(selected) != len(selected_rows) or len(quarantined) != len(quarantined_rows):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_ROWS_DUPLICATE")
+        expected_selected, expected_quarantined = set(), set()
+        source_registry_ref = (manifest.get("source_refs") or {}).get("sources")
+        for source_id, source_binding in bindings.items():
+            status = source_binding.get("status") if isinstance(source_binding, Mapping) else None
+            applicability = source_binding.get("applicability") if isinstance(source_binding, Mapping) else None
+            if status == "QUARANTINED_UNKNOWN_APPLICABILITY":
+                expected_quarantined.add(source_id)
+                entry = quarantined.get(source_id)
+                if (not isinstance(entry, Mapping) or entry.get("binding") != source_binding
+                        or "source_record" not in entry
+                        or entry.get("source_record") is not None and not isinstance(entry.get("source_record"), Mapping)
+                        or entry.get("source_record") is not None
+                           and entry["source_record"].get("source_id") != source_id):
+                    raise ValueError("COMPANY_MATERIALS_FORMULA_QUARANTINE_BINDING_CONFLICT")
+                continue
+            expected_selected.add(source_id)
+            source = selected.get(source_id)
+            if source is None or source.get("source_scope_evidence") != source_binding:
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SELECTED_SOURCE_BINDING_CONFLICT")
+            if status == "VERIFIED_TARGET_ISSUER":
+                valid = (applicability == "TARGET_ISSUER" and source_binding.get("source_symbol") == symbol
+                         and source.get("symbol") == symbol)
+            elif status == "VERIFIED_PEER_ONLY":
+                valid = (applicability == "PEER_ONLY"
+                         and source_binding.get("peer_symbol") != symbol
+                         and source_binding.get("source_symbol") in (source_binding.get("peer_symbol"), "PEER_ONLY")
+                         and source_binding.get("peer_name") in (source.get("title") or ""))
+            elif status and status.startswith("VERIFIED_BATCH_INPUT_"):
+                scope_size = len(roster_rows)
+                shared_members = {"V2_DAILY_PERFORMANCE": "DAILY_PERFORMANCE.csv",
+                                  "V2_STRUCTURE_INPUT": "STRUCTURE_INPUT.csv"}
+                member = shared_members.get(source_id)
+                expected_scope = f"ALL_{scope_size}"
+                valid = (member is not None and status == f"VERIFIED_BATCH_INPUT_{scope_size}"
+                         and applicability == f"BATCH_INPUT_ALL_{scope_size}"
+                         and source_binding.get("source_symbol") == expected_scope
+                         and source_binding.get("declared_scope") == expected_scope
+                         and source_binding.get("input_member") == member
+                         and isinstance(source_binding.get("input_member_sha256"), str)
+                         and re.fullmatch(r"[0-9a-f]{64}", source_binding["input_member_sha256"]) is not None
+                         and source_binding.get("source_registry_ref") == source_registry_ref
+                         and source.get("locator", "").startswith(member + "；")
+                         and source.get("url", "").startswith("https://drive.google.com/"))
+            else:
+                valid = False
+            if not valid:
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_APPLICABILITY_CONFLICT")
+        if (set(selected) != expected_selected or set(quarantined) != expected_quarantined
+                or expected_selected | expected_quarantined != set(source_ids)):
+            raise ValueError("COMPANY_MATERIALS_FORMULA_SOURCE_SCOPE_CONFLICT")
+        raw_gaps = source_record.get("remaining_material_gaps") or ""
+        try:
+            expected_gaps = json.loads(raw_gaps) if isinstance(raw_gaps, str) else raw_gaps
+        except (ValueError, TypeError):
+            expected_gaps = [part.strip() for part in str(raw_gaps).split(";") if part.strip()]
+        if not isinstance(expected_gaps, list):
+            expected_gaps = [str(expected_gaps)]
+        if fund.get("missing_inputs") != expected_gaps:
+            raise ValueError("COMPANY_MATERIALS_FORMULA_GAP_PRESERVATION_CONFLICT")
+        return {"manifest": manifest, "shard": shard, "roster": roster, "roster_rows": roster_rows}
+
+    def read_a_daily_company_materials(self, date, symbol, *, generation=None, input_sha256=None,
+                                       allow_processed_symbol=False, formula_roster_sha256=None,
+                                       formula_observation_date=None):
         """Read received evidence; current candidate identity never rewrites its origin."""
         product = self.read_a_daily_product(date, include_display_names=False)
         admitted = {row.get("symbol") for row in product.get("rows", [])}
@@ -1313,71 +1545,119 @@ class ResearchLaneSource:
                 or generation is not None and generation != product.get("source_generation")
                 or input_sha256 is not None and input_sha256 != product.get("source_identity", {}).get("input_sha256")):
             raise ValueError("COMPANY_MATERIALS_PRODUCT_IDENTITY_CONFLICT")
+        if formula_roster_sha256 is not None:
+            if (not isinstance(formula_roster_sha256, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", formula_roster_sha256)
+                    or not isinstance(formula_observation_date, str)
+                    or not re.fullmatch(r"\d{8}", formula_observation_date)):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SCOPE_REQUEST_INVALID")
         index = json.loads((self._a_product_root() / "index.json").read_text())
         current = date == index.get("latest_date")
         cutoff = shanghai_now() if current else datetime.strptime(date + "235959", "%Y%m%d%H%M%S").replace(tzinfo=_SHANGHAI, microsecond=999999)
         candidates = []
         skipped = []
+        scoped_binding = None
+        exact_scope = False
+        if formula_roster_sha256 is not None:
+            scoped_index = index.get("company_materials_scoped", {})
+            if not isinstance(scoped_index, Mapping):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SCOPED_INDEX_INVALID")
+            scoped_dates = scoped_index.get(date, {})
+            if not isinstance(scoped_dates, Mapping):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SCOPED_DATE_INVALID")
+            scoped_binding = scoped_dates.get(formula_roster_sha256)
+        if scoped_binding is not None:
+            exact_scope = True
+            manifest = self._a_product_reference(scoped_binding)
+            if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
+                    or manifest.get("data_date") != date or not isinstance(manifest.get("items"), Mapping)):
+                raise ValueError("COMPANY_MATERIALS_FORMULA_SCOPED_BINDING_CONFLICT")
+            verified = self._validate_formula_company_binding(scoped_binding, manifest, product, symbol,
+                date, formula_observation_date, formula_roster_sha256)
+            shard = verified["shard"]
+            received = self._company_time(shard.get("received_at") or manifest.get("received_at"))
+            fund = shard.get("received_fundamentals") or {}
+            times = [fund.get("research_as_of") or fund.get("as_of")]
+            for source in fund.get("sources", []):
+                times.extend(source.get(k) for k in ("disclosed_at", "retrieved_at"))
+            for section in ("business_reported", "financials_reported", "shareholders_reported"):
+                record = shard.get(section) or {}
+                times.extend(record.get(k) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
+            if ((received is not None and received > cutoff)
+                    or any(self._company_after_cutoff(value, cutoff) for value in times)):
+                skipped.append("AFTER_ASOF_CUTOFF")
+            elif not current and received is None:
+                skipped.append("RECEIVED_TIME_UNKNOWN")
+            else:
+                date_only = any(isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value)
+                                for value in times)
+                candidates.append((date, received.isoformat() if received else "", scoped_binding,
+                                   manifest, shard, date_only))
         bindings = index.get("company_materials", {})
         versions = index.get("company_materials_versions", {})
-        for origin in sorted(set(bindings) | set(versions), reverse=True):
-            if origin > date:
-                continue
-            refs = ([bindings[origin]] if origin in bindings else []) + list(reversed(versions.get(origin, [])))
-            seen = set()
-            for binding in refs:
-                key = (binding.get("path"), binding.get("sha256"))
-                if key in seen:
+        if not exact_scope:
+            for origin in sorted(set(bindings) | set(versions), reverse=True):
+                if origin > date:
                     continue
-                seen.add(key)
-                manifest = self._a_product_reference(binding)
-                if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
-                        or manifest.get("data_date") != origin or not isinstance(manifest.get("items"), Mapping)):
-                    raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
-                if symbol not in manifest["items"]:
-                    continue
-                # Validate original frozen numeric bytes, including a replaced same-day generation.
-                numeric = self._a_product_reference(manifest["numeric_manifest"])
-                original_product = self._a_product_reference(numeric["artifact"])
-                if (numeric.get("data_date") != origin or original_product.get("data_date") != origin
-                        or numeric.get("source_generation") != manifest.get("source_generation")
-                        or original_product.get("source_generation") != manifest.get("source_generation")
-                        or numeric.get("input_sha256") != manifest.get("input_sha256")
-                        or original_product.get("source_identity", {}).get("input_sha256") != manifest.get("input_sha256")
-                        or set(manifest["items"]) != {row["symbol"] for row in original_product["rows"]}):
-                    raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
-                shard = self._a_product_reference(manifest["items"][symbol])
-                if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
-                        or shard.get("symbol") != symbol or shard.get("data_date") != origin
-                        or shard.get("numeric_manifest") != manifest.get("source_numeric_manifest", manifest["numeric_manifest"])
-                        or shard.get("source_generation") != manifest.get("source_generation")
-                        or shard.get("input_sha256") != manifest.get("input_sha256")
-                        or shard.get("RESEARCH_ONLY") is not True
-                        or any(shard.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
-                        or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
-                    raise ValueError("COMPANY_MATERIALS_SHARD_IDENTITY_CONFLICT")
-                received = self._company_time(shard.get("received_at") or manifest.get("received_at"))
-                fund = shard.get("received_fundamentals") or {}
-                # Generated/research dates are not proof of first local receipt.
-                times = [fund.get("research_as_of") or fund.get("as_of")]
-                for source in fund.get("sources", []):
-                    times.extend(source.get(k) for k in ("disclosed_at", "retrieved_at"))
-                for section in ("business_reported", "financials_reported", "shareholders_reported"):
-                    record = shard.get(section) or {}
-                    times.extend(record.get(k) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
-                if (received is not None and received > cutoff) or any(self._company_after_cutoff(t, cutoff) for t in times):
-                    skipped.append("AFTER_ASOF_CUTOFF")
-                    continue
-                if not current and received is None:
-                    skipped.append("RECEIVED_TIME_UNKNOWN")
-                    continue
-                date_only = any(isinstance(t, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", t) for t in times)
-                candidates.append((origin, received.isoformat() if received else "", binding, manifest, shard, date_only))
+                refs = ([bindings[origin]] if origin in bindings else []) + list(reversed(versions.get(origin, [])))
+                seen = set()
+                for binding in refs:
+                    key = (binding.get("path"), binding.get("sha256"))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    manifest = self._a_product_reference(binding)
+                    if (manifest.get("schema_version") != "v4.a_share.company_materials_index.v1"
+                            or manifest.get("data_date") != origin or not isinstance(manifest.get("items"), Mapping)):
+                        raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
+                    if symbol not in manifest["items"]:
+                        continue
+                    # Legacy versions remain full-product only; scoped subsets use the explicit pointer above.
+                    numeric = self._a_product_reference(manifest["numeric_manifest"])
+                    original_product = self._a_product_reference(numeric["artifact"])
+                    if (numeric.get("data_date") != origin or original_product.get("data_date") != origin
+                            or numeric.get("source_generation") != manifest.get("source_generation")
+                            or original_product.get("source_generation") != manifest.get("source_generation")
+                            or numeric.get("input_sha256") != manifest.get("input_sha256")
+                            or original_product.get("source_identity", {}).get("input_sha256") != manifest.get("input_sha256")
+                            or set(manifest["items"]) != {row["symbol"] for row in original_product["rows"]}):
+                        raise ValueError("COMPANY_MATERIALS_BINDING_CONFLICT")
+                    shard = self._a_product_reference(manifest["items"][symbol])
+                    if (shard.get("schema_version") != "v4.a_share.company_materials.v1"
+                            or shard.get("symbol") != symbol or shard.get("data_date") != origin
+                            or shard.get("numeric_manifest") != manifest.get("source_numeric_manifest", manifest["numeric_manifest"])
+                            or shard.get("source_generation") != manifest.get("source_generation")
+                            or shard.get("input_sha256") != manifest.get("input_sha256")
+                            or shard.get("RESEARCH_ONLY") is not True
+                            or any(shard.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+                            or any(k in shard for k in ("same_event_returns", "price_distribution", "statistics"))):
+                        raise ValueError("COMPANY_MATERIALS_SHARD_IDENTITY_CONFLICT")
+                    received = self._company_time(shard.get("received_at") or manifest.get("received_at"))
+                    fund = shard.get("received_fundamentals") or {}
+                    # Generated/research dates are not proof of first local receipt.
+                    times = [fund.get("research_as_of") or fund.get("as_of")]
+                    for source in fund.get("sources", []):
+                        times.extend(source.get(k) for k in ("disclosed_at", "retrieved_at"))
+                    for section in ("business_reported", "financials_reported", "shareholders_reported"):
+                        record = shard.get(section) or {}
+                        times.extend(record.get(k) for k in ("disclosed_at", "latest_disclosed_at", "retrieved_at"))
+                    if (received is not None and received > cutoff) or any(self._company_after_cutoff(t, cutoff) for t in times):
+                        skipped.append("AFTER_ASOF_CUTOFF")
+                        continue
+                    if not current and received is None:
+                        skipped.append("RECEIVED_TIME_UNKNOWN")
+                        continue
+                    date_only = any(isinstance(t, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", t) for t in times)
+                    candidates.append((origin, received.isoformat() if received else "", binding, manifest, shard, date_only))
         if not candidates:
-            return {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date,
+            answer = {"status":"NOT_MATERIALIZED", "symbol":symbol, "data_date":date,
                     "missing_reason":"NO_ELIGIBLE_RECEIVED_MATERIALS" if skipped else "NO_BOUND_MATERIALS_FOR_SYMBOL",
                     "availability_gaps":sorted(set(skipped)), "research_only":True,
                     "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+            if formula_roster_sha256 is not None:
+                answer.update(company_scope_status=("FORMULA_ROSTER_EXACT_MATCH" if exact_scope
+                    else "LEGACY_WORKBENCH_FALLBACK_NO_EXACT_SCOPE"), formula_roster_sha256=formula_roster_sha256)
+            return answer
         origin, received, binding, manifest, shard, date_only = max(candidates, key=lambda row: (row[0], row[1]))
         reused = origin != date or manifest["numeric_manifest"] != product["manifest"]
         lifecycle = dict(material_source_date=origin, received_at=received or None,
@@ -1390,11 +1670,20 @@ class ResearchLaneSource:
                              input_sha256=product["source_identity"]["input_sha256"], numeric_manifest=product["manifest"]),
                          material_identity=dict(data_date=origin, source_generation=manifest["source_generation"],
                              input_sha256=manifest["input_sha256"], numeric_manifest=manifest["numeric_manifest"]))
-        return {"status":"PARTIAL_RECEIVED", "symbol":symbol, "data_date":date,
+        answer = {"status":"PARTIAL_RECEIVED", "symbol":symbol, "data_date":date,
                 "source_generation":product["source_generation"], "input_sha256":product["source_identity"]["input_sha256"],
                 "numeric_manifest":product["manifest"], "materials_manifest":binding,
                 "material_ref":manifest["items"][symbol], "materials":shard, "material_lifecycle":lifecycle,
                 "research_only":True, "production_allowed":False, "buy_gate_updated":False, "orders_sent":False}
+        if formula_roster_sha256 is not None:
+            answer.update(company_scope_status=("FORMULA_ROSTER_EXACT_MATCH" if exact_scope
+                else "LEGACY_WORKBENCH_FALLBACK_NO_EXACT_SCOPE"), formula_roster_sha256=formula_roster_sha256)
+            lifecycle.update(company_scope_status=answer["company_scope_status"],
+                             formula_roster_sha256=formula_roster_sha256)
+            if exact_scope:
+                answer["formula_group_membership"] = shard.get("formula_group_membership")
+                lifecycle["company_materials_source_ref"] = binding
+        return answer
 
     def read_a_daily_event_cases(self, date, symbol, *, group="original", horizon="d2"):
         if group not in {"original","nav_smallk","nav_pullback","nav_breakout"} or horizon not in {"d2","d5"}:

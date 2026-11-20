@@ -814,8 +814,24 @@ class ResearchWorkbenchHost:
             except (ValueError,OSError,KeyError,TypeError) as error:return {'error':str(error)}
         try:quote=self._observation_commit(observation)
         except (ValueError,OSError,KeyError,TypeError) as error:quote={'error':str(error)}
+        company_index=self._index()
+        formula_company_scope=None
+        try:
+            formula_groups=self._formula_groups(p,source_date,observation)
+            if formula_groups:
+                roster_ref=formula_groups[0].get('artifact')
+                scoped_index=company_index.get('company_materials_scoped',{})
+                if not isinstance(scoped_index,dict):raise ValueError('WORKBENCH_FORMULA_COMPANY_INDEX_INVALID')
+                scoped_date=scoped_index.get(compact(source_date),{})
+                if not isinstance(scoped_date,dict):raise ValueError('WORKBENCH_FORMULA_COMPANY_DATE_INVALID')
+                formula_company_scope=scoped_date.get(roster_ref.get('sha256')) if isinstance(roster_ref,dict) else None
+        except (ValueError,OSError,KeyError,TypeError) as error:
+            formula_company_scope={'error':str(error)}
+        company_version_payload=[company_index.get('latest_date'),{key:{day:value for day,value in company_index.get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]
+        if formula_company_scope is not None and not (isinstance(formula_company_scope,dict) and 'error' in formula_company_scope):
+            company_version_payload.append(formula_company_scope)
         modules=dict(catalog=digest({key:self._index().get(key,{})for key in ('dates','attempts')}),top200=digest(self._index().get('top200',{}).get(compact(source_date))),classification=self.classifications.version(),list=digest([p['manifest'],self._index().get('display_names',{}).get(compact(source_date))]),
-                     company=digest([self._index().get('latest_date'),{key:{day:value for day,value in self._index().get(key,{}).items() if day<=compact(source_date)} for key in ('company_materials','company_materials_versions')}]),
+                     company=digest(company_version_payload),
                      statistics=digest(version('statistics',source_date)),observations=digest(quote),
                      score_action=digest(self._index().get('score_action',{}).get(compact(source_date))),
                      v192=digest(self._v192_version(source_date)),
@@ -1009,18 +1025,30 @@ class ResearchWorkbenchHost:
         if self._is_skill_date(source_date):return None
         p=self._view(source_date,revision)
         extra={}
+        override=self._formula_groups(p,source_date,self._observation_date(source_date))
+        formula_row=next((row for row in override[1] if row.get('symbol')==symbol),None) if override else None
+        if formula_row is not None:
+            artifact=override[0].get('artifact')
+            if not isinstance(artifact,dict) or not isinstance(artifact.get('sha256'),str):
+                raise ValueError('WORKBENCH_FORMULA_GROUP_ROSTER_SHA_MISSING')
+            extra['formula_roster_sha256']=artifact['sha256']
+            observed=self._observation_date(source_date)
+            if not isinstance(observed,str):raise ValueError('WORKBENCH_FORMULA_GROUP_OBSERVATION_DATE_MISSING')
+            extra['formula_observation_date']=compact(observed)
         if not any(row.get('symbol')==symbol for row in p['rows']):
-            override = self._formula_groups(p, source_date, self._observation_date(source_date))
             if override is None:
                 candidates = self.v192_group(source_date, revision)['rows']
                 if not any(row['symbol'] == symbol for row in candidates):
                     raise KeyError('V192_SYMBOL_NOT_BOUND')
-            elif not any(row['symbol'] == symbol for row in override[1]):
+            elif formula_row is None:
                 raise KeyError('WORKBENCH_FORMULA_GROUP_SYMBOL_NOT_BOUND')
             extra['allow_processed_symbol']=True
         answer=self.source.read_a_daily_company_materials(p['data_date'],symbol,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],**extra)
         if answer.get('status')!='PARTIAL_RECEIVED':
-            return dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',status=answer.get('status'),symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],missing_reason=answer.get('missing_reason'),availability_gaps=answer.get('availability_gaps',[]),**FLAGS)
+            result=dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',status=answer.get('status'),symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],missing_reason=answer.get('missing_reason'),availability_gaps=answer.get('availability_gaps',[]),**FLAGS)
+            if answer.get('company_scope_status') is not None:
+                result.update(company_scope_status=answer.get('company_scope_status'),formula_roster_sha256=answer.get('formula_roster_sha256'))
+            return result
         if answer.get('numeric_manifest')!=p['manifest']:raise ValueError('WORKBENCH_COMPANY_REVISION_MOVED')
         m=answer['materials'];business=m.get('business_reported') or {};finance=m.get('financials_reported') or {};holders=m.get('shareholders_reported') or {}
         holder_history=m.get('provenance_details',{}).get('shareholder_count_history') or []
@@ -1030,7 +1058,10 @@ class ResearchWorkbenchHost:
             return copy.deepcopy(original) if isinstance(original,dict) else {**fact(fallback,{**holders,'source_url':holders.get('holder_source_url')}),'unit':unit,'missing_reason':None if fallback is not None else 'CANNOT_CONFIRM_MISSING_COMPARABLE_PERIOD'}
         # This is a received-value projection, never a new financial evaluation.
         def fact(value,source):return dict(value=value,unit=source.get('monetary_unit'),source_url=source.get('latest_financial_source_url') or source.get('source_url'),asof_date=source.get('asof_date') or source.get('holder_asof'),disclosed_at=source.get('disclosed_at') or source.get('latest_disclosed_at'),evidence_status=source.get('evidence_status','PARTIAL_RECEIVED'))
-        return dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],business=dict(summary=fact(business.get('value'),business)),actual_controller=None,latest_financial=dict(report_period=finance.get('latest_report_period'),period_kind=finance.get('latest_period_kind')),facts=[['营收',fact(finance.get('latest_revenue'),finance)],['归母净利润',fact(finance.get('latest_net_profit_parent'),finance)],['股东户数',holder_fact('holder_count',holders.get('holder_count'),'户')],['股东较上期变化',holder_fact('change_accounts',holders.get('holder_change_accounts'),'户')],['股东较上期变化率',holder_fact('change_percent',holders.get('holder_change_percent'),'%')]],reports=dict(metadata_only_count=len(m.get('report_catalog') or []),catalog=m.get('report_catalog') or [],stored_report=m.get('stored_report'),missing_reason=None if m.get('report_catalog') else 'CANNOT_CONFIRM_NO_BOUND_REPORT_METADATA'),received_materials=m,material_ref=answer.get('material_ref'),material_lifecycle=answer.get('material_lifecycle'),**FLAGS)
+        result=dict(schema='V4_RECEIVED_COMPANY_VIEW_V1',symbol=symbol,source_date=source_date,observation_date=self._observation_date(source_date),generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],business=dict(summary=fact(business.get('value'),business)),actual_controller=None,latest_financial=dict(report_period=finance.get('latest_report_period'),period_kind=finance.get('latest_period_kind')),facts=[['营收',fact(finance.get('latest_revenue'),finance)],['归母净利润',fact(finance.get('latest_net_profit_parent'),finance)],['股东户数',holder_fact('holder_count',holders.get('holder_count'),'户')],['股东较上期变化',holder_fact('change_accounts',holders.get('holder_change_accounts'),'户')],['股东较上期变化率',holder_fact('change_percent',holders.get('holder_change_percent'),'%')]],reports=dict(metadata_only_count=len(m.get('report_catalog') or []),catalog=m.get('report_catalog') or [],stored_report=m.get('stored_report'),missing_reason=None if m.get('report_catalog') else 'CANNOT_CONFIRM_NO_BOUND_REPORT_METADATA'),received_materials=m,material_ref=answer.get('material_ref'),material_lifecycle=answer.get('material_lifecycle'),**FLAGS)
+        if answer.get('company_scope_status') is not None:
+            result.update(company_scope_status=answer.get('company_scope_status'),formula_roster_sha256=answer.get('formula_roster_sha256'))
+        return result
 
     def observations(self,source_date,observation_date,revision=None):
         if self._is_skill_date(source_date):
