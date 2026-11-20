@@ -62,20 +62,22 @@ def _formula_f10_source_detail(stock, day):
 def next_workbench_session(calendar,trade_date):
     """Bounded A-share next-session projection using the installed calendar.
 
-    The accepted runtime predates next_session. Resolve every candidate date
-    through that same owner; an unknown year/state never becomes a weekday guess.
+    Single-year and SHA-bound multi-year calendars use the contract owner's
+    same session resolver; missing coverage never becomes a weekday guess.
     """
-    from contracts.trading_calendar import resolve_market_states,TradingDayState
+    from contracts.trading_calendar import CalendarYearMissing,next_session
     if not isinstance(trade_date,str) or not re.fullmatch(r'\d{8}',trade_date):raise ValueError('WORKBENCH_CALENDAR_DATE_INVALID')
-    cursor=datetime.strptime(trade_date,'%Y%m%d').date()
-    if cursor.year!=calendar.year:raise ValueError('WORKBENCH_CALENDAR_YEAR_UNBOUND')
-    for _ in range(366):
-        cursor+=timedelta(days=1)
-        if cursor.year!=calendar.year:raise ValueError('WORKBENCH_NEXT_CALENDAR_YEAR_UNBOUND')
-        value=cursor.strftime('%Y%m%d');state=resolve_market_states(calendar,value).get('a_share')
-        if state in {TradingDayState.FULL_TRADING_DAY,TradingDayState.HALF_TRADING_DAY_AM}:return value
-        if state!=TradingDayState.NON_TRADING_DAY:raise ValueError('WORKBENCH_NEXT_SESSION_STATE_UNKNOWN')
-    raise ValueError('WORKBENCH_NEXT_SESSION_UNRESOLVED')
+    try:
+        datetime.strptime(trade_date,'%Y%m%d')
+    except ValueError as error:
+        raise ValueError('WORKBENCH_CALENDAR_DATE_INVALID') from error
+    try:
+        return next_session(calendar,trade_date,market='a_share')
+    except CalendarYearMissing as error:
+        raise ValueError(
+            'WORKBENCH_CALENDAR_YEAR_UNBOUND:'
+            f'year={error.year}:market={error.market}:date={error.trade_date}'
+        ) from error
 
 
 def checked_bytes(reference):
@@ -771,10 +773,11 @@ class ResearchWorkbenchHost:
         item=self.binding.get('observation_dates',{}).get(source_date)
         if not isinstance(item,dict) or not item.get('authority'):
             calendar_ref=self.binding.get('calendar')
-            if not calendar_ref:return None
-            from contracts.trading_calendar import load_market_calendar
-            checked(calendar_ref)
-            calendar=load_market_calendar(Path(calendar_ref['path']))
+            calendars_by_year=self.binding.get('calendar_by_year',{})
+            if not calendar_ref and not calendars_by_year:return None
+            from contracts.trading_calendar import load_market_calendar_range
+            if calendar_ref:checked(calendar_ref)
+            calendar=load_market_calendar_range(calendars_by_year,legacy_reference=calendar_ref)
             value=next_workbench_session(calendar,compact(source_date))
             return f'{value[:4]}-{value[4:6]}-{value[6:]}'
         value=item.get('date');compact(value)

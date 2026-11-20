@@ -1,16 +1,96 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import pytest
 
 from contracts.trading_calendar import (
+    CALENDAR_PATH,
+    CalendarYearMissing,
+    MarketCalendarRange,
     MarketScope,
     RunPolicy,
     SessionRequirement,
     TradingDayState,
     load_market_calendar,
+    load_market_calendar_range,
+    next_session,
+    previous_session,
+    resolve_market_state,
     resolve_market_states,
 )
 from domains.runtime_policy import evaluate_run_policy
+from infrastructure.research_workbench_host import ResearchWorkbenchHost
+
+
+def _synthetic_2027_calendar_reference(tmp_path):
+    """Write a complete, explicitly synthetic calendar for boundary tests."""
+    source_markets = ("a_share", "hk_securities", "hk_connect_southbound")
+
+    def market(label, derives_from=(), holidays=()):
+        return {
+            "label": label,
+            "derives_from": list(derives_from),
+            "full_day_sessions": [
+                {"start": "0900", "end": "1200"},
+                {"start": "1300", "end": "1600"},
+            ],
+            "half_day_sessions": [{"start": "0900", "end": "1100"}],
+            "full_day_close": "1600",
+            "half_day_close": "1100",
+            "half_days": [],
+            "holiday_periods": list(holidays),
+        }
+
+    payload = {
+        "schema_version": "v3_5.market_calendar_2027.v1",
+        "year": 2027,
+        "timezone": "Asia/Shanghai",
+        "official_sources": [
+            {
+                "market": market_key,
+                "name": "Synthetic test fixture",
+                "url": f"https://example.invalid/synthetic-calendar/2027/{market_key}",
+            }
+            for market_key in source_markets
+        ],
+        "markets": {
+            "a_share": market(
+                "Synthetic A-share",
+                holidays=[
+                    {"name": "fixture closure", "start": "20270101", "end": "20270104"}
+                ],
+            ),
+            "hk_securities": market(
+                "Synthetic HK securities",
+                holidays=[
+                    {"name": "fixture closure", "start": "20270101", "end": "20270101"}
+                ],
+            ),
+            "hk_connect_southbound": market(
+                "Synthetic HK Connect Southbound",
+                derives_from=("a_share", "hk_securities"),
+                holidays=[
+                    {
+                        "name": "fixture-only southbound closure",
+                        "start": "20270105",
+                        "end": "20270105",
+                    }
+                ],
+            ),
+        },
+    }
+    path = tmp_path / "synthetic_market_calendar_2027.json"
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    path.write_bytes(raw)
+    return {"path": str(path.resolve(strict=True)), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def _legacy_calendar_reference():
+    path = CALENDAR_PATH.resolve(strict=True)
+    raw = path.read_bytes()
+    return {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
 def test_market_calendar_contract_is_strict_and_provenanced() -> None:
@@ -180,3 +260,99 @@ def test_invalid_slot_is_rejected() -> None:
             market_scope=MarketScope.A_SHARE,
             session_requirement=SessionRequirement.SESSION_OPEN,
         )
+
+
+def test_legacy_2026_calendar_and_session_calls_match_sha_bound_range() -> None:
+    calendar = load_market_calendar()
+    calendar_range = load_market_calendar_range({}, legacy_reference=_legacy_calendar_reference())
+
+    assert isinstance(calendar_range, MarketCalendarRange)
+    assert calendar_range.years == (2026,)
+    assert calendar_range.sha256_by_year[2026] == _legacy_calendar_reference()["sha256"]
+    for market in ("a_share", "hk_securities", "hk_connect"):
+        assert resolve_market_states(calendar_range, "20260925")[market] == resolve_market_states(
+            calendar, "20260925"
+        )[market]
+        assert previous_session(calendar_range, "20260928", market=market) == previous_session(
+            calendar, "20260928", market=market
+        )
+        assert next_session(calendar_range, "20260924", market=market) == next_session(
+            calendar, "20260924", market=market
+        )
+
+
+def test_sha_bound_calendar_range_crosses_years_without_merging_markets(tmp_path) -> None:
+    future_ref = _synthetic_2027_calendar_reference(tmp_path)
+    calendar_range = load_market_calendar_range(
+        {2027: future_ref},
+        legacy_reference=_legacy_calendar_reference(),
+    )
+
+    assert calendar_range.years == (2026, 2027)
+    assert resolve_market_states(calendar_range, "20270104") == {
+        "a_share": TradingDayState.NON_TRADING_DAY,
+        "hk_securities": TradingDayState.FULL_TRADING_DAY,
+        "hk_connect": TradingDayState.NON_TRADING_DAY,
+    }
+    assert resolve_market_states(calendar_range, "20270105") == {
+        "a_share": TradingDayState.FULL_TRADING_DAY,
+        "hk_securities": TradingDayState.FULL_TRADING_DAY,
+        "hk_connect": TradingDayState.NON_TRADING_DAY,
+    }
+    assert next_session(calendar_range, "20261231", market="a_share") == "20270105"
+    assert next_session(calendar_range, "20261231", market="hk_securities") == "20270104"
+    assert next_session(calendar_range, "20261231", market="hk_connect") == "20270106"
+    assert previous_session(calendar_range, "20270105", market="a_share") == "20261231"
+    assert previous_session(calendar_range, "20270104", market="hk_securities") == "20261231"
+    assert previous_session(calendar_range, "20270106", market="hk_connect") == "20261231"
+
+
+def test_missing_year_fails_closed_with_market_and_candidate_date() -> None:
+    calendar_range = load_market_calendar_range({}, legacy_reference=_legacy_calendar_reference())
+
+    with pytest.raises(
+        CalendarYearMissing,
+        match=r"year=2027 market=a_share trade_date=20270101",
+    ):
+        next_session(calendar_range, "20261231", market="a_share")
+    with pytest.raises(
+        CalendarYearMissing,
+        match=r"year=2027 market=hk_securities trade_date=20270104",
+    ):
+        resolve_market_state(calendar_range, "20270104", market="hk_securities")
+
+
+def test_calendar_range_rejects_sha_duplicate_and_year_conflicts(tmp_path) -> None:
+    future_ref = _synthetic_2027_calendar_reference(tmp_path)
+    with pytest.raises(ValueError, match="SHA-256 mismatch"):
+        load_market_calendar_range({2027: {**future_ref, "sha256": "0" * 64}})
+    with pytest.raises(ValueError, match="duplicate market calendar year: year=2026"):
+        load_market_calendar_range(
+            {2026: _legacy_calendar_reference()},
+            legacy_reference=_legacy_calendar_reference(),
+        )
+    with pytest.raises(ValueError, match=r"reference year conflict: key=2026 actual=2027"):
+        load_market_calendar_range({2026: future_ref})
+
+
+def test_workbench_observation_date_uses_year_range_and_legacy_ref(tmp_path) -> None:
+    future_ref = _synthetic_2027_calendar_reference(tmp_path)
+    host = ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding = {
+        "calendar": _legacy_calendar_reference(),
+        "calendar_by_year": {"2027": future_ref},
+        "observation_dates": {},
+    }
+
+    assert host._observation_date("2026-12-31") == "2027-01-05"
+
+
+def test_workbench_legacy_calendar_does_not_guess_missing_next_year() -> None:
+    host = ResearchWorkbenchHost.__new__(ResearchWorkbenchHost)
+    host.binding = {"calendar": _legacy_calendar_reference(), "observation_dates": {}}
+
+    with pytest.raises(
+        ValueError,
+        match=r"WORKBENCH_CALENDAR_YEAR_UNBOUND:year=2027:market=a_share:date=20270101",
+    ):
+        host._observation_date("2026-12-31")
