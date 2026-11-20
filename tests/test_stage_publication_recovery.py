@@ -515,6 +515,21 @@ def test_legacy_incomplete_trio_stays_fail_closed(tmp_path):
     assert snapshot(tmp_path) == before
 
 
+def test_finish_rejects_staged_and_committed_artifacts_before_manifest_write(tmp_path):
+    from stage_center._raw_store_parts.transaction_publish import _finish_pending_trio
+    rs, _ss, _dummy, _ = seeded(tmp_path)
+    entry = json.loads(rs.latest_path.read_text())['entries'][f'{DATE}/{STAGE}/A_SHARE']
+    run_dir = (rs.root / entry['artifact_relative']).parent
+    manifest_path = run_dir / 'manifest.json'
+    manifest_path.unlink()
+    (run_dir / 'artifact.pending.csv').write_bytes((run_dir / 'artifact.csv').read_bytes())
+    before = snapshot(tmp_path)
+    with pytest.raises(ValueError, match='both staged and committed artifacts exist'):
+        _finish_pending_trio(raw.__dict__, run_dir, error_type=raw.RawStoreError)
+    assert snapshot(tmp_path) == before
+    assert not manifest_path.exists()
+
+
 def test_unstarted_lane_does_not_report_publication_recovery(tmp_path):
     from stage_center._runner_parts.slot_idempotency import _recover_pending_lanes
     dummy = SimpleNamespace(config=SimpleNamespace(raw_root=tmp_path / 'raw', selection_root=tmp_path / 'selection', backfill_run_id=None))
@@ -568,6 +583,68 @@ def test_runner_rejects_bad_pending_lane_without_recollecting_healthy_lane(monke
     assert 'PENDING_PUBLICATION_UNRECOVERABLE' in result['markets']['A_SHARE']['cannot_confirm'][0]
     assert calls == []
     assert f'{DATE}/{STAGE}/A_SHARE' not in json.loads(rs.latest_path.read_text())['entries']
+
+
+def test_malformed_intent_schema_is_lane_local_and_preserves_healthy_sibling(monkeypatch, tmp_path):
+    from stage_center.candidate_input import CandidateInput
+    rs, ss, _dummy, _ = seeded(tmp_path)
+    latest = json.loads(rs.latest_path.read_text())
+    entry = latest['entries'].pop(f'{DATE}/{STAGE}/A_SHARE')
+    rs.latest_path.write_text(json.dumps(latest))
+    run_dir = (rs.root / entry['artifact_relative']).parent
+    intent_path = run_dir / 'publication-intent.json'
+    intent = json.loads(intent_path.read_text())
+    intent['schema_version'] = []
+    intent_path.write_text(json.dumps(intent))
+    before = snapshot(rs.root), snapshot(ss.root)
+    candidate = CandidateInput(tmp_path, DATE, 'current.json', SHA, 'fixture-run',
+        ('A.000001',), SHA, SHA, SHA, SHA, ())
+    monkeypatch.setattr(runner_module, 'read_candidate_input', lambda *args, **kwargs: candidate)
+    calls = []
+    def forbidden(*args, **kwargs):
+        calls.append('source-or-builder')
+        raise AssertionError('malformed intent recovery called a source or builder')
+    config = runner_module.RunnerConfig(tmp_path / 'candidate', rs.root, ss.root,
+        tmp_path / 'receipts', selection_builders={market: forbidden for market in MARKETS})
+    instance = runner_module.StageCenterRunner(config, collectors={market: forbidden for market in MARKETS})
+    result = instance._run_one(SimpleNamespace(trade_date=DATE, stage_id=STAGE, status='LATE_CATCHUP_REPLAY'))
+    assert result['status'] == 'PARTIAL_WITH_ROWS'
+    assert result['markets']['HK_CONNECT']['selected_rows'] == 1
+    assert result['markets']['A_SHARE']['selection_status'] == 'CANNOT_CONFIRM'
+    assert 'publication intent schema mismatch' in result['markets']['A_SHARE']['cannot_confirm'][0]
+    assert calls == []
+    assert (snapshot(rs.root), snapshot(ss.root)) == before
+
+
+def test_selection_recovery_rejects_tampered_raw_latest_before_pointer_write(monkeypatch, tmp_path):
+    from stage_center.candidate_input import CandidateInput
+    rs, ss, _dummy, _ = seeded(tmp_path)
+    key = f'{DATE}/{STAGE}/A_SHARE'
+    raw_latest = json.loads(rs.latest_path.read_text())
+    raw_latest['entries'][key]['receipt_sha256'] = '0' * 64
+    rs.latest_path.write_text(json.dumps(raw_latest))
+    selection_latest = json.loads(ss.latest_path.read_text())
+    del selection_latest['entries'][key]
+    ss.latest_path.write_text(json.dumps(selection_latest))
+    before = snapshot(rs.root), snapshot(ss.root)
+    candidate = CandidateInput(tmp_path, DATE, 'current.json', SHA, 'fixture-run',
+        ('A.000001',), SHA, SHA, SHA, SHA, ())
+    monkeypatch.setattr(runner_module, 'read_candidate_input', lambda *args, **kwargs: candidate)
+    calls = []
+    def forbidden(*args, **kwargs):
+        calls.append('source-or-builder')
+        raise AssertionError('raw pointer mismatch recovery called a source or builder')
+    config = runner_module.RunnerConfig(tmp_path / 'candidate', rs.root, ss.root,
+        tmp_path / 'receipts', selection_builders={market: forbidden for market in MARKETS})
+    instance = runner_module.StageCenterRunner(config, collectors={market: forbidden for market in MARKETS})
+    result = instance._run_one(SimpleNamespace(trade_date=DATE, stage_id=STAGE, status='LATE_CATCHUP_REPLAY'))
+    assert result['status'] == 'PARTIAL_WITH_ROWS'
+    assert result['markets']['HK_CONNECT']['selected_rows'] == 1
+    assert result['markets']['A_SHARE']['selection_status'] == 'CANNOT_CONFIRM'
+    assert 'pending selection raw pointer receipt_sha256 mismatch' in result['markets']['A_SHARE']['cannot_confirm'][0]
+    assert calls == []
+    assert f'{DATE}/{STAGE}/A_SHARE' not in json.loads(ss.latest_path.read_text())['entries']
+    assert (snapshot(rs.root), snapshot(ss.root)) == before
 
 
 @pytest.mark.parametrize('kind', ['raw', 'selection'])

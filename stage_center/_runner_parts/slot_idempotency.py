@@ -21,6 +21,19 @@ def _pending_runs(scope, root, prefix, error):
     return tuple(entries)
 
 
+def _assert_raw_latest_pointer(error, pointer, verified, market, *, context='existing'):
+    fields = (
+        'owner', 'trade_date', 'stage_id', 'market', 'role', 'run_id', 'status',
+        'idempotency_key', 'artifact_relative', 'manifest_relative', 'receipt_relative',
+        'artifact_sha256', 'manifest_sha256', 'receipt_sha256', 'row_count',
+    )
+    if not isinstance(pointer, dict):
+        raise error(f'{context} raw pointer is malformed: {market}')
+    for field in fields:
+        if pointer.get(field) != verified.get(field):
+            raise error(f'{context} raw pointer {field} mismatch: {market}')
+
+
 def _recover_pending_lanes(scope, runner, trade_date, stage_id, markets, expected_sha):
     """Restore only same-authority publications under their original locks.
 
@@ -88,66 +101,72 @@ def _recover_pending_lanes(scope, runner, trade_date, stage_id, markets, expecte
                         raw_store._merge_latest(latest, key, entry)
                         raw_module._atomic_write_json(raw_store.latest_path, latest)
                         recovered.append(f"RAW:{market}")
-            with selection_store._lock():
-                latest = selection_store._latest()
-                if key not in latest['entries']:
-                    dirs = _pending_runs(safe_scope, selection_store.root,
-                        f'selection_runs/{trade_date}/{selection_store._role(stage_id, market)}', error)
-                    if len(dirs) > 1:
-                        raise error('ambiguous pending selection publications')
-                    for run_dir in dirs:
-                        manifest = _pending_trio_manifest(selection_module.__dict__, run_dir, error_type=error)
-                        envelope = manifest.get('selection_envelope') or {}
-                        if expected_sha.get(market) is None or not _v4_global(scope, '_existing_binding_matches')(
-                            envelope.get('source_evidence', ()), market=market, expected_sha=expected_sha[market]):
-                            raise error('pending selection candidate authority mismatch')
-                        raw_entry = raw_store._load_latest()['entries'].get(key)
-                        if not isinstance(raw_entry, dict):
-                            raise error('pending selection raw pointer unavailable')
-                        raw = raw_store.verify_run(trade_date, stage_id, market, str(raw_entry.get('run_id')))
-                        if envelope.get('raw_artifact_sha256') != raw['artifact_sha256']:
-                            raise error('pending selection raw identity mismatch')
-                        for field, value in (('owner', 'stage_center'), ('trade_date', trade_date), ('stage_id', stage_id), ('market', market), ('run_id', run_dir.name)):
-                            if manifest.get(field) != value:
-                                raise error('pending selection identity mismatch')
-                        artifact_relative = f"{run_dir.relative_to(selection_store.root).as_posix()}/artifact.csv"
-                        expected_artifact_id, expected_run_id = selection_module._selection_identity_ids(
-                            trade_date, stage_id, market, str(envelope.get('raw_artifact_sha256') or ''),
-                            str(envelope.get('algorithm_sha256') or ''), envelope.get('rows') or [])
-                        _input_sha, idem = _selection_request_identity(
-                            selection_module.__dict__,
-                            selection_store._key(trade_date, stage_id, market),
-                            envelope.get('raw_artifact_sha256'),
-                            envelope.get('algorithm_sha256'),
-                            envelope.get('rows') or [],
-                            envelope.get('source_evidence') or (),
-                        )
-                        intent_path = run_dir / 'publication-intent.json'
-                        receipt = (selection_module._read_json(intent_path).get('receipt')
-                                   if intent_path.exists() else selection_module._read_json(run_dir / 'receipt.json'))
-                        if (not isinstance(receipt, dict)
-                                or manifest.get('artifact_relative') != artifact_relative
-                                or expected_run_id != run_dir.name
-                                or envelope.get('run_id') != expected_run_id
-                                or envelope.get('artifact_id') != expected_artifact_id
-                                or manifest.get('raw_artifact_sha256') != envelope.get('raw_artifact_sha256')
-                                or manifest.get('algorithm_sha256') != envelope.get('algorithm_sha256')
-                                or manifest.get('selection_status') != envelope.get('selection_status')
-                                or manifest.get('row_count') != len(envelope.get('rows') or [])
-                                or receipt.get('idempotency_key') != idem):
-                            raise error('pending selection request identity mismatch')
-                        for field in ('artifact_relative', 'artifact_sha256', 'row_count',
-                                      'selection_status', 'raw_artifact_sha256', 'algorithm_id',
-                                      'algorithm_sha256'):
-                            if receipt.get(field) != manifest.get(field):
-                                raise error('pending selection receipt manifest mismatch')
-                        _finish_pending_trio(selection_module.__dict__, run_dir, error_type=error)
-                        verified = selection_store._verify_run(trade_date, stage_id, market, run_dir.name)
-                        entry = {field: verified[field] for field in ('owner', 'trade_date', 'stage_id', 'market', 'role', 'run_id', 'artifact_relative', 'artifact_sha256', 'manifest_sha256', 'receipt_sha256', 'idempotency_key')}
-                        entry.update(selection_module.SAFETY_FLAGS)
-                        latest['entries'][key] = entry
-                        selection_module._atomic_write_json(selection_store.latest_path, latest)
-                        recovered.append(f"SELECTION:{market}")
+            # Selection recovery consumes a specific immutable raw generation.
+            # Keep that pointer stable through validation and selection pointer
+            # publication. When both stores are locked, use raw then selection;
+            # no Stage path acquires these locks in the reverse order.
+            with raw_store._lock():
+                with selection_store._lock():
+                    latest = selection_store._latest()
+                    if key not in latest['entries']:
+                        dirs = _pending_runs(safe_scope, selection_store.root,
+                            f'selection_runs/{trade_date}/{selection_store._role(stage_id, market)}', error)
+                        if len(dirs) > 1:
+                            raise error('ambiguous pending selection publications')
+                        for run_dir in dirs:
+                            manifest = _pending_trio_manifest(selection_module.__dict__, run_dir, error_type=error)
+                            envelope = manifest.get('selection_envelope') or {}
+                            if expected_sha.get(market) is None or not _v4_global(scope, '_existing_binding_matches')(
+                                envelope.get('source_evidence', ()), market=market, expected_sha=expected_sha[market]):
+                                raise error('pending selection candidate authority mismatch')
+                            raw_entry = raw_store._load_latest()['entries'].get(key)
+                            if not isinstance(raw_entry, dict):
+                                raise error('pending selection raw pointer unavailable')
+                            raw = raw_store.verify_run(trade_date, stage_id, market, str(raw_entry.get('run_id')))
+                            _assert_raw_latest_pointer(error, raw_entry, raw, market, context='pending selection')
+                            if envelope.get('raw_artifact_sha256') != raw['artifact_sha256']:
+                                raise error('pending selection raw identity mismatch')
+                            for field, value in (('owner', 'stage_center'), ('trade_date', trade_date), ('stage_id', stage_id), ('market', market), ('run_id', run_dir.name)):
+                                if manifest.get(field) != value:
+                                    raise error('pending selection identity mismatch')
+                            artifact_relative = f"{run_dir.relative_to(selection_store.root).as_posix()}/artifact.csv"
+                            expected_artifact_id, expected_run_id = selection_module._selection_identity_ids(
+                                trade_date, stage_id, market, str(envelope.get('raw_artifact_sha256') or ''),
+                                str(envelope.get('algorithm_sha256') or ''), envelope.get('rows') or [])
+                            _input_sha, idem = _selection_request_identity(
+                                selection_module.__dict__,
+                                selection_store._key(trade_date, stage_id, market),
+                                envelope.get('raw_artifact_sha256'),
+                                envelope.get('algorithm_sha256'),
+                                envelope.get('rows') or [],
+                                envelope.get('source_evidence') or (),
+                            )
+                            intent_path = run_dir / 'publication-intent.json'
+                            receipt = (selection_module._read_json(intent_path).get('receipt')
+                                       if intent_path.exists() else selection_module._read_json(run_dir / 'receipt.json'))
+                            if (not isinstance(receipt, dict)
+                                    or manifest.get('artifact_relative') != artifact_relative
+                                    or expected_run_id != run_dir.name
+                                    or envelope.get('run_id') != expected_run_id
+                                    or envelope.get('artifact_id') != expected_artifact_id
+                                    or manifest.get('raw_artifact_sha256') != envelope.get('raw_artifact_sha256')
+                                    or manifest.get('algorithm_sha256') != envelope.get('algorithm_sha256')
+                                    or manifest.get('selection_status') != envelope.get('selection_status')
+                                    or manifest.get('row_count') != len(envelope.get('rows') or [])
+                                    or receipt.get('idempotency_key') != idem):
+                                raise error('pending selection request identity mismatch')
+                            for field in ('artifact_relative', 'artifact_sha256', 'row_count',
+                                          'selection_status', 'raw_artifact_sha256', 'algorithm_id',
+                                          'algorithm_sha256'):
+                                if receipt.get(field) != manifest.get(field):
+                                    raise error('pending selection receipt manifest mismatch')
+                            _finish_pending_trio(selection_module.__dict__, run_dir, error_type=error)
+                            verified = selection_store._verify_run(trade_date, stage_id, market, run_dir.name)
+                            entry = {field: verified[field] for field in ('owner', 'trade_date', 'stage_id', 'market', 'role', 'run_id', 'artifact_relative', 'artifact_sha256', 'manifest_sha256', 'receipt_sha256', 'idempotency_key')}
+                            entry.update(selection_module.SAFETY_FLAGS)
+                            latest['entries'][key] = entry
+                            selection_module._atomic_write_json(selection_store.latest_path, latest)
+                            recovered.append(f"SELECTION:{market}")
         except (OSError, ValueError) as exc:
             pending_errors[market] = f"PENDING_PUBLICATION_UNRECOVERABLE:{type(exc).__name__}:{exc}"
     if pending_errors:
@@ -218,9 +237,9 @@ def _StageCenterRunner__existing_slot_body(_v4_scope, /, self, trade_date, stage
                 verified = raw_store.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(raw_entry.get("run_id")))
             except (_v4_global(_v4_scope, 'RawStoreError'), _v4_global(_v4_scope, 'ValueError')) as error:
                 raise _v4_global(_v4_scope, 'RunnerError')(f"existing raw market integrity failure: {market}") from error
-            for field in ("owner", "status", "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256", "idempotency_key"):
-                if raw_entry.get(field) != verified.get(field):
-                    raise _v4_global(_v4_scope, 'RunnerError')(f"existing raw pointer {field} mismatch: {market}")
+            _assert_raw_latest_pointer(
+                _v4_global(_v4_scope, 'RunnerError'), raw_entry, verified, market
+            )
             expected = expected_sha.get(market)
             if expected is None:
                 candidate_binding_errors[market] = "existing raw candidate SHA cannot be verified: market binding unavailable"

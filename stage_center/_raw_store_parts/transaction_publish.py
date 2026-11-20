@@ -33,7 +33,7 @@ def _pending_trio_manifest(scope, run_dir, *, error_type):
     if not isinstance(intent, dict):
         raise error_type('publication intent payload is invalid')
     schema = intent.get('schema_version')
-    if schema not in _PUBLICATION_INTENT_SCHEMAS:
+    if not isinstance(schema, str) or schema not in _PUBLICATION_INTENT_SCHEMAS:
         raise error_type('publication intent schema mismatch')
     receipt = intent.get('receipt')
     if not isinstance(receipt, dict) or canonical(receipt) != intent.get('receipt_sha256'):
@@ -196,6 +196,8 @@ def _finish_pending_trio(scope, run_dir, *, error_type):
     receipt = read(intent_path).get('receipt')
     artifact = run_dir / 'artifact.csv'
     staged = run_dir / 'artifact.pending.csv'
+    if artifact.exists() and staged.exists():
+        raise error_type('both staged and committed artifacts exist')
     artifact_path = artifact if artifact.is_file() else staged
     if (not artifact_path.is_file() or sha(artifact_path) != manifest.get('artifact_sha256')
             or receipt.get('artifact_sha256') != manifest.get('artifact_sha256')):
