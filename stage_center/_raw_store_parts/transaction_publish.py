@@ -6,6 +6,79 @@ from ._namespace import read_global as _v4_global
 # A small publication journal holds identity/hashes and receipt metadata only.
 # It is immutable run evidence, retained with the trio; never a second raw store.
 _PUBLICATION_LIMIT = 8 * 1024 * 1024
+_PUBLICATION_INTENT_SCHEMA = 'stage_center.publication_intent.v2'
+_PUBLICATION_INTENT_SCHEMAS = frozenset((_PUBLICATION_INTENT_SCHEMA, 'stage_center.publication_intent.v1'))
+
+
+def _pending_trio_manifest(scope, run_dir, *, error_type):
+    """Read a pending manifest from its immutable file or bounded intent."""
+    import json
+
+    read = _v4_global(scope, '_read_json')
+    canonical = _v4_global(scope, 'canonical_sha' if 'canonical_sha' in scope else '_canonical_sha')
+    intent_path = run_dir / 'publication-intent.json'
+    manifest_path = run_dir / 'manifest.json'
+    if any(path.is_symlink() for path in (intent_path, manifest_path)):
+        raise error_type('publication symlink is forbidden')
+    if not intent_path.exists():
+        if not manifest_path.is_file():
+            raise error_type('pending publication manifest identity unavailable')
+        manifest = read(manifest_path)
+        if not isinstance(manifest, dict):
+            raise error_type('publication manifest payload is invalid')
+        return manifest
+    if intent_path.stat().st_size > _PUBLICATION_LIMIT:
+        raise error_type('publication intent exceeds bounded metadata size')
+    intent = read(intent_path)
+    if not isinstance(intent, dict):
+        raise error_type('publication intent payload is invalid')
+    schema = intent.get('schema_version')
+    if schema not in _PUBLICATION_INTENT_SCHEMAS:
+        raise error_type('publication intent schema mismatch')
+    receipt = intent.get('receipt')
+    if not isinstance(receipt, dict) or canonical(receipt) != intent.get('receipt_sha256'):
+        raise error_type('publication intent receipt identity mismatch')
+    if schema == _PUBLICATION_INTENT_SCHEMA:
+        manifest = intent.get('manifest')
+        if not isinstance(manifest, dict) or canonical(manifest) != intent.get('manifest_sha256'):
+            raise error_type('publication intent manifest identity mismatch')
+    else:
+        if not manifest_path.is_file():
+            raise error_type('legacy publication intent lacks recoverable manifest')
+        manifest = read(manifest_path)
+        if not isinstance(manifest, dict):
+            raise error_type('publication manifest payload is invalid')
+        if canonical(manifest) != intent.get('manifest_sha256'):
+            raise error_type('publication intent manifest identity mismatch')
+    if not isinstance(manifest, dict):
+        raise error_type('publication manifest payload is invalid')
+    if manifest_path.exists() and read(manifest_path) != manifest:
+        raise error_type('publication intent manifest identity mismatch')
+    if receipt.get('manifest_sha256') != canonical(manifest):
+        raise error_type('publication intent manifest identity mismatch')
+    for key in ('owner', 'trade_date', 'stage_id', 'market', 'role', 'run_id',
+                'artifact_relative', 'artifact_sha256', 'row_count'):
+        if receipt.get(key) != manifest.get(key):
+            raise error_type('publication intent receipt identity mismatch')
+    if (manifest.get('owner') != 'stage_center' or manifest.get('run_id') != run_dir.name
+            or any(payload.get(flag) is not False for payload in (manifest, receipt)
+                   for flag in ('production_allowed', 'buy_gate_updated', 'orders_sent'))):
+        raise error_type('publication intent safety or run identity mismatch')
+    return manifest
+
+
+def _promote_staged_artifact(run_dir, *, error_type):
+    import os
+
+    artifact = run_dir / 'artifact.csv'
+    staged = run_dir / 'artifact.pending.csv'
+    if artifact.exists():
+        if staged.exists():
+            raise error_type('both staged and committed artifacts exist')
+        return
+    if not staged.is_file() or staged.is_symlink():
+        raise error_type('pending publication durable artifact unavailable or corrupt')
+    os.replace(staged, artifact)
 
 
 def _csv_sha(rows, fields):
@@ -33,7 +106,7 @@ def _assert_pending_lane(run_dir, error_type, *, allowed_predecessor=None):
             raise error_type('pending publication slot request conflict')
 
 
-def _prepare_trio(scope, run_dir, manifest, receipt, *, error_type, allowed_predecessor=None):
+def _prepare_trio(scope, run_dir, manifest, receipt, *, error_type, write_artifact, allowed_predecessor=None):
     """Validate every surviving byte before filling any missing file.
 
     Call only under the owning store lock. A legacy trio can be recovered, but
@@ -44,8 +117,9 @@ def _prepare_trio(scope, run_dir, manifest, receipt, *, error_type, allowed_pred
     read = _v4_global(scope, '_read_json')
     write = _v4_global(scope, '_atomic_write_json')
     sha = _v4_global(scope, '_sha_file')
-    paths = {name: run_dir / name for name in ('artifact.csv', 'manifest.json', 'receipt.json', 'publication-intent.json')}
-    intent = {'schema_version': 'stage_center.publication_intent.v1',
+    paths = {name: run_dir / name for name in
+             ('artifact.csv', 'artifact.pending.csv', 'manifest.json', 'receipt.json', 'publication-intent.json')}
+    intent = {'schema_version': _PUBLICATION_INTENT_SCHEMA, 'manifest': manifest,
               'manifest_sha256': canonical(manifest), 'receipt_sha256': canonical(receipt), 'receipt': receipt}
     if len(json.dumps(intent, ensure_ascii=False).encode()) > _PUBLICATION_LIMIT:
         raise error_type('publication intent exceeds bounded metadata size')
@@ -53,23 +127,57 @@ def _prepare_trio(scope, run_dir, manifest, receipt, *, error_type, allowed_pred
         raise error_type('publication symlink is forbidden')
     _assert_pending_lane(run_dir, error_type, allowed_predecessor=allowed_predecessor)
     existed = run_dir.exists()
-    if existed:
-        if paths['publication-intent.json'].exists():
-            if paths['publication-intent.json'].stat().st_size > _PUBLICATION_LIMIT or read(paths['publication-intent.json']) != intent:
-                raise error_type('publication intent identity mismatch')
-        elif not all(paths[name].is_file() for name in ('artifact.csv', 'manifest.json', 'receipt.json')):
-            raise error_type('legacy incomplete publication has no durable identity')
-        for name, payload in (('manifest.json', manifest), ('receipt.json', receipt)):
-            if paths[name].exists() and read(paths[name]) != payload:
-                raise error_type(f'immutable publication {name} mismatch')
-        if paths['artifact.csv'].exists() and sha(paths['artifact.csv']) != manifest['artifact_sha256']:
-            raise error_type('immutable publication artifact SHA mismatch')
-    else:
+    if not existed:
         run_dir.mkdir(parents=True, exist_ok=False)
+    if paths['publication-intent.json'].exists():
+        if paths['publication-intent.json'].stat().st_size > _PUBLICATION_LIMIT:
+            raise error_type('publication intent exceeds bounded metadata size')
+        prior_intent = read(paths['publication-intent.json'])
+        if not isinstance(prior_intent, dict):
+            raise error_type('publication intent payload is invalid')
+        if prior_intent.get('schema_version') == _PUBLICATION_INTENT_SCHEMA:
+            if prior_intent != intent:
+                raise error_type('publication intent identity mismatch')
+        elif (prior_intent.get('schema_version') != 'stage_center.publication_intent.v1'
+              or prior_intent.get('manifest_sha256') != canonical(manifest)
+              or prior_intent.get('receipt_sha256') != canonical(receipt)
+              or prior_intent.get('receipt') != receipt):
+            raise error_type('publication intent identity mismatch')
+    elif existed and not all(paths[name].is_file() for name in ('artifact.csv', 'manifest.json', 'receipt.json')):
+        # A crash after the atomic artifact staging write but before the intent
+        # is safe to resume only from this exact staged file and exact request.
+        present = {path.name for path in run_dir.iterdir()}
+        if (present != {'artifact.pending.csv'}
+                or sha(paths['artifact.pending.csv']) != manifest['artifact_sha256']):
+            raise error_type('legacy incomplete publication has no durable identity')
+    for name, payload in (('manifest.json', manifest), ('receipt.json', receipt)):
+        if paths[name].exists() and read(paths[name]) != payload:
+            raise error_type(f'immutable publication {name} mismatch')
+    if paths['artifact.csv'].exists():
+        if sha(paths['artifact.csv']) != manifest['artifact_sha256']:
+            raise error_type('immutable publication artifact SHA mismatch')
+        if paths['artifact.pending.csv'].exists():
+            raise error_type('both staged and committed artifacts exist')
+    elif paths['artifact.pending.csv'].exists():
+        if sha(paths['artifact.pending.csv']) != manifest['artifact_sha256']:
+            raise error_type('staged publication artifact SHA mismatch')
+    else:
+        try:
+            write_artifact(paths['artifact.pending.csv'])
+        except BaseException:
+            if not existed and run_dir.exists() and not any(run_dir.iterdir()):
+                run_dir.rmdir()
+            raise
+        if sha(paths['artifact.pending.csv']) != manifest['artifact_sha256']:
+            raise error_type('staged publication artifact SHA mismatch')
+    if not paths['publication-intent.json'].exists():
         write(paths['publication-intent.json'], intent)
-    # Manifest precedes CSV so complete input metadata survives a CSV failure.
+    # The durable artifact is staged before intent so the intent can authorize
+    # recovery without copying the artifact into metadata. Rename publishes it
+    # only after the manifest is durable.
     if not paths['manifest.json'].exists():
         write(paths['manifest.json'], manifest)
+    _promote_staged_artifact(run_dir, error_type=error_type)
     return paths
 
 
@@ -77,37 +185,29 @@ def _finish_pending_trio(scope, run_dir, *, error_type):
     """Resume metadata only after the original artifact became durable."""
     read = _v4_global(scope, '_read_json')
     sha = _v4_global(scope, '_sha_file')
-    canonical = _v4_global(scope, 'canonical_sha' if 'canonical_sha' in scope else '_canonical_sha')
-    if any((run_dir / name).is_symlink() for name in ('artifact.csv', 'manifest.json', 'receipt.json', 'publication-intent.json')):
+    if any((run_dir / name).is_symlink() for name in
+           ('artifact.csv', 'artifact.pending.csv', 'manifest.json', 'receipt.json', 'publication-intent.json')):
         raise error_type('publication symlink is forbidden')
+    manifest_path = run_dir / 'manifest.json'
     intent_path = run_dir / 'publication-intent.json'
     if not intent_path.exists():
         return  # Complete legacy trios are checked by the existing verifier.
-    if intent_path.stat().st_size > _PUBLICATION_LIMIT:
-        raise error_type('publication intent exceeds bounded metadata size')
-    intent = read(intent_path)
-    if intent.get('schema_version') != 'stage_center.publication_intent.v1':
-        raise error_type('publication intent schema mismatch')
-    manifest = read(run_dir / 'manifest.json')
-    receipt = intent.get('receipt')
-    if not isinstance(receipt, dict) or canonical(receipt) != intent.get('receipt_sha256') or canonical(manifest) != intent.get('manifest_sha256') or receipt.get('manifest_sha256') != canonical(manifest):
-        raise error_type('publication intent manifest identity mismatch')
-    for key in ('owner', 'trade_date', 'stage_id', 'market', 'role', 'run_id', 'artifact_relative', 'artifact_sha256', 'row_count'):
-        if receipt.get(key) != manifest.get(key):
-            raise error_type('publication intent receipt identity mismatch')
-    if manifest.get('owner') != 'stage_center' or any(
-        payload.get(flag) is not False for payload in (manifest, receipt)
-        for flag in ('production_allowed', 'buy_gate_updated', 'orders_sent')
-    ):
-        raise error_type('publication intent safety identity mismatch')
+    manifest = _pending_trio_manifest(scope, run_dir, error_type=error_type)
+    receipt = read(intent_path).get('receipt')
     artifact = run_dir / 'artifact.csv'
-    if not artifact.is_file() or sha(artifact) != manifest.get('artifact_sha256') or receipt.get('artifact_sha256') != manifest.get('artifact_sha256'):
+    staged = run_dir / 'artifact.pending.csv'
+    artifact_path = artifact if artifact.is_file() else staged
+    if (not artifact_path.is_file() or sha(artifact_path) != manifest.get('artifact_sha256')
+            or receipt.get('artifact_sha256') != manifest.get('artifact_sha256')):
         raise error_type('pending publication durable artifact unavailable or corrupt')
     receipt_path = run_dir / 'receipt.json'
     if receipt_path.exists():
         if read(receipt_path) != receipt:
             raise error_type('publication intent receipt identity mismatch')
-    else:
+    if not manifest_path.exists():
+        _v4_global(scope, '_atomic_write_json')(manifest_path, manifest)
+    _promote_staged_artifact(run_dir, error_type=error_type)
+    if not receipt_path.exists():
         _v4_global(scope, '_atomic_write_json')(receipt_path, receipt)
 
 
@@ -200,7 +300,6 @@ def _RawStore_publish_body(
                     raise _v4_global(_v4_scope, 'RawStoreError')(f"latest pointer {field} mismatch")
             return {"ok": True, "already_exists": True, **verified}
         run_dir = _v4_global(_v4_scope, '_safe_relative')(self.root, prefix)
-        artifact_path = _v4_global(_v4_scope, '_safe_relative')(self.root, artifact_relative)
         artifact_rows = [_v4_global(_v4_scope, '_artifact_row')(trade_date, row) for row in validated]
         artifact_sha = _csv_sha(artifact_rows, _v4_global(_v4_scope, 'ARTIFACT_FIELDS'))
         manifest = {
@@ -258,9 +357,8 @@ def _RawStore_publish_body(
             **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
         }
         paths = _prepare_trio(_v4_scope, run_dir, manifest, receipt,
-                              error_type=_v4_global(_v4_scope, 'RawStoreError'))
-        if not artifact_path.exists():
-            _v4_global(_v4_scope, '_atomic_write_csv')(artifact_path, artifact_rows)
+                              error_type=_v4_global(_v4_scope, 'RawStoreError'),
+                              write_artifact=lambda path: _v4_global(_v4_scope, '_atomic_write_csv')(path, artifact_rows))
         if not paths['receipt.json'].exists():
             _v4_global(_v4_scope, '_atomic_write_json')(paths['receipt.json'], receipt)
         verified = self._verify_run_paths(

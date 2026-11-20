@@ -3,6 +3,40 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
+def _selection_request_identity(scope, identity, raw_artifact_sha256, algorithm_sha256, rows, source_evidence):
+    """Return the stable input hash and idempotency key for one envelope."""
+    identity_payload = {
+        "identity": identity,
+        "raw_artifact_sha256": raw_artifact_sha256,
+        "algorithm_sha256": algorithm_sha256,
+        "rows": _v4_global(scope, 'list')(rows),
+    }
+    authority_hashes = tuple(
+        _v4_global(scope, 'str')(item)
+        for item in source_evidence or ()
+        if _v4_global(scope, 'any')(
+            _v4_global(scope, 'str')(item).startswith(prefix)
+            for prefix in (
+                "a_d1_premarket_pool_sha256=",
+                "a_research_panel_receipt_sha256=",
+                "a_research_panel_selector_sha256=",
+            )
+        )
+    )
+    if authority_hashes:
+        identity_payload["authority_source_hashes"] = _v4_global(scope, 'list')(
+            _v4_global(scope, 'dict').fromkeys(authority_hashes)
+        )
+    input_sha = _v4_global(scope, '_canonical_sha')(identity_payload)
+    idempotency_key = _v4_global(scope, '_canonical_sha')({
+        "identity": identity,
+        "raw_artifact_sha256": raw_artifact_sha256,
+        "algorithm_sha256": algorithm_sha256,
+        "input_sha256": input_sha,
+    })
+    return input_sha, idempotency_key
+
+
 def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replace_failed_run_id=None):
     data = _v4_global(_v4_scope, 'dict')(envelope)
     required = {"trade_date", "stage_id", "raw_artifact_sha256", "algorithm_sha256", "rows", "selection_status"}
@@ -37,27 +71,14 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replac
         for item in data.get("source_evidence") or ()
     ):
         raise _v4_global(_v4_scope, 'SelectionError')("live algorithm evidence missing")
-    identity_payload = {
-        "identity": self._key(trade_date, stage_id, market),
-        "raw_artifact_sha256": data["raw_artifact_sha256"],
-        "algorithm_sha256": algorithm_sha,
-        "rows": rows,
-    }
-    authority_hashes = _v4_global(_v4_scope, 'tuple')(
-        _v4_global(_v4_scope, 'str')(item)
-        for item in data.get("source_evidence") or ()
-        if _v4_global(_v4_scope, 'any')(
-            _v4_global(_v4_scope, 'str')(item).startswith(prefix)
-            for prefix in (
-                "a_d1_premarket_pool_sha256=",
-                "a_research_panel_receipt_sha256=",
-                "a_research_panel_selector_sha256=",
-            )
-        )
+    input_sha, idem_key = _selection_request_identity(
+        _v4_scope,
+        self._key(trade_date, stage_id, market),
+        data["raw_artifact_sha256"],
+        algorithm_sha,
+        rows,
+        data.get("source_evidence") or (),
     )
-    if authority_hashes:
-        identity_payload["authority_source_hashes"] = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(authority_hashes))
-    input_sha = _v4_global(_v4_scope, '_canonical_sha')(identity_payload)
     role = self._role(stage_id, market)
     expected_artifact_id, expected_run_id = _v4_global(_v4_scope, '_selection_identity_ids')(
         trade_date,
@@ -73,7 +94,6 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replac
     artifact_id = expected_artifact_id
     data["run_id"] = run_id
     data["artifact_id"] = artifact_id
-    idem_key = _v4_global(_v4_scope, '_canonical_sha')({"identity": self._key(trade_date, stage_id, market), "raw_artifact_sha256": data["raw_artifact_sha256"], "algorithm_sha256": algorithm_sha, "input_sha256": input_sha})
     data["source_evidence"] = _v4_global(_v4_scope, 'list')(data.get("source_evidence") or [])
     data["cannot_confirm"] = _v4_global(_v4_scope, 'list')(data.get("cannot_confirm") or [])
     prefix = f"selection_runs/{trade_date}/{role}/{run_id}"
@@ -109,7 +129,6 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replac
                     raise _v4_global(_v4_scope, 'SelectionError')("selection idempotency payload mismatch")
                 return _v4_global(_v4_scope, 'dict')(data)
         run_dir = _v4_global(_v4_scope, '_safe_relative')(self.root, prefix)
-        artifact_path = _v4_global(_v4_scope, '_safe_relative')(self.root, artifact_relative)
         from stage_center._raw_store_parts.transaction_publish import _csv_sha, _prepare_trio
         artifact_sha = _csv_sha(artifact_rows, artifact_fields)
         manifest = {
@@ -153,9 +172,9 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replac
         }
         paths = _prepare_trio(_v4_scope, run_dir, manifest, receipt,
                               error_type=_v4_global(_v4_scope, 'SelectionError'),
+                              write_artifact=lambda path: _v4_global(_v4_scope, '_atomic_write_csv')(
+                                  path, artifact_rows, fields=artifact_fields),
                               allowed_predecessor=verified_predecessor)
-        if not artifact_path.exists():
-            _v4_global(_v4_scope, '_atomic_write_csv')(artifact_path, artifact_rows, fields=artifact_fields)
         if not paths['receipt.json'].exists():
             _v4_global(_v4_scope, '_atomic_write_json')(paths['receipt.json'], receipt)
         verified = self._verify_run(trade_date, stage_id, market, run_id)

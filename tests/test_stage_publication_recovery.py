@@ -70,7 +70,12 @@ def test_raw_identical_retry_fills_missing_only(monkeypatch, tmp_path, cutpoint)
     monkeypatch.setattr(raw, '_atomic_write_json', original)
     result = store.publish(**raw_kwargs())
     assert result['status'] == 'READY'
-    assert all(snapshot(tmp_path)[name] == content for name, content in surviving.items())
+    after = snapshot(tmp_path)
+    for name, content in surviving.items():
+        if name.endswith('/artifact.pending.csv'):
+            assert after[name.removesuffix('artifact.pending.csv') + 'artifact.csv'] == content
+        else:
+            assert after[name] == content
     assert store.publish(**raw_kwargs())['already_exists'] is True
 
 
@@ -85,7 +90,12 @@ def test_selection_identical_retry_fills_missing_only(monkeypatch, tmp_path, cut
     monkeypatch.setattr(selection, '_atomic_write_json', original)
     result = store.publish(env, market='A_SHARE')
     assert result['rows'] == env['rows']
-    assert all(snapshot(tmp_path)[name] == content for name, content in surviving.items())
+    after = snapshot(tmp_path)
+    for name, content in surviving.items():
+        if name.endswith('/artifact.pending.csv'):
+            assert after[name.removesuffix('artifact.pending.csv') + 'artifact.csv'] == content
+        else:
+            assert after[name] == content
     assert store.publish(env, market='A_SHARE') == result
 
 
@@ -100,6 +110,50 @@ def test_csv_failure_can_resume_explicit_identical_input(monkeypatch, tmp_path, 
         call()
     monkeypatch.setattr(module, '_atomic_write_csv', original)
     assert call()
+
+
+@pytest.mark.parametrize('kind', ['raw', 'selection'])
+def test_store_retry_recovers_exact_staged_artifact_before_intent(monkeypatch, tmp_path, kind):
+    module = raw if kind == 'raw' else selection
+    store = raw.RawStore(tmp_path) if kind == 'raw' else selection.SelectionStore(tmp_path)
+    call = lambda: store.publish(**raw_kwargs()) if kind == 'raw' else store.publish(envelope('A_SHARE', SHA), market='A_SHARE')
+    original = fail_once(monkeypatch, module, 'publication-intent.json')
+    with pytest.raises(OSError, match='injected'):
+        call()
+    staged = list(tmp_path.rglob('artifact.pending.csv'))
+    assert len(staged) == 1 and staged[0].is_file()
+    run_dir = staged[0].parent
+    assert {path.name for path in run_dir.iterdir()} == {'artifact.pending.csv'}
+    monkeypatch.setattr(module, '_atomic_write_json', original)
+    assert call()
+    assert not staged[0].exists()
+    assert (run_dir / 'artifact.csv').is_file()
+
+
+@pytest.mark.parametrize('kind', ['raw', 'selection'])
+def test_changed_request_cannot_adopt_staged_artifact(monkeypatch, tmp_path, kind):
+    module = raw if kind == 'raw' else selection
+    store = raw.RawStore(tmp_path) if kind == 'raw' else selection.SelectionStore(tmp_path)
+    if kind == 'raw':
+        original_call = lambda: store.publish(**raw_kwargs())
+        changed = raw_kwargs()
+        changed['rows'][0]['last_price'] = 12
+        changed_call = lambda: store.publish(**changed)
+    else:
+        env = envelope('A_SHARE', SHA)
+        original_call = lambda: store.publish(env, market='A_SHARE')
+        changed = envelope('A_SHARE', SHA)
+        changed['rows'][0]['score'] += 0.1
+        changed_call = lambda: store.publish(changed, market='A_SHARE')
+    original = fail_once(monkeypatch, module, 'publication-intent.json')
+    with pytest.raises(OSError, match='injected'):
+        original_call()
+    before = snapshot(tmp_path)
+    monkeypatch.setattr(module, '_atomic_write_json', original)
+    expected_error = 'pending publication slot request conflict' if kind == 'raw' else 'selection identity mismatch'
+    with pytest.raises(ValueError, match=expected_error):
+        changed_call()
+    assert snapshot(tmp_path) == before
 
 
 def seeded(tmp_path, *, a_selection_raw_sha=None):
@@ -145,6 +199,114 @@ def test_runner_finishes_receipt_after_durable_artifact(tmp_path, kind):
     pointer.unlink()
     assert existing(dummy)[0] == 'VERIFIED'
     assert receipt_path.read_bytes() == receipt
+
+
+@pytest.mark.parametrize('kind', ['raw', 'selection'])
+def test_normal_runner_recovers_v2_intent_before_manifest(monkeypatch, tmp_path, kind):
+    raw_root, selection_root = tmp_path / 'raw', tmp_path / 'selection'
+    rs, ss = raw.RawStore(raw_root), selection.SelectionStore(selection_root)
+    if kind == 'raw':
+        original = fail_once(monkeypatch, raw, 'manifest.json')
+        with pytest.raises(OSError, match='injected'):
+            rs.publish(**raw_kwargs())
+        lane = next((raw_root / 'runs' / DATE).rglob('publication-intent.json'))
+        expected_files = {'publication-intent.json', 'artifact.pending.csv'}
+    else:
+        results = {market: rs.publish(**raw_kwargs(market)) for market in MARKETS}
+        rs.publish_bundle(trade_date=DATE, stage_id=STAGE, status='READY', markets=results)
+        ss.publish(envelope('HK_CONNECT', results['HK_CONNECT']['artifact_sha256']), market='HK_CONNECT')
+        original = fail_once(monkeypatch, selection, 'manifest.json')
+        with pytest.raises(OSError, match='injected'):
+            ss.publish(envelope('A_SHARE', results['A_SHARE']['artifact_sha256']), market='A_SHARE')
+        lane = next((selection_root / 'selection_runs' / DATE).rglob('publication-intent.json'))
+        expected_files = {'publication-intent.json', 'artifact.pending.csv'}
+    run_dir = lane.parent
+    assert {path.name for path in run_dir.iterdir()} == expected_files
+    intent_sha = hashlib.sha256(lane.read_bytes()).hexdigest()
+    monkeypatch.setattr(raw if kind == 'raw' else selection, '_atomic_write_json', original)
+    if kind == 'raw':
+        dummy = SimpleNamespace(config=SimpleNamespace(raw_root=raw_root, selection_root=selection_root, backfill_run_id=None))
+        state, result = existing(dummy, markets=('A_SHARE',))
+        assert state == 'PARTIAL'
+    else:
+        from stage_center.candidate_input import CandidateInput
+        candidate = CandidateInput(tmp_path, DATE, 'current.json', SHA, 'fixture-run',
+            ('A.000001',), SHA, SHA, SHA, SHA, ())
+        monkeypatch.setattr(runner_module, 'read_candidate_input', lambda *args, **kwargs: candidate)
+        calls = []
+        def forbidden(*args, **kwargs):
+            calls.append('collector-or-builder')
+            raise AssertionError('verified recovery called a collector or selection builder')
+        config = runner_module.RunnerConfig(tmp_path / 'candidate', raw_root, selection_root,
+            tmp_path / 'receipts', selection_builders={market: forbidden for market in MARKETS})
+        instance = runner_module.StageCenterRunner(config, collectors={market: forbidden for market in MARKETS})
+        runner_calls = []
+        run_one = instance._run_one
+        def once(decision, **kwargs):
+            runner_calls.append(decision)
+            return run_one(decision, **kwargs)
+        instance._run_one = once
+        result = instance._run_one(SimpleNamespace(trade_date=DATE, stage_id=STAGE, status='LATE_CATCHUP_REPLAY'))
+        assert result['status'] == 'NOOP_ALREADY_VERIFIED'
+        assert result['write_performed'] is True
+        assert len(runner_calls) == 1
+        assert calls == []
+        assert hashlib.sha256(lane.read_bytes()).hexdigest() == intent_sha
+    assert f'{kind.upper()}:A_SHARE' in result['recovered_publications']
+    assert (run_dir / 'manifest.json').is_file()
+    assert (run_dir / 'artifact.csv').is_file()
+    assert (run_dir / 'receipt.json').is_file()
+    assert not (run_dir / 'artifact.pending.csv').exists()
+    if kind == 'raw':
+        assert (raw_root / 'latest.json').is_file()
+    else:
+        assert (selection_root / 'selection_latest.json').is_file()
+
+
+@pytest.mark.parametrize('mutation', ['candidate', 'intent'])
+def test_runner_rejects_cross_identity_or_corrupt_v2_intent_before_mutation(monkeypatch, tmp_path, mutation):
+    raw_root, selection_root = tmp_path / 'raw', tmp_path / 'selection'
+    store = raw.RawStore(raw_root)
+    original = fail_once(monkeypatch, raw, 'manifest.json')
+    with pytest.raises(OSError, match='injected'):
+        store.publish(**raw_kwargs())
+    intent_path = next((raw_root / 'runs' / DATE).rglob('publication-intent.json'))
+    if mutation == 'intent':
+        intent = json.loads(intent_path.read_text())
+        intent['manifest_sha256'] = '0' * 64
+        intent_path.write_text(json.dumps(intent))
+    before = snapshot(tmp_path)
+    monkeypatch.setattr(raw, '_atomic_write_json', original)
+    dummy = SimpleNamespace(config=SimpleNamespace(raw_root=raw_root, selection_root=selection_root, backfill_run_id=None))
+    state, result = existing(dummy, markets=('A_SHARE',), sha='b' * 64 if mutation == 'candidate' else SHA)
+    assert state == 'PARTIAL'
+    assert 'A_SHARE' in result['pending_errors']
+    assert snapshot(tmp_path) == before
+    run_dir = intent_path.parent
+    assert not (run_dir / 'manifest.json').exists()
+    assert not (run_dir / 'artifact.csv').exists()
+    assert not (raw_root / 'latest.json').exists()
+
+
+def test_legacy_v1_intent_without_manifest_or_artifact_stays_fail_closed(monkeypatch, tmp_path):
+    raw_root, selection_root = tmp_path / 'raw', tmp_path / 'selection'
+    store = raw.RawStore(raw_root)
+    original = fail_once(monkeypatch, raw, 'manifest.json')
+    with pytest.raises(OSError, match='injected'):
+        store.publish(**raw_kwargs())
+    intent_path = next((raw_root / 'runs' / DATE).rglob('publication-intent.json'))
+    intent = json.loads(intent_path.read_text())
+    legacy = {key: intent[key] for key in ('manifest_sha256', 'receipt_sha256', 'receipt')}
+    legacy['schema_version'] = 'stage_center.publication_intent.v1'
+    intent_path.write_text(json.dumps(legacy))
+    (intent_path.parent / 'artifact.pending.csv').unlink()
+    before = snapshot(tmp_path)
+    monkeypatch.setattr(raw, '_atomic_write_json', original)
+    dummy = SimpleNamespace(config=SimpleNamespace(raw_root=raw_root, selection_root=selection_root, backfill_run_id=None))
+    state, result = existing(dummy, markets=('A_SHARE',))
+    assert state == 'PARTIAL' and 'A_SHARE' in result['pending_errors']
+    assert snapshot(tmp_path) == before
+    assert not (raw_root / 'latest.json').exists()
 
 
 @pytest.mark.parametrize('mutation', ['candidate', 'artifact', 'intent', 'symlink'])
