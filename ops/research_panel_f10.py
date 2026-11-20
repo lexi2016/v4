@@ -27,6 +27,7 @@ VENDOR = {
 HOSTS = (('115.238.90.165', 7709), ('119.147.212.81', 7709), ('101.227.73.20', 7709))
 # BJ's server mapping has not been certified here; never infer it from digits.
 MARKET = {'SZ': 0, 'SH': 1}
+COMPATIBLE_CHECKPOINT_ADAPTERS = {'8c181223093b7f3fba859290cd3f5ffde8500cdd6b992098001ad1c66e5b8780'}
 
 
 def _sha(raw):
@@ -43,6 +44,43 @@ def _read_ref(ref):
     return raw
 
 
+def _exact_numeric_product(context, product_root, expected_manifest=None):
+    root = Path(product_root)
+    day = str(context.target)
+    index = json.loads((root / 'index.json').read_bytes())
+    manifest_ref = index.get('dates', {}).get(day)
+    if not isinstance(manifest_ref, dict):
+        raise ValueError('F10_EXACT_DAILY_PRODUCT_NOT_READY')
+    if expected_manifest is not None and manifest_ref != expected_manifest:
+        raise ValueError('F10_EXACT_DAILY_INDEX_MOVED')
+    manifest = json.loads(_read_ref(manifest_ref))
+    product_ref = manifest.get('artifact')
+    if not isinstance(product_ref, dict):
+        raise ValueError('F10_NUMERIC_PRODUCT_REFERENCE_MISSING')
+    product = json.loads(_read_ref(product_ref))
+    identity = context.identity
+    if (manifest.get('schema_version') != 'v4.a_share.daily_product_manifest.v1' or
+            manifest.get('data_date') != day or manifest.get('source_generation') != context.generation or
+            manifest.get('input_sha256') != identity.get('input_sha256') or
+            manifest.get('status') not in {'READY', 'PARTIAL_WITH_ROWS'} or manifest.get('sample_only') is not False or
+            any(manifest.get(key) != value for key, value in FLAGS.items()) or
+            product.get('schema_version') != 'v4.a_share.daily_product.v1' or
+            product.get('data_date') != day or product.get('source_generation') != context.generation or
+            product.get('status') != manifest.get('status') or product.get('sample_only') is not False or
+            product.get('source_identity') != identity or
+            any(product.get(key) != value for key, value in FLAGS.items())):
+        raise ValueError('F10_EXACT_DAILY_PRODUCT_IDENTITY_CONFLICT')
+    event = json.loads((root / 'events' / 'latest.json').read_bytes())
+    if (event.get('schema_version') != 'v4.a_share.daily_completion.v1' or event.get('data_date') != day or
+            event.get('source_generation') != context.generation or
+            event.get('input_sha256') != identity.get('input_sha256') or
+            event.get('status') != manifest.get('status') or event.get('manifest') != manifest_ref or
+            event.get('artifact') != product_ref or any(event.get(key) != value for key, value in FLAGS.items())):
+        raise ValueError('F10_EXACT_DAILY_EVENT_IDENTITY_CONFLICT')
+    context.unchanged()
+    return manifest_ref, manifest, product, event
+
+
 def _write(path, obj, *, immutable=False):
     path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
     raw = (json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n').encode()
@@ -54,6 +92,51 @@ def _write(path, obj, *, immutable=False):
             out.write(raw); out.flush(); os.fsync(out.fileno())
         os.replace(tmp, path)
     return {'path': str(path.resolve()), 'sha256': _sha(raw)}
+
+
+def exact_daily_source_receipt(context, product_root, output_root):
+    """Bind F10 to the exact committed same-day numeric product and event."""
+    day = str(context.target)
+    manifest_ref,_,_,_= _exact_numeric_product(context, product_root)
+    identity = context.identity
+    receipt = dict(schema='V4_A_DAILY_F10_SOURCE_READY_V1', status='EXACT_DAILY_PRODUCT_READY',
+                   data_date=day, source_generation=context.generation,
+                   input_sha256=identity['input_sha256'],
+                   selector_sha256=identity['selector_artifact_sha256'],
+                   numeric_manifest=manifest_ref, source_identity=identity,
+                   historical_PIT=False, **FLAGS)
+    receipt_sha = _sha((json.dumps(receipt, sort_keys=True, ensure_ascii=False,
+                                   separators=(',', ':'), allow_nan=False) + '\n').encode())
+    return _write(Path(output_root) / 'f10' / day / context.generation[:16] /
+                  'source_ready' / (receipt_sha + '.json'), receipt, immutable=True)
+
+
+def _validate_f10_upstream(context, receipt, product_root):
+    if receipt.get('schema') == 'V4_A_DAILY_DERIVATIVES_V1':
+        valid = (receipt.get('status') == 'COMPLETE_DESCRIPTIVE_NONPIT' and
+                 receipt.get('data_date') == str(context.target) and
+                 receipt.get('source_generation') == context.generation and
+                 all(receipt.get(key) == value for key, value in FLAGS.items()))
+        if not valid:
+            raise ValueError('F10_DAILY_COMPLETION_UNBOUND')
+        provenance=receipt.get('completed_source_provenance') or {}
+        manifest_ref=provenance.get('numeric_manifest')
+        if not isinstance(manifest_ref,dict):raise ValueError('F10_DERIVATIVE_NUMERIC_MANIFEST_MISSING')
+        _exact_numeric_product(context,product_root,manifest_ref)
+        return manifest_ref
+    if (receipt.get('schema') != 'V4_A_DAILY_F10_SOURCE_READY_V1' or
+            receipt.get('status') != 'EXACT_DAILY_PRODUCT_READY' or
+            receipt.get('data_date') != str(context.target) or
+            receipt.get('source_generation') != context.generation or
+            receipt.get('input_sha256') != context.identity.get('input_sha256') or
+            receipt.get('selector_sha256') != context.identity.get('selector_artifact_sha256') or
+            receipt.get('source_identity') != context.identity or
+            not isinstance(receipt.get('numeric_manifest'), dict) or
+            receipt.get('historical_PIT') is not False or
+            any(receipt.get(key) != value for key, value in FLAGS.items())):
+        raise ValueError('F10_EXACT_DAILY_SOURCE_RECEIPT_CONFLICT')
+    _exact_numeric_product(context,product_root,receipt['numeric_manifest'])
+    return receipt['numeric_manifest']
 
 
 def _vendors():
@@ -169,22 +252,25 @@ def bound_universe(context, requested=None):
 
 
 def complete_f10(context, receipt_ref, output_root, *, requested=None, workers=4, fetch=fetch_one):
-    """Run after an immutable successful daily derivative receipt; resume by symbol."""
+    """Run from an exact daily source receipt; resume by symbol."""
     if isinstance(workers,bool) or not isinstance(workers,int) or not 1<=workers<=4: raise ValueError('F10_WORKER_LIMIT')
     receipt=json.loads(_read_ref(receipt_ref))
-    if (receipt.get('schema')!='V4_A_DAILY_DERIVATIVES_V1' or receipt.get('status')!='COMPLETE_DESCRIPTIVE_NONPIT'
-            or receipt.get('data_date')!=str(context.target) or receipt.get('source_generation')!=context.generation
-            or any(receipt.get(k)!=v for k,v in FLAGS.items())): raise ValueError('F10_DAILY_COMPLETION_UNBOUND')
+    numeric_manifest=_validate_f10_upstream(context, receipt, output_root)
     context.unchanged(); universe=bound_universe(context,requested); context.unchanged()
     identity={'data_date':str(context.target),'source_generation':context.generation,
               'selector_sha256':context.identity['selector_artifact_sha256'],'input_sha256':context.identity['input_sha256'],
               'scope_sha256':_sha(json.dumps(universe,sort_keys=True).encode()),
               'adapter_sha256':_sha(Path(__file__).read_bytes()),'collector_sha256':VENDOR}
     root=Path(output_root)/'f10'/str(context.target)/context.generation[:16];root.mkdir(parents=True,exist_ok=True)
-    checkpoint_path=root/'checkpoint.json'; cache={}
+    checkpoint_path=root/'checkpoint.json'; cache={};resumed_from=None
     if checkpoint_path.exists():
         checkpoint=json.loads(checkpoint_path.read_text())
-        if checkpoint.get('identity')!=identity:raise ValueError('F10_CHECKPOINT_IDENTITY_CONFLICT')
+        previous=checkpoint.get('identity')
+        if previous!=identity:
+            compatible=dict(identity,adapter_sha256=previous.get('adapter_sha256') if isinstance(previous,dict) else None)
+            if (not isinstance(previous,dict) or previous.get('adapter_sha256') not in COMPATIBLE_CHECKPOINT_ADAPTERS
+                or previous!=compatible):raise ValueError('F10_CHECKPOINT_IDENTITY_CONFLICT')
+            resumed_from=previous['adapter_sha256']
         for code,ref in checkpoint.get('items',{}).items():
             value=json.loads(_read_ref(ref))
             if code in universe and value.get('status')=='OBSERVED':cache[code]=ref
@@ -223,15 +309,18 @@ def complete_f10(context, receipt_ref, output_root, *, requested=None, workers=4
     checkpoint_ref=_write(root/'checkpoints'/(_sha(checkpoint_raw)+'.json'),checkpoint_value,immutable=True)
     remaining=sorted(set(universe)-set(cache)-set(failures))
     result={'schema':'v4.a_share.f10_daily_receipt.v1','status':'COMPLETE' if len(cache)==len(universe) else 'PARTIAL',
-            **identity,'upstream_success_receipt':receipt_ref,'checkpoint':checkpoint_ref,'requested':len(universe),
+            **identity,'numeric_manifest':numeric_manifest,'upstream_success_receipt':receipt_ref,'checkpoint':checkpoint_ref,'requested':len(universe),
             'scope':{'kind':'EXPLICIT_SYMBOLS' if requested is not None else 'ADMITTED_DAILY_UNIVERSE',
                      'count':len(universe),'symbols':sorted(universe) if requested is not None else None},
             'observed':len(cache),'failures':failures,'remaining':remaining,'historical_PIT':False,
             'captured_as_current_knowledge':True,**FLAGS}
+    if resumed_from:result['resumed_from_adapter_sha256']=resumed_from
     digest=_sha((json.dumps(result,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False)+'\n').encode())
     result_ref=_write(root/'receipts'/(digest+'.json'),result,immutable=True)
-    return {'status':result['status'],'receipt':result_ref,'requested':result['requested'],'observed':result['observed'],
-            'failure_count':len(failures),'remaining_count':len(remaining)}
+    completion={'status':result['status'],'receipt':result_ref,'requested':result['requested'],'observed':result['observed'],
+                'failure_count':len(failures),'remaining_count':len(remaining)}
+    if resumed_from:completion['resumed_from_adapter_sha256']=resumed_from
+    return completion
 
 
 def publish_f10_completion(context, output_root, receipt_ref, *, expected_index_sha256=None, expected_event_sha256=None):
@@ -243,6 +332,7 @@ def publish_f10_completion(context, output_root, receipt_ref, *, expected_index_
     if (receipt.get('schema')!='v4.a_share.f10_daily_receipt.v1' or receipt.get('data_date')!=day
         or receipt.get('source_generation')!=context.generation or receipt.get('input_sha256')!=context.identity['input_sha256']
         or receipt.get('selector_sha256')!=context.identity['selector_artifact_sha256']
+        or not isinstance(receipt.get('numeric_manifest'),dict)
         or receipt.get('historical_PIT') is not False or any(receipt.get(k)!=v for k,v in FLAGS.items())
         or receipt.get('status') not in {'COMPLETE','PARTIAL'}):raise ValueError('F10_PUBLICATION_RECEIPT_CONFLICT')
     checkpoint=json.loads(_read_ref(receipt['checkpoint']));checkpoint_identity=checkpoint.get('identity',{})
@@ -272,13 +362,7 @@ def publish_f10_completion(context, output_root, receipt_ref, *, expected_index_
         ip=root/'index.json';ep=root/'events/latest.json';before_i=ip.read_bytes();before_e=ep.read_bytes();index=json.loads(before_i);event=json.loads(before_e)
         if expected_index_sha256 is not None and (_sha(before_i)!=expected_index_sha256 or _sha(before_e)!=expected_event_sha256):
             raise ValueError('F10_EXPECTED_INDEX_EVENT_CAS_MOVED')
-        manifest_ref=index.get('dates',{}).get(day)
-        if (not manifest_ref or event.get('data_date')!=day or event.get('source_generation')!=context.generation
-            or event.get('input_sha256')!=context.identity['input_sha256'] or event.get('manifest')!=manifest_ref):
-            raise ValueError('F10_PRODUCT_INDEX_MOVED')
-        manifest=json.loads(_read_ref(manifest_ref))
-        if manifest.get('source_generation')!=context.generation or manifest.get('input_sha256')!=context.identity['input_sha256']:
-            raise ValueError('F10_NUMERIC_MANIFEST_CONFLICT')
+        manifest_ref,manifest,_,_=_exact_numeric_product(context,root,receipt['numeric_manifest'])
         prior_ref=index.get('f10',{}).get(day)
         if prior_ref:
             prior=json.loads(_read_ref(prior_ref))

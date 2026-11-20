@@ -664,6 +664,7 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
     from ops.research_panel_daily_product import SourceContext
     from ops.sync_stock_history_completion import publish
     root=Path(root);day=str(target);output=root/'continuations'/day
+    context=None;completed_source=None;f10_result=None
     try:
         if upstream_failure is not None:raise ValueError('UPSTREAM_DAILY_SOURCE_FAILED:'+str(upstream_failure.get('reason') or upstream_failure.get('status')))
         os.environ['V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT']=str(root)
@@ -703,19 +704,23 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
         receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='CANNOT_CONFIRM',data_date=day,error=str(error),**FLAGS)
     save(output/'latest_receipt.json',receipt)
     receipt['attempt']=record_daily_attempt(root,receipt)
-    if receipt['status']=='COMPLETE_DESCRIPTIVE_NONPIT':
-        # Existing A completion owns this continuation; a failed F10 source
-        # never turns into an empty concept list or changes the A receipt.
+    if context is not None and completed_source is not None:
+        source_ready_ref=None
+        upstream_ref=receipt['attempt'] if receipt['status']=='COMPLETE_DESCRIPTIVE_NONPIT' else None
         try:
-            from ops.research_panel_f10 import complete_f10,publish_f10_completion
-            receipt['f10']=complete_f10(context,receipt['attempt'],root,
+            from ops.research_panel_f10 import complete_f10,exact_daily_source_receipt,publish_f10_completion
+            source_ready_ref=exact_daily_source_receipt(context,root,output)
+            if upstream_ref is None:upstream_ref=source_ready_ref
+            f10_result=complete_f10(context,upstream_ref,root,
                 workers=min(4,max(1,int(os.environ.get('RESEARCH_PANEL_QFQ_WORKERS','4')))))
-            receipt['f10']['publication']=publish_f10_completion(context,root,receipt['f10']['receipt'])
+            f10_result['publication']=publish_f10_completion(context,root,f10_result['receipt'])
         except Exception as error:
             failure=dict(schema='v4.a_share.f10_daily_failure.v1',status='CANNOT_CONFIRM',data_date=day,
-                source_generation=context.generation,upstream_success_receipt=receipt['attempt'],error=repr(error),**FLAGS)
+                source_generation=context.generation,upstream_success_receipt=upstream_ref or source_ready_ref,
+                error=repr(error),**FLAGS)
             failure_ref=save(output/context.generation/'f10_failure.json',failure)
-            receipt['f10']=dict(status='CANNOT_CONFIRM',receipt=failure_ref,reason=repr(error))
+            f10_result=dict(status='CANNOT_CONFIRM',receipt=failure_ref,reason=repr(error))
+        receipt['f10']=f10_result
     return receipt
 
 

@@ -1,6 +1,37 @@
+import hashlib
+import json
+from pathlib import Path
 import re
 
+import pytest
+
+from ops import research_panel_f10 as owner
 from ops.research_panel_f10 import fetch_one
+
+FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
+
+
+def write_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    raw=(json.dumps(value,sort_keys=True,separators=(',',':'))+'\n').encode()
+    path.write_bytes(raw)
+    return {'path':str(path.resolve()),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+def exact_source_fixture(tmp_path, day='20261119'):
+    identity={'input_sha256':'a'*64,'selector_artifact_sha256':'b'*64}
+    context=type('Context',(),{'target':int(day),'generation':'c'*64,'identity':identity,'unchanged':lambda self:None})()
+    product_ref=write_json(tmp_path/'product.json',dict(schema_version='v4.a_share.daily_product.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=day,source_generation=context.generation,
+        source_identity=identity,**FLAGS))
+    manifest_ref=write_json(tmp_path/'manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date=day,source_generation=context.generation,
+        input_sha256=identity['input_sha256'],artifact=product_ref,**FLAGS))
+    write_json(tmp_path/'index.json',dict(dates={day:manifest_ref}))
+    write_json(tmp_path/'events'/'latest.json',dict(schema_version='v4.a_share.daily_completion.v1',
+        status='PARTIAL_WITH_ROWS',data_date=day,source_generation=context.generation,
+        input_sha256=identity['input_sha256'],artifact=product_ref,manifest=manifest_ref,**FLAGS))
+    return context,manifest_ref
 
 
 class FakeApi:
@@ -74,3 +105,95 @@ def test_malformed_number_is_still_a_collector_failure():
 
     assert value['status'] == 'FAILED'
     assert 'could not convert string to float' in value['reason']
+
+
+def test_f10_requires_an_exact_current_day_numeric_product_and_event(tmp_path):
+    context,manifest_ref=exact_source_fixture(tmp_path)
+    ready=owner.exact_daily_source_receipt(context,tmp_path,tmp_path)
+    receipt=json.loads(Path(ready['path']).read_bytes())
+    owner._validate_f10_upstream(context,receipt,tmp_path)
+    assert receipt['numeric_manifest']==manifest_ref
+    assert receipt['data_date']=='20261119'
+
+    wrong_date={**receipt,'data_date':'20261118'}
+    with pytest.raises(ValueError,match='SOURCE_RECEIPT_CONFLICT'):
+        owner._validate_f10_upstream(context,wrong_date,tmp_path)
+
+    event=Path(tmp_path/'events'/'latest.json')
+    value=json.loads(event.read_bytes());value['input_sha256']='d'*64
+    event.write_text(json.dumps(value))
+    with pytest.raises(ValueError,match='EVENT_IDENTITY_CONFLICT|EVENT_MOVED'):
+        owner.exact_daily_source_receipt(context,tmp_path,tmp_path/'output')
+
+
+def test_f10_source_is_not_ready_when_the_exact_date_has_no_numeric_manifest(tmp_path):
+    context,manifest_ref=exact_source_fixture(tmp_path)
+    write_json(tmp_path/'index.json',dict(dates={'20261118':manifest_ref}))
+    with pytest.raises(ValueError,match='F10_EXACT_DAILY_PRODUCT_NOT_READY'):
+        owner.exact_daily_source_receipt(context,tmp_path,tmp_path/'output')
+
+
+def test_f10_publish_rejects_same_identity_numeric_manifest_ref_drift(tmp_path,monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    context,original_manifest=exact_source_fixture(tmp_path)
+    ready=owner.exact_daily_source_receipt(context,tmp_path,tmp_path)
+    monkeypatch.setattr(owner,'bound_universe',lambda ctx,requested=None:{symbol:'SH' for symbol in requested})
+    result=owner.complete_f10(context,ready,tmp_path,requested=['600000.SH'],
+        fetch=lambda symbol,exchange:{'symbol':symbol,'status':'OBSERVED'})
+
+    product_ref=write_json(tmp_path/'replacement-product.json',dict(schema_version='v4.a_share.daily_product.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date='20261119',source_generation=context.generation,
+        source_identity=context.identity,**FLAGS))
+    replacement=write_json(tmp_path/'replacement-manifest.json',dict(schema_version='v4.a_share.daily_product_manifest.v1',
+        status='PARTIAL_WITH_ROWS',sample_only=False,data_date='20261119',source_generation=context.generation,
+        input_sha256=context.identity['input_sha256'],artifact=product_ref,**FLAGS))
+    assert replacement!=original_manifest
+    write_json(tmp_path/'index.json',dict(dates={'20261119':replacement}))
+    write_json(tmp_path/'events'/'latest.json',dict(schema_version='v4.a_share.daily_completion.v1',
+        status='PARTIAL_WITH_ROWS',data_date='20261119',source_generation=context.generation,
+        input_sha256=context.identity['input_sha256'],artifact=product_ref,manifest=replacement,**FLAGS))
+
+    lock=tmp_path/'owner.lock';lock.touch()
+    monkeypatch.setitem(sys.modules,'ops.sync_stock_history_completion',SimpleNamespace(
+        DEFAULT_OWNER_LOCK=lock,_inherited_owner_duplicate=lambda *args:None))
+    with pytest.raises(ValueError,match='F10_EXACT_DAILY_INDEX_MOVED'):
+        owner.publish_f10_completion(context,tmp_path,result['receipt'])
+
+
+def test_f10_same_day_retry_reuses_observed_checkpoint_without_refetch(tmp_path,monkeypatch):
+    context,_=exact_source_fixture(tmp_path)
+    ready=owner.exact_daily_source_receipt(context,tmp_path,tmp_path/'output')
+    monkeypatch.setattr(owner,'bound_universe',lambda ctx,requested=None:{symbol:'SH' for symbol in requested})
+    calls=[]
+    def fetch(symbol,exchange):
+        calls.append((symbol,exchange))
+        return {'symbol':symbol,'status':'OBSERVED'}
+    first=owner.complete_f10(context,ready,tmp_path,requested=['600000.SH'],fetch=fetch)
+    second=owner.complete_f10(context,ready,tmp_path,requested=['600000.SH'],fetch=fetch)
+    assert first['status']==second['status']=='COMPLETE'
+    assert calls==[('600000.SH','SH')]
+
+
+def test_f10_reuses_verified_observed_rows_from_the_previous_owner_adapter(tmp_path,monkeypatch):
+    context,_=exact_source_fixture(tmp_path)
+    ready=owner.exact_daily_source_receipt(context,tmp_path,tmp_path/'continuations')
+    symbol='600000.SH';universe={symbol:'SH'}
+    monkeypatch.setattr(owner,'bound_universe',lambda ctx,requested=None:universe)
+    identity={'data_date':'20261119','source_generation':context.generation,
+        'selector_sha256':context.identity['selector_artifact_sha256'],'input_sha256':context.identity['input_sha256'],
+        'scope_sha256':owner._sha(json.dumps(universe,sort_keys=True).encode()),
+        'adapter_sha256':'8c181223093b7f3fba859290cd3f5ffde8500cdd6b992098001ad1c66e5b8780',
+        'collector_sha256':owner.VENDOR}
+    row_ref=write_json(tmp_path/'f10'/'20261119'/context.generation[:16]/'stocks'/symbol/'observed.json',
+        {'symbol':symbol,'status':'OBSERVED'})
+    checkpoint=tmp_path/'f10'/'20261119'/context.generation[:16]/'checkpoint.json'
+    write_json(checkpoint,{'schema':'v4.a_share.f10_checkpoint.v1','identity':identity,
+        'items':{symbol:row_ref},'upstream_success_receipt':ready,**FLAGS})
+    calls=[]
+    result=owner.complete_f10(context,ready,tmp_path,requested=[symbol],
+        fetch=lambda *args:calls.append(args))
+    assert result['status']=='COMPLETE'
+    assert result['observed']==1 and calls==[]
+    assert result['resumed_from_adapter_sha256']==identity['adapter_sha256']
