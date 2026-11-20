@@ -41,7 +41,12 @@ V1_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V1'
 V2_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V2'
 V3_SCHEMA = 'V4_RECEIVED_RESEARCH_IMPORT_V3'
 FORMULA_SCOPE_SCHEMA = 'V4_FORMULA_GROUP_SCOPED_IMPORT_V1'
+FORMULA_PRESENTATION_REVISION_SCHEMA = 'V4_FORMULA_GROUP_PRESENTATION_REVISION_V1'
 FORMULA_GROUPS = ('b23_entry', 'pb2_confirm')
+FORMULA_SECONDARY_DISPLAY_FIELDS = frozenset({
+    'industry_secondary_status', 'industry_secondary_theme',
+    'failure_and_counterevidence', 'industry_external_evidence',
+})
 FORMULA_SHARED_SOURCE_MEMBERS = {
     'V2_DAILY_PERFORMANCE': 'DAILY_PERFORMANCE.csv',
     'V2_STRUCTURE_INPUT': 'STRUCTURE_INPUT.csv',
@@ -856,10 +861,12 @@ def prepare_formula_scope_payload(config, numeric_ref, scope, date, target, gene
                            'near250_percentile_pct', 'volume_to_current_MA5', 'volume_to_prior_MA5'):
             value[destination] = None
         performance[symbol] = value
+        display_record = _formula_secondary_display_record(secondary)
         screens[symbol] = dict(status='PARTIAL_RECEIVED_MODULE', role='INDUSTRY_SECONDARY_RECEIVED',
             source_date=date, target_date=target, recorded_at=returned.get('created_at'), errors=[],
             reference_status='RECEIVED_REFERENCE_ONLY', reference_fields={},
-            received_record=copy.deepcopy(secondary), source_ref=inputs['secondary_rows'],
+            received_record=display_record, raw_received_record=copy.deepcopy(secondary),
+            source_ref=inputs['secondary_rows'],
             receipt=inputs['return_manifest'], **FLAGS)
         stock_scope[symbol] = dict(symbol=symbol, name=membership['display_name'],
             groups=membership['groups'], source_date=date, observation_date=target,
@@ -888,7 +895,101 @@ def prepare_formula_scope_payload(config, numeric_ref, scope, date, target, gene
     return received, sources_by_id, performance, screens, source_manifest, normalized_return, summary, per_stock_source_binding, stock_scope
 
 
-def prepare(config_reference, stage):
+def _formula_secondary_display_record(source):
+    """Add only fields the existing company card can display from this V2 row."""
+    decision = source.get('decision')
+    if decision not in {'SELECTED_FOR_EVIDENCE_BASED_RESEARCH', 'NOT_SELECTED_IN_THIS_BATCH'}:
+        raise ValueError('RECEIVED_FORMULA_SECONDARY_DECISION_INVALID:' + str(source.get('symbol')))
+    candidate_sector = source.get('candidate_sector')
+    if not isinstance(candidate_sector, str) or not candidate_sector.strip():
+        raise ValueError('RECEIVED_FORMULA_SECONDARY_CANDIDATE_SECTOR_MISSING:' + str(source.get('symbol')))
+    record = copy.deepcopy(source)
+    record.update(
+        industry_secondary_status=(
+            'PARTIAL_SELECTED_FOR_EVIDENCE_BASED_RESEARCH'
+            if decision == 'SELECTED_FOR_EVIDENCE_BASED_RESEARCH'
+            else 'PARTIAL_NOT_SELECTED_IN_THIS_BATCH'
+        ),
+        industry_secondary_theme=(
+            '未列入本批研究方向' if candidate_sector == 'NOT_SELECTED' else candidate_sector
+        ),
+    )
+    direct_mappings = {
+        'failure_and_counterevidence': 'company_counterevidence',
+        'industry_external_evidence': 'overseas_facts_and_counterevidence',
+    }
+    for target, origin in direct_mappings.items():
+        value = source.get(origin)
+        if isinstance(value, str) and value.strip():
+            record[target] = value
+    return record
+
+
+def _validate_scoped_presentation_revision(index, config, context, revision):
+    if revision is None:
+        return None
+    expected_sha = revision.get('expected_previous_manifest_sha256') if isinstance(revision, dict) else None
+    if (not isinstance(revision, dict)
+            or set(revision) != {'schema', 'expected_previous_manifest_sha256'}
+            or revision.get('schema') != FORMULA_PRESENTATION_REVISION_SCHEMA
+            or not isinstance(expected_sha, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', expected_sha)):
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_INVALID')
+    if context is None:
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_REQUIRES_FORMULA_SCOPE')
+    date = config['source_date']
+    previous = index.get('company_materials_scoped', {}).get(date, {}).get(context['roster_sha256'])
+    if not isinstance(previous, dict) or previous.get('sha256') != expected_sha:
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_REF_CONFLICT')
+    if (previous.get('path') is None or not Path(previous['path']).is_file()
+            or sha(previous['path']) != expected_sha):
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_MANIFEST_INVALID')
+    return dict(schema=FORMULA_PRESENTATION_REVISION_SCHEMA,
+                expected_previous_manifest_sha256=expected_sha,
+                previous_ref=copy.deepcopy(previous), date=date,
+                observation_date=config['target_date'], generation=config['generation'],
+                input_sha256=config['input_sha256'], roster_sha256=context['roster_sha256'])
+
+
+def _validate_revision_materials(previous_ref, materials, immutable_files, revision):
+    previous = load(previous_ref)
+    identity = dict(data_date=revision['date'], source_generation=revision['generation'],
+                    input_sha256=revision['input_sha256'])
+    if (any(previous.get(key) != value for key, value in identity.items())
+            or previous.get('formula_group_scope', {}).get('source_date') != revision['date']
+            or previous.get('formula_group_scope', {}).get('observation_date') != revision['observation_date']
+            or previous.get('formula_group_scope', {}).get('roster_sha256') != revision['roster_sha256']
+            or set(previous.get('items', {})) != set(materials.get('items', {}))
+            or not safe_flags(previous)):
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_IDENTITY_CONFLICT')
+    old_manifest_body = {key: value for key, value in previous.items() if key != 'items'}
+    new_manifest_body = {key: value for key, value in materials.items() if key != 'items'}
+    if old_manifest_body != new_manifest_body:
+        raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_MANIFEST_DELTA_CONFLICT')
+    for symbol, old_ref in previous['items'].items():
+        old = load(old_ref)
+        new_ref = materials['items'][symbol]
+        new_path = immutable_files.get(new_ref['path'])
+        if not isinstance(new_path, dict):
+            raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_STAGED_ROW_MISSING:' + symbol)
+        new = load(new_path)
+        before_screen = old.get('secondary_screen')
+        after_screen = new.get('secondary_screen')
+        if (not isinstance(before_screen, dict) or not isinstance(after_screen, dict)
+                or before_screen.get('role') != 'INDUSTRY_SECONDARY_RECEIVED'
+                or after_screen.get('role') != before_screen.get('role')
+                or after_screen.get('raw_received_record') != before_screen.get('received_record')):
+            raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_RAW_ROW_CONFLICT:' + symbol)
+        after_without_projection = copy.deepcopy(new)
+        projected = after_without_projection['secondary_screen']['received_record']
+        for key in FORMULA_SECONDARY_DISPLAY_FIELDS:
+            projected.pop(key, None)
+        after_without_projection['secondary_screen'].pop('raw_received_record', None)
+        if after_without_projection != old:
+            raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_NONDISPLAY_DELTA:' + symbol)
+
+
+def prepare(config_reference, stage, *, scoped_presentation_revision=None):
     config, import_mode = normalize_import_config(load(config_reference))
     root, stage = Path(config['product_root']), Path(stage).resolve()
     if (not root.is_absolute() or root.is_symlink() or root.resolve(strict=True) != root
@@ -949,6 +1050,8 @@ def prepare(config_reference, stage):
         scope = set(codes)
         if len(codes) != len(scope) or len(scope) != config['scope_count']:
             raise ValueError('RECEIVED_NUMERIC_EXACT_SCOPE_CONFLICT')
+    scoped_revision = _validate_scoped_presentation_revision(
+        index, config, formula_context, scoped_presentation_revision)
     if formula_context is None:
         received = exact_rows(csv_rows(inputs['fundamentals']), scope, 'FUNDAMENTALS')
         source_manifest = load(inputs['input_manifest'])
@@ -1232,6 +1335,7 @@ def prepare(config_reference, stage):
     material_ref = immutable('company_materials/' + date, 'index.json', materials)
     new_index, new_event = copy.deepcopy(index), copy.deepcopy(event)
     idempotent_scope = False
+    revised_scope = False
     if formula_context is not None:
         scoped = new_index.setdefault('company_materials_scoped', {})
         if not isinstance(scoped, dict):
@@ -1242,11 +1346,18 @@ def prepare(config_reference, stage):
         previous = by_date.get(formula_context['roster_sha256'])
         if previous is not None:
             previous_materials = load(previous)
-            if (previous_materials != materials or previous.get('sha256') != material_ref.get('sha256')):
+            if previous_materials == materials and previous.get('sha256') == material_ref.get('sha256'):
+                material_ref = previous
+                idempotent_scope = True
+            elif scoped_revision is not None:
+                _validate_revision_materials(previous, materials, immutable_files, scoped_revision)
+                by_date[formula_context['roster_sha256']] = material_ref
+                revised_scope = True
+            else:
                 raise ValueError('RECEIVED_FORMULA_SCOPED_KEY_CONTENT_CONFLICT')
-            material_ref = previous
-            idempotent_scope = True
         else:
+            if scoped_revision is not None:
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_REF_CONFLICT')
             by_date[formula_context['roster_sha256']] = material_ref
         # Scoped records are additive. Preserve the ordinary pointer, versions,
         # and event byte-for-byte, including for same-day formula/official overlap.
@@ -1262,15 +1373,23 @@ def prepare(config_reference, stage):
         if date == latest_date:
             new_event.update(company_materials=material_ref)
             new_event['event_id'] = hashlib.sha256(canonical({k: v for k, v in new_event.items() if k != 'event_id'})).hexdigest()
+    if revised_scope:
+        before = copy.deepcopy(index)
+        after = copy.deepcopy(new_index)
+        before['company_materials_scoped'][date][formula_context['roster_sha256']] = '__REVISION_POINTER__'
+        after['company_materials_scoped'][date][formula_context['roster_sha256']] = '__REVISION_POINTER__'
+        if before != after or new_event != event:
+            raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_INDEX_DELTA_CONFLICT')
     plan = dict(schema='V4_RECEIVED_RESEARCH_PUBLICATION_PLAN_V1',
-                status='IDEMPOTENT_SCOPED_BINDING' if idempotent_scope else 'PREPARED_NOT_PUBLISHED',
+                status=('PREPARED_SCOPED_PRESENTATION_REVISION' if revised_scope else
+                        'IDEMPOTENT_SCOPED_BINDING' if idempotent_scope else 'PREPARED_NOT_PUBLISHED'),
                 config=config_reference, publication_adapter=config['publication_adapter'],
                 owner_publisher=config['owner_publisher'], shared_owner_lock=lock, target_root=str(root),
                 stage=str(stage), expected_index=expected_index, expected_event=expected_event,
                 immutable_files=immutable_files, staged_index=save(stage / 'index.json', new_index),
                 staged_event=save(stage / 'event.json', new_event), completed=sorted(scope),
                 numeric_manifest=numeric_ref, numeric_artifact=numeric['artifact'],
-                company_materials_ref=material_ref,
+                company_materials_ref=material_ref, scoped_presentation_revision=scoped_revision,
                 idempotent=idempotent_scope, summary=summary, **FLAGS)
     save(stage / 'PUBLICATION_PLAN.json', plan)
     return plan
@@ -1296,6 +1415,39 @@ def publish(plan_reference):
         return dict(status='ALREADY_PUBLISHED_IDENTICAL_SCOPE', company_materials_ref=plan.get('company_materials_ref'),
                     completed=plan.get('completed', []), **FLAGS)
     adapter = pinned_module(plan['publication_adapter'], 'existing_received_material_publisher')
+    if plan.get('status') == 'PREPARED_SCOPED_PRESENTATION_REVISION':
+        revision = plan.get('scoped_presentation_revision')
+        if (not isinstance(revision, dict)
+                or revision.get('schema') != FORMULA_PRESENTATION_REVISION_SCHEMA
+                or revision.get('previous_ref') is None):
+            raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PLAN_INVALID')
+
+        def refresh_scoped_revision():
+            root = Path(plan['target_root'])
+            if (ref(root / 'index.json') != plan['expected_index']
+                    or ref(root / 'events/latest.json') != plan['expected_event']):
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_CAS_DRIFT')
+            current = load(plan['expected_index'])
+            date, roster_sha = revision['date'], revision['roster_sha256']
+            current_ref = current.get('company_materials_scoped', {}).get(date, {}).get(roster_sha)
+            if (current_ref != revision['previous_ref']
+                    or current_ref.get('sha256') != revision['expected_previous_manifest_sha256']):
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_REF_DRIFT')
+            checked(current_ref)
+            if sha(current_ref['path']) != revision['expected_previous_manifest_sha256']:
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_REF_DRIFT')
+            old_index, new_index = load(plan['expected_index']), load(plan['staged_index'])
+            staged_ref = new_index.get('company_materials_scoped', {}).get(date, {}).get(roster_sha)
+            if staged_ref != plan.get('company_materials_ref'):
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_STAGED_REF_CONFLICT')
+            old_index['company_materials_scoped'][date][roster_sha] = '__REVISION_POINTER__'
+            new_index['company_materials_scoped'][date][roster_sha] = '__REVISION_POINTER__'
+            if (old_index != new_index
+                    or load(plan['staged_event']) != load(plan['expected_event'])):
+                raise ValueError('RECEIVED_FORMULA_PRESENTATION_REVISION_INDEX_DELTA_CONFLICT')
+            return plan
+
+        return adapter.publish(plan, refresh=refresh_scoped_revision)
     return adapter.publish(plan)
 
 
@@ -1306,11 +1458,22 @@ def main():
     group.add_argument('--publish', type=Path)
     parser.add_argument('--sha256', required=True, help='Exact config or plan SHA')
     parser.add_argument('--stage', type=Path)
+    parser.add_argument('--revise-scoped-presentation', action='store_true',
+                        help='Allow a formula scoped presentation-only revision guarded by prior manifest SHA')
+    parser.add_argument('--expected-scoped-manifest-sha256',
+                        help='Exact current formula scoped manifest SHA required for the presentation revision')
     args = parser.parse_args()
     if args.prepare and not args.stage:
         parser.error('--prepare requires --stage')
+    if args.revise_scoped_presentation != bool(args.expected_scoped_manifest_sha256):
+        parser.error('--revise-scoped-presentation and --expected-scoped-manifest-sha256 must be supplied together')
+    if args.publish and (args.revise_scoped_presentation or args.expected_scoped_manifest_sha256):
+        parser.error('scoped presentation revision options apply only to --prepare')
     reference = dict(path=str((args.prepare or args.publish).resolve()), sha256=args.sha256)
-    result = prepare(reference, args.stage) if args.prepare else publish(reference)
+    revision = ({'schema': FORMULA_PRESENTATION_REVISION_SCHEMA,
+                 'expected_previous_manifest_sha256': args.expected_scoped_manifest_sha256}
+                if args.revise_scoped_presentation else None)
+    result = prepare(reference, args.stage, scoped_presentation_revision=revision) if args.prepare else publish(reference)
     print(json.dumps(dict(status=result['status'], completed=len(result['completed']),
                           stage=result.get('stage'), **FLAGS), ensure_ascii=False))
 

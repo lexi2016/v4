@@ -552,18 +552,27 @@ def actual_formula_scope(tmp_path, monkeypatch):
     config_ref = m.ref(config_path)
     config = m.load(config_ref)
     stage = tmp_path / 'formula-scope-stage'
-    plan = m.prepare(config_ref, stage)
-    assert plan['status'] in {'PREPARED_NOT_PUBLISHED', 'IDEMPOTENT_SCOPED_BINDING'}
-    staged_index = m.load(plan['staged_index'])
+    original_index_ref = m.ref(Path(config['product_root']) / 'index.json')
+    original_index = m.load(original_index_ref)
     date = config['source_date']
-    numeric_index = m.load(m.ref(Path(config['product_root']) / 'index.json'))
+    roster_sha256 = config['formula_scope']['roster_artifact']['sha256']
+    previous_ref = original_index.get('company_materials_scoped', {}).get(date, {}).get(roster_sha256)
+    revision = None
+    if previous_ref is not None:
+        revision = {'schema': m.FORMULA_PRESENTATION_REVISION_SCHEMA,
+                    'expected_previous_manifest_sha256': previous_ref['sha256']}
+    plan = m.prepare(config_ref, stage, scoped_presentation_revision=revision)
+    assert plan['status'] in {'PREPARED_NOT_PUBLISHED', 'IDEMPOTENT_SCOPED_BINDING',
+                              'PREPARED_SCOPED_PRESENTATION_REVISION'}
+    staged_index = m.load(plan['staged_index'])
+    numeric_index = original_index
     numeric_ref = numeric_index['dates'][date]
     numeric = m.load(numeric_ref)
     product = {**m.load(numeric['artifact']), 'manifest': numeric_ref}
     scoped_refs = staged_index['company_materials_scoped'][date]
     assert len(scoped_refs) == 1
     roster_sha256, materials_ref = next(iter(scoped_refs.items()))
-    manifest = m.load(plan['immutable_files'][materials_ref['path']])
+    manifest = m.load(plan['immutable_files'].get(materials_ref['path'], materials_ref))
     immutable = plan['immutable_files']
     reader_spec = importlib.util.spec_from_file_location(
         'formula_scoped_company_reader', MODULE.parents[1] / 'infrastructure/research_lane_source.py')
@@ -582,7 +591,8 @@ def actual_formula_scope(tmp_path, monkeypatch):
     symbol = sorted(selected)[0]
     return dict(config=config, plan=plan, index=staged_index, data_root=data_root, reader=reader,
         reader_module=reader_module, product=product, manifest=manifest, materials_ref=materials_ref,
-        roster_sha256=roster_sha256, symbol=symbol, date=date, target=config['target_date'])
+        roster_sha256=roster_sha256, previous_ref=previous_ref, symbol=symbol, date=date,
+        target=config['target_date'])
 
 
 def test_original_formula_package_prepares_exact_additive_29_row_scope(actual_formula_scope):
@@ -610,7 +620,7 @@ def test_original_formula_package_prepares_exact_additive_29_row_scope(actual_fo
 
     raw = {row['symbol']: row for row in m.csv_rows(config['inputs']['fundamentals'])}
     for symbol, reference in case['manifest']['items'].items():
-        shard = m.load(plan['immutable_files'][reference['path']])
+        shard = m.load(plan['immutable_files'].get(reference['path'], reference))
         fundamentals = shard['received_fundamentals']
         assert fundamentals['status'] == 'PARTIAL'
         assert fundamentals['received_source_record'] == raw[symbol]
@@ -646,7 +656,7 @@ def test_scoped_company_presentation_passes_loaded_v3_renderer_without_changing_
         formula_observation_date=str(case['target']).replace('-', ''))
     source_answer = case['reader'].read_a_daily_company_materials(case['date'], symbol, **extra)
     immutable_path = source_answer['material_ref']['path']
-    canonical_ref = case['plan']['immutable_files'][immutable_path]
+    canonical_ref = case['plan']['immutable_files'].get(immutable_path, source_answer['material_ref'])
     canonical_before = m.load(canonical_ref)
 
     host_spec = importlib.util.spec_from_file_location(
@@ -679,7 +689,17 @@ def test_scoped_company_presentation_passes_loaded_v3_renderer_without_changing_
     assert record['source_date'] == case['date']
     assert record['observation_date'] == str(case['target']).replace('-', '')
     assert record['industry_research_rank_is_trade_rank'] is False
-    assert record['raw_received_record'] == raw_secondary
+    assert secondary['raw_received_record'] == raw_secondary
+    assert record['industry_secondary_status'] == 'PARTIAL_SELECTED_FOR_EVIDENCE_BASED_RESEARCH'
+    assert record['industry_secondary_theme'] == raw_secondary['candidate_sector']
+    assert record['failure_and_counterevidence'] == raw_secondary['company_counterevidence']
+    if raw_secondary['overseas_facts_and_counterevidence']:
+        assert record['industry_external_evidence'] == raw_secondary['overseas_facts_and_counterevidence']
+    else:
+        assert 'industry_external_evidence' not in record
+    assert 'company_profit_transmission' not in record
+    assert 'current_setup_qualification' not in record
+    assert 'industry_secondary_gap' not in record
     assert fund['status'] == 'PARTIAL'
     assert materials['daily_performance']['future_d2'] is None
     assert materials['daily_performance']['future_d5'] is None
@@ -689,7 +709,11 @@ def test_scoped_company_presentation_passes_loaded_v3_renderer_without_changing_
     assert m.load(canonical_ref) == canonical_before
     assert canonical_before['received_fundamentals']['business'] in (None, '')
     assert canonical_before['secondary_screen']['role'] == 'INDUSTRY_SECONDARY_RECEIVED'
-    assert canonical_before['secondary_screen']['received_record'] == raw_secondary
+    assert canonical_before['secondary_screen']['raw_received_record'] == raw_secondary
+    canonical_screen_record = copy.deepcopy(canonical_before['secondary_screen']['received_record'])
+    for key in m.FORMULA_SECONDARY_DISPLAY_FIELDS:
+        canonical_screen_record.pop(key, None)
+    assert canonical_screen_record == raw_secondary
 
     node = Path('/Users/lexi/.local/node-v24.19.0/bin/node')
     renderer = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/combined-ui/research-panel/workbench-host/received-research.mjs')
@@ -704,6 +728,10 @@ try {{
   process.stdout.write(JSON.stringify({{ok: Boolean(view), v3: view?.v3,
     status: view?.fund?.status, role: view?.secondary?.role,
     tradeRankFlag: view?.secondary?.received_record?.industry_research_rank_is_trade_rank,
+    industryStatus: view?.secondary?.received_record?.industry_secondary_status,
+    industryTheme: view?.secondary?.received_record?.industry_secondary_theme,
+    counterevidence: view?.secondary?.received_record?.failure_and_counterevidence,
+    profitTransmission: view?.secondary?.received_record?.company_profit_transmission ?? null,
     business: view?.fund?.business, period: view?.fund?.latest_financial_period}}));
 }} catch (error) {{ process.stdout.write(JSON.stringify({{ok:false,error:String(error)}})); }}
 """
@@ -715,8 +743,64 @@ try {{
     assert rendered['status'] == 'PARTIAL'
     assert rendered['role'] == 'RESEARCH_MAPPING_ONLY'
     assert rendered['tradeRankFlag'] is False
+    assert rendered['industryStatus'] == 'PARTIAL_SELECTED_FOR_EVIDENCE_BASED_RESEARCH'
+    assert rendered['industryTheme'] == raw_secondary['candidate_sector']
+    assert rendered['counterevidence'] == raw_secondary['company_counterevidence']
+    assert rendered['profitTransmission'] is None
     assert rendered['business'] == raw_master['business_and_profit_sources']
     assert rendered['period'] == raw_master['financial_period']
+
+
+def test_formula_presentation_revision_is_exact_and_expected_sha_guarded(actual_formula_scope, tmp_path):
+    case = actual_formula_scope
+    config_ref = m.ref(os.environ['V4_FORMULA_IMPORT_CONFIG'])
+    assert case['previous_ref'] is not None
+    assert case['plan']['scoped_presentation_revision']['expected_previous_manifest_sha256'] == case['previous_ref']['sha256']
+    old_index = m.load(case['plan']['expected_index'])
+    new_index = m.load(case['plan']['staged_index'])
+    expected_old = old_index['company_materials_scoped'][case['date']][case['roster_sha256']]
+    new_ref = new_index['company_materials_scoped'][case['date']][case['roster_sha256']]
+    assert expected_old == case['previous_ref']
+    assert new_ref == case['plan']['company_materials_ref']
+    old_index['company_materials_scoped'][case['date']][case['roster_sha256']] = '__REVISION_POINTER__'
+    new_index['company_materials_scoped'][case['date']][case['roster_sha256']] = '__REVISION_POINTER__'
+    assert old_index == new_index
+    assert m.load(case['plan']['expected_event']) == m.load(case['plan']['staged_event'])
+    assert len(case['manifest']['items']) == 29
+    original = m.load(expected_old)
+    assert len(original['items']) == 29
+    if case['plan']['status'] == 'PREPARED_SCOPED_PRESENTATION_REVISION':
+        assert new_ref['sha256'] != expected_old['sha256']
+        assert all(reference['path'] in case['plan']['immutable_files']
+                   for reference in case['manifest']['items'].values())
+    else:
+        assert case['plan']['status'] == 'IDEMPOTENT_SCOPED_BINDING'
+        assert new_ref == expected_old
+    for symbol, old_ref in original['items'].items():
+        assert Path(old_ref['path']).is_file()
+        assert m.sha(old_ref['path']) == old_ref['sha256']
+    wrong_revision = {'schema': m.FORMULA_PRESENTATION_REVISION_SCHEMA,
+                      'expected_previous_manifest_sha256': 'f' * 64}
+    with pytest.raises(ValueError, match='RECEIVED_FORMULA_PRESENTATION_REVISION_PRIOR_REF_CONFLICT'):
+        m.prepare(config_ref, tmp_path / 'wrong-prior-sha-stage',
+                  scoped_presentation_revision=wrong_revision)
+
+
+def test_formula_secondary_display_status_preserves_research_decision_only(actual_formula_scope):
+    case = actual_formula_scope
+    rows = m.csv_rows(case['config']['inputs']['secondary_rows'])
+    projected = [m._formula_secondary_display_record(row) for row in rows]
+    assert len(projected) == 29
+    assert sum(row['industry_secondary_status'] == 'PARTIAL_SELECTED_FOR_EVIDENCE_BASED_RESEARCH'
+               for row in projected) == 6
+    assert sum(row['industry_secondary_status'] == 'PARTIAL_NOT_SELECTED_IN_THIS_BATCH'
+               for row in projected) == 23
+    assert all(row['formal_positive_benefit_admission'].lower() == 'false' for row in projected)
+    not_selected = next(row for row in projected if row['candidate_sector'] == 'NOT_SELECTED')
+    assert not_selected['industry_secondary_theme'] == '未列入本批研究方向'
+    assert not_selected['decision'] == 'NOT_SELECTED_IN_THIS_BATCH'
+    assert 'company_profit_transmission' not in not_selected
+    assert 'current_setup_qualification' not in not_selected
 
 
 def test_formula_import_rejects_wrong_generation_date_roster_sha_and_membership(actual_formula_scope, tmp_path):
