@@ -27,9 +27,10 @@ def _observation_coverage(source_date, observation_date, *, generation=None, inp
                           valid_count=None, missing_count=None, status='UNKNOWN_MISSING', reasons=()):
     """Add exact-date structural coverage without changing the snapshot schema.
 
-    ``valid_count`` counts unique, source-bound candidate rows. Per-field quote
-    validity remains evaluated by the existing observation reader at display
-    time, where source age and ranking eligibility are known.
+    ``valid_count`` counts unique, source-bound rows without a collection
+    error. Per-field quote validity remains evaluated by the existing
+    observation reader at display time, where source age and ranking
+    eligibility are known.
     """
     return dict(schema='V4_WORKBENCH_OBSERVATION_COVERAGE_V1', scope_kind='SOURCE_PRODUCT', status=status,
                 source_date=source_date, observation_date=observation_date,
@@ -1215,7 +1216,7 @@ class ResearchWorkbenchHost:
                 or value.get('daily_contract_sha256')!=hashlib.sha256(json.dumps(sorted(expected),sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
                 or any(value.get(k)!=v for k,v in FLAGS.items())):
             raise ValueError('WORKBENCH_OBSERVATION_IDENTITY_CONFLICT')
-        valid_count=len(rows)
+        valid_count=sum(not row.get('error') for row in rows)
         missing_count=len(expected)-valid_count
         if not expected:
             coverage_status='EMPTY';reasons=['EMPTY_EXPECTED_CANDIDATE_SCOPE']
@@ -1225,11 +1226,16 @@ class ResearchWorkbenchHost:
             coverage_status='PARTIAL';reasons=['MISSING_CANDIDATE_OBSERVATION_ROWS']
         else:
             coverage_status='COMPLETE';reasons=[]
+        for row in rows:
+            error=row.get('error')
+            if isinstance(error,str) and error.strip() and error not in reasons:
+                reasons.append(error)
         coverage=_observation_coverage(source_date,observation_date,
             generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],
             numeric_manifest=p['manifest'],expected_count=len(expected),observed_count=len(rows),
             valid_count=valid_count,missing_count=missing_count,status=coverage_status,reasons=reasons)
-        return dict(latest=value,status='STORED_ONLY',commit=pointer,coverage=coverage,**FLAGS)
+        return dict(latest=value,status='STORED_ONLY',commit=pointer,coverage=coverage,
+                    source_date=source_date,observation_date=observation_date,**FLAGS)
 
     def _observation_commit(self,day):
         root=self.binding.get('observation_root')

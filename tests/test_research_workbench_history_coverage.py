@@ -14,6 +14,10 @@ GENERATION = 'a' * 64
 INPUT = 'b' * 64
 SOURCE_DATE = '2026-11-18'
 OBSERVATION_DATE = '2026-11-19'
+INTRADAY_SOURCE_ERROR = (
+    'CANNOT_CONFIRM_INTRADAY_SOURCE: original owner has no date-certified cumulative quote; '
+    'shared_pytdx_hq minute turnover cannot substitute'
+)
 
 
 def write_ref(path, value):
@@ -204,6 +208,39 @@ def test_observation_coverage_reports_zero_partial_complete_and_true_empty(
             coverage['missing_count']) == counts
     assert coverage['status'] == status
     assert coverage['reasons'] == reasons
+    assert result['source_date'] == SOURCE_DATE
+    assert result['observation_date'] == OBSERVATION_DATE
+
+
+def test_observation_coverage_counts_error_rows_and_preserves_unique_source_reasons(tmp_path):
+    symbols = ['600001.SH', '000001.SZ', '600002.SH']
+    failed_rows = [{'symbol': symbol, 'error': INTRADAY_SOURCE_ERROR} for symbol in symbols]
+    host, product = observation_host(tmp_path, symbols)
+    failed_snapshot = snapshot_for(product, failed_rows)
+    host._observation_commit = lambda _day: {
+        'snapshot': write_ref(tmp_path / 'snapshot.json', failed_snapshot)}
+
+    result = host.observations(SOURCE_DATE, OBSERVATION_DATE)
+
+    coverage = result['coverage']
+    assert (coverage['expected_count'], coverage['observed_count'], coverage['valid_count'],
+            coverage['missing_count']) == (3, 3, 0, 3)
+    assert coverage['status'] == 'ZERO_VALID'
+    assert coverage['reasons'] == ['ZERO_VALID_OBSERVATION_ROWS', INTRADAY_SOURCE_ERROR]
+    assert result['source_date'] == SOURCE_DATE
+    assert result['observation_date'] == OBSERVATION_DATE
+
+    mixed_rows = [{'symbol': symbols[0]}, *failed_rows[1:]]
+    mixed_snapshot = snapshot_for(product, mixed_rows)
+    host._observation_commit = lambda _day: {
+        'snapshot': write_ref(tmp_path / 'snapshot.json', mixed_snapshot)}
+
+    mixed = host.observations(SOURCE_DATE, OBSERVATION_DATE)['coverage']
+
+    assert (mixed['expected_count'], mixed['observed_count'], mixed['valid_count'],
+            mixed['missing_count']) == (3, 3, 1, 2)
+    assert mixed['status'] == 'PARTIAL'
+    assert mixed['reasons'] == ['MISSING_CANDIDATE_OBSERVATION_ROWS', INTRADAY_SOURCE_ERROR]
 
 
 @pytest.mark.parametrize('mutation', ['generation', 'foreign', 'duplicate', 'contract'])
