@@ -1050,7 +1050,37 @@ class ResearchWorkbenchHost:
                 result.update(company_scope_status=answer.get('company_scope_status'),formula_roster_sha256=answer.get('formula_roster_sha256'))
             return result
         if answer.get('numeric_manifest')!=p['manifest']:raise ValueError('WORKBENCH_COMPANY_REVISION_MOVED')
-        m=answer['materials'];business=m.get('business_reported') or {};finance=m.get('financials_reported') or {};holders=m.get('shareholders_reported') or {}
+        canonical_materials=answer['materials']
+        m=canonical_materials
+        scope=m.get('formula_group_scope')
+        if isinstance(scope,dict) and scope.get('schema')=='V4_FORMULA_GROUP_SCOPED_IMPORT_V1':
+            # Presentation-only aliases for received-research v3 UI. The stored shard and its ref stay untouched.
+            m=copy.deepcopy(canonical_materials)
+            fund=m.get('received_fundamentals') or {}
+            raw=fund.get('received_source_record') or {}
+            narrative=raw.get('business_and_profit_sources')
+            if isinstance(narrative,str) and narrative.strip():
+                if fund.get('business') in (None,''):fund['business']=narrative
+                business_value=m.get('business_reported')
+                if isinstance(business_value,dict) and business_value.get('value') in (None,''):
+                    business_value['value']=narrative
+            period=raw.get('financial_period')
+            if isinstance(period,str) and period.strip():
+                if fund.get('latest_financial_period') in (None,''):fund['latest_financial_period']=period
+                finance_value=m.get('financials_reported')
+                if isinstance(finance_value,dict) and finance_value.get('latest_report_period') in (None,''):
+                    finance_value['latest_report_period']=period
+            secondary=m.get('secondary_screen')
+            received_record=secondary.get('received_record') if isinstance(secondary,dict) else None
+            if isinstance(received_record,dict):
+                original_record=copy.deepcopy(received_record)
+                secondary['role']='RESEARCH_MAPPING_ONLY'
+                secondary['received_record']={**original_record,
+                    'raw_received_record':original_record,
+                    'source_date':compact(source_date),
+                    'observation_date':compact(self._observation_date(source_date)),
+                    'industry_research_rank_is_trade_rank':False}
+        business=m.get('business_reported') or {};finance=m.get('financials_reported') or {};holders=m.get('shareholders_reported') or {}
         holder_history=m.get('provenance_details',{}).get('shareholder_count_history') or []
         holder_current=next((v for v in holder_history if v.get('asof_date')==holders.get('holder_asof')),{})
         def holder_fact(key,fallback,unit):

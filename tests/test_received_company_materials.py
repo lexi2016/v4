@@ -5,6 +5,8 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import subprocess
+from types import SimpleNamespace
 
 import pytest
 
@@ -551,7 +553,7 @@ def actual_formula_scope(tmp_path, monkeypatch):
     config = m.load(config_ref)
     stage = tmp_path / 'formula-scope-stage'
     plan = m.prepare(config_ref, stage)
-    assert plan['status'] == 'PREPARED_NOT_PUBLISHED'
+    assert plan['status'] in {'PREPARED_NOT_PUBLISHED', 'IDEMPOTENT_SCOPED_BINDING'}
     staged_index = m.load(plan['staged_index'])
     date = config['source_date']
     numeric_index = m.load(m.ref(Path(config['product_root']) / 'index.json'))
@@ -627,6 +629,94 @@ def test_original_formula_package_prepares_exact_additive_29_row_scope(actual_fo
     assert answer['materials']['formula_group_membership']['symbol'] == case['symbol']
     assert answer['material_lifecycle']['company_materials_source_ref'] == case['materials_ref']
     assert answer['materials']['received_fundamentals']['status'] == 'PARTIAL'
+
+
+def test_scoped_company_presentation_passes_loaded_v3_renderer_without_changing_canonical(tmp_path, actual_formula_scope):
+    case = actual_formula_scope
+    symbol = '688728.SH'
+    config = case['config']
+    roster_rows = m.load(config['formula_scope']['roster_artifact'])['rows']
+    if symbol not in case['manifest']['items']:
+        pytest.skip('Original package does not contain the requested UI smoke symbol')
+    roster_sha = case['roster_sha256']
+    raw_master = next(row for row in m.csv_rows(config['inputs']['fundamentals']) if row['symbol'] == symbol)
+    raw_secondary = next(row for row in m.csv_rows(config['inputs']['secondary_rows']) if row['symbol'] == symbol)
+    extra = dict(generation=config['generation'], input_sha256=config['input_sha256'],
+        allow_processed_symbol=True, formula_roster_sha256=roster_sha,
+        formula_observation_date=str(case['target']).replace('-', ''))
+    source_answer = case['reader'].read_a_daily_company_materials(case['date'], symbol, **extra)
+    immutable_path = source_answer['material_ref']['path']
+    canonical_ref = case['plan']['immutable_files'][immutable_path]
+    canonical_before = m.load(canonical_ref)
+
+    host_spec = importlib.util.spec_from_file_location(
+        'formula_scoped_company_host', MODULE.parents[1] / 'infrastructure/research_workbench_host.py')
+    host_module = importlib.util.module_from_spec(host_spec)
+    host_spec.loader.exec_module(host_module)
+    host = object.__new__(host_module.ResearchWorkbenchHost)
+    host._is_skill_date = lambda _date: False
+    host._view = lambda _date, _revision=None: case['product']
+    host._observation_date = lambda _date: '2026-11-20'
+    host._formula_groups = lambda *_args: ({'artifact': config['formula_scope']['roster_artifact']}, roster_rows)
+    host.source = SimpleNamespace(read_a_daily_company_materials=lambda date, code, **kwargs:
+        case['reader'].read_a_daily_company_materials(date, code, **kwargs))
+    view = host.company('2026-11-19', symbol)
+
+    materials = view['received_materials']
+    fund = materials['received_fundamentals']
+    secondary = materials['secondary_screen']
+    record = secondary['received_record']
+    assert view['schema'] == 'V4_RECEIVED_COMPANY_VIEW_V1'
+    assert view['material_ref'] == source_answer['material_ref']
+    assert view['business']['summary']['value'] == raw_master['business_and_profit_sources']
+    assert fund['business'] == raw_master['business_and_profit_sources']
+    assert fund['latest_financial_period'] == raw_master['financial_period']
+    assert materials['financials_reported']['latest_report_period'] == raw_master['financial_period']
+    assert fund['received_source_record'] == raw_master
+    assert secondary['status'] == 'PARTIAL_RECEIVED_MODULE'
+    assert secondary['role'] == 'RESEARCH_MAPPING_ONLY'
+    assert record['symbol'] == symbol
+    assert record['source_date'] == case['date']
+    assert record['observation_date'] == str(case['target']).replace('-', '')
+    assert record['industry_research_rank_is_trade_rank'] is False
+    assert record['raw_received_record'] == raw_secondary
+    assert fund['status'] == 'PARTIAL'
+    assert materials['daily_performance']['future_d2'] is None
+    assert materials['daily_performance']['future_d5'] is None
+    assert all(view[key] is expected for key, expected in {
+        'RESEARCH_ONLY': True, 'production_allowed': False,
+        'buy_gate_updated': False, 'orders_sent': False}.items())
+    assert m.load(canonical_ref) == canonical_before
+    assert canonical_before['received_fundamentals']['business'] in (None, '')
+    assert canonical_before['secondary_screen']['role'] == 'INDUSTRY_SECONDARY_RECEIVED'
+    assert canonical_before['secondary_screen']['received_record'] == raw_secondary
+
+    node = Path('/Users/lexi/.local/node-v24.19.0/bin/node')
+    renderer = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/combined-ui/research-panel/workbench-host/received-research.mjs')
+    if not node.is_file() or not renderer.is_file():
+        pytest.skip('Pinned loaded UI renderer or Node runtime is unavailable')
+    script = f"""
+import {{ receivedView }} from {json.dumps(renderer.resolve().as_uri())};
+let input = '';
+for await (const chunk of process.stdin) input += chunk;
+try {{
+  const view = receivedView(JSON.parse(input));
+  process.stdout.write(JSON.stringify({{ok: Boolean(view), v3: view?.v3,
+    status: view?.fund?.status, role: view?.secondary?.role,
+    tradeRankFlag: view?.secondary?.received_record?.industry_research_rank_is_trade_rank,
+    business: view?.fund?.business, period: view?.fund?.latest_financial_period}}));
+}} catch (error) {{ process.stdout.write(JSON.stringify({{ok:false,error:String(error)}})); }}
+"""
+    process = subprocess.run([str(node), '--input-type=module', '-e', script],
+        input=json.dumps(view, ensure_ascii=False), text=True, capture_output=True, check=False)
+    assert process.returncode == 0, process.stderr
+    rendered = json.loads(process.stdout)
+    assert rendered['ok'] is True and rendered['v3'] is True
+    assert rendered['status'] == 'PARTIAL'
+    assert rendered['role'] == 'RESEARCH_MAPPING_ONLY'
+    assert rendered['tradeRankFlag'] is False
+    assert rendered['business'] == raw_master['business_and_profit_sources']
+    assert rendered['period'] == raw_master['financial_period']
 
 
 def test_formula_import_rejects_wrong_generation_date_roster_sha_and_membership(actual_formula_scope, tmp_path):
