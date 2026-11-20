@@ -15,6 +15,7 @@ import plistlib
 import re
 import shutil
 import stat
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -47,6 +48,22 @@ _ENV_KEYS = (
     "V4_RESEARCH_RETENTION_POLICY_SHA256",
 )
 _LAUNCHER_RELATIVE = Path("ops/launch_v4_macos_scheduler.sh")
+# Darwin's _CS_DARWIN_USER_TEMP_DIR value (not exposed by every Python
+# version in os.confstr_names); resolve through os.confstr, never TMPDIR.
+_DARWIN_USER_TEMP_DIR_CONFSTR = 65537
+
+# This remediation only permits refreshing the two reviewed freshness leaves.
+# Tests replace this mapping with temporary Stage/API LaunchAgent paths.
+REVIEWABLE_PIN_PATHS: dict[str, dict[str, str]] = {
+    "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist": {
+        "scope_id": "stage",
+        "launchd_label": "com.lexi.stage-center.scheduler",
+    },
+    "/Users/lexi/Library/LaunchAgents/com.lexi.v4.api.plist": {
+        "scope_id": "api",
+        "launchd_label": "com.lexi.v4.api",
+    },
+}
 
 
 class CandidateError(ValueError):
@@ -134,6 +151,44 @@ def _directory(path: str | Path, label: str) -> Path:
     if value.resolve(strict=True) != value:
         raise CandidateError(label + "_PATH_ALIAS")
     return value
+
+
+def _allowed_temp_roots() -> tuple[Path, ...]:
+    """Resolve system temp roots without consulting caller-controlled TMPDIR."""
+    roots: list[Path] = []
+    try:
+        roots.append(Path("/tmp").resolve(strict=True))
+    except OSError:
+        pass
+    if sys.platform == "darwin":
+        try:
+            value = os.confstr(_DARWIN_USER_TEMP_DIR_CONFSTR)
+        except (OSError, ValueError):
+            value = None
+        if value:
+            try:
+                roots.append(Path(value).resolve(strict=True))
+            except OSError:
+                pass
+    return tuple(dict.fromkeys(roots))
+
+
+def _fenced_temp_path(value: str | Path, label: str, *, must_exist: bool) -> Path:
+    """Return a canonical path under /tmp or Darwin's system user temp root."""
+    path = _absolute_path(value, label)
+    if must_exist:
+        path = _directory(path, label)
+        resolved = path.resolve(strict=True)
+    else:
+        if path.exists() or path.is_symlink():
+            raise CandidateError(label + "_MUST_NOT_EXIST")
+        resolved = path.resolve(strict=False)
+        if not resolved.parent.is_dir():
+            raise CandidateError(label + "_PARENT_MISSING")
+    roots = _allowed_temp_roots()
+    if not any(resolved != root and resolved.is_relative_to(root) for root in roots):
+        raise CandidateError(label + "_OUTSIDE_SYSTEM_TEMP_ROOT")
+    return resolved
 
 
 def _resolved_pinned_file(value: str, label: str) -> Path:
@@ -285,6 +340,7 @@ def _validate_source_binding_review(
             raise CandidateError("TYPED_SOURCE_BINDING_HASH_CONFLICT")
         ref_map[path] = row
     result: dict[str, dict[str, Any]] = {}
+    seen_scopes: set[str] = set()
     for item in replacements:
         if not isinstance(item, dict):
             raise CandidateError("SOURCE_BINDING_REVIEW_ENTRY_INVALID")
@@ -303,12 +359,30 @@ def _validate_source_binding_review(
             raise CandidateError("SOURCE_BINDING_REVIEW_OLD_REF_MISMATCH")
         if old_path in result:
             raise CandidateError("SOURCE_BINDING_REVIEW_DUPLICATE_PATH")
+        allowed = REVIEWABLE_PIN_PATHS.get(old_path)
+        if allowed is None:
+            raise CandidateError("SOURCE_BINDING_REVIEW_PATH_NOT_ALLOWLISTED")
+        if item.get("scope_id") != allowed["scope_id"]:
+            raise CandidateError("SOURCE_BINDING_REVIEW_SCOPE_MISMATCH")
+        if allowed["scope_id"] in seen_scopes:
+            raise CandidateError("SOURCE_BINDING_REVIEW_DUPLICATE_SCOPE")
+        seen_scopes.add(allowed["scope_id"])
+        if pins["consumer_scopes"].get(allowed["scope_id"]) != "PINNED":
+            raise CandidateError("SOURCE_BINDING_REVIEW_SCOPE_NOT_PINNED")
+        if new_path != old_path:
+            raise CandidateError("SOURCE_BINDING_REVIEW_RETARGET_PROHIBITED")
         old_file = _resolved_pinned_file(old_preimage, "SOURCE_OLD_PREIMAGE")
         if _hash_file(old_file) != old_sha:
             raise CandidateError("SOURCE_BINDING_OLD_PREIMAGE_HASH_MISMATCH")
         new_file = _resolved_pinned_file(new_path, "SOURCE_NEW_FILE")
+        if old_file == new_file:
+            raise CandidateError("SOURCE_BINDING_OLD_PREIMAGE_NOT_SEPARATE")
         if _hash_file(new_file) != new_sha:
             raise CandidateError("SOURCE_BINDING_NEW_FILE_HASH_MISMATCH")
+        if _launchd_label(old_file) != allowed["launchd_label"]:
+            raise CandidateError("SOURCE_BINDING_OLD_LAUNCHD_LABEL_MISMATCH")
+        if _launchd_label(new_file) != allowed["launchd_label"]:
+            raise CandidateError("SOURCE_BINDING_NEW_LAUNCHD_LABEL_MISMATCH")
         result[old_path] = {
             "path": new_path,
             "sha256": new_sha,
@@ -350,6 +424,17 @@ def _verify_all_source_bindings(
             raise CandidateError("SOURCE_BINDING_DRIFT_UNREVIEWED")
         verified.append({"path": check_path, "sha256": actual})
     return verified
+
+
+def _launchd_label(path: Path) -> str | None:
+    try:
+        value = plistlib.loads(path.read_bytes())
+    except (plistlib.InvalidFileException, ValueError, TypeError) as exc:
+        raise CandidateError("SOURCE_BINDING_LAUNCHD_PLIST_INVALID") from exc
+    if not isinstance(value, dict):
+        raise CandidateError("SOURCE_BINDING_LAUNCHD_PLIST_INVALID")
+    label = value.get("Label")
+    return label if isinstance(label, str) else None
 
 
 def _input_chain(
@@ -428,10 +513,6 @@ def _file_record(path: Path, raw: bytes | None = None) -> dict[str, Any]:
     }
 
 
-def _copy_permissions(path: Path, mode: str) -> None:
-    os.chmod(path, int(mode, 8))
-
-
 def _ensure_output_disjoint(
     output: Path, inputs: Sequence[Path], app_root: Path, release_root: Path,
 ) -> None:
@@ -476,7 +557,7 @@ def prepare_candidate(
     if review_path is not None:
         review_path = _regular_file(review_path, "SOURCE_REVIEW")
         input_paths.append(review_path)
-    output_dir = _absolute_path(output_dir, "CANDIDATE_OUTPUT")
+    output_dir = _fenced_temp_path(output_dir, "CANDIDATE_OUTPUT", must_exist=False)
     _ensure_output_disjoint(output_dir, input_paths, source_app_root, target_release_root)
 
     manifest, manifest_raw = _load_json(input_paths[0], "INPUT_MANIFEST")
@@ -557,7 +638,6 @@ def prepare_candidate(
         _set_env_value(candidate_plist, key, value)
     plist_bytes = plistlib.dumps(candidate_plist, fmt=plistlib.FMT_XML, sort_keys=True)
 
-    output_dir.parent.mkdir(parents=False, exist_ok=True)
     output_dir.mkdir(mode=0o700)
     os.chmod(output_dir, 0o700)
     preimage_root = output_dir / "preimages"
@@ -758,7 +838,7 @@ def rollback_candidate_sandbox(output_dir: Path) -> dict[str, Any]:
     This test-only rollback surface refuses paths outside the private candidate
     bundle; it cannot restore a live app or LaunchAgent.
     """
-    output_dir = _directory(output_dir, "CANDIDATE_OUTPUT")
+    output_dir = _fenced_temp_path(output_dir, "CANDIDATE_OUTPUT", must_exist=True)
     sandbox = output_dir / "rollback-sandbox"
     sandbox = _directory(sandbox, "ROLLBACK_SANDBOX")
     if sandbox.parent != output_dir:
