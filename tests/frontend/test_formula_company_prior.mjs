@@ -13,6 +13,7 @@ const prior = (sourceDate='20261119') => ({
   schema: 'V4_FORMULA_PRIOR_COMPANY_SNAPSHOT_V1', status: 'PRIOR_AVAILABLE',
   symbol: '000610.SZ', selected_source_date: day.source_date, source_date: sourceDate,
   observation_date: day.observation_date, received_at: '2026-11-19T23:45:51.227370+08:00',
+  selected_asof_cutoff: '2026-11-20T23:59:59.999999+08:00',
   current_candidate_identity: {
     data_date: '20261120', source_generation: day.generation,
     input_sha256: day.input_sha256, numeric_manifest: day.numeric_manifest,
@@ -25,7 +26,8 @@ const prior = (sourceDate='20261119') => ({
   material_ref: ref('/company/000610.SZ.json', 'c'),
   business_reported: {value:'历史主营'}, financials_reported:{latest_report_period:'2026-09-30'},
   shareholders_reported:{holder_count:12345}, report_catalog:[],
-  material_lifecycle:{view_mode:'HISTORICAL_ASOF',historical_PIT_safe:false},
+  material_lifecycle:{view_mode:'HISTORICAL_ASOF',historical_PIT_safe:false,
+    asof_cutoff:'2026-11-20T23:59:59.999999+08:00',reader_asof_cutoff:'2026-11-20T23:59:59.999999+08:00'},
   RESEARCH_ONLY:true, production_allowed:false, buy_gate_updated:false, orders_sent:false,
 });
 
@@ -60,6 +62,26 @@ test('a changed symbol, current-source snapshot, or research payload cannot pass
   assert.throws(() => validatePriorCompanySnapshot(wrongSymbol, day, '000610.SZ'));
   assert.throws(() => validatePriorCompanySnapshot(sameDay, day, '000610.SZ'));
   assert.throws(() => validatePriorCompanySnapshot(contaminated, day, '000610.SZ'));
+});
+
+test('prior receipt timestamps require an explicit zone and stay within selected and reader cutoffs', () => {
+  const naive = prior(); naive.received_at = '2026-11-19T23:45:51.227370';
+  const afterSelected = prior(); afterSelected.received_at = '2026-11-21T00:00:00+08:00';
+  const afterReader = prior(); afterReader.received_at = '2026-11-20T13:00:00+08:00';
+  afterReader.material_lifecycle.asof_cutoff = '2026-11-20T12:00:00+08:00';
+  afterReader.material_lifecycle.reader_asof_cutoff = '2026-11-20T12:00:00+08:00';
+  const exact = prior(); exact.received_at = '2026-11-20T23:59:59.999999+08:00';
+  const laterReaderCutoff = prior();
+  laterReaderCutoff.material_lifecycle.asof_cutoff = '2026-11-21T00:10:00+08:00';
+  laterReaderCutoff.material_lifecycle.reader_asof_cutoff = '2026-11-21T00:10:00+08:00';
+
+  assert.throws(() => validatePriorCompanySnapshot(naive, day, '000610.SZ'));
+  assert.throws(() => validatePriorCompanySnapshot(afterSelected, day, '000610.SZ'));
+  assert.throws(() => validatePriorCompanySnapshot(afterReader, day, '000610.SZ'));
+  assert.equal(validatePriorCompanySnapshot(exact, day, '000610.SZ'), exact);
+  assert.equal(validatePriorCompanySnapshot(laterReaderCutoff, day, '000610.SZ'), laterReaderCutoff);
+  assert.throws(() => validatePriorCompanySnapshot({...prior(),
+    selected_asof_cutoff:'2026-11-21T23:59:59.999999+08:00'}, day, '000610.SZ'));
 });
 
 test('an earlier owner F10 receipt remains visible with its original source date', () => {

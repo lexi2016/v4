@@ -1,0 +1,24 @@
+{
+  "RESEARCH_ONLY": true,
+  "behavior": "After successful existing A daily derivatives/Top200 completion, invoke the existing formula-group/F10 completion. If the Top200 owner raises, attempt the formula-group completion exactly once and re-raise the original Top200 exception.",
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "patch_apply_args": [
+    "git",
+    "apply",
+    "--unidiff-zero"
+  ],
+  "patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/main-executor-top200-first.patch",
+  "patch_sha256": "e07fe7f2552c86e48d35705b7c406947320a397bd014573eda8ce48181a40791",
+  "postimage_sha256": "ae504e0aabfb2d7434738494b5414b5b2ea817721a3d9ae4b66ab763bac3b7c6",
+  "predecessor_binding_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/MAIN_EXECUTOR_BINDING.json",
+  "predecessor_patch_sha256": "5a20fd07ceecfd04240d7abc40d49b5f9830cb56c5ea3a9bc4511f4bfbe3c295",
+  "preimage_sha256": "8656962fc46be7c7d110ade2fc3541ac43ac0922b14717e4fe7b907cfc5ec533",
+  "production_allowed": false,
+  "runtime_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/app/infrastructure/scheduling/executor_registry.py",
+  "schema": "V4_MAIN_EXECUTOR_TOP200_FIRST_OVERLAY_BINDING_V1",
+  "scope": [
+    "normal LIVE A daily completion order only",
+    "no data, formula, BUY, or trading changes"
+  ]
+}

@@ -1,0 +1,26 @@
+--- a/infrastructure/research_workbench_host.py
++++ b/infrastructure/research_workbench_host.py
+@@ -1138 +1138,4 @@
+-        marks_ref = (self._formula_group_binding(source_date, product) or {}).get('d35c_marks')
++        binding = self._formula_group_binding(source_date, product) or {}
++        marks_ref = binding.get('d35c_marks')
++        if binding.get('supplement_status') is not None:
++            value['formula_group_supplement_status'] = binding['supplement_status']
+@@ -1143,2 +1146,12 @@
+-                value['original_marks'] = chart_original_marks(checked(marks_ref), marks_ref, value,
+-                                                               [row['symbol'] for row in rows])
++                bundle = checked(marks_ref)
++                bundle_items = bundle.get('items')
++                item = bundle_items.get(symbol) if isinstance(bundle_items, dict) else None
++                partial = isinstance(item, dict) and (item.get('status') == 'PARTIAL_WITH_UNKNOWN'
++                    or (item.get('status') == 'READY' and item.get('unresolved_conditions', 0) > 0))
++                chart_bundle = (dict(bundle, items={**bundle_items,
++                    symbol:{**item, 'status':'READY'}}) if partial else bundle)
++                marks = chart_original_marks(chart_bundle, marks_ref, value,
++                                             [row['symbol'] for row in rows])
++                if partial:
++                    marks['status'] = 'PARTIAL_WITH_UNKNOWN'
++                value['original_marks'] = marks
+@@ -1147 +1160 @@
+-        if (marks_ref is None or value.get('original_marks', {}).get('status') != 'READY') and isinstance(product.get('original_charts'), dict):
++        if (marks_ref is None or value.get('original_marks', {}).get('status') not in {'READY', 'PARTIAL_WITH_UNKNOWN'}) and isinstance(product.get('original_charts'), dict):

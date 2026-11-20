@@ -31,32 +31,35 @@ def write_ref(path, value):
     return dict(path=str(path.resolve()), sha256=hashlib.sha256(raw).hexdigest())
 
 
-def build_supplement(root, *, pin_rules=True, corrupt_rules=False):
+def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None, f10_outcomes=None,
+        d35c_items=None):
+    symbols = [SYMBOL] if symbols is None else symbols
     day_root = root / SOURCE_DATE
     score_root = root / 'score-action'
     formula = dict(schema='V4_WORKBENCH_FORMULA_GROUP_OVERRIDE_V1', source_date=SOURCE_DATE,
         observation_date=OBSERVATION_DATE, generation=GENERATION, input_sha256=INPUT,
         numeric_manifest=NUMERIC, selector_sha256=SELECTOR,
-        rows=[dict(symbol=SYMBOL)], **FLAGS)
+        rows=[dict(symbol=symbol) for symbol in symbols], **FLAGS)
     formula_ref = write_ref(day_root / 'formula/artifact.json', formula)
-    roster_sha = hashlib.sha256(json.dumps([SYMBOL], ensure_ascii=False, sort_keys=True,
+    roster_sha = hashlib.sha256(json.dumps(sorted(symbols), ensure_ascii=False, sort_keys=True,
         separators=(',', ':')).encode()).hexdigest()
     identity = dict(source_date=SOURCE_DATE, observation_date=OBSERVATION_DATE,
         generation=GENERATION, input_sha256=INPUT, numeric_manifest=NUMERIC,
         selector_sha256=SELECTOR, formula_group_sha256=formula_ref['sha256'],
-        roster_symbols_sha256=roster_sha, roster_count=1)
+        roster_symbols_sha256=roster_sha, roster_count=len(symbols))
     index_rules = dict(RULES, kb_action='3' * 64) if corrupt_rules else RULES
-    index = dict(items={SYMBOL:dict(path='/score/row.json',sha256='4'*64)},
+    index = dict(items={symbol:dict(path=f'/score/{symbol}.json',sha256='4'*64) for symbol in symbols},
         numeric_manifest=NUMERIC, source_generation=GENERATION, input_sha256=INPUT,
         source_selector_sha256=SELECTOR, rules=index_rules, price_basis=BASIS, **FLAGS)
     index_ref = write_ref(score_root / 'indexes/index.json', index)
     descriptor = dict(status='READY', data_date='20261120', source_generation=GENERATION,
-        input_sha256=INPUT, numeric_manifest=NUMERIC, counts=dict(total=1), index=index_ref, **FLAGS)
+        input_sha256=INPUT, numeric_manifest=NUMERIC, counts=dict(total=len(symbols)), index=index_ref, **FLAGS)
     replay = dict(schema='V4_FORMULA_GROUP_SCORE_ACTION_REPLAY_V1',
         status='PREPARED_EXACT_OWNER_REPLAY', same_rule_sha=True, source_date=SOURCE_DATE,
         source_generation=GENERATION, input_sha256=INPUT, numeric_manifest=NUMERIC,
         formula_group_sha256=formula_ref['sha256'], descriptor=descriptor,
-        statuses={SYMBOL:dict(record_status='MATERIALIZED',score_status='READY',score=4)}, **FLAGS)
+        statuses={symbol:dict(record_status='MATERIALIZED',score_status='READY',score=4)
+            for symbol in symbols}, **FLAGS)
     if pin_rules:
         replay['score_rules'] = RULES
         replay['price_basis'] = BASIS
@@ -64,8 +67,42 @@ def build_supplement(root, *, pin_rules=True, corrupt_rules=False):
     replay_ref = write_ref(day_root / 'supplements/receipts/score-replay.json', replay)
     score_binding = dict(status='READY', receipt=replay_ref, artifact_root=str(score_root.resolve()),
         descriptor=descriptor)
+    f10_binding = None
+    if f10_outcomes is not None:
+        observed, failed, remaining = f10_outcomes
+        upstream_ref = dict(path='/products/upstream.json', sha256='5' * 64)
+        scope_sha = '6' * 64
+        checkpoint = dict(schema='v4.a_share.f10_checkpoint.v1',
+            identity=dict(data_date='20261120', source_generation=GENERATION,
+                input_sha256=INPUT, selector_sha256=SELECTOR, scope_sha256=scope_sha),
+            items={symbol:dict(path='/f10/' + symbol + '.json', sha256='7' * 64)
+                for symbol in observed}, upstream_success_receipt=upstream_ref, **FLAGS)
+        checkpoint_ref = write_ref(root / 'f10/checkpoints/checkpoint.json', checkpoint)
+        receipt = dict(schema='v4.a_share.f10_daily_receipt.v1', status='PARTIAL',
+            data_date='20261120', source_generation=GENERATION, input_sha256=INPUT,
+            selector_sha256=SELECTOR, numeric_manifest=NUMERIC, scope_sha256=scope_sha,
+            scope=dict(kind='ADMITTED_DAILY_UNIVERSE', count=len(symbols), symbols=None),
+            priority_scope=dict(symbols=sorted(symbols), count=len(symbols)),
+            checkpoint=checkpoint_ref, upstream_success_receipt=upstream_ref,
+            requested=len(symbols), observed=len(observed), failures={symbol:{'status':'FAILED'} for symbol in failed},
+            remaining=list(remaining), historical_PIT=False, **FLAGS)
+        f10_receipt_ref = write_ref(root / 'f10/receipts/receipt.json', receipt)
+        f10_binding = dict(status='PARTIAL', receipt=f10_receipt_ref)
     artifact = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_V1', status='COMPLETE',
         **identity, score_action=score_binding, **FLAGS)
+    if f10_binding is not None:
+        artifact['f10'] = f10_binding
+    if d35c_items is not None:
+        marks_bundle = dict(schema='V4_WORKBENCH_ORIGINAL_D35C_MARKS_V1',
+            source_date=SOURCE_DATE, generation=GENERATION, input_sha256=INPUT,
+            numeric_manifest=NUMERIC, formula_group_sha256=formula_ref['sha256'],
+            roster_symbols_sha256=roster_sha,
+            price_basis='QFQ_ASOF_' + SOURCE_DATE.replace('-', ''),
+            volume_basis=BASIS['volume_basis'], items=d35c_items,
+            historical_PIT=False, **FLAGS)
+        artifact['d35c_marks'] = write_ref(
+            day_root / 'supplements/d35c/marks.json', marks_bundle)
+        artifact['d35c_status'] = 'READY'
     artifact_ref = write_ref(day_root / 'supplements/artifacts/supplement.json', artifact)
     receipt = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_RECEIPT_V1', status='COMMITTED',
         artifact=artifact_ref, **identity, **FLAGS)
@@ -102,6 +139,63 @@ def test_score_replay_with_rule_drift_is_rejected(tmp_path):
 
     with pytest.raises(ValueError, match='WORKBENCH_FORMULA_SUPPLEMENT_SCORE_INDEX_CONFLICT'):
         load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+
+def test_legacy_complete_with_twenty_observed_and_two_failed_is_read_as_partial(tmp_path):
+    symbols = [f'{number:06d}.SZ' for number in range(100, 122)]
+    observed, failed = symbols[:20], symbols[20:]
+    root, product, formula_ref = build_supplement(tmp_path, symbols=symbols,
+        f10_outcomes=(observed, failed, []))
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['supplement_status'] == 'PARTIAL'
+    assert value['f10_coverage'] == dict(status='PARTIAL', observed=20, failed=2,
+        remaining=0, receipt=value['f10_coverage']['receipt'])
+
+
+def test_complete_f10_coverage_requires_every_roster_symbol_observed(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path,
+        f10_outcomes=([SYMBOL], [], []),
+        d35c_items={SYMBOL:dict(status='READY', unresolved_conditions=0)})
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['supplement_status'] == 'COMPLETE'
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+
+
+def test_all_observed_f10_does_not_hide_legacy_unresolved_d35c(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path,
+        f10_outcomes=([SYMBOL], [], []),
+        d35c_items={SYMBOL:dict(status='READY', unresolved_conditions=1,
+            marks=[dict(id=1, trade_date='20261120')],
+            lines={'白线':[dict(trade_date='20261120', y='1')],
+                   '黄线':[dict(trade_date='20261120', y='2')]})})
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+    assert value['supplement_status'] == 'PARTIAL'
+    assert value['d35c_marks']['sha256']
+
+
+def test_nonempty_complete_without_d35c_binding_is_effectively_partial(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path,
+        f10_outcomes=([SYMBOL], [], []))
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+    assert value['supplement_status'] == 'PARTIAL'
+
+
+def test_empty_exact_roster_remains_vacuously_complete_without_f10_receipt(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path, symbols=[])
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['supplement_status'] == 'COMPLETE'
 
 
 def test_pinned_score_rule_map_matches_active_main_source_and_contract_bytes():

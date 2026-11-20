@@ -2,6 +2,14 @@ const safetyFlags = ['production_allowed', 'buy_gate_updated', 'orders_sent'];
 const digest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 const boundRef = value => typeof value?.path === 'string' && value.path.length > 0 && digest(value.sha256);
 const compactDate = value => typeof value === 'string' && /^\d{4}-?\d{2}-?\d{2}$/.test(value) ? value.replaceAll('-', '') : null;
+const zonedInstantMicros = value => {
+  if (typeof value !== 'string') return null;
+  const match = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|[+-]\d{2}:\d{2})$/);
+  if (!match) return null;
+  const seconds = Date.parse(`${match[1]}${match[3]}`);
+  if (!Number.isFinite(seconds)) return null;
+  return BigInt(seconds) * 1000n + BigInt((match[2] ?? '').padEnd(6, '0') || '0');
+};
 const displayValue = value => {
   if (value === null || value === undefined) return null;
   if (typeof value !== 'object') return String(value).trim() || null;
@@ -15,6 +23,11 @@ export function validatePriorCompanySnapshot(value, day, symbol) {
   const current = value?.current_candidate_identity ?? {};
   const material = value?.material_identity ?? {};
   const priorScope = value?.prior_formula_scope;
+  const selectedCutoff = selected ? `${selected.slice(0,4)}-${selected.slice(4,6)}-${selected.slice(6)}T23:59:59.999999+08:00` : null;
+  const receivedAt = zonedInstantMicros(value?.received_at);
+  const selectedCutoffMicros = zonedInstantMicros(value?.selected_asof_cutoff);
+  const readerCutoffRaw = value?.material_lifecycle?.reader_asof_cutoff;
+  const readerCutoffMicros = readerCutoffRaw == null ? null : zonedInstantMicros(readerCutoffRaw);
   const sameRef = (left, right) => boundRef(left) && boundRef(right) &&
     left.path === right.path && left.sha256 === right.sha256;
   if (value?.schema !== 'V4_FORMULA_PRIOR_COMPANY_SNAPSHOT_V1' ||
@@ -25,7 +38,10 @@ export function validatePriorCompanySnapshot(value, day, symbol) {
       current.input_sha256 !== day?.input_sha256 || !sameRef(current.numeric_manifest, day?.numeric_manifest) ||
       material.data_date !== origin || !digest(material.source_generation) || !digest(material.input_sha256) ||
       !boundRef(material.numeric_manifest) || !boundRef(value.material_ref) || !boundRef(value.materials_manifest) ||
-      typeof value.received_at !== 'string' || !Number.isFinite(Date.parse(value.received_at)) ||
+      receivedAt === null || value.selected_asof_cutoff !== selectedCutoff ||
+      selectedCutoffMicros === null || receivedAt > selectedCutoffMicros ||
+      (readerCutoffRaw != null && (readerCutoffMicros === null || receivedAt > readerCutoffMicros)) ||
+      value.material_lifecycle?.reader_asof_cutoff !== value.material_lifecycle?.asof_cutoff ||
       value.material_lifecycle?.view_mode !== 'HISTORICAL_ASOF' ||
       value.material_lifecycle?.historical_PIT_safe !== false ||
       value.RESEARCH_ONLY !== true || safetyFlags.some(key => value[key] !== false) ||

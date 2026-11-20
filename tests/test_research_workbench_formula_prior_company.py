@@ -34,7 +34,7 @@ def fixture_answer(*, material_date='20261119', view_mode='HISTORICAL_ASOF', sym
         received_source_record={'observation':'不应复制'}, **FLAGS)
     lifecycle = dict(material_source_date=material_date,
         received_at='2026-11-19T23:45:51.227370+08:00', view_mode=view_mode,
-        historical_PIT_safe=False, asof_cutoff='2026-11-20T23:59:59+08:00',
+        historical_PIT_safe=False, asof_cutoff='2026-11-20T23:59:59.999999+08:00',
         received_time_status='RECORDED_LOCAL_RECEIPT', disclosure_time_status='UNKNOWN_DATE_ONLY_PRESENT',
         freshness_status='HISTORICAL_NOT_REVIEWED_FOR_CURRENT_CANDIDATES',
         current_candidate_identity=current,
@@ -183,6 +183,9 @@ def test_current_reader_can_return_a_verified_prior_origin_without_relabeling_it
     assert result['source_date'] == '20261119'
     assert result['material_lifecycle']['reader_view_mode'] == 'CURRENT_RESEARCH'
     assert result['material_lifecycle']['view_mode'] == 'HISTORICAL_ASOF'
+    assert result['selected_asof_cutoff'] == '2026-11-20T23:59:59.999999+08:00'
+    assert result['material_lifecycle']['reader_asof_cutoff'] == '2026-11-20T23:59:59.999999+08:00'
+    assert result['material_lifecycle']['selected_asof_cutoff'] == result['selected_asof_cutoff']
     assert result['observation_date'] == OBSERVATION_DATE
 
 
@@ -242,6 +245,45 @@ def test_prior_exact_roster_company_snapshot_preserves_both_selection_identities
     assert result['financials_reported']['latest_report_period'] == '2026年三季报'
     assert 'received_fundamentals' not in result
     assert 'secondary_screen' not in result and 'formula_group_scope' not in result
+
+
+@pytest.mark.parametrize('received_at', [
+    '2026-11-19T23:45:51.227370',
+    '2026-11-21T00:00:00+08:00',
+])
+def test_prior_company_rejects_naive_or_after_selected_cutoff_receipt(received_at):
+    answer = fixture_answer()
+    answer['material_lifecycle']['received_at'] = received_at
+
+    with pytest.raises(ValueError, match='WORKBENCH_PRIOR_COMPANY_SOURCE_CONFLICT'):
+        prior_company_snapshot_from_answer(answer, product(), SOURCE_DATE, OBSERVATION_DATE,
+            SYMBOL, ROSTER_SHA)
+
+
+def test_prior_company_checks_reader_cutoff_but_preserves_later_current_reader_cutoff():
+    answer = fixture_answer()
+    answer['material_lifecycle']['asof_cutoff'] = '2026-11-20T12:00:00+08:00'
+    answer['material_lifecycle']['received_at'] = '2026-11-20T13:00:00+08:00'
+    with pytest.raises(ValueError, match='WORKBENCH_PRIOR_COMPANY_SOURCE_CONFLICT'):
+        prior_company_snapshot_from_answer(answer, product(), SOURCE_DATE, OBSERVATION_DATE,
+            SYMBOL, ROSTER_SHA)
+
+    answer = fixture_answer()
+    answer['material_lifecycle']['asof_cutoff'] = '2026-11-21T00:10:00+08:00'
+    answer['material_lifecycle']['received_at'] = '2026-11-20T23:59:59.999999+08:00'
+    result = prior_company_snapshot_from_answer(answer, product(), SOURCE_DATE, OBSERVATION_DATE,
+        SYMBOL, ROSTER_SHA)
+
+    assert result['received_at'] == answer['material_lifecycle']['received_at']
+    assert result['material_lifecycle']['reader_asof_cutoff'] == '2026-11-21T00:10:00+08:00'
+    assert result['selected_asof_cutoff'] == '2026-11-20T23:59:59.999999+08:00'
+
+
+def test_caller_cannot_weaken_selected_source_cutoff():
+    with pytest.raises(ValueError, match='WORKBENCH_PRIOR_COMPANY_SELECTED_CUTOFF_INVALID'):
+        prior_company_snapshot_from_answer(fixture_answer(), product(), SOURCE_DATE,
+            OBSERVATION_DATE, SYMBOL, ROSTER_SHA,
+            selected_asof_cutoff='2026-11-21T23:59:59.999999+08:00')
 
 
 def test_prior_f10_reads_only_earlier_owner_receipts_and_keeps_original_lineage(tmp_path):

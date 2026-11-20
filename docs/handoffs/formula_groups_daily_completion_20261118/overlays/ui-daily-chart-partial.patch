@@ -1,0 +1,15 @@
+--- a/ui/research-panel/workbench-host/dot/shell/formula-daily-chart.mjs
++++ b/ui/research-panel/workbench-host/dot/shell/formula-daily-chart.mjs
+@@ -17 +17,3 @@
+-  if (marks?.status !== 'READY' || marks.schema !== 'V4_WORKBENCH_ORIGINAL_D35C_MARKS_V1' ||
++  if (!['READY','PARTIAL_WITH_UNKNOWN'].includes(marks?.status) ||
++      (marks.status === 'PARTIAL_WITH_UNKNOWN' && marks.unresolved_conditions === 0) ||
++      marks.schema !== 'V4_WORKBENCH_ORIGINAL_D35C_MARKS_V1' ||
+@@ -161 +163,3 @@
+-  const markLegend = make('small', original ? '原 V4 主图 · D35C' : '原主图标记待核');
++  const markLegend = make('small', !original ? '原主图标记待核' :
++    original.status === 'PARTIAL_WITH_UNKNOWN' ? '原 V4 主图 · D35C · 部分条件待核' : '原 V4 主图 · D35C');
++  const supplementLegend = make('small', chart.formula_group_supplement_status === 'PARTIAL' ? '研究补充状态：PARTIAL' : '');
+@@ -178 +182 @@
+-  toolbar.append(dateSelect, markLegend, lineLegend);
++  toolbar.append(dateSelect, markLegend, lineLegend, supplementLegend);

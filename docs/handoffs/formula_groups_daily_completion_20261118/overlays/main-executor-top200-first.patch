@@ -1,0 +1,43 @@
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -764,18 +764,30 @@
+             if failed is not None:
+                 raise WorkloadExecutionError(missing)
+             return missing
+-        try:
+-            from ops.research_panel_formula_groups_daily import complete_daily_formula_groups
+-            formula_groups = complete_daily_formula_groups(request.business_date)
+-        except Exception as error:
+-            formula_groups = {"schema": "V4_FORMULA_GROUP_DAILY_RUN_V1", "status": "CANNOT_CONFIRM",
+-                              "data_date": str(request.business_date),
+-                              "reason": f"{type(error).__name__}:{str(error)[:240]}",
+-                              "RESEARCH_ONLY": True, "production_allowed": False,
+-                              "buy_gate_updated": False, "orders_sent": False}
++        def complete_groups():
++            try:
++                from ops.research_panel_formula_groups_daily import complete_daily_formula_groups
++                return complete_daily_formula_groups(request.business_date)
++            except Exception as error:
++                return {"schema": "V4_FORMULA_GROUP_DAILY_RUN_V1", "status": "CANNOT_CONFIRM",
++                        "data_date": str(request.business_date),
++                        "reason": f"{type(error).__name__}:{str(error)[:240]}",
++                        "RESEARCH_ONLY": True, "production_allowed": False,
++                        "buy_gate_updated": False, "orders_sent": False}
++
+         from ops.research_panel_top200 import complete_daily_derivatives
+         from ops.research_storage_governance import governed_product
+-        derivatives = governed_product(complete_daily_derivatives, Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), upstream_failure)
++        try:
++            derivatives = governed_product(complete_daily_derivatives, Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), upstream_failure)
++        except Exception:
++            # The previous order attempted formula/F10 before Top200. Preserve
++            # that completion attempt while propagating the original owner error.
++            try:
++                complete_groups()
++            except Exception:
++                pass
++            raise
++        formula_groups = complete_groups()
+         completed = {**result, "daily_derivatives": derivatives, "formula_groups": formula_groups}
+         if failed is not None:
+             raise WorkloadExecutionError(completed)

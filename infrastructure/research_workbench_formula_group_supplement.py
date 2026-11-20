@@ -40,9 +40,33 @@ def _canonical_sha(value):
     return hashlib.sha256(raw).hexdigest()
 
 
+def _aware_timestamp(value):
+    from datetime import datetime
+
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo is not None and parsed.utcoffset() is not None else None
+
+
+def _selected_source_cutoff(source_date):
+    from datetime import datetime, time
+    from zoneinfo import ZoneInfo
+    import re
+
+    compact = str(source_date or '').replace('-', '')
+    if not re.fullmatch(r'\d{8}', compact):
+        raise ValueError('WORKBENCH_PRIOR_COMPANY_SELECTED_DATE_INVALID')
+    return datetime.combine(datetime.strptime(compact, '%Y%m%d').date(), time.max,
+        tzinfo=ZoneInfo('Asia/Shanghai'))
+
+
 def prior_company_snapshot_from_answer(answer, current_product, source_date, observation_date,
         symbol, current_roster_sha256, *, prior_product=None, prior_source_date=None,
-        prior_observation_date=None, prior_roster_ref=None):
+        prior_observation_date=None, prior_roster_ref=None, selected_asof_cutoff=None):
     """Validate and project one owner-reader answer as separate prior company data."""
     import copy
     import re
@@ -53,6 +77,10 @@ def prior_company_snapshot_from_answer(answer, current_product, source_date, obs
 
     selected = compact(current_product.get('data_date'))
     selected_display = source_date
+    selected_cutoff = _selected_source_cutoff(selected)
+    if (selected_asof_cutoff is not None
+            and _aware_timestamp(selected_asof_cutoff) != selected_cutoff):
+        raise ValueError('WORKBENCH_PRIOR_COMPANY_SELECTED_CUTOFF_INVALID')
     observation = compact(observation_date)
     if (selected is None or compact(source_date) != selected or observation is None
             or not isinstance(current_roster_sha256, str) or len(current_roster_sha256) != 64
@@ -66,6 +94,9 @@ def prior_company_snapshot_from_answer(answer, current_product, source_date, obs
     origin = compact(lifecycle.get('material_source_date'))
     material_identity = lifecycle.get('material_identity') or {}
     current_identity = lifecycle.get('current_candidate_identity') or {}
+    received_at = _aware_timestamp(lifecycle.get('received_at'))
+    reader_cutoff_raw = lifecycle.get('asof_cutoff')
+    reader_cutoff = _aware_timestamp(reader_cutoff_raw) if reader_cutoff_raw is not None else None
     read_date = compact(prior_source_date or selected)
     read_observation = compact(prior_observation_date or observation_date)
     read_product = prior_product or current_product
@@ -81,7 +112,9 @@ def prior_company_snapshot_from_answer(answer, current_product, source_date, obs
             or answer.get('numeric_manifest') != read_product.get('manifest')
             or lifecycle.get('view_mode') not in {'HISTORICAL_ASOF', 'CURRENT_RESEARCH'}
             or lifecycle.get('historical_PIT_safe') is not False
-            or not origin or origin >= selected or not lifecycle.get('received_at')
+            or not origin or origin >= selected or received_at is None or received_at > selected_cutoff
+            or (reader_cutoff_raw is not None and reader_cutoff is None)
+            or (reader_cutoff is not None and received_at > reader_cutoff)
             or current_identity.get('data_date') != read_date
             or current_identity.get('source_generation') != read_product.get('source_generation')
             or current_identity.get('input_sha256') != read_source_identity.get('input_sha256')
@@ -134,6 +167,7 @@ def prior_company_snapshot_from_answer(answer, current_product, source_date, obs
     result = dict(schema='V4_FORMULA_PRIOR_COMPANY_SNAPSHOT_V1', status='PRIOR_AVAILABLE',
         symbol=symbol, selected_source_date=selected_display, source_date=origin,
         observation_date=observation_date, received_at=lifecycle['received_at'],
+        selected_asof_cutoff=selected_cutoff.isoformat(),
         current_candidate_identity=current_candidate_identity,
         material_identity=copy.deepcopy(material_identity),
         materials_manifest=copy.deepcopy(manifest_ref), material_ref=copy.deepcopy(material_ref),
@@ -145,6 +179,8 @@ def prior_company_snapshot_from_answer(answer, current_product, source_date, obs
             ('view_mode', 'asof_cutoff', 'historical_PIT_safe', 'received_time_status',
              'disclosure_time_status', 'freshness_status')},
             'reader_view_mode': lifecycle.get('view_mode'),
+            'reader_asof_cutoff': lifecycle.get('asof_cutoff'),
+            'selected_asof_cutoff': selected_cutoff.isoformat(),
             'view_mode': 'HISTORICAL_ASOF'}, **FLAGS)
     if exact_prior_scope:
         result['prior_formula_scope'] = dict(source_date=read_date,
@@ -326,6 +362,79 @@ def prior_f10_snapshot(source, current_product, source_date, observation_date, s
     return None
 
 
+def _f10_roster_readback(binding, source_date, product, symbols):
+    """Read F10 checkpoint outcomes for this exact roster without mutation."""
+    import re
+
+    reference = binding.get('receipt') if isinstance(binding, dict) else None
+    if not isinstance(reference, dict):
+        return dict(status='UNATTEMPTED', observed=0, failed=0,
+                    remaining=len(symbols), receipt=None)
+    receipt = _checked(reference)
+    selected = source_date.replace('-', '')
+    product_identity = product.get('source_identity') or {}
+    if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1'
+            or receipt.get('status') not in {'COMPLETE', 'PARTIAL'}
+            or receipt.get('data_date') != selected
+            or receipt.get('source_generation') != product.get('source_generation')
+            or receipt.get('input_sha256') != product_identity.get('input_sha256')
+            or receipt.get('selector_sha256') != product_identity.get('selector_artifact_sha256')
+            or receipt.get('numeric_manifest') != product.get('manifest')
+            or receipt.get('scope', {}).get('kind') != 'ADMITTED_DAILY_UNIVERSE'
+            or receipt.get('priority_scope') != dict(symbols=sorted(symbols), count=len(symbols))
+            or receipt.get('historical_PIT') is not False
+            or not isinstance(receipt.get('scope_sha256'), str)
+            or receipt.get('scope', {}).get('count') != receipt.get('requested')
+            or any(receipt.get(key) is not value for key, value in FLAGS.items())):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_CONFLICT')
+    checkpoint_ref = receipt.get('checkpoint')
+    checkpoint = _checked(checkpoint_ref)
+    identity = checkpoint.get('identity') or {}
+    if (checkpoint.get('schema') != 'v4.a_share.f10_checkpoint.v1'
+            or identity.get('data_date') != selected
+            or identity.get('source_generation') != product.get('source_generation')
+            or identity.get('input_sha256') != product_identity.get('input_sha256')
+            or identity.get('selector_sha256') != product_identity.get('selector_artifact_sha256')
+            or identity.get('scope_sha256') != receipt.get('scope_sha256')
+            or checkpoint.get('upstream_success_receipt') != receipt.get('upstream_success_receipt')
+            or any(checkpoint.get(key) is not value for key, value in FLAGS.items())):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_CHECKPOINT_CONFLICT')
+    items = checkpoint.get('items')
+    failures = receipt.get('failures', {})
+    remaining_raw = receipt.get('remaining', [])
+    if not isinstance(items, dict) or not isinstance(failures, dict) or not isinstance(remaining_raw, list):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_PARTITION_INVALID')
+    if receipt.get('observed') != len(items):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OBSERVED_COUNT_CONFLICT')
+    roster = set(symbols)
+    observed = set()
+    for symbol, item_ref in items.items():
+        if not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol):
+            raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_SYMBOL_INVALID')
+        if symbol not in roster:
+            continue
+        if (not isinstance(item_ref, dict) or not isinstance(item_ref.get('path'), str)
+                or not isinstance(item_ref.get('sha256'), str)
+                or not re.fullmatch(r'[0-9a-f]{64}', item_ref['sha256'])):
+            raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_REF_INVALID:' + symbol)
+        observed.add(symbol)
+    if any(not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol)
+           for symbol in (*failures.keys(), *remaining_raw)):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_SYMBOL_INVALID')
+    failed = set(failures) & roster
+    if not set(failures) <= roster:
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_FAILURE_OUTSIDE_PRIORITY_SCOPE')
+    remaining_set = set(remaining_raw)
+    if len(remaining_set) != len(remaining_raw):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_REMAINING_DUPLICATE')
+    remaining = (remaining_set & roster) | (roster - observed - failed)
+    if observed & failed or observed & remaining or failed & remaining:
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_CONFLICT')
+    complete = observed == roster and not failed and not remaining
+    return dict(status='COMPLETE' if complete else 'PARTIAL', observed=len(observed),
+                failed=len(failed), remaining=len(remaining), receipt=reference)
+
+
 def load(formula_groups_root, source_date, product, formula_ref, observation_date):
     """Return current exact supplement bindings, or an empty map if stale/absent."""
     if _canonical_sha(PINNED_SCORE_RULES_SHA256) != PINNED_SCORE_RULES_MAP_SHA256:
@@ -380,8 +489,28 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
             or any(receipt.get(key) is not value for key, value in FLAGS.items())):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_RECEIPT_CONFLICT')
 
-    result = {'supplement_pointer': pointer_ref, 'supplement_artifact': artifact_ref}
+    supplement_status = artifact.get('status')
+    result = {'supplement_pointer': pointer_ref, 'supplement_artifact': artifact_ref,
+        'supplement_status': supplement_status}
+    if supplement_status == 'COMPLETE':
+        f10_binding = artifact.get('f10') or {}
+        if not symbols:
+            f10_coverage = dict(status='COMPLETE', observed=0, failed=0,
+                                remaining=0, receipt=None)
+        else:
+            try:
+                f10_coverage = _f10_roster_readback(f10_binding, source_date, product, symbols)
+            except (ValueError, OSError, KeyError, TypeError, AttributeError):
+                f10_coverage = dict(status='CANNOT_CONFIRM', observed=0, failed=0,
+                                    remaining=len(symbols), receipt=f10_binding.get('receipt')
+                                    if isinstance(f10_binding, dict) else None)
+        result['f10_coverage'] = f10_coverage
+        if f10_coverage.get('status') != 'COMPLETE':
+            result['supplement_status'] = 'PARTIAL'
     marks_ref = artifact.get('d35c_marks')
+    if supplement_status == 'COMPLETE' and symbols and not isinstance(marks_ref, dict):
+        # A nonempty roster cannot be complete without its exact chart projection.
+        result['supplement_status'] = 'PARTIAL'
     if isinstance(marks_ref, dict):
         bundle = _checked(marks_ref, root=root)
         basis = product_identity.get('basis') or {}
@@ -399,6 +528,15 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
                 or set(bundle.get('items', {})) != set(symbols)):
             raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_D35C_CONFLICT')
         result['d35c_marks'] = marks_ref
+        if supplement_status == 'COMPLETE' and symbols:
+            items = bundle['items']
+            if (artifact.get('d35c_status') != 'READY'
+                    or any(not isinstance(items[symbol], dict)
+                        or items[symbol].get('status') != 'READY'
+                        or type(items[symbol].get('unresolved_conditions')) is not int
+                        or items[symbol]['unresolved_conditions'] != 0
+                        for symbol in symbols)):
+                result['supplement_status'] = 'PARTIAL'
 
     score_binding = artifact.get('score_action')
     if isinstance(score_binding, dict) and isinstance(score_binding.get('receipt'), dict):

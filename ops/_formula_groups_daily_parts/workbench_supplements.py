@@ -197,9 +197,44 @@ def _d35c_item(context, symbol, bars, qualification, chart_rows):
             value = values[name]
             points.append(dict(trade_date=chart['trade_date'], y=None if value is None else str(value)))
         lines[name] = points
-    return dict(status='READY', source_kind='DERIVED_BOUND_SELECTOR_PREFIX',
+    return dict(status='READY' if unresolved == 0 else 'PARTIAL_WITH_UNKNOWN',
+        source_kind='DERIVED_BOUND_SELECTOR_PREFIX',
         source_sha256=_sha(_canonical(result)), unresolved_conditions=unresolved,
         chart_rows_sha256=_sha(_canonical(chart_rows)), marks=marks, lines=lines)
+
+
+def _d35c_projection_is_renderable(item):
+    """Accept only a structurally intact projection for retry reuse."""
+    if (not isinstance(item, dict)
+            or item.get('status') not in {'READY', 'PARTIAL_WITH_UNKNOWN'}
+            or item.get('source_kind') != 'DERIVED_BOUND_SELECTOR_PREFIX'
+            or type(item.get('unresolved_conditions')) is not int
+            or item['unresolved_conditions'] < 0
+            or not all(re.fullmatch(r'[0-9a-f]{64}', str(item.get(key) or ''))
+                for key in ('source_sha256', 'chart_rows_sha256'))
+            or not isinstance(item.get('marks'), list)):
+        return False
+    lines = item.get('lines')
+    if not isinstance(lines, dict) or not {'白线', '黄线'} <= set(lines):
+        return False
+    white, yellow = lines['白线'], lines['黄线']
+    if (not isinstance(white, list) or not isinstance(yellow, list)
+            or not white or len(white) != len(yellow)):
+        return False
+    def valid_points(points):
+        return all(isinstance(point, dict)
+            and isinstance(point.get('trade_date'), str) and point['trade_date']
+            and ('y' in point) and (point['y'] is None or isinstance(point['y'], str))
+            for point in points)
+    if (not valid_points(white) or not valid_points(yellow)
+            or [point['trade_date'] for point in white]
+                != [point['trade_date'] for point in yellow]):
+        return False
+    required_mark_fields = {'trade_date', 'id', 'kind', 'payload', 'styles', 'y'}
+    return all(isinstance(mark, dict) and required_mark_fields <= set(mark)
+        and isinstance(mark.get('trade_date'), str) and bool(mark['trade_date'])
+        and (mark.get('y') is None or isinstance(mark.get('y'), str))
+        for mark in item['marks'])
 
 
 def _build_d35c_bundle(context, product, numeric_manifest, formula_ref, formula_artifact,
@@ -216,8 +251,15 @@ def _build_d35c_bundle(context, product, numeric_manifest, formula_ref, formula_
         items={}, historical_PIT=HISTORICAL_PIT, **FLAGS)
     for symbol in symbols:
         previous_item = (previous_bundle or {}).get('items', {}).get(symbol)
-        if isinstance(previous_item, dict) and previous_item.get('status') == 'READY':
-            bundle['items'][symbol] = previous_item
+        if _d35c_projection_is_renderable(previous_item):
+            # Older releases marked unresolved drawing predicates READY. Carry
+            # their already verified projections forward and correct only the
+            # status; do not discard known marks/lines or re-evaluate all bars
+            # on every F10 retry.
+            normalized_status = ('PARTIAL_WITH_UNKNOWN'
+                if previous_item['unresolved_conditions'] else 'READY')
+            bundle['items'][symbol] = (previous_item if previous_item.get('status') == normalized_status
+                else {**previous_item, 'status': normalized_status})
             continue
         try:
             context.unchanged()
@@ -318,9 +360,11 @@ def _build_score_replay(context, product, numeric_manifest, formula_ref, symbols
 
 
 def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
+    """Partition only exact formula-roster symbols by their verified F10 result."""
+    roster = set(symbols)
     reference = binding.get('receipt') if isinstance(binding, dict) else None
     if not isinstance(reference, dict):
-        return set(), set()
+        return set(), set(), set(roster)
     receipt = _checked(reference)
     if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1'
             or receipt.get('data_date') != str(context.target)
@@ -343,16 +387,58 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
             or checkpoint.get('upstream_success_receipt') != receipt.get('upstream_success_receipt')
             or any(checkpoint.get(key) is not value for key, value in FLAGS.items())):
         raise ValueError('FORMULA_SUPPLEMENT_F10_CHECKPOINT_CONFLICT')
+    checkpoint_items = checkpoint.get('items')
+    if not isinstance(checkpoint_items, dict):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_ITEMS_INVALID')
+    if receipt.get('observed') != len(checkpoint_items):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_OBSERVED_COUNT_CONFLICT')
     observed = set()
-    for symbol, ref in checkpoint.get('items', {}).items():
+    for symbol, ref in checkpoint_items.items():
+        if not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', str(symbol)):
+            raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_SYMBOL_INVALID')
+        if symbol not in roster:
+            # The checkpoint is admitted-universe scoped. Its other immutable
+            # stock shards are outside this roster decision and need not be read.
+            continue
         row = _checked(ref)
         if row.get('symbol') != symbol or row.get('status') != 'OBSERVED' or any(row.get(key) is not value for key, value in FLAGS.items()):
             raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_CONFLICT:' + symbol)
         observed.add(symbol)
-    failed = set(receipt.get('failures', {}))
+    failures = receipt.get('failures', {})
+    remaining_raw = receipt.get('remaining', [])
+    if not isinstance(failures, dict) or not isinstance(remaining_raw, list):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_OUTCOME_PARTITION_INVALID')
+    failed = set(failures) & roster
+    if not set(failures) <= roster:
+        raise ValueError('FORMULA_SUPPLEMENT_F10_FAILURE_OUTSIDE_PRIORITY_SCOPE')
+    if any(not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', str(symbol)) for symbol in failures):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_FAILURE_SYMBOL_INVALID')
+    if any(not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', str(symbol)) for symbol in remaining_raw):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_REMAINING_SYMBOL_INVALID')
+    remaining_set = set(remaining_raw)
+    if len(remaining_set) != len(remaining_raw):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_REMAINING_DUPLICATE')
+    remaining = (remaining_set & roster) | (roster - observed - failed)
     if observed & failed:
         raise ValueError('FORMULA_SUPPLEMENT_F10_DUPLICATE_OUTCOME')
-    return observed | failed, set(receipt.get('remaining', [])) & set(symbols)
+    if observed & remaining or failed & remaining:
+        raise ValueError('FORMULA_SUPPLEMENT_F10_OUTCOME_PARTITION_CONFLICT')
+    return observed, failed, remaining
+
+
+def _f10_roster_complete(symbols, observed, failed, remaining):
+    roster = set(symbols)
+    return observed == roster and not failed and not remaining
+
+
+def _d35c_roster_complete(reference, symbols):
+    if not isinstance(reference, dict):
+        return False
+    bundle = _checked(reference)
+    items = bundle.get('items')
+    return (isinstance(items, dict) and set(items) == set(symbols)
+        and all(_d35c_projection_is_renderable(item) and item.get('status') == 'READY'
+            and item.get('unresolved_conditions') == 0 for item in items.values()))
 
 
 def _current_supplement(day_root, expected):
@@ -410,8 +496,27 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
         day_root = Path(formula_groups_root) / source_date
         latest, previous_sha, previous = _current_supplement(day_root, expected)
         if previous and previous['artifact'].get('status') == 'COMPLETE':
-            return dict(status='ALREADY_COMMITTED', pointer=previous['pointer'], receipt=previous['receipt_ref'],
-                        artifact=previous['artifact_ref'], **expected, **FLAGS)
+            # A prior writer version could count failed rows as attempted. Only
+            # a fresh exact-roster readback may retain COMPLETE on this no-write
+            # path. Incorrect legacy COMPLETE is corrected below by publishing
+            # a new PARTIAL supplement pointer, without changing source data.
+            previous_f10 = previous['artifact'].get('f10') or {}
+            try:
+                prev_observed, prev_failed, prev_remaining = _f10_roster_coverage(
+                    context, numeric_manifest, symbols, previous_f10) if symbols else (set(), set(), set())
+            except (ValueError, OSError, KeyError, TypeError, AttributeError):
+                prev_observed, prev_failed, prev_remaining = set(), set(), set(symbols)
+            previous_chart_complete = False
+            try:
+                previous_chart_complete = _d35c_roster_complete(
+                    previous['artifact'].get('d35c_marks'), symbols)
+            except (ValueError, OSError, KeyError, TypeError, AttributeError):
+                previous_chart_complete = False
+            if (_f10_roster_complete(symbols, prev_observed, prev_failed, prev_remaining)
+                    and previous_chart_complete
+                    and previous['artifact'].get('d35c_status') == 'READY'):
+                return dict(status='ALREADY_COMMITTED', pointer=previous['pointer'], receipt=previous['receipt_ref'],
+                            artifact=previous['artifact_ref'], **expected, **FLAGS)
 
         previous_artifact = previous['artifact'] if previous else {}
         previous_bundle = None
@@ -451,9 +556,14 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
             score_binding = dict(status='CANNOT_CONFIRM', reason=type(error).__name__ + ':' + str(error)[:200])
 
         f10_binding = previous_artifact.get('f10') or dict(status='NOT_RUN_EMPTY_ROSTER' if not symbols else 'CANNOT_CONFIRM')
-        attempted, unattempted = _f10_roster_coverage(context, numeric_manifest, symbols, f10_binding) if symbols else (set(), set())
+        try:
+            observed, failed, unattempted = _f10_roster_coverage(
+                context, numeric_manifest, symbols, f10_binding) if symbols else (set(), set(), set())
+        except (ValueError, OSError, KeyError, TypeError, AttributeError):
+            observed, failed, unattempted = set(), set(), set(symbols)
+            f10_binding = dict(status='CANNOT_CONFIRM')
         if symbols:
-            if unattempted or f10_binding.get('status') == 'CANNOT_CONFIRM':
+            if failed or unattempted or f10_binding.get('status') == 'CANNOT_CONFIRM':
               try:
                 from ops.research_panel_f10 import complete_f10, exact_daily_source_receipt, publish_f10_completion
                 source_ready = exact_daily_source_receipt(context, context.root, context.root)
@@ -464,14 +574,21 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
                 f10_binding = dict(status=f10.get('status'), receipt=f10.get('receipt'), publication=f10.get('publication'),
                     requested=f10.get('requested'), observed=f10.get('observed'),
                     failure_count=f10.get('failure_count'), remaining_count=f10.get('remaining_count'))
-                attempted, unattempted = _f10_roster_coverage(context, numeric_manifest, symbols, f10_binding)
+                observed, failed, unattempted = _f10_roster_coverage(context, numeric_manifest, symbols, f10_binding)
               except (ValueError, OSError, KeyError, TypeError, AttributeError, RuntimeError) as error:
-                f10_binding = dict(status='CANNOT_CONFIRM', reason=type(error).__name__ + ':' + str(error)[:200])
+                retry_error = type(error).__name__ + ':' + str(error)[:200]
+                if isinstance(f10_binding, dict) and isinstance(f10_binding.get('receipt'), dict):
+                    # Keep the last immutable, source-bound partial receipt
+                    # available if reacquisition or publication fails.
+                    f10_binding = {**f10_binding, 'retry_status':'CANNOT_CONFIRM',
+                        'retry_reason':retry_error}
+                else:
+                    f10_binding = dict(status='CANNOT_CONFIRM', reason=retry_error)
 
         score_status = score_binding.get('status')
         score_receipt = _checked(score_binding['receipt']) if score_binding.get('receipt') else {}
         score_outcomes = set(score_receipt.get('statuses', {}))
-        f10_covered = set(symbols) <= attempted and not unattempted if symbols else True
+        f10_covered = _f10_roster_complete(symbols, observed, failed, unattempted) if symbols else True
         complete_stages = (set(bundle.get('items', {})) == set(symbols)
             and chart_status == 'READY'
             and score_outcomes == set(symbols)
@@ -482,7 +599,9 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
             formula_group_artifact=formula_ref, formula_group_receipt=formula_receipt_ref,
             d35c_marks=bundle_ref, d35c_status=chart_status,
             score_action=score_binding, f10=f10_binding,
-            counts=dict(roster=len(symbols), d35c_ready=chart_ready), **FLAGS)
+            counts=dict(roster=len(symbols), d35c_ready=chart_ready,
+                        f10_observed=len(observed), f10_failed=len(failed),
+                        f10_unattempted=len(unattempted)), **FLAGS)
         supplement_ref = _immutable(day_root / 'supplements' / 'artifacts', supplement)
         receipt = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_RECEIPT_V1',
             status='COMMITTED', artifact=supplement_ref, **expected, **FLAGS)
@@ -490,6 +609,11 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
         pointer = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_COMMIT_V1',
             module='formula_group_supplement', **expected,
             status=supplement['status'], artifact=supplement_ref, receipt=receipt_ref, **FLAGS)
+        if previous and pointer == previous.get('pointer'):
+            return dict(status=supplement['status'], pointer=previous['pointer'],
+                receipt=previous['receipt_ref'], artifact=previous['artifact_ref'],
+                f10=f10_binding, score_action=score_binding, d35c_status=chart_status,
+                counts=supplement['counts'], idempotent=True, **expected, **FLAGS)
         pointer_ref = _atomic_pointer(latest, pointer, previous_sha)
         context.unchanged()
         return dict(status=supplement['status'], pointer=pointer_ref, receipt=receipt_ref,

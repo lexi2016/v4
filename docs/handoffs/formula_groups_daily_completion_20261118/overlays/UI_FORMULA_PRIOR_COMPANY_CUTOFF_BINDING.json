@@ -1,0 +1,24 @@
+{
+  "RESEARCH_ONLY": true,
+  "base_binding_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/UI_FORMULA_PRIOR_COMPANY_BINDING.json",
+  "base_binding_sha256": "37a038813404513fda09689475cf98f42cef9f47a41e4ac1323a2f03a9cafffb",
+  "base_patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/ui-formula-f10-prior-company.patch",
+  "base_patch_sha256": "19b9d791240810d6b12625972dc35cd3b6df56bdfed22d3f171e5967e9cd80bc",
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "patch_apply_args": [
+    "git",
+    "apply",
+    "--unidiff-zero"
+  ],
+  "patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/ui-prior-company-selected-cutoff.patch",
+  "patch_sha256": "cb784c15ae9ae7353506bb7b43c3e43a6b8df77141d8130bd15c30050215e504",
+  "production_allowed": false,
+  "required_preimage_after_base_patch_sha256": "815896a4dc787133dc6220458b39a2fb39d06bc3b3e1220db8658237bb5813c7",
+  "result_sha256": "27f5e13c935eeb1887428063051c8bd35a20d50da62afb4fdf75d4a5dc8e7baa",
+  "schema": "V4_FORMULA_PRIOR_COMPANY_SELECTED_CUTOFF_UI_OVERLAY_BINDING_V1",
+  "scope": [
+    "reject naive or future company receipt timestamps against selected D Shanghai cutoff",
+    "preserve and separately validate original reader cutoff"
+  ]
+}

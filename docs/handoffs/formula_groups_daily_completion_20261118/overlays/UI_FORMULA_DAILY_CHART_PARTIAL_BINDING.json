@@ -1,0 +1,24 @@
+{
+  "patch_apply_args": [
+    "git",
+    "apply",
+    "--unidiff-zero"
+  ],
+  "patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/ui-daily-chart-partial.patch",
+  "patch_sha256": "41507b3562849695dd0bda5458ca9cfd750bfde7287a364963bdce5551f44758",
+  "result_sha256": "9b2066f344aa5a38bfc202c810cec913975d5a28db97e5e9a51b4f226d889486",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema": "V4_FORMULA_DAILY_CHART_PARTIAL_UI_OVERLAY_BINDING_V1",
+  "scope": [
+    "render verified confirmed marks and white/yellow lines for PARTIAL_WITH_UNKNOWN D35C charts",
+    "show unresolved drawing state and effective supplement PARTIAL without changing legacy READY charts"
+  ],
+  "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-api-r1/ui/research-panel/workbench-host/dot/shell/formula-daily-chart.mjs",
+  "source_sha256": "8591328232f409517f4f714b1fa93d155f5abba6910d0872a2cb46481a54357d",
+  "target": "ui/research-panel/workbench-host/dot/shell/formula-daily-chart.mjs"
+}
