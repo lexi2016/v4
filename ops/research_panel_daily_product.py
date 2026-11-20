@@ -17,6 +17,8 @@ FLAGS=dict(RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,or
 GROUPS=('original','nav_smallk','nav_pullback','nav_breakout')
 CONFIG=Path(__file__).resolve().parents[1]/'docs/handoffs/a_daily_dashboard_closure_20261029/SOURCE_CONFIG.json'
 SCHEMA='v4.a_share.daily_product.v1'
+LABEL_LINEAGE_SCHEMA='v4.a_share.daily_accepted_label_lineage.v1'
+LABEL_LINEAGE_BINDING_SCHEMA='v4.a_share.daily_accepted_label_lineage_binding.v1'
 CURRENT_UNIVERSE_EXCLUSION_REASONS=frozenset({'VERIFIED_BSE_OLD_CODE_REPLACED','VERIFIED_DELISTED_NO_CURRENT_BARS'})
 
 def current_daily_universe(snapshot):
@@ -775,6 +777,50 @@ def daily_checkpoint_payload(row):
  return {key:value for key,value in row.items() if key!='_daily_accepted_label_lineage'}
 
 
+def store_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_content_sha256,lineage):
+ """Pin one accepted-label lineage sidecar to a numeric stock-row checkpoint."""
+ pointer=Path(parts)/'accepted_label_lineage'/(symbol+'.json')
+ if not lineage and not pointer.is_file():return None
+ payload_ref=None
+ if lineage:
+  payload=dict(schema_version=LABEL_LINEAGE_SCHEMA,symbol=symbol,data_date=str(target),
+               source_generation=generation,input_sha256=input_sha256,
+               row_content_sha256=row_content_sha256,lineage=lineage,**FLAGS)
+  payload_path=pointer.parent/'objects'/symbol/(digest(payload)+'.json')
+  payload_ref=save(payload_path,payload,immutable=True)
+  status='AVAILABLE'
+ else:status='NO_ACCEPTED_LABEL_LINEAGE'
+ binding=dict(schema_version=LABEL_LINEAGE_BINDING_SCHEMA,symbol=symbol,data_date=str(target),
+              source_generation=generation,input_sha256=input_sha256,
+              row_content_sha256=row_content_sha256,status=status,lineage_ref=payload_ref,**FLAGS)
+ return save(pointer,binding)
+
+
+def load_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_content_sha256):
+ """Restore only the sidecar bound to this exact numeric row and run identity."""
+ pointer=Path(parts)/'accepted_label_lineage'/(symbol+'.json')
+ if not pointer.exists() and not pointer.is_symlink():return None
+ if pointer.is_symlink() or not pointer.is_file():raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_BINDING_INVALID')
+ pointer_ref=reference(pointer);binding=json.loads(checked(pointer_ref).read_text())
+ if (binding.get('schema_version')!=LABEL_LINEAGE_BINDING_SCHEMA or binding.get('symbol')!=symbol
+     or binding.get('data_date')!=str(target) or binding.get('source_generation')!=generation
+     or binding.get('input_sha256')!=input_sha256 or binding.get('row_content_sha256')!=row_content_sha256
+     or any(binding.get(key)!=value for key,value in FLAGS.items())):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_BINDING_CONFLICT')
+ if binding.get('status')=='NO_ACCEPTED_LABEL_LINEAGE' and binding.get('lineage_ref') is None:return None
+ ref=binding.get('lineage_ref')
+ if not isinstance(ref,dict):raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_REFERENCE_INVALID')
+ payload=json.loads(checked(ref).read_text())
+ if (Path(ref['path']).name!=digest(payload)+'.json' or payload.get('schema_version')!=LABEL_LINEAGE_SCHEMA
+     or payload.get('symbol')!=symbol or payload.get('data_date')!=str(target)
+     or payload.get('source_generation')!=generation or payload.get('input_sha256')!=input_sha256
+     or payload.get('row_content_sha256')!=row_content_sha256
+     or any(payload.get(key)!=value for key,value in FLAGS.items())
+     or not isinstance(payload.get('lineage'),dict)):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_PAYLOAD_CONFLICT')
+ return payload['lineage']
+
+
 def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
  """Reuse the accepted durable owner without changing event or return rules."""
  from domains.research_daily_statistics import build_daily_event_statistics
@@ -940,7 +986,15 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
     if isinstance(error,history_checkpoint.HistoryCheckpointError):raise
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
    row.update(FLAGS)
-   save(checkpoint,daily_checkpoint_payload(row),immutable=True,compress_row=True);row_ref=reference(checkpoint)
+   checkpoint_payload=daily_checkpoint_payload(row);row_content_sha256=digest(checkpoint_payload)
+   store_daily_label_lineage(parts,symbol,target,context.generation,context.identity['input_sha256'],
+                            row_content_sha256,row.get('_daily_accepted_label_lineage'))
+   save(checkpoint,checkpoint_payload,immutable=True,compress_row=True);row_ref=reference(checkpoint)
+  row.pop('_daily_accepted_label_lineage',None)
+  row_content_sha256=digest(daily_checkpoint_payload(row))
+  accepted_lineage=load_daily_label_lineage(parts,symbol,target,context.generation,
+                                            context.identity['input_sha256'],row_content_sha256)
+  if accepted_lineage:row['_daily_accepted_label_lineage']=accepted_lineage
   rows.append(row);row_refs[symbol]=row_ref
   if completed_rows is None or (i+1)%64==0 or i+1==len(selected):
    save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
@@ -970,10 +1024,16 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
    for row in candidates:
     if row.get('_daily_cached_groups') is None:continue
     shard=dict(schema_version='v4.a_share.event_cases.v1',symbol=row['symbol'],data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],statistics_sha256=digest(row['statistics']),projection=(json.loads(checked(chart_descriptor['manifest']).read_text()).get('samples',{}).get(row['symbol'],{}).get('projection') if chart_descriptor and chart_descriptor.get('manifest') else None),groups=row['_daily_cached_groups'],cache_reuse=row['_daily_cache_reuse'],**FLAGS)
-    if row.get('_daily_accepted_label_lineage'):shard['accepted_label_lineage']=row['_daily_accepted_label_lineage']
-    items[row['symbol']]=save(version/'event_cases'/(row['symbol']+'.json'),shard,immutable=True)
+    lineaged=bool(row.get('_daily_accepted_label_lineage'))
+    if lineaged:shard['accepted_label_lineage']=row['_daily_accepted_label_lineage']
+    shard_path=(version/'event_cases'/digest(shard)/(row['symbol']+'.json') if lineaged
+                else version/'event_cases'/(row['symbol']+'.json'))
+    items[row['symbol']]=save(shard_path,shard,immutable=True)
    cases_index=dict(schema_version='v4.a_share.event_cases_index.v1',data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],items=items,**FLAGS)
-   index.setdefault('event_cases',{})[str(target)]=save(version/'event_cases_index.json',cases_index,immutable=True)
+   lineaged=any(row.get('_daily_accepted_label_lineage') for row in candidates)
+   cases_index_path=(version/'event_cases_index'/(digest(cases_index)+'.json') if lineaged
+                     else version/'event_cases_index.json')
+   index.setdefault('event_cases',{})[str(target)]=save(cases_index_path,cases_index,immutable=True)
   # Restore the original score/action projection at the real completion owner.
   # Numeric completion remains valid when one source is unknown; consumers
   # receive the explicit descriptor/gap rather than an older day's score.
