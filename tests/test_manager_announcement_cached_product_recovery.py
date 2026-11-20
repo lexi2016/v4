@@ -116,7 +116,7 @@ def _service(tmp_path: Path, product: dict | None = None):
 
 
 def _post(app: FastAPI, payload: dict):
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
         return client.post(api.PREFIX + "/announcement-flash/recover-cached-product", json=payload)
 
 
@@ -361,7 +361,7 @@ def test_cache_recovery_worker_uses_full_product_runner_path_without_capture_or_
     monkeypatch.setattr(update_module, "read_pinned_candidates", lambda: dict(pinned))
     app = FastAPI()
     app.include_router(api.create_router(service))
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
         response = client.get(api.PREFIX + "/announcement-flash", params={"target_date": job.context.target_date})
     assert response.status_code == 200, response.text
     view = response.json()["data"]

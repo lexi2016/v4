@@ -1459,7 +1459,7 @@ def test_resume_api_passes_only_the_hash_bound_request_to_resume_service(monkeyp
     service, source_id = _resume_service(tmp_path)
     app = FastAPI()
     app.include_router(api.create_router(service))
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000))
     payload = {"target_date": "20261016", "source_job_id": source_id,
                "source_input_sha256": "1" * 64, "source_progress_sha256": "2" * 64,
                "source_queue_state_sha256": "3" * 64, "resume_action": "CANARY"}
@@ -1511,7 +1511,7 @@ def test_generic_retry_route_rejects_announcement_capture_jobs(tmp_path):
     app = FastAPI()
     app.include_router(api.create_router(service))
 
-    response = TestClient(app).post(api.PREFIX + f"/runs/{source_id}/retry")
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + f"/runs/{source_id}/retry")
 
     assert response.status_code == 409
     assert response.json()["gaps"] == ["ANNOUNCEMENT_FLASH_RESUME_REQUIRED"]

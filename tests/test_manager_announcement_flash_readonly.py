@@ -85,7 +85,7 @@ def test_announcement_get_defaults_to_latest_and_accepts_explicit_history_date(m
     app = FastAPI()
     svc = service()
     app.include_router(api.create_router(svc))
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000))
 
     latest = client.get(api.PREFIX + "/announcement-flash")
     history = client.get(api.PREFIX + "/announcement-flash?target_date=20261015")
@@ -182,7 +182,7 @@ def test_announcement_get_is_pure_and_returns_pinned_evidence(monkeypatch):
 
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).get(api.PREFIX + "/announcement-flash?target_date=20261016")
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).get(api.PREFIX + "/announcement-flash?target_date=20261016")
 
     assert response.status_code == 200
     payload = response.json()
@@ -398,7 +398,7 @@ def test_failed_saved_materialization_is_indexed_and_overlays_prior_pending_in_a
                         lambda *_args: dict(gate))
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).get(api.PREFIX + "/announcement-flash?target_date=20261016")
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).get(api.PREFIX + "/announcement-flash?target_date=20261016")
     assert response.status_code == 200, response.text
     view = response.json()["data"]
     assert view["state"] == "PARTIAL"
@@ -804,7 +804,7 @@ def test_manual_update_recovery_click_uses_saved_raw_parent_and_active_job_stays
     update = AnnouncementUpdate(svc, clock=lambda: datetime(2026, 10, 17, 10, 0, tzinfo=HK))
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
 
     assert response.status_code == 202, response.text
@@ -1271,7 +1271,7 @@ def test_http_post_uses_the_announcement_route_and_never_codex_runs(monkeypatch)
     monkeypatch.setattr(api, "AnnouncementUpdate", FixedClockUpdate)
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000))
     response = client.post(api.PREFIX + "/announcement-flash/update", json={"target_date": "20261016"})
 
     assert response.status_code == 202
@@ -1294,7 +1294,7 @@ def test_http_post_rejects_cross_date_active_job_with_conflict(monkeypatch):
     monkeypatch.setattr(api, "AnnouncementUpdate", FixedClockUpdate)
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000))
     active = client.post(api.PREFIX + "/announcement-flash/update", json={"target_date": "20261015"})
     assert active.status_code == 202
 
@@ -1579,7 +1579,7 @@ def test_http_date_only_continues_saved_804_zero_candidate_queue_stop_with_froze
     svc = case["service"]
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
     assert response.status_code == 202, response.text
     assert len(svc.jobs.submissions) == 1
@@ -1627,7 +1627,7 @@ def test_http_date_only_rejects_negative_candidate_count_for_queue_stop():
 
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
     assert response.status_code == 409
     assert "RECOVERY_PARENT_UNVERIFIED" in response.text
@@ -1647,7 +1647,7 @@ def test_http_date_only_rejects_tampered_intermediate_recovery_result_link():
 
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
     assert response.status_code == 409
     assert "RECOVERY_PARENT_UNVERIFIED" in response.text
@@ -1663,7 +1663,7 @@ def test_http_date_button_continues_exact_saved_identity_conflict_partial_from_c
     svc = case["service"]
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
     assert response.status_code == 202, response.text
     assert len(svc.jobs.submissions) == 1
@@ -1712,7 +1712,7 @@ def test_http_date_button_fails_closed_for_unverified_queue_identity_stop():
 
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
 
     assert response.status_code == 409
@@ -1783,7 +1783,7 @@ def test_http_date_button_composes_failed_prequeue_child_fallback_with_queue_sto
     svc, prior_parent_binding, _failed_child_id = _r8c_attach_failed_prequeue_child(case)
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
 
     assert response.status_code == 202, response.text
@@ -1820,7 +1820,7 @@ def test_http_date_button_rejects_failed_child_when_parent_stop_binding_is_inval
         case, tamper_parent_stop_binding=True)
     app = FastAPI()
     app.include_router(api.create_router(svc))
-    response = TestClient(app).post(api.PREFIX + "/announcement-flash/update",
+    response = TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)).post(api.PREFIX + "/announcement-flash/update",
                                     json={"target_date": "20261016"})
 
     assert response.status_code == 409

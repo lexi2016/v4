@@ -121,7 +121,7 @@ def test_stop_request_api_is_idempotent_and_does_not_pretend_inflight_is_termina
     update, service, job = _parent(tmp_path)
     app=FastAPI();app.include_router(create_router(service))
     try:
-        with TestClient(app) as client:
+        with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
             response = client.post(f'/api/v4/manager-workbench/announcement-flash/{job.job_id}/stop')
             assert response.status_code == 202
             assert response.json()['state'] == 'STOP_REQUESTED'

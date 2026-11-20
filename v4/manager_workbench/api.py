@@ -4,6 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Literal
 import re
+from ipaddress import ip_address
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.routing import APIRoute
@@ -138,11 +140,62 @@ def _index(s) -> dict[str, Any]:
             "input_sha256":s.input_sha256, "state":"PARTIAL" if s.gaps else "READY"}
 
 
+def _local_origin(value: str) -> tuple[str, str, int] | None:
+    """Strict local HTTP origin, without DNS, forwarded headers or URL suffixes."""
+    try:
+        parsed = urlsplit(value)
+        if (parsed.scheme not in {"http", "https"} or not parsed.netloc
+                or parsed.username is not None or parsed.password is not None
+                or parsed.path or parsed.query or parsed.fragment
+                or any(c.isspace() or c in "\\," for c in value)):
+            return None
+        host = parsed.hostname
+        if host not in {"localhost", "127.0.0.1", "::1"}:
+            return None
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        return parsed.scheme, host, port
+    except ValueError:
+        return None
+
+
+def _guard_mutation(request) -> None:
+    """Browser writes require the exact trusted local Host/Origin pair.
+
+    Compatibility: existing local Python/CLI clients may omit Origin only
+    when the transport peer is loopback and no browser provenance headers
+    (Origin, Referer, Sec-Fetch-*) are supplied. This is a local-machine API,
+    not remote authentication; forwarded headers never grant trust.
+    """
+    if request.method in {"GET", "HEAD", "OPTIONS"}:
+        return
+    hosts = request.headers.getlist("host")
+    target = _local_origin(request.url.scheme + "://" + hosts[0]) if len(hosts) == 1 else None
+    if target is None:
+        raise HTTPException(403, "LOCAL_HOST_REQUIRED")
+    origins = request.headers.getlist("origin")
+    site = request.headers.get("sec-fetch-site")
+    if site is not None and site != "same-origin":
+        raise HTTPException(403, "SAME_ORIGIN_REQUIRED")
+    if origins:
+        if len(origins) != 1 or _local_origin(origins[0]) != target:
+            raise HTTPException(403, "SAME_ORIGIN_REQUIRED")
+        return
+    browser_headers = any(key == "referer" or key.startswith("sec-fetch-") for key in request.headers)
+    try:
+        local_peer = bool(request.client and ip_address(request.client.host).is_loopback)
+    except ValueError:
+        local_peer = False
+    if browser_headers or not local_peer:
+        raise HTTPException(403, "LOCAL_CLIENT_REQUIRED")
+
+
 class WorkbenchRoute(APIRoute):
     def get_route_handler(self):
         original=super().get_route_handler()
         async def wrapped(request):
-            try:return await original(request)
+            try:
+                _guard_mutation(request)
+                return await original(request)
             except RequestValidationError:
                 return JSONResponse(envelope("FAILED",None,["REQUEST_VALIDATION_FAILED"]),status_code=422)
             except HTTPException as exc:

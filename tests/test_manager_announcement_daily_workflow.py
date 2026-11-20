@@ -157,7 +157,7 @@ def test_api_reports_preprocessing_and_incremental_delivery_while_preserving_pri
     kwargs=dict(state_root=state,capture_root=capture,job_id=job.job_id,progress=progress,shared_root=config.shared_root)
     try:
         pre=bridge._run(value,**kwargs,preprocess_only=True)
-        with TestClient(app) as client:
+        with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
             pre_api=client.get('/api/v4/manager-workbench/announcement-flash?target_date='+context.target_date).json()
             assert pre_api['data']['preprocessing']['counts']['model_required_articles']==2
             assert pre_api['data']['preprocessing']['counts']['raw_rows']==3
@@ -228,7 +228,7 @@ def test_api_execution_keeps_job_id_and_committed_first_result_and_finishes_only
             time.sleep(0.01)
         pytest.fail('offline worker did not terminalize')
     try:
-        with TestClient(app) as client:
+        with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
             url=f'/api/v4/manager-workbench/announcement-flash/{job.job_id}/execute-preprocessed'
             assert client.post(url,json={'phase':'FIRST','report_sha256':'0'*64}).status_code==409
             assert client.post(url,json={'phase':'CONTINUE','report_sha256':pre['preprocessing']['sha256'],
@@ -649,7 +649,7 @@ def test_semantic_extension_api_bound_submit_and_no_repeat_first(tmp_path,monkey
             time.sleep(.01)
         pytest.fail('offline worker failed to terminalize')
     try:
-        with TestClient(app) as client:
+        with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
             url=f'/api/v4/manager-workbench/announcement-flash/{job.job_id}/execute-preprocessed'
             s=update.semantic_recovery_snapshot(job.job_id,pre['preprocessing']['sha256']);assert s['eligible'] and s['phase']=='RECOVER_FAILED'
             request={'phase':s['phase'],'report_sha256':s['report_sha256'],'extension_sha256':s['extension_sha256'],'first_delivery_sha256':s['delivery_sha256']}
@@ -975,7 +975,7 @@ def test_semantic_fix_api_cannot_continue_without_review_and_pins_pass_at_submit
     monkeypatch.setattr(api_module,'AnnouncementUpdate',lambda _:update)
     app=FastAPI();app.include_router(api_module.create_router(service))
     request={'phase':'CONTINUE_REMAINING','report_sha256':pre['preprocessing']['sha256'],'extension_sha256':sha,'first_delivery_sha256':snapshot['delivery_sha256']}
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1:8873", client=("127.0.0.1", 50000)) as client:
         assert client.post(f'/api/v4/manager-workbench/announcement-flash/{value["job_id"]}/execute-preprocessed',json=request).status_code==409
     assert len(calls)==3
     path.parent.mkdir(exist_ok=True);path.write_bytes(bridge.canonical({**receipt,'verdict':'PASS','source_faithfulness':'PASS'}))
