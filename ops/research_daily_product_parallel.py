@@ -163,7 +163,9 @@ def checkpoint(symbol, *, persist_history=True):
     finally:engine.compute=original_compute
     context.unchanged()
     row.update(product.FLAGS)
-    return dict(symbol=symbol, ref=product.save(path, row, immutable=True, compress_row=True), chart_gaps=gaps)
+    ref=product.save_daily_stock_checkpoint(_PARTS,path,row,generation=context.generation,
+        input_sha256=context.identity['input_sha256'],compress_row=True)
+    return dict(symbol=symbol, ref=ref, chart_gaps=gaps)
 
 
 def timed_checkpoint(symbol, submitted_ns=None, *, history_root=None):

@@ -410,6 +410,104 @@ def test_materializer_persists_computed_lineage_across_retry(tmp_path, monkeypat
     assert shard['statistics_sha256'] == owner.digest(numeric_row['statistics'])
 
 
+def test_ordinary_parallel_worker_persists_lineage_before_numeric_row(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    root = tmp_path / 'daily'
+    context = SimpleNamespace(root=root, target=DAY2, scope=[SYMBOL], source_scope=[SYMBOL],
+        current_universe_exclusions={}, d30_projection=None, generation='worker-generation',
+        identity={'input_sha256': 'worker-input'}, config_ref={'path': '/fixture/config', 'sha256': 'a'*64},
+        snapshot_ref={'path': '/fixture/snapshot', 'sha256': 'b'*64}, unchanged=lambda: None,
+        engine=lambda: SimpleNamespace(compute=lambda *_args, **_kwargs: None))
+    monkeypatch.setattr(parallel, '_CONTEXT', context)
+    rows = parallel.checkpoint_parts(context, [SYMBOL])
+    monkeypatch.setattr(parallel, '_PARTS', rows)
+    monkeypatch.setattr(parallel, '_CHARTS', False)
+    monkeypatch.setattr(owner, 'save_history_checkpoint', lambda *_args, **_kwargs: None)
+    real_save = owner.save
+    monkeypatch.setattr(owner, 'save', lambda path, value, immutable=False, compress_row=False:
+        real_save(path, value, immutable=immutable, compress_row=False))
+    event_cache = tmp_path / 'event-cache.sqlite'
+    event_cache.write_bytes(b'isolated fixture')
+    monkeypatch.setenv('V4_RESEARCH_EVENT_CASE_CACHE', str(event_cache))
+    monkeypatch.delenv('V4_WORKBENCH_STATISTICS_ROOT', raising=False)
+    monkeypatch.setattr(owner, 'SourceContext', lambda *_args, **_kwargs: context)
+    def prefill(_context, _parts, selected, *, original_charts):
+        assert selected == [SYMBOL] and not original_charts
+        for code in selected:
+            parallel.checkpoint(code)
+        return {'chart_gaps': {}}
+    monkeypatch.setattr(parallel, 'prefill_missing', prefill)
+    score = types.ModuleType('ops.materialize_workbench_score_action')
+    score.materialize = lambda *_args, **_kwargs: {'status': 'READY'}
+    assets = types.ModuleType('ops.complete_workbench_v192_assets')
+    assets.at_numeric_completion = lambda *_args, **_kwargs: {'status': 'READY', 'module': None}
+    assets.attach = lambda *_args, **_kwargs: None
+    monkeypatch.setitem(sys.modules, 'ops.materialize_workbench_score_action', score)
+    monkeypatch.setitem(sys.modules, 'ops.complete_workbench_v192_assets', assets)
+
+    contract = {'path': str(tmp_path / 'manifest.json'), 'sha256': 'c'*64}
+    result_ref = owner.save(tmp_path / 'accepted-result.json', {'fixture': 'accepted'}, immutable=True)
+    cache_ref = owner.save(tmp_path / 'accepted-checkpoint.json', {'fixture': 'cache'}, immutable=True)
+    lineage = {'label_result_ref': result_ref, 'result_contract': contract,
+        'history_checkpoint_ref': cache_ref, 'historical_asof': DAY1,
+        'source_identity': {'asof': DAY1, 'historical_PIT': False},
+        'rule_identity': {'rule_sha256': 'd'*64, 'rules_signature': 'e'*64},
+        'group_event_dates': {'original': [owner.iso(DAY1)]}}
+    row = {'symbol': SYMBOL, 'data_date': str(DAY2), 'groups': 'original', 'pending_groups': '',
+        'latest_new_anchor': '', 'reasons': '', 'risk_clear': 'CLEAR', 'statistics': {'groups': []},
+        'evaluation': {'groups': {group: {'status': 'TRUE'} for group in owner.GROUPS}},
+        '_daily_cached_groups': {'original': {'d2': {'cases': [{'event_date': owner.iso(DAY1)}]}}},
+        '_daily_cache_reuse': [], '_daily_accepted_label_lineage': lineage}
+    compute_calls = []
+    def compute(_context, symbol, **_kwargs):
+        compute_calls.append(symbol)
+        return dict(row), {}, tmp_path / 'unused-checkpoint.json'
+    monkeypatch.setattr(owner, 'compute_stock', compute)
+
+    result = parallel.checkpoint(SYMBOL)
+    checkpoint = rows / (SYMBOL + '.json')
+    saved = json.loads(checkpoint.read_bytes())
+    expected = owner.daily_checkpoint_payload({**row, **owner.FLAGS})
+    assert saved == expected
+    assert checkpoint.read_bytes() == owner.canonical(expected) + b'\n'
+    assert '_daily_accepted_label_lineage' not in saved
+    pointer = json.loads((rows / 'accepted_label_lineage' / (SYMBOL + '.json')).read_bytes())
+    payload = json.loads(owner.checked(pointer['lineage_ref']).read_bytes())
+    assert pointer['row_content_sha256'] == owner.digest(expected)
+    assert payload['lineage'] == lineage
+
+    materialized = owner.materialize_daily_product(data_root=tmp_path / 'data', target=DAY2,
+        output_root=root, original_charts=False)
+    product_value = json.loads(owner.checked(materialized['artifact']).read_bytes())
+    assert product_value['row_refs'][SYMBOL] == result['ref']
+    index = json.loads((root / 'index.json').read_bytes())
+    cases_index = json.loads(owner.checked(index['event_cases'][str(DAY2)]).read_bytes())
+    assert cases_index['accepted_label_lineage_status_by_symbol'][SYMBOL] == 'VERIFIED_AVAILABLE'
+    shard = json.loads(owner.checked(cases_index['items'][SYMBOL]).read_bytes())
+    assert shard['accepted_label_lineage'] == lineage
+    assert shard['groups'] == saved['_daily_cached_groups']
+
+    checkpoint_before = checkpoint.read_bytes()
+    pointer_before = (rows / 'accepted_label_lineage' / (SYMBOL + '.json')).read_bytes()
+    repeated = parallel.checkpoint(SYMBOL)
+    assert compute_calls == [SYMBOL]
+    assert repeated['ref'] == result['ref']
+    assert checkpoint.read_bytes() == checkpoint_before
+    assert (rows / 'accepted_label_lineage' / (SYMBOL + '.json')).read_bytes() == pointer_before
+
+    invalid_symbol = '000001.SZ'
+    context.scope.append(invalid_symbol)
+    invalid_row = {**row, 'symbol': invalid_symbol, '_daily_accepted_label_lineage': {'unverified': True}}
+    monkeypatch.setattr(owner, 'compute_stock', lambda *_args, **_kwargs:
+        (dict(invalid_row), {}, tmp_path / 'unused-checkpoint.json'))
+    with pytest.raises(history.HistoryCheckpointError, match='LINEAGE_INVALID'):
+        parallel.checkpoint(invalid_symbol)
+    assert not (rows / (invalid_symbol + '.json')).exists()
+    assert not (rows / 'accepted_label_lineage' / (invalid_symbol + '.json')).exists()
+
+
 def test_materializer_retry_restores_sidecar_and_preserves_legacy_event_refs(tmp_path, monkeypatch):
     import sys
     import types
@@ -469,6 +567,21 @@ def test_materializer_retry_restores_sidecar_and_preserves_legacy_event_refs(tmp
     legacy_index_path = version / 'event_cases_index.json'
     legacy_shard_before = legacy_shard_path.read_bytes()
     legacy_index_before = legacy_index_path.read_bytes()
+    legacy_index = json.loads(legacy_index_before)
+    assert owner.checked(legacy_index['items'][SYMBOL]).read_bytes() == legacy_shard_before
+    checkpoint_binding = parts / 'accepted_label_lineage' / (SYMBOL + '.json')
+    checkpoint_binding.unlink()
+    legacy_retry = owner.materialize_daily_product(data_root=tmp_path / 'data', target=target,
+        output_root=root, original_charts=False)
+    assert compute_calls == [SYMBOL]
+    assert legacy_retry['artifact'] == first['artifact'] and legacy_retry['manifest'] == first['manifest']
+    legacy_status_index_ref = json.loads((root / 'index.json').read_bytes())['event_cases'][str(target)]
+    legacy_status_index = json.loads(owner.checked(legacy_status_index_ref).read_bytes())
+    assert legacy_status_index['accepted_label_lineage_status_by_symbol'][SYMBOL] == 'LEGACY_LINEAGE_UNAVAILABLE'
+    assert legacy_status_index['items'][SYMBOL]['path'] == str(legacy_shard_path)
+    assert owner.checked(legacy_status_index['items'][SYMBOL]).read_bytes() == legacy_shard_before
+    assert legacy_index_path.read_bytes() == legacy_index_before
+    assert not checkpoint_binding.exists()
     contract = {'path': '/fixture/manifest.json', 'sha256': 'c'*64}
     result_ref = owner.save(tmp_path / 'accepted-result.json', {'fixture': 'accepted'}, immutable=True)
     cache_ref = owner.save(tmp_path / 'accepted-checkpoint.json', {'fixture': 'cache'}, immutable=True)
@@ -488,6 +601,7 @@ def test_materializer_retry_restores_sidecar_and_preserves_legacy_event_refs(tmp
     cases_index_ref = index['event_cases'][str(target)]
     assert cases_index_ref['path'] != str(legacy_index_path)
     cases_index = json.loads(owner.checked(cases_index_ref).read_text())
+    assert cases_index['accepted_label_lineage_status_by_symbol'][SYMBOL] == 'VERIFIED_AVAILABLE'
     shard_ref = cases_index['items'][SYMBOL]
     assert shard_ref['path'] != str(legacy_shard_path)
     shard = json.loads(owner.checked(shard_ref).read_text())
@@ -499,8 +613,9 @@ def test_materializer_retry_restores_sidecar_and_preserves_legacy_event_refs(tmp
 
 
 def test_parallel_does_not_publish_a_row_if_history_write_fails(tmp_path, monkeypatch):
-    context = SimpleNamespace(target=DAY2, scope=[SYMBOL], engine=lambda: SimpleNamespace(compute=lambda *_: None),
-                              unchanged=lambda: None)
+    context = SimpleNamespace(target=DAY2, scope=[SYMBOL], generation='fixture-generation',
+                              identity={'input_sha256': 'fixture-input'},
+                              engine=lambda: SimpleNamespace(compute=lambda *_: None), unchanged=lambda: None)
     parts = tmp_path / 'rows'
     path = tmp_path / 'history' / 'checkpoint.json'
     value = cache(DAY2, {DAY2: 'TRUE'})
@@ -533,7 +648,8 @@ def test_independent_close_reads_original_seed_without_history_write(tmp_path, m
     prior = cache(DAY1, {DAY1: 'TRUE'})
     owner.save(source, prior)
     source_before = {p.relative_to(original): p.read_bytes() for p in original.rglob('*.json')}
-    context = SimpleNamespace(root=root, target=DAY2, scope=[SYMBOL],
+    context = SimpleNamespace(root=root, target=DAY2, scope=[SYMBOL], generation='fixture-generation',
+                              identity={'input_sha256': 'fixture-input'},
                               engine=lambda: SimpleNamespace(compute=lambda *_: None),
                               unchanged=lambda: None)
     calls = []

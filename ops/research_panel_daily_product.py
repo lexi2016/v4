@@ -773,16 +773,50 @@ def save_history_checkpoint(path,cache,checkpoint_input,*,observe=None):
 
 
 def daily_checkpoint_payload(row):
- """Keep accepted-label provenance confined to its event-case shard."""
- return {key:value for key,value in row.items() if key!='_daily_accepted_label_lineage'}
+ """Keep accepted-label lineage and availability metadata outside numeric row bytes."""
+ return {key:value for key,value in row.items()
+         if key not in ('_daily_accepted_label_lineage','_daily_accepted_label_lineage_status')}
+
+
+def validate_daily_label_lineage(lineage,target):
+ """Check the compact per-stock provenance before publishing its numeric row."""
+ required={'label_result_ref','result_contract','history_checkpoint_ref','historical_asof',
+           'source_identity','rule_identity','group_event_dates'}
+ if not isinstance(lineage,dict) or not required<=set(lineage):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_INVALID')
+ def valid_ref(ref):
+  return (isinstance(ref,dict) and isinstance(ref.get('path'),str) and Path(ref['path']).is_absolute()
+          and isinstance(ref.get('sha256'),str) and len(ref['sha256'])==64
+          and all(char in '0123456789abcdef' for char in ref['sha256']))
+ if not valid_ref(lineage['label_result_ref']) or not valid_ref(lineage['history_checkpoint_ref']) or not valid_ref(lineage['result_contract']):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_REFERENCE_INVALID')
+ identity=lineage['source_identity'];rule=lineage['rule_identity'];events=lineage['group_event_dates']
+ try:asof=int(lineage['historical_asof']);identity_asof=int(identity['asof'])
+ except (KeyError,TypeError,ValueError) as error:
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_IDENTITY_INVALID') from error
+ if (identity_asof!=asof or identity.get('historical_PIT') is not False
+     or not isinstance(rule,dict) or not isinstance(rule.get('rule_sha256'),str)
+     or not isinstance(rule.get('rules_signature'),str) or not isinstance(events,dict) or not events):
+  raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_IDENTITY_INVALID')
+ retained_target=int(str(target).replace('-',''))
+ for group,dates in events.items():
+  if group not in GROUPS or not isinstance(dates,list) or not dates:
+   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_EVENTS_INVALID')
+  try:normalized=[datetime.strptime(str(day),'%Y-%m-%d').strftime('%Y-%m-%d') for day in dates]
+  except ValueError as error:
+   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_EVENTS_INVALID') from error
+  if (normalized!=dates or normalized!=sorted(set(normalized))
+      or any(int(day.replace('-',''))>=retained_target for day in normalized)):
+   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_EVENTS_INVALID')
+ return lineage
 
 
 def store_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_content_sha256,lineage):
  """Pin one accepted-label lineage sidecar to a numeric stock-row checkpoint."""
  pointer=Path(parts)/'accepted_label_lineage'/(symbol+'.json')
- if not lineage and not pointer.is_file():return None
  payload_ref=None
  if lineage:
+  validate_daily_label_lineage(lineage,target)
   payload=dict(schema_version=LABEL_LINEAGE_SCHEMA,symbol=symbol,data_date=str(target),
                source_generation=generation,input_sha256=input_sha256,
                row_content_sha256=row_content_sha256,lineage=lineage,**FLAGS)
@@ -796,10 +830,19 @@ def store_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_co
  return save(pointer,binding)
 
 
+def save_daily_stock_checkpoint(parts,path,row,*,generation,input_sha256,compress_row=True):
+ """Persist lineage binding first, then the unchanged numeric checkpoint row."""
+ payload=daily_checkpoint_payload(row)
+ row_content_sha256=digest(payload)
+ store_daily_label_lineage(parts,row['symbol'],row['data_date'],generation,input_sha256,
+                           row_content_sha256,row.get('_daily_accepted_label_lineage'))
+ return save(path,payload,immutable=True,compress_row=compress_row)
+
+
 def load_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_content_sha256):
  """Restore only the sidecar bound to this exact numeric row and run identity."""
  pointer=Path(parts)/'accepted_label_lineage'/(symbol+'.json')
- if not pointer.exists() and not pointer.is_symlink():return None
+ if not pointer.exists() and not pointer.is_symlink():return None,'LEGACY_LINEAGE_UNAVAILABLE'
  if pointer.is_symlink() or not pointer.is_file():raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_BINDING_INVALID')
  pointer_ref=reference(pointer);binding=json.loads(checked(pointer_ref).read_text())
  if (binding.get('schema_version')!=LABEL_LINEAGE_BINDING_SCHEMA or binding.get('symbol')!=symbol
@@ -807,7 +850,8 @@ def load_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_con
      or binding.get('input_sha256')!=input_sha256 or binding.get('row_content_sha256')!=row_content_sha256
      or any(binding.get(key)!=value for key,value in FLAGS.items())):
   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_BINDING_CONFLICT')
- if binding.get('status')=='NO_ACCEPTED_LABEL_LINEAGE' and binding.get('lineage_ref') is None:return None
+ if binding.get('status')=='NO_ACCEPTED_LABEL_LINEAGE' and binding.get('lineage_ref') is None:return None,'VERIFIED_NONE'
+ if binding.get('status')!='AVAILABLE':raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_STATUS_INVALID')
  ref=binding.get('lineage_ref')
  if not isinstance(ref,dict):raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_REFERENCE_INVALID')
  payload=json.loads(checked(ref).read_text())
@@ -815,10 +859,9 @@ def load_daily_label_lineage(parts,symbol,target,generation,input_sha256,row_con
      or payload.get('symbol')!=symbol or payload.get('data_date')!=str(target)
      or payload.get('source_generation')!=generation or payload.get('input_sha256')!=input_sha256
      or payload.get('row_content_sha256')!=row_content_sha256
-     or any(payload.get(key)!=value for key,value in FLAGS.items())
-     or not isinstance(payload.get('lineage'),dict)):
+     or any(payload.get(key)!=value for key,value in FLAGS.items())):
   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_PAYLOAD_CONFLICT')
- return payload['lineage']
+ return validate_daily_label_lineage(payload.get('lineage'),target),'VERIFIED_AVAILABLE'
 
 
 def cached_daily_statistics(context,symbol,bars,calendar,groups,store):
@@ -986,15 +1029,20 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
     if isinstance(error,history_checkpoint.HistoryCheckpointError):raise
     row=dict(symbol=symbol,display_name=None,data_date=str(target),groups='',pending_groups='|'.join(GROUPS),latest_new_anchor='',reasons='SOURCE_ISOLATED:'+str(error),risk_clear='UNKNOWN',evaluation={'groups':{g:{'status':'UNKNOWN','reasons':['SOURCE_ISOLATED:'+str(error)]} for g in GROUPS}},statistics=None,historical_coverage={'known_full_history':False,'evaluated_count':0,'missing':['SOURCE_ISOLATED']},qualification={'status':'UNKNOWN','reason':str(error)})
    row.update(FLAGS)
-   checkpoint_payload=daily_checkpoint_payload(row);row_content_sha256=digest(checkpoint_payload)
-   store_daily_label_lineage(parts,symbol,target,context.generation,context.identity['input_sha256'],
-                            row_content_sha256,row.get('_daily_accepted_label_lineage'))
-   save(checkpoint,checkpoint_payload,immutable=True,compress_row=True);row_ref=reference(checkpoint)
-  row.pop('_daily_accepted_label_lineage',None)
+   row_ref=save_daily_stock_checkpoint(parts,checkpoint,row,generation=context.generation,
+                                       input_sha256=context.identity['input_sha256'],compress_row=True)
+  inline_lineage=row.get('_daily_accepted_label_lineage')
   row_content_sha256=digest(daily_checkpoint_payload(row))
-  accepted_lineage=load_daily_label_lineage(parts,symbol,target,context.generation,
-                                            context.identity['input_sha256'],row_content_sha256)
+  accepted_lineage,lineage_status=load_daily_label_lineage(parts,symbol,target,context.generation,
+                                                           context.identity['input_sha256'],row_content_sha256)
+  if lineage_status=='LEGACY_LINEAGE_UNAVAILABLE' and inline_lineage:
+   accepted_lineage=validate_daily_label_lineage(inline_lineage,target)
+   lineage_status='LEGACY_INLINE_AVAILABLE'
+  elif inline_lineage and (lineage_status!='VERIFIED_AVAILABLE' or inline_lineage!=accepted_lineage):
+   raise history_checkpoint.HistoryCheckpointError('DAILY_ACCEPTED_LABEL_LINEAGE_ROW_CONFLICT')
+  row.pop('_daily_accepted_label_lineage',None)
   if accepted_lineage:row['_daily_accepted_label_lineage']=accepted_lineage
+  row['_daily_accepted_label_lineage_status']=lineage_status
   rows.append(row);row_refs[symbol]=row_ref
   if completed_rows is None or (i+1)%64==0 or i+1==len(selected):
    save(parts/'progress.json',dict(completed=i+1,total=len(selected),target_date=target,generation=context.generation,**FLAGS))
@@ -1020,19 +1068,24 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   index['dates'][str(target)]=manifest_ref;index['latest_date']=max(index['dates']);index['latest']=index['dates'][index['latest_date']]
   if chart_descriptor is not None:index.setdefault('original_charts',{})[str(target)]=chart_descriptor
   if os.environ.get('V4_RESEARCH_EVENT_CASE_CACHE'):
-   items={}
+   items={};lineage_status_by_symbol={}
    for row in candidates:
     if row.get('_daily_cached_groups') is None:continue
     shard=dict(schema_version='v4.a_share.event_cases.v1',symbol=row['symbol'],data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],statistics_sha256=digest(row['statistics']),projection=(json.loads(checked(chart_descriptor['manifest']).read_text()).get('samples',{}).get(row['symbol'],{}).get('projection') if chart_descriptor and chart_descriptor.get('manifest') else None),groups=row['_daily_cached_groups'],cache_reuse=row['_daily_cache_reuse'],**FLAGS)
     lineaged=bool(row.get('_daily_accepted_label_lineage'))
+    lineage_status_by_symbol[row['symbol']]=row.get('_daily_accepted_label_lineage_status','LEGACY_LINEAGE_UNAVAILABLE')
     if lineaged:shard['accepted_label_lineage']=row['_daily_accepted_label_lineage']
     shard_path=(version/'event_cases'/digest(shard)/(row['symbol']+'.json') if lineaged
                 else version/'event_cases'/(row['symbol']+'.json'))
     items[row['symbol']]=save(shard_path,shard,immutable=True)
-   cases_index=dict(schema_version='v4.a_share.event_cases_index.v1',data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],items=items,**FLAGS)
+   cases_index=dict(schema_version='v4.a_share.event_cases_index.v1',data_date=str(target),numeric_manifest=manifest_ref,source_generation=context.generation,input_sha256=context.identity['input_sha256'],items=items,accepted_label_lineage_status_by_symbol=lineage_status_by_symbol,**FLAGS)
    lineaged=any(row.get('_daily_accepted_label_lineage') for row in candidates)
-   cases_index_path=(version/'event_cases_index'/(digest(cases_index)+'.json') if lineaged
-                     else version/'event_cases_index.json')
+   legacy_index_path=version/'event_cases_index.json'
+   cases_index_bytes=canonical(cases_index)+b'\n'
+   legacy_index_matches=legacy_index_path.is_file() and legacy_index_path.read_bytes()==cases_index_bytes
+   cases_index_path=(version/'event_cases_index'/(digest(cases_index)+'.json')
+                     if lineaged or (legacy_index_path.exists() and not legacy_index_matches)
+                     else legacy_index_path)
    index.setdefault('event_cases',{})[str(target)]=save(cases_index_path,cases_index,immutable=True)
   # Restore the original score/action projection at the real completion owner.
   # Numeric completion remains valid when one source is unknown; consumers
