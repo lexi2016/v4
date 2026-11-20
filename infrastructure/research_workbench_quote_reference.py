@@ -212,9 +212,12 @@ class SourceCloseReferences:
     def _read(self, product, *, chart_symbol):
         identity = product['source_identity']
         day = product['data_date']
-        symbols = tuple(sorted(row['symbol'] for row in product['rows']))
-        if not re.fullmatch(r'\d{8}', day) or len(set(symbols)) != len(symbols):
+        scope_symbols = tuple(sorted(row['symbol'] for row in product['rows']))
+        if not re.fullmatch(r'\d{8}', day) or len(set(scope_symbols)) != len(scope_symbols):
             raise ValueError('QUOTE_REFERENCE_SCOPE_INVALID')
+        if chart_symbol is not None and chart_symbol not in scope_symbols:
+            raise KeyError('WORKBENCH_DAILY_K_SYMBOL_NOT_BOUND')
+        symbols = (chart_symbol,) if chart_symbol is not None else scope_symbols
         if identity.get('generation') != product['source_generation'] or str(identity.get('asof')) != day:
             raise ValueError('QUOTE_REFERENCE_PRODUCT_IDENTITY_CONFLICT')
         snapshot_ref = identity['snapshot']
@@ -236,14 +239,16 @@ class SourceCloseReferences:
             raise ValueError('QUOTE_REFERENCE_ACCEPTED_SOURCE_CONFLICT')
         stamps = tuple(_stamp(p) for p in (snapshot_path, stage_path, selector))
         key = (day, product['source_generation'], identity['input_sha256'], expected_sha,
-               snapshot_ref['sha256'], product['manifest']['sha256'], str(selector), stamps, symbols)
-        cache_key = (key, bool(chart_symbol))
+               snapshot_ref['sha256'], product['manifest']['sha256'], str(selector), stamps, scope_symbols)
+        # Keep a distinct projection per requested symbol. A single-stock
+        # chart must not reuse a whole-candidate daily-K projection.
+        cache_key = (key, chart_symbol)
         with self._lock:
             if cache_key in self._cache:
                 result, guard = self._cache[cache_key]
                 _check_logical_dependencies(guard)
                 return self._select_result(result, chart_symbol)
-            accepted_close = self._cache.get((key, False))
+            accepted_close = self._cache.get((key, None))
             if accepted_close is None and (_sha(snapshot_path) != snapshot_ref['sha256'] or _sha(selector) != expected_sha):
                 raise ValueError('QUOTE_REFERENCE_SOURCE_SHA_DRIFT')
             # This is the same approved physical/logical panel reader used by
@@ -267,7 +272,7 @@ class SourceCloseReferences:
                 # Read only recent columns for the already admitted display scope.
                 first = (datetime.strptime(day, '%Y%m%d') - timedelta(days=250)).strftime('%Y%m%d')
                 values = pq.read_table(selector, columns=['ts_code', 'trade_date', *_DAILY_CHART_FIELDS],
-                    filters=[('trade_date', '>=', first), ('trade_date', '<=', day), ('ts_code', 'in', list(symbols))]).to_pylist()
+                    filters=[('trade_date', '>=', first), ('trade_date', '<=', day), ('ts_code', '=', chart_symbol)]).to_pylist()
                 chart_identity = dict(schema='V4_WORKBENCH_DAILY_K_V1', source_date=source_date,
                     generation=product['source_generation'], input_sha256=identity['input_sha256'],
                     numeric_manifest=product['manifest'], selector=dict(path=str(selector), sha256=expected_sha),

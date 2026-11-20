@@ -22,6 +22,23 @@ FORMULA_GROUP_LABELS = {
 }
 
 
+def _observation_coverage(source_date, observation_date, *, generation=None, input_sha256=None,
+                          numeric_manifest=None, expected_count=None, observed_count=None,
+                          valid_count=None, missing_count=None, status='UNKNOWN_MISSING', reasons=()):
+    """Add exact-date structural coverage without changing the snapshot schema.
+
+    ``valid_count`` counts unique, source-bound candidate rows. Per-field quote
+    validity remains evaluated by the existing observation reader at display
+    time, where source age and ranking eligibility are known.
+    """
+    return dict(schema='V4_WORKBENCH_OBSERVATION_COVERAGE_V1', status=status,
+                source_date=source_date, observation_date=observation_date,
+                generation=generation, input_sha256=input_sha256,
+                numeric_manifest=numeric_manifest, expected_count=expected_count,
+                observed_count=observed_count, valid_count=valid_count,
+                missing_count=missing_count, reasons=list(reasons), **FLAGS)
+
+
 def compact(value):
     if not isinstance(value,str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',value) or date.fromisoformat(value).isoformat()!=value:
         raise ValueError('WORKBENCH_ISO_DATE_REQUIRED')
@@ -874,20 +891,44 @@ class ResearchWorkbenchHost:
         return dict(schema='V4_WORKBENCH_VERSIONS_V1',source_date=source_date,observation_date=observation,generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],numeric_manifest=p['manifest'],modules=modules,event_id=digest(modules),**FLAGS)
 
     def history(self):
+        index=self._index()
+        dates=index.get('dates',{})
+        attempts=index.get('attempts',{})
+        if not isinstance(dates,dict) or not isinstance(attempts,dict):
+            raise ValueError('WORKBENCH_PRODUCT_INDEX_INVALID')
         days=[]
-        for value in sorted(self._index().get('dates',{}),reverse=True):
+        for value,reference in sorted(dates.items(),reverse=True):
+            if not isinstance(value,str) or not re.fullmatch(r'\d{8}',value):
+                raise ValueError('WORKBENCH_DATE_INDEX_INVALID')
             iso=f'{value[:4]}-{value[4:6]}-{value[6:]}'
-            product=self._view(iso)
-            days.append(dict(source_date=iso,observation_date=self._observation_date(iso),revision=product['source_generation'],numeric_manifest=product['manifest']))
-        if self.skill_r2 is not None:
+            compact(iso)
+            # The index points at a checked manifest. The date catalog needs
+            # its source generation only; loading each full product also reads
+            # all candidate rows and is unnecessary here.
+            manifest=self.source._a_product_reference(reference)
+            generation=manifest.get('source_generation') if isinstance(manifest,dict) else None
+            input_sha256=manifest.get('input_sha256') if isinstance(manifest,dict) else None
+            if (manifest.get('schema_version')!='v4.a_share.daily_product_manifest.v1'
+                    or manifest.get('data_date')!=value
+                    or not isinstance(generation,str) or not re.fullmatch(r'[0-9a-f]{64}',generation)
+                    or not isinstance(input_sha256,str) or not re.fullmatch(r'[0-9a-f]{64}',input_sha256)
+                    or manifest.get('sample_only') is not False
+                    or any(manifest.get(k)!=v for k,v in FLAGS.items())):
+                raise ValueError('WORKBENCH_DATE_MANIFEST_IDENTITY_CONFLICT')
+            days.append(dict(source_date=iso,observation_date=self._observation_date(iso),
+                             revision=generation,numeric_manifest=reference))
+        if self.skill_r2 is not None and '20261028' not in dates and '20261028' not in attempts:
             try:
-                if self._is_skill_date('2026-10-28'):days.append(self.skill_r2.history_entry(self._observation_date('2026-10-28')))
+                days.append(self.skill_r2.history_entry(self._observation_date('2026-10-28')))
             except (ValueError,OSError,KeyError,TypeError):pass
-        for value,reference in sorted(self._index().get('attempts',{}).items(),reverse=True):
-            if value in self._index().get('dates',{}):continue
+        for value,reference in sorted(attempts.items(),reverse=True):
+            if value in dates:continue
             attempt=self.source._a_product_reference(reference)
             if attempt.get('data_date')!=value or attempt.get('schema')!='V4_A_DAILY_DERIVATIVES_V1':raise ValueError('WORKBENCH_ATTEMPT_IDENTITY_CONFLICT')
+            if not isinstance(value,str) or not re.fullmatch(r'\d{8}',value):
+                raise ValueError('WORKBENCH_ATTEMPT_IDENTITY_CONFLICT')
             iso=f'{value[:4]}-{value[4:6]}-{value[6:]}'
+            compact(iso)
             days.append(dict(source_date=iso,observation_date=self._observation_date(iso),revision=None,status=attempt['status'],attempt=reference))
         days.sort(key=lambda value:value['source_date'],reverse=True)
         return dict(status='READY',days=days,revision_kind='SOURCE_GENERATION_NOT_STATISTICS_REVISION',**FLAGS)
@@ -1142,17 +1183,53 @@ class ResearchWorkbenchHost:
 
     def observations(self,source_date,observation_date,revision=None):
         if self._is_skill_date(source_date):
-            self.skill_r2.versions(self._observation_date(source_date),revision)
+            version=self.skill_r2.versions(self._observation_date(source_date),revision)
             if observation_date!=self._observation_date(source_date):raise ValueError('WORKBENCH_OBSERVATION_DATE_CONFLICT')
-            return dict(latest=None,status='UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT',source_date=source_date,observation_date=observation_date,**FLAGS)
+            coverage=_observation_coverage(source_date,observation_date,
+                generation=version.get('generation'),input_sha256=version.get('input_sha256'),
+                numeric_manifest=version.get('numeric_manifest'),status='UNKNOWN_MISSING',
+                reasons=['NO_BOUND_INTRADAY_SNAPSHOT'])
+            return dict(latest=None,status='UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT',source_date=source_date,
+                        observation_date=observation_date,coverage=coverage,**FLAGS)
         p=self._view(source_date,revision)
         if observation_date!=self._observation_date(source_date):raise ValueError('WORKBENCH_OBSERVATION_DATE_CONFLICT')
-        pointer=self._observation_commit(observation_date)
-        if pointer is None:return dict(latest=None,status='UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT',source_date=source_date,observation_date=observation_date,**FLAGS)
-        value=checked(pointer['snapshot'])
         expected={r['symbol'] for r in p['rows']}
-        if (value.get('schema')!='OBSERVATION_SNAPSHOT_VIEW_V1' or value.get('source_date')!=source_date or value.get('observation_date')!=observation_date or value.get('source_generation')!=p['source_generation'] or value.get('input_sha256')!=p['source_identity']['input_sha256'] or value.get('parent_admission_sha256')!=p['source_generation'] or {r['symbol'] for r in value['rows']}!=expected or len(value['rows'])!=len(expected) or value.get('daily_contract_sha256')!=hashlib.sha256(json.dumps(sorted(expected),sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest() or any(value.get(k)!=v for k,v in FLAGS.items())):raise ValueError('WORKBENCH_OBSERVATION_IDENTITY_CONFLICT')
-        return dict(latest=value,status='STORED_ONLY',commit=pointer,**FLAGS)
+        pointer=self._observation_commit(observation_date)
+        if pointer is None:
+            coverage=_observation_coverage(source_date,observation_date,
+                generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],
+                numeric_manifest=p['manifest'],expected_count=len(expected),
+                status='UNKNOWN_MISSING',reasons=['NO_BOUND_INTRADAY_SNAPSHOT'])
+            return dict(latest=None,status='UNKNOWN_NO_BOUND_INTRADAY_SNAPSHOT',source_date=source_date,
+                        observation_date=observation_date,coverage=coverage,**FLAGS)
+        value=checked(pointer['snapshot'])
+        rows=value.get('rows')
+        if (value.get('schema')!='OBSERVATION_SNAPSHOT_VIEW_V1' or value.get('source_date')!=source_date
+                or value.get('observation_date')!=observation_date
+                or value.get('source_generation')!=p['source_generation']
+                or value.get('input_sha256')!=p['source_identity']['input_sha256']
+                or value.get('parent_admission_sha256')!=p['source_generation']
+                or not isinstance(rows,list)
+                or any(not isinstance(row,dict) or not isinstance(row.get('symbol'),str) for row in rows)
+                or not {row['symbol'] for row in rows}<=expected or len({row['symbol'] for row in rows})!=len(rows)
+                or value.get('daily_contract_sha256')!=hashlib.sha256(json.dumps(sorted(expected),sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+                or any(value.get(k)!=v for k,v in FLAGS.items())):
+            raise ValueError('WORKBENCH_OBSERVATION_IDENTITY_CONFLICT')
+        valid_count=len(rows)
+        missing_count=len(expected)-valid_count
+        if not expected:
+            coverage_status='EMPTY';reasons=['EMPTY_EXPECTED_CANDIDATE_SCOPE']
+        elif valid_count==0:
+            coverage_status='ZERO_VALID';reasons=['ZERO_VALID_OBSERVATION_ROWS']
+        elif valid_count<len(expected):
+            coverage_status='PARTIAL';reasons=['MISSING_CANDIDATE_OBSERVATION_ROWS']
+        else:
+            coverage_status='COMPLETE';reasons=[]
+        coverage=_observation_coverage(source_date,observation_date,
+            generation=p['source_generation'],input_sha256=p['source_identity']['input_sha256'],
+            numeric_manifest=p['manifest'],expected_count=len(expected),observed_count=len(rows),
+            valid_count=valid_count,missing_count=missing_count,status=coverage_status,reasons=reasons)
+        return dict(latest=value,status='STORED_ONLY',commit=pointer,coverage=coverage,**FLAGS)
 
     def _observation_commit(self,day):
         root=self.binding.get('observation_root')

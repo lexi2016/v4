@@ -61,3 +61,38 @@ def test_compact_numeric_view_does_not_relax_signed_source_contract(tmp_path,kin
         compact['artifact']=write(Path(compact['artifact']['path']),full)
         manifest['artifact']=compact['artifact'];compact['manifest']=write(Path(compact['manifest']['path']),manifest)
     with pytest.raises(ValueError):SourceCloseReferences().read(compact)
+
+
+def test_single_stock_daily_k_filters_and_caches_only_the_requested_symbol(tmp_path,monkeypatch):
+    import pyarrow as pa
+    from ops import research_panel_logical
+
+    compact, _, _, _ = compact_fixture(tmp_path)
+    calls = []
+
+    def counted_read(*args, **kwargs):
+        filters = kwargs.get('filters')
+        calls.append(filters)
+        symbol = filters[-1][2]
+        return pa.table(dict(ts_code=[symbol],trade_date=[DAY],open=[11.],high=[13.],
+                             low=[10.],close=[12.],volume=[100.]))
+
+    monkeypatch.setattr(research_panel_logical.parquet, 'read_table', counted_read)
+    reader = SourceCloseReferences()
+
+    first = reader.read_daily_chart(compact, '600000.SH')
+    repeated = reader.read_daily_chart(compact, '600000.SH')
+    second = reader.read_daily_chart(compact, '000001.SZ')
+
+    assert first == repeated
+    assert first['symbol'] == '600000.SH'
+    assert second['symbol'] == '000001.SZ'
+    assert list(first['rows'][0]) == ['trade_date', 'open', 'high', 'low', 'close', 'volume']
+    assert first['generation'] == compact['source_generation']
+    assert first['input_sha256'] == compact['source_identity']['input_sha256']
+    assert first['numeric_manifest'] == compact['manifest']
+    assert first['selector']['sha256'] == compact['source_identity']['selector_artifact_sha256']
+    assert first['snapshot'] == compact['source_identity']['snapshot']
+    assert len(calls) == 2
+    assert all(filters[-1][0:2] == ('ts_code', '=') for filters in calls)
+    assert {filters[-1][2] for filters in calls} == {'600000.SH', '000001.SZ'}
