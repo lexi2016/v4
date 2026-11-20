@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
@@ -7,7 +8,12 @@ const {values: options} = parseArgs({options:{
   base:{type:'string',default:'http://127.0.0.1:18973'}, fixture:{type:'string'},
   playwright:{type:'string'}, chrome:{type:'string'},
   'exercise-regressions':{type:'boolean'}, 'require-f10-completion':{type:'boolean'},
+  'exercise-observation-coverage':{type:'boolean'}, 'observation-coverage-shell':{type:'string'},
+  'top200-group-module':{type:'string'},
+  'observation-coverage-only':{type:'boolean'},
 }});
+const observationCoverageOnly=options['observation-coverage-only']===true;
+if(observationCoverageOnly)assert.ok(options['exercise-observation-coverage'],'Coverage-only browser mode requires the observation-coverage fixture');
 const golden = {
   sourceDate:'2026-11-13',observationDate:'2026-11-16',
   positive:{symbol:'603658.SH',score:3,marker:'B1',anchor:'36.89400',
@@ -43,37 +49,44 @@ async function get(path) {
   assert.equal(response.status,200,path);
   return response.json();
 }
-const [day,chart,score,f10,gap] = await Promise.all([get(dayPath),get(chartPath),get(scorePath),get(f10Path(positive.symbol)),get(f10Path(gapSymbol))]);
+const [day,chart,score,f10,gap] = observationCoverageOnly
+  ? [await get(dayPath),null,null,null,null]
+  : await Promise.all([get(dayPath),get(chartPath),get(scorePath),get(f10Path(positive.symbol)),get(f10Path(gapSymbol))]);
 assert.ok(day.formula_groups && day.source_date===sourceDate && day.observation_date===observationDate);
 assert.ok(sha(day.generation)&&sha(day.input_sha256)&&sha(day.numeric_manifest?.sha256));
-for (const symbol of [positive.symbol,gapSymbol]) assert.ok(day.rows.some(row=>row.symbol===symbol),symbol);
-for (const value of [day,chart,score,f10,gap]) {
-  for (const [key,expected] of Object.entries(flags)) assert.equal(value[key],expected,key);
-  assert.equal(value.generation??value.source_generation,day.generation);
-  assert.equal(value.input_sha256,day.input_sha256);
+if(observationCoverageOnly){
+  for(const [key,expected]of Object.entries(flags))assert.equal(day[key],expected,key);
+  assert.ok(day.rows.some(row=>row.symbol===positive.symbol&&row.eligible_candidate===true),positive.symbol);
+}else{
+  for (const symbol of [positive.symbol,gapSymbol]) assert.ok(day.rows.some(row=>row.symbol===symbol),symbol);
+  for (const value of [day,chart,score,f10,gap]) {
+    for (const [key,expected] of Object.entries(flags)) assert.equal(value[key],expected,key);
+    assert.equal(value.generation??value.source_generation,day.generation);
+    assert.equal(value.input_sha256,day.input_sha256);
+  }
+  for (const value of [chart,score,f10]) assert.equal(value.symbol,positive.symbol);
+  for (const value of [chart,score]) {
+    assert.equal(value.source_date,sourceDate);
+    assert.deepEqual(value.numeric_manifest,day.numeric_manifest);
+  }
+  assert.equal(chart.rows.at(-1).trade_date,dayCode);
+  assert.equal(chart.original_marks?.status,'READY');
+  assert.equal(chart.original_marks.symbol,positive.symbol);
+  assert.equal(chart.original_marks.generation,day.generation);
+  assert.equal(chart.original_marks.input_sha256,day.input_sha256);
+  assert.ok(chart.original_marks.marks.some(mark=>mark.trade_date===dayCode&&mark.payload===positive.marker&&mark.y===positive.anchor),'API has no golden original mark');
+  assert.equal(score.status,'MATERIALIZED');
+  assert.equal(score.row?.hold_score?.kb_hold_score,positive.score);
+  assert.equal(f10.status,'OBSERVED');
+  assert.equal(f10.data_date,dayCode);
+  assert.ok(sha(f10.receipt?.sha256)&&sha(f10.stock_ref?.sha256));
+  assert.equal(gap.symbol,gapSymbol);
+  assert.equal(gap.data_date,dayCode);
+  assert.equal(gap.status,'CANNOT_CONFIRM_SOURCE_GAP');
+  assert.ok(sha(gap.receipt?.sha256)&&!gap.f10);
 }
-for (const value of [chart,score,f10]) assert.equal(value.symbol,positive.symbol);
-for (const value of [chart,score]) {
-  assert.equal(value.source_date,sourceDate);
-  assert.deepEqual(value.numeric_manifest,day.numeric_manifest);
-}
-assert.equal(chart.rows.at(-1).trade_date,dayCode);
-assert.equal(chart.original_marks?.status,'READY');
-assert.equal(chart.original_marks.symbol,positive.symbol);
-assert.equal(chart.original_marks.generation,day.generation);
-assert.equal(chart.original_marks.input_sha256,day.input_sha256);
-assert.ok(chart.original_marks.marks.some(mark=>mark.trade_date===dayCode&&mark.payload===positive.marker&&mark.y===positive.anchor),'API has no golden original mark');
-assert.equal(score.status,'MATERIALIZED');
-assert.equal(score.row?.hold_score?.kb_hold_score,positive.score);
-assert.equal(f10.status,'OBSERVED');
-assert.equal(f10.data_date,dayCode);
-assert.ok(sha(f10.receipt?.sha256)&&sha(f10.stock_ref?.sha256));
-assert.equal(gap.symbol,gapSymbol);
-assert.equal(gap.data_date,dayCode);
-assert.equal(gap.status,'CANNOT_CONFIRM_SOURCE_GAP');
-assert.ok(sha(gap.receipt?.sha256)&&!gap.f10);
 
-const completion = options['require-f10-completion'] ? await get(`${dayPath}/versions`) : null;
+const completion = options['require-f10-completion']&&!observationCoverageOnly ? await get(`${dayPath}/versions`) : null;
 if (completion) {
   assert.equal(completion.source_date,sourceDate);
   assert.equal(completion.observation_date,observationDate);
@@ -83,11 +96,59 @@ if (completion) {
   assert.ok(sha(completion.modules?.f10),'No validated F10 completion fingerprint');
 }
 
+const observationPath=`${dayPath}/observations`;
+const observationCoverageShell=options['observation-coverage-shell']
+  ? await readFile(options['observation-coverage-shell'],'utf8') : null;
+const top200GroupModule=options['top200-group-module']
+  ? await readFile(options['top200-group-module'],'utf8') : null;
+if(options['exercise-observation-coverage'])assert.ok(observationCoverageShell,'Coverage exercise requires the exact scoped workbench shell source');
+const observationCoverageProbe=(()=>{
+  const expected=day.rows.filter(row=>row.eligible_candidate===true).map(row=>row.symbol).sort();
+  assert.ok(expected.includes(positive.symbol),'Coverage probe stock is not an eligible candidate');
+  const invalidSymbol=expected.find(symbol=>symbol!==positive.symbol);
+  const outsideSymbol=day.rows.find(row=>!expected.includes(row.symbol))?.symbol??'999999.BJ';
+  const absentSourceSymbol=['999998.SH','999997.SZ','999996.BJ','999995.SZ']
+    .find(symbol=>!expected.includes(symbol)&&symbol!==outsideSymbol);
+  assert.ok(absentSourceSymbol,'Coverage probe needs an absent source symbol');
+  const sourceExpected=[...expected,outsideSymbol,absentSourceSymbol].sort();
+  const observed=[positive.symbol,...(invalidSymbol?[invalidSymbol]:[]),outsideSymbol];
+  const validCount=observed.length-(invalidSymbol?1:0);
+  const sourceError='FUTU_API_RATE_LIMIT: 429 rate limit';
+  const status=sourceExpected.length===0?'EMPTY':validCount===0?'ZERO_VALID':validCount<sourceExpected.length?'PARTIAL':'COMPLETE';
+  const reasons=status==='PARTIAL'?['MISSING_CANDIDATE_OBSERVATION_ROWS',sourceError]:
+    status==='EMPTY'?['EMPTY_EXPECTED_CANDIDATE_SCOPE']:
+    status==='ZERO_VALID'?['ZERO_VALID_OBSERVATION_ROWS']:[];
+  const row=(symbol,change,rankEligible,error=null)=>({symbol,error,source_asof:`${observationDate}T10:00:00+08:00`,
+    observed_at_upper_bound:`${observationDate}T10:00:30+08:00`,status:'CURRENT_VISIBLE_FIELDS_CHECKED',
+    currency:'CNY',price:10,amount_source:100000,change_percent_source:change,
+    percent_change_rank_eligible:rankEligible,volume_rank_eligible:false,comparable_volume_shares:null});
+  const snapshot={schema:'OBSERVATION_SNAPSHOT_VIEW_V1',source_date:sourceDate,observation_date:observationDate,
+    source_generation:day.generation,input_sha256:day.input_sha256,parent_admission_sha256:day.generation,
+    daily_contract_sha256:createHash('sha256').update(JSON.stringify(sourceExpected)).digest('hex'),
+    rows:[row(positive.symbol,1,true),...(invalidSymbol?[row(invalidSymbol,99,false,sourceError)]:[]),row(outsideSymbol,999,true)],
+    analysis_admission:'NOT_GRANTED',formula_review:'PENDING',context:{},context_sha256:'0'.repeat(64),
+    snapshot_sha256:'1'.repeat(64),slot:'1000',source_asof_min:`${observationDate}T10:00:00+08:00`,
+    source_asof_max:`${observationDate}T10:00:00+08:00`,observed_upper_bound_max:`${observationDate}T10:00:30+08:00`,
+    RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false};
+  return {invalidSymbol,outsideSymbol,sourceError,sourceExpected,snapshot,response:{latest:snapshot,status:'STORED_ONLY',
+    coverage:{schema:'V4_WORKBENCH_OBSERVATION_COVERAGE_V1',scope_kind:'SOURCE_PRODUCT',status,
+      source_date:sourceDate,observation_date:observationDate,generation:day.generation,input_sha256:day.input_sha256,
+      numeric_manifest:day.numeric_manifest,expected_count:sourceExpected.length,observed_count:observed.length,
+      valid_count:validCount,missing_count:sourceExpected.length-validCount,reasons,
+      RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false},
+    RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false}};
+})();
+const observationCoverageDay=observationCoverageOnly?{
+  ...day,
+  formula_groups:{...day.formula_groups,labels:{b23_entry:'192选股',pb2_confirm:'回测选股'},status:'READY'},
+}:day;
+
 const browser = await chromium.launch({headless:true,...(chrome?{executablePath:chrome}:{})});
 try {
   async function check(fault) {
     const page = await browser.newPage({viewport:{width:1440,height:960}});
     const reads=[], requests=[], errors=[];
+    const routeHits={shell:0,top200:0,day:0,observations:0};
     page.on('request',request=>{
       if (request.method()==='GET') requests.push(new URL(request.url()).pathname);
     });
@@ -95,6 +156,18 @@ try {
       if (response.request().method()==='GET' && response.ok()) reads.push(new URL(response.url()).pathname);
     });
     page.on('pageerror',error=>errors.push(error.message));
+    if(observationCoverageShell)await page.route(url=>url.pathname==='/research-panel/workbench-host/dot/shell/workbench.local.mjs',route=>{
+      routeHits.shell++;return route.fulfill({status:200,contentType:'text/javascript',body:observationCoverageShell});
+    });
+    if(top200GroupModule)await page.route(url=>url.pathname==='/research-panel/workbench-host/top200-group.mjs',route=>{
+      routeHits.top200++;return route.fulfill({status:200,contentType:'text/javascript',body:top200GroupModule});
+    });
+    if(observationCoverageOnly)await page.route(requestUrl=>requestUrl.pathname===dayPath,route=>{
+      routeHits.day++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(observationCoverageDay)});
+    });
+    if(options['exercise-observation-coverage']&&fault==='none')await page.route(url=>url.pathname===observationPath,route=>{
+      routeHits.observations++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(observationCoverageProbe.response)});
+    });
     await page.addInitScript(({fault,marker})=>{
       window.__acceptedDraws=new Set();
       window.__completionStreams=new Map();
@@ -131,13 +204,49 @@ try {
     async function expectView(code, condition, args) {
       try { await page.waitForFunction(condition,args,{timeout:fault==='none'?15000:4500}); }
       catch (cause) {
-        const state=await page.evaluate(()=>Object.fromEntries(['stockCode','dates','kbSingleScore','formulaCompanySummary','formulaCompanyMetrics']
+        const state=await page.evaluate(()=>Object.fromEntries(['stockCode','dates','kbSingleScore','formulaCompanySummary','formulaCompanyMetrics','loadingState','observationSummary','observationMini','listCount']
           .map(id=>[id,document.getElementById(id)?.innerText]))).catch(()=>({}));
-        throw Object.assign(new Error(`${code}: ${JSON.stringify({fault,state,errors})}`,{cause}),{code});
+        const relevant=requests.filter(path=>path.includes('/observations')||path.includes('/days/'));
+        throw Object.assign(new Error(`${code}: ${JSON.stringify({fault,state,errors,routeHits,relevant})}`,{cause}),{code});
       }
     }
     try {
       await page.goto(url.href,{waitUntil:'domcontentloaded'});
+      if(observationCoverageOnly){
+        await expectView('COVERAGE_WORKBENCH_NOT_READY',({symbol})=>{
+          return !document.getElementById('content')?.hidden&&document.getElementById('stockCode')?.textContent===symbol&&
+            Boolean(document.querySelector(`#stockList [data-symbol="${symbol}"]`));
+        },{symbol:positive.symbol});
+        await expectView('OBSERVATION_COVERAGE_NOT_RENDERED',({expected,valid})=>{
+          const summary=document.getElementById('observationSummary')?.textContent??'';
+          const mini=document.getElementById('observationMini')?.innerText??'';
+          const state=`源产品观察范围覆盖 部分，有效 ${valid} / 应有 ${expected}`;
+          return mini.includes(state)&&summary.includes(state)&&
+            summary.includes('源产品观察范围未全覆盖');
+        },{expected:observationCoverageProbe.response.coverage.expected_count,
+          valid:observationCoverageProbe.response.coverage.valid_count});
+        assert.ok(reads.includes(observationPath),'The browser did not read its bound observation fixture');
+        await page.locator('#stockSort').evaluate(select=>{select.value='percent_change_desc';select.dispatchEvent(new Event('change',{bubbles:true}));});
+        const visibleSymbols=await page.locator('#stockList [data-symbol]').evaluateAll(nodes=>nodes.map(node=>node.dataset.symbol));
+        const rows=await page.locator('#stockList [data-symbol]').evaluateAll(nodes=>nodes.slice(0,5).map(node=>({symbol:node.dataset.symbol,title:node.title})));
+        assert.equal(visibleSymbols[0],positive.symbol,`A row without valid percent-rank eligibility displaced the valid row; mode=${await page.locator('#stockSort').inputValue()} rows=${JSON.stringify(rows)}`);
+        if(observationCoverageProbe.invalidSymbol&&visibleSymbols.includes(observationCoverageProbe.invalidSymbol))
+          assert.ok(visibleSymbols.indexOf(positive.symbol)<visibleSymbols.indexOf(observationCoverageProbe.invalidSymbol));
+        assert.ok(!visibleSymbols.includes(observationCoverageProbe.outsideSymbol),'A source-only symbol leaked into the visible formula roster');
+        const missingVisible=day.rows.find(row=>row.eligible_candidate===true&&
+          !observationCoverageProbe.snapshot.rows.some(observed=>observed.symbol===row.symbol));
+        if(missingVisible){
+          assert.ok(visibleSymbols.includes(missingVisible.symbol),'The missing visible row should stay on the first page');
+          const price=await page.locator(`#stockList [data-symbol="${missingVisible.symbol}"] .grid-price`).innerText();
+          assert.equal(price,'—','A visible symbol absent from the saved observation set must stay unavailable');
+          await page.locator(`#stockList [data-symbol="${missingVisible.symbol}"]`).click();
+          await page.waitForFunction(symbol=>document.getElementById('stockCode')?.textContent===symbol&&
+            document.getElementById('selectedObservation')?.innerText.includes('本股未出现在已保存的源产品观察集'),
+          missingVisible.symbol,{timeout:5000});
+        }
+        assert.deepEqual(errors,[]);
+        return;
+      }
       await expectView('ORIGINAL_MARK_NOT_PAINTED',({symbol,dayCode,marker,anchor})=>{
         const host=document.getElementById('formulaDailyChart');
         const canvas=host?.querySelector('canvas');
@@ -157,7 +266,32 @@ try {
         return a?.getBoundingClientRect().height>0&&b?.getBoundingClientRect().height>0&&a.dataset.companySymbol===symbol&&b.dataset.companySymbol===symbol&&
           company.every(value=>a.innerText.includes(value))&&financial.every(value=>b.innerText.includes(value));
       },positive);
+      if(options['exercise-observation-coverage']&&fault==='none'){
+        await expectView('OBSERVATION_COVERAGE_NOT_RENDERED',({expected,valid,partial})=>{
+          const summary=document.getElementById('observationSummary')?.textContent??'';
+          const mini=document.getElementById('observationMini')?.innerText??'';
+          const state=partial?`部分，有效 ${valid} / 应有 ${expected}`:`完整，有效 ${valid} / 应有 ${expected}`;
+          const coverage=`源产品观察范围覆盖 ${state}`;
+          return mini.includes(coverage)&&summary.includes(coverage)&&(!partial||summary.includes('源产品观察范围未全覆盖'));
+        },{expected:observationCoverageProbe.response.coverage.expected_count,
+          valid:observationCoverageProbe.response.coverage.valid_count,
+          partial:observationCoverageProbe.response.coverage.status==='PARTIAL'});
+        await page.locator('#stockSort').evaluate(select=>{select.value='percent_change_desc';select.dispatchEvent(new Event('change',{bubbles:true}));});
+        const visibleSymbols=await page.locator('#stockList [data-symbol]').evaluateAll(nodes=>nodes.map(node=>node.dataset.symbol));
+        const rows=await page.locator('#stockList [data-symbol]').evaluateAll(nodes=>nodes.slice(0,5).map(node=>({symbol:node.dataset.symbol,title:node.title})));
+        assert.equal(visibleSymbols[0],positive.symbol,`A row without valid percent-rank eligibility displaced the valid row; mode=${await page.locator('#stockSort').inputValue()} rows=${JSON.stringify(rows)}`);
+        if(observationCoverageProbe.invalidSymbol&&visibleSymbols.includes(observationCoverageProbe.invalidSymbol))
+          assert.ok(visibleSymbols.indexOf(positive.symbol)<visibleSymbols.indexOf(observationCoverageProbe.invalidSymbol));
+        assert.ok(!visibleSymbols.includes(observationCoverageProbe.outsideSymbol),'A source-only symbol leaked into the visible formula roster');
+        const missingVisible=day.rows.find(row=>row.eligible_candidate===true&&
+          !observationCoverageProbe.snapshot.rows.some(observed=>observed.symbol===row.symbol));
+        if(missingVisible){
+          const price=await page.locator(`#stockList [data-symbol="${missingVisible.symbol}"] .grid-price`).innerText();
+          assert.equal(price,'—','A visible symbol absent from the saved observation set must stay unavailable');
+        }
+      }
       for (const path of [chartPath,scorePath,f10Path(positive.symbol)]) assert.ok(reads.includes(path),`Missing browser response ${path}`);
+      if(options['exercise-observation-coverage']&&fault==='none')assert.ok(reads.includes(observationPath));
       if (fault==='none'&&completion) {
         const streamPath=`${dayPath}/events`;
         const handle=await page.waitForFunction(({path,marker})=>window.__completionStreams.get(path)?.latest?.modules?.f10 &&
@@ -203,7 +337,8 @@ try {
       caught.push(code);
     }
   }
-  console.log(JSON.stringify({status:'PASS_FORMULA_WORKBENCH_BROWSER',base:base.origin,sourceDate,observationDate,generation:day.generation,
+  console.log(JSON.stringify({status:observationCoverageOnly?'PASS_FORMULA_WORKBENCH_COVERAGE_BROWSER':'PASS_FORMULA_WORKBENCH_BROWSER',base:base.origin,sourceDate,observationDate,generation:day.generation,
     input_sha256:day.input_sha256,marker:positive.marker,score:positive.score,observed:positive.symbol,gap:gapSymbol,
-    f10_completion_checked:Boolean(completion),negative_controls:caught}));
+    f10_completion_checked:Boolean(completion),observation_coverage:options['exercise-observation-coverage']?observationCoverageProbe.response.coverage.status:'NOT_RUN',
+    fixture_mode:observationCoverageOnly?'ISOLATED_COVERAGE_FIXTURE':'FULL_BROWSER_FLOW',negative_controls:caught}));
 } finally { await browser.close(); }
