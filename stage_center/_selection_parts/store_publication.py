@@ -3,7 +3,7 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market):
+def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market, replace_failed_run_id=None):
     data = _v4_global(_v4_scope, 'dict')(envelope)
     required = {"trade_date", "stage_id", "raw_artifact_sha256", "algorithm_sha256", "rows", "selection_status"}
     if not required.issubset(data):
@@ -80,24 +80,38 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market):
     artifact_relative = f"{prefix}/artifact.csv"
     manifest_relative = f"{prefix}/manifest.json"
     receipt_relative = f"{prefix}/receipt.json"
+    verified_predecessor = None
     with self._lock():
         latest = self._latest()
         key = self._key(trade_date, stage_id, market)
         existing = latest["entries"].get(key)
         if _v4_global(_v4_scope, 'isinstance')(existing, _v4_global(_v4_scope, 'Mapping')):
             if existing.get("idempotency_key") != idem_key:
-                raise _v4_global(_v4_scope, 'SelectionError')(f"selection slot conflict: {key}")
-            verified = self._verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(existing.get("run_id")))
-            if verified["envelope"] != data:
-                raise _v4_global(_v4_scope, 'SelectionError')("selection idempotency payload mismatch")
-            return _v4_global(_v4_scope, 'dict')(data)
+                if not replace_failed_run_id or existing.get("run_id") != replace_failed_run_id:
+                    raise _v4_global(_v4_scope, 'SelectionError')(f"selection slot conflict: {key}")
+                if stage_id != "STAGE_0925" or market != "HK_CONNECT":
+                    raise _v4_global(_v4_scope, 'SelectionError')(f"failed-slot replacement is restricted to 09:25 HK Connect: {key}")
+                previous = self._verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(existing.get("run_id")))["envelope"]
+                if (previous.get("trade_date") != trade_date
+                        or previous.get("stage_id") != stage_id
+                        or previous.get("market") != market
+                        or previous.get("selection_status") != "CANNOT_CONFIRM"
+                        or previous.get("source_status") not in {"CANNOT_CONFIRM", "PARTIAL_WITH_ROWS"}
+                        or previous.get("rows") != []
+                        or previous.get("selected_rows") != 0):
+                    raise _v4_global(_v4_scope, 'SelectionError')(f"only a verified zero-row CANNOT_CONFIRM 09:25 slot can be replaced: {key}")
+                verified_predecessor = replace_failed_run_id
+                # The verified failed run remains immutable under its original
+                # run path; the latest pointer is atomically advanced below.
+            else:
+                verified = self._verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(existing.get("run_id")))
+                if verified["envelope"] != data:
+                    raise _v4_global(_v4_scope, 'SelectionError')("selection idempotency payload mismatch")
+                return _v4_global(_v4_scope, 'dict')(data)
         run_dir = _v4_global(_v4_scope, '_safe_relative')(self.root, prefix)
-        if run_dir.exists():
-            raise _v4_global(_v4_scope, 'SelectionError')("immutable selection run path already exists without latest pointer")
-        run_dir.mkdir(parents=True, exist_ok=False)
         artifact_path = _v4_global(_v4_scope, '_safe_relative')(self.root, artifact_relative)
-        _v4_global(_v4_scope, '_atomic_write_csv')(artifact_path, artifact_rows, fields=artifact_fields)
-        artifact_sha = _v4_global(_v4_scope, '_sha_file')(artifact_path)
+        from stage_center._raw_store_parts.transaction_publish import _csv_sha, _prepare_trio
+        artifact_sha = _csv_sha(artifact_rows, artifact_fields)
         manifest = {
             "schema_version": _v4_global(_v4_scope, 'SELECTION_MANIFEST_SCHEMA_VERSION'),
             "owner": "stage_center",
@@ -137,8 +151,13 @@ def _SelectionStore_publish_body(_v4_scope, /, self, envelope, *, market):
             "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
             **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
         }
-        _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, manifest_relative), manifest)
-        _v4_global(_v4_scope, '_atomic_write_json')(_v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative), receipt)
+        paths = _prepare_trio(_v4_scope, run_dir, manifest, receipt,
+                              error_type=_v4_global(_v4_scope, 'SelectionError'),
+                              allowed_predecessor=verified_predecessor)
+        if not artifact_path.exists():
+            _v4_global(_v4_scope, '_atomic_write_csv')(artifact_path, artifact_rows, fields=artifact_fields)
+        if not paths['receipt.json'].exists():
+            _v4_global(_v4_scope, '_atomic_write_json')(paths['receipt.json'], receipt)
         verified = self._verify_run(trade_date, stage_id, market, run_id)
         entries = _v4_global(_v4_scope, 'dict')(latest.get("entries", {}))
         entries[key] = {

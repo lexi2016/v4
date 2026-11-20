@@ -71,6 +71,7 @@ class Trace:
         if scheduled is not None:
             if scheduled.tzinfo is None or scheduled.utcoffset() is None:raise ValueError('DUE_TZ_REQUIRED')
             self.due_wall_ns=int(scheduled.timestamp()*1e9)
+        self.final=None
         self.event('DUE_ANCHOR',scheduled_at=scheduled.isoformat() if scheduled else None,**fields)
     def final_receipt(self,path: Path,*,status: str,durable: bool) -> None:
         record=self.event('FINAL_RECEIPT_COMPLETED',receipt_path=str(path),status=status,
@@ -161,6 +162,22 @@ def complete_receipt(path: Path,result: Mapping[str,Any],*,
     try:os.fsync(fd)
     finally:os.close(fd)
     _CURRENT.final_receipt(path,status=str(completed.get('status') or 'CANNOT_CONFIRM'),durable=True)
+    if (rewrite is not None and is_stage_node_receipt(path)
+            and completed.get('dispatch_mode') == 'NATURAL' and _CURRENT.policy == 'observe'):
+        # Persist phase evidence through the first durable business receipt in
+        # that same owner file. Its hash is the pre-attachment receipt hash;
+        # a receipt cannot embed its own final bytes hash. This extra owner
+        # metadata write never creates a scheduler, counter or timing success.
+        completed['end_to_end_deadline'] = _CURRENT.summary()
+        completed['end_to_end_deadline']['receipt_endpoint_scope'] = 'DURABLE_BUSINESS_RECEIPT_BEFORE_TIMING_ATTACHMENT'
+        try:
+            completed = dict(rewrite(completed))
+        except (OSError, ValueError) as error:
+            completed['timing_attachment_status'] = 'CANNOT_CONFIRM'
+            completed['timing_attachment_error'] = f'{type(error).__name__}: {error}'
+            _CURRENT.event('TIMING_ATTACHMENT_FAILED', receipt_path=str(path), error=completed['timing_attachment_error'])
+        else:
+            _CURRENT.final_receipt(path, status=str(completed.get('status') or 'CANNOT_CONFIRM'), durable=True)
     elapsed=_CURRENT.mono()-_CURRENT.start_ns
     pending_path=(pending_receipt_marker(path)
                   if rewrite is not None and is_stage_node_receipt(path) else None)

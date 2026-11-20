@@ -85,6 +85,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
         markets = execution_scope.markets
     if not markets:
         raise _v4_global(_v4_scope, 'RunnerError')("no securities market is open for this stage date")
+    _v4_global(_v4_scope, '_deadline').checkpoint("INPUT_VALIDATION_START", trade_date=trade_date, stage_id=stage_id)
     candidate_error = ""
     hk_binding: StageUniverseBinding | None = None
     hk_binding_error = ""
@@ -189,7 +190,9 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
             markets,
             candidate_sha_by_market,
         )
+        write_performed = bool((existing or {}).get("commit_recovery_performed"))
         if existing_state == "VERIFIED" and existing is not None:
+            _v4_global(_v4_scope, '_deadline').checkpoint("INPUT_VALIDATION_END", trade_date=trade_date, stage_id=stage_id, reused_verified_slot=True)
             # An immutable slot may be reused only with its same fixed
             # HK authority. A damaged/replaced D1 input must not be hidden
             # behind the A pointer's unchanged idempotency identity.
@@ -214,11 +217,11 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                         "candidate_current_sha256": candidate.current_sha256, "markets": published,
                         "error": _v4_global(_v4_scope, 'str')(error), "first_failed_layer": "EXACT_SELECTION_INPUT_BINDING",
                         "write_performed": False}, trade_date, stage_id)
-            return self._write_receipt({"status": "NOOP_ALREADY_VERIFIED", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": (existing["raw"].get("receipt") or {}).get("bundle_id"), "markets": {market: envelope for market, envelope in existing["selections"].items()}, "write_performed": False}, trade_date, stage_id)
+            return self._write_receipt({"status": "NOOP_ALREADY_VERIFIED", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": (existing["raw"].get("receipt") or {}).get("bundle_id"), "markets": {market: envelope for market, envelope in existing["selections"].items()}, "write_performed": write_performed, "commit_recovery_performed": write_performed, "recovered_publications": (existing or {}).get("recovered_publications", [])}, trade_date, stage_id)
         existing_raw_verified: dict[str, Mapping[str, Any]] = _v4_global(_v4_scope, 'dict')((existing or {}).get("raw_verified") or {})
         existing_selections: dict[str, Mapping[str, Any]] = _v4_global(_v4_scope, 'dict')((existing or {}).get("selections") or {})
         exact_evidence_by_market: dict[str, tuple[str, ...]] = {}
-        exact_input_errors: dict[str, str] = {}
+        exact_input_errors: dict[str, str] = dict((existing or {}).get("pending_errors") or {})
         if a_candidate_missing and "A_SHARE" in markets:
             exact_input_errors["A_SHARE"] = candidate_error
             exact_evidence_by_market["A_SHARE"] = (
@@ -259,6 +262,7 @@ def _StageCenterRunner__run_one_body(_v4_scope, /, self, decision, *, historical
                 )
             )
         )
+        _v4_global(_v4_scope, '_deadline').checkpoint("INPUT_VALIDATION_END", trade_date=trade_date, stage_id=stage_id, failed_markets=tuple(exact_input_errors))
         if decision.status not in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
             return self._write_receipt({"status": decision.status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "write_performed": False}, trade_date, stage_id)
         if self.config.injected_test_mode:

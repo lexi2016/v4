@@ -138,6 +138,14 @@ def _StageCenterRunner__write_receipt_body(_v4_scope, /, self, payload, trade_da
                 },
             }
         )
+    timing = _v4_global(_v4_scope, '_deadline').summary()
+    if timing is not None:
+        # Same owner receipt and attempt counter; timing grants no retry/BUY.
+        timing["receipt_endpoint_scope"] = (
+            "DURABLE_BUSINESS_RECEIPT_BEFORE_TIMING_ATTACHMENT"
+            if timing.get("final_receipt") is not None else "BEFORE_THIS_OWNER_RECEIPT_WRITE"
+        )
+        result["end_to_end_deadline"] = timing
     from stage_center.receipt_lineage import bind_owner_receipt
     result = bind_owner_receipt(result, receipt_root=self.config.receipt_root,
                                 selection_root=self.config.selection_root, trade_date=trade_date, stage_id=stage_id)

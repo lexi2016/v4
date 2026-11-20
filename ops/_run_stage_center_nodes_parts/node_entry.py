@@ -629,6 +629,12 @@ def _main_body(_v4_scope, /, argv):
             else now
         )
         trade_date = args.trade_date or evaluated.strftime("%Y%m%d")
+        _v4_global(_v4_scope, '_deadline').event(
+            "SCHEDULER_WAKE", trade_date=trade_date,
+            evaluated_at=evaluated.isoformat(),
+            evaluated_at_is_synthetic=args.evaluated_at is not None,
+            wall_clock_source="OBSERVED_ENTRY_WALL_CLOCK",
+        )
         authorization_error = None
         if args.settled_hk_recovery_authorization is not None:
             authorization_path = args.settled_hk_recovery_authorization.expanduser()
