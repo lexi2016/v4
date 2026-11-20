@@ -26,6 +26,9 @@ from .validation import (
     require, rows_digest, timestamp, verify_authorization, verify_outputs, verify_prepared,
 )
 
+RELEASE_VERSION = "P515_SINGLE_MAC_RUN_A_RECOVERY_V1"
+OFFICIAL_ROOT = Path.home() / ".local/state/p515/r1"
+
 MODES = ("CHECK_ONLY", "SYNTHETIC_EXECUTION", "AUTHORIZED_EXECUTION")
 TERMINAL = {"COMMITTED", "FAILED_ERROR", "INTERRUPTED_UNKNOWN", "CORRUPTED", "BLOCKED"}
 ACTIVE = {"CREATED", "AUTHORIZED", "RESERVED", "STARTED", "EXECUTING", "OUTPUT_STAGED", "OUTPUT_VERIFIED"}
@@ -38,7 +41,7 @@ def store_fingerprint(connection, authority_id):
     contents = {}
     for table, ordering in (("metadata", "key"), ("transactions", "transaction_id"),
                             ("events", "sequence"), ("starts", "transaction_id,stage"),
-                            ("stub_calls", "sequence")):
+                            ("stub_calls", "sequence"), ("real_calls", "transaction_id,stage")):
         cursor = connection.execute("SELECT * FROM " + table + " ORDER BY " + ordering)
         columns = [entry[0] for entry in cursor.description]
         contents[table] = [dict(zip(columns, tuple(row))) for row in cursor]
@@ -80,7 +83,11 @@ def initialize_authority(root: Path, prepared_path: Path, trust: dict, *,
     require(test_fault is None or domain == SYNTHETIC, "SYNTHETIC_FAULT_FORBIDDEN_IN_OFFICIAL")
     prepared_path = prepared_path.resolve()
     prepared, prepared_sha = verify_prepared(prepared_path, domain)
-    require(bool(trust), "DEPLOYMENT_TRUST_ROOT_REQUIRED")
+    require(bool(trust) or domain == OFFICIAL, "DEPLOYMENT_TRUST_ROOT_REQUIRED")
+    if domain == OFFICIAL:
+        require(not trust, "OFFICIAL_TRUST_REQUIRES_EXPLICIT_MASTER_ENROLLMENT")
+        require(root.parent.resolve() / root.name == OFFICIAL_ROOT.parent.resolve() / OFFICIAL_ROOT.name,
+                "OFFICIAL_SINGLE_MAC_ROOT_REQUIRED")
     for key_id, key in trust.items():
         require(bool(key_id) and key.get("domain") == domain and bool(key.get("issuer")) and
                 bool(key.get("subject")) and len(bytes.fromhex(key.get("public_key_hex", ""))) == 32,
@@ -120,6 +127,12 @@ def initialize_authority(root: Path, prepared_path: Path, trust: dict, *,
                 created_at TEXT NOT NULL, PRIMARY KEY(transaction_id, stage),
                 FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
             );
+            CREATE TABLE real_calls (
+                transaction_id TEXT NOT NULL, stage TEXT NOT NULL, attempted_at TEXT NOT NULL,
+                returned_at TEXT, output_rows INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(transaction_id,stage),
+                FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
+            );
             CREATE TABLE stub_calls (
                 sequence INTEGER PRIMARY KEY AUTOINCREMENT, transaction_id TEXT NOT NULL,
                 kind TEXT NOT NULL, time TEXT NOT NULL
@@ -129,6 +142,7 @@ def initialize_authority(root: Path, prepared_path: Path, trust: dict, *,
             "authority_id": authority_id, "run_a": RUN_A, "scope": domain,
             "prepared_sha256": prepared_sha, "baseline": prepared["baseline"],
             "trust_sha256": object_digest(trust), "store_uuid": uuid.uuid4().hex,
+            "formal_trust": trust if domain == OFFICIAL else {}, "release_version": RELEASE_VERSION,
         }
         for key, value in values.items():
             connection.execute("INSERT INTO metadata VALUES (?,?)", (key, json.dumps(value, sort_keys=True)))
@@ -172,7 +186,10 @@ class Authority:
         self.root = Path(self.anchor["root"])
         self.database = Path(self.anchor["database"])
         self._audit_lock = threading.Lock()
+        self._execution_permits = {}
         self._verify_mount()
+        if self.anchor["scope"] == OFFICIAL:
+            require(self.root == OFFICIAL_ROOT.parent.resolve() / OFFICIAL_ROOT.name, "OFFICIAL_SINGLE_MAC_ROOT_REQUIRED")
         self._lock_fd = os.open(self.root / "authority.lock", os.O_RDWR)
         try:
             fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -210,6 +227,9 @@ class Authority:
         require(fence.is_file() and not fence.is_symlink() and
                 (fence.stat().st_ino, fence.stat().st_dev) ==
                 (self.anchor["fence_inode"], self.anchor["fence_device"]), "DURABLE_FENCE_MISSING_OR_REPLACED")
+        if self.anchor["scope"] == OFFICIAL:
+            require(all(p.stat().st_uid == os.getuid() and p.stat().st_mode & 0o077 == 0
+                        for p in (self.root, self.database, self.anchor_path, fence)), "OFFICIAL_OWNER_ONLY_REQUIRED")
         require(self.anchor.get("test_fault") is None or self.anchor["scope"] == SYNTHETIC,
                 "OFFICIAL_TEST_SWITCH_REJECTED")
 
@@ -298,7 +318,9 @@ class Authority:
                 "execution_identity_sha256": RUN_A, "scope": self.anchor["scope"], "counts": counts,
                 "prepared_sha256": self.anchor["prepared_sha256"],
                 "identity_sha256": identity_digest(prepared), "rows_sha256": rows_digest(prepared),
-                "trace": ["INPUTS_VERIFIED", "FULL_FOLDS_VERIFIED", "ORIGINAL_RUN_A_VERIFIED", "AUTHORITY_VERIFIED"]}
+                "trace": ["INPUTS_VERIFIED", "FULL_FOLDS_VERIFIED", "ORIGINAL_RUN_A_VERIFIED", "AUTHORITY_VERIFIED"],
+                "release_version": RELEASE_VERSION,
+                "trust_status": "ARMED" if self._trusted_keys() else "UNARMED_NO_MASTER_PUBLIC_KEY"}
 
     def reserve(self, *, unit: str, envelope: dict, prelaunch_b64: str, mode: str):
         require(mode in MODES and mode != "CHECK_ONLY", "EXECUTION_MODE_REQUIRED")
@@ -310,13 +332,8 @@ class Authority:
             package = base64.b64decode(prelaunch_b64, validate=True)
         except (ValueError, TypeError) as exc:
             raise Rejected("PRELAUNCH_BASE64_INVALID") from exc
-        grant = verify_authorization(envelope, self.anchor["trust"], prepared, self.anchor["prepared_sha256"],
+        grant = verify_authorization(envelope, self._trusted_keys(), prepared, self.anchor["prepared_sha256"],
                                      self.anchor["authority_id"], unit, package, self.anchor["scope"])
-        # Both modes reach the complete validation boundary. The concrete future
-        # backend is fenced at every real API and cannot be unlocked by a grant.
-        if mode == "AUTHORIZED_EXECUTION":
-            from .execution import RealExecutionHardGuard
-            RealExecutionHardGuard.assert_zero_fit_release()
         require(unit in UNIT_REQUIREMENTS, "UNKNOWN_UNIT")
         import io
         import zipfile
@@ -337,6 +354,9 @@ class Authority:
             require(all(counts[k] + v <= grant["budget_caps"][k] for k, v in requirements.items()),
                     "WHOLE_UNIT_BUDGET_EXCEEDED_ZERO_CALLS")
             when = now().isoformat()
+            if self.anchor["scope"] == OFFICIAL:
+                write_once(self.root / "grants" / (txid + ".json"), canonical(envelope))
+                write_once(self.root / "grants" / (txid + ".zip"), package)
             connection.execute("INSERT INTO transactions VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                                (txid, grant["authorization_id"], unit, "CREATED", object_digest(envelope),
                                 digest(lease.encode()), json.dumps(requirements, sort_keys=True), when, when,
@@ -394,15 +414,19 @@ class Authority:
                 expired = True
             else:
                 if self.anchor["scope"] == OFFICIAL:
-                    from .execution import RealExecutionHardGuard
-                    RealExecutionHardGuard.assert_zero_fit_release()
+                    self._verify_persisted_grant(transaction, prepared, connection)
                 if transaction["unit"] == "FINAL_DEV":
                     self._verify_final_prerequisites(connection, prepared)
                 self._transition(connection, transaction_id, "STARTED", "UNIT_START")
         require(not expired, "AUTH_OR_PRELAUNCH_EXPIRED_BEFORE_START")
         try:
             from .execution import run_staged_unit
-            return run_staged_unit(self, transaction_id)
+            permit = secrets.token_hex(32)
+            self._execution_permits[transaction_id] = permit
+            try:
+                return run_staged_unit(self, transaction_id, _permit=permit)
+            finally:
+                self._execution_permits.pop(transaction_id, None)
         except Exception as exc:
             with self.db() as connection:
                 current = connection.execute("SELECT state FROM transactions WHERE transaction_id=?", (transaction_id,)).fetchone()
@@ -425,8 +449,10 @@ class Authority:
                         "model_api": {"preprocessing_fit", "model_fit"}}[stage]
             require(previous == expected, "STAGE_ORDER_INVALID")
             connection.execute("INSERT INTO starts VALUES (?,?,?)", (transaction_id, stage, now().isoformat()))
-            self._transition(connection, transaction_id, "EXECUTING", "SYNTHETIC_STAGE_START",
-                             {"stage": stage, "scope": SYNTHETIC})
+            scope = self.anchor["scope"]
+            self._transition(connection, transaction_id, "EXECUTING",
+                             "REAL_STAGE_START" if scope == OFFICIAL else "SYNTHETIC_STAGE_START",
+                             {"stage": stage, "scope": scope})
         if self.anchor["test_fault"] == "after_start_crash":
             os._exit(71)
 
@@ -507,8 +533,62 @@ class Authority:
                 "execution_identity_sha256": RUN_A, "counts": counts, "transactions": transactions,
                 "events": events, "starts": starts, "stub_calls": calls,
                 "durable_fence": read_json(Path(self.anchor["fence"])),
-                "real_counts": {"model_fit": 0, "preprocessing_fit": 0, "model_api": 0,
-                                "new_probability": 0, "predict": 0, "deserialization": 0, "formal_start": 0}}
+                "real_counts": self._real_counts(), "release_version": RELEASE_VERSION,
+                "trust_status": "ARMED" if self._trusted_keys() else "UNARMED_NO_MASTER_PUBLIC_KEY"}
+
+    def _trusted_keys(self):
+        if self.anchor["scope"] != OFFICIAL:
+            return self.anchor["trust"]
+        with self.db() as connection:
+            row = connection.execute("SELECT value FROM metadata WHERE key='formal_trust'").fetchone()
+            return json.loads(row["value"]) if row else {}
+
+    def _verify_persisted_grant(self, transaction, prepared, connection=None):
+        require(transaction["unit"] == "F1_RETRY", "FINAL_DEV_REQUIRES_SEPARATE_FUTURE_RELEASE_AND_AUTH_02")
+        txid = transaction["transaction_id"]
+        envelope = read_json(self.root / "grants" / (txid + ".json"))
+        require(object_digest(envelope) == transaction["grant_sha256"], "PERSISTED_GRANT_CHANGED")
+        package = (self.root / "grants" / (txid + ".zip")).read_bytes()
+        trust = self._trusted_keys() if connection is None else json.loads(
+            connection.execute("SELECT value FROM metadata WHERE key='formal_trust'").fetchone()["value"])
+        return verify_authorization(envelope, trust, prepared, self.anchor["prepared_sha256"],
+                                    self.anchor["authority_id"], transaction["unit"], package, OFFICIAL)
+
+    def claim_real_call(self, transaction_id, stage, permit):
+        require(self.anchor["scope"] == OFFICIAL and isinstance(permit, str) and bool(permit) and
+                secrets.compare_digest(self._execution_permits.get(transaction_id, ""), permit),
+                "SERVER_EXECUTION_PERMIT_REQUIRED")
+        prepared = self._prepared()
+        with self.db() as connection:
+            transaction = connection.execute("SELECT * FROM transactions WHERE transaction_id=?", (transaction_id,)).fetchone()
+        require(transaction is not None and transaction["state"] in ("STARTED", "EXECUTING"), "REAL_CALL_TRANSACTION_NOT_ADMITTED")
+        self._verify_persisted_grant(transaction, prepared)
+        self.start_stage(transaction_id, stage)
+        with self.db() as connection:
+            connection.execute("INSERT INTO real_calls(transaction_id,stage,attempted_at) VALUES (?,?,?)",
+                               (transaction_id, stage, now().isoformat()))
+            self._event(connection, transaction_id, "EXECUTING", "REAL_API_ATTEMPT", {"stage": stage})
+
+    def assert_execution_permit(self, transaction_id, permit):
+        require(isinstance(permit, str) and bool(permit) and
+                secrets.compare_digest(self._execution_permits.get(transaction_id, ""), permit),
+                "SERVER_EXECUTION_PERMIT_REQUIRED")
+
+    def real_call_returned(self, transaction_id, stage, rows=0):
+        with self.db() as connection:
+            cursor = connection.execute("UPDATE real_calls SET returned_at=?,output_rows=? WHERE transaction_id=? AND stage=? AND returned_at IS NULL",
+                                        (now().isoformat(), rows, transaction_id, stage))
+            require(cursor.rowcount == 1, "REAL_CALL_RETURN_WITHOUT_SINGLE_ATTEMPT")
+            self._event(connection, transaction_id, "EXECUTING", "REAL_API_RETURN", {"stage": stage, "rows": rows})
+
+    def _real_counts(self):
+        with self.db() as connection:
+            calls = {r["stage"]: r["n"] for r in connection.execute("SELECT stage,COUNT(*) AS n FROM real_calls GROUP BY stage")}
+            rows = connection.execute("SELECT COALESCE(SUM(output_rows),0) AS n FROM real_calls WHERE stage='model_api' AND returned_at IS NOT NULL").fetchone()["n"]
+            formal = connection.execute("SELECT COUNT(*) AS n FROM events WHERE event='UNIT_START'").fetchone()["n"] if self.anchor["scope"] == OFFICIAL else 0
+        return {"preprocessing_fit": calls.get("preprocessing_fit", 0), "model_fit": calls.get("model_fit", 0),
+                "model_api": calls.get("model_api", 0), "new_probability": rows,
+                "predict": calls.get("model_api", 0), "deserialization": 0, "formal_start": formal}
 
     def request(self, request):
         require(isinstance(request, dict) and "op" in request, "RPC_OBJECT_REQUIRED")
@@ -535,6 +615,48 @@ class Authority:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
                 handle.flush()
                 os.fsync(handle.fileno())
+
+
+def enroll_official_trust(anchor_path: Path, trust: dict, approval_path: Path):
+    """One-time local administrator enrollment. The operator must authenticate the approval out of band.
+
+    This cannot establish trust in a public key from a key's own claims. The
+    approval source and prior-writer cutoff are retained for independent review.
+    No worker RPC reaches this operation and no private key is accepted here.
+    """
+    require(bool(trust), "MASTER_PUBLIC_KEY_REQUIRED")
+    approval = read_json(approval_path)
+    source_path = Path(approval.get("approval_source_path", ""))
+    require(source_path.is_file() and not source_path.is_symlink() and source_path.resolve() != approval_path.resolve() and
+            digest(source_path.read_bytes()) == approval.get("approval_source_sha256"),
+            "ENROLLMENT_ORIGINAL_APPROVAL_SOURCE_SHA_REQUIRED")
+    require(approval.get("approved_by") == "CHATGPT_MASTER" and
+            approval.get("purpose") == "ENROLL_SINGLE_MAC_RUN_A_PUBLIC_KEY" and
+            approval.get("execution_identity_sha256") == RUN_A and
+            approval.get("previous_run_a_writer_cutoff_confirmed") is True and
+            approval.get("approval_source_sha256") and approval.get("approval_source_url"),
+            "MASTER_ENROLLMENT_APPROVAL_AND_PRIOR_WRITER_CUTOFF_REQUIRED")
+    for key_id, key in trust.items():
+        require(isinstance(key_id, str) and bool(key_id.strip()) and key.get("issuer") == "CHATGPT_MASTER" and
+                key.get("domain") == OFFICIAL and bool(key.get("subject")) and
+                len(bytes.fromhex(key.get("public_key_hex", ""))) == 32, "FORMAL_MASTER_TRUST_INVALID")
+    authority = Authority(anchor_path)
+    try:
+        require(authority.anchor["scope"] == OFFICIAL and approval.get("authority_id") == authority.anchor["authority_id"] and
+                approval.get("prepared_sha256") == authority.anchor["prepared_sha256"] and
+                approval.get("trust_sha256") == object_digest(trust), "ENROLLMENT_BINDING_MISMATCH")
+        with authority.db() as connection:
+            current = json.loads(connection.execute("SELECT value FROM metadata WHERE key='formal_trust'").fetchone()["value"])
+            require(not current and connection.execute("SELECT COUNT(*) FROM transactions").fetchone()[0] == 0,
+                    "TRUST_ENROLLMENT_ALREADY_DONE_OR_EXECUTION_EXISTS")
+            connection.execute("UPDATE metadata SET value=? WHERE key='formal_trust'", (json.dumps(trust, sort_keys=True),))
+            connection.execute("INSERT INTO metadata VALUES (?,?)", ("master_enrollment_approval", json.dumps(approval, sort_keys=True)))
+            authority._event(connection, None, "BLOCKED", "MASTER_PUBLIC_KEY_ENROLLED_NO_TRAINING_AUTHORIZATION",
+                             {"approval_sha256": digest(approval_path.read_bytes()), "trust_sha256": object_digest(trust)})
+        write_once(authority.root / "enrollment-approval.json", canonical(approval))
+        return authority.check()
+    finally:
+        authority.close()
 
 
 class _Handler(socketserver.StreamRequestHandler):

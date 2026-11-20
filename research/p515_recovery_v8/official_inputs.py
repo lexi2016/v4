@@ -123,6 +123,9 @@ def verify_run_a(archive: Path, prelaunch: Path) -> dict:
     return {
         "execution_identity_sha256": RUN_A, "counts": dict(COUNTS), "historical_units": units,
         "historical_files": historical_files, "events": 14, "start_tokens": 7,
+        "historical_events": events,
+        "historical_start_tokens": {name: json.loads(members[name]) for name in sorted(filenames)},
+        "historical_binding": binding,
         "raw_historic_predictions": sum(row for row, _ in F2_F3.values()),
         "archive_sha256": RUN_A_ARCHIVE, "original_prelaunch_sha256": ORIGINAL_PRELAUNCH,
         "original_identity_manifest": identity,

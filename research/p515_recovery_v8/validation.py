@@ -198,6 +198,13 @@ def verify_authorization(envelope: dict, trust: dict, prepared: dict, prepared_s
             "AUTHORIZED_CAPS_INVALID")
     if caps["preprocessing_fit"] > 4:
         require("PREPROCESSING_CAP_5" in capabilities, "AUTH_02_CAPABILITY_REQUIRED")
+    if domain == OFFICIAL:
+        require(key.get("issuer") == payload.get("issuer") == "CHATGPT_MASTER", "MASTER_ISSUER_REQUIRED")
+        require(unit == "F1_RETRY" and payload.get("approval_id") == "AUTH-01", "AUTH_01_F1_ONLY")
+        require(payload.get("approval_contract") == "P515_CODEX_MAC_R1_SINGLE_MAC_RUN_A_RECOVERY_AUTHORITY_V1",
+                "SINGLE_MAC_RECOVERY_CONTRACT_REQUIRED")
+        require(caps == {"preprocessing_fit": 4, "model_fit": 4, "model_api": 3}, "AUTH_01_FIXED_CAPS_4_4_3_REQUIRED")
+        require(set(capabilities) == {"F1_ONCE"}, "AUTH_02_NOT_APPROVED")
     require(digest(prelaunch) == payload.get("prelaunch_sha256"), "PRELAUNCH_ZIP_SHA_MISMATCH")
     verify_prelaunch(prelaunch, payload, prepared, prepared_sha, authority_id, domain)
     return payload

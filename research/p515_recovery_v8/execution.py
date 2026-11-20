@@ -47,31 +47,59 @@ class _SyntheticBackend:
 
 
 class _OfficialBackend:
-    """Concrete future algorithm path, fenced at every real API boundary.
+    """Real model API access bound to the service's admitted one-use execution permit."""
 
-    Model imports and calls are below the immutable release guard. CLI, request
-    data, test hooks and factories cannot disable this guard.
-    """
-
-    def __init__(self):
-        RealExecutionHardGuard.assert_zero_fit_release()
+    def __init__(self, authority, transaction_id, permit):
+        from .authority import Authority
+        require(type(authority) is Authority and authority.anchor["scope"] == OFFICIAL,
+                "OFFICIAL_AUTHORITY_CONTEXT_REQUIRED")
+        authority.assert_execution_permit(transaction_id, permit)
+        self.authority = authority
+        self.transaction_id = transaction_id
+        self.permit = permit
         self.scaler = None
         self.classifier = None
+        self.preprocessor = None
+        self._verify_runtime()
+        self._data = self.authority._prepared()["units"]["F1_RETRY"]
+
+    def _verify_runtime(self):
+        import inspect
+        import sklearn
+        import sklearn.linear_model._logistic as logistic_source
+        import sklearn.preprocessing._data as scaler_source
+        from .official_inputs import SKLEARN_FILES
+        self.authority.assert_execution_permit(self.transaction_id, self.permit)
+        prepared = self.authority._prepared()
+        require(sklearn.__version__ == "1.8.0", "REAL_SKLEARN_VERSION_MISMATCH")
+        for relative, module in (("sklearn/linear_model/_logistic.py", logistic_source),
+                                 ("sklearn/preprocessing/_data.py", scaler_source)):
+            actual = Path(inspect.getfile(module)).resolve()
+            require(digest(actual.read_bytes()) == SKLEARN_FILES[relative] and
+                    prepared["source_paths"].get("deps/" + relative) == str(actual),
+                    "REAL_IMPORTED_SKLEARN_SOURCE_MISMATCH")
+
+    def _claim(self, stage):
+        self._verify_runtime()
+        self.authority.claim_real_call(self.transaction_id, stage, self.permit)
 
     def fit_preprocessor(self, rows):
-        RealExecutionHardGuard.assert_zero_fit_release()
+        require(rows == self._data["train_rows"], "REAL_TRAIN_INPUT_CHANGED")
         import numpy as np
         from sklearn.preprocessing import StandardScaler
+        self._claim("preprocessing_fit")
         continuous = np.asarray([r["feature_vector_10"][:8] for r in rows], dtype=np.float64)
         self.scaler = StandardScaler(copy=True, with_mean=True, with_std=True)
         scaled = self.scaler.fit_transform(continuous)
+        self.authority.real_call_returned(self.transaction_id, "preprocessing_fit")
         self.preprocessor = {
             "n_features": 8, "mean": self.scaler.mean_.tolist(), "scale": self.scaler.scale_.tolist(),
             "z_min": scaled.min(axis=0).tolist(), "z_max": scaled.max(axis=0).tolist(),
         }
 
     def _transform(self, rows):
-        RealExecutionHardGuard.assert_zero_fit_release()
+        self.authority.assert_execution_permit(self.transaction_id, self.permit)
+        require(self.scaler is not None, "PREPROCESSOR_NOT_FITTED")
         import numpy as np
         raw = np.asarray([r["feature_vector_10"] for r in rows], dtype=np.float64)
         continuous = self.scaler.transform(raw[:, :8])
@@ -79,28 +107,33 @@ class _OfficialBackend:
         return np.column_stack((clipped, raw[:, 8:]))
 
     def fit_model(self, rows, weights):
-        RealExecutionHardGuard.assert_zero_fit_release()
+        require(rows == self._data["train_rows"] and weights == self._data["train_weights"], "REAL_TRAIN_OR_WEIGHT_CHANGED")
         import numpy as np
         import inspect
         from sklearn.linear_model import LogisticRegression
+        self._claim("model_fit")
         l2_parameter = {"l1_ratio": 0.0} if "l1_ratio" in inspect.signature(LogisticRegression).parameters else {"penalty": "l2"}
         self.classifier = LogisticRegression(**l2_parameter, **LR_PARAMS)
         self.classifier.fit(self._transform(rows), [r["pb15_label"] for r in rows], sample_weight=weights)
+        self.authority.real_call_returned(self.transaction_id, "model_fit")
         require(bool(np.all(self.classifier.n_iter_ < LR_PARAMS["max_iter"])), "OFFICIAL_MODEL_NONCONVERGED")
         return self.classifier.coef_[0].tolist(), float(self.classifier.intercept_[0]), self.classifier.classes_.tolist()
 
     def predict(self, rows):
-        RealExecutionHardGuard.assert_zero_fit_release()
+        require(rows == self._data["holdout_rows"], "REAL_HOLDOUT_INPUT_CHANGED")
+        self._claim("model_api")
         probabilities = self.classifier.predict_proba(self._transform(rows))
+        self.authority.real_call_returned(self.transaction_id, "model_api", int(probabilities.shape[0]))
         return probabilities[:, list(self.classifier.classes_).index(1)].tolist()
 
 
-def run_staged_unit(authority, transaction_id: str):
+def run_staged_unit(authority, transaction_id: str, *, _permit=None):
     """Only called by Authority.execute after atomic lease/state admission.
 
     There is no caller-controlled factory. The authority verifies the actual
     prepared document, derives its own rows, owns STARTs, and commits output.
     """
+    authority.assert_execution_permit(transaction_id, _permit)
     prepared = authority._prepared()
     with authority.db() as connection:
         transaction = connection.execute("SELECT unit,state FROM transactions WHERE transaction_id=?", (transaction_id,)).fetchone()
@@ -108,23 +141,28 @@ def run_staged_unit(authority, transaction_id: str):
         unit = transaction["unit"]
     require(authority.anchor["scope"] == prepared["scope"], "EXECUTION_SCOPE_MISMATCH")
     if prepared["scope"] == OFFICIAL:
-        backend = _OfficialBackend()
+        backend = _OfficialBackend(authority, transaction_id, _permit)
     else:
         require(prepared["scope"] == SYNTHETIC, "EXECUTION_TRUST_DOMAIN_INVALID")
         backend = _SyntheticBackend()
     data = prepared["units"][unit]
-    authority.start_stage(transaction_id, "preprocessing_fit")
+    if prepared["scope"] == SYNTHETIC:
+        authority.start_stage(transaction_id, "preprocessing_fit")
     backend.fit_preprocessor(data["train_rows"])
-    authority.record_stub(transaction_id, "preprocessing_fit")
-    authority.start_stage(transaction_id, "model_fit")
+    if prepared["scope"] == SYNTHETIC:
+        authority.record_stub(transaction_id, "preprocessing_fit")
+        authority.start_stage(transaction_id, "model_fit")
     coefficients, intercept, classes = backend.fit_model(data["train_rows"], data["train_weights"])
-    authority.record_stub(transaction_id, "model_fit")
+    if prepared["scope"] == SYNTHETIC:
+        authority.record_stub(transaction_id, "model_fit")
     prediction_calls = 0
     probabilities = []
     if unit == "F1_RETRY":
-        authority.start_stage(transaction_id, "model_api")
+        if prepared["scope"] == SYNTHETIC:
+            authority.start_stage(transaction_id, "model_api")
         probabilities = backend.predict(data["holdout_rows"])
-        authority.record_stub(transaction_id, "model_api")
+        if prepared["scope"] == SYNTHETIC:
+            authority.record_stub(transaction_id, "model_api")
         prediction_calls = 1
     else:
         require(unit == "FINAL_DEV" and not data["holdout_rows"], "FINAL_DEV_PREDICTION_FORBIDDEN")
