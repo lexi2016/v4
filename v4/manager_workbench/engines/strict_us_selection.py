@@ -296,6 +296,8 @@ def single_day_mapping_context_ready(context):
 
 
 def legacy_mapping_projection(selection):
+    # Counts are confirmed decisions; a final total is unknown until every
+    # required gate is assessed, even when REJECT takes decision precedence.
     value=selection.model_dump() if hasattr(selection,'model_dump') else selection
     rows=[]
     for c,d in zip(value['candidates'],value['strict_decisions']):
@@ -309,10 +311,12 @@ def legacy_mapping_projection(selection):
             primary_relation_type=primary.get('relation_type'),reason=(c['reasons'] or [None])[0],
             formal_target_eligibility='VERIFIED' if next((g['state'] for g in d['gates'] if g['gate']=='eligibility'),None)=='PASS' else 'CANNOT_CONFIRM'))
     counts={key:sum(r['decision']==key for r in rows) for key in ['BENEFIT','RISK','CONFLICT','OBSERVATION','SMALL_MOVE_WATCH','C_WATCH','UNMAPPED','UNASSESSED']}
-    return dict(display_only=True,state='PARTIAL' if value['counts']['pending'] else 'READY',rows=rows,counts=counts,
+    return dict(display_only=True,state='READY' if value['evaluation_complete'] else 'PARTIAL',rows=rows,counts=counts,
         target_date=value['target_date'],source_session=value['source_session'],price_session=value['price_session'],
         rules_version=SINGLE_DAY_MAPPING_VERSION,mapping_policy_version=POLICY_VERSION,mapping_policy_sha256=POLICY_SHA256,
-        strict_v1_status='EXECUTED',selected_count=value['counts']['selected'],strict_selection=value,
+        strict_v1_status='EXECUTED',evaluation_complete=value['evaluation_complete'],
+        selected_count=value['counts']['selected'] if value['evaluation_complete'] else None,
+        confirmed_selected_count=value['counts']['selected'],strict_selection=value,
         outside_pool_observations=[],gaps=value['gaps'],historical_pit_verified=False,
         formal_target_eligibility='CANNOT_CONFIRM' if any(g['state']=='PENDING' for d in value['strict_decisions'] for g in d['gates'] if g['gate']=='eligibility') else 'PER_STOCK_TARGET_PROOF',
         RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
@@ -337,6 +341,9 @@ def run_strict_us_selection(context, *, relation_rows, industry_rows, factor_sum
         identities=(payload.get('monthly_membership') or {}).get('codes',[]))
     selection=build_selection(context,candidates,payload.get('hk_history') or {})
     return dict(selection.model_dump(),rows=[d.model_dump() for d in selection.strict_decisions],
-        selected=[d.model_dump() for d in selection.strict_decisions if d.decision=='SELECTED'],selected_count=selection.counts['selected'],
-        state='CANNOT_CONFIRM' if selection.counts['pending'] else 'READY',gaps=selection.gaps,
+        selected=[d.model_dump() for d in sorted(
+            (d for d in selection.strict_decisions if d.decision=='SELECTED'), key=lambda d:d.rank)],
+        selected_count=selection.counts['selected'] if selection.evaluation_complete else None,
+        confirmed_selected_count=selection.counts['selected'],
+        state='READY' if selection.evaluation_complete else 'CANNOT_CONFIRM',gaps=selection.gaps,
         historical_pit_verified=False,RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)

@@ -438,7 +438,7 @@ def run_us_mapping(context, batch):
             conditions=["RESEARCH_ONLY"],risks=["RESEARCH_EFFECT_UNVERIFIED"],evidence_ids=evidence_ids,
             available_at=context["cutoff"],membership=member,strict_selection=strict.model_dump(mode="json"),
             research_state=candidate.research_state,source_session=selection.source_session))
-    if selection.counts["pending"]:
+    if not selection.evaluation_complete:
         out["state"] = "PARTIAL"
         out["gaps"] = list(dict.fromkeys([*out["gaps"],"US_STRICT_SELECTION_MATERIAL_PENDING"]))
     return out
