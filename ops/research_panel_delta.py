@@ -536,11 +536,11 @@ def _run_delta(q, c, stock_failures):
         counts[role]['target_date_symbols'] = len(current_symbols[role])
         if len(current_symbols[role]) < snapshot.get('accepted_target_date_floor', 1):
             raise ValueError('ORIGINAL_ACCEPTED_FLOOR_FAILED:' + role)
-        schema = schemas[role].with_metadata({**(schemas[role].metadata or {}), logical.META:json.dumps(meta).encode()})
+        schema = schemas[role].with_metadata({**(schemas[role].metadata or {}), logical.META:logical.contract_bytes(meta)})
         payload = logical.anchor_bytes(schema, prior[role] + deltas[role], rows=counts[role]['panel_rows'],
                                        excluded_symbols=quarantine, projection=projection)
         if candidate.exists():
-            if candidate.read_bytes() != payload:
+            if not logical.equivalent_anchor(candidate, payload):
                 raise ValueError('DELTA_IMMUTABLE_ANCHOR_CONFLICT')
         else:
             q['_write'](candidate, payload)

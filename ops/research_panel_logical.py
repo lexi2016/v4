@@ -52,6 +52,69 @@ def anchor_bytes(schema, blocks, *, rows, excluded_symbols=(), projection=None):
     return MAGIC + json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode() + b'\n'
 
 
+def contract_bytes(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'),
+                      ensure_ascii=False, allow_nan=False).encode()
+
+
+def _unique_json_object(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError('LOGICAL_DUPLICATE_JSON_KEY:' + key)
+        value[key] = item
+    return value
+
+
+def _reject_json_constant(value):
+    raise ValueError('LOGICAL_NONFINITE_JSON:' + value)
+
+
+def _strict_json(raw):
+    return json.loads(raw, object_pairs_hook=_unique_json_object,
+                      parse_constant=_reject_json_constant)
+
+
+def equivalent_anchor(path, payload):
+    """Reuse sealed bytes only when the QFQ contract differs in JSON ordering.
+
+    All Arrow fields, other metadata, block descriptors and projection inputs
+    remain exact. Canonical JSON retains scalar types and list ordering.
+    """
+    before = stamp(path)
+    existing = Path(path).read_bytes()
+    if existing == payload:
+        return True
+    if not existing.startswith(MAGIC) or not payload.startswith(MAGIC):
+        return False
+    old, new = (_strict_json(raw[len(MAGIC):]) for raw in (existing, payload))
+    old_schema_raw, new_schema_raw = (base64.b64decode(value.pop('arrow_schema'), validate=True)
+                                      for value in (old, new))
+    if contract_bytes(old) != contract_bytes(new):
+        return False
+    schemas = [pa.ipc.read_schema(pa.BufferReader(raw)) for raw in (old_schema_raw, new_schema_raw)]
+    metadata = [schema.metadata or {} for schema in schemas]
+    if any(META not in item for item in metadata):
+        return False
+    # Reconstructing metadata must be lossless, including duplicate Arrow keys.
+    if any(schema.with_metadata(item).serialize().to_pybytes() != raw
+           for schema, item, raw in zip(schemas, metadata, (old_schema_raw, new_schema_raw))):
+        return False
+    plain = [schema.with_metadata({key: value for key, value in item.items() if key != META})
+             .serialize().to_pybytes() for schema, item in zip(schemas, metadata)]
+    if plain[0] != plain[1]:
+        return False
+    contracts = [_strict_json(item[META]) for item in metadata]
+    if any(not isinstance(value, dict) for value in contracts):
+        return False
+    if contract_bytes(contracts[0]) != contract_bytes(contracts[1]):
+        return False
+    validate_closure(path)
+    if stamp(path) != before:
+        raise ValueError('LOGICAL_ANCHOR_CHANGED_DURING_REUSE:' + str(path))
+    return True
+
+
 def descriptor(path, *, sha256=None, symbols=None, key_rows=None):
     path = Path(path)
     result = dict(path=str(path), sha256=sha256 or digest(path), stat=stamp(path),

@@ -103,6 +103,49 @@ def test_original_owner_writes_only_delta_and_idempotent_resume(fixture):
     assert not (f.c['run_dir']/'symbol_checkpoints').exists()
 
 
+def test_resume_keeps_sealed_anchor_when_contract_key_order_changes(fixture):
+    f = fixture
+    f.c['meta']['retained_history_asof'] = {'000001.SZ': 2, '002717.SZ': 2}
+    run_delta(f.q, f.c)
+    # Represent an already sealed file from the old unsorted serializer.
+    for path in f.c['candidates'].values():
+        anchor = logical.LogicalFile(path)
+        schema = anchor.schema_arrow.with_metadata({**anchor.schema_arrow.metadata,
+            logical.META: json.dumps(f.c['meta']).encode()})
+        path.write_bytes(logical.anchor_bytes(schema, anchor.blocks, rows=anchor.value['rows'],
+            excluded_symbols=anchor.value['excluded_symbols'], projection=anchor.value['projection']))
+    before = {path: path.read_bytes() for path in f.c['candidates'].values()}
+    calls = list(f.calls)
+    f.c['meta']['retained_history_asof'] = {'002717.SZ': 2, '000001.SZ': 2}
+
+    result = run_delta(f.q, f.c)
+
+    assert result['reused_delta_checkpoints'] == len(f.c['snapshot']['symbols'])
+    assert result['new_delta_file_bytes'] == 0
+    assert f.calls == calls
+    assert all(path.read_bytes() == raw for path, raw in before.items())
+
+
+@pytest.mark.parametrize('change', ['lineage', 'contract_type', 'contract_value'])
+def test_resume_rejects_actual_sealed_anchor_identity_changes(fixture, change):
+    f = fixture
+    f.c['meta']['retained_history_asof'] = {'000001.SZ': 2}
+    run_delta(f.q, f.c)
+    before = {path: path.read_bytes() for path in f.c['candidates'].values()}
+    pointers = {role: path.read_bytes() for role, path in f.pointers.items()}
+    if change == 'lineage':
+        f.c['snapshot']['symbols']['000001.SZ']['raw_files'] = [
+            {'path': str(f.c['snapshot_file']), 'source_role': 'target', 'sha256': 'different-source-sha'}]
+    else:
+        f.c['meta']['retained_history_asof']['000001.SZ'] = 2.0 if change == 'contract_type' else 3
+
+    with pytest.raises(ValueError, match='DELTA_IMMUTABLE_ANCHOR_CONFLICT'):
+        run_delta(f.q, f.c)
+
+    assert all(path.read_bytes() == raw for path, raw in before.items())
+    assert pointers == {role: path.read_bytes() for role, path in f.pointers.items()}
+
+
 def test_one_role_failure_never_changes_current_and_resumes(fixture):
     f=fixture;before={r:p.read_bytes() for r,p in f.pointers.items()};original=f.q['_write']
     def fail(path,payload):
