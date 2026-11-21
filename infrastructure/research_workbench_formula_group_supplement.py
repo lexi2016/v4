@@ -400,19 +400,38 @@ def _f10_owner_ref_path(reference, owner_root, directory, symbol=None):
     return Path(path_text) == expected_parent / (digest + '.json')
 
 
-def _f10_roster_readback(binding, source_date, product, symbols):
+def _f10_coverage_payload(status, observed, failed, remaining, source_date,
+        observation_date, product, symbols, receipt_sha256=None):
+    product_identity = product.get('source_identity') or {}
+    manifest = product.get('manifest') or {}
+    return dict(schema='V4_WORKBENCH_FORMULA_GROUP_F10_COVERAGE_V1',
+        status=status, observed=observed, failed=failed, remaining=remaining,
+        source_date=source_date, observation_date=observation_date,
+        generation=product.get('source_generation'),
+        input_sha256=product_identity.get('input_sha256'),
+        numeric_manifest_sha256=manifest.get('sha256') if isinstance(manifest, dict) else None,
+        roster_symbols_sha256=_canonical_sha(sorted(symbols)), roster_count=len(symbols),
+        receipt_sha256=receipt_sha256, **FLAGS)
+
+
+def _f10_roster_readback(binding, source_date, observation_date, product, symbols):
     """Read F10 checkpoint outcomes for this exact roster without mutation."""
     import re
 
     reference = binding.get('receipt') if isinstance(binding, dict) else None
     if not isinstance(reference, dict):
-        return dict(status='UNATTEMPTED', observed=0, failed=0,
-                    remaining=len(symbols), receipt=None)
+        status = 'COMPLETE' if not symbols else 'CANNOT_CONFIRM'
+        return _f10_coverage_payload(status, 0, 0, len(symbols), source_date,
+            observation_date, product, symbols)
+    if not symbols:
+        return _f10_coverage_payload('COMPLETE', 0, 0, 0, source_date,
+            observation_date, product, symbols)
     selected = source_date.replace('-', '')
     product_identity = product.get('source_identity') or {}
     owner_root = _f10_owner_root_from_receipt(
         reference, source_date, product.get('source_generation'))
     receipt = _checked(reference, root=owner_root)
+    priority_scope = receipt.get('priority_scope')
     if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1'
             or receipt.get('status') not in {'COMPLETE', 'PARTIAL'}
             or receipt.get('data_date') != selected
@@ -421,10 +440,10 @@ def _f10_roster_readback(binding, source_date, product, symbols):
             or receipt.get('selector_sha256') != product_identity.get('selector_artifact_sha256')
             or receipt.get('numeric_manifest') != product.get('manifest')
             or receipt.get('scope', {}).get('kind') != 'ADMITTED_DAILY_UNIVERSE'
-            or receipt.get('priority_scope') != dict(symbols=sorted(symbols), count=len(symbols))
+            or not isinstance(priority_scope, dict)
+            or priority_scope.get('symbols') != sorted(symbols)
             or receipt.get('historical_PIT') is not False
             or not isinstance(receipt.get('scope_sha256'), str)
-            or receipt.get('scope', {}).get('count') != receipt.get('requested')
             or any(receipt.get(key) is not value for key, value in FLAGS.items())):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_CONFLICT')
     checkpoint_ref = receipt.get('checkpoint')
@@ -446,31 +465,26 @@ def _f10_roster_readback(binding, source_date, product, symbols):
     remaining_raw = receipt.get('remaining', [])
     if not isinstance(items, dict) or not isinstance(failures, dict) or not isinstance(remaining_raw, list):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_PARTITION_INVALID')
-    if receipt.get('observed') != len(items):
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OBSERVED_COUNT_CONFLICT')
     roster = set(symbols)
-    claimed_observed = set()
     for symbol, item_ref in items.items():
         if not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol):
             raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_SYMBOL_INVALID')
-        if symbol not in roster:
-            continue
-        claimed_observed.add(symbol)
     if any(not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol)
            for symbol in (*failures.keys(), *remaining_raw)):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_SYMBOL_INVALID')
-    claimed_failed = set(failures) & roster
-    if not set(failures) <= roster:
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_FAILURE_OUTSIDE_PRIORITY_SCOPE')
     remaining_set = set(remaining_raw)
-    if len(remaining_set) != len(remaining_raw):
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_REMAINING_DUPLICATE')
-    claimed_remaining = remaining_set & roster
-    if (claimed_observed & claimed_failed or claimed_observed & claimed_remaining
-            or claimed_failed & claimed_remaining):
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_CONFLICT')
-    observed, failed = set(), set(claimed_failed)
-    for symbol in sorted(claimed_observed):
+    observed, failed, remaining = set(), set(), set()
+    for symbol in sorted(roster):
+        claims = int(symbol in items) + int(symbol in failures) + int(symbol in remaining_set)
+        if claims > 1:
+            failed.add(symbol)
+            continue
+        if symbol not in items:
+            if symbol in failures:
+                failed.add(symbol)
+            else:
+                remaining.add(symbol)
+            continue
         item_ref = items[symbol]
         try:
             if not _f10_owner_ref_path(item_ref, owner_root, 'stocks', symbol):
@@ -484,12 +498,12 @@ def _f10_roster_readback(binding, source_date, product, symbols):
             failed.add(symbol)
         else:
             observed.add(symbol)
-    remaining = claimed_remaining | (roster - claimed_observed - claimed_failed)
     if observed & failed or observed & remaining or failed & remaining:
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_CONFLICT')
     complete = observed == roster and not failed and not remaining
-    return dict(status='COMPLETE' if complete else 'PARTIAL', observed=len(observed),
-                failed=len(failed), remaining=len(remaining), receipt=reference)
+    return _f10_coverage_payload('COMPLETE' if complete else 'PARTIAL', len(observed),
+        len(failed), len(remaining), source_date, observation_date, product, symbols,
+        reference.get('sha256'))
 
 
 def load(formula_groups_root, source_date, product, formula_ref, observation_date):
@@ -498,19 +512,6 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_SCORE_RULE_PIN_INVALID')
     date_root = Path(formula_groups_root) / source_date
     latest = date_root / 'supplements' / 'latest.json'
-    if not latest.exists():
-        return {}
-    if latest.is_symlink() or latest.resolve(strict=True) != latest:
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_POINTER_PATH_INVALID')
-    root = date_root.resolve(strict=True)
-    pointer_ref = dict(path=str(latest), sha256=hashlib.sha256(latest.read_bytes()).hexdigest())
-    pointer = _checked(pointer_ref, root=root)
-    if (pointer.get('schema') != 'V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_COMMIT_V1'
-            or pointer.get('module') != 'formula_group_supplement'
-            or pointer.get('source_date') != source_date
-            or any(pointer.get(key) is not value for key, value in FLAGS.items())):
-        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_POINTER_CONFLICT')
-
     formula = _checked(formula_ref, root=date_root)
     product_identity = product.get('source_identity') or {}
     symbols = sorted(row.get('symbol') for row in formula.get('rows', []))
@@ -523,6 +524,20 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
             or formula.get('selector_sha256') != product_identity.get('selector_artifact_sha256')
             or not isinstance(symbols, list) or len(symbols) != len(set(symbols))):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_GROUP_IDENTITY_CONFLICT')
+    if not latest.exists():
+        return {'f10_coverage': _f10_roster_readback(
+            {}, source_date, observation_date, product, symbols)}
+    if latest.is_symlink() or latest.resolve(strict=True) != latest:
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_POINTER_PATH_INVALID')
+    root = date_root.resolve(strict=True)
+    pointer_ref = dict(path=str(latest), sha256=hashlib.sha256(latest.read_bytes()).hexdigest())
+    pointer = _checked(pointer_ref, root=root)
+    if (pointer.get('schema') != 'V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_COMMIT_V1'
+            or pointer.get('module') != 'formula_group_supplement'
+            or pointer.get('source_date') != source_date
+            or any(pointer.get(key) is not value for key, value in FLAGS.items())):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_POINTER_CONFLICT')
+
     expected = dict(source_date=source_date, observation_date=observation_date,
         generation=product['source_generation'], input_sha256=product_identity['input_sha256'],
         numeric_manifest=product['manifest'], selector_sha256=product_identity['selector_artifact_sha256'],
@@ -531,7 +546,8 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
     if any(pointer.get(key) != value for key, value in expected.items()):
         # A valid pointer for an older same-date generation/roster is stale.
         # Ignore it without opening its artifact or receipt bytes.
-        return {}
+        return {'f10_coverage': _f10_roster_readback(
+            {}, source_date, observation_date, product, symbols)}
 
     artifact_ref, receipt_ref = pointer.get('artifact'), pointer.get('receipt')
     artifact = _checked(artifact_ref, root=root)
@@ -549,21 +565,20 @@ def load(formula_groups_root, source_date, product, formula_ref, observation_dat
     supplement_status = artifact.get('status')
     result = {'supplement_pointer': pointer_ref, 'supplement_artifact': artifact_ref,
         'supplement_status': supplement_status}
-    if supplement_status == 'COMPLETE':
-        f10_binding = artifact.get('f10') or {}
-        if not symbols:
-            f10_coverage = dict(status='COMPLETE', observed=0, failed=0,
-                                remaining=0, receipt=None)
-        else:
-            try:
-                f10_coverage = _f10_roster_readback(f10_binding, source_date, product, symbols)
-            except (ValueError, OSError, KeyError, TypeError, AttributeError):
-                f10_coverage = dict(status='CANNOT_CONFIRM', observed=0, failed=0,
-                                    remaining=len(symbols), receipt=f10_binding.get('receipt')
-                                    if isinstance(f10_binding, dict) else None)
-        result['f10_coverage'] = f10_coverage
-        if f10_coverage.get('status') != 'COMPLETE':
-            result['supplement_status'] = 'PARTIAL'
+    f10_binding = artifact.get('f10') or {}
+    try:
+        f10_coverage = _f10_roster_readback(
+            f10_binding, source_date, observation_date, product, symbols)
+    except (ValueError, OSError, KeyError, TypeError, AttributeError):
+        receipt = f10_binding.get('receipt') if isinstance(f10_binding, dict) else None
+        receipt_sha = (receipt.get('sha256') if isinstance(receipt, dict)
+                       and isinstance(receipt.get('sha256'), str)
+                       and len(receipt['sha256']) == 64 else None)
+        f10_coverage = _f10_coverage_payload('CANNOT_CONFIRM', 0, 0, len(symbols),
+            source_date, observation_date, product, symbols, receipt_sha)
+    result['f10_coverage'] = f10_coverage
+    if f10_coverage.get('status') != 'COMPLETE':
+        result['supplement_status'] = 'PARTIAL'
     marks_ref = artifact.get('d35c_marks')
     if supplement_status == 'COMPLETE' and symbols and not isinstance(marks_ref, dict):
         # A nonempty roster cannot be complete without its exact chart projection.

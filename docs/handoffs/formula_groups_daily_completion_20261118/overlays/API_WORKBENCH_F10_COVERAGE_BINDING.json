@@ -1,0 +1,27 @@
+{
+  "RESEARCH_ONLY": true,
+  "buy_gate_updated": false,
+  "command": "git apply --unidiff-zero docs/handoffs/formula_groups_daily_completion_20261118/overlays/api-workbench-f10-coverage.patch",
+  "orders_sent": false,
+  "patch_apply_args": [
+    "git",
+    "apply",
+    "--unidiff-zero"
+  ],
+  "patch_path": "docs/handoffs/formula_groups_daily_completion_20261118/overlays/api-workbench-f10-coverage.patch",
+  "patch_sha256": "9fa9e012dce9f51fe8993b5c68af79faf508d16820875dce27399c107091a718",
+  "postimage_sha256": "82a38f60097b09908dea3ed1d8d67f4a9d4a5a2568f31f5750f3c6e71e15f66c",
+  "preimage_sha256": "f66c8d86fdd338fa011f461eb77201fe3414b5354d025c84de110e979dca1816",
+  "production_allowed": false,
+  "result_sha256": "82a38f60097b09908dea3ed1d8d67f4a9d4a5a2568f31f5750f3c6e71e15f66c",
+  "schema": "V4_FORMULA_GROUP_F10_COVERAGE_API_OVERLAY_V1",
+  "scope": [
+    "exact-roster F10 coverage on existing daily formula_groups summary, including absent-supplement CANNOT_CONFIRM",
+    "bind coverage to source/observation date, generation, input, numeric manifest SHA, roster SHA, and validated formula-group SHA",
+    "never expose a local F10 receipt path",
+    "include coverage in existing list version digest so SSE refresh follows coverage changes"
+  ],
+  "source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-workbench-bee1f6e-20261121-api-r1/app/infrastructure/research_workbench_host.py",
+  "source_sha256": "f66c8d86fdd338fa011f461eb77201fe3414b5354d025c84de110e979dca1816",
+  "target": "infrastructure/research_workbench_host.py"
+}

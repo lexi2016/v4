@@ -1,0 +1,59 @@
+--- a/infrastructure/research_workbench_host.py
++++ b/infrastructure/research_workbench_host.py
+@@ -472,11 +472,20 @@
+             # binding or make the pre-existing same-date product unreadable.
+             return bound
+ 
+-    def _formula_groups(self, product, source_date, observation_date):
++    def _formula_groups(self, product, source_date, observation_date, *, include_f10_coverage=False):
+         binding = self._formula_group_binding(source_date, product)
+         if binding:
+-            return _formula_group_rows(binding['artifact'], product, source_date, observation_date,
++            summary, rows = _formula_group_rows(binding['artifact'], product, source_date, observation_date,
+                                        self.binding.get('candidate_group_formula_sha256'))
++            if include_f10_coverage:
++                coverage = binding.get('f10_coverage')
++                if not isinstance(coverage, dict):
++                    from infrastructure.research_workbench_formula_group_supplement import _f10_roster_readback
++                    coverage = _f10_roster_readback({}, source_date, observation_date, product,
++                        [row['symbol'] for row in rows])
++                coverage = {**coverage, 'formula_group_sha256': summary['artifact']['sha256']}
++                summary = {**summary, 'f10_coverage': coverage}
++            return summary, rows
+         return None
+ 
+     def v192_group(self,source_date,revision=None):
+@@ -939,7 +948,7 @@
+         company_index=self._index()
+         formula_company_scope=None
+         try:
+-            formula_groups=self._formula_groups(p,source_date,observation)
++            formula_groups=self._formula_groups(p,source_date,observation,include_f10_coverage=True)
+             if formula_groups:
+                 roster_ref=formula_groups[0].get('artifact')
+                 scoped_index=company_index.get('company_materials_scoped',{})
+@@ -969,11 +978,15 @@
+                 # A bad optional supplement cannot make the versions endpoint
+                 # fail or alter dates that have no supplement binding.
+                 supplemental = {}
++            if formula_groups and isinstance(formula_groups[0].get('f10_coverage'), dict):
++                supplemental = {**supplemental, 'f10_coverage':formula_groups[0]['f10_coverage']}
+             list_version = [modules['list'], static, version('formula_groups', source_date)]
+             if supplemental.get('d35c_marks') is not None:
+                 list_version.append(supplemental['d35c_marks'])
+             if supplemental.get('supplement_pointer') is not None:
+                 list_version.append(supplemental['supplement_pointer'])
++            if supplemental.get('f10_coverage') is not None:
++                list_version.append(supplemental['f10_coverage'])
+             modules['list'] = digest(list_version)
+             if supplemental.get('score_action') is not None:
+                 modules['score_action'] = digest([modules['score_action'], supplemental['score_action'],
+@@ -1067,7 +1080,7 @@
+                         materials=[], reference_links=[], source_refs=dict(receipt=version['numeric_manifest']), **FLAGS)
+         p=self._view(source_date,revision);observation=self._observation_date(source_date)
+         if observation is None:raise ValueError('WORKBENCH_OBSERVATION_DATE_UNBOUND')
+-        override = self._formula_groups(p, source_date, observation)
++        override = self._formula_groups(p, source_date, observation, include_f10_coverage=True)
+         if override is None and self._uses_only_formula_groups():
+             override = (self._pending_formula_groups(), [])
+         formula_groups, rows = override if override is not None else (None, [])

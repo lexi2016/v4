@@ -69,7 +69,8 @@ def write_f10_stock(owner_root, symbol, invalid=None):
 
 
 def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None, f10_outcomes=None,
-        d35c_items=None, invalid_f10=None, include_unreadable_non_roster=False):
+        d35c_items=None, invalid_f10=None, include_unreadable_non_roster=False,
+        supplement_status='COMPLETE', f10_raw_counts=None):
     symbols = [SYMBOL] if symbols is None else symbols
     day_root = root / SOURCE_DATE
     score_root = root / 'score-action'
@@ -120,19 +121,23 @@ def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None,
                 input_sha256=INPUT, selector_sha256=SELECTOR, scope_sha256=scope_sha),
             items=checkpoint_items, upstream_success_receipt=upstream_ref, **FLAGS)
         checkpoint_ref = write_f10_ref(owner_root, 'checkpoints', checkpoint)
+        raw_counts = f10_raw_counts or {}
+        requested = raw_counts.get('requested', len(symbols) + (1 if include_unreadable_non_roster else 0))
+        observed_count = raw_counts.get('observed', len(checkpoint_items))
+        scope_count = raw_counts.get('scope_count', requested)
         receipt = dict(schema='v4.a_share.f10_daily_receipt.v1', status='PARTIAL',
             data_date='20261120', source_generation=GENERATION, input_sha256=INPUT,
             selector_sha256=SELECTOR, numeric_manifest=NUMERIC, scope_sha256=scope_sha,
-            scope=dict(kind='ADMITTED_DAILY_UNIVERSE',
-                count=len(symbols) + (1 if include_unreadable_non_roster else 0), symbols=None),
-            priority_scope=dict(symbols=sorted(symbols), count=len(symbols)),
+            scope=dict(kind='ADMITTED_DAILY_UNIVERSE', count=scope_count, symbols=None),
+            priority_scope=dict(symbols=sorted(symbols),
+                count=raw_counts.get('priority_count', len(symbols))),
             checkpoint=checkpoint_ref, upstream_success_receipt=upstream_ref,
-            requested=len(symbols) + (1 if include_unreadable_non_roster else 0),
-            observed=len(checkpoint_items), failures={symbol:{'status':'FAILED'} for symbol in failed},
+            requested=requested, observed=observed_count,
+            failures={symbol:{'status':'FAILED'} for symbol in failed},
             remaining=list(remaining), historical_PIT=False, **FLAGS)
         f10_receipt_ref = write_f10_ref(owner_root, 'receipts', receipt)
         f10_binding = dict(status='PARTIAL', receipt=f10_receipt_ref)
-    artifact = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_V1', status='COMPLETE',
+    artifact = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_V1', status=supplement_status,
         **identity, score_action=score_binding, **FLAGS)
     if f10_binding is not None:
         artifact['f10'] = f10_binding
@@ -152,7 +157,7 @@ def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None,
         artifact=artifact_ref, **identity, **FLAGS)
     receipt_ref = write_ref(day_root / 'supplements/receipts/supplement-receipt.json', receipt)
     pointer = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_COMMIT_V1',
-        module='formula_group_supplement', status='COMPLETE', **identity,
+        module='formula_group_supplement', status=supplement_status, **identity,
         artifact=artifact_ref, receipt=receipt_ref, **FLAGS)
     write_ref(day_root / 'supplements/latest.json', pointer)
     product = dict(data_date='20261120', source_generation=GENERATION,
@@ -195,7 +200,69 @@ def test_legacy_complete_with_twenty_observed_and_two_failed_is_read_as_partial(
 
     assert value['supplement_status'] == 'PARTIAL'
     assert value['f10_coverage'] == dict(status='PARTIAL', observed=20, failed=2,
-        remaining=0, receipt=value['f10_coverage']['receipt'])
+        remaining=0, receipt_sha256=value['f10_coverage']['receipt_sha256'],
+        schema=value['f10_coverage']['schema'], source_date=SOURCE_DATE,
+        observation_date=OBSERVATION_DATE, generation=GENERATION, input_sha256=INPUT,
+        numeric_manifest_sha256=NUMERIC['sha256'],
+        roster_symbols_sha256=value['f10_coverage']['roster_symbols_sha256'], roster_count=22,
+        **FLAGS)
+
+
+def test_persisted_partial_f10_coverage_is_recomputed_for_exact_roster_without_owner_counts_or_paths(tmp_path):
+    symbols = [f'{number:06d}.SZ' for number in range(100, 122)]
+    root, product, formula_ref = build_supplement(tmp_path, symbols=symbols,
+        f10_outcomes=(symbols[:20], symbols[20:], []), supplement_status='PARTIAL',
+        f10_raw_counts=dict(requested=999, observed=0, scope_count=1, priority_count=1))
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    coverage = value['f10_coverage']
+    assert value['supplement_status'] == 'PARTIAL'
+    assert coverage['status'] == 'PARTIAL'
+    assert (coverage['observed'], coverage['failed'], coverage['remaining']) == (20, 2, 0)
+    assert coverage['source_date'] == SOURCE_DATE
+    assert coverage['observation_date'] == OBSERVATION_DATE
+    assert coverage['generation'] == GENERATION
+    assert coverage['input_sha256'] == INPUT
+    assert coverage['numeric_manifest_sha256'] == NUMERIC['sha256']
+    assert coverage['roster_count'] == 22
+    assert coverage['roster_symbols_sha256'] == _canonical_sha(symbols)
+    assert not any('path' in key.lower() for key in coverage)
+
+
+def test_missing_f10_receipt_is_cannot_confirm_with_explicit_counts(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path)
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    coverage = value['f10_coverage']
+    assert coverage['status'] == 'CANNOT_CONFIRM'
+    assert (coverage['observed'], coverage['failed'], coverage['remaining']) == (0, 0, 1)
+    assert coverage['receipt_sha256'] is None
+    assert not any('path' in key.lower() for key in coverage)
+
+
+def test_exact_roster_without_supplement_pointer_is_cannot_confirm(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path)
+    (root / SOURCE_DATE / 'supplements/latest.json').unlink()
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'CANNOT_CONFIRM'
+    assert (value['f10_coverage']['observed'], value['f10_coverage']['failed'],
+            value['f10_coverage']['remaining']) == (0, 0, 1)
+    assert value['f10_coverage']['roster_symbols_sha256'] == _canonical_sha([SYMBOL])
+
+
+def test_empty_exact_roster_without_supplement_pointer_remains_complete(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path, symbols=[])
+    (root / SOURCE_DATE / 'supplements/latest.json').unlink()
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+    assert (value['f10_coverage']['observed'], value['f10_coverage']['failed'],
+            value['f10_coverage']['remaining']) == (0, 0, 0)
 
 
 def test_complete_f10_coverage_requires_every_roster_symbol_observed(tmp_path):
@@ -224,6 +291,7 @@ def test_complete_f10_readback_counts_invalid_claimed_row_as_failed(tmp_path, in
     assert value['f10_coverage']['failed'] == 1
     assert value['f10_coverage']['remaining'] == 0
     assert value['supplement_status'] == 'PARTIAL'
+    assert not any('path' in key.lower() for key in value['f10_coverage'])
 
 
 def test_twenty_valid_and_two_invalid_f10_rows_downgrade_legacy_complete(tmp_path):
@@ -287,6 +355,10 @@ def test_empty_exact_roster_remains_vacuously_complete_without_f10_receipt(tmp_p
     value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
 
     assert value['supplement_status'] == 'COMPLETE'
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+    assert (value['f10_coverage']['observed'], value['f10_coverage']['failed'],
+            value['f10_coverage']['remaining']) == (0, 0, 0)
+    assert value['f10_coverage']['receipt_sha256'] is None
 
 
 def test_pinned_score_rule_map_matches_active_main_source_and_contract_bytes():
