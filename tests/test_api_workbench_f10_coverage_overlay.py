@@ -98,7 +98,7 @@ def test_exact_formula_day_http_projects_f10_coverage_identity_and_versions_refr
     app = FastAPI()
     app.include_router(module.create_workbench_router(object()))
 
-    with TestClient(app) as client:
+    with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get(f'/workbench/days/{SOURCE_DATE}')
         assert response.status_code == 200
         absent = response.json()['formula_groups']['f10_coverage']
@@ -133,6 +133,18 @@ def test_exact_formula_day_http_projects_f10_coverage_identity_and_versions_refr
         assert before['event_id'] != after['event_id']
         assert before['modules']['list'] != after['modules']['list']
         assert overlay['preimage_sha256'] == _sha(Path(overlay['source_path']).read_bytes())
+
+        def reject_malformed_roster(*args, **kwargs):
+            raise ValueError('WORKBENCH_FORMULA_GROUP_CONTRACT_INVALID')
+
+        monkeypatch.setattr(module, '_formula_group_rows', reject_malformed_roster)
+        compatible = client.get(f'/workbench/days/{SOURCE_DATE}/versions')
+        assert compatible.status_code == 200
+        legacy = compatible.json()
+        assert legacy['schema'] == 'V4_WORKBENCH_VERSIONS_V1'
+        assert legacy['source_date'] == SOURCE_DATE
+        assert legacy['observation_date'] == OBSERVATION_DATE
+        assert set(legacy['modules']) >= {'catalog', 'top200', 'list', 'company', 'score_action', 'v192', 'workflow'}
 
 
 def _canonical_roster_sha(symbols):
