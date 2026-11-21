@@ -505,3 +505,58 @@ def test_typed_turnover_calendar_proof_binds_actual_primary_and_history(fixture,
     else:
         assert identity.validate_turnover_evidence(f.module, f.kwargs, TARGET, evidence) == evidence
         identity.validate_turnover_before_load(f.module.__file__, f.kwargs['tdx_root'], TARGET)
+
+
+@pytest.mark.parametrize('blocked', [False, True])
+def test_ready_reuse_guards_calendar_before_turnover_loader(fixture, monkeypatch, blocked):
+    import sys
+    f = fixture
+    order = []
+    def guard(*args):
+        order.append('preflight')
+        if blocked:
+            raise governance.RetentionError('unreviewed calendar rejected before loader')
+    def load(*args):
+        order.append('load')
+        raise InterruptedError('stop isolated test after verified call order')
+    monkeypatch.setattr(identity, 'validate_turnover_before_load', guard)
+    monkeypatch.setitem(sys.modules, 'ops.research_panel_turnover', SimpleNamespace(load_daily=load))
+    module = SimpleNamespace(__file__=f.module.__file__, input_path=f.module.input_path,
+        load_snapshot=lambda *_:{}, generation_identity=lambda *_, **__:{})
+    error = governance.RetentionError if blocked else InterruptedError
+    with pytest.raises(error):
+        governance.verified_qfq_current(module, f.policy, TARGET, f.kwargs)
+    assert order == (['preflight'] if blocked else ['preflight', 'load'])
+
+
+def test_complete_capture_rechecks_sources_after_environment_read(fixture, monkeypatch):
+    f = fixture
+    original = identity.environment_identity
+    def changed(packages):
+        result = original(packages)
+        source = f.roots[1] / 'ops/research_panel_daily_source.py'
+        source.write_text(source.read_text() + '\n# concurrent edit during environment proof\n')
+        return result
+    monkeypatch.setattr(identity, 'environment_identity', changed)
+    with pytest.raises(governance.RetentionError, match='CHANGED_DURING_READ'):
+        identity.computation_dependencies(f.module, f.kwargs)
+
+
+@pytest.mark.parametrize('value', [TARGET, str(TARGET), '2026-11-20', float(TARGET), True, '20261120.0'])
+def test_sync_target_preserves_existing_eight_digit_string_contract(value):
+    assert identity._same_sync_target(value, TARGET) is (type(value) is int and value == TARGET or type(value) is str and value == str(TARGET))
+
+
+def test_large_summary_uses_owner_budget_and_cached_small_projection(tmp_path, monkeypatch):
+    summary = tmp_path / 'summary.json'
+    summary.write_text('{"target_date":"20261120","official_daily_source":{"source_kind":"TDX_OFFICIAL_G4DAY"}}')
+    reference = {'path':str(summary), 'sha256':governance.digest(summary)}
+    original = identity._bound_control
+    limits = []
+    def read(ref, *, limit):
+        limits.append(limit)
+        return original(ref, limit=limit)
+    monkeypatch.setattr(identity, '_bound_control', read)
+    expected = identity._sync_summary(reference)
+    assert identity._sync_summary(reference) == expected
+    assert limits == [192 * 1024 * 1024]

@@ -65,6 +65,7 @@ DYNAMIC = {
 RUNTIME_PACKAGES = {'numpy', 'pandas', 'pyarrow', 'psutil', 'pytdx', 'futu', 'packaging'}
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 _PACKAGE_HASHES = {}
+_SYNC_SUMMARIES = {}
 _ACTIVE_CLAIM = ContextVar('qfq_computation_claim', default=None)
 
 
@@ -420,9 +421,13 @@ def computation_dependencies(module, kwargs, *, snapshot=None, runtime_root=None
     for name, expected in observations.items():
         if stamp(safe_path(name)) != expected:
             raise RetentionError('QFQ_DEPENDENCY_CHANGED_DURING_READ')
+    environment = environment_identity(packages)
+    for name, expected in observations.items():
+        if stamp(safe_path(name)) != expected:
+            raise RetentionError('QFQ_DEPENDENCY_CHANGED_DURING_READ')
     result = dict(schema=SCHEMA, dependencies=sorted(records.values(), key=lambda r:r['role']),
         dynamic_edges=[dict(source=source, expression=expression) for source,expression in sorted({(r['source'],r['expression']) for r in dynamic_edges})],
-        environment=environment_identity(packages))
+        environment=environment)
     if snapshot is not None:
         result['frozen_input_sha256'] = canonical(snapshot)
     validate_manifest(result)
@@ -548,7 +553,7 @@ def observe_turnover(module_file, data_root, tdx_root, target, value, policy):
     claim.qfq_turnover_evidence = evidence
 
 
-def _bound_control(ref, *, limit=64 * 1024 * 1024):
+def _bound_control(ref, *, limit=8 * 1024 * 1024):
     if (not isinstance(ref, dict) or not isinstance(ref.get('path'), str)
             or not re.fullmatch('[0-9a-f]{64}', str(ref.get('sha256', '')))):
         raise RetentionError('QFQ_DEPENDENCY_TYPED_CONTROL_REF_REQUIRED')
@@ -572,10 +577,10 @@ def _validate_turnover_calendar(module, binding, target):
     for ref in expected.values():
         if _artifact_sha(safe_path(ref['path'])) != ref['sha256']:
             raise RetentionError('QFQ_DEPENDENCY_CALENDAR_SOURCE_CONFLICT')
-    sync = _bound_control(binding['sync'])
+    sync = _sync_summary(binding['sync'])
     source = sync.get('official_daily_source') or {}
     actual_input = source.get('input_ref')
-    if (sync.get('target_date') != target or source.get('source_kind') != 'TDX_OFFICIAL_G4DAY'
+    if (not _same_sync_target(sync.get('target_date'), target) or source.get('source_kind') != 'TDX_OFFICIAL_G4DAY'
             or not isinstance(actual_input, dict)
             or any(actual_input.get(name) != binding['input_ref'].get(name) for name in ('path', 'sha256'))
             or source.get('package') != binding['package']):
@@ -603,7 +608,7 @@ def validate_turnover_before_load(module_file, tdx_root, target):
     if not sync_path.exists():
         return
     sync_ref = dict(path=str(sync_path), sha256=_artifact_sha(sync_path))
-    sync = _bound_control(sync_ref)
+    sync = _sync_summary(sync_ref)
     source = sync.get('official_daily_source') or {}
     ref = source.get('input_ref')
     if not isinstance(ref, dict) or not isinstance(source.get('package'), dict):
@@ -613,3 +618,24 @@ def validate_turnover_before_load(module_file, tdx_root, target):
     claim = _ACTIVE_CLAIM.get()
     if claim is not None:
         claim.qfq_turnover_preload = binding
+
+
+def _same_sync_target(value, target):
+    return ((type(value) is int and value == target)
+            or (type(value) is str and re.fullmatch('[0-9]{8}', value) is not None and value == str(target)))
+
+
+def _sync_summary(ref):
+    path = safe_path(ref['path'])
+    observed = stamp(path)
+    prior = _SYNC_SUMMARIES.get(str(path))
+    if prior and prior[:2] == (observed, ref['sha256']):
+        return json.loads(prior[2])
+    # The existing owner permits 192 MiB control files. Keep that accepted
+    # summary scope while input/history descriptors retain the smaller bound.
+    summary = _bound_control(ref, limit=192 * 1024 * 1024)
+    projection = {key:summary.get(key) for key in ('target_date', 'official_daily_source')}
+    if len(_SYNC_SUMMARIES) >= 16:
+        _SYNC_SUMMARIES.pop(next(iter(_SYNC_SUMMARIES)))
+    _SYNC_SUMMARIES[str(path)] = (observed, ref['sha256'], json.dumps(projection))
+    return projection

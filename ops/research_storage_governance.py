@@ -1080,6 +1080,8 @@ def verified_qfq_current(module, policy, target, kwargs):
     snapshot=module.load_snapshot(module.input_path(Path(policy['data_root'])),target)
     identity=module.generation_identity(snapshot,kwargs['driver_path'],kwargs['formula_path'],kwargs['contract_csv'], input_root=module.input_path(Path(policy['data_root'])).parent)
     from ops.research_panel_turnover import load_daily
+    from ops.research_qfq_dependency_identity import validate_turnover_before_load
+    validate_turnover_before_load(module.__file__, kwargs['tdx_root'], target)
     identity['turnover_input_sha256']=load_daily(Path(policy['data_root']),kwargs['tdx_root'],target).identity
     paths={role:safe_path(Path(value).read_text(encoding='utf-8-sig').strip()) for role,value in policy['pointers'].items()}
     if any(not under(path,Path(policy['formal_roots'][role])) for role,path in paths.items()):
