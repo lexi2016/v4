@@ -362,6 +362,44 @@ def prior_f10_snapshot(source, current_product, source_date, observation_date, s
     return None
 
 
+def _f10_owner_root_from_receipt(reference, source_date, generation):
+    import re
+
+    if not isinstance(reference, dict):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_REFERENCE_INVALID')
+    path_text, digest = reference.get('path'), reference.get('sha256')
+    if (not isinstance(path_text, str) or not isinstance(digest, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', digest)):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_REFERENCE_INVALID')
+    path = Path(path_text)
+    if not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path:
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_PATH_INVALID')
+    owner_root = path.parent.parent
+    selected = source_date.replace('-', '')
+    if (path != owner_root / 'receipts' / (digest + '.json')
+            or owner_root.name != generation[:16]
+            or owner_root.parent.name != selected
+            or owner_root.parent.parent.name != 'f10'
+            or owner_root.resolve(strict=True) != owner_root):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_PATH_CONFLICT')
+    return owner_root
+
+
+def _f10_owner_ref_path(reference, owner_root, directory, symbol=None):
+    import re
+
+    if not isinstance(reference, dict):
+        return False
+    path_text, digest = reference.get('path'), reference.get('sha256')
+    if (not isinstance(path_text, str) or not isinstance(digest, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', digest)):
+        return False
+    expected_parent = Path(owner_root) / directory
+    if symbol is not None:
+        expected_parent = expected_parent / symbol
+    return Path(path_text) == expected_parent / (digest + '.json')
+
+
 def _f10_roster_readback(binding, source_date, product, symbols):
     """Read F10 checkpoint outcomes for this exact roster without mutation."""
     import re
@@ -370,9 +408,11 @@ def _f10_roster_readback(binding, source_date, product, symbols):
     if not isinstance(reference, dict):
         return dict(status='UNATTEMPTED', observed=0, failed=0,
                     remaining=len(symbols), receipt=None)
-    receipt = _checked(reference)
     selected = source_date.replace('-', '')
     product_identity = product.get('source_identity') or {}
+    owner_root = _f10_owner_root_from_receipt(
+        reference, source_date, product.get('source_generation'))
+    receipt = _checked(reference, root=owner_root)
     if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1'
             or receipt.get('status') not in {'COMPLETE', 'PARTIAL'}
             or receipt.get('data_date') != selected
@@ -388,7 +428,9 @@ def _f10_roster_readback(binding, source_date, product, symbols):
             or any(receipt.get(key) is not value for key, value in FLAGS.items())):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_RECEIPT_CONFLICT')
     checkpoint_ref = receipt.get('checkpoint')
-    checkpoint = _checked(checkpoint_ref)
+    if not _f10_owner_ref_path(checkpoint_ref, owner_root, 'checkpoints'):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_CHECKPOINT_PATH_CONFLICT')
+    checkpoint = _checked(checkpoint_ref, root=owner_root)
     identity = checkpoint.get('identity') or {}
     if (checkpoint.get('schema') != 'v4.a_share.f10_checkpoint.v1'
             or identity.get('data_date') != selected
@@ -407,27 +449,42 @@ def _f10_roster_readback(binding, source_date, product, symbols):
     if receipt.get('observed') != len(items):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OBSERVED_COUNT_CONFLICT')
     roster = set(symbols)
-    observed = set()
+    claimed_observed = set()
     for symbol, item_ref in items.items():
         if not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol):
             raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_SYMBOL_INVALID')
         if symbol not in roster:
             continue
-        if (not isinstance(item_ref, dict) or not isinstance(item_ref.get('path'), str)
-                or not isinstance(item_ref.get('sha256'), str)
-                or not re.fullmatch(r'[0-9a-f]{64}', item_ref['sha256'])):
-            raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_REF_INVALID:' + symbol)
-        observed.add(symbol)
+        claimed_observed.add(symbol)
     if any(not isinstance(symbol, str) or not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', symbol)
            for symbol in (*failures.keys(), *remaining_raw)):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_SYMBOL_INVALID')
-    failed = set(failures) & roster
+    claimed_failed = set(failures) & roster
     if not set(failures) <= roster:
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_FAILURE_OUTSIDE_PRIORITY_SCOPE')
     remaining_set = set(remaining_raw)
     if len(remaining_set) != len(remaining_raw):
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_REMAINING_DUPLICATE')
-    remaining = (remaining_set & roster) | (roster - observed - failed)
+    claimed_remaining = remaining_set & roster
+    if (claimed_observed & claimed_failed or claimed_observed & claimed_remaining
+            or claimed_failed & claimed_remaining):
+        raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_CONFLICT')
+    observed, failed = set(), set(claimed_failed)
+    for symbol in sorted(claimed_observed):
+        item_ref = items[symbol]
+        try:
+            if not _f10_owner_ref_path(item_ref, owner_root, 'stocks', symbol):
+                raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_PATH_CONFLICT')
+            row = _checked(item_ref, root=owner_root)
+            if (not isinstance(row, dict) or row.get('symbol') != symbol
+                    or row.get('status') != 'OBSERVED' or row.get('historical_PIT') is not False
+                    or any(row.get(key) is not value for key, value in FLAGS.items())):
+                raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_ITEM_CONFLICT')
+        except (ValueError, OSError, TypeError, KeyError, AttributeError):
+            failed.add(symbol)
+        else:
+            observed.add(symbol)
+    remaining = claimed_remaining | (roster - claimed_observed - claimed_failed)
     if observed & failed or observed & remaining or failed & remaining:
         raise ValueError('WORKBENCH_FORMULA_SUPPLEMENT_F10_OUTCOME_CONFLICT')
     complete = observed == roster and not failed and not remaining

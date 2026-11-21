@@ -33,12 +33,14 @@ def _reference(path):
     return {'path': str(path), 'sha256': _sha(path.read_bytes())}
 
 
-def _checked(reference):
+def _checked(reference, *, root=None):
     if not isinstance(reference, dict) or not isinstance(reference.get('path'), str):
         raise ValueError('FORMULA_SUPPLEMENT_REFERENCE_INVALID')
     path = Path(reference['path'])
     if not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path:
         raise ValueError('FORMULA_SUPPLEMENT_PATH_INVALID')
+    if root is not None and not path.is_relative_to(root):
+        raise ValueError('FORMULA_SUPPLEMENT_OUTSIDE_OWNER_ROOT')
     raw = path.read_bytes()
     if _sha(raw) != reference.get('sha256'):
         raise ValueError('FORMULA_SUPPLEMENT_SHA_DRIFT')
@@ -365,7 +367,11 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
     reference = binding.get('receipt') if isinstance(binding, dict) else None
     if not isinstance(reference, dict):
         return set(), set(), set(roster)
-    receipt = _checked(reference)
+    owner_root = (Path(context.root).resolve(strict=True) / 'f10'
+        / str(context.target) / context.generation[:16])
+    if not _f10_owner_ref_path(reference, owner_root, 'receipts'):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_RECEIPT_PATH_CONFLICT')
+    receipt = _checked(reference, root=owner_root)
     if (receipt.get('schema') != 'v4.a_share.f10_daily_receipt.v1'
             or receipt.get('data_date') != str(context.target)
             or receipt.get('source_generation') != context.generation
@@ -376,7 +382,10 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
             or receipt.get('priority_scope') != dict(symbols=sorted(symbols), count=len(symbols))
             or any(receipt.get(key) is not value for key, value in FLAGS.items())):
         raise ValueError('FORMULA_SUPPLEMENT_F10_RECEIPT_CONFLICT')
-    checkpoint = _checked(receipt['checkpoint'])
+    checkpoint_ref = receipt.get('checkpoint')
+    if not _f10_owner_ref_path(checkpoint_ref, owner_root, 'checkpoints'):
+        raise ValueError('FORMULA_SUPPLEMENT_F10_CHECKPOINT_PATH_CONFLICT')
+    checkpoint = _checked(checkpoint_ref, root=owner_root)
     identity = checkpoint.get('identity', {})
     if (checkpoint.get('schema') != 'v4.a_share.f10_checkpoint.v1'
             or identity.get('data_date') != str(context.target)
@@ -392,7 +401,7 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
         raise ValueError('FORMULA_SUPPLEMENT_F10_ITEMS_INVALID')
     if receipt.get('observed') != len(checkpoint_items):
         raise ValueError('FORMULA_SUPPLEMENT_F10_OBSERVED_COUNT_CONFLICT')
-    observed = set()
+    claimed_observed = set()
     for symbol, ref in checkpoint_items.items():
         if not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', str(symbol)):
             raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_SYMBOL_INVALID')
@@ -400,15 +409,12 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
             # The checkpoint is admitted-universe scoped. Its other immutable
             # stock shards are outside this roster decision and need not be read.
             continue
-        row = _checked(ref)
-        if row.get('symbol') != symbol or row.get('status') != 'OBSERVED' or any(row.get(key) is not value for key, value in FLAGS.items()):
-            raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_CONFLICT:' + symbol)
-        observed.add(symbol)
+        claimed_observed.add(symbol)
     failures = receipt.get('failures', {})
     remaining_raw = receipt.get('remaining', [])
     if not isinstance(failures, dict) or not isinstance(remaining_raw, list):
         raise ValueError('FORMULA_SUPPLEMENT_F10_OUTCOME_PARTITION_INVALID')
-    failed = set(failures) & roster
+    claimed_failed = set(failures) & roster
     if not set(failures) <= roster:
         raise ValueError('FORMULA_SUPPLEMENT_F10_FAILURE_OUTSIDE_PRIORITY_SCOPE')
     if any(not re.fullmatch(r'\d{6}\.(SH|SZ|BJ)', str(symbol)) for symbol in failures):
@@ -418,12 +424,42 @@ def _f10_roster_coverage(context, numeric_manifest, symbols, binding):
     remaining_set = set(remaining_raw)
     if len(remaining_set) != len(remaining_raw):
         raise ValueError('FORMULA_SUPPLEMENT_F10_REMAINING_DUPLICATE')
-    remaining = (remaining_set & roster) | (roster - observed - failed)
-    if observed & failed:
+    claimed_remaining = remaining_set & roster
+    if (claimed_observed & claimed_failed or claimed_observed & claimed_remaining
+            or claimed_failed & claimed_remaining):
         raise ValueError('FORMULA_SUPPLEMENT_F10_DUPLICATE_OUTCOME')
-    if observed & remaining or failed & remaining:
+    observed, failed = set(), set(claimed_failed)
+    for symbol in sorted(claimed_observed):
+        try:
+            if not _f10_owner_ref_path(checkpoint_items[symbol], owner_root, 'stocks', symbol):
+                raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_PATH_CONFLICT')
+            row = _checked(checkpoint_items[symbol], root=owner_root)
+            if (not isinstance(row, dict) or row.get('symbol') != symbol
+                    or row.get('status') != 'OBSERVED' or row.get('historical_PIT') is not False
+                    or any(row.get(key) is not value for key, value in FLAGS.items())):
+                raise ValueError('FORMULA_SUPPLEMENT_F10_ITEM_CONFLICT')
+        except (ValueError, OSError, TypeError, KeyError, AttributeError):
+            failed.add(symbol)
+        else:
+            observed.add(symbol)
+    remaining = claimed_remaining | (roster - claimed_observed - claimed_failed)
+    if observed & failed or observed & remaining or failed & remaining:
         raise ValueError('FORMULA_SUPPLEMENT_F10_OUTCOME_PARTITION_CONFLICT')
     return observed, failed, remaining
+
+
+def _f10_owner_ref_path(reference, owner_root, directory, symbol=None):
+    if not isinstance(reference, dict):
+        return False
+    digest = reference.get('sha256')
+    path_text = reference.get('path')
+    if (not isinstance(path_text, str) or not isinstance(digest, str)
+            or not re.fullmatch(r'[0-9a-f]{64}', digest)):
+        return False
+    expected_parent = Path(owner_root) / directory
+    if symbol is not None:
+        expected_parent = expected_parent / symbol
+    return Path(path_text) == expected_parent / (digest + '.json')
 
 
 def _f10_roster_complete(symbols, observed, failed, remaining):

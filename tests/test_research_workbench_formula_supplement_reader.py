@@ -31,8 +31,45 @@ def write_ref(path, value):
     return dict(path=str(path.resolve()), sha256=hashlib.sha256(raw).hexdigest())
 
 
+def write_f10_ref(owner_root, directory, value):
+    raw = (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode()
+    digest = hashlib.sha256(raw).hexdigest()
+    path = owner_root / directory / (digest + '.json')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(raw)
+    return dict(path=str(path.resolve()), sha256=digest)
+
+
+def write_f10_stock(owner_root, symbol, invalid=None):
+    row = dict(symbol=symbol, status='OBSERVED', historical_PIT=False, **FLAGS)
+    if invalid == 'wrong_symbol':
+        row['symbol'] = '999999.SZ'
+    elif invalid == 'failed_status':
+        row['status'] = 'FAILED'
+    elif invalid == 'unsafe_flags':
+        row['buy_gate_updated'] = True
+    elif invalid == 'historical_pit':
+        row['historical_PIT'] = True
+    raw = (json.dumps(row, sort_keys=True, separators=(',', ':')) + '\n').encode()
+    if invalid == 'corrupt_json':
+        raw = b'{not-json\n'
+    elif invalid == 'non_object':
+        raw = b'[]\n'
+    digest = hashlib.sha256(raw).hexdigest()
+    if invalid == 'sha_mismatch':
+        digest = hashlib.sha256(b'different bytes').hexdigest()
+    stock_root = owner_root
+    if invalid == 'outside_root':
+        stock_root = owner_root.parents[2] / 'foreign_f10' / owner_root.parent.name / owner_root.name
+    path = stock_root / 'stocks' / symbol / (digest + '.json')
+    if invalid != 'missing':
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+    return dict(path=str(path), sha256=digest)
+
+
 def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None, f10_outcomes=None,
-        d35c_items=None):
+        d35c_items=None, invalid_f10=None, include_unreadable_non_roster=False):
     symbols = [SYMBOL] if symbols is None else symbols
     day_root = root / SOURCE_DATE
     score_root = root / 'score-action'
@@ -72,21 +109,28 @@ def build_supplement(root, *, pin_rules=True, corrupt_rules=False, symbols=None,
         observed, failed, remaining = f10_outcomes
         upstream_ref = dict(path='/products/upstream.json', sha256='5' * 64)
         scope_sha = '6' * 64
+        owner_root = root/'f10'/SOURCE_DATE.replace('-', '')/GENERATION[:16]
+        checkpoint_items = {symbol:write_f10_stock(owner_root, symbol, (invalid_f10 or {}).get(symbol))
+            for symbol in observed}
+        if include_unreadable_non_roster:
+            checkpoint_items['999999.BJ'] = dict(
+                path=str(root/'unreadable-foreign-stock.json'), sha256='7' * 64)
         checkpoint = dict(schema='v4.a_share.f10_checkpoint.v1',
             identity=dict(data_date='20261120', source_generation=GENERATION,
                 input_sha256=INPUT, selector_sha256=SELECTOR, scope_sha256=scope_sha),
-            items={symbol:dict(path='/f10/' + symbol + '.json', sha256='7' * 64)
-                for symbol in observed}, upstream_success_receipt=upstream_ref, **FLAGS)
-        checkpoint_ref = write_ref(root / 'f10/checkpoints/checkpoint.json', checkpoint)
+            items=checkpoint_items, upstream_success_receipt=upstream_ref, **FLAGS)
+        checkpoint_ref = write_f10_ref(owner_root, 'checkpoints', checkpoint)
         receipt = dict(schema='v4.a_share.f10_daily_receipt.v1', status='PARTIAL',
             data_date='20261120', source_generation=GENERATION, input_sha256=INPUT,
             selector_sha256=SELECTOR, numeric_manifest=NUMERIC, scope_sha256=scope_sha,
-            scope=dict(kind='ADMITTED_DAILY_UNIVERSE', count=len(symbols), symbols=None),
+            scope=dict(kind='ADMITTED_DAILY_UNIVERSE',
+                count=len(symbols) + (1 if include_unreadable_non_roster else 0), symbols=None),
             priority_scope=dict(symbols=sorted(symbols), count=len(symbols)),
             checkpoint=checkpoint_ref, upstream_success_receipt=upstream_ref,
-            requested=len(symbols), observed=len(observed), failures={symbol:{'status':'FAILED'} for symbol in failed},
+            requested=len(symbols) + (1 if include_unreadable_non_roster else 0),
+            observed=len(checkpoint_items), failures={symbol:{'status':'FAILED'} for symbol in failed},
             remaining=list(remaining), historical_PIT=False, **FLAGS)
-        f10_receipt_ref = write_ref(root / 'f10/receipts/receipt.json', receipt)
+        f10_receipt_ref = write_f10_ref(owner_root, 'receipts', receipt)
         f10_binding = dict(status='PARTIAL', receipt=f10_receipt_ref)
     artifact = dict(schema='V4_WORKBENCH_FORMULA_GROUP_SUPPLEMENT_V1', status='COMPLETE',
         **identity, score_action=score_binding, **FLAGS)
@@ -163,6 +207,53 @@ def test_complete_f10_coverage_requires_every_roster_symbol_observed(tmp_path):
 
     assert value['supplement_status'] == 'COMPLETE'
     assert value['f10_coverage']['status'] == 'COMPLETE'
+
+
+@pytest.mark.parametrize('invalid', ['missing', 'sha_mismatch', 'wrong_symbol', 'failed_status',
+        'corrupt_json', 'non_object', 'unsafe_flags', 'historical_pit', 'outside_root'])
+def test_complete_f10_readback_counts_invalid_claimed_row_as_failed(tmp_path, invalid):
+    root, product, formula_ref = build_supplement(tmp_path,
+        f10_outcomes=([SYMBOL], [], []),
+        d35c_items={SYMBOL:dict(status='READY', unresolved_conditions=0)},
+        invalid_f10={SYMBOL:invalid})
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'PARTIAL'
+    assert value['f10_coverage']['observed'] == 0
+    assert value['f10_coverage']['failed'] == 1
+    assert value['f10_coverage']['remaining'] == 0
+    assert value['supplement_status'] == 'PARTIAL'
+
+
+def test_twenty_valid_and_two_invalid_f10_rows_downgrade_legacy_complete(tmp_path):
+    symbols = [f'{number:06d}.SZ' for number in range(100, 122)]
+    invalid_f10 = {symbols[-2]:'missing', symbols[-1]:'sha_mismatch'}
+    ready_items = {symbol:dict(status='READY', unresolved_conditions=0) for symbol in symbols}
+    root, product, formula_ref = build_supplement(tmp_path, symbols=symbols,
+        f10_outcomes=(symbols, [], []), d35c_items=ready_items, invalid_f10=invalid_f10)
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'PARTIAL'
+    assert value['f10_coverage']['observed'] == 20
+    assert value['f10_coverage']['failed'] == 2
+    assert value['f10_coverage']['remaining'] == 0
+    assert value['supplement_status'] == 'PARTIAL'
+
+
+def test_f10_readback_skips_unreadable_checkpoint_shards_outside_roster(tmp_path):
+    root, product, formula_ref = build_supplement(tmp_path,
+        f10_outcomes=([SYMBOL], [], []),
+        d35c_items={SYMBOL:dict(status='READY', unresolved_conditions=0)},
+        include_unreadable_non_roster=True)
+
+    value = load(root, SOURCE_DATE, product, formula_ref, OBSERVATION_DATE)
+
+    assert value['f10_coverage']['status'] == 'COMPLETE'
+    assert value['f10_coverage']['observed'] == 1
+    assert value['f10_coverage']['failed'] == 0
+    assert value['supplement_status'] == 'COMPLETE'
 
 
 def test_all_observed_f10_does_not_hide_legacy_unresolved_d35c(tmp_path):

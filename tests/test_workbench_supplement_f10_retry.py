@@ -33,30 +33,68 @@ def _write_ref(path, value):
     return dict(path=str(path.resolve()), sha256=hashlib.sha256(raw).hexdigest())
 
 
-def _coverage_binding(tmp_path, observed, failed, *, include_unreadable_non_roster=False):
+def _write_owner_ref(owner_root, directory, value):
+    raw = (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode()
+    digest = hashlib.sha256(raw).hexdigest()
+    path = Path(owner_root) / directory / (digest + '.json')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(raw)
+    return dict(path=str(path.resolve()), sha256=digest)
+
+
+def _f10_row_ref(owner_root, symbol, invalid=None):
+    row = dict(symbol=symbol, status='OBSERVED', historical_PIT=False, **FLAGS)
+    if invalid == 'wrong_symbol':
+        row['symbol'] = '999999.SZ'
+    elif invalid == 'failed_status':
+        row['status'] = 'FAILED'
+    elif invalid == 'unsafe_flags':
+        row['production_allowed'] = True
+    elif invalid == 'historical_pit':
+        row['historical_PIT'] = True
+    raw = (json.dumps(row, sort_keys=True, separators=(',', ':')) + '\n').encode()
+    if invalid == 'corrupt_json':
+        raw = b'{not-json\n'
+    elif invalid == 'non_object':
+        raw = b'[]\n'
+    digest = hashlib.sha256(raw).hexdigest()
+    if invalid == 'sha_mismatch':
+        digest = hashlib.sha256(b'different bytes').hexdigest()
+    stock_root = Path(owner_root)
+    if invalid == 'outside_root':
+        stock_root = stock_root.parents[2] / 'foreign_f10' / stock_root.parent.name / stock_root.name
+    path = stock_root / 'stocks' / symbol / (digest + '.json')
+    if invalid != 'missing':
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+    return dict(path=str(path), sha256=digest)
+
+
+def _coverage_binding(tmp_path, observed, failed, *, include_unreadable_non_roster=False,
+        invalid_rows=None):
     scope_sha = '9' * 64
     upstream = dict(path='/products/upstream.json',sha256='0' * 64)
     items = {}
-    for index, symbol in enumerate(sorted(observed)):
-        row = dict(symbol=symbol,status='OBSERVED',**FLAGS)
-        items[symbol] = _write_ref(tmp_path/f'items/{index}.json',row)
+    owner_root = tmp_path/'f10'/'20261120'/GENERATION[:16]
+    for symbol in sorted(observed):
+        items[symbol] = _f10_row_ref(owner_root, symbol, (invalid_rows or {}).get(symbol))
     if include_unreadable_non_roster:
         items['999999.BJ'] = dict(path=str(tmp_path/'missing-outside-roster.json'),sha256='1'*64)
     checkpoint = dict(schema='v4.a_share.f10_checkpoint.v1',
         identity=dict(data_date='20261120',source_generation=GENERATION,input_sha256=INPUT,
             selector_sha256=SELECTOR,scope_sha256=scope_sha),
         items=items,upstream_success_receipt=upstream,**FLAGS)
-    checkpoint_ref = _write_ref(tmp_path/'checkpoint.json',checkpoint)
+    checkpoint_ref = _write_owner_ref(owner_root,'checkpoints',checkpoint)
     receipt = dict(schema='v4.a_share.f10_daily_receipt.v1',status='PARTIAL',
         data_date='20261120',source_generation=GENERATION,input_sha256=INPUT,
         selector_sha256=SELECTOR,numeric_manifest=NUMERIC,scope_sha256=scope_sha,
         scope=dict(kind='ADMITTED_DAILY_UNIVERSE',count=100,symbols=None),
         priority_scope=dict(symbols=sorted(SYMBOLS),count=len(SYMBOLS)),
         checkpoint=checkpoint_ref,upstream_success_receipt=upstream,
-        requested=100,observed=len(observed)+(1 if include_unreadable_non_roster else 0),
+        requested=100,observed=len(items),
         failures={symbol:{'status':'FAILED'} for symbol in failed},
         remaining=['888888.SZ'],**FLAGS)
-    return dict(status='PARTIAL',receipt=_write_ref(tmp_path/'receipt.json',receipt))
+    return dict(status='PARTIAL',receipt=_write_owner_ref(owner_root,'receipts',receipt))
 
 
 def _owner_fixture(tmp_path, monkeypatch, *, retry_succeeds):
@@ -143,6 +181,59 @@ def test_actual_f10_receipt_partition_counts_only_exact_roster_and_skips_other_s
     assert failed == FAILED
     assert remaining == set()
     assert not supplements._f10_roster_complete(SYMBOLS,observed,failed,remaining)
+
+
+@pytest.mark.parametrize('invalid', [
+    'missing', 'sha_mismatch', 'wrong_symbol', 'failed_status', 'corrupt_json',
+    'non_object', 'unsafe_flags', 'historical_pit', 'outside_root',
+])
+def test_claimed_f10_observed_row_is_failed_when_immutable_shard_is_invalid(tmp_path, invalid):
+    symbol = SYMBOLS[0]
+    binding = _coverage_binding(tmp_path, {symbol}, set(), invalid_rows={symbol:invalid})
+
+    observed, failed, remaining = supplements._f10_roster_coverage(
+        _context(tmp_path), NUMERIC, SYMBOLS, binding)
+
+    assert observed == set()
+    assert failed == {symbol}
+    assert remaining == set(SYMBOLS) - {symbol}
+
+
+def test_twenty_verified_and_two_invalid_claimed_rows_are_partial(tmp_path):
+    invalid_rows = {SYMBOLS[-2]:'missing', SYMBOLS[-1]:'sha_mismatch'}
+    binding = _coverage_binding(tmp_path, set(SYMBOLS), set(), invalid_rows=invalid_rows)
+
+    observed, failed, remaining = supplements._f10_roster_coverage(
+        _context(tmp_path), NUMERIC, SYMBOLS, binding)
+
+    assert observed == set(SYMBOLS[:20])
+    assert failed == set(SYMBOLS[-2:])
+    assert remaining == set()
+    assert not supplements._f10_roster_complete(SYMBOLS, observed, failed, remaining)
+    receipt = supplements._checked(binding['receipt'],
+        root=Path(binding['receipt']['path']).parent.parent)
+    assert receipt['observed'] == len(SYMBOLS)
+
+
+def test_full_roster_is_complete_only_after_every_stock_shard_is_verified(tmp_path):
+    binding = _coverage_binding(tmp_path, set(SYMBOLS), set())
+
+    observed, failed, remaining = supplements._f10_roster_coverage(
+        _context(tmp_path), NUMERIC, SYMBOLS, binding)
+
+    assert observed == set(SYMBOLS)
+    assert failed == set()
+    assert remaining == set()
+    assert supplements._f10_roster_complete(SYMBOLS, observed, failed, remaining)
+
+
+def test_empty_owner_roster_remains_vacuously_complete_without_f10_receipt(tmp_path):
+    observed, failed, remaining = supplements._f10_roster_coverage(
+        _context(tmp_path), NUMERIC, [], dict(status='NOT_RUN_EMPTY_ROSTER'))
+
+    assert observed == set()
+    assert failed == set()
+    assert remaining == set()
 
 
 def test_previous_partial_chart_is_reused_and_legacy_ready_is_downgraded_without_recompute(
