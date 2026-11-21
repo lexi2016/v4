@@ -219,24 +219,23 @@ def test_same_run_partial_then_complete_appends_recovery_without_rewriting_pendi
 
     recovery_paths = list(out.glob('NATURAL_*_RECOVERY.json'))
     business_paths = list(out.glob('NATURAL_*_BUSINESS_READBACK.json'))
-    assert len(recovery_paths) == len(business_paths) == 1
+    assert len(recovery_paths) == 1
+    assert business_paths == []
     assert pending_paths[0].read_bytes() == pending_bytes
     recovery = json.loads(recovery_paths[0].read_bytes())
-    business = json.loads(business_paths[0].read_bytes())
     assert recovery['recovered_from'] == [pending['evidence_id']]
-    assert business['run_id'] == RUN_ID
-    assert business['dispatch_sha256'] == pending['dispatch_sha256']
-    assert business['work_date'] == pending['work_date']
-    assert business['readback']['formula_coverage']['status'] == 'COMPLETE'
-    assert business['readback']['versions']['event_id'] == '8' * 64
-    assert business['daily_derivatives']['top200']['status'] == 'PUBLISHED_TOP200'
-    assert business['daily_derivatives']['top200']['artifact']['sha256'] == '2' * 64
-    assert business['daily_derivatives']['top200']['before'] == {}
-    assert business['daily_derivatives']['top200']['after'] == {}
-    assert business['daily_derivatives']['computation']['status'] == 'REUSED'
-    assert business['daily_derivatives']['attempt']['sha256'] == '3' * 64
-    assert business['formula_groups']['workbench_supplements']['status'] == 'PARTIAL'
-    assert observer._valid_business_days() == {SOURCE_DATE.replace('-', '')}
+    assert recovery['business_status'] == 'CANNOT_CONFIRM'
+    assert recovery['publisher_attribution'] == 'CANNOT_CONFIRM_PUBLISHER'
+    assert recovery['readback']['formula_coverage']['status'] == 'COMPLETE'
+    assert recovery['readback']['versions']['event_id'] == '8' * 64
+    assert recovery['daily_derivatives']['top200']['status'] == 'PUBLISHED_TOP200'
+    assert recovery['daily_derivatives']['top200']['artifact']['sha256'] == '2' * 64
+    assert recovery['daily_derivatives']['top200']['before'] == {}
+    assert recovery['daily_derivatives']['top200']['after'] == {}
+    assert recovery['daily_derivatives']['computation']['status'] == 'REUSED'
+    assert recovery['daily_derivatives']['attempt']['sha256'] == '3' * 64
+    assert recovery['formula_groups']['workbench_supplements']['status'] == 'PARTIAL'
+    assert observer._valid_business_days() == set()
 
     state['views'].append(complete)
     before = {path.name:path.read_bytes() for path in out.glob('NATURAL_*.json')}
@@ -304,6 +303,53 @@ def test_same_roster_second_run_owns_advanced_receipt_not_older_run(tmp_path, mo
     assert first_pending[0].read_bytes() == original_pending_bytes
 
 
+def test_two_pending_runs_unclaimed_then_late_owner_dispatch_never_promotes_old_runs(tmp_path, monkeypatch):
+    out, ledger, config, rows, state = _prepare(tmp_path, monkeypatch, [])
+    bundle = _source_bundle(tmp_path / 'owner')
+    _dispatch(ledger, run_id='a' * 32, bundle=bundle, slot='1610')
+    _dispatch(ledger, run_id='b' * 32, bundle=bundle, slot='1610')
+    partial_a = _api_view(bundle, status='PARTIAL', observed=20, failed=2, remaining=0,
+        receipt_sha=bundle['f10_ref']['sha256'], event_id='6' * 64)
+    partial_b = _api_view(bundle, status='PARTIAL', observed=20, failed=2, remaining=0,
+        receipt_sha=bundle['f10_ref']['sha256'], event_id='7' * 64)
+    state['views'].extend([partial_a, partial_b])
+    _natural(observer, config, rows)
+    pending_paths = sorted(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1610_*_PENDING.json'))
+    assert len(pending_paths) == 2
+    pending_bytes = {path.name:path.read_bytes() for path in pending_paths}
+
+    new_f10_ref = _publish_f10_state(bundle, 'COMPLETE', 1)
+    complete = _api_view(bundle, status='COMPLETE', observed=22, failed=0, remaining=0,
+        receipt_sha=new_f10_ref['sha256'], event_id='8' * 64)
+    state['views'].extend([complete, complete])
+    _natural(observer, config, rows)
+
+    unclaimed_recoveries = sorted(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1610_*_RECOVERY.json'))
+    assert len(unclaimed_recoveries) == 2
+    assert not list(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1610_*_BUSINESS_READBACK.json'))
+    assert observer._valid_business_days() == set()
+    assert all(json.loads(path.read_bytes())['publisher_attribution'] == 'CANNOT_CONFIRM_PUBLISHER'
+        for path in unclaimed_recoveries)
+
+    bundle['workload']['formula_groups']['status'] = 'ALREADY_COMMITTED'
+    _dispatch(ledger, run_id='c' * 32, bundle=bundle, slot='1640')
+    state['views'].extend([complete, complete, complete])
+    _natural(observer, config, rows)
+
+    all_old_recoveries = sorted(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1610_*_RECOVERY.json'))
+    old_business = list(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1610_*_BUSINESS_READBACK.json'))
+    new_business = list(out.glob(f'NATURAL_{SOURCE_DATE.replace("-", "")}_1640_{"c" * 32}_*_BUSINESS_READBACK.json'))
+    assert len(all_old_recoveries) == 4
+    assert old_business == []
+    assert len(new_business) == 1
+    claimed = [json.loads(path.read_bytes()) for path in all_old_recoveries
+        if json.loads(path.read_bytes())['publisher_claim'] is not None]
+    assert len(claimed) == 2
+    assert all(record['publisher_claim']['run_id'] == 'c' * 32 for record in claimed)
+    assert all(path.read_bytes() == pending_bytes[path.name] for path in pending_paths)
+    assert observer._valid_business_days() == {SOURCE_DATE.replace('-', '')}
+
+
 def test_complete_readback_without_current_owner_sha_chain_is_not_business(tmp_path, monkeypatch):
     out, ledger, config, rows, state = _prepare(tmp_path, monkeypatch, [])
     bundle = _source_bundle(tmp_path / 'owner')
@@ -324,6 +370,27 @@ def test_complete_readback_without_current_owner_sha_chain_is_not_business(tmp_p
     assert not list(out.glob('NATURAL_*_BUSINESS_READBACK.json'))
 
 
+def test_business_day_gate_rejects_advanced_or_unattributed_legacy_records(tmp_path, monkeypatch):
+    out, ledger, config, rows, state = _prepare(tmp_path, monkeypatch, [])
+    bundle = _source_bundle(tmp_path / 'owner')
+    direct_ref = _publish_f10_state(bundle, 'COMPLETE', 1)
+    bundle['workload']['formula_groups']['status'] = 'ALREADY_COMMITTED'
+    _dispatch(ledger, bundle=bundle)
+    state['views'].append(_api_view(bundle, status='COMPLETE', observed=22,
+        failed=0, remaining=0, receipt_sha=direct_ref['sha256'], event_id='8' * 64))
+    _natural(observer, config, rows)
+    direct = list(out.glob('NATURAL_*_BUSINESS_READBACK.json'))
+    assert len(direct) == 1
+    assert observer._valid_business_days() == {SOURCE_DATE.replace('-', '')}
+
+    record = json.loads(direct[0].read_bytes())
+    record['receipt_relation'] = 'ADVANCED_WITHIN_EXACT_RUN_SOURCE_IDENTITY'
+    record['publisher_attribution'] = 'CANNOT_CONFIRM_FROM_POINTER_PREDECESSOR'
+    direct[0].write_text(json.dumps(record, ensure_ascii=False, sort_keys=True, indent=2) + '\n')
+    assert not observer._business_record_valid(record)
+    assert observer._valid_business_days() == set()
+
+
 def test_same_day_recovery_files_count_once_and_do_not_stop_next_trade_day(tmp_path, monkeypatch):
     out, ledger, config, rows, state = _prepare(tmp_path, monkeypatch, [])
     bundle = _source_bundle(tmp_path / 'owner-one')
@@ -341,8 +408,10 @@ def test_same_day_recovery_files_count_once_and_do_not_stop_next_trade_day(tmp_p
             failed=0, remaining=0, receipt_sha=complete_ref['sha256'], event_id=event_id))
         _natural(observer, config, rows)
     same_day_business = list(out.glob('NATURAL_*_BUSINESS_READBACK.json'))
-    assert len(same_day_business) == 3
-    assert observer._valid_business_days() == {SOURCE_DATE.replace('-', '')}
+    same_day_recovery = list(out.glob('NATURAL_*_RECOVERY.json'))
+    assert same_day_business == []
+    assert len(same_day_recovery) == 3
+    assert observer._valid_business_days() == set()
 
     next_date = '2026-11-24'
     next_bundle = _source_bundle(tmp_path / 'owner-next', source_date=next_date,
@@ -356,7 +425,7 @@ def test_same_day_recovery_files_count_once_and_do_not_stop_next_trade_day(tmp_p
     _natural(observer, config, rows, day=next_date)
 
     assert len(list(out.glob(f'NATURAL_{next_date.replace("-", "")}_*_BUSINESS_READBACK.json'))) == 1
-    assert observer._valid_business_days() == {SOURCE_DATE.replace('-', ''), next_date.replace('-', '')}
+    assert observer._valid_business_days() == {next_date.replace('-', '')}
 
 
 def test_uninvoked_1640_dispatch_is_archived_not_called_a_natural_run(tmp_path, monkeypatch):

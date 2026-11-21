@@ -464,13 +464,17 @@ def _match_readback(view, authority):
 
 
 def _evidence_identity(run_id, dispatch_sha256, work_date, workload_result_sha256,
-        source_identity=None, versions_event_id=None, f10_receipt_sha256=None, reason=None):
-    return dict(run_id=run_id, dispatch_sha256=dispatch_sha256, work_date=work_date,
+        source_identity=None, versions_event_id=None, f10_receipt_sha256=None, reason=None,
+        evidence_variant=None):
+    result = dict(run_id=run_id, dispatch_sha256=dispatch_sha256, work_date=work_date,
         workload_result_sha256=workload_result_sha256,
         source_identity=source_identity,
         versions_event_id=versions_event_id,
         f10_receipt_sha256=f10_receipt_sha256,
         reason=reason)
+    if evidence_variant is not None:
+        result["evidence_variant"] = evidence_variant
+    return result
 
 
 def _append_json_once(path, value):
@@ -493,6 +497,8 @@ def _business_record_valid(record):
     if (not isinstance(record, dict) or record.get("schema") != EVIDENCE_SCHEMA
             or record.get("evidence_kind") != "BUSINESS_READBACK"
             or record.get("business_status") != "SOURCE_BOUND_READBACK_PRESENT"
+            or record.get("receipt_relation") != "MATCHED_DISPATCH_SUPPLEMENT_RECEIPT"
+            or record.get("publisher_attribution") != "DISPATCH_OWNER_RECEIPT_MATCHED"
             or not isinstance(record.get("work_date"), str)
             or not _date8(record.get("work_date"))
             or not re.fullmatch(r"[a-f0-9]+", str(record.get("run_id") or ""))
@@ -518,6 +524,7 @@ def _business_record_valid(record):
             or coverage.get("input_sha256") != identity.get("input_sha256")
             or coverage.get("numeric_manifest_sha256") != identity.get("numeric_manifest_sha256")
             or coverage.get("receipt_sha256") != record.get("f10_receipt_sha256")
+            or identity.get("owner_f10_receipt_sha256") != record.get("f10_receipt_sha256")
             or versions.get("event_id") != record.get("versions_event_id")
             or versions.get("source_date") != identity.get("source_date")
             or versions.get("observation_date") != identity.get("observation_date")
@@ -614,7 +621,7 @@ def natural_tick(config, rows, now):
     def append_record(kind, *, data, raw, dispatch_path, run_id, slot,
             observations, workload=None, authority=None, readback=None,
             binding=None, error=None, recovered_from=None, recovery_relationship=None,
-            publisher_attribution=None):
+            publisher_attribution=None, publisher_claim=None, evidence_variant=None):
         dispatch_sha256 = sha(raw)
         workload_sha256 = _canonical_sha(workload) if isinstance(workload, dict) else None
         identity = authority.get("source_identity") if isinstance(authority, dict) else None
@@ -622,7 +629,7 @@ def natural_tick(config, rows, now):
         f10_receipt_sha256 = binding.get("f10_receipt_sha256") if isinstance(binding, dict) else None
         evidence_identity = _evidence_identity(run_id, dispatch_sha256, date8,
             workload_sha256, identity, versions_event_id, f10_receipt_sha256,
-            None if readback is not None else (error or "CANNOT_CONFIRM"))
+            None if readback is not None else (error or "CANNOT_CONFIRM"), evidence_variant)
         evidence_id = _canonical_sha(evidence_identity)
         invocation_status = ("INVOKED" if DAILY_WORKLOAD_ID in data.get("invoked_workload_ids", [])
                              else "NOT_INVOKED")
@@ -662,6 +669,7 @@ def natural_tick(config, rows, now):
             readback=readback, error=error, recovered_from=recovered_from,
             recovery_relationship=recovery_relationship,
             publisher_attribution=publisher_attribution,
+            publisher_claim=publisher_claim,
             RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
         path = OUT / f"NATURAL_{date8}_{slot}_{run_id}_{evidence_id}_{kind}.json"
         _append_json_once(path, record)
@@ -797,30 +805,28 @@ def natural_tick(config, rows, now):
                     owner_dispatch = _other_dispatch_claims_f10(ledger, date8, scheduler,
                         run_id, sha(raw), authority["source_identity"], binding["f10_receipt_sha256"])
                     if owner_dispatch:
-                        append_record("RECOVERY", data=data, raw=raw, dispatch_path=dispatch,
-                            run_id=run_id, slot=slot, observations=observations, workload=workload,
-                            authority=authority, readback=linkage, binding=binding,
-                            recovered_from=sorted({record["evidence_id"] for record in progressed}),
-                            recovery_relationship="SAME_SOURCE_FOLLOWUP_CLAIMED_BY_DISTINCT_DISPATCH",
-                            publisher_attribution="CANNOT_CONFIRM_OLDER_RUN_AS_PUBLISHER",
-                            error="F10_ADVANCE_OWNED_BY_DISTINCT_DISPATCH:" + owner_dispatch["run_id"])
-                        continue
+                        recovery_relationship = "SAME_SOURCE_FOLLOWUP_CLAIMED_BY_DISTINCT_DISPATCH"
+                        publisher_attribution = "CANNOT_CONFIRM_OLDER_RUN_AS_PUBLISHER"
+                        error = "F10_ADVANCE_OWNED_BY_DISTINCT_DISPATCH:" + owner_dispatch["run_id"]
+                        evidence_variant = dict(state="CLAIMED_BY_DISTINCT_DISPATCH", **owner_dispatch)
+                    else:
+                        recovery_relationship = "SAME_SOURCE_FOLLOWUP_PUBLISHER_UNCLAIMED"
+                        publisher_attribution = "CANNOT_CONFIRM_PUBLISHER"
+                        error = "F10_ADVANCE_PUBLISHER_UNCLAIMED"
+                        evidence_variant = dict(state="NO_CURRENT_DISPATCH_CLAIM")
                     append_record("RECOVERY", data=data, raw=raw, dispatch_path=dispatch,
                         run_id=run_id, slot=slot, observations=observations, workload=workload,
                         authority=authority, readback=linkage, binding=binding,
                         recovered_from=sorted({record["evidence_id"] for record in progressed}),
-                        recovery_relationship="SAME_SOURCE_FOLLOWUP_NO_POINTER_PREDECESSOR_SHA",
-                        publisher_attribution="CANNOT_CONFIRM_FROM_POINTER_PREDECESSOR")
+                        recovery_relationship=recovery_relationship,
+                        publisher_attribution=publisher_attribution, publisher_claim=owner_dispatch,
+                        evidence_variant=evidence_variant, error=error)
+                    continue
                 append_record("BUSINESS_READBACK", data=data, raw=raw, dispatch_path=dispatch,
                     run_id=run_id, slot=slot, observations=observations, workload=workload,
                     authority=authority, readback=linkage, binding=binding,
                     recovered_from=recovered_ids or None,
-                    recovery_relationship=("SAME_SOURCE_FOLLOWUP_NO_POINTER_PREDECESSOR_SHA"
-                        if binding.get("receipt_relation") == "ADVANCED_WITHIN_EXACT_RUN_SOURCE_IDENTITY"
-                        else None),
-                    publisher_attribution=("CANNOT_CONFIRM_FROM_POINTER_PREDECESSOR"
-                        if binding.get("receipt_relation") == "ADVANCED_WITHIN_EXACT_RUN_SOURCE_IDENTITY"
-                        else "DISPATCH_OWNER_RECEIPT_MATCHED"))
+                    publisher_attribution="DISPATCH_OWNER_RECEIPT_MATCHED")
                 if len(_valid_business_days()) >= required_days:
                     return
             else:
