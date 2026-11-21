@@ -28,6 +28,7 @@ DEPENDENCY_SHAS = {
 OLD_CATEGORY_REMAINING = 51_350_585_740
 OLD_PHYSICAL_REMAINING = 51_335_737_344
 RESERVATION_STATES = {"RUNNING", "VALIDATING", "FAILED_RECOVERABLE", "SPACE_BLOCKED"}
+LOCK_LABELS = ("com.lexi.v4.scheduler", "com.lexi.stage-center.scheduler", "com.lexi.v4.api")
 
 
 class CutoverBlocked(RuntimeError):
@@ -41,6 +42,24 @@ def digest(raw: bytes) -> str:
 def is_sha256(value) -> bool:
     return (isinstance(value, str) and len(value) == 64
             and all(character in "0123456789abcdef" for character in value))
+
+
+def expected_lock_protocol(launch_agents_root: Path | None = None) -> dict:
+    root = launch_agents_root or (Path.home() / "Library" / "LaunchAgents")
+    if not root.is_absolute() or root.resolve(strict=True) != root or not root.is_dir():
+        raise CutoverBlocked("LOCK_PROTOCOL_ROOT_NOT_CANONICAL")
+    owners = [str(root / f".{label}.release.lock") for label in LOCK_LABELS]
+    return {
+        "schema": "v4.main_cutover_owner_lock_protocol.v1",
+        "launch_agents_root": str(root),
+        "owner_record_paths": owners,
+        "owner_record_operation": "CREATE_OWN_UNLINK_SAME_RECORD",
+        "dead_owner_cleanup": "MAY_UNLINK_ONLY_AFTER_DECODED_PID_PROVEN_DEAD",
+        "persistent_mutex_paths": [path + ".mutex" for path in owners],
+        "persistent_mutex_files_must_preexist": True,
+        "persistent_mutex_bytes_or_inode_change": False,
+        "stage_api_service_reload": False,
+    }
 
 
 def read_json(path: Path) -> dict:
@@ -205,6 +224,7 @@ def check_activation_authorization(plan: dict, plan_sha: str, approval: dict,
         "registry_write": False,
         "current_pointer_write": False,
         "reservation_release": False,
+        "lock_protocol": plan.get("lock_protocol"),
         "approved_by_user": True,
         "chat_review_sha256": chat_review_sha,
     }
@@ -235,6 +255,7 @@ def check_rollback_authorization(plan: dict, plan_sha: str, approval: dict,
         "registry_write": False,
         "current_pointer_write": False,
         "reservation_release": False,
+        "lock_protocol": plan.get("lock_protocol"),
         "approved_by_user": True,
         "chat_review_sha256": chat_review_sha,
     }
@@ -276,6 +297,8 @@ def validate_plan(plan: dict) -> None:
         raise CutoverBlocked("CANDIDATE_ROOT_BINDING_INVALID")
     if plan.get("target_date") is None or len(str(plan["target_date"])) != 8:
         raise CutoverBlocked("TARGET_DATE_REQUIRED")
+    if plan.get("lock_protocol") != expected_lock_protocol():
+        raise CutoverBlocked("EXACT_TRANSIENT_OWNER_LOCK_AUTHORIZATION_CONTRACT_REQUIRED")
     role_plan = plan.get("controller_plan")
     if (not isinstance(role_plan, dict) or len(role_plan.get("roles", [])) != 1
             or role_plan["roles"][0].get("role") != "main"

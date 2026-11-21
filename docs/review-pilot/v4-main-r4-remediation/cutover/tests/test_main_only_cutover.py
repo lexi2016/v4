@@ -192,7 +192,8 @@ class MainOnlyCutoverTests(unittest.TestCase):
         refs, _, _, _ = self.receipts()
         package_sha = "8" * 64
         plan = {"release_id": "release-r5", "target_date": "20261123",
-                "release_package_sha256": package_sha, "admission_evidence": refs}
+                "release_package_sha256": package_sha, "admission_evidence": refs,
+                "lock_protocol": CUTOVER.expected_lock_protocol()}
         plan_path = self.root / "plan.json"
         plan_sha = write_json(plan_path, plan)
         chat = {"verdict": "PASS", "package_sha256": package_sha}
@@ -206,15 +207,51 @@ class MainOnlyCutoverTests(unittest.TestCase):
                     "plan_sha256": plan_sha, "release_id": "release-r5", "target_date": "20261123",
                     "migration": "BLOCKED", "stage_reload": False, "api_reload": False,
                     "registry_write": False, "current_pointer_write": False,
-                    "reservation_release": False, "approved_by_user": True,
+                    "reservation_release": False, "lock_protocol": plan["lock_protocol"],
+                    "approved_by_user": True,
                     "chat_review_sha256": chat_sha,
                     "admission_evidence_sha256": {key: ref["sha256"] for key, ref in refs.items()},
                     "approved_at": CUTOVER.datetime.now().astimezone().isoformat(),
                     "approval_note_sha256": note_sha,
                     "approval_note": {"path": str(note_path), "sha256": note_sha}}
         CUTOVER.check_activation_authorization(plan, plan_sha, approval, chat, chat_sha)
+        wrong_lock_contract = dict(approval)
+        wrong_lock_contract["lock_protocol"] = {**plan["lock_protocol"], "owner_record_paths": []}
+        with self.assertRaisesRegex(CUTOVER.CutoverBlocked, "EXACT_EXPLICIT_MAIN_ONLY_AUTHORIZATION_REQUIRED"):
+            CUTOVER.check_activation_authorization(plan, plan_sha, wrong_lock_contract, chat, chat_sha)
         with self.assertRaisesRegex(CUTOVER.CutoverBlocked, "EXACT_EXPLICIT_MAIN_ONLY_AUTHORIZATION_REQUIRED"):
             CUTOVER.check_activation_authorization(plan, "0" * 64, approval, chat, chat_sha)
+
+    def test_rollback_authorization_also_binds_exact_owner_lock_protocol(self):
+        package_sha = "8" * 64
+        plan = {"release_id": "release-r5", "target_date": "20261123",
+                "release_package_sha256": package_sha,
+                "lock_protocol": CUTOVER.expected_lock_protocol(),
+                "controller_plan": {"roles": [{"role": "main",
+                    "candidate_plist_sha256": "3" * 64, "current_plist_sha256": "4" * 64}]}}
+        plan_path = self.root / "rollback-plan.json"
+        plan_sha = write_json(plan_path, plan)
+        chat = {"verdict": "PASS", "package_sha256": package_sha}
+        chat_path = self.root / "rollback-chat.json"
+        chat_sha = write_json(chat_path, chat)
+        note_path = self.root / "rollback-user-approval.txt"
+        note_path.write_text("I approve the exact Main-only rollback and owner-lock protocol.")
+        note_sha = sha(note_path.read_bytes())
+        approval = {"schema": "v4.main_only_explicit_authorization.v1",
+                    "action": "ROLLBACK_MAIN_ONLY", "scope": "Main LaunchAgent plist CAS only",
+                    "plan_sha256": plan_sha, "release_id": "release-r5", "target_date": "20261123",
+                    "installed_candidate_plist_sha256": "3" * 64, "restore_plist_sha256": "4" * 64,
+                    "stage_reload": False, "api_reload": False, "registry_write": False,
+                    "current_pointer_write": False, "reservation_release": False,
+                    "lock_protocol": plan["lock_protocol"], "approved_by_user": True,
+                    "chat_review_sha256": chat_sha,
+                    "approved_at": CUTOVER.datetime.now().astimezone().isoformat(),
+                    "approval_note_sha256": note_sha,
+                    "approval_note": {"path": str(note_path), "sha256": note_sha}}
+        CUTOVER.check_rollback_authorization(plan, plan_sha, approval, chat, chat_sha)
+        approval["lock_protocol"] = {**plan["lock_protocol"], "persistent_mutex_bytes_or_inode_change": True}
+        with self.assertRaisesRegex(CUTOVER.CutoverBlocked, "EXACT_EXPLICIT_MAIN_ONLY_ROLLBACK_AUTHORIZATION_REQUIRED"):
+            CUTOVER.check_rollback_authorization(plan, plan_sha, approval, chat, chat_sha)
 
     def test_controller_and_dependency_bytes_match_frozen_sources(self):
         source, dependencies = CUTOVER.verify_controller_sources()
@@ -424,6 +461,7 @@ class MainOnlyCutoverTests(unittest.TestCase):
         plan = {"schema": CUTOVER.SCHEMA, "scope": "Main-only", "migration": "BLOCKED",
                 "release_root": str(release), "approved_candidate_parent": str(self.root),
                 "target_date": "20261123", "release_id": "release-r5",
+                "lock_protocol": CUTOVER.expected_lock_protocol(),
                 "controller_plan": {"roles": [{"role": "main", "candidate_release_id": "release-r5",
                                                  "candidate_plist": str(plist_path),
                                                  "candidate_manifest_sha256": manifest_sha}],
@@ -437,6 +475,7 @@ class MainOnlyCutoverTests(unittest.TestCase):
         self.assertTrue(plan["must_not_execute"])
         self.assertNotEqual(plan["schema"], CUTOVER.SCHEMA)
         self.assertTrue(plan["release_id_is_read_from_plist_not_inferred_from_basename"])
+        self.assertEqual(plan["lock_protocol"], CUTOVER.expected_lock_protocol())
         candidate = Path(os.environ.get("V4_R4_CANDIDATE_ROOT", plan["release_root"]))
         self.assertEqual(str(candidate), plan["release_root"])
         plist_path = candidate / "launchd.plist"
