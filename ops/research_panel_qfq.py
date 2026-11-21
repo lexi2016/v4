@@ -962,8 +962,14 @@ def history_role_identity(path: Path) -> dict:
     return dict(key_sha256=digest.hexdigest(), schema_sha256=canonical_sha(ordered_schema), rows=rows)
 
 
-def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, contract_csv: Path) -> dict:
-    return dict(input_sha256=canonical_sha(snapshot), driver_sha256=sha(driver_path), formula_sha256=sha(formula_path),
+def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, contract_csv: Path, *, input_root: Path | None = None) -> dict:
+    from types import SimpleNamespace
+    from ops.research_qfq_dependency_identity import computation_dependencies, observe_generation
+    dependencies = computation_dependencies(SimpleNamespace(__file__=__file__),
+        dict(driver_path=driver_path, formula_path=formula_path, contract_csv=contract_csv),
+        snapshot=snapshot, runtime_root=input_root)
+    observe_generation(snapshot, dependencies)
+    return dict(computation_dependency_sha256=canonical_sha(dependencies), input_sha256=canonical_sha(snapshot), driver_sha256=sha(driver_path), formula_sha256=sha(formula_path),
                 adapter_sha256=sha(Path(__file__)), input_adapter_sha256=sha(Path(__file__).with_name("research_panel_adjustment_inputs.py")),
                 factor_cache_sha256=sha(Path(__file__).with_name("research_panel_factor_cache.py")),
                 tdx_adapter_sha256=sha(Path(__file__).with_name("research_panel_tdx_adjustment_inputs.py")),
@@ -2618,8 +2624,13 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         if archive_additions is None and snapshot.get("history_extension") != history_extension:
             raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
         from ops.research_panel_turnover import load_daily
+        from ops.research_qfq_dependency_identity import validate_turnover_before_load
+        validate_turnover_before_load(__file__, tdx_root, target)
         turnover = load_daily(data_root, tdx_root, target)
-        identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
+        from ops.research_panel_turnover import POLICY as turnover_policy
+        from ops.research_qfq_dependency_identity import observe_turnover
+        observe_turnover(__file__, data_root, tdx_root, target, turnover, turnover_policy)
+        identity = generation_identity(snapshot, driver_path, formula_path, contract_csv, input_root=snapshot_file.parent)
         identity["turnover_input_sha256"] = turnover.identity
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
                                    target=target, retained_history=retained_history)
@@ -3023,7 +3034,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     _source(recovery_control[key], owner="D11 partial original source before publication")
                 for item in partial:
                     _partial_checkpoint_file(item)
-            if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
+            if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv, input_root=snapshot_file.parent) != {k: v for k, v in identity.items() if k != "turnover_input_sha256"}:
                 raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
             turnover.verify_binding()
             if not turnover_watch_unchanged(readiness["turnover_watch"]):

@@ -561,7 +561,7 @@ def _run_delta(q, c, stock_failures):
         _resume_sources(q,c['delta_resume_control'])
         q['_source'](c['delta_resume_control']['source_status'],owner='original delta run still closed')
     # Source and paired-baseline checks are identical to the original owner.
-    if q['generation_identity'](q['load_snapshot'](c['snapshot_file'],target),c['driver_path'],c['formula_path'],c['contract_csv']) != {k:v for k,v in c['identity'].items() if k!='turnover_input_sha256'}:
+    if q['generation_identity'](q['load_snapshot'](c['snapshot_file'],target),c['driver_path'],c['formula_path'],c['contract_csv'],input_root=c['snapshot_file'].parent) != {k:v for k,v in c['identity'].items() if k!='turnover_input_sha256'}:
         raise ValueError('INPUT_CHANGED_DURING_BUILD')
     c['turnover'].verify_binding()
     if not q['turnover_watch_unchanged'](c['readiness']['turnover_watch']):

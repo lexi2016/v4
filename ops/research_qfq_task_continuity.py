@@ -10,6 +10,8 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+from ops.research_qfq_dependency_identity import computation_dependencies, validate_manifest, validate_turnover_evidence
+
 from ops.research_storage_retention import RetentionError, canonical, digest, safe_path, stamp
 
 SCHEMA = 'v4.qfq_task_root_migration.v1'
@@ -58,16 +60,18 @@ def _identity(module, data_root, target, kwargs, old_root):
     if digest(safe_path(old_owner)) != digest(owner):
         raise RetentionError('QFQ_MIGRATION_OWNER_BYTES_CHANGED')
     old_kwargs = dict(kwargs)
-    driver = safe_path(kwargs['driver_path'])
-    bundled = owner.parent / 'vendor/data_layer_daily_formula_increment_update_v1.py'
-    if driver == bundled:
-        old_driver = old_root / 'ops/vendor/data_layer_daily_formula_increment_update_v1.py'
-        if digest(safe_path(old_driver)) != digest(driver):
-            raise RetentionError('QFQ_MIGRATION_DRIVER_BYTES_CHANGED')
-        old_kwargs['driver_path'] = old_driver
+    for name in ('driver_path', 'formula_path', 'contract_csv'):
+        source = safe_path(kwargs[name])
+        if source.is_relative_to(owner.parent.parent):
+            old_source = old_root / source.relative_to(owner.parent.parent)
+            if digest(safe_path(old_source)) != digest(source):
+                raise RetentionError('QFQ_MIGRATION_SOURCE_BYTES_CHANGED')
+            old_kwargs[name] = old_source
     old_module = SimpleNamespace(__file__=str(old_owner), input_path=module.input_path)
     if qfq_helper_identity(old_module) != qfq_helper_identity(module):
         raise RetentionError('QFQ_MIGRATION_GENERATION_HELPER_BYTES_CHANGED')
+    if computation_dependencies(old_module, old_kwargs, runtime_root=Path(module.input_path(data_root)).parent) != computation_dependencies(module, kwargs, runtime_root=Path(module.input_path(data_root)).parent):
+        raise RetentionError('QFQ_MIGRATION_COMPUTATION_DEPENDENCIES_CHANGED')
     old_key = qfq_invocation_key(old_module, data_root, target, old_kwargs, legacy=True)
     key = qfq_invocation_key(module, data_root, target, kwargs)
     return old_key, key
@@ -87,6 +91,14 @@ def _validate_owner_evidence(module, target, kwargs, directory, snapshot, owner_
         raise RetentionError('QFQ_MIGRATION_OWNER_INPUT_EVIDENCE_CONFLICT')
     if any(receipt.get(field) != sha256 for field,sha256 in qfq_helper_identity(module).items()):
         raise RetentionError('QFQ_MIGRATION_GENERATION_HELPER_EVIDENCE_CONFLICT')
+    manifest = computation_dependencies(module, kwargs, snapshot=snapshot_value, runtime_root=Path(snapshot['path']).parent)
+    validate_manifest(receipt.get('computation_dependencies'))
+    if (receipt['computation_dependencies'] != manifest
+            or receipt.get('computation_dependency_sha256') != canonical(manifest)):
+        raise RetentionError('QFQ_MIGRATION_COMPUTATION_DEPENDENCY_EVIDENCE_CONFLICT')
+    turnover = validate_turnover_evidence(module, kwargs, target, receipt.get('turnover_input_evidence'))
+    if receipt.get('turnover_input_sha256') != turnover['identity']:
+        raise RetentionError('QFQ_MIGRATION_TURNOVER_EVIDENCE_CONFLICT')
     generation = receipt.get('generation_id')
     run = safe_path(receipt['run_dir'])
     if (not isinstance(generation, str) or len(generation) != 64
@@ -144,13 +156,15 @@ def prepare_qfq_migration(module, policy, *, data_root, return_root, target, kwa
     sources = {name:_reference(kwargs[name]) for name in ('driver_path', 'formula_path', 'contract_csv')}
     result = dict(schema=SCHEMA, old_key=old_key, key=key, target=target,
         policy_identity_sha256=_policy_identity(policy), generation_helpers=qfq_helper_identity(module),
+        computation_dependencies=computation_dependencies(module, kwargs, snapshot=_read_reference(snapshot), runtime_root=Path(snapshot['path']).parent),
+        turnover_input_evidence=_read_reference(owner_receipt)['turnover_input_evidence'],
         pool_id=config['pool_id'], registry_root=str(registry.root), data_root=str(safe_path(data_root)),
         directory=directory, old_root=str(safe_path(old_root)), owner=_reference(module.__file__),
         sources=sources, snapshot=snapshot, owner_receipt=owner_receipt, evidence_refs=evidence_refs,
         linkage_review=linkage_review,
         expected_registry_sha256=expected_registry_sha256, token=expected_token, row_sha256=canonical(row),
         arguments=json.loads(json.dumps(kwargs, default=str)))
-    if len(json.dumps(result).encode()) > 16 * 1024:
+    if len(json.dumps(result).encode()) > 192 * 1024:
         raise RetentionError('QFQ_MIGRATION_PLAN_BUDGET')
     return result
 
@@ -164,7 +178,12 @@ def _validate_plan(module, policy, plan, data_root, return_root, target, kwargs)
         raise RetentionError('QFQ_MIGRATION_GOVERNANCE_REQUIRED')
     _check_owner_roots(policy, data_root, return_root)
     registry = Registry(config, data_root)
-    expected = dict(policy_identity_sha256=_policy_identity(policy), generation_helpers=qfq_helper_identity(module), pool_id=config['pool_id'], registry_root=str(registry.root),
+    if plan.get('snapshot') != _reference(module.input_path(data_root)):
+        raise RetentionError('QFQ_MIGRATION_SNAPSHOT_DRIFT')
+    validate_turnover_evidence(module, kwargs, target, plan.get('turnover_input_evidence'))
+    validate_manifest(plan.get('computation_dependencies'))
+    expected = dict(computation_dependencies=computation_dependencies(module, kwargs, snapshot=_read_reference(plan['snapshot']), runtime_root=Path(plan['snapshot']['path']).parent),
+        policy_identity_sha256=_policy_identity(policy), generation_helpers=qfq_helper_identity(module), pool_id=config['pool_id'], registry_root=str(registry.root),
         data_root=str(safe_path(data_root)), directory=str(safe_path(return_root)), target=target,
         arguments=json.loads(json.dumps(kwargs, default=str)))
     if any(plan.get(k) != v for k,v in expected.items()):
@@ -179,6 +198,8 @@ def _validate_plan(module, policy, plan, data_root, return_root, target, kwargs)
             raise RetentionError('QFQ_MIGRATION_SOURCE_DRIFT')
     if plan.get('snapshot') != _reference(module.input_path(data_root)):
         raise RetentionError('QFQ_MIGRATION_SNAPSHOT_DRIFT')
+    if plan.get('turnover_input_evidence') != _read_reference(plan['owner_receipt']).get('turnover_input_evidence'):
+        raise RetentionError('QFQ_MIGRATION_TURNOVER_EVIDENCE_CONFLICT')
     _validate_owner_evidence(module, target, kwargs, plan['directory'], plan['snapshot'],
                              plan['owner_receipt'], plan['evidence_refs'])
     _validate_linkage(plan['linkage_review'], row_sha256=plan['row_sha256'], old_key=old_key,
@@ -230,7 +251,9 @@ def migrate_qfq_task(module, policy, plan, *, data_root, return_root, target, kw
             raise RetentionError('QFQ_MIGRATION_JOURNAL_BUDGET')
         record = dict(state=desired, old_key=plan['old_key'], key=plan['key'], target=target,
             row_sha256=plan['row_sha256'], owner_sha256=plan['owner']['sha256'],
-            snapshot_sha256=plan['snapshot']['sha256'], before_registry_sha256=required_sha)
+            snapshot_sha256=plan['snapshot']['sha256'],
+            computation_dependencies_sha256=canonical(plan['computation_dependencies']),
+            turnover_input_sha256=plan['turnover_input_evidence']['identity'], before_registry_sha256=required_sha)
         state['tasks'][to_key] = state['tasks'].pop(from_key)
         journal[migration_id] = record
         registry.save(state)

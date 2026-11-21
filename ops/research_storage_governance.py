@@ -715,6 +715,21 @@ def qfq_write_seams(module, claim):
             if not lease.owns():
                 return originals['_write'](path, payload)
             path = Path(path)
+            context = getattr(claim, 'qfq_dependency_context', None)
+            if (context and getattr(claim, 'qfq_bound_snapshot', None) is not None
+                    and path.name in {'candidate_receipt.json', 'stage_status.json'}):
+                from ops.research_qfq_dependency_identity import computation_dependencies
+                dependencies = getattr(claim, 'qfq_computation_dependencies', None)
+                document = json.loads(payload)
+                digest = canonical(dependencies) if dependencies is not None else None
+                if document.get('status') in {'READY', 'CANDIDATE_READY'} and (digest is None or document.get('computation_dependency_sha256') != digest):
+                    raise RetentionError('QFQ_COMPUTATION_DEPENDENCY_CHANGED_DURING_BUILD')
+                if dependencies is not None:
+                    document['computation_dependencies'] = dependencies
+                turnover = getattr(claim, 'qfq_turnover_evidence', None)
+                if turnover is not None:
+                    document['turnover_input_evidence'] = turnover
+                payload = (json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
             _guard_qfq_resume_snapshot(claim, path, payload)
             claim.watch(path)
             control = str(path) in getattr(claim, 'control_paths', set()) and len(payload) <= 192*1024
@@ -882,13 +897,16 @@ def qfq_write_seams(module, claim):
             return call
         try:
             replace('_write', write)
-            if getattr(claim, 'qfq_resume_snapshot', None):
+            if getattr(claim, 'qfq_resume_snapshot', None) or getattr(claim, 'qfq_dependency_context', None):
                 original_load = module.load_snapshot
                 def load_snapshot(path, *args, **kwargs):
-                    ref = claim.qfq_resume_snapshot
-                    if lease.owns() and (str(path) != ref['path'] or digest(safe_path(path)) != ref['sha256']):
+                    ref = getattr(claim, 'qfq_resume_snapshot', None)
+                    if lease.owns() and ref and (str(path) != ref['path'] or digest(safe_path(path)) != ref['sha256']):
                         raise RetentionError('QFQ_RESUME_SNAPSHOT_CHANGED')
-                    return original_load(path, *args, **kwargs)
+                    value = original_load(path, *args, **kwargs)
+                    if lease.owns():
+                        claim.qfq_bound_snapshot = value
+                    return value
                 replace('load_snapshot', load_snapshot)
             replace('pq', ParquetProxy())
             replace('spool_current', guarded(module.spool_current))
@@ -1043,9 +1061,15 @@ def qfq_invocation_key(module, data_root, target, kwargs, *, legacy=False):
     files['owner']=dict(path=str(owner_path) if legacy else owner_role, sha256=digest(owner_path))
     if not legacy:
         files['generation_helpers'] = qfq_helper_identity(module)
+        from ops.research_qfq_dependency_identity import computation_dependencies
+        files['computation_dependencies'] = computation_dependencies(module, kwargs, runtime_root=Path(snapshot).parent)
     bundled_driver = owner_path.parent / 'vendor/data_layer_daily_formula_increment_update_v1.py'
-    if not legacy and Path(kwargs['driver_path']) == bundled_driver:
-        files['driver_path']['path'] = 'ops/vendor/data_layer_daily_formula_increment_update_v1.py'
+    if not legacy:
+        app_root = owner_path.parent.parent
+        for name in ('driver_path', 'formula_path', 'contract_csv'):
+            source = safe_path(kwargs[name])
+            if source.is_relative_to(app_root):
+                files[name]['path'] = source.relative_to(app_root).as_posix()
     return computation_identity(inputs=files,scope=dict(target=target,market='A',input_scope='OWNER_MANAGED_REFRESH_OPERATION' if refreshing else 'OWNER_SNAPSHOT'),
         calculation=dict(owner_mode='EXISTING_QFQ_GENERATION_AUTHORITY',arguments=json.loads(json.dumps({key:value for key,value in kwargs.items() if key not in {'workers','publish','driver_path','formula_path','contract_csv'}},default=str))),
         schema='a_share_qfq_panel_v1',environment=dict(python=__import__('sys').version))
@@ -1054,7 +1078,7 @@ def qfq_invocation_key(module, data_root, target, kwargs, *, legacy=False):
 def verified_qfq_current(module, policy, target, kwargs):
     """Validate exact owner identities and pair integrity, never a READY marker."""
     snapshot=module.load_snapshot(module.input_path(Path(policy['data_root'])),target)
-    identity=module.generation_identity(snapshot,kwargs['driver_path'],kwargs['formula_path'],kwargs['contract_csv'])
+    identity=module.generation_identity(snapshot,kwargs['driver_path'],kwargs['formula_path'],kwargs['contract_csv'], input_root=module.input_path(Path(policy['data_root'])).parent)
     from ops.research_panel_turnover import load_daily
     identity['turnover_input_sha256']=load_daily(Path(policy['data_root']),kwargs['tdx_root'],target).identity
     paths={role:safe_path(Path(value).read_text(encoding='utf-8-sig').strip()) for role,value in policy['pointers'].items()}
@@ -1164,6 +1188,9 @@ def qfq_registry_summary(result):
 def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointers, target, **kwargs):
     import importlib
     module=importlib.import_module('ops.research_panel_qfq')
+    from ops.research_qfq_dependency_identity import computation_dependencies
+    invocation_dependencies = (computation_dependencies(module, kwargs, runtime_root=module.input_path(data_root).parent)
+                               if configuration(policy) is not None else None)
     key=qfq_invocation_key(module,data_root,target,kwargs)
     from ops.research_qfq_task_continuity import require_migrated_resume, qfq_admission_context
     resume_plan = require_migrated_resume(module, policy, data_root, return_root, target, kwargs, key)
@@ -1178,7 +1205,14 @@ def governed_qfq(rebuild, policy, reservation, *, data_root, return_root, pointe
             forbidden_legacy_key=legacy_key, qfq_context=qfq_context) as (claim,_):
         if claim is not None:
             claim.qfq_resume_snapshot = resume_plan['snapshot'] if resume_plan else None
-        with qfq_write_seams(module,claim), input_write_seams(claim):
+            claim.qfq_resume_turnover = resume_plan['turnover_input_evidence'] if resume_plan else None
+            claim.qfq_dependency_context = dict(data_root=data_root, target=target, kwargs=dict(kwargs))
+            claim.qfq_expected_dependencies = resume_plan['computation_dependencies'] if resume_plan else None
+            claim.qfq_invocation_dependencies = invocation_dependencies
+            if invocation_dependencies is not None and computation_dependencies(module, kwargs, runtime_root=module.input_path(data_root).parent) != invocation_dependencies:
+                raise RetentionError('QFQ_COMPUTATION_DEPENDENCY_CHANGED_BEFORE_OWNER')
+        from ops.research_qfq_dependency_identity import computation_scope
+        with computation_scope(claim), qfq_write_seams(module,claim), input_write_seams(claim):
             result=rebuild(data_root=data_root,return_root=return_root,pointers=pointers,target=target,**kwargs)
         if claim:
             if getattr(claim,'pair_recording_error',None):

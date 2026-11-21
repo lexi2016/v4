@@ -26,13 +26,17 @@ def fixture(tmp_path):
     for root in roots:
         ops = root / 'ops'
         (ops / 'vendor').mkdir(parents=True)
-        (ops / 'research_panel_qfq.py').write_text('same owner bytes\n')
-        for helper in g.QFQ_HELPER_FIELDS.values():
-            (ops / helper).write_text('same ' + helper + ' bytes\n')
-        (ops / 'vendor/data_layer_daily_formula_increment_update_v1.py').write_text('same driver bytes\n')
+        (ops / 'research_panel_qfq.py').write_text('# same owner bytes\n')
+        for helper in list(g.QFQ_HELPER_FIELDS.values()) + ['research_panel_turnover.py', 'research_panel_daily_source.py']:
+            (ops / helper).write_text('# same ' + helper + ' bytes\n' + ("POLICY = 'SYNTHETIC_TURNOVER'\n" if helper == 'research_panel_turnover.py' else ''))
+        (ops / 'vendor/data_layer_daily_formula_increment_update_v1.py').write_text('# same driver bytes\n')
+    for root in roots:
+        (root / 'contracts').mkdir()
+        for name in ('a_share_generation_compatibility.json', 'a_share_daily_source_policy.json'):
+            (root / 'contracts' / name).write_text('{}')
     data = tmp_path / 'data'; data.mkdir()
     runs = tmp_path / 'runs'; runs.mkdir()
-    formula = tmp_path / 'formula.py'; formula.write_text('original formula')
+    formula = tmp_path / 'formula.py'; formula.write_text('# original formula')
     contract = tmp_path / 'contract.csv'; contract.write_text('original contract')
     snapshot_path = data / 'snapshot.json'
     put(snapshot_path, {'asof_date':TARGET, 'input':'frozen-input'})
@@ -54,7 +58,15 @@ def fixture(tmp_path):
         input_sha256=g.canonical(json.loads(snapshot_path.read_bytes())),
         adapter_sha256=g.digest(Path(module.__file__)), driver_sha256=g.digest(kwargs['driver_path']),
         formula_sha256=g.digest(formula), field_contract_sha256=g.digest(contract),
-        **g.qfq_helper_identity(module))
+        **g.qfq_helper_identity(module), computation_dependencies=continuity.computation_dependencies(
+            module, kwargs, snapshot=json.loads(snapshot_path.read_text())))
+    receipt['computation_dependency_sha256'] = g.canonical(receipt['computation_dependencies'])
+    turnover = dict(schema='v4.qfq_turnover_evidence.v1', target=TARGET, policy='SYNTHETIC_TURNOVER',
+        sync_path=str(data.parent / 'receipts/a_sync_authority' / str(TARGET) / 'summary.json'),
+        state='MISSING', binding={}, failure='DAILY_SYNC_RECEIPT_MISSING')
+    turnover['identity'] = g.canonical(dict(policy=turnover['policy'], helper_sha256=g.digest(roots[1] / 'ops/research_panel_turnover.py'),
+        target=TARGET, binding={}, failure=turnover['failure']))
+    receipt.update(turnover_input_evidence=turnover, turnover_input_sha256=turnover['identity'])
     receipt_ref = put(checkpoint.parent / 'candidate_receipt.json', receipt)
     row = dict(state='FAILED_RECOVERABLE', owner=dict(pid=999999999, started='dead fixture'),
         token='original-token', directory=str(runs), attempts=1, reserved_bytes=1024 * 1024,
@@ -107,7 +119,7 @@ def test_real_calculation_identity_changes_are_distinct(fixture, changed):
     f = fixture; target = TARGET; args = dict(f.kwargs)
     paths = dict(owner=Path(f.module.__file__), driver=args['driver_path'], formula=args['formula_path'],contract=args['contract_csv'])
     if changed in paths:
-        paths[changed].write_bytes(paths[changed].read_bytes() + b' real source change')
+        paths[changed].write_bytes(paths[changed].read_bytes() + b'# real source change')
     elif changed == 'target':
         target += 1
     elif changed == 'parameters':
@@ -476,7 +488,7 @@ def test_generation_helper_changes_fail_before_migration_and_make_new_identity(f
     f=fixture;helper=g.QFQ_HELPER_FIELDS[helper_field]
     legacy=g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs,legacy=True)
     path=Path(f.module.__file__).parent/helper
-    path.write_bytes(path.read_bytes()+b' altered helper computation')
+    path.write_bytes(path.read_bytes()+b'# altered helper computation')
     assert g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs)!=f.key
     assert g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs,legacy=True)==legacy
     before=f.registry.path.read_bytes()
@@ -536,8 +548,9 @@ def test_even_rekeyed_hand_built_plan_cannot_reuse_receipt_with_old_helper_tuple
     helper='research_panel_delta.py'
     for root in f.roots:
         path=root/'ops'/helper
-        path.write_bytes(path.read_bytes()+b' matching new helper bytes')
+        path.write_bytes(path.read_bytes()+b'# matching new helper bytes')
     f.plan['generation_helpers']=g.qfq_helper_identity(f.module)
+    f.plan['computation_dependencies']=continuity.computation_dependencies(f.module,f.kwargs, snapshot=json.loads(f.snapshot.read_text()))
     f.plan['key']=g.qfq_invocation_key(f.module,f.data,TARGET,f.kwargs)
     before=f.registry.path.read_bytes()
     with pytest.raises(g.RetentionError,match='GENERATION_HELPER_EVIDENCE_CONFLICT'):
