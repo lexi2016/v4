@@ -10,6 +10,7 @@ import argparse
 from contextlib import contextmanager
 import csv
 from datetime import date, datetime
+from decimal import Decimal
 import hashlib
 import io
 import json
@@ -38,7 +39,91 @@ OPTIONAL_CASE_COLUMNS = ("case_id", "source_views")
 PARTITIONS = {"train", "validation"}
 LABELS = {"TRUE", "FALSE", "UNKNOWN"}
 MIN_HISTORY_BARS = 61
-SCHEMA = "pft_s_first_baseline.v1"
+SCHEMA = "pft_s_first_baseline.v1.1"
+MODEL_SCHEMA = "pft_s_logistic_model.v1.1"
+METRICS_SCHEMA = "pft_s_first_baseline_metrics.v1.1"
+GATE_CONTRACT = {
+    "schema": "pft_s_inference_gates.v1",
+    "order": ["G1", "G2", "FIXED_LR_V1_1"],
+    "G1": {
+        "condition": "D_white_line > D_yellow_line",
+        "signed_difference": "D_white_line - D_yellow_line",
+        "known_equality_or_lower": "HARD_FALSE_NO_MODEL_PROBABILITY",
+        "missing_or_invalid": "GAP_ABSTAIN_NO_MODEL_PROBABILITY",
+    },
+    "G2": {
+        "combiner": "OR",
+        "branch_1": "D_close / D_yellow_line - 1 >= 0.35",
+        "branch_2": (
+            "D_close / D_yellow_line - 1 >= 0.25 AND "
+            "(D_high - max(D_open, D_close)) / D_minus_1_close >= 0.04 AND "
+            "D_volume / mean(volume[D_minus_5:D_minus_1]) >= 1.5"
+        ),
+        "branch_3": (
+            "D_close / max(high[D_minus_29:D_including_D]) - 1 <= -0.22 AND "
+            "(D_high - D_low) / D_minus_1_close >= 0.08"
+        ),
+        "upper_wick_and_amplitude_denominator": "D_minus_1_close",
+        "vr5": "D_volume / mean(volume of the preceding five bars D-5..D-1); D excluded",
+        "trailing_30_bar_high_window": "D-29..D inclusive",
+        "trigger": "HARD_FALSE_NO_MODEL_PROBABILITY",
+    },
+    "training": "fit all decided TRAIN rows; gates are inference-time only",
+    "unknown": "preserve UNKNOWN; exclude from scored decisions and metrics; V1.1 emits no diagnostic LR probability",
+    "whole_policy_validation": (
+        "all decided validation rows; G1/G2 veto is a FALSE decision and effective ROC-AUC score 0; "
+        "model probability remains blank for veto rows"
+    ),
+    "model_only_validation": "optional metrics on decided, ungated rows with an LR probability",
+}
+V11_FEATURE_CONTRACT = {
+    "schema": "pft_s_v1_1_d_only_features.v1",
+    "directional_d_return_predictor": False,
+    "repair_split": {
+        "y_consec2_5b": "strict two consecutive closes below yellow in the latest five bars including D",
+        "prior_pair": "strict consecutive closes below yellow; both bars in D-25..D-6 inclusive",
+        "repair": "two later consecutive closes strictly above both white and yellow",
+        "no_active_relapse": "no later consecutive close pair below yellow after the latest repair pair",
+        "model_feature": "repaired_prior_break",
+    },
+    "prior_key_k": {
+        "search": "nearest qualifying prior upward key K in the R2 helper's 40 bars before D",
+        "low_intact": "D low strictly above the selected prior key K low",
+        "model_feature": "surge_low_intact",
+        "D_in_anchor_search": False,
+    },
+    "pullback_context": {
+        "contraction_ratios": ["volume_5_vs_prior15", "range_5_vs_prior15", "d_volume_vs_prior5_mean",
+                               "d_range_vs_prior15_mean"],
+        "zero_prior5_volume_encoding": "-1 means the preceding five-bar volume baseline is zero",
+        "structure_hold": ["surge_low_intact", "d_close_above_white_line_tri",
+                           "d_close_above_yellow_line_tri", "yellow_active_confirmed_break_tri"],
+        "ratios_are_continuous_and_untuned": True,
+    },
+    "readvance_context": {
+        "held_prior_anchor": "surge_low_intact",
+        "relative_volume": "d_volume_vs_prior5_mean",
+        "close_over_earlier_high": ["d_close_breaks_prior10_high_tri", "d_close_breaks_prior20_high_tri"],
+        "ratios_are_continuous_and_untuned": True,
+    },
+    "branch_interactions": {
+        "pullback_strength": (
+            "max(0, 1-VR5) * max(0, 1-D_range/prior15_range); available only when the prior low is held, "
+            "D closes above yellow, no two-below pair occurs in the latest five bars, and D does not close above "
+            "the prior ten-bar high"
+        ),
+        "re_advance_strength": (
+            "max(0, VR5-1) * max(0, D_close/prior10_high-1); available only when the prior low is held"
+        ),
+        "unknown_required_input_encoding": -1,
+        "natural_ratio_pivot": 1.0,
+    },
+    "excluded_from_model_features": {
+        "yellow_2below_historical_tri": "pooled 16-bar audit field replaced by the separate recent-5 and prior-break/repaired features",
+        "duplicate_readvance_and_rebuild_aliases": "not included; canonical base feature names are used once",
+    },
+    "range_break": "D close/high compared with prior 10/20 bar highs, excluding D",
+}
 FLAGS = {
     "RESEARCH_ONLY": True,
     "production_allowed": False,
@@ -376,12 +461,13 @@ def _panel_columns(panel_path: Path) -> tuple[list[str], dict[str, str], Any]:
         "ma60": ("ma60",),
     }
     columns: dict[str, str] = {}
-    for semantic in ("trade_date", "ts_code", "open", "high", "low", "close", "vol"):
+    for semantic in ("trade_date", "ts_code", "open", "high", "low", "close", "vol",
+                     "zge_white_line", "zge_yellow_line"):
         field = next((actual[name] for name in aliases[semantic] if name in actual), None)
         if field is None:
             raise BaselineError(f"BACKTEST_PANEL_REQUIRED_FIELD_MISSING:{semantic}")
         columns[semantic] = field
-    for semantic in ("exchange", "market_type", "bbi", "zge_white_line", "zge_yellow_line", "ma60"):
+    for semantic in ("exchange", "market_type", "bbi", "ma60"):
         field = next((actual[name] for name in aliases[semantic] if name in actual), None)
         if field is not None:
             columns[semantic] = field
@@ -478,6 +564,7 @@ def _feature_values(panel_rows: list[dict[str, Any]], columns: dict[str, str], *
     prior_vol = sum(row["vol"] for row in bars[-20:-5]) / 15.0
     prior_range = sum(row["range_pct"] for row in bars[-20:-5]) / 15.0
     recent_range = sum(row["range_pct"] for row in bars[-5:]) / 5.0
+    prior5_vol = sum(row["vol"] for row in bars[-6:-1]) / 5.0
     if prior_vol <= 0:
         raise BaselineError("ZERO_PRIOR15_VOLUME_BASELINE")
     if prior_range <= 0:
@@ -485,6 +572,8 @@ def _feature_values(panel_rows: list[dict[str, Any]], columns: dict[str, str], *
     recent20, prior20 = bars[-20:], bars[-40:-20]
     high60 = max(row["high"] for row in bars[-60:])
     low60 = min(row["low"] for row in bars[-60:])
+    prior10_high = max(row["high"] for row in bars[-11:-1])
+    prior20_high = max(row["high"] for row in bars[-21:-1])
     features = {
         "open_close_pct": current["open"] / close - 1.0,
         "high_low_pct": span / close,
@@ -495,10 +584,22 @@ def _feature_values(panel_rows: list[dict[str, Any]], columns: dict[str, str], *
         "close_return_60d": close / bars[-61]["close"] - 1.0,
         "volume_5_vs_prior15": recent_vol / prior_vol,
         "range_5_vs_prior15": recent_range / prior_range,
+        "d_volume_vs_prior5_mean": current["vol"] / prior5_vol if prior5_vol > 0 else -1.0,
+        "d_range_vs_prior15_mean": current["range_pct"] / prior_range,
         "close_vs_high_60d": close / high60 - 1.0,
         "close_vs_low_60d": close / low60 - 1.0,
         "high_20_vs_prior20": max(row["high"] for row in recent20) / max(row["high"] for row in prior20) - 1.0,
         "low_20_vs_prior20": min(row["low"] for row in recent20) / min(row["low"] for row in prior20) - 1.0,
+        "d_close_vs_prior10_high_pct": close / prior10_high - 1.0,
+        "d_close_vs_prior20_high_pct": close / prior20_high - 1.0,
+        "d_high_vs_prior10_high_pct": current["high"] / prior10_high - 1.0,
+        "d_high_vs_prior20_high_pct": current["high"] / prior20_high - 1.0,
+        "d_close_breaks_prior10_high_tri": float(close > prior10_high),
+        "d_close_breaks_prior20_high_tri": float(close > prior20_high),
+        "d_high_breaks_prior10_high_tri": float(current["high"] > prior10_high),
+        "d_high_breaks_prior20_high_tri": float(current["high"] > prior20_high),
+        "d_close_above_white_line_tri": float(close > _numeric(current.get("zge_white_line"), field="zge_white_line")),
+        "d_close_above_yellow_line_tri": float(close > _numeric(current.get("zge_yellow_line"), field="zge_yellow_line")),
     }
     if "bbi" in columns:
         bbi = _numeric(current.get("bbi"), field="bbi")
@@ -519,6 +620,216 @@ def _feature_values(panel_rows: list[dict[str, Any]], columns: dict[str, str], *
     if any(not math.isfinite(value) for value in features.values()):
         raise BaselineError("INVALID_DERIVED_FEATURE")
     return features
+
+
+def _line_relation(row: dict[str, Any], line_name: str) -> int | None:
+    close = row.get("close")
+    line = row.get(line_name)
+    try:
+        close_value = float(close)
+        line_value = float(line)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(close_value) or not math.isfinite(line_value) or line_value <= 0:
+        return None
+    return 1 if close_value > line_value else (-1 if close_value < line_value else 0)
+
+
+def _consecutive_pair(
+    rows: list[dict[str, Any]], predicate: Callable[[dict[str, Any]], bool | None],
+) -> tuple[bool | None, tuple[int, int] | None]:
+    unknown = False
+    matches: list[tuple[int, int]] = []
+    for index in range(len(rows) - 1):
+        first = predicate(rows[index])
+        second = predicate(rows[index + 1])
+        if first is None or second is None:
+            unknown = True
+        elif first and second:
+            matches.append((index, index + 1))
+    if matches:
+        return True, matches[-1]
+    return (None if unknown else False), None
+
+
+def _repair_distinguishing_features(
+    panel_rows: list[dict[str, Any]], *, target_date: str,
+) -> tuple[dict[str, float], dict[str, Any]]:
+    """Separate recent yellow breaks from an older, later repaired pair."""
+    prefix = sorted((row for row in panel_rows
+                     if row.get("trade_date") is not None and str(row["trade_date"]) <= target_date),
+                    key=lambda row: str(row["trade_date"]))
+    if not prefix or str(prefix[-1]["trade_date"]) != target_date:
+        raise BaselineError("EXACT_D_ROW_MISSING")
+
+    def below_yellow(row: dict[str, Any]) -> bool | None:
+        relation = _line_relation(row, "zge_yellow_line")
+        return None if relation is None else relation < 0
+
+    def above_white_and_yellow(row: dict[str, Any]) -> bool | None:
+        white = _line_relation(row, "zge_white_line")
+        yellow = _line_relation(row, "zge_yellow_line")
+        return None if white is None or yellow is None else white > 0 and yellow > 0
+
+    latest5 = prefix[-5:]
+    recent_pair, recent_pair_indices = _consecutive_pair(latest5, below_yellow)
+    prior_window = prefix[-26:-6]  # D-25 through D-6, both endpoints included.
+    prior_pair, prior_pair_indices = _consecutive_pair(prior_window, below_yellow)
+    repair_pair = False
+    repair_pair_indices: tuple[int, int] | None = None
+    repair_search_unknown = False
+    prior_pair_start_date: str | None = None
+    prior_pair_end_date: str | None = None
+    repair_pair_start_date: str | None = None
+    repair_pair_end_date: str | None = None
+    active_relapse: bool | None = None
+    repaired_current = -1.0
+
+    if len(prior_window) < 20:
+        prior_pair = None
+    elif prior_pair_indices is not None:
+        base = len(prefix) - len(prior_window)
+        first_global, second_global = (base + prior_pair_indices[0], base + prior_pair_indices[1])
+        prior_pair_start_date = str(prefix[first_global]["trade_date"])
+        prior_pair_end_date = str(prefix[second_global]["trade_date"])
+        later_rows = prefix[second_global + 1:]
+        repair_result, local_repair = _consecutive_pair(later_rows, above_white_and_yellow)
+        repair_search_unknown = repair_result is None
+        if local_repair is not None:
+            repair_pair = True
+            repair_pair_indices = (second_global + 1 + local_repair[0], second_global + 1 + local_repair[1])
+            repair_pair_start_date = str(prefix[repair_pair_indices[0]]["trade_date"])
+            repair_pair_end_date = str(prefix[repair_pair_indices[1]]["trade_date"])
+            after_repair = prefix[repair_pair_indices[1] + 1:]
+            active_result, _ = _consecutive_pair(after_repair, below_yellow)
+            active_relapse = active_result
+            if active_result is False:
+                repaired_current = 1.0
+            elif active_result is True:
+                repaired_current = 0.0
+        elif repair_search_unknown:
+            repaired_current = -1.0
+        else:
+            repaired_current = 0.0
+    elif prior_pair is None:
+        repaired_current = -1.0
+    else:
+        repaired_current = 0.0
+
+    features = {
+        "y_consec2_5b": -1.0 if recent_pair is None else float(recent_pair),
+        "y_prior_consec2_d25_d6": -1.0 if prior_pair is None else float(prior_pair),
+        "repaired_prior_break": repaired_current,
+        "y_prior_pair_current_repair_pair_at_D_tri": float(
+            repair_pair_indices is not None and repair_pair_indices[1] == len(prefix) - 1
+        ),
+    }
+    diagnostic = {
+        "schema": "pft_s_v1_1_yellow_repair_split.v1",
+        "target_date": target_date,
+        "y_consec2_5b": "UNKNOWN" if recent_pair is None else str(bool(recent_pair)).upper(),
+        "y_consec2_5b_pair_dates": (
+            [str(latest5[recent_pair_indices[0]]["trade_date"]),
+             str(latest5[recent_pair_indices[1]]["trade_date"])] if recent_pair_indices else None
+        ),
+        "prior_window_first_date": str(prior_window[0]["trade_date"]) if prior_window else None,
+        "prior_window_last_date": str(prior_window[-1]["trade_date"]) if prior_window else None,
+        "prior_pair_status": "UNKNOWN" if prior_pair is None else str(bool(prior_pair)).upper(),
+        "prior_pair_start_date": prior_pair_start_date,
+        "prior_pair_end_date": prior_pair_end_date,
+        "repair_pair_status": "TRUE" if repair_pair else ("UNKNOWN" if repair_search_unknown else "FALSE"),
+        "repair_pair_start_date": repair_pair_start_date,
+        "repair_pair_end_date": repair_pair_end_date,
+        "active_relapse_after_latest_repair_pair": (
+            "UNKNOWN" if active_relapse is None and repair_pair else
+            ("TRUE" if active_relapse is True else "FALSE" if active_relapse is False else "NOT_APPLICABLE")
+        ),
+        "latest_close_above_white_and_yellow": (
+            "UNKNOWN" if above_white_and_yellow(prefix[-1]) is None else
+            str(bool(above_white_and_yellow(prefix[-1]))).upper()
+        ),
+    }
+    return features, diagnostic
+
+
+def _inference_gate(panel_rows: list[dict[str, Any]], *, target_date: str) -> dict[str, Any]:
+    prefix = sorted((row for row in panel_rows
+                     if row.get("trade_date") is not None and row["trade_date"] <= target_date),
+                    key=lambda row: row["trade_date"])
+    if len(prefix) < 31 or prefix[-1]["trade_date"] != target_date:
+        raise BaselineError("INSUFFICIENT_GATE_HISTORY_OR_EXACT_D_MISSING")
+    current = prefix[-1]
+    previous = prefix[-2]
+    previous_close = _numeric(previous.get("close"), field="previous_close")
+    d_open = _numeric(current.get("open"), field="D_open")
+    d_high = _numeric(current.get("high"), field="D_high")
+    d_low = _numeric(current.get("low"), field="D_low")
+    d_close = _numeric(current.get("close"), field="D_close")
+    d_volume = _numeric(current.get("vol"), field="D_volume")
+    if current.get("zge_white_line") is None or current.get("zge_yellow_line") is None:
+        raise BaselineError("MISSING_G1_WHITE_OR_YELLOW_LINE")
+    try:
+        white = _numeric(current.get("zge_white_line"), field="D_white_line")
+        yellow = _numeric(current.get("zge_yellow_line"), field="D_yellow_line")
+    except BaselineError as exc:
+        raise BaselineError("INVALID_G1_WHITE_OR_YELLOW_LINE") from exc
+    if white <= 0 or yellow <= 0:
+        raise BaselineError("INVALID_G1_WHITE_OR_YELLOW_LINE")
+    signed_white_yellow = white - yellow
+    g1_pass = signed_white_yellow > 0
+    close_yellow_pct = d_close / yellow - 1.0 if yellow is not None and yellow > 0 else None
+    upper_wick_prev_close = (d_high - max(d_open, d_close)) / previous_close if previous_close > 0 else None
+    previous5_volumes = [_numeric(row.get("vol"), field="prior_volume") for row in prefix[-6:-1]]
+    previous5_mean = sum(previous5_volumes) / len(previous5_volumes) if previous5_volumes else 0.0
+    vr5_d_vs_prior5 = d_volume / previous5_mean if previous5_mean > 0 else None
+    trailing30_high = max(_numeric(row.get("high"), field="trailing30_high") for row in prefix[-30:])
+    drawdown_vs_trailing30_high = d_close / trailing30_high - 1.0 if trailing30_high > 0 else None
+    amplitude_prev_close = (d_high - d_low) / previous_close if previous_close > 0 else None
+    d_ret_pct = d_close / previous_close - 1.0 if previous_close > 0 else None
+
+    g2_branches = {
+        "G2_CLOSE_YELLOW_GE_35": Decimal(str(d_close)) >= Decimal("1.35") * Decimal(str(yellow)),
+        "G2_CLOSE_YELLOW_GE_25_WICK_GE_4_VR5_GE_1_5": (
+            Decimal(str(d_close)) >= Decimal("1.25") * Decimal(str(yellow))
+            and Decimal(str(d_high)) - max(Decimal(str(d_open)), Decimal(str(d_close)))
+            >= Decimal("0.04") * Decimal(str(previous_close))
+            and previous5_mean > 0
+            and Decimal(str(d_volume)) >= Decimal("1.5") * Decimal(str(previous5_mean))
+        ),
+        "G2_DRAWDOWN_LE_MINUS_22_AMPLITUDE_GE_8": (
+            Decimal(str(d_close)) <= Decimal("0.78") * Decimal(str(trailing30_high))
+            and Decimal(str(d_high)) - Decimal(str(d_low))
+            >= Decimal("0.08") * Decimal(str(previous_close))
+        ),
+    }
+    g2_triggers = [name for name, triggered in g2_branches.items() if triggered]
+    if not g1_pass:
+        gate_reason = "G1_W_NOT_ABOVE_Y_HARD_FALSE"
+    elif g2_triggers:
+        gate_reason = ";".join(g2_triggers)
+    else:
+        gate_reason = ""
+    veto = not g1_pass or bool(g2_triggers)
+    return {
+        "G1_white_D": white,
+        "G1_yellow_D": yellow,
+        "G1_signed_white_minus_yellow": signed_white_yellow,
+        "G1_condition": "D_white_line > D_yellow_line",
+        "G1_pass": bool(g1_pass),
+        "G2_close_yellow_pct": close_yellow_pct,
+        "G2_upper_wick_prev_close_ratio": upper_wick_prev_close,
+        "G2_vr5_D_volume_vs_prior5_mean": vr5_d_vs_prior5,
+        "G2_prior5_mean_volume_D_minus5_to_D_minus1": previous5_mean,
+        "G2_drawdown_vs_trailing30_high_including_D": drawdown_vs_trailing30_high,
+        "G2_trailing30_high_D_minus29_to_D": trailing30_high,
+        "G2_amplitude_prev_close_ratio": amplitude_prev_close,
+        "G2_branch_triggers": g2_triggers,
+        "G2_branch_results": g2_branches,
+        "gate_would_veto": bool(veto),
+        "gate_reason": gate_reason,
+        "gate_hard_prediction": "FALSE" if veto else None,
+        "d_ret_pct_diagnostic_only": d_ret_pct,
+    }
 
 
 def _coverage(cases: list[dict[str, str]]) -> dict[str, Any]:
@@ -561,7 +872,6 @@ def _build_examples(
     columns: dict[str, str],
     *,
     start_date: str,
-    structure_repair: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]], list[dict[str, str]], list[str]]:
     by_key: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for row in panel_rows:
@@ -607,17 +917,43 @@ def _build_examples(
             continue
         try:
             history_rows = [by_key[(code, day)][0] for day in history_keys]
+            gate_diagnostics = _inference_gate(history_rows, target_date=target)
             vector = _feature_values(history_rows, columns, target_date=target)
-            structure_diagnostics: dict[str, Any] | None = None
-            structure_features: dict[str, float] | None = None
-            if structure_repair:
-                from ops.pft_s_structure_features import structure_repair_features as build_structure_features
-                structure_features, structure_diagnostics = build_structure_features(
-                    history_rows, target_date=target,
-                )
-                if any(not math.isfinite(value) for value in structure_features.values()):
-                    raise BaselineError("INVALID_STRUCTURE_REPAIR_FEATURE")
-                vector.update(structure_features)
+            from ops.pft_s_structure_features import structure_repair_features as build_structure_features
+            structure_features, structure_diagnostics = build_structure_features(
+                history_rows, target_date=target,
+            )
+            repair_features, repair_diagnostics = _repair_distinguishing_features(
+                history_rows, target_date=target,
+            )
+            structure_features["surge_low_intact"] = structure_features.pop("key_k_D_low_held_above_tri")
+            structure_features.update(repair_features)
+            surge_low_intact = structure_features["surge_low_intact"]
+            structure_features["pullback_strength"] = _guarded_positive_interaction(
+                vector["d_volume_vs_prior5_mean"],
+                1.0 - vector["d_range_vs_prior15_mean"],
+                low_volume_side=True,
+                tri_guards={
+                    "surge_low_intact": (surge_low_intact, 1),
+                    "above_yellow": (vector["d_close_above_yellow_line_tri"], 1),
+                    "no_latest5_break": (repair_features["y_consec2_5b"], 0),
+                    "no_close_breakthrough": (vector["d_close_breaks_prior10_high_tri"], 0),
+                },
+            )
+            structure_features["re_advance_strength"] = _guarded_positive_interaction(
+                vector["d_volume_vs_prior5_mean"],
+                vector["d_close_vs_prior10_high_pct"],
+                low_volume_side=False,
+                tri_guards={"surge_low_intact": (surge_low_intact, 1)},
+            )
+            if any(not math.isfinite(value) for value in structure_features.values()):
+                raise BaselineError("INVALID_STRUCTURE_REPAIR_FEATURE")
+            # Keep the helper's pooled 16-session event in the row audit, while
+            # the V1.1 model uses the explicitly separated recent and repaired
+            # break features instead.
+            vector.update({name: value for name, value in structure_features.items()
+                           if name != "yellow_2below_historical_tri"})
+            structure_diagnostics = {**structure_diagnostics, **repair_diagnostics}
         except (BaselineError, ValueError) as exc:
             record_gap(item, str(exc))
             continue
@@ -632,9 +968,14 @@ def _build_examples(
             "features": vector,
             "structure_features": structure_features,
             "structure_diagnostics": structure_diagnostics,
+            "inference_gate": gate_diagnostics,
             "history_bars": len(history_keys),
             "zero_volume_on_D": zero_volume,
             "d_volume": _numeric(row.get("vol"), field="vol"),
+            "gate_would_disagree_with_signed_label": (
+                bool(gate_diagnostics["gate_would_veto"] and item.get("overall_s_label") == "TRUE")
+                if item.get("overall_s_label") in {"TRUE", "FALSE"} else None
+            ),
         })
     examples.sort(key=lambda row: (row["security_id"], row["master_episode_group"], row["D"]))
     gaps.sort(key=lambda row: (row["security_id"], row["D"], row["case_id"], row["reason"]))
@@ -648,6 +989,60 @@ def _case_id(item: dict[str, str]) -> str:
         return supplied
     material = "\0".join((item["security_id"], item["master_episode_group"], item["D"], item.get("partition", "")))
     return hashlib.sha256(material.encode("utf-8")).hexdigest()[:20]
+
+
+def _gate_category(gate: dict[str, Any]) -> str:
+    if not gate.get("G1_pass"):
+        return "G1"
+    if gate.get("G2_branch_triggers"):
+        return "G2"
+    return "NONE"
+
+
+def _gate_precheck_support(examples: list[dict[str, Any]]) -> dict[str, Any]:
+    support: dict[str, Any] = {}
+    for partition in ("train", "validation"):
+        rows = [row for row in examples if row.get("partition") == partition]
+        categories = {name: [row for row in rows if _gate_category(row["inference_gate"]) == name]
+                      for name in ("G1", "G2", "NONE")}
+        decided = [row for row in rows if row.get("overall_s_label") in {"TRUE", "FALSE"}]
+        disagreements = [row for row in decided
+                         if row.get("inference_gate", {}).get("gate_would_veto")
+                         and row["overall_s_label"] != "FALSE"]
+        support[partition] = {
+            "case_count": len(rows),
+            "known_label_count": len(decided),
+            "unknown_label_count": sum(row.get("overall_s_label") == "UNKNOWN" for row in rows),
+            "would_veto_count": len(categories["G1"]) + len(categories["G2"]),
+            "would_veto_by_gate": {name: len(categories[name]) for name in ("G1", "G2")},
+            "model_eligible_count": len(categories["NONE"]),
+            "signed_label_disagreements": [
+                {"case_id": row["case_id"], "overall_s_label": row["overall_s_label"],
+                 "gate_reason": row["inference_gate"].get("gate_reason", "")}
+                for row in disagreements
+            ],
+            "decided_fit_rows_preserved": len(decided) if partition == "train" else None,
+        }
+    return support
+
+
+def _guarded_positive_interaction(
+    volume_ratio: float,
+    price_ratio: float,
+    *,
+    low_volume_side: bool,
+    tri_guards: dict[str, tuple[float, int]],
+) -> float:
+    """Apply a continuous ratio interaction, preserving UNKNOWN as -1."""
+    if not math.isfinite(volume_ratio) or volume_ratio < 0 or not math.isfinite(price_ratio):
+        return -1.0
+    for _name, (value, expected) in tri_guards.items():
+        if not math.isfinite(value) or value < 0:
+            return -1.0
+        if value != float(expected):
+            return 0.0
+    volume_strength = max(0.0, 1.0 - volume_ratio) if low_volume_side else max(0.0, volume_ratio - 1.0)
+    return volume_strength * max(0.0, price_ratio)
 
 
 def _structure_output_fields(item: dict[str, Any]) -> dict[str, str]:
@@ -696,6 +1091,7 @@ def _report_base(
                                            "overall_s_label", "partition", "source_views", "d_volume")}
             for row in examples if row.get("zero_volume_on_D")
         ],
+        "inference_gate_precheck": _gate_precheck_support(examples),
     })
     ready = not gaps and len(examples) + len(unknown_exclusions) == len(cases) and no_missing_classes
     if ready and identity_only:
@@ -719,10 +1115,12 @@ def _report_base(
                   "path_argument": str(cases_path)},
         "source": source,
         "coverage": coverage,
+        "inference_gates": GATE_CONTRACT,
+        "feature_contract": V11_FEATURE_CONTRACT,
         "partition_policy": {
             "master_episode_group_cross_split": "REJECTED",
             "security_across_multiple_partitions": "REJECTED_CONSERVATIVE_OVERLAP_GUARD",
-            "unknown_labels": "COVERAGE_ONLY_NEVER_SCORED",
+            "unknown_labels": "LABEL_PRESERVED_AND_NEVER_IN_METRICS; ELIGIBLE_UNGATED_DIAGNOSTIC_PROBABILITY_ONLY",
             "identity_only_cases": "NO_JOINT_LABELS_OR_SPLIT_CLAIMS",
             "validation_development_exposed": True,
         },
@@ -736,7 +1134,6 @@ def preflight(
     start_date: str,
     asof_date: str,
     expected_sha256: str | None = None,
-    structure_repair: bool = False,
 ) -> dict[str, Any]:
     start_date = _day(start_date, field="start_date")
     asof_date = _day(asof_date, field="asof_date")
@@ -752,7 +1149,7 @@ def preflight(
         panel_rows, columns = _panel_rows(panel_path, start_date=start_date, asof_date=asof_date,
                                           codes=(row["security_id"] for row in cases))
         examples, gaps, unknown_exclusions, feature_names = _build_examples(
-            cases, panel_rows, columns, start_date=start_date, structure_repair=structure_repair,
+            cases, panel_rows, columns, start_date=start_date,
         )
         recheck()
         report = _report_base(cases_path=cases_path, start_date=start_date, asof_date=asof_date,
@@ -760,9 +1157,6 @@ def preflight(
                               gaps=gaps, unknown_exclusions=unknown_exclusions, features=feature_names,
                               expected_sha256=expected_sha256)
         report["panel_rows_read"] = len(panel_rows)
-        if structure_repair:
-            from ops.pft_s_structure_features import STRUCTURE_REPAIR_CONTRACT
-            report["structure_repair"] = STRUCTURE_REPAIR_CONTRACT
         return report
 
 
@@ -816,6 +1210,7 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
     import numpy as np
     import sklearn
     from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
     from sklearn.pipeline import Pipeline
     from sklearn.preprocessing import StandardScaler
 
@@ -837,15 +1232,34 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
     model = Pipeline([
         ("scale", StandardScaler()),
         ("logistic", LogisticRegression(C=1.0, penalty="l2", solver="liblinear", random_state=0,
-                                         max_iter=1000, tol=1e-8)),
+                                         class_weight="balanced", max_iter=1000, tol=1e-8)),
     ])
+    # The model is trained on every decided TRAIN row. G1/G2 are inference-time
+    # policy gates and must never shrink this frozen fit population.
     model.fit(x_train, y_train)
     positive_index = list(model.named_steps["logistic"].classes_).index(1)
-    p_train = model.predict_proba(x_train)[:, positive_index]
-    p_validation = model.predict_proba(x_validation)[:, positive_index]
-    predictions_train = (p_train >= 0.5).astype(int)
-    predictions_validation = (p_validation >= 0.5).astype(int)
     majority = int(y_train.sum() * 2 >= len(y_train))
+
+    decided = [*train, *validation]
+    eligible = [row for row in decided if not row["inference_gate"]["gate_would_veto"]]
+    eligible_case_ids = [row["case_id"] for row in eligible]
+    if len(eligible_case_ids) != len(set(eligible_case_ids)):
+        raise BaselineError("DUPLICATE_CASE_ID_IN_UNGATED_PREDICTION_SET")
+    probability_by_case_id: dict[str, float] = {}
+    eligible_matrix = np.asarray(
+        [[row["features"][name] for name in feature_names] for row in eligible], dtype=float,
+    ).reshape((len(eligible), len(feature_names)))
+    if eligible:
+        # This is the only predict_proba call. Its matrix is constructed after
+        # removing all G1/G2 veto rows, so vetoed rows receive no LR probability.
+        eligible_probabilities = model.predict_proba(eligible_matrix)[:, positive_index]
+        probability_by_case_id = {
+            row["case_id"]: float(probability)
+            for row, probability in zip(eligible, eligible_probabilities)
+        }
+    if any(row["case_id"] in probability_by_case_id for row in decided
+           if row["inference_gate"]["gate_would_veto"]):
+        raise BaselineError("GATE_VETO_RECEIVED_MODEL_PROBABILITY")
 
     def confusion(actual: Any, predicted: Any) -> dict[str, int]:
         actual = np.asarray(actual, dtype=int)
@@ -857,22 +1271,50 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
             "false_negative": int(np.sum((actual == 1) & (predicted == 0))),
         }
 
-    def score(actual: Any, predicted: Any) -> dict[str, Any]:
+    def score(actual: Any, predicted: Any, effective_scores: Any | None = None) -> dict[str, Any]:
         counts = confusion(actual, predicted)
         precision_den = counts["true_positive"] + counts["false_positive"]
         recall_den = counts["true_positive"] + counts["false_negative"]
         precision = counts["true_positive"] / precision_den if precision_den else 0.0
         recall = counts["true_positive"] / recall_den if recall_den else 0.0
         f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-        return {"n": len(actual), "confusion": counts, "precision": precision, "recall": recall, "f1": f1,
-                "accuracy": float(np.mean(np.asarray(actual) == np.asarray(predicted)))}
+        result = {"n": len(actual), "confusion": counts, "precision": precision, "recall": recall, "f1": f1,
+                  "accuracy": float(np.mean(np.asarray(actual) == np.asarray(predicted)))}
+        if effective_scores is not None:
+            values = np.asarray(effective_scores, dtype=float)
+            result["roc_auc"] = (float(roc_auc_score(actual, values))
+                                 if len(set(np.asarray(actual, dtype=int).tolist())) == 2 else None)
+        return result
 
-    validation_metrics = score(y_validation, predictions_validation)
+    policy_validation_predictions: list[int] = []
+    policy_validation_scores: list[float] = []
+    eligible_validation: list[dict[str, Any]] = []
+    for item in validation:
+        gate = item["inference_gate"]
+        if gate["gate_would_veto"]:
+            policy_validation_predictions.append(0)
+            policy_validation_scores.append(0.0)
+        else:
+            probability = probability_by_case_id[item["case_id"]]
+            policy_validation_predictions.append(int(probability >= 0.5))
+            policy_validation_scores.append(probability)
+            eligible_validation.append(item)
+    validation_metrics = score(y_validation, policy_validation_predictions, policy_validation_scores)
+    model_only_validation_predictions = [
+        int(probability_by_case_id[item["case_id"]] >= 0.5) for item in eligible_validation
+    ]
+    model_only_validation_actual = np.asarray(
+        [1 if item["overall_s_label"] == "TRUE" else 0 for item in eligible_validation], dtype=int,
+    )
+    model_only_validation_scores = [probability_by_case_id[item["case_id"]] for item in eligible_validation]
+    model_only_validation_metrics = (
+        score(model_only_validation_actual, model_only_validation_predictions, model_only_validation_scores)
+        if eligible_validation else None
+    )
     majority_metrics = score(y_validation, np.full(len(y_validation), majority, dtype=int))
-    model_probabilities = np.concatenate((p_train, p_validation))
-    matrices = np.concatenate((x_train, x_validation), axis=0)
+    model_probabilities = [probability_by_case_id[row["case_id"]] for row in eligible]
     model_payload = {
-        "schema": "pft_s_logistic_model.v1", "feature_names": feature_names,
+        "schema": MODEL_SCHEMA, "feature_names": feature_names,
         "scaler_mean": [float(value) for value in model.named_steps["scale"].mean_],
         "scaler_scale": [float(value) for value in model.named_steps["scale"].scale_],
         "coefficient_true": [float(value) for value in model.named_steps["logistic"].coef_[0]],
@@ -880,63 +1322,92 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
         "classes": [int(value) for value in model.named_steps["logistic"].classes_],
         "decision_threshold": 0.5,
         "configuration": {"C": 1.0, "penalty": "l2", "solver": "liblinear", "random_state": 0,
-                          "max_iter": 1000, "tol": 1e-8, "scale": "StandardScaler"},
+                          "class_weight": "balanced", "max_iter": 1000, "tol": 1e-8,
+                          "scale": "StandardScaler", "fit_population": "all_decided_train_rows",
+                          "inference_gate_used_during_fit": False},
         "training_case_ids": [row["case_id"] for row in train],
         "sklearn_version": sklearn.__version__,
     }
     serialized_model = json.dumps(model_payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
     reloaded_model_payload = json.loads(serialized_model)
-    reloaded_probabilities = _manual_probabilities(reloaded_model_payload, matrices)
+    reloaded_probabilities = _manual_probabilities(reloaded_model_payload, eligible_matrix)
     max_probability_diff = max((abs(float(a) - float(b)) for a, b in zip(model_probabilities, reloaded_probabilities)), default=0.0)
     if max_probability_diff > 1e-12:
         raise BaselineError("MODEL_RELOAD_NUMERICAL_MISMATCH")
 
     rows_out: list[dict[str, Any]] = []
-    section = [("train", train, x_train, p_train, predictions_train),
-               ("validation", validation, x_validation, p_validation, predictions_validation)]
-    for split, items, matrix, probabilities, predicted in section:
-        for index, item in enumerate(items):
-            actual = item["overall_s_label"]
-            predicted_label = "TRUE" if int(predicted[index]) else "FALSE"
-            is_error = (predicted_label != actual) if actual != "UNKNOWN" else None
-            contribution = _top_contributions(model, matrix[index], feature_names)
-            rows_out.append({
-                "case_id": item["case_id"], "security_id": item["security_id"],
-                "master_episode_group": item["master_episode_group"], "D": item["D"],
-                "overall_s_label": actual, "partition": item["partition"],
-                "exposure_status": item["exposure_status"],
-                "source_views": item.get("source_views", ""),
-                "prediction": predicted_label,
-                "probability_true": float(probabilities[index]),
-                "scored": actual != "UNKNOWN", "is_error": is_error,
-                "exclusion_reason": "" if actual != "UNKNOWN" else "UNKNOWN_LABEL_NEVER_SCORED",
-                "history_bars": item["history_bars"], "d_volume": item["d_volume"],
-                "top_numeric_contributions": json.dumps(contribution, sort_keys=True, separators=(",", ":")),
-                **_structure_output_fields(item),
-            })
-    for item in unknown:
+    for item in examples:
+        actual = item["overall_s_label"]
+        gate = item["inference_gate"]
+        probability = probability_by_case_id.get(item["case_id"])
+        veto = bool(gate["gate_would_veto"])
+        if veto:
+            predicted_label = "FALSE"
+            effective_decision_score: float | str = 0.0
+            decision_source = "G1_GATE" if not gate["G1_pass"] else "G2_GATE"
+            contribution: list[dict[str, Any]] = []
+        elif actual == "UNKNOWN":
+            # Unknown labels stay unknown and unscored. This baseline omits the
+            # optional diagnostic LR probability for these rows.
+            predicted_label = ""
+            effective_decision_score = ""
+            decision_source = "UNKNOWN_UNSCORED"
+            contribution = []
+        else:
+            if probability is None:
+                raise BaselineError("UNGATED_DECIDED_CASE_MISSING_MODEL_PROBABILITY")
+            predicted_label = "TRUE" if probability >= 0.5 else "FALSE"
+            effective_decision_score = probability
+            decision_source = "MODEL_LR"
+            vector = np.asarray([item["features"][name] for name in feature_names], dtype=float)
+            contribution = _top_contributions(model, vector, feature_names)
+        is_error = (predicted_label != actual) if actual != "UNKNOWN" else None
         rows_out.append({
             "case_id": item["case_id"], "security_id": item["security_id"],
             "master_episode_group": item["master_episode_group"], "D": item["D"],
-            "overall_s_label": "UNKNOWN", "partition": item["partition"],
+            "overall_s_label": actual, "partition": item["partition"],
             "exposure_status": item["exposure_status"], "source_views": item.get("source_views", ""),
-            "prediction": "", "probability_true": "", "scored": False, "is_error": "",
-            "exclusion_reason": "UNKNOWN_LABEL_NEVER_SCORED" + (";ZERO_D_VOLUME" if item.get("zero_volume_on_D") else ""),
-            "history_bars": item["history_bars"], "d_volume": item["d_volume"], "top_numeric_contributions": "[]",
+            "prediction": predicted_label,
+            "probability_true": "" if veto or probability is None else probability,
+            "effective_decision_score": effective_decision_score,
+            "decision_source": decision_source,
+            "gate_reason": gate.get("gate_reason", ""),
+            "gate_would_disagree_with_signed_label": (
+                item.get("gate_would_disagree_with_signed_label") if actual != "UNKNOWN" else ""
+            ),
+            "scored": actual != "UNKNOWN", "is_error": is_error,
+            "exclusion_reason": "" if actual != "UNKNOWN" else "UNKNOWN_LABEL_NEVER_SCORED",
+            "history_bars": item["history_bars"], "d_volume": item["d_volume"],
+            "top_numeric_contributions": json.dumps(contribution, sort_keys=True, separators=(",", ":")),
+            "inference_gate_json": json.dumps(gate, sort_keys=True, separators=(",", ":"), allow_nan=False),
             **_structure_output_fields(item),
         })
     rows_out.sort(key=lambda row: (row["partition"], row["security_id"], row["master_episode_group"], row["D"]))
     errors = [row for row in rows_out if row["partition"] == "validation" and row["is_error"] is True]
+    gate_conflicts = [
+        {"case_id": row["case_id"], "security_id": row["security_id"], "D": row["D"],
+         "partition": row["partition"], "overall_s_label": row["overall_s_label"],
+         "gate_reason": row["gate_reason"]}
+        for row in rows_out if row["gate_would_disagree_with_signed_label"] is True
+    ]
 
     metrics = {
-        "schema": "pft_s_first_baseline_metrics.v1",
-        "validation": validation_metrics,
+        "schema": METRICS_SCHEMA,
+        "validation_whole_policy": {**validation_metrics, "n_expected_all_decided_validation_rows": len(validation)},
+        "validation_model_only_ungated": {
+            "n": len(eligible_validation), "metrics": model_only_validation_metrics,
+            "excluded_gate_veto_rows": len(validation) - len(eligible_validation),
+        },
         "train_majority_comparator_on_validation": {"majority_label": "TRUE" if majority else "FALSE", **majority_metrics},
         "training": {"n": len(train), "label_counts": {"TRUE": int(y_train.sum()), "FALSE": int(len(y_train) - y_train.sum())}},
         "validation_label_counts": {"TRUE": int(y_validation.sum()), "FALSE": int(len(y_validation) - y_validation.sum())},
         "validation_errors": len(errors),
         "unknown_cases_excluded_from_prediction_and_scoring": report["coverage"]["unknown_case_count"],
         "zero_volume_unknown_cases_excluded": sum(bool(row.get("zero_volume_on_D")) for row in unknown),
+        "inference_gate_counts": report["coverage"]["inference_gate_precheck"],
+        "gate_signed_label_conflicts": gate_conflicts,
+        "veto_rows_receive_model_probability": False,
+        "unknown_diagnostic_probabilities_emitted": 0,
         "validation_development_exposed": True,
         "metrics_claim": "one frozen development-exposed validation split; no tuning, no OOS claim",
     }
@@ -950,6 +1421,8 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
         "model": model_payload["configuration"],
         "model_artifact": model_payload,
         "model_load_check": {"status": "PASS_SERIALIZED_WEIGHTS", "prediction_count": int(len(model_probabilities)),
+                             "ungated_decided_case_count": len(eligible),
+                             "veto_case_model_probability_count": 0,
                              "max_probability_difference": max_probability_diff, "tolerance": 1e-12},
         "runtime": {"python": sys.version.split()[0], "sklearn": sklearn.__version__},
         "metrics": metrics,
@@ -966,8 +1439,11 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
 
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     fields = ["case_id", "security_id", "master_episode_group", "D", "overall_s_label", "partition",
-              "exposure_status", "source_views", "prediction", "probability_true", "scored", "is_error", "exclusion_reason",
+              "exposure_status", "source_views", "prediction", "probability_true", "effective_decision_score",
+              "decision_source", "gate_reason", "gate_would_disagree_with_signed_label", "scored", "is_error", "exclusion_reason",
               "history_bars", "d_volume", "top_numeric_contributions"]
+    if any("inference_gate_json" in row for row in rows):
+        fields.append("inference_gate_json")
     if any("structure_features_json" in row for row in rows):
         fields.extend(("structure_features_json", "structure_diagnostics_json"))
     with path.open("w", encoding="utf-8", newline="") as stream:
@@ -984,7 +1460,6 @@ def run_once(
     asof_date: str,
     expected_sha256: str,
     output_dir: Path,
-    structure_repair: bool = False,
 ) -> dict[str, Any]:
     start_date = _day(start_date, field="start_date")
     asof_date = _day(asof_date, field="asof_date")
@@ -1001,16 +1476,13 @@ def run_once(
         panel_rows, columns = _panel_rows(panel_path, start_date=start_date, asof_date=asof_date,
                                           codes=(row["security_id"] for row in cases))
         examples, gaps, unknown_exclusions, feature_names = _build_examples(
-            cases, panel_rows, columns, start_date=start_date, structure_repair=structure_repair,
+            cases, panel_rows, columns, start_date=start_date,
         )
         report = _report_base(cases_path=cases_path, start_date=start_date, asof_date=asof_date,
                               cases=cases, cases_identity=cases_identity, source=source, examples=examples,
                               gaps=gaps, unknown_exclusions=unknown_exclusions, features=feature_names,
                               expected_sha256=expected_sha256)
         report["panel_rows_read"] = len(panel_rows)
-        if structure_repair:
-            from ops.pft_s_structure_features import STRUCTURE_REPAIR_CONTRACT
-            report["structure_repair"] = STRUCTURE_REPAIR_CONTRACT
         if report["status"] != "PREFLIGHT_READY_SIGNED":
             raise BaselineError("RUN_BLOCKED_BY_PREFLIGHT:" + report["status"])
         if report["coverage"]["missing_binary_classes"]["train"] or report["coverage"]["missing_binary_classes"]["validation"]:
@@ -1051,8 +1523,6 @@ def _parser() -> argparse.ArgumentParser:
     mode.add_argument("--run", action="store_true")
     parser.add_argument("--expected-cases-sha256")
     parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--structure-repair", action="store_true",
-                        help="append causal yellow-line and prior key-K structure features")
     return parser
 
 
@@ -1069,12 +1539,11 @@ def main(argv: list[str] | None = None) -> int:
             result = run_once(data_root=args.data_root, cases_path=args.cases,
                               start_date=args.start_date, asof_date=args.asof_date,
                               expected_sha256=args.expected_cases_sha256,
-                              output_dir=args.output_dir, structure_repair=args.structure_repair)
+                              output_dir=args.output_dir)
         else:
             result = preflight(data_root=args.data_root, cases_path=args.cases,
                                start_date=args.start_date, asof_date=args.asof_date,
-                               expected_sha256=args.expected_cases_sha256,
-                               structure_repair=args.structure_repair)
+                               expected_sha256=args.expected_cases_sha256)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False))
         if result.get("status") == "BLOCKED_INPUT_OR_SPLIT_GAPS":
             return 2
