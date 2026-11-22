@@ -48,6 +48,20 @@ def test_exchange_identity_keeps_beijing_codes_and_native_suffixes() -> None:
     assert study._code("000001.SZ") == "000001.SZ"
 
 
+def test_categorical_key_normalization_ignores_unused_non_a_categories() -> None:
+    codes = pd.Series(pd.Categorical(
+        ["000001.SZ", "920001.BJ"],
+        categories=["000001.SZ", "920001.BJ", "00700.HK", "SPY.US"],
+    ))
+    dates = pd.Series([20261119, 20261120], dtype="int32")
+    assert study._normalize_observed_column(codes, study._code, "ts_code").tolist() == [
+        "000001.SZ", "920001.BJ",
+    ]
+    assert study._normalize_observed_column(
+        dates, lambda value: study._day(value, "trade_date"), "trade_date",
+    ).tolist() == ["20261119", "20261120"]
+
+
 def test_market_session_offsets_censor_missing_bar_and_keep_bj() -> None:
     panel = _panel_frame(omit_bj_t1=True)
     dates = sorted(panel["trade_date"].unique())

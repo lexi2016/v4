@@ -84,6 +84,22 @@ def _code(value: Any) -> str:
     return result
 
 
+def _normalize_observed_column(series: Any, parser: Callable[[Any], str], field: str) -> Any:
+    """Normalize observed unique values only; do not traverse unused category levels."""
+    import pandas as pd
+    values = series.astype("string")
+    if values.isna().any():
+        raise StudyError(f"PANEL_MISSING_{field.upper()}_KEY")
+    mapping: dict[str, str] = {}
+    for value in pd.unique(values):
+        text = str(value)
+        try:
+            mapping[text] = parser(text)
+        except StudyError as exc:
+            raise StudyError(f"PANEL_INVALID_{field.upper()}_KEY:{text!r}") from exc
+    return values.map(mapping)
+
+
 def _num(value: Any, name: str, *, allow_zero: bool = True) -> float:
     if value is None or isinstance(value, bool):
         raise StudyError(f"INVALID_NUMERIC:{name}")
@@ -151,11 +167,11 @@ def _read_panel(panel_path: Path, *, start_date: str, asof_date: str,
     # Retain that real value for provenance instead of rewriting it to A_SHARE.
     a_market = {"A", "A_SHARE", "ASHARE", "CN_A", "A-SHARE", "SH", "SZ", "BJ"}
     frame = frame.loc[frame["market_type"].isin(a_market)].copy()
-    try:
-        frame["ts_code"] = frame["ts_code"].map(_code)
-        frame["trade_date"] = frame["trade_date"].map(lambda value: _day(value, "trade_date"))
-    except StudyError as exc:
-        raise StudyError("PANEL_HAS_INVALID_SECURITY_OR_DATE_KEY") from exc
+    frame["ts_code"] = _normalize_observed_column(frame["ts_code"], _code, "ts_code")
+    # The panel's int32 trading dates have only a few hundred observed values;
+    # normalize this small set rather than calling datetime.strptime per row.
+    frame["trade_date"] = _normalize_observed_column(
+        frame["trade_date"], lambda value: _day(value, "trade_date"), "trade_date")
     frame.sort_values(["ts_code", "trade_date"], kind="mergesort", inplace=True)
     if frame.duplicated(["ts_code", "trade_date"]).any():
         row = frame.loc[frame.duplicated(["ts_code", "trade_date"], keep=False)].iloc[0]
@@ -1274,6 +1290,8 @@ def run_once(*, data_root: Path, start_date: str = DEFAULT_START,
             _write_json(output_dir / "model_metrics.json", model_report)
             _write_json(output_dir / "pooled_metrics.json", {"strategy": pooled_metrics,
                                                                "oos_topk": topk_pooled})
+            progress("run", "OUTPUTS_COMPLETE", {"fit_count": model_report["fit_count"],
+                                                  "output_dir": str(output_dir)})
             artifacts = {}
             for path in sorted(output_dir.iterdir()):
                 if path.name == "run_summary.json" or not path.is_file():
@@ -1297,8 +1315,6 @@ def run_once(*, data_root: Path, start_date: str = DEFAULT_START,
             })
             _write_json(output_dir / "run_summary.json", run_base)
             recheck()
-            progress("run", "FIT_COMPLETED", {"fit_count": model_report["fit_count"],
-                                                "output_dir": str(output_dir)})
             return run_base
     except Exception as exc:
         run_base.update({"status": "FAILED", "failure": {"type": type(exc).__name__, "reason": str(exc)}})
