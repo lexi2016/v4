@@ -1,0 +1,28 @@
+{
+  "schema": "v4.review_policy_delta.v1",
+  "base_sha256": "f8a4d7872dab6450a6d9cba629cf738298794de56baabbf6b43f48b476301844",
+  "status": "PREPARED_DISABLED_NOT_ACTIVATABLE",
+  "patch": [
+    {
+      "op": "test",
+      "path": "/governance/ordinary_peak_budget_bytes",
+      "value": 280246616064
+    },
+    {
+      "op": "add",
+      "path": "/governance/incremental_capacity",
+      "value": {
+        "schema": "v4.daily_incremental_capacity.v1",
+        "enabled": false,
+        "phases": {},
+        "reviewed_limits": null
+      }
+    }
+  ],
+  "prohibited_changes": [
+    "ordinary_peak_budget_bytes",
+    "registry",
+    "old_reservations"
+  ],
+  "enablement": "CANNOT_CONFIRM: daily_product and top200 serializers and reviewed bounds incomplete"
+}

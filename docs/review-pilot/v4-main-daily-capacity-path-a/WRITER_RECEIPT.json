@@ -1,0 +1,118 @@
+{
+  "schema": "v4.main_daily_capacity_path_a_writer_receipt.v1",
+  "frozen_at": "2026-11-22T15:32:57.347312+00:00",
+  "status": "PREPARED_PARTIAL_NOT_ENABLEABLE",
+  "independent_review": "PENDING_ROOT_REVIEW",
+  "worktree": "/Users/lexi/.codex/worktrees/v4-main-daily-capacity-path-a-20261122",
+  "branch": "codex/v4-main-daily-capacity-path-a-20261122",
+  "base_commit": "f34f506c6",
+  "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "python": "3.14.6 (main, Jul 18 2026, 17:05:49) [Clang 22.1.3 ]",
+  "production_writes": false,
+  "deployed": false,
+  "registry_changed": false,
+  "current_changed": false,
+  "old_reservation_changed": false,
+  "ordinary_budget_changed": false,
+  "ordinary_budget_bytes": 280246616064,
+  "policy": "DISABLED_PORTABLE_DELTA_ONLY",
+  "source_preimages": "PREIMAGE_SHA256.json",
+  "files": {
+    "DOWNSTREAM_WRITE_SEAMS.md": {
+      "bytes": 6274,
+      "sha256": "f45546a63c64d3c5ef45808aa512cf3c60d394c968371098a14c04cd1ba56cfe"
+    },
+    "PREIMAGE_SHA256.json": {
+      "bytes": 722,
+      "sha256": "59ebe85eb859198cb48947816b582029b30812a9ec7d7b231464396e8afa6972"
+    },
+    "README.md": {
+      "bytes": 4184,
+      "sha256": "d8a5c1570bf4b8872a42e1ab6cdf54c4d0d7de2876b8c543e0818a234768d0e3"
+    },
+    "app-overlay/ops/research_daily_capacity.py": {
+      "bytes": 19292,
+      "sha256": "05d33c87a983b70e2ed1893faebdd5ad870bfc418ac4eafff2068d30f656f71b"
+    },
+    "app-overlay/ops/research_panel_delta.py": {
+      "bytes": 68731,
+      "sha256": "d2ab44f333af9f77067f60c5cae454f137f2caba8d0906a8e75b0f5f6c5cacdc"
+    },
+    "app-overlay/ops/research_panel_qfq.py": {
+      "bytes": 233051,
+      "sha256": "e4e885b73206c818f9c9e71202677e8be5e2001cae3cdfe36a8c2c64c37fae3e"
+    },
+    "app-overlay/ops/research_storage_governance.py": {
+      "bytes": 106259,
+      "sha256": "6094a3e9a4b5bfb000bd53dacf8dd15fa29aacb9dea154e499d350048e6e515e"
+    },
+    "app-overlay/ops/research_storage_retention.py": {
+      "bytes": 63773,
+      "sha256": "d75166e3ccfb23d43203b7876ca7880992fb5633bc05d64247b3ee26faeaa9fe"
+    },
+    "cutover/main_only_cutover.py": {
+      "bytes": 84494,
+      "sha256": "41aeb052a53806bcaee2db4b7e50f8d039a969ae037bcda74eca0babb365d47f"
+    },
+    "policy.disabled.delta.json": {
+      "bytes": 760,
+      "sha256": "5f7090a92ce66d8ed63f4137fba0b7eae9813a472c774ade242e36ecc1cfc3c5"
+    },
+    "tests/test_controller_capacity.py": {
+      "bytes": 4566,
+      "sha256": "de4b2286e691fe29f93803f1851bac692f85e0dd2451ea6e6fc772ead7829758"
+    },
+    "tests/test_daily_capacity.py": {
+      "bytes": 13056,
+      "sha256": "d1fbe8fd6f9072088a083300024bcd4018fccd6e7926ee754677aca7b1b94c76"
+    },
+    "verify_overlay.py": {
+      "bytes": 1871,
+      "sha256": "8ec1c6c83114c1ffab999e80dd68ad2e7ffcc712cd1c8f429d7294ca0ed69b57"
+    }
+  },
+  "verification": {
+    "command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "docs/review-pilot/v4-main-daily-capacity-path-a/verify_overlay.py",
+      "--frozen-app",
+      "/Users/lexi/Desktop/学习/v4_app/artifacts/v4_main_r4_reviewed_classification_20261122/classify/candidate/v4-main-r4-reviewed-classification-20261122/app",
+      "--frozen-controller",
+      "/Users/lexi/Desktop/学习/v4_app/artifacts/v4_main_r4_forward_readback_20261122/cutover/main_only_cutover.py",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "/Users/lexi/Desktop/学习/v4_app/artifacts/v4_main_d23_path_a_20261122/baseline_fixture_recheck/test_delta_owner.py",
+      "/Users/lexi/Desktop/学习/v4_app/artifacts/v4_main_d23_path_a_20261122/baseline_fixture_recheck/test_delta_packed_blocks.py",
+      "docs/review-pilot/v4-main-daily-capacity-path-a/tests"
+    ],
+    "exit_code": 0,
+    "stdout": ".................................................................        [100%]\n65 passed in 3.33s",
+    "stderr": "",
+    "source_ast": "PASS",
+    "new_targeted_tests": 19,
+    "delta_regression_tests": 46,
+    "total_passed": 65
+  },
+  "preserved_existing_pass": [
+    "Stage P1",
+    "QFQ P1"
+  ],
+  "not_run": [
+    "production input/QFQ/product/Top200",
+    "launchd natural schedule",
+    "formal API/UI",
+    "release/controller activation or rollback"
+  ],
+  "limitations": [
+    "No accepted phase end-to-end proof; ACCEPTED_WRITER_PHASES empty and locked controller remains fail closed",
+    "No reviewed production per-output/per-row/file-count/in-flight ceilings; production caps not guessed",
+    "Daily-product and Top200 guarded plan explicitly rejects unproven subprocess/direct writers before claim",
+    "T2/T6 full three-phase capacity and failure/write coverage NOT CLOSED",
+    "T1–T8 complete matrix not claimed; root combines frozen baseline and independent review evidence",
+    "Sparse overlay is development evidence only; not installed or a release package"
+  ],
+  "next_map": "DOWNSTREAM_WRITE_SEAMS.md",
+  "temporary_artifacts": "source-only TemporaryDirectory removed by runner; pytest fixtures temporary only; no retained panel/runtime copies"
+}
