@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
+import {pathToFileURL} from 'node:url';
 
 const shellPath = new URL('../../apps/web/public/research-panel/workbench-host/dot/shell/workbench.local.mjs', import.meta.url);
 const shell = await readFile(shellPath, 'utf8');
@@ -9,6 +10,10 @@ const responseStart = shell.indexOf('function validateObservationResponse(');
 const responseEnd = shell.indexOf('const f10Cards=', responseStart);
 const responseSource = shell.slice(responseStart, responseEnd);
 const loadFunctions = new Function('validateSnapshot', `${labelSource}\n${responseSource}\nreturn {observationCoverageLabel,validateObservationResponse};`);
+const quoteContextStart=shell.indexOf('function displayQuoteContext(');
+const quoteContextEnd=shell.indexOf('function missingObservationReason(',quoteContextStart);
+const quoteContextSource=shell.slice(quoteContextStart,quoteContextEnd);
+const loadDisplayQuoteResolvers=(displayQuote,quoteContext)=>new Function('displayQuote','quoteContext',`${quoteContextSource}\nreturn {displayQuoteContext,resolveDisplayQuote};`)(displayQuote,quoteContext);
 
 const FLAGS = {RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false};
 const DAY = {
@@ -195,3 +200,103 @@ test('legacy responses without coverage keep the old strict validator path', () 
   assert.equal(result.visibleSnapshot, saved);
   assert.equal(result.coverage, null);
 });
+
+test('list, detail, and quote sorting share the date-bound quote resolver', () => {
+  const listStart=shell.indexOf('function renderList('),listEnd=shell.indexOf('function updateSortHeaders(',listStart);
+  const listSource=shell.slice(listStart,listEnd);
+  const detailStart=shell.indexOf('function selectedObservation('),detailEnd=shell.indexOf('function tickObservationPresentation(',detailStart);
+  const detailSource=shell.slice(detailStart,detailEnd);
+
+  assert.match(shell,/function resolveDisplayQuote\(stock,currentDay,snapshot\)\{\s*return displayQuote\(stock,displayQuoteContext\(stock,currentDay\),snapshot\);/);
+  assert.match(listSource,/quoteDisplaySort\?sortDisplayStocks\(filtered,\{day:quoteDay,snapshot:visibleObservationSnapshot,mode,names\}\)/);
+  assert.match(listSource,/resolveDisplayQuote\(r,day,visibleObservationSnapshot\)/);
+  assert.doesNotMatch(listSource,/missingObservationSymbols\.has\(r\.symbol\)\s*\?/);
+  assert.match(detailSource,/resolveDisplayQuote\(r,day,visibleObservationSnapshot\)/);
+  assert.doesNotMatch(detailSource,/if\(missingObservationSymbols\.has\(r\.symbol\)\)/);
+});
+
+const runtimeObservationModule=process.env.V4_WORKBENCH_OBSERVATION_MODULE;
+// Set V4_WORKBENCH_OBSERVATION_MODULE to the exact served runtime module for release verification.
+test('600035 displays its bound D20 close during unknown observation, refuses identity mismatches, and prefers a valid observation',
+  {skip:!runtimeObservationModule},async()=>{
+    const {displayQuote,sortDisplayStocks}=await import(pathToFileURL(runtimeObservationModule).href);
+    const fixedNow='2026-11-22T19:00:00+08:00';
+    const deterministicDisplayQuote=(stock,quoteDay,snapshot)=>displayQuote(stock,quoteDay,snapshot,fixedNow);
+    const {displayQuoteContext,resolveDisplayQuote}=loadDisplayQuoteResolvers(deterministicDisplayQuote,day=>day);
+    const day={source_date:'2026-11-20',observation_date:'2026-11-23',generation:'4ed1e1e3ccc2f1045a83527a470f111b81d96771b105ba92e8348bf7f967b268',
+      input_sha256:'6bf32a629ce6a72e4be72a7375b9fb6c28b2694c2ceda5852922375444d560bb',
+      source_selector_sha256:'3948670c732e26ab7bceecb2a934473bb176708dc5200f8e1b1ff25ebce9f7f1',
+      numeric_manifest:{path:'/fixture/20261120/manifest.json',sha256:'9b357b378f51bee38581e7b60cfa9eabeb0589daf469ef3033731303c375509e'},
+      source_close_reference:{schema:'V4_WORKBENCH_SOURCE_CLOSE_REFERENCE_V1',status:'BOUND_SOURCE_CLOSE',quote_role:'SOURCE_DATE_CLOSE_REFERENCE',
+        source_date:'2026-11-20',generation:'4ed1e1e3ccc2f1045a83527a470f111b81d96771b105ba92e8348bf7f967b268',
+        input_sha256:'6bf32a629ce6a72e4be72a7375b9fb6c28b2694c2ceda5852922375444d560bb',
+        numeric_manifest:{path:'/fixture/20261120/manifest.json',sha256:'9b357b378f51bee38581e7b60cfa9eabeb0589daf469ef3033731303c375509e'},
+        selector:{path:'/fixture/selector_ready_current_to_20261120.parquet',sha256:'3948670c732e26ab7bceecb2a934473bb176708dc5200f8e1b1ff25ebce9f7f1'},
+        source_asof:null,source_asof_precision:'DATE_ONLY',currency:'CNY',price_basis:'QFQ_ASOF_20261120',amount_basis:'RAW_TURNOVER',
+        rows:{'600035.SH':{symbol:'600035.SH',price:3.71,change_percent_source:-1.3297872340425454,amount_source:85433664.0}},
+        RESEARCH_ONLY:true,production_allowed:false,buy_gate_updated:false,orders_sent:false}};
+    const unknown={source_date:day.source_date,observation_date:day.observation_date,daily_contract_sha256:'d'.repeat(64),rows:[{
+      symbol:'600035.SH',status:'UNKNOWN_NOT_IN_SAVED_OBSERVATION_SCOPE',source_asof:null,observed_at_upper_bound:null,
+      currency:null,price:null,amount_source:null,change_percent_source:null,
+    }]};
+    const stock={symbol:'600035.SH'};
+    const close=resolveDisplayQuote(stock,day,unknown);
+    assert.equal(close.role,'SOURCE_DATE_CLOSE_REFERENCE');
+    assert.equal(close.label,'2026-11-20 收盘参考');
+    assert.equal(close.row.price,3.71);
+    assert.equal(close.row.change_percent_source,-1.3297872340425454);
+    assert.equal(close.row.amount_source,85433664.0);
+    assert.deepEqual(Object.fromEntries(Object.entries(close.validity).map(([key,value])=>[key,value.valid])),
+      {price:true,percent:true,amount:true});
+    const closeSorted=sortDisplayStocks([{symbol:'000001.SZ'},{symbol:'600035.SH'}],{
+      day:displayQuoteContext({v192_member:false},day),snapshot:unknown,mode:'price_desc',now:'2026-11-22T19:00:00+08:00',
+    });
+    assert.deepEqual(closeSorted.map(row=>row.symbol),['600035.SH','000001.SZ'],
+      'a valid source-date close sorts ahead of an unknown quote while retaining its date label at display time');
+
+    const mismatches=[
+      ref=>({...ref,source_date:'2026-11-19'}),
+      ref=>({...ref,generation:'e'.repeat(64)}),
+      ref=>({...ref,input_sha256:'e'.repeat(64)}),
+      ref=>({...ref,numeric_manifest:{...ref.numeric_manifest,sha256:'e'.repeat(64)}}),
+      ref=>({...ref,selector:{...ref.selector,sha256:'e'.repeat(64)}}),
+      ref=>({...ref,status:'UNBOUND'}),
+      ref=>({...ref,quote_role:'OBSERVATION'}),
+      ref=>({...ref,source_asof:'2026-11-20T15:00:00+08:00'}),
+      ref=>({...ref,source_asof_precision:'SECOND'}),
+      ref=>({...ref,currency:'HKD'}),
+      ref=>({...ref,price_basis:'QFQ_ASOF_20261119'}),
+      ref=>({...ref,amount_basis:'INTRADAY_INCREMENT'}),
+      ref=>({...ref,production_allowed:true}),
+      ref=>({...ref,rows:{'600035.SH':{...ref.rows['600035.SH'],symbol:'600036.SH'}}}),
+    ];
+    for(const mutate of mismatches){
+      const invalid=resolveDisplayQuote(stock,{...day,source_close_reference:mutate(day.source_close_reference)},unknown);
+      assert.equal(invalid.role,'UNKNOWN');
+      assert.ok(Object.values(invalid.validity).every(value=>value.valid===false));
+    }
+    const wrongDaySelector=resolveDisplayQuote(stock,{...day,source_selector_sha256:'f'.repeat(64)},unknown);
+    assert.equal(wrongDaySelector.role,'UNKNOWN','a selector from another daily pool must not authorize the close fallback');
+    const wrongDateSnapshot=resolveDisplayQuote(stock,day,{...unknown,observation_date:'2026-11-22',rows:[{
+      symbol:'600035.SH',status:'CURRENT_VISIBLE_FIELDS_CHECKED',source_asof:'2026-11-22T10:00:00+08:00',
+      observed_at_upper_bound:'2026-11-22T10:00:30+08:00',currency:'CNY',price:999,amount_source:999,change_percent_source:99,
+      percent_change_rank_eligible:true,volume_rank_eligible:false,
+    }]});
+    assert.equal(wrongDateSnapshot.role,'SOURCE_DATE_CLOSE_REFERENCE');
+    assert.equal(wrongDateSnapshot.row.price,3.71,'a different observation date must never supply quote fields');
+
+    const observedDay={...day,observation_date:'2026-11-21',source_close_reference:{...day.source_close_reference,
+      rows:{...day.source_close_reference.rows,'000513.SZ':{symbol:'000513.SZ',price:99,change_percent_source:1,amount_source:100000}}}};
+    const observedSnapshot={source_date:observedDay.source_date,observation_date:observedDay.observation_date,daily_contract_sha256:'e'.repeat(64),rows:[{
+      symbol:'600035.SH',status:'CURRENT_VISIBLE_FIELDS_CHECKED',source_asof:'2026-11-21T14:50:00+08:00',
+      observed_at_upper_bound:'2026-11-21T14:50:30+08:00',currency:'CNY',price:4.25,amount_source:120000000,
+      change_percent_source:2.5,percent_change_rank_eligible:true,volume_rank_eligible:false,
+    }]};
+    const observed=resolveDisplayQuote(stock,observedDay,observedSnapshot);
+    assert.equal(observed.role,'OBSERVATION');
+    assert.equal(observed.row.price,4.25,'a valid observation must outrank the dated close');
+    const observedSorted=sortDisplayStocks([{symbol:'000513.SZ'},{symbol:'600035.SH'}],{
+      day:displayQuoteContext({v192_member:false},observedDay),snapshot:observedSnapshot,mode:'price_desc',now:'2026-11-22T19:00:00+08:00',
+    });
+    assert.equal(observedSorted[0].symbol,'600035.SH','a valid current observation sorts before a numerically larger dated close');
+  });
