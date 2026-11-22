@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from ops import pft_s_first_baseline as baseline
+from ops import pft_s_structure_features as structure
 
 
 def _history(code: str, target: str, *, zero_on_target: bool = False, bars: int = 65) -> list[dict[str, object]]:
@@ -171,6 +172,148 @@ def test_exact_stock_episode_date_duplicates_consolidate_source_views(tmp_path: 
     assert identity["exact_duplicate_rows_removed"] == 1
     assert len(cases) == 1
     assert cases[0]["source_views"] == "source-A;source-B"
+
+
+def test_legacy_duplicate_metadata_does_not_change_numeric_case_identity(tmp_path: Path) -> None:
+    cases_path = _write_csv(
+        tmp_path / "joint.csv",
+        "security_id,master_episode_group,D,overall_s_label,partition,exposure_status,risk_tag,source_views",
+        [
+            "000001.SZ,g1,20261119,TRUE,train,manual,legacy-a,source-A",
+            "000001.SZ,g1,20261119,TRUE,train,manual,legacy-b,source-B",
+        ],
+    )
+    cases, identity = baseline._read_cases(cases_path, start_date="20261101", asof_date="20261120")
+    assert identity["exact_duplicate_rows_removed"] == 1
+    assert len(cases) == 1
+    assert cases[0]["source_views"] == "source-A;source-B"
+
+
+def test_structure_repair_is_opt_in_and_preserves_default_feature_set() -> None:
+    case = {
+        "security_id": "000001.SZ", "master_episode_group": "g1", "D": "20261120",
+        "overall_s_label": "TRUE", "partition": "train", "exposure_status": "manual",
+    }
+    rows = _history("000001.SZ", "20261120", bars=65)
+    columns = {"vol": "vol", "bbi": "bbi", "zge_white_line": "zge_white_line",
+               "zge_yellow_line": "zge_yellow_line", "ma60": "ma60"}
+
+    legacy, _gaps, _unknown, legacy_names = baseline._build_examples(
+        [case], rows, columns, start_date="20260801",
+    )
+    repaired, _gaps, _unknown, repaired_names = baseline._build_examples(
+        [case], rows, columns, start_date="20260801", structure_repair=True,
+    )
+
+    assert len(legacy) == 1
+    assert len(legacy_names) == 16
+    assert legacy[0]["structure_features"] is None
+    assert len(repaired) == 1
+    assert len(repaired_names) == 35
+    assert repaired[0]["structure_features"] is not None
+    assert repaired[0]["structure_diagnostics"]["target_date"] == "20261120"
+
+
+def test_yellow_diagnostics_recover_true_start_for_left_clipped_window() -> None:
+    rows = _history("000001.SZ", "20261120", bars=24)
+    for index, row in enumerate(rows):
+        row["zge_yellow_line"] = 10.0
+        row["close"] = 9.9 if 2 <= index <= 9 else 10.1
+
+    features, diagnostic = structure.structure_repair_features(rows, target_date="20261120")
+    window_features, _ = structure._yellow_state(rows[-16:], "20261120")
+
+    assert diagnostic["yellow_window_observed_sessions"] == 16
+    assert diagnostic["yellow_latest_event_clipped_left"] is True
+    assert diagnostic["yellow_latest_event_start_known"] is True
+    assert diagnostic["yellow_latest_event_start_date"] == rows[2]["trade_date"]
+    assert diagnostic["yellow_latest_event_confirmed_date"] == rows[3]["trade_date"]
+    assert diagnostic["yellow_latest_event_window_observed_start_date"] == rows[8]["trade_date"]
+    assert diagnostic["yellow_latest_event_window_observed_confirm_date"] == rows[9]["trade_date"]
+    assert diagnostic["yellow_latest_event_repaired"] == "TRUE"
+    assert {key: features[key] for key in window_features} == window_features
+
+
+def test_missing_yellow_line_is_unknown_not_false() -> None:
+    rows = _history("000001.SZ", "20261120", bars=65)
+    rows[-1]["zge_yellow_line"] = None
+
+    features, diagnostic = structure.structure_repair_features(rows, target_date="20261120")
+
+    assert diagnostic["yellow_current_relation"] == "UNKNOWN"
+    assert diagnostic["yellow_current_below_consecutive_status"] == "UNKNOWN"
+    assert diagnostic["yellow_active_confirmed_break"] == "UNKNOWN"
+    assert features["yellow_line_D_available"] == 0.0
+    assert features["yellow_active_confirmed_break_tri"] == -1.0
+
+
+def test_yellow_active_break_uses_observed_pair_but_keeps_duration_unknown() -> None:
+    two_below = _history("000001.SZ", "20261120", bars=65)
+    two_below[-3]["zge_yellow_line"] = None
+    two_below[-3]["close"] = 9.9
+    two_below[-2]["zge_yellow_line"] = 10.0
+    two_below[-1]["zge_yellow_line"] = 10.0
+    two_below[-2]["close"] = 9.9
+    two_below[-1]["close"] = 9.9
+
+    features, diagnostic = structure.structure_repair_features(two_below, target_date="20261120")
+
+    assert diagnostic["yellow_current_below_observed_consecutive_count"] == 2
+    assert diagnostic["yellow_current_below_consecutive_count"] is None
+    assert diagnostic["yellow_current_below_duration_status"] == "MISSING_PREVIOUS_RELATION"
+    assert features["yellow_current_below_run_count"] == -1.0
+    assert diagnostic["yellow_active_confirmed_break"] == "TRUE"
+    assert features["yellow_active_confirmed_break_tri"] == 1.0
+
+    one_below = _history("000001.SZ", "20261120", bars=65)
+    one_below[-2]["zge_yellow_line"] = None
+    one_below[-2]["close"] = 9.9
+    one_below[-1]["zge_yellow_line"] = 10.0
+    one_below[-1]["close"] = 9.9
+
+    one_feature_vector, one_diagnostic = structure.structure_repair_features(one_below, target_date="20261120")
+
+    assert one_diagnostic["yellow_current_below_observed_consecutive_count"] == 1
+    assert one_diagnostic["yellow_current_below_consecutive_count"] is None
+    assert one_diagnostic["yellow_current_below_duration_status"] == "MISSING_PREVIOUS_RELATION"
+    assert one_diagnostic["yellow_active_confirmed_break"] == "UNKNOWN"
+    assert one_feature_vector["yellow_active_confirmed_break_tri"] == -1.0
+
+
+def test_key_k_proxy_audits_probe_recovery_and_prior_close_break() -> None:
+    rows = _history("000001.SZ", "20261120", bars=65)
+    anchor_index = len(rows) - 12
+    anchor = rows[anchor_index]
+    anchor.update(open=10.0, high=10.7, low=9.2, close=10.5, vol=1300)
+    rows[anchor_index - 1]["close"] = 10.0
+    for row in rows[anchor_index - 5:anchor_index]:
+        row["vol"] = 1000
+    rows[-2].update(open=9.2, high=9.4, low=8.8, close=9.0)
+    rows[-1].update(open=9.4, high=10.3, low=9.1, close=10.2)
+
+    features, diagnostic = structure.structure_repair_features(rows, target_date="20261120")
+
+    assert diagnostic["key_k_candidate_date"] == anchor["trade_date"]
+    assert diagnostic["key_k_candidate_return_pct"] == pytest.approx(0.05)
+    assert diagnostic["key_k_candidate_relative_prev5_volume"] == pytest.approx(1.3)
+    assert diagnostic["key_k_earlier_close_break_historical"] == "TRUE"
+    assert diagnostic["key_k_D_intraday_probe_recovered"] == "TRUE"
+    assert diagnostic["key_k_reclaim_low_on_D"] == "TRUE"
+    assert diagnostic["key_k_presently_under_low"] == "FALSE"
+    assert diagnostic["key_k_D_close_above_body_midpoint"] == "FALSE"
+    assert features["key_k_D_intraday_probe_recovered_tri"] == 1.0
+
+
+def test_structure_repair_cli_flag_is_opt_in() -> None:
+    base = baseline._parser().parse_args([
+        "--cases", "/tmp/cases.csv", "--start-date", "20260801", "--asof-date", "20261120", "--preflight",
+    ])
+    repaired = baseline._parser().parse_args([
+        "--cases", "/tmp/cases.csv", "--start-date", "20260801", "--asof-date", "20261120",
+        "--preflight", "--structure-repair",
+    ])
+    assert base.structure_repair is False
+    assert repaired.structure_repair is True
 
 
 def test_zero_volume_decided_case_is_an_input_gap(tmp_path: Path) -> None:

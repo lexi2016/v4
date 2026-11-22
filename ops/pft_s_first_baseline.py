@@ -561,6 +561,7 @@ def _build_examples(
     columns: dict[str, str],
     *,
     start_date: str,
+    structure_repair: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]], list[dict[str, str]], list[str]]:
     by_key: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for row in panel_rows:
@@ -607,7 +608,17 @@ def _build_examples(
         try:
             history_rows = [by_key[(code, day)][0] for day in history_keys]
             vector = _feature_values(history_rows, columns, target_date=target)
-        except BaselineError as exc:
+            structure_diagnostics: dict[str, Any] | None = None
+            structure_features: dict[str, float] | None = None
+            if structure_repair:
+                from ops.pft_s_structure_features import structure_repair_features as build_structure_features
+                structure_features, structure_diagnostics = build_structure_features(
+                    history_rows, target_date=target,
+                )
+                if any(not math.isfinite(value) for value in structure_features.values()):
+                    raise BaselineError("INVALID_STRUCTURE_REPAIR_FEATURE")
+                vector.update(structure_features)
+        except (BaselineError, ValueError) as exc:
             record_gap(item, str(exc))
             continue
         zero_volume = _numeric(row.get("vol"), field="vol") == 0.0
@@ -619,6 +630,8 @@ def _build_examples(
             **item,
             "case_id": _case_id(item),
             "features": vector,
+            "structure_features": structure_features,
+            "structure_diagnostics": structure_diagnostics,
             "history_bars": len(history_keys),
             "zero_volume_on_D": zero_volume,
             "d_volume": _numeric(row.get("vol"), field="vol"),
@@ -635,6 +648,17 @@ def _case_id(item: dict[str, str]) -> str:
         return supplied
     material = "\0".join((item["security_id"], item["master_episode_group"], item["D"], item.get("partition", "")))
     return hashlib.sha256(material.encode("utf-8")).hexdigest()[:20]
+
+
+def _structure_output_fields(item: dict[str, Any]) -> dict[str, str]:
+    features = item.get("structure_features")
+    if features is None:
+        return {}
+    return {
+        "structure_features_json": json.dumps(features, sort_keys=True, separators=(",", ":"), allow_nan=False),
+        "structure_diagnostics_json": json.dumps(item.get("structure_diagnostics") or {}, sort_keys=True,
+                                                  separators=(",", ":"), allow_nan=False),
+    }
 
 
 def _report_base(
@@ -712,6 +736,7 @@ def preflight(
     start_date: str,
     asof_date: str,
     expected_sha256: str | None = None,
+    structure_repair: bool = False,
 ) -> dict[str, Any]:
     start_date = _day(start_date, field="start_date")
     asof_date = _day(asof_date, field="asof_date")
@@ -726,13 +751,18 @@ def preflight(
             raise BaselineError("REQUESTED_ASOF_AFTER_PANEL_ASOF")
         panel_rows, columns = _panel_rows(panel_path, start_date=start_date, asof_date=asof_date,
                                           codes=(row["security_id"] for row in cases))
-        examples, gaps, unknown_exclusions, feature_names = _build_examples(cases, panel_rows, columns, start_date=start_date)
+        examples, gaps, unknown_exclusions, feature_names = _build_examples(
+            cases, panel_rows, columns, start_date=start_date, structure_repair=structure_repair,
+        )
         recheck()
         report = _report_base(cases_path=cases_path, start_date=start_date, asof_date=asof_date,
                               cases=cases, cases_identity=cases_identity, source=source, examples=examples,
                               gaps=gaps, unknown_exclusions=unknown_exclusions, features=feature_names,
                               expected_sha256=expected_sha256)
         report["panel_rows_read"] = len(panel_rows)
+        if structure_repair:
+            from ops.pft_s_structure_features import STRUCTURE_REPAIR_CONTRACT
+            report["structure_repair"] = STRUCTURE_REPAIR_CONTRACT
         return report
 
 
@@ -882,6 +912,7 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
                 "exclusion_reason": "" if actual != "UNKNOWN" else "UNKNOWN_LABEL_NEVER_SCORED",
                 "history_bars": item["history_bars"], "d_volume": item["d_volume"],
                 "top_numeric_contributions": json.dumps(contribution, sort_keys=True, separators=(",", ":")),
+                **_structure_output_fields(item),
             })
     for item in unknown:
         rows_out.append({
@@ -892,6 +923,7 @@ def _fit_and_materialize(report: dict[str, Any], examples: list[dict[str, Any]],
             "prediction": "", "probability_true": "", "scored": False, "is_error": "",
             "exclusion_reason": "UNKNOWN_LABEL_NEVER_SCORED" + (";ZERO_D_VOLUME" if item.get("zero_volume_on_D") else ""),
             "history_bars": item["history_bars"], "d_volume": item["d_volume"], "top_numeric_contributions": "[]",
+            **_structure_output_fields(item),
         })
     rows_out.sort(key=lambda row: (row["partition"], row["security_id"], row["master_episode_group"], row["D"]))
     errors = [row for row in rows_out if row["partition"] == "validation" and row["is_error"] is True]
@@ -936,6 +968,8 @@ def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     fields = ["case_id", "security_id", "master_episode_group", "D", "overall_s_label", "partition",
               "exposure_status", "source_views", "prediction", "probability_true", "scored", "is_error", "exclusion_reason",
               "history_bars", "d_volume", "top_numeric_contributions"]
+    if any("structure_features_json" in row for row in rows):
+        fields.extend(("structure_features_json", "structure_diagnostics_json"))
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
@@ -950,6 +984,7 @@ def run_once(
     asof_date: str,
     expected_sha256: str,
     output_dir: Path,
+    structure_repair: bool = False,
 ) -> dict[str, Any]:
     start_date = _day(start_date, field="start_date")
     asof_date = _day(asof_date, field="asof_date")
@@ -965,12 +1000,17 @@ def run_once(
             raise BaselineError("REQUESTED_ASOF_AFTER_PANEL_ASOF")
         panel_rows, columns = _panel_rows(panel_path, start_date=start_date, asof_date=asof_date,
                                           codes=(row["security_id"] for row in cases))
-        examples, gaps, unknown_exclusions, feature_names = _build_examples(cases, panel_rows, columns, start_date=start_date)
+        examples, gaps, unknown_exclusions, feature_names = _build_examples(
+            cases, panel_rows, columns, start_date=start_date, structure_repair=structure_repair,
+        )
         report = _report_base(cases_path=cases_path, start_date=start_date, asof_date=asof_date,
                               cases=cases, cases_identity=cases_identity, source=source, examples=examples,
                               gaps=gaps, unknown_exclusions=unknown_exclusions, features=feature_names,
                               expected_sha256=expected_sha256)
         report["panel_rows_read"] = len(panel_rows)
+        if structure_repair:
+            from ops.pft_s_structure_features import STRUCTURE_REPAIR_CONTRACT
+            report["structure_repair"] = STRUCTURE_REPAIR_CONTRACT
         if report["status"] != "PREFLIGHT_READY_SIGNED":
             raise BaselineError("RUN_BLOCKED_BY_PREFLIGHT:" + report["status"])
         if report["coverage"]["missing_binary_classes"]["train"] or report["coverage"]["missing_binary_classes"]["validation"]:
@@ -1011,6 +1051,8 @@ def _parser() -> argparse.ArgumentParser:
     mode.add_argument("--run", action="store_true")
     parser.add_argument("--expected-cases-sha256")
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--structure-repair", action="store_true",
+                        help="append causal yellow-line and prior key-K structure features")
     return parser
 
 
@@ -1027,11 +1069,12 @@ def main(argv: list[str] | None = None) -> int:
             result = run_once(data_root=args.data_root, cases_path=args.cases,
                               start_date=args.start_date, asof_date=args.asof_date,
                               expected_sha256=args.expected_cases_sha256,
-                              output_dir=args.output_dir)
+                              output_dir=args.output_dir, structure_repair=args.structure_repair)
         else:
             result = preflight(data_root=args.data_root, cases_path=args.cases,
                                start_date=args.start_date, asof_date=args.asof_date,
-                               expected_sha256=args.expected_cases_sha256)
+                               expected_sha256=args.expected_cases_sha256,
+                               structure_repair=args.structure_repair)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False))
         if result.get("status") == "BLOCKED_INPUT_OR_SPLIT_GAPS":
             return 2
