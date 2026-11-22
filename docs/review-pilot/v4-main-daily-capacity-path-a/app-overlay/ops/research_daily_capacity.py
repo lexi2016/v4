@@ -12,16 +12,280 @@ from hashlib import sha256
 import json
 import argparse
 from pathlib import Path
+import threading
 
 
 SCHEMA = "v4.daily_incremental_capacity.v1"
 PLAN_SCHEMA = "v4.daily_incremental_write_plan.v1"
 PHASES = {"qfq", "daily_product", "top200"}
 _PLAN = ContextVar("v4_daily_incremental_write_plan", default=None)
+_WRITER = ContextVar("v4_daily_incremental_writer", default=None)
+_PREPAID = ContextVar("v4_daily_incremental_prepaid", default=None)
+_ACTIVE_WRITE = ContextVar("v4_daily_incremental_active_write", default=None)
+_WORKER_PLAN = None
+_WORKER_ROOTS = ()
+_CONTROL = ContextVar('v4_daily_incremental_control_writes',default=False)
 
 
 class CapacityProofError(ValueError):
     pass
+
+
+def propagate_capacity_error(error):
+    """Capacity failures must reach the phase owner, including through futures."""
+    from ops.research_storage_retention import RetentionError
+    if isinstance(error, CapacityProofError) or current_plan() is not None and isinstance(error, RetentionError):
+        raise error
+
+
+class WriteBudget:
+    """One immutable phase or one submitted symbol's allocation allowance.
+
+    Allocation is conservatively cumulative, including temporary copies. A
+    worker never mutates the shared registry. Its parent retains its whole slot
+    until it has reconciled the completed worker's actual files.
+    """
+    def __init__(self, plan, *, claim=None, symbol=None, roots=()):
+        self.plan = plan
+        self.claim = claim
+        self.symbol = symbol
+        self.roots = tuple(Path(root).resolve() for root in roots)
+        self.limit = symbol_slot(plan, symbol) if symbol is not None else plan["predicted_bytes"]
+        self.spent = 0
+        self.inflight = 0
+        self.inflight_files = 0
+        self.file_count = 0
+        self.control_remaining = plan['limits']['receipt_bytes'] if symbol is None else 0
+        self.paths = set()
+        self.mutex = threading.RLock()
+
+    def path(self, path):
+        path = Path(path)
+        if not path.is_absolute() or path.is_symlink() or path.resolve() != path:
+            raise CapacityProofError("CAPACITY_OUTPUT_PATH_CONFLICT")
+        if not self.roots or not any(path.is_relative_to(root) for root in self.roots):
+            raise CapacityProofError("CAPACITY_OUTPUT_OUTSIDE_OWNED_ROOT")
+        return path
+
+    def charge(self, path, size, *, copies=1):
+        path = self.path(path)
+        if type(copies) is not int or copies < 1:
+            raise CapacityProofError("CAPACITY_COPY_COUNT_INVALID")
+        check_serialized_write(size, plan=self.plan)
+        allocation = ((size + 4095) // 4096) * 4096 * copies
+        with self.mutex:
+            control = _CONTROL.get() and self.symbol is None
+            if control and allocation > self.control_remaining:
+                raise CapacityProofError('INCREMENTAL_RECEIPT_SLOT_EXCEEDED')
+            count = self.file_count + copies
+            ceiling = self.plan['limits']['max_files_per_symbol'] if self.symbol is not None else self.plan['limits']['max_files']
+            if count + self.inflight_files > ceiling:
+                raise CapacityProofError("INCREMENTAL_FILE_COUNT_EXCEEDED")
+            if self.spent + self.inflight + allocation + (0 if control else self.control_remaining) > self.limit:
+                raise CapacityProofError("INCREMENTAL_WRITE_SLOT_EXCEEDED")
+            if self.claim is not None:
+                self.claim.watch(path)
+                self.claim.checkpoint(incoming=self.inflight + allocation)
+            self.spent += allocation
+            if control:self.control_remaining -= allocation
+            self.file_count = count
+            self.paths.add(str(path))
+        return path
+
+    def observe(self, path):
+        if self.claim is not None:
+            with self.mutex:
+                self.claim.observe(path)
+                self.claim.checkpoint(incoming=self.inflight)
+
+    def reserve(self, symbol):
+        amount = symbol_slot(self.plan, symbol)
+        with self.mutex:
+            if self.spent + self.inflight + amount + self.control_remaining > self.limit:
+                raise CapacityProofError("INCREMENTAL_INFLIGHT_SLOT_EXCEEDED")
+            files = self.plan['limits']['max_files_per_symbol']
+            if self.file_count + self.inflight_files + files > self.plan['limits']['max_files']:
+                raise CapacityProofError('INCREMENTAL_INFLIGHT_FILE_COUNT_EXCEEDED')
+            if self.claim is None:
+                raise CapacityProofError("PARENT_CLAIM_REQUIRED_FOR_WORKER")
+            self.claim.checkpoint(incoming=self.inflight + amount)
+            self.inflight += amount
+            self.inflight_files += files
+        return amount
+
+    def settle(self, amount, outcome=None, *, failed=False):
+        with self.mutex:
+            if outcome is not None:
+                if (outcome.get("plan_sha256") != self.plan["plan_sha256"]
+                        or type(outcome.get("spent")) is not int
+                        or not 0 <= outcome["spent"] <= amount
+                        or type(outcome.get('file_count')) is not int
+                        or not 0 <= outcome['file_count'] <= self.plan['limits']['max_files_per_symbol']):
+                    raise CapacityProofError("WORKER_WRITE_ACCOUNTING_CONFLICT")
+                paths = [self.path(path) for path in outcome["paths"]]
+                for path in paths:
+                    # The submitted slot owns its newly generated outputs. Old
+                    # inodes retain the original Claim baseline on recovery.
+                    if path not in self.claim.baselines:
+                        self.claim.baselines[path] = (0, 0)
+                    self.claim.observe(path)
+                self.spent += outcome["spent"]
+                self.file_count += outcome['file_count']
+                self.paths.update(map(str, paths))
+            if failed or outcome is not None and outcome.get('error') is not None:
+                # A killed worker may not return accounting. Reconcile every
+                # permitted root before releasing its conservative full slot.
+                from ops.research_storage_governance import billing_files
+                for root in self.roots:
+                    if root.exists():
+                        for path in billing_files(root):
+                            if path not in self.claim.baselines:
+                                self.claim.baselines[path] = (0, 0)
+                            self.claim.observe(path)
+                if outcome is None:self.spent += amount
+            self.inflight -= amount
+            self.inflight_files -= self.plan['limits']['max_files_per_symbol']
+            if self.inflight < 0:
+                raise CapacityProofError("INCREMENTAL_INFLIGHT_ACCOUNTING_CONFLICT")
+            self.claim.checkpoint(incoming=self.inflight)
+
+
+def symbol_slot(plan, symbol):
+    if symbol not in plan["scope"]:
+        raise CapacityProofError("CAPACITY_SYMBOL_OUTSIDE_SCOPE")
+    counts = plan["source_identity"].get("changed_rows_by_symbol", {})
+    if symbol not in counts or type(counts[symbol]) is not int or counts[symbol] < 0:
+        raise CapacityProofError("CAPACITY_SYMBOL_ROW_COUNT_REQUIRED")
+    return plan["limits"]["per_symbol_bytes"] + counts[symbol] * plan["limits"]["per_changed_row_bytes"]
+
+
+@contextmanager
+def writer_scope(plan, *, claim=None, symbol=None, roots=()):
+    with write_scope(plan):
+        writer = WriteBudget(plan, claim=claim, symbol=symbol, roots=roots)
+        token = _WRITER.set(writer)
+        try:
+            yield writer
+        finally:
+            _WRITER.reset(token)
+
+
+def current_writer():
+    return _WRITER.get()
+
+
+@contextmanager
+def control_writes():
+    token = _CONTROL.set(True)
+    try:yield
+    finally:_CONTROL.reset(token)
+
+
+def require_managed_entry():
+    from ops.research_storage_governance import configured_policy
+    policy = configured_policy()
+    if policy and enabled(policy) and current_writer() is None:
+        raise CapacityProofError("INCREMENTAL_ENTRY_REQUIRES_MANAGED_CLAIM")
+
+
+def response_limits():
+    require_managed_entry()
+    plan = current_plan()
+    return plan["limits"] if plan is not None else None
+
+
+@contextmanager
+def serialized_write(path, raw, *, copies=1):
+    """Guard the actual buffer before mkdir, temporary creation or replacement."""
+    writer = current_writer()
+    if current_plan() is not None and writer is None:
+        raise CapacityProofError("INCREMENTAL_WRITER_CONTEXT_REQUIRED")
+    if writer is None:
+        yield
+        return
+    prepaid = _PREPAID.get() or {}
+    key = (str(Path(path)), sha256(raw).hexdigest())
+    outer = _ACTIVE_WRITE.get()
+    if outer is not None and outer[:2] == key and outer[2] >= copies:
+        yield
+        return
+    credit = prepaid.get(key)
+    if credit is not None:
+        if credit[0] < 1 or credit[1] < copies:
+            raise CapacityProofError("INCREMENTAL_PREPAID_WRITE_CONFLICT")
+        credit[0] -= 1
+    else:
+        writer.charge(path, len(raw), copies=copies)
+    token = _ACTIVE_WRITE.set((*key, copies))
+    try:
+        yield
+    finally:
+        _ACTIVE_WRITE.reset(token)
+        writer.observe(path)
+
+
+@contextmanager
+def prepaid_writes(items):
+    """Reserve forward and exact rollback buffers before the first publication."""
+    writer = current_writer()
+    if writer is None:
+        yield
+        return
+    pending = {}
+    total = 0
+    for path, raw, copies in items:
+        writer.path(path)
+        check_serialized_write(len(raw), plan=writer.plan)
+        key = (str(Path(path)), sha256(raw).hexdigest())
+        slot = pending.setdefault(key, [0, copies])
+        if slot[1] != copies:
+            raise CapacityProofError("INCREMENTAL_PREPAID_COPY_CONFLICT")
+        slot[0] += 1
+        total += ((len(raw) + 4095) // 4096) * 4096 * copies
+    with writer.mutex:
+        count = sum(value[0] * value[1] for value in pending.values())
+        control = _CONTROL.get() and writer.symbol is None
+        if control and total > writer.control_remaining:
+            raise CapacityProofError('INCREMENTAL_RECEIPT_SLOT_EXCEEDED')
+        if (writer.spent + writer.inflight + total + (0 if control else writer.control_remaining) > writer.limit
+                or writer.file_count + writer.inflight_files + count > writer.plan["limits"]["max_files"]):
+            raise CapacityProofError("INCREMENTAL_PUBLICATION_CONTROL_SLOT_EXCEEDED")
+        if writer.claim is not None:
+            for path, _, _ in items:
+                writer.claim.watch(path)
+            writer.claim.checkpoint(incoming=writer.inflight + total)
+        writer.spent += total
+        if control:writer.control_remaining -= total
+        writer.file_count += count
+    token = _PREPAID.set(pending)
+    try:
+        yield
+    finally:
+        _PREPAID.reset(token)
+
+
+def initialize_worker(initializer, initargs, plan, roots):
+    """Verify shared source/input bytes once per actual spawned process."""
+    global _WORKER_PLAN, _WORKER_ROOTS
+    validate_plan(plan)
+    if initializer is not None:
+        initializer(*initargs)
+    _WORKER_PLAN, _WORKER_ROOTS = plan, roots
+
+
+def run_worker(function, args, kwargs, plan_sha256, symbol):
+    """Picklable spawn entry. The same actual owner function performs all work."""
+    plan = _WORKER_PLAN
+    if plan is None or plan['plan_sha256'] != plan_sha256:
+        raise CapacityProofError('WORKER_PLAN_NOT_INITIALIZED_OR_CONFLICT')
+    with writer_scope(plan, symbol=symbol, roots=_WORKER_ROOTS) as writer:
+        value = error = None
+        try:
+            value = function(*args, **kwargs)
+        except BaseException as failure:
+            error = failure
+        return dict(value=value, error=error, plan_sha256=plan["plan_sha256"],
+                    spent=writer.spent, file_count=writer.file_count, paths=sorted(writer.paths))
 
 
 def encoded(value):
@@ -75,12 +339,16 @@ def phase_limits(policy, phase):
     review = json.loads(Path(reference["path"]).read_bytes())
     limits = config["phases"][phase]
     fields = {"fixed_bytes", "per_symbol_bytes", "per_changed_row_bytes", "max_file_bytes", "max_symbols",
-              "max_changed_rows", "max_revised_symbols"}
+              "max_changed_rows", "max_revised_symbols", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"}
     if (set(limits) != fields or any(type(value) is not int or value < 0 for value in limits.values())
-            or limits["fixed_bytes"] <= 0 or limits["max_file_bytes"] <= 0):
+            or any(limits[name] <= 0 for name in
+                   ("fixed_bytes", "max_file_bytes", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"))
+            or limits['receipt_bytes'] > limits['fixed_bytes']):
         raise CapacityProofError("INCREMENTAL_LIMITS_INVALID")
     if (review.get("schema") != "v4.daily_incremental_limits_review.v1"
-            or review.get("status") != "PASS" or review.get("phase_limits") != config["phases"]):
+            or review.get("status") != "PASS" or review.get("phase_limits") != config["phases"]
+            or review.get("evidence_scope") not in {"ISOLATED_FIXTURE", "PRODUCTION_REVIEWED"}
+            or review.get("source_bindings") != writer_sources()):
         raise CapacityProofError("INCREMENTAL_LIMIT_REVIEW_CONFLICT")
     return limits
 
@@ -115,7 +383,9 @@ def build_plan(policy, phase, *, target, scope, source_identity, references,
                  source_identity=source_identity, references=references,
                  changed_rows=changed_rows, revised_symbols=revised_symbols,
                  classifications=classifications or {}, limits=limits,
-                 predicted_bytes=predicted, policy_sha256=digest(policy))
+                 predicted_bytes=predicted, policy_sha256=digest(policy),
+                 evidence_scope=json.loads(Path(review_reference["path"]).read_bytes())["evidence_scope"],
+                 source_bindings=writer_sources())
     return {**value, "plan_sha256": digest(value)}
 
 
@@ -133,13 +403,16 @@ def validate_plan(plan, *, policy=None, phase=None, target=None):
         if plan["policy_sha256"] != digest(policy) or plan["limits"] != phase_limits(policy, plan["phase"]):
             raise CapacityProofError("INCREMENTAL_PLAN_POLICY_CONFLICT")
     check_inputs(plan["references"])
+    if plan.get("source_bindings") != writer_sources():
+        raise CapacityProofError("INCREMENTAL_WRITER_SOURCE_CHANGED")
     return plan
 
 
 @contextmanager
 def write_scope(plan):
     """Keep the same immutable plan at all existing owner write boundaries."""
-    validate_plan(plan)
+    if plan is not _WORKER_PLAN:
+        validate_plan(plan)
     current = _PLAN.get()
     if current is not None:
         if current != plan:
@@ -254,7 +527,7 @@ def prepare_qfq_plan(module, policy, *, data_root, return_root, pointers, target
                       classifications=classifications)
 
 
-def product_plan(policy, context, phase, *, symbols=None, history_dates=()):
+def product_plan(policy, context, phase, *, symbols=None, history_dates=(), extra_references=()):
     """Automatically count the exact dated Reader scope before output admission."""
     if history_dates:
         raise CapacityProofError("DAILY_HISTORY_BOOTSTRAP_REQUIRES_EXPLICIT_ADMISSION")
@@ -265,13 +538,14 @@ def product_plan(policy, context, phase, *, symbols=None, history_dates=()):
         raise CapacityProofError("INCREMENTAL_PRODUCT_SCOPE_CONFLICT")
     # Existing Reader supplies only this symbol's bound date window. No output
     # or label computation happens during the count.
-    rows = sum(len(context.read(symbol)[0]) for symbol in selected)
+    counts = {symbol:len(context.read(symbol)[0]) for symbol in selected}
+    rows = sum(counts.values())
     references = [file_reference(Path(ref["path"])) for ref in
-                  (context.receipt_ref, context.snapshot_ref, context.config_ref, context.reader_ref)]
+                  (context.receipt_ref, context.snapshot_ref, context.config_ref, context.reader_ref,*extra_references)]
     references = list({ref["path"]: ref for ref in references}.values())
     context.unchanged()
     return build_plan(policy, phase, target=context.target, scope=selected,
-                      source_identity=context.identity, references=references,
+                      source_identity={**context.identity, "changed_rows_by_symbol":counts}, references=references,
                       changed_rows=rows)
 
 
@@ -313,13 +587,27 @@ def maximum_phase_bytes(policy):
 # This candidate has not yet changed all product subprocess serializers. Keep
 # that fact executable: a review JSON or low observed sample cannot waive it.
 # Instrumentation is a code map, not independent end-to-end acceptance.
-INSTRUMENTED_WRITER_PHASES = frozenset({"qfq"})
+INSTRUMENTED_WRITER_PHASES = frozenset(PHASES)
 ACCEPTED_WRITER_PHASES = frozenset()
 
 
 def require_writer_coverage(phase):
     if phase not in INSTRUMENTED_WRITER_PHASES:
         raise CapacityProofError("INCREMENTAL_PRODUCT_WRITER_COVERAGE_NOT_PROVEN:" + phase)
+
+
+def writer_sources():
+    names = ("research_daily_capacity", "research_storage_governance", "research_panel_daily_product",
+             "research_storage_retention", "research_panel_qfq", "research_panel_delta", "research_panel_logical",
+             "research_panel_adjustment_inputs", "research_panel_tdx_adjustment_inputs", "research_panel_daily_source",
+             "research_panel_factor_cache", "research_storage_pair", "materialize_workbench_v192_assets",
+             "research_panel_formula_groups_daily", "_formula_groups_daily_parts/workbench_supplements",
+             "research_daily_product_parallel", "research_panel_history_checkpoint", "research_panel_chart_blocks",
+             "render_original_formula_projection", "research_storage_compaction", "materialize_workbench_score_action",
+             "complete_workbench_v192_assets", "build_mac_workbench", "research_panel_top200", "research_panel_f10",
+             "bootstrap_stock_event_history", "sync_stock_history_completion")
+    root = Path(__file__).resolve().parent
+    return {name:sha256((root / (name + ".py")).read_bytes()).hexdigest() for name in names}
 
 
 def locked_runtime_probe(policy, *, tdx_root):
@@ -339,16 +627,27 @@ def locked_runtime_probe(policy, *, tdx_root):
         raise CapacityProofError("ACTIVE_EXECUTOR_OR_UNRECONCILED_RUNNING_ROW")
     resident = ordinary_resident_bytes(governance, config, state)
     peaks = maximum_phase_bytes(policy)
-    peaks["input"] = governance.input_forecast(tdx_root)["predicted_bytes"]
+    native = governance.input_forecast(tdx_root)["predicted_bytes"]
+    components = dict(native_input=native,adjustment_snapshot=native,qfq=peaks['qfq'],
+                      daily_product=peaks['daily_product'],formula_supplements=peaks['daily_product'],
+                      top200=peaks['top200'])
+    # Successful consumers leave retained files resident. The complete schedule
+    # needs their summed bounds, including the separately owned supplement.
+    peaks['input'] = components['native_input'] + components['adjustment_snapshot']
+    peaks['daily_product'] = components['daily_product'] + components['formula_supplements']
     after = file_reference(registry.path)
     if before != after:
         raise CapacityProofError("LOCKED_REGISTRY_CHANGED_DURING_PROBE")
-    unproven = sorted(PHASES - ACCEPTED_WRITER_PHASES)
+    review_path = policy['governance']['incremental_capacity']['reviewed_limits']['path']
+    scope = json.loads(Path(review_path).read_bytes())['evidence_scope']
+    unproven = sorted(PHASES - (INSTRUMENTED_WRITER_PHASES if scope == 'ISOLATED_FIXTURE' else ACCEPTED_WRITER_PHASES))
     return dict(schema="v4.daily_capacity_locked_probe.v1",
                 registry_sha256=before["sha256"], policy_sha256=digest(policy),
                 category_used_bytes=resident, phase_peak_bytes=peaks,
+                consumer_peak_bytes=components,
                 predicted_peak_bytes=sum(peaks.values()),
-                eligibility="CANNOT_CONFIRM" if unproven else "PASS",
+                eligibility="CANNOT_CONFIRM" if unproven else "PASS_ISOLATED_FIXTURE" if scope == 'ISOLATED_FIXTURE' else "PASS",
+                evidence_scope=scope,
                 unproven_writer_phases=unproven,
                 reservation_write=False, reservation_release=False)
 

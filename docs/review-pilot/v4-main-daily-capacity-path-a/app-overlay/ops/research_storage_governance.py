@@ -1485,7 +1485,7 @@ def _governed_product(function, /, *args, **kwargs):
         scope=dict(symbols=selected,history_dates=list(kwargs.get('history_dates',())),target=target),
         calculation=dict(owner=reference_source(owner.__file__),entry=function.__name__,
             top200=reference_source(function.__globals__.get('__file__',owner.__file__))),schema='existing_daily_product_v1')
-    from ops.research_daily_capacity import enabled, product_plan, write_scope
+    from ops.research_daily_capacity import enabled, product_plan, writer_scope
     from contextlib import nullcontext
     plan = None
     if enabled(policy):
@@ -1499,13 +1499,20 @@ def _governed_product(function, /, *args, **kwargs):
     if not isinstance(forecast,int) or isinstance(forecast,bool) or forecast<=0:
         raise RetentionError('FORMAL_PRODUCT_FORECAST_REQUIRED')
     used=billing_bytes(root) if root.exists() else 0
-    with admission(policy,key=key,directory=root,predicted=forecast,category_used=used,reuse_ready=False) as (claim,_):
+    with admission(policy,key=key,directory=root,predicted=forecast,category_used=used,reuse_ready=False,
+                   preserve_existing=plan is not None) as (claim,_):
         modules=[owner]
         parallel=importlib.import_module('ops.research_daily_product_parallel')
         projection=importlib.import_module('ops.render_original_formula_projection')
         modules.extend([parallel,projection])
+        if plan is not None:
+            modules.extend(importlib.import_module('ops.' + name) for name in
+                ('materialize_workbench_score_action','complete_workbench_v192_assets',
+                 'build_mac_workbench','research_panel_f10','bootstrap_stock_event_history',
+                 'sync_stock_history_completion'))
         if function.__module__!='ops.research_panel_daily_product':modules.append(importlib.import_module(function.__module__))
-        with (write_scope(plan) if plan is not None else nullcontext()), product_write_seams(modules,claim):
+        roots = configuration(policy).get('product_output_roots', [])
+        with (writer_scope(plan, claim=claim, roots=roots) if plan is not None else nullcontext()), product_write_seams(modules,claim):
             result=function(*args,**kwargs)
         # Product/status response may be partial; retain exact recovery points,
         # never claim READY just because an index exists.
@@ -1522,7 +1529,7 @@ def _governed_product(function, /, *args, **kwargs):
             else:claim.finish(error=RetentionError('PRODUCT_PARTIAL_RETAINED'))
             # The owner has already published numeric/index and committed its
             # original receipt. Maintenance never changes that result or gate.
-            if claim.finalized and not claim.recording_failed:
+            if plan is None and claim.finalized and not claim.recording_failed:
                 _after_product_compaction(claim, context, root, args, kwargs, result)
         return result
 
@@ -1549,8 +1556,50 @@ def reference_source(path):
     path=safe_path(path);return dict(path=str(path),sha256=digest(path))
 
 
+def governed_formula_supplements(context, formula_groups_root, formula_ref, formula_receipt_ref, *, module):
+    """Budget the existing dated supplement consumer after its numeric owner."""
+    from ops.research_daily_capacity import product_plan, writer_scope, CapacityProofError
+    import importlib
+    policy = configured_policy()
+    config = configuration(policy)
+    numeric_manifest, _, product, _ = module._numeric_product(context)
+    artifact = module._checked(formula_ref)
+    source_date, symbols, _ = module._group_identity(context,formula_ref,formula_receipt_ref,numeric_manifest,artifact,product)
+    if not symbols:
+        return dict(status='READY_EMPTY',data_date=str(context.target),**module.FLAGS)
+    root = safe_path(Path(formula_groups_root)/source_date/'supplements',exists=False)
+    roots = [safe_path(path,exists=False) for path in config.get('product_output_roots',[])]
+    if not all(any(under(path,approved) for approved in roots) for path in (root,Path(context.root))):
+        raise CapacityProofError('SUPPLEMENT_OUTPUT_ROOT_NOT_APPROVED')
+    plan = product_plan(policy,context,'daily_product',symbols=sorted(symbols),
+                        extra_references=[formula_ref,formula_receipt_ref,numeric_manifest])
+    key = computation_identity(inputs=dict(source=context.identity,formula=formula_ref,receipt=formula_receipt_ref),
+        scope=dict(symbols=sorted(symbols),target=context.target),
+        calculation=dict(entry='existing_formula_supplement',source=reference_source(module.__file__)),
+        schema='existing_formula_supplement_v1')
+    with admission(policy,key=key,directory=root,predicted=plan['predicted_bytes'],reuse_ready=False,
+                   preserve_existing=True) as (claim,_):
+        modules = [module,*[importlib.import_module('ops.'+name) for name in
+            ('research_panel_daily_product','materialize_workbench_score_action','research_panel_f10')]]
+        with writer_scope(plan,claim=claim,roots=roots),product_write_seams(modules,claim):
+            result = module._complete_owned(context,formula_groups_root,formula_ref,formula_receipt_ref)
+        pointer = root/'latest.json'
+        if isinstance(result.get('pointer'),dict) and isinstance(result['pointer'].get('path'),str):
+            pointer = safe_path(result['pointer']['path'])
+        if result.get('status') in {'COMPLETE','PARTIAL','ALREADY_COMMITTED'} and pointer.is_file():
+            claim.finish(result,[pointer])
+        else:
+            claim.finish(error=RetentionError('SUPPLEMENT_PARTIAL_RETAINED'))
+        return result
+
+
 @contextmanager
 def product_write_seams(modules, claim):
+    from ops.research_daily_capacity import current_writer
+    if current_writer() is not None:
+        with bounded_product_executors(modules, claim):
+            yield
+        return
     with _adapter_scope('product', modules, claim) as (lease, selected):
         if lease is None:
             yield
@@ -1681,6 +1730,123 @@ def product_write_seams(modules, claim):
             lease.retire()
             for module, name, value in reversed(originals):
                 setattr(module, name, value)
+
+
+@contextmanager
+def bounded_product_executors(modules, claim):
+    """Precharge every submitted symbol, then reconcile before returning it."""
+    from concurrent.futures import CancelledError
+    from ops.research_daily_capacity import current_writer, run_worker, initialize_worker
+    writer = current_writer()
+    with _adapter_scope('bounded_product', modules, claim) as (lease, selected):
+        if lease is None:
+            yield
+            return
+        originals = []
+        def executor_type(base, threaded):
+            class Executor:
+                def __new__(cls, *args, **kwargs):
+                    if not lease.owns():return base(*args, **kwargs)
+                    return super().__new__(cls)
+                def __init__(self, *args, **kwargs):
+                    if not threaded:
+                        initializer, initargs = kwargs.get('initializer'), kwargs.get('initargs', ())
+                        kwargs.update(initializer=initialize_worker,
+                                      initargs=(initializer,initargs,writer.plan,tuple(map(str,writer.roots))))
+                    self.inner = base(*args, **kwargs)
+                    self.pending = []
+                    self.workers = kwargs.get('max_workers') or 1
+                def __enter__(self):
+                    self.inner.__enter__()
+                    return self
+                def __exit__(self, *args):
+                    try:
+                        return self.inner.__exit__(*args)
+                    finally:
+                        # shutdown(wait=True) has drained every submitted child.
+                        # Never release its slot before observing failed writes.
+                        failure = None
+                        for future in self.pending:
+                            try:future.result()
+                            except BaseException as error:
+                                failure = failure or error
+                        if args[0] is None and failure is not None:
+                            raise failure
+                def __getattr__(self, name):
+                    return getattr(self.inner, name)
+                def submit(self, function, *args, **kwargs):
+                    if not lease.owns():
+                        return self.inner.submit(function, *args, **kwargs)
+                    if threaded:
+                        future = self.inner.submit(lease.thread_call(function), *args, **kwargs)
+                        self.pending.append(future)
+                        return future
+                    first = args[0] if args else None
+                    symbol = first if isinstance(first, str) else first[0] if isinstance(first, tuple) and first else None
+                    amount = writer.reserve(symbol)
+                    try:
+                        future = self.inner.submit(run_worker, function, args, kwargs,
+                                                   writer.plan['plan_sha256'], symbol)
+                    except BaseException:
+                        writer.settle(amount)
+                        raise
+                    original_result = future.result
+                    state = {'settled':False, 'outcome':None, 'failure':None}
+                    def result(*wait_args, **wait_kwargs):
+                        # A timeout is not completion and keeps the slot held.
+                        outcome = None
+                        failure = None
+                        try:
+                            outcome = original_result(*wait_args, **wait_kwargs)
+                        except BaseException as error:
+                            if not future.done():raise
+                            failure = error
+                        with writer.mutex:
+                            if not state['settled']:
+                                state.update(settled=True, outcome=outcome, failure=failure)
+                                try:
+                                    writer.settle(amount, outcome, failed=failure is not None and not isinstance(failure, CancelledError))
+                                except BaseException as error:
+                                    state['failure'] = error
+                                    raise
+                            outcome, failure = state['outcome'], state['failure']
+                        if failure is not None:raise failure
+                        if outcome['error'] is not None:raise outcome['error']
+                        return outcome['value']
+                    future.result = result
+                    self.pending.append(future)
+                    return future
+                def map(self, function, *iterables, timeout=None, chunksize=1, buffersize=None):
+                    # Preserve bounded queueing for the score owner's real map.
+                    if chunksize != 1:
+                        raise RetentionError('INCREMENTAL_MAP_CHUNKSIZE_NOT_ONE')
+                    limit = buffersize or self.workers * 2
+                    if type(limit) is not int or limit < 1:
+                        raise RetentionError('INCREMENTAL_MAP_BUFFER_INVALID')
+                    iterator = iter(zip(*iterables))
+                    pending = []
+                    for _ in range(limit):
+                        args = next(iterator, None)
+                        if args is None:break
+                        pending.append(self.submit(function, *args))
+                    while pending:
+                        future = pending.pop(0)
+                        yield future.result(timeout=timeout)
+                        args = next(iterator, None)
+                        if args is not None:pending.append(self.submit(function, *args))
+            return Executor
+        try:
+            for module in selected:
+                for name in ('ThreadPoolExecutor','ProcessPoolExecutor'):
+                    if hasattr(module, name):
+                        original = getattr(module, name)
+                        originals.append((module, name, original))
+                        setattr(module, name, executor_type(original, name == 'ThreadPoolExecutor'))
+            yield
+        finally:
+            lease.retire()
+            for module, name, original in reversed(originals):
+                setattr(module, name, original)
 
 
 def main():

@@ -14,13 +14,14 @@ def setup_plan(tmp_path):
     source.write_bytes(b'original')
     # Synthetic enforceable ceilings only. This does not approve production caps.
     limits = dict(fixed_bytes=64*1024**2,per_symbol_bytes=8192,per_changed_row_bytes=4096,
-                  max_file_bytes=64*1024**2,max_symbols=6000,max_changed_rows=12000,max_revised_symbols=2)
+                  max_file_bytes=64*1024**2,max_symbols=6000,max_changed_rows=12000,max_revised_symbols=2,
+                  max_files=100000,max_files_per_symbol=32,max_response_bytes=1024*1024,max_response_items=128,receipt_bytes=4096)
     phases = {phase:dict(limits) for phase in capacity.PHASES}
     review = tmp_path/'review.json'
-    review.write_bytes(capacity.encoded(dict(schema='v4.daily_incremental_limits_review.v1',status='PASS',phase_limits=phases)))
+    review.write_bytes(capacity.encoded(dict(schema='v4.daily_incremental_limits_review.v1',status='PASS',phase_limits=phases,evidence_scope='ISOLATED_FIXTURE',source_bindings=capacity.writer_sources())))
     policy = dict(governance=dict(incremental_capacity=dict(schema=capacity.SCHEMA,enabled=True,phases=phases,
                          reviewed_limits=dict(path=str(review),sha256=capacity.file_reference(review)['sha256']))))
-    args = dict(target=20261123,scope=['000001.SZ'],source_identity={'raw':'same'},
+    args = dict(target=20261123,scope=['000001.SZ'],source_identity={'raw':'same','changed_rows_by_symbol':{'000001.SZ':1}},
                 references=[capacity.file_reference(source)],changed_rows=1,
                 classifications={'000001.SZ':'APPEND'})
     return policy,args,source
@@ -84,7 +85,8 @@ def test_missing_review_cannot_enable_smaller_forecast(setup_plan):
         capacity.build_plan(policy,'qfq',**args)
 
 
-def test_product_unknown_writer_refused_before_reader_or_admission(setup_plan):
+def test_product_unknown_writer_refused_before_reader_or_admission(setup_plan,monkeypatch):
+    monkeypatch.setattr(capacity,'INSTRUMENTED_WRITER_PHASES',frozenset())
     policy,_,_ = setup_plan
     context = SimpleNamespace(unchanged=lambda:pytest.fail('must fail before Reader scan'))
     for phase in ('daily_product','top200'):
@@ -144,10 +146,12 @@ def test_locked_probe_reads_real_registry_without_reacquiring_or_writing(setup_p
     before=path.read_bytes();files=set(tmp_path.rglob('*'))
     monkeypatch.setattr(governance.Registry,'transaction',lambda self:pytest.fail('read probe cannot acquire held registry lock'))
     result=capacity.locked_runtime_probe(policy,tdx_root=native)
-    assert result['phase_peak_bytes']['input']==64*1024**2+64
+    assert result['phase_peak_bytes']['input']==2*(64*1024**2+64)
+    assert result['consumer_peak_bytes']['adjustment_snapshot']==64*1024**2+64
     assert result['predicted_peak_bytes']==sum(result['phase_peak_bytes'].values())
-    assert result['eligibility']=='CANNOT_CONFIRM'
-    assert result['unproven_writer_phases']==['daily_product','qfq','top200']
+    assert result['eligibility']=='PASS_ISOLATED_FIXTURE'
+    assert result['unproven_writer_phases']==[]
+    assert result['evidence_scope']=='ISOLATED_FIXTURE'
     assert result['reservation_write'] is False and result['reservation_release'] is False
     assert path.read_bytes()==before and set(tmp_path.rglob('*'))==files
     assert len(json.loads(path.read_bytes())['tasks'])==8

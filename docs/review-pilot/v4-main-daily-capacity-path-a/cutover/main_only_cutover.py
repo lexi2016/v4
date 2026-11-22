@@ -973,6 +973,8 @@ def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, regist
     semantic_sha = digest(json.dumps(policy, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode())
     if payload.get("policy_sha256") != semantic_sha:
         raise CutoverBlocked("LOCKED_CAPACITY_PROBE_POLICY_DRIFT")
+    if payload.get('evidence_scope') != 'PRODUCTION_REVIEWED':
+        raise CutoverBlocked('LOCKED_CAPACITY_PRODUCTION_REVIEW_REQUIRED')
     if payload.get("eligibility") != "PASS":
         raise CutoverBlocked("LOCKED_CAPACITY_PROBE_CANNOT_CONFIRM:" + str(payload.get("unproven_writer_phases")))
     peaks = payload.get("phase_peak_bytes")

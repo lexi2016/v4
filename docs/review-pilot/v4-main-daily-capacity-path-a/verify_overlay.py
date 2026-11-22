@@ -28,13 +28,15 @@ def main():
     # Assemble only Python source, never a panel/runtime/data mirror. Absolute
     # source identities now describe the actual merged executable test tree.
     with tempfile.TemporaryDirectory(prefix="path-a-source-") as temporary:
-        merged = Path(temporary)
-        for source in (args.frozen_app/'ops').glob('*.py'):
-            destination = merged/'ops'/source.name
-            destination.parent.mkdir(exist_ok=True)
+        merged = Path(temporary).resolve()
+        for source in (args.frozen_app/'ops').rglob('*.py'):
+            destination = merged/'ops'/source.relative_to(args.frozen_app/'ops')
+            destination.parent.mkdir(exist_ok=True,parents=True)
             shutil.copyfile(source, destination)
-        for source in (HERE/'app-overlay/ops').glob('*.py'):
-            shutil.copyfile(source, merged/'ops'/source.name)
+        for source in (HERE/'app-overlay/ops').rglob('*.py'):
+            destination=merged/'ops'/source.relative_to(HERE/'app-overlay/ops')
+            destination.parent.mkdir(exist_ok=True,parents=True)
+            shutil.copyfile(source,destination)
         sys.path[:0] = [str(merged), str(args.frozen_app)]
         import pytest
         raise SystemExit(pytest.main(extra or [str(HERE/'tests'), '-q', '-p', 'no:cacheprovider']))
