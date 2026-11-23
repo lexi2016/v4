@@ -518,7 +518,8 @@ def _add_b_confirmations(frame: Any) -> tuple[Any, dict[str, Any]]:
                  "b3_unknown_rows": int((~b3_known).sum())}
 
 
-def _add_b_training_labels(frame: Any, market_dates: list[str]) -> tuple[Any, dict[str, Any]]:
+def _add_b_training_labels(frame: Any, market_dates: list[str], *,
+                           candidate_column: str = "v13_candidate_union") -> tuple[Any, dict[str, Any]]:
     """Label only exact, complete T+5 paths matured by the frozen TRAIN cutoff."""
     import numpy as np
     import pandas as pd
@@ -539,7 +540,8 @@ def _add_b_training_labels(frame: Any, market_dates: list[str]) -> tuple[Any, di
     path = out["path_observable_t5"].fillna(False).astype(bool)
     train_d = out["trade_date"].between(START_DATE, TRAIN_END)
     mature = pd.Series(target_dates, index=out.index).ne("") & pd.Series(target_dates, index=out.index).le(TRAIN_END)
-    target_known = (out["v13_candidate_union"].fillna(False).astype(bool) & train_d & mature & path
+    candidate = out[candidate_column].fillna(False).astype(bool)
+    target_known = (candidate & train_d & mature & path
                     & np.isfinite(ret5) & np.isfinite(dd5))
     out["b_training_target"] = np.nan
     labels = ((ret5.ge(0.03)) & (dd5.ge(-0.05))).astype(float)
@@ -550,11 +552,13 @@ def _add_b_training_labels(frame: Any, market_dates: list[str]) -> tuple[Any, di
                  "eligible_labeled_rows": int(target_known.sum()),
                  "positive_rows": int(out.loc[target_known, "b_training_target"].sum()),
                  "negative_rows": int(target_known.sum() - out.loc[target_known, "b_training_target"].sum()),
-                 "unknown_or_censored_training_candidates": int((out["v13_candidate_union"]
-                     & train_d & ~target_known).sum())}
+                 "unknown_or_censored_training_candidates": int((candidate
+                     & train_d & ~target_known).sum()),
+                 "candidate_column": candidate_column}
 
 
-def _episode_split(frame: Any) -> tuple[Any, dict[str, Any]]:
+def _episode_split(frame: Any, *,
+                   candidate_column: str = "v13_candidate_union") -> tuple[Any, dict[str, Any]]:
     """Purge train groups that share canonical V1.2 K or V1.3 repair episodes with OOS."""
     import pandas as pd
 
@@ -566,9 +570,9 @@ def _episode_split(frame: Any) -> tuple[Any, dict[str, Any]]:
         out.loc[has_anchor, "ts_code"].astype(str) + "|K|" + anchor.loc[has_anchor])
     repair = out.get("rebuild_episode_id", pd.Series("", index=out.index)).fillna("").astype(str)
     out["_repair_episode_group"] = repair
-    train = out["b_training_target"].notna()
-    oos = (out["v13_candidate_union"].fillna(False).astype(bool)
-           & out["trade_date"].between(OOS_START, ASOF_DATE))
+    candidate = out[candidate_column].fillna(False).astype(bool)
+    train = out["b_training_target"].notna() & candidate
+    oos = (candidate & out["trade_date"].between(OOS_START, ASOF_DATE))
     cross_k = (set(out.loc[train & out["_canonical_k_group"].ne(""), "_canonical_k_group"])
                & set(out.loc[oos & out["_canonical_k_group"].ne(""), "_canonical_k_group"]))
     cross_repair = (set(out.loc[train & out["_repair_episode_group"].ne(""), "_repair_episode_group"])
@@ -590,6 +594,7 @@ def _episode_split(frame: Any) -> tuple[Any, dict[str, Any]]:
                  "cross_split_repair_episode_groups": len(cross_repair),
                  "post_purge_canonical_k_overlap": len(remain_k),
                  "post_purge_repair_episode_overlap": len(remain_repair),
+                 "candidate_column": candidate_column,
                  "train_mask": train_keep, "oos_mask": oos}
 
 
@@ -616,11 +621,12 @@ def _build_b_estimators() -> dict[str, Any]:
 
 
 def _save_model_state(path: Path, models: dict[str, Any], report: dict[str, Any],
-                      panel_source: dict[str, Any], official_meta: dict[str, Any]) -> None:
+                      panel_source: dict[str, Any], official_meta: dict[str, Any], *,
+                      feature_names: tuple[str, ...] = B_FEATURE_NAMES) -> None:
     import joblib
 
     payload = {"schema": MODEL_SCHEMA, "models": models,
-               "feature_names": list(B_FEATURE_NAMES), "fit_report": report,
+               "feature_names": list(feature_names), "fit_report": report,
                "panel_source": panel_source, "official_top200_source": official_meta,
                **FLAGS}
     temporary = path.with_name(path.name + ".tmp")
@@ -631,7 +637,8 @@ def _save_model_state(path: Path, models: dict[str, Any], report: dict[str, Any]
 def _fit_b_rankers(frame: Any, split: dict[str, Any], *,
                    panel_source: dict[str, Any], official_meta: dict[str, Any],
                    checkpoint_path: Path | None = None,
-                   progress: Callable[[str, str, dict[str, Any] | None], None] | None = None
+                   progress: Callable[[str, str, dict[str, Any] | None], None] | None = None,
+                   feature_names: tuple[str, ...] = B_FEATURE_NAMES
                    ) -> tuple[dict[str, Any], dict[str, Any], Any]:
     """Fit exactly LR and HGB once on purged TRAIN candidates; predict only fixed OOS candidates."""
     import numpy as np
@@ -640,20 +647,21 @@ def _fit_b_rankers(frame: Any, split: dict[str, Any], *,
 
     train_mask = split["train_mask"]
     oos_mask = split["oos_mask"]
+    feature_names = tuple(feature_names)
     y = frame.loc[train_mask, "b_training_target"].astype(int).to_numpy()
     if not len(y):
         raise Act009Error("B_TRAIN_EMPTY_AFTER_GROUP_PURGE")
     if len(np.unique(y)) != 2:
         raise Act009Error("B_TRAIN_TARGET_REQUIRES_BOTH_CLASSES")
-    x_train = frame.loc[train_mask, list(B_FEATURE_NAMES)].apply(pd.to_numeric, errors="coerce")
+    x_train = frame.loc[train_mask, list(feature_names)].apply(pd.to_numeric, errors="coerce")
     x_train = x_train.replace([np.inf, -np.inf], np.nan).to_numpy(dtype=float)
-    x_oos = frame.loc[oos_mask, list(B_FEATURE_NAMES)].apply(pd.to_numeric, errors="coerce")
+    x_oos = frame.loc[oos_mask, list(feature_names)].apply(pd.to_numeric, errors="coerce")
     x_oos = x_oos.replace([np.inf, -np.inf], np.nan).to_numpy(dtype=float)
     weights = np.where(y == 1, len(y) / (2.0 * y.sum()),
                        len(y) / (2.0 * (len(y) - y.sum())))
     models = _build_b_estimators()
     report: dict[str, Any] = {
-        "schema": MODEL_SCHEMA, "feature_names": list(B_FEATURE_NAMES),
+        "schema": MODEL_SCHEMA, "feature_names": list(feature_names),
         "sklearn_version": sklearn.__version__, "fit_count": 0,
         "S_fit_count": 0, "B_fit_count": 0, "hyperparameter_search_count": 0,
         "training": {"n": int(len(y)), "positive": int(y.sum()),
@@ -688,7 +696,7 @@ def _fit_b_rankers(frame: Any, split: dict[str, Any], *,
             _save_model_state(checkpoint_path, models={k: models[k] for k in models
                                                        if k == name or report["fit_count"] > 1},
                               report=report, panel_source=panel_source,
-                              official_meta=official_meta)
+                              official_meta=official_meta, feature_names=feature_names)
         if progress:
             progress(name, "FIT_COMPLETED_CHECKPOINTED", {
                 "fit_count": report["fit_count"], "B_fit_count": report["B_fit_count"],
