@@ -44,6 +44,12 @@ def factor_state(item):
     return [(int(e['ex_date']),float(e['a']),float(e['b']),float(e['volume_a'])) for e in item['events']]
 
 
+def classification_source_semantics(q, identity):
+    """The same immutable rule tuple for preclassification and checkpoints."""
+    return {**{key:identity[key] for key in ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')},
+            'kernel_sha256':q['computation_kernel_sha'](Path(q['__file__']))}
+
+
 def changed_rows(old, fresh):
     """Exact original output comparison; NULL and NaN remain distinct in Arrow."""
     previous = {(code,int(day)): i for i, (code,day) in enumerate(zip(old['ts_code'].to_pylist(),old['trade_date'].to_pylist()))}
@@ -436,8 +442,7 @@ def _run_delta(q, c, stock_failures):
                 _add_scoped_block(deltas[role], code, value['block'])
                 for key in ('appended_rows', 'revised_rows'): counts[role][key] += value[key]
         classifications[code] = kind
-    source_semantics = {key: meta[key] for key in ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')}
-    source_semantics['kernel_sha256'] = q['computation_kernel_sha'](Path(q['__file__']))
+    source_semantics = classification_source_semantics(q, meta)
     from concurrent.futures import ThreadPoolExecutor,wait,FIRST_COMPLETED
     import multiprocessing,os,time
     backend=c.get('compute_backend','thread')

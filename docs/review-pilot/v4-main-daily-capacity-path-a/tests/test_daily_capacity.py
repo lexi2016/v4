@@ -233,6 +233,64 @@ def test_raw_identity_change_same_classification_and_count_rejected(monkeypatch,
     assert set(tmp_path.iterdir())=={current}
 
 
+def test_actual_capacity_producer_and_write_preparation_share_rule_tuple(setup_plan,tmp_path):
+    import hashlib
+    import pandas as pd
+    import pyarrow as pa
+    from ops import research_panel_qfq as owner,research_panel_delta as delta,research_panel_logical as logical
+    policy,_,_=setup_plan;code='000001.SZ';target=20261123
+    def save(path,value):
+        owner._json(path,value)
+        return dict(path=str(path),sha256=owner.sha(path))
+    paths={key:tmp_path/(key+'.txt')for key in ('driver_path','formula_path','contract_csv')}
+    for key,path in paths.items():path.write_text(key)
+    pins=dict(driver_sha256=owner.sha(paths['driver_path']),formula_sha256=owner.sha(paths['formula_path']),
+              field_contract_sha256=owner.sha(paths['contract_csv']),user_formula_sha256=owner.USER_FORMULA_SHA)
+    old_item=dict(raw_kind='old',events=[]);item=dict(raw_kind='new',events=[])
+    old=dict(asof_date=20261120,symbols={code:old_item});old_ref=save(tmp_path/'old.json',old)
+    snapshot=dict(asof_date=target,symbols={code:item});snapshot_path=tmp_path/'snapshot.json';save(snapshot_path,snapshot)
+    contract=dict(generation_id='old-generation',adjustment_snapshot=old_ref,**pins)
+    raw=pd.DataFrame(dict(ts_code=[code]*3,trade_date=[20261119,20261120,target],open=[1.,2.,3.],high=[2.,3.,4.],
+        low=[.5,1.,2.],close=[1.5,2.5,3.5],vol=[100.,100.,100.],amount=[1000.,1000.,1000.]))
+    oldraw=raw.iloc[:2].copy();table=pa.Table.from_pandas(oldraw[['ts_code','trade_date','close']],preserve_index=False)
+    schema=table.schema.with_metadata({logical.META:owner.canonical_sha(contract).encode()})
+    schema=schema.with_metadata({logical.META:json.dumps(contract).encode()})
+    currents={};pointers={}
+    for role in ('selector','backtest'):
+        base=tmp_path/(role+'.base.parquet');logical.physical.write_table(table,base)
+        currents[role]=tmp_path/(role+'.logical');currents[role].write_bytes(logical.anchor_bytes(schema,[logical.descriptor(base)],rows=2))
+        pointers[role]=tmp_path/(role+'.pointer');pointers[role].write_text(str(currents[role]))
+    calls=[]
+    def compute(*args):calls.append(args[0]);return raw.copy()
+    module=SimpleNamespace(__file__=owner.__file__,USER_FORMULA_SHA=owner.USER_FORMULA_SHA,sha=owner.sha,
+        computation_kernel_sha=owner.computation_kernel_sha,input_path=lambda _:snapshot_path,
+        authorities=lambda *a:(SimpleNamespace(),None),load_snapshot=lambda *a:snapshot,panel_contract=owner.panel_contract,
+        _source=owner._source,_bucket=lambda _:0,pq=logical.parquet,canonical_sha=owner.canonical_sha,
+        QfqGateError=owner.QfqGateError,resolved_raw_history=lambda code,value,*a:(oldraw if value['raw_kind']=='old'else raw).copy(),
+        rebuild_symbol=compute)
+    plan=capacity.prepare_qfq_plan(module,policy,data_root=tmp_path,return_root=tmp_path/'run',pointers=pointers,
+        target=target,kwargs={**paths,'refresh_inputs':False,'storage_layout':'arrow_blocks_v1'})
+    # This is the legacy writer tuple, including its kernel commitment. It must
+    # remain byte-equivalent so existing checkpoint dependency semantics survive.
+    writer_rules={**pins,'kernel_sha256':owner.computation_kernel_sha(Path(owner.__file__))}
+    assert plan['source_identity']['source_semantics']==writer_rules
+    assert delta.classification_source_semantics(vars(module),pins)==writer_rules
+    schemas={role:schema for role in currents}
+    frames={role:{code:table.replace_schema_metadata(schema.metadata)}for role in currents}
+    context=dict(snapshot=snapshot,target=target,driver=SimpleNamespace(),run_dir=tmp_path/'run',currents=currents,
+        contracts={role:contract for role in currents},baseline_hashes={role:owner.sha(path)for role,path in currents.items()},
+        identity={},capacity_plan=plan)
+    before=set(tmp_path.rglob('*'))
+    result=delta._prepare(vars(module),context,code,frames,old,schemas,writer_rules)
+    expected=owner.canonical_sha(dict(code=code,raw=delta.raw_identity(raw),events=[],history_extension=None,
+        compute_start=None,rules=writer_rules,baseline=context['baseline_hashes'],turnover_input=None,
+        schemas={role:hashlib.sha256(value.remove_metadata().serialize()).hexdigest()for role,value in schemas.items()}))
+    assert result['kind']=='APPEND' and result['dependency']==expected and calls==[code]
+    with pytest.raises(ValueError,match='CLASSIFICATION_CHANGED_BEFORE_WRITE'):
+        delta._prepare(vars(module),context,code,frames,old,schemas,pins)
+    assert set(tmp_path.rglob('*'))==before
+
+
 def test_snapshot_input_parquet_exact_bytes_guarded_before_write(tmp_path,monkeypatch):
     import pandas as pd
     from ops import research_storage_governance as governance

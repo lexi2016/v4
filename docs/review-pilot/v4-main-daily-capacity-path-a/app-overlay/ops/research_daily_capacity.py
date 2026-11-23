@@ -819,10 +819,10 @@ def prepare_qfq_plan(module, policy, *, data_root, return_root, pointers, target
         raise CapacityProofError("INCREMENTAL_PAIRED_SNAPSHOT_CONFLICT")
     old_snapshot_path = module._source(old_refs[0], owner="incremental baseline snapshot")
     old_snapshot = json.loads(old_snapshot_path.read_bytes())
-    source_semantics = dict(driver_sha256=module.sha(kwargs["driver_path"]),
+    source_semantics = delta.classification_source_semantics(vars(module),dict(driver_sha256=module.sha(kwargs["driver_path"]),
                             formula_sha256=module.sha(kwargs["formula_path"]),
                             field_contract_sha256=module.sha(kwargs["contract_csv"]),
-                            user_formula_sha256=module.USER_FORMULA_SHA)
+                            user_formula_sha256=module.USER_FORMULA_SHA))
     refs = [file_reference(path) for path in [*pointers.values(), *current.values(),
             snapshot_path, old_snapshot_path, *[kwargs[key] for key in ("driver_path", "formula_path", "contract_csv")]]]
     refs = list({ref["path"]: ref for ref in refs}.values())
