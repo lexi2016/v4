@@ -288,7 +288,8 @@ def _build_d35c_bundle(context, product, numeric_manifest, formula_ref, formula_
 
 def _build_score_replay(context, product, numeric_manifest, formula_ref, symbols, artifact_root,
                         previous_binding=None):
-    from ops.materialize_workbench_score_action import authority_identity, materialize
+    from ops.materialize_workbench_score_action import (
+        authority_identity, matches_authority, materialize, row_writer_sha256s)
 
     artifact_root = Path(artifact_root).resolve()
     expected_rules = authority_identity()
@@ -310,7 +311,7 @@ def _build_score_replay(context, product, numeric_manifest, formula_ref, symbols
                     or candidate.get('source_generation') != context.generation
                     or candidate.get('input_sha256') != context.identity['input_sha256']
                     or candidate.get('source_selector_sha256') != context.identity['selector_artifact_sha256']
-                    or candidate.get('rules') != expected_rules
+                    or not matches_authority(candidate, expected_rules)
                     or any(candidate.get(key) is not value for key, value in FLAGS.items())):
                 raise ValueError('FORMULA_SUPPLEMENT_PRIOR_SCORE_IDENTITY_CONFLICT')
             old_index = candidate
@@ -325,22 +326,28 @@ def _build_score_replay(context, product, numeric_manifest, formula_ref, symbols
     missing = sorted(set(symbols) - set(old_items))
     descriptor = None
     if missing:
+        if old_index is not None and old_index.get('rules') != expected_rules:
+            # Per-row immutable provenance must agree with the index encoding.
+            # The previous complete records remain readable via the API fallback.
+            raise ValueError('FORMULA_SUPPLEMENT_SCORE_INDEX_ENCODING_CONFLICT')
         partial = materialize(context, product, numeric_manifest, output_root=artifact_root,
                               workers=1, symbols=missing)
         partial_index = _checked(partial['index'])
-        if partial_index.get('rules') != expected_rules:
+        if not matches_authority(partial_index, expected_rules):
             raise ValueError('FORMULA_SUPPLEMENT_SCORE_RULE_SHA_CONFLICT')
         if old_index is None:
             index = partial_index
         else:
             if old_index.get('price_basis') != partial_index.get('price_basis'):
                 raise ValueError('FORMULA_SUPPLEMENT_SCORE_BASIS_MOVED')
-            index = dict(old_index, items={**old_items, **partial_index.get('items', {})})
+            index = dict(partial_index, items={**old_items, **partial_index.get('items', {})})
         records = [_checked(reference) for reference in index['items'].values()]
         counts = dict(total=len(records),
             materialized=sum(row.get('status') == 'MATERIALIZED' for row in records),
             unknown=sum(row.get('status') == 'UNKNOWN' for row in records))
         index['counts'] = counts
+        if index.get('writer_provenance') is not None:
+            index['row_writer_sha256s'] = row_writer_sha256s(records)
         index_ref = _immutable(artifact_root / 'indexes', index)
         descriptor = dict(partial, index=index_ref, counts=counts,
             status='READY' if counts['unknown'] == 0 else 'PARTIAL_WITH_UNKNOWN')
@@ -369,6 +376,8 @@ def _build_score_replay(context, product, numeric_manifest, formula_ref, symbols
         source_generation=context.generation, input_sha256=context.identity['input_sha256'],
         numeric_manifest=numeric_manifest, formula_group_sha256=formula_ref['sha256'],
         **FLAGS)
+    if index.get('writer_provenance') is not None:
+        receipt['writer_provenance'] = index['writer_provenance']
     return descriptor, receipt
 
 
@@ -548,6 +557,28 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
     return _complete_owned(context,formula_groups_root,formula_ref,formula_receipt_ref)
 
 
+def _publish_score_union(context, day_root, score_binding):
+    """Run only after the exact supplement has its durable roster pointer."""
+    from ops.materialize_workbench_score_action import publish_formula_score_union
+    from ops.research_daily_capacity import propagate_capacity_error
+
+    if not isinstance(score_binding, dict) or not score_binding.get('receipt'):
+        return dict(status='NOT_RUN_SCORE_REPLAY_UNAVAILABLE', **FLAGS)
+    try:
+        replay = _checked(score_binding['receipt'], root=day_root.resolve(strict=True))
+        descriptor = replay['descriptor']
+        if (replay.get('schema') != 'V4_FORMULA_GROUP_SCORE_ACTION_REPLAY_V1'
+                or replay.get('status') != 'PREPARED_EXACT_OWNER_REPLAY'
+                or replay.get('same_rule_sha') is not True
+                or descriptor != score_binding.get('descriptor')
+                or any(replay.get(key) is not value for key, value in FLAGS.items())):
+            raise ValueError('FORMULA_SUPPLEMENT_SCORE_UNION_RECEIPT_CONFLICT')
+        return publish_formula_score_union(context, descriptor, day_root / 'supplements' / 'score_union')
+    except (ValueError, OSError, KeyError, TypeError, AttributeError) as error:
+        propagate_capacity_error(error)
+        return dict(status='CANNOT_CONFIRM', reason=type(error).__name__ + ':' + str(error)[:200], **FLAGS)
+
+
 def _complete_owned(context, formula_groups_root, formula_ref, formula_receipt_ref):
     """Build/reuse dated F10, chart and score supplements for the committed roster."""
     result = dict(status='CANNOT_CONFIRM', data_date=str(context.target), **FLAGS)
@@ -591,7 +622,8 @@ def _complete_owned(context, formula_groups_root, formula_ref, formula_receipt_r
                     and previous_chart_complete
                     and previous['artifact'].get('d35c_status') == 'READY'):
                 return dict(status='ALREADY_COMMITTED', pointer=previous['pointer'], receipt=previous['receipt_ref'],
-                            artifact=previous['artifact_ref'], **expected, **FLAGS)
+                            artifact=previous['artifact_ref'], score_union=_publish_score_union(
+                                context, day_root, previous['artifact'].get('score_action')), **expected, **FLAGS)
 
         previous_artifact = previous['artifact'] if previous else {}
         previous_bundle = None
@@ -694,11 +726,13 @@ def _complete_owned(context, formula_groups_root, formula_ref, formula_receipt_r
             return dict(status=supplement['status'], pointer=previous['pointer'],
                 receipt=previous['receipt_ref'], artifact=previous['artifact_ref'],
                 f10=f10_binding, score_action=score_binding, d35c_status=chart_status,
+                score_union=_publish_score_union(context, day_root, score_binding),
                 counts=supplement['counts'], idempotent=True, **expected, **FLAGS)
         pointer_ref = _atomic_pointer(latest, pointer, previous_sha)
         context.unchanged()
         return dict(status=supplement['status'], pointer=pointer_ref, receipt=receipt_ref,
             artifact=supplement_ref, f10=f10_binding, score_action=score_binding,
+            score_union=_publish_score_union(context, day_root, score_binding),
             d35c_status=chart_status, counts=supplement['counts'], **expected, **FLAGS)
     except Exception as error:
         from ops.research_daily_capacity import propagate_capacity_error

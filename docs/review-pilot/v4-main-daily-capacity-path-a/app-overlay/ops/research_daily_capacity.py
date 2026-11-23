@@ -938,6 +938,7 @@ def writer_sources():
              "research_panel_formula_groups_daily", "_formula_groups_daily_parts/workbench_supplements",
              "research_daily_product_parallel", "research_panel_history_checkpoint", "research_panel_chart_blocks",
              "render_original_formula_projection", "research_storage_compaction", "materialize_workbench_score_action",
+             "workbench_score_calculation",
              "complete_workbench_v192_assets", "build_mac_workbench", "research_panel_top200", "research_panel_f10",
              "bootstrap_stock_event_history", "sync_stock_history_completion")
     root = Path(__file__).resolve().parent

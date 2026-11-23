@@ -4,20 +4,25 @@ The preserved KB authorities own every rule. This adapter saves only requested
 new daily observations, reuses exact stock-prefix caches, and never runs on GET.
 """
 from __future__ import annotations
+from ops import workbench_score_calculation as calculation
 from ops.research_panel_logical import dataset as panel_dataset, parquet as pq
-import ast
 from concurrent.futures import ProcessPoolExecutor
 import hashlib
-import inspect
 import json
-import math
 import os
 from pathlib import Path
-import textwrap
 
 FLAGS = dict(RESEARCH_ONLY=True, production_allowed=False, buy_gate_updated=False, orders_sent=False)
 SCHEMA = 'v4.workbench.daily_score_action.v1'
-COLUMNS = ['ts_code','trade_date','open','high','low','close','volume','pre_close','pct_chg','user_v1_sell_signal_daily']
+COLUMNS = calculation.COLUMNS
+WRITER_MODULE = 'materialize_workbench_score_action.py'
+CALCULATION_MODULE = 'workbench_score_calculation.py'
+# Only the audited extraction is semantically equivalent to these old caches.
+LEGACY_EQUIVALENT_CALCULATION_SHA256 = '4e039f65ef92e597bed7af212a7d98ccf8ca523100b1fc854e3a0b177f74b152'
+LEGACY_WRITER_SHA256S = (
+    'c70c1d8bd6dba9fe2e89dba88d7ded5cff05342ee13ef1516087355b966f52df',
+    '005c8b3ef4723ffc56385d2ad91d5487e3cd3aeb30d56886671f063e39c96b1b',
+)
 
 
 def canonical(value):
@@ -38,9 +43,12 @@ def reference(path):
 
 def checked(ref):
     path = Path(ref['path'])
-    if not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path or sha(path) != ref['sha256']:
+    if not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path:
         raise ValueError('SCORE_REFERENCE_CONFLICT')
-    return json.loads(path.read_bytes())
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ref['sha256']:
+        raise ValueError('SCORE_REFERENCE_CONFLICT')
+    return json.loads(raw)
 
 
 def save(root, value):
@@ -64,158 +72,65 @@ def save(root, value):
 def authority_identity():
     from ops import kb_signal_authority, kb_hold_score, kb_n_structure, kb_action_authority
     root = Path(__file__).resolve().parents[1]
-    paths = [Path(m.__file__) for m in (kb_signal_authority, kb_hold_score, kb_n_structure, kb_action_authority)]
-    paths += [Path(__file__).resolve()]
+    paths = [Path(m.__file__) for m in (kb_signal_authority, kb_hold_score, kb_n_structure, kb_action_authority, calculation)]
     paths += [root/'contracts'/name for name in ('a_share_kb_fields_v1.json','a_share_kb_hold_score_v1.json','a_share_kb_n_structure_v1.json','a_share_kb_action_v1.json')]
     return {path.name: sha(path) for path in paths}
 
 
-def target_kb(frame, dates):
-    """Evaluate the original authority only on missing output dates.
-
-    Its full-prefix indicator cache and the only two loop-carried counters are
-    retained. No predicate/expression or default is replaced. Historical KB
-    labels are neither regenerated nor overwritten. Default authority remains
-    byte-identical to the accepted R5 source.
-    """
-    from ops import kb_signal_authority as kb
-    tree = ast.parse(textwrap.dedent(inspect.getsource(kb.append_kb_signals)))
-    fn = tree.body[0]
-    loop = next(n for n in fn.body if isinstance(n, ast.For) and ast.unparse(n.target) == '(i, day)')
-    # Before the original per-row body: advance exactly its two state updates
-    # for skipped output rows. Indicator recurrence is in the original _cache.
-    skip = ast.parse('''
-if int(day.trade_date) not in _requested_output_dates:
-    if close_prefix and n >= 114 and cache['white'][i] > 0 and cache['yellow'][i] > 0:
-        valid_line_indices.append(i)
-    if n >= 9:
-        color = 1 if cache['brick'][i] >= cache['brick'][i-1] else -1
-        color_count = color_count + 1 if color == prev_color else 1
-        prev_color = color
-    for name in names:
-        outputs[name].append(None)
-    continue
-''').body[0]
-    # close_prefix and n are assigned before the first conditional.
-    index = next(i for i, n in enumerate(loop.body) if isinstance(n, ast.If))
-    loop.body.insert(index, skip)
-    env = dict(kb.__dict__, _requested_output_dates=set(dates))
-    exec(compile(ast.fix_missing_locations(tree), str(Path(kb.__file__)), 'exec'), env)
-    return env['append_kb_signals'](frame)
+def writer_provenance():
+    path = Path(__file__).resolve()
+    return dict(module=path.name, sha256=sha(path))
 
 
-def score_prefix(rows, previous=None):
-    """Resume the exact preserved score recurrence, saving only its state."""
-    from ops import kb_hold_score as owner
-    from types import FunctionType
-    tree=ast.parse(textwrap.dedent(inspect.getsource(owner.score_history)))
-    fn=tree.body[0]
-    # Keep all original rule expressions; supply the validated prefix state.
-    loop=next(node for node in fn.body if isinstance(node,ast.For))
-    original_init=fn.body[:fn.body.index(loop)]
-    init=ast.parse("""
-result=[]
-closes=list(saved.get('closes', []));highs=list(saved.get('highs', []));lows=list(saved.get('lows', []))
-previous_date=saved.get('previous_date', 0)
-k=saved.get('k', 50.0);d=saved.get('d', 50.0)
-kdj_prefix_valid=saved.get('kdj_prefix_valid', True)
-prefix_count=saved.get('count', 0);retained_count=len(closes)
-""").body
-    fn.body=init+fn.body[fn.body.index(loop):]
-    for node in ast.walk(loop):
-        if isinstance(node,ast.Assign) and len(node.targets)==1 and isinstance(node.targets[0],ast.Name) and node.targets[0].id=='n':
-            node.value=ast.parse('prefix_count + len(closes) - retained_count',mode='eval').body
-    final=fn.body[-1]
-    assert isinstance(final,ast.Return)
-    final.value=ast.parse("(result, dict(closes=closes[-24:],highs=highs[-9:],lows=lows[-9:],previous_date=previous_date,k=k,d=d,kdj_prefix_valid=kdj_prefix_valid,count=prefix_count+len(rows)))",mode='eval').body
-    env=dict(owner.__dict__,saved=previous or {})
-    exec(compile(ast.fix_missing_locations(tree),str(Path(owner.__file__)),'exec'),env)
-    raw,state=env['score_history'](rows)
-    # Run the unchanged original source-to-J validation/supplemental mapping.
-    project=FunctionType(owner.project_single_history.__code__,dict(owner.__dict__,score_history=lambda _:raw),owner.project_single_history.__name__,owner.project_single_history.__defaults__)
-    project.__kwdefaults__=owner.project_single_history.__kwdefaults__
-    return project(rows[0]['ts_code'],rows,scope='ADMITTED_A_SHARE'),state
+def legacy_rule_maps(rules):
+    if rules.get(CALCULATION_MODULE) != LEGACY_EQUIVALENT_CALCULATION_SHA256:
+        return ()
+    shared = {name: value for name, value in rules.items() if name != CALCULATION_MODULE}
+    return tuple(dict(shared, **{WRITER_MODULE: value}) for value in LEGACY_WRITER_SHA256S)
 
 
-def plain(value):
-    if hasattr(value, 'item'): value = value.item()
-    if isinstance(value, float) and not math.isfinite(value): return None
-    return value
+def matches_authority(index, expected_rules):
+    rules = index.get('rules')
+    if not isinstance(rules, dict):
+        return False
+    if WRITER_MODULE in rules:
+        return index.get('writer_provenance') is None and rules in legacy_rule_maps(expected_rules)
+    return rules == expected_rules and calculation.valid_writer_provenance(index.get('writer_provenance'))
+
+
+def row_writer_sha256s(rows):
+    writers = set()
+    for row in rows:
+        provenance = row.get('writer_provenance')
+        if not calculation.valid_writer_provenance(provenance):
+            raise ValueError('SCORE_ROW_WRITER_PROVENANCE_INVALID')
+        writers.add(provenance['sha256'])
+    return sorted(writers)
 
 
 def project_symbol(args):
-    symbol, rows, target, basis, root, rules, qualification = args
-    from ops.kb_hold_score import project_single_history, apply_n_score
-    from ops.kb_n_structure import project_n_history,n_prefix_sha256
-    from ops.kb_action_authority import project_action
-    import pandas as pd
-    rows = [{k: plain(v) for k,v in r.items()} for r in rows]
-    rows.sort(key=lambda r: int(r['trade_date']))
-    prefix = digest(rows)
-    # Admission is a real input even when every price byte is unchanged.
-    # Bind status/reason explicitly and the complete canonical evidence object
-    # (raw refs, acceptance receipts, dates and their SHAs) before cache lookup.
-    qualification = qualification if isinstance(qualification, dict) else {
-        'status': 'UNKNOWN', 'reason': 'QUALIFICATION_NOT_BOUND'}
-    admission = dict(status=qualification.get('status'), reason=qualification.get('reason'),
-                     evidence_sha256=digest(qualification))
-    identity = dict(symbol=symbol, trade_date=target, price_basis=basis, rules=rules,
-                    prefix_sha256=prefix, qualification=admission)
+    symbol, rows, target, basis, root, rules, provenance, qualification = args
+    rows, qualification, identity = calculation.normalize_score_input(
+        symbol, rows, target, basis, rules, qualification)
     key = digest(identity)
-    cachepath = Path(root)/'stock_cache'/symbol/(key+'.json')
+    cachepath = Path(root) / 'stock_cache' / symbol / (key + '.json')
     if cachepath.is_file():
-        record=json.loads(cachepath.read_bytes())
-        if record.get('cache_identity') != identity: raise ValueError('SCORE_CACHE_IDENTITY_CONFLICT')
+        record = json.loads(cachepath.read_bytes())
+        if (record.get('cache_identity') != identity
+                or not calculation.valid_writer_provenance(record.get('writer_provenance'))):
+            raise ValueError('SCORE_CACHE_IDENTITY_CONFLICT')
         return dict(symbol=symbol, record=record, reused=True)
-    common = dict(symbol=symbol, trade_date=target, cache_identity=identity, historical_PIT=False, **FLAGS)
-    if (qualification.get('status')!='CURRENT_PRODUCER_ACCEPTED_FOR_REQUESTED_RESEARCH'
-            or not rows or str(rows[-1]['trade_date']) != str(target)):
-        record=dict(status='UNKNOWN', reason=qualification.get('reason') or 'EXACT_TARGET_BAR_UNAVAILABLE',
-                    hold_score=None, action=None, **common)
-    else:
-        frame=pd.DataFrame(rows).rename(columns={'volume':'vol'})
-        result=target_kb(frame, {int(target)})
-        target_kb_row={k:plain(v) for k,v in result.iloc[-1].to_dict().items() if k.startswith('kb_')}
-        # Preserve the original score caller's independent pinned J authority.
-        from ops.kb_signal_authority import project_bound_kb_j
-        js=project_bound_kb_j(symbol,rows)
-        source=[dict(r,volume=r['volume'],kb_b1_j=j['kb_b1_j']) for r,j in zip(rows,js)]
-        prior=None;offset=0
-        for path in sorted(cachepath.parent.glob('*.json')) if cachepath.parent.exists() else []:
-            candidate=json.loads(path.read_bytes());ci=candidate.get('cache_identity',{})
-            count=candidate.get('input_rows',0)
-            if (candidate.get('recurrence') and ci.get('rules')==rules and ci.get('price_basis')==basis
-                    and 0<count<len(rows) and count>offset and str(candidate.get('trade_date'))<str(target)
-                    and digest(rows[:count])==ci.get('prefix_sha256')):
-                prior=candidate;offset=count
-        score,score_state=score_prefix(source[offset:],prior['recurrence']['score'] if prior else None)
-        nidentity=dict(generation_id='daily-score:'+key,input_sha256=prefix,
-            rule_sha256=rules['a_share_kb_n_structure_v1.json'],helper_sha256=rules['kb_n_structure.py'],
-            calendar_sha256=None,price_basis_sha256=digest(basis),price_basis='QFQ_ASOF')
-        if prior:
-            # The unchanged N owner checks the checkpoint integrity and exact
-            # current HLC prefix; the new outer record binds the new source.
-            old=prior['recurrence']['n']
-            nidentity=dict(old['identity'])
-            ns,checkpoint=project_n_history(symbol,rows[offset:],identity=nidentity,
-                checkpoint=old,expected_prefix_sha256=n_prefix_sha256(symbol,rows[:offset]))
-        else:ns,checkpoint=project_n_history(symbol,rows,identity=nidentity)
-        score=apply_n_score(symbol,source[offset:],score,ns,rule_sha256=nidentity['rule_sha256'],
-                           helper_sha256=nidentity['helper_sha256'],scope='ADMITTED_A_SHARE')
-        current_score=score[-1]
-        # Action authority consumes the accepted KB state and independent
-        # original sell signal; preserve nullable inputs without bool coercion.
-        action=project_action(target_kb_row | current_score |
-            {'user_v1_sell_signal_daily':rows[-1].get('user_v1_sell_signal_daily')},
-            rule_sha256=rules['a_share_kb_action_v1.json'])
-        record=dict(status='MATERIALIZED',hold_score=current_score,action=action,kb=target_kb_row,
-                    n_structure=ns[-1]['kb_n_structure'],input_rows=len(rows),
-                    recurrence=dict(score=score_state,n=checkpoint),incremental_prefix_rows=offset,new_observation_rows=len(rows)-offset,**common)
-    raw=canonical(record)+b'\n'
-    if cachepath.exists() and cachepath.read_bytes()!=raw:raise ValueError('SCORE_CACHE_MOVED')
+
+    prior_records = (json.loads(path.read_bytes()) for path in sorted(cachepath.parent.glob('*.json')))
+    record = calculation.calculate_score(symbol, rows, target, basis, rules, qualification,
+                                         identity, prior_records, legacy_rule_maps(rules))
+    record['writer_provenance'] = provenance
+    raw = canonical(record) + b'\n'
+    if cachepath.exists() and cachepath.read_bytes() != raw:
+        raise ValueError('SCORE_CACHE_MOVED')
     from ops.research_daily_capacity import serialized_write
-    with serialized_write(cachepath,raw):
-        cachepath.parent.mkdir(parents=True,exist_ok=True)
+    with serialized_write(cachepath, raw):
+        cachepath.parent.mkdir(parents=True, exist_ok=True)
         cachepath.write_bytes(raw)
     return dict(symbol=symbol, record=record, reused=False)
 
@@ -233,6 +148,7 @@ def materialize(context, product, numeric_manifest, *, output_root=None, workers
     requested=sorted(symbols or [r['symbol'] for r in product['rows']])
     if not set(requested)<=set(product['row_refs']):raise ValueError('SCORE_SCOPE_CONFLICT')
     rules=authority_identity()
+    provenance=writer_provenance()
     # One shared Parquet scan for this missing output batch, no per-stock scan.
     dataset=panel_dataset(context.panel,format='parquet')
     columns=[c for c in COLUMNS if c in dataset.schema.names]
@@ -244,7 +160,7 @@ def materialize(context, product, numeric_manifest, *, output_root=None, workers
     for symbol in requested:
         source=checked(product['row_refs'][symbol])
         if source.get('symbol')!=symbol or source.get('data_date')!=target:raise ValueError('SCORE_ADMISSION_ROW_CONFLICT')
-        args.append((symbol,buckets[symbol],target,context.identity['basis'],str(root),rules,source.get('qualification',{})))
+        args.append((symbol,buckets[symbol],target,context.identity['basis'],str(root),rules,provenance,source.get('qualification',{})))
     if workers is None:
         from ops.research_daily_product_parallel import memory_state,resource_plan
         workers=resource_plan(memory_state(),max(1,len(args)))['workers']
@@ -256,7 +172,9 @@ def materialize(context, product, numeric_manifest, *, output_root=None, workers
     items={r['symbol']:save(root/'records',r['record']) for r in results}
     value=dict(schema=SCHEMA,data_date=target,source_generation=context.generation,
         input_sha256=context.identity['input_sha256'],numeric_manifest=numeric_manifest,
-        source_selector_sha256=context.identity['selector_artifact_sha256'],rules=rules,price_basis=context.identity['basis'],
+        source_selector_sha256=context.identity['selector_artifact_sha256'],rules=rules,
+        writer_provenance=provenance,price_basis=context.identity['basis'],
+        row_writer_sha256s=row_writer_sha256s(r['record'] for r in results),
         items=items,counts=dict(total=len(items),materialized=sum(r['record']['status']=='MATERIALIZED' for r in results),
         unknown=sum(r['record']['status']=='UNKNOWN' for r in results)),
         historical_PIT=False,**FLAGS)
@@ -266,6 +184,126 @@ def materialize(context, product, numeric_manifest, *, output_root=None, workers
     return dict(status='READY' if not value['counts']['unknown'] else 'PARTIAL_WITH_UNKNOWN',index=ref,
         data_date=target,source_generation=context.generation,input_sha256=context.identity['input_sha256'],
         numeric_manifest=numeric_manifest,counts=value['counts'],**FLAGS)
+
+
+def _score_union_index(score_root, base_descriptor, new_descriptor, identity, basis, selector_sha):
+    def read_index(descriptor):
+        ref = descriptor['index']
+        if (not Path(ref['path']).is_relative_to(score_root)
+                or any(descriptor.get(key) != value for key, value in identity.items())
+                or any(descriptor.get(key) is not value for key, value in FLAGS.items())):
+            raise ValueError('SCORE_UNION_DESCRIPTOR_CONFLICT')
+        value = checked(ref)
+        if (value.get('schema') != SCHEMA or value.get('historical_PIT') is not False
+                or any(value.get(key) != expected for key, expected in identity.items())
+                or any(value.get(key) is not expected for key, expected in FLAGS.items())
+                or value.get('counts') != descriptor.get('counts')
+                or value.get('price_basis') != basis
+                or value.get('source_selector_sha256') != selector_sha
+                or not matches_authority(value, expected_rules)
+                or not isinstance(value.get('items'), dict)
+                or not isinstance(value.get('counts'), dict)
+                or value['counts'].get('total') != len(value['items'])):
+            raise ValueError('SCORE_UNION_INDEX_CONFLICT')
+        return value
+
+    expected_rules = authority_identity()
+    new_index = read_index(new_descriptor)
+    base_index = read_index(base_descriptor) if base_descriptor else new_index
+    if base_index['rules'] != new_index['rules']:
+        raise ValueError('SCORE_UNION_ROW_ENCODING_CONFLICT')
+    items = dict(base_index['items'])
+    for symbol, ref in new_index['items'].items():
+        prior_ref = items.get(symbol)
+        if prior_ref is not None and prior_ref != ref:
+            raise ValueError('SCORE_UNION_OVERLAP_CONFLICT')
+        if prior_ref is None:
+            items[symbol] = ref
+    counts = dict(total=len(items), materialized=0, unknown=0)
+    records = {}
+    new_encoding = WRITER_MODULE not in base_index['rules']
+    for symbol, ref in items.items():
+        if not Path(ref['path']).is_relative_to(score_root):
+            raise ValueError('SCORE_UNION_ROW_ROOT_CONFLICT')
+        row = checked(ref)
+        cache = row.get('cache_identity') or {}
+        outcome = row.get('status')
+        if (row.get('symbol') != symbol or str(row.get('trade_date')) != identity['data_date']
+                or row.get('historical_PIT') is not False
+                or any(row.get(key) is not value for key, value in FLAGS.items())
+                or cache.get('rules') != base_index['rules']
+                or cache.get('writer_provenance') is not None
+                or cache.get('price_basis') != basis
+                or outcome not in {'MATERIALIZED', 'UNKNOWN'}):
+            raise ValueError('SCORE_UNION_ROW_CONFLICT')
+        counts[outcome.lower()] += 1
+        records[symbol] = row
+    result = dict(base_index, items=items, counts=counts)
+    if new_encoding:
+        for source_index in (base_index, new_index):
+            observed = row_writer_sha256s(records[symbol] for symbol in source_index['items'])
+            if source_index.get('row_writer_sha256s') != observed:
+                raise ValueError('SCORE_UNION_WRITER_PARTITION_CONFLICT')
+        result['row_writer_sha256s'] = row_writer_sha256s(records.values())
+    elif any(row.get('writer_provenance') is not None for row in records.values()):
+        raise ValueError('SCORE_UNION_LEGACY_WRITER_CONFLICT')
+    return result
+
+
+def publish_formula_score_union(context, descriptor, stage_root):
+    """Add the committed roster to the existing date through the Main CAS owner."""
+    from ops import research_panel_daily_product as owner
+    from ops.sync_stock_history_completion import DEFAULT_OWNER_LOCK, publish
+
+    root = Path(context.root).resolve(strict=True)
+    stage_root = Path(stage_root).resolve()
+    if stage_root == root or stage_root.is_relative_to(root):
+        raise ValueError('SCORE_STAGE_NOT_ISOLATED')
+    context.unchanged()
+    index_ref = reference(root / 'index.json')
+    event_ref = reference(root / 'events/latest.json')
+    index, event = checked(index_ref), checked(event_ref)
+    day = str(context.target)
+    numeric = index.get('dates', {}).get(day)
+    if (not isinstance(numeric, dict) or index.get('latest_date') != day
+            or str(event.get('data_date')) != day or event.get('manifest') != numeric
+            or event.get('source_generation') != context.generation
+            or event.get('input_sha256') != context.identity['input_sha256']):
+        raise ValueError('SCORE_UNION_NUMERIC_MOVED')
+    identity = dict(data_date=day, source_generation=context.generation,
+                    input_sha256=context.identity['input_sha256'], numeric_manifest=numeric)
+    incumbent = index.get('score_action', {}).get(day)
+    if not incumbent or not incumbent.get('index'):
+        incumbent = None
+    value = _score_union_index(root / 'score_action', incumbent, descriptor, identity,
+                               context.identity['basis'], context.identity['selector_artifact_sha256'])
+    if incumbent is not None and value == checked(incumbent['index']):
+        return dict(status='ALREADY_PUBLISHED_SCORE_UNION', descriptor=incumbent, **FLAGS)
+    counts = value['counts']
+    if value.get('writer_provenance') is not None:
+        value['writer_provenance'] = writer_provenance()
+    stage = stage_root / digest([index_ref['sha256'], event_ref['sha256'], descriptor['index']['sha256']])
+    staged = save(stage / 'assets', value)
+    target = root / 'score_action' / 'indexes' / Path(staged['path']).name
+    merged = dict(descriptor, index=dict(path=str(target), sha256=staged['sha256']), counts=counts,
+                  status='PARTIAL_WITH_UNKNOWN' if counts['unknown'] else 'READY')
+    new_index = dict(index, score_action={**index.get('score_action', {}), day: merged})
+    new_event = dict(event, score_action=merged)
+    new_event['event_id'] = digest({key: value for key, value in new_event.items() if key != 'event_id'})
+    lock = DEFAULT_OWNER_LOCK
+    stat = lock.lstat()
+    if lock.is_symlink() or not lock.is_file():
+        raise ValueError('SCORE_OWNER_LOCK_INVALID')
+    plan = dict(status='PREPARED_FORMULA_SCORE_UNION',
+                owner_publisher=reference(owner.__file__), shared_owner_lock=dict(
+                    path=str(lock), device=stat.st_dev, inode=stat.st_ino),
+                target_root=str(root), stage=str(stage), expected_index=index_ref, expected_event=event_ref,
+                immutable_files={str(target): staged}, staged_index=save(stage / 'index', new_index),
+                staged_event=save(stage / 'event', new_event), completed=sorted(value['items']), **FLAGS)
+    context.unchanged()
+    receipt = publish(plan)
+    return dict(status='PUBLISHED_SCORE_UNION', descriptor=merged,
+                index=receipt['index'], event=receipt['event'], **FLAGS)
 
 
 def prepare_publication(descriptor_ref, config_ref, stage):
