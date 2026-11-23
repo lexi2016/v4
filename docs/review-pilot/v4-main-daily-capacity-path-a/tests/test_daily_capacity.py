@@ -148,6 +148,71 @@ def test_bootstrap_refused_before_reader_scan(setup_plan):
         capacity.product_plan(policy,None,'daily_product',history_dates=['20261120'])
 
 
+def count_context(tmp_path,*,corrupt=None):
+    import pandas as pd
+    from ops import research_panel_daily_product as product
+    selected=['000001.SZ','002122.SZ','600035.SH','920002.BJ']
+    rows=[dict(ts_code=symbol,trade_date=date,exchange=symbol[-2:],market_type='BJ'if symbol.endswith('.BJ')else'A_SHARE',
+        name=None,open=1.,high=2.,low=.5,close=float('nan'),volume=100.)
+        for symbol in selected[:3]for date in (20261120,20261123)]
+    frame=pd.DataFrame(rows);frame['ts_code']=pd.Categorical(frame.ts_code,categories=[*selected,'999999.SZ'])
+    calls=[];checks=[]
+    def reader(*,columns,filters,panel_path,profile):
+        assert profile is None
+        _,op,value=filters[0];batch=[value]if op=='='else value
+        result=frame.loc[frame.ts_code.isin(batch)].copy()
+        if corrupt=='duplicate':result=pd.concat([result,result.iloc[:1]])
+        if corrupt=='market':result.iloc[0,result.columns.get_loc('market_type')]='HK'
+        if corrupt=='exchange':result.iloc[0,result.columns.get_loc('exchange')]='SH'
+        if corrupt=='scope':result.iloc[0,result.columns.get_loc('ts_code')]='999999.SZ'
+        if corrupt=='date':result.iloc[0,result.columns.get_loc('trade_date')]=20261124
+        calls.append((list(batch),list(columns)))
+        return result[columns]
+    context=product.SourceContext.__new__(product.SourceContext)
+    context.scope=selected;context.target=20261123;context.panel=tmp_path/'unused-panel'
+    context.d30_projection=None;context._timing_enabled=False;context.reader=SimpleNamespace(load_selector_ready=reader)
+    context.unchanged=lambda:checks.append('checked')
+    return context,selected,calls,checks
+
+
+def test_exact_count_batches_match_existing_reads_and_bound_columns(tmp_path):
+    context,selected,calls,checks=count_context(tmp_path)
+    expected={symbol:len(context.read(symbol)[0])for symbol in selected}
+    calls.clear();checks.clear()
+    assert context.row_counts(selected,batch_size=2)==expected
+    assert [batch for batch,_ in calls]==[selected[:2],selected[2:]]
+    assert all(columns==['ts_code','trade_date','market_type','exchange']for _,columns in calls)
+    assert len(checks)==4 and expected[selected[-1]]==0
+    with pytest.raises(ValueError,match='COUNT_BATCH_SCOPE_INVALID'):context.row_counts(selected,batch_size=65)
+    assert len(calls)==2
+
+
+@pytest.mark.parametrize('corrupt',['duplicate','market','exchange','scope','date'])
+def test_count_batches_preserve_key_market_date_guards(tmp_path,corrupt):
+    context,selected,_,_=count_context(tmp_path,corrupt=corrupt)
+    with pytest.raises(ValueError,match='PREFIX_CONFLICT|TARGET_DATE_CONFLICT'):context.row_counts(selected)
+
+
+def test_count_batches_recheck_generation_after_shared_read(tmp_path):
+    context,selected,calls,checks=count_context(tmp_path)
+    def moved():
+        checks.append('checked')
+        if calls:raise ValueError('DAILY_GENERATION_CHANGED_DURING_PROJECTION')
+    context.unchanged=moved
+    with pytest.raises(ValueError,match='GENERATION_CHANGED'):context.row_counts(selected)
+
+
+def test_product_plan_uses_exact_count_reader_and_preserves_counts(setup_plan):
+    policy,_,source=setup_plan;selected=['000001.SZ','600035.SH'];ref=capacity.file_reference(source);seen=[]
+    def counts(symbols):seen.append(symbols);return dict(zip(symbols,[5,7]))
+    context=SimpleNamespace(scope=selected,target=20261123,identity={'generation':'same'},unchanged=lambda:None,
+        row_counts=counts,read=lambda _:pytest.fail('planning constructed bars'),receipt_ref=ref,snapshot_ref=ref,config_ref=ref,reader_ref=ref)
+    plan=capacity.product_plan(policy,context,'daily_product')
+    assert seen==[selected] and plan['changed_rows']==12
+    assert plan['source_identity']['changed_rows_by_symbol']==dict(zip(selected,[5,7]))
+    capacity.validate_plan(plan,policy=policy)
+
+
 def test_resident_same_roots_and_inode_dedup(tmp_path):
     from ops import research_storage_governance as governance
     root=tmp_path/'owned';root.mkdir();file=root/'one';file.write_bytes(b'a'*4097)

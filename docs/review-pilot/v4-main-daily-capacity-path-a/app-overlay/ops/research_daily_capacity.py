@@ -870,9 +870,10 @@ def product_plan(policy, context, phase, *, symbols=None, history_dates=(), extr
     selected = sorted(symbols if symbols is not None else context.scope)
     if not set(selected) <= set(context.scope):
         raise CapacityProofError("INCREMENTAL_PRODUCT_SCOPE_CONFLICT")
-    # Existing Reader supplies only this symbol's bound date window. No output
-    # or label computation happens during the count.
-    counts = {symbol:len(context.read(symbol)[0]) for symbol in selected}
+    # The same Reader validates bounded stock batches without constructing bars
+    # or repeating both complete pair-closure checks for every individual stock.
+    counts = (context.row_counts(selected) if callable(getattr(context,'row_counts',None))
+              else {symbol:len(context.read(symbol)[0]) for symbol in selected})
     rows = sum(counts.values())
     references = [file_reference(Path(ref["path"])) for ref in
                   (context.receipt_ref, context.snapshot_ref, context.config_ref, context.reader_ref,*extra_references)]

@@ -610,6 +610,29 @@ class SourceContext:
    return bars,name
   finally:
    if started is not None:self._timing['read_seconds']+=time.perf_counter()-started
+ def row_counts(self,symbols,*,batch_size=64):
+  """Exact planning counts through the same Reader, at most 64 stocks in RAM."""
+  selected=list(symbols)
+  if (selected!=sorted(set(selected)) or not set(selected)<=set(self.scope)
+      or type(batch_size)is not int or not 1<=batch_size<=64):
+   raise ValueError('DAILY_COUNT_BATCH_SCOPE_INVALID')
+  # Preserve the separately bound legacy typed projection's original Reader.
+  if self.d30_projection:return {symbol:len(self.read(symbol)[0])for symbol in selected}
+  counts={symbol:0 for symbol in selected}
+  for start in range(0,len(selected),batch_size):
+   batch=selected[start:start+batch_size]
+   self.unchanged()
+   frame=self.reader.load_selector_ready(columns=['ts_code','trade_date','market_type','exchange'],
+       filters=[('ts_code','in',batch),('trade_date','<=',str(self.target))],panel_path=self.panel,profile=None)
+   self.unchanged()
+   if frame.empty:continue
+   if (frame.duplicated(['ts_code','trade_date']).any() or not frame.ts_code.isin(batch).all()
+       or not frame.exchange.astype(str).eq(frame.ts_code.astype(str).str[-2:]).all()
+       or not set(frame.market_type.astype(str))<={'A_SHARE','BJ'}):
+    raise ValueError('DAILY_SYMBOL_PREFIX_CONFLICT:'+','.join(batch))
+   if frame.trade_date.map(int).gt(self.target).any():raise ValueError('DAILY_COUNT_TARGET_DATE_CONFLICT')
+   counts.update({symbol:int(count)for symbol,count in frame.groupby('ts_code',sort=False,observed=True).size().items()})
+  return counts
  def engine(self):
   if self._engine is None:self._engine=module(self.config['engine'],'dated_exact_original_engine');self.core=module(self.config['tri_state_core'],'dated_original_tristate')
   return self._engine
