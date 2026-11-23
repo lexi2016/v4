@@ -1,0 +1,621 @@
+--- a/ops/_a_share_daily_sync_parts/sync_workflow.py
++++ b/ops/_a_share_daily_sync_parts/sync_workflow.py
+@@ -32,6 +32,10 @@
+     pending_status_facts = _v4_global(_v4_scope, '_load_pending_trading_status_facts')()
+     target_list = _v4_global(_v4_scope, 'list')(targets)
+     _v4_global(_v4_scope, '_validate_target_scope')(target_list)
++    alias_scope_index = _v4_global(_v4_scope, '_bse_alias_scope_index')(
++        bse_alias_facts,
++        ((_v4_global(_v4_scope, 'str')(item.code), _v4_global(_v4_scope, 'int')(item.market)) for item in target_list),
++    )
+     package = None
+     if official_daily_input is not None:
+         from .official_daily_package import OfficialDailyPackage
+@@ -364,7 +368,8 @@
+             _v4_global(_v4_scope, '_persist_progress')(progress_file, progress)
+             continue
+         alias_fact = _v4_global(_v4_scope, '_bse_alias_fact_for_target')(
+-            bse_alias_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int, target_list)
++            bse_alias_facts, symbol, _v4_global(_v4_scope, 'int')(item.market), target_int,
++            scope_index=alias_scope_index)
+         if alias_fact is not None:
+             last_date = _v4_global(_v4_scope, 'read_last_date')(item.path) if source_sha_before else None
+             row = dict(symbol=symbol, market=2, status="CANNOT_CONFIRM", fetch_status="REBUILD_REQUIRED",
+@@ -374,8 +379,7 @@
+                 records_written=0, attempt_ordinal=0, raw_response_snapshots=[],
+                 source_sha256_before=source_sha_before, source_sha256_after=source_sha_before,
+                 alias_skip=True, alias_fact=alias_fact, replacement_ts_code=alias_fact["new_ts_code"],
+-                replacement_target_in_scope=_v4_global(_v4_scope, 'any')(_v4_global(_v4_scope, 'str')(target.code) == alias_fact["new_code"]
+-                    and _v4_global(_v4_scope, 'int')(target.market) == 2 for target in target_list),
++                replacement_target_in_scope=alias_scope_index[1].get(alias_fact["new_code"]) == (2,),
+                 replacement_target_date_ready="NOT_ASSERTED_BY_ALIAS_GUARD",
+                 replacement_missing_does_not_add_target=True,
+                 alias_asset_sha256=_v4_global(_v4_scope, 'BSE_ALIAS_ASSET_SHA256'),
+--- a/ops/a_share_daily_sync.py
++++ b/ops/a_share_daily_sync.py
+@@ -23,10 +23,12 @@
+ import threading
+ import time
+ import zlib
++from collections import Counter, defaultdict
+ from datetime import datetime, timedelta, timezone
+ from dataclasses import dataclass
+ from numbers import Real
+ from pathlib import Path
++from types import MappingProxyType
+ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+ 
+ # Preserve direct-file CLI discovery of the sibling review modules.
+@@ -124,7 +126,20 @@
+     return indexed
+ 
+ 
+-def _bse_alias_fact_for_target(facts, symbol, market, target, targets):
++def _bse_alias_scope_index(facts, target_identities):
++    """Freeze reverse mappings and target markets once for this exact scope."""
++    replacements = Counter(
++        row.get("new_ts_code") for row in facts.values() if isinstance(row, dict)
++    )
++    target_markets = defaultdict(list)
++    for code, market in target_identities:
++        target_markets[code].append(market)
++    return MappingProxyType(dict(replacements)), MappingProxyType({
++        code: tuple(markets) for code, markets in target_markets.items()
++    })
++
++
++def _bse_alias_fact_for_target(facts, symbol, market, target, targets=(), *, scope_index=None):
+     """Skip only a known old BJ identity, after its captured fact is available.
+ 
+     Target dates do not carry an intraday cutoff. Same-day capture availability
+@@ -164,10 +179,14 @@
+         return None
+     # Both mapping directions must be unique. A missing replacement target is
+     # reported without adding it or retrying the obsolete old identity.
+-    if sum(item.get("new_ts_code") == row["new_ts_code"] for item in facts.values() if isinstance(item, dict)) != 1:
+-        return None
+-    replacements = [item for item in targets if str(item.code) == new]
+-    if len(replacements) > 1 or any(int(item.market) != 2 for item in replacements):
++    if scope_index is None:
++        scope_index = _bse_alias_scope_index(
++            facts, ((str(item.code), int(item.market)) for item in targets)
++        )
++    replacement_counts, target_markets = scope_index
++    if replacement_counts.get(row["new_ts_code"]) != 1:
++        return None
++    if target_markets.get(new, ()) not in ((), (2,)):
+         return None
+     return row
+ 
+--- a/ops/macos_research_panel_daily_authority.py
++++ b/ops/macos_research_panel_daily_authority.py
+@@ -372,9 +372,12 @@
+     *,
+     _row_key: Any,
+     _classify: Any,
++    require_identical_rows: bool = False,
+ ) -> None:
+     """Require the producer's duplicated row/count views to agree exactly."""
+     if "reconciliation" not in reported:
++        if require_identical_rows:
++            raise SnapshotGateError("A sync nested proof ledger is missing")
+         return
+     nested = reported.get("reconciliation")
+     if not isinstance(nested, Mapping):
+@@ -389,6 +392,8 @@
+     nested_rows = nested["symbols"]
+     if not isinstance(top_rows, list) or not isinstance(nested_rows, list):
+         raise SnapshotGateError("A sync nested reconciliation rows are malformed")
++    if require_identical_rows and top_rows != nested_rows:
++        raise SnapshotGateError("A sync raw reconciliation proof rows disagree")
+     if _row_signature(root, top_rows, _row_key=_row_key, _classify=_classify) != _row_signature(
+         root, nested_rows, _row_key=_row_key, _classify=_classify
+     ):
+@@ -424,6 +429,137 @@
+     return key
+ 
+ 
++def _source_sha(row: Mapping[str, Any]) -> str:
++    return str(row.get("source_sha256_after") or row.get("source_sha256") or row.get("sha256") or "").strip().lower()
++
++
++def _assert_no_unaccepted_current_native_bar(
++    target: int,
++    keyed_rows: Mapping[tuple[str, int, str], Mapping[str, Any]],
++    *,
++    classify: Any,
++) -> None:
++    """Guard QFQ's original root, where even an embedded date can be read."""
++    date_record = struct.Struct(f"<I{A_DAY_STRUCT.size - 4}x")
++    read_size = 4096 * date_record.size
++    identity_fields = ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
++
++    for key, row in keyed_rows.items():
++        if classify(row) == "ACCEPTED":
++            continue
++        path = Path(key[2])
++        digest = hashlib.sha256()
++        current_day = None
++        try:
++            with path.open("rb") as handle:
++                before = os.fstat(handle.fileno())
++                for block in iter(lambda: handle.read(read_size), b""):
++                    digest.update(block)
++                    # A non-record-aligned source already fails the original reader.
++                    if current_day is None and before.st_size % date_record.size == 0:
++                        current_day = next((day for (day,) in date_record.iter_unpack(block) if day >= target), None)
++            after = path.lstat()
++        except (OSError, ValueError, struct.error) as error:
++            raise SnapshotGateError(f"A sync unaccepted native date slots could not be checked: {path}") from error
++        if (digest.hexdigest() != _source_sha(row)
++                or any(getattr(before, field) != getattr(after, field) for field in identity_fields)):
++            raise SnapshotGateError(f"A sync unaccepted native source identity changed: {path}")
++        if current_day is not None:
++            raise SnapshotGateError(f"A sync original QFQ root has an unaccepted current or future native bar: {path}:{current_day}")
++
++
++def _eligible_sync_scope(
++    target: int,
++    keyed_rows: Mapping[tuple[str, int, str], Mapping[str, Any]],
++    *,
++    evidence_module: Any,
++    _classify: Any = _row_classification,
++) -> dict[str, Any]:
++    """Derive operational eligibility from pinned facts and frozen ledger rows."""
++    from collections import Counter
++
++    identities = Counter((symbol, market) for symbol, market, _ in keyed_rows)
++    dispositions = {key: _classify(row) for key, row in keyed_rows.items()}
++    open_rows = {key: row for key, row in keyed_rows.items() if dispositions[key] != "ACCEPTED"}
++    known_delistings: set[tuple[str, int, str]] = set()
++    known_aliases: dict[tuple[str, int, str], str] = {}
++    if evidence_module is not None:
++        owner = evidence_module
++        lifecycle_reason = owner.LIFECYCLE_SKIP_REASON
++        alias_reason = owner.BSE_ALIAS_SKIP_REASON
++        candidates = {
++            key: row for key, row in open_rows.items()
++            if dispositions[key] == "QUARANTINED" and identities[key[:2]] == 1
++            and row.get("status") == "CANNOT_CONFIRM"
++            and row.get("quarantine") is True and row.get("target_date_ready") is False
++        }
++        if any(row.get("reason_code") == lifecycle_reason for row in candidates.values()):
++            lifecycle_facts = owner._load_verified_lifecycle_facts()
++            for key, row in candidates.items():
++                if row.get("reason_code") != lifecycle_reason or row.get("lifecycle_skip") is not True:
++                    continue
++                fact = owner._lifecycle_fact_for_target(lifecycle_facts, *key[:2], target)
++                reported_fact = row.get("lifecycle_fact")
++                if fact is None or not isinstance(reported_fact, Mapping):
++                    continue
++                policy = fact.get("source_policy_ref")
++                if policy is None:
++                    if row.get("lifecycle_asset_sha256") == owner.LIFECYCLE_NOTES_SHA256 and reported_fact == fact:
++                        known_delistings.add(key)
++                    continue
++                # Release copies can carry different absolute paths to the same
++                # reviewed policy bytes. The loader verifies the current evidence.
++                row_policy = row.get("lifecycle_policy_ref")
++                if (isinstance(row_policy, Mapping)
++                        and reported_fact.get("source_policy_ref") == row_policy
++                        and row_policy.get("sha256") == policy["sha256"] == row.get("lifecycle_asset_sha256")
++                        and {k: v for k, v in reported_fact.items() if k != "source_policy_ref"}
++                        == {k: v for k, v in fact.items() if k != "source_policy_ref"}):
++                    known_delistings.add(key)
++        if any(row.get("reason_code") == alias_reason for row in candidates.values()):
++            alias_facts = owner._load_verified_bse_alias_facts()
++            alias_index = owner._bse_alias_scope_index(alias_facts, (key[:2] for key in keyed_rows))
++            settled_bj = {
++                key[0] for key in keyed_rows
++                if key[1] == 2 and (dispositions[key] == "ACCEPTED" or key in known_delistings)
++            }
++            for key, row in candidates.items():
++                if (key in known_delistings or row.get("reason_code") != alias_reason
++                        or row.get("alias_skip") is not True or row.get("replacement_target_in_scope") is not True
++                        or row.get("alias_asset_sha256") != owner.BSE_ALIAS_ASSET_SHA256
++                        or row.get("alias_review_sha256") != owner.BSE_ALIAS_REVIEW_SHA256):
++                    continue
++                fact = owner._bse_alias_fact_for_target(alias_facts, *key[:2], target, scope_index=alias_index)
++                if (fact is not None and row.get("alias_fact") == fact
++                        and row.get("replacement_ts_code") == fact["new_ts_code"]
++                        and alias_index[1].get(fact["new_code"]) == (2,)
++                        and fact["new_code"] in settled_bj):
++                    known_aliases[key] = fact["new_ts_code"]
++
++    excluded = []
++    unresolved = []
++    for key, row in sorted(open_rows.items()):
++        descriptor = {"symbol": key[0], "market": key[1], "path": key[2], "reason_code": row.get("reason_code")}
++        if key in known_delistings or key in known_aliases:
++            if key in known_aliases:
++                descriptor["replacement_ts_code"] = known_aliases[key]
++            excluded.append(descriptor)
++        else:
++            unresolved.append(descriptor)
++    nominal = len(keyed_rows)
++    accepted = nominal - len(open_rows)
++    eligible = nominal - len(excluded)
++    return {
++        "eligible_target_count": eligible,
++        "eligible_coverage_rate": accepted / eligible if eligible else None,
++        "nominal_coverage_rate": accepted / nominal if nominal else None,
++        "verified_obsolete_count": len(excluded),
++        "unresolved_eligible_count": len(unresolved),
++        "verified_obsolete": excluded,
++        "unresolved_eligible": unresolved,
++    }
++
++
+ def _audit_sync_scope(
+     root: Path,
+     target: int,
+@@ -437,6 +573,7 @@
+     _classify: Any = _row_classification,
+     _rows_impl: Any = _reported_reconciliation_rows,
+     allow_bounded_run_timeout: bool = False,
++    _evidence_module: Any = None,
+ ) -> dict[str, Any]:
+     """Require exact date, key, count, and failure closure before handoff."""
+     reported_date = reported.get("target_date")
+@@ -469,27 +606,28 @@
+         reported,
+         _row_key=_row_key,
+         _classify=_classify,
++        require_identical_rows=_evidence_module is not None,
+     )
+     rows = _rows_impl(reported, Path(str(reported.get("run_dir") or "")))
+     if not rows:
+         raise SnapshotGateError("A sync reconciliation rows are missing")
+-    row_keys: list[tuple[str, int, str]] = []
++    keyed_rows: dict[tuple[str, int, str], Mapping[str, Any]] = {}
+     classifications: list[str] = []
+     for row in rows:
+         key = _row_key(root, row)
+         path = Path(key[2])
+         if key not in expected_keys:
+             raise SnapshotGateError(f"A sync reconciliation key outside frozen scope: {key}")
+-        if key in row_keys:
++        if key in keyed_rows:
+             raise SnapshotGateError(f"A sync reconciliation key duplicated: {key}")
+         classification = _classify(row)
+         if classification == "ACCEPTED" and _day_file_last_date(path, A_DAY_STRUCT) != target:
+             raise SnapshotGateError(f"A sync reconciliation source is not exact-date: {path}")
+-        row_keys.append(key)
++        keyed_rows[key] = row
+         classifications.append(classification)
+-    if set(row_keys) != expected_keys:
+-        missing = sorted(expected_keys - set(row_keys))
+-        extra = sorted(set(row_keys) - expected_keys)
++    if keyed_rows.keys() != expected_keys:
++        missing = sorted(expected_keys - keyed_rows.keys())
++        extra = sorted(keyed_rows.keys() - expected_keys)
+         raise SnapshotGateError(f"A sync reconciliation scope mismatch: missing={missing[:3]},extra={extra[:3]}")
+ 
+     accepted_count = classifications.count("ACCEPTED")
+@@ -553,6 +691,7 @@
+         exit_code = int(raw_exit)
+     except (TypeError, ValueError):
+         exit_code = -1
++    eligibility = _eligible_sync_scope(target, keyed_rows, evidence_module=_evidence_module, _classify=_classify)
+     if reported_status == "PASS":
+         if (
+             exit_code != 0
+@@ -567,7 +706,13 @@
+             raise SnapshotGateError("A sync partial closure has no healthy accepted subset")
+         if reported_status == "FAILED" and exit_code == 0:
+             raise SnapshotGateError("A sync FAILED report has a zero exit code")
+-        authority_status = "REBUILD_REQUIRED"
++        eligible_complete = (
++            not eligibility["unresolved_eligible_count"]
++            and reported_status == "FAILED" and type(raw_exit) is int and raw_exit == 2
++            and type(reported.get("technical_failure_count")) is int and reported["technical_failure_count"] == 0
++            and reported.get("failures") == []
++        )
++        authority_status = "PASS" if eligible_complete else "REBUILD_REQUIRED"
+     elif allow_bounded_run_timeout and reported_status in {"TIMEOUT", "A_SYNC_TIMEOUT"}:
+         if not _is_normal_bounded_run_timeout(reported, exit_code):
+             raise SnapshotGateError("A sync bounded RUN timeout envelope is invalid")
+@@ -580,18 +725,25 @@
+         raise SnapshotGateError(
+             f"A sync authority did not prove exact-date success: status={reported.get('status')},exit_code={raw_exit}"
+         )
++    if _evidence_module is not None and (quarantine_count or pending_count):
++        _assert_no_unaccepted_current_native_bar(target, keyed_rows, classify=_classify)
+     return {
+         "authority_status": authority_status,
+         "target_count": target_count,
+         "accepted_count": reported_accepted,
+         "quarantine_count": reported_quarantine,
+         "pending_count": reported_pending,
++        "scope_eligibility": eligibility,
+         "target_fingerprint": expected_fingerprint,
+         "target_keys": [
+             {"symbol": code, "market": market, "path": path}
+             for code, market, path in sorted(expected_keys)
+         ],
+         "rows": rows,
++        "accepted_source_bindings": {
++            Path(key[2]): _source_sha(row)
++            for key, row in keyed_rows.items() if _classify(row) == "ACCEPTED"
++        },
+     }
+ 
+ 
+@@ -684,6 +836,8 @@
+     _history_status: Any = None,
+     _history_evidence: dict[str, Any] | None = None,
+     _rows_impl: Any = _reported_reconciliation_rows,
++    _source_binding: Any = _source_sha,
++    expected_accepted: Mapping[Path, str] | None = None,
+ ) -> dict[str, Any]:
+     """Materialize only exact-date, non-rebuild inputs for a partial sync.
+ 
+@@ -756,16 +910,13 @@
+             raise SnapshotGateError(
+                 f"A sync accepted source failed native history validation: {source}: {history_failure}"
+             )
+-        recorded_sha = str(
+-            row.get("source_sha256_after")
+-            or row.get("source_sha256")
+-            or row.get("sha256")
+-            or ""
+-        ).strip().lower()
++        recorded_sha = _source_binding(row)
+         if len(recorded_sha) != 64 or any(char not in "0123456789abcdef" for char in recorded_sha):
+             raise SnapshotGateError(f"A sync accepted source SHA missing or invalid: {source}")
+         if source in accepted:
+             raise SnapshotGateError(f"A sync accepted source key is duplicated: {source}")
++        if expected_accepted is not None and expected_accepted.get(source) != recorded_sha:
++            raise SnapshotGateError(f"A sync accepted-input ledger does not match audited identity and SHA: {source}")
+         observed_sha = _sha(source)
+         if observed_sha != recorded_sha:
+             raise SnapshotGateError(
+@@ -790,6 +941,8 @@
+         raise SnapshotGateError(
+             "A sync REBUILD_REQUIRED has no accepted exact-date files for formula"
+         )
++    if expected_accepted is not None and accepted.keys() != expected_accepted.keys():
++        raise SnapshotGateError("A sync accepted-input ledger is missing audited identities")
+ 
+     descriptors = [accepted[path] for path in sorted(accepted)]
+     input_digest = hashlib.sha256(
+@@ -865,11 +1018,16 @@
+     _full_scope_impl: Any = _recheck_full_sync_scope,
+     _bounded_timeout_impl: Any = _is_normal_bounded_run_timeout,
+ ) -> dict[str, Any]:
+-    # The public facade rebinds this function's globals; keep the new helper
+-    # anchored to its implementation module, like the frozen default gates.
++    # The public facade rebinds this function's globals. Keep these private
++    # names anchored to the authority module, like the frozen default gates.
+     from ops.research_storage_governance import input_preflight
+     with input_preflight(tdx_root=tdx_root, receipt_root=receipt_root, target=target_date) as storage_claim:
+-        from ops.macos_research_panel_daily_authority import _native_history_evidence
++        from ops.macos_research_panel_daily_authority import (
++            _NATURAL_PROVIDER_INVOCATION_ENV,
++            _native_history_evidence,
++            _natural_dispatch_context,
++            _provider_invocation,
++        )
+ 
+         target = int(_date(target_date))
+         # A new invocation starts without inherited evidence from another call.
+@@ -973,21 +1131,24 @@
+                 f"scope={reported.get('timeout_scope')},pending={reported.get('pending_count')}"
+             )
+         target_files = frozen_target_files
++        evidence_module = module if callable(getattr(module, "_bse_alias_scope_index", None)) else None
+         scope = _scope_audit_impl(
+             root,
+             target,
+             target_files,
+             reported,
+             allow_bounded_run_timeout=bounded_run_timeout,
++            _evidence_module=evidence_module,
+         )
+         authority_status = str(scope["authority_status"])
+         accepted_value = int(scope["accepted_count"])
+         quarantine_value = int(scope["quarantine_count"])
+         pending_value = int(scope["pending_count"])
+         target_value = int(scope["target_count"])
+-        partial_sync = authority_status == "REBUILD_REQUIRED"
++        eligibility = scope["scope_eligibility"]
++        accepted_only = authority_status == "REBUILD_REQUIRED" or bool(quarantine_value)
+         input_info: dict[str, Any]
+-        if partial_sync:
++        if accepted_only:
+             run_dir_value = reported.get("run_dir") or str(module.RUN_DIR)
+             input_info = _accepted_formula_input_root(
+                 root,
+@@ -995,9 +1156,10 @@
+                 Path(receipt_root),
+                 Path(run_dir_value),
+                 target_files=target_files,
+-                authority_status=authority_status,
++                authority_status="REBUILD_REQUIRED",
+                 _history_status=getattr(module, "_local_history_status", None),
+                 _history_evidence=history_evidence,
++                expected_accepted=scope["accepted_source_bindings"],
+             )
+             effective_target_count = int(input_info["accepted_target_date_file_count"])
+         else:
+@@ -1010,7 +1172,7 @@
+                 "accepted_target_date_file_count": effective_target_count,
+                 "excluded_rebuild_candidate_count": 0,
+             }
+-        if partial_sync and effective_target_count != accepted_value:
++        if accepted_only and effective_target_count != accepted_value:
+             raise SnapshotGateError(
+                 "A sync reconciliation accepted count does not match exact-date files: "
+                 f"reported={accepted_value},materialized={effective_target_count}"
+@@ -1020,9 +1182,9 @@
+         required_count = int(minimum_target_date_files)
+         if effective_target_count < required_count:
+             raise SnapshotGateError(f"A sync target-date postcondition failed: {effective_target_count} < {required_count}")
+-        if target_value <= 0:
++        if eligibility["eligible_target_count"] <= 0:
+             raise SnapshotGateError("A sync target-date coverage cannot be confirmed")
+-        coverage_rate = accepted_value / target_value
++        coverage_rate = eligibility["eligible_coverage_rate"]
+         if not 0.0 <= float(coverage_rate) <= 1.0:
+             raise SnapshotGateError("A sync target-date coverage is invalid")
+         receipt = Path(receipt_root) / "a_sync_authority.json"
+@@ -1039,6 +1201,7 @@
+             "target_fingerprint": scope["target_fingerprint"],
+             "target_keys": scope["target_keys"],
+             "coverage_rate": coverage_rate,
++            **({"scope_eligibility": eligibility} if evidence_module is not None else {}),
+             "reconciliation": reported.get("reconciliation"),
+             "files": [str(path) for path in target_files],
+             "authority": reported,
+--- a/ops/macos_research_panel_daily_receipts.py
++++ b/ops/macos_research_panel_daily_receipts.py
+@@ -157,17 +157,17 @@
+     return payload.get("sha256") == _combined_artifact_sha(selector_sha, backtest_sha)
+ 
+ 
+-def _nested_rebuild(value: Any) -> bool:
++def _nested_rebuild(value: Any, *, settled_raw: Mapping[str, Any] | None = None) -> bool:
+     if isinstance(value, Mapping):
+-        if str(value.get("authority_status") or "").upper() == "REBUILD_REQUIRED":
++        if value is not settled_raw and str(value.get("authority_status") or "").upper() == "REBUILD_REQUIRED":
+             return True
+         if str(value.get("status") or "").upper() == "REBUILD_REQUIRED":
+             return True
+         if value.get("rebuild_candidates_promoted") is False:
+             return True
+-        return any(_nested_rebuild(child) for child in value.values())
++        return any(_nested_rebuild(child, settled_raw=settled_raw) for child in value.values())
+     if isinstance(value, list):
+-        return any(_nested_rebuild(child) for child in value)
++        return any(_nested_rebuild(child, settled_raw=settled_raw) for child in value)
+     return False
+ 
+ 
+@@ -205,6 +205,76 @@
+     return fields  # type: ignore[return-value]
+ 
+ 
++def _checked_scope_eligibility(
++    payload: Mapping[str, Any],
++    target: str,
++    counts: Mapping[str, int],
++) -> tuple[float, Mapping[str, Any] | None]:
++    """Recheck the new eligibility claims against the preserved raw rows."""
++    from . import a_share_daily_sync as owner
++    from .macos_research_panel_daily_authority import (
++        _canonical_scope_fingerprint,
++        _eligible_sync_scope,
++        _row_classification,
++    )
++
++    scope = payload.get("scope_eligibility")
++    sync = payload.get("sync")
++    if not isinstance(scope, Mapping) or not isinstance(sync, Mapping) or sync.get("scope_eligibility") != scope:
++        raise SnapshotGateError("A scope eligibility does not match the sync authority")
++    raw = sync.get("authority")
++    if (not isinstance(raw, Mapping) or _date(raw.get("target_date")) != target
++            or _date(sync.get("target_date")) != target):
++        raise SnapshotGateError("A scope eligibility has no exact-date raw authority")
++    rows = raw.get("symbol_reconciliation")
++    nested = raw.get("reconciliation")
++    if (not isinstance(rows, list) or len(rows) != counts["target_count"]
++            or not isinstance(nested, Mapping) or nested.get("symbols") != rows
++            or sync.get("reconciliation") != nested):
++        raise SnapshotGateError("A scope eligibility has no coherent nominal ledger")
++    keyed_rows = {}
++    observed = {"ACCEPTED": 0, "QUARANTINED": 0}
++    for row in rows:
++        if not isinstance(row, Mapping):
++            raise SnapshotGateError("A scope eligibility row is malformed")
++        symbol, market, path = row.get("symbol"), row.get("market"), row.get("path")
++        disposition = _row_classification(row)
++        if (not isinstance(symbol, str) or len(symbol) != 6 or not symbol.isascii() or not symbol.isdigit()
++                or type(market) is not int or market not in {0, 1, 2}
++                or not isinstance(path, str) or not path or disposition not in observed):
++            raise SnapshotGateError("A scope eligibility row identity or disposition is invalid")
++        key = (symbol, market, path)
++        if key in keyed_rows:
++            raise SnapshotGateError("A scope eligibility row identity is duplicated")
++        keyed_rows[key] = row
++        observed[disposition] += 1
++    if observed != {"ACCEPTED": counts["accepted_count"], "QUARANTINED": counts["quarantine_count"]}:
++        raise SnapshotGateError("A scope eligibility counts do not match the nominal ledger")
++    keys = sorted(keyed_rows)
++    if (sync.get("target_fingerprint") != _canonical_scope_fingerprint(keys)
++            or raw.get("target_fingerprint") != sync.get("target_fingerprint")
++            or sync.get("target_keys") != [
++                {"symbol": code, "market": market, "path": path} for code, market, path in keys
++            ]):
++        raise SnapshotGateError("A scope eligibility does not match the frozen target identities")
++    expected = _eligible_sync_scope(int(target), keyed_rows, evidence_module=owner)
++    if (expected != scope
++            or any(type(scope.get(name)) is not int for name in (
++                "eligible_target_count", "verified_obsolete_count", "unresolved_eligible_count",
++            ))):
++        raise SnapshotGateError("A scope eligibility proof does not match the claimed denominator")
++    if expected["eligible_target_count"] <= 0:
++        raise SnapshotGateError("A scope eligibility denominator is empty")
++    settled_raw = None
++    if (expected["verified_obsolete_count"] and not expected["unresolved_eligible_count"]
++            and sync.get("authority_status") == "PASS" and raw.get("status") == "FAILED"
++            and type(raw.get("exit_code")) is int and raw["exit_code"] == 2
++            and type(raw.get("technical_failure_count")) is int and raw["technical_failure_count"] == 0
++            and raw.get("failures") == []):
++        settled_raw = raw
++    return float(expected["eligible_coverage_rate"]), settled_raw
++
++
+ def validate_a_receipt(
+     payload: Mapping[str, Any] | None,
+     target_date: str,
+@@ -260,7 +330,14 @@
+     coverage = payload.get("coverage_rate")
+     if isinstance(coverage, bool) or not isinstance(coverage, int | float) or not _finite(coverage):
+         return None
+-    expected_coverage = counts["accepted_count"] / counts["target_count"]
++    settled_raw = None
++    if "scope_eligibility" in payload or (isinstance(payload.get("sync"), Mapping) and "scope_eligibility" in payload["sync"]):
++        try:
++            expected_coverage, settled_raw = _checked_scope_eligibility(payload, target, counts)
++        except (OSError, RuntimeError, ValueError, TypeError):
++            return None
++    else:
++        expected_coverage = counts["accepted_count"] / counts["target_count"]
+     if not 0.0 < float(coverage) <= 1.0 or not math.isclose(float(coverage), expected_coverage, rel_tol=0.0, abs_tol=1e-9):
+         return None
+ 
+@@ -287,7 +364,13 @@
+         return None
+ 
+     status = str(payload.get("status") or "").upper()
+-    rebuilt = _nested_rebuild(payload)
++    rebuilt = _nested_rebuild(payload, settled_raw=settled_raw)
++    if "scope_eligibility" in payload:
++        scope = payload["scope_eligibility"]
++        if scope["unresolved_eligible_count"] or (scope["verified_obsolete_count"] and settled_raw is None):
++            if payload["sync"].get("authority_status") != "REBUILD_REQUIRED":
++                return None
++            rebuilt = True
+     if status == "READY":
+         return None if rebuilt else "READY"
+     if status in _PARTIAL_STATUSES:
+@@ -360,7 +443,10 @@
+         raise SnapshotGateError("A row_count metric is invalid")
+     row_count = raw_row_count
+ 
+-    if "coverage_rate" in formula:
++    eligibility = sync.get("scope_eligibility")
++    if isinstance(eligibility, Mapping):
++        raw_coverage_rate = eligibility.get("eligible_coverage_rate")
++    elif "coverage_rate" in formula:
+         raw_coverage_rate = formula.get("coverage_rate")
+     elif "coverage_rate" in formula_authority:
+         raw_coverage_rate = formula_authority.get("coverage_rate")
+@@ -451,6 +537,7 @@
+         "excluded_rebuild_candidate_count": sync.get("excluded_rebuild_candidate_count", 0),
+         "row_count": row_count,
+         "coverage_rate": coverage_rate,
++        **({"scope_eligibility": eligibility} if isinstance(eligibility, Mapping) else {}),
+         "cannot_confirm": cannot_confirm,
+         "selector": formula.get("selector"),
+         "selector_sha256": formula.get("selector_sha256"),
