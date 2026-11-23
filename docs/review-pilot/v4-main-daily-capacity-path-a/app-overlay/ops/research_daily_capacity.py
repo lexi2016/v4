@@ -11,6 +11,7 @@ from contextvars import ContextVar
 from hashlib import sha256
 import json
 import argparse
+import struct
 from pathlib import Path
 import threading
 
@@ -547,6 +548,130 @@ def validate_limits(limits):
         raise CapacityProofError("INCREMENTAL_LIMITS_INVALID")
 
 
+def retained_reactivation_proofs(policy, target, source_identity, classifications, codes):
+    """Verify the original retained prefix plus one exact official target bar.
+
+    This is a bounded full-prefix recomputation, still classified NEW and still
+    charged for every selected row. It never admits an unobserved stock/history.
+    """
+    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage
+    references, buffers = {}, {}
+    def read(reference):
+        path = reference['path']
+        if path not in buffers:
+            actual = file_reference(path)
+            raw = Path(path).read_bytes()
+            if actual['sha256'] != reference['sha256'] or sha256(raw).hexdigest() != actual['sha256']:
+                raise CapacityProofError('RETAINED_REACTIVATION_SOURCE_CHANGED')
+            references[path], buffers[path] = actual, raw
+        elif references[path]['sha256'] != reference['sha256']:
+            raise CapacityProofError('RETAINED_REACTIVATION_SOURCE_CONFLICT')
+        return buffers[path]
+    def document(reference):return json.loads(read(reference))
+    def package(sync, date):
+        official = sync['official_daily_source']
+        result = OfficialDailyPackage(official['input_ref'], date)
+        if (official['source_kind'] != 'TDX_OFFICIAL_G4DAY' or str(sync['target_date']) != str(date)
+                or official['package'] != result.package_ref or official['previous_session'] != result.previous):
+            raise CapacityProofError('RETAINED_REACTIVATION_OFFICIAL_SOURCE_CONFLICT')
+        for reference in (result.input_ref, result.package_ref, result.calendar_ref, result.calendar_adapter_ref):read(reference)
+        return result
+    def sync_row(sync, code):
+        market = {'SZ':0, 'SH':1, 'BJ':2}[code[-2:]]
+        rows = [row for row in sync['symbol_reconciliation']
+                if int(row['market']) == market and str(row['symbol']).zfill(6) == code[:6]]
+        if len(rows) != 1:raise CapacityProofError('RETAINED_REACTIVATION_SYNC_SCOPE_CONFLICT')
+        return market, rows[0]
+    def roles(item):
+        refs = item['raw_files']; result = {r['source_role']:r for r in refs}
+        if len(result) != len(refs) or 'native' not in result or not set(result) <= {'archive','native'}:
+            raise CapacityProofError('RETAINED_REACTIVATION_RAW_ROLES_INVALID')
+        return result
+    def dates(raw):
+        if not raw or len(raw) % 32:raise CapacityProofError('RETAINED_REACTIVATION_RAW_BOUNDARY')
+        values = [struct.unpack_from('<I',raw,i)[0]for i in range(0,len(raw),32)]
+        if values != sorted(set(values)) or values[0] <= 19000101:
+            raise CapacityProofError('RETAINED_REACTIVATION_RAW_KEYS_INVALID')
+        return values
+    try:
+        evidence_ref = policy['governance']['incremental_capacity']['retained_reactivation_evidence']
+        evidence = document(evidence_ref)
+        context = source_identity['retained_reactivation_context']
+        snapshot = document(context['snapshot'])
+        prior_ref = context['previous_snapshot']; prior = document(prior_ref)
+        parent = document(evidence['previous_generation'])
+        if (evidence.get('schema') != 'qfq_retained_native_recovery_v1' or evidence['target_date'] != target
+                or evidence['previous_snapshot'] != prior_ref or snapshot['asof_date'] != target
+                or context['snapshot']['sha256'] != source_identity['snapshot_sha256']
+                or parent['status'] != 'READY' or parent['adjustment_snapshot'] != prior_ref
+                or parent['input_sha256'] != digest(prior) or parent['asof_date'] != prior['asof_date']
+                or parent['candidate_sha256'] != source_identity['baseline']
+                or set(context['baseline_generations']) != {'selector','backtest'}
+                or set(context['baseline_generations'].values()) != {parent['generation_id']}):
+            raise CapacityProofError('RETAINED_REACTIVATION_BASELINE_CONFLICT')
+        cache_ref = snapshot['research_cache_configuration']
+        if cache_ref not in snapshot['source_files']:raise CapacityProofError('RETAINED_REACTIVATION_CURRENT_SOURCE_UNBOUND')
+        cache = document(cache_ref); current_sync = document(cache['prequery_sync_ref'])
+        today = package(current_sync,target)
+        proofs = {}
+        for code in codes:
+            entry = evidence['symbols'][code]
+            source = document(entry['source_snapshot']); generation = document(entry['source_generation'])
+            pins = ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')
+            if any(not isinstance(source_identity['source_semantics'].get(key),str)
+                   or record.get(key) != source_identity['source_semantics'][key]
+                   for record in (parent,generation) for key in pins):
+                raise CapacityProofError('RETAINED_REACTIVATION_RULE_CHANGE_FULL_REBUILD_REQUIRED')
+            if (code not in prior.get('retained_history_codes',[]) or code in prior['symbols']
+                    or code in prior.get('quarantine_symbols',{}) or generation['status'] != 'READY'
+                    or generation['adjustment_snapshot'] != entry['source_snapshot'] or generation['input_sha256'] != digest(source)
+                    or generation['asof_date'] != source['asof_date'] or parent['baseline_panel_sha256'] != generation['candidate_sha256']
+                    or entry['retained_sync_ref'] not in prior['source_files']
+                    or prior['history_retention_binding'] != source['history_retention_binding']):
+                raise CapacityProofError('RETAINED_REACTIVATION_PRIOR_SCOPE_CONFLICT')
+            skip_sync = document(entry['retained_sync_ref']); skipped = package(skip_sync,prior['asof_date'])
+            market, skip_row = sync_row(skip_sync,code); _, row = sync_row(current_sync,code)
+            before, after = source['symbols'][code], snapshot['symbols'][code]
+            old_refs, new_refs = roles(before), roles(after)
+            old_native, new_native = old_refs['native'], new_refs['native']
+            old_raw, new_raw = read(old_native), read(new_native)
+            old_dates, new_dates = dates(old_raw), dates(new_raw)
+            absent = skipped.rows.get((market,code[:6]))
+            no_bar = absent is None or (all(absent[0][k] == 0 for k in ('open','high','low'))
+                                       and absent[0]['vol'] == 0 and absent[0]['amount'] == 0)
+            bar, _, shares = today.rows[(market,code[:6])]
+            target_raw = struct.pack('<IIIIIfII',target,*(round(float(bar[k])*100)for k in ('open','high','low','close')),
+                                     float(bar['amount']),shares,0)
+            live_ref = new_native['original_ref']['current_native']; live = read(live_ref)
+            if (today.previous != prior['asof_date'] or skipped.previous != source['asof_date']
+                    or today.calendar_ref != skipped.calendar_ref or today.calendar_adapter_ref != skipped.calendar_adapter_ref
+                    or not no_bar or skip_row.get('classification') != 'QUARANTINED' or skip_row.get('quarantine') is not True
+                    or skip_row.get('reason_code') != 'TARGET_DATE_MISSING' or skip_row.get('target_date_ready') is not False
+                    or skip_row.get('last_date_before') != source['asof_date'] or skip_row.get('last_date_after') != source['asof_date']
+                    or skip_row.get('source_sha256_before') != old_native['sha256'] or skip_row.get('source_sha256_after') != old_native['sha256']
+                    or row.get('classification') != 'ACCEPTED' or row.get('target_date_ready') is not True
+                    or row.get('path') != live_ref['path'] or row.get('source_sha256_after') != live_ref['sha256']
+                    or live[-32:] != target_raw or new_raw != old_raw+target_raw or old_dates[-1] != source['asof_date']
+                    or new_dates[-1] != target or {k:v for k,v in old_refs.items()if k!='native'} != {k:v for k,v in new_refs.items()if k!='native'}
+                    or any(before.get(k) != after.get(k) for k in ('raw_resolution','history_start_date','compute_start_date','source_config','source_policy'))
+                    or before.get('raw_resolution') != 'ARCHIVE_PRIMARY_NATIVE_MISSING_AND_TAIL_V2'):
+                raise CapacityProofError('RETAINED_REACTIVATION_EXACT_APPEND_UNPROVED')
+            selected = set()
+            for reference in new_refs.values():selected.update(d for d in dates(read(reference))if d<=target)
+            count = source_identity['changed_rows_by_symbol'][code]
+            classification_sha = source_identity['classification_dependencies'][code]
+            if (type(count) is not int or count != len(selected) or classifications[code] != 'NEW_OR_MISSING_HISTORY'
+                    or not isinstance(classification_sha,str) or len(classification_sha) != 64):
+                raise CapacityProofError('RETAINED_REACTIVATION_FULL_CENSUS_REQUIRED')
+            proofs[code] = dict(source_snapshot=entry['source_snapshot'],source_native_sha256=old_native['sha256'],
+                current_native_sha256=new_native['sha256'],changed_rows=count,classification_sha256=classification_sha)
+        check_inputs(list(references.values()))
+        return proofs, list(references.values())
+    except (KeyError, TypeError, ValueError, OSError, struct.error) as error:
+        if isinstance(error,CapacityProofError):raise
+        raise CapacityProofError('RETAINED_REACTIVATION_EVIDENCE_REQUIRED') from error
+
+
 def build_plan(policy, phase, *, target, scope, source_identity, references,
                changed_rows, revised_symbols=0, classifications=None):
     """One fixed, nonincreasing claim bound from a verified automatic scope.
@@ -563,9 +688,17 @@ def build_plan(policy, phase, *, target, scope, source_identity, references,
     if (len(scope) > limits["max_symbols"] or changed_rows > limits["max_changed_rows"]
             or revised_symbols > limits["max_revised_symbols"]):
         raise CapacityProofError("INCREMENTAL_SCOPE_EXCEEDED_FULL_REBUILD_REQUIRED")
-    if classifications and any(value in {"RULE_REVISION", "NEW_OR_MISSING_HISTORY"}
-                               for value in classifications.values()):
+    if classifications and any(value == 'RULE_REVISION' for value in classifications.values()):
         raise CapacityProofError("INCREMENTAL_SCOPE_EXCEEDED_FULL_REBUILD_REQUIRED")
+    restored = sorted(code for code,kind in (classifications or {}).items()if kind=='NEW_OR_MISSING_HISTORY')
+    if restored:
+        if (phase != 'qfq' or not set(restored)<=set(scope)
+                or changed_rows != sum(source_identity.get('changed_rows_by_symbol',{}).values())
+                or revised_symbols != sum(kind not in {'APPEND','UNCHANGED'} for kind in classifications.values())):
+            raise CapacityProofError('INCREMENTAL_SCOPE_EXCEEDED_FULL_REBUILD_REQUIRED')
+        proofs, extra = retained_reactivation_proofs(policy,target,source_identity,classifications,restored)
+        references = [*references,*extra]
+        source_identity = {**source_identity,'retained_reactivation_proofs':proofs}
     review_reference = file_reference(policy["governance"]["incremental_capacity"]["reviewed_limits"]["path"])
     references = list({ref["path"]: ref for ref in [*references, review_reference]}.values())
     check_inputs(references)
@@ -721,7 +854,9 @@ def prepare_qfq_plan(module, policy, *, data_root, return_root, pointers, target
                       source_identity=dict(snapshot_sha256=module.sha(snapshot_path),
                                            baseline=baseline_hashes,
                                            source_semantics=source_semantics, changed_rows_by_symbol=row_counts,
-                                           classification_dependencies=classification_dependencies), references=refs,
+                                           classification_dependencies=classification_dependencies,
+                                           retained_reactivation_context=dict(snapshot=file_reference(snapshot_path),
+                                               previous_snapshot=old_refs[0],baseline_generations={role:value['generation_id']for role,value in contracts.items()})), references=refs,
                       changed_rows=changed_rows, revised_symbols=revised,
                       classifications=classifications)
 

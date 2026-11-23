@@ -120,6 +120,28 @@ def test_product_unknown_writer_refused_before_reader_or_admission(setup_plan,mo
             capacity.product_plan(policy,context,phase)
 
 
+def test_bucket_compaction_preserves_dictionary_null_nan_and_order(tmp_path):
+    import pandas as pd
+    import pyarrow as pa
+    import pyarrow.compute as pc
+    from ops import research_panel_delta as delta
+    chunks=[]
+    for codes,values in [(['000001.SZ','600000.SH'],[None,float('nan')]),
+                         (['600000.SH','000001.SZ'],[3.,4.])]:
+        chunks.append(pa.table(dict(ts_code=pc.dictionary_encode(pa.array(codes)),
+            trade_date=[1,2],value=pa.array(values,type=pa.float64(),from_pandas=False))))
+    table=pa.concat_tables(chunks).replace_schema_metadata({b'fixture':b'original'})
+    assert table['ts_code'].num_chunks==2
+    pq=SimpleNamespace(read_table=lambda *a,**kw:table)
+    frames,_=delta._read_delta_bucket({'pq':pq},{'selector':tmp_path/'unused'}, {},0,
+        ['000001.SZ','600000.SH'],{'selector':table.schema})
+    for code,actual in frames['selector'].items():
+        expected=table.filter(pc.equal(table['ts_code'],code))
+        assert actual.schema.equals(expected.schema,check_metadata=True)
+        assert actual['value'].is_null().equals(expected['value'].is_null())
+        pd.testing.assert_frame_equal(actual.to_pandas(),expected.to_pandas(),check_exact=True)
+
+
 def test_bootstrap_refused_before_reader_scan(setup_plan):
     policy,_,_ = setup_plan
     with pytest.raises(capacity.CapacityProofError,match='BOOTSTRAP'):

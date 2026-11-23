@@ -381,6 +381,7 @@ def _read_delta_bucket(q, currents, old_views, bucket, codes, schemas):
         table = (old_views[role][bucket].read() if role in old_views and bucket in old_views[role]
                  else q['pq'].read_table(path, filters=[('ts_code', 'in', codes)]) if role not in old_views
                  else pa.Table.from_batches([], schema=schemas[role]))
+        table = table.combine_chunks()
         series = table['ts_code'].to_pandas()
         positions = series.groupby(series, sort=False).indices
         frames[role] = {code: table.take(pa.array(rows, type=pa.int64()))
