@@ -698,6 +698,11 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
             publication=publish(plan)
         else:publication=dict(status='REUSED',artifact=existing)
         statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
+        from ops.research_storage_governance import configured_policy
+        from ops.research_daily_capacity import enabled, downstream_root
+        statistics_policy=configured_policy()
+        if statistics_policy and enabled(statistics_policy):
+         statistics_root=downstream_root(statistics_policy,'statistics',statistics_root)
         if statistics_root:
             from ops.build_mac_workbench import materialize_statistics
             materialize_statistics(root,Path(statistics_root))

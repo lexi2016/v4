@@ -18,6 +18,8 @@ import threading
 SCHEMA = "v4.daily_incremental_capacity.v1"
 PLAN_SCHEMA = "v4.daily_incremental_write_plan.v1"
 PHASES = {"qfq", "daily_product", "top200"}
+INDEPENDENT_CONSUMERS = {"adjustment_snapshot", "formula_supplements"}
+CONSUMER_PEAK_BYTES = {"adjustment_snapshot": 536870912, "formula_supplements": 1260912640}
 _PLAN = ContextVar("v4_daily_incremental_write_plan", default=None)
 _WRITER = ContextVar("v4_daily_incremental_writer", default=None)
 _PREPAID = ContextVar("v4_daily_incremental_prepaid", default=None)
@@ -323,34 +325,225 @@ def check_inputs(references):
             raise CapacityProofError("CAPACITY_INPUT_CHANGED")
 
 
-def phase_limits(policy, phase):
-    config = policy.get("governance", {}).get("incremental_capacity") or {}
+def reviewed_configuration(policy):
+    governance = policy.get("governance")
+    config = governance.get("incremental_capacity") if isinstance(governance, dict) else None
+    if not isinstance(config, dict):
+        raise CapacityProofError("INCREMENTAL_CAPACITY_POLICY_NOT_ENABLED")
     if config.get("schema") != SCHEMA or config.get("enabled") is not True:
         raise CapacityProofError("INCREMENTAL_CAPACITY_POLICY_NOT_ENABLED")
-    if phase not in PHASES or set(config.get("phases", {})) != PHASES:
+    if not isinstance(config.get("phases"), dict) or set(config["phases"]) != PHASES:
         raise CapacityProofError("INCREMENTAL_CAPACITY_PHASES_REQUIRED")
     reference = config.get("reviewed_limits")
     if (not isinstance(reference, dict) or set(reference) != {"path", "sha256"}
             or not isinstance(reference["sha256"], str) or len(reference["sha256"]) != 64):
         raise CapacityProofError("INCREMENTAL_LIMIT_REVIEW_REQUIRED")
-    checked = file_reference(reference["path"])
+    try:
+        checked = file_reference(reference["path"])
+        review = json.loads(Path(reference["path"]).read_bytes())
+    except (OSError, TypeError, ValueError) as error:
+        raise CapacityProofError("INCREMENTAL_LIMIT_REVIEW_INVALID") from error
     if checked["sha256"] != reference["sha256"]:
         raise CapacityProofError("INCREMENTAL_LIMIT_REVIEW_CHANGED")
-    review = json.loads(Path(reference["path"]).read_bytes())
-    limits = config["phases"][phase]
-    fields = {"fixed_bytes", "per_symbol_bytes", "per_changed_row_bytes", "max_file_bytes", "max_symbols",
-              "max_changed_rows", "max_revised_symbols", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"}
-    if (set(limits) != fields or any(type(value) is not int or value < 0 for value in limits.values())
-            or any(limits[name] <= 0 for name in
-                   ("fixed_bytes", "max_file_bytes", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"))
-            or limits['receipt_bytes'] > limits['fixed_bytes']):
-        raise CapacityProofError("INCREMENTAL_LIMITS_INVALID")
-    if (review.get("schema") != "v4.daily_incremental_limits_review.v1"
+    if (not isinstance(review, dict) or review.get("schema") != "v4.daily_incremental_limits_review.v1"
             or review.get("status") != "PASS" or review.get("phase_limits") != config["phases"]
             or review.get("evidence_scope") not in {"ISOLATED_FIXTURE", "PRODUCTION_REVIEWED"}
             or review.get("source_bindings") != writer_sources()):
         raise CapacityProofError("INCREMENTAL_LIMIT_REVIEW_CONFLICT")
+    # Old synthetic fixtures retain their original budgets. An enabled production
+    # certificate must bind every independently owned consumer and output choice.
+    legacy_fixture = (review["evidence_scope"] == "ISOLATED_FIXTURE"
+                      and "consumers" not in config and "downstream_outputs" not in config)
+    if not legacy_fixture:
+        if (review.get("consumer_limits") != config.get("consumers")
+                or review.get("downstream_outputs") != config.get("downstream_outputs")):
+            raise CapacityProofError("INDEPENDENT_CONSUMER_REVIEW_CONFLICT")
+        consumers = config.get("consumers")
+        if not isinstance(consumers, dict) or set(consumers) != INDEPENDENT_CONSUMERS:
+            raise CapacityProofError("INDEPENDENT_CONSUMER_LIMITS_REQUIRED")
+        for name, expected in CONSUMER_PEAK_BYTES.items():
+            item = consumers[name]
+            required = {"peak_bytes", "output_roots"} if name == "adjustment_snapshot" else {
+                "peak_bytes", "output_roots", "shared_product_roots", "mode", "limits"}
+            if (not isinstance(item, dict) or set(item) != required
+                    or type(item.get("peak_bytes")) is not int or item["peak_bytes"] != expected):
+                raise CapacityProofError("INDEPENDENT_CONSUMER_LIMIT_INVALID:" + name)
+            exact_roots(item["output_roots"], required=name == "adjustment_snapshot" or item.get("mode") == "ENABLED")
+            if name == "formula_supplements":
+                if item["mode"] not in {"DISABLED", "ENABLED"}:
+                    raise CapacityProofError("FORMULA_SUPPLEMENTS_MODE_REQUIRED")
+                exact_roots(item["shared_product_roots"], required=item["mode"] == "ENABLED")
+                if item["mode"] == "DISABLED" and (item["output_roots"] or item["shared_product_roots"]):
+                    raise CapacityProofError("DISABLED_OUTPUT_ROOTS_MUST_BE_EMPTY")
+                if item["mode"] == "ENABLED":
+                    validate_limits(item["limits"])
+                    if maximum_limit_bytes(item["limits"]) != item["peak_bytes"]:
+                        raise CapacityProofError("FORMULA_SUPPLEMENTS_PEAK_CONFLICT")
+        outputs = config.get("downstream_outputs")
+        if not isinstance(outputs, dict) or set(outputs) != {"statistics"}:
+            raise CapacityProofError("DOWNSTREAM_OUTPUT_CHOICE_REQUIRED")
+        stats = outputs["statistics"]
+        if (not isinstance(stats, dict) or set(stats) != {"mode", "output_roots"}
+                or stats["mode"] not in {"DISABLED", "ENABLED"}):
+            raise CapacityProofError("STATISTICS_MODE_REQUIRED")
+        exact_roots(stats["output_roots"], required=stats["mode"] == "ENABLED")
+        if stats["mode"] == "DISABLED" and stats["output_roots"]:
+            raise CapacityProofError("DISABLED_OUTPUT_ROOTS_MUST_BE_EMPTY")
+        if stats["mode"] == "ENABLED":
+            raise CapacityProofError("STATISTICS_ENABLED_WRITER_NOT_REVIEWED")
+    return config, review, legacy_fixture
+
+
+def exact_roots(roots, *, required=True):
+    if (not isinstance(roots, list) or (required and not roots)
+            or any(not isinstance(root, str) for root in roots) or len(set(roots)) != len(roots)):
+        raise CapacityProofError("EXACT_OUTPUT_ROOTS_REQUIRED")
+    for root in roots:
+        path = Path(root)
+        if not path.is_absolute() or path.is_symlink() or str(path.resolve()) != root:
+            raise CapacityProofError("EXACT_OUTPUT_ROOT_INVALID")
+    return list(roots)
+
+
+def independent_consumers(policy):
+    config, _, legacy = reviewed_configuration(policy)
+    return None if legacy else config["consumers"]
+
+
+def _root_device(path):
+    path = Path(path)
+    while not path.exists():
+        path = path.parent
+    return path.stat().st_dev
+
+
+def check_pool_roots(policy, roots):
+    """Check every prospective owner root before mkdir, including other APFS members."""
+    exact_roots(list(map(str, roots)))
+    members = policy['governance'].get('pool_member_devices')
+    if members is None:
+        members = [Path(policy['data_root']).stat().st_dev]
+    if not isinstance(members, list) or not members or any(type(device) is not int for device in members):
+        raise CapacityProofError('VERIFIED_POOL_MEMBER_DEVICES_REQUIRED')
+    if any(_root_device(root) not in members for root in roots):
+        raise CapacityProofError('OUTPUT_OUTSIDE_VERIFIED_SHARED_POOL')
+
+
+def snapshot_output_roots(policy, *, tdx_root, receipt_root, output_root):
+    consumers = independent_consumers(policy)
+    if consumers is None:
+        return None
+    from ops.research_panel_qfq import input_path
+    if receipt_root is None or output_root is None:
+        raise CapacityProofError('ADJUSTMENT_SNAPSHOT_RUNTIME_ROOTS_REQUIRED')
+    exact_roots([str(tdx_root), str(receipt_root), str(output_root)])
+    actual = input_path(Path(policy['data_root'])).parent
+    expected = {actual, Path(tdx_root).parent/'adjustment_inputs/futu_rehab', Path(receipt_root)/'a_sync_authority'}
+    approved = [Path(path) for path in consumers['adjustment_snapshot']['output_roots']]
+    if Path(output_root) != actual or set(approved) != expected:
+        raise CapacityProofError('ADJUSTMENT_SNAPSHOT_OUTPUT_ROOT_BINDING_CONFLICT')
+    check_pool_roots(policy, approved)
+    return tuple(approved)
+
+
+def formula_output_roots(policy, *, formula_root, product_root):
+    consumers = independent_consumers(policy)
+    if consumers is None:
+        return None
+    choice = consumers['formula_supplements']
+    if choice['mode'] == 'DISABLED':
+        return ()
+    if (choice['output_roots'] != [str(formula_root)] or choice['shared_product_roots'] != [str(product_root)]):
+        raise CapacityProofError('SUPPLEMENT_OUTPUT_ROOT_NOT_APPROVED')
+    roots = [Path(formula_root), Path(product_root)]
+    check_pool_roots(policy, roots)
+    return tuple(roots)
+
+
+def runtime_root_bindings(policy, *, tdx_root, receipt_root, daily_product_root, api_host_binding):
+    """Resolve the same roots the scheduler and SHA-pinned API binding supply."""
+    consumers = independent_consumers(policy)
+    if consumers is None:
+        return None
+    if receipt_root is None or daily_product_root is None:
+        raise CapacityProofError('CAPACITY_RUNTIME_ROOT_INPUTS_REQUIRED')
+    from ops.research_panel_qfq import input_path
+    snapshot_output_roots(policy,tdx_root=tdx_root,receipt_root=receipt_root,
+                          output_root=input_path(Path(policy['data_root'])).parent)
+    exact_roots([str(daily_product_root)])
+    product = Path(daily_product_root)/'daily_products/a_share'
+    if str(product) not in policy['governance'].get('product_output_roots', []):
+        raise CapacityProofError('DAILY_PRODUCT_RUNTIME_ROOT_NOT_APPROVED')
+    check_pool_roots(policy, [product])
+    binding_ref = None
+    if consumers['formula_supplements']['mode'] == 'ENABLED':
+        if (not isinstance(api_host_binding, dict) or set(api_host_binding) != {'path', 'sha256'}
+                or not isinstance(api_host_binding['sha256'], str) or len(api_host_binding['sha256']) != 64):
+            raise CapacityProofError('FORMULA_HOST_BINDING_REFERENCE_REQUIRED')
+        try:
+            checked = file_reference(api_host_binding['path'])
+            binding = json.loads(Path(api_host_binding['path']).read_bytes())
+        except (OSError, TypeError, ValueError) as error:
+            raise CapacityProofError('FORMULA_HOST_BINDING_INVALID') from error
+        if checked['sha256'] != api_host_binding['sha256']:
+            raise CapacityProofError('FORMULA_HOST_BINDING_SHA_DRIFT')
+        from ops.research_panel_formula_groups_daily import FORMULA_SHA256, FLAGS
+        if (not isinstance(binding,dict) or binding.get('schema') != 'V4_MAC_WORKBENCH_BINDING_V1'
+                or binding.get('candidate_group_formula_sha256') != FORMULA_SHA256
+                or not isinstance(binding.get('candidate_group_overrides'),dict)
+                or not isinstance(binding.get('formula_groups_root'),str)
+                or any(binding.get(key) is not value for key,value in FLAGS.items())):
+            raise CapacityProofError('FORMULA_HOST_BINDING_INVALID')
+        if file_reference(api_host_binding['path']) != checked:
+            raise CapacityProofError('FORMULA_HOST_BINDING_MOVED')
+        formula_output_roots(policy,formula_root=Path(binding['formula_groups_root']),product_root=product)
+        binding_ref = dict(api_host_binding)
+    return dict(tdx_root=str(tdx_root),receipt_root=str(receipt_root),daily_product_root=str(daily_product_root),
+                api_host_binding=binding_ref)
+
+
+def downstream_root(policy, name, root):
+    """Select an exact reviewed root before the owner creates any output."""
+    config, _, legacy = reviewed_configuration(policy)
+    if legacy:
+        return root
+    item = config["downstream_outputs"][name]
+    if item["mode"] == "DISABLED":
+        return None
+    if root is None or str(Path(root)) not in item["output_roots"]:
+        raise CapacityProofError("DOWNSTREAM_OUTPUT_ROOT_NOT_APPROVED:" + name)
+    exact_roots([str(root)])
+    return root
+
+
+def phase_limits(policy, phase):
+    config, _, legacy = reviewed_configuration(policy)
+    if phase == "formula_supplements":
+        limits = (config["phases"]["daily_product"] if legacy
+                  else config["consumers"][phase]["limits"])
+        if not legacy and config["consumers"][phase]["mode"] != "ENABLED":
+            raise CapacityProofError("FORMULA_SUPPLEMENTS_DISABLED")
+    elif phase in PHASES:
+        limits = config["phases"][phase]
+    else:
+        raise CapacityProofError("INCREMENTAL_CAPACITY_PHASES_REQUIRED")
+    validate_limits(limits)
     return limits
+
+
+def maximum_limit_bytes(limits):
+    return (limits["fixed_bytes"] + limits["max_symbols"] * limits["per_symbol_bytes"]
+            + limits["max_changed_rows"] * limits["per_changed_row_bytes"])
+
+
+def validate_limits(limits):
+    fields = {"fixed_bytes", "per_symbol_bytes", "per_changed_row_bytes", "max_file_bytes", "max_symbols",
+              "max_changed_rows", "max_revised_symbols", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"}
+    if (not isinstance(limits, dict) or set(limits) != fields or any(type(value) is not int or value < 0 for value in limits.values())
+            or any(limits[name] <= 0 for name in
+                   ("fixed_bytes", "max_file_bytes", "max_files", "max_files_per_symbol", "max_response_bytes", "max_response_items", "receipt_bytes"))
+            or limits['receipt_bytes'] > limits['fixed_bytes']):
+        raise CapacityProofError("INCREMENTAL_LIMITS_INVALID")
 
 
 def build_plan(policy, phase, *, target, scope, source_identity, references,
@@ -377,6 +570,10 @@ def build_plan(policy, phase, *, target, scope, source_identity, references,
     check_inputs(references)
     predicted = (limits["fixed_bytes"] + len(scope) * limits["per_symbol_bytes"]
                  + changed_rows * limits["per_changed_row_bytes"])
+    if phase == "formula_supplements":
+        consumers = independent_consumers(policy)
+        if consumers is not None:
+            predicted = consumers[phase]["peak_bytes"]
     if predicted <= 0 or (phase == "qfq" and limits["fixed_bytes"] < 64 * 1024**2):
         raise CapacityProofError("INCREMENTAL_PEAK_NOT_PROVEN")
     value = dict(schema=PLAN_SCHEMA, phase=phase, target=target, scope=list(scope),
@@ -465,7 +662,8 @@ def prepare_qfq_plan(module, policy, *, data_root, return_root, pointers, target
 
         receipt_root = Path(module.os.environ["V4_RESEARCH_PANEL_RECEIPT_ROOT"])
         with governance.input_preflight(tdx_root=kwargs["tdx_root"], receipt_root=receipt_root,
-                                        target=target, operation="adjustment_snapshot") as input_claim:
+                                        target=target, operation="adjustment_snapshot",
+                                        output_root=snapshot_path.parent) as input_claim:
             with governance.input_write_seams(input_claim), module.publication_lock(data_root):
                 journal = Path(data_root) / "runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json"
                 module.recover_pair(journal, pointers)
@@ -592,7 +790,7 @@ ACCEPTED_WRITER_PHASES = frozenset()
 
 
 def require_writer_coverage(phase):
-    if phase not in INSTRUMENTED_WRITER_PHASES:
+    if ("daily_product" if phase == "formula_supplements" else phase) not in INSTRUMENTED_WRITER_PHASES:
         raise CapacityProofError("INCREMENTAL_PRODUCT_WRITER_COVERAGE_NOT_PROVEN:" + phase)
 
 
@@ -610,7 +808,7 @@ def writer_sources():
     return {name:sha256((root / (name + ".py")).read_bytes()).hexdigest() for name in names}
 
 
-def locked_runtime_probe(policy, *, tdx_root):
+def locked_runtime_probe(policy, *, tdx_root, receipt_root=None, daily_product_root=None, api_host_binding=None):
     """Read-only probe. Caller MUST hold role, pool-writer and registry locks.
 
     Does not reacquire Registry.transaction, mkdir, create a claim or persist a
@@ -620,6 +818,8 @@ def locked_runtime_probe(policy, *, tdx_root):
     config = governance.configuration(policy)
     if config is None:
         raise CapacityProofError("GOVERNANCE_REQUIRED")
+    runtime_inputs = runtime_root_bindings(policy,tdx_root=tdx_root,receipt_root=receipt_root,
+                                          daily_product_root=daily_product_root,api_host_binding=api_host_binding)
     registry = governance.Registry(config, policy["data_root"])
     before = file_reference(registry.path)
     state = registry.read()
@@ -628,13 +828,24 @@ def locked_runtime_probe(policy, *, tdx_root):
     resident = ordinary_resident_bytes(governance, config, state)
     peaks = maximum_phase_bytes(policy)
     native = governance.input_forecast(tdx_root)["predicted_bytes"]
-    components = dict(native_input=native,adjustment_snapshot=native,qfq=peaks['qfq'],
-                      daily_product=peaks['daily_product'],formula_supplements=peaks['daily_product'],
+    consumers = independent_consumers(policy)
+    components = dict(native_input=native,
+                      adjustment_snapshot=native if consumers is None else consumers['adjustment_snapshot']['peak_bytes'],
+                      qfq=peaks['qfq'], daily_product=peaks['daily_product'],
+                      formula_supplements=(peaks['daily_product'] if consumers is None else
+                          consumers['formula_supplements']['peak_bytes'] if consumers['formula_supplements']['mode'] == 'ENABLED' else 0),
                       top200=peaks['top200'])
+    if consumers is not None and consumers['formula_supplements']['mode'] == 'ENABLED':
+        phase_limits(policy, 'formula_supplements')
     # Successful consumers leave retained files resident. The complete schedule
     # needs their summed bounds, including the separately owned supplement.
     peaks['input'] = components['native_input'] + components['adjustment_snapshot']
     peaks['daily_product'] = components['daily_product'] + components['formula_supplements']
+    if runtime_inputs is not None:
+        final_inputs = runtime_root_bindings(policy,tdx_root=tdx_root,receipt_root=receipt_root,
+            daily_product_root=daily_product_root,api_host_binding=api_host_binding)
+        if final_inputs != runtime_inputs:
+            raise CapacityProofError('CAPACITY_RUNTIME_ROOT_INPUTS_CHANGED')
     after = file_reference(registry.path)
     if before != after:
         raise CapacityProofError("LOCKED_REGISTRY_CHANGED_DURING_PROBE")
@@ -644,7 +855,7 @@ def locked_runtime_probe(policy, *, tdx_root):
     return dict(schema="v4.daily_capacity_locked_probe.v1",
                 registry_sha256=before["sha256"], policy_sha256=digest(policy),
                 category_used_bytes=resident, phase_peak_bytes=peaks,
-                consumer_peak_bytes=components,
+                consumer_peak_bytes=components, runtime_inputs=runtime_inputs,
                 predicted_peak_bytes=sum(peaks.values()),
                 eligibility="CANNOT_CONFIRM" if unproven else "PASS_ISOLATED_FIXTURE" if scope == 'ISOLATED_FIXTURE' else "PASS",
                 evidence_scope=scope,
@@ -657,12 +868,19 @@ def main():
     parser.add_argument("--policy", type=Path, required=True)
     parser.add_argument("--policy-sha256", required=True)
     parser.add_argument("--tdx-root", type=Path, required=True)
+    parser.add_argument("--receipt-root", type=Path)
+    parser.add_argument("--daily-product-root", type=Path)
+    parser.add_argument("--api-host-binding", type=Path)
+    parser.add_argument("--api-host-binding-sha256")
     parser.add_argument("--caller-holds-locks", action="store_true", required=True)
     args = parser.parse_args()
     ref = file_reference(args.policy)
     if ref["sha256"] != args.policy_sha256:
         raise CapacityProofError("PROBE_POLICY_SHA_CONFLICT")
-    result = locked_runtime_probe(json.loads(args.policy.read_bytes()), tdx_root=args.tdx_root)
+    binding = (dict(path=str(args.api_host_binding),sha256=args.api_host_binding_sha256)
+               if args.api_host_binding is not None or args.api_host_binding_sha256 is not None else None)
+    result = locked_runtime_probe(json.loads(args.policy.read_bytes()), tdx_root=args.tdx_root,
+        receipt_root=args.receipt_root,daily_product_root=args.daily_product_root,api_host_binding=binding)
     print(json.dumps(result, sort_keys=True, allow_nan=False))
 
 

@@ -205,7 +205,9 @@ def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
                 or len(json.dumps(categories,ensure_ascii=False,default=str).encode())>limits['max_response_bytes']):
             raise CapacityProofError('F10_CATEGORY_RESPONSE_BOUND_EXCEEDED')
         category=categories[0]
-        if limits and (type(category.get('length')) is not int or not 0<category['length']<=limits['max_response_bytes']):
+        if limits and (not isinstance(category,dict) or type(category.get('start')) is not int or category['start'] < 0
+                or not isinstance(category.get('filename'),str) or not category['filename']
+                or type(category.get('length')) is not int or not 0<category['length']<=limits['max_response_bytes']):
             raise CapacityProofError('F10_CONTENT_REQUEST_BOUND_EXCEEDED')
         body=api.get_company_info_content(market,code,category['filename'],category['start'],category['length'])
         if not isinstance(body,(str,bytes)) or not body: raise RuntimeError('F10_CONTENT_MISSING')
@@ -242,6 +244,8 @@ def fetch_one(symbol, exchange, *, api_factory=None, vendor=None):
                   'revenue_text':income.group(1) if income else None,'net_profit_text':net.group(1) if net else None},
               'finance_native_raw':{str(k):_safe_number(v) if isinstance(v,(float,int)) else v for k,v in finance.items()},
               'historical_PIT':False,**FLAGS}
+        if limits and len(json.dumps(data,ensure_ascii=False,sort_keys=True,allow_nan=False).encode()) > limits['max_response_bytes']:
+            raise CapacityProofError('F10_COMPLETE_PACKET_RESPONSE_BOUND_EXCEEDED')
         return data
     except Exception as error:
         from ops.research_daily_capacity import propagate_capacity_error

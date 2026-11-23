@@ -530,6 +530,17 @@ def complete(context, formula_groups_root, formula_ref, formula_receipt_ref):
     from ops.research_storage_governance import configured_policy, governed_formula_supplements
     from ops.research_daily_capacity import enabled, current_writer, CapacityProofError
     policy = configured_policy()
+    if policy and enabled(policy):
+        from ops.research_daily_capacity import independent_consumers
+        consumers = independent_consumers(policy)
+        if consumers is not None:
+            choice = consumers['formula_supplements']
+            if choice['mode'] == 'DISABLED':
+                return dict(status='NOT_RUN_POLICY_DISABLED',data_date=str(context.target),**FLAGS)
+            from ops.research_daily_capacity import formula_output_roots
+            formula_output_roots(policy,formula_root=Path(formula_groups_root),product_root=Path(context.root))
+            if current_writer() is not None and current_writer().plan['phase'] != 'formula_supplements':
+                raise CapacityProofError('FORMULA_SUPPLEMENT_INDEPENDENT_CLAIM_REQUIRED')
     if policy and enabled(policy) and current_writer() is None:
         import sys
         return governed_formula_supplements(context,formula_groups_root,formula_ref,formula_receipt_ref,

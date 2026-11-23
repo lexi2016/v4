@@ -605,6 +605,13 @@ def managed_runtime_projection(policy: dict, ready: list, unknown: list, keep: l
     arbitrary offline files/processes across the machine have been discovered.
     """
     protected, evidence, watched_refs, visited = set(), {}, {}, set()
+    from ops.research_daily_capacity import enabled, reviewed_configuration
+    if enabled(policy):
+        incremental, _, legacy_fixture = reviewed_configuration(policy)
+        if not legacy_fixture:
+            for item in incremental['consumers'].values():
+                protected.update(Path(root) for root in [*item['output_roots'], *item.get('shared_product_roots', [])])
+            protected.update(Path(root) for root in incremental['downstream_outputs']['statistics']['output_roots'])
     def pin(value):
         original = safe_path(value, exists=False)
         path = safe_path(relocated.get(str(original), str(original)))

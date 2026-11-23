@@ -927,7 +927,43 @@ def run_candidate_qfq_admission(plan: dict, evidence_rows: dict) -> dict:
             "identity_fixture_ledger_exists": Path(context["identity_receipt"]["fixture_ledger_root"]).exists()}
 
 
-def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, registry_sha: str, *, tdx_root: str, helper_sha: str) -> dict:
+def checked_api_host_binding(plan: dict, environment: dict, controller) -> dict:
+    """Read the exact API owner source already pinned under its release mutex."""
+    if controller is None:
+        raise CutoverBlocked('LOCKED_CAPACITY_APPROVED_API_CONTEXT_REQUIRED')
+    label = controller.LABELS.get('api')
+    if label != 'com.lexi.v4.api':
+        raise CutoverBlocked('LOCKED_CAPACITY_API_LABEL_DRIFT')
+    path = Path(controller.LAUNCH_AGENTS) / (label + '.plist')
+    pins_ref = plan.get('candidate_pins')
+    if (not isinstance(pins_ref,dict) or set(pins_ref) != {'path','sha256'}
+            or not is_sha256(pins_ref.get('sha256'))):
+        raise CutoverBlocked('LOCKED_CAPACITY_API_SOURCE_PIN_REQUIRED')
+    pins = json.loads(exact_file(Path(pins_ref['path']),pins_ref['sha256']))
+    rows = pins.get('source_bindings') if isinstance(pins,dict) else None
+    if not isinstance(rows,list):
+        raise CutoverBlocked('LOCKED_CAPACITY_API_SOURCE_PIN_REQUIRED')
+    bindings = [row for row in rows if isinstance(row,dict) and row.get('path') == str(path)]
+    if len(bindings) != 1 or not is_sha256(bindings[0].get('sha256')):
+        raise CutoverBlocked('LOCKED_CAPACITY_API_SOURCE_PIN_REQUIRED')
+    raw = exact_file(path,bindings[0]['sha256'])
+    try:
+        api = plistlib.loads(raw)
+    except (ValueError,plistlib.InvalidFileException) as error:
+        raise CutoverBlocked('LOCKED_CAPACITY_API_PLIST_INVALID') from error
+    api_env = api.get('EnvironmentVariables') if isinstance(api,dict) else None
+    if not isinstance(api_env,dict) or api.get('Label') != label:
+        raise CutoverBlocked('LOCKED_CAPACITY_API_PLIST_INVALID')
+    actual = dict(path=api_env.get('V4_WORKBENCH_HOST_BINDING'),
+                  sha256=api_env.get('V4_WORKBENCH_HOST_BINDING_SHA256'))
+    expected = dict(path=environment.get('V4_WORKBENCH_HOST_BINDING'),
+                    sha256=environment.get('V4_WORKBENCH_HOST_BINDING_SHA256'))
+    if actual != expected or not actual['path'] or not is_sha256(actual['sha256']):
+        raise CutoverBlocked('LOCKED_CAPACITY_MAIN_API_HOST_BINDING_DRIFT')
+    return dict(status='MATCH',api_plist=dict(path=str(path),sha256=digest(raw)),host_binding=actual)
+
+
+def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, registry_sha: str, *, tdx_root: str, helper_sha: str, controller=None) -> dict:
     """Execute only the approved candidate helper; no registry lock reacquisition.
 
     activate_main invokes this after acquire_switch_locks. The child uses the
@@ -953,11 +989,30 @@ def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, regist
                "--policy-sha256", policy_sha,
                "--tdx-root", tdx_root,
                "--caller-holds-locks"]
+    receipt_root = environment.get('V4_RESEARCH_PANEL_RECEIPT_ROOT')
+    product_base = environment.get('V4_A_SHARE_DAILY_PRODUCT_ROOT')
+    if not receipt_root or not product_base:
+        raise CutoverBlocked('LOCKED_CAPACITY_RUNTIME_ROOT_INPUTS_REQUIRED')
+    command.extend(['--receipt-root',receipt_root,'--daily-product-root',product_base])
+    binding_ref = None
+    api_parity = None
+    if policy.get('governance', {}).get('incremental_capacity', {}).get('consumers', {}).get('formula_supplements', {}).get('mode') == 'ENABLED':
+        binding_path = environment.get('V4_WORKBENCH_HOST_BINDING')
+        binding_sha = environment.get('V4_WORKBENCH_HOST_BINDING_SHA256')
+        if not binding_path or not is_sha256(binding_sha):
+            raise CutoverBlocked('LOCKED_CAPACITY_PINNED_API_HOST_BINDING_REQUIRED')
+        binding_ref = dict(path=binding_path,sha256=binding_sha)
+        api_parity = checked_api_host_binding(plan,environment,controller)
+        command.extend(['--api-host-binding',binding_path,'--api-host-binding-sha256',binding_sha])
+    expected_runtime_inputs = dict(tdx_root=tdx_root,receipt_root=receipt_root,
+        daily_product_root=product_base,api_host_binding=binding_ref)
     child_environment = dict(environment)
     child_environment.update(PYTHONDONTWRITEBYTECODE="1", PYTHONPYCACHEPREFIX=PYTHON_CACHE_PREFIX)
     result = subprocess.run(command, cwd=app, env=child_environment, capture_output=True, text=True, timeout=120)
     if result.returncode:
         raise CutoverBlocked("LOCKED_CAPACITY_PROBE_FAILED:" + result.stderr[-1024:])
+    if api_parity is not None and checked_api_host_binding(plan,environment,controller) != api_parity:
+        raise CutoverBlocked('LOCKED_CAPACITY_API_HOST_BINDING_CHANGED_DURING_PROBE')
     try:
         payload = json.loads(result.stdout)
     except (TypeError, ValueError):
@@ -973,6 +1028,8 @@ def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, regist
     semantic_sha = digest(json.dumps(policy, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode())
     if payload.get("policy_sha256") != semantic_sha:
         raise CutoverBlocked("LOCKED_CAPACITY_PROBE_POLICY_DRIFT")
+    if payload.get('runtime_inputs') != expected_runtime_inputs:
+        raise CutoverBlocked('LOCKED_CAPACITY_RUNTIME_INPUT_BINDING_DRIFT')
     if payload.get('evidence_scope') != 'PRODUCTION_REVIEWED':
         raise CutoverBlocked('LOCKED_CAPACITY_PRODUCTION_REVIEW_REQUIRED')
     if payload.get("eligibility") != "PASS":
@@ -982,6 +1039,25 @@ def locked_capacity_probe(plan: dict, environment: dict, policy_sha: str, regist
             or any(type(value) is not int or value <= 0 for value in peaks.values())
             or payload.get("predicted_peak_bytes") != sum(peaks.values())):
         raise CutoverBlocked("LOCKED_CAPACITY_PHASE_BOUNDS_INVALID")
+    consumers = payload.get("consumer_peak_bytes")
+    names = {"native_input", "adjustment_snapshot", "qfq", "daily_product", "formula_supplements", "top200"}
+    incremental = policy.get("governance", {}).get("incremental_capacity", {})
+    limits = incremental.get("consumers", {})
+    if (not isinstance(consumers, dict) or set(consumers) != names
+            or any(type(value) is not int or value < 0 for value in consumers.values())
+            or consumers["native_input"] <= 0
+            or consumers["adjustment_snapshot"] != 536870912
+            or consumers["adjustment_snapshot"] != limits.get("adjustment_snapshot", {}).get("peak_bytes")
+            or limits.get("formula_supplements", {}).get("peak_bytes") != 1260912640
+            or limits.get("formula_supplements", {}).get("mode") not in {"ENABLED", "DISABLED"}
+            or consumers["formula_supplements"] != (1260912640 if limits["formula_supplements"]["mode"] == "ENABLED" else 0)
+            or peaks["input"] != consumers["native_input"] + consumers["adjustment_snapshot"]
+            or peaks["daily_product"] != consumers["daily_product"] + consumers["formula_supplements"]
+            or peaks["qfq"] != consumers["qfq"] or peaks["top200"] != consumers["top200"]
+            or payload["predicted_peak_bytes"] != sum(consumers.values())):
+        raise CutoverBlocked("LOCKED_CAPACITY_CONSUMER_BOUNDS_INVALID")
+    if api_parity is not None:
+        payload['api_host_binding_parity'] = api_parity
     return payload
 
 
@@ -1042,7 +1118,7 @@ def check_current_capacity(plan: dict, admission: dict, controller) -> dict:
         if reviewed.get("policy_sha256") != policy_sha:
             raise CutoverBlocked("LOCKED_CAPACITY_CONTRACT_POLICY_DRIFT")
         actual = locked_capacity_probe(plan, new_env, policy_sha, registry_sha,
-            tdx_root=new_proof["qfq_kwargs"]["tdx_root"], helper_sha=reviewed.get("helper_sha256"))
+            tdx_root=new_proof["qfq_kwargs"]["tdx_root"], helper_sha=reviewed.get("helper_sha256"),controller=controller)
         target_peak = actual["predicted_peak_bytes"]
         category_used = actual["category_used_bytes"]
     else:

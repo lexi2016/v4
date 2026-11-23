@@ -74,3 +74,81 @@ def test_dynamic_probe_cannot_run_outside_full_switch_lock_scope(tmp_path):
     with pytest.raises(controller.CutoverBlocked,match='REQUIRES_ALL_SWITCH_LOCKS'):
         controller.locked_capacity_probe({},environment,controller.digest(policy.read_bytes()),'0'*64,
             tdx_root=str(tmp_path),helper_sha='1'*64)
+
+
+@pytest.mark.parametrize('kind',['valid','omitted','reused_daily','shifted_decomposition','api_rebound'])
+def test_root_probe_validates_six_consumer_decomposition(tmp_path,monkeypatch,kind):
+    from types import SimpleNamespace
+    release=tmp_path/'release';app=release/'app';helper=app/'ops/research_daily_capacity.py'
+    helper.parent.mkdir(parents=True);helper.write_text('# isolated approved helper')
+    python=release/'runtime/venvs/v4-mac/bin/python';python.parent.mkdir(parents=True);python.touch()
+    (release/'runtime/venvs/v4-mac/lib/python3.14/site-packages').mkdir(parents=True)
+    policy={'governance':{'registry_root':str(tmp_path/'registry'),'incremental_capacity':{'consumers':{
+        'adjustment_snapshot':{'peak_bytes':536870912},
+        'formula_supplements':{'peak_bytes':1260912640,'mode':'ENABLED'}}}}}
+    path=tmp_path/'policy.json';path.write_text(json.dumps(policy))
+    agents=tmp_path/'agents';agents.mkdir()
+    api=agents/'com.lexi.v4.api.plist'
+    host_path=str(tmp_path/('other-host-binding.json' if kind=='api_rebound' else 'host-binding.json'))
+    api.write_bytes(controller.plistlib.dumps({'Label':'com.lexi.v4.api','EnvironmentVariables':{
+        'V4_WORKBENCH_HOST_BINDING':host_path,'V4_WORKBENCH_HOST_BINDING_SHA256':'b'*64}}))
+    pins=tmp_path/'pins.json'
+    pins.write_text(json.dumps({'source_bindings':[{'path':str(api),'sha256':controller.digest(api.read_bytes())}]}))
+    plan={'release_root':str(release),'candidate_pins':{'path':str(pins),'sha256':controller.digest(pins.read_bytes())}}
+    approved_controller=SimpleNamespace(LAUNCH_AGENTS=agents,LABELS={'api':'com.lexi.v4.api'})
+    parts={'native_input':64,'adjustment_snapshot':536870912,'qfq':1024,'daily_product':2048,
+           'formula_supplements':1260912640,'top200':4096}
+    peaks={'input':parts['native_input']+parts['adjustment_snapshot'],'qfq':parts['qfq'],
+           'daily_product':parts['daily_product']+parts['formula_supplements'],'top200':parts['top200']}
+    payload=dict(schema='v4.daily_capacity_locked_probe.v1',registry_sha256='a'*64,
+        policy_sha256=controller.digest(json.dumps(policy,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()),
+        reservation_write=False,reservation_release=False,evidence_scope='PRODUCTION_REVIEWED',eligibility='PASS',
+        runtime_inputs=dict(tdx_root=str(tmp_path),receipt_root=str(tmp_path/'receipts'),daily_product_root=str(tmp_path/'products'),
+            api_host_binding=dict(path=str(tmp_path/'host-binding.json'),sha256='b'*64)),
+        phase_peak_bytes=peaks,consumer_peak_bytes=parts,predicted_peak_bytes=sum(peaks.values()))
+    if kind=='omitted':del payload['consumer_peak_bytes']
+    elif kind=='reused_daily':parts['formula_supplements']=parts['daily_product']
+    elif kind=='shifted_decomposition':parts['qfq']+=1;parts['top200']-=1
+    def run_helper(*_args,**_kwargs):
+        assert kind!='api_rebound','rebound API must reject before spawning helper'
+        return SimpleNamespace(returncode=0,stdout=json.dumps(payload),stderr='')
+    monkeypatch.setattr(controller.subprocess,'run',run_helper)
+    token=controller._LOCKED_CAPACITY_ROOT.set(policy['governance']['registry_root'])
+    try:
+        invoke=lambda:controller.locked_capacity_probe(plan,
+            {'V4_RESEARCH_RETENTION_POLICY':str(path),'V4_RESEARCH_PANEL_RECEIPT_ROOT':str(tmp_path/'receipts'),
+             'V4_A_SHARE_DAILY_PRODUCT_ROOT':str(tmp_path/'products'),'V4_WORKBENCH_HOST_BINDING':str(tmp_path/'host-binding.json'),
+             'V4_WORKBENCH_HOST_BINDING_SHA256':'b'*64},controller.digest(path.read_bytes()),'a'*64,
+            tdx_root=str(tmp_path),helper_sha=controller.digest(helper.read_bytes()),controller=approved_controller)
+        if kind=='valid':
+            result=invoke()
+            parity=result.pop('api_host_binding_parity')
+            assert parity==dict(status='MATCH',api_plist=dict(path=str(api),sha256=controller.digest(api.read_bytes())),
+                host_binding=dict(path=str(tmp_path/'host-binding.json'),sha256='b'*64))
+            assert result==payload
+        elif kind=='api_rebound':
+            with pytest.raises(controller.CutoverBlocked,match='MAIN_API_HOST_BINDING_DRIFT'):invoke()
+            # Exercise the actual Main transaction orchestration with isolated
+            # controller/lock adapters; an admission failure must precede activate.
+            from contextlib import nullcontext
+            review=tmp_path/'review.json'
+            review.write_text(json.dumps({'verdict':'PASS','roles':{'main':{}}}))
+            plan.update(approved_candidate_parent=str(tmp_path),controller_plan={
+                'roles':[{'role':'main'}],
+                'review_approval':{'path':str(review),'sha256':controller.digest(review.read_bytes())}})
+            approved_controller.LABELS['main']='com.lexi.v4.scheduler'
+            (agents/'.com.lexi.v4.scheduler.release.lock.mutex').touch()
+            approved_controller.owned_interprocess_lock=lambda *_a,**_kw:nullcontext()
+            approved_controller.load_role=lambda *_:{'before':{}}
+            approved_controller.activate=lambda *_:pytest.fail('rebound API reached Main activation')
+            monkeypatch.setattr(controller,'check_candidate_source_bindings',lambda *_:{})
+            monkeypatch.setattr(controller,'check_evidence',lambda *_:{})
+            def isolated_lock(_owner,_role,_plan,stack):
+                held=controller._LOCKED_CAPACITY_ROOT.set(policy['governance']['registry_root'])
+                stack.callback(controller._LOCKED_CAPACITY_ROOT.reset,held)
+            with pytest.raises(controller.CutoverBlocked,match='MAIN_API_HOST_BINDING_DRIFT'):
+                controller.activate_main(plan,approved_controller,lock_adapter=isolated_lock,
+                    qfq_adapter=lambda *_:{},preflight_adapter=lambda *_:invoke())
+        else:
+            with pytest.raises(controller.CutoverBlocked,match='CONSUMER_BOUNDS_INVALID'):invoke()
+    finally:controller._LOCKED_CAPACITY_ROOT.reset(token)

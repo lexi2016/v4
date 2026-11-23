@@ -1203,6 +1203,11 @@ def materialize_daily_product(*,data_root,target,formula_result=None,symbols=Non
   incremental_publication=current_plan() is not None
   if not incremental_publication:save(indexfile,index)
   statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
+  from ops.research_storage_governance import configured_policy
+  from ops.research_daily_capacity import enabled, downstream_root
+  statistics_policy=configured_policy()
+  if statistics_policy and enabled(statistics_policy):
+   statistics_root=downstream_root(statistics_policy,'statistics',statistics_root)
   if statistics_root and not incremental_publication:
    try:
     from ops.build_mac_workbench import materialize_statistics

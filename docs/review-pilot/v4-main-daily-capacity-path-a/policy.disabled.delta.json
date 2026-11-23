@@ -15,7 +15,26 @@
         "schema": "v4.daily_incremental_capacity.v1",
         "enabled": false,
         "phases": {},
-        "reviewed_limits": null
+        "reviewed_limits": null,
+        "consumers": {
+          "adjustment_snapshot": {
+            "peak_bytes": 536870912,
+            "output_roots": []
+          },
+          "formula_supplements": {
+            "peak_bytes": 1260912640,
+            "mode": "DISABLED",
+            "output_roots": [],
+            "shared_product_roots": [],
+            "limits": null
+          }
+        },
+        "downstream_outputs": {
+          "statistics": {
+            "mode": "DISABLED",
+            "output_roots": []
+          }
+        }
       }
     }
   ],
@@ -24,5 +43,5 @@
     "registry",
     "old_reservations"
   ],
-  "enablement": "BLOCKED: production reviewed_limits and final independent source/owner certification pending; ISOLATED_FIXTURE certificates cannot activate production"
+  "enablement": "BLOCKED: exact snapshot/factor/receipt roots, independent formula limits/output choice, production reviewed_limits and independent source/owner certification pending; empty roots and ISOLATED_FIXTURE certificates cannot activate production"
 }

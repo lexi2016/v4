@@ -136,6 +136,14 @@ def configuration(policy):
         raise RetentionError('RETRY_BOUND_REQUIRED')
     value['accounting_roots']=dict(value.get('accounting_roots') or {})
     value['accounting_roots']['ordinary']=list(set(value['accounting_roots'].get('ordinary',[]))|set(value.get('product_output_roots',[])))
+    from ops.research_daily_capacity import enabled, reviewed_configuration
+    if enabled(policy):
+        incremental, _, legacy_fixture = reviewed_configuration(policy)
+        if not legacy_fixture:
+            extra_roots = [root for item in incremental['consumers'].values()
+                           for root in [*item['output_roots'], *item.get('shared_product_roots', [])]]
+            extra_roots.extend(incremental['downstream_outputs']['statistics']['output_roots'])
+            value['accounting_roots']['ordinary'] = sorted(set(value['accounting_roots']['ordinary']) | set(extra_roots))
     value['resident_policy']={key:policy.get(key) for key in ('pointers','formal_roots','run_root','data_root','keep_completed')}
     if set(policy.get('formal_roots',{}))=={'selector','backtest'} and set(policy.get('pointers',{}))=={'selector','backtest'}:
         value['creation_roots']=[policy['run_root'],*policy['formal_roots'].values()]
@@ -481,6 +489,9 @@ class Claim:
     def watch(self, path):
         path = Path(path)
         safe_path(path, exists=False)
+        roots = getattr(self, 'input_output_roots', None)
+        if roots is not None and not any(under(path, root) for root in (*roots, self.registry.root)):
+            raise RetentionError('INPUT_OUTPUT_ROOT_NOT_APPROVED')
         if path not in self.baselines:
             st = path.stat() if path.exists() else None
             self.baselines[path] = (st.st_size,st.st_blocks*512) if st else (0,0)
@@ -1489,6 +1500,8 @@ def _governed_product(function, /, *args, **kwargs):
     from contextlib import nullcontext
     plan = None
     if enabled(policy):
+        from ops.research_daily_capacity import downstream_root
+        downstream_root(policy, 'statistics', os.environ.get('V4_WORKBENCH_STATISTICS_ROOT'))
         phase = {"materialize_daily_product":"daily_product", "complete_daily_derivatives":"top200"}.get(function.__name__)
         if phase is None:
             raise RetentionError("INCREMENTAL_PRODUCT_ENTRY_NOT_PROVEN")
@@ -1562,16 +1575,25 @@ def governed_formula_supplements(context, formula_groups_root, formula_ref, form
     import importlib
     policy = configured_policy()
     config = configuration(policy)
+    from ops.research_daily_capacity import independent_consumers
+    consumers = independent_consumers(policy)
+    if consumers is not None:
+        choice = consumers['formula_supplements']
+        if choice['mode'] == 'DISABLED':
+            return dict(status='NOT_RUN_POLICY_DISABLED',data_date=str(context.target),**module.FLAGS)
+        from ops.research_daily_capacity import formula_output_roots
+        roots = list(formula_output_roots(policy,formula_root=Path(formula_groups_root),product_root=Path(context.root)))
+    else:
+        roots = [safe_path(path,exists=False) for path in config.get('product_output_roots',[])]
     numeric_manifest, _, product, _ = module._numeric_product(context)
     artifact = module._checked(formula_ref)
     source_date, symbols, _ = module._group_identity(context,formula_ref,formula_receipt_ref,numeric_manifest,artifact,product)
     if not symbols:
         return dict(status='READY_EMPTY',data_date=str(context.target),**module.FLAGS)
     root = safe_path(Path(formula_groups_root)/source_date/'supplements',exists=False)
-    roots = [safe_path(path,exists=False) for path in config.get('product_output_roots',[])]
     if not all(any(under(path,approved) for approved in roots) for path in (root,Path(context.root))):
         raise CapacityProofError('SUPPLEMENT_OUTPUT_ROOT_NOT_APPROVED')
-    plan = product_plan(policy,context,'daily_product',symbols=sorted(symbols),
+    plan = product_plan(policy,context,'formula_supplements',symbols=sorted(symbols),
                         extra_references=[formula_ref,formula_receipt_ref,numeric_manifest])
     key = computation_identity(inputs=dict(source=context.identity,formula=formula_ref,receipt=formula_receipt_ref),
         scope=dict(symbols=sorted(symbols),target=context.target),
@@ -1881,7 +1903,7 @@ def input_forecast(tdx_root):
 
 
 @contextmanager
-def input_preflight(*, tdx_root, receipt_root, target, operation="raw_sync"):
+def input_preflight(*, tdx_root, receipt_root, target, operation="raw_sync", output_root=None):
     """Actual raw-sync facade, before download/module invocation.
 
     Protected raw inputs are not ordinary-reclaimable residents. This temporary
@@ -1901,11 +1923,23 @@ def input_preflight(*, tdx_root, receipt_root, target, operation="raw_sync"):
     directory=safe_path(Path(receipt_root)/'a_sync_authority'/str(target),exists=False)
     if operation not in {"raw_sync", "adjustment_snapshot"}:
         raise RetentionError("INPUT_OPERATION_NOT_REGISTERED")
-    key=computation_identity(inputs=dict(native_root=str(root)),scope=dict(target=str(target),market='A'),
+    approved_roots = None
+    from ops.research_daily_capacity import enabled, independent_consumers, CapacityProofError
+    if operation == "adjustment_snapshot" and enabled(policy):
+        consumers = independent_consumers(policy)
+        if consumers is not None:
+            from ops.research_daily_capacity import snapshot_output_roots
+            approved_roots = snapshot_output_roots(policy,tdx_root=root,receipt_root=receipt_root,output_root=output_root)
+            actual = safe_path(output_root,exists=False)
+            predicted = consumers[operation]['peak_bytes']
+            directory = actual
+    key=computation_identity(inputs=dict(native_root=str(root),output_roots=list(map(str,approved_roots))) if approved_roots is not None else dict(native_root=str(root)),scope=dict(target=str(target),market='A'),
         calculation=dict(entry=('existing_raw_sync' if operation == 'raw_sync' else 'existing_adjustment_snapshot'),source=reference_source(__file__)),schema='raw_sync_storage_only_v1')
     with admission(policy,key=key,directory=directory,predicted=predicted,reuse_ready=False) as (claim,_):
         if claim is not None:
             claim.input_exact_serialization = operation == "adjustment_snapshot"
+            if approved_roots is not None:
+                claim.input_output_roots = approved_roots
         yield claim
         if claim:
             # Raw provenance remains protected; this is not a READY derived
