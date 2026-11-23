@@ -310,6 +310,110 @@ def fit_quarters(candidates: Any, output_dir: Path | None = None,
     return out,reports
 
 
+def replay_source_contract() -> dict[str,Any]:
+    """Verify model-producing source against the exact accepted fit commit."""
+    import ast
+    import hashlib
+    import subprocess
+    commit="c9639d42b4ec6212c5dd2c8da4d56d45e56642ad"
+    relative="ops/pft_act015_execution.py"
+    def original(path:str) -> bytes:
+        result=subprocess.run(["git","-C",str(APP_ROOT),"show",f"{commit}:{path}"],
+                              check=True,capture_output=True)
+        return result.stdout
+    prior=original(relative)
+    expected="6359654b50785d5e7c166d8ec2723f72ad8c017ee7b3de3078946ca8dae3b6ae"
+    if hashlib.sha256(prior).hexdigest()!=expected:
+        raise ExecutionError("REPLAY_ORIGINAL_SOURCE_SHA_MISMATCH")
+    current=Path(__file__).read_bytes()
+    before,after=ast.parse(prior),ast.parse(current)
+    protected={"quarter","quarter_start","training_start","read_projected","PriceBook",
+               "f5_s1","build_candidates","fit_quarters","select_signals","board_band",
+               "entry_status","exit_status","SIGNED_DOC","START","MODEL_FEATURES","OPTIONAL_ALIASES"}
+    def selected(tree:Any) -> dict[str,str]:
+        result={}
+        for node in tree.body:
+            if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in protected:
+                result[node.name]=ast.dump(node,include_attributes=False)
+            if isinstance(node,ast.Assign):
+                names={n.id for target in node.targets for n in ast.walk(target) if isinstance(n,ast.Name)}
+                for name in names & protected:
+                    result[name]=ast.dump(node,include_attributes=False)
+        return result
+    if selected(before)!=selected(after):
+        raise ExecutionError("REPLAY_MODEL_OR_FORMULA_POLICY_SOURCE_CHANGED")
+    helpers={}
+    for module in (v12,a9,a9b):
+        path=Path(module.__file__).resolve()
+        rel=str(path.relative_to(APP_ROOT))
+        observed=hashlib.sha256(path.read_bytes()).hexdigest()
+        if observed!=hashlib.sha256(original(rel)).hexdigest():
+            raise ExecutionError(f"REPLAY_HELPER_SOURCE_CHANGED:{rel}")
+        helpers[rel]=observed
+    return {"original_fit_commit":commit,"original_source_sha256":expected,
+            "replay_source_sha256":hashlib.sha256(current).hexdigest(),
+            "protected_policy_ast":"MATCH","helper_sha256":helpers}
+
+
+def replay_quarters(candidates:Any,model_dir:Path,binding:dict[str,Any],
+                    progress:Callable[...,None]|None=None) -> tuple[Any,dict[str,Any]]:
+    """Predict only with all nine original quarter weights; never call fit."""
+    import hashlib
+    import joblib
+    import numpy as np
+    source_check=replay_source_contract()
+    model_dir=Path(model_dir).resolve()
+    summary_path=model_dir/"run_summary.json"
+    fit_path=model_dir/"fit_accounting.json"
+    original_summary=json.loads(summary_path.read_text())
+    accounting=json.loads(fit_path.read_text())
+    if (original_summary.get("status")!="COMPLETED_ESTIMATED_EXECUTION_RESEARCH"
+        or original_summary.get("signed_doc")!=SIGNED_DOC
+        or original_summary.get("binding")!=binding
+        or binding!={**a9.EXPECTED_BINDING,"asof_date":str(a9.EXPECTED_BINDING["asof_date"])}
+        or original_summary.get("evaluation_window")!=[START,END]
+        or original_summary.get("model_features")!=list(MODEL_FEATURES)
+        or any(original_summary.get(k)!=v for k,v in FLAGS.items())
+        or original_summary.get("fit_accounting")!=accounting):
+        raise ExecutionError("REPLAY_ORIGINAL_RUN_CONTRACT_MISMATCH")
+    expected=["2024Q4",*[f"{year}Q{q}" for year in (2025,2026) for q in (1,2,3,4)]]
+    reports=accounting.get("quarters",[])
+    if (accounting.get("HGB")!=9 or accounting.get("S")!=0 or accounting.get("search")!=0
+        or [x.get("quarter") for x in reports]!=expected
+        or any(x.get("fits")!=1 or x.get("status")!="FIT_COMPLETE" for x in reports)):
+        raise ExecutionError("REPLAY_REQUIRES_EXACT_NINE_COMPLETED_QUARTERS")
+    out=candidates.copy()
+    out["p_hgb"]=np.nan
+    reused=[]
+    for report in reports:
+        q=report["quarter"]
+        filename=f"hgb_{q}.joblib"
+        if report.get("model_file")!=filename:
+            raise ExecutionError("REPLAY_MODEL_FILENAME_MISMATCH")
+        path=model_dir/filename
+        digest=hashlib.sha256(path.read_bytes()).hexdigest()
+        payload=joblib.load(path)
+        stored_fit={k:v for k,v in report.items() if k!="model_file"}
+        if (payload.get("signed_doc")!=SIGNED_DOC or list(payload.get("features",[]))!=list(MODEL_FEATURES)
+            or payload.get("fit")!=stored_fit or any(payload.get(k)!=v for k,v in FLAGS.items())):
+            raise ExecutionError(f"REPLAY_WEIGHT_CONTRACT_MISMATCH:{q}")
+        predict=out.b_any & out.trade_date.map(quarter).eq(q) & out.trade_date.between(START,END)
+        if int(predict.sum())!=report["predict_rows"]:
+            raise ExecutionError(f"REPLAY_PREDICTION_POPULATION_CHANGED:{q}")
+        score_x=out.loc[predict,list(MODEL_FEATURES)].to_numpy(dtype=float,copy=True)
+        score_x[~np.isfinite(score_x)]=np.nan
+        out.loc[predict,"p_hgb"]=payload["model"].predict_proba(score_x)[:,1]
+        reused.append({"quarter":q,"fits":0,"reused":True,"model_path":str(path),
+                       "model_sha256":digest,"predict_rows":int(predict.sum())})
+        if progress:
+            progress("hgb","REPLAY_PREDICT_ONLY",reused[-1])
+    return out,{"S":0,"HGB":0,"search":0,"reused_HGB":9,"quarters":reused,
+                "source_checks":source_check,"original_model_dir":str(model_dir),
+                "original_fit_accounting_sha256":hashlib.sha256(fit_path.read_bytes()).hexdigest(),
+                "original_run_summary_sha256":hashlib.sha256(summary_path.read_bytes()).hexdigest(),
+                "original_fit_accounting":accounting}
+
+
 def select_signals(candidates: Any) -> dict[str, dict[int, list[int]]]:
     masks = {"clean": candidates.clean_union,
              "clean_b": candidates.clean_union & candidates.b_any,
@@ -454,6 +558,7 @@ def simulate(book: PriceBook, signals: dict[int,list[int]], horizon: int, mode: 
             holdings.append(dict(sleeve=sleeve,code=code,shares=notional/price,
                                  target=signal_day+horizon,mark=price,delayed=False))
     for day in active_days:
+        attempts_before,fills_before=statistics["attempts"],statistics["fills"]
         if mode=="constrained" and day>first:
             enter(day-1,day)
         retained=[]
@@ -488,6 +593,8 @@ def simulate(book: PriceBook, signals: dict[int,list[int]], horizon: int, mode: 
         statistics["max_position_lots"]=max(statistics["max_position_lots"],len(holdings))
         rows.append({"trade_date":book.dates[day],"nav":nav,"cash":float(cash.sum()),
                      "invested":invested,"holding_count":unique_holding_count,"position_lots":len(holdings),
+                     "attempts":statistics["attempts"]-attempts_before,
+                     "fills":statistics["fills"]-fills_before,
                      "gross_exposure":invested/nav})
     statistics.update(residual_positions=len(holdings),residual_market_value=sum(x["shares"]*x["mark"] for x in holdings),
                       horizon=horizon,mode=mode,
@@ -544,6 +651,8 @@ def aggregate_metrics(daily: Any) -> Any:
                          "last_date":part.trade_date.max(),"monthly_observed_groups":len(monthly),
                          "monthly_win_rate":float(monthly.gt(0).mean()),
                          "max_daily_holding":int(part.holding_count.max()),
+                         "attempts":int(part.attempts.sum()),"fills":int(part.fills.sum()),
+                         "fill_rate":float(part.fills.sum()/part.attempts.sum()) if part.attempts.sum()>0 else None,
                          "regime_sampling":"noncontiguous same-regime returns compounded" if kind=="regime" else "contiguous",
                          **values})
     return pd.DataFrame(rows)
@@ -556,7 +665,7 @@ def _write_json(path: Path,value: Any) -> None:
     temporary.replace(path)
 
 
-def run_once(data_root: Path,output_dir: Path) -> dict[str,Any]:
+def run_once(data_root: Path,output_dir: Path,replay_model_dir:Path|None=None) -> dict[str,Any]:
     """Root-authorized runner. This function is never invoked during unit tests."""
     import numpy as np
     import pandas as pd
@@ -565,6 +674,10 @@ def run_once(data_root: Path,output_dir: Path) -> dict[str,Any]:
     output_dir=Path(output_dir).resolve()
     if output_dir==Path(data_root).resolve() or Path(data_root).resolve() in output_dir.parents:
         raise ExecutionError("OUTPUT_INSIDE_AUTHORITY_DATA_ROOT")
+    if replay_model_dir is not None:
+        original_dir=Path(replay_model_dir).resolve()
+        if output_dir==original_dir or original_dir in output_dir.parents or output_dir in original_dir.parents:
+            raise ExecutionError("REPLAY_OUTPUT_MUST_PRESERVE_ORIGINAL_DIRECTORY")
     output_dir.mkdir(parents=True,exist_ok=True)
     if (output_dir/"run_summary.json").exists():
         raise ExecutionError("EXISTING_RUN_SUMMARY_REFUSE_RECOMPUTE")
@@ -573,7 +686,8 @@ def run_once(data_root: Path,output_dir: Path) -> dict[str,Any]:
         a9._append_progress(progress_path,stage,status,details)
     summary={"schema":SCHEMA,"signed_doc":SIGNED_DOC,"status":"RUNNING",**FLAGS,
              "evaluation_window":[START,END],"training_earliest":TRAIN_START,
-             "model_features":list(MODEL_FEATURES),"fit_plan":{"S":0,"HGB_per_quarter":1,"search":0},
+             "model_features":list(MODEL_FEATURES),"fit_plan":{"S":0,"HGB_per_quarter":0 if replay_model_dir else 1,"search":0},
+             "run_mode":"REPLAY_SAVED_MODELS_NO_FIT" if replay_model_dir else "ORIGINAL_FIT",
              "resource":{"logical_cpus":os.cpu_count(),"python":sys.executable,
                          "formula_workers":1,"formula_cohort_symbols":256,"input_policy":"one projected RAM read; bounded cohort formula temporaries; no row export"},
              "execution_scenario":"CONSERVATIVE_ESTIMATED_PROXY_NOT_REAL_FILL",
@@ -609,9 +723,12 @@ def run_once(data_root: Path,output_dir: Path) -> dict[str,Any]:
                 raise ExecutionError("ACCEPTED_D19_F5_PARITY_FAILED")
             recheck()
             progress("formula","PASS",{"clean_rows":len(candidates),"D19":summary["f5_d19_raw_count"],"F5_rank":summary["f5_d19_percentile"]})
-            candidates,fit_reports=fit_quarters(candidates,output_dir,progress=progress)
-            summary["fit_accounting"]={"S":0,"HGB":sum(x["fits"] for x in fit_reports),"search":0,
-                                       "expected_evaluation_quarters":9,"quarters":fit_reports}
+            if replay_model_dir is not None:
+                candidates,summary["fit_accounting"]=replay_quarters(candidates,replay_model_dir,binding,progress)
+            else:
+                candidates,fit_reports=fit_quarters(candidates,output_dir,progress=progress)
+                summary["fit_accounting"]={"S":0,"HGB":sum(x["fits"] for x in fit_reports),"search":0,
+                                           "expected_evaluation_quarters":9,"quarters":fit_reports}
             _write_json(output_dir/"fit_accounting.json",summary["fit_accounting"])
             selections=select_signals(candidates)
             del candidates
@@ -656,8 +773,9 @@ def main(argv:list[str]|None=None) -> int:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root",type=Path,required=True)
     parser.add_argument("--output-dir",type=Path,required=True)
+    parser.add_argument("--replay-model-dir",type=Path,help="Reuse exact original nine quarter weights; no fits; separate output required")
     args=parser.parse_args(argv)
-    run_once(args.data_root,args.output_dir)
+    run_once(args.data_root,args.output_dir,args.replay_model_dir)
     return 0
 
 

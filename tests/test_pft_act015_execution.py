@@ -249,3 +249,72 @@ def test_cohort_formula_reuse_global_features_and_exact_labels_match():
     assert set(one.market_breadth_up_fraction.unique())=={.5}
     assert one.label.notna().any()
     assert one["label_excess_t5"].dropna().abs().max()<1e-12
+
+
+def test_daily_fill_counts_follow_execution_quarter_and_regime():
+    book=book_fixture(8,codes=("000001.SZ","000002.SZ"))
+    book.dates=pd.bdate_range("2024-12-31",periods=8).strftime("%Y%m%d").tolist()
+    book.values["open"][1,1]=10.6
+    daily,stats=study.simulate(book,{0:[0,1]},3,"constrained",book.dates[0],book.dates[-1])
+    assert daily.attempts.tolist()==[0,2,0,0,0,0,0,0]
+    assert daily.fills.tolist()==[0,1,0,0,0,0,0,0]
+    assert daily.attempts.sum()==stats["attempts"]
+    assert daily.fills.sum()==stats["fills"]
+    daily=daily.assign(strategy="clean",horizon=3,mode="constrained",daily_return=0.,
+                       benchmark_daily_return=0.,regime=["bull","bear",*["sideways"]*6])
+    metrics=study.aggregate_metrics(daily)
+    q4=metrics.loc[metrics.segment.eq("2024Q4")].iloc[0]
+    q1=metrics.loc[metrics.segment.eq("2025Q1")].iloc[0]
+    bear=metrics.loc[metrics.segment.eq("bear")].iloc[0]
+    assert q4.attempts==0 and pd.isna(q4.fill_rate)
+    assert q1.attempts==2 and q1.fills==1 and q1.fill_rate==.5
+    assert bear.attempts==2 and bear.fill_rate==.5
+
+
+class ReplayPredictor:
+    def fit(self,*args,**kwargs):
+        raise AssertionError("Replay must never fit")
+    def predict_proba(self,x):
+        return np.column_stack([np.full(len(x),.4),np.full(len(x),.6)])
+
+
+def replay_fixture(path):
+    import joblib
+    quarters=["2024Q4",*[f"{year}Q{q}" for year in (2025,2026) for q in (1,2,3,4)]]
+    reports=[]
+    candidates=[]
+    for q in quarters:
+        report=dict(quarter=q,fits=1,status="FIT_COMPLETE",predict_rows=1)
+        filename=f"hgb_{q}.joblib"
+        joblib.dump(dict(model=ReplayPredictor(),features=study.MODEL_FEATURES,
+                         fit=report.copy(),signed_doc=study.SIGNED_DOC,**study.FLAGS),path/filename)
+        reports.append({**report,"model_file":filename})
+        day="20241101" if q=="2024Q4" else study.quarter_start(q)
+        candidates.append({**{x:1. for x in study.MODEL_FEATURES},"trade_date":day,"b_any":True})
+    accounting=dict(HGB=9,S=0,search=0,expected_evaluation_quarters=9,quarters=reports)
+    binding={**study.a9.EXPECTED_BINDING,"asof_date":str(study.a9.EXPECTED_BINDING["asof_date"])}
+    summary=dict(status="COMPLETED_ESTIMATED_EXECUTION_RESEARCH",signed_doc=study.SIGNED_DOC,
+                 binding=binding,evaluation_window=[study.START,study.END],model_features=list(study.MODEL_FEATURES),
+                 fit_accounting=accounting,**study.FLAGS)
+    study._write_json(path/"fit_accounting.json",accounting)
+    study._write_json(path/"run_summary.json",summary)
+    return pd.DataFrame(candidates),binding
+
+
+def test_replay_uses_all_nine_frozen_weights_without_fit(tmp_path):
+    candidates,binding=replay_fixture(tmp_path)
+    before={x.name:x.read_bytes() for x in tmp_path.iterdir()}
+    predicted,report=study.replay_quarters(candidates,tmp_path,binding)
+    assert predicted.p_hgb.eq(.6).all()
+    assert report["HGB"]==0 and report["reused_HGB"]==9
+    assert report["source_checks"]["protected_policy_ast"]=="MATCH"
+    assert all(x["fits"]==0 for x in report["quarters"])
+    assert before=={x.name:x.read_bytes() for x in tmp_path.iterdir()}
+
+
+def test_replay_rejects_different_binding_or_population(tmp_path):
+    candidates,binding=replay_fixture(tmp_path)
+    with pytest.raises(study.ExecutionError,match="ORIGINAL_RUN_CONTRACT"):
+        study.replay_quarters(candidates,tmp_path,{**binding,"generation_id":"different"})
+    with pytest.raises(study.ExecutionError,match="PREDICTION_POPULATION_CHANGED"):
+        study.replay_quarters(pd.concat([candidates,candidates.iloc[:1]]),tmp_path,binding)
