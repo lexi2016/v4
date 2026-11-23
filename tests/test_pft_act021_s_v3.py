@@ -379,3 +379,49 @@ def test_public_validator_rejects_free_text_in_anchor_values():
     payload["anchor_facts"]=[dict(role="root",bar_index=0,outside_visible_window=False,low="private identity",body_mid=1.)]
     with pytest.raises(s.ContractError,match="ANCHOR_VALUE_LEAK"):
         s.validate_public_case(payload)
+
+
+def test_unknown_refusal_repairs_439_unflagged_rows_without_changing_frozen_fields():
+    # Reproduces the observed materialized failure shape: UNKNOWN, false flag,
+    # no reasons and NORMAL priority. This is a row-only repair, not a rerun.
+    original_rows=[dict(record_type="review",classification_id=f"frozen-{i}",classification_revision=1,
+                        source_rank=i%200+1,ts_code=f"{i+1:06d}.SZ",source_date="20261120",
+                        observation_date="20261123",decision_date="20261120",top200_revision="frozen",
+                        s_decision_state="UNKNOWN_BORDERLINE",primary_tactic="UNKNOWN",s_overall_prob=.91,
+                        s_overall_score_100=42.,tactic_probs_json={"pullback":.1,"invalid_fake":.9},
+                        refusal_flag=False,refusal_reasons=[],human_review_priority="NORMAL") for i in range(439)]
+    changed_fields={"refusal_flag","refusal_reasons","human_review_priority"}
+    for original in original_rows:
+        snapshot=json.loads(json.dumps(original))
+        repaired=s.repair_unknown_refusal(original)
+        assert original==snapshot
+        assert repaired["refusal_flag"] is True and repaired["refusal_reasons"]==["OUT_OF_DOMAIN"]
+        assert repaired["human_review_priority"]=="HIGH"
+        assert {k:v for k,v in repaired.items() if k not in changed_fields}=={k:v for k,v in original.items() if k not in changed_fields}
+        assert s.repair_unknown_refusal(repaired)==repaired
+    assert len(original_rows)==439
+
+
+def test_unknown_refusal_preserves_specific_reasons_and_non_unknown_rows():
+    original=dict(s_decision_state="UNKNOWN_BORDERLINE",refusal_flag=True,
+                  refusal_reasons=["EVIDENCE_CONFLICT","GREY_PROB_BAND"],human_review_priority="HIGH")
+    result=s.repair_unknown_refusal(original)
+    assert result==original and result["refusal_reasons"] is not original["refusal_reasons"]
+    for state in ("CONFIRMED_S","REJECTED_FAKE"):
+        row=dict(s_decision_state=state,refusal_flag=False,refusal_reasons=[],human_review_priority="NORMAL",s_overall_prob=.91)
+        assert s.repair_unknown_refusal(row)==row
+    schema=dict(record_type="schema",schema_version=s.SCHEMA)
+    assert s.repair_unknown_refusal(schema)==schema
+
+
+def test_review_row_applies_unknown_refusal_when_no_specific_flag_exists():
+    f=bars()
+    f.loc[6,["open","high","low","close","vol"]]=[10.,10.65,9.9,10.5,1500.]
+    d=f.iloc[-1].trade_date
+    shape=s.previous.causal_shapes(f,start=d,end=d).iloc[0].to_dict()
+    shape.update(feature_ready=True,tactic="UNKNOWN",positive_evidence="",counterevidence="",repair_age=-1.)
+    p={"pullback":.8,"readvance":.1,"rebuild":.05,"invalid_fake":.05}
+    model={"binary_hgb":{"raw_positive_probability":.9},"tactic_hgb":{"raw_tactic_probabilities":p,"argmax_tactic":"pullback"}}
+    row=s.review_row(group(d),group(d)["rows"][0],f,shape,binding(),model)
+    assert row["s_decision_state"]=="UNKNOWN_BORDERLINE" and row["refusal_flag"]
+    assert row["refusal_reasons"]==["OUT_OF_DOMAIN"] and row["human_review_priority"]=="HIGH"

@@ -387,6 +387,27 @@ def observable_stage(frame: Any, shape: dict[str, Any] | None, history: dict[str
         stage = "ACTIVE_WAVE"
     return stage, flags
 
+
+def repair_unknown_refusal(row: dict[str, Any]) -> dict[str, Any]:
+    """Pure bounded repair for both new and already-materialized review rows.
+
+    UNKNOWN_BORDERLINE always refuses a definite proxy decision. When no more
+    specific reason exists, OUT_OF_DOMAIN means no definite membership in the
+    frozen mining-proxy taxonomy; it is not a measured market-distribution OOD
+    assertion. Existing reasons are preserved. Only refusal_flag,
+    refusal_reasons and human_review_priority may change; identity, rank,
+    decision, scores and every other field remain untouched. The input is never
+    mutated, so a controller can stream existing JSONL rows through this helper
+    into a new staged artifact without reading panels or recomputing anything.
+    """
+    result = dict(row)
+    if row.get("s_decision_state") != "UNKNOWN_BORDERLINE":
+        return result
+    result["refusal_flag"] = True
+    result["refusal_reasons"] = list(row.get("refusal_reasons") or ["OUT_OF_DOMAIN"])
+    result["human_review_priority"] = "HIGH"
+    return result
+
 def review_row(g: dict[str, Any], rank: dict[str, Any], frame: Any,
                shape: dict[str, Any] | None, binding: dict[str, Any], model: dict[str, Any]) -> dict[str, Any]:
     rows = frame.to_dict("records")
@@ -509,7 +530,7 @@ def review_row(g: dict[str, Any], rank: dict[str, Any], frame: Any,
               "context_status": "READY" if ready else ("EXACT_D_MISSING" if not exact else "MISSING_OR_INVALID_CAUSAL_CONTEXT"),
               "context_observed_bars": len(rows), "strict_le_d_scope": "observed bar dates only; no claim of intraday or model publication PIT",
               "decision_scope": "fixed research mining proxy draft, not adjudicated human label; no calibrated confidence", **FLAGS}
-    return clean(result)
+    return repair_unknown_refusal(clean(result))
 
 
 def infer_batch(shapes: Any, models: dict[str, Any]) -> dict[tuple[str, str], dict[str, Any]]:
