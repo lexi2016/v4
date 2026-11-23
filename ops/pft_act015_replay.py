@@ -107,7 +107,8 @@ def close_lot(lot, row, day, at, reason):
     return proceeds, fee
 
 
-def portfolio(picks, bars, sessions, risk, scenario, pool, horizon, asof=ASOF):
+def portfolio(picks, bars, sessions, risk, scenario, pool, horizon, asof=ASOF, *,
+              protection_policy=None, tier_as_exposure_ceiling=True):
     days = [d for d in sessions if '20230101' <= d <= asof]
     index = {d: i for i, d in enumerate(sessions)}
     entries = {}
@@ -150,7 +151,7 @@ def portfolio(picks, bars, sessions, risk, scenario, pool, horizon, asof=ASOF):
         active = remaining
         exposure = sum(opening_value(l, bars.get(l['canonical_security_id'], {}).get(day)) for l in active)
         # UNKNOWN blocks new orders without forcing existing positions out.
-        if scenario == 'GRADED' and risk_known:
+        if scenario == 'GRADED' and risk_known and tier_as_exposure_ceiling:
             ceiling = previous_nav*cap
             remaining = []
             for lot in sorted(active, key=lambda l: (l['D'], l['canonical_security_id'], l['lane'])):
@@ -168,7 +169,7 @@ def portfolio(picks, bars, sessions, risk, scenario, pool, horizon, asof=ASOF):
                         lot.update(pending_reason='GRADED_WEAK', trigger_date=prior_day, trigger_reasons='GRADED_WEAK')
                 remaining.append(lot)
             active = remaining
-        room = max(0., previous_nav*cap-exposure)
+        room = max(0., previous_nav*cap-exposure) if tier_as_exposure_ceiling else opening_cash_before_sales
         budget = min(opening_cash_before_sales, room, previous_nav*cap/horizon) if planned else 0.
         allocation = budget/len(planned) if planned else 0.
         # Failed slots stay cash. Opening sells do not increase the fixed budget.
@@ -224,7 +225,7 @@ def portfolio(picks, bars, sessions, risk, scenario, pool, horizon, asof=ASOF):
                     cash += proceeds; sell_fees += fee; exits += 1
                     continue
                 lot['delayed_exit_days'] += 1
-            protection(lot, row, day, scenario, risk.get(day, {}))
+            (protection_policy or protection)(lot, row, day, scenario, risk.get(day, {}))
             remaining.append(lot)
         active = remaining
         value = sum(l['quantity']*l['last_close']*(1-SELL_FEE) for l in active)
