@@ -359,7 +359,7 @@ def scan_groups(path: Path, directory: Path, models: dict[str, Any], external: A
     if len(frame) != 1000 or frame.duplicated(["ts_code", "trade_date"]).any():
         raise ContractError("TOP200_1000_COVERAGE_OR_DUPLICATES")
     summary = {"groups": identity, "n": len(frame), "bindings": bindings, "gold40_prefix_crosscheck": matched,
-               "ACT021_historical_aggregate": {"rejected_n": 694, "n": 1000, "rate": .694,
+               "ACT021_historical_aggregate": {"unknown_borderline_n": 694, "n": 1000, "unknown_borderline_rate": .694,
                                               "scope": "historical ACT021 aggregate, different state pipeline; not ACT024 truth"},
                "ACT023_structure_coherent": counts(frame, "act024_base_final_state"),
                "ACT024_router": counts(frame, "act024_final_state"),
