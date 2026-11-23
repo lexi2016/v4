@@ -84,6 +84,34 @@ def test_D13_undeclared_dynamic_dependency_blocks_normal_entry(fixture):
     unchanged(f, before)
 
 
+def test_capacity_named_guards_bind_transitive_sources_without_scanning_runtime_owners(fixture):
+    f=fixture;root=f.roots[1]
+    Path(f.module.__file__).write_text('from ops.research_daily_capacity import current_plan, validate_plan\n')
+    source=root/'ops/research_daily_capacity.py'
+    source.write_text("def current_plan():\n    return guard()\ndef guard():\n    from ops.capacity_guard_dependency import VALUE\n    return VALUE\ndef validate_plan(plan):\n    return guard()\ndef check_serialized_write(size):\n    return size\ndef unrelated_runtime_owner():\n    return __import__('unreviewed_runtime_owner')\n")
+    dependency=root/'ops/capacity_guard_dependency.py';dependency.write_text('VALUE = 1\n')
+    first=identity.computation_dependencies(f.module,f.kwargs)
+    rows={row['path']:row for row in first['dependencies']}
+    assert rows['ops/research_daily_capacity.py']['sha256']==hashlib.sha256(source.read_bytes()).hexdigest()
+    assert 'ops/capacity_guard_dependency.py' in rows
+    source.write_text(source.read_text()+'\n# unrelated owner bytes still affect identity\n')
+    assert identity.computation_dependencies(f.module,f.kwargs)!=first
+    dependency.write_text("VALUE = __import__('unreviewed_guard_dependency')\n")
+    with pytest.raises(governance.RetentionError,match='DYNAMIC_UNREVIEWED'):
+        identity.computation_dependencies(f.module,f.kwargs)
+
+
+@pytest.mark.parametrize('statement',[
+    'from ops.research_daily_capacity import unreviewed_guard',
+    'import ops.research_daily_capacity',
+])
+def test_capacity_frontier_refuses_unreviewed_import_surface(fixture,statement):
+    f=fixture;Path(f.module.__file__).write_text(statement+'\n')
+    (f.roots[1]/'ops/research_daily_capacity.py').write_text('def unreviewed_guard():\n    return 1\n')
+    with pytest.raises(governance.RetentionError,match='CAPACITY_GUARD_IMPORT_UNREVIEWED'):
+        identity.computation_dependencies(f.module,f.kwargs)
+
+
 @pytest.mark.parametrize('change', ['duplicate-role', 'duplicate-path', 'forged-sha', 'missing-sha', 'escape'])
 def test_D14_manifest_corruption_cannot_authorize_migration(fixture, change):
     f = fixture

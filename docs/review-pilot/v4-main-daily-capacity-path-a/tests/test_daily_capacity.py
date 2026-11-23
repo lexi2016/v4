@@ -85,6 +85,32 @@ def test_missing_review_cannot_enable_smaller_forecast(setup_plan):
         capacity.build_plan(policy,'qfq',**args)
 
 
+def test_limits_configuration_needs_no_business_source_reapproval(setup_plan,monkeypatch):
+    policy,args,_=setup_plan
+    reference=copy.deepcopy(policy['governance']['incremental_capacity']['reviewed_limits'])
+    initial=capacity.build_plan(policy,'qfq',**args)
+    monkeypatch.setattr(capacity,'writer_sources',lambda:{'changed_business_module':'new-source-sha'})
+    assert capacity.phase_limits(policy,'qfq')==initial['limits']
+    current=capacity.build_plan(policy,'qfq',**args)
+    assert current['predicted_bytes']==initial['predicted_bytes']
+    assert policy['governance']['incremental_capacity']['reviewed_limits']==reference
+    capacity.validate_plan(current,policy=policy)
+    with pytest.raises(capacity.CapacityProofError,match='WRITER_SOURCE_CHANGED'):
+        capacity.validate_plan(initial,policy=policy)
+
+
+@pytest.mark.parametrize('invalid',['schema','boolean','negative','missing_field'])
+def test_all_configured_phase_limits_remain_validated(setup_plan,invalid):
+    policy,_,_=setup_plan
+    config=policy['governance']['incremental_capacity']
+    if invalid=='schema':config['schema']='unsupported'
+    elif invalid=='boolean':config['phases']['top200']['max_symbols']=True
+    elif invalid=='negative':config['phases']['top200']['per_symbol_bytes']=-1
+    else:del config['phases']['top200']['max_file_bytes']
+    with pytest.raises(capacity.CapacityProofError,match='POLICY_NOT_ENABLED|LIMITS_INVALID'):
+        capacity.phase_limits(policy,'qfq')
+
+
 def test_product_unknown_writer_refused_before_reader_or_admission(setup_plan,monkeypatch):
     monkeypatch.setattr(capacity,'INSTRUMENTED_WRITER_PHASES',frozenset())
     policy,_,_ = setup_plan

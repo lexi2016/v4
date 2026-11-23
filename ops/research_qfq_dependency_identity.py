@@ -34,6 +34,7 @@ REQUIRED = (
 # bytes and top-level imports remain bound, while unrelated CLI bodies do not run.
 FRONTIERS = {
     'ops/research_storage_retention.py': {'RetentionError', 'canonical', 'safe_path', 'stamp'},
+    'ops/research_daily_capacity.py': {'current_plan', 'validate_plan', 'check_serialized_write'},
     'ops/a_share_daily_sync.py': {'valid_hq_bar', 'day_int'},
     'ops/macos_research_panel_daily.py': {'_a_day_files'},
     'ops/macos_research_panel_daily_common.py': {'_a_day_files'},
@@ -346,6 +347,8 @@ def computation_dependencies(module, kwargs, *, snapshot=None, runtime_root=None
         except (SyntaxError, ValueError) as exc:
             raise RetentionError('QFQ_DEPENDENCY_SOURCE_UNPARSEABLE:' + role) from exc
         selected = FRONTIERS.get(relative)
+        if relative == 'ops/research_daily_capacity.py' and (requested is None or not requested.issubset(selected)):
+            raise RetentionError('QFQ_DEPENDENCY_CAPACITY_GUARD_IMPORT_UNREVIEWED')
         if relative and relative.startswith('ops/_'):
             selected = requested
         selected_nodes = _selected_nodes(tree, selected)

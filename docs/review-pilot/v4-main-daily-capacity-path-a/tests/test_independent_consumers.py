@@ -121,9 +121,23 @@ def test_locked_probe_exact_six_consumers_and_resident_roots(tmp_path,monkeypatc
     assert all_roots<=set(config['accounting_roots']['ordinary'])
     assert path.read_bytes()==before
     assert result['eligibility']=='PASS_ISOLATED_FIXTURE'
-    # A claimed production review cannot waive unaccepted writer phases.
+    # Plan2 P0 accepts the instrumented writers; limits/root/resident checks
+    # still run before production eligibility is returned.
     rebind_review(policy,scope='PRODUCTION_REVIEWED')
-    assert probe(policy,roots)['eligibility']=='CANNOT_CONFIRM'
+    assert capacity.ACCEPTED_WRITER_PHASES==frozenset(capacity.PHASES)
+    result=probe(policy,roots)
+    assert result['eligibility']=='PASS' and result['unproven_writer_phases']==[]
+    assert path.read_bytes()==before
+
+
+def test_production_limit_config_is_not_an_external_approval_record(tmp_path,monkeypatch):
+    policy,_=independent_policy(tmp_path)
+    config=policy['governance']['incremental_capacity'];path=Path(config['reviewed_limits']['path'])
+    value=json.loads(path.read_bytes());value.pop('source_bindings');value.pop('status')
+    value['evidence_scope']='PRODUCTION_REVIEWED'
+    path.write_bytes(capacity.encoded(value));config['reviewed_limits']['sha256']=capacity.file_reference(path)['sha256']
+    monkeypatch.setattr(capacity,'writer_sources',lambda:pytest.fail('limits config inspected business sources'))
+    assert capacity.phase_limits(policy,'qfq')==config['phases']['qfq']
 
 
 def test_actual_formula_entry_owns_independent_phase_claim_and_roots(tmp_path,monkeypatch):
