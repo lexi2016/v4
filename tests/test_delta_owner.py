@@ -57,7 +57,7 @@ def fixture(tmp_path):
     q['resolved_raw_history']=lambda code,item,*args: (oldraw if item['raw_kind']=='old' else newraw)[code].copy()
     def compute(*args):calls.append(args[0]);return numerical(*args)
     q['rebuild_symbol']=compute
-    q['generation_identity']=lambda s,*a:{**{k:v for k,v in identity.items() if k!='turnover_input_sha256'},'input_sha256':owner.canonical_sha(s)}
+    q['generation_identity']=lambda s,*a,**kw:{**{k:v for k,v in identity.items() if k!='turnover_input_sha256'},'input_sha256':owner.canonical_sha(s)}
     q['load_snapshot']=lambda *a:copy.deepcopy(snapshot)
     q['turnover_watch_unchanged']=lambda *a:True
     q['factor_cache_identity']=lambda *a:'fixture factor'

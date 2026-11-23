@@ -192,9 +192,18 @@ def test_partial_rejects_change_after_initial_verification(partial, kind):
         q._partial_checkpoint_file(restored["000001.SZ"])
 
 
-def test_mathematical_and_release_gate_sources_unchanged():
-    assert q.computation_kernel_sha(BEFORE) == q.computation_kernel_sha(Path(q.__file__))
-    assert q._partial_checkpoint_io_math_sha(BEFORE) == q._partial_checkpoint_io_math_sha(Path(q.__file__))
+def test_component_reader_changes_identity_and_preserves_math_and_release_gates():
+    # New native component semantics require a new independently accepted
+    # release identity; old checkpoint/convention acceptance is not inherited.
+    current = Path(q.__file__)
+    assert q.computation_kernel_sha(BEFORE) != q.computation_kernel_sha(current)
+    assert q._partial_checkpoint_io_math_sha(BEFORE) != q._partial_checkpoint_io_math_sha(current)
+    names = {'apply_adjustments', 'rebuild_symbol', 'append_user_formula_v1', 'authorities', '_load',
+             'verify_release_gate', '_convention_tuple_accepted'}
+    def definitions(path):
+        return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text()).body
+                if isinstance(n,ast.FunctionDef) and n.name in names}
+    assert definitions(BEFORE) == definitions(current)
 
 
 @pytest.mark.skipif(not os.environ.get("V4_TEST_ORIGINAL_APP"), reason="requires explicitly pinned original runtime")

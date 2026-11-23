@@ -461,7 +461,7 @@ def test_closed_packed_run_recovers_missing_member_index_without_old_writes(fixt
     run=data.parents[1]/'research_panel_daily/a_formula_runs'/('qfq_'+generation[:20]);run.mkdir(parents=True)
     f.c.update(data_root=data,run_dir=run,run_id=generation,snapshot_file=mutable,identity=identity)
     f.c['meta'].update(identity);f.c['meta'].update(generation_id=generation,generation_manifest_path=str(run/'candidate_receipt.json'),adjustment_snapshot=snapshot_ref)
-    f.q['generation_identity']=lambda s,*a:{**{k:v for k,v in identity.items()if k!='turnover_input_sha256'},'input_sha256':owner.canonical_sha(s)}
+    f.q['generation_identity']=lambda s,*a,**kw:{**{k:v for k,v in identity.items()if k!='turnover_input_sha256'},'input_sha256':owner.canonical_sha(s)}
     delta.run_delta(f.q,f.c)
     status=json.loads((run/'stage_status.json').read_text());status['status']='FAILED';owner._json(run/'stage_status.json',status)
     missing=next((run/'delta_checkpoints').glob('688053.SH.*.json'));missing.unlink()

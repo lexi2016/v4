@@ -77,7 +77,7 @@ class _RawDriver:
     def __getattr__(self, name):
         return getattr(self.driver, name)
     def read_day_tail(self, code, path, tail_records):
-        key = str(path), tail_records
+        key = getattr(path, '_raw32_cache_key', str(path)), tail_records
         if key not in self.cache:
             self.cache[key] = self.driver.read_day_tail(code, path, tail_records=tail_records)
         return self.cache[key].copy()
@@ -530,7 +530,7 @@ def _run_delta(q, c, stock_failures):
         for role in prior:
             prior[role][0]={**prior[role][0],'metadata_refs':prior[role][0].get('metadata_refs',[])+references}
     projection = dict(asof_date=target, skip_symbols=sorted(c['retained_history_codes']), raw_lineage={code:{
-        r.get('source_role'):r['sha256'] for r in item['raw_files'] if r.get('source_role')}
+        r.get('source_role'):q['raw32_source_sha'](r) for r in item['raw_files'] if r.get('source_role')}
         for code,item in snapshot['symbols'].items()})
     for role, candidate in c['candidates'].items():
         counts[role]['target_date_symbols'] = len(current_symbols[role])
@@ -614,7 +614,11 @@ def _prepare(q, c, code, frames, old_snapshot, schemas, source_semantics):
                    if t is not None and len(t)), default=0)
     before = None;baseline_proof=[]
     if old_item is not None:
-        before,baseline_proof = baseline_raw_history(q,code,old_item,item,old_snapshot['asof_date'],target,raw_driver)
+        reused = _decoded_baseline(q, code, old_item, item, old_snapshot['asof_date'], raw)
+        if reused is not None:
+            before, baseline_proof = reused
+        else:
+            before,baseline_proof = baseline_raw_history(q,code,old_item,item,old_snapshot['asof_date'],target,raw_driver)
     events_same = old_item is not None and factor_state(old_item) == factor_state(item)
     rules_same=all(all(contract.get(key)==source_semantics[key] for key in
         ('driver_sha256','formula_sha256','user_formula_sha256','field_contract_sha256')) for contract in c['contracts'].values())
@@ -751,6 +755,37 @@ def _matching_prefix_rows(raw, size, limit, expected):
         if digest.hexdigest() == expected:
             return rows
     return None
+
+
+def _decoded_baseline(q, code, old_item, item, old_asof, raw):
+    """Reuse already decoded exact immutable sources, never invert QFQ floats."""
+    if any(old_item.get(k) != item.get(k) for k in ('raw_resolution', 'history_start_date', 'compute_start_date')):
+        return None
+    old_refs, refs = old_item.get('raw_files'), item.get('raw_files')
+    if old_refs is None or refs is None:
+        return None
+    proof = []
+    if old_refs != refs:
+        tail = item.get('native_tail_proof', {})
+        if (tail.get('previous_asof') != old_asof or tail.get('added_dates') != [item.get('history_end_date')]
+                or item.get('history_end_date', 0) <= old_asof):
+            return None
+        original = q['native_proof_json'](tail['previous_snapshot'])
+        if original.get('asof_date') != old_asof or original.get('symbols', {}).get(code) != old_item:
+            return None
+        before_native = [r for r in old_refs if r.get('source_role') == 'native']
+        after_native = [r for r in refs if r.get('source_role') == 'native']
+        if (len(before_native) != 1 or len(after_native) != 1
+                or [r for r in old_refs if r.get('source_role') != 'native'] != [r for r in refs if r.get('source_role') != 'native']
+                or q['raw32_segments'](after_native[0])[:-1] != q['raw32_segments'](before_native[0])):
+            return None
+        proof = [dict(kind='IMMUTABLE_COMPONENT_PREFIX', original_sha256=q['raw32_source_sha'](before_native[0]),
+                      current_sha256=q['raw32_source_sha'](after_native[0]), added_dates=tail['added_dates'])]
+    before = raw.loc[raw.trade_date.le(old_asof)].copy().reset_index(drop=True)
+    if 'raw_source_ref_sha256' in before:
+        lineage = {r.get('source_role'):q['raw32_source_sha'](r) for r in old_refs}
+        before['raw_source_ref_sha256'] = before.raw_source_role.map(lineage)
+    return before, proof
 
 
 def baseline_raw_history(q, code, old_item, item, old_asof, target, driver):

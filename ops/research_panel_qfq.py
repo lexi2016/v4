@@ -13,6 +13,7 @@ import base64
 import ast
 from datetime import datetime, timezone
 import fcntl
+from functools import lru_cache
 import hashlib
 import importlib.util
 import json
@@ -307,6 +308,9 @@ def load_snapshot(path: Path, target: int) -> dict:
             raise QfqGateError(f"ADJUSTMENT_EVENT_ORDER_OR_DUPLICATE:{code}")
         for ref in item["raw_files"]:
             _source(ref, owner=code)
+            for component in raw32_segments(ref):
+                if "path" in component:
+                    _source(component, owner=code)
     return value
 
 
@@ -353,14 +357,144 @@ def authorities(driver_path: Path, formula_path: Path):
 HISTORY_RESOLUTION = "ARCHIVE_PRIMARY_NATIVE_MISSING_AND_TAIL_V2"
 
 
+def raw32_segments(ref: dict) -> list[dict]:
+    """Explicit byte components; physical SHA and concatenated byte SHA differ."""
+    if ref.get("kind") != "raw32_components_v1":
+        if str(ref.get("kind", "")).startswith("raw32_") or "raw32_segments" in ref or "raw32_sha256" in ref:
+            raise QfqGateError("RAW32_COMPONENT_SCHEMA_INVALID")
+        return [dict(path=ref["path"], sha256=ref["sha256"])]
+    parts = ref.get("raw32_segments")
+    if (ref.get("source_role") != "native" or not isinstance(parts, list) or not parts
+            or parts[0] != dict(path=ref["path"], sha256=ref["sha256"])
+            or not re.fullmatch("[0-9a-f]{64}", str(ref.get("raw32_sha256", "")))):
+        raise QfqGateError("RAW32_COMPONENT_SCHEMA_INVALID")
+    for part in parts:
+        if set(part) == {"path", "sha256"}:
+            continue
+        if set(part) != {"raw32_hex", "sha256"}:
+            raise QfqGateError("RAW32_COMPONENT_SCHEMA_INVALID")
+        try:
+            payload = bytes.fromhex(part["raw32_hex"])
+        except (TypeError, ValueError) as exc:
+            raise QfqGateError("RAW32_COMPONENT_HEX_INVALID") from exc
+        if len(payload) != 32 or hashlib.sha256(payload).hexdigest() != part["sha256"]:
+            raise QfqGateError("RAW32_COMPONENT_INLINE_IDENTITY")
+    return parts
+
+
+def raw32_source_sha(ref: dict) -> str:
+    return ref["raw32_sha256"] if ref.get("kind") == "raw32_components_v1" else ref["sha256"]
+
+
+def raw32_payloads(ref: dict, *, owner: str):
+    for part in raw32_segments(ref):
+        if "path" in part:
+            payload = _source(part, owner=owner).read_bytes()
+            if hashlib.sha256(payload).hexdigest() != part["sha256"]:
+                raise QfqGateError("RAW32_COMPONENT_CHANGED_DURING_READ:" + owner)
+        else:
+            payload = bytes.fromhex(part["raw32_hex"])
+        if not payload or len(payload) % 32:
+            raise QfqGateError("RAW32_COMPONENT_BOUNDARY:" + owner)
+        yield payload
+
+
+def _native_proof_stamp(path: str) -> tuple:
+    stat = Path(path).stat()
+    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
+@lru_cache(maxsize=8)
+def _native_proof_json(path: str, digest: str, observed: tuple) -> dict:
+    raw = _source(dict(path=path, sha256=digest), owner="native shared proof").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != digest or _native_proof_stamp(path) != observed:
+        raise QfqGateError("NATIVE_SHARED_PROOF_CHANGED")
+    return json.loads(raw)
+
+
+def native_proof_json(ref: dict) -> dict:
+    return _native_proof_json(ref["path"], ref["sha256"], _native_proof_stamp(ref["path"]))
+
+
+@lru_cache(maxsize=8)
+def _native_sync_rows(path: str, digest: str, observed: tuple) -> dict:
+    rows = {}
+    for row in _native_proof_json(path, digest, observed)["symbol_reconciliation"]:
+        key = int(row["market"]), str(row["symbol"]).zfill(6)
+        if key in rows:
+            raise QfqGateError("NATIVE_SYNC_DUPLICATE_IDENTITY")
+        rows[key] = row
+    return rows
+
+
+@lru_cache(maxsize=4)
+def _native_official_package(path: str, digest: str, date: int, observed: tuple):
+    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage
+    package = OfficialDailyPackage(dict(path=path, sha256=digest), date)
+    refs = [dict(path=path, sha256=digest), package.package_ref, package.calendar_ref, package.calendar_adapter_ref]
+    if tuple(_native_proof_stamp(r["path"]) for r in refs) != observed:
+        raise QfqGateError("NATIVE_OFFICIAL_PACKAGE_CHANGED")
+    return package
+
+
+def native_official_package(ref: dict, date: int):
+    descriptor = native_proof_json(ref)
+    refs = [ref, descriptor["package"], descriptor["calendar"], descriptor["calendar_adapter"]]
+    observed = tuple(_native_proof_stamp(r["path"]) for r in refs)
+    return _native_official_package(ref["path"], ref["sha256"], date, observed)
+
+
+def validate_native_tail(code: str, item: dict, target: int, driver) -> None:
+    """Bind inline suffixes to the original accepted official whole bar."""
+    native = [r for r in item["raw_files"] if r.get("source_role") == "native"]
+    if not any(r.get("kind") == "raw32_components_v1" for r in native):
+        return
+    proof = item.get("native_tail_proof", {})
+    try:
+        previous = native_proof_json(proof["previous_snapshot"])
+        old = previous["symbols"][code]
+        old_native = next(r for r in old["raw_files"] if r.get("source_role") == "native")
+        sync = native_proof_json(proof["sync_ref"])
+        package = native_official_package(proof["official_input"], proof["added_dates"][0])
+        market = {"SZ": 0, "SH": 1, "BJ": 2}[code[-2:]]
+        sync_ref = proof["sync_ref"]
+        row = _native_sync_rows(sync_ref["path"], sync_ref["sha256"], _native_proof_stamp(sync_ref["path"])).get((market, code[:6]), {})
+        bar, _, shares = package.rows[(market, code[:6])]
+        date = package.target
+        suffix = driver.DAY_STRUCT.pack(date, *(int(round(float(bar[k]) * 100)) for k in ("open", "high", "low", "close")), float(bar["amount"]), shares, 0)
+        expected = raw32_segments(old_native) + [dict(raw32_hex=suffix.hex(), sha256=hashlib.sha256(suffix).hexdigest())]
+        if (len(native) != 1 or proof["previous_native_sha256"] != raw32_source_sha(old_native) or proof["previous_asof"] != previous["asof_date"]
+                or previous["asof_date"] != package.previous or proof["added_dates"] != [date] or date > target
+                or str(sync["target_date"]) != str(date)
+                or row.get("classification") != "ACCEPTED" or row.get("target_date_ready") is not True
+                or sync["official_daily_source"]["input_ref"] != package.input_ref
+                or sync["official_daily_source"]["package"] != package.package_ref
+                or proof["official_package"] != package.package_ref or raw32_segments(native[0]) != expected
+                or [r for r in old["raw_files"] if r.get("source_role") != "native"] != [r for r in item["raw_files"] if r.get("source_role") != "native"]):
+            raise QfqGateError("NATIVE_TAIL_AUTHORITY_CONFLICT:" + code)
+    except (KeyError, TypeError, ValueError, StopIteration, OverflowError) as exc:
+        raise QfqGateError("NATIVE_TAIL_AUTHORITY_UNBOUND:" + code) from exc
+
+
 def resolved_raw_history(code: str, item: dict, target: int, driver) -> pd.DataFrame:
     """Read original whole rows, using the frozen archive-first key policy."""
     parts = []
     history = item.get("raw_resolution") == HISTORY_RESOLUTION
     if item.get("raw_resolution") and not history:
         raise QfqGateError(f"RAW_RESOLUTION_UNSUPPORTED:{code}")
+    validate_native_tail(code, item, target, driver)
     for ref in item["raw_files"]:
         path = _source(ref, owner=code)
+        if ref.get("kind") == "raw32_components_v1":
+            if not history or driver.DAY_STRUCT.size != 32:
+                raise QfqGateError("RAW32_COMPONENT_POLICY_CONFLICT:" + code)
+            from io import BytesIO
+            from types import SimpleNamespace
+            payload = b"".join(raw32_payloads(ref, owner=code))
+            if hashlib.sha256(payload).hexdigest() != raw32_source_sha(ref):
+                raise QfqGateError("RAW32_COMPONENT_LOGICAL_SHA:" + code)
+            path = SimpleNamespace(stat=lambda: SimpleNamespace(st_size=len(payload)),
+                open=lambda mode: BytesIO(payload), _raw32_cache_key=raw32_source_sha(ref))
         if path.stat().st_size % driver.DAY_STRUCT.size:
             raise QfqGateError(f"RAW_TRAILING_BYTES:{code}:{path}")
         part = driver.read_day_tail(code, path, tail_records=path.stat().st_size // driver.DAY_STRUCT.size)
@@ -370,7 +504,7 @@ def resolved_raw_history(code: str, item: dict, target: int, driver) -> pd.DataF
             if part.trade_date.duplicated().any():
                 raise QfqGateError(f"HISTORY_SOURCE_DUPLICATE_DATE:{code}")
             part["raw_source_role"] = ref["source_role"]
-            part["raw_source_ref_sha256"] = ref["sha256"]
+            part["raw_source_ref_sha256"] = raw32_source_sha(ref)
             part["raw_source_record_index"] = np.arange(len(part))
         elif ref.get("from_date_exclusive") is not None:
             part = part.loc[part.trade_date.gt(int(ref["from_date_exclusive"]))].copy()
@@ -2614,9 +2748,16 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             from ops.research_panel_daily_source import build_cache_configuration
             research_config = (build_cache_configuration(data_root=data_root, tdx_root=tdx_root, target=target,
                 codes=list(required_start)) if history is None else None)
+            previous_snapshot = None
+            if logical_mode and retained_history is not None:
+                committed = [panel_contract(Path(p.read_text().strip()))["adjustment_snapshot"] for p in pointers.values()]
+                if not committed or any(ref != committed[0] for ref in committed):
+                    raise QfqGateError("DAILY_NATIVE_PAIRED_BASELINE_SNAPSHOT_CONFLICT")
+                previous_snapshot = committed[0]
             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
                              force_refresh=False, research_cache_config_ref=research_config,
                              history_extension=history, retained_history=retained_history,
+                             previous_snapshot=previous_snapshot,
                              **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None and target != 20261110 else {}))
         snapshot = (delta_resume_control.pop('_validated_snapshot') if delta_resume_control is not None else load_snapshot(snapshot_file, target))
         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:

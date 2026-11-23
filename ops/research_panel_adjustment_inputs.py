@@ -11,7 +11,8 @@ import zipfile
 from typing import Any, Callable
 import numpy as np
 
-from ops.research_panel_qfq import _json, _source, _write, canonical_sha, input_path, sha, CODE, legacy_preservation
+from ops.research_panel_qfq import (_json, _source, _write, canonical_sha, input_path, sha, CODE,
+    legacy_preservation, raw32_segments, raw32_source_sha, raw32_payloads)
 from ops.research_panel_factor_cache import QfqGateError, collect_metadata, _event_rows
 
 
@@ -110,7 +111,109 @@ def bind_full_response_history_metadata(metadata_ref: dict, bindings: dict[str, 
     return output
 
 
-def history_raw_bindings(config: dict, binding_file: Path, driver, target: int, *, current_tdx_root: Path | None = None) -> dict[str, dict]:
+def _daily_native_bindings(config: dict, previous_snapshot: dict, sync_ref: dict, target: int,
+                           tdx_root: Path, driver) -> dict[str, dict]:
+    """Reuse accepted immutable inputs; append only exact accepted official bytes.
+
+    This performs byte hashing/key census, not a historical decode or .day write.
+    First census, missing-session and historical-correction cases fail closed.
+    """
+    from ops._a_share_daily_sync_parts.official_daily_package import OfficialDailyPackage
+    previous = json.loads(_source(previous_snapshot, owner="daily committed input").read_text())
+    sync = json.loads(_source(sync_ref, owner="daily accepted sync").read_text())
+    official = sync.get("official_daily_source", {})
+    if (str(sync.get("target_date")) != str(target) or official.get("source_kind") != "TDX_OFFICIAL_G4DAY"
+            or previous.get("history_retention_binding") != config):
+        raise QfqGateError("DAILY_NATIVE_BASELINE_OR_OFFICIAL_SOURCE_UNBOUND")
+    package = OfficialDailyPackage(official["input_ref"], target)
+    if (official.get("package") != package.package_ref or official.get("previous_session") != package.previous
+            or previous.get("asof_date") not in {package.previous, target} or driver.DAY_STRUCT.size != 32):
+        raise QfqGateError("DAILY_NATIVE_SESSION_OR_CODEC_UNBOUND")
+    source = json.loads(_source(config["source_config"], owner="daily retained source config").read_text())
+    for ref in [config["source_policy"], *config["accepted_evidence"]]:
+        _source(ref, owner="daily retained source policy")
+    if source.get("source_resolution") != HISTORY_RESOLUTION:
+        raise QfqGateError("HISTORY_SOURCE_RESOLUTION_UNBOUND")
+    markets = {"SZ": 0, "SH": 1, "BJ": 2}
+    accepted = {}
+    for row in sync.get("symbol_reconciliation", []):
+        key = str(row["symbol"]).zfill(6) + "." + {v: k for k, v in markets.items()}[int(row["market"])]
+        if key in accepted:
+            raise QfqGateError("DAILY_NATIVE_DUPLICATE_SYNC:" + key)
+        accepted[key] = row
+    result = {}
+    for stock in source["stocks"]:
+        code = stock["code"]
+        before = previous.get("symbols", {}).get(code)
+        row = accepted.get(code, {})
+        if (before is None and code in set(previous.get("retained_history_codes", [])) | set(previous.get("quarantine_symbols", {}))
+                and (row.get("classification") != "ACCEPTED" or row.get("target_date_ready") is not True)):
+            continue
+        if (not CODE.fullmatch(code) or code in result or not before
+                or before.get("raw_resolution") != HISTORY_RESOLUTION or not before.get("history_extension")
+                or any(before.get(k) != config[k] for k in ("source_config", "source_policy", "accepted_evidence"))):
+            raise QfqGateError("DAILY_NATIVE_FIRST_CENSUS_REQUIRED:" + code)
+        refs = before["raw_files"]
+        roles = [ref.get("source_role") for ref in refs]
+        if roles.count("native") != 1 or len(set(roles)) != len(roles) or not set(roles) <= {"archive", "native"}:
+            raise QfqGateError("DAILY_NATIVE_ROLE_UNBOUND:" + code)
+        native = next(ref for ref in refs if ref["source_role"] == "native")
+        digest, dates = hashlib.sha256(), []
+        for payload in raw32_payloads(native, owner=code):
+            digest.update(payload)
+            dates.extend(int(d) for d in np.frombuffer(payload, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"])
+        if (digest.hexdigest() != raw32_source_sha(native) or dates != sorted(set(dates))
+                or not dates or dates[0] <= 19000101 or dates[-1] > previous["asof_date"]):
+            raise QfqGateError("DAILY_NATIVE_BASELINE_BYTES_INVALID:" + code)
+        after = dict(before)
+        # Retained non-target history keeps its old immutable refs and the
+        # existing retained-history exclusion; it never invents today's bar.
+        if row.get("classification") != "ACCEPTED" or row.get("target_date_ready") is not True:
+            result[code] = after
+            continue
+        live = tdx_root / "vipdoc" / code[-2:].lower() / "lday" / (code[-2:].lower() + code[:6] + ".day")
+        if Path(row.get("path", "")).resolve() != live.resolve() or not row.get("source_sha256_after"):
+            raise QfqGateError("DAILY_NATIVE_SYNC_PATH_UNBOUND:" + code)
+        live_payload = _source(dict(path=str(live.resolve()), sha256=row["source_sha256_after"]), owner=code).read_bytes()
+        if (not live_payload or len(live_payload) % 32
+                or hashlib.sha256(live_payload).hexdigest() != row["source_sha256_after"]):
+            raise QfqGateError("DAILY_NATIVE_SYNC_BYTES_INVALID:" + code)
+        live_dates = [int(d) for d in np.frombuffer(live_payload, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"]]
+        if live_dates != sorted(set(live_dates)) or live_dates[-1] != target or live_dates[0] <= 19000101:
+            raise QfqGateError("DAILY_NATIVE_SYNC_KEYS_INVALID:" + code)
+        item = package.rows.get((markets[code[-2:]], code[:6]))
+        if item is None or item[2] > 0xffffffff:
+            raise QfqGateError("DAILY_NATIVE_OFFICIAL_BAR_MISSING:" + code)
+        bar = item[0]
+        suffix = driver.DAY_STRUCT.pack(target, *(int(round(float(bar[k]) * 100)) for k in ("open", "high", "low", "close")),
+                                        float(bar["amount"]), item[2], 0)
+        if live_payload[-32:] != suffix:
+            raise QfqGateError("DAILY_NATIVE_OFFICIAL_BYTES_CONFLICT:" + code)
+        missing = sorted(set(d for d in live_dates if d <= target) - set(dates))
+        if missing not in ([], [target]) or (missing and dates[-1] >= package.previous and dates[-1] != package.previous):
+            raise QfqGateError("DAILY_NATIVE_HISTORICAL_CORRECTION_REQUIRES_CENSUS:" + code)
+        if target in dates:
+            # A same-date baseline must already commit these exact bytes.
+            last = payload[-32:]
+            if last != suffix:
+                raise QfqGateError("DAILY_NATIVE_SAME_DATE_CONFLICT:" + code)
+        elif missing != [target] or dates[-1] != package.previous:
+            raise QfqGateError("DAILY_NATIVE_MISSING_SESSION_REQUIRES_CENSUS:" + code)
+        else:
+            digest.update(suffix)
+            segments = raw32_segments(native) + [dict(raw32_hex=suffix.hex(), sha256=hashlib.sha256(suffix).hexdigest())]
+            composite = dict(native, kind="raw32_components_v1", raw32_segments=segments, raw32_sha256=digest.hexdigest())
+            after["raw_files"] = [composite if ref["source_role"] == "native" else ref for ref in refs]
+            after["native_tail_proof"] = dict(previous_snapshot=previous_snapshot, previous_asof=previous["asof_date"],
+                previous_native_sha256=raw32_source_sha(native), added_dates=[target], sync_ref=sync_ref, official_input=package.input_ref,
+                official_package=package.package_ref)
+            after["history_end_date"] = target
+        result[code] = after
+    return result
+
+
+def history_raw_bindings(config: dict, binding_file: Path, driver, target: int, *, current_tdx_root: Path | None = None,
+                         previous_snapshot: dict | None = None, sync_ref: dict | None = None) -> dict[str, dict]:
     """Adapt the accepted per-code original refs, never the derived panel.
 
     Archive members are extracted byte-identically into the isolated input
@@ -118,6 +221,10 @@ def history_raw_bindings(config: dict, binding_file: Path, driver, target: int, 
     No archive inventory, live-file discovery or stock-classification filter
     determines the explicitly bound historical membership.
     """
+    if previous_snapshot is not None:
+        if current_tdx_root is None or sync_ref is None:
+            raise QfqGateError("DAILY_NATIVE_CONTEXT_UNBOUND")
+        return _daily_native_bindings(config, previous_snapshot, sync_ref, target, current_tdx_root, driver)
     source_ref = config["source_config"]
     source = json.loads(_source(source_ref, owner="accepted R2 source config").read_text())
     if source.get("source_resolution") != HISTORY_RESOLUTION:
@@ -232,6 +339,7 @@ def existing_day_files(tdx_root: Path) -> list[tuple[str, Path]]:
 def raw_bindings(tdx_root: Path, driver, binding_file: Path, *, required_start: dict[str, int] | None = None, target: int | None = None,
                  quarantine_eligible: dict | None = None, history_extension: dict | None = None,
                  retained_history: dict | None = None,
+                 previous_snapshot: dict | None = None, sync_ref: dict | None = None,
                  _exclude_codes: set[str] | None = None) -> dict[str, dict]:
     """Bind existing archive + current .day, never collect a second history.
 
@@ -241,12 +349,14 @@ def raw_bindings(tdx_root: Path, driver, binding_file: Path, *, required_start: 
     """
     if history_extension is not None or retained_history is not None:
         historical = history_raw_bindings(history_extension or retained_history, binding_file, driver, target or 99991231,
-                                         current_tdx_root=tdx_root if retained_history is not None else None)
+                                         current_tdx_root=tdx_root if retained_history is not None else None,
+                                         previous_snapshot=previous_snapshot, sync_ref=sync_ref)
         # The research-history set is an addition, never a mask for healthy
         # current members outside that set. Their original default gates apply.
         current = raw_bindings(tdx_root, driver, binding_file, required_start=required_start,
                                target=target, quarantine_eligible=quarantine_eligible,
-                               _exclude_codes=set(historical))
+                               _exclude_codes=(set(historical) | {row["code"] for row in json.loads(_source(
+                                   (history_extension or retained_history)["source_config"], owner="historical membership").read_text())["stocks"]}))
         return {**current, **historical}
     supplied = json.loads(binding_file.read_text()) if binding_file.is_file() else {}
     archive = None
@@ -336,6 +446,7 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                      client_factory: Callable[[], Any] | None = None, force_refresh: bool = False,
                      required_start: dict[str, int] | None = None,
                      history_extension: dict | None = None, retained_history: dict | None = None,
+                     previous_snapshot: dict | None = None,
                      research_cache_config_ref: dict | None = None,
                      **query_options) -> dict:
     root = input_path(data_root).parent
@@ -358,9 +469,13 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     # Defensive market boundary also applies to manual first-generation callers.
     required_start = {c: d for c, d in (required_start or {}).items() if CODE.fullmatch(c) and c not in legacy_codes}
     bindings = raw_bindings(tdx_root, driver, root / "qfq_raw_history_binding.json", required_start=required_start,
-                            target=target, quarantine_eligible=eligible, history_extension=history_extension, retained_history=retained_history)
+                            target=target, quarantine_eligible=eligible, history_extension=history_extension, retained_history=retained_history,
+                            previous_snapshot=previous_snapshot, sync_ref=sync_ref)
     retained_codes = sorted(code for code, item in bindings.items() if retained_history is not None
                             and code in required_start and item.get("history_end_date", target) < target)
+    if previous_snapshot is not None:
+        prior = json.loads(_source(previous_snapshot, owner="daily prior retained membership").read_text())
+        retained_codes = sorted(set(retained_codes) | (set(prior.get("retained_history_codes", [])) & set(required_start) - set(bindings)))
     bindings = {code: item for code, item in bindings.items() if code not in retained_codes}
     required_start = {code: date for code, date in required_start.items() if code not in retained_codes}
     gaps = [dict(ts_code=code, required_start=date, available_start=bindings.get(code, {}).get("history_start_date"))
@@ -404,6 +519,14 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     else:
         fallback = json.loads(fallback_file.read_text()) if fallback_file.is_file() else {}
     sources, symbols, missing = {sync_ref["path"]: sync_ref}, {}, []
+    if previous_snapshot is not None:
+        sources[previous_snapshot["path"]] = previous_snapshot
+    for binding in bindings.values():
+        proof = binding.get("native_tail_proof", {})
+        for name in ("previous_snapshot", "sync_ref", "official_input", "official_package"):
+            if name in proof:
+                ref = proof[name]
+                sources[ref["path"]] = ref
     if history_extension is not None:
         for ref in [history_extension["binding_ref"], history_extension["source_config"], history_extension["source_policy"],
                     history_extension["adjustment_metadata"], *history_extension["archive_refs"], *history_extension["accepted_evidence"]]:
