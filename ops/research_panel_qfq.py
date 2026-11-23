@@ -444,6 +444,64 @@ def native_official_package(ref: dict, date: int):
     return _native_official_package(ref["path"], ref["sha256"], date, observed)
 
 
+def retained_native_source(ref: dict, code: str, previous_snapshot: dict, target: int) -> dict:
+    """One skipped official session between a committed source and reactivation.
+
+    No stock/date exception is inferred. The explicit input must bind the
+    retained generation's direct parent and its original no-bar source proof.
+    """
+    try:
+        value = native_proof_json(ref)
+        previous = native_proof_json(previous_snapshot)
+        entry = value["symbols"][code]
+        parent = native_proof_json(value["previous_generation"])
+        source = native_proof_json(entry["source_generation"])
+        original = native_proof_json(entry["source_snapshot"])
+        keys = set(_GENERATION_TUPLE_KEYS) | {"input_sha256", "logical_reader_sha256", "delta_owner_sha256", "turnover_input_sha256"}
+        for generation, snapshot, snapshot_ref in ((parent, previous, previous_snapshot), (source, original, entry["source_snapshot"])):
+            identity = {k: generation[k] for k in keys}
+            if "computation_dependency_sha256" in generation:
+                identity["computation_dependency_sha256"] = generation["computation_dependency_sha256"]
+            if (generation.get("status") != "READY" or generation["adjustment_snapshot"] != snapshot_ref
+                    or generation["asof_date"] != snapshot["asof_date"] or generation["input_sha256"] != canonical_sha(snapshot)
+                    or generation["generation_id"] != canonical_sha(dict(target=snapshot["asof_date"],
+                        baseline_panel_sha256=generation["baseline_panel_sha256"], **identity))):
+                raise QfqGateError("RETAINED_NATIVE_GENERATION_CONFLICT:" + code)
+        if (value.get("schema") != "qfq_retained_native_recovery_v1" or value.get("target_date") != target
+                or value["previous_snapshot"] != previous_snapshot or code not in previous.get("retained_history_codes", [])
+                or code in previous.get("symbols", {}) or code in previous.get("quarantine_symbols", {})
+                or set(source["candidate_sha256"]) != {"selector", "backtest"}
+                or parent["baseline_panel_sha256"] != source["candidate_sha256"]
+                or previous["history_retention_binding"] != original["history_retention_binding"]
+                or entry["retained_sync_ref"] not in previous["source_files"]):
+            raise QfqGateError("RETAINED_NATIVE_SCOPE_CONFLICT:" + code)
+        sync_ref = entry["retained_sync_ref"]
+        sync = native_proof_json(sync_ref)
+        official = sync["official_daily_source"]
+        skipped = native_official_package(official["input_ref"], previous["asof_date"])
+        # The caller additionally binds this retained date and calendar to
+        # the current package's previous session.
+        old = original["symbols"][code]
+        native = [r for r in old["raw_files"] if r.get("source_role") == "native"]
+        market = {"SZ": 0, "SH": 1, "BJ": 2}[code[-2:]]
+        row = _native_sync_rows(sync_ref["path"], sync_ref["sha256"], _native_proof_stamp(sync_ref["path"])).get((market, code[:6]), {})
+        absent = skipped.rows.get((market, code[:6]))
+        no_bar = absent is None or (all(absent[0][k] == 0 for k in ("open", "high", "low"))
+                                  and absent[0]["vol"] == 0 and absent[0]["amount"] == 0)
+        if (len(native) != 1 or skipped.previous != original["asof_date"]
+                or str(sync["target_date"]) != str(previous["asof_date"]) or official["package"] != skipped.package_ref
+                or official["previous_session"] != skipped.previous or not no_bar
+                or row.get("reason_code") != "TARGET_DATE_MISSING" or row.get("classification") != "QUARANTINED"
+                or row.get("quarantine") is not True or row.get("target_date_ready") is not False
+                or row.get("last_date_before") != original["asof_date"] or row.get("last_date_after") != original["asof_date"]
+                or row.get("source_sha256_before") != raw32_source_sha(native[0]) or row.get("source_sha256_after") != raw32_source_sha(native[0])):
+            raise QfqGateError("RETAINED_NATIVE_SKIPPED_SESSION_UNPROVED:" + code)
+        return dict(item=old, source_snapshot=entry["source_snapshot"], source_asof=original["asof_date"],
+                    retained_asof=previous["asof_date"], calendar=skipped.calendar_ref, calendar_adapter=skipped.calendar_adapter_ref)
+    except (KeyError, TypeError, ValueError, StopIteration) as exc:
+        raise QfqGateError("RETAINED_NATIVE_BINDING_UNBOUND:" + code) from exc
+
+
 def validate_native_tail(code: str, item: dict, target: int, driver) -> None:
     """Bind inline suffixes to the original accepted official whole bar."""
     native = [r for r in item["raw_files"] if r.get("source_role") == "native"]
@@ -456,6 +514,14 @@ def validate_native_tail(code: str, item: dict, target: int, driver) -> None:
         old_native = next(r for r in old["raw_files"] if r.get("source_role") == "native")
         sync = native_proof_json(proof["sync_ref"])
         package = native_official_package(proof["official_input"], proof["added_dates"][0])
+        retained = None
+        if proof.get("retained_native_recovery") is not None:
+            recovery = native_proof_json(proof["retained_native_recovery"])
+            retained = retained_native_source(proof["retained_native_recovery"], code, recovery["previous_snapshot"], package.target)
+            if (retained["source_snapshot"] != proof["previous_snapshot"] or retained["item"] != old
+                    or retained["retained_asof"] != package.previous or retained["calendar"] != package.calendar_ref
+                    or retained["calendar_adapter"] != package.calendar_adapter_ref):
+                raise QfqGateError("RETAINED_NATIVE_CURRENT_SESSION_CONFLICT:" + code)
         market = {"SZ": 0, "SH": 1, "BJ": 2}[code[-2:]]
         sync_ref = proof["sync_ref"]
         row = _native_sync_rows(sync_ref["path"], sync_ref["sha256"], _native_proof_stamp(sync_ref["path"])).get((market, code[:6]), {})
@@ -464,7 +530,7 @@ def validate_native_tail(code: str, item: dict, target: int, driver) -> None:
         suffix = driver.DAY_STRUCT.pack(date, *(int(round(float(bar[k]) * 100)) for k in ("open", "high", "low", "close")), float(bar["amount"]), shares, 0)
         expected = raw32_segments(old_native) + [dict(raw32_hex=suffix.hex(), sha256=hashlib.sha256(suffix).hexdigest())]
         if (len(native) != 1 or proof["previous_native_sha256"] != raw32_source_sha(old_native) or proof["previous_asof"] != previous["asof_date"]
-                or previous["asof_date"] != package.previous or proof["added_dates"] != [date] or date > target
+                or (retained is None and previous["asof_date"] != package.previous) or proof["added_dates"] != [date] or date > target
                 or str(sync["target_date"]) != str(date)
                 or row.get("classification") != "ACCEPTED" or row.get("target_date_ready") is not True
                 or sync["official_daily_source"]["input_ref"] != package.input_ref
@@ -2694,6 +2760,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                       compute_backend: str | None = None,
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
                       tail_delta: dict | None = None, archive_additions: dict | None = None,
+                      retained_native_recovery: dict | None = None,
                       storage_layout: str = "arrow_blocks_v1") -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if tail_delta is not None and (history_extension is not None or refresh_inputs):
@@ -2710,6 +2777,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
     logical_mode=(storage_layout=='arrow_blocks_v1' and all(x is None for x in (history_extension,tail_delta,archive_additions,same_asof_ref)))
     if not logical_mode:
         raise QfqGateError("PHYSICAL_PANEL_MATERIALIZATION_DISABLED")
+    if retained_native_recovery is not None and (not refresh_inputs or checkpoint_resume is not None):
+        raise QfqGateError("RETAINED_NATIVE_REQUIRES_ORDINARY_INPUT_REFRESH")
     requested_workers=workers
     resource_plan=None
     compute_backend=compute_backend or os.environ.get('V4_A_QFQ_COMPUTE_BACKEND','process' if logical_mode else 'thread')
@@ -2738,6 +2807,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         check_baseline(pointers, frozen_baseline)
         driver, _ = authorities(driver_path, formula_path)
         retained_history = selected_history_retention(accepted_history_retention(pointers), target=target) if history is None else None
+        if retained_native_recovery is not None and retained_history is None:
+            raise QfqGateError("RETAINED_NATIVE_HISTORY_CONTEXT_REQUIRED")
         delta_resume_control=None
         if checkpoint_resume is not None:
             from ops.research_panel_delta import fixed_delta_resume_input
@@ -2750,14 +2821,22 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 codes=list(required_start)) if history is None else None)
             previous_snapshot = None
             if logical_mode and retained_history is not None:
-                committed = [panel_contract(Path(p.read_text().strip()))["adjustment_snapshot"] for p in pointers.values()]
+                committed_contracts = [panel_contract(Path(p.read_text().strip())) for p in pointers.values()]
+                committed = [contract["adjustment_snapshot"] for contract in committed_contracts]
                 if not committed or any(ref != committed[0] for ref in committed):
                     raise QfqGateError("DAILY_NATIVE_PAIRED_BASELINE_SNAPSHOT_CONFLICT")
                 previous_snapshot = committed[0]
+                if retained_native_recovery is not None:
+                    recovery = native_proof_json(retained_native_recovery)
+                    generation = native_proof_json(recovery["previous_generation"])
+                    if (recovery["previous_snapshot"] != previous_snapshot
+                            or any(contract.get("generation_id") != generation["generation_id"] for contract in committed_contracts)):
+                        raise QfqGateError("RETAINED_NATIVE_COMMITTED_GENERATION_CONFLICT")
             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
                              force_refresh=False, research_cache_config_ref=research_config,
                              history_extension=history, retained_history=retained_history,
                              previous_snapshot=previous_snapshot,
+                             retained_native_recovery=retained_native_recovery,
                              **({"same_asof_metadata_ref": same_asof_ref} if same_asof_ref is not None and target != 20261110 else {}))
         snapshot = (delta_resume_control.pop('_validated_snapshot') if delta_resume_control is not None else load_snapshot(snapshot_file, target))
         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:

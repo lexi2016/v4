@@ -1017,6 +1017,7 @@ def run_windows_a_formula_authority(
     formula_max_workers: int | None = None,
     qfq_original_tdx_root: Path | str | None = None,
     checkpoint_resume: dict | None = None,
+    retained_native_recovery: dict | None = None,
 ) -> dict[str, Any]:
     from ops.research_panel_qfq import input_path, pointer_ready, run_daily_rebuild
     from ops.research_storage_retention import run_with_retention
@@ -1037,6 +1038,7 @@ def run_windows_a_formula_authority(
         publish=True, workers=(int(formula_max_workers) if formula_max_workers is not None else None),
         refresh_inputs=True, storage_layout="arrow_blocks_v1",
         **({"checkpoint_resume": checkpoint_resume} if checkpoint_resume is not None else {}),
+        **({"retained_native_recovery": retained_native_recovery} if retained_native_recovery is not None else {}),
     )
     artifact = _formula_artifact_binding(Path(result["selector"]), Path(result["backtest"]))
     current_rows = result.get("counts", {}).get("selector", {}).get("target_date_symbols")

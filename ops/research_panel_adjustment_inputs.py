@@ -12,7 +12,7 @@ from typing import Any, Callable
 import numpy as np
 
 from ops.research_panel_qfq import (_json, _source, _write, canonical_sha, input_path, sha, CODE,
-    legacy_preservation, raw32_segments, raw32_source_sha, raw32_payloads)
+    legacy_preservation, raw32_segments, raw32_source_sha, raw32_payloads, retained_native_source)
 from ops.research_panel_factor_cache import QfqGateError, collect_metadata, _event_rows
 
 
@@ -112,7 +112,7 @@ def bind_full_response_history_metadata(metadata_ref: dict, bindings: dict[str, 
 
 
 def _daily_native_bindings(config: dict, previous_snapshot: dict, sync_ref: dict, target: int,
-                           tdx_root: Path, driver) -> dict[str, dict]:
+                           tdx_root: Path, driver, *, retained_native_recovery: dict | None = None) -> dict[str, dict]:
     """Reuse accepted immutable inputs; append only exact accepted official bytes.
 
     This performs byte hashing/key census, not a historical decode or .day write.
@@ -146,9 +146,16 @@ def _daily_native_bindings(config: dict, previous_snapshot: dict, sync_ref: dict
         code = stock["code"]
         before = previous.get("symbols", {}).get(code)
         row = accepted.get(code, {})
+        native_snapshot, native_asof, retained = previous_snapshot, previous["asof_date"], None
         if (before is None and code in set(previous.get("retained_history_codes", [])) | set(previous.get("quarantine_symbols", {}))
                 and (row.get("classification") != "ACCEPTED" or row.get("target_date_ready") is not True)):
             continue
+        if before is None and retained_native_recovery is not None and code in previous.get("retained_history_codes", []):
+            retained = retained_native_source(retained_native_recovery, code, previous_snapshot, target)
+            if (retained["retained_asof"] != package.previous or retained["calendar"] != package.calendar_ref
+                    or retained["calendar_adapter"] != package.calendar_adapter_ref):
+                raise QfqGateError("RETAINED_NATIVE_CURRENT_SESSION_CONFLICT:" + code)
+            before, native_snapshot, native_asof = retained["item"], retained["source_snapshot"], retained["source_asof"]
         if (not CODE.fullmatch(code) or code in result or not before
                 or before.get("raw_resolution") != HISTORY_RESOLUTION or not before.get("history_extension")
                 or any(before.get(k) != config[k] for k in ("source_config", "source_policy", "accepted_evidence"))):
@@ -163,7 +170,7 @@ def _daily_native_bindings(config: dict, previous_snapshot: dict, sync_ref: dict
             digest.update(payload)
             dates.extend(int(d) for d in np.frombuffer(payload, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"])
         if (digest.hexdigest() != raw32_source_sha(native) or dates != sorted(set(dates))
-                or not dates or dates[0] <= 19000101 or dates[-1] > previous["asof_date"]):
+                or not dates or dates[0] <= 19000101 or dates[-1] > native_asof):
             raise QfqGateError("DAILY_NATIVE_BASELINE_BYTES_INVALID:" + code)
         after = dict(before)
         # Retained non-target history keeps its old immutable refs and the
@@ -197,23 +204,26 @@ def _daily_native_bindings(config: dict, previous_snapshot: dict, sync_ref: dict
             last = payload[-32:]
             if last != suffix:
                 raise QfqGateError("DAILY_NATIVE_SAME_DATE_CONFLICT:" + code)
-        elif missing != [target] or dates[-1] != package.previous:
+        elif missing != [target] or dates[-1] != (native_asof if retained is not None else package.previous):
             raise QfqGateError("DAILY_NATIVE_MISSING_SESSION_REQUIRES_CENSUS:" + code)
         else:
             digest.update(suffix)
             segments = raw32_segments(native) + [dict(raw32_hex=suffix.hex(), sha256=hashlib.sha256(suffix).hexdigest())]
             composite = dict(native, kind="raw32_components_v1", raw32_segments=segments, raw32_sha256=digest.hexdigest())
             after["raw_files"] = [composite if ref["source_role"] == "native" else ref for ref in refs]
-            after["native_tail_proof"] = dict(previous_snapshot=previous_snapshot, previous_asof=previous["asof_date"],
+            after["native_tail_proof"] = dict(previous_snapshot=native_snapshot, previous_asof=native_asof,
                 previous_native_sha256=raw32_source_sha(native), added_dates=[target], sync_ref=sync_ref, official_input=package.input_ref,
                 official_package=package.package_ref)
+            if retained is not None:
+                after["native_tail_proof"]["retained_native_recovery"] = retained_native_recovery
             after["history_end_date"] = target
         result[code] = after
     return result
 
 
 def history_raw_bindings(config: dict, binding_file: Path, driver, target: int, *, current_tdx_root: Path | None = None,
-                         previous_snapshot: dict | None = None, sync_ref: dict | None = None) -> dict[str, dict]:
+                         previous_snapshot: dict | None = None, sync_ref: dict | None = None,
+                         retained_native_recovery: dict | None = None) -> dict[str, dict]:
     """Adapt the accepted per-code original refs, never the derived panel.
 
     Archive members are extracted byte-identically into the isolated input
@@ -224,7 +234,8 @@ def history_raw_bindings(config: dict, binding_file: Path, driver, target: int, 
     if previous_snapshot is not None:
         if current_tdx_root is None or sync_ref is None:
             raise QfqGateError("DAILY_NATIVE_CONTEXT_UNBOUND")
-        return _daily_native_bindings(config, previous_snapshot, sync_ref, target, current_tdx_root, driver)
+        return _daily_native_bindings(config, previous_snapshot, sync_ref, target, current_tdx_root, driver,
+                                      retained_native_recovery=retained_native_recovery)
     source_ref = config["source_config"]
     source = json.loads(_source(source_ref, owner="accepted R2 source config").read_text())
     if source.get("source_resolution") != HISTORY_RESOLUTION:
@@ -340,6 +351,7 @@ def raw_bindings(tdx_root: Path, driver, binding_file: Path, *, required_start: 
                  quarantine_eligible: dict | None = None, history_extension: dict | None = None,
                  retained_history: dict | None = None,
                  previous_snapshot: dict | None = None, sync_ref: dict | None = None,
+                 retained_native_recovery: dict | None = None,
                  _exclude_codes: set[str] | None = None) -> dict[str, dict]:
     """Bind existing archive + current .day, never collect a second history.
 
@@ -350,7 +362,8 @@ def raw_bindings(tdx_root: Path, driver, binding_file: Path, *, required_start: 
     if history_extension is not None or retained_history is not None:
         historical = history_raw_bindings(history_extension or retained_history, binding_file, driver, target or 99991231,
                                          current_tdx_root=tdx_root if retained_history is not None else None,
-                                         previous_snapshot=previous_snapshot, sync_ref=sync_ref)
+                                         previous_snapshot=previous_snapshot, sync_ref=sync_ref,
+                                         retained_native_recovery=retained_native_recovery)
         # The research-history set is an addition, never a mask for healthy
         # current members outside that set. Their original default gates apply.
         current = raw_bindings(tdx_root, driver, binding_file, required_start=required_start,
@@ -447,6 +460,7 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                      required_start: dict[str, int] | None = None,
                      history_extension: dict | None = None, retained_history: dict | None = None,
                      previous_snapshot: dict | None = None,
+                     retained_native_recovery: dict | None = None,
                      research_cache_config_ref: dict | None = None,
                      **query_options) -> dict:
     root = input_path(data_root).parent
@@ -470,7 +484,7 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     required_start = {c: d for c, d in (required_start or {}).items() if CODE.fullmatch(c) and c not in legacy_codes}
     bindings = raw_bindings(tdx_root, driver, root / "qfq_raw_history_binding.json", required_start=required_start,
                             target=target, quarantine_eligible=eligible, history_extension=history_extension, retained_history=retained_history,
-                            previous_snapshot=previous_snapshot, sync_ref=sync_ref)
+                            previous_snapshot=previous_snapshot, sync_ref=sync_ref, retained_native_recovery=retained_native_recovery)
     retained_codes = sorted(code for code, item in bindings.items() if retained_history is not None
                             and code in required_start and item.get("history_end_date", target) < target)
     if previous_snapshot is not None:
@@ -521,11 +535,19 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     sources, symbols, missing = {sync_ref["path"]: sync_ref}, {}, []
     if previous_snapshot is not None:
         sources[previous_snapshot["path"]] = previous_snapshot
-    for binding in bindings.values():
+    for code, binding in bindings.items():
         proof = binding.get("native_tail_proof", {})
-        for name in ("previous_snapshot", "sync_ref", "official_input", "official_package"):
+        for name in ("previous_snapshot", "sync_ref", "official_input", "official_package", "retained_native_recovery"):
             if name in proof:
                 ref = proof[name]
+                sources[ref["path"]] = ref
+        if proof.get("retained_native_recovery") is not None:
+            recovery = json.loads(_source(proof["retained_native_recovery"], owner="retained recovery closure").read_text())
+            entry = recovery["symbols"][code]
+            refs = [recovery["previous_snapshot"], recovery["previous_generation"], *entry.values()]
+            skipped_sync = json.loads(_source(entry["retained_sync_ref"], owner="retained skipped source").read_text())
+            refs.extend(skipped_sync["official_daily_source"][name] for name in ("input_ref", "package"))
+            for ref in refs:
                 sources[ref["path"]] = ref
     if history_extension is not None:
         for ref in [history_extension["binding_ref"], history_extension["source_config"], history_extension["source_policy"],
