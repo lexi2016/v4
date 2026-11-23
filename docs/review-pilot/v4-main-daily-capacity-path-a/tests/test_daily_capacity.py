@@ -181,6 +181,49 @@ def test_begin_creation_after_claim_checks_before_write(monkeypatch,tmp_path):
     assert not writes and not owned.exists()
 
 
+@pytest.mark.parametrize('unsupported',[False,True])
+def test_committed_ready_receipt_normalizes_only_known_creation_path(tmp_path,monkeypatch,unsupported):
+    from contextlib import nullcontext
+    from ops import research_storage_retention as retention,research_storage_governance as governance
+    run=tmp_path/'runs';run.mkdir()
+    pins=tmp_path/'pins.json'
+    pins.write_text(json.dumps(dict(expected_main_app_root=str(Path(retention.__file__).resolve().parents[1]))))
+    policy=dict(managed_pin_inventory=dict(path=str(pins),sha256=retention.digest(pins)))
+    policy_file=tmp_path/'policy.json';policy_file.write_text('{}')
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY',str(policy_file))
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY_SHA256',retention.digest(policy_file))
+    monkeypatch.setattr(retention,'load_policy',lambda *a,**kw:policy)
+    monkeypatch.setattr(retention,'owner_lock',lambda *a,**kw:nullcontext())
+    monkeypatch.setattr(governance,'configuration',lambda _: {})
+    creation=tmp_path/'ownership.json';reservation=dict(status='RESERVED',predicted_bytes=4096)
+    if unsupported:reservation['unsupported']=tmp_path/'unsupported'
+    monkeypatch.setattr(retention,'growth_guard',lambda *a,**kw:reservation)
+    committed=dict(status='READY',selector='already-committed-selector',backtest='already-committed-backtest')
+    def governed(rebuild,policy,reservation,**kwargs):
+        reservation['creation']=creation
+        return committed
+    monkeypatch.setattr(governance,'governed_qfq',governed)
+    registered=[]
+    def register(policy,value,result,kwargs):
+        assert value is creation and isinstance(value,Path)
+        assert reservation['creation'] is creation
+        registered.append(value)
+    monkeypatch.setattr(retention,'register_creation',register)
+    monkeypatch.setattr(retention,'plan',lambda *a,**kw:dict(actions=[],source_verifications={}))
+    def invoke():
+        return retention.run_with_retention(lambda **kw:pytest.fail('committed owner must not rerun here'),
+            data_root=tmp_path,return_root=run,pointers={},target=20261123,ready_check=lambda:False)
+    if unsupported:
+        with pytest.raises(TypeError,match='not JSON serializable'):invoke()
+        assert not (run/'storage_retention_last.json').exists()
+    else:
+        result=invoke()
+        assert result['status']=='READY' and result['storage_retention']['reservation'] is not reservation
+        assert result['storage_retention']['reservation']['creation']==str(creation)
+        assert json.loads((run/'storage_retention_last.json').read_text())==result['storage_retention']
+    assert registered==[creation] and reservation['creation'] is creation
+
+
 def test_locked_probe_reads_real_registry_without_reacquiring_or_writing(setup_plan,tmp_path,monkeypatch):
     from ops import research_storage_governance as governance
     policy,_,_=setup_plan

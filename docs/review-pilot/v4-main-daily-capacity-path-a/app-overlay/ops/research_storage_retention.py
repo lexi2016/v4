@@ -1109,7 +1109,10 @@ def run_with_retention(rebuild, *, data_root: Path, return_root: Path, pointers:
             # A committed research pair remains READY; retain diagnostics rather
             # than converting successful publication into FAILED/recomputation.
             outcome = dict(status="PRESERVED_UNKNOWN", error=str(exc))
-        result["storage_retention"] = dict(reservation=reservation, outcome=outcome)
+        receipt_reservation = dict(reservation)
+        if isinstance(receipt_reservation.get("creation"), Path):
+            receipt_reservation["creation"] = str(receipt_reservation["creation"])
+        result["storage_retention"] = dict(reservation=receipt_reservation, outcome=outcome)
         try:
             atomic_json(Path(return_root) / "storage_retention_last.json", result["storage_retention"])
         except OSError as exc:
