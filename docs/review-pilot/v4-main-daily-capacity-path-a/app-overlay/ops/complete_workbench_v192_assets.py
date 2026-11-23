@@ -144,6 +144,14 @@ def publish(plan,*,shared_fd=None):
 
 def after_preselection(source_date,observation_date):
     """Runs after publication even when the existing V192 artifact was reused."""
+    # This independent public writer has no daily-product Claim of its own.
+    # Validate the process-configured policy before resolving or opening its
+    # lock; an unrelated ContextVar plan cannot authorize this path.
+    from ops import research_storage_governance as governance
+    from ops import research_daily_capacity as capacity
+    policy=governance.configured_policy()
+    if policy is not None and capacity.enabled(policy):
+        raise capacity.CapacityProofError('V192_AFTER_PRESELECTION_WRITER_NOT_GOVERNED')
     lock=Path(os.environ['V4_DATA_ROOT']).parent/'dispatcher/scheduler_lane_owners/A_LONG.lock'
     fd=os.open(lock,os.O_RDONLY|os.O_NOFOLLOW)
     try:

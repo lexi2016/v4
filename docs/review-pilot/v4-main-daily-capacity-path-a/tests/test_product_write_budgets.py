@@ -398,6 +398,78 @@ def test_real_daily_statistics_failure_restores_pair_and_module_pointer(tmp_path
     assert all(path.read_bytes()==raw for path,raw in before.items())
 
 
+def configured_path_a_policy(tmp_path,monkeypatch,*,enabled):
+    """Exercise the real env -> policy SHA -> managed-pin root binding path."""
+    data=tmp_path/'policy-data';runs=tmp_path/'policy-runs'
+    desktop=tmp_path/'Desktop';quarantine_parent=desktop/'待删除文件夹'
+    (data/'formal/selector').mkdir(parents=True);(data/'formal/backtest').mkdir(parents=True)
+    runs.mkdir();quarantine_parent.mkdir(parents=True)
+    pointers={role:data/f'{role}.pointer' for role in ('selector','backtest')}
+    for pointer in pointers.values():pointer.write_text('fixture\n')
+    pins=tmp_path/'managed-pins.json'
+    pins.write_text(json.dumps(dict(schema='v4_research_managed_pin_inventory_v1',
+        status='COMPLETE_REVIEWED',
+        expected_main_app_root=str(Path(governance.__file__).resolve().parents[1]),
+        consumer_scopes={'main':'PINNED','api':'PINNED','stage':'PINNED'},
+        source_bindings=[],pins=[],limits=['fixture']),sort_keys=True))
+    policy_path=tmp_path/'policy.json'
+    registry=tmp_path/'policy-registry';registry.mkdir()
+    policy=dict(schema='v4_research_storage_retention_v1',keep_completed=1,
+        data_root=str(data),run_root=str(runs),
+        quarantine_root=str(quarantine_parent/'v4-quarantine'),
+        pointers={key:str(value) for key,value in pointers.items()},
+        formal_roots={'selector':str(data/'formal/selector'),'backtest':str(data/'formal/backtest')},
+        max_managed_bytes=1024,max_quarantine_bytes=1024,reserve_bytes=1024,minimum_build_bytes=1024,
+        dry_run=True,auto_gc_enabled=False,
+        managed_pin_inventory={'path':str(pins),'sha256':hashlib.sha256(pins.read_bytes()).hexdigest()},
+        governance={'enabled':True,'pool_id':'FIXTURE_ONLY','pool_identity_verified':True,
+            'registry_root':str(registry),'incremental_capacity':{'enabled':enabled}})
+    policy_path.write_text(json.dumps(policy,sort_keys=True,separators=(',',':')))
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY',str(policy_path))
+    monkeypatch.setenv('V4_RESEARCH_RETENTION_POLICY_SHA256',hashlib.sha256(policy_path.read_bytes()).hexdigest())
+    return policy
+
+
+def test_independent_v192_preselection_refuses_enabled_path_a_before_lock(tmp_path,monkeypatch):
+    from ops import complete_workbench_v192_assets as v192
+    configured_path_a_policy(tmp_path,monkeypatch,enabled=True)
+    missing_root=tmp_path/'missing-data-root'
+    monkeypatch.setenv('V4_DATA_ROOT',str(missing_root))
+    monkeypatch.setattr(v192,'_after_preselection_locked',
+        lambda *_args,**_kwargs:pytest.fail('unmanaged callback reached its lock-owned body'))
+    plan,_=make_plan(tmp_path)
+    # An unrelated active plan must not grant this independently scheduled writer permission.
+    with capacity.write_scope(plan):
+        with pytest.raises(capacity.CapacityProofError,match='V192_AFTER_PRESELECTION_WRITER_NOT_GOVERNED'):
+            v192.after_preselection('20261120','20261123')
+    assert not (tmp_path/'dispatcher').exists()
+    assert not missing_root.exists()
+
+
+def test_independent_v192_preselection_keeps_legacy_path_when_path_a_is_off(tmp_path,monkeypatch):
+    from ops import complete_workbench_v192_assets as v192
+    configured_path_a_policy(tmp_path,monkeypatch,enabled=False)
+    data_root=tmp_path/'legacy-data';data_root.mkdir()
+    lock=tmp_path/'dispatcher/scheduler_lane_owners/A_LONG.lock'
+    lock.parent.mkdir(parents=True);lock.touch()
+    monkeypatch.setenv('V4_DATA_ROOT',str(data_root))
+    result={'status':'LEGACY_CALLBACK_REACHED'}
+    monkeypatch.setattr(v192,'_after_preselection_locked',lambda *_args,**_kwargs:result)
+    assert governance.configured_policy() is not None
+    assert not capacity.enabled(governance.configured_policy())
+    assert v192.after_preselection('20261120','20261123') is result
+
+
+def test_managed_numeric_completion_path_remains_available_when_path_a_is_enabled(tmp_path,monkeypatch):
+    from ops import complete_workbench_v192_assets as v192
+    configured_path_a_policy(tmp_path,monkeypatch,enabled=True)
+    shared=tmp_path/'shared';shared.mkdir()
+    (shared/'latest.json').write_text('{"entries":{}}')
+    monkeypatch.setenv('V4_SHARED_DATA_ROOT',str(shared))
+    result=v192.at_numeric_completion(None,{'data_date':'20261120'},{'manifest':'fixture'})
+    assert result['status']=='MODEL_NOT_READY'
+
+
 def test_supplement_immutable_reuse_has_zero_new_charge(tmp_path):
     from ops._formula_groups_daily_parts import workbench_supplements as supplements
     root=tmp_path/'out';root.mkdir();value={'v':1}
