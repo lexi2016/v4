@@ -7,6 +7,7 @@ from pathlib import Path
 import plistlib
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -23,9 +24,27 @@ class SimulatedLaunchAgents:
 
     @staticmethod
     def state(role, side):
-        return {"cwd": role[f"{side}_cwd"], "path": str(role["path"]),
-                "loaded_manifest_sha256": role[f"{side}_manifest_sha"],
-                "pid": None if role["role"] == "stage" else 117}
+        state = {"cwd": role[f"{side}_cwd"], "path": str(role["path"]),
+                 "loaded_manifest_sha256": role[f"{side}_manifest_sha"],
+                 "pid": None if role["role"] == "stage" else 117}
+        env = role[f"{side}_cfg"]["EnvironmentVariables"]
+        if switch.POLICY_PATH in env:
+            state["policy"] = {key: env[key] for key in (switch.POLICY_PATH, switch.POLICY_SHA)}
+        return state
+
+    def ctl(self, action, selector):
+        assert action == "print" and selector.startswith("test-domain/")
+        state = self.loaded[selector.removeprefix("test-domain/")]
+        stdout = (
+            f"\tpath = {state['path']}\n"
+            f"\tworking directory = {state['cwd']}\n"
+            f"\tV4_RELEASE_MANIFEST_SHA256 => {state['loaded_manifest_sha256']}\n"
+        )
+        if state["pid"] is not None:
+            stdout += f"\tpid = {state['pid']}\n"
+        stdout += "".join(
+            f"\t{key} => {value}\n" for key, value in state.get("policy", {}).items())
+        return SimpleNamespace(returncode=0, stdout=stdout)
 
     def bootstrap(self, action, domain, path):
         assert (action, domain) == ("bootstrap", "test-domain")
@@ -39,6 +58,8 @@ class SimulatedLaunchAgents:
         role = self.by_path[str(path)]
         state = self.loaded[role["label"]]
         assert role["role"] == name and state["cwd"] == cwd and state["loaded_manifest_sha256"] == manifest_sha
+        if name == "main" and state["pid"] is None:
+            raise RuntimeError("Main failed to become ready")
         return state
 
     def unload(self, role):
@@ -51,7 +72,7 @@ class SimulatedLaunchAgents:
         path.write_bytes(raw)
 
     def helpers(self):
-        return {"DOMAIN": "test-domain", "loaded": self.loaded.get, "verify_loaded": self.verify,
+        return {"DOMAIN": "test-domain", "loaded": self.loaded.get, "verify_loaded": self.verify, "ctl": self.ctl,
                 "role_idle": lambda role: None, "unload": self.unload, "write_atomic": self.write,
                 "scheduler_idle": lambda pid, cfg: None, "run_ctl": self.bootstrap,
                 "manager_root": lambda env, sha: None, "manager_idle": lambda root: 0,
@@ -366,3 +387,202 @@ def test_intent_only_interruption_allows_identical_seal(cohort):
     result = {}
     run(plan, result)
     assert result["status"] == "DEPLOYED"
+
+
+@pytest.fixture
+def policy_rebind(cohort):
+    initial, simulated, original_roles, activation = cohort
+    root = activation.parent
+    main = original_roles[1]
+    initial_pins = {"expected_main_app_root": main["old_cwd"], "source_bindings": ["frozen"]}
+    old_pins = put(root / "old-managed-pins.json", switch.encode(initial_pins))
+    policy = {"governance": {"ordinary_peak_budget_bytes": 261 * 2**30, "registry_root": "/same-registry"},
+              "managed_pin_inventory": old_pins}
+    old_policy = put(root / "old-policy.json", switch.encode(policy))
+    reseal_plist(initial, 1, lambda cfg: cfg["EnvironmentVariables"].update({
+        switch.POLICY_PATH: old_policy["path"], switch.POLICY_SHA: old_policy["sha256"]}))
+    initial_approval = json.loads(Path(initial["review_approval"]["path"]).read_bytes())
+    staged = switch.load_role(initial["roles"][1], initial_approval["roles"]["main"], activation, rollback=False)
+    simulated.by_label[staged["label"]] = staged
+    simulated.by_path[str(staged["path"])] = staged
+    run(initial, {})
+    simulated.changes.clear()
+    active = switch.active_record(activation)
+    original_main_env = staged["new_cfg"]["EnvironmentVariables"]
+    candidate_root = root / "candidates/policy-rebind"
+    pins = put(candidate_root / "control/managed-pins.json", switch.encode({
+        **initial_pins, "expected_main_app_root": staged["new_cwd"]}))
+    proposed = put(candidate_root / "control/policy.json", switch.encode({**policy, "managed_pin_inventory": pins}))
+    forward = put(candidate_root / "forward.plist", plistlib.dumps({
+        **staged["new_cfg"], "EnvironmentVariables": {**original_main_env,
+            switch.POLICY_PATH: proposed["path"], switch.POLICY_SHA: proposed["sha256"]}}))
+    rollback = put(root / "preimage.plist", staged["new"])
+    row = {"role": "main", "rollback_plist": rollback["path"], "candidate_plist": forward["path"],
+           "current_plist_sha256": rollback["sha256"], "candidate_plist_sha256": forward["sha256"],
+           "current_manifest_sha256": staged["new_manifest_sha"],
+           "candidate_manifest_sha256": staged["new_manifest_sha"],
+           "candidate_release_id": original_main_env["V4_RELEASE_ID"],
+           "candidate_storage_policy": proposed, "candidate_managed_pins": pins}
+    approval = {**row, "source_commit": initial_approval["roles"]["main"]["source_commit"]}
+    plan = {**initial, "roles": [row], "transaction_kind": switch.MAIN_POLICY_REBIND,
+            "prior_active_sha256": active["sha256"],
+            "review_approval": put(root / "policy-rebind-approval.json", switch.encode({
+                "verdict": "PASS", "transaction_kind": switch.MAIN_POLICY_REBIND, "roles": {"main": approval}}))}
+    role = switch.load_main_policy_rebind(row, approval, activation, active["sha256"])
+    simulated.by_label[role["label"]] = role
+    simulated.by_path[str(role["path"])] = role
+    return plan, simulated, role, activation, active
+
+
+def test_policy_rebind_keeps_startup_and_companion_role_bytes_and_restores(policy_rebind):
+    plan, simulated, role, activation, prior = policy_rebind
+    old_group = json.loads((activation / "active/group-manifest.json").read_bytes())
+    old_companions = {name: Path(old_group["roles"][name]["path"]).read_bytes() for name in ("api", "stage")}
+    startup = role["old_manifest"].read_bytes()
+
+    def verify_aliases_stay_available(_role, _side):
+        assert switch.active_record(activation) is not None
+        for name, raw in old_companions.items():
+            assert Path(old_group["roles"][name]["path"]).read_bytes() == raw
+
+    simulated.before_bootstrap = verify_aliases_stay_available
+    result = {}
+    run(plan, result)
+    assert result["status"] == "DEPLOYED"
+    assert [change[1] for change in simulated.changes] == ["main", "main"]
+    assert role["old_manifest"].read_bytes() == startup
+    published = json.loads(role["alias"].read_bytes())
+    assert published["main_storage_binding"] == role["policy_rebind"]["new"]
+    assert published["startup_manifest"] == {"path": str(role["old_manifest"]), "sha256": switch.digest(startup)}
+    assert published["plist_sha256"] == switch.digest(role["new"])
+    assert switch.active_record(activation) != prior
+    run(plan, {}, rollback=True)
+    assert switch.active_record(activation) == prior
+    assert role["path"].read_bytes() == role["old"]
+
+
+def test_policy_rebind_verification_failure_restores_main_and_leaves_group(policy_rebind):
+    plan, simulated, role, activation, prior = policy_rebind
+    plan["verification_command"] = [sys.executable, "-B", "-c", "raise SystemExit(29)"]
+    result = {}
+    with pytest.raises(subprocess.CalledProcessError):
+        run(plan, result)
+    assert result["status"] == "ROLLED_BACK"
+    assert switch.active_record(activation) == prior
+    assert role["path"].read_bytes() == role["old"]
+    assert set(change[1] for change in simulated.changes) == {"main"}
+
+
+def test_policy_rebind_rollback_waits_for_exact_new_main_to_drain(policy_rebind, monkeypatch):
+    plan, simulated, role, activation, prior = policy_rebind
+    plan["verification_command"] = [sys.executable, "-B", "-c", "raise SystemExit(29)"]
+    probes = []
+
+    def scheduler_idle(pid, cfg):
+        assert pid == simulated.loaded[role["label"]]["pid"] and cfg == role["new_cfg"]
+        assert role["path"].read_bytes() == role["new"]
+        assert switch.active_record(activation) == prior and (activation / "pending.json").is_file()
+        probes.append(pid)
+        if len(probes) == 1:
+            raise RuntimeError("Main has live child processes: 123")
+
+    monkeypatch.setattr(switch, "load_audited_switch",
+                        lambda _: {**simulated.helpers(), "scheduler_idle": scheduler_idle})
+    result = {}
+    with pytest.raises(subprocess.CalledProcessError):
+        run(plan, result)
+    assert len(probes) == 2 and result["status"] == "ROLLED_BACK"
+    assert role["path"].read_bytes() == role["old"]
+    assert switch.active_record(activation) == prior and not (activation / "pending.json").exists()
+    assert simulated.changes == [("unload", "main"), ("load", "main", "new"),
+                                 ("unload", "main"), ("load", "main", "old")]
+
+
+def test_policy_rebind_busy_rollback_keeps_journal_for_exact_retry(policy_rebind, monkeypatch):
+    plan, simulated, role, activation, prior = policy_rebind
+    plan["verification_command"] = [sys.executable, "-B", "-c", "raise SystemExit(29)"]
+    busy = True
+
+    def scheduler_idle(pid, cfg):
+        if busy:
+            raise RuntimeError("Main dispatch cycle has pending work or unavailable state")
+
+    monkeypatch.setattr(switch, "load_audited_switch",
+                        lambda _: {**simulated.helpers(), "scheduler_idle": scheduler_idle})
+    monkeypatch.setattr(switch, "MAIN_POLICY_ROLLBACK_DRAIN_SECONDS", 0)
+    result = {}
+    with pytest.raises(subprocess.CalledProcessError):
+        run(plan, result)
+    assert result["status"] == "ROLLBACK_INCOMPLETE" and "--rollback-reviewed" in result["rollback_error"]
+    assert role["path"].read_bytes() == role["new"]
+    assert switch.active_record(activation) == prior and (activation / "pending.json").is_file()
+    assert simulated.changes == [("unload", "main"), ("load", "main", "new")]
+
+    busy = False
+    restored = {}
+    run(plan, restored, rollback=True)
+    assert restored["status"] == "ROLLED_BACK"
+    assert role["path"].read_bytes() == role["old"]
+    assert switch.active_record(activation) == prior and not (activation / "pending.json").exists()
+
+
+def test_policy_rebind_restores_exact_dormant_candidate_after_bootstrap_failure(policy_rebind, monkeypatch):
+    plan, simulated, role, activation, prior = policy_rebind
+    running_state = simulated.state
+
+    def candidate_crashes(loaded_role, side):
+        state = running_state(loaded_role, side)
+        if loaded_role["role"] == "main" and side == "new":
+            state["pid"] = None
+        return state
+
+    monkeypatch.setattr(simulated, "state", candidate_crashes)
+    result = {}
+    with pytest.raises(RuntimeError, match="Main failed to become ready"):
+        run(plan, result)
+    assert result["status"] == "ROLLED_BACK"
+    assert switch.active_record(activation) == prior
+    assert role["path"].read_bytes() == role["old"]
+    assert simulated.changes == [("unload", "main"), ("load", "main", "new"),
+                                 ("unload", "main"), ("load", "main", "old")]
+
+
+@pytest.mark.parametrize("foreign", ["\tpid = 999\n", "\tpath = /foreign/main.plist\n"])
+def test_policy_rebind_rejects_ambiguous_dormant_launchctl_readback(policy_rebind, foreign):
+    _, simulated, role, _, _ = policy_rebind
+    simulated.loaded[role["label"]]["pid"] = None
+    ops = simulated.helpers()
+    read = ops["ctl"]
+
+    def conflicting(*args):
+        result = read(*args)
+        result.stdout += foreign
+        return result
+
+    ops["ctl"] = conflicting
+    with pytest.raises(RuntimeError, match="Main changed during policy readback"):
+        switch.loaded_role(ops, role)
+
+
+def test_policy_rebind_ready_verification_rejects_exit_before_policy_readback(policy_rebind):
+    _, simulated, role, _, _ = policy_rebind
+    ops = simulated.helpers()
+    ready = ops["verify_loaded"]
+
+    def exits_after_readiness(*args):
+        verified = dict(ready(*args))
+        simulated.loaded[role["label"]]["pid"] = None
+        return verified
+
+    ops["verify_loaded"] = exits_after_readiness
+    with pytest.raises(RuntimeError, match="Main loaded policy or ready PID mismatch"):
+        switch.verify(ops, role, "old")
+
+
+def test_policy_rebind_rejects_extra_environment_even_after_resealing(policy_rebind):
+    plan, simulated, _, activation, prior = policy_rebind
+    reseal_plist(plan, 0, lambda cfg: cfg["EnvironmentVariables"].update(UNAPPROVED="new"))
+    with pytest.raises(RuntimeError, match="may only change policy path and SHA"):
+        run(plan, {})
+    assert switch.active_record(activation) == prior
+    assert simulated.changes == []

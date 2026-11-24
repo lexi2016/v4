@@ -11,6 +11,7 @@ import plistlib
 import re
 import signal
 import subprocess
+import time
 from contextlib import ExitStack
 from datetime import datetime
 from uuid import uuid4
@@ -20,6 +21,10 @@ from infrastructure.owned_io import SafeRoot
 
 
 GROUP = ("api", "main", "stage")
+MAIN_POLICY_REBIND = "main_policy_rebind"
+MAIN_POLICY_ROLLBACK_DRAIN_SECONDS = 45
+POLICY_PATH = "V4_RESEARCH_RETENTION_POLICY"
+POLICY_SHA = "V4_RESEARCH_RETENTION_POLICY_SHA256"
 ROOT = Path.home() / "Library/Application Support/com.lexi.v4.local"
 LABELS = {
     "api": "com.lexi.v4.api",
@@ -206,6 +211,100 @@ def active_record(directory):
     return release_record(directory, link(directory / "active"))
 
 
+def policy_binding(cfg, app):
+    env = cfg["EnvironmentVariables"]
+    policy_ref = {"path": env[POLICY_PATH], "sha256": env[POLICY_SHA]}
+    policy = json.loads(checked(policy_ref["path"], policy_ref["sha256"]))
+    pins_ref = policy["managed_pin_inventory"]
+    pins = json.loads(checked(pins_ref["path"], pins_ref["sha256"]))
+    binding = {"schema_version": "v4.main_storage_binding.v1", "app_root": str(app),
+               "policy_path": policy_ref["path"], "policy_sha256": policy_ref["sha256"],
+               "managed_pin_inventory_path": pins_ref["path"], "managed_pin_inventory_sha256": pins_ref["sha256"]}
+    return binding, policy, pins
+
+
+def load_main_policy_rebind(row, approval, directory, prior_sha):
+    name, label = "main", LABELS["main"]
+    path = LAUNCH_AGENTS / f"{label}.plist"
+    require(all(row[key] == approval[key] for key in (
+        "candidate_release_id", "candidate_plist_sha256", "candidate_manifest_sha256",
+        "candidate_storage_policy", "candidate_managed_pins",
+    )), "Main policy rebind plan/review mismatch")
+    old = checked(row["rollback_plist"], row["current_plist_sha256"])
+    new_path = exact_path(row["candidate_plist"])
+    new_path.parent.relative_to(CANDIDATES)
+    new = checked(new_path, row["candidate_plist_sha256"])
+    old_cfg, new_cfg = plistlib.loads(old), plistlib.loads(new)
+    old_env = old_cfg["EnvironmentVariables"]
+    new_env = new_cfg["EnvironmentVariables"]
+    rebound = {**old_cfg, "EnvironmentVariables": {
+        **old_env, POLICY_PATH: new_env[POLICY_PATH], POLICY_SHA: new_env[POLICY_SHA],
+    }}
+    require(old_cfg["Label"] == label and new_cfg == rebound and old != new,
+            "Main policy rebind may only change policy path and SHA")
+    startup_sha = row["current_manifest_sha256"]
+    require(row["candidate_manifest_sha256"] == startup_sha, "Main startup identity changed")
+    app, manifest, startup_data = startup(old_cfg, startup_sha, candidate=True)
+    release_id = row["candidate_release_id"]
+    require(release_id == app.parent.name == startup_data["release_id"]
+            and startup_data["source_commit"] == approval["source_commit"],
+            "Main policy rebind startup identity mismatch")
+    old_binding, old_policy, old_pins = policy_binding(old_cfg, app)
+    new_binding, new_policy, new_pins = policy_binding(new_cfg, app)
+    require(row["candidate_storage_policy"] == {"path": new_env[POLICY_PATH], "sha256": new_env[POLICY_SHA]}
+            and row["candidate_managed_pins"] == new_policy["managed_pin_inventory"]
+            and Path(new_env[POLICY_PATH]) == new_path.parent / "control/policy.json"
+            and Path(new_binding["managed_pin_inventory_path"]) == new_path.parent / "control/managed-pins.json",
+            "Main policy rebind detached control references disagree")
+    require(new_policy == {**old_policy, "managed_pin_inventory": row["candidate_managed_pins"]}
+            and new_policy["governance"]["ordinary_peak_budget_bytes"] == 261 * 2**30
+            and new_pins == {**old_pins, "expected_main_app_root": str(app)}
+            and old_pins["expected_main_app_root"] != str(app),
+            "Main policy rebind changed governance semantics")
+    alias = app.parent / "release-manifest.json"
+    require(link(alias) == str(directory / "active" / release_id / alias.name),
+            "Main policy rebind requires existing active role alias")
+    return {"role": name, "label": label, "path": path, "old": old, "new": new,
+            "old_cfg": old_cfg, "new_cfg": new_cfg, "old_cwd": str(app), "new_cwd": str(app),
+            "old_manifest": manifest, "new_manifest": manifest, "old_manifest_sha": startup_sha,
+            "new_manifest_sha": startup_sha, "alias": alias, "prior_active_sha": prior_sha,
+            "policy_rebind": {"old": old_binding, "new": new_binding}}
+
+
+def main_rebind_group(ops, directory, prior, role):
+    require(prior is not None and prior["sha256"] == role["prior_active_sha"],
+            "Main policy rebind has no matching prior group")
+    root = directory / prior["target"]
+    group = json.loads(checked(root / "group-manifest.json", prior["sha256"]))
+    entries = {}
+    for name, entry in group["roles"].items():
+        release_id = entry["release_id"]
+        raw = checked(root / release_id / "release-manifest.json", entry["sha256"])
+        identity = json.loads(raw)
+        plist = LAUNCH_AGENTS / f"{LABELS[name]}.plist"
+        require(identity["role"] == name and identity["release_id"] == release_id
+                and identity["plist_path"] == str(plist),
+                f"invalid prior ACTIVE role identity: {name}")
+        if name == "main":
+            require(identity["plist_sha256"] == digest(role["old"])
+                    and identity["startup_manifest"] == {"path": str(role["old_manifest"]),
+                                                          "sha256": role["old_manifest_sha"]}
+                    and identity["app_root"] == role["old_cwd"]
+                    and entry["path"] == str(role["alias"]),
+                    "Main policy rebind preimage does not match ACTIVE role")
+        else:
+            cfg = plistlib.loads(checked(plist, identity["plist_sha256"]))
+            app, manifest, data = startup(cfg, identity["startup_manifest"]["sha256"], candidate=True)
+            require(identity["app_root"] == str(app)
+                    and identity["startup_manifest"]["path"] == str(manifest)
+                    and data["release_id"] == release_id
+                    and link(Path(entry["path"])) == str(directory / "active" / release_id / "release-manifest.json"),
+                    f"companion role identity drift: {name}")
+            ops["verify_loaded"](name, str(app), plist, identity["startup_manifest"]["sha256"])
+        entries[name] = (entry, raw)
+    return entries
+
+
 def sync_directory(directory):
     fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
     try:
@@ -231,23 +330,64 @@ def switch_pointer(directory, expected, target):
     require(link(pointer) == target, "active release pointer readback mismatch")
 
 
+def loaded_role(ops, role):
+    state = ops["loaded"](role["label"])
+    if state and "policy_rebind" in role:
+        result = ops["ctl"]("print", f"{ops['DOMAIN']}/{role['label']}")
+        # A failed bootstrap can leave the exact LaunchAgent registered without
+        # a PID. Match the registration and optional PID before trusting its
+        # configured policy, so this state can be rolled back.
+        registration = {
+            "path = ": [state["path"]],
+            "working directory = ": [state["cwd"]],
+            "V4_RELEASE_MANIFEST_SHA256 => ": [state["loaded_manifest_sha256"]],
+            "pid = ": [] if state["pid"] is None else [str(state["pid"])],
+        }
+
+        def read_field(prefix):
+            return re.findall(rf"^[ \t]*{re.escape(prefix)}([^\r\n]*)$", result.stdout, re.M)
+
+        require(result.returncode == 0 and all(read_field(prefix) == expected
+                for prefix, expected in registration.items()), "Main changed during policy readback")
+        values = {}
+        for key in (POLICY_PATH, POLICY_SHA):
+            lines = read_field(f"{key} => ")
+            require(len(lines) == 1 and lines[0], f"Main loaded policy identity missing: {key}")
+            values[key] = lines[0]
+        state = {**state, "policy": values}
+    return state
+
+
 def state_matches(state, role, side):
-    return (state is not None and state["cwd"] == role[f"{side}_cwd"] and state["path"] == str(role["path"])
-            and state["loaded_manifest_sha256"] == role[f"{side}_manifest_sha"])
+    if not (state is not None and state["cwd"] == role[f"{side}_cwd"] and state["path"] == str(role["path"])
+            and state["loaded_manifest_sha256"] == role[f"{side}_manifest_sha"]):
+        return False
+    if "policy_rebind" not in role:
+        return True
+    expected = role["policy_rebind"][side]
+    return state["policy"] == {POLICY_PATH: expected["policy_path"], POLICY_SHA: expected["policy_sha256"]}
 
 
 def verify(ops, role, side):
     expected = role[side]
     require(exact_path(role["path"]).read_bytes() == expected, f"live plist drift: {role['role']}")
     checked(role[f"{side}_manifest"], role[f"{side}_manifest_sha"])
-    return ops["verify_loaded"](role["role"], role[f"{side}_cwd"], role["path"], role[f"{side}_manifest_sha"])
+    state = ops["verify_loaded"](role["role"], role[f"{side}_cwd"], role["path"], role[f"{side}_manifest_sha"])
+    if "policy_rebind" in role:
+        binding, _, _ = policy_binding(role[f"{side}_cfg"], Path(role[f"{side}_cwd"]))
+        require(binding == role["policy_rebind"][side], "Main policy binding drift")
+        observed = loaded_role(ops, role)
+        require(state_matches(observed, role, side) and observed["pid"] is not None
+                and observed["pid"] == state["pid"], f"Main loaded policy or ready PID mismatch: {side}")
+        return observed
+    return state
 
 
 def install_group(ops, roles, plan):
     # Unload dependency consumers before the Main daemon. Restore/start in forward order.
     for role in reversed(roles):
         ops["role_idle"](role)
-        require(state_matches(ops["loaded"](role["label"]), role, "old"), f"loaded preimage drift: {role['role']}")
+        require(state_matches(loaded_role(ops, role), role, "old"), f"loaded preimage drift: {role['role']}")
         ops["unload"](role)
     for role in roles:
         ops["write_atomic"](role["path"], role["new"], role["old"])
@@ -258,12 +398,23 @@ def install_group(ops, roles, plan):
     return {role["role"]: verify(ops, role, "new") for role in roles}
 
 
-def publish(io, directory, target, roles, observations, plan_sha):
+def publish(io, directory, target, roles, observations, plan_sha, *, prior=None, carried=None):
     manifests = {}
     activated_at = now()
     status = {"activation_status": "ACTIVE", "deployment_status": "LIVE",
               "plan_sha256": plan_sha, "activated_at": activated_at}
-    for role in roles:
+    if carried is not None:
+        main = roles[0]
+        for name, (entry, raw) in carried.items():
+            if name == "main":
+                identity = json.loads(raw)
+                identity.update(status, plist_sha256=digest(main["new"]), loaded=observations["main"],
+                                main_storage_binding=main["policy_rebind"]["new"])
+                raw = encode(identity)
+                entry = {**entry, "sha256": digest(raw)}
+            io.write_bytes(f"{target}/{entry['release_id']}/release-manifest.json", raw, require_absent=True)
+            manifests[name] = entry
+    for role in roles if carried is None else ():
         identifier = role["identity"]["release_id"]
         # Reconfirm approved bytes after all role probes and before publication.
         startup_manifest = json.loads(checked(role["new_manifest"], role["new_manifest_sha"]))
@@ -276,7 +427,7 @@ def publish(io, directory, target, roles, observations, plan_sha):
     raw = encode({**status, "roles": manifests})
     io.write_bytes(f"{target}/group-manifest.json", raw, require_absent=True)
     sync_directory((directory / target).parent)
-    switch_pointer(directory, None, target)
+    switch_pointer(directory, prior["target"] if carried is not None else None, target)
     observed = active_record(directory)
     require(observed == {"target": target, "sha256": digest(raw)}, "publication readback mismatch")
     for entry in manifests.values():
@@ -305,6 +456,36 @@ def protect_roles(ops, roles, plan, locks, result, *, rollback):
     require(config["research_owner_binding"] == binding, "reviewed Stage does not bind new Main startup")
 
 
+def wait_main_rebind_idle(ops, role):
+    deadline = time.monotonic() + MAIN_POLICY_ROLLBACK_DRAIN_SECONDS
+    while True:
+        require(exact_path(role["path"]).read_bytes() == role["new"], "Main rollback plist changed during drain")
+        state = loaded_role(ops, role)
+        if state is None:
+            return None
+        require(state_matches(state, role, "new"), "Main rollback registration changed during drain")
+        if state["pid"] is None:
+            return state
+        try:
+            ops["scheduler_idle"](state["pid"], role["new_cfg"])
+        except RuntimeError as error:
+            reason = str(error)
+            if (not reason.startswith("Main has live child processes:")
+                    and reason != "Main dispatch cycle has pending work or unavailable state"):
+                raise
+        else:
+            if loaded_role(ops, role) == state:
+                return state
+            reason = "Main registration changed after the idle check"
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError(
+                f"Main rollback pending after drain deadline ({reason}). "
+                "Retry --rollback-reviewed with the same sealed plan once Main is idle."
+            )
+        time.sleep(min(1, remaining))
+
+
 def restore_group(ops, roles, directory, target, prior):
     current = link(directory / "active")
     prior_target = prior["target"] if prior else None
@@ -313,7 +494,7 @@ def restore_group(ops, roles, directory, target, prior):
     # or plist bytes are left in place with the recovery journal intact.
     states = {}
     for role in roles:
-        state = ops["loaded"](role["label"])
+        state = loaded_role(ops, role)
         payload = exact_path(role["path"]).read_bytes()
         require(payload in (role["old"], role["new"]), f"rollback plist drift: {role['role']}")
         if state is not None:
@@ -322,9 +503,13 @@ def restore_group(ops, roles, directory, target, prior):
             if side == "new" and role["role"] == "stage":
                 require(not state["pid"], "Stage job is running")
             if side == "new" and role["role"] == "main" and state["pid"]:
-                ops["scheduler_idle"](state["pid"], role["new_cfg"])
+                if "policy_rebind" in role:
+                    state = wait_main_rebind_idle(ops, role)
+                else:
+                    ops["scheduler_idle"](state["pid"], role["new_cfg"])
         states[role["role"]] = (state, payload)
-    if current == target:
+    policy_rebind = "policy_rebind" in roles[0]
+    if current == target and not policy_rebind:
         switch_pointer(directory, target, None)
     for role in reversed(roles):
         state, payload = states[role["role"]]
@@ -339,7 +524,7 @@ def restore_group(ops, roles, directory, target, prior):
             ops["run_ctl"]("bootstrap", ops["DOMAIN"], str(role["path"]))
         observations[role["role"]] = verify(ops, role, "old")
     if link(directory / "active") != prior_target:
-        switch_pointer(directory, None, prior_target)
+        switch_pointer(directory, target if current == target and policy_rebind else None, prior_target)
     require(active_record(directory) == prior, "prior active release readback mismatch")
     return observations
 
@@ -378,6 +563,9 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
     require(pending is None, "pending activation requires --rollback-reviewed")
     prior = active_record(directory)
     require((prior["sha256"] if prior else None) == plan["prior_active_sha256"], "prior active release drift")
+    policy_rebind = "policy_rebind" in roles[0]
+    if policy_rebind:
+        main_rebind_group(ops, directory, prior, roles[0])
     for role in roles:
         verify(ops, role, "old")
         ops["role_idle"](role)
@@ -389,10 +577,15 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
         require(io.read_bytes(intent_path) == intent_raw, "activation intent changed")
     io.write_bytes(pending_path, pending_raw, require_absent=True)
     try:
-        if prior is not None:
+        if prior is not None and not policy_rebind:
             switch_pointer(directory, prior["target"], None)
         observations = install_group(ops, roles, plan)
-        result["active_release"] = publish(io, directory, target, roles, observations, plan_sha)
+        if policy_rebind:
+            carried = main_rebind_group(ops, directory, prior, roles[0])
+            result["active_release"] = publish(io, directory, target, roles, observations, plan_sha,
+                                               prior=prior, carried=carried)
+        else:
+            result["active_release"] = publish(io, directory, target, roles, observations, plan_sha)
         require(io.unlink_if_same(pending_path, pending_raw), "activation journal drift")
         result["status"] = "DEPLOYED"
     except BaseException as error:
@@ -410,7 +603,10 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
 
 def run(plan, plan_sha, result, *, rollback):
     group = tuple(row["role"] for row in plan["roles"])
-    require(group == GROUP, "expected exact API/Main/Stage role group and order")
+    kind = plan.get("transaction_kind")
+    policy_rebind = kind == MAIN_POLICY_REBIND
+    require((kind is None and group == GROUP) or (policy_rebind and group == ("main",)),
+            "expected exact API/Main/Stage role group and order or reviewed Main policy rebind")
     if not rollback:
         command = plan.get("verification_command")
         require(isinstance(command, list) and command and command[0]
@@ -418,7 +614,8 @@ def run(plan, plan_sha, result, *, rollback):
                 "activation requires a sealed nonempty verification argv")
     reference = plan["review_approval"]
     approval = json.loads(checked(reference["path"], reference["sha256"]))
-    require(approval["verdict"] == "PASS" and set(approval["roles"]) == set(GROUP), "group review mismatch")
+    require(approval["verdict"] == "PASS" and set(approval["roles"]) == set(group)
+            and approval.get("transaction_kind") == kind, "group review mismatch")
     directory = exact_path(plan["activation_directory"], directory=True)
     directory.relative_to(ROOT)
     require(directory.stat().st_uid == os.getuid() and not directory.stat().st_mode & 0o077,
@@ -431,10 +628,14 @@ def run(plan, plan_sha, result, *, rollback):
             exact_path(prefix.with_name(prefix.name + ".mutex"))
             locks.enter_context(owned_interprocess_lock(prefix, timeout_seconds=8,
                                                        timeout_message=f"V4 release lock busy: {role}"))
-        roles = [load_role(row, approval["roles"][row["role"]], directory, rollback=rollback)
-                 for row in plan["roles"]]
-        require(len({role["identity"]["release_id"] for role in roles}) == len(GROUP), "duplicate release ID")
-        protect_roles(ops, roles, plan, locks, result, rollback=rollback)
+        if policy_rebind:
+            roles = [load_main_policy_rebind(plan["roles"][0], approval["roles"]["main"], directory,
+                                             plan["prior_active_sha256"])]
+        else:
+            roles = [load_role(row, approval["roles"][row["role"]], directory, rollback=rollback)
+                     for row in plan["roles"]]
+            require(len({role["identity"]["release_id"] for role in roles}) == len(GROUP), "duplicate release ID")
+            protect_roles(ops, roles, plan, locks, result, rollback=rollback)
         transact(ops, roles, plan, plan_sha, directory, result, rollback=rollback)
 
 
