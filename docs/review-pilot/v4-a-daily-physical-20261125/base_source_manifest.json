@@ -1,0 +1,30 @@
+{
+  "active_app_manifest_sha256": "34b221d46f982cb4419fe4840e37fea067c863a810728b1a44ee067b28ec8bfc",
+  "active_code_root_at_capture": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-r2-rollup-20261124-main-r1/app",
+  "active_release_id": "v4-r2-rollup-20261124-main-r1",
+  "active_release_manifest_sha256": "b25b66243bdd4371877b40b82c839b7533beaedb1c241bdf34ab27cfe508d202",
+  "files": {
+    "infrastructure/scheduling/executor_registry.py": {
+      "after_sha256": "5d4fc861887c6beccdbcd836baaf5d776fe96c0ea8f0232e45bd83ac0e82702b",
+      "before_sha256": "887d13742ed4ac515a46e79de02b492270b0fa027aab9f665aa5c81a0a55b4df"
+    },
+    "infrastructure/scheduling/executor_registry_review.py": {
+      "after_sha256": "6e192ec92d9e3b5f0bdcee205a392c59635fb80c69075405113c83bed5f8e776",
+      "before_sha256": "3402f3525d55387d79a0c7d6686f41d5fc07125f73ae6f414fc537b80c36cbda"
+    },
+    "ops/macos_research_panel_daily_authority.py": {
+      "after_sha256": "f5695c9fb243c4121225dab046626adde17a03e2375166b8945c79365fed512a",
+      "before_sha256": "72470162baf97a96981d93f75885922c7e6a8382c799729a9ec15662f4659dce"
+    },
+    "ops/research_a_daily_physical.py": {
+      "after_sha256": "759258af21bd2732fa3df455d62733bade247652fdfec7803993d941298d8329",
+      "before_sha256": null
+    }
+  },
+  "patch_name": "active-main.patch",
+  "patch_sha256": "15c01ee969633d0a2ea7193f1bb1a65c9555f83bb1f824a255a8f81b100df943",
+  "production_writes": false,
+  "repository_base_commit": "c517f2d94",
+  "role": "Main",
+  "schema": "v4.a_daily_physical_exact_role_patch.v1"
+}

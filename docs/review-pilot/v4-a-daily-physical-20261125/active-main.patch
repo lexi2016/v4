@@ -1,0 +1,555 @@
+diff --git a/infrastructure/scheduling/executor_registry.py b/infrastructure/scheduling/executor_registry.py
+--- a/infrastructure/scheduling/executor_registry.py
++++ b/infrastructure/scheduling/executor_registry.py
+@@ -268,7 +268,8 @@
+ 
+ 
+ def _read_exact_dated_receipt(
+-    module: str, arguments: list[str], *, allow_a_failure: bool = False, allow_missing_a_start: bool = False
++    module: str, arguments: list[str], *, allow_a_failure: bool = False,
++    allow_missing_a_start: bool = False, receipt_reference: dict[str, str] | None = None,
+ ) -> tuple[dict[str, Any] | None, str | None]:
+     """Read the fixed daily-panel receipt only as a bounded fallback seam."""
+ 
+@@ -295,7 +296,17 @@
+                 return None, "EXACT_DATED_RECEIPT_MISSING"
+         if path.is_symlink() or not path.is_file():
+             return None, "EXACT_DATED_RECEIPT_UNAVAILABLE"
+-        payload = _strict_json_object(path.read_text(encoding="utf-8-sig"))
++        if receipt_reference is None:
++            payload = _strict_json_object(path.read_text(encoding="utf-8-sig"))
++        else:
++            before = path.lstat()
++            raw = path.read_bytes()
++            after = path.lstat()
++            if path.is_symlink() or (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
++                after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns
++            ):
++                return None, "EXACT_DATED_RECEIPT_CHANGED"
++            payload = _strict_json_object(raw.decode("utf-8-sig"))
+     except (OSError, UnicodeError, TypeError, ValueError, json.JSONDecodeError):
+         return None, "EXACT_DATED_RECEIPT_INVALID"
+     if payload.get("schema_version") != "v3.macos.research_panel_receipt.v1":
+@@ -346,6 +357,8 @@
+             binding_error = "EXACT_HK_RECEIPT_ARTIFACT_BINDING_INVALID"
+         if binding_error is not None:
+             return None, binding_error
++    if receipt_reference is not None:
++        receipt_reference.update(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
+     return payload, None
+ 
+ 
+@@ -739,6 +752,14 @@
+         }
+ 
+     def _run_a_daily(self, request):
++        if request.mode.value != "LIVE":
++            return self._run_a_daily_chain(request)
++        from ops.research_a_daily_physical import scheduled_storage
++
++        with scheduled_storage():
++            return self._run_a_daily_chain(request)
++
++    def _run_a_daily_chain(self, request):
+         failed = None
+         try:
+             result = self._run_a_daily_source(request)
+@@ -786,16 +807,19 @@
+ 
+         from ops.research_panel_top200 import complete_daily_derivatives
+         from ops.research_storage_governance import governed_product
++        self._check_a_daily_physical_space()
+         try:
+             derivatives = governed_product(complete_daily_derivatives, Path(data), int(request.business_date), Path(root)/"daily_products/a_share", Path(receipts), Path(classification), upstream_failure)
+         except Exception:
+             # The previous order attempted formula/F10 before Top200. Preserve
+             # that completion attempt while propagating the original owner error.
+             try:
++                self._check_a_daily_physical_space()
+                 complete_groups()
+             except Exception:
+                 pass
+             raise
++        self._check_a_daily_physical_space()
+         formula_groups = complete_groups()
+         completed = {**result, "daily_derivatives": derivatives, "formula_groups": formula_groups}
+         if failed is not None:
+@@ -838,7 +862,7 @@
+                                 if not data_root:
+                                     raise ValueError("A_DAILY_CHART_OWNER_ROOT_MISSING")
+                                 product_root = Path(os.environ["V4_A_SHARE_DAILY_PRODUCT_ROOT"])/"daily_products/a_share"
+-                                from ops.research_panel_daily_product import checked, materialize_daily_product
++                                from ops.research_panel_daily_product import checked, materialize_daily_product, reference
+                                 from ops.research_storage_governance import governed_product
+                                 from ops.research_panel_qfq import panel_contract
+                                 # validate_a_receipt already verified the paired files.
+@@ -859,6 +883,11 @@
+                                         footer["adjustment_snapshot"]["sha256"] != footer["snapshot_file_sha256"] or
+                                         back_footer["adjustment_snapshot"] != footer["adjustment_snapshot"]):
+                                     raise ValueError("PAIRED_SOURCE_FOOTER_IDENTITY_CONFLICT")
++                                from ops.research_a_daily_physical import pair_reference, physical_mode
++                                physical = physical_mode()
++                                if physical:
++                                    pair_reference(data_root, int(request.business_date), authority,
++                                                   {role: receipt[role] for role in ("selector", "backtest")})
+                                 expected_identity = dict(generation=authority["generation_id"],
+                                     input_sha256=authority["source_sha256"], snapshot=footer["adjustment_snapshot"],
+                                     selector_artifact_sha256=receipt["selector_sha256"], asof=int(request.business_date),
+@@ -870,7 +899,19 @@
+                                     product = json.loads(checked(manifest["artifact"]).read_bytes())
+                                     if product["data_date"] != request.business_date or product["sample_only"] is not False:
+                                         raise ValueError("EXISTING_DAILY_PRODUCT_DATE_OR_SCOPE_CONFLICT")
+-                                    if (product["source_identity"] != expected_identity or
++                                    identity = expected_identity
++                                    if physical:
++                                        from ops.research_panel_reader_compat import semantic_reader_identity
++
++                                        reader = reference(Path(selector).with_name("DATA_LAYER_INTERFACE.py"))
++                                        provenance = product["source_identity"]["reader_provenance"]
++                                        transport = provenance["transport_equivalence"]
++                                        proof = checked(transport["equivalence_proof"]) if transport is not None else None
++                                        _, verified = semantic_reader_identity(reader, product["source_config"], proof_path=proof)
++                                        identity = {**expected_identity, "reader_provenance": {
++                                            "actual_reader": reader, "transport_equivalence": verified,
++                                        }}
++                                    if (product["source_identity"] != identity or
+                                             product["source_generation"] != expected_identity["generation"] or
+                                             manifest["source_generation"] != expected_identity["generation"] or
+                                             manifest["input_sha256"] != expected_identity["input_sha256"] or
+@@ -885,7 +926,11 @@
+                                             chart_receipt.get("status") != "OWNER_CHARTS_COMPLETED"):
+                                         raise ValueError("EXISTING_DAILY_CHART_LEAF_INCOMPLETE")
+                                     for sample in samples.values():
+-                                        if any(not Path(sample[kind]["path"]).is_file() for kind in ("html", "PNG", "projection")):
++                                        required = ("html", "PNG", "projection")
++                                        if (physical and sample.get("PNG") is None
++                                                and sample.get("png_export") == "ON_USER_REQUEST_CANVAS"):
++                                            required = ("html", "projection")
++                                        if any(not Path(sample[kind]["path"]).is_file() for kind in required):
+                                             raise ValueError("EXISTING_DAILY_CHART_ASSET_MISSING")
+                                     if (Path(selector).read_bytes() != selector_bytes or
+                                             Path(backtest).read_bytes() != backtest_bytes):
+@@ -897,6 +942,7 @@
+                                     # The paired source is already valid. Resume its exact
+                                     # original materializer/checkpoints, without invoking
+                                     # collection or formula-source generation a second time.
++                                    self._check_a_daily_physical_space()
+                                     recovered = governed_product(materialize_daily_product, data_root=data_root,
+                                         target=int(request.business_date), output_root=product_root)
+                                     leaf = {**saved_leaf(), "recovered_by_original_materializer": True,
+@@ -933,9 +979,22 @@
+                     failure = self._failure_result("research_panel_daily_a", [], "A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
+                     failure.update(failure_class="UPSTREAM_NOT_READY", reason="A_DAILY_OUTSIDE_WINDOW_ALERT_ONLY")
+                     raise WorkloadExecutionError(failure)
++            self._check_a_daily_physical_space()
+             return self._research_panel_daily(request, lane="A")
+         finally:
+             self._active_workload_id = previous_workload_id
++
++    def _check_a_daily_physical_space(self):
++        from ops.macos_research_panel_daily_common import SnapshotGateError
++        from ops.research_a_daily_physical import physical_mode, require_configured_space
++
++        try:
++            if physical_mode():
++                require_configured_space()
++        except (OSError, SnapshotGateError) as error:
++            failure = self._failure_result("research_panel_daily_a", [], str(error))
++            failure.update(reason=str(error), failure_class="UPSTREAM_NOT_READY")
++            raise WorkloadExecutionError(failure) from error
+ 
+     def __call__(
+         self,
+diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastructure/scheduling/executor_registry_review.py
+--- a/infrastructure/scheduling/executor_registry_review.py
++++ b/infrastructure/scheduling/executor_registry_review.py
+@@ -99,7 +99,7 @@
+ 
+ 
+ def _verified_natural_receipt(receipt: Any, dispatch: dict[str, Any] | None, date: str) -> bool:
+-    """Require raw-provider and finished-QFQ claim facts before true flags."""
++    """Require the raw provider and exact finished QFQ in this dispatch."""
+     if not isinstance(receipt, dict) or dispatch is None:
+         return False
+     sync = receipt.get("sync")
+@@ -116,22 +116,8 @@
+     provider_run_id = provider.get("provider_run_id")
+     generation = authority.get("generation_id")
+     input_sha = authority.get("source_sha256")
+-    refs = (qfq.get("candidate_receipt"), qfq.get("ready_receipt"))
+-    try:
+-        from ops.qfq_directory_contract import validate_qfq_generation_directory
+-        return_root, run_dir = validate_qfq_generation_directory(
+-            qfq.get("return_root"), qfq.get("run_dir"), generation)
+-    except (OSError, TypeError, ValueError):
+-        return False
+-    if (qfq.get("return_root") != str(return_root)
+-            or qfq.get("run_dir") != str(run_dir)
+-            or not isinstance(refs[0], dict) or not isinstance(refs[1], dict)
+-            or refs[0].get("path") != str(run_dir / "candidate_receipt.json")
+-            or refs[1].get("path") != str(run_dir / "stage_status.json")):
+-        return False
+-    return bool(
+-        receipt.get("status") == "READY"
+-        and str(receipt.get("target_date")) == date
++    if not (
++        str(receipt.get("target_date")) == date
+         and sync.get("target_date") in {date, int(date)}
+         and sync.get("natural_dispatch_context") == dispatch
+         and provider.get("schema") == "v4.natural_source_provider_invocation.v1"
+@@ -146,6 +132,33 @@
+         and isinstance(producer, dict)
+         and type(producer.get("pid")) is int and producer.get("pid") > 0
+         and isinstance(producer.get("started"), str) and bool(producer.get("started"))
++        and qfq.get("already_current") is False
++        and qfq.get("dispatch") == dispatch
++        and qfq.get("provider_invocation") == provider
++        and qfq.get("target_date") == date
++        and qfq.get("generation_id") == generation
++        and qfq.get("input_sha256") == input_sha
++        and isinstance(generation, str) and re.fullmatch(r"[0-9a-f]{64}", generation)
++        and isinstance(input_sha, str) and re.fullmatch(r"[0-9a-f]{64}", input_sha)
++    ):
++        return False
++    refs = (qfq.get("candidate_receipt"), qfq.get("ready_receipt"))
++    try:
++        from ops.qfq_directory_contract import validate_qfq_generation_directory
++        return_root, run_dir = validate_qfq_generation_directory(
++            qfq.get("return_root"), qfq.get("run_dir"), generation)
++    except (OSError, TypeError, ValueError):
++        return False
++    if (qfq.get("return_root") != str(return_root)
++            or qfq.get("run_dir") != str(run_dir)
++            or not isinstance(refs[0], dict) or not isinstance(refs[1], dict)
++            or refs[0].get("path") != str(run_dir / "candidate_receipt.json")
++            or refs[1].get("path") != str(run_dir / "stage_status.json")):
++        return False
++    if qfq.get("schema") == "v4.qfq_natural_physical_execution.v1":
++        return _verified_physical_qfq(receipt, qfq, date, authority)
++    return bool(
++        receipt.get("status") == "READY"
+         and qfq.get("schema") == "v4.qfq_natural_execution.v2"
+         and qfq.get("status") == "CLAIM_FINISHED_READY"
+         and type(qfq.get("attempt")) is int and qfq.get("attempt") > 0
+@@ -153,15 +166,7 @@
+         and re.fullmatch(r"[0-9a-f]{64}", qfq.get("task_key", ""))
+         and isinstance(qfq.get("claim_token_sha256"), str)
+         and re.fullmatch(r"[0-9a-f]{64}", qfq.get("claim_token_sha256", ""))
+-        and qfq.get("already_current") is False
+-        and qfq.get("dispatch") == dispatch
+-        and qfq.get("provider_invocation") == provider
+         and owner == producer
+-        and qfq.get("target_date") == date
+-        and qfq.get("generation_id") == generation
+-        and qfq.get("input_sha256") == input_sha
+-        and isinstance(generation, str) and re.fullmatch(r"[0-9a-f]{64}", generation)
+-        and isinstance(input_sha, str) and re.fullmatch(r"[0-9a-f]{64}", input_sha)
+         and isinstance(qfq.get("registry_row_sha256"), str)
+         and re.fullmatch(r"[0-9a-f]{64}", qfq.get("registry_row_sha256", ""))
+         and len(refs) == 2
+@@ -169,6 +174,26 @@
+                 and isinstance(ref.get("sha256"), str)
+                 and re.fullmatch(r"[0-9a-f]{64}", ref.get("sha256", "")) for ref in refs)
+     )
++
++
++def _verified_physical_qfq(receipt, qfq, date, authority):
++    from ops.macos_research_panel_daily_common import SnapshotGateError
++    from ops.research_a_daily_physical import pair_reference, physical_mode, ready_receipts
++    from ops.research_storage_retention import RetentionError
++
++    try:
++        if (not physical_mode() or qfq.get("status") != "PAIRED_OWNER_READY"
++                or receipt.get("status") not in {"READY", "PARTIAL", "PARTIAL_WITH_ROWS"}
++                or Path(qfq["return_root"]) != Path(os.environ["V4_RESEARCH_PANEL_A_RETURN_ROOT"]).resolve()):
++            return False
++        data = Path(os.environ["V4_RESEARCH_PANEL_A_DATA_ROOT"]).resolve()
++        paths = {role: receipt[role] for role in ("selector", "backtest")}
++        refs = ready_receipts(qfq["return_root"], qfq["run_dir"], authority["generation_id"],
++                              int(date), authority["source_sha256"], paths)
++        return (all(qfq.get(key) == value for key, value in refs.items())
++                and qfq.get("pair") == pair_reference(data, int(date), authority, paths))
++    except (OSError, ValueError, KeyError, TypeError, SnapshotGateError, RetentionError):
++        return False
+ 
+ 
+ def _dated_source_receipt_ref(root: str, date: str, expected: dict[str, Any] | None) -> dict[str, str] | None:
+@@ -632,6 +657,9 @@
+     partial_a = lane == "A" and lane_status in {"PARTIAL", "PARTIAL_WITH_ROWS"}
+     receipt: dict[str, Any] | None = None
+     receipt_valid = False
++    from ops.research_a_daily_physical import physical_mode
++    physical_a = lane == "A" and request.mode.value == "LIVE" and physical_mode()
++    physical_receipt = {}
+     if lane_status == "READY" or partial_a:
+         try:
+             receipt_reader = _read_exact_dated_receipt
+@@ -640,7 +668,10 @@
+                 importlib.import_module("infrastructure.scheduling." + "executor_" + "registry"),
+                 "_read_exact_dated_receipt",
+             )
+-        receipt, receipt_error = receipt_reader(module, arguments)
++        if physical_a:
++            receipt, receipt_error = receipt_reader(module, arguments, receipt_reference=physical_receipt)
++        else:
++            receipt, receipt_error = receipt_reader(module, arguments)
+ 
+         if lane == "A":
+             receipt_validator = getattr(
+@@ -684,15 +715,18 @@
+             )
+     dated_source_receipt = None
+     if lane == "A" and receipt_valid:
+-        dated_source_receipt = _dated_source_receipt_ref(
+-            env["V4_RESEARCH_PANEL_RECEIPT_ROOT"], request.business_date, receipt
+-        )
++        if physical_a:
++            dated_source_receipt = physical_receipt or None
++        else:
++            dated_source_receipt = _dated_source_receipt_ref(
++                env["V4_RESEARCH_PANEL_RECEIPT_ROOT"], request.business_date, receipt
++            )
+     if lane == "A":
+         natural_proof_valid = receipt_valid and _verified_natural_receipt(
+             receipt, dispatch_context, request.business_date
+         ) and dated_source_receipt is not None
+         # These explicit booleans are derived from the raw provider invocation
+-        # and terminal QFQ Claim evidence, never from absence of a reuse flag.
++        # and terminal QFQ evidence, never from absence of a reuse flag.
+         result.update(
+             provider_invoked=bool(natural_proof_valid),
+             source_recomputed=bool(natural_proof_valid),
+@@ -702,7 +736,7 @@
+             result["dated_source_receipt"] = dated_source_receipt
+         if not natural_proof_valid:
+             result["natural_source_proof_error"] = (
+-                dispatch_context_error or "PROVIDER_OR_FINISHED_QFQ_CLAIM_PROOF_MISSING"
++                dispatch_context_error or "PROVIDER_OR_FINISHED_QFQ_PROOF_MISSING"
+             )
+     result.update(
+         {
+diff --git a/ops/macos_research_panel_daily_authority.py b/ops/macos_research_panel_daily_authority.py
+--- a/ops/macos_research_panel_daily_authority.py
++++ b/ops/macos_research_panel_daily_authority.py
+@@ -1258,10 +1258,22 @@
+ ) -> dict[str, Any]:
+     from ops.research_panel_qfq import input_path, pointer_ready, run_daily_rebuild
+     from ops.research_storage_retention import run_with_retention
++    from ops.research_a_daily_physical import (
++        physical_mode, publish_current_pair, ready_receipts, require_configured_space, require_space,
++    )
+     # Keep the original entry, native sync and artifact envelope. The original
+     # native full-history root is distinct from sync's accepted-only tail view.
+     target = int(_date(target_date))
+     data = Path(data_root).resolve()
++    return_root = Path(return_root).resolve()
++    physical = physical_mode()
++    if physical:
++        from ops.research_storage_pair import settings
++
++        if settings(data) is None:
++            raise SnapshotGateError("A_DAILY_PAIR_CONFIGURATION_MISSING")
++        require_configured_space()
++        require_space(data, return_root)
+     tdx = Path(qfq_original_tdx_root or tdx_root).resolve()
+     selector_ptr, backtest_ptr = Path(selector_pointer).absolute(), Path(backtest_pointer).absolute()
+     pointers = {"selector": selector_ptr, "backtest": backtest_ptr}
+@@ -1272,11 +1284,40 @@
+         ready_check=lambda: pointer_ready(selector_ptr, target, input_path(data)),
+         driver_path=pinned_driver, formula_path=Path(canonical_formula_path).resolve(),
+         tdx_root=tdx, data_root=data, pointers=pointers,
+-        contract_csv=Path(contract_csv).resolve(), return_root=Path(return_root).resolve(), target=target,
++        contract_csv=Path(contract_csv).resolve(), return_root=return_root, target=target,
+         publish=True, workers=(int(formula_max_workers) if formula_max_workers is not None else None),
+         refresh_inputs=True, storage_layout="arrow_blocks_v1",
+         **({"checkpoint_resume": checkpoint_resume} if checkpoint_resume is not None else {}),
+     )
++    if physical:
++        result["paired_publication"] = publish_current_pair(data, target, result)
++        if not result.get("already_current"):
++            from ops.macos_research_panel_daily_authority import (
++                _NATURAL_PROVIDER_INVOCATION_ENV, _natural_dispatch_context,
++            )
++            dispatch, _ = _natural_dispatch_context(target)
++            provider = os.environ.get(_NATURAL_PROVIDER_INVOCATION_ENV)
++            if dispatch is not None and provider:
++                authority = result["authority"]
++                try:
++                    refs = ready_receipts(
++                        return_root, result["run_dir"], authority["generation_id"], target,
++                        authority["source_sha256"], {role: result[role] for role in pointers},
++                    )
++                    result["natural_execution"] = {
++                        "schema": "v4.qfq_natural_physical_execution.v1",
++                        "status": "PAIRED_OWNER_READY",
++                        "already_current": False,
++                        "target_date": f"{target:08d}",
++                        "dispatch": dispatch,
++                        "provider_invocation": json.loads(provider),
++                        "generation_id": authority["generation_id"],
++                        "input_sha256": authority["source_sha256"],
++                        "pair": result["paired_publication"],
++                        **refs,
++                    }
++                except (OSError, ValueError, TypeError, KeyError) as error:
++                    result["natural_execution_error"] = str(error)[:256]
+     artifact = _formula_artifact_binding(Path(result["selector"]), Path(result["backtest"]))
+     current_rows = result.get("counts", {}).get("selector", {}).get("target_date_symbols")
+     if current_rows is not None:
+diff --git a/ops/research_a_daily_physical.py b/ops/research_a_daily_physical.py
+new file mode 100644
+--- /dev/null
++++ b/ops/research_a_daily_physical.py
+@@ -0,0 +1,152 @@
++"""Physical-space guard and publication for the scheduled A-only chain."""
++from contextlib import contextmanager
++import hashlib
++import json
++import os
++from pathlib import Path
++import shutil
++
++from ops.macos_research_panel_daily_common import SnapshotGateError
++
++MIN_FREE_BYTES = 30 * 1024**3
++MODE_ENV = "V4_A_DAILY_PHYSICAL_STORAGE"
++_POLICY_ENV = ("V4_RESEARCH_RETENTION_POLICY", "V4_RESEARCH_RETENTION_POLICY_SHA256")
++_ROOT_ENVS = (
++    "V4_RESEARCH_PANEL_A_TDX_ROOT",
++    "V4_RESEARCH_PANEL_RECEIPT_ROOT",
++    "V4_RESEARCH_PANEL_A_DATA_ROOT",
++    "V4_RESEARCH_PANEL_A_RETURN_ROOT",
++    "V4_A_SHARE_DAILY_PRODUCT_ROOT",
++    "V4_WORKBENCH_CLASSIFICATION_ROOT",
++    "V4_WORKBENCH_STATISTICS_ROOT",
++    "V4_STORAGE_PAIR_ROOT",
++)
++
++
++def require_space(*roots):
++    for root in dict.fromkeys(root for root in roots if root):
++        path = Path(root).resolve()
++        while not path.exists():
++            path = path.parent
++        free = shutil.disk_usage(path).free
++        if free < MIN_FREE_BYTES:
++            raise SnapshotGateError(
++                f"A_DAILY_PHYSICAL_SPACE_MINIMUM:free={free}:required={MIN_FREE_BYTES}:path={path}"
++            )
++
++
++def require_configured_space():
++    require_space(*(os.environ.get(key) for key in _ROOT_ENVS))
++
++
++@contextmanager
++def scheduled_storage():
++    # The slot dispatcher runs workloads synchronously in its own process.
++    # Restore both bindings before the next workload in the same slot.
++    previous = {key: os.environ.pop(key, None) for key in (*_POLICY_ENV, MODE_ENV)}
++    os.environ[MODE_ENV] = "1"
++    try:
++        yield
++    finally:
++        for key, value in previous.items():
++            if value is None:
++                os.environ.pop(key, None)
++            else:
++                os.environ[key] = value
++
++
++def physical_mode():
++    if os.environ.get(MODE_ENV) != "1":
++        return False
++    if any(key in os.environ for key in _POLICY_ENV):
++        raise SnapshotGateError("A_DAILY_PHYSICAL_STORAGE_POLICY_CONFLICT")
++    return True
++
++
++def publish_current_pair(data_root, target, result):
++    from ops.research_panel_qfq import panel_contract, publication_lock
++    from ops.research_storage_pair import publish_configured, settings
++
++    if result["status"] != "READY" or result["target_date"] != target:
++        raise SnapshotGateError("A_DAILY_QFQ_RESULT_DATE_OR_STATUS_CONFLICT")
++    if settings(data_root) is None:
++        raise SnapshotGateError("A_DAILY_PAIR_CONFIGURATION_MISSING")
++    paths = {role: Path(result[role]) for role in ("selector", "backtest")}
++    authority = result["authority"]
++    require_configured_space()
++    with publication_lock(data_root):
++        for path in paths.values():
++            contract = panel_contract(path)
++            if (contract.get("asof_date") != target
++                    or contract.get("generation_id") != authority["generation_id"]
++                    or contract.get("input_sha256") != authority["source_sha256"]):
++                raise SnapshotGateError("A_DAILY_QFQ_PAIR_IDENTITY_CONFLICT")
++        manifest = publish_configured(paths)
++        return pair_reference(data_root, target, authority, paths, expected_id=manifest["id"])
++
++
++def pair_reference(data_root, target, authority, paths, expected_id=None):
++    from ops.research_storage_pair import SCHEMA, canonical, safe_path, settings
++
++    configured = settings(data_root)
++    if configured is None:
++        raise SnapshotGateError("A_DAILY_PAIR_CONFIGURATION_MISSING")
++    root, _ = configured
++    current_path = safe_path(root / "current.json")
++    current_bytes = current_path.read_bytes()
++    current = json.loads(current_bytes)["current"]
++    pair_id = current["id"]
++    if (not isinstance(pair_id, str) or len(pair_id) != 64
++            or any(ch not in "0123456789abcdef" for ch in pair_id)
++            or (expected_id is not None and pair_id != expected_id)):
++        raise SnapshotGateError("A_DAILY_PAIR_CURRENT_IDENTITY_CONFLICT")
++    manifest_path = safe_path(root / "generations" / (pair_id + ".json"))
++    raw = manifest_path.read_bytes()
++    digest = hashlib.sha256(raw).hexdigest()
++    manifest = json.loads(raw)
++    identity = manifest["identity"]
++    if (current["path"] != str(manifest_path) or current["sha256"] != digest
++            or manifest["schema"] != SCHEMA or manifest.pop("id") != pair_id
++            or canonical(manifest) != pair_id
++            or identity.get("asof_date") != target
++            or identity.get("generation_id") != authority["generation_id"]
++            or identity.get("input_sha256") != authority["source_sha256"]
++            or {role: item["path"] for role, item in manifest["roles"].items()}
++               != {role: str(path) for role, path in paths.items()}
++            or current_path.read_bytes() != current_bytes):
++        raise SnapshotGateError("A_DAILY_PAIR_CURRENT_BINDING_CONFLICT")
++    return {"id": pair_id, "path": str(manifest_path), "sha256": digest}
++
++
++def ready_receipts(return_root, run_dir, generation, target, input_sha, paths):
++    """Read the two existing QFQ owner receipts on the exact generation."""
++    from ops.qfq_directory_contract import validate_qfq_generation_directory
++
++    root, directory = validate_qfq_generation_directory(str(return_root), run_dir, generation)
++    refs = {}
++    for name, filename, status in (
++        ("candidate_receipt", "candidate_receipt.json", "CANDIDATE_READY"),
++        ("ready_receipt", "stage_status.json", "READY"),
++    ):
++        path = directory / filename
++        before = path.lstat()
++        if path.is_symlink() or not path.is_file() or before.st_size > 8 * 1024**2:
++            raise SnapshotGateError("A_DAILY_QFQ_RECEIPT_PATH_INVALID")
++        raw = path.read_bytes()
++        after = path.lstat()
++        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
++            after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns
++        ):
++            raise SnapshotGateError("A_DAILY_QFQ_RECEIPT_CHANGED")
++        receipt = json.loads(raw)
++        if (receipt.get("status") != status or receipt.get("target_date") != target
++                or receipt.get("run_dir") != str(directory)
++                or receipt.get("generation_id") != generation
++                or receipt.get("input_sha256") != input_sha
++                or receipt.get("candidates") != paths
++                or (status == "READY" and any(receipt.get(role) != value
++                    or receipt.get(role + "_pointer_ready") is not True
++                    for role, value in paths.items()))):
++            raise SnapshotGateError("A_DAILY_QFQ_RECEIPT_IDENTITY_CONFLICT")
++        refs[name] = {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()}
++    return {"return_root": str(root), "run_dir": str(directory), **refs}
