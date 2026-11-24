@@ -125,6 +125,31 @@ def refresh_revised_trial_structures(context,coverage,directory,package,source_r
     return sorted(changed),len(changed)
 
 
+def _known_no_current_bar(target):
+    from ops.a_share_daily_sync import _daily_source_policy_additions, _load_verified_lifecycle_facts
+
+    facts = _daily_source_policy_additions()
+    symbols = {row['symbol'] for row in facts.get('exact_no_current_bar_dispositions', [])
+               if row['target_date'] == target}
+    symbols.update(symbol for symbol, row in _load_verified_lifecycle_facts().items()
+                   if row.get('verified') and target >= int(row['delisting_effective_date']))
+    return symbols
+
+
+def _set_rank_eligibility(rows, quotes, known_no_bar):
+    for row in rows:
+        symbol = row['symbol']
+        quote = quotes.get(symbol)
+        if symbol in known_no_bar:
+            daily_eligible = False
+        elif quote is None:
+            daily_eligible = None
+        else:
+            daily_eligible = quote['eligible_for_daily_gain_rank'] and row.get('change_pct') is not None
+        row['daily_gain_rank_eligibility'] = daily_eligible
+        row['historical_pit_eligibility'] = 'CANNOT_CONFIRM'
+
+
 def build(context, product_root, official_ref, classification_root, *, trial=TRIAL):
     """One bounded date. Returns an immutable payload; no runtime pointer writes."""
     from infrastructure.research_classification_view import ReceivedClassificationStore
@@ -158,6 +183,12 @@ def build(context, product_root, official_ref, classification_root, *, trial=TRI
         import copy
         payload=copy.deepcopy(previous);payload['numeric_manifest']=manifest_ref
         payload['comparison']['same_day']['numeric_manifest']=manifest_ref
+        excluded = set(previous.get('excluded_known_no_current_bar', ()))
+        _set_rank_eligibility(payload['coverage'], quotes, excluded)
+        _set_rank_eligibility(payload['top200'], quotes, excluded)
+        if any(row['daily_gain_rank_eligibility'] is not True for row in payload['top200']):
+            raise ValueError('TOP200_EXACT_METADATA_REUSE_RANK_CONFLICT')
+        payload['historical_pit_eligibility'] = 'CANNOT_CONFIRM'
         payload['computation']=dict(prior_computation=previous['computation'],reused_same_source_metadata_view=repair['prior_top200'],computed_structures=0,affected_structure_symbols=[],formula_engine_calls=0)
         context.unchanged();return payload,dict(reused=False,computed_structures=0,reused_same_source_metadata_view=repair['prior_top200'])
     # The D30 trial was already computed and independently accepted. Bind the
@@ -197,14 +228,12 @@ def build(context, product_root, official_ref, classification_root, *, trial=TRI
             row.update(feature(symbol));row.update(shortline_themes=[tag['label']for tag in record.get('shortline_themes',[])] if exact else [],official_major=(record.get('official_industry') or {}).get('major_name') if exact else None,main_industry=record.get('main_industry') if exact else None)
             row['history_asof']=str(package.previous);row['history_basis']='QFQ_ASOF_'+day+'_NOT_HISTORICAL_PIT';coverage.append(row)
         structure_count=len(directory);structure_changed=sorted(directory)
-    from ops.a_share_daily_sync import _daily_source_policy_additions,_load_verified_lifecycle_facts
-    facts=_daily_source_policy_additions()
-    known_no_bar={row['symbol']for row in facts.get('exact_no_current_bar_dispositions',[]) if row['target_date']==context.target}
-    known_no_bar.update(symbol for symbol,row in _load_verified_lifecycle_facts().items() if row.get('verified') and context.target>=int(row['delisting_effective_date']))
+    known_no_bar = _known_no_current_bar(context.target)
     positive=sorted((row for row in coverage if row.get('change_pct') is not None),key=lambda row:(-row['change_pct'],row['symbol']))
     for row in coverage:
         row.update({key:quotes.get(row['symbol'],{}).get(key)for key in ('open','high','low','eligible_for_daily_gain_rank')})
-    ranked=[row for row in positive if row['eligible_for_daily_gain_rank'] and row['symbol'] not in known_no_bar]
+    _set_rank_eligibility(coverage, quotes, known_no_bar)
+    ranked=[row for row in positive if row['daily_gain_rank_eligibility'] is True]
     for rank,row in enumerate(ranked,1):row['rank']=rank
     top=ranked[:200];topset={row['symbol'] for row in top}
     if topset&known_no_bar:raise ValueError('TOP200_KNOWN_NO_CURRENT_BAR_CONFLICT')
@@ -226,7 +255,8 @@ def build(context, product_root, official_ref, classification_root, *, trial=TRI
         official_input=official_ref,official_package=package.package_ref,classification_version=classification_version,classification_source=catalog['source_ref'],rule=dict(path=str(trial/'build_report.py'),sha256=TRIAL_SHA),
         directory_dates=sorted({row['reference_date']for row in directory.values()}),directory_count=len(directory),valid_quote_count=len(positive),positive_price_record_count=len(positive),valid_daily_gain_rank_record_count=len(ranked),excluded_known_no_current_bar=sorted(set(directory)&known_no_bar),excluded_nontrading_or_invalid_bar_count=len(positive)-len(ranked),missing_quote_count=len(directory)-len(positive),top200_count=len(top),
         excluded_cdr=sorted(cdr),outside_directory_count=len(set(quotes)-set(directory)),top200=top,statistics=statistics,coverage=coverage,
-        preparation_asof=str(package.previous),manual_visual_review='UNKNOWN_NOT_REVIEWED',historical_PIT=False,full_market_eligibility='CANNOT_CONFIRM',
+        preparation_asof=str(package.previous),manual_visual_review='UNKNOWN_NOT_REVIEWED',historical_PIT=False,
+        historical_pit_eligibility='CANNOT_CONFIRM',full_market_eligibility='CANNOT_CONFIRM',
         computation=dict(reused_trial=reusable,computed_structures=structure_count,affected_structure_symbols=structure_changed,formula_engine_calls=0),**FLAGS)
     return payload,dict(reused=False,computed_structures=structure_count)
 
@@ -274,7 +304,10 @@ def _prior_generation_proofs(context,caches,bars_by_symbol):
         if (receipt['generation_id']!=identity['generation'] or receipt['input_sha256']!=identity['input_sha256'] or receipt['adjustment_snapshot']!=identity['snapshot'] or receipt['candidate_sha256']['selector']!=identity['selector_artifact_sha256']):raise ValueError('HISTORY_PRIOR_RECEIPT_IDENTITY_CONFLICT')
         load(identity['snapshot']);panel=Path(receipt['candidates']['selector'])
         try:stamp=panel.stat()
-        except FileNotFoundError as error:raise HistoryPriorPanelUnavailable(panel,receipt_ref,identity) from error
+        except FileNotFoundError as error:
+            from ops.research_daily_capacity import propagate_capacity_error
+            propagate_capacity_error(error)
+            raise HistoryPriorPanelUnavailable(panel,receipt_ref,identity) from error
         asof=int(identity['asof'])
         table=pq.read_table(panel,columns=['ts_code','trade_date','open','high','low','close','volume'],filters=[('ts_code','in',sorted(group['symbols'])),('trade_date','<=',str(asof))])
         original=collections.defaultdict(list)
@@ -295,6 +328,9 @@ def _prior_generation_proofs(context,caches,bars_by_symbol):
 
 def prepare_incremental_history(context,root,output):
     """Freeze only newly selected stocks that still lack accepted history."""
+    from ops.research_daily_capacity import current_plan, CapacityProofError
+    if current_plan() is not None:
+        raise CapacityProofError('DAILY_HISTORY_BOOTSTRAP_REQUIRES_EXPLICIT_ADMISSION')
     import os
     from ops import bootstrap_stock_event_history as adapter
     import domains.research_daily_product as rule
@@ -664,6 +700,7 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
     from ops.research_panel_daily_product import SourceContext
     from ops.sync_stock_history_completion import publish
     root=Path(root);day=str(target);output=root/'continuations'/day
+    context=None;completed_source=None
     try:
         if upstream_failure is not None:raise ValueError('UPSTREAM_DAILY_SOURCE_FAILED:'+str(upstream_failure.get('reason') or upstream_failure.get('status')))
         os.environ['V4_RESEARCH_EVENT_LABEL_SOURCE_ROOT']=str(root)
@@ -676,6 +713,8 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
                 history_view=publish_current_history_view(context,root,output/context.generation/'current_history_view')
             else:history_view=dict(status='NOT_RUN_HISTORY_INCOMPLETE',reason=history['status'])
         except (ValueError,OSError,KeyError,TypeError) as error:
+            from ops.research_daily_capacity import propagate_capacity_error
+            propagate_capacity_error(error)
             history_failure=dict(status='CANNOT_CONFIRM',error=str(error),
                 reason='VERIFIED_PRIOR_PANEL_UNAVAILABLE'if isinstance(error,HistoryPriorPanelUnavailable)else'HISTORY_COVERAGE_NOT_VERIFIED',
                 history_bootstrap_in_daily_path=False,new_label_evaluations=0,new_return_evaluations=0,
@@ -689,6 +728,11 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
             publication=publish(plan)
         else:publication=dict(status='REUSED',artifact=existing)
         statistics_root=os.environ.get('V4_WORKBENCH_STATISTICS_ROOT')
+        from ops.research_storage_governance import configured_policy
+        from ops.research_daily_capacity import enabled, downstream_root
+        statistics_policy=configured_policy()
+        if statistics_policy and enabled(statistics_policy):
+         statistics_root=downstream_root(statistics_policy,'statistics',statistics_root)
         if statistics_root:
             from ops.build_mac_workbench import materialize_statistics
             materialize_statistics(root,Path(statistics_root))
@@ -700,22 +744,16 @@ def complete_daily_derivatives(data_root,target,root,receipt_root,classification
             top200=publication,computation=reuse,**FLAGS)
         if history_failure:receipt['reason']='CURRENT_DAY_COMPLETE_HISTORY_CANNOT_CONFIRM'
     except Exception as error:
+        from ops.research_daily_capacity import propagate_capacity_error
+        propagate_capacity_error(error)
         receipt=dict(schema='V4_A_DAILY_DERIVATIVES_V1',status='CANNOT_CONFIRM',data_date=day,error=str(error),**FLAGS)
-    save(output/'latest_receipt.json',receipt)
-    receipt['attempt']=record_daily_attempt(root,receipt)
-    if receipt['status']=='COMPLETE_DESCRIPTIVE_NONPIT':
-        # Existing A completion owns this continuation; a failed F10 source
-        # never turns into an empty concept list or changes the A receipt.
-        try:
-            from ops.research_panel_f10 import complete_f10,publish_f10_completion
-            receipt['f10']=complete_f10(context,receipt['attempt'],root,
-                workers=min(4,max(1,int(os.environ.get('RESEARCH_PANEL_QFQ_WORKERS','4')))))
-            receipt['f10']['publication']=publish_f10_completion(context,root,receipt['f10']['receipt'])
-        except Exception as error:
-            failure=dict(schema='v4.a_share.f10_daily_failure.v1',status='CANNOT_CONFIRM',data_date=day,
-                source_generation=context.generation,upstream_success_receipt=receipt['attempt'],error=repr(error),**FLAGS)
-            failure_ref=save(output/context.generation/'f10_failure.json',failure)
-            receipt['f10']=dict(status='CANNOT_CONFIRM',receipt=failure_ref,reason=repr(error))
+    from ops.research_daily_capacity import control_writes
+    with control_writes():
+        save(output/'latest_receipt.json',receipt)
+        receipt['attempt']=record_daily_attempt(root,receipt)
+    # F10 is acquired only for an exact daily formula-group roster by the
+    # formula-group supplement owner. This derivatives closure must not launch
+    # a full admitted-universe collection every trading day.
     return receipt
 
 
@@ -730,9 +768,13 @@ def record_daily_attempt(root,receipt):
         fcntl.flock(fd,fcntl.LOCK_EX)
         index_path=root/'index.json';before=index_path.read_bytes()if index_path.exists()else None
         index=json.loads(before)if before else dict(schema_version='v4.a_share.daily_product_index.v1',dates={})
-        artifact=save(root/'attempts'/receipt['data_date']/digest(receipt)/'receipt.json',receipt,immutable=True)
+        artifact_path=root/'attempts'/receipt['data_date']/digest(receipt)/'receipt.json'
+        artifact=dict(path=str(artifact_path.resolve()),sha256=hashlib.sha256(canonical(receipt)+b'\n').hexdigest())
         index.setdefault('attempts',{})[receipt['data_date']]=artifact
-        if (index_path.read_bytes()if index_path.exists()else None)!=before:raise ValueError('DAILY_ATTEMPT_INDEX_CAS_MOVED')
-        save(index_path,index)
+        from ops.research_daily_capacity import prepaid_writes
+        with prepaid_writes([(artifact_path,canonical(receipt)+b'\n',1),(index_path,canonical(index)+b'\n',1)]):
+            artifact=save(artifact_path,receipt,immutable=True)
+            if (index_path.read_bytes()if index_path.exists()else None)!=before:raise ValueError('DAILY_ATTEMPT_INDEX_CAS_MOVED')
+            save(index_path,index)
         return artifact
     finally:os.close(fd);lock.close()
