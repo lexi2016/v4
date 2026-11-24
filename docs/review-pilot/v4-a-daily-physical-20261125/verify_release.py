@@ -1,4 +1,5 @@
 """Read back installed A-daily policy scope and its paired Stage launch binding."""
+import hashlib
 import json
 from pathlib import Path
 import plistlib
@@ -71,6 +72,10 @@ assert _resolve_hk_child_binding(os.environ)
                 *old_config['research_historical_owner_bindings'],old_config['research_owner_binding']]
             assert config == {**old_config,
                 **{k:config[k] for k in ('research_historical_owner_bindings','research_owner_binding','release_id')}}
+    ready = Path(plan['audited_switch']['path']).with_name('check_scheduler_ready.py')
+    assert hashlib.sha256(ready.read_bytes()).hexdigest() == '167d57d4adb51c9814a20a593144c6e994d8f5b37050817bf73928b07876cef6'
+    subprocess.run([sys.executable,'-B',str(ready),str(plan_path),
+                    str(plan_path.with_name('MAIN_DAEMON_READY.json'))],check=True,timeout=35)
     identity = draft['carried_api_identity']
     api = helpers['verify_loaded']('api',identity['app_root'],Path(identity['plist_path']),
                                    identity['startup_manifest']['sha256'])
