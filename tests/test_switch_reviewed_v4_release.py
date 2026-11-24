@@ -30,6 +30,8 @@ class SimulatedLaunchAgents:
         env = role[f"{side}_cfg"]["EnvironmentVariables"]
         if switch.POLICY_PATH in env:
             state["policy"] = {key: env[key] for key in (switch.POLICY_PATH, switch.POLICY_SHA)}
+        if switch.A_SYNC_SCRIPT in env:
+            state["a_sync_script"] = env[switch.A_SYNC_SCRIPT]
         return state
 
     def ctl(self, action, selector):
@@ -44,6 +46,8 @@ class SimulatedLaunchAgents:
             stdout += f"\tpid = {state['pid']}\n"
         stdout += "".join(
             f"\t{key} => {value}\n" for key, value in state.get("policy", {}).items())
+        if "a_sync_script" in state:
+            stdout += f"\t{switch.A_SYNC_SCRIPT} => {state['a_sync_script']}\n"
         return SimpleNamespace(returncode=0, stdout=stdout)
 
     def bootstrap(self, action, domain, path):
@@ -107,6 +111,11 @@ def cohort(tmp_path, monkeypatch):
         prior_app, next_app = prior / "app", next_root / "app"
         prior_app.mkdir(parents=True)
         overlays = [put(next_app / "overlay.py", name.encode())]
+        if name == "main":
+            a_sync_files = (switch.A_SYNC_ENTRY, "ops/macos_research_panel_daily_authority.py",
+                            *(switch.A_SYNC_PARTS + name for name in
+                              ("__init__.py", "_namespace.py", "scope_validation.py", "sync_workflow.py")))
+            overlays.extend(put(next_app / relative, relative.encode()) for relative in a_sync_files)
         if name == "stage":
             main_row = plan["roles"][1]
             main_root = candidates / main_row["candidate_release_id"]
@@ -119,7 +128,7 @@ def cohort(tmp_path, monkeypatch):
         next_id = put(next_root / "startup-manifest.json", switch.encode({
             "release_id": next_root.name, "app_root": str(next_app),
             "source_root": str(repo), "source_commit": source_commit,
-            "application_inventory": {"entries": [{"path": Path(overlay["path"]).name, "kind": "file",
+            "application_inventory": {"entries": [{"path": Path(overlay["path"]).relative_to(next_app).as_posix(), "kind": "file",
                                                    "sha256": overlay["sha256"]} for overlay in overlays]}}))
         (next_root / "release-manifest.json").symlink_to(activation / "active" / next_root.name / "release-manifest.json")
         label = switch.LABELS[name]
@@ -400,7 +409,8 @@ def policy_rebind(cohort):
               "managed_pin_inventory": old_pins}
     old_policy = put(root / "old-policy.json", switch.encode(policy))
     reseal_plist(initial, 1, lambda cfg: cfg["EnvironmentVariables"].update({
-        switch.POLICY_PATH: old_policy["path"], switch.POLICY_SHA: old_policy["sha256"]}))
+        switch.POLICY_PATH: old_policy["path"], switch.POLICY_SHA: old_policy["sha256"],
+        switch.A_SYNC_SCRIPT: str(Path(main["old_cwd"]) / switch.A_SYNC_ENTRY)}))
     initial_approval = json.loads(Path(initial["review_approval"]["path"]).read_bytes())
     staged = switch.load_role(initial["roles"][1], initial_approval["roles"]["main"], activation, rollback=False)
     simulated.by_label[staged["label"]] = staged
@@ -586,3 +596,79 @@ def test_policy_rebind_rejects_extra_environment_even_after_resealing(policy_reb
         run(plan, {})
     assert switch.active_record(activation) == prior
     assert simulated.changes == []
+
+
+@pytest.fixture
+def a_sync_rebind(policy_rebind):
+    first, simulated, main, activation, _ = policy_rebind
+    run(first, {})
+    simulated.changes.clear()
+    prior = switch.active_record(activation)
+    root = activation.parent
+    cfg = main["new_cfg"]
+    app = Path(main["new_cwd"])
+    manifest_sha = main["new_manifest_sha"]
+    manifest = json.loads(main["new_manifest"].read_bytes())
+    owner = str(app / switch.A_SYNC_ENTRY)
+    forward = put(root / "candidates/a-sync-rebind/forward.plist", plistlib.dumps({
+        **cfg, "EnvironmentVariables": {**cfg["EnvironmentVariables"], switch.A_SYNC_SCRIPT: owner}}))
+    rollback = put(root / "a-sync.rollback.plist", main["new"])
+    row = {"role": "main", "rollback_plist": rollback["path"], "candidate_plist": forward["path"],
+           "current_plist_sha256": rollback["sha256"], "candidate_plist_sha256": forward["sha256"],
+           "current_manifest_sha256": manifest_sha, "candidate_manifest_sha256": manifest_sha,
+           "candidate_release_id": cfg["EnvironmentVariables"]["V4_RELEASE_ID"],
+           "candidate_a_sync_files": switch.main_a_sync_files(app, manifest)}
+    approval = {**row, "source_commit": manifest["source_commit"]}
+    kind = switch.MAIN_A_SYNC_REBIND
+    plan = {**first, "transaction_kind": kind, "roles": [row], "prior_active_sha256": prior["sha256"],
+            "review_approval": put(root / "a-sync-rebind-approval.json", switch.encode({
+                "verdict": "PASS", "transaction_kind": kind, "roles": {"main": approval}}))}
+    role = switch.load_main_policy_rebind(row, approval, activation, prior["sha256"], kind=kind)
+    simulated.by_label[role["label"]] = role
+    simulated.by_path[str(role["path"])] = role
+    return plan, simulated, role, activation, prior
+
+
+def test_a_sync_rebind_installs_exact_owner_carries_manifests_and_rolls_back(a_sync_rebind):
+    plan, simulated, role, activation, prior = a_sync_rebind
+    old_group = json.loads((activation / "active/group-manifest.json").read_bytes())
+    companion_paths = [Path(old_group["roles"][name]["path"]) for name in ("api", "stage")]
+    other_bytes = [path.read_bytes() for path in companion_paths]
+    startup = role["old_manifest"].read_bytes()
+    immutable_policy = role["policy_rebind"]["old"]
+
+    result = {}
+    run(plan, result)
+    assert result["status"] == "DEPLOYED"
+    assert simulated.changes == [("unload", "main"), ("load", "main", "new")]
+    assert [path.read_bytes() for path in companion_paths] == other_bytes
+    assert role["old_manifest"].read_bytes() == startup
+    identity = json.loads(role["alias"].read_bytes())
+    assert identity["main_storage_binding"] == immutable_policy
+    assert identity["main_a_sync_binding"] == {
+        "script": role["a_sync_rebind"]["new"], "files": role["a_sync_files"]}
+    assert identity["loaded"]["a_sync_script"] == role["a_sync_rebind"]["new"]
+
+    result = {}
+    run(plan, result, rollback=True)
+    assert result["status"] == "ROLLED_BACK"
+    assert role["path"].read_bytes() == role["old"]
+    assert switch.active_record(activation) == prior
+    assert [path.read_bytes() for path in companion_paths] == other_bytes
+
+
+def test_a_sync_rebind_rejects_split_source_drift_before_activation(a_sync_rebind):
+    plan, simulated, role, activation, prior = a_sync_rebind
+    (Path(role["new_cwd"]) / switch.A_SYNC_PARTS / "sync_workflow.py").write_bytes(b"unapproved")
+    with pytest.raises(RuntimeError, match="SHA drift"):
+        run(plan, {})
+    assert simulated.changes == []
+    assert switch.active_record(activation) == prior
+
+
+def test_a_sync_rebind_rejects_policy_environment_change(a_sync_rebind):
+    plan, simulated, _, activation, prior = a_sync_rebind
+    reseal_plist(plan, 0, lambda cfg: cfg["EnvironmentVariables"].update({switch.POLICY_SHA: "0" * 64}))
+    with pytest.raises(RuntimeError, match="may only change the A sync script"):
+        run(plan, {})
+    assert simulated.changes == [] and switch.active_record(activation) == prior

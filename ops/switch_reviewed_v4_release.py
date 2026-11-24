@@ -22,9 +22,13 @@ from infrastructure.owned_io import SafeRoot
 
 GROUP = ("api", "main", "stage")
 MAIN_POLICY_REBIND = "main_policy_rebind"
+MAIN_A_SYNC_REBIND = "main_a_sync_rebind"
 MAIN_POLICY_ROLLBACK_DRAIN_SECONDS = 45
 POLICY_PATH = "V4_RESEARCH_RETENTION_POLICY"
 POLICY_SHA = "V4_RESEARCH_RETENTION_POLICY_SHA256"
+A_SYNC_SCRIPT = "V4_RESEARCH_PANEL_A_SYNC_SCRIPT"
+A_SYNC_ENTRY = "ops/a_share_daily_sync.py"
+A_SYNC_PARTS = "ops/_a_share_daily_sync_parts/"
 ROOT = Path.home() / "Library/Application Support/com.lexi.v4.local"
 LABELS = {
     "api": "com.lexi.v4.api",
@@ -223,13 +227,29 @@ def policy_binding(cfg, app):
     return binding, policy, pins
 
 
-def load_main_policy_rebind(row, approval, directory, prior_sha):
+def main_a_sync_files(app, startup_data):
+    entries = startup_data["application_inventory"]["entries"]
+    core = {A_SYNC_ENTRY, "ops/macos_research_panel_daily_authority.py"}
+    files = {
+        item["path"]: item["sha256"] for item in entries
+        if item["kind"] == "file" and (item["path"] in core or (
+            item["path"].startswith(A_SYNC_PARTS) and item["path"].endswith(".py")))
+    }
+    required_parts = {"__init__.py", "_namespace.py", "scope_validation.py", "sync_workflow.py"}
+    require(core | {A_SYNC_PARTS + name for name in required_parts} <= files.keys(),
+            "Main A sync closure missing from startup inventory")
+    references = [{"path": str(app / path), "sha256": sha} for path, sha in sorted(files.items())]
+    candidate_files(references, app, startup_data)
+    return references
+
+
+def load_main_policy_rebind(row, approval, directory, prior_sha, *, kind=MAIN_POLICY_REBIND, rollback=False):
     name, label = "main", LABELS["main"]
     path = LAUNCH_AGENTS / f"{label}.plist"
-    require(all(row[key] == approval[key] for key in (
-        "candidate_release_id", "candidate_plist_sha256", "candidate_manifest_sha256",
-        "candidate_storage_policy", "candidate_managed_pins",
-    )), "Main policy rebind plan/review mismatch")
+    common = ("candidate_release_id", "candidate_plist_sha256", "candidate_manifest_sha256")
+    policy_rebind = kind == MAIN_POLICY_REBIND
+    extra = ("candidate_storage_policy", "candidate_managed_pins") if policy_rebind else ("candidate_a_sync_files",)
+    require(all(row[key] == approval[key] for key in common + extra), "Main rebind plan/review mismatch")
     old = checked(row["rollback_plist"], row["current_plist_sha256"])
     new_path = exact_path(row["candidate_plist"])
     new_path.parent.relative_to(CANDIDATES)
@@ -237,11 +257,11 @@ def load_main_policy_rebind(row, approval, directory, prior_sha):
     old_cfg, new_cfg = plistlib.loads(old), plistlib.loads(new)
     old_env = old_cfg["EnvironmentVariables"]
     new_env = new_cfg["EnvironmentVariables"]
-    rebound = {**old_cfg, "EnvironmentVariables": {
-        **old_env, POLICY_PATH: new_env[POLICY_PATH], POLICY_SHA: new_env[POLICY_SHA],
-    }}
+    keys = (POLICY_PATH, POLICY_SHA) if policy_rebind else (A_SYNC_SCRIPT,)
+    rebound = {**old_cfg, "EnvironmentVariables": {**old_env, **{key: new_env[key] for key in keys}}}
     require(old_cfg["Label"] == label and new_cfg == rebound and old != new,
-            "Main policy rebind may only change policy path and SHA")
+            ("Main policy rebind may only change policy path and SHA" if policy_rebind
+             else "Main A sync rebind may only change the A sync script"))
     startup_sha = row["current_manifest_sha256"]
     require(row["candidate_manifest_sha256"] == startup_sha, "Main startup identity changed")
     app, manifest, startup_data = startup(old_cfg, startup_sha, candidate=True)
@@ -251,16 +271,27 @@ def load_main_policy_rebind(row, approval, directory, prior_sha):
             "Main policy rebind startup identity mismatch")
     old_binding, old_policy, old_pins = policy_binding(old_cfg, app)
     new_binding, new_policy, new_pins = policy_binding(new_cfg, app)
-    require(row["candidate_storage_policy"] == {"path": new_env[POLICY_PATH], "sha256": new_env[POLICY_SHA]}
-            and row["candidate_managed_pins"] == new_policy["managed_pin_inventory"]
-            and Path(new_env[POLICY_PATH]) == new_path.parent / "control/policy.json"
-            and Path(new_binding["managed_pin_inventory_path"]) == new_path.parent / "control/managed-pins.json",
-            "Main policy rebind detached control references disagree")
-    require(new_policy == {**old_policy, "managed_pin_inventory": row["candidate_managed_pins"]}
-            and new_policy["governance"]["ordinary_peak_budget_bytes"] == 261 * 2**30
-            and new_pins == {**old_pins, "expected_main_app_root": str(app)}
-            and old_pins["expected_main_app_root"] != str(app),
-            "Main policy rebind changed governance semantics")
+    require(new_policy["governance"]["ordinary_peak_budget_bytes"] == 261 * 2**30
+            and new_pins["expected_main_app_root"] == str(app), "Main rebind changed governance semantics")
+    sync_rebind = {}
+    if policy_rebind:
+        require(row["candidate_storage_policy"] == {"path": new_env[POLICY_PATH], "sha256": new_env[POLICY_SHA]}
+                and row["candidate_managed_pins"] == new_policy["managed_pin_inventory"]
+                and Path(new_env[POLICY_PATH]) == new_path.parent / "control/policy.json"
+                and Path(new_binding["managed_pin_inventory_path"]) == new_path.parent / "control/managed-pins.json",
+                "Main policy rebind detached control references disagree")
+        require(new_policy == {**old_policy, "managed_pin_inventory": row["candidate_managed_pins"]}
+                and new_pins == {**old_pins, "expected_main_app_root": str(app)}
+                and old_pins["expected_main_app_root"] != str(app), "Main policy rebind changed governance semantics")
+    else:
+        require(old_binding == new_binding and old_policy == new_policy and old_pins == new_pins,
+                "Main A sync rebind changed storage policy or inventory")
+        require(new_env[A_SYNC_SCRIPT] == str(app / A_SYNC_ENTRY)
+                and old_env[A_SYNC_SCRIPT] != new_env[A_SYNC_SCRIPT], "Main A sync target is not the live owner")
+        require(rollback or row["candidate_a_sync_files"] == main_a_sync_files(app, startup_data),
+                "Main A sync closure differs from independent review")
+        sync_rebind = {"a_sync_rebind": {"old": old_env[A_SYNC_SCRIPT], "new": new_env[A_SYNC_SCRIPT]},
+                       "a_sync_files": row["candidate_a_sync_files"]}
     alias = app.parent / "release-manifest.json"
     require(link(alias) == str(directory / "active" / release_id / alias.name),
             "Main policy rebind requires existing active role alias")
@@ -268,7 +299,7 @@ def load_main_policy_rebind(row, approval, directory, prior_sha):
             "old_cfg": old_cfg, "new_cfg": new_cfg, "old_cwd": str(app), "new_cwd": str(app),
             "old_manifest": manifest, "new_manifest": manifest, "old_manifest_sha": startup_sha,
             "new_manifest_sha": startup_sha, "alias": alias, "prior_active_sha": prior_sha,
-            "policy_rebind": {"old": old_binding, "new": new_binding}}
+            "policy_rebind": {"old": old_binding, "new": new_binding}, **sync_rebind}
 
 
 def main_rebind_group(ops, directory, prior, role):
@@ -292,6 +323,9 @@ def main_rebind_group(ops, directory, prior, role):
                     and identity["app_root"] == role["old_cwd"]
                     and entry["path"] == str(role["alias"]),
                     "Main policy rebind preimage does not match ACTIVE role")
+            if "a_sync_rebind" in role:
+                require(identity.get("main_storage_binding") == role["policy_rebind"]["old"],
+                        "Main A sync preimage lacks the ACTIVE storage binding")
         else:
             cfg = plistlib.loads(checked(plist, identity["plist_sha256"]))
             app, manifest, data = startup(cfg, identity["startup_manifest"]["sha256"], candidate=True)
@@ -355,6 +389,10 @@ def loaded_role(ops, role):
             require(len(lines) == 1 and lines[0], f"Main loaded policy identity missing: {key}")
             values[key] = lines[0]
         state = {**state, "policy": values}
+        if "a_sync_rebind" in role:
+            lines = read_field(f"{A_SYNC_SCRIPT} => ")
+            require(len(lines) == 1 and lines[0], "Main loaded A sync owner unavailable")
+            state["a_sync_script"] = lines[0]
     return state
 
 
@@ -365,7 +403,8 @@ def state_matches(state, role, side):
     if "policy_rebind" not in role:
         return True
     expected = role["policy_rebind"][side]
-    return state["policy"] == {POLICY_PATH: expected["policy_path"], POLICY_SHA: expected["policy_sha256"]}
+    return (state["policy"] == {POLICY_PATH: expected["policy_path"], POLICY_SHA: expected["policy_sha256"]}
+            and ("a_sync_rebind" not in role or state.get("a_sync_script") == role["a_sync_rebind"][side]))
 
 
 def verify(ops, role, side):
@@ -410,6 +449,12 @@ def publish(io, directory, target, roles, observations, plan_sha, *, prior=None,
                 identity = json.loads(raw)
                 identity.update(status, plist_sha256=digest(main["new"]), loaded=observations["main"],
                                 main_storage_binding=main["policy_rebind"]["new"])
+                if "a_sync_rebind" in main:
+                    startup_data = json.loads(checked(main["new_manifest"], main["new_manifest_sha"]))
+                    app = Path(main["new_cwd"])
+                    files = main_a_sync_files(app, startup_data)
+                    require(files == main["a_sync_files"], "Main A sync closure changed before publication")
+                    identity["main_a_sync_binding"] = {"script": main["a_sync_rebind"]["new"], "files": files}
                 raw = encode(identity)
                 entry = {**entry, "sha256": digest(raw)}
             io.write_bytes(f"{target}/{entry['release_id']}/release-manifest.json", raw, require_absent=True)
@@ -604,8 +649,8 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
 def run(plan, plan_sha, result, *, rollback):
     group = tuple(row["role"] for row in plan["roles"])
     kind = plan.get("transaction_kind")
-    policy_rebind = kind == MAIN_POLICY_REBIND
-    require((kind is None and group == GROUP) or (policy_rebind and group == ("main",)),
+    main_rebind = kind in {MAIN_POLICY_REBIND, MAIN_A_SYNC_REBIND}
+    require((kind is None and group == GROUP) or (main_rebind and group == ("main",)),
             "expected exact API/Main/Stage role group and order or reviewed Main policy rebind")
     if not rollback:
         command = plan.get("verification_command")
@@ -628,9 +673,9 @@ def run(plan, plan_sha, result, *, rollback):
             exact_path(prefix.with_name(prefix.name + ".mutex"))
             locks.enter_context(owned_interprocess_lock(prefix, timeout_seconds=8,
                                                        timeout_message=f"V4 release lock busy: {role}"))
-        if policy_rebind:
+        if main_rebind:
             roles = [load_main_policy_rebind(plan["roles"][0], approval["roles"]["main"], directory,
-                                             plan["prior_active_sha256"])]
+                                             plan["prior_active_sha256"], kind=kind, rollback=rollback)]
         else:
             roles = [load_role(row, approval["roles"][row["role"]], directory, rollback=rollback)
                      for row in plan["roles"]]
