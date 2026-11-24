@@ -1,0 +1,66 @@
+{
+  "git_base": "22c56ff0e4a5ea06c70b04471565986e73ebdfd0",
+  "roles": {
+    "stage": {
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-stage-r1/app",
+      "base_release_id": "v4-audit-repairs-20261120-stage-r1",
+      "base_manifest_sha256": "2b47677aec1e535d2b8b993545df0c9eb910bc734a9d5a783e86fab8f77ffdbe",
+      "patch_sha256": "ab54dcc9157e5d64e83be677c3f88dcb47a1c8f7496fd8b1856b307c948dcb50",
+      "files": [
+        {
+          "path": "infrastructure/manager_input_attestation.py",
+          "before_sha256": "cd40641458c7df2fb87982bf27303076ebf51933c1af6a7b61a38baa746e5795",
+          "after_sha256": "de7df7e274a21136fd1e52d287a4d0e341f8af80b68af12a83297096084ea7fd"
+        },
+        {
+          "path": "stage_center/research_context.py",
+          "before_sha256": "db3b93c8936cf9cb86055401a4c163e8322fec5d871050de5d6a765b57e73015",
+          "after_sha256": "5693b33d89ac65bf7d394dbce96eae28ae7d8921d5d3d459b8a6f8ca13d9f072"
+        },
+        {
+          "path": "stage_center/raw_store.py",
+          "before_sha256": "338cacfc79d3eb00dc93a04970c26f7327099fe4ffde16bb131d29c3552ec1fc",
+          "after_sha256": "2c0909fce6bf79474a90d383b7ccd80c5a297401f64b94993c611ad5874aa0a6"
+        },
+        {
+          "path": "stage_center/_raw_store_parts/transaction_publish.py",
+          "before_sha256": "f09a7704b8bfb13b958d4f9d3e947b7edb81ce9c12614c2a5f089f8536395540",
+          "after_sha256": "cd9534a3f43c6dd25eda36366269c1dc9f7346df925e1f26a02a79979a1e74f3"
+        },
+        {
+          "path": "stage_center/_raw_store_parts/transaction_read.py",
+          "before_sha256": "8b7e88dc5e5f41456e5222f1a5c08c5dcd05f5e5d7f2c179fd26652bff2932b6",
+          "after_sha256": "7002bbd622e76391af5b711b4e3335ce954e27916ffe4016f5069ff7f4e5e151"
+        },
+        {
+          "path": "stage_center/_runner_parts/slot_execution.py",
+          "before_sha256": "1080650de20d17807b0a10440da59de8f7102c1ec69c12829b62b836ecf73ac9",
+          "after_sha256": "c8339abd5158ee9d618880927009aed44a1d22b9fde0e571f369474613b1c8a8"
+        },
+        {
+          "path": "stage_center/_runner_parts/slot_idempotency.py",
+          "before_sha256": "5d83f353eca9ed3a61042ddef6b0cf563b52848fb332d87446c2ee1a005864f0",
+          "after_sha256": "7ee2065fba8b10db72556a58409e769ea60885a7623a8cff91a2213917b03b28"
+        },
+        {
+          "path": "stage_center_tick_config.json",
+          "before_sha256": "200b0686e3c7048b69732c0ebed12f26d316fae743c52d1eb2c6d01949671ae3",
+          "after_sha256": "4c244f5282c6e3d71ae1edd95501136f43c9342a9a140e698aca22c49f1a4bcc"
+        }
+      ]
+    },
+    "api": {
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-r2-b1-workbench-scores-20261124-api-r1/app",
+      "base_release_id": "v4-r2-b1-workbench-scores-20261124-api-r1",
+      "base_manifest_sha256": "270384b01e0f6fcabb475e5dc0520a2b030941f15c96190fafb04ebc61eede13",
+      "patch_sha256": "1dd6fc88aa369cfb1b17e6d7b7347aacf63a6bd8790b966808b75b2baad3bb90",
+      "files": [
+        {
+          "path": "apps/api/v4_api/routes.py",
+          "before_sha256": "392310b2a7c5c8c39d4e11d0a1012a710200be7b88ec79ac1c234bf4c8e969ba",
+          "after_sha256": "d7b3eb1054b74add3f1f423ad3432c8fa091073a99f31ddc8cc985cbd4085d59"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,61 @@
+--- a/apps/api/v4_api/routes.py
++++ b/apps/api/v4_api/routes.py
+@@ -13,7 +13,7 @@
+ from fastapi import FastAPI, HTTPException, Query
+ 
+ from apps.api.v4_api.projection import ProjectionContext, project_shared_selection
+-from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS
++from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS, STAGE_MARKET_SCOPES
+ from contracts.trading_safety import TRADING_SAFETY_FLAGS
+ 
+ 
+@@ -50,6 +50,41 @@
+         "production_allowed": False,
+         "buy_gate_updated": False,
+         "orders_sent": False,
++    }
++
++
++def _stage_batch_coverage(ordered: list[str], summaries: dict[str, dict]) -> dict:
++    def has_verified_rows(summary: dict, market: str) -> bool:
++        lane = (summary.get("markets") or {}).get(market) or {}
++        rows = summary.get("selected_a_rows" if market == "A" else "selected_hk_rows")
++        return (
++            lane.get("status") in {"READY", "PARTIAL_WITH_ROWS"}
++            and lane.get("selection_manifest_receipt_verified") is True
++            and type(rows) is int and rows > 0
++        )
++
++    def coverage(required: dict[str, tuple[str, ...]]) -> dict:
++        with_rows = [
++            stage_id for stage_id, markets in required.items()
++            if stage_id in summaries
++            and all(has_verified_rows(summaries[stage_id], market) for market in markets)
++        ]
++        return {
++            "expected": len(required),
++            "with_verified_rows": len(with_rows),
++            "with_verified_rows_stage_ids": with_rows,
++            "incomplete_stage_ids": [
++                stage_id for stage_id in required if stage_id in ordered and stage_id not in with_rows
++            ],
++            "not_requested_stage_ids": [stage_id for stage_id in required if stage_id not in ordered],
++            "all_required_stages_have_verified_rows": len(with_rows) == len(required),
++        }
++
++    return {
++        "a7": coverage({
++            stage_id: ("A",) for stage_id in FROZEN_STAGE_IDS if "A" in STAGE_MARKET_SCOPES[stage_id]
++        }),
++        "cross8": coverage({stage_id: STAGE_MARKET_SCOPES[stage_id] for stage_id in FROZEN_STAGE_IDS}),
+     }
+ 
+ 
+@@ -167,6 +202,7 @@
+             "schema_version": "v4.stage_timeline_batch.v1",
+             "trade_date": selected,
+             "stages": summaries,
++            "coverage": _stage_batch_coverage(ordered, summaries),
+             **dict(TRADING_SAFETY_FLAGS),
+             "RESEARCH_ONLY": True,
+             "write_performed": False,

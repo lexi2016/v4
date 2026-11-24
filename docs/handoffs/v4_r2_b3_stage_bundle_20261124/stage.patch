@@ -1,0 +1,576 @@
+--- a/infrastructure/manager_input_attestation.py
++++ b/infrastructure/manager_input_attestation.py
+@@ -333,7 +333,9 @@
+ def read_hourly_attestation(*, data_root: Path, owner_root: Path,
+                             date: str, slot: str, mode: str, as_of: datetime,
+                             scheduler_ledger_root: Path | None = None,
+-                            transition_0830_witness: bool = False) -> dict:
++                            transition_0830_witness: bool = False,
++                            owner_manifest_path: str | None = None,
++                            owner_manifest_sha256: str | None = None) -> dict:
+     """Use original scheduler completion as a conservative local upper bound.
+ 
+     The mutable sidecar alone is never a time witness. The independent original
+@@ -347,13 +349,17 @@
+         raise PublicationError('HOURLY_PUBLICATION_TIME_WITNESS_UNAVAILABLE')
+     witness = _scheduler_completion_witness(record, data_root=data_root, owner_root=owner_root,
+                                           ledger_root=scheduler_ledger_root, as_of=as_of,
+-                                          transition_0830_witness=transition_0830_witness)
++                                          transition_0830_witness=transition_0830_witness,
++                                          owner_manifest_path=owner_manifest_path,
++                                          owner_manifest_sha256=owner_manifest_sha256)
+     return {**record, 'completion_witness': witness}
+ 
+ 
+ def _scheduler_completion_witness(record: dict, *, data_root: Path, owner_root: Path,
+                                   ledger_root: Path, as_of: datetime,
+-                                  transition_0830_witness: bool = False) -> dict:
++                                  transition_0830_witness: bool = False,
++                                  owner_manifest_path: str | None = None,
++                                  owner_manifest_sha256: str | None = None) -> dict:
+     from infrastructure.owned_io import SafeRoot
+     date, slot, mode = record['trade_date'], record['slot'], record['mode']
+     if mode != 'LIVE':
+@@ -406,7 +412,7 @@
+         current = successors[current]
+     if len(seen) != len(by_sha):
+         raise PublicationError('HOURLY_COMPLETION_LEDGER_CHAIN_INVALID')
+-    manifest = json.loads(SafeRoot(owner_root.parent).read_bytes('release-manifest.json'))
++    manifest = json.loads(_owner_release_manifest_bytes(owner_root, owner_manifest_path, owner_manifest_sha256))
+     payload = json.loads(SafeRoot(data_root).read_bytes(record['artifact_ref']))
+     payload_sha = digest(encoded(payload)[:-1])
+     late = False
+@@ -419,12 +425,29 @@
+             or value.get('scheduled_date') != date or value.get('target_date') != expected_target
+             or any(value.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))
+             or any(workload_id not in value.get(key, []) for key in
+-                   ('selected_workload_ids', 'invoked_workload_ids', 'started_workload_ids', 'succeeded_workload_ids'))):
++                   ('selected_workload_ids', 'invoked_workload_ids'))):
+             continue
+         matches = [item for item in value.get('workload_results', []) if isinstance(item, dict) and item.get('workload_id') == workload_id]
+         if len(matches) != 1:continue
+-        workload = matches[0]; authority = workload.get('_authoritative_payload')
+-        if (workload.get('status') != 'SUCCEEDED' or workload.get('exit_code') != 0
++        workload = matches[0]
++        authority = workload.get('_authoritative_payload')
++        normal_completion = (
++            workload.get('status') == 'SUCCEEDED'
++            and workload_id in value.get('started_workload_ids', [])
++            and workload_id in value.get('succeeded_workload_ids', [])
++        )
++        # The producer can commit the hourly artifact and then request a retry
++        # of external finance. Only this explicit peripheral failure admits its
++        # already completed artifact; the original receipt still binds every byte.
++        external_finance_retry = (
++            workload_id == 'hourly_research'
++            and value.get('status') == 'FAILED'
++            and workload.get('status') == 'FAILED'
++            and workload.get('reason') == 'RESEARCH_SOURCE_REFRESH_RETRY_REQUIRED'
++            and workload.get('hourly_artifact_status') == 'SUCCEEDED'
++            and workload.get('retryable_sources') == ['external_finance']
++        )
++        if (not (normal_completion or external_finance_retry) or workload.get('exit_code') != 0
+             or not {'ops.run_zsxq_hourly_delta', 'ops.collect_hourly_research_input', 'ops.run_hourly_research'}.issubset(workload.get('modules', []))
+             or any(workload.get(key) is not False for key in ('production_allowed', 'buy_gate_updated', 'orders_sent'))
+             or not isinstance(authority, dict)
+@@ -449,7 +472,8 @@
+                 'receipt_ref': value['receipt_path'], 'receipt_sha256': digest(raw),
+                 'ledger_sha256': value['ledger_sha256'], 'run_id': value['run_id'],
+                 'finished_at': value['finished_at'], 'release_id': value['release_id'],
+-                'whole_ledger_malicious_rewrite_authenticated': False}
++                'whole_ledger_malicious_rewrite_authenticated': False,
++                **({'peripheral_retry_sources': ['external_finance']} if external_finance_retry else {})}
+     raise PublicationError('HOURLY_COMPLETION_AFTER_AS_OF' if late else 'HOURLY_COMPLETION_WITNESS_MISSING')
+ 
+ 
+@@ -481,6 +505,19 @@
+     return Path(value)
+ 
+ 
++def _owner_release_manifest_bytes(app: Path, manifest_path: str | None, manifest_sha: str | None) -> bytes:
++    from infrastructure.owned_io import SafeRoot
++    locator = Path(manifest_path) if manifest_path is not None else app.parent / 'release-manifest.json'
++    if (not locator.is_absolute() or locator.parent != app.parent or '..' in locator.parts
++        or (manifest_path is not None and manifest_path != str(locator))
++        or not re.fullmatch(r'(?:startup-manifest|release-manifest(?:-[a-z0-9-]+)?)\.json', locator.name)):
++        raise PublicationError('RESEARCH_RELEASE_MANIFEST_PATH_INVALID')
++    raw = SafeRoot(app.parent).read_bytes(locator.name, max_bytes=16 * 1024 * 1024)
++    if manifest_sha is not None and digest(raw) != manifest_sha:
++        raise PublicationError('RESEARCH_RELEASE_MANIFEST_SHA_MISMATCH')
++    return raw
++
++
+ def _release_manifest(app: Path, release_id: str, manifest_sha: str,
+                       required: tuple[str, ...], manifest_path: str | None = None,
+                       *, historical: bool = False) -> dict:
+@@ -488,14 +525,7 @@
+     from infrastructure.owned_io import SafeRoot
+     if not isinstance(manifest_sha, str) or not re.fullmatch('[0-9a-f]{64}', manifest_sha):
+         raise PublicationError('RESEARCH_RELEASE_MANIFEST_PIN_INVALID')
+-    locator = Path(manifest_path) if manifest_path is not None else app.parent / 'release-manifest.json'
+-    if (not locator.is_absolute() or locator.parent != app.parent or '..' in locator.parts
+-        or str(locator) != str(app.parent / locator.name) or not re.fullmatch(r'release-manifest(?:-[a-z0-9-]+)?\.json', locator.name)):
+-        raise PublicationError('RESEARCH_RELEASE_MANIFEST_PATH_INVALID')
+-    raw = SafeRoot(app.parent).read_bytes(locator.name, max_bytes=16 * 1024 * 1024)
+-    if digest(raw) != manifest_sha:
+-        raise PublicationError('RESEARCH_RELEASE_MANIFEST_SHA_MISMATCH')
+-    manifest = json.loads(raw)
++    manifest = json.loads(_owner_release_manifest_bytes(app, manifest_path, manifest_sha))
+     if (manifest.get('schema_version') != 'v4.runtime_graph_repair_release.v1'
+         or manifest.get('app_root') != str(app)
+         or manifest.get('release_id') != release_id
+@@ -512,6 +542,10 @@
+         and release_id == 'v4-v192-source-binding-20261112-r3-main'
+         and manifest_sha == 'e490d4ca93344ba9a958f03872ed040b8f838c22b806ff718772269d494ed328'):
+         count = len(entries)
++    if (release_id == 'v4-main-plan2-p0-20261123-r4'
++        and manifest_sha == '07db84e22f1cb14dd5c97997d11271c4e606a25bbc8fd24375dc5fb746bcef17'
++        and 'entry_count' not in inventory and isinstance(entries, list)):
++        count = 1064
+     if (not isinstance(entries, list) or count != len(entries)
+         or digest(json.dumps(entries, ensure_ascii=False, sort_keys=True,
+                              separators=(',', ':')).encode()) != inventory.get('aggregate_sha256')
+@@ -544,15 +578,17 @@
+         raise PublicationError('RESEARCH_STAGE_RUNTIME_ROOT_MISMATCH')
+     manifest_path = os.environ.get('V4_RELEASE_MANIFEST_PATH')
+     config_path = os.environ.get('STAGE_CENTER_CONFIG')
+-    if (manifest_path != str(stage.parent / 'release-manifest.json')
++    if (manifest_path not in {str(stage.parent / name) for name in ('startup-manifest.json', 'release-manifest.json')}
+         or config_path != str(stage / 'stage_center_tick_config.json')):
+         raise PublicationError('RESEARCH_STAGE_FIXED_PATH_MISMATCH')
+     stage_pin = os.environ.get('V4_RELEASE_MANIFEST_SHA256', '')
+-    _release_manifest(stage, os.environ.get('V4_RELEASE_ID', ''), stage_pin, _STAGE_RESEARCH_FILES)
++    _release_manifest(stage, os.environ.get('V4_RELEASE_ID', ''), stage_pin, _STAGE_RESEARCH_FILES, manifest_path)
+     config_raw = SafeRoot(stage).read_bytes('stage_center_tick_config.json')
+     config = json.loads(config_raw)
+     # Re-read the verified inventory binding for the exact bytes parsed here.
+-    stage_manifest = _release_manifest(stage, os.environ.get('V4_RELEASE_ID', ''), stage_pin, _STAGE_RESEARCH_FILES)
++    stage_manifest = _release_manifest(
++        stage, os.environ.get('V4_RELEASE_ID', ''), stage_pin, _STAGE_RESEARCH_FILES, manifest_path,
++    )
+     config_entries = {item['path']: item for item in stage_manifest['application_inventory']['entries']}
+     if digest(config_raw) != config_entries['stage_center_tick_config.json']['sha256']:
+         raise PublicationError('RESEARCH_STAGE_CONFIG_DRIFT')
+@@ -599,9 +635,9 @@
+         raise PublicationError('HOURLY_PROVENANCE_REQUEST_INVALID')
+     config = json.loads(SafeRoot(stage_app).read_bytes('stage_center_tick_config.json'))
+     historical = config.get('research_historical_owner_bindings', [])
+-    if not isinstance(historical, list) or len(historical) > 22:
++    if not isinstance(historical, list) or len(historical) > 25:
+         raise PublicationError('HOURLY_PROVENANCE_ALLOWLIST_INVALID')
+-    owners = [(current, evidence)]
++    owners = [(current, evidence, config['research_owner_binding'])]
+     seen = {current}
+     for binding in historical:
+         if (not isinstance(binding, dict) or set(binding) not in ({'app_root', 'release_id', 'manifest_sha256'},
+@@ -616,7 +652,7 @@
+                           manifest_path=binding.get('manifest_path'), historical=True)
+         owners.append((previous, (*evidence, f"v4_research_historical_owner_release_id={binding['release_id']}",
+             f"v4_research_historical_owner_manifest_sha256={binding['manifest_sha256']}",
+-            'v4_research_historical_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')))
++            'v4_research_historical_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK'), binding))
+     # A cutover may leave publications by the immediately preceding Main.
+     # This separately pinned, single-day transition does not expand the
+     # historical list or weaken any publication/completion time checks.
+@@ -636,7 +672,7 @@
+                 f"v4_research_transition_owner_release_id={transition['release_id']}",
+                 f"v4_research_transition_owner_manifest_sha256={transition['manifest_sha256']}",
+                 f"v4_research_transition_trade_date={transition['trade_date']}",
+-                'v4_research_transition_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK')))
++                'v4_research_transition_owner_scope=READ_ONLY_IMMUTABLE_PROVENANCE_NO_EXECUTABLE_FALLBACK'), transition))
+     record = json.loads(SafeRoot(data_root).read_bytes(f'research/hourly/publication/live/{date}/{slot}.json'))
+     materializer_sha = record.get('materializer_sha256') if isinstance(record, dict) else None
+     input_publication = json.loads(SafeRoot(data_root).read_bytes(f'research/incoming/{date}/{slot}.json.publication.json'))
+@@ -645,7 +681,7 @@
+     if not isinstance(publication_writer_sha, str) or not re.fullmatch('[0-9a-f]{64}', publication_writer_sha):
+         raise PublicationError('CATALYST_PUBLICATION_IDENTITY_OR_SHA_MISMATCH')
+     missing_witness = None
+-    for selected, selected_evidence in owners:
++    for selected, selected_evidence, binding in owners:
+         if materializer_sha != digest(SafeRoot(selected).read_bytes('ops/run_hourly_research.py')):
+             continue
+         if publication_writer_sha != digest(SafeRoot(selected).read_bytes('infrastructure/manager_input_attestation.py')):
+@@ -653,7 +689,10 @@
+         # Equal code bytes do not identify a release. Only the original full
+         # publication + successful dispatch witness may select a pinned owner.
+         try:
+-            kwargs = {}
++            kwargs = {
++                'owner_manifest_path': binding.get('manifest_path'),
++                'owner_manifest_sha256': binding['manifest_sha256'],
++            }
+             if (transition is not None and selected == Path(transition['app_root'])
+                 and transition['release_id'] == 'f10-daily-20261101-c94609b4e5fff848-main'
+                 and transition['manifest_sha256'] == '3f9a184c28884411bfc79872b44e6b2189cd33a44bc8413da0f79b9644a83388'
+--- a/stage_center/research_context.py
++++ b/stage_center/research_context.py
+@@ -36,6 +36,7 @@
+ _DATE_RE = re.compile(r"^\d{8}$")
+ _SLOT_RE = re.compile(r"^(?:[01]\d|2[0-3])[0-5]\d$")
+ _SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
++_EXTERNAL_FINANCE_RETRY_GAP = "RESEARCH_PERIPHERAL_SOURCE_RETRY_REQUIRED:external_finance"
+ 
+ 
+ @dataclass(frozen=True)
+@@ -607,6 +608,8 @@
+             f"v4_hourly_completion_receipt_sha256={publication['completion_witness']['receipt_sha256']}",
+         )
+         rows = project_hourly_stage_fields(source)
++        if publication['completion_witness'].get('peripheral_retry_sources') == ['external_finance']:
++            rows[2].append(_EXTERNAL_FINANCE_RETRY_GAP)
+         if source_manifest.get('zsxq_source_completeness') == 'PARTIAL':
+             rows[2].append('ZSXQ_SOURCE_PARTIAL_INCOMPLETE')
+     except (OSError, TypeError, ValueError, UnicodeError) as error:
+@@ -980,6 +983,9 @@
+                 identity_fields=("evidence_id",),
+             )
+         )
++    elif _EXTERNAL_FINANCE_RETRY_GAP in projected_rows[2]:
++        # A complete row extension cannot clear the scheduler's source retry.
++        row_gaps.append(_EXTERNAL_FINANCE_RETRY_GAP)
+     stage_codes = set(items_by_code) | set(evidence_by_code)
+     news_root = _v4_data_root(morning_root if morning_root is not None else root)
+     news_scores, news_gaps, morning_evidence = _morning_scores(
+--- a/stage_center/raw_store.py
++++ b/stage_center/raw_store.py
+@@ -595,9 +595,11 @@
+         stage_id: str,
+         status: str,
+         markets: Mapping[str, Mapping[str, Any]],
++        missing_markets: Mapping[str, str] | None = None,
+     ) -> dict[str, Any]:
+         from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_bundle_body as _v4_impl
+-        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, status=status, markets=markets)
++        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id,
++                        status=status, markets=markets, missing_markets=missing_markets)
+ 
+     def read_verified_bundle(self, trade_date: str, stage_id: str) -> dict[str, Any]:
+         latest = self._load_bundle_latest()
+--- a/stage_center/_raw_store_parts/transaction_publish.py
++++ b/stage_center/_raw_store_parts/transaction_publish.py
+@@ -263,14 +263,16 @@
+         return {"ok": True, **verified}
+ 
+ 
+-def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, status, markets):
++def _RawStore_publish_bundle_body(_v4_scope, /, self, *, trade_date, stage_id, status, markets, missing_markets=None):
++    from .transaction_read import bundle_market_identity, validate_bundle_market_scope
++
+     _v4_global(_v4_scope, '_validate_date')(trade_date)
+     _v4_global(_v4_scope, '_stage')(stage_id)
+     if status not in _v4_global(_v4_scope, 'RAW_STATUSES'):
+         raise _v4_global(_v4_scope, 'RawStoreError')(f"unknown bundle status {status!r}")
+-    expected_markets = _v4_global(_v4_scope, 'set')(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
+-    if _v4_global(_v4_scope, 'set')(markets) != expected_markets:
+-        raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
++    if missing_markets is None:
++        missing_markets = {}
++    validate_bundle_market_scope(_v4_scope, trade_date, stage_id, status, markets, missing_markets)
+     summary_seed = {
+         "schema_version": _v4_global(_v4_scope, 'RAW_BUNDLE_SCHEMA_VERSION'),
+         "owner": "stage_center",
+@@ -281,6 +283,8 @@
+         "calendar": _v4_global(_v4_scope, 'calendar_provenance')(),
+         **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+     }
++    if missing_markets:
++        summary_seed['missing_markets'] = dict(missing_markets)
+     bundle_id = f"{trade_date}-{stage_id.lower()}-{_v4_global(_v4_scope, 'canonical_sha')(summary_seed)[:16]}"
+     receipt_relative = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}/receipt.json"
+     key = f"{trade_date}/{stage_id}"
+@@ -288,24 +292,47 @@
+     with self._lock():
+         latest = self._load_bundle_latest()
+         existing = latest["entries"].get(key)
+-        if _v4_global(_v4_scope, 'isinstance')(existing, _v4_global(_v4_scope, 'Mapping')):
+-            if existing.get("bundle_id") != bundle_id:
+-                raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle slot conflict: {key}")
+-            verified = self._verify_bundle(trade_date, stage_id, bundle_id)
++        predecessor = None
++        if isinstance(existing, dict):
++            verified = self._verify_bundle(trade_date, stage_id, str(existing.get("bundle_id")))
+             if existing.get("receipt_sha256") != verified["receipt_sha256"]:
+                 raise _v4_global(_v4_scope, 'RawStoreError')("bundle latest SHA mismatch")
+-            return {
+-                "ok": True,
+-                "already_exists": True,
+-                "status": status,
+-                "bundle_id": bundle_id,
+-                "receipt_relative": receipt_relative,
+-                "receipt_sha256": verified["receipt_sha256"],
+-                "markets": {key: _v4_global(_v4_scope, 'dict')(value) for key, value in markets.items()},
+-                **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
+-            }
++            prior = verified["receipt"]
++            same_a = (
++                "A_SHARE" in prior["markets"] and "A_SHARE" in markets
++                and bundle_market_identity(prior["markets"]["A_SHARE"]) == bundle_market_identity(markets["A_SHARE"])
++            )
++            if (
++                prior["bundle_id"] == bundle_id
++                or (same_a and missing_markets and prior.get("missing_markets"))
++            ):
++                return {
++                    "ok": True, "already_exists": True, "status": prior["status"],
++                    "bundle_id": prior["bundle_id"], "receipt_relative": verified["receipt_relative"],
++                    "receipt_sha256": verified["receipt_sha256"],
++                    "markets": prior["markets"],
++                    **_v4_global(_v4_scope, 'SAFETY_FLAGS'),
++                }
++            if prior.get("missing_markets") and not missing_markets and same_a:
++                predecessor = prior["bundle_id"]
++            else:
++                raise _v4_global(_v4_scope, 'RawStoreError')(f"bundle slot conflict: {key}")
++        if missing_markets or predecessor:
++            # A partial publication and its complete successor must use
++            # verified current trios. Check before creating immutable evidence.
++            current = self._load_latest()["entries"]
++            for market, entry in markets.items():
++                raw = self.verify_run(trade_date, stage_id, market, str(entry.get("run_id")))
++                pointer = current.get(f"{key}/{market}", {})
++                if (
++                    bundle_market_identity(entry) != bundle_market_identity(raw)
++                    or bundle_market_identity(pointer) != bundle_market_identity(raw)
++                    or (missing_markets and raw["row_count"] <= 0)
++                ):
++                    raise _v4_global(_v4_scope, 'RawStoreError')("bundle market pointer or coverage mismatch")
+         receipt_path = _v4_global(_v4_scope, '_safe_relative')(self.root, receipt_relative)
+-        _assert_pending_lane(receipt_path.parent, _v4_global(_v4_scope, 'RawStoreError'))
++        _assert_pending_lane(receipt_path.parent, _v4_global(_v4_scope, 'RawStoreError'),
++                             allowed_predecessor=predecessor)
+         if receipt_path.exists():
+             if _v4_global(_v4_scope, '_read_json')(receipt_path) != receipt:
+                 raise _v4_global(_v4_scope, 'RawStoreError')("immutable bundle identity mismatch")
+--- a/stage_center/_raw_store_parts/transaction_read.py
++++ b/stage_center/_raw_store_parts/transaction_read.py
+@@ -90,6 +90,33 @@
+     }
+ 
+ 
++def bundle_market_identity(entry):
++    return tuple(entry.get(field) for field in (
++        "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256", "status", "row_count",
++    ))
++
++
++def validate_bundle_market_scope(scope, trade_date, stage_id, status, markets, missing_markets):
++    from collections.abc import Mapping
++
++    error = _v4_global(scope, 'RawStoreError')
++    expected = set(_v4_global(scope, '_expected_bundle_markets')(stage_id, trade_date))
++    if not isinstance(missing_markets, Mapping):
++        raise error('bundle missing market evidence is malformed')
++    if missing_markets:
++        if (
++            expected != {'A_SHARE', 'HK_CONNECT'}
++            or set(markets) != {'A_SHARE'}
++            or set(missing_markets) != {'HK_CONNECT'}
++            or status != 'PARTIAL_WITH_ROWS'
++            or not isinstance(missing_markets['HK_CONNECT'], str)
++            or not missing_markets['HK_CONNECT'].strip()
++        ):
++            raise error('bundle missing market evidence is invalid')
++    elif set(markets) != expected:
++        raise error('bundle market set mismatch')
++
++
+ def _RawStore__verify_bundle_body(_v4_scope, /, self, trade_date, stage_id, bundle_id):
+     prefix = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}"
+     receipt_relative = f"{prefix}/receipt.json"
+@@ -109,25 +136,29 @@
+     markets = receipt.get("markets")
+     if not _v4_global(_v4_scope, 'isinstance')(markets, _v4_global(_v4_scope, 'Mapping')):
+         raise _v4_global(_v4_scope, 'RawStoreError')("bundle markets missing")
+-    expected_markets = _v4_global(_v4_scope, 'set')(_v4_global(_v4_scope, '_expected_bundle_markets')(stage_id, trade_date))
+-    if _v4_global(_v4_scope, 'set')(markets) != expected_markets:
+-        raise _v4_global(_v4_scope, 'RawStoreError')("bundle market set mismatch")
++    missing_markets = receipt.get('missing_markets', {})
++    validate_bundle_market_scope(_v4_scope, trade_date, stage_id, receipt.get('status'), markets, missing_markets)
+     observed_statuses: set[str] = _v4_global(_v4_scope, 'set')()
++    observed_rows = 0
+     for market, entry in markets.items():
+         if not _v4_global(_v4_scope, 'isinstance')(entry, _v4_global(_v4_scope, 'Mapping')):
+             raise _v4_global(_v4_scope, 'RawStoreError')("bundle market entry malformed")
+         verified = self.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(entry.get("run_id")))
+         if entry.get("receipt_sha256") != verified["receipt_sha256"] or entry.get("manifest_sha256") != verified["manifest_sha256"]:
+             raise _v4_global(_v4_scope, 'RawStoreError')("bundle market SHA mismatch")
++        if missing_markets and bundle_market_identity(entry) != bundle_market_identity(verified):
++            raise _v4_global(_v4_scope, 'RawStoreError')("partial bundle market identity mismatch")
+         observed_statuses.add(verified["status"])
+-    if observed_statuses == {"READY"}:
++        observed_rows += verified["row_count"]
++    if missing_markets:
++        if observed_rows <= 0:
++            raise _v4_global(_v4_scope, 'RawStoreError')("partial bundle has no verified rows")
++        expected_status = "PARTIAL_WITH_ROWS"
++    elif observed_statuses == {"READY"}:
+         expected_status = "READY"
+     elif observed_statuses == {"READY_EMPTY"}:
+         expected_status = "READY_EMPTY"
+-    elif observed_statuses == {"CANNOT_CONFIRM"} and _v4_global(_v4_scope, 'all')(
+-        self.verify_run(trade_date, stage_id, market, _v4_global(_v4_scope, 'str')(markets[market].get("run_id")))["row_count"] == 0
+-        for market in markets
+-    ):
++    elif observed_statuses == {"CANNOT_CONFIRM"} and observed_rows == 0:
+         expected_status = "CANNOT_CONFIRM"
+     else:
+         expected_status = "PARTIAL_WITH_ROWS"
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -805,8 +805,20 @@
+                 if verified.get("artifact_sha256") != preserved_sha:
+                     raise _v4_global(_v4_scope, 'RunnerError')("preserved raw identity changed")
+                 bundle_markets[sibling] = verified
++        # A missing HK D-1 input cannot erase a verified A lane. Record its
++        # exact failure in the same-date raw bundle without creating HK raw.
++        missing_bundle_markets = {}
++        if (
++            not historical_backfill
++            and execution_scope is None
++            and bundle_required == {"A_SHARE", "HK_CONNECT"}
++            and set(bundle_markets) == {"A_SHARE"}
++            and bundle_markets["A_SHARE"]["row_count"] > 0
++            and "HK_CONNECT" in exact_input_errors
++        ):
++            missing_bundle_markets["HK_CONNECT"] = exact_input_errors["HK_CONNECT"]
+         single_market_research_bundle_evidence: str | None = None
+-        if set(bundle_markets) == bundle_required or historical_backfill:
++        if set(bundle_markets) == bundle_required or historical_backfill or missing_bundle_markets:
+             exact_hk_only_research_backfill = (
+                 historical_backfill is True
+                 and trade_date == "20260924"
+@@ -833,7 +845,15 @@
+             else:
+                 try:
+                     _v4_global(_v4_scope, '_deadline').begin_write("BUNDLE_PUBLISH", stage_id=stage_id)
+-                    raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if _v4_global(_v4_scope, 'all')(item["status"] == "READY" for item in bundle_markets.values()) else "PARTIAL_WITH_ROWS"), markets=bundle_markets))
++                    bundle_status = (
++                        "READY" if not missing_bundle_markets
++                        and all(item["status"] == "READY" for item in bundle_markets.values())
++                        else "PARTIAL_WITH_ROWS"
++                    )
++                    raw_bundle.update(raw_store.publish_bundle(
++                        trade_date=trade_date, stage_id=stage_id, status=bundle_status,
++                        markets=bundle_markets, missing_markets=missing_bundle_markets,
++                    ))
+                     _v4_global(_v4_scope, '_deadline').end_write("BUNDLE_PUBLISH", stage_id=stage_id)
+                 except _v4_global(_v4_scope, 'RawStoreError') as error:
+                     # An immutable raw bundle may have been left absent after
+@@ -842,7 +862,20 @@
+                     # market identity remains fail-closed.
+                     if "bundle slot conflict" not in _v4_global(_v4_scope, 'str')(error):
+                         raise
+-                    raw_bundle.update(raw_store.read_verified_bundle(trade_date, stage_id))
++                    existing_bundle = raw_store.read_verified_bundle(trade_date, stage_id)
++                    existing_markets = existing_bundle["receipt"]["markets"]
++                    if missing_bundle_markets:
++                        # Keep an already completed bundle's pointer. The
++                        # owner receipt below still reports today's failing lane.
++                        if existing_bundle["receipt"].get("missing_markets"):
++                            raise
++                    else:
++                        if set(existing_markets) != set(bundle_markets) or any(
++                            row["receipt_sha256"] != existing_markets[market]["receipt_sha256"]
++                            for market, row in bundle_markets.items()
++                        ):
++                            raise
++                        raw_bundle.update(bundle_id=existing_bundle["receipt"]["bundle_id"])
+         published: dict[str, Any] = {}
+         selection_store = _v4_global(_v4_scope, 'SelectionStore')(self.config.selection_root)
+         for market in markets:
+--- a/stage_center/_runner_parts/slot_idempotency.py
++++ b/stage_center/_runner_parts/slot_idempotency.py
+@@ -101,19 +101,32 @@
+             pending_errors[market] = f"PENDING_PUBLICATION_UNRECOVERABLE:{type(exc).__name__}:{exc}"
+     if pending_errors:
+         return pending_errors, recovered
+-    # Bundle is only recovered after every original market has verified raw.
++    # Recover one pending bundle only after its materialized lanes verify.
+     with raw_store._lock():
+         latest = raw_store._load_bundle_latest()
+         key = f'{trade_date}/{stage_id}'
+         if key not in latest['entries']:
+             dirs = _pending_runs(safe_scope, raw_store.root, f'bundle_runs/{trade_date}/{stage_id}', error)
+-            if len(dirs) > 1:
++            if len(dirs) > 2:
+                 raise error('ambiguous pending bundle publications')
+-            for run_dir in dirs:
+-                verified = raw_store._verify_bundle(trade_date, stage_id, run_dir.name)
++            verified_runs = [raw_store._verify_bundle(trade_date, stage_id, path.name) for path in dirs]
++            if len(verified_runs) == 2:
++                from stage_center._raw_store_parts.transaction_read import bundle_market_identity
++
++                partial = [item for item in verified_runs if item['receipt'].get('missing_markets')]
++                complete = [item for item in verified_runs if not item['receipt'].get('missing_markets')]
++                if (
++                    len(partial) != 1 or len(complete) != 1
++                    or 'A_SHARE' not in complete[0]['receipt']['markets']
++                    or bundle_market_identity(partial[0]['receipt']['markets']['A_SHARE'])
++                       != bundle_market_identity(complete[0]['receipt']['markets']['A_SHARE'])
++                ):
++                    raise error('ambiguous pending bundle publications')
++                verified_runs = complete
++            for verified in verified_runs:
+                 receipt = verified['receipt']
+                 # Scoped recovery may not adopt a sibling outside its grant.
+-                if set(receipt['markets']) != set(markets):
++                if (set(receipt['markets']) | set(receipt.get('missing_markets', {}))) != set(markets):
+                     raise error('pending bundle market scope mismatch')
+                 for market, entry in receipt['markets'].items():
+                     raw = raw_store.verify_run(trade_date, stage_id, market, str(entry.get('run_id')))
+@@ -206,14 +219,20 @@
+                     selections[market] = envelope
+             else:
+                 candidate_binding_errors[market] = f"existing selection candidate SHA mismatch: {market}"
+-    if raw_bundle_entry is not None and _v4_global(_v4_scope, 'len')(raw_verified) == _v4_global(_v4_scope, 'len')(markets):
++    if raw_bundle_entry is not None and set(raw_verified) == set(markets):
+         try:
+             raw = raw_store.read_verified_bundle(trade_date, stage_id)
+         except (_v4_global(_v4_scope, 'RawStoreError'), _v4_global(_v4_scope, 'ValueError')) as error:
+             raise _v4_global(_v4_scope, 'RunnerError')("existing raw bundle integrity failure") from error
+     else:
+         raw = {"receipt": {"markets": {market: _v4_global(_v4_scope, 'dict')(entry) for market, entry in raw_verified.items()}}}
+-    if raw_bundle_entry is not None and _v4_global(_v4_scope, 'len')(raw_verified) == _v4_global(_v4_scope, 'len')(markets) and _v4_global(_v4_scope, 'len')(selections) == _v4_global(_v4_scope, 'len')(markets):
++    if (
++        raw_bundle_entry is not None
++        and not raw["receipt"].get("missing_markets")
++        and set(markets).issubset(raw["receipt"]["markets"])
++        and set(raw_verified) == set(markets)
++        and set(selections) == set(markets)
++    ):
+         return "VERIFIED", {"raw": raw, "selections": selections, "raw_verified": raw_verified, "candidate_binding_errors": candidate_binding_errors, "pending_errors": pending_errors, "commit_recovery_performed": bool(recovered), "recovered_publications": recovered}
+     if not raw_verified and not selections and not pending_errors:
+         return "ABSENT", None
+--- a/stage_center_tick_config.json
++++ b/stage_center_tick_config.json
+@@ -156,14 +156,26 @@
+       "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-daily-finalization-parallel-20261119-r1/main/release-manifest.json",
+       "manifest_sha256": "54c33f4eaf94e9690083f1beee519844e7a17fb839d06be9c8946a8c7654ad24",
+       "release_id": "v4-daily-finalization-parallel-20261119-r1-main"
++    },
++    {
++      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/app",
++      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/release-manifest.json",
++      "manifest_sha256": "896a03d39a69b5bf3726071a4b0fa8eca4dc0c0b85616464fe14b9f126b59306",
++      "release_id": "v4-audit-repairs-20261120-main-r1"
++    },
++    {
++      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-workbench-bee1f6e-20261121-main-r1/app",
++      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-workbench-bee1f6e-20261121-main-r1/release-manifest.json",
++      "manifest_sha256": "428874c23c90cafacd5b31fc7efcb2bd1ef7f3410e83adf009aee98844833732",
++      "release_id": "v4-workbench-bee1f6e-20261121-main-r1"
+     }
+   ],
+   "research_mode": "LIVE_EXACT_DATE_READ_ONLY",
+   "research_owner_binding": {
+-    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/app",
+-    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-audit-repairs-20261120-main-r1/release-manifest.json",
+-    "manifest_sha256": "896a03d39a69b5bf3726071a4b0fa8eca4dc0c0b85616464fe14b9f126b59306",
+-    "release_id": "v4-audit-repairs-20261120-main-r1"
++    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-main-plan2-p0-20261123-r4/app",
++    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/candidates/v4-main-plan2-p0-20261123-r4/release-manifest.json",
++    "manifest_sha256": "07db84e22f1cb14dd5c97997d11271c4e606a25bbc8fd24375dc5fb746bcef17",
++    "release_id": "v4-main-plan2-p0-20261123-r4"
+   },
+   "research_scheduler_ledger_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher",
+   "research_transition_owner_binding": {
