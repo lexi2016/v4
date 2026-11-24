@@ -163,44 +163,44 @@ diff --git a/infrastructure/scheduling/executor_registry.py b/infrastructure/sch
 diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastructure/scheduling/executor_registry_review.py
 --- a/infrastructure/scheduling/executor_registry_review.py
 +++ b/infrastructure/scheduling/executor_registry_review.py
-@@ -99,7 +99,7 @@
+@@ -98,8 +98,10 @@
+         return None, str(error)[:256]
  
  
- def _verified_natural_receipt(receipt: Any, dispatch: dict[str, Any] | None, date: str) -> bool:
+-def _verified_natural_receipt(receipt: Any, dispatch: dict[str, Any] | None, date: str) -> bool:
 -    """Require raw-provider and finished-QFQ claim facts before true flags."""
++def _verified_natural_receipt(
++    receipt: Any, dispatch: dict[str, Any] | None, date: str, *, audited_status: str | None = None,
++) -> bool:
 +    """Require the raw provider and exact finished QFQ in this dispatch."""
      if not isinstance(receipt, dict) or dispatch is None:
          return False
      sync = receipt.get("sync")
-@@ -116,22 +116,8 @@
+@@ -112,10 +114,37 @@
+     if not isinstance(provider, dict) or not isinstance(qfq, dict) or not isinstance(authority, dict):
+         return False
+     producer = provider.get("producer_process")
++    partial = provider.get("schema") == "v4.natural_source_provider_partial_invocation.v1"
+     owner = qfq.get("claim_owner")
      provider_run_id = provider.get("provider_run_id")
      generation = authority.get("generation_id")
      input_sha = authority.get("source_sha256")
--    refs = (qfq.get("candidate_receipt"), qfq.get("ready_receipt"))
--    try:
--        from ops.qfq_directory_contract import validate_qfq_generation_directory
--        return_root, run_dir = validate_qfq_generation_directory(
--            qfq.get("return_root"), qfq.get("run_dir"), generation)
--    except (OSError, TypeError, ValueError):
--        return False
--    if (qfq.get("return_root") != str(return_root)
--            or qfq.get("run_dir") != str(run_dir)
--            or not isinstance(refs[0], dict) or not isinstance(refs[1], dict)
--            or refs[0].get("path") != str(run_dir / "candidate_receipt.json")
--            or refs[1].get("path") != str(run_dir / "stage_status.json")):
--        return False
--    return bool(
--        receipt.get("status") == "READY"
--        and str(receipt.get("target_date")) == date
 +    if not (
 +        str(receipt.get("target_date")) == date
-         and sync.get("target_date") in {date, int(date)}
-         and sync.get("natural_dispatch_context") == dispatch
-         and provider.get("schema") == "v4.natural_source_provider_invocation.v1"
-@@ -146,6 +132,33 @@
-         and isinstance(producer, dict)
-         and type(producer.get("pid")) is int and producer.get("pid") > 0
-         and isinstance(producer.get("started"), str) and bool(producer.get("started"))
++        and sync.get("target_date") in {date, int(date)}
++        and sync.get("natural_dispatch_context") == dispatch
++        and (partial or provider.get("schema") == "v4.natural_source_provider_invocation.v1")
++        and provider.get("provider_task_name") == "tdxpy_daily_vipdoc_sync_v1"
++        and provider.get("status") == ("FAILED" if partial else "PASS")
++        and type(provider.get("exit_code")) is int and provider.get("exit_code") == (2 if partial else 0)
++        and provider.get("target_date") == date
++        and isinstance(provider_run_id, str)
++        and re.fullmatch(rf"{date}-[0-9a-f]{{16}}-[0-9]+", provider_run_id)
++        and provider.get("dispatch") == dispatch
++        and provider.get("parent_dispatcher_pid") == dispatch.get("dispatcher_pid")
++        and isinstance(producer, dict)
++        and type(producer.get("pid")) is int and producer.get("pid") > 0
++        and isinstance(producer.get("started"), str) and bool(producer.get("started"))
 +        and qfq.get("already_current") is False
 +        and qfq.get("dispatch") == dispatch
 +        and qfq.get("provider_invocation") == provider
@@ -211,27 +211,38 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
 +        and isinstance(input_sha, str) and re.fullmatch(r"[0-9a-f]{64}", input_sha)
 +    ):
 +        return False
-+    refs = (qfq.get("candidate_receipt"), qfq.get("ready_receipt"))
-+    try:
-+        from ops.qfq_directory_contract import validate_qfq_generation_directory
-+        return_root, run_dir = validate_qfq_generation_directory(
-+            qfq.get("return_root"), qfq.get("run_dir"), generation)
-+    except (OSError, TypeError, ValueError):
-+        return False
-+    if (qfq.get("return_root") != str(return_root)
-+            or qfq.get("run_dir") != str(run_dir)
-+            or not isinstance(refs[0], dict) or not isinstance(refs[1], dict)
-+            or refs[0].get("path") != str(run_dir / "candidate_receipt.json")
-+            or refs[1].get("path") != str(run_dir / "stage_status.json")):
-+        return False
+     refs = (qfq.get("candidate_receipt"), qfq.get("ready_receipt"))
+     try:
+         from ops.qfq_directory_contract import validate_qfq_generation_directory
+@@ -129,23 +158,11 @@
+             or refs[0].get("path") != str(run_dir / "candidate_receipt.json")
+             or refs[1].get("path") != str(run_dir / "stage_status.json")):
+         return False
 +    if qfq.get("schema") == "v4.qfq_natural_physical_execution.v1":
-+        return _verified_physical_qfq(receipt, qfq, date, authority)
-+    return bool(
-+        receipt.get("status") == "READY"
++        return _verified_physical_qfq(receipt, qfq, date, authority, audited_status, provider if partial else None)
+     return bool(
+-        receipt.get("status") == "READY"
+-        and str(receipt.get("target_date")) == date
+-        and sync.get("target_date") in {date, int(date)}
+-        and sync.get("natural_dispatch_context") == dispatch
+-        and provider.get("schema") == "v4.natural_source_provider_invocation.v1"
+-        and provider.get("provider_task_name") == "tdxpy_daily_vipdoc_sync_v1"
+-        and provider.get("status") == "PASS"
+-        and type(provider.get("exit_code")) is int and provider.get("exit_code") == 0
+-        and provider.get("target_date") == date
+-        and isinstance(provider_run_id, str)
+-        and re.fullmatch(rf"{date}-[0-9a-f]{{16}}-[0-9]+", provider_run_id)
+-        and provider.get("dispatch") == dispatch
+-        and provider.get("parent_dispatcher_pid") == dispatch.get("dispatcher_pid")
+-        and isinstance(producer, dict)
+-        and type(producer.get("pid")) is int and producer.get("pid") > 0
+-        and isinstance(producer.get("started"), str) and bool(producer.get("started"))
++        not partial
++        and receipt.get("status") == "READY"
          and qfq.get("schema") == "v4.qfq_natural_execution.v2"
          and qfq.get("status") == "CLAIM_FINISHED_READY"
          and type(qfq.get("attempt")) is int and qfq.get("attempt") > 0
-@@ -153,15 +166,7 @@
+@@ -153,15 +170,7 @@
          and re.fullmatch(r"[0-9a-f]{64}", qfq.get("task_key", ""))
          and isinstance(qfq.get("claim_token_sha256"), str)
          and re.fullmatch(r"[0-9a-f]{64}", qfq.get("claim_token_sha256", ""))
@@ -247,15 +258,15 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
          and isinstance(qfq.get("registry_row_sha256"), str)
          and re.fullmatch(r"[0-9a-f]{64}", qfq.get("registry_row_sha256", ""))
          and len(refs) == 2
-@@ -169,6 +174,26 @@
+@@ -169,6 +178,32 @@
                  and isinstance(ref.get("sha256"), str)
                  and re.fullmatch(r"[0-9a-f]{64}", ref.get("sha256", "")) for ref in refs)
      )
 +
 +
-+def _verified_physical_qfq(receipt, qfq, date, authority):
++def _verified_physical_qfq(receipt, qfq, date, authority, audited_status, partial_provider):
 +    from ops.macos_research_panel_daily_common import SnapshotGateError
-+    from ops.research_a_daily_physical import pair_reference, physical_mode, ready_receipts
++    from ops.research_a_daily_physical import accepted_partial_provider, pair_reference, physical_mode, ready_receipts
 +    from ops.research_storage_retention import RetentionError
 +
 +    try:
@@ -263,18 +274,24 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
 +                or receipt.get("status") not in {"READY", "PARTIAL", "PARTIAL_WITH_ROWS"}
 +                or Path(qfq["return_root"]) != Path(os.environ["V4_RESEARCH_PANEL_A_RETURN_ROOT"]).resolve()):
 +            return False
++        if partial_provider is not None:
++            if (audited_status != "PARTIAL_WITH_ROWS" or receipt.get("status") not in {"PARTIAL", "PARTIAL_WITH_ROWS"}
++                    or receipt["sync"]["authority"]["run_id"] != partial_provider.get("provider_run_id")
++                    or accepted_partial_provider(receipt["sync"], int(date), os.environ["V4_RESEARCH_PANEL_RECEIPT_ROOT"])
++                       != partial_provider.get("accepted_partial")):
++                return False
 +        data = Path(os.environ["V4_RESEARCH_PANEL_A_DATA_ROOT"]).resolve()
 +        paths = {role: receipt[role] for role in ("selector", "backtest")}
 +        refs = ready_receipts(qfq["return_root"], qfq["run_dir"], authority["generation_id"],
 +                              int(date), authority["source_sha256"], paths)
 +        return (all(qfq.get(key) == value for key, value in refs.items())
 +                and qfq.get("pair") == pair_reference(data, int(date), authority, paths))
-+    except (OSError, ValueError, KeyError, TypeError, SnapshotGateError, RetentionError):
++    except (OSError, ValueError, KeyError, TypeError, AttributeError, SnapshotGateError, RetentionError):
 +        return False
  
  
  def _dated_source_receipt_ref(root: str, date: str, expected: dict[str, Any] | None) -> dict[str, str] | None:
-@@ -632,6 +657,9 @@
+@@ -632,6 +667,9 @@
      partial_a = lane == "A" and lane_status in {"PARTIAL", "PARTIAL_WITH_ROWS"}
      receipt: dict[str, Any] | None = None
      receipt_valid = False
@@ -284,7 +301,7 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
      if lane_status == "READY" or partial_a:
          try:
              receipt_reader = _read_exact_dated_receipt
-@@ -640,7 +668,10 @@
+@@ -640,7 +678,10 @@
                  importlib.import_module("infrastructure.scheduling." + "executor_" + "registry"),
                  "_read_exact_dated_receipt",
              )
@@ -296,7 +313,7 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
  
          if lane == "A":
              receipt_validator = getattr(
-@@ -684,15 +715,18 @@
+@@ -684,15 +725,18 @@
              )
      dated_source_receipt = None
      if lane == "A" and receipt_valid:
@@ -311,7 +328,8 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
 +            )
      if lane == "A":
          natural_proof_valid = receipt_valid and _verified_natural_receipt(
-             receipt, dispatch_context, request.business_date
+-            receipt, dispatch_context, request.business_date
++            receipt, dispatch_context, request.business_date, audited_status=lane_status
          ) and dated_source_receipt is not None
          # These explicit booleans are derived from the raw provider invocation
 -        # and terminal QFQ Claim evidence, never from absence of a reuse flag.
@@ -319,7 +337,7 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
          result.update(
              provider_invoked=bool(natural_proof_valid),
              source_recomputed=bool(natural_proof_valid),
-@@ -702,7 +736,7 @@
+@@ -702,7 +746,7 @@
              result["dated_source_receipt"] = dated_source_receipt
          if not natural_proof_valid:
              result["natural_source_proof_error"] = (
@@ -331,7 +349,76 @@ diff --git a/infrastructure/scheduling/executor_registry_review.py b/infrastruct
 diff --git a/ops/macos_research_panel_daily_authority.py b/ops/macos_research_panel_daily_authority.py
 --- a/ops/macos_research_panel_daily_authority.py
 +++ b/ops/macos_research_panel_daily_authority.py
-@@ -1258,10 +1258,22 @@
+@@ -62,16 +62,20 @@
+     return value, None
+ 
+ 
+-def _provider_invocation(reported: Mapping[str, Any], target: int, dispatch: dict[str, Any] | None) -> dict[str, Any] | None:
+-    """Attest the exact successful raw sync call that precedes QFQ."""
++def _provider_invocation(
++    reported: Mapping[str, Any], target: int, dispatch: dict[str, Any] | None, *,
++    partial_evidence: Mapping[str, Any] | None = None,
++) -> dict[str, Any] | None:
++    """Attest a raw sync call that passed the applicable authority checks."""
+     if dispatch is None:
+         return None
+     run_id = reported.get("run_id")
+     exit_code = reported.get("exit_code")
++    status, expected_exit = ("FAILED", 2) if partial_evidence is not None else ("PASS", 0)
+     if (reported.get("task_name") != _SYNC_TASK_NAME
+             or reported.get("target_date") != f"{target:08d}"
+-            or reported.get("status") != "PASS"
+-            or type(exit_code) is not int or exit_code != 0
++            or reported.get("status") != status
++            or type(exit_code) is not int or exit_code != expected_exit
+             or not isinstance(run_id, str)
+             or not re.fullmatch(rf"{target:08d}-[0-9a-f]{{16}}-[0-9]+", run_id)):
+         return None
+@@ -82,15 +86,17 @@
+             or not producer["started"] or os.getppid() != dispatch["dispatcher_pid"]):
+         return None
+     return {
+-        "schema": "v4.natural_source_provider_invocation.v1",
++        "schema": ("v4.natural_source_provider_partial_invocation.v1"
++                   if partial_evidence is not None else "v4.natural_source_provider_invocation.v1"),
+         "provider_task_name": _SYNC_TASK_NAME,
+         "provider_run_id": run_id,
+         "target_date": f"{target:08d}",
+-        "status": "PASS",
+-        "exit_code": 0,
++        "status": status,
++        "exit_code": exit_code,
+         "producer_process": producer,
+         "parent_dispatcher_pid": dispatch["dispatcher_pid"],
+         "dispatch": dispatch,
++        **({"accepted_partial": dict(partial_evidence)} if partial_evidence is not None else {}),
+     }
+ 
+ 
+@@ -1212,6 +1218,22 @@
+             **input_info,
+             **SAFETY_FLAGS,
+         }
++        if provider_invocation is None and dispatch_context is not None and accepted_only:
++            from ops.research_a_daily_physical import accepted_partial_provider, physical_mode
++            from ops.research_storage_retention import RetentionError
++
++            if physical_mode():
++                try:
++                    evidence = accepted_partial_provider(payload, target, receipt_root, source_ref)
++                    invocation = _provider_invocation(reported, target, dispatch_context, partial_evidence=evidence)
++                    if invocation is not None:
++                        payload.update(provider_invocation=invocation, provider_invocation_error=None)
++                        os.environ[_NATURAL_PROVIDER_INVOCATION_ENV] = json.dumps(
++                            invocation, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
++                        )
++                except (OSError, ValueError, TypeError, KeyError, AttributeError, RetentionError):
++                    # The accepted subset can continue with no natural-execution claim.
++                    pass
+         _atomic_write(receipt, (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
+         return payload
+ 
+@@ -1258,10 +1280,22 @@
  ) -> dict[str, Any]:
      from ops.research_panel_qfq import input_path, pointer_ready, run_daily_rebuild
      from ops.research_storage_retention import run_with_retention
@@ -354,7 +441,7 @@ diff --git a/ops/macos_research_panel_daily_authority.py b/ops/macos_research_pa
      tdx = Path(qfq_original_tdx_root or tdx_root).resolve()
      selector_ptr, backtest_ptr = Path(selector_pointer).absolute(), Path(backtest_pointer).absolute()
      pointers = {"selector": selector_ptr, "backtest": backtest_ptr}
-@@ -1272,11 +1284,40 @@
+@@ -1272,11 +1306,40 @@
          ready_check=lambda: pointer_ready(selector_ptr, target, input_path(data)),
          driver_path=pinned_driver, formula_path=Path(canonical_formula_path).resolve(),
          tdx_root=tdx, data_root=data, pointers=pointers,
@@ -400,13 +487,14 @@ diff --git a/ops/research_a_daily_physical.py b/ops/research_a_daily_physical.py
 new file mode 100644
 --- /dev/null
 +++ b/ops/research_a_daily_physical.py
-@@ -0,0 +1,152 @@
+@@ -0,0 +1,224 @@
 +"""Physical-space guard and publication for the scheduled A-only chain."""
 +from contextlib import contextmanager
 +import hashlib
 +import json
 +import os
 +from pathlib import Path
++import re
 +import shutil
 +
 +from ops.macos_research_panel_daily_common import SnapshotGateError
@@ -464,6 +552,77 @@ new file mode 100644
 +    if any(key in os.environ for key in _POLICY_ENV):
 +        raise SnapshotGateError("A_DAILY_PHYSICAL_STORAGE_POLICY_CONFLICT")
 +    return True
++
++
++def accepted_partial_provider(sync, target, receipt_root, source_ref=None):
++    """Read back the official source of a closed, accepted-only raw run."""
++    from ops.a_share_daily_sync import _TERMINAL_CONTENT_FAILURE_CODES, _reason_code
++    from ops._a_share_daily_sync_parts.official_daily_package import SOURCE_KIND, SOURCE_URL
++    from ops.macos_research_panel_daily_authority import _GLOBAL_FAILURE_FIELDS, _row_classification
++    from ops.research_storage_retention import digest, safe_path
++
++    raw = sync["authority"]
++    scope = sync["scope_eligibility"]
++    accepted = sync.get("accepted_count")
++    quarantine = sync.get("quarantine_count")
++    progress = raw["progress"]
++    fingerprint = sync["target_fingerprint"]
++    if (sync.get("status") != "READY" or sync.get("authority_status") != "REBUILD_REQUIRED"
++            or sync.get("formula_input_mode") != "ACCEPTED_ONLY" or not sync.get("formula_input_manifest")
++            or sync.get("target_date") != target or raw.get("target_date") != str(target)
++            or raw.get("task_name") != "tdxpy_daily_vipdoc_sync_v1"
++            or raw.get("status") != "FAILED" or type(raw.get("exit_code")) is not int or raw["exit_code"] != 2
++            or raw.get("authority_status") != "REBUILD_REQUIRED" or raw.get("dry_run") is not False
++            or raw.get("timeout") is not False or raw.get("interrupted") is not False
++            or raw.get("timeout_scope") is not None or raw.get("pending_count") != 0
++            or sync.get("pending_count") != 0 or any(raw.get(key) or progress.get(key) for key in _GLOBAL_FAILURE_FIELDS)
++            or type(accepted) is not int or accepted <= 0 or type(quarantine) is not int or quarantine <= 0
++            or raw.get("accepted_count") != accepted or sync.get("accepted_target_date_file_count") != accepted
++            or raw.get("accepted_target_date_file_count") != accepted or raw.get("completed_count") != accepted
++            or raw.get("quarantine_count") != quarantine or raw.get("target_count") != accepted + quarantine
++            or sync.get("target_count") != accepted + quarantine
++            or type(scope.get("unresolved_eligible_count")) is not int or scope["unresolved_eligible_count"] <= 0
++            or scope.get("eligible_target_count") != accepted + scope["unresolved_eligible_count"]
++            or raw.get("target_fingerprint") != fingerprint or not re.fullmatch(r"[0-9a-f]{64}", fingerprint)
++            or not re.fullmatch(rf"{target}-{fingerprint[:16]}-[0-9]+", raw["run_id"])
++            or progress.get("last_run_id") != raw["run_id"] or progress.get("target_date") != str(target)
++            or progress.get("target_fingerprint") != fingerprint):
++        raise SnapshotGateError("A_DAILY_PARTIAL_PROVIDER_CLOSURE_CONFLICT")
++
++    failures = raw["failures"]
++    quarantined = {(row.get("symbol"), row.get("reason_code"), row.get("failure_type"))
++                   for row in raw["symbol_reconciliation"]
++                   if _row_classification(row) == "QUARANTINED"}
++    if (not isinstance(failures, list) or raw.get("technical_failure_count") != len(failures)
++            or len(failures) > quarantine
++            or any(failure.get("reason_code") not in _TERMINAL_CONTENT_FAILURE_CODES
++                   or _reason_code(failure["failure_type"]) != failure["reason_code"]
++                   or (failure.get("symbol"), failure["reason_code"], failure["failure_type"]) not in quarantined
++                   for failure in failures)):
++        raise SnapshotGateError("A_DAILY_PARTIAL_PROVIDER_FAILURE_SCOPE_CONFLICT")
++
++    official = raw["official_daily_source"]
++    root = Path(receipt_root) / "a_sync_authority" / "official_daily" / str(target)
++    input_ref = official["input_ref"]
++    input_path = safe_path(root / "input.json")
++    if (official.get("source_kind") != SOURCE_KIND or raw.get("host") != SOURCE_KIND
++            or input_ref["path"] != str(input_path) or input_path.stat().st_size > 64 * 1024
++            or (source_ref is not None and input_ref != {key: source_ref[key] for key in ("path", "sha256")})):
++        raise SnapshotGateError("A_DAILY_PARTIAL_PROVIDER_OFFICIAL_REF_CONFLICT")
++    raw_input = input_path.read_bytes()
++    descriptor = json.loads(raw_input)
++    package_ref = official["package"]
++    package_path = safe_path(package_ref["path"])
++    if (hashlib.sha256(raw_input).hexdigest() != input_ref["sha256"]
++            or descriptor.get("schema_version") != "a_sync_official_daily_input.v1"
++            or descriptor.get("source_kind") != SOURCE_KIND or descriptor.get("target_date") != target
++            or descriptor.get("source_url") != SOURCE_URL.format(date=target)
++            or descriptor.get("package") != package_ref or package_path.parent != root / "packages"
++            or package_path.suffix != ".zip" or package_path.stat().st_size > 32 * 1024**2
++            or digest(package_path) != package_ref["sha256"]):
++        raise SnapshotGateError("A_DAILY_PARTIAL_PROVIDER_OFFICIAL_SOURCE_CONFLICT")
++    return {"input_ref": input_ref, "package": package_ref, "accepted_count": accepted,
++            "target_fingerprint": fingerprint}
 +
 +
 +def publish_current_pair(data_root, target, result):

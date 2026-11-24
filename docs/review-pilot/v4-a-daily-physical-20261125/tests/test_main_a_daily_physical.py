@@ -243,6 +243,69 @@ class PhysicalADaily(unittest.TestCase):
             result["natural_execution"]["ready_receipt"]["sha256"] = "0" * 64
             self.assertFalse(self.review._verified_natural_receipt(readback, dispatch, DAY))
 
+    def test_actual_d24_failed2_is_a_natural_accepted_partial_only(self):
+        from ops.macos_research_panel_daily_common import SnapshotGateError
+        from ops.macos_research_panel_daily_receipts import validate_a_receipt
+
+        sync = self.receipt["sync"]
+        raw = sync["authority"]
+        root = self.receipt_path.parent
+        target = int(DAY)
+        target_ref = raw["official_daily_source"]["input_ref"]
+        self.assertIsNone(self.authority._provider_invocation(raw, target, {"dispatcher_pid": os.getppid()}))
+        self.assertEqual((raw["status"], raw["exit_code"]), ("FAILED", 2))
+        audited = validate_a_receipt(
+            self.receipt, DAY, selector_pointer=self.environment["V4_RESEARCH_PANEL_A_SELECTOR_POINTER"],
+            backtest_pointer=self.environment["V4_RESEARCH_PANEL_A_BACKTEST_POINTER"],
+        )
+        self.assertEqual(audited, "PARTIAL_WITH_ROWS")
+        evidence = self.physical.accepted_partial_provider(sync, target, root, target_ref)
+        self.assertEqual(evidence["accepted_count"], 5574)
+        with self.assertRaisesRegex(SnapshotGateError, "OFFICIAL_REF_CONFLICT"):
+            self.physical.accepted_partial_provider(sync, target, root, {**target_ref, "sha256": "0" * 64})
+        for drift in (
+            {"timeout": True}, {"interrupted": True}, {"pending_count": 1}, {"target_date": "20261125"},
+            {"run_id": DAY + "-0000000000000000-1"}, {"accepted_count": 0}, {"global_failure": True},
+            {"failures": [{**raw["failures"][0], "reason_code": "SYSTEM_FAULT"}, *raw["failures"][1:]]},
+        ):
+            with self.subTest(drift=list(drift)), self.assertRaises(SnapshotGateError):
+                self.physical.accepted_partial_provider({**sync, "authority": {**raw, **drift}}, target, root)
+
+        dispatch = {"dispatcher_pid": os.getppid(), "run_id": "a" * 32}
+        provider = self.authority._provider_invocation(raw, target, dispatch, partial_evidence=evidence)
+        self.assertEqual(provider["status"], "FAILED")
+        self.assertEqual(provider["exit_code"], 2)
+        self.assertEqual(provider["producer_process"]["pid"], os.getpid())
+        original = self.receipt["formula"]
+        authority = original["authority"]
+        paths = {role: self.receipt[role] for role in ("selector", "backtest")}
+        refs = self.physical.ready_receipts(
+            self.environment["V4_RESEARCH_PANEL_A_RETURN_ROOT"], original["run_dir"], authority["generation_id"],
+            target, authority["source_sha256"], paths,
+        )
+        qfq = {
+            "schema": "v4.qfq_natural_physical_execution.v1", "status": "PAIRED_OWNER_READY",
+            "already_current": False, "target_date": DAY, "dispatch": dispatch, "provider_invocation": provider,
+            "generation_id": authority["generation_id"], "input_sha256": authority["source_sha256"],
+            "pair": self.physical.pair_reference(self.data, target, authority, paths), **refs,
+        }
+        readback = {
+            **self.receipt, "formula": {**original, "natural_execution": qfq},
+            "sync": {**sync, "provider_invocation": provider, "natural_dispatch_context": dispatch},
+        }
+        verify = self.review._verified_natural_receipt
+        self.assertFalse(verify(readback, dispatch, DAY, audited_status=audited))
+        with self.physical.scheduled_storage():
+            self.assertTrue(verify(readback, dispatch, DAY, audited_status=audited))
+            self.assertFalse(verify(readback, dispatch, DAY))
+            self.assertFalse(verify({**readback, "status": "READY"}, dispatch, DAY, audited_status=audited))
+            self.assertFalse(verify(readback, {**dispatch, "run_id": "b" * 32}, DAY, audited_status=audited))
+            qfq["already_current"] = True
+            self.assertFalse(verify(readback, dispatch, DAY, audited_status=audited))
+            qfq["already_current"] = False
+            provider["accepted_partial"] = {**evidence, "accepted_count": 1}
+            self.assertFalse(verify(readback, dispatch, DAY, audited_status=audited))
+
 
 if __name__ == "__main__":
     unittest.main()
