@@ -23,6 +23,7 @@ from infrastructure.owned_io import SafeRoot
 GROUP = ("api", "main", "stage")
 MAIN_POLICY_REBIND = "main_policy_rebind"
 MAIN_A_SYNC_REBIND = "main_a_sync_rebind"
+MAIN_STAGE_REFRESH = "main_stage_refresh"
 MAIN_POLICY_ROLLBACK_DRAIN_SECONDS = 45
 POLICY_PATH = "V4_RESEARCH_RETENTION_POLICY"
 POLICY_SHA = "V4_RESEARCH_RETENTION_POLICY_SHA256"
@@ -339,6 +340,37 @@ def main_rebind_group(ops, directory, prior, role):
     return entries
 
 
+def carry_api_for_main_stage(ops, directory, prior, roles, plan):
+    require(prior is not None and prior["sha256"] == plan["prior_active_sha256"],
+            "Main/Stage refresh requires an exact prior active group")
+    root = directory / prior["target"]
+    group = json.loads(checked(root / "group-manifest.json", prior["sha256"]))
+    for role in roles:
+        entry = group["roles"][role["role"]]
+        identity = json.loads(checked(root / entry["release_id"] / "release-manifest.json", entry["sha256"]))
+        require(identity["role"] == role["role"] and identity["app_root"] == role["old_cwd"]
+                and identity["plist_path"] == str(role["path"]) and identity["plist_sha256"] == digest(role["old"])
+                and identity["startup_manifest"] == {"path": str(role["old_manifest"]),
+                                                      "sha256": role["old_manifest_sha"]},
+                f"Main/Stage preimage differs from active group: {role['role']}")
+    entry = group["roles"]["api"]
+    alias = Path(entry["path"])
+    raw = checked(root / entry["release_id"] / "release-manifest.json", entry["sha256"])
+    identity = json.loads(raw)
+    plist = LAUNCH_AGENTS / f"{LABELS['api']}.plist"
+    require(identity["role"] == "api" and identity["release_id"] == entry["release_id"]
+            and str(plist) == identity["plist_path"]
+            and link(alias) == str(directory / "active" / entry["release_id"] / "release-manifest.json"),
+            "carried API identity mismatch")
+    cfg = plistlib.loads(checked(plist, identity["plist_sha256"]))
+    app, manifest, data = startup(cfg, identity["startup_manifest"]["sha256"], candidate=True)
+    require(identity["app_root"] == str(app) and identity["startup_manifest"]["path"] == str(manifest)
+            and data["release_id"] == entry["release_id"], "carried API startup drift")
+    loaded = ops["verify_loaded"]("api", str(app), plist, identity["startup_manifest"]["sha256"])
+    require(loaded["pid"] == plan["carried_api_pid"], "carried API PID changed")
+    return {"api": (entry, raw)}
+
+
 def sync_directory(directory):
     fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
     try:
@@ -459,7 +491,9 @@ def publish(io, directory, target, roles, observations, plan_sha, *, prior=None,
                 entry = {**entry, "sha256": digest(raw)}
             io.write_bytes(f"{target}/{entry['release_id']}/release-manifest.json", raw, require_absent=True)
             manifests[name] = entry
-    for role in roles if carried is None else ():
+    for role in roles:
+        if carried is not None and role["role"] in carried:
+            continue
         identifier = role["identity"]["release_id"]
         # Reconfirm approved bytes after all role probes and before publication.
         startup_manifest = json.loads(checked(role["new_manifest"], role["new_manifest_sha"]))
@@ -489,6 +523,10 @@ def protect_roles(ops, roles, plan, locks, result, *, rollback):
     root = ops["manager_root"](old_env, plan["manager_config_sha256"])
     result["announcement_activity"] = locks.enter_context(ops["announcement_flash_cutover_guard"](root))
     result["manager_attempts_checked"] = ops["manager_idle"](root)
+    protect_main_stage(main, stage, plan, rollback=rollback)
+
+
+def protect_main_stage(main, stage, plan, *, rollback):
     confirm_prior_stage(stage, plan["prior_stage_config_sha256"])
     if rollback:
         return
@@ -531,7 +569,7 @@ def wait_main_rebind_idle(ops, role):
         time.sleep(min(1, remaining))
 
 
-def restore_group(ops, roles, directory, target, prior):
+def restore_group(ops, roles, directory, target, prior, *, carry_api=False):
     current = link(directory / "active")
     prior_target = prior["target"] if prior else None
     require(current in (None, target, prior_target), "a different release owns the active pointer")
@@ -553,8 +591,8 @@ def restore_group(ops, roles, directory, target, prior):
                 else:
                     ops["scheduler_idle"](state["pid"], role["new_cfg"])
         states[role["role"]] = (state, payload)
-    policy_rebind = "policy_rebind" in roles[0]
-    if current == target and not policy_rebind:
+    preserve_pointer = carry_api or "policy_rebind" in roles[0]
+    if current == target and not preserve_pointer:
         switch_pointer(directory, target, None)
     for role in reversed(roles):
         state, payload = states[role["role"]]
@@ -569,7 +607,7 @@ def restore_group(ops, roles, directory, target, prior):
             ops["run_ctl"]("bootstrap", ops["DOMAIN"], str(role["path"]))
         observations[role["role"]] = verify(ops, role, "old")
     if link(directory / "active") != prior_target:
-        switch_pointer(directory, target if current == target and policy_rebind else None, prior_target)
+        switch_pointer(directory, target if current == target and preserve_pointer else None, prior_target)
     require(active_record(directory) == prior, "prior active release readback mismatch")
     return observations
 
@@ -581,6 +619,7 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
     intent_path = f"{transaction}/intent.json"
     rolled_back_path = f"{transaction}/rolled-back.json"
     pending_path = "pending.json"
+    carry_api = plan.get("transaction_kind") == MAIN_STAGE_REFRESH
     pending_raw = encode({"plan_sha256": plan_sha})
     try:
         pending = io.read_bytes(pending_path)
@@ -599,7 +638,7 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
         result["status"] = "ROLLBACK_INCOMPLETE"
         if pending is None:
             io.write_bytes(pending_path, pending_raw, require_absent=True)
-        result["restored"] = restore_group(ops, roles, directory, target, prior)
+        result["restored"] = restore_group(ops, roles, directory, target, prior, carry_api=True) if carry_api else restore_group(ops, roles, directory, target, prior)
         io.write_bytes(rolled_back_path, pending_raw)
         require(io.unlink_if_same(pending_path, pending_raw), "rollback journal drift")
         result["status"] = "ROLLED_BACK"
@@ -611,6 +650,8 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
     policy_rebind = "policy_rebind" in roles[0]
     if policy_rebind:
         main_rebind_group(ops, directory, prior, roles[0])
+    elif carry_api:
+        carry_api_for_main_stage(ops, directory, prior, roles, plan)
     for role in roles:
         verify(ops, role, "old")
         ops["role_idle"](role)
@@ -622,11 +663,12 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
         require(io.read_bytes(intent_path) == intent_raw, "activation intent changed")
     io.write_bytes(pending_path, pending_raw, require_absent=True)
     try:
-        if prior is not None and not policy_rebind:
+        if prior is not None and not (policy_rebind or carry_api):
             switch_pointer(directory, prior["target"], None)
         observations = install_group(ops, roles, plan)
-        if policy_rebind:
-            carried = main_rebind_group(ops, directory, prior, roles[0])
+        if policy_rebind or carry_api:
+            carried = (main_rebind_group(ops, directory, prior, roles[0]) if policy_rebind
+                       else carry_api_for_main_stage(ops, directory, prior, roles, plan))
             result["active_release"] = publish(io, directory, target, roles, observations, plan_sha,
                                                prior=prior, carried=carried)
         else:
@@ -637,7 +679,7 @@ def transact(ops, roles, plan, plan_sha, directory, result, *, rollback):
         result["error"] = f"{type(error).__name__}: {error}"
         result["status"] = "ROLLBACK_INCOMPLETE"
         try:
-            result["restored"] = restore_group(ops, roles, directory, target, prior)
+            result["restored"] = restore_group(ops, roles, directory, target, prior, carry_api=True) if carry_api else restore_group(ops, roles, directory, target, prior)
             io.write_bytes(rolled_back_path, pending_raw)
             require(io.unlink_if_same(pending_path, pending_raw), "rollback journal drift")
             result["status"] = "ROLLED_BACK"
@@ -650,8 +692,9 @@ def run(plan, plan_sha, result, *, rollback):
     group = tuple(row["role"] for row in plan["roles"])
     kind = plan.get("transaction_kind")
     main_rebind = kind in {MAIN_POLICY_REBIND, MAIN_A_SYNC_REBIND}
-    require((kind is None and group == GROUP) or (main_rebind and group == ("main",)),
-            "expected exact API/Main/Stage role group and order or reviewed Main policy rebind")
+    main_stage = kind == MAIN_STAGE_REFRESH
+    require((kind is None and group == GROUP) or (main_rebind and group == ("main",))
+            or (main_stage and group == ("main", "stage")), "unexpected reviewed role group or order")
     if not rollback:
         command = plan.get("verification_command")
         require(isinstance(command, list) and command and command[0]
@@ -679,8 +722,11 @@ def run(plan, plan_sha, result, *, rollback):
         else:
             roles = [load_role(row, approval["roles"][row["role"]], directory, rollback=rollback)
                      for row in plan["roles"]]
-            require(len({role["identity"]["release_id"] for role in roles}) == len(GROUP), "duplicate release ID")
-            protect_roles(ops, roles, plan, locks, result, rollback=rollback)
+            require(len({role["identity"]["release_id"] for role in roles}) == len(roles), "duplicate release ID")
+            if main_stage:
+                protect_main_stage(*roles, plan, rollback=rollback)
+            else:
+                protect_roles(ops, roles, plan, locks, result, rollback=rollback)
         transact(ops, roles, plan, plan_sha, directory, result, rollback=rollback)
 
 

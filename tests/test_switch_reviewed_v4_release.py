@@ -178,6 +178,90 @@ def run(plan, result, *, rollback=False):
     return plan_sha
 
 
+@pytest.fixture
+def main_stage_refresh(cohort):
+    initial, simulated, old_roles, activation = cohort
+    run(initial, {})
+    prior = switch.active_record(activation)
+    api_before = json.loads((activation / "active/group-manifest.json").read_bytes())["roles"]["api"]
+    api_raw = Path(api_before["path"]).read_bytes()
+    plan = {**initial, "roles": [], "transaction_kind": switch.MAIN_STAGE_REFRESH,
+            "prior_active_sha256": prior["sha256"], "carried_api_pid": 117}
+    approval = {"verdict": "PASS", "roles": {}, "transaction_kind": switch.MAIN_STAGE_REFRESH}
+    for old in old_roles[1:]:
+        name = old["role"]
+        app = switch.CANDIDATES / f"refresh-{name}/app"
+        delta = [put(app / "overlay.py", name.encode())]
+        if name == "stage":
+            previous_config = Path(old["new_cwd"]) / "stage_center_tick_config.json"
+            plan["prior_stage_config_sha256"] = switch.digest(previous_config.read_bytes())
+            binding = {"app_root": str(main_app), "manifest_path": main_manifest["path"],
+                       "manifest_sha256": main_manifest["sha256"], "release_id": main_app.parent.name}
+            delta.append(put(app / previous_config.name, switch.encode({"research_owner_binding": binding})))
+        repo = Path(__file__).resolve().parents[1]
+        commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+        manifest = put(app.parent / "startup-manifest.json", switch.encode({
+            "release_id": app.parent.name, "app_root": str(app), "source_root": str(repo), "source_commit": commit,
+            "application_inventory": {"entries": [
+                {"path": Path(ref["path"]).name, "kind": "file", "sha256": ref["sha256"]} for ref in delta]}}))
+        if name == "main":
+            main_app, main_manifest = app, manifest
+        (app.parent / "release-manifest.json").symlink_to(activation / "active" / app.parent.name / "release-manifest.json")
+        rollback = put(app.parent / "rollback.plist", old["new"])
+        forward = put(app.parent / "forward.plist", plistlib.dumps(config(old["label"], app, manifest)))
+        row = {"role": name, "rollback_plist": rollback["path"], "candidate_plist": forward["path"],
+               "current_plist_sha256": rollback["sha256"], "candidate_plist_sha256": forward["sha256"],
+               "current_manifest_sha256": old["new_manifest_sha"], "candidate_manifest_sha256": manifest["sha256"],
+               "candidate_release_id": app.parent.name}
+        recorded = {**row, "delta_files": delta, "source_commit": commit}
+        role = switch.load_role(row, recorded, activation, rollback=False)
+        simulated.by_label[role["label"]] = role
+        simulated.by_path[str(role["path"])] = role
+        plan["roles"].append(row)
+        approval["roles"][name] = recorded
+    approval_path = activation / "main-stage-refresh-approval.json"
+    plan["review_approval"] = put(approval_path, switch.encode(approval))
+    simulated.changes.clear()
+    return plan, simulated, prior, activation, api_before, api_raw
+
+
+def test_main_stage_refresh_carries_api_and_restores_prior(main_stage_refresh):
+    plan, simulated, prior, activation, api, api_raw = main_stage_refresh
+    def before_bootstrap(role, side):
+        assert Path(api["path"]).read_bytes() == api_raw
+    simulated.before_bootstrap = before_bootstrap
+    result = {}
+    run(plan, result)
+    assert result["status"] == "DEPLOYED"
+    assert Path(api["path"]).read_bytes() == api_raw
+    assert simulated.changes == [("unload", "stage"), ("unload", "main"),
+                                 ("load", "main", "new"), ("load", "stage", "new")]
+    run(plan, result, rollback=True)
+    assert result["status"] == "ROLLED_BACK" and switch.active_record(activation) == prior
+    assert Path(api["path"]).read_bytes() == api_raw
+    assert all(change[1] != "api" for change in simulated.changes)
+
+
+def test_main_stage_refresh_failed_probe_restores_prior(main_stage_refresh):
+    plan, simulated, prior, activation, api, api_raw = main_stage_refresh
+    plan["verification_command"] = [sys.executable, "-B", "-c", "raise SystemExit(7)"]
+    result = {}
+    with pytest.raises(subprocess.CalledProcessError):
+        run(plan, result)
+    assert result["status"] == "ROLLED_BACK" and switch.active_record(activation) == prior
+    assert Path(api["path"]).read_bytes() == api_raw
+    assert all(change[1] != "api" for change in simulated.changes)
+
+
+def test_main_stage_refresh_profile_rejects_api_pid_drift(main_stage_refresh):
+    plan, simulated, prior, activation, api, api_raw = main_stage_refresh
+    plan["carried_api_pid"] += 1
+    with pytest.raises(RuntimeError, match="carried API PID changed"):
+        run(plan, {})
+    assert switch.active_record(activation) == prior and simulated.changes == []
+    assert Path(api["path"]).read_bytes() == api_raw
+
+
 def reseal_plist(plan, index, mutate):
     row = plan["roles"][index]
     path = Path(row["candidate_plist"])
