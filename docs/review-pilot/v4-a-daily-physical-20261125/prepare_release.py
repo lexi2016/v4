@@ -109,7 +109,9 @@ def main():
     parser.add_argument('--case', type=Path, required=True)
     parser.add_argument('--audited-switch', type=Path, required=True)
     parser.add_argument('--probe', type=Path, required=True)
+    parser.add_argument('--revision', type=int, default=1)
     args = parser.parse_args()
+    assert args.revision >= 1
     case = args.case.resolve(strict=True)
     os.umask(0o077)
     audited = reference(args.audited_switch.resolve(strict=True))
@@ -134,7 +136,8 @@ def main():
         before = release.checked(live, active['plist_sha256'])
         cfg = plistlib.loads(before)
         old_app, old_manifest, old_data = release.startup(cfg, active['startup_manifest']['sha256'], candidate=True)
-        app = release.CANDIDATES / f'v4-r2-20261125-{role}-daily-physical/app'
+        suffix = '' if args.revision == 1 else f'-r{args.revision}'
+        app = release.CANDIDATES / f'v4-r2-20261125-{role}-daily-physical{suffix}/app'
         app.parent.mkdir()
         subprocess.run(['/bin/cp', '-cRp', str(old_app), str(app)], check=True)
         base_entries = file_rows(inventory_tree(app))
