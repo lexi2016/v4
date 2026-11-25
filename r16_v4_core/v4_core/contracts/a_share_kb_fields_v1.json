@@ -1,0 +1,596 @@
+{
+  "schema": "a_share_kb_fields_v1",
+  "confirmation_sha256": "061d894187427bed3df07c357add5b045f17b28c62d353dc14cfd7c387463201",
+  "fields": [
+    {
+      "group": "MACD",
+      "name": "kb_macd_dif_positive",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF>0",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_dif_positive",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_dif_cross_zero",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF 上穿零轴",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_dif_cross_zero",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_dif_cross_zero_down",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF 下穿零轴",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_dif_cross_zero_down",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_gold_cross",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF 上穿 DEA",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_gold_cross",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_dead_cross",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF 下穿 DEA",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_dead_cross",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_gold_fake",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "近期金叉后当日死叉",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_gold_fake",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_dead_fake",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "近期死叉后当日金叉",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_dead_fake",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_top_divergence",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "源函数的60日区间顶背离",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_top_divergence",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_bottom_divergence",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "源函数的60日区间底背离",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "is_bottom_divergence",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "MACD",
+      "name": "kb_macd_veto",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "DIF<0 且已知无底背离；底背离未知不得直接否决",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_macd_signals",
+      "source_key": "macd_veto",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "双线/牛绳",
+      "name": "kb_white_cross_up",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "白线上穿黄线（源函数舍入与初始化）",
+      "source": "modules/indicators/price_patterns/base.py::detect_double_line_cross",
+      "source_key": "tuple[0]",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "双线/牛绳",
+      "name": "kb_white_cross_down",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "白线下穿黄线（源函数舍入与初始化）",
+      "source": "modules/indicators/price_patterns/base.py::detect_double_line_cross",
+      "source_key": "tuple[1]",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "双线/牛绳",
+      "name": "kb_bull_rope_status",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "牛绳状态；实际枚举以源代码为准，预热不足 null",
+      "source": "modules/indicators/price_patterns/bull_rope.py::detect_bull_rope",
+      "source_key": "status",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "双线/牛绳",
+      "name": "kb_in_bowl",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "白>黄，且黄<=收盘<=白",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_golden_bowl",
+      "source_key": "is_in_bowl",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "双线/牛绳",
+      "name": "kb_breath_n_type",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "源呼吸函数的抽样低点抬高结构；不是任意N形",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_breathing_structure",
+      "source_key": "breath_n_type",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "单针",
+      "name": "kb_needle_20",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "RSL3<=20 且 RSL21>=60",
+      "source": "modules/indicators/price_patterns/base.py::detect_needle_20",
+      "source_key": "tuple[2]",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "单针",
+      "name": "kb_needle_30",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "RSL21>85 且 RSL3<30",
+      "source": "modules/indicators/price_patterns/base.py::detect_needle_30",
+      "source_key": "return",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "量价",
+      "name": "kb_beidou",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "今量>=昨量×2",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_volume_pattern",
+      "source_key": "is_beidou",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "量价",
+      "name": "kb_suoliang",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "今量<=昨量×0.5",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_volume_pattern",
+      "source_key": "is_suoliang",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "量价",
+      "name": "kb_jiayin_zhenyang",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "收<开且收>前收",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_volume_pattern",
+      "source_key": "is_jiayin_zhenyang",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "量价",
+      "name": "kb_jiayang_zhenyin",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "收>开且收<前收",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_volume_pattern",
+      "source_key": "is_jiayang_zhenyin",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "量价",
+      "name": "kb_fangliang_yinxian",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "收<前收且今量>昨量×1.5",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_volume_pattern",
+      "source_key": "is_fangliang_yinxian",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "砖型",
+      "name": "kb_brick_trend_up",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "源函数：命值斜率与运值/命值关系",
+      "source": "modules/indicators/price_patterns/brick.py::detect_brick_trend",
+      "source_key": "return",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "砖型",
+      "name": "kb_fanbao",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "昨日绿、今日红、严格超过2/3；采用既有整数分边界裁决并单独标版本",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_fanbao + 已有严格边界裁决",
+      "source_key": "return",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "砖型",
+      "name": "kb_brick_flip_green",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "四块砖体系红翻绿",
+      "source": "modules/indicators/price_patterns/brick.py::detect_four_brick_system",
+      "source_key": "is_brick_flip_green",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "砖型",
+      "name": "kb_brick_action",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "原算法状态标签；不是交易指令",
+      "source": "modules/indicators/price_patterns/brick.py::detect_four_brick_system",
+      "source_key": "brick_action",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "B1/B2/B3",
+      "name": "kb_b1",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "四项至少三项：J<13、振幅<4%、涨幅[-2,1.8]%、今量<昨量",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "is_b1",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "B1/B2/B3",
+      "name": "kb_b2",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "近期J<13痕迹+涨幅>=4%，且四项评分>=3；不是严格引用kb_b1",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "is_b2",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "B1/B2/B3",
+      "name": "kb_b3",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "前序>=4%阳线锚点后2~5日，量比<0.8、低点>=锚点低×0.98、|涨幅|<3%",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_b3",
+      "source_key": "is_b3",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_sb1",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "SB1 假摔",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_sb1",
+      "source_key": "is_sb1",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_sb1_detailed",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "超级B1",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_sb1_detailed",
+      "source_key": "is_sb1_detailed",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_double_gun",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "双枪",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_double_gun",
+      "source_key": "is_double_gun",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_nana",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "娜娜图",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_nana_chart",
+      "source_key": "is_nana",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_rebuild",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "灾后重建",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_zaihou_chongjian",
+      "source_key": "is_rebuild",
+      "status": "SOURCE_IMPLEMENTATION_DEFECT",
+      "unknown_reason": "上游仅取5日或10日收盘价，无法计算MA14/28/57/114黄线；结果待核"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_ready",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "跃跃欲试",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_yueyueyushi",
+      "source_key": "is_ready",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_didi",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "KB高位连续阴线；不是旧didi_break_prev_low",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_didi",
+      "source_key": "is_didi",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_centipede",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "蜈蚣图",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_centipede_pattern",
+      "source_key": "is_centipede",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "高级战法",
+      "name": "kb_violence_k",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "仅当日 is_latest 命中，不把近期列表非空当今日命中",
+      "source": "modules/indicators/price_patterns/key_candles.py::detect_violence_k",
+      "source_key": "any(is_latest)",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "麒麟/呼吸",
+      "name": "kb_kirin_stage",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "吸筹/拉升/派发/回落；源“未知”与输入不足分别记诊断",
+      "source": "modules/indicators/kirin_detector.py::detect_kirin_stage",
+      "source_key": "stage",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "麒麟/呼吸",
+      "name": "kb_kirin_conf",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "阶段置信度，0~1；无效输入 null",
+      "source": "modules/indicators/kirin_detector.py::detect_kirin_stage",
+      "source_key": "confidence",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "麒麟/呼吸",
+      "name": "kb_kirin_position",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "低位/中位/高位",
+      "source": "modules/indicators/kirin_detector.py::detect_kirin_stage",
+      "source_key": "indicators.price_position",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "麒麟/呼吸",
+      "name": "kb_kirin_vol",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "放量/正常/缩量",
+      "source": "modules/indicators/kirin_detector.py::detect_kirin_stage",
+      "source_key": "indicators.vol_pattern",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "麒麟/呼吸",
+      "name": "kb_breath_phase",
+      "arrow_type": "string",
+      "nullable": true,
+      "description": "exhale/inhale/none；none 是已知状态，不等于 null",
+      "source": "modules/indicators/price_patterns/complex_patterns.py::detect_breathing_structure",
+      "source_key": "breath_phase",
+      "status": "拟新增，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b1_score",
+      "arrow_type": "int8",
+      "nullable": true,
+      "description": "B1四条件满足数，0~4",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "b1_score",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b1_j",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "KB计算口径J（源函数round到2位）",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "b1_j_value",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b1_amplitude",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "B1振幅百分比；分母不可用 null",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "b1_amplitude",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b1_pct_chg",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "B1使用的涨跌幅百分比",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "b1_pct_chg",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b1_volume_shrink",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "B1今量<昨量",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b1_today",
+      "source_key": "b1_volume_shrink",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b2_score",
+      "arrow_type": "int8",
+      "nullable": true,
+      "description": "B2四条件满足数，0~4",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "b2_score",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b2_j",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "B2使用的KB J",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "b2_j_value",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b2_pct_chg",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "B2使用的涨跌幅百分比",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "b2_pct_chg",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b2_follows_b1",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "源字段名如此；实际为最近检查区间J<13痕迹，可能含当日",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "b2_follows_b1",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_b2_volume_up",
+      "arrow_type": "bool",
+      "nullable": true,
+      "description": "B2今量>昨量×1.2",
+      "source": "modules/indicators/price_patterns/screener_helper.py::detect_b2_today",
+      "source_key": "b2_volume_up",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_rsl_short",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "RSL3，按源HHV(C)/LLV(L)与舍入定义",
+      "source": "modules/indicators/price_patterns/base.py::calculate_rsl",
+      "source_key": "period=3",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_rsl_long",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "RSL21，按源HHV(C)/LLV(L)与舍入定义",
+      "source": "modules/indicators/price_patterns/base.py::calculate_rsl",
+      "source_key": "period=21",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_brick_value",
+      "arrow_type": "double",
+      "nullable": true,
+      "description": "KB砖值；不与192 brick_* 值互换",
+      "source": "modules/indicators/price_patterns/brick.py::calculate_brick_value",
+      "source_key": "return",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    },
+    {
+      "group": "组件/诊断",
+      "name": "kb_brick_consecutive",
+      "arrow_type": "int32",
+      "nullable": true,
+      "description": "四块砖体系当前连续同色数",
+      "source": "modules/indicators/price_patterns/brick.py::detect_four_brick_system",
+      "source_key": "brick_consecutive",
+      "status": "拟新增诊断列，待用户确认及数值验收"
+    }
+  ],
+  "drop_fields": [],
+  "source_sha256": {
+    "core.py": "8423882092943a11d92b125e2834ef50641053faf984b4592cd12ff599a6c4c7",
+    "price_patterns/base.py": "999c2cb21dc24a1fec37add14a5a49e4b7ed2a5911e0149d8a54474893b7835c",
+    "price_patterns/brick.py": "a87ed7f6025387b6c1977d27ff0662bce0ed4f97b3360bc86a004cf83292401e",
+    "price_patterns/screener_helper.py": "e27ccaea93af97729969395bb8bc3f5dc526177cdcec7496d96fb9fa3bcffefd",
+    "price_patterns/complex_patterns.py": "2c640ded837f5b091ebb5fdba6c8b0235a6c41a09985934cf27c740bceffb517",
+    "price_patterns/bull_rope.py": "78dd0b8b2097e888e409c9a2ddb4da5e807f760ecd4753af253a9c6d632f662e",
+    "price_patterns/key_candles.py": "38a3b58212925ffd1c9827193dc357bf5a623c99a2820190a4acbf4fada3af4c",
+    "volume_patterns.py": "42141485be6b9f55ca6cf016e2160271e7d20287b2f7284f907b74c119bfc2ce",
+    "kirin_detector.py": "fce412b92117a209b32406d770d9d229c1ea8229fea70503972b1baa007f3ac2"
+  },
+  "fanbao_convention": "SOURCE_PYTHON_ROUND2_THEN_INTEGER_CENT_STRICT_CROSS_PRODUCT_V1",
+  "fanbao_kernel_sha256": "fdcd3bd22856ac8287c92dd2307ac3c8513e6a3c29f0d735c7413cac41b3c66f",
+  "scope": "A_SHARE_SH_SZ_BJ_ONLY",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

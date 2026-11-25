@@ -1,0 +1,50 @@
+{
+  "schema": "a_share_kb_action_v1",
+  "scope": "REGISTERED_STOCK_RESEARCH_DISPLAY_ONLY",
+  "authorized_symbols": ["002865.SZ", "301048.SZ", "300206.SZ"],
+  "identity": "Same-date KB fields and hold score already bound by the single-stock candidate; the backend persists action rows in both roles and no action output changes any saved market or label field.",
+  "contexts": "Display both no-position and already-holding branches; neither actual holding, profit/loss nor market timing is inferred.",
+  "canonical_actions": ["买入", "卖出", "持有", "放飞", "等回调"],
+  "materialized_fields": {
+    "kb_action_no_position": "conditional no-position display value",
+    "kb_action_no_position_status": "source-state/unknown status of the no-position branch",
+    "kb_action_with_position": "conditional holding display value",
+    "kb_action_with_position_status": "source-state/unknown status of the holding branch",
+    "kb_action_reasons": "JSON array of source-based explanations and unbound conditions",
+    "kb_action_rule_sha256": "SHA256 of these exact contract bytes"
+  },
+  "all_fields": "nullable Arrow string; registered A-share symbols carry all six fields, other symbols remain null",
+  "inputs": {
+    "buy_signals": ["kb_b1", "kb_b2", "kb_b3"],
+    "risk_and_trend": ["kb_white_cross_down", "kb_bull_rope_status", "kb_macd_veto", "kb_brick_action", "kb_brick_flip_green"],
+    "score": ["kb_hold_score", "kb_hold_score_min", "kb_hold_score_max"],
+    "independent_original": ["user_v1_sell_signal_daily"],
+    "context_only": ["kb_b1_j", "kb_s1", "kb_s2", "kb_s3"]
+  },
+  "held_priority": [
+    "A confirmed white/yellow down-cross, confirmed brick flip with stop state, or a valid score upper bound below 3 yields sell/exit observation.",
+    "A bound brick reduction state or an exactly confirmed score of 3 yields partial-reduction/fly observation; actual holding and profit remain unknown.",
+    "A score lower bound of at least 4 with an active rope/MACD/brick risk or an independent original sell yields 持有 with CONFLICTING_OBSERVATIONS; the conflicting risks and unconfirmed fly conditions remain explicit in the stored reasons.",
+    "A score lower bound of at least 4 with known non-risk states yields hold observation, subject to the actual-position/profit assumptions of the five-point rule.",
+    "Otherwise action is null with UNKNOWN_SCORE_OR_RISK; unknown is not treated as zero or false."
+  ],
+  "flat_priority": [
+    "Known negative brick, MACD or explicitly broken/death-cross rope state yields wait/observe even if a B signal is present.",
+    "A B1/B2/B3 hit without a known blocker is a buy-signal observation only: market timing and complete buy filters remain unbound.",
+    "An unknown B value is pending; three explicit false values support waiting for a buy point."
+  ],
+  "rope": "Compare the actual enum values 牵牛, 金叉, 死叉, 牛绳断; non-empty is not broken. 牛绳断 is a below-yellow state, not a new cross event. An event requires kb_white_cross_down=true.",
+  "unknowns": "S1/S2/S3 are not substituted by original sell; source conflict and anchor gaps remain UNKNOWN. J>80 is an overbought observation, not a standalone J>90 fly rule.",
+  "sources": [
+    {"name": "sell-discipline.md", "sha256": "6c145a9f073d85948891d867a99fbe870db19b6432030688aa3f9fcbe28c0740", "location": "knowledge/sell-discipline.md", "basis": "five-point holding and reduction"},
+    {"name": "五分制持仓评分系统.md", "sha256": "fe60f3c82593e7660b681b87e5184a654637687b78ac5a1c07ee9c89f104f92b", "location": "wiki/zettaranc/concepts/05-资金仓位/五分制持仓评分系统.md", "basis": "4–5 hold, 3 halve, at most 2 exit, under holding context"},
+    {"name": "半仓放飞策略.md", "sha256": "a46fbd198ce9f6a479a3f45ca9d884ddd72277f4ddd01ba719b3fa3ad18b3508", "location": "wiki/zettaranc/concepts/05-资金仓位/半仓放飞策略.md", "basis": "conditional half-position fly when relevant risk or pattern confirmed"},
+    {"name": "trend-lines.md", "sha256": "8333c72fe244ad73883637f812efd48c94a1fec840ff6aeabb9083a9c381ad1f", "location": "knowledge/trend-lines.md", "basis": "white/yellow state and cross distinction"},
+    {"name": "trading-core.md", "sha256": "d69f7a5e59c33c18be3c7316b27d7338752b39716323e57af8de533688aa1d22", "location": "knowledge/trading-core.md", "basis": "market timing, brick state and B-family conditions"},
+    {"name": "signal_dictionary.md", "sha256": "5ccf9e16657cf82f11ec11fed0cc5f575a674132c623e36b9fc43fd756337d32", "location": "knowledge/signal_dictionary.md", "basis": "J>80 overbought, not an independent J>90 fly trigger"}
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "a_share_kb_hold_score_v1",
+  "scope": "EXPLICIT_A_SHARE_SINGLE_STOCK_RESEARCH_ONLY",
+  "authorized_symbols": ["002865.SZ", "301048.SZ", "300206.SZ"],
+  "components": [
+    {"name": "kb_hold_close_up", "meaning": "本日收盘价严格大于同前复权前一日收盘价；有限的前复权非正收盘仍可比较", "unknown": "前一日或当日有效收盘缺失"},
+    {"name": "kb_hold_above_bbi", "meaning": "收盘在同口径KB BBI之上；有限的前复权非正收盘可参与平均", "unknown": "不足24根、数据无效或收盘恰等于BBI时正文表述不一致"},
+    {"name": "kb_hold_volume_ok", "meaning": "阳线得分：同口径有效收盘价严格高于有效开盘价得1；收盘价小于或等于开盘价得0。该比较不依赖最高价、最低价或成交量；有限的前复权非正开收仍可比较", "unknown": "开盘价或收盘价缺失、非有限或无效"},
+    {"name": "kb_hold_trend_up", "meaning": "用户确认的 N V1：以完整同股前缀确认相邻高低点并判断趋势", "unknown": "确认点不足、同根高低点次序不明或输入无效；按 N V1 来源状态保留"},
+    {"name": "kb_hold_j_not_dead", "meaning": "J未同时低于K和D；判定当前状态而非仅下穿瞬间", "unknown": "不足9根或KDJ递推输入无效"}
+  ],
+  "total": "各确定true得1；任一分项未知时总分为null，最小值为已确认得分，最大值加未知分项数",
+  "reason_fields": "每项对应 _reason 字段：RULE_NOT_QUANTIFIED 表示规则待量化；INVALID_OPEN_CLOSE_INPUT 表示阳线得分所需开盘或收盘无效；INSUFFICIENT_* 或其他 INVALID_* 表示行情或预热不足；BBI_EQUALITY_UNRESOLVED 表示源文相等边界歧义；已确定分项为 null",
+  "user_rule_decision": {"date": "2026-11-02", "component": "kb_hold_volume_ok", "decision": "收盘>开盘得1；收盘<=开盘得0；仅开收缺失或无效才UNKNOWN。该分项不依赖量、高、低。"},
+  "indicator_basis": "KB core.py BBI=(MA3+MA6+MA12+MA24)/4 round2; KDJ RSV9 with K=D=50 initialization and round2; no source defaults used for insufficient history",
+  "n_structure": {"contract": "contracts/a_share_kb_n_structure_v1.json", "contract_sha256": "b00de5a156225b4843c18c988e09b8a0b708496cdd61b475fd6d9cb92a26633f", "rule_id": "ZGE_N_TREND_CONFIRMED_5X5_CLOSE_BREAK_LOCAL_V1", "default_when_unbound": "UNKNOWN", "structure_diagnostics": "same-symbol/date sidecar and view; no extra wide panel column"},
+  "materialized_fields": {
+    "components": ["kb_hold_close_up", "kb_hold_above_bbi", "kb_hold_volume_ok", "kb_hold_trend_up", "kb_hold_j_not_dead"],
+    "component_reasons": ["kb_hold_close_up_reason", "kb_hold_above_bbi_reason", "kb_hold_volume_ok_reason", "kb_hold_trend_up_reason", "kb_hold_j_not_dead_reason"],
+    "score_and_status": ["kb_hold_score", "kb_hold_score_min", "kb_hold_score_max", "kb_hold_score_status"],
+    "source_specific_indicators": ["kb_hold_bbi", "kb_hold_k", "kb_hold_d"]
+  },
+  "indicator_reuse": {
+    "J": "existing kb_b1_j; project_single_history validates equality for each row before output",
+    "BBI": "independent KB core round2 value: 2/2288 comparable historical rows differ from round2(existing BBI)",
+    "K_D": "independent KB core initialization and round2: K 24/2303 and D 30/2303 comparable rows differ from round2(existing kdj_k/d)"
+  },
+  "sources": {
+    "sell_discipline_sha256": "6c145a9f073d85948891d867a99fbe870db19b6432030688aa3f9fcbe28c0740",
+    "kb_core_sha256": "8423882092943a11d92b125e2834ef50641053faf984b4592cd12ff599a6c4c7",
+    "five_point_article_sha256": "fe60f3c82593e7660b681b87e5184a654637687b78ac5a1c07ee9c89f104f92b",
+    "checklist_article_sha256": "6a3d266c6d3a2b72c596fd2f0ffb8b692857ab8d15dd8db67c05ad0eff447e1f"
+  },
+  "old_ref_hold_score": "PRESERVED_SEPARATE_IDENTITY",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
