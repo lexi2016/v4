@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from hashlib import sha256
 from io import StringIO
@@ -96,6 +96,7 @@ class DatedInputs:
     trade_date: str
     payload: dict[str, Any]
     sha256: str
+    owner_files: dict[str, tuple[FileEvidence, Path | None]] = field(default_factory=dict, repr=False)
 
     @classmethod
     def load(cls, root: Path, trade_date: str) -> DatedInputs:
@@ -121,6 +122,10 @@ class DatedInputs:
         require(isinstance(relative, str) and relative and not Path(relative).is_absolute()
                 and ".." not in Path(relative).parts, "EVIDENCE_FILE_PATH_NOT_RELATIVE")
         require(isinstance(expected, str) and _SHA256.fullmatch(expected), "EVIDENCE_SHA256_UNBOUND")
+        if relative in self.owner_files:
+            evidence, owner_path = self.owner_files[relative]
+            require(evidence.sha256 == expected, f"EVIDENCE_SHA256_MISMATCH:{relative}")
+            return owner_path if owner_path is not None else self.directory / relative
         path = (self.directory / relative).resolve()
         require(path.is_relative_to(self.directory), "EVIDENCE_FILE_PATH_ESCAPES_ROOT")
         return path
@@ -128,6 +133,8 @@ class DatedInputs:
     def file(self, ref: object) -> FileEvidence:
         path = self.referenced_path(ref)
         relative, expected = ref["path"], ref["sha256"]
+        if relative in self.owner_files:
+            return self.owner_files[relative][0]
         try:
             data = path.read_bytes()
         except OSError as exc:

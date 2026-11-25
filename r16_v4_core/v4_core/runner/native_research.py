@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import date, datetime, time
 from hashlib import sha256
 import math
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from v4_core.runner.cache_lanes import verify_hk_model_pit
+from v4_core.runner.main_windows import read_hk_selection_pit
+from v4_core.runner.schedule import MAIN_STAGES
 from v4_core.runner.evidence import DatedInputs, EvidenceError, SAFETY_FLAGS, aware_time, iso_date, mapping, require, symbol
 
 
@@ -162,8 +166,74 @@ def _hk_code(raw: Any) -> str:
     return f"HK.{canonical.split('.')[0]}"
 
 
+def _validate_hk_close_review(
+    inputs: DatedInputs, entry: dict, close_sha: str, model_sha: str, truth: list[dict], models: list[dict],
+    asof: datetime, stage_owner_root: Path | None,
+) -> tuple[dict, list[dict]]:
+    review_file = inputs.file(entry.get("close_review"))
+    receipt_file = inputs.file(entry.get("close_review_receipt"))
+    review = mapping(review_file.json(), "HK_CLOSE_OWNER_REVIEW_INVALID")
+    receipt = mapping(receipt_file.json(), "HK_CLOSE_OWNER_REVIEW_RECEIPT_INVALID")
+    day = inputs.trade_date
+    require(iso_date(review.get("trade_date")) == iso_date(receipt.get("trade_date")) == day
+            and review.get("schema_version") == "v3_5.close_review.v1"
+            and review.get("evidence_mode") == "V3_5_NATIVE_PRODUCTION"
+            and review.get("reference_snapshot") is False and review.get("RESEARCH_ONLY") is True
+            and all(review.get(key) is False for key in SAFETY_FLAGS if key != "research_only")
+            and receipt.get("schema_version") == "v3_import_receipt.v1"
+            and receipt.get("source_sha256") == review_file.sha256
+            and review.get("close_source_sha256") == close_sha,
+            "HK_CLOSE_OWNER_REVIEW_DATE_SHA_OR_IDENTITY_MISMATCH")
+    model_evidence = mapping(review.get("model_source_evidence"), "HK_CLOSE_OWNER_MODEL_EVIDENCE_UNAVAILABLE")
+    require(model_evidence.get("source_sha256") == model_sha and model_evidence.get("pool_id") == "hkconnect_d1_top100"
+            and iso_date(model_evidence.get("trade_date")) == day,
+            "HK_CLOSE_OWNER_MODEL_SOURCE_NOT_BOUND")
+    require([_hk_code(row.get("code")) for row in _rows(review, "close_top20", day)] == [row["code"] for row in truth]
+            and [_hk_code(row.get("code")) for row in _rows(review, "model_rows", day)] == [row["code"] for row in models],
+            "HK_CLOSE_OWNER_CLOSE_OR_MODEL_RANK_MISMATCH")
+    stage_evidence = mapping(review.get("stage_input_evidence"), "HK_CLOSE_OWNER_STAGE_EVIDENCE_UNAVAILABLE")
+    require(stage_owner_root is not None, "HK_CLOSE_STAGE_OWNER_ROOT_UNBOUND")
+    stages = {}
+    selected = {}
+    for (hour, minute), stage in MAIN_STAGES.items():
+        if (hour, minute) == (15, 55):
+            continue  # The existing close-review contract is Stage1–7.
+        stage_id = stage.stage_id
+        try:
+            evidence = mapping(stage_evidence.get(stage_id), "HK_CLOSE_STAGE_CLAIM_UNBOUND")
+            start = datetime.combine(date.fromisoformat(day), time(hour, minute), ZoneInfo("Asia/Shanghai"))
+            proof, rows = read_hk_selection_pit(stage_owner_root, start, stage_id, asof, evidence)
+            stages[stage_id] = proof
+            selected.update({(stage_id, _hk_code(row["symbol"])): row for row in rows})
+        except EvidenceError as exc:
+            stages[stage_id] = {"status": "CANNOT_CONFIRM", "reason": str(exc)}
+    ready = (review.get("status") == "MODEL_REVIEW_READY"
+             and all(proof["status"] == "READY" for proof in stages.values())
+             and review.get("missing_stages") == [] and review.get("unverified_stages") == []
+             and not review.get("cannot_confirm"))
+    verified_rows = []
+    if ready:
+        close_rows = _rows(review, "stage_rows", day)
+        claims = {(row.get("stage_id"), _hk_code(row.get("code"))) for row in close_rows}
+        counts = mapping(review.get("row_counts"), "HK_CLOSE_OWNER_ROW_COUNTS_UNAVAILABLE")
+        require(claims == set(selected) and len(close_rows) == len(claims) == counts.get("stage_rows")
+                and counts.get("close_top20") == len(truth) and counts.get("model_0_2") == len(models),
+                "HK_CLOSE_STAGE_OWNER_ACTUAL_MEMBERSHIP_OR_COUNTS_MISMATCH")
+        close_codes = {row["code"] for row in truth}
+        verified_rows = [
+            {"stage_id": stage_id, "code": code, "trade_date": day, "stage_rank": row["rank"],
+             "stage_score": row["stage_score"], "hit_top20": code in close_codes}
+            for (stage_id, code), row in selected.items()
+        ]
+    return {
+        "status": "READY" if ready else "CANNOT_CONFIRM", "source_status": review.get("status"),
+        "stages": stages, "reason": None if ready else "HK_CLOSE_OWNER_STAGE_PIT_INCOMPLETE",
+        "identity": {"close_review": review_file.identity(), "close_review_receipt": receipt_file.identity()},
+    }, verified_rows
+
+
 def build_hk_close(
-    inputs: DatedInputs, entry: dict,
+    inputs: DatedInputs, entry: dict, asof: datetime, *, stage_owner_root: Path | None = None,
 ) -> tuple[dict[str, Any], dict[str, list]]:
     close_file = inputs.file(entry.get("close_snapshot"))
     close_receipt_file = inputs.file(entry.get("close_snapshot_receipt"))
@@ -216,13 +286,36 @@ def build_hk_close(
                        "strategy": "prob_active", "pool_version": "0.2", "trade_date": compact,
                        "hit_top20": code in truth_codes})
     hits = [row["code"] for row in models if row["hit_top20"]]
+    try:
+        binding = mapping(entry.get("model_pit"), "HK_CLOSE_MODEL_PIT_REFERENCES_UNAVAILABLE")
+        pit, pit_rows = verify_hk_model_pit(inputs, binding, iso_date(model.get("signal_date")))
+        pit_codes = [_hk_code(row["code_norm"]) for row in sorted(pit_rows, key=lambda row: int(row["rank"]))]
+        require(len(pit_codes) == 100 and pit_codes == [row["code"] for row in models]
+                and pit["source_identity"]["artifact"]["sha256"] == model.get("source_sha256")
+                and pit["run_id"] == model.get("source_run_id"),
+                "HK_CLOSE_MODEL_PIT_ARTIFACT_OR_RANK_MISMATCH")
+    except EvidenceError as exc:
+        pit = {"status": "CANNOT_CONFIRM", "reason": str(exc)}
+    try:
+        require(entry.get("close_review") and entry.get("close_review_receipt"), "HK_CLOSE_OWNER_STAGE_REFERENCES_UNAVAILABLE")
+        stage, stage_rows = _validate_hk_close_review(
+            inputs, entry, close_file.sha256, model.get("source_sha256"), truth, models, asof, stage_owner_root,
+        )
+    except EvidenceError as exc:
+        stage, stage_rows = {"status": "CANNOT_CONFIRM", "reason": str(exc)}, []
+    ready = pit["status"] == stage["status"] == "READY"
     return {
-        "status": "PARTIAL", "source_status": "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE",
-        "source_mode": "NATIVE_INPUT_MATERIALIZATION", "model_pit_status": "CANNOT_CONFIRM",
-        "stage_evidence_status": "CANNOT_CONFIRM",
+        "status": "READY" if ready else "PARTIAL",
+        "source_status": "MODEL_REVIEW_READY" if ready else "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE",
+        "source_mode": "NATIVE_INPUT_MATERIALIZATION", "model_pit_status": pit["status"],
+        "stage_evidence_status": stage["status"], "model_pit": pit, "stage_evidence": stage,
+        "cannot_confirm": [item["reason"] for item in (pit, stage) if item["status"] != "READY"],
         "source_identity": {"close_snapshot": close_file.identity(), "close_snapshot_receipt": close_receipt_file.identity(),
                             "model_pool": model_file.identity()},
         "model_upstream_sha256": model.get("source_sha256"), "model_source_run_id": model.get("source_run_id"),
         "close_snapshot_rows": len(ranked), "close_top20": len(truth), "model_rows": len(models),
-        "model_hit_count": len(hits), "model_hit_codes": hits, **SAFETY_FLAGS,
-    }, {"close_top20": truth, "model_rows": models}
+        "model_hit_count": len(hits), "model_hit_codes": hits, "stage_row_count": len(stage_rows),
+        "stage_hit_count": (len({row["code"] for row in stage_rows if row["hit_top20"]})
+                            if stage["status"] == "READY" else None),
+        **SAFETY_FLAGS,
+    }, {"close_top20": truth, "model_rows": models, "stage_rows": stage_rows}

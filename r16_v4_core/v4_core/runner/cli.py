@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import nullcontext
-from datetime import datetime
+from datetime import datetime, timedelta
 import fcntl
 import json
 import os
@@ -19,12 +19,19 @@ from zoneinfo import ZoneInfo
 from v4_core.config import V4Config, assert_disk_space
 from v4_core.ingest.daily_ingest import ingest_trade_date
 from v4_core.runner.dispatch import dispatch_window
+from v4_core.runner.evidence import EvidenceError
+from v4_core.runner.owner_inputs import read_owner_inputs
+from v4_core.runner.main_windows import observe_stage_receipt
 from v4_core.runner.review_inputs import await_linked_observation
 from v4_core.runner.schedule import (
-    MAIN_STAGES, at_time, dispatch_evidence_deadline, read_dispatch_inputs, wait_for_dispatch_evidence,
+    MAIN_STAGES, at_time, dispatch_evidence_deadline, evening_evidence_fingerprint, read_dispatch_inputs,
+    wait_for_dispatch_evidence,
 )
 from v4_core.runner.slots import SIX_SLOT_DEFS, run_slot
-from v4_core.runner.state import WriterBusy, WriterLease, writer_lease
+from v4_core.runner.state import (
+    WriterBusy, WriterLease, archive_torn_window, heartbeat_record, json_bytes, last_window_record, publish_json,
+    stale_running_reason, writer_lease,
+)
 from v4_core.qfq.engine import MissingAdjustmentFactorError, rebuild_qfq_for_date
 from v4_core.storage.db import V4Store, normalize_iso_date
 from v4_core.strategies.selection_groups import merge_selection_groups
@@ -82,6 +89,10 @@ def generate_daily_scheduler_plist(
     selections_json: Path | None = None,
     hk_bars_json: Path | None = None,
     evidence_dir: Path | None = None,
+    stage_owner_root: Path | None = None,
+    v35_owner_root: Path | None = None,
+    a_calendar: Path | None = None,
+    a_calendar_sha256: str | None = None,
 ) -> bytes:
     """Generate the single-directory 6-slot natural daily schedule launchd plist."""
     windows = list(DAILY_WINDOWS) if schedules is None else schedules
@@ -93,6 +104,8 @@ def generate_daily_scheduler_plist(
         "V4_CORE_HOME": str(root / "v4_data"),
         "TZ": "Asia/Shanghai",
     }
+    if a_calendar_sha256 is not None:
+        env_vars["V4_A_CALENDAR_SHA256"] = a_calendar_sha256
     if tdx_dir is not None:
         env_vars["V4_TDX_DIR"] = str(Path(tdx_dir).resolve())
     for key, path in (
@@ -100,6 +113,9 @@ def generate_daily_scheduler_plist(
         ("V4_SELECTIONS_JSON", selections_json),
         ("V4_HK_BARS_JSON", hk_bars_json),
         ("V4_R16_INPUT_DIR", evidence_dir),
+        ("V4_STAGE_OWNER_ROOT", stage_owner_root),
+        ("V4_V35_OWNER_ROOT", v35_owner_root),
+        ("V4_A_CALENDAR", a_calendar),
     ):
         if path is not None:
             env_vars[key] = str(Path(path).resolve())
@@ -194,8 +210,13 @@ def run_scheduled_window(
     selections_json: Path | None = None,
     sse_notifier: Callable[[str, dict], bool] | None = None,
     evidence_dir: Path | None = None,
+    stage_owner_root: Path | None = None,
+    v35_owner_root: Path | None = None,
+    a_calendar: Path | None = None,
+    a_calendar_sha256: str | None = None,
     completion_clock: Callable[[], datetime] | None = None,
     wait_for_deadlines: bool = False,
+    resume_window: str | None = None,
     poll_sleep: Callable[[float], None] = time.sleep,
 ) -> dict:
     """Bind the current Beijing window and retain one receipt per scheduled instant."""
@@ -218,57 +239,159 @@ def run_scheduled_window(
     ]
     binding = {"trade_date": date, "observed_at": local.isoformat(),
                "unobserved_earlier_windows": earlier_unobserved}
-    if not passed or (local - passed[-1][0]).total_seconds() > DAILY_WINDOW_GRACE_SECONDS:
-        return {**binding, "window": local.strftime("%H:%M"), "schedule_status": "NO_DUE_WORKLOADS",
-                "reason": "OUTSIDE_CONFIGURED_WINDOW_GRACE"}
-    start, slot, phase = passed[-1]
+    if resume_window is None:
+        if not passed or (local - passed[-1][0]).total_seconds() > DAILY_WINDOW_GRACE_SECONDS:
+            return {**binding, "window": local.strftime("%H:%M"), "schedule_status": "NO_DUE_WORKLOADS",
+                    "reason": "OUTSIDE_CONFIGURED_WINDOW_GRACE"}
+        start, slot, phase = passed[-1]
+    else:
+        requested = next((point for point in passed if point[0].strftime("%H:%M") == resume_window), None)
+        if requested is None or not _has_receipt(receipt_dir / f"{date}_{requested[0]:%H%M}.jsonl"):
+            return {**binding, "window": resume_window, "schedule_status": "NO_DUE_WORKLOADS",
+                    "reason": "NO_SAME_DATE_ATTEMPT_TO_RESUME"}
+        start, slot, phase = requested
     delay = (local - start).total_seconds()
     binding.update(window=start.strftime("%H:%M"), scheduled_for=start.isoformat(), delay_seconds=delay,
-                   timing_status="ON_TIME" if delay < 60 else "LATE_DISPATCH", slot_id=slot, phase=phase)
+                   timing_status="RESUME" if resume_window else "ON_TIME" if delay < 60 else "LATE_DISPATCH",
+                   slot_id=slot, phase=phase)
+    root = evidence_dir or _environment_path("V4_R16_INPUT_DIR")
+    stage_root = stage_owner_root or _environment_path("V4_STAGE_OWNER_ROOT")
+    owner_root = v35_owner_root or _environment_path("V4_V35_OWNER_ROOT")
+    calendar = a_calendar or _environment_path("V4_A_CALENDAR")
+    calendar_sha = a_calendar_sha256 or os.environ.get("V4_A_CALENDAR_SHA256")
+
+    def load_current_inputs():
+        explicit, gap = read_dispatch_inputs(root, date)
+        if owner_root is None or (explicit is None and gap not in {"", "DATED_INPUTS_UNAVAILABLE"}):
+            return explicit, gap
+        owner_inputs = read_owner_inputs(explicit, date, phase, owner_root, calendar, calendar_sha)
+        return owner_inputs, "" if owner_inputs is not None else gap
+
+    if resume_window is None:
+        resumed_attempts = []
+        for earlier, _, earlier_phase in passed[:-1]:
+            path = receipt_dir / f"{date}_{earlier:%H%M}.jsonl"
+            try:
+                with path.open("rb") as existing:
+                    earlier_record, _ = last_window_record(existing)
+            except (OSError, ValueError):
+                continue
+            if earlier_record is None:
+                continue
+            earlier_status = earlier_record["schedule_status"]
+            can_resume = earlier_status in {"RUNNING", "STALE_RUNNING_RECOVERED"} or (
+                earlier_phase == "evening" and earlier_status in {"PARTIAL", "CANNOT_CONFIRM"}
+            )
+            if not can_resume:
+                continue
+            try:
+                resumed = run_scheduled_window(
+                    cfg, local, hk_bars_json=hk_bars_json, selections_json=selections_json,
+                    sse_notifier=sse_notifier, evidence_dir=root, stage_owner_root=stage_root,
+                    resume_window=earlier.strftime("%H:%M"), v35_owner_root=owner_root,
+                    a_calendar=calendar, a_calendar_sha256=calendar_sha,
+                )
+            except (ValueError, OSError) as exc:
+                resumed_attempts.append({"window": earlier.strftime("%H:%M"), "status": "FAILED", "reason": str(exc)})
+                continue
+            if resumed.get("attempt_id"):
+                resumed_attempts.append({"window": resumed["window"], "status": resumed["schedule_status"],
+                                         "attempt_id": resumed["attempt_id"]})
+        if resumed_attempts:
+            binding["resumed_prior_windows"] = resumed_attempts
     cfg.ensure_dirs()
     receipt_dir.mkdir(exist_ok=True)
     receipt_path = receipt_dir / f"{date}_{start:%H%M}.jsonl"
-    with receipt_path.open("a+", encoding="utf-8") as receipt:
+    heartbeat_path = cfg.data_dir / "window_leases" / f"{date}_{start:%H%M}.json"
+    with receipt_path.open("a+b") as receipt:
         try:
             fcntl.flock(receipt, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return {**binding, "schedule_status": "ALREADY_RUNNING"}
-        receipt.seek(0)
-        if receipt.read(1):
-            return {**binding, "schedule_status": "ALREADY_ATTEMPTED"}
+        try:
+            previous, torn_offset = last_window_record(receipt)
+        except ValueError:
+            return {**binding, "schedule_status": "CANNOT_CONFIRM", "reason": "INVALID_SLOT_JOURNAL"}
+        stale_reason = None
+        if previous is not None:
+            status = previous["schedule_status"]
+            if status == "RUNNING":
+                stale_reason = stale_running_reason(previous, heartbeat_path, local)
+                if stale_reason is None:
+                    return {**binding, "schedule_status": "ALREADY_RUNNING"}
+            elif status == "STALE_RUNNING_RECOVERED":
+                stale_reason = None
+            elif status in {"PARTIAL", "CANNOT_CONFIRM"} and phase == "evening":
+                retry_inputs, _ = load_current_inputs()
+                fingerprint = evening_evidence_fingerprint(retry_inputs, local)
+                if fingerprint is None or fingerprint == previous.get("evening_evidence_fingerprint"):
+                    return {**binding, "schedule_status": "ALREADY_ATTEMPTED",
+                            "reason": "EVENING_EVIDENCE_UNCHANGED"}
+            else:
+                return {**binding, "schedule_status": "ALREADY_ATTEMPTED"}
+        elif resume_window is not None:
+            return {**binding, "schedule_status": "NO_DUE_WORKLOADS",
+                    "reason": "NO_SAME_DATE_ATTEMPT_TO_RESUME"}
 
         def persist(status: str, **detail: object) -> dict:
             result = {**binding, "schedule_status": status, **detail}
-            receipt.write(json.dumps(result, ensure_ascii=False) + "\n")
+            receipt.write(json_bytes(result))
             receipt.flush()
             os.fsync(receipt.fileno())
             return result
 
         try:
             with writer_lease(cfg.data_dir, cfg.logs_dir, f"{date}/{start:%H:%M}/{phase}") as lease:
-                persist("RUNNING")
+                if stale_reason is not None:
+                    archive = (archive_torn_window(receipt, torn_offset, cfg.logs_dir / "daily_window_recovery",
+                                                  receipt_path.name, lease) if torn_offset is not None else {})
+                    persist("STALE_RUNNING_RECOVERED", stale_reason=stale_reason, stale_pid=previous.get("pid"),
+                            stale_attempt_id=previous.get("attempt_id"), stale_lease_token=previous.get("lease_token"),
+                            **archive)
+                binding.update(pid=lease.owner["pid"], attempt_id=uuid.uuid4().hex, lease_token=lease.owner["token"])
+                persist("RUNNING", **heartbeat_record(local))
                 try:
                     current = completion_clock or (lambda: local)
+
+                    def sleep_with_heartbeat(seconds: float) -> None:
+                        publish_json(heartbeat_path, {
+                            "attempt_id": binding["attempt_id"], "lease_token": binding["lease_token"],
+                            **heartbeat_record(current()),
+                        })
+                        poll_sleep(seconds)
+
                     if wait_for_deadlines:
                         main = MAIN_STAGES.get((start.hour, start.minute))
                         if main:
                             deadline = at_time(start, main.tasks[-1].verify_at)
                             remaining = (deadline - current()).total_seconds()
                             while remaining > 0:
-                                poll_sleep(min(remaining, 60))
+                                sleep_with_heartbeat(min(remaining, 60))
                                 remaining = (deadline - current()).total_seconds()
-                    root = evidence_dir or _environment_path("V4_R16_INPUT_DIR")
-                    if wait_for_deadlines:
-                        inputs, inputs_gap, finished = wait_for_dispatch_evidence(root, start, phase, current, poll_sleep)
+                            if stage_root is not None:
+                                owner_deadline = start + timedelta(minutes=3)
+                                while current() < owner_deadline:
+                                    try:
+                                        observe_stage_receipt(stage_root, start, main.stage_id, current())
+                                    except EvidenceError:
+                                        sleep_with_heartbeat(min(5, max(0, (owner_deadline - current()).total_seconds())))
+                                    else:
+                                        break
+                    source_deadline = dispatch_evidence_deadline(start, phase)
+                    wait_within_deadline = wait_for_deadlines and (source_deadline is None or local < source_deadline)
+                    if wait_within_deadline:
+                        inputs, inputs_gap, finished = wait_for_dispatch_evidence(
+                            root or owner_root, start, phase, current, sleep_with_heartbeat, loader=load_current_inputs,
+                        )
                     else:
-                        inputs, inputs_gap = read_dispatch_inputs(root, date)
+                        inputs, inputs_gap = load_current_inputs()
                         finished = current()
                     if finished.utcoffset() is None:
                         raise ValueError("Completion clock requires an aware datetime")
                     completed_at = finished.astimezone(BEIJING)
                     if completed_at < local or completed_at.date() != local.date():
                         raise ValueError("Completion clock falls outside the dispatched Beijing date")
-                    def run_a_pipeline() -> dict:
+                    def run_a_pipeline(bound_factors: dict[str, dict[str, float]]) -> dict:
                         try:
                             selected = selections_json or _environment_path("V4_SELECTIONS_JSON")
                             if selected is not None:
@@ -276,33 +399,43 @@ def run_scheduled_window(
                             return {
                                 **run_pipeline(
                                     cfg, date, "all", lease=lease, include_hk=False, source_ingest=False,
-                                    sse_notifier=sse_notifier,
+                                    sse_notifier=sse_notifier if sse_notifier is not None else (lambda *_: False),
+                                    top200_factor_map=bound_factors,
                                 ),
                                 "status": "DONE",
                             }
                         except (MissingAdjustmentFactorError, EmptyPipelineOutputError, ValueError) as exc:
-                            return {"status": "CANNOT_CONFIRM", "reason": str(exc)}
+                            return {"status": "CANNOT_CONFIRM", "reason": str(exc),
+                                    **getattr(exc, "evidence", {})}
 
                     wait_for_observation = None
-                    if wait_for_deadlines and root is not None and phase == "evening":
+                    if wait_within_deadline and (root is not None or owner_root is not None) and phase == "evening":
                         deadline = dispatch_evidence_deadline(start, phase)
 
                         def wait_for_observation(hourly: dict) -> dict:
                             nonlocal completed_at
-                            observation, finalized = await_linked_observation(cfg, root, hourly, deadline, current, poll_sleep)
+                            observation, finalized = await_linked_observation(
+                                cfg, hourly, deadline, current, sleep_with_heartbeat, loader=load_current_inputs,
+                            )
                             completed_at = finalized.astimezone(BEIJING)
                             return observation
 
                     status, workload, paired = dispatch_window(
                         cfg, start, completed_at, phase, slot, lease, inputs=inputs, inputs_gap=inputs_gap,
                         run_slot=run_slot, hk_bars_json=hk_bars_json, run_a_pipeline=run_a_pipeline,
-                        wait_for_observation=wait_for_observation,
+                        wait_for_observation=wait_for_observation, stage_owner_root=stage_root,
                     )
+                    retry_state = {}
+                    if phase == "evening":
+                        retry_state["evening_evidence_fingerprint"] = evening_evidence_fingerprint(inputs, completed_at)
                     return persist(status, workload=workload, paired_workloads=paired,
-                                   evidence_observed_through=completed_at.isoformat())
+                                   evidence_observed_through=completed_at.isoformat(),
+                                   dated_inputs_sha256=inputs.sha256 if inputs is not None else None, **retry_state)
                 except Exception as exc:
                     persist("FAILED", error=str(exc))
                     raise
+                finally:
+                    heartbeat_path.unlink(missing_ok=True)
         except WriterBusy as exc:
             return {**binding, "schedule_status": "WRITER_BUSY", "reason": str(exc)}
 
@@ -325,10 +458,12 @@ def materialize_workbench_for_date(
             f"No workbench_selections found for {trade_date}; refusing to emit workbench_completed with 0 rows"
         )
     selection_names = store.get_workbench_selection_names(trade_date)
+    quarantines = store.get_a_workbench_quarantines(trade_date)
     scored_rows = []
     for symbol, group in sorted(selections.items()):
-        bars = store.get_symbol_bars("A", symbol, table="qfq_bars", limit=None, asof_date=trade_date)
-        row = score_symbol_from_bars(trade_date, symbol, group, bars)
+        isolated = quarantines.get(symbol)
+        bars = [] if isolated else store.get_symbol_bars("A", symbol, table="qfq_bars", limit=None, asof_date=trade_date)
+        row = score_symbol_from_bars(trade_date, symbol, group, bars, isolation_reasons=isolated)
         resolved_name = selection_names.get(symbol) or store.resolve_security_name(trade_date, symbol)
         if resolved_name:
             detail = json.loads(row["detail_json"])
@@ -352,6 +487,7 @@ def _run_pipeline(
     step: str,
     *,
     factor_map: dict[str, dict[str, float]] | None = None,
+    top200_factor_map: dict[str, dict[str, float]] | None = None,
     selection_groups: dict[str, str] | None = None,
     allow_unit_factors: bool = False,
     sse_notifier: Callable[[str, dict], bool] | None = None,
@@ -403,14 +539,22 @@ def _run_pipeline(
                 raise EmptyPipelineOutputError(f"No A-share daily_bars found for {trade_date}; refusing to report DONE")
 
         if step in {"all", "top200"}:
-            top = build_daily_top200(store, trade_date)
+            reference_gaps: list[dict] = []
+            rank_factors = top200_factor_map if top200_factor_map is not None else factor_map
+            top = build_daily_top200(store, trade_date, factor_map=rank_factors, reference_gaps=reference_gaps)
             summary["top200_count"] = len(top)
+            summary["top200_reference_status"] = "PARTIAL" if reference_gaps else "READY"
+            if reference_gaps:
+                summary["top200_reference_gaps"] = reference_gaps
             if len(top) == 0:
-                raise EmptyPipelineOutputError(f"Top200 produced 0 rows for {trade_date}; refusing to report DONE")
+                error = EmptyPipelineOutputError(f"Top200 produced 0 rows for {trade_date}; refusing to report DONE")
+                error.evidence = {"top200_reference_status": "CANNOT_CONFIRM", "top200_reference_gaps": reference_gaps}
+                raise error
 
         if step in {"all", "workbench"}:
             scored = materialize_workbench_for_date(store, trade_date, selection_groups=selection_groups)
             summary["workbench_count"] = len(scored)
+            summary["workbench_quarantined_count"] = sum(row["status"] == "QUARANTINED" for row in scored)
             if len(scored) == 0:
                 raise EmptyPipelineOutputError(f"Workbench produced 0 rows for {trade_date}; refusing to emit SSE")
             persisted = store.get_workbench_scores(trade_date)
@@ -418,7 +562,8 @@ def _run_pipeline(
 
             summary.update(compute_workbench_lineage(trade_date, persisted))
 
-        if step in {"all", "workbench"} and summary.get("workbench_count", 0) > 0:
+        if (step in {"all", "workbench"} and summary["workbench_count"] > summary["workbench_quarantined_count"]
+                and summary.get("top200_reference_status", "READY") == "READY"):
             if sse_notifier is not None:
                 summary["sse_notified"] = bool(sse_notifier(trade_date, summary))
             else:
@@ -486,8 +631,14 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--slot", choices=["all", *SIX_SLOT_DEFS.keys()])
     mode.add_argument("--scheduled", action="store_true",
                       help="Use the current configured Beijing window from the Daily plist")
+    p_slot.add_argument("--resume-window", choices=[f"{h:02d}:{m:02d}" for h, m in DAILY_WINDOWS],
+                        help="Recover a recorded same-date stale attempt or resume a partial 19:00 attempt")
     p_slot.add_argument("--home", default=None)
     p_slot.add_argument("--evidence-dir", type=Path, default=None)
+    p_slot.add_argument("--stage-owner-root", type=Path, default=None)
+    p_slot.add_argument("--v35-owner-root", type=Path, default=None)
+    p_slot.add_argument("--a-calendar", type=Path, default=None)
+    p_slot.add_argument("--a-calendar-sha256", default=None)
     p_slot.add_argument("--tdx-dir", default=None)
     p_slot.add_argument("--bars-json", default=None)
     p_slot.add_argument("--factors-json", default=None)
@@ -500,7 +651,9 @@ def main(argv: list[str] | None = None) -> int:
     p_plist.add_argument("--role", choices=["api", "daily"], default="api")
     p_plist.add_argument("--python", default=sys.executable)
     p_plist.add_argument("--tdx-dir", default=None)
-    for source in ("factors-json", "selections-json", "hk-bars-json", "evidence-dir"):
+    p_plist.add_argument("--a-calendar-sha256", default=None)
+    for source in ("factors-json", "selections-json", "hk-bars-json", "evidence-dir", "stage-owner-root",
+                   "v35-owner-root", "a-calendar"):
         p_plist.add_argument("--" + source, type=Path, default=None)
 
     args = parser.parse_args(argv)
@@ -529,6 +682,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "run-slot":
         cfg = V4Config.from_env(args.home)
+        if args.resume_window and not args.scheduled:
+            p_slot.error("--resume-window requires --scheduled")
         if args.scheduled:
             if args.date or args.allow_unit_factors:
                 p_slot.error("--scheduled uses the current Beijing date and authoritative factors")
@@ -539,8 +694,11 @@ def main(argv: list[str] | None = None) -> int:
                 factors_json=Path(args.factors_json) if args.factors_json else None,
                 hk_bars_json=Path(args.hk_bars_json) if args.hk_bars_json else None,
                 selections_json=Path(args.selections_json) if args.selections_json else None,
-                evidence_dir=args.evidence_dir, completion_clock=lambda: datetime.now(BEIJING),
-                wait_for_deadlines=True,
+                evidence_dir=args.evidence_dir, stage_owner_root=args.stage_owner_root,
+                v35_owner_root=args.v35_owner_root, a_calendar=args.a_calendar,
+                a_calendar_sha256=args.a_calendar_sha256,
+                completion_clock=lambda: datetime.now(BEIJING),
+                wait_for_deadlines=True, resume_window=args.resume_window,
             )
             print(json.dumps(result, ensure_ascii=False))
             return 0
@@ -577,7 +735,9 @@ def main(argv: list[str] | None = None) -> int:
             data = generate_daily_scheduler_plist(
                 Path(args.app_root), args.python, tdx_dir=Path(args.tdx_dir) if args.tdx_dir else None,
                 factors_json=args.factors_json, selections_json=args.selections_json, hk_bars_json=args.hk_bars_json,
-                evidence_dir=args.evidence_dir,
+                evidence_dir=args.evidence_dir, stage_owner_root=args.stage_owner_root,
+                v35_owner_root=args.v35_owner_root, a_calendar=args.a_calendar,
+                a_calendar_sha256=args.a_calendar_sha256,
             )
         sys.stdout.buffer.write(data)
         return 0

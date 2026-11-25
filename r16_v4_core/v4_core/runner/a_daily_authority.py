@@ -101,7 +101,8 @@ def _review_quarantine(
 
 def _verify_native_bars(
     entry: dict, official: dict[str, tuple[str, str]], bars: dict[str, dict], day: str,
-) -> None:
+) -> dict[str, str]:
+    previous_dates: dict[str, str] = {}
     root = entry.get("native_source_root")
     require(isinstance(root, str) and Path(root).is_absolute(), "A_NATIVE_SOURCE_ROOT_UNBOUND")
     vendor_root = Path(root).resolve()
@@ -135,11 +136,17 @@ def _verify_native_bars(
         require(target["trade_date"] == day and (previous is None or iso_date(previous["trade_date"]) < day),
                 f"A_NATIVE_SOURCE_DATE_MISMATCH:{code}")
         if previous is not None:
+            # Compare the historical projection schema against the TDX raw close.
+            # It belongs to the previous session and has no ex-rights adjustment.
             target["pre_close"] = previous["close"]
+            previous_dates[code] = previous["trade_date"]
         require(target == bars[code], f"A_PROJECTED_BAR_DIFFERS_FROM_NATIVE_SOURCE:{code}")
+    return previous_dates
 
 
-def validate_a_daily(inputs: DatedInputs) -> tuple[dict[str, Any], list[dict], dict[str, dict]]:
+def validate_a_daily(
+    inputs: DatedInputs, *, native_previous_dates: dict[str, str] | None = None,
+) -> tuple[dict[str, Any], list[dict], dict[str, dict]]:
     day = inputs.trade_date
     entry = inputs.entry("a_daily")
     manifest_file = inputs.file(entry.get("authority"))
@@ -209,7 +216,9 @@ def validate_a_daily(inputs: DatedInputs) -> tuple[dict[str, Any], list[dict], d
             and len(accepted_codes) + len(unresolved) == eligible and not (accepted_codes & unresolved.keys())
             and bool(unresolved) == (coverage["status"] == "PARTIAL"), "A_ELIGIBLE_AUTHORITY_SET_MISMATCH")
     quarantine = _review_quarantine(inputs, entry.get("quarantine"), unresolved, failed, coverage_file.sha256)
-    _verify_native_bars(entry, official, bars, day)
+    previous_dates = _verify_native_bars(entry, official, bars, day)
+    if native_previous_dates is not None:
+        native_previous_dates.update(previous_dates)
     rows = [bars[code] for code in sorted(bars)]
     detail = {
         "status": "PARTIAL" if quarantine else "READY", "trade_date": day, "accepted_count": len(rows),
@@ -245,7 +254,8 @@ def publish_a_daily(data_dir: Path, store: V4Store, inputs: DatedInputs, lease: 
     history = data_dir / "history"
     checkpoint_path = history / "checkpoint.json"
     before_checkpoint, before_bytes = _read_snapshot(checkpoint_path)
-    detail, rows, quarantine = validate_a_daily(inputs)
+    previous_dates: dict[str, str] = {}
+    detail, rows, quarantine = validate_a_daily(inputs, native_previous_dates=previous_dates)
     codes = {row["symbol"] for row in rows}
     delta = {"schema": "v4_core.a_daily_delta.v1", "accepted_symbols": sorted(codes), **detail}
     delta_bytes = json_bytes(delta)
@@ -272,7 +282,9 @@ def publish_a_daily(data_dir: Path, store: V4Store, inputs: DatedInputs, lease: 
             )
             require(all(row["symbol"] in codes and row["trade_date"] == day for row in rows_in_db),
                     "A_STORED_TARGET_SLICE_CONFLICTS_WITH_AUTHORITY")
-            store.upsert_daily_bars(rows, connection=conn)
+            store.upsert_daily_bars([
+                {**row, "pre_close_trade_date": previous_dates.get(row["symbol"])} for row in rows
+            ], connection=conn, native_tdx=True)
             for code, item in quarantine.items():
                 store.record_quarantine("A", day, code, item["reason"], item, connection=conn, idempotent=True)
             _publish_immutable(delta_path, delta_bytes, lease)
@@ -340,7 +352,8 @@ def read_a_daily_publication(
         conn.execute("BEGIN")
         committed = conn.execute("SELECT * FROM a_daily_publications WHERE trade_date=?", (day,)).fetchone()
         stored_rows = [dict(row) for row in conn.execute(
-            "SELECT * FROM daily_bars WHERE market='A' AND trade_date=? ORDER BY symbol", (day,),
+            "SELECT market, symbol, trade_date, open, high, low, close, volume, amount, pre_close "
+            "FROM daily_bars WHERE market='A' AND trade_date=? ORDER BY symbol", (day,),
         )]
     require(committed is not None and committed["checkpoint_sha256"] == checkpoint_sha
             and committed["delta_path"] == relative and committed["delta_sha256"] == delta_sha,

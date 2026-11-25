@@ -11,9 +11,10 @@ import uuid
 from v4_core.config import V4Config
 from v4_core.runner.a_daily_authority import read_a_daily_publication
 from v4_core.runner.cache_lanes import read_stage7
+from v4_core.runner.daily_products import build_fupan_pool, build_next_day_observation
 from v4_core.runner.evidence import DatedInputs, EvidenceError, SAFETY_FLAGS, aware_time, iso_date, mapping, require
 from v4_core.runner.native_research import build_hk_close, build_hourly_archive
-from v4_core.runner.state import publish_json
+from v4_core.runner.state import json_bytes, publish_bytes, publish_json
 from v4_core.storage.db import V4Store
 
 _REVIEW_ROLES = {
@@ -70,6 +71,7 @@ def _next_a_session(inputs: DatedInputs) -> str:
 
 def _validate_research_lane(
     inputs: DatedInputs, lane: str, asof: datetime, *, hourly: dict | None = None,
+    cfg: V4Config | None = None, stage_owner_root: Path | None = None,
 ) -> tuple[dict[str, Any], dict[str, list]]:
     entry = _workload_entry(inputs, lane)
     observed = aware_time(entry.get("observed_at"))
@@ -82,9 +84,40 @@ def _validate_research_lane(
     if lane == "hk_close":
         require(entry.get("close_snapshot") and entry.get("close_snapshot_receipt") and entry.get("model_pool"),
                 "HK_CLOSE_NATIVE_SOURCES_UNBOUND")
-        projection, rows = build_hk_close(inputs, entry)
+        projection, rows = build_hk_close(inputs, entry, asof, stage_owner_root=stage_owner_root)
         return _native_with_reference(inputs, lane, entry, observed, projection, rows)
+    if lane == "fupan" and entry.get("pool") is not None:
+        projection, rows = build_fupan_pool(inputs, entry, _next_a_session(inputs), observed)
+        return {**projection, "lane": lane, "trade_date": inputs.trade_date, "observed_at": observed.isoformat()}, rows
+    if lane == "next_day_observation" and entry.get("candidate_pool") is not None:
+        require(cfg is not None and hourly is not None and hourly.get("status") == "READY",
+                "NEXT_DAY_OBSERVATION_HOURLY_PUBLICATION_UNAVAILABLE")
+        hourly_rows = _read_hourly_observation_source(cfg, inputs, hourly, observed)
+        projection, rows = build_next_day_observation(inputs, entry, _next_a_session(inputs), hourly, hourly_rows)
+        return {
+            **projection, "lane": lane, "trade_date": inputs.trade_date,
+            "observed_at": observed.isoformat(), "finished_at": asof.isoformat(),
+        }, rows
     return _external_publication(inputs, lane, entry, observed, hourly=hourly)
+
+
+def _read_hourly_observation_source(
+    cfg: V4Config, inputs: DatedInputs, hourly: dict, observed: datetime,
+) -> list[dict]:
+    path = cfg.data_dir / "review_inputs" / inputs.trade_date / "hourly_announcements.json"
+    try:
+        content = path.read_bytes()
+        value = mapping(json.loads(content), "OBSERVATION_HOURLY_PUBLICATION_INVALID")
+    except (OSError, ValueError) as exc:
+        raise EvidenceError("OBSERVATION_HOURLY_PUBLICATION_UNAVAILABLE") from exc
+    require(sha256(content).hexdigest() == hourly.get("publication_sha256")
+            and value.get("status") == "READY" and iso_date(value.get("trade_date")) == inputs.trade_date
+            and value.get("source_binding_sha256") == inputs.entry_sha256("workloads", "hourly_announcements")
+            and aware_time(value.get("observed_at")) <= observed, "OBSERVATION_HOURLY_PUBLICATION_SHA_OR_ASOF_MISMATCH")
+    rows = mapping(value.get("rows"), "OBSERVATION_HOURLY_ROWS_MISSING").get("stock_pool")
+    require(isinstance(rows, list) and rows and all(isinstance(row, dict) for row in rows),
+            "OBSERVATION_HOURLY_ROWS_MISSING")
+    return rows
 
 
 def _native_with_reference(
@@ -99,10 +132,9 @@ def _native_with_reference(
             require(reference_rows["articles"] and projection["source_input_sha256"] == reference["source_input_sha256"],
                     "HOURLY_REFERENCE_NATIVE_SOURCE_MISMATCH")
         projection["reference_identity"] = reference["source_identity"]
-        projection["reference_row_parity"] = {key: value == reference_rows.get(key) for key, value in rows.items()}
-        if lane == "hk_close":
-            rows["historical_stage_rows"] = reference_rows["stage_rows"]
-            projection["historical_stage_rows"] = len(rows["historical_stage_rows"])
+        projection["reference_row_parity"] = {
+            key: value == reference_rows.get(key) for key, value in rows.items() if key != "stage_rows"
+        }
     except EvidenceError as exc:
         projection["reference_status"] = "CANNOT_CONFIRM"
         projection["reference_reason"] = str(exc)
@@ -198,8 +230,11 @@ def validate_research_lane(inputs: DatedInputs, lane: str, asof: datetime) -> di
 
 def materialize_research_lane(
     cfg: V4Config, inputs: DatedInputs, lane: str, asof: datetime, *, hourly: dict | None = None,
+    stage_owner_root: Path | None = None,
 ) -> dict[str, Any]:
-    projection, row_sets = _validate_research_lane(inputs, lane, asof, hourly=hourly)
+    projection, row_sets = _validate_research_lane(
+        inputs, lane, asof, hourly=hourly, cfg=cfg, stage_owner_root=stage_owner_root,
+    )
     return _persist_research_lane(cfg, inputs, lane, projection, row_sets)
 
 
@@ -207,26 +242,33 @@ def _persist_research_lane(
     cfg: V4Config, inputs: DatedInputs, lane: str, projection: dict, row_sets: dict[str, list],
 ) -> dict[str, Any]:
     target = cfg.data_dir / "review_inputs" / inputs.trade_date / f"{lane}.json"
-    projection = {**projection, "source_binding_sha256": inputs.entry_sha256("workloads", lane)}
+    projection = {**projection, "source_binding_sha256": inputs.entry_sha256("workloads", lane),
+                  "publication_path": target.relative_to(cfg.data_dir).as_posix()}
     if lane == "next_day_observation":
         projection["calendar_binding_sha256"] = inputs.entry_sha256("next_a_session")
-    descriptor = {"schema": "v4_core.review_input.v1", **projection, "rows": row_sets}
-    return {**projection, "publication_sha256": publish_json(target, descriptor)}
+    descriptor = json_bytes({"schema": "v4_core.review_input.v1", **projection, "rows": row_sets})
+    if target.is_file() and target.read_bytes() == descriptor:
+        digest = sha256(descriptor).hexdigest()
+    else:
+        digest = publish_bytes(target, descriptor)
+    return {**projection, "publication_sha256": digest}
 
 
 def await_linked_observation(
-    cfg: V4Config, root: Path, hourly: dict, deadline: datetime,
-    clock: Callable[[], datetime], sleep: Callable[[float], None],
+    cfg: V4Config, hourly: dict, deadline: datetime,
+    clock: Callable[[], datetime], sleep: Callable[[float], None], *,
+    loader: Callable[[], tuple[DatedInputs | None, str]],
 ) -> tuple[dict, datetime]:
     day = hourly["trade_date"]
     lane = "next_day_observation"
     while True:
         observed = min(clock(), deadline)
         try:
-            inputs = DatedInputs.load(root, day)
-            require(inputs.entry_sha256("workloads", "hourly_announcements") == hourly["source_binding_sha256"],
+            inputs, gap = loader()
+            require(inputs is not None, gap)
+            require(inputs.trade_date == day and inputs.entry_sha256("workloads", "hourly_announcements") == hourly["source_binding_sha256"],
                     "OBSERVATION_HOURLY_SOURCE_CHANGED_AFTER_PUBLICATION")
-            projection, rows = _validate_research_lane(inputs, lane, observed, hourly=hourly)
+            projection, rows = _validate_research_lane(inputs, lane, observed, hourly=hourly, cfg=cfg)
         except EvidenceError as exc:
             if observed >= deadline:
                 return {"status": "CANNOT_CONFIRM", "reason": str(exc), **SAFETY_FLAGS}, observed
@@ -237,9 +279,10 @@ def await_linked_observation(
 
 def lane_or_gap(
     cfg: V4Config, inputs: DatedInputs, lane: str, asof: datetime, *, hourly: dict | None = None,
+    stage_owner_root: Path | None = None,
 ) -> dict[str, Any]:
     try:
-        return materialize_research_lane(cfg, inputs, lane, asof, hourly=hourly)
+        return materialize_research_lane(cfg, inputs, lane, asof, hourly=hourly, stage_owner_root=stage_owner_root)
     except EvidenceError as exc:
         return {"status": "CANNOT_CONFIRM", "reason": str(exc), **SAFETY_FLAGS}
 
@@ -260,7 +303,10 @@ def _read_1610_window(cfg: V4Config, day: str, asof: datetime) -> dict[str, Any]
     return completed
 
 
-def read_materialized_hk_close(cfg: V4Config, inputs: DatedInputs, asof: datetime) -> dict[str, Any]:
+def read_materialized_hk_close(
+    cfg: V4Config, inputs: DatedInputs, asof: datetime, *, allow_2115_upgrade: bool = False,
+    stage_owner_root: Path | None = None,
+) -> dict[str, Any]:
     day = inputs.trade_date
     completed = _read_1610_window(cfg, day, asof)
     artifact_path = cfg.data_dir / "review_inputs" / day / "hk_close.json"
@@ -273,13 +319,34 @@ def read_materialized_hk_close(cfg: V4Config, inputs: DatedInputs, asof: datetim
     owner = mapping(paired.get("hk_connect_close_review"), "HK_CLOSE_1610_OWNER_RECEIPT_UNBOUND")
     digest = sha256(content).hexdigest()
     require(owner.get("publication_sha256") == digest and artifact.get("schema") == "v4_core.review_input.v1"
-            and artifact.get("source_binding_sha256") == inputs.entry_sha256("workloads", "hk_close")
-            and artifact.get("source_mode") == "NATIVE_INPUT_MATERIALIZATION",
+            and artifact.get("source_mode") == "NATIVE_INPUT_MATERIALIZATION"
+            and iso_date(artifact.get("trade_date")) == day,
             "HK_CLOSE_1610_ARTIFACT_SHA_OR_IDENTITY_MISMATCH")
     require(artifact == {"schema": "v4_core.review_input.v1",
                          **{key: value for key, value in owner.items() if key != "publication_sha256"},
                          "rows": artifact.get("rows")}, "HK_CLOSE_1610_OWNER_RECEIPT_MISMATCH")
-    return owner
+    expected_binding = inputs.entry_sha256("workloads", "hk_close")
+    if artifact.get("source_binding_sha256") == expected_binding and (
+        not allow_2115_upgrade or owner["status"] == "READY" or stage_owner_root is None
+    ):
+        return owner
+    require(allow_2115_upgrade and owner.get("status") == "PARTIAL",
+            "HK_CLOSE_1610_ARTIFACT_SHA_OR_IDENTITY_MISMATCH")
+    entry = _workload_entry(inputs, "hk_close")
+    identities = mapping(owner.get("source_identity"), "HK_CLOSE_1610_OWNER_SOURCE_UNBOUND")
+    for key in ("close_snapshot", "close_snapshot_receipt", "model_pool"):
+        require(inputs.file(entry.get(key)).identity() == identities.get(key),
+                f"HK_CLOSE_2115_BASE_SOURCE_CHANGED:{key}")
+    projection, rows = _validate_research_lane(inputs, "hk_close", asof, stage_owner_root=stage_owner_root)
+    path = artifact_path.with_name("hk_close_review_2115.json")
+    upgraded = {
+        **projection, "source_binding_sha256": expected_binding, "original_1610_publication_sha256": digest,
+        "publication_path": path.relative_to(cfg.data_dir).as_posix(),
+    }
+    if projection["status"] != "READY":
+        return upgraded
+    publication = publish_json(path, {"schema": "v4_core.review_input.v1", **upgraded, "rows": rows})
+    return {**upgraded, "publication_sha256": publication}
 
 
 def read_materialized_a_daily(
@@ -291,7 +358,8 @@ def read_materialized_a_daily(
     downstream = mapping(owner.get("downstream"), "A_1610_DOWNSTREAM_RECEIPT_UNBOUND")
     require(owner.get("status") in {"READY", "PARTIAL"}
             and downstream.get("trade_date") == day and downstream.get("step") == "all"
-            and downstream.get("status") == "DONE", "A_1610_DOWNSTREAM_NOT_DONE")
+            and downstream.get("status") == "DONE" and downstream.get("top200_reference_status") == "READY",
+            "A_1610_DOWNSTREAM_NOT_DONE_OR_REFERENCE_GAPS")
     publication = read_a_daily_publication(cfg.data_dir / "history", store, inputs, owner)
     execution = next((item for item in store.get_slot_executions(day) if item["slot_id"] == "slot_4_a_share_daily"), None)
     qfq = mapping(downstream.get("qfq"), "A_1610_QFQ_RECEIPT_UNBOUND")
@@ -321,13 +389,17 @@ def read_materialized_a_daily(
             **publication, **SAFETY_FLAGS}
 
 
-def compose_review_core(cfg: V4Config, inputs: DatedInputs, asof: datetime) -> dict[str, Any]:
+def compose_review_core(
+    cfg: V4Config, inputs: DatedInputs, asof: datetime, *, stage_owner_root: Path | None = None,
+) -> dict[str, Any]:
     day = inputs.trade_date
     store = V4Store(cfg.db_path)
     run_id = f"review-{uuid.uuid4().hex[:12]}"
     evidence = {"fupan": lane_or_gap(cfg, inputs, "fupan", asof)}
     try:
-        evidence["hk_close"] = read_materialized_hk_close(cfg, inputs, asof)
+        evidence["hk_close"] = read_materialized_hk_close(
+            cfg, inputs, asof, allow_2115_upgrade=True, stage_owner_root=stage_owner_root,
+        )
     except EvidenceError as exc:
         evidence["hk_close"] = {"status": "CANNOT_CONFIRM", "reason": str(exc), **SAFETY_FLAGS}
     try:

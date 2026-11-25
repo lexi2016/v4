@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import fcntl
 from hashlib import sha256
 import json
@@ -120,3 +120,79 @@ def publish_json(
     expected: dict[str, int] | object | None = _UNSET,
 ) -> str:
     return publish_bytes(path, json_bytes(value), lease=lease, expected=expected)
+
+
+SLOT_LEASE_TTL_SECONDS = 600
+
+
+def last_window_record(receipt) -> tuple[dict | None, int | None]:
+    """Return the last complete event and a trailing torn-record offset, if recognizable."""
+    receipt.seek(0)
+    previous = None
+    while True:
+        offset = receipt.tell()
+        line = receipt.readline()
+        if not line:
+            return previous, None
+        if not line.endswith(b"\n"):
+            if previous is not None and previous["schedule_status"] == "RUNNING" and line.lstrip().startswith(b"{"):
+                return previous, offset
+            raise ValueError("INVALID_SLOT_JOURNAL")
+        value = json.loads(line)
+        if not isinstance(value, dict) or not isinstance(value.get("schedule_status"), str):
+            raise ValueError("INVALID_SLOT_JOURNAL")
+        previous = value
+
+
+def archive_torn_window(receipt, offset: int, directory: Path, journal_name: str, lease: WriterLease) -> dict:
+    """Retain the original bytes before dropping an uncommitted tail under both locks."""
+    receipt.seek(0)
+    original = receipt.read()
+    digest = sha256(original).hexdigest()
+    path = directory / f"{journal_name}.{digest}.original"
+    if not path.exists():
+        publish_bytes(path, original, lease=lease, expected=None)
+    elif path.read_bytes() != original:
+        raise ValueError("STALE_SLOT_JOURNAL_ARCHIVE_CONFLICT")
+    receipt.truncate(offset)
+    receipt.flush()
+    os.fsync(receipt.fileno())
+    return {"archived_journal": str(path), "archive_sha256": digest, "torn_tail_bytes": len(original) - offset}
+
+
+def stale_running_reason(record: dict, heartbeat: Path, now: datetime) -> str | None:
+    """Call only after acquiring the slot's exclusive file lock."""
+    pid = record.get("pid")
+    if type(pid) is int and pid > 0:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return "PID_EXITED"
+        except PermissionError:
+            pass
+    try:
+        current = json.loads(heartbeat.read_bytes())
+    except (OSError, ValueError):
+        current = {}
+    if (not isinstance(current, dict) or current.get("lease_token") != record.get("lease_token")
+            or current.get("attempt_id") != record.get("attempt_id")):
+        current = {}
+    expiry = current.get("lease_expires_at", record.get("lease_expires_at"))
+    try:
+        if expiry is None:
+            expiry = datetime.fromisoformat(record["observed_at"]) + timedelta(seconds=SLOT_LEASE_TTL_SECONDS)
+        else:
+            expiry = datetime.fromisoformat(expiry)
+        if now >= expiry:
+            return "LEASE_EXPIRED"
+    except (KeyError, TypeError, ValueError):
+        # Unknown legacy ownership cannot bypass the safety fence.
+        return None
+    return None
+
+
+def heartbeat_record(when: datetime) -> dict[str, str]:
+    return {
+        "heartbeat_at": when.isoformat(),
+        "lease_expires_at": (when + timedelta(seconds=SLOT_LEASE_TTL_SECONDS)).isoformat(),
+    }

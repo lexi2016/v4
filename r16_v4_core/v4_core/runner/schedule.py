@@ -3,10 +3,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, time
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, Callable
 
 from v4_core.runner.evidence import DatedInputs, EvidenceError, aware_time, iso_date, mapping, require
+from v4_core.runner.state import json_bytes
 
 
 @dataclass(frozen=True)
@@ -84,7 +86,7 @@ def _available(inputs: DatedInputs | None, phase: str, asof: datetime) -> bool:
         if phase == "a_daily":
             daily = inputs.entry("a_daily")
             close = mapping(inputs.entry("workloads").get("hk_close"), "HK_CLOSE_NATIVE_SOURCES_UNBOUND")
-            return ready(daily, ("bars", "authority", "coverage_receipt")) and ready(
+            return ready(daily, ("bars", "authority", "coverage_receipt", "factors")) and ready(
                 close, ("close_snapshot", "close_snapshot_receipt", "model_pool"),
             )
         if phase == "hk_cache_write":
@@ -107,12 +109,12 @@ def dispatch_evidence_deadline(start: datetime, phase: str) -> datetime | None:
 
 def wait_for_dispatch_evidence(
     root: Path | None, start: datetime, phase: str, current: Callable[[], datetime],
-    sleep: Callable[[float], None],
+    sleep: Callable[[float], None], *, loader: Callable[[], tuple[DatedInputs | None, str]] | None = None,
 ) -> tuple[DatedInputs | None, str, datetime]:
     deadline = dispatch_evidence_deadline(start, phase) if root is not None else None
     while True:
         observed = current()
-        inputs, gap = read_dispatch_inputs(root, start.date().isoformat())
+        inputs, gap = loader() if loader is not None else read_dispatch_inputs(root, start.date().isoformat())
         if deadline is not None and observed >= deadline:
             return inputs, gap, deadline
         if deadline is None or _available(inputs, phase, observed):
@@ -158,3 +160,46 @@ def folded_readbacks(
         except EvidenceError as exc:
             result[task.verify_at] = {**binding, "status": "CANNOT_CONFIRM", "reason": str(exc)}
     return result
+
+
+def evening_evidence_fingerprint(inputs: DatedInputs | None, asof: datetime) -> str | None:
+    """Track valid source bytes as they become available under stable index references."""
+    if inputs is None:
+        return None
+
+    def read_ref(ref) -> dict | None:
+        try:
+            return inputs.file(ref).identity()
+        except EvidenceError:
+            return None
+
+    try:
+        lanes = inputs.entry("workloads")
+    except EvidenceError:
+        return None
+    observations = {}
+    for name in ("hourly_announcements", "next_day_observation"):
+        entry = lanes.get(name)
+        try:
+            if not isinstance(entry, dict) or aware_time(entry.get("observed_at")) > asof:
+                continue
+        except EvidenceError:
+            continue
+        if name == "hourly_announcements":
+            keys = ("source", "artifact", "receipt")
+        elif entry.get("candidate_pool") is not None:
+            keys = ("candidate_pool", "pool_registry")
+        else:
+            keys = ("artifact", "manifest", "receipt")
+        identities = {key: identity for key in keys if (identity := read_ref(entry.get(key))) is not None}
+        if identities:
+            observations[name] = {
+                "observed_at": entry["observed_at"], "status": entry.get("status"), "files": identities,
+            }
+    calendar = inputs.payload.get("next_a_session")
+    if "next_day_observation" in observations and isinstance(calendar, dict):
+        calendar_files = {key: identity for key in ("calendar", "receipt")
+                          if (identity := read_ref(calendar.get(key))) is not None}
+        if calendar_files:
+            observations["next_a_session"] = calendar_files
+    return sha256(json_bytes(observations)).hexdigest() if observations else None

@@ -5,6 +5,8 @@
 """
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import math
 from typing import Any
 
 from v4_core.storage.db import V4Store
@@ -12,6 +14,21 @@ from v4_core.storage.db import V4Store
 
 class MissingAdjustmentFactorError(ValueError):
     """Raised when required adjustment factors are missing for a symbol/date."""
+
+
+def ex_rights_reference_close(previous_close: float, previous_factor: float, target_factor: float) -> float:
+    """Convert the raw prior close to the target session price basis and A-share tick."""
+    values = (previous_close, previous_factor, target_factor)
+    if any(not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0 for value in values):
+        raise MissingAdjustmentFactorError("A_EX_RIGHTS_REFERENCE_INPUT_UNVERIFIED")
+    previous, factor, target = (Decimal(str(value)) for value in values)
+    try:
+        reference = float((previous * factor / target).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+    except InvalidOperation as exc:
+        raise MissingAdjustmentFactorError("A_EX_RIGHTS_REFERENCE_PRICE_INVALID") from exc
+    if reference <= 0 or not math.isfinite(reference):
+        raise MissingAdjustmentFactorError("A_EX_RIGHTS_REFERENCE_PRICE_INVALID")
+    return reference
 
 
 def compute_qfq_series(
@@ -36,13 +53,13 @@ def compute_qfq_series(
     else:
         latest_factor = float(factors.get(causal_bars[-1]["trade_date"], 1.0))
 
-    if latest_factor <= 0:
+    if not math.isfinite(latest_factor) or latest_factor <= 0:
         raise MissingAdjustmentFactorError(f"Non-positive latest adjustment factor: {latest_factor}")
 
     out: list[dict[str, Any]] = []
     for row in causal_bars:
         f = float(factors.get(row["trade_date"], 1.0) if allow_unit_factors else factors[row["trade_date"]])
-        if f <= 0:
+        if not math.isfinite(f) or f <= 0:
             raise MissingAdjustmentFactorError(f"Non-positive factor on {row['trade_date']}: {f}")
         ratio = f / latest_factor
         out.append(

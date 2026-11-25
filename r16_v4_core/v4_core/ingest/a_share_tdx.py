@@ -58,6 +58,7 @@ def ingest_a_share_bars(
     raw_rows: list[dict[str, Any]],
     *,
     verified_exclusions: set[str] | None = None,
+    native_tdx: bool = False,
 ) -> IngestSummary:
     """Validate and store A-share daily bars; isolate non-positive OHLC & wrong-date rows."""
     excluded = verified_exclusions or set()
@@ -90,10 +91,11 @@ def ingest_a_share_bars(
                 "volume": int(row["volume"]),
                 "amount": float(row["amount"]),
                 "pre_close": float(row["pre_close"]) if row.get("pre_close") is not None else None,
+                "pre_close_trade_date": row.get("pre_close_trade_date"),
             }
         )
 
-    store.upsert_daily_bars(accepted)
+    store.upsert_daily_bars(accepted, native_tdx=native_tdx)
     nominal = len(raw_rows)
     eligible = max(nominal - excluded_hit, 0)
     cov = round(len(accepted) / eligible, 6) if eligible > 0 else 0.0

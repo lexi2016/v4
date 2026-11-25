@@ -77,6 +77,8 @@ def score_symbol_from_bars(
     symbol: str,
     selection_group: str,
     bars: list[dict[str, Any]],
+    *,
+    isolation_reasons: list[str] | None = None,
 ) -> dict[str, Any]:
     """Compute from an ordered, complete-to-target QFQ prefix, without IO to the live owner."""
     base = {
@@ -88,6 +90,12 @@ def score_symbol_from_bars(
         "action": "UNKNOWN",
         "status": "UNKNOWN",
     }
+    if isolation_reasons:
+        return {**base, "status": "QUARANTINED", "detail_json": json.dumps({
+            "reason": "A_DAILY_AUTHORITY_QUARANTINE", "isolation_reasons": isolation_reasons,
+            "tradable": False, "RESEARCH_ONLY": True, "production_allowed": False,
+            "buy_gate_updated": False, "orders_sent": False,
+        }, ensure_ascii=False)}
     if not research_code_in_scope(symbol, scope="ADMITTED_A_SHARE"):
         return {**base, "detail_json": json.dumps({"reason": "SINGLE_STOCK_SCOPE_CONFLICT"})}
     target = date.fromisoformat(str(trade_date)).strftime("%Y%m%d")

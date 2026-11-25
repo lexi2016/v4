@@ -395,9 +395,12 @@ def test_five_manual_slots_write_and_readback_execution_ref(tmp_path: Path):
 
     # Prepare minimal bars, adj_factors & selections so Slot 4 completes end-to-end
     store.upsert_daily_bars([
+        {"market": "A", "symbol": "000026.SZ", "trade_date": "2026-11-23", "open": 22.0, "high": 22.0,
+         "low": 22.0, "close": 22.0, "volume": 1000, "amount": 22000, "pre_close": None},
         {"market": "A", "symbol": "000026.SZ", "trade_date": trade_date, "open": 22.0, "high": 22.5, "low": 21.8, "close": 22.35, "volume": 1000, "amount": 22350, "pre_close": 22.0},
     ])
     store.upsert_adj_factors([
+        {"market": "A", "symbol": "000026.SZ", "trade_date": "2026-11-23", "adj_factor": 1.0},
         {"market": "A", "symbol": "000026.SZ", "trade_date": trade_date, "adj_factor": 1.0},
     ])
     store.upsert_workbench_selections([

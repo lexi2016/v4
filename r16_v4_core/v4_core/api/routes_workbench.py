@@ -98,6 +98,8 @@ def _build_chart_response(
     limit: int,
 ) -> dict[str, Any]:
     canon = normalize_symbol(symbol) or symbol
+    if market.upper() == "A" and canon in store.get_a_workbench_quarantines(source_date):
+        raise HTTPException(status_code=404, detail=f"WORKBENCH_SYMBOL_QUARANTINED:{canon}")
     bars = store.get_symbol_bars(market, canon, table="qfq_bars", limit=limit, asof_date=source_date)
     price_basis = f"QFQ_ASOF_{source_date.replace('-', '')}"
     if not bars:
@@ -168,6 +170,7 @@ def build_workbench_router(store: V4Store) -> APIRouter:
         selection_names = store.get_workbench_selection_names(source_date)
         top200_names = {r["symbol"]: r["name"] for r in store.get_top200(source_date)}
         compact_date = source_date.replace("-", "")
+        authority_isolation = store.get_a_workbench_quarantines(source_date)
 
         rows = []
         formula_groups: dict[str, int] = {}
@@ -177,7 +180,17 @@ def build_workbench_router(store: V4Store) -> APIRouter:
             formula_groups[grp] = formula_groups.get(grp, 0) + 1
             bar = day_bars.get(sym)
             detail = item.get("detail") if isinstance(item.get("detail"), dict) else {}
-            quarantined = grp.upper() == "UNKNOWN"
+            reasons = authority_isolation.get(normalize_symbol(sym))
+            authority_block = item["status"] == "QUARANTINED" or bool(reasons)
+            quarantined = grp.upper() == "UNKNOWN" or authority_block
+            if authority_block:
+                item = {**item, "status": "QUARANTINED", "score": None, "action": "UNKNOWN"}
+                detail = {
+                    "reason": "A_DAILY_AUTHORITY_QUARANTINE", "tradable": False,
+                    "isolation_reasons": reasons or detail.get("isolation_reasons", []),
+                }
+                item["detail"] = detail
+                bar = None
             hold_score = _build_hold_score_dict(item)
             display_name = str(
                 detail.get("display_name")
@@ -202,14 +215,14 @@ def build_workbench_router(store: V4Store) -> APIRouter:
                 pb2_state = "TRUE" if grp in {"backtest", "both"} else "FALSE"
 
             group_states = {
-                "192": grp in {"192", "both"},
-                "backtest": grp in {"backtest", "both"},
+                "192": not quarantined and grp in {"192", "both"},
+                "backtest": not quarantined and grp in {"backtest", "both"},
                 "b23_entry": b23_state,
                 "pb2_confirm": pb2_state,
                 "selection_group": grp,
                 "status": item["status"],
             }
-            if isinstance(detail.get("group_states"), dict):
+            if not quarantined and isinstance(detail.get("group_states"), dict):
                 group_states.update(detail["group_states"])
 
             rows.append(

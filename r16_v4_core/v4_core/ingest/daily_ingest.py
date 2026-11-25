@@ -44,13 +44,16 @@ def ingest_from_tdx_dir(
         for idx, row in enumerate(parsed):
             if idx > 0 and row.get("pre_close") is None:
                 row["pre_close"] = parsed[idx - 1]["close"]
+                row["pre_close_trade_date"] = parsed[idx - 1]["trade_date"]
             if row["trade_date"] == trade_date:
                 target_rows.append(row)
             elif row["trade_date"] < trade_date:
                 prefix_rows.append(row)
     if prefix_rows:
-        store.upsert_daily_bars(prefix_rows)
-    summary = ingest_a_share_bars(store, trade_date, target_rows, verified_exclusions=verified_exclusions)
+        store.upsert_daily_bars(prefix_rows, native_tdx=True)
+    summary = ingest_a_share_bars(
+        store, trade_date, target_rows, verified_exclusions=verified_exclusions, native_tdx=True,
+    )
     return {
         "source": "tdx_dir",
         "tdx_dir": str(tdx_dir),

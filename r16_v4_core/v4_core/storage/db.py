@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS daily_bars (
     volume INTEGER NOT NULL,
     amount REAL NOT NULL,
     pre_close REAL,
+    pre_close_basis TEXT,
+    pre_close_trade_date TEXT,
     PRIMARY KEY (market, symbol, trade_date)
 );
 CREATE INDEX IF NOT EXISTS idx_daily_bars_date ON daily_bars (market, trade_date);
@@ -301,6 +303,10 @@ class V4Store:
             cols = {r["name"] for r in conn.execute("PRAGMA table_info(workbench_selections)").fetchall()}
             if "display_name" not in cols:
                 conn.execute("ALTER TABLE workbench_selections ADD COLUMN display_name TEXT NOT NULL DEFAULT ''")
+            daily_cols = {r["name"] for r in conn.execute("PRAGMA table_info(daily_bars)")}
+            for name in ("pre_close_basis", "pre_close_trade_date"):
+                if name not in daily_cols:
+                    conn.execute(f"ALTER TABLE daily_bars ADD COLUMN {name} TEXT")
             qfq_cols = {r["name"] for r in conn.execute("PRAGMA table_info(qfq_bars)")}
             optional_qfq_columns = (("pre_close", "REAL"), ("pct_chg", "REAL"),
                                     ("user_v1_sell_signal_daily", "INTEGER"))
@@ -323,19 +329,70 @@ class V4Store:
 
     def upsert_daily_bars(
         self, rows: list[dict[str, Any]], *, connection: sqlite3.Connection | None = None,
+        native_tdx: bool = False,
     ) -> int:
         if not rows:
             return 0
         sql = """
-        INSERT INTO daily_bars (market, symbol, trade_date, open, high, low, close, volume, amount, pre_close)
-        VALUES (:market, :symbol, :trade_date, :open, :high, :low, :close, :volume, :amount, :pre_close)
+        INSERT INTO daily_bars (market, symbol, trade_date, open, high, low, close, volume, amount, pre_close,
+                                pre_close_basis, pre_close_trade_date)
+        VALUES (:market, :symbol, :trade_date, :open, :high, :low, :close, :volume, :amount, :pre_close,
+                :pre_close_basis, :pre_close_trade_date)
         ON CONFLICT(market, symbol, trade_date) DO UPDATE SET
             open=excluded.open, high=excluded.high, low=excluded.low, close=excluded.close,
-            volume=excluded.volume, amount=excluded.amount, pre_close=excluded.pre_close
+            volume=excluded.volume, amount=excluded.amount, pre_close=excluded.pre_close,
+            pre_close_basis=excluded.pre_close_basis, pre_close_trade_date=excluded.pre_close_trade_date
         """
+        normalized = [{
+            **row,
+            "pre_close_basis": "TDX_PRIOR_RAW" if native_tdx else None,
+            "pre_close_trade_date": row.get("pre_close_trade_date") if native_tdx else None,
+        } for row in rows]
         with (nullcontext(connection) if connection is not None else self.connect()) as conn:
-            conn.executemany(sql, rows)
+            conn.executemany(sql, normalized)
         return len(rows)
+
+    def get_a_daily_reference_inputs(self, trade_date: str) -> list[dict[str, Any]]:
+        """Read the target slice, one prior close per symbol and the paired factors."""
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT target.symbol, target.close, target.amount,
+                          CASE WHEN target.pre_close_basis='TDX_PRIOR_RAW' THEN target.pre_close_trade_date
+                               ELSE prior.trade_date END AS prior_date,
+                          CASE WHEN target.pre_close_basis='TDX_PRIOR_RAW' THEN target.pre_close
+                               ELSE prior.close END AS prior_raw_close,
+                          pf.adj_factor AS prior_factor, tf.adj_factor AS target_factor
+                   FROM daily_bars AS target
+                   LEFT JOIN daily_bars AS prior ON prior.market=target.market
+                       AND prior.symbol=target.symbol
+                       AND prior.trade_date=(
+                         SELECT MAX(p.trade_date) FROM daily_bars AS p
+                         WHERE p.market=target.market AND p.symbol=target.symbol AND p.trade_date<target.trade_date
+                       )
+                   LEFT JOIN adj_factors AS pf ON pf.market=target.market AND pf.symbol=target.symbol
+                       AND pf.trade_date=CASE WHEN target.pre_close_basis='TDX_PRIOR_RAW' THEN target.pre_close_trade_date
+                                              ELSE prior.trade_date END
+                   LEFT JOIN adj_factors AS tf ON tf.market=target.market AND tf.symbol=target.symbol
+                       AND tf.trade_date=target.trade_date
+                   WHERE target.market='A' AND target.trade_date=? ORDER BY target.symbol""", (trade_date,),
+            )
+            return [dict(row) for row in rows]
+
+    def get_a_workbench_quarantines(self, trade_date: str) -> dict[str, list[str]]:
+        """Read all recognized A-share isolation reasons for this exact session."""
+        days = date_variants(trade_date)
+        with self.connect() as conn:
+            rows = conn.execute(
+                f"""SELECT DISTINCT symbol, reason_code FROM quarantine_events
+                    WHERE market='A' AND trade_date IN ({','.join('?' for _ in days)})
+                    AND reason_code IN ('TARGET_DATE_MISSING', 'INVALID_BAR:non_positive_ohlc',
+                                        'NON_POSITIVE_OHLC', 'SUSPENSION_SOURCE_STALE_REVERIFY_REQUIRED')
+                    ORDER BY symbol, reason_code""", days,
+            )
+            isolated: dict[str, list[str]] = {}
+            for row in rows:
+                isolated.setdefault(normalize_symbol(row["symbol"]), []).append(row["reason_code"])
+            return isolated
 
     def upsert_adj_factors(self, rows: list[dict[str, Any]]) -> int:
         if not rows:
@@ -471,13 +528,13 @@ class V4Store:
             else:
                 if asof_date is not None:
                     cur = conn.execute(
-                        "SELECT * FROM daily_bars WHERE market=? AND symbol=? AND trade_date<=? "
+                        "SELECT market, symbol, trade_date, open, high, low, close, volume, amount, pre_close FROM daily_bars WHERE market=? AND symbol=? AND trade_date<=? "
                         "ORDER BY trade_date DESC LIMIT ?",
                         (market, symbol, asof_date, limit),
                     )
                 else:
                     cur = conn.execute(
-                        "SELECT * FROM daily_bars WHERE market=? AND symbol=? ORDER BY trade_date DESC LIMIT ?",
+                        "SELECT market, symbol, trade_date, open, high, low, close, volume, amount, pre_close FROM daily_bars WHERE market=? AND symbol=? ORDER BY trade_date DESC LIMIT ?",
                         (market, symbol, limit),
                     )
             rows = [dict(r) for r in cur.fetchall()]
@@ -503,7 +560,7 @@ class V4Store:
                 )
             else:
                 cur = conn.execute(
-                    "SELECT * FROM daily_bars WHERE market=? AND trade_date=? ORDER BY symbol",
+                    "SELECT market, symbol, trade_date, open, high, low, close, volume, amount, pre_close FROM daily_bars WHERE market=? AND trade_date=? ORDER BY symbol",
                     (market, trade_date),
                 )
             return [dict(r) for r in cur.fetchall()]

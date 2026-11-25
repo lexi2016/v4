@@ -90,6 +90,13 @@ def _validate_hk_cache(
     }, rows
 
 
+def verify_hk_model_pit(
+    inputs: DatedInputs, binding: dict, source_date: str,
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Verify the prior session's native cache chain for today's HK model."""
+    return _validate_hk_cache(_three_files(inputs, binding), source_date, inputs.trade_date)
+
+
 def write_hk_cache(data_dir: Path, inputs: DatedInputs, *, asof: datetime | None = None) -> dict[str, Any]:
     entry = inputs.entry("hk_cache")
     source, target = iso_date(entry.get("source_date")), iso_date(entry.get("target_date"))

@@ -103,6 +103,7 @@ def a_daily_entry(directory, *, target_close=1110):
         "native_source_root": str(source_root), "observed_at": at(16, 45).isoformat(), "bars": write_ref(directory, "a_bars.json", [single]),
         "authority": authority, "coverage_receipt": coverage, "accepted_symbols": [code], "quarantine": quarantine,
         "factors": write_ref(directory, "factors.json", [
+            {"market": "A", "symbol": code, "trade_date": "2026-11-24", "adj_factor": 1.0},
             {"market": "A", "symbol": code, "trade_date": DAY, "adj_factor": 1.0},
         ]),
     }
@@ -478,10 +479,16 @@ def test_review_core_rejects_nonzero_manual_a_counts_without_1610_binding(tmp_pa
     root, _ = snapshot(tmp_path)
     cfg = V4Config.from_env(tmp_path / "sandbox")
     store = V4Store(cfg.db_path)
-    store.upsert_daily_bars([{"trade_date": DAY, "market": "A", "symbol": "000001.SZ",
+    store.upsert_daily_bars([
+        {"trade_date": "2026-11-24", "market": "A", "symbol": "000001.SZ",
+         "open": 10.0, "close": 10.0, "high": 10.0, "low": 10.0, "volume": 100, "amount": 1000.0, "pre_close": None},
+        {"trade_date": DAY, "market": "A", "symbol": "000001.SZ",
                              "open": 10.0, "close": 11.0, "high": 11.0, "low": 10.0,
                              "volume": 100, "amount": 1100.0, "pre_close": 10.0}])
-    store.upsert_adj_factors([{"trade_date": DAY, "market": "A", "symbol": "000001.SZ", "adj_factor": 1.0}])
+    store.upsert_adj_factors([
+        {"trade_date": "2026-11-24", "market": "A", "symbol": "000001.SZ", "adj_factor": 1.0},
+        {"trade_date": DAY, "market": "A", "symbol": "000001.SZ", "adj_factor": 1.0},
+    ])
     store.upsert_workbench_selections([{"trade_date": DAY, "symbol": "000001.SZ", "selection_group": "192"}])
     assert run_slot_4_a_share_daily(cfg, DAY, sse_notifier=lambda *_: False)["workbench_count"] == 1
     assert len(store.get_top200(DAY)) == 1 and len(store.get_date_bars("A", DAY)) == 1
