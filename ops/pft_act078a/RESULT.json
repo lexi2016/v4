@@ -1,0 +1,139 @@
+{
+  "task": "ACT-078A",
+  "source_baseline_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "status": "NOT_PROMOTED",
+  "gates": {
+    "oot_tail_rate_same_or_lower": true,
+    "oot_t5_mean_improved": false,
+    "oot_t5_median_improved": false,
+    "oot_excluding_common_top3_t5_mean_positive": false,
+    "junda_overheat_04_06_downgraded": true,
+    "junda_31_downgraded": true,
+    "junda_15_32_34_39_recall_supported": false
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "NO_GO": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": 0,
+    "P5.15": "0/0/0/0",
+    "tuning": 0
+  },
+  "fit_completed": 24,
+  "fit_after_lock": 0,
+  "oot_open_count": 1,
+  "val_ready_first_episodes": 326,
+  "feature_dimension": 27,
+  "train_mature_first_episodes": 1309,
+  "paired_rows": 3856,
+  "paired_D_last": "2026-11-20",
+  "raw_source_asof": "2026-11-26",
+  "unpaired_D": [
+    "2026-11-23",
+    "2026-11-24",
+    "2026-11-25",
+    "2026-11-26"
+  ],
+  "max_prefix_abs_difference": 0.0,
+  "oot_pair_metrics_fractional_returns": {
+    "V21_A_SAME_D_UNIVERSE": {
+      "common_scored_first_n": 715,
+      "any_first_n": 715,
+      "duplicate_trigger_total_n": 433,
+      "t2_win_rate": 0.47058823529411764,
+      "t2_mean": 0.009159527458272112,
+      "t5_mean": 0.02399760196946093,
+      "t10_mean": 0.028107629395739783,
+      "t5_median": 0.0041736011477760985,
+      "t10_median": 0.0022319497732822295,
+      "mae5_mean": -0.03599800635647725,
+      "tail_rate": 0.11764705882352941,
+      "independent_episode_n": 85,
+      "repeat_triggers_in_selected_episodes_n": 67,
+      "unique_stocks": 28,
+      "t2_mature_n": 85,
+      "t5_mature_n": 85,
+      "t10_mature_n": 85,
+      "mae5_mature_n": 85,
+      "tail_mature_n": 85
+    },
+    "V22_A_SAME_D_UNIVERSE": {
+      "common_scored_first_n": 715,
+      "any_first_n": 715,
+      "duplicate_trigger_total_n": 433,
+      "t2_win_rate": 0.4461538461538462,
+      "t2_mean": -0.002133678532440014,
+      "t5_mean": 0.004113373448573398,
+      "t10_mean": 0.02774158240484963,
+      "t5_median": -0.0006124154397134625,
+      "t10_median": -0.00481818181818183,
+      "mae5_mean": -0.03552712663880344,
+      "tail_rate": 0.09230769230769231,
+      "independent_episode_n": 65,
+      "repeat_triggers_in_selected_episodes_n": 56,
+      "unique_stocks": 29,
+      "t2_mature_n": 65,
+      "t5_mature_n": 65,
+      "t10_mature_n": 65,
+      "mae5_mature_n": 65,
+      "tail_mature_n": 65
+    }
+  },
+  "oot_common_top3_exclusion_t5_mean": {
+    "v21_after_common_exclusion": 0.021438537591662525,
+    "v22_after_common_exclusion": -0.006494073701906741
+  },
+  "junda_cases": {
+    "#04": {
+      "passed": true,
+      "role": "REPEAT",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "B"
+    },
+    "#06": {
+      "passed": true,
+      "role": "CONFIRM",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "C"
+    },
+    "#31": {
+      "passed": true,
+      "role": "FIRST",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "C"
+    },
+    "#15": {
+      "passed": false,
+      "role": "CONFIRM",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "B"
+    },
+    "#32": {
+      "passed": false,
+      "role": "FIRST",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "C"
+    },
+    "#34": {
+      "passed": false,
+      "role": "FIRST",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "C"
+    },
+    "#39": {
+      "passed": false,
+      "role": "CONFIRM",
+      "tier_at_exact_D": "C",
+      "tier_at_episode_first": "B"
+    }
+  },
+  "chart_counts": {
+    "chart_n": 36,
+    "eligible_top_tier_episode_n": 65,
+    "eligible_junda_n": 0,
+    "junda_skipped_due_to_limit_n": 0
+  },
+  "fit_rank_lock_sha256": "fb908ab404f6296036d0713599162cddb7a6fb5452d2bb5dda754c4fba6f5583",
+  "oot_evaluation_receipt_sha256": "d5c4ef542d73610650337a9eae59c1cac16f27c26ff46d77cb42dd2577ac3b94"
+}
