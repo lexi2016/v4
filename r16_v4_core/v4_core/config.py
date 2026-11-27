@@ -24,9 +24,12 @@ class V4Config:
     log_retention_days: int = 30
 
     @classmethod
-    def from_env(cls, base_dir: str | Path | None = None) -> "V4Config":
+    def from_env(cls, base_dir: str | Path | None = None, *, api_port: int | None = None) -> "V4Config":
         root = Path(base_dir or os.environ.get("V4_CORE_HOME", Path.cwd() / "v4_data")).resolve()
         data_dir = root / "data"
+        port = int(os.environ.get("V4_API_PORT", "8873")) if api_port is None else api_port
+        if not 1 <= port <= 65535:
+            raise ValueError("API port must be in the range 1–65535")
         return cls(
             base_dir=root,
             data_dir=data_dir,
@@ -35,7 +38,7 @@ class V4Config:
             logs_dir=root / "logs",
             min_free_gib=float(os.environ.get("V4_MIN_FREE_GIB", "30.0")),
             api_host=os.environ.get("V4_API_HOST", "127.0.0.1"),
-            api_port=int(os.environ.get("V4_API_PORT", "8873")),
+            api_port=port,
             log_retention_days=int(os.environ.get("V4_LOG_RETENTION_DAYS", "30")),
         )
 

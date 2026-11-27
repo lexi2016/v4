@@ -30,6 +30,40 @@ def _page_entry(total_rows: int, offset: int, limit: int, returned_rows: int) ->
     }
 
 
+_STAGE_READBACK_CLAIMS = frozenset({
+    "status", "source_status", "selection_status", "owner_selection_status", "display_status", "display_mode",
+    "data_level", "recommendation_status", "selection_manifest_receipt", "selection_manifest_receipt_verified",
+    "receipt_verified", "execution_evidence", "execution_verified", "natural_verified", "readback_provenance",
+    "research_only", "write_performed", "production_allowed", "buy_gate_updated", "orders_sent",
+})
+
+
+def _stage_metadata(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {key: _stage_metadata(item) for key, item in value.items() if key.casefold() not in _STAGE_READBACK_CLAIMS}
+    if isinstance(value, list):
+        return [_stage_metadata(item) for item in value]
+    return value
+
+
+def _stage_lane(row: dict[str, Any]) -> str:
+    return "HK" if row.get("market") in {"HK", "HK_CONNECT"} else "A"
+
+
+def _stage_readback_status(row: dict[str, Any]) -> tuple[str, str]:
+    payload = row.get("payload")
+    source_status = payload.get("source_status", "") if isinstance(payload, dict) else ""
+    stored_status = str(row["status"]).strip().upper()
+    source_partial = "PARTIAL" in str(source_status).upper()
+    if "PARTIAL" in stored_status or source_partial:
+        status = "PARTIAL"
+    elif stored_status in {"CANNOT_CONFIRM", "UNKNOWN", "WATCH_ONLY"}:
+        status = stored_status
+    else:
+        status = "OBSERVATION_UNVERIFIED"
+    return status, "PARTIAL" if source_partial else "CANNOT_CONFIRM"
+
+
 def _enrich_stage_row(store: V4Store, trade_date: str, stage_id: str, row: dict[str, Any]) -> dict[str, Any]:
     raw_sym = str(row["symbol"])
     canon = normalize_symbol(raw_sym) or raw_sym
@@ -39,22 +73,49 @@ def _enrich_stage_row(store: V4Store, trade_date: str, stage_id: str, row: dict[
         or store.resolve_security_name(trade_date, raw_sym)
     )
     payload = row.get("payload") if isinstance(row.get("payload"), dict) else {}
-    mkt = str(row.get("market", "A")).upper()
-    norm_mkt = "HK" if mkt in {"HK", "HK_CONNECT"} else "A"
+    readback_status, source_status = _stage_readback_status(row)
     out = {
-        **payload,
+        **_stage_metadata(payload),
         "trade_date": trade_date,
         "stage": row["stage"],
         "stage_id": stage_id,
-        "market": norm_mkt,
+        "market": _stage_lane(row),
         "symbol": raw_sym,
         "canonical_symbol": canon,
         "name": resolved_name,
         "display_name": resolved_name,
         "rank": row["rank"],
         "signal_date": row["signal_date"] or trade_date,
-        "status": row["status"],
+        "status": readback_status,
+        "selection_status": readback_status,
+        "source_status": source_status,
+        "owner_selection_status": "WATCH_ONLY" if payload.get("owner_selection_status") == "WATCH_ONLY" else "CANNOT_CONFIRM",
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_status": readback_status,
         "execution_ref": row["execution_ref"],
+        "data_level": "OBSERVATION_UNVERIFIED",
+        "selection_manifest_receipt_verified": False,
+        "execution_verified": False,
+        "natural_verified": False,
+        "recommendation_status": "WATCH_ONLY",
+        "execution_evidence": {
+            "status": "CANNOT_CONFIRM",
+            "execution_verified": False,
+            "natural_verified": False,
+        },
+        "RESEARCH_ONLY": True,
+        "write_performed": False,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+        "readback_provenance": {
+            "store": "SQLITE_STAGE_SELECTIONS",
+            "stored_trade_date": row["trade_date"],
+            "stored_stage": row["stage"],
+            "stored_status": row["status"],
+            "stored_execution_ref": row["execution_ref"],
+            "receipt_verified": False,
+        },
     }
     if resolved_name and not out.get("stock_name"):
         out["stock_name"] = resolved_name
@@ -71,80 +132,57 @@ def _build_stage_payload(
     stage_id = stage or "STAGE_0930_0935"
     req_market = market.upper() if market else None
     db_market = "HK" if req_market in {"HK", "HK_CONNECT"} else ("A" if req_market in {"A", "A_SHARE"} else None)
-    rows = store.get_stage_selections(trade_date, stage=stage, market=db_market, limit=limit)
-    enriched = [_enrich_stage_row(store, trade_date, stage_id, r) for r in rows]
+    rows = store.get_stage_selections(trade_date, stage=stage_id, market=db_market)
+    totals = {"A": 0, "HK": 0}
+    partial_lanes = set()
+    for row in rows:
+        lane = _stage_lane(row)
+        totals[lane] += 1
+        status, _ = _stage_readback_status(row)
+        if status == "PARTIAL":
+            partial_lanes.add(lane)
+    displayed = rows[:limit] if limit is not None and limit > 0 else rows
+    enriched = [_enrich_stage_row(store, trade_date, stage_id, row) for row in displayed]
 
     a_rows = [r for r in enriched if r["market"] == "A"]
     hk_rows = [r for r in enriched if r["market"] == "HK"]
     exec_refs = sorted({r["execution_ref"] for r in enriched if r.get("execution_ref")})
-    overall_status = "READY" if enriched else "READY_EMPTY"
-    a_status = "READY" if a_rows else "READY_EMPTY"
-    hk_status = "READY" if hk_rows else "READY_EMPTY"
-
-    markets = {
-        "A": {
-            "market": "A_SHARE",
-            "status": a_status,
-            "selection_status": a_status,
-            "display_mode": "NORMAL",
-            "source_status": a_status,
-            "data_level": "OFFICIAL",
-            "candidate_count": len(a_rows),
-            "source_rows": len(a_rows),
-            "requested_rows": len(a_rows),
-            "selected_rows": len(a_rows),
-            "observation_count": len(a_rows),
-            "rows": a_rows,
-        },
-        "HK": {
-            "market": "HK_CONNECT",
-            "status": hk_status,
-            "selection_status": hk_status,
-            "display_mode": "NORMAL",
-            "source_status": hk_status,
-            "data_level": "OFFICIAL",
-            "candidate_count": len(hk_rows),
-            "source_rows": len(hk_rows),
-            "requested_rows": len(hk_rows),
-            "selected_rows": len(hk_rows),
-            "observation_count": len(hk_rows),
-            "rows": hk_rows,
-        },
-    }
-    selection_markets = {
-        "A_SHARE": {
-            "market": "A_SHARE",
+    markets = {}
+    selection_markets = {}
+    for lane, alias, lane_rows in (("A", "A_SHARE", a_rows), ("HK", "HK_CONNECT", hk_rows)):
+        has_partial = lane in partial_lanes
+        lane_total = totals[lane]
+        mode = "OBSERVATION_UNVERIFIED" if lane_total else "CANNOT_CONFIRM"
+        state = "PARTIAL" if has_partial else mode
+        summary = {
+            "market": alias,
+            "status": state,
+            "selection_status": state,
+            "source_status": "PARTIAL" if has_partial else "CANNOT_CONFIRM",
+            "display_mode": mode,
+            "data_level": mode,
+            "candidate_count": lane_total,
+            "source_rows": None,
+            "requested_rows": None,
+            "selected_rows": lane_total or None,
+            "observation_count": lane_total,
+            "rows": lane_rows,
+            "selection_manifest_receipt_verified": False,
+            "execution_verified": False,
+            "natural_verified": False,
+        }
+        markets[lane] = summary
+        selection_markets[alias] = {
+            **summary,
             "trade_date": trade_date,
             "stage_id": stage_id,
-            "status": a_status,
-            "selection_status": a_status,
-            "source_status": a_status,
-            "requested_rows": len(a_rows),
-            "source_rows": len(a_rows),
-            "selected_rows": len(a_rows),
-            "coverage_ratio": 1.0 if a_rows else 0.0,
-            "rows": a_rows,
-            "source_evidence": exec_refs,
-            "cannot_confirm": [],
-            "selection_manifest_receipt_verified": bool(exec_refs),
-        },
-        "HK_CONNECT": {
-            "market": "HK_CONNECT",
-            "trade_date": trade_date,
-            "stage_id": stage_id,
-            "status": hk_status,
-            "selection_status": hk_status,
-            "source_status": hk_status,
-            "requested_rows": len(hk_rows),
-            "source_rows": len(hk_rows),
-            "selected_rows": len(hk_rows),
-            "coverage_ratio": 1.0 if hk_rows else 0.0,
-            "rows": hk_rows,
-            "source_evidence": exec_refs,
-            "cannot_confirm": [],
-            "selection_manifest_receipt_verified": bool(exec_refs),
-        },
-    }
+            "coverage_ratio": None,
+            "source_evidence": sorted({row["execution_ref"] for row in lane_rows if row["execution_ref"]}),
+            "cannot_confirm": ["OWNER_SELECTION_MANIFEST_RECEIPT_UNVERIFIED"],
+        }
+    overall_status = "OBSERVATION_UNVERIFIED" if rows else "CANNOT_CONFIRM"
+    if partial_lanes:
+        overall_status = "PARTIAL"
     return {
         "schema_version": "v4.stage_workbench.v1",
         "trade_date": trade_date,
@@ -152,6 +190,8 @@ def _build_stage_payload(
         "target_date": trade_date,
         "stage_id": stage_id,
         "status": overall_status,
+        "execution_verified": False,
+        "natural_verified": False,
         "stage": {
             "stage_id": stage_id,
             "status": overall_status,
@@ -161,25 +201,25 @@ def _build_stage_payload(
         "markets": markets,
         "market_summaries": markets,
         "selection_markets": selection_markets,
-        "selected_a_rows": len(a_rows),
-        "selected_hk_rows": len(hk_rows),
-        "selected_total_rows": len(enriched),
+        "selected_a_rows": totals["A"],
+        "selected_hk_rows": totals["HK"],
+        "selected_total_rows": len(rows),
         "count": len(enriched),
         "unified_rows": enriched,
         "rows": enriched,
         "items": enriched,
         "execution_evidence": {
-            "status": "VERIFIED" if exec_refs else "PENDING",
+            "status": "CANNOT_CONFIRM",
             "trade_date": trade_date,
             "stage_id": stage_id,
-            "execution_verified": bool(exec_refs),
-            "natural_verified": bool(exec_refs),
+            "execution_verified": False,
+            "natural_verified": False,
             "write_performed": False,
-            "cannot_confirm": [],
+            "cannot_confirm": ["OWNER_EXECUTION_RECEIPT_UNVERIFIED"],
             "execution_refs": exec_refs,
             "stage7_role": "A_SHARE_1MIN_STAGE_1445_1500",
         },
-        "cannot_confirm": [],
+        "cannot_confirm": ["OWNER_SELECTION_MANIFEST_RECEIPT_UNVERIFIED"],
         "RESEARCH_ONLY": True,
         "write_performed": False,
         "production_allowed": False,
@@ -348,24 +388,23 @@ def build_stage_router(store: V4Store) -> APIRouter:
         summaries = {}
         for result in results:
             payload = result["payload"]
-            counts = {"A": payload["selected_a_rows"], "HK": payload["selected_hk_rows"]}
-            status = "OBSERVATION_UNVERIFIED" if any(counts.values()) else "CANNOT_CONFIRM"
             summaries[result["stage"]] = {
                 "trade_date": target_date,
-                "stage": {**payload["stage"], "status": status, "display_status": status},
-                "status": status,
-                "selected_a_rows": counts["A"],
-                "selected_hk_rows": counts["HK"],
-                # The row readback alone establishes neither natural execution nor a verified zero.
+                "stage": payload["stage"],
+                "status": payload["status"],
+                "selected_a_rows": payload["selected_a_rows"],
+                "selected_hk_rows": payload["selected_hk_rows"],
                 "markets": {
-                    market: {
-                        "status": "CANNOT_CONFIRM",
-                        "display_mode": "OBSERVATION_UNVERIFIED" if count else "CANNOT_CONFIRM",
-                        "observation_count": count,
-                    }
-                    for market, count in counts.items()
+                    market: {key: value for key, value in summary.items() if key != "rows"}
+                    for market, summary in payload["markets"].items()
                 },
             }
+        states = {summary["status"] for summary in summaries.values()}
+        status = "CANNOT_CONFIRM"
+        if "PARTIAL" in states:
+            status = "PARTIAL"
+        elif "OBSERVATION_UNVERIFIED" in states:
+            status = "OBSERVATION_UNVERIFIED"
         return {
             "schema_version": "v4.stage_timeline_batch.v1",
             "date": target_date,
@@ -373,7 +412,9 @@ def build_stage_router(store: V4Store) -> APIRouter:
             "stage_ids": stage_list,
             "stages": summaries,
             "items": results,
-            "status": "READY",
+            "status": status,
+            "execution_verified": False,
+            "natural_verified": False,
             "RESEARCH_ONLY": True,
             "write_performed": False,
             "production_allowed": False,

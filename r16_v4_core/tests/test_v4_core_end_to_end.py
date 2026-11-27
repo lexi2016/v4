@@ -1,8 +1,10 @@
 """End-to-end & regression tests covering pure V4 contracts, live hold_score passthrough, UNKNOWN quarantine & manifest dedup."""
 from __future__ import annotations
 
+from hashlib import sha256
 import json
 from pathlib import Path
+import stat
 import pytest
 from fastapi.testclient import TestClient
 
@@ -229,42 +231,49 @@ def test_api_active_8873_contract_parity_bootstrap_assets_and_live_hold_score_pa
     assert sr2.status_code == 200 and sr2.json()["row"]["hold_score"] == live_dict
 
 
-def test_safe_archive_dedup_three_level_manifest_and_c_class_mixed_roots(tmp_path: Path):
-    for role, rel_file in [
-        ("main", "ops/launch_v4_macos_scheduler.sh"),
-        ("api", "apps/api/v4_api/run.py"),
-        ("stage", "ops/run_stage_center_nodes.py"),
-    ]:
-        role_dir = tmp_path / role
+def _write_archive_group(root: Path, paths_by_role: dict[str, list[str]]) -> Path:
+    roles = {}
+    for role, relative_paths in paths_by_role.items():
+        role_dir = root / role
         role_dir.mkdir()
+        app_root = role_dir.resolve() / "app"
+        entries = []
+        for relative in sorted(relative_paths):
+            path = app_root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(relative)
+            info = path.stat()
+            entries.append({
+                "kind": "file", "path": relative, "sha256": sha256(path.read_bytes()).hexdigest(),
+                "size": info.st_size, "mode": f"{stat.S_IMODE(info.st_mode):04o}",
+            })
         startup = role_dir / "startup-manifest.json"
+        inventory = json.dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
         startup.write_text(json.dumps({
-            "app_root": str(role_dir / "app"),
+            "app_root": str(app_root),
             "application_inventory": {
-                "entries": [
-                    {"kind": "dir", "path": "ops"},
-                    {"kind": "file", "path": rel_file, "sha256": f"sha-{role}"},
-                ]
+                "entries": entries, "entry_count": len(entries), "aggregate_sha256": sha256(inventory).hexdigest(),
             },
-            "app_files": [{"path": rel_file, "sha256": f"sha-{role}"}],
+            "app_files": [{"path": entry["path"], "sha256": entry["sha256"]} for entry in entries],
         }), encoding="utf-8")
         role_manifest = role_dir / "release-manifest.json"
         role_manifest.write_text(json.dumps({
             "role": role,
-            "app_root": str(role_dir / "app"),
+            "app_root": str(app_root),
             "startup_manifest": {"path": str(startup)},
         }), encoding="utf-8")
+        roles[role] = {"path": str(role_manifest)}
+    group_manifest = root / "group-manifest.json"
+    group_manifest.write_text(json.dumps({"activation_status": "ACTIVE", "roles": roles}), encoding="utf-8")
+    return group_manifest
 
-    group_manifest = tmp_path / "group-manifest.json"
-    group_manifest.write_text(json.dumps({
-        "activation_status": "ACTIVE",
-        "roles": {
-            "main": {"path": str(tmp_path / "main" / "release-manifest.json")},
-            "api": {"path": str(tmp_path / "api" / "release-manifest.json")},
-            "stage": {"path": str(tmp_path / "stage" / "release-manifest.json")},
-        },
-    }), encoding="utf-8")
 
+def test_safe_archive_dedup_three_level_manifest_and_c_class_mixed_roots(tmp_path: Path):
+    group_manifest = _write_archive_group(tmp_path, {
+        "main": ["ops/launch_v4_macos_scheduler.sh"],
+        "api": ["apps/api/v4_api/run.py"],
+        "stage": ["ops/run_stage_center_nodes.py"],
+    })
     assert len(load_manifest_records(group_manifest)) == 3
     protected = load_manifest_paths(group_manifest)
     c_roots = [
@@ -319,8 +328,13 @@ def test_safe_archive_canonical_aliases_and_rollback_dependencies(tmp_path: Path
         "clean-link.py", "loop.py", "code/../code/clean.py", "code\\clean.py",
         " code/clean.py ", str(outside), "untracked.py", "code/live-target.py", "code/dirty-target.py",
     ]
+    proof = load_manifest_paths(_write_archive_group(tmp_path, {
+        "api": ["code/active.py", "active_manifest.py"],
+        "main": ["ops/main.py"],
+        "stage": ["ops/stage.py"],
+    }))
     filtered = filter_safe_archive_paths(
-        candidates, set(candidates) - {"untracked.py"}, {"code/active.py", "active_manifest.py"},
+        candidates, set(candidates) - {"untracked.py"}, proof,
         dirty_git_paths={"code/dirty.py", "dirty_manifest.py"},
         rollback_dependencies={str(external_backup / "restoration.py")}, repo_root=repo,
     )
@@ -331,7 +345,7 @@ def test_safe_archive_canonical_aliases_and_rollback_dependencies(tmp_path: Path
     assert set(filtered["skipped_protected_evidence"]) == set(candidates[4:-3])
     # An unreadable canonical guard must not authorize an otherwise clean path.
     blocked = filter_safe_archive_paths(
-        ["code/clean.py"], {"code/clean.py"}, set(),
+        ["code/clean.py"], {"code/clean.py"}, proof,
         rollback_dependencies={"loop.py"}, repo_root=repo,
     )
     assert blocked["safe_to_archive"] == []

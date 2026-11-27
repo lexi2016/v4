@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
+from v4_core.api.workbench_formula_groups import FORMULA_LABELS, list_formula_days, read_formula_day
 from v4_core.runner.slots import SIX_SLOT_DEFS
 from v4_core.storage.db import V4Store, normalize_symbol
 from v4_core.strategies.indicators import compute_zhixing_lines
@@ -25,15 +26,22 @@ def _stable_hash(payload: Any) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _canonical_source_date(source_date: str) -> bool:
+    try:
+        return date.fromisoformat(source_date).isoformat() == source_date
+    except ValueError:
+        return False
+
+
 def compute_observation_date(source_date: str) -> str:
     """Return next weekday observation_date (e.g., 2026-11-24 -> 2026-11-25)."""
     try:
         d = date.fromisoformat(source_date)
-    except ValueError:
+        nxt = d + timedelta(days=1)
+        while nxt.weekday() >= 5:
+            nxt += timedelta(days=1)
+    except (ValueError, OverflowError):
         return source_date
-    nxt = d + timedelta(days=1)
-    while nxt.weekday() >= 5:
-        nxt += timedelta(days=1)
     return nxt.isoformat()
 
 
@@ -155,9 +163,19 @@ def _build_chart_response(
 
 def build_workbench_router(store: V4Store) -> APIRouter:
     router = APIRouter(prefix="/api/v4/research", tags=["research-workbench"])
+    formula_root = store.db_path.parent / "workbench_formula_groups"
 
     @router.get("/workbench/days/{source_date}")
     def get_workbench_day(source_date: str, revision: str | None = Query(default=None)):
+        if not _canonical_source_date(source_date):
+            raise HTTPException(status_code=404, detail=f"WORKBENCH_DATE_NOT_MATERIALIZED:{source_date}")
+        formula_day = read_formula_day(formula_root, source_date)
+        if formula_day is not None:
+            if revision is not None and revision != formula_day["revision"]:
+                raise HTTPException(status_code=404, detail=f"WORKBENCH_REVISION_NOT_MATERIALIZED:{source_date}")
+            return formula_day
+        if revision is not None and revision != SQLITE_CURRENT_REVISION:
+            raise HTTPException(status_code=404, detail=f"WORKBENCH_REVISION_NOT_MATERIALIZED:{source_date}")
         scores = store.get_workbench_scores(source_date)
         if not scores:
             raise HTTPException(status_code=404, detail=f"WORKBENCH_DATE_NOT_MATERIALIZED:{source_date}")
@@ -210,22 +228,14 @@ def build_workbench_router(store: V4Store) -> APIRouter:
                 "trade_date": source_date,
                 "display_name": display_name,
             }
-            if quarantined:
-                b23_state, pb2_state = "UNKNOWN", "UNKNOWN"
-            else:
-                b23_state = "TRUE" if grp in {"192", "both"} else "FALSE"
-                pb2_state = "TRUE" if grp in {"backtest", "both"} else "FALSE"
-
             group_states = {
                 "192": not quarantined and grp in {"192", "both"},
                 "backtest": not quarantined and grp in {"backtest", "both"},
-                "b23_entry": b23_state,
-                "pb2_confirm": pb2_state,
+                "b23_entry": "UNKNOWN",
+                "pb2_confirm": "UNKNOWN",
                 "selection_group": grp,
-                "status": item["status"],
+                "status": "CANNOT_CONFIRM_NOT_MATERIALIZED",
             }
-            if not quarantined and isinstance(detail.get("group_states"), dict):
-                group_states.update(detail["group_states"])
 
             rows.append(
                 {
@@ -242,7 +252,7 @@ def build_workbench_router(store: V4Store) -> APIRouter:
                         "hold_score": hold_score,
                         "rule_version": item["rule_version"],
                     },
-                    "history_rates": detail,
+                    "history_rates": {key: value for key, value in detail.items() if key != "group_states"},
                     "score": item["score"],
                     "hold_score": hold_score,
                     "action": item["action"],
@@ -254,7 +264,7 @@ def build_workbench_router(store: V4Store) -> APIRouter:
         executions = {slot["slot_id"]: slot for slot in store.get_slot_executions(source_date)}
         return {
             **lineage,
-            "revision": revision,
+            "revision": SQLITE_CURRENT_REVISION,
             "schema": "RESEARCH_SYSTEM_DAY_V1",
             "count": len(rows),
             "scope_count": len(rows),
@@ -263,7 +273,7 @@ def build_workbench_router(store: V4Store) -> APIRouter:
             "chart_review": "UNKNOWN_NOT_REVIEWED",
             "formula_groups": {
                 **formula_groups,
-                "labels": {"b23_entry": "192选股", "pb2_confirm": "回测选股"},
+                "labels": FORMULA_LABELS,
                 "group_counts": {"b23_entry": None, "pb2_confirm": None},
                 "status": "CANNOT_CONFIRM_NOT_MATERIALIZED",
             },
@@ -419,11 +429,22 @@ def build_workbench_router(store: V4Store) -> APIRouter:
 
     @router.get("/workbench/history")
     def get_workbench_history():
-        dates = store.list_workbench_dates()
+        formula_days = list_formula_days(formula_root)
+        sqlite_dates = {source_date for source_date in store.list_workbench_dates() if _canonical_source_date(source_date)}
+        dates = sorted(sqlite_dates | formula_days.keys(), reverse=True)
         days = []
         for source_date in dates:
+            formula_day = formula_days.get(source_date)
+            if formula_day is not None:
+                days.append({
+                    "source_date": source_date,
+                    "observation_date": formula_day["observation_date"],
+                    "observation_date_basis": "VERIFIED_OWNER_FORMULA_BINDING",
+                    "revision": formula_day["revision"],
+                })
+                continue
             observation_date = compute_observation_date(source_date)
-            if len(source_date) != 10 or observation_date == source_date:
+            if observation_date == source_date:
                 continue
             days.append({
                 "source_date": source_date,

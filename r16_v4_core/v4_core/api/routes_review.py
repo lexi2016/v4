@@ -214,17 +214,19 @@ def build_review_router(store: V4Store) -> APIRouter:
                     "receipt_path": exec_ref,
                 }
             )
+        recorded = [node for node in timeline_nodes if node["execution_ref"]]
+        finished_count = sum(bool(node["finished_at"]) for node in recorded)
         return {
             "business_date": target_date,
             "logical_workload_count": len(logical_rows),
-            "active_owner_count": 1,
+            "active_owner_count": 0,
             "alias_count": 0,
             "retired_owner_count": 0,
-            "task_registration_count": len(timeline_nodes),
+            "task_registration_count": 0,
             "timeline_nodes": timeline_nodes,
             "groups": {
                 "logical": logical_rows,
-                "active_owners": [{"owner_id": "v4_core_single_root", "status": "ACTIVE"}],
+                "active_owners": [],
                 "aliases": [],
                 "retired": [],
                 "registrations": [],
@@ -236,16 +238,16 @@ def build_review_router(store: V4Store) -> APIRouter:
                 "HK": {"status": "READY" if hk_bars else "CANNOT_CONFIRM", "bar_count": len(hk_bars)},
             },
             "scheduler_observation": {
-                "status": "READY",
+                "status": "CANNOT_CONFIRM",
                 "mode": "v4_core_single_root_6_slots",
-                "receipt_count": len(slots),
-                "process_status": "RUNNING",
-                "logical_row_evidence": "SQLITE_SLOT_EXECUTIONS",
-                "message": f"{len(slots)}/6 slots executed for {target_date}",
+                "receipt_count": len(recorded),
+                "process_status": "CANNOT_CONFIRM",
+                "logical_row_evidence": "SQLITE_SLOT_EXECUTIONS" if recorded else "NO_SQLITE_SLOT_EXECUTIONS",
+                "message": f"{len(recorded)}/{len(timeline_nodes)} stored slot records for {target_date}; process unverified",
                 "slot_count": len(timeline_nodes),
-                "executed_slots": len(slots),
+                "executed_slots": finished_count,
             },
-            "cannot_confirm": [],
+            "cannot_confirm": ["SCHEDULER_PROCESS_AND_REGISTRATION_UNVERIFIED"],
             "RESEARCH_ONLY": True,
             "production_allowed": False,
             "buy_gate_updated": False,

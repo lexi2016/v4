@@ -1,0 +1,37 @@
+{
+  "production_decision": "NO_GO",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "source_base_commit": "3d2a82169188d53c9af4874ffee63cc85100ed33",
+  "source_input_drive_ids": {
+    "r18": "1tfJK-xYE9RH9vxLknnB3GI90TzvOb-kP",
+    "r19": "1Z1GibZERA943tW6V8w_YT7CZXjCOxQc1"
+  },
+  "isolated_api": {
+    "status": "PASS",
+    "port": 19240,
+    "stage_date": "2026-11-26",
+    "stage_status": "PARTIAL",
+    "natural_verified": false,
+    "scheduler_process": "CANNOT_CONFIRM"
+  },
+  "isolated_formula": {
+    "source_date": "2026-11-24",
+    "observation_date": "2026-11-25",
+    "visible_counts": {
+      "b23_entry": 104,
+      "pb2_confirm": 1
+    }
+  },
+  "original_d25_cards": {
+    "status": "CANNOT_CONFIRM",
+    "count": 0,
+    "isolated_count": 0
+  },
+  "two_way_source_and_frontend_rollback": "PASS",
+  "isolated_chrome_stage": "PASS",
+  "independent_review": "PASS",
+  "pytest": "118 passed in 2.95s"
+}

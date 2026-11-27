@@ -652,8 +652,8 @@ def main(argv: list[str] | None = None) -> int:
     p_clean.add_argument("--days", type=int, default=30)
     p_clean.add_argument("--home", default=None)
 
-    p_serve = sub.add_parser("serve", help="Start modular 8873 API server")
-    p_serve.add_argument("--port", type=int, default=8873)
+    p_serve = sub.add_parser("serve", help="Start the modular API server")
+    p_serve.add_argument("--port", type=int, help="Override V4_API_PORT; port 8873 must be explicit")
     p_serve.add_argument("--home", default=None)
 
     p_slot = sub.add_parser("run-slot", help="Execute one or all of the 6 core slots and write execution_ref")
@@ -786,7 +786,12 @@ def main(argv: list[str] | None = None) -> int:
         import uvicorn
         from v4_core.api.app import create_app
 
-        cfg = V4Config.from_env(args.home)
-        uvicorn.run(create_app(cfg), host=cfg.api_host, port=args.port)
+        try:
+            cfg = V4Config.from_env(args.home, api_port=args.port)
+        except ValueError as exc:
+            parser.error(str(exc))
+        if args.port is None and cfg.api_port == 8873:
+            parser.error("Implicit bind on reserved port 8873 is blocked; set a different V4_API_PORT or pass --port explicitly")
+        uvicorn.run(create_app(cfg), host=cfg.api_host, port=cfg.api_port)
         return 0
     return 1
