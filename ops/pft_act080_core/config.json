@@ -1,0 +1,30 @@
+{
+  "schema": "ACT080_P1_V1",
+  "archive_sha256": "56b9799e839e7846313543a9ade387c083a6b7dcfc9a155031d861157b278034",
+  "charter_sha256": "e5efc5c233569098867eaa563aed5aef4c3509779156447a3d495b2a42e55c65",
+  "qualification_source": "ACT074_WIDE_RADAR_V1",
+  "qualification_reference": {
+    "drive_id": "1bRSbesnr7d7hysQd2d85AYP1udgBhCjUrEVlIutu-QU",
+    "text_export_sha256": "2b1b320bd71354ef3e774f425e85efe440a47639b2ced3aa77f034cc4ab21c22"
+  },
+  "qualification": {
+    "A": {"glue_atr_max": 1.2, "white_bias": [-0.05, 0.06], "yellow_abs_bias_max": 0.035, "volume_ratio_max": 0.9, "j_max": 45, "return": [-0.05, 0.04]},
+    "B": {"return_min": 0.025, "close_location_min": 0.6, "volume_ratio_min": 1.25, "prior5_return_max": 0.12, "white_bias": [-0.03, 0.12]},
+    "C": {"white_bias": [0.0, 0.10], "volume_ratio_max": 0.85, "range3_max": 0.07}
+  },
+  "cooldown": {"operator": ">", "gap_sessions": 5, "scope": "security_id", "arms_in_tie_order": ["A", "B", "C"], "duplicate_precedence": true},
+  "cooldown_calendar": "STOCK_OBSERVED_VALID_DAILY_BAR_INDEX_0_BASED",
+  "episode": {"start": "FIRST_ELIGIBLE_DAY_WHEN_INACTIVE", "anchor": "OPENING_DAY_LOW", "end": "LATER_CLOSE_STRICTLY_BELOW_ANCHOR_LOW", "confirmation": "FIRST_LATER_DATE_WITH_B_ELIGIBILITY"},
+  "splits": {
+    "val_start": "2024-01-01",
+    "oot_start": "2025-01-01",
+    "purge_sessions": 10,
+    "embargo_sessions": 10,
+    "source": "a27c59abba5dedf5d79a4093fecfd96c36776213:ops/pft_act078a/data.py"
+  },
+  "market": "A",
+  "source_validity": "RETAIN_NONPOSITIVE_ARCHIVAL_OHLC_IN_OBSERVED_CLOCK_AND_ABSOLUTE_INDICATORS; NO_CURRENT_NONPOSITIVE_OHLC_ELIGIBILITY; POSITIVE_PRICE_RATIO_BASES; RETAIN_ZERO_VOLUME",
+  "price_basis": "VOL2_ARCHIVAL_QFQ",
+  "historical_adjustment_pit": "CANNOT_CONFIRM",
+  "governance": {"FIT": 0, "tuning": 0, "training": 0, "FIT_ALLOWED": false, "production_allowed": false, "RESEARCH_ONLY": true, "decision": "NO_GO", "buy_gate_updated": false, "orders_sent": 0, "P5.15": [0, 0, 0, 0], "V2.1": "LEGACY_UNVERIFIABLE_OPERATOR_READ_ONLY", "unblinded_72_reused": false}
+}

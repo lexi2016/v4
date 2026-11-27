@@ -1,0 +1,145 @@
+{
+  "baseline_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
+  "charter_sha256": "e5efc5c233569098867eaa563aed5aef4c3509779156447a3d495b2a42e55c65",
+  "config_sha256": "a3fce265cb3124094a4aa7d8c40b67233f36fdc07c753cf48e752f13e31eab04",
+  "conservation": {
+    "accepted": 13168,
+    "accepted_roles": {
+      "CONFIRM": 186,
+      "FIRST": 496,
+      "REPEAT": 12486
+    },
+    "episode_n": 496,
+    "first_n": 496,
+    "gap_distribution": {
+      "4": {
+        "accepted": 0,
+        "first_arm": 6904,
+        "raw": 7625,
+        "rejected": 7625
+      },
+      "5": {
+        "accepted": 0,
+        "first_arm": 6690,
+        "raw": 7344,
+        "rejected": 7344
+      },
+      "6": {
+        "accepted": 6652,
+        "first_arm": 6652,
+        "raw": 6652,
+        "rejected": 0
+      }
+    },
+    "non_first_n": 12672,
+    "observed_source_rows": {
+      "nonpositive_ohlc_bars": 7926,
+      "valid_bars": 134276,
+      "zero_volume_bars": 26
+    },
+    "raw_candidates": 54673,
+    "raw_episode_n": 549,
+    "raw_minus_accepted_minus_rejected": 0,
+    "rejected": 41505,
+    "stocks": 41,
+    "stocks_with_candidates": 41
+  },
+  "features": {
+    "accepted_subset_rows": 13168,
+    "nonfinite_value_count": 0,
+    "rows": 54673
+  },
+  "governance": {
+    "FIT": 0,
+    "FIT_ALLOWED": false,
+    "P5.15": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "RESEARCH_ONLY": true,
+    "V2.1": "LEGACY_UNVERIFIABLE_OPERATOR_READ_ONLY",
+    "buy_gate_updated": false,
+    "decision": "NO_GO",
+    "orders_sent": 0,
+    "production_allowed": false,
+    "training": 0,
+    "tuning": 0,
+    "unblinded_72_reused": false
+  },
+  "input": {
+    "archive_bytes": 3959949,
+    "archive_sha256": "56b9799e839e7846313543a9ade387c083a6b7dcfc9a155031d861157b278034",
+    "code_sha256": "1ddff335f6133741a6121dad6758b68cf003392ad69b2c68fd070f7641436fd7",
+    "manifest_sha256": "2e911c25a8fa611f39f199e302052068867ce7f022572d2d420fe36581a56856"
+  },
+  "local_phase1_acceptance": "PASS",
+  "local_review": {
+    "actual_three_chunk_vs_full_replay": "3/3 EXACT",
+    "charter_gpt_chat_audit": "PENDING",
+    "effort": "high",
+    "historical_adjustment_pit": "CANNOT_CONFIRM",
+    "model": "gpt-6.2-sol",
+    "phase2_sample_adequacy": "CANNOT_CONFIRM",
+    "pytest_passed": 8,
+    "pytest_runtime_seconds": 0.26,
+    "pytest_total": 8,
+    "read_only": true,
+    "role": "sol_high_reviewer",
+    "sample_raw_candidates": 2327,
+    "sample_representative_gap_4_rejected": 299,
+    "sample_representative_gap_5_rejected": 287,
+    "sample_representative_gap_6_accepted": 284,
+    "sample_stocks": [
+      "000625.SZ",
+      "002865.SZ",
+      "920748.BJ"
+    ],
+    "scope": "PHASE1_FROZEN_IMPLEMENTATION_AND_REAL_REPLAY",
+    "status": "REVIEWED/PASS",
+    "verified_csv_parts": 15
+  },
+  "phase2": "LOCKED",
+  "prefix": {
+    "cell_differences": 0,
+    "cells_compared": 4649600,
+    "checks": 123,
+    "field_set_differences": 0,
+    "na_position_differences": 0,
+    "row_count_difference": 0,
+    "securities": 41
+  },
+  "resources": {
+    "bytes_written_csv": 121862658,
+    "cpu_logical_cores": 18,
+    "logical_uncompressed_zip_bytes_read": 10648436,
+    "machine": "Apple M5 Max",
+    "max_single_worker_peak_rss_bytes": 68386816,
+    "parent_peak_rss_bytes": 429113344,
+    "physical_io_bytes": "UNAVAILABLE",
+    "python": "3.14.6",
+    "replay_wall_seconds_time_l": 4.33,
+    "stage_seconds": {
+      "audit_and_csv_write": 1.4840739159844816,
+      "primary_replay_and_three_prefixes": 0.5616933326236904,
+      "serial_replay_and_exact_comparison": 1.8773231250233948,
+      "verify_load_archive": 0.3278510421514511
+    },
+    "workers_configured": 18,
+    "workers_with_job": 18
+  },
+  "schema": "ACT080_P1_SOURCE_RESULT_V1",
+  "serial_parallel_equality": {
+    "cell_differences": 0,
+    "cells_compared": 4155722,
+    "field_set_differences": 0,
+    "na_position_differences": 0,
+    "row_count_difference": 0
+  },
+  "split_sidecar_OOT": {
+    "accepted_assigned": 39,
+    "accepted_first": 2,
+    "raw_assigned": 148
+  }
+}
