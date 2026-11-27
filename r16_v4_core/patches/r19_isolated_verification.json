@@ -1,0 +1,140 @@
+{
+  "status": "ISOLATED_VERIFIED",
+  "production": "NO_GO",
+  "baseline_commit": "341231b8d5cf265859e09c9f515a3d0e1c9606b8",
+  "r18_zip_sha256": "ad56deb43926f75a65c1a7e791429c9046b277b9763ff198e56f7fddc030ce0b",
+  "r19_source_zip_sha256": "302b0b0b15f3c6d727b7e3056bb8fd85cefd23112873091cf25a1b0630126279",
+  "frontend_patch_sha256": "3d6f72436cbcc4801284e6636ccef58222356d7767a096aa9259d668e6e9cc7e",
+  "r19_files_changed_relative_to_r18": {
+    "tests/test_v4_r19_dashboard_contract.py": {
+      "r18_sha256": null,
+      "r19_sha256": "b9aa5121393eb4ebb1b4960fda1b7997f2e15e65b5af52bde5d7e5e7e608e185"
+    },
+    "tests/test_v4_r19_date_list.py": {
+      "r18_sha256": null,
+      "r19_sha256": "6e04abe7c039f291944deb3b337db58461ac0dd40839c8c52b1155bfc40efb42"
+    },
+    "tests/test_v4_r19_stage_timeline.py": {
+      "r18_sha256": null,
+      "r19_sha256": "ffafd35b8d92291d987d77871c2699ba67c2b3a90074e4bb6419c7b3122345ba"
+    },
+    "v4_core/api/routes_review.py": {
+      "r18_sha256": "589dface19d21a22a132bdf4d54101c4b228a6592fe2b8a07003acd8218e6eea",
+      "r19_sha256": "ed3a3ed9af7ec5541d1ed5f0c1fbe7e35989a61ae34024f74add1bd468e949cd"
+    },
+    "v4_core/api/routes_stage.py": {
+      "r18_sha256": "42ba20f4925e761448944762ab3c62c1dcdf25e685dfb29fd5a443378d4aba4b",
+      "r19_sha256": "38e40efa97dcaf1fc74eb811eac8a9b571295dd9f873e9157968fda428424d4e"
+    },
+    "v4_core/api/routes_top200.py": {
+      "r18_sha256": "e6318c9f7e1a973b7e5691a7e25ebc196bd7a6f5fc8f12bf9ea6716700cc336c",
+      "r19_sha256": "c4a323871ca9242bf963c44bdb8fc29ca8d4d4a5d25a6b7ff7d5bc5956d96036"
+    },
+    "v4_core/api/routes_workbench.py": {
+      "r18_sha256": "387463c65118d6fdd1abe3f5222f3664cedc798d1f2d819f5bfb293951e6d2e2",
+      "r19_sha256": "f8069aa776c854278da5a4c85a854492c6863f5b9b0463ec7e44bed6d3460ac8"
+    }
+  },
+  "pytest": {
+    "passed": 72
+  },
+  "independent_review": {
+    "status": "PASS",
+    "focused_backend_passed": 12,
+    "direct_frontend_reproduction_passed": 1
+  },
+  "frontend": {
+    "vite": "PASS",
+    "vitest_matched_baseline": {
+      "candidate_passed": 81,
+      "baseline_passed": 80,
+      "same_preexisting_failed": 10
+    },
+    "same_preexisting_type_diagnostics": 30
+  },
+  "chrome": {
+    "product": "Chrome/158.0.8127.89",
+    "port": 19239,
+    "process_and_port_released": true,
+    "surfaces": {
+      "dashboard": {
+        "retained_dates": [
+          "2026-11-27",
+          "2026-11-26"
+        ],
+        "screenshot": "screenshots/dashboard_03_2026-11-27.png",
+        "sha256": "ad70b8080799e9bbd70ed1228598eeb7fca0a91ac1f3591ca94796ac56d1dc3e",
+        "observed_app_errors": 0,
+        "observed_api_http_errors": 0,
+        "cold_disabled": null
+      },
+      "reports": {
+        "retained_dates": [
+          "2026-11-25",
+          "2026-10-16"
+        ],
+        "screenshot": "screenshots/reports_03_2026-10-16.png",
+        "sha256": "f054f1fa2ec7380823d672ead6a106165ecd41706f14c1ffc01fd2f810e4231a",
+        "observed_app_errors": 0,
+        "observed_api_http_errors": 0,
+        "cold_disabled": true
+      },
+      "stage_selection": {
+        "retained_dates": [
+          "2026-11-26",
+          "2026-11-25"
+        ],
+        "screenshot": "screenshots/stage_selection_03_2026-11-26.png",
+        "sha256": "307d4250b4a7f0616749515b69221b664d358b12afcd6d3f10ad96b68fa9e55a",
+        "observed_app_errors": 0,
+        "observed_api_http_errors": 0,
+        "cold_disabled": true
+      }
+    }
+  },
+  "accepted_scope": [
+    "date-list compatibility",
+    "isolated cold date picker and fixed research deep link",
+    "date-scoped dashboard Top200",
+    "stage timeline contract",
+    "measured overseas candidate sources"
+  ],
+  "remaining": [
+    "dashboard b23_entry and pb2_confirm CANNOT_CONFIRM_NOT_MATERIALIZED",
+    "D25 report machine-card content empty in the candidate",
+    "overseas data contract unbound",
+    "production and natural-cutover assessment NOT_RUN"
+  ],
+  "protection": {
+    "guard_pre": {
+      "observed_at_cst": "2026-11-27T15:26:04+08:00",
+      "production_api_listener": [
+        89256
+      ],
+      "production_pid_identities_match": true,
+      "matching_plists": 9,
+      "matching_history_root_identities": 15,
+      "matching_frontend_inventory_files": 807,
+      "observer_loaded": false,
+      "observer_plist_sha256": "a4fc4f0fef919c3e0045e8bb80063fe88b9f50cfb33d184e8fd3f59b7c8703f6",
+      "observer_plist_match": true,
+      "isolated_port_listeners": [],
+      "owned_browser_or_preview_pids": []
+    },
+    "guard_post": {
+      "observed_at_cst": "2026-11-27T15:41:05+08:00",
+      "production_api_listener": [
+        89256
+      ],
+      "production_pid_identities_match": true,
+      "matching_plists": 9,
+      "matching_history_root_identities": 15,
+      "matching_frontend_inventory_files": 807,
+      "observer_loaded": false,
+      "observer_plist_sha256": "a4fc4f0fef919c3e0045e8bb80063fe88b9f50cfb33d184e8fd3f59b7c8703f6",
+      "observer_plist_match": true,
+      "isolated_port_listeners": [],
+      "owned_browser_or_preview_pids": []
+    }
+  }
+}

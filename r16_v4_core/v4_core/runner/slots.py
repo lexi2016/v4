@@ -162,6 +162,7 @@ def run_slot_5_hk_and_evening(
     trade_date: str,
     *,
     hk_bars_json: Path | None = None,
+    hk_bars_data: bytes | None = None,
     store: V4Store | None = None,
     phase: str | None = None,
 ) -> dict[str, Any]:
@@ -177,8 +178,8 @@ def run_slot_5_hk_and_evening(
         source = hk_bars_json
         if source is None and phase == "hk_ingest" and os.environ.get("V4_HK_BARS_JSON"):
             source = Path(os.environ["V4_HK_BARS_JSON"])
-        if source is not None and Path(source).is_file():
-            raw_hk = json.loads(Path(source).read_text(encoding="utf-8"))
+        if hk_bars_data is not None or (source is not None and Path(source).is_file()):
+            raw_hk = json.loads(hk_bars_data if hk_bars_data is not None else Path(source).read_bytes())
             if isinstance(raw_hk, list):
                 if phase == "hk_ingest":
                     raw_hk = [
@@ -246,6 +247,7 @@ def _run_slot(
     bars_json: Path | None = None,
     factors_json: Path | None = None,
     hk_bars_json: Path | None = None,
+    hk_bars_data: bytes | None = None,
     stage: str = "STAGE_0930_0935",
     allow_unit_factors: bool = False,
     sse_notifier: Callable[[str, dict], bool] | None = None,
@@ -270,7 +272,8 @@ def _run_slot(
             lease=lease,
         )
     if slot_id == "slot_5_hk_and_evening":
-        return run_slot_5_hk_and_evening(cfg, trade_date, hk_bars_json=hk_bars_json, phase=phase)
+        return run_slot_5_hk_and_evening(cfg, trade_date, hk_bars_json=hk_bars_json,
+                                         hk_bars_data=hk_bars_data, phase=phase)
     if slot_id == "slot_6_review_and_maint":
         return run_slot_6_review_and_maint(cfg, trade_date, scheduled=phase is not None)
     raise ValueError(f"Unsupported slot_id: {slot_id}")

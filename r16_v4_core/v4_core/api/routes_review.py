@@ -1,14 +1,24 @@
 """Pure V4 Review & Task Status router (Domain 4: 复盘状态域, 11 routes + /healthz in app.py = 12)."""
 from __future__ import annotations
 
-from datetime import date as dt_date
+from datetime import date as dt_date, datetime
 import uuid
-from typing import Any
+from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, HTTPException, Query, Request
 
 from v4_core.api.routes_workbench import SIX_SLOT_CONTRACT
 from v4_core.storage.db import V4Store, normalize_iso_date
+
+
+def _catalog_date(raw: str) -> str:
+    iso = normalize_iso_date(raw)
+    try:
+        parsed = dt_date.fromisoformat(iso)
+    except ValueError:
+        return ""
+    return iso.replace("-", "") if parsed.isoformat() == iso else ""
 
 
 def build_review_router(store: V4Store) -> APIRouter:
@@ -19,9 +29,62 @@ def build_review_router(store: V4Store) -> APIRouter:
         return {"status": "ready", "mode": "v4_core_single_root", "version": "4.0.0"}
 
     @router.get("/api/v1/runs/date-list")
-    def get_v1_runs_date_list():
-        dates = store.list_run_dates()
-        return {"dates": dates, "latest_date": dates[0] if dates else None, "count": len(dates), "status": "READY"}
+    def get_v1_runs_date_list(date: str | None = None):
+        if date is not None and (not date or _catalog_date(date) != date):
+            raise HTTPException(422, "date must be a real calendar date in YYYYMMDD format")
+        timezone = "Asia/Shanghai"
+        today = datetime.now(ZoneInfo(timezone)).strftime("%Y%m%d")
+        days: dict[str, set[str]] = {key: set() for key in ("run", "market", "stage", "pool", "review", "research")}
+        with store.connect() as conn:
+            for lane, raw in conn.execute("""
+                SELECT 'market', trade_date FROM workbench_scores
+                UNION SELECT 'market', trade_date FROM daily_bars
+                UNION SELECT 'run', trade_date FROM slot_executions
+                UNION SELECT 'run', trade_date FROM task_runs
+                UNION SELECT CASE WHEN status IN ('READY', 'PARTIAL') THEN 'stage' ELSE 'run' END,
+                    trade_date FROM stage_selections
+                UNION SELECT CASE WHEN status IN ('READY', 'PARTIAL') THEN 'pool' ELSE 'run' END,
+                    trade_date FROM preselection_pools
+                UNION SELECT 'review', trade_date FROM review_records
+                UNION SELECT 'research', trade_date FROM research_materials
+            """):
+                if normalized := _catalog_date(raw):
+                    days[lane].add(normalized)
+        stage_dates = sorted(day for day in days["stage"] if day <= today)
+        trading_days = days["market"] | set(stage_dates) | days["pool"] | days["review"]
+        evidence_days = trading_days | days["research"]
+        dates = sorted(evidence_days | days["run"] | days["stage"], reverse=True)
+        return {
+            "ok": True,
+            "dates": dates,
+            "latest_date": dates[0] if dates else None,
+            "count": len(dates),
+            "status": "AVAILABLE" if evidence_days else "CANNOT_CONFIRM" if dates else "EMPTY",
+            "default_date": max((day for day in evidence_days if day <= today), default=""),
+            "system_date": today,
+            "navigation_date": today,
+            "navigation_timezone": timezone,
+            "navigation_policy": "SHANGHAI_CIVIL_DATE_NOT_EXCHANGE_CALENDAR",
+            "requested_date": date,
+            "selected_date": date or today,
+            "stage_navigation_dates": sorted(trading_days, reverse=True),
+            "stage_dates": stage_dates,
+            "future_target_dates": sorted(day for day in days["pool"] if day > today),
+            "review_dates": sorted(days["review"]),
+            "research_dates": sorted(days["research"]),
+            "research_source": {"table": "research_materials", "status": "AVAILABLE" if days["research"] else "EMPTY"},
+            # SQLite rows do not prove a market calendar or independently verified stage artifacts.
+            "hk_observation_only_dates": [],
+            "materialized": [],
+            "partial": [],
+            "blocked": [],
+            "materialized_stage_dates": [],
+            "partial_stage_dates": [],
+            "blocked_stage_dates": [],
+            "runtime_identity": {
+                "application": "V4", "status": "CANNOT_CONFIRM", "release_id": "", "process_status": "CANNOT_CONFIRM",
+            },
+        }
 
     @router.get("/api/v4/runtime-graph/frontend-build")
     def get_frontend_build_identity():
@@ -103,7 +166,19 @@ def build_review_router(store: V4Store) -> APIRouter:
         return {"ok": True, "id": id, "status": rec["status"], "data": rec}
 
     @router.get("/api/v4/tasks/status")
-    def get_tasks_status(date: str | None = Query(default=None)):
+    def get_tasks_status(request: Request, date: str | None = Query(default=None),
+                         backfill: Literal['status', 'dry-run'] | None = None, slot: str = 'all'):
+        if backfill is not None:
+            from v4_core.runner.backfill import query
+            from v4_core.runner.evidence import EvidenceError
+
+            try:
+                result = query(request.app.state.config, date, slot, mode=backfill)
+            except EvidenceError as exc:
+                raise HTTPException(422, str(exc)) from exc
+            if result['status'] == 'NOT_FOUND':
+                raise HTTPException(404, 'No historical backfill receipt for the requested date and slot')
+            return result
         target_date = date or (store.list_run_dates()[0] if store.list_run_dates() else dt_date.today().isoformat())
         iso_date = normalize_iso_date(target_date)
         runs = store.list_task_runs(iso_date)

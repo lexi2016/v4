@@ -29,7 +29,7 @@ from v4_core.runner.schedule import (
 )
 from v4_core.runner.slots import SIX_SLOT_DEFS, run_slot
 from v4_core.runner.state import (
-    WriterBusy, WriterLease, archive_torn_window, heartbeat_record, json_bytes, last_window_record, publish_json,
+    WriterBusy, WriterLease, archive_torn_window, heartbeat_record, json_bytes, last_window_record, publish_bytes, publish_json,
     stale_running_reason, writer_lease,
 )
 from v4_core.qfq.engine import MissingAdjustmentFactorError, rebuild_qfq_for_date
@@ -176,7 +176,11 @@ def _load_selections_payload(trade_date: str, raw: object) -> list[dict[str, str
 
 
 def _bind_scheduled_selections(cfg: V4Config, date: str, source: Path) -> None:
-    raw = json.loads(source.read_text(encoding="utf-8"))
+    _bind_selection_bytes(cfg, date, source.read_bytes())
+
+
+def _bind_selection_bytes(cfg: V4Config, date: str, content: bytes, *, replace_replay_slice=False) -> None:
+    raw = json.loads(content)
     if isinstance(raw, list):
         raw = [row for row in raw if isinstance(row, dict) and
                normalize_iso_date(str(row.get("trade_date", ""))) == date]
@@ -189,7 +193,18 @@ def _bind_scheduled_selections(cfg: V4Config, date: str, source: Path) -> None:
         raise ValueError("No selections bound to this scheduled trading date")
     for row in rows:
         row["trade_date"] = date
-    V4Store(cfg.db_path).upsert_workbench_selections(rows)
+    db = V4Store(cfg.db_path)
+    if not replace_replay_slice:
+        db.upsert_workbench_selections(rows)
+        return
+    # A retry rebinds one replay date, not a union with the previous attempt.
+    # Replace names/groups too; do not touch the authority's quarantine events.
+    with db.connect() as conn:
+        conn.execute('BEGIN IMMEDIATE')
+        conn.execute('DELETE FROM workbench_selections WHERE trade_date=?', (date,))
+        conn.execute('DELETE FROM workbench_scores WHERE trade_date=?', (date,))
+        conn.executemany('INSERT INTO workbench_selections(trade_date,symbol,selection_group,display_name) '
+                         'VALUES (:trade_date,:symbol,:selection_group,:display_name)', rows)
 
 
 def _has_receipt(path: Path) -> bool:
@@ -392,21 +407,10 @@ def run_scheduled_window(
                     if completed_at < local or completed_at.date() != local.date():
                         raise ValueError("Completion clock falls outside the dispatched Beijing date")
                     def run_a_pipeline(bound_factors: dict[str, dict[str, float]]) -> dict:
-                        try:
-                            selected = selections_json or _environment_path("V4_SELECTIONS_JSON")
-                            if selected is not None:
-                                _bind_scheduled_selections(cfg, date, selected)
-                            return {
-                                **run_pipeline(
-                                    cfg, date, "all", lease=lease, include_hk=False, source_ingest=False,
-                                    sse_notifier=sse_notifier if sse_notifier is not None else (lambda *_: False),
-                                    top200_factor_map=bound_factors,
-                                ),
-                                "status": "DONE",
-                            }
-                        except (MissingAdjustmentFactorError, EmptyPipelineOutputError, ValueError) as exc:
-                            return {"status": "CANNOT_CONFIRM", "reason": str(exc),
-                                    **getattr(exc, "evidence", {})}
+                        selected = selections_json or _environment_path("V4_SELECTIONS_JSON")
+                        return run_a_downstream(cfg, date, lease, bound_factors,
+                                                selections=selected.read_bytes() if selected is not None else None,
+                                                sse_notifier=sse_notifier)
 
                     wait_for_observation = None
                     if wait_within_deadline and (root is not None or owner_root is not None) and phase == "evening":
@@ -438,6 +442,18 @@ def run_scheduled_window(
                     heartbeat_path.unlink(missing_ok=True)
         except WriterBusy as exc:
             return {**binding, "schedule_status": "WRITER_BUSY", "reason": str(exc)}
+
+
+def run_a_downstream(cfg, date, lease, bound_factors, *, selections=None, sse_notifier=None, **options):
+    """The single scheduled A derivatives owner, with no implicit SSE delivery."""
+    try:
+        if selections is not None:
+            _bind_selection_bytes(cfg, date, selections, replace_replay_slice=options.get('backfill', False))
+        return {**run_pipeline(cfg, date, "all", lease=lease, include_hk=False, source_ingest=False,
+                               sse_notifier=sse_notifier if sse_notifier is not None else (lambda *_: False),
+                               top200_factor_map=bound_factors, **options), "status": "DONE"}
+    except (MissingAdjustmentFactorError, EmptyPipelineOutputError, ValueError) as exc:
+        return {"status": "CANNOT_CONFIRM", "reason": str(exc), **getattr(exc, "evidence", {})}
 
 
 def _environment_path(key: str) -> Path | None:
@@ -498,13 +514,17 @@ def _run_pipeline(
     security_master_json: Path | None = None,
     include_hk: bool = True,
     source_ingest: bool = True,
+    store: V4Store | None = None,
+    backfill: bool = False,
 ) -> dict:
     cfg.ensure_dirs()
     free_gib = assert_disk_space(cfg.data_dir, cfg.min_free_gib)
-    store = V4Store(cfg.db_path)
+    store = store if store is not None else V4Store(cfg.db_path)
     run_id = f"{trade_date}-{step}-{uuid.uuid4().hex[:8]}"
     summary: dict = {"trade_date": trade_date, "step": step, "free_gib": free_gib, "sse_notified": False}
 
+    if backfill:
+        summary.update(execution_mode='BACKFILL', natural_window_evidence=False, pit_evidence=False)
     eff_tdx = tdx_dir or (Path(os.environ["V4_TDX_DIR"]) if os.environ.get("V4_TDX_DIR") else None)
     eff_bars = bars_json or (Path(os.environ["V4_BARS_JSON"]) if os.environ.get("V4_BARS_JSON") else None)
     eff_factors = factors_json or (Path(os.environ["V4_FACTORS_JSON"]) if os.environ.get("V4_FACTORS_JSON") else None)
@@ -584,7 +604,11 @@ def _run_pipeline(
 
         store.log_task_run(run_id, trade_date, step, "DONE", summary)
         summary_file = cfg.logs_dir / f"run_{trade_date}_{step}.json"
-        summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+        text = json.dumps(summary, ensure_ascii=False, indent=2)
+        if backfill:
+            publish_bytes(summary_file, text.encode('utf-8'))
+        else:
+            summary_file.write_text(text, encoding="utf-8")
         return summary
     except Exception as exc:
         summary["error"] = str(exc)
@@ -604,6 +628,13 @@ def _run_pipeline(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="v4_core", description="Pure modular V4 single-root CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_backfill = sub.add_parser("backfill", help="Plan or execute an isolated historical rerun")
+    p_backfill.add_argument("--trade-date", required=True)
+    p_backfill.add_argument("--slot", choices=["all", *SIX_SLOT_DEFS], required=True)
+    p_backfill.add_argument("--mode", choices=["dry-run", "execute"], default="dry-run")
+    p_backfill.add_argument("--reason", default="")
+    p_backfill.add_argument("--force", action="store_true")
 
     p_run = sub.add_parser("run", help="Run idempotent pipeline steps for a trade date")
     p_run.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
@@ -657,6 +688,16 @@ def main(argv: list[str] | None = None) -> int:
         p_plist.add_argument("--" + source, type=Path, default=None)
 
     args = parser.parse_args(argv)
+    if args.cmd == "backfill":
+        from v4_core.runner.backfill import rerun
+
+        try:
+            result = rerun(V4Config.from_env(), args.trade_date, args.slot, mode=args.mode,
+                           reason=args.reason, force=args.force)
+        except EvidenceError as exc:
+            p_backfill.error(str(exc))
+        print(json.dumps(result, ensure_ascii=False))
+        return 0 if result['status'] in {'DONE', 'DRY_RUN'} else 1
     if args.cmd == "run":
         cfg = V4Config.from_env(args.home)
         with writer_lease(cfg.data_dir, cfg.logs_dir, f"{args.date}/{args.step}") as lease:

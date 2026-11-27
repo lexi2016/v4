@@ -345,7 +345,41 @@ def build_stage_router(store: V4Store) -> APIRouter:
             {"date": target_date, "trade_date": target_date, "stage": st, "payload": _build_stage_payload(store, target_date, st, None, 50)}
             for st in stage_list
         ]
-        return {"date": target_date, "trade_date": target_date, "stages": stage_list, "items": results, "status": "READY"}
+        summaries = {}
+        for result in results:
+            payload = result["payload"]
+            counts = {"A": payload["selected_a_rows"], "HK": payload["selected_hk_rows"]}
+            status = "OBSERVATION_UNVERIFIED" if any(counts.values()) else "CANNOT_CONFIRM"
+            summaries[result["stage"]] = {
+                "trade_date": target_date,
+                "stage": {**payload["stage"], "status": status, "display_status": status},
+                "status": status,
+                "selected_a_rows": counts["A"],
+                "selected_hk_rows": counts["HK"],
+                # The row readback alone establishes neither natural execution nor a verified zero.
+                "markets": {
+                    market: {
+                        "status": "CANNOT_CONFIRM",
+                        "display_mode": "OBSERVATION_UNVERIFIED" if count else "CANNOT_CONFIRM",
+                        "observation_count": count,
+                    }
+                    for market, count in counts.items()
+                },
+            }
+        return {
+            "schema_version": "v4.stage_timeline_batch.v1",
+            "date": target_date,
+            "trade_date": target_date,
+            "stage_ids": stage_list,
+            "stages": summaries,
+            "items": results,
+            "status": "READY",
+            "RESEARCH_ONLY": True,
+            "write_performed": False,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
 
     @router.post("/workbench/stage/ensure")
     def post_workbench_stage_ensure(

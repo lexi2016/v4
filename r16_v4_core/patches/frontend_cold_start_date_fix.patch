@@ -1,0 +1,374 @@
+--- a/apps/web/src/App.vue
++++ b/apps/web/src/App.vue
+@@ -123,6 +123,10 @@
+   nextFutureTargetDate,
+   nextHkTargetDate,
+   selectedDateContext,
++  dateCatalogLoading,
++  dateCatalogError,
++  datePickerDisabled,
++  navigationNote,
+   dateInputMin,
+   dateInputMax,
+   dateInputTitle,
+@@ -272,10 +276,13 @@
+           :min="dateInputMin"
+           :max="dateInputMax"
+           :title="dateInputTitle"
++          :disabled="datePickerDisabled"
+           @change="onDateInputChange"
+         />
+       </label>
+-      <button type="button" data-testid="go-today" @click="goToday">今日</button>
++      <button type="button" data-testid="go-today" :disabled="dateCatalogLoading" @click="goToday">今日</button>
++      <span v-if="dateCatalogLoading" role="status">日期加载中</span>
++      <span v-else-if="dateCatalogError" role="status">{{ dateCatalogError }} <button type="button" @click="refreshFrontend">重试</button></span>
+       <button
+         v-if="nextFutureTargetDate"
+         type="button"
+@@ -294,7 +301,7 @@
+         </select>
+       </label>
+       <button type="button" :disabled="stageLoading || closeReviewLoading" @click="loadClosingStatus(); closeReviewActive ? loadCloseReview(reviewFocus, true) : loadStageFromUser()">刷新快照</button>
+-      <span class="runtime-state">{{ researchActive ? "研究入口按自然日导航；阶段入口按A股或港股开市日导航" : "V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页" }}</span>
++      <span class="runtime-state">{{ navigationNote }}</span>
+     </section>
+     <small v-if="selectedDate" class="selected-date-context" data-testid="selected-date-context">{{ selectedDateContext }}</small>
+     <p v-if="isHkObservationOnlyDate" class="navigation-status hk-observation-status" role="status">
+--- a/apps/web/src/app_shell/useAppShell.ts
++++ b/apps/web/src/app_shell/useAppShell.ts
+@@ -44,7 +44,24 @@
+ // A date in a shared deep link is an explicit query; routine navigation follows today.
+ const fixedDate = ref(/^\d{8}$/.test(new URLSearchParams(window.location.search).get("date") || ""));
+ const selectedDate = ref("");
+-const dateData = ref<DateResponse>({ default_date: "", stage_dates: [], future_target_dates: [] });
++type DateCatalog = DateResponse & { stage_navigation_dates?: string[]; navigation_policy?: string };
++const dateData = ref<DateCatalog>({ default_date: "", stage_dates: [], future_target_dates: [] });
++const dateCatalogLoading = ref(true);
++const dateCatalogError = ref("");
++
++function mergeResearchDates(incoming: string[] = []) {
++  return [...new Set([...(dateData.value.research_dates ?? []), ...incoming])].sort();
++}
++
++function applyDateCatalog(result: DateCatalog) {
++  dateData.value = {
++    ...result,
++    stage_dates: Array.isArray(result.stage_dates) ? result.stage_dates : [],
++    future_target_dates: Array.isArray(result.future_target_dates) ? result.future_target_dates : [],
++    research_dates: mergeResearchDates(Array.isArray(result.research_dates) ? result.research_dates : []),
++  };
++  dateCatalogError.value = "";
++}
+ const pool = ref<PoolResponse | null>(null);
+ const loading = ref(false);
+ const loadError = ref("");
+@@ -113,14 +130,14 @@
+ );
+ const tradingDateOptions = computed(() =>
+   [...new Set([
+-    ...(dateData.value.dates ?? []),
++    ...(dateData.value.stage_navigation_dates ?? dateData.value.dates ?? []),
+     ...dateData.value.future_target_dates,
+     ...dateData.value.stage_dates,
+     ...(dateData.value.review_dates ?? []),
+     ...(dateData.value.hk_observation_only_dates ?? []),
+     todayDate.value,
+     dateData.value.navigation_date,
+-    dateData.value.default_date,
++    dateData.value.stage_navigation_dates === undefined ? dateData.value.default_date : "",
+   ].filter((date): date is string => Boolean(date)))].sort(),
+ );
+ const researchDateOptions = computed(() =>
+@@ -128,8 +145,17 @@
+ );
+ const activeDateOptions = computed(() => {
+   const options = researchActive.value ? researchDateOptions.value : tradingDateOptions.value;
+-  return options.length ? options : dateOptions.value;
++  return options.length || !researchActive.value ? options : dateOptions.value;
+ });
++const datePickerDisabled = computed(() => dateCatalogLoading.value || !activeDateOptions.value.length);
++const civilDateNavigation = computed(() => dateData.value.navigation_policy === "SHANGHAI_CIVIL_DATE_NOT_EXCHANGE_CALENDAR");
++const navigationNote = computed(() => {
++  if (civilDateNavigation.value || dateCatalogLoading.value || dateCatalogError.value) {
++    return researchActive.value ? "V4 · 研究入口按材料自然日导航" : "V4 · 日期目录与上海当日用于导航";
++  }
++  return researchActive.value ? "研究入口按自然日导航；阶段入口按A股或港股开市日导航"
++    : "V4 · A/HK按各自市场日历导航；回执不代表进程存活，运行状态见任务页";
++});
+ const nextFutureTargetDate = computed(() => {
+   const targets = [...new Set(dateData.value.future_target_dates ?? [])]
+     .filter((date): date is string => /^\d{8}$/.test(date))
+@@ -354,10 +380,18 @@
+   const anchor = dateData.value.navigation_date || dateData.value.default_date;
+   return /^\d{8}$/.test(date) && Boolean(anchor) && date < anchor;
+ }
++function isCalendarDate(date: string) {
++  const iso = formatDateInput(date);
++  const parsed = new Date(`${iso}T00:00:00Z`);
++  return Boolean(iso) && Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === iso && !iso.startsWith("0000");
++}
++function allowsExplicitTradingDate(date: string) {
++  return isCalendarDate(date) && (Boolean(dateCatalogError.value) || tradingDateOptions.value.includes(date) || isHistoricalTradingDate(date));
++}
+ function isAllowedDateForView(date: string) {
+   return researchActive.value
+     ? activeDateOptions.value.includes(date)
+-    : tradingDateOptions.value.includes(date) || isHistoricalTradingDate(date);
++    : allowsExplicitTradingDate(date);
+ }
+ function resolveTradingDate(candidate = selectedDate.value) {
+   const options = tradingDateOptions.value;
+@@ -368,7 +402,7 @@
+     dateData.value.default_date,
+     ...options,
+   ].find((date): date is string =>
+-    typeof date === "string" && (options.includes(date) || isHistoricalTradingDate(date))
++    typeof date === "string" && allowsExplicitTradingDate(date)
+   ) ?? "";
+ }
+ function resolveResearchDate(candidate = selectedDate.value) {
+@@ -423,13 +457,13 @@
+   aTop200Active.value = false;
+   navigationStatus.value = "";
+ }
+-function openResearch(openWechat = false) {
++function openResearch(openWechat = false, explicitDate = "") {
+   taskStatusActive.value = false;
+   closeReviewActive.value = false;
+   aTop200Active.value = false;
+   researchActive.value = true;
+   researchArchiveEntry.value = openWechat;
+-  bindSelectedDate(resolveResearchDate(), { view: "research", stage: null });
++  bindSelectedDate(explicitDate || resolveResearchDate(), { view: "research", stage: null });
+   navigationStatus.value = "";
+ }
+ function openManagerSelection() {
+@@ -781,10 +815,7 @@
+ 
+   if (requestedView === "research") {
+     const researchOptionsEmpty = researchDateOptions.value.length === 0;
+-    const requestedResearchDateAllowed = /^\d{8}$/.test(requestedDate)
+-      && (researchDateOptions.value.includes(requestedDate)
+-        || researchOptionsEmpty);
+-    const resolvedDate = requestedResearchDateAllowed
++    const resolvedDate = isCalendarDate(requestedDate)
+       ? requestedDate
+       : researchOptionsEmpty
+       ? resolveTradingDate("")
+@@ -808,20 +839,14 @@
+     return;
+   }
+   if (["review", "a-review", "research-review"].includes(requestedView)) {
+-    const explicitTradingDate = /^\d{8}$/.test(requestedDate)
+-      && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
+-      ? requestedDate
+-      : "";
++    const explicitTradingDate = allowsExplicitTradingDate(requestedDate) ? requestedDate : "";
+     selectedDate.value = explicitTradingDate || resolveTradingDate("");
+     const focus = requestedView === "research-review" ? "research" : requestedView === "a-review" ? "A" : "HK";
+     await Promise.all([loadPool(), loadCloseReview(focus, false, false)]);
+     return;
+   }
+ 
+-  const explicitTradingDate = /^\d{8}$/.test(requestedDate)
+-    && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
+-    ? requestedDate
+-    : "";
++  const explicitTradingDate = allowsExplicitTradingDate(requestedDate) ? requestedDate : "";
+   selectedDate.value = explicitTradingDate || resolveTradingDate("");
+   const stageChanged = previousStage !== validStage;
+   const dateChanged = previousDate !== selectedDate.value;
+@@ -848,10 +873,12 @@
+   await onDateChange();
+ }
+ async function onDateInputChange(event: Event) {
++  if (datePickerDisabled.value) return;
+   const input = event.currentTarget as HTMLInputElement;
+   const compact = compactDateInput(input.value);
+   if (!activeDateOptions.value.includes(compact)) {
+-    input.setCustomValidity(researchActive.value ? "请选择已有研究材料的自然日" : "请选择日历中的有效交易日");
++    const stageMessage = civilDateNavigation.value ? "请选择日期目录中可用的日期" : "请选择日历中的有效交易日";
++    input.setCustomValidity(researchActive.value ? "请选择已有研究材料的自然日" : stageMessage);
+     input.value = formatDateInput(selectedDate.value);
+     input.reportValidity();
+     return;
+@@ -861,7 +888,7 @@
+ }
+ 
+ async function goToday() {
+-  fixedDate.value = false;
++  if (dateCatalogLoading.value) return;
+   userDateIntentVersion += 1;
+   await refreshNavigationDate(true);
+ }
+@@ -876,11 +903,12 @@
+   try {
+     const response = await fetch("/api/v1/runs/date-list", { cache: "no-store" });
+     if (!response.ok) return;
+-    const result: DateResponse = await response.json();
+-    if (version !== navigationRequestVersion || intent !== userDateIntentVersion || fixedDate.value) return;
+-    dateData.value = { ...result, research_dates: [...new Set([...(result.research_dates ?? []), ...(dateData.value.research_dates ?? [])])] };
++    const result: DateCatalog = await response.json();
++    if (version !== navigationRequestVersion || intent !== userDateIntentVersion || (!force && fixedDate.value)) return;
++    applyDateCatalog(result);
+     const date = todayDate.value;
+     if (!/^\d{8}$/.test(date)) return;
++    fixedDate.value = false;
+     const changed = selectedDate.value !== date;
+     selectedDate.value = date;
+     writeSelectedDateToUrl(date);
+@@ -892,27 +920,32 @@
+ 
+ onMounted(async () => {
+   void loadFrontendIdentity();
+-  const initialParams = new URLSearchParams(window.location.search);
+   const dateIntentAtMount = userDateIntentVersion;
+   const stageIntentAtMount = userStageIntentVersion;
+   window.addEventListener("popstate", onBrowserHistoryChange);
+   window.addEventListener("focus", onPageRestore);
+   window.addEventListener("pageshow", onPageRestore);
+   document.addEventListener("visibilitychange", onPageRestore);
++  const coreCatalog = fetch("/api/v1/runs/date-list");
++  // Optional research dates extend the picker without blocking the core catalog or changing the selected date.
++  void fetch("/api/v4/research/dates")
++    .then((response) => response.ok ? response.json() : null)
++    .then((lanes) => {
++      if (Array.isArray(lanes?.research_dates)) dateData.value.research_dates = mergeResearchDates(lanes.research_dates);
++    })
++    .catch(() => {});
+   try {
+-    const [dateList, laneDates] = await Promise.all([
+-      fetch("/api/v1/runs/date-list").then((r) => (r.ok ? r.json() : Promise.reject(new Error("request failed")))),
+-      fetch("/api/v4/research/dates")
+-        .then((r) => (r.ok ? r.json() : null))
+-        .catch(() => null),
+-    ]);
+-    dateData.value = {
+-      ...dateList,
+-      // Merge the V3 research-module dates so the date picker can switch to
+-      // any available research lane date even when the local stage calendar
+-      // only covers the current day (e.g. a fresh V4 data root).
+-      research_dates: [...new Set([...(dateList.research_dates ?? []), ...((laneDates?.research_dates as string[] | undefined) ?? [])])].sort(),
+-    };
++    const response = await coreCatalog;
++    if (!response.ok) throw new Error("date-list request failed");
++    applyDateCatalog(await response.json());
++  } catch {
++    dateCatalogError.value = "日期目录读取失败，请重试。";
++  } finally {
++    dateCatalogLoading.value = false;
++    navigationReady = true;
++  }
++  try {
++    const initialParams = new URLSearchParams(window.location.search);
+     const requestedDate = initialParams.get("date");
+     const requestedStage = initialParams.get("stage");
+     const requestedView = initialParams.get("view");
+@@ -921,38 +954,24 @@
+       ? selectedDate.value
+       : "";
+     const userSelectedStage = userStageIntentVersion !== stageIntentAtMount;
+-    navigationReady = true;
+     if (!userSelectedStage && requestedStage && stageDefinitions.some((stage) => stage.id === requestedStage)) {
+       selectedStage.value = requestedStage;
+     }
+     if (requestedView === "sop") {
+-      selectedDate.value = userSelectedDate || resolveTradingDate(todayDate.value);
++      selectedDate.value = userSelectedDate || resolveTradingDate(requestedDate || todayDate.value);
+       openSop();
+     } else if (aTop200Active.value || requestedView === "a-top200") {
+       selectedDate.value = resolveTradingDate(requestedDate || todayDate.value);
+       loadAShareTop200();
+     } else if (requestedView === "research") {
+-      const explicitResearchDate = requestedDate
+-        && /^\d{8}$/.test(requestedDate)
+-        && (researchDateOptions.value.includes(requestedDate) || researchDateOptions.value.length === 0)
+-        ? requestedDate
+-        : "";
+-      selectedDate.value = userSelectedDate || explicitResearchDate || resolveResearchDate(todayDate.value);
+-      openResearch();
++      const explicitResearchDate = requestedDate && isCalendarDate(requestedDate) ? requestedDate : "";
++      openResearch(false, userSelectedDate || explicitResearchDate || resolveResearchDate(todayDate.value));
+     } else if (["review", "a-review", "research-review"].includes(requestedView || "")) {
+-      const explicitTradingDate = requestedDate
+-        && /^\d{8}$/.test(requestedDate)
+-        && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
+-        ? requestedDate
+-        : "";
++      const explicitTradingDate = requestedDate && allowsExplicitTradingDate(requestedDate) ? requestedDate : "";
+       selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(todayDate.value);
+       await Promise.all([loadPool(), loadCloseReview(requestedView === "research-review" ? "research" : requestedView === "a-review" ? "A" : "HK")]);
+     } else {
+-      const explicitTradingDate = requestedDate
+-        && /^\d{8}$/.test(requestedDate)
+-        && (tradingDateOptions.value.includes(requestedDate) || isHistoricalTradingDate(requestedDate))
+-        ? requestedDate
+-        : "";
++      const explicitTradingDate = requestedDate && allowsExplicitTradingDate(requestedDate) ? requestedDate : "";
+       selectedDate.value = userSelectedDate || explicitTradingDate || resolveTradingDate(todayDate.value);
+       if (userSelectedDate || userSelectedStage) {
+         bindSelectedDate(selectedDate.value, { view: null, stage: selectedStage.value });
+@@ -960,9 +979,9 @@
+       await Promise.all([loadPool(), loadStage(undefined, false, false)]);
+     }
+   } catch {
+-    loadError.value = "交易日目录读取失败。";
+-    stageError.value = "交易日目录读取失败。";
+-  } finally { navigationReady = true; }
++    loadError.value = "当日快照读取失败。";
++    stageError.value = "当日快照读取失败。";
++  }
+ });
+ 
+ onBeforeUnmount(() => {
+@@ -1053,6 +1072,10 @@
+     nextFutureTargetDate,
+     nextHkTargetDate,
+     selectedDateContext,
++    dateCatalogLoading,
++    dateCatalogError,
++    datePickerDisabled,
++    navigationNote,
+     dateInputMin,
+     dateInputMax,
+     dateInputTitle,
+--- a/apps/web/src/App.spec.ts
++++ b/apps/web/src/App.spec.ts
+@@ -2165,7 +2165,36 @@
+ 
+ describe("empty research catalogs preserve an explicit URL date", () => {
+   afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
++
++  it("preserves a fixed research link while its optional catalog loads", async () => {
++    window.history.replaceState({}, "", "/?view=research&date=20261124");
++    const optionalCatalog = deferred<ReturnType<typeof jsonResponse>>();
++    const fetchMock = vi.fn(async (url: string) => {
++      if (url === "/api/v1/runs/date-list") {
++        return jsonResponse({ default_date: "20261125", stage_dates: [], research_dates: ["20261125"], future_target_dates: [] });
++      }
++      if (url === "/api/v4/research/dates") return optionalCatalog.promise;
++      return jsonResponse(blockedPool);
++    });
++    vi.stubGlobal("fetch", fetchMock);
+ 
++    render(App);
++    const input = screen.getByLabelText("交易日（日历选择）") as HTMLInputElement;
++    expect(input.disabled).toBe(true);
++    expect(screen.getByText("日期加载中")).toBeTruthy();
++    await screen.findByRole("region", { name: "研报决策台" });
++    expect(input.disabled).toBe(false);
++    expect(input.value).toBe("2026-11-24");
++    expect(new URLSearchParams(location.search).get("date")).toBe("20261124");
++    expect(fetchMock.mock.calls.some(([url]) => url === "/api/v4/research/lane?research_date=20261124")).toBe(true);
++    expect(fetchMock.mock.calls.some(([url]) => url === "/api/v4/research/lane?research_date=20261125")).toBe(false);
++
++    optionalCatalog.resolve(jsonResponse({ research_dates: ["20261124"] }));
++    await waitFor(() => expect(input.min).toBe("2026-11-24"));
++    expect(input.value).toBe("2026-11-24");
++    expect(new URLSearchParams(location.search).get("date")).toBe("20261124");
++  });
++
+   it("keeps the requested date and reaches the archive toolbar when both catalogs are empty", async () => {
+     window.history.replaceState({}, "", "/?date=20260917&view=research");
+     const lane = {

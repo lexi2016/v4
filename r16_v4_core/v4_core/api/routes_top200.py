@@ -44,15 +44,25 @@ def build_top200_router(store: V4Store) -> APIRouter:
             json.dumps({"data_date": compact_date, "rows": formatted}, sort_keys=True, ensure_ascii=False).encode("utf-8")
         ).hexdigest()
         return {
+            "source_date": source_date,
             "data_date": compact_date,
             "revision": revision,
             "source_generation": digest,
             "input_sha256": digest,
             "numeric_manifest": {"path": f"v4_core://top200/{source_date}/numeric_manifest.json", "sha256": digest},
             "status": "PARTIAL_DESCRIPTIVE",
-            "top200": formatted,
+            "top200": [{**row, "source_date": source_date} for row in formatted],
             "top200_count": len(formatted),
+            # The stored shortlist does not carry its full quote universe or exclusions.
+            "coverage_counts_status": "CANNOT_CONFIRM",
+            "directory_count": "待确认",
+            "valid_quote_count": "待确认",
+            "missing_quote_count": "待确认",
             "historical_PIT": False,
+            "RESEARCH_ONLY": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
         }
 
     return router

@@ -16,6 +16,8 @@ SIX_SLOT_CONTRACT = [
     {"slot_id": slot_id, "slot_name": name, "schedule_time": scheduled}
     for slot_id, (name, scheduled) in SIX_SLOT_DEFS.items()
 ]
+# The SQLite store exposes one current day per source date. This selector is not a frozen revision.
+SQLITE_CURRENT_REVISION = "sqlite-current"
 
 
 def _stable_hash(payload: Any) -> str:
@@ -249,12 +251,28 @@ def build_workbench_router(store: V4Store) -> APIRouter:
                 }
             )
 
+        executions = {slot["slot_id"]: slot for slot in store.get_slot_executions(source_date)}
         return {
             **lineage,
             "revision": revision,
+            "schema": "RESEARCH_SYSTEM_DAY_V1",
             "count": len(rows),
+            "scope_count": len(rows),
             "rows": rows,
-            "formula_groups": formula_groups,
+            "formula_review": "PENDING",
+            "chart_review": "UNKNOWN_NOT_REVIEWED",
+            "formula_groups": {
+                **formula_groups,
+                "labels": {"b23_entry": "192选股", "pb2_confirm": "回测选股"},
+                "group_counts": {"b23_entry": None, "pb2_confirm": None},
+                "status": "CANNOT_CONFIRM_NOT_MATERIALIZED",
+            },
+            "workflow": [
+                {"label": slot["slot_name"], "status": executions.get(slot["slot_id"], {}).get("status", "NOT_MATERIALIZED")}
+                for slot in SIX_SLOT_CONTRACT
+            ],
+            "materials": [],
+            "reference_links": [],
             "source_close_reference": {"source_date": source_date, "basis": f"QFQ_ASOF_{compact_date}"},
         }
 
@@ -402,7 +420,18 @@ def build_workbench_router(store: V4Store) -> APIRouter:
     @router.get("/workbench/history")
     def get_workbench_history():
         dates = store.list_workbench_dates()
-        return {"dates": dates, "rows": [{"source_date": d} for d in dates], "count": len(dates)}
+        days = []
+        for source_date in dates:
+            observation_date = compute_observation_date(source_date)
+            if len(source_date) != 10 or observation_date == source_date:
+                continue
+            days.append({
+                "source_date": source_date,
+                "observation_date": observation_date,
+                "observation_date_basis": "NEXT_WEEKDAY_PROJECTION",
+                "revision": SQLITE_CURRENT_REVISION,
+            })
+        return {"dates": dates, "rows": [{"source_date": d} for d in dates], "count": len(dates), "days": days}
 
     @router.get("/workbench/classifications/{market}")
     def get_workbench_classifications(market: str):
@@ -431,6 +460,8 @@ def build_workbench_router(store: V4Store) -> APIRouter:
             "rows": rows,
             "name_overlay": {},
             "status": "READY",
+            "visual_stages": [],
+            "time_contract": {"nodes": [], "status": "CANNOT_CONFIRM"},
         }
 
     @router.get("/a-share/company-materials")
