@@ -8,6 +8,8 @@ import json
 from math import isfinite
 from pathlib import Path
 
+from .anchors import KeyKDetector
+
 
 CONFIG_PATH = Path(__file__).with_name("config.json")
 CONFIG_BYTES = CONFIG_PATH.read_bytes()
@@ -22,7 +24,10 @@ FEATURE_NAMES = (
 )
 ID_FIELDS = ("candidate_event_id", "security_id", "trade_date", "session_idx")
 WAVE_FIELDS = (
-    "structure_episode_id", "key_k_date", "key_k_low", "episode_opened_D",
+    "structure_episode_id", "key_k_date", "key_k_low", "key_k_session_idx",
+    "anchor_primary_type", "anchor_types", "anchor_breakout", "anchor_reversal",
+    "anchor_violent", "anchor_funding_activity", "anchor_age_sessions",
+    "episode_opened_D", "episode_start_reason", "last_valid_structure_maintenance_idx",
     "episode_role", "accepted_role",
 )
 LEDGER_FIELDS = (
@@ -257,7 +262,8 @@ def qualified_arms(values):
 
 
 def _stable_id(namespace, *parts):
-    return sha256("|".join((CONFIG["schema"], namespace, *parts)).encode("ascii")).hexdigest()
+    version = CONFIG["candidate_id_namespace"] if namespace == "CANDIDATE" else CONFIG["schema"]
+    return sha256("|".join((version, namespace, *parts)).encode("ascii")).hexdigest()
 
 
 @dataclass(slots=True)
@@ -265,12 +271,18 @@ class Episode:
     episode_id: str
     key_k_date: str
     key_k_low: float
+    anchor_idx: int
+    anchor_tags: tuple[str, ...]
+    start_reason: str
+    last_maintenance_idx: int
+    has_raw: bool = False
     raw_confirmed: bool = False
     has_accepted: bool = False
     accepted_confirmed: bool = False
 
-    def raw_day_role(self, opened, b_eligible):
-        if opened:
+    def raw_day_role(self, b_eligible):
+        if not self.has_raw:
+            self.has_raw = True
             return "FIRST"
         if b_eligible and not self.raw_confirmed:
             self.raw_confirmed = True
@@ -296,8 +308,42 @@ class ReplayState:
         self.last_date = None
         self.session_idx = -1
         self.indicators = Indicators()
+        self.key_k = KeyKDetector()
         self.episode = None
+        self.pending_start_reason = "INITIAL_KEY_K"
         self.cooldown = Cooldown()
+
+    def _advance_episode(self, bar, values):
+        episode = self.episode
+        rules = CONFIG["episode"]
+        if episode is not None:
+            if bar.close < episode.key_k_low:
+                self.pending_start_reason = "AFTER_ANCHOR_LOW_BREAK"
+                episode = None
+            elif self.session_idx - episode.last_maintenance_idx > rules["maintenance_gap_limit_sessions"]:
+                self.pending_start_reason = "AFTER_MAINTENANCE_EXPIRY"
+                episode = None
+
+        tags = self.key_k.advance(bar)
+        if tags:
+            reason = "REPLACED_BY_NEW_KEY_K" if episode is not None else self.pending_start_reason
+            episode = Episode(
+                _stable_id("EPISODE", self.security_id, bar.trade_date),
+                bar.trade_date, bar.low, self.session_idx, tags, reason, self.session_idx,
+            )
+        self.episode = episode
+        if episode is None or not bar.positive_ohlc or bar.close < episode.key_k_low:
+            return False
+
+        w, y, gap_atr = (values[name] for name in ("W", "Y", "wy_opening_atr"))
+        if w <= 0 or y is None or y <= 0:
+            return False
+        maintained = (w >= y and bar.close >= y) or (
+            gap_atr is not None and abs(gap_atr) <= rules["glue_atr_max"] and bar.close >= w
+        )
+        if maintained:
+            episode.last_maintenance_idx = self.session_idx
+        return maintained
 
     def consume(self, bars):
         ledger, features = [], []
@@ -309,18 +355,18 @@ class ReplayState:
             self.session_idx += 1
 
             values = self.indicators.advance(bar)
-            if self.episode is not None and bar.close < self.episode.key_k_low:
-                self.episode = None
-            arms = qualified_arms(values) if bar.positive_ohlc else ()
+            if not self._advance_episode(bar, values):
+                continue
+            episode = self.episode
+            age = self.session_idx - episode.anchor_idx
+            rules = CONFIG["episode"]
+            if not rules["candidate_age_min_sessions"] <= age < rules["candidate_age_limit_exclusive_sessions"]:
+                continue
+            arms = qualified_arms(values)
             if not arms:
                 continue
-            opened = self.episode is None
-            if opened:
-                episode_id = _stable_id("EPISODE", self.security_id, bar.trade_date)
-                self.episode = Episode(episode_id, bar.trade_date, bar.low)
-            episode = self.episode
             b_eligible = "B" in arms
-            raw_role = episode.raw_day_role(opened, b_eligible)
+            raw_role = episode.raw_day_role(b_eligible)
             values["key_k_atr_distance"] = _div(bar.close - episode.key_k_low, values["atr14"])
             for rank, arm in enumerate(arms, 1):
                 order = self.cooldown.consider(self.session_idx, rank)
@@ -336,7 +382,17 @@ class ReplayState:
                     "structure_episode_id": episode.episode_id,
                     "key_k_date": episode.key_k_date,
                     "key_k_low": episode.key_k_low,
-                    "episode_opened_D": opened,
+                    "key_k_session_idx": episode.anchor_idx,
+                    "anchor_primary_type": episode.anchor_tags[0],
+                    "anchor_types": "|".join(episode.anchor_tags),
+                    "anchor_breakout": "BREAKOUT" in episode.anchor_tags,
+                    "anchor_reversal": "REVERSAL" in episode.anchor_tags,
+                    "anchor_violent": "VIOLENT" in episode.anchor_tags,
+                    "anchor_funding_activity": "FUNDING_ACTIVITY" in episode.anchor_tags,
+                    "anchor_age_sessions": age,
+                    "episode_opened_D": age == 0,
+                    "episode_start_reason": episode.start_reason,
+                    "last_valid_structure_maintenance_idx": episode.last_maintenance_idx,
                     "episode_role": raw_role if rank == 1 else "REPEAT",
                     "accepted_role": episode.accepted_role(b_eligible) if accepted else None,
                 }

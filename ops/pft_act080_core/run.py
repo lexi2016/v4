@@ -3,6 +3,7 @@
 import argparse
 from collections import Counter, defaultdict
 import csv
+from datetime import date
 from hashlib import sha256
 from io import StringIO
 import json
@@ -15,6 +16,7 @@ import resource
 import sys
 from time import perf_counter
 
+from .anchors import ANCHOR_TAGS
 from .archive import read_archive
 from .core import CONFIG, CONFIG_SHA256, FEATURE_FIELDS, LEDGER_FIELDS, ReplayState
 from .split import SPLIT_FIELDS, split_evidence
@@ -131,7 +133,7 @@ def _audit_stock(result):
     last_accepted = None
     last_key = None
     episodes = defaultdict(set)
-    released_roles = defaultdict(Counter)
+    released_roles, emitted_roles = defaultdict(Counter), defaultdict(Counter)
     gap_counts = {gap: Counter() for gap in (4, 5, 6)}
     for row, feature, split in zip(ledger, features, splits, strict=True):
         session = row["session_idx"]
@@ -160,6 +162,19 @@ def _audit_stock(result):
             raise ValueError(f"{result['security_id']}: cooldown/feature mismatch at {key}")
         last_key = key
         episode_id = row["structure_episode_id"]
+        tags = tuple(tag for tag in ANCHOR_TAGS if row[f"anchor_{tag.lower()}"])
+        age = session - row["key_k_session_idx"]
+        if (
+            not tags or tags[0] != row["anchor_primary_type"] or "|".join(tags) != row["anchor_types"]
+            or age != row["anchor_age_sessions"]
+            or not CONFIG["episode"]["candidate_age_min_sessions"] <= age < CONFIG["episode"]["candidate_age_limit_exclusive_sessions"]
+            or row["episode_opened_D"] != (age == 0)
+            or row["last_valid_structure_maintenance_idx"] != session
+            or row["key_k_date"] > row["trade_date"]
+            or (rank > 1 and row["episode_role"] != "REPEAT")
+        ):
+            raise ValueError(f"{result['security_id']}: anchored candidate invariant failed at {key}")
+        emitted_roles[episode_id][row["episode_role"]] += 1
         if accept:
             released_roles[episode_id][row["accepted_role"]] += 1
         if split["assigned_fold"] is not None:
@@ -173,8 +188,9 @@ def _audit_stock(result):
             raise ValueError(f"{result['security_id']}: nonfinite feature at {key}")
     if any(len(folds) > 1 for folds in episodes.values()):
         raise ValueError(f"{result['security_id']}: an episode crosses assigned folds")
-    if any(roles["FIRST"] != 1 or roles["CONFIRM"] > 1 for roles in released_roles.values()):
-        raise ValueError(f"{result['security_id']}: released episode role invariant failed")
+    for group in (emitted_roles, released_roles):
+        if any(roles["FIRST"] != 1 or roles["CONFIRM"] > 1 for roles in group.values()):
+            raise ValueError(f"{result['security_id']}: episode role invariant failed")
     if len(ledger) != len(accepted) + len(rejected):
         raise ValueError(f"{result['security_id']}: candidate quantity conservation failed")
     return accepted, rejected, gap_counts
@@ -228,13 +244,29 @@ def write_csv(output, stem, fields, rows):
     return result
 
 
+def _emission_span(rows):
+    spans = {}
+    max_session_span = max_calendar_span = 0
+    for row in rows:
+        start = spans.setdefault(row["structure_episode_id"], row)
+        session_span = row["session_idx"] - start["session_idx"]
+        calendar_span = (date.fromisoformat(row["trade_date"]) - date.fromisoformat(start["trade_date"])).days
+        max_session_span = max(max_session_span, session_span)
+        max_calendar_span = max(max_calendar_span, calendar_span)
+    return {
+        "max_emitted_episode_span_sessions": max_session_span,
+        "max_emitted_episode_span_calendar_days": max_calendar_span,
+        "max_candidate_anchor_age_sessions": max((row["anchor_age_sessions"] for row in rows), default=None),
+    }
+
+
 def audit_and_write(output, results):
     ledgers, features, split_rows, accepted, rejected = [], [], [], [], []
     observed, per_stock = Counter(), []
     total_gap = {gap: Counter() for gap in (4, 5, 6)}
     prefix = Counter()
     na_raw, na_accepted = Counter(), Counter()
-    reject_reasons, roles = Counter(), Counter()
+    reject_reasons, roles, raw_roles = Counter(), Counter(), Counter()
     split_flags = Counter()
     for result in results:
         accept, reject, gaps = _audit_stock(result)
@@ -249,6 +281,8 @@ def audit_and_write(output, results):
             total_gap[gap].update(gaps[gap])
         accepted_roles = Counter(row["accepted_role"] for row in accept)
         roles.update(accepted_roles)
+        stock_raw_roles = Counter(row["episode_role"] for row in rows)
+        raw_roles.update(stock_raw_roles)
         reject_reasons.update(row["reject_reason"] for row in reject)
         for feature in result["features"]:
             absent = [key for key in FEATURE_FIELDS if feature[key] is None]
@@ -267,6 +301,9 @@ def audit_and_write(output, results):
                 "nonpositive_ohlc_bars", "zero_volume_bars", "prefix_checks", "boundaries",
             )},
             "raw_candidates": len(rows),
+            "raw_candidate_security_days": len({row["trade_date"] for row in rows}),
+            "raw_roles": {role: stock_raw_roles[role] for role in ("FIRST", "CONFIRM", "REPEAT")},
+            **_emission_span(rows),
             "accepted": len(accept), "rejected": len(reject),
             "conservation_difference": len(rows) - len(accept) - len(reject),
             "gap_distribution": {str(gap): {key: counts[key] for key in GAP_BUCKETS} for gap, counts in gaps.items()},
@@ -287,6 +324,9 @@ def audit_and_write(output, results):
         "conservation": {
             "stocks": len(per_stock), "stocks_with_candidates": sum(row["raw_candidates"] > 0 for row in per_stock),
             "raw_candidates": len(ledgers), "accepted": len(accepted), "rejected": len(rejected),
+            "raw_candidate_security_days": sum(row["raw_candidate_security_days"] for row in per_stock),
+            "raw_roles": {role: raw_roles[role] for role in ("FIRST", "CONFIRM", "REPEAT")},
+            **_emission_span(ledgers),
             "raw_minus_accepted_minus_rejected": len(ledgers) - len(accepted) - len(rejected),
             "reject_reasons": dict(reject_reasons),
             "gap_distribution": {str(gap): {key: counts[key] for key in GAP_BUCKETS} for gap, counts in total_gap.items()},
@@ -341,6 +381,7 @@ def run(archive_path, output, workers):
         "input": original.evidence,
         "config_sha256": CONFIG_SHA256,
         "charter_sha256": CONFIG["charter_sha256"],
+        "pre_replay_lock_sha256": CONFIG["pre_replay_lock_sha256"],
         "historical_adjustment_pit": CONFIG["historical_adjustment_pit"],
         "governance": CONFIG["governance"],
         **results,

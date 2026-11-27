@@ -1,53 +1,190 @@
 {
-  "baseline_commit": "b4719b0f36fcaec237f34c88aaab56a6996a0296",
-  "charter_sha256": "e5efc5c233569098867eaa563aed5aef4c3509779156447a3d495b2a42e55c65",
-  "config_sha256": "a3fce265cb3124094a4aa7d8c40b67233f36fdc07c753cf48e752f13e31eab04",
-  "conservation": {
-    "accepted": 13168,
-    "accepted_roles": {
-      "CONFIRM": 186,
-      "FIRST": 496,
-      "REPEAT": 12486
-    },
-    "episode_n": 496,
-    "first_n": 496,
-    "gap_distribution": {
-      "4": {
-        "accepted": 0,
-        "first_arm": 6904,
-        "raw": 7625,
-        "rejected": 7625
+  "base_commit": "04746f61cb457fd1e531bff5136adc077db1342e",
+  "comparison": {
+    "P1": {
+      "accepted": 13168,
+      "accepted_roles": {
+        "CONFIRM": 186,
+        "FIRST": 496,
+        "REPEAT": 12486
       },
-      "5": {
-        "accepted": 0,
-        "first_arm": 6690,
-        "raw": 7344,
-        "rejected": 7344
+      "distinct_candidate_day_share": 0.3686660311597009,
+      "episode_n": 496,
+      "first_n": 496,
+      "gap_distribution": {
+        "4": {
+          "accepted": 0,
+          "first_arm": 6904,
+          "raw": 7625,
+          "rejected": 7625
+        },
+        "5": {
+          "accepted": 0,
+          "first_arm": 6690,
+          "raw": 7344,
+          "rejected": 7344
+        },
+        "6": {
+          "accepted": 6652,
+          "first_arm": 6652,
+          "raw": 6652,
+          "rejected": 0
+        }
       },
-      "6": {
-        "accepted": 6652,
-        "first_arm": 6652,
-        "raw": 6652,
-        "rejected": 0
-      }
+      "largest_raw_candidate_session_span": 8519,
+      "mean_accepted_triggers_per_released_episode": 26.548387096774192,
+      "non_first_n": 12672,
+      "observed_stock_days": 134276,
+      "raw_candidate_stock_days": 49503,
+      "raw_candidates": 54673,
+      "raw_episode_n": 549,
+      "raw_minus_accepted_minus_rejected": 0,
+      "raw_row_to_observed_day_ratio": 0.40716881646757425,
+      "reject_reasons": {
+        "COOLDOWN_LE5": 36335,
+        "DUPLICATE_SAME_DAY": 5170
+      },
+      "rejected": 41505,
+      "split_post_purge_embargo": {
+        "EXCLUDED": {
+          "accepted": 2833,
+          "independent_FIRST": 2
+        },
+        "OOT": {
+          "accepted": 39,
+          "independent_FIRST": 2
+        },
+        "TRAIN": {
+          "accepted": 10038,
+          "independent_FIRST": 425
+        },
+        "VAL": {
+          "accepted": 258,
+          "independent_FIRST": 67
+        }
+      },
+      "stocks": 41
     },
-    "non_first_n": 12672,
-    "observed_source_rows": {
-      "nonpositive_ohlc_bars": 7926,
-      "valid_bars": 134276,
-      "zero_volume_bars": 26
+    "P1B": {
+      "accepted": 6921,
+      "accepted_roles": {
+        "CONFIRM": 63,
+        "FIRST": 5433,
+        "REPEAT": 1425
+      },
+      "distinct_candidate_day_share": 0.1481575262891358,
+      "episode_n": 5433,
+      "first_n": 5433,
+      "gap_distribution": {
+        "4": {
+          "accepted": 0,
+          "first_arm": 2398,
+          "raw": 2949,
+          "rejected": 2949
+        },
+        "5": {
+          "accepted": 0,
+          "first_arm": 2243,
+          "raw": 2719,
+          "rejected": 2719
+        },
+        "6": {
+          "accepted": 2111,
+          "first_arm": 2111,
+          "raw": 2111,
+          "rejected": 0
+        }
+      },
+      "largest_raw_candidate_session_span": 29,
+      "mean_accepted_triggers_per_released_episode": 1.273881833241303,
+      "non_first_n": 1488,
+      "observed_stock_days": 134276,
+      "raw_candidate_stock_days": 19894,
+      "raw_candidates": 23738,
+      "raw_episode_n": 6525,
+      "raw_minus_accepted_minus_rejected": 0,
+      "raw_row_to_observed_day_ratio": 0.1767851291370014,
+      "reject_reasons": {
+        "COOLDOWN_LE5": 12973,
+        "DUPLICATE_SAME_DAY": 3844
+      },
+      "rejected": 16817,
+      "split_post_purge_embargo": {
+        "EXCLUDED": {
+          "accepted": 76,
+          "independent_FIRST": 53
+        },
+        "OOT": {
+          "accepted": 1076,
+          "independent_FIRST": 826
+        },
+        "TRAIN": {
+          "accepted": 5318,
+          "independent_FIRST": 4207
+        },
+        "VAL": {
+          "accepted": 451,
+          "independent_FIRST": 347
+        }
+      },
+      "stocks": 41
     },
-    "raw_candidates": 54673,
-    "raw_episode_n": 549,
-    "raw_minus_accepted_minus_rejected": 0,
-    "rejected": 41505,
-    "stocks": 41,
-    "stocks_with_candidates": 41
+    "schema": "ACT080_P1_VS_P1B_STRUCTURAL_COMPARISON_V1"
   },
+  "config_sha256": "3c9a86a1e14ffb8a998c00623b429a2e3372147039eafc5e2c9bdfb4219a543b",
   "features": {
-    "accepted_subset_rows": 13168,
-    "nonfinite_value_count": 0,
-    "rows": 54673
+    "columns": 47,
+    "na_counts_by_column": {
+      "W": 0,
+      "W_slope": 0,
+      "Y": 0,
+      "Y_slope": 5,
+      "accepted_flag": 0,
+      "accepted_role": 16817,
+      "anchor_age_sessions": 0,
+      "anchor_breakout": 0,
+      "anchor_funding_activity": 0,
+      "anchor_primary_type": 0,
+      "anchor_reversal": 0,
+      "anchor_types": 0,
+      "anchor_violent": 0,
+      "archive_sha256": 0,
+      "atr14": 0,
+      "candidate_event_id": 0,
+      "close_location": 276,
+      "code_sha256": 0,
+      "config_sha256": 0,
+      "ema50_slope": 0,
+      "episode_opened_D": 0,
+      "episode_role": 0,
+      "episode_start_reason": 0,
+      "historical_adjustment_pit": 0,
+      "kdj_j": 155,
+      "key_k_atr_distance": 0,
+      "key_k_date": 0,
+      "key_k_low": 0,
+      "key_k_session_idx": 0,
+      "last_valid_structure_maintenance_idx": 0,
+      "price_basis": 0,
+      "prior5_return": 0,
+      "qualification_arm": 0,
+      "range3": 1,
+      "return_D": 0,
+      "security_id": 0,
+      "session_idx": 0,
+      "source_chain_sha256": 0,
+      "structure_episode_id": 0,
+      "trade_date": 0,
+      "upper_wick_disagreement": 276,
+      "washout_volume_ratio": 0,
+      "white_bias": 0,
+      "wy_opening": 0,
+      "wy_opening_atr": 0,
+      "wy_opening_slope": 5,
+      "yellow_bias": 0
+    },
+    "nonfinite": 0,
+    "rows": 23738
   },
   "governance": {
     "FIT": 0,
@@ -68,78 +205,73 @@
     "tuning": 0,
     "unblinded_72_reused": false
   },
+  "historical_adjustment_pit": "CANNOT_CONFIRM",
   "input": {
     "archive_bytes": 3959949,
     "archive_sha256": "56b9799e839e7846313543a9ade387c083a6b7dcfc9a155031d861157b278034",
-    "code_sha256": "1ddff335f6133741a6121dad6758b68cf003392ad69b2c68fd070f7641436fd7",
+    "code_sha256": "4a5df5bfb9401d36523500bdc37c7aaaa5d9bb7c4bfc62e2ae896ca3770ead23",
     "manifest_sha256": "2e911c25a8fa611f39f199e302052068867ce7f022572d2d420fe36581a56856"
   },
-  "local_phase1_acceptance": "PASS",
-  "local_review": {
-    "actual_three_chunk_vs_full_replay": "3/3 EXACT",
-    "charter_gpt_chat_audit": "PENDING",
-    "effort": "high",
-    "historical_adjustment_pit": "CANNOT_CONFIRM",
-    "model": "gpt-6.2-sol",
-    "phase2_sample_adequacy": "CANNOT_CONFIRM",
-    "pytest_passed": 8,
-    "pytest_runtime_seconds": 0.26,
-    "pytest_total": 8,
-    "read_only": true,
-    "role": "sol_high_reviewer",
-    "sample_raw_candidates": 2327,
-    "sample_representative_gap_4_rejected": 299,
-    "sample_representative_gap_5_rejected": 287,
-    "sample_representative_gap_6_accepted": 284,
-    "sample_stocks": [
-      "000625.SZ",
-      "002865.SZ",
-      "920748.BJ"
-    ],
-    "scope": "PHASE1_FROZEN_IMPLEMENTATION_AND_REAL_REPLAY",
-    "status": "REVIEWED/PASS",
-    "verified_csv_parts": 15
-  },
+  "p1_zip_sha256": "24ca403ed1c47e54cdf8e9448e5bcc30ddb4e63fe761a69a2756c6a76ca5071e",
   "phase2": "LOCKED",
+  "pre_replay_lock_sha256": "ea80e0318010619908320eabf562f7bfe1d5302dfa1dc8e25a203f19543a02aa",
   "prefix": {
     "cell_differences": 0,
-    "cells_compared": 4649600,
+    "cells_compared": 2736048,
     "checks": 123,
     "field_set_differences": 0,
     "na_position_differences": 0,
     "row_count_difference": 0,
     "securities": 41
   },
-  "resources": {
-    "bytes_written_csv": 121862658,
-    "cpu_logical_cores": 18,
-    "logical_uncompressed_zip_bytes_read": 10648436,
+  "review": {
+    "baseline_cooldown_and_split_identity": "PASS",
+    "csv_parts_read_back": 9,
+    "effort": "high",
+    "gap4_rejected_representative": 109,
+    "gap5_rejected_representative": 105,
+    "gap6_accepted_representative": 89,
+    "independent_role": "sol_high_reviewer",
+    "model": "gpt-6.2-sol",
+    "pytest": "8/8 PASS",
+    "pytest_seconds": 0.18,
+    "sample_accepted": 351,
+    "sample_emitted_episodes": 348,
+    "sample_qualifying_anchor_dates": 744,
+    "sample_raw_rows": 1027,
+    "shares": [
+      "000625.SZ",
+      "002865.SZ",
+      "920748.BJ"
+    ],
+    "source_rule_provenance": "PASS",
+    "status": "REVIEWED/PASS",
+    "third_party_redteam": "PENDING"
+  },
+  "runtime": {
+    "cpu_count": 18,
+    "csv_bytes_written": 60215919,
+    "logical_archive_bytes_read": 10648436,
     "machine": "Apple M5 Max",
-    "max_single_worker_peak_rss_bytes": 68386816,
-    "parent_peak_rss_bytes": 429113344,
+    "max_single_worker_peak_rss_bytes": 54919168,
+    "parent_peak_rss_bytes": 284360704,
     "physical_io_bytes": "UNAVAILABLE",
-    "python": "3.14.6",
-    "replay_wall_seconds_time_l": 4.33,
     "stage_seconds": {
-      "audit_and_csv_write": 1.4840739159844816,
-      "primary_replay_and_three_prefixes": 0.5616933326236904,
-      "serial_replay_and_exact_comparison": 1.8773231250233948,
-      "verify_load_archive": 0.3278510421514511
+      "audit_and_csv_write": 0.7729949587956071,
+      "primary_replay_and_three_prefixes": 0.5306386672891676,
+      "serial_replay_and_exact_comparison": 1.5801831251010299,
+      "verify_load_archive": 0.33539504185318947
     },
+    "wall_seconds_time_l": 3.28,
     "workers_configured": 18,
     "workers_with_job": 18
   },
-  "schema": "ACT080_P1_SOURCE_RESULT_V1",
+  "schema": "ACT080_P1B_SOURCE_RESULT_V1",
   "serial_parallel_equality": {
     "cell_differences": 0,
-    "cells_compared": 4155722,
+    "cells_compared": 2279422,
     "field_set_differences": 0,
     "na_position_differences": 0,
     "row_count_difference": 0
-  },
-  "split_sidecar_OOT": {
-    "accepted_assigned": 39,
-    "accepted_first": 2,
-    "raw_assigned": 148
   }
 }

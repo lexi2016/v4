@@ -1,8 +1,10 @@
 {
-  "schema": "ACT080_P1_V1",
+  "schema": "ACT080_P1B_V1_1",
+  "candidate_id_namespace": "ACT080_P1_V1",
+  "pre_replay_lock_sha256": "ea80e0318010619908320eabf562f7bfe1d5302dfa1dc8e25a203f19543a02aa",
   "archive_sha256": "56b9799e839e7846313543a9ade387c083a6b7dcfc9a155031d861157b278034",
   "charter_sha256": "e5efc5c233569098867eaa563aed5aef4c3509779156447a3d495b2a42e55c65",
-  "qualification_source": "ACT074_WIDE_RADAR_V1",
+  "qualification_source": "ACT080_KEY_K_ANCHORED_V1_1_ACT074_RADAR",
   "qualification_reference": {
     "drive_id": "1bRSbesnr7d7hysQd2d85AYP1udgBhCjUrEVlIutu-QU",
     "text_export_sha256": "2b1b320bd71354ef3e774f425e85efe440a47639b2ced3aa77f034cc4ab21c22"
@@ -14,7 +16,45 @@
   },
   "cooldown": {"operator": ">", "gap_sessions": 5, "scope": "security_id", "arms_in_tie_order": ["A", "B", "C"], "duplicate_precedence": true},
   "cooldown_calendar": "STOCK_OBSERVED_VALID_DAILY_BAR_INDEX_0_BASED",
-  "episode": {"start": "FIRST_ELIGIBLE_DAY_WHEN_INACTIVE", "anchor": "OPENING_DAY_LOW", "end": "LATER_CLOSE_STRICTLY_BELOW_ANCHOR_LOW", "confirmation": "FIRST_LATER_DATE_WITH_B_ELIGIBILITY"},
+  "anchor_rules": {
+    "tag_order": ["BREAKOUT", "REVERSAL", "VIOLENT", "FUNDING_ACTIVITY"],
+    "breakout": {
+      "source": "PFT-F-F05 L29-31",
+      "drive_id": "1UEGWpThrLl1ehc9qFAteV2-MlmsGIkvA",
+      "sha256": "5e301260209565d65a37188f6b1fbdedf2c197e83ac47b3b8292e43477bead23",
+      "predicate": "C>MAX(H[D-20:D-1]) AND V>0.8*V[D-1] AND PC>4",
+      "first_only": "P(D) TRUE AND seven prior P flags individually evaluable and FALSE"
+    },
+    "reversal": {
+      "source": "ACT074A1_EVENT_LIFECYCLE_CONTRACT_V1 root_keyk_rule ROOT_KEYK_DONLY_V1 (mechanical upward reversal proxy)",
+      "drive_id": "1f2xH34pZ38u8C_k9P5XNuPZj0U75J0QP",
+      "sha256": "b92061652509bab276783b898fedd1ae4c9a1bcf6ea0cd7db4814d21e077f939",
+      "predicate": "PC>3 AND C>MA24_D AND C[D-1]<=MA24[D-1] AND V>1.2*MEAN(V[D-5:D-1])"
+    },
+    "violent_and_funding": {
+      "source": "score_zge_clean_scheme_v1_9.py:105-120,158-160",
+      "sha256": "66a689859e35588b50d55d95896b77aad0047140f5dec4f10c2f5b28e91ffcd5",
+      "violent": "PC>=4 AND C>O AND (V/V[D-1]>=1.5 OR V/MA5(V through D)>=1.5)",
+      "funding": "VIOLENT OR (V/V[D-1]>=1.7 AND C>=O AND C>=BBI)",
+      "bbi": "(MA3(C)+MA6(C)+MA12(C)+MA24(C))/4",
+      "ma_min_periods": 1
+    }
+  },
+  "episode": {
+    "start": "EVERY_DISTINCT_CAUSAL_KEY_K_DATE",
+    "anchor": "KEY_K_DAY_LOW",
+    "end": "FIRST_LATER_CLOSE_STRICTLY_BELOW_ANCHOR_LOW_OR_OBSERVED_GAP_TO_LAST_MAINTENANCE_GT_LIMIT_OR_NEXT_KEY_K",
+    "maintenance": "POSITIVE_OHLC AND C>=ANCHOR_LOW AND POSITIVE_W_Y AND ((W>=Y AND C>=Y) OR (ABS(W-Y)/ATR<=GLUE_ATR_MAX AND C>=W))",
+    "maintenance_gap_limit_sessions": 60,
+    "glue_atr_max": 1.5,
+    "candidate_age_min_sessions": 0,
+    "candidate_age_limit_exclusive_sessions": 30,
+    "candidate_age_reference": {
+      "drive_id": "1TakbPuppR4c3jwxi_0nS4afTQayxR15TvXaErW68VZE",
+      "text_export_sha256": "802fc45d50a5bb512a57cbc207105d85668da061b48c2259c7bb747ac94c3b5a"
+    },
+    "confirmation": "FIRST_LATER_CANDIDATE_DATE_WITH_B_ELIGIBILITY"
+  },
   "splits": {
     "val_start": "2024-01-01",
     "oot_start": "2025-01-01",
