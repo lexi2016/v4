@@ -1,0 +1,53 @@
+{
+  "schema": "ACT081_P2_DYNAMIC_ANOMALY_B1_V1",
+  "root": {
+    "age_min": 3,
+    "age_max": 45,
+    "volume_base_sessions": 20,
+    "single_return_min": 0.04,
+    "single_volume_ratio": 2.0,
+    "stack_sessions": 3,
+    "stack_volume_ratio": 1.5,
+    "gentle_sessions": 10,
+    "gentle_red_green_min": 1.25
+  },
+  "distribution": {
+    "high_position": 0.8,
+    "volume_ratio": 2.0,
+    "upper_wick_share": 0.5,
+    "heavy_bear_body_atr": 1.0,
+    "pullback_bear_peak_ratio": 0.75,
+    "pullback_bear_body_atr": 0.8,
+    "false_breakout_sessions": 5
+  },
+  "structure": {
+    "leg_sessions": 5,
+    "lower_shift_atr": 0.5,
+    "higher_low_max_high_drop_atr": 1.0,
+    "platform_max_span_atr": 3.0,
+    "fresh_cross_max_y_drop_atr": 0.1
+  },
+  "balance": {
+    "range_base_sessions": 10,
+    "range_relative_ceiling": 0.85,
+    "range_atr_ceiling": 1.2,
+    "body_atr_ceiling": 0.6,
+    "close_jump_atr_ceiling": 1.2,
+    "line_distance_atr": 0.8,
+    "anchor_distance_atr": 1.0
+  },
+  "strict": {
+    "red_green_min": 1.5,
+    "position_rule": "P1_LOW_FIRST_WAVE_60D_AT_MOST_35_PERCENT"
+  },
+  "evaluation": {
+    "core": "ONE_P1B_SECURITY_COOLDOWN_AND_FIRST_PER_LIVE_MOTHER",
+    "strict": "SAME_D_SUBSET_OF_CORE_FIRST_WITHOUT_REFILL",
+    "split": "P1B_MOTHER_ORIGIN_PLUS_PURGE_EMBARGO",
+    "case_match": "SEVEN_EXACT_DATES_NO_NEARBY_REFILL",
+    "exclusion": "P1_INCLUSIVE_10_OBSERVED_SESSIONS_OR_20_VS_10_HOLD_OVERLAP",
+    "nonoverlap": "P1_SAME_STOCK_GREEDY_D_PLUS_1_TO_D_PLUS_20",
+    "top3": "COMMON_CORE_MATURE_T5_NET_SUM_DESCENDING_SECURITY_ID_ASCENDING",
+    "leave_one_out": "ALL_40_STOCKS_WORST_T5_NET_MEAN_SEPARATELY"
+  }
+}
