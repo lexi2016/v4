@@ -150,12 +150,18 @@ def stage_g4(root, day, runtime, ref, raw):
 
 
 def capture_source(root, day, kind, runtime, deadline, *, clock=today, opener=None):
-    """Same original URL, archive limits and guards with Dot's 16:50 window."""
+    """Capture official bytes in a scheduled slot, or the true session during backfill."""
     source = runtime.sources
-    start = clock().astimezone(BJT)
-    _, allowed_until = admit_slot("close", start)
-    require(parse_day(day) == start.date() and deadline == allowed_until, "SOURCE_CAPTURE_CLOCK")
     require(kind in source.LIMIT, "SOURCE_KIND")
+    start = clock()
+    require(start.utcoffset() is not None, "CLOCK_WITHOUT_OFFSET")
+    start = start.astimezone(BJT)
+    require(parse_day(day) == start.date(), "SOURCE_CAPTURE_CLOCK")
+    if deadline is None:
+        source.admit_clock(start.isoformat(), day, kind)
+    else:
+        _, allowed_until = admit_slot("close", start)
+        require(deadline == allowed_until, "SOURCE_CAPTURE_CLOCK")
     url = source.RAWSOURCE.format(date=day) if kind == "G4" else source.GBBQ
     open_url = opener or urllib.request.build_opener(source.NoRedirect()).open
     query = urllib.request.Request(url, headers={"Accept-Encoding": "identity"})
@@ -163,8 +169,11 @@ def capture_source(root, day, kind, runtime, deadline, *, clock=today, opener=No
         with open_url(query, timeout=20) as response:
             require(response.geturl() == url and response.status == 200, kind + "_HTTP_IDENTITY")
             raw = response.read(source.LIMIT[kind] + 1)
-            observed = clock().astimezone(BJT)
-            require(start <= observed < deadline, kind + "_OBSERVED_SLOT")
+            observed = clock()
+            require(observed.utcoffset() is not None, "CLOCK_WITHOUT_OFFSET")
+            observed = observed.astimezone(BJT)
+            require(start <= observed and observed.date() == start.date()
+                    and (deadline is None or observed < deadline), kind + "_OBSERVED_SLOT")
             modified = response.headers.get("Last-Modified")
     except (urllib.error.URLError, TimeoutError):
         raise ValueError("WAITING_INPUT_" + kind) from None
@@ -181,3 +190,45 @@ def capture_source(root, day, kind, runtime, deadline, *, clock=today, opener=No
 
 def capture_g4(root, day, runtime, deadline, *, clock=today, opener=None):
     return capture_source(root, day, "G4", runtime, deadline, clock=clock, opener=opener)
+
+
+def backfill_source(cache, stage, root, day, kind, runtime, clock):
+    """Reuse a verified original observation or capture a new one on the actual day."""
+    source = runtime.sources
+    cache_receipt = cache / f"{kind}_RECEIPT.json"
+    key = {"G4": "g4", "RIGHTS": "gbbq"}[kind]
+    staged_receipt = stage / "SAME_DAY_SOURCE_RECEIPT.json"
+    now = clock()
+    require(now.utcoffset() is not None, "CLOCK_WITHOUT_OFFSET")
+    same_day = now.astimezone(BJT).date() == parse_day(day)
+    if cache_receipt.exists() or cache_receipt.is_symlink():
+        ref_path = cache_receipt
+    elif staged_receipt.exists() or staged_receipt.is_symlink():
+        ref_path = staged_receipt
+    else:
+        ref_path = None
+    if ref_path is not None:
+        require(ref_path.resolve() == ref_path and ref_path.is_file()
+                and ref_path.stat().st_size <= 16384, kind + "_BACKFILL_RECEIPT_PATH")
+        receipt = json.loads(ref_path.read_bytes())
+        require(receipt.get("business_date") == day, kind + "_BACKFILL_RECEIPT_DATE")
+        ref = receipt.get(key)
+        if ref_path == staged_receipt and same_day and key not in receipt:
+            ref_path = None
+    if ref_path is None:
+        require(same_day, "WAITING_INPUT_" + kind)
+        ref = capture_source(cache, day, kind, runtime, None, clock=clock)
+        raw = source.read_pin(cache, ref, kind)
+    else:
+        require(isinstance(ref, dict), "WAITING_INPUT_" + kind)
+        observed = source.admit_clock(ref.get("observed_at"), day, kind)
+        require(observed <= now, kind + "_FUTURE_OBSERVATION")
+        if kind == "RIGHTS":
+            require(ref.get("rights_snapshot_finality") == "OBSERVED_NOT_FINAL", "RIGHTS_BACKFILL_FINALITY")
+        source.inspect(ref_path.parent, day, kind, ref)
+        raw = source.read_pin(ref_path.parent, ref, kind)
+    if ref_path == staged_receipt:
+        ref = stage_observation(cache, day, kind, runtime, ref, raw)
+    if ref_path != cache_receipt:
+        source.immutable(cache, cache_receipt.name, source.json_bytes({"business_date": day, key: ref}))
+    return stage_observation(root, day, kind, runtime, ref, raw)

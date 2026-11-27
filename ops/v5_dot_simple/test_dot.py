@@ -11,8 +11,9 @@ import os
 import shutil
 import zipfile
 
-from dot_connector import PARENT, ROLES, action, check_listing, exact_query, object_name, save_plan
-from dot_run import build_prior, initialize, open_live_board, scheduled, validate_stock_member
+from dot_connector import PARENT, ROLES, action, check_listing, exact_query, load_plan, object_name, save_plan
+from dot_run import (backfill, build_prior, evening_batch, guard_publication, initialize, open_live_board,
+                     scheduled, validate_stock_member)
 from dot_runtime import BJT, CONFIG, admit_slot, capture_g4, capture_source, load_runtime, market_day
 from dot_state import FLAGS, Board, artifact, digest, json_bytes, read_pin, writer_lock
 
@@ -99,6 +100,225 @@ class RuntimeTests(TestCase):
         for value in ("16:45", "16:55", "17:00"):
             with self.subTest(value=value), self.assertRaisesRegex(ValueError, "OUTSIDE_DOT_CLOSE"):
                 admit_slot("close", at_bjt("2026-11-30T" + value))
+
+    def test_backfill_off_slot_capture_preserves_actual_clock_and_rejects_midnight_rollover(self):
+        day = "20261127"
+        pin = CONFIG["canary"][day]
+        raw = read_pin(INTAKE, pin)
+
+        class Response(io.BytesIO):
+            status = 200
+            headers = {"Last-Modified": pin["last_modified"]}
+
+            def geturl(self):
+                return pin["url"]
+
+        with temp() as output:
+            root = Path(output)
+            start, end = at_bjt("2026-11-27T22:01"), at_bjt("2026-11-27T22:02")
+            ref = capture_g4(root, day, self.runtime, None, clock=mock.Mock(side_effect=[start, end]),
+                             opener=mock.Mock(return_value=Response(raw)))
+            self.assertEqual(ref["observed_at"], end.isoformat())
+            self.assertEqual(ref["sha256"], pin["sha256"])
+            with self.assertRaisesRegex(ValueError, "G4_OBSERVED_SLOT"):
+                capture_g4(root, day, self.runtime, None,
+                           clock=mock.Mock(side_effect=[start, at_bjt("2026-11-28T00:00")]),
+                           opener=mock.Mock(return_value=Response(raw)))
+
+    def test_backfill_needs_historical_sources_and_preserves_board_timeline(self):
+        with temp() as output, mock.patch("dot_run.load_runtime", return_value=self.runtime), \
+             mock.patch("dot_runtime.capture_source") as fetch:
+            base = Path(output)
+            intake, state = base / "intake", base / "state"
+            intake.mkdir()
+            state.mkdir()
+            original = CONFIG["original_board"]["path"]
+            os.link(INTAKE / original, intake / original)
+            initialize(intake, state)
+            clock = lambda: at_bjt("2026-11-30T00:01")
+            for day, reason in (("20261201", "BACKFILL_FUTURE_DATE"), ("20261128", "CLOSED_SESSION")):
+                with self.subTest(day=day):
+                    result = backfill(intake, state, day, clock=clock)
+                    self.assertEqual(result["status"], "BLOCKED")
+                    self.assertIn(reason, result["reason"])
+                    self.assertTrue(result["backfill"])
+                    self.assertFalse(result["natural_verified"])
+            missing = backfill(intake, state, "20261127", clock=clock)
+            self.assertEqual((missing["status"], missing["reason"]), ("WAITING_INPUT", "WAITING_INPUT_G4"))
+            self.assertEqual(missing["current"]["data_date"], "20261126")
+            self.assertEqual(missing["current"]["attempted_date"], "20261127")
+            self.assertFalse((state / "plans").exists())
+            open_live_board(state).fail("20261130", "NEWER_ATTEMPT_MISSING")
+            pointer = (state / "CURRENT.json").read_bytes()
+            again = backfill(intake, state, "20261127", clock=clock)
+            self.assertEqual(again["reason"], "WAITING_INPUT_G4")
+            self.assertEqual(again["current"]["attempted_date"], "20261130")
+            older = backfill(intake, state, "20261125", clock=clock)
+            self.assertEqual(older["reason"], "BOARD_STALE_DATE_REGRESSION")
+            self.assertEqual((state / "CURRENT.json").read_bytes(), pointer)
+            fetch.assert_not_called()
+
+    def test_backfill_cross_midnight_never_substitutes_rolling_rights(self):
+        day = "20261127"
+        with temp() as output, mock.patch("dot_run.load_runtime", return_value=self.runtime), \
+             mock.patch("dot_runtime.capture_source") as fetch:
+            base = Path(output)
+            intake, state = base / "intake", base / "state"
+            stage = intake / "stage" / day
+            stage.mkdir(parents=True)
+            state.mkdir()
+            original = CONFIG["original_board"]["path"]
+            os.link(INTAKE / original, intake / original)
+            g4 = CONFIG["canary"][day]
+            os.link(INTAKE / g4["path"], stage / g4["path"])
+            receipt = {"business_date": day, "g4": g4}
+            json_file(stage, "SAME_DAY_SOURCE_RECEIPT.json", receipt)
+            initialize(intake, state)
+            clock = lambda: at_bjt("2026-11-28T00:01")
+            result = backfill(intake, state, day, clock=clock)
+            self.assertEqual((result["status"], result["reason"]), ("WAITING_INPUT", "WAITING_INPUT_RIGHTS"))
+            self.assertEqual(result["close"]["top200"]["source_sha256"], g4["sha256"])
+            self.assertEqual(result["pending_connector_nodes"], ["a-top200"])
+            self.assertEqual(result["evening"]["status"], "NOT_RUN")
+            rights = zip_bytes({"gbbq": (1).to_bytes(4, "little") + b"x" * 29})
+            (stage / "rights.zip").write_bytes(rights)
+            receipt["gbbq"] = {"path": "rights.zip", "bytes": len(rights), "sha256": digest(rights),
+                               "url": self.runtime.sources.GBBQ, "http_status": 200,
+                               "observed_at": "2026-11-28T00:00:40+08:00",
+                               "rights_snapshot_finality": "OBSERVED_NOT_FINAL"}
+            json_file(stage, "SAME_DAY_SOURCE_RECEIPT.json", receipt)
+            mismatch = backfill(intake, state, day, clock=clock)
+            self.assertEqual(mismatch["reason"], "RIGHTS_OBSERVED_SLOT")
+            self.assertEqual(mismatch["plan_sha256"], result["plan_sha256"])
+            self.assertFalse((state / "backfill" / day / "RIGHTS_RECEIPT.json").exists())
+            fetch.assert_not_called()
+
+    def test_backfill_full_fixture_runs_frozen_close_then_evening_and_guards_exact_plan(self):
+        day, previous = "20261126", "20261125"
+        runtime = self.runtime
+        archive = runtime.driveio.manifested(read_pin(INTAKE, CONFIG["accepted_close"]))
+        rows = json.loads(gzip.decompress(archive["PAR_LEDGER.json.gz"]))
+        samples = json.loads(archive["SAMPLE_109.json"])
+        events = []
+
+        def compute_fixture(date, prior, parents, market, rights, native, work, targets, workers):
+            self.assertEqual((date, prior, targets), (day, previous, None))
+            self.assertTrue(market)
+            shards = {part: {} for part in range(1, 9)}
+            for index, row in enumerate(rows):
+                if row["status"] == "COMPUTED":
+                    part = index % 8 + 1
+                    symbol = row["symbol"]
+                    raw = stock_fixture(runtime, day, symbol, samples.get(symbol))
+                    row.update(part=part, fields=109, bytes=len(raw), sha256=digest(raw))
+                    shards[part][symbol + ".zip"] = raw
+            parts = []
+            for index, members in shards.items():
+                path = f"PAR_STATE_{index:02d}.zip"
+                raw = zip_bytes(members)
+                (work / path).write_bytes(raw)
+                parts.append({"path": path, "bytes": len(raw), "sha256": digest(raw), "symbols": len(members)})
+            return {"parts": parts, "rows": rows, "status": "COMPUTED_ISOLATED", "failed": [], "sample": samples,
+                    "counts": {"COMPUTED": 5502, "ISOLATED": 73}}
+
+        def track_close(*args):
+            events.append(args[1])
+            return original_close(*args)
+
+        def track_evening(*args, **kwargs):
+            events.append("evening-prepare")
+            return evening_batch(*args, **kwargs)
+
+        original_close = runtime.main.compute_close
+        with temp() as output, mock.patch("dot_run.load_runtime", return_value=runtime), \
+             mock.patch("dot_run.build_prior") as prior, \
+             mock.patch("dot_runtime.capture_source") as fetch, \
+             mock.patch.object(runtime.main, "parent_for", return_value=(previous, mock.Mock())), \
+             mock.patch.object(runtime.par, "native_runtime"), \
+             mock.patch.object(runtime.par, "observed_rights", return_value=(frozenset(), {0: 1, 1: 1, 2: 1})), \
+             mock.patch.object(runtime.par, "compute_scope", side_effect=compute_fixture) as compute, \
+             mock.patch.object(runtime.main, "compute_close", side_effect=track_close), \
+             mock.patch("dot_run.evening_batch", side_effect=track_evening):
+            base = Path(output)
+            intake, state, evidence = base / "intake", base / "state", base / "connector-fixture"
+            stage = intake / "stage" / day
+            stage.mkdir(parents=True)
+            previous_stage = intake / "stage" / previous
+            previous_stage.mkdir()
+            json_file(previous_stage, "REMOTE_READBACKS.json", {})
+            state.mkdir()
+            evidence.mkdir()
+            original = CONFIG["original_board"]["path"]
+            os.link(INTAKE / original, intake / original)
+            g4 = CONFIG["canary"][day]
+            os.link(INTAKE / g4["path"], stage / g4["path"])
+            rights = zip_bytes({"gbbq": (1).to_bytes(4, "little") + b"x" * 29})
+            (stage / "rights.zip").write_bytes(rights)
+            gbbq = {"path": "rights.zip", "bytes": len(rights), "sha256": digest(rights), "url": runtime.sources.GBBQ,
+                    "http_status": 200, "observed_at": "2026-11-26T22:02:00+08:00",
+                    "rights_snapshot_finality": "OBSERVED_NOT_FINAL"}
+            json_file(stage, "SAME_DAY_SOURCE_RECEIPT.json", {"business_date": day, "g4": g4, "gbbq": gbbq})
+            initialize(intake, state)
+            open_live_board(state).fail("20261127", "NEWER_ATTEMPT_MISSING")
+            now = at_bjt("2026-11-27T00:01")
+            clock = lambda: now
+            result = backfill(intake, state, day, clock=clock)
+            self.assertEqual(result["status"], "BACKFILL_READY", result)
+            self.assertEqual(events, ["a-top200", "daily-update", "evening-prepare"])
+            self.assertEqual(result["pending_connector_nodes"], events)
+            self.assertTrue(result["backfill"])
+            self.assertFalse(result["natural_verified"])
+            self.assertEqual(result["actual_bjt"], now.isoformat())
+            refs = load_plan(state, day, "daily-update")["objects"]
+            self.assertEqual({role for role in refs if role.startswith("PAR_STATE_")},
+                             {f"PAR_STATE_{part:02d}.zip" for part in range(1, 9)})
+            self.assertEqual(refs["GBBQ.zip"]["sha256"], gbbq["sha256"])
+            self.assertEqual(read_pin(state, refs["GBBQ.zip"]), rights)
+            current = open_live_board(state).current()
+            self.assertEqual(current["data_date"], day)
+            self.assertEqual(current["last_success"]["raw"], load_plan(state, day, "evening-prepare")["objects"]["BOARD.html"])
+            self.assertEqual(current["attempted_date"], "20261127")
+            self.assertEqual(current["reason"], "NEWER_ATTEMPT_MISSING")
+            self.assertTrue(current["stale"])
+            attempts = list((state / "attempts").iterdir())
+            pointer = (state / "CURRENT.json").read_bytes()
+            self.assertEqual(backfill(intake, state, day, clock=clock), result)
+            self.assertEqual(list((state / "attempts").iterdir()), attempts)
+            self.assertEqual((state / "CURRENT.json").read_bytes(), pointer)
+            self.assertEqual(events, ["a-top200", "daily-update", "evening-prepare"])
+            compute.assert_called_once()
+            prior.assert_called_once()
+            fetch.assert_not_called()
+
+            def guard(evidence_dir=None, *, allow_backfill=True, date=day):
+                return guard_publication(intake, state, date, "a-top200", evidence_dir,
+                                         allow_backfill=allow_backfill, clock=clock)
+
+            with self.assertRaisesRegex(ValueError, "GUARD_NOT_ACTUAL_BJT_DAY"):
+                guard(allow_backfill=False)
+            with self.assertRaisesRegex(ValueError, "GUARD_NOT_ACTUAL_BJT_DAY"):
+                guard(date="20261130")
+            with self.assertRaisesRegex(ValueError, "NO_PUBLISHABLE_PLAN"):
+                guard_publication(intake, state, "20261124", "a-top200", allow_backfill=True, clock=clock)
+            proof = state / "backfill" / day / "RESULT.json"
+            good = proof.read_bytes()
+            proof.unlink()
+            with self.assertRaisesRegex(ValueError, "BACKFILL_VERIFIED_PLAN_REQUIRED"):
+                guard()
+            json_file(proof.parent, proof.name, {**result, "plan_sha256": dict.fromkeys(events, "0" * 64)})
+            with self.assertRaisesRegex(ValueError, "BACKFILL_PLAN_SHA_MISMATCH"):
+                guard()
+            proof.write_bytes(good)
+            pending = guard()
+            self.assertEqual((pending["status"], pending["backfill"]), ("LIST_EXACT", True))
+            json_file(evidence, "LIST.json", listing(pending["name"], at=now - timedelta(minutes=1)))
+            json_file(evidence, "NODE_LIST.json", listing(pending["node_receipt_name"], at=now))
+            with self.assertRaisesRegex(ValueError, "CONNECTOR_LIST_NOT_FRESH"):
+                guard(evidence)
+            json_file(evidence, "LIST.json", listing(pending["name"], at=now))
+            self.assertEqual(guard(evidence)["status"], "CREATE_ONCE")
+            with self.assertRaisesRegex(ValueError, "ACK_UNKNOWN_NO_RETRY"):
+                guard(evidence)
 
     def test_1650_adapter_uses_truthful_timestamp_and_original_archive_gate(self):
         raw = read_pin(INTAKE, CONFIG["canary"]["20261127"])
@@ -385,6 +605,29 @@ class ConnectorTests(TestCase):
 
     def next_action(self, proof=False):
         return action(self.state, DAY, self.node, self.evidence if proof else None, NOW)
+
+    def test_guard_midnight_rechecks_date_and_caps_same_day_permit(self):
+        before = at_bjt("2026-11-30T23:59:57")
+        midnight = at_bjt("2026-12-01T00:00:00")
+        after = at_bjt("2026-12-01T00:00:03")
+        pending = self.next_action()
+        self.write_proofs(pending, at=before)
+        journal = self.state / "drive" / "JOURNAL.json"
+        unchanged = journal.read_bytes()
+        with self.assertRaisesRegex(ValueError, "GUARD_NOT_ACTUAL_BJT_DAY"):
+            guard_publication(INTAKE, self.state, DAY, self.node, self.evidence,
+                              clock=mock.Mock(side_effect=[before, after]))
+        self.assertEqual(journal.read_bytes(), unchanged)
+        with mock.patch("dot_run.load_runtime"), mock.patch("dot_run.market_day"), \
+             self.assertRaisesRegex(ValueError, "BACKFILL_VERIFIED_PLAN_REQUIRED"):
+            guard_publication(INTAKE, self.state, DAY, self.node, self.evidence, allow_backfill=True,
+                              clock=mock.Mock(side_effect=[before, after]))
+        self.assertEqual(journal.read_bytes(), unchanged)
+        permit = guard_publication(INTAKE, self.state, DAY, self.node, self.evidence, clock=lambda: before)
+        self.assertEqual(permit["status"], "CREATE_ONCE")
+        self.assertEqual(datetime.fromisoformat(permit["expires_at"]), midnight)
+        claim = json.loads(journal.read_bytes())["claims"][pending["name"]]
+        self.assertEqual((claim["status"], claim["claimed_at"]), ("ACK_UNKNOWN", before.isoformat()))
 
     def prove_existing(self, pending, ident):
         metadata = meta(pending, ident)

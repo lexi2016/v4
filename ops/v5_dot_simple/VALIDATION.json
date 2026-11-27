@@ -1,66 +1,48 @@
 {
-  "baseline_git_commit": "389a16ca7823ab4c79788da0118c34cab0ff2f3a",
-  "candidate_sources": {
-    "DOT_DEPLOY_README.md": "80e4ccd832f68b6fd32e87fe87b78578bf8cea42c905ff24b326be23982da45c",
-    "SZSE_2026.html": "adfcdc1c285121a58ad3a55060a7125812d542cf9fdb92058aac1b1bc99c8243",
-    "dot_connector.py": "8ba7ce1784d6e4d13bb4b9c922ecf321f9f71c159163d44f78a96fe1d4925a8c",
-    "dot_manifest.json": "d4dd57c9f676707dbeb8a8747c7a52a81d08c764cc255a0d6f97c9103ff35302",
-    "dot_run.py": "ac4a2fc43049521ff5a71e9e15129220e4ce1f979e98aba151e04e331bc458bd",
-    "dot_runtime.py": "948fa588d4c4b60a4964ed6997d0fb0cbae60b29a7dc5c71b4cf809085d1def1",
-    "dot_state.py": "d545ec9158196c6c5aa8a74e3ec9a7ee2b84f0c34abb130c987a59dba5b5ac0b",
-    "test_dot.py": "d1abc09a5fad6411a0c4fae9bb36656d7c7c3f7240b4556d6836fed0e0bafa9e"
+  "status": "REVIEWED_PASS_OFFLINE_PATCH",
+  "baseline": {
+    "file": "V5_DOT_SIMPLE_RUNTIME_20261127_a3009ba93ae9.zip",
+    "bytes": 43492,
+    "sha256": "a3009ba93ae9a3e893373ae9951e1be0f58175c4cda8413856f69bc65427a638",
+    "manifest_verified": 13,
+    "git_commit": "bf174cf016da1e2f4c2774867defeae4ee1012ac"
+  },
+  "changed_source_sha256": {
+    "DOT_DEPLOY_README.md": "d75c1b10360a8b6be07c1c5edba1dc0f07d2debda0fc508acbd0489859ba67da",
+    "dot_run.py": "0d7e443496acfa54a2bf9ab30f72c7c50421ead56570f9cda08a840db8c9bb94",
+    "dot_runtime.py": "db35a80423f8746216e9a8a44a6e23b72661a24c70f28d24ab436371f0e76273",
+    "test_dot.py": "c9ffbe475bd1b70d924fd5ec52c2c437e8627fe43a399ba1cea56b0952d77680"
   },
   "environment": {
     "platform": "Darwin",
     "python": "3.14.6"
   },
-  "preflight": {
-    "RESEARCH_ONLY": true,
-    "actual_same_day_data": "NOT_RUN",
-    "actual_same_day_par": "NOT_RUN",
-    "business_date": "20261130",
-    "buy_gate_updated": false,
-    "calendars": {
-      "2026": {
-        "closure_dates": 33,
-        "sha256": "adfcdc1c285121a58ad3a55060a7125812d542cf9fdb92058aac1b1bc99c8243",
-        "url": "https://www.szse.cn/disclosure/notice/t20251222_618087.html"
-      }
-    },
-    "dot_connector": "NOT_RUN",
-    "frozen_members": 113,
-    "frozen_vendor_members": 32,
-    "missing_required_behavior": "FAIL_CLOSED_RETAIN_PINNED_LAST_GOOD",
+  "tests": {
+    "previous_unchanged": 20,
+    "total_passed": 25,
+    "full_ordered_pipeline_and_8_par_shards": "OFFLINE_FIXTURE_PASS"
+  },
+  "d27_genuine": {
+    "clock": "SIMULATED_ASIA_SHANGHAI_AFTER_MIDNIGHT",
+    "genuine_official_sources": true,
+    "date": "20261127",
+    "top200": 200,
+    "plan_sha256_unchanged": "08f9c04e348cfb1497fc04135c43fe663110e038671a27d11d215421c20c9f84",
+    "without_allow": "GUARD_NOT_ACTUAL_BJT_DAY",
+    "with_allow": "LIST_EXACT",
+    "backfill_status": "WAITING_INPUT",
+    "blocking_reason": "WAITING_INPUT_EXACT_PREVIOUS_PAR:20261126:1bDaLDn10wTDJ_vWo0D-tFABHpNk2N9sS.zip",
+    "backfill": true,
     "natural_verified": false,
-    "orders_sent": false,
-    "previous_trade_date": "20261127",
     "production_allowed": false,
-    "publication": "NOT_RUN",
-    "schema": "V5_DOT_PREFLIGHT_V1",
-    "seed_date": "20261126",
-    "seed_sha256": "e7091b8a9fb22939e2b860988109c2c2915e045f4a0e6f905aa66f0854d7032d",
-    "slots_bjt": {
-      "close": [
-        "16:20",
-        "16:50"
-      ],
-      "evening": [
-        "18:30"
-      ]
-    },
-    "status": "PREFLIGHT_PASS"
+    "orders_sent": false,
+    "actual_remote_upload": "NOT_RUN"
   },
-  "unit_tests": {
-    "passed": 20,
-    "command": "DOT_TEST_INTAKE=<verified-intake> DOT_TEST_SCRATCH=<empty-dir> python3 -B -m unittest -v test_dot"
-  },
-  "independent_review": "REVIEWED/PASS offline package",
   "frozen_vendor_byte_identical": "32/32",
-  "frozen_release": "https://drive.google.com/file/d/1W9nexHSwYpkRgiLwn8s77k0i7BJKtWQ8/view",
-  "frozen_release_sha256": "fe9a977c62f93e53467e03c8e019d9bd4cf6434a20632280ed7ac47a52e763c0",
-  "d27_compatible_par_warm_start": "CANNOT_CONFIRM",
-  "actual_d30_g4_par_dot_connector_and_natural_acceptance": "NOT_RUN",
   "mac_launchd_loaded": false,
+  "dot_schedule_changed": false,
   "production_allowed": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "natural_verified": false,
+  "real_d27_par_and_evening": "WAITING_INPUT_EXACT_PREVIOUS_PAR"
 }
