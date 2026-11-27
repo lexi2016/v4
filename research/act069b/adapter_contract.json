@@ -1,0 +1,197 @@
+{
+  "schema": "ACT069B_PRIMITIVE_EVIDENCE_LEDGER_V1",
+  "before_execution": true,
+  "frozen_at_utc": "2026-11-27T16:46:10+00:00",
+  "RESEARCH_ONLY": true,
+  "S_FIT": 0,
+  "B_FIT": 0,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "new_thresholds": [],
+  "symbol": "002865.SZ",
+  "source_generation": "ef7f12caa2f67a4a4f26d775d99735b5a9d2845d919087a689d99df6b6322329",
+  "max_D": "2026-11-06",
+  "first_signal_D": "2017-10-19",
+  "signal_days": 344,
+  "sessions": 2316,
+  "price_basis": "QFQ_ASOF",
+  "volume_basis": "QFQ_EVENT_VOLUME",
+  "sources": {
+    "contract": {
+      "locator": "drive:1OJohljrxHoOvmEw5udIZmPPxfzGPzFvA",
+      "sha256": "3c5beebdc9ee120f452caf529b8d9e2f589a0fad50bf6dbd0e40af1ecea99bcd",
+      "local": "ACT069A_20261127/output/V4.1_STRUCTURE_IDENTITY_STATE_MACHINE_CONTRACT_V1_0.json"
+    },
+    "prior": {
+      "locator": "drive:1tg4eLqVauPlE4H75sllDoHS4rLLOHCdN",
+      "sha256": "571b8365ac0d673fa0b97f9dce17832bea1ee670c60be3795b8b46e6c92d4160",
+      "local": "ACT069A_20261127/output/ACT069A_JUNDA_002865_EVENT_CHAIN_SHADOW_DONLY_20261127.csv"
+    },
+    "bars": {
+      "locator": "local:ACT067B_20261127/evidence/common_indicators_d_only.csv",
+      "sha256": "4d886e42bb64990db759be8dc63425ddde8bf226d1bd16759b450e194c1499cb",
+      "local": "ACT067B_20261127/evidence/common_indicators_d_only.csv"
+    }
+  },
+  "authority": "No standalone ACT069R or structural source was supplied. Historical replay uses only these three pinned inputs. ACT069A contains zero source-bound structural proofs. RAW, daily bullishness, volume increase, W/Y or prior numerical shadow are never structural objects.",
+  "known_at": {
+    "typed_proof_envelope": [
+      "object_id",
+      "authority source locator",
+      "source SHA-256",
+      "occurred_date",
+      "first_knowable_date"
+    ],
+    "chronology": "All snapshot rows enforce occurred <= first_knowable <= signal_date. Each historical run receives stock-session bars in strict order and stops on the exact cutoff. The optional typed fact applies on the first stock D >= its exact first-knowable calendar date, including weekends and non-trading days. Keep the source dates unchanged. Reject future input to the current replay step, date inversions, or evidence injected after its first eligible stock session. Bar segment endpoints must exist as covered stock sessions.",
+    "retrospective_basis_caveat": "Bar dates are observation/stock-session dates under the pinned QFQ vintage. first_knowable_date on bar primitives means bar-close data availability convention, not certified historical-vintage publication. Source and official PIT stay CANNOT_CONFIRM. On missing-source rows, both dates denote evaluation boundary and never a risk/market event."
+  },
+  "ledger_fields": [
+    "signal_date",
+    "primitive_id",
+    "fact_name",
+    "fact_value",
+    "source_locator",
+    "occurred_date",
+    "first_knowable_date",
+    "gap_reason",
+    "handoff_status"
+  ],
+  "primitive_fact_names": {
+    "P1": [
+      "candle_direction",
+      "OHLCV",
+      "prior_session_ohlcv_ref",
+      "close_vs_prior_close_pct",
+      "volume_vs_prior_session_ratio",
+      "volume_direction_vs_prior",
+      "registered_key_k",
+      "registered_turning_point"
+    ],
+    "P2": [
+      "registered_support_object",
+      "close_distance_to_registered_support_price",
+      "close_distance_to_registered_support_pct",
+      "close_vs_registered_support_band",
+      "range_overlaps_registered_support",
+      "intraday_low_below_registered_support",
+      "close_reclaims_intraday_pierce",
+      "support_session_price_and_volume_change"
+    ],
+    "P3": [
+      "intraday_low_below_registered_support",
+      "intraday_down_pierce_from_open",
+      "close_below_registered_support",
+      "close_loss",
+      "reclaim",
+      "relose",
+      "anchored_invalidation"
+    ],
+    "P4": [
+      "registered_segment",
+      "chronological_candle_volume",
+      "up_candle_volume",
+      "down_candle_volume",
+      "flat_candle_volume"
+    ],
+    "P5": [
+      "stock_session_bar_observed",
+      "observation_basis_and_cutoff",
+      "official_historical_st_status",
+      "official_historical_suspension_status",
+      "historical_point_in_time_status",
+      "effective_external_risk_evidence",
+      "source_bound_structural_veto"
+    ]
+  },
+  "domains": {
+    "handoff_status": [
+      "OBSERVED_D_ONLY",
+      "REGISTERED_SOURCE",
+      "MISSING_SOURCE"
+    ],
+    "gap_reason": [
+      "",
+      "PRIOR_STOCK_SESSION_UNAVAILABLE",
+      "ZERO_COMPARISON_DENOMINATOR",
+      "KEY_K_SOURCE_UNBOUND",
+      "TURNING_POINT_SOURCE_UNBOUND",
+      "SUPPORT_OBJECT_SOURCE_UNBOUND",
+      "SUPPORT_PREDECESSOR_STATE_UNBOUND",
+      "NO_AUTHORIZED_INVALIDATION_EVIDENCE",
+      "SEGMENT_DEFINITION_SOURCE_UNBOUND",
+      "SEGMENT_BAR_COVERAGE_UNBOUND",
+      "OFFICIAL_HISTORICAL_ST_SOURCE_UNBOUND",
+      "OFFICIAL_HISTORICAL_SUSPENSION_SOURCE_UNBOUND",
+      "HISTORICAL_PIT_CANNOT_CONFIRM",
+      "EFFECTIVE_EXTERNAL_RISK_SOURCE_UNBOUND"
+    ],
+    "candle_direction": [
+      "BULLISH",
+      "BEARISH",
+      "FLAT"
+    ],
+    "volume_direction": [
+      "INCREASE",
+      "DECREASE",
+      "UNCHANGED"
+    ],
+    "day_eligibility": [
+      "FALSE",
+      "UNKNOWN"
+    ],
+    "day_eligibility_reason": [
+      "B2_D0_NON_BULLISH_NECESSARY_CONDITION",
+      "B2_FORMAL_EVIDENCE_UNBOUND"
+    ],
+    "event_chain_state": [
+      "FORMAL",
+      "WATCH",
+      "UNKNOWN",
+      "INVALIDATED"
+    ],
+    "external_value": [
+      "UNKNOWN",
+      "CANNOT_CONFIRM"
+    ],
+    "pending": [
+      "PENDING_SOURCE",
+      "SOURCE_BOUND"
+    ],
+    "support_relation": [
+      "BELOW",
+      "WITHIN",
+      "ABOVE"
+    ]
+  },
+  "registered_objects": {
+    "KEY_K_or_TURNING_POINT": "Each independently typed event has immutable ID, authoritative observed price and pinned basis, its own occurred/first-known dates and exact hashed selector. Report all visible registered events per role in ordered list; top-level dates are the maxima of occurred and first-knowable dates of the listed objects. Never infer from daily candle or RAW.",
+    "SUPPORT": "Explicit immutable object with positive ordered [lower, upper] on the same pinned basis. A level is lower=upper. P2 records L<=upper and H>=lower overlap, L<lower piercing, and same-session L<lower<=C lower-edge reclaim, plus BELOW/WITHIN/ABOVE close and signed distance to the nearest band boundary (zero within). Volume/price changes use exact prior stock session. No default tolerance.",
+    "P3": "Observe raw low/pierce/close against the frozen lower edge. Close loss/reclaim compare consecutive closes while the same anchor is visible. Relose requires ordered loss/reclaim then a later loss and points to the entire visible anchor prefix, not only the last two bars. These are geometric observations. INVALIDATED requires separately authorized source-backed ACT069A terminal evidence tied to exact anchor and chain, or an actually frozen imported authorized predicate. No inferred predicate exists in this source set.",
+    "SEGMENT": "Immutable independently registered start/end stock sessions and raw chronological O/C, C-O, volume, direction-grouped sums and close-to-prior moves strictly inside those endpoints. Prior-close/delta on the first registered segment session remain null. Require full visible stock-session span with both endpoints and use only that span in the bar locator.",
+    "P5": "Bar observed/index/basis versus no bar are objective separate fields. Official ST, suspension, and effective external risk stay UNKNOWN without source; historical PIT stays CANNOT_CONFIRM. Source-bound structural veto is possible only through fully typed/timely authorized P3 terminal evidence and retains its date/locator, otherwise UNKNOWN. B2 non-bullish day condition does not imply structural veto."
+  },
+  "day_fields": [
+    "signal_date",
+    "stock_session_index",
+    "day_eligibility_method",
+    "day_eligibility",
+    "day_eligibility_reason",
+    "candle_direction",
+    "event_chain_state_b1",
+    "event_chain_state_b2",
+    "event_chain_state_strong_continuation",
+    "event_chain_state_m25",
+    "pending_p1",
+    "pending_p2",
+    "pending_p3",
+    "pending_p4",
+    "pending_p5",
+    "external_gaps",
+    "source_locator"
+  ],
+  "day_vs_chain": "One row per D. Only B2 necessary-condition false may be derived from non-bullish OHLC and must exactly match pinned ACT069A eligibility, with 86 false (84 bearish, 2 flat) and 258 evidence-unbound UNKNOWN. All method event_chain_state fields are inherited verbatim, without promotion or extra WATCH/INVALIDATED.",
+  "acceptance": "Serialized ledger domains/date ordering, replay outputs byte-reproducible at 3 exact historical cutoffs, 344 independent ACT069A matches, and causally sourced synthetic registered support/segment/terminal fixtures. No D+ projection/atlas is opened.",
+  "ledger_value_codec": "Uppercase enums or finite decimal numbers are plain values. Boolean observations use TRUE/FALSE. Nested typed object snapshots use canonical JSON. MISSING_SOURCE uses UNKNOWN, except historical PIT uses CANNOT_CONFIRM. gap_reason and status are separate. Locator includes the source URI and SHA-256 and row/object selector; compound observations may point to multiple exact sources.",
+  "review_change": "P2 independently sourced interval including degenerate level, full provenance for P1 previous-only and P3 reloss; P4 bounded registered segment; P5 source-bound structural veto separate from UNKNOWN external authority and CANNOT_CONFIRM historic PIT. First run freeze and byte hashes retained in pre_review evidence."
+}
