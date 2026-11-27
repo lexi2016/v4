@@ -1,0 +1,30 @@
+{
+  "base_commit": "b575852bdd0ba86c7e29b4eee690290c3684d754",
+  "r20_drive_id": "1P03ngVw3Sjg6o9fD2U6HmlPw9hp3qdXP",
+  "NO_GO": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "pytest": "121 passed in 3.05s",
+  "independent_review": "PASS",
+  "scope": [
+    "opening observation status",
+    "archive target subtree and manifest file guard"
+  ],
+  "changed_files": {
+    "tests/test_v4_r20_safety_p0.py": {
+      "r20_sha256": "566cb9a048d51d085cc4536e0cf1b4000cd23379ede753738045e7d06c32aa31",
+      "r21_sha256": "ac3289036373b1f3a202c97bd659a276dfc396efbb44e84a3c953ee3a7c30c69"
+    },
+    "v4_core/api/routes_stage.py": {
+      "r20_sha256": "e5321669be249b5a5920bdf78b948827967f0e26b50d4ca4ae98f723dd111041",
+      "r21_sha256": "7028b5c8a6ad435cd56a6636eff4d74c1c05ef4d99fdb259d02755f092973815"
+    },
+    "v4_core/runner/safe_archive.py": {
+      "r20_sha256": "9d588d73eba62735cb43cc41a91ffc8ec65fe0557465837f1817cc0c38acfb1a",
+      "r21_sha256": "2ca881bf231e16cd8a222a2a4bf05f4b4da4f0591a8ae822db259f0399b134c1"
+    }
+  },
+  "isolated_patch_readback": true,
+  "production_guards": "PASS"
+}

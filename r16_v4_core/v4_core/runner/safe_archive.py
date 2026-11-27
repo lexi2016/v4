@@ -90,8 +90,10 @@ def _valid_sha256(value: object) -> bool:
     return isinstance(value, str) and len(value) == 64 and all(char in "0123456789abcdef" for char in value)
 
 
-def _runtime_inventory_matches(app_root: Path, entries: list[dict[str, Any]]) -> bool:
-    """Check the release producer's canonical file inventory under the role-bound root."""
+def _runtime_inventory_matches(
+    app_root: Path, entries: list[dict[str, Any]], directory_targets: set[str],
+) -> bool:
+    """Check the canonical inventory and record directory link targets without walking them."""
     def reraise(error: OSError) -> None:
         raise error
 
@@ -119,7 +121,14 @@ def _runtime_inventory_matches(app_root: Path, entries: list[dict[str, Any]]) ->
             info = actual[relative]
             path = app_root / relative
             if stat.S_ISLNK(info.st_mode):
-                observed = {"path": relative, "kind": "symlink", "target": os.readlink(path), "target_exists": path.exists()}
+                link = os.readlink(path)
+                try:
+                    target = path.resolve(strict=True)
+                except FileNotFoundError:
+                    target = None
+                observed = {"path": relative, "kind": "symlink", "target": link, "target_exists": target is not None}
+                if target is not None and stat.S_ISDIR(target.stat().st_mode):
+                    directory_targets.add(str(target))
             elif stat.S_ISREG(info.st_mode):
                 with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as handle:
                     if os.fstat(handle.fileno()) != info:
@@ -147,6 +156,7 @@ def _collect_manifest_records(
     dedup_map: dict[tuple[str, str, str], dict[str, Any]],
     fingerprints: dict[Path, str],
     runtime_paths: set[str],
+    directory_targets: set[str],
     level: int = 1,
     role: str = "single",
     expected_sha256: str | None = None,
@@ -186,8 +196,8 @@ def _collect_manifest_records(
             raise ManifestCoverageError(f"Invalid child manifest checksum: {manifest_json}")
         _collect_manifest_records(
             _resolve_ref_path(resolved, reference["path"]), dedup_map=dedup_map, fingerprints=fingerprints,
-            runtime_paths=runtime_paths, level=level + 1, role=child_role, expected_sha256=declared_sha,
-            expected_app_root=child_app_root,
+            runtime_paths=runtime_paths, directory_targets=directory_targets,
+            level=level + 1, role=child_role, expected_sha256=declared_sha, expected_app_root=child_app_root,
         )
 
     def inventory(items: object, *, exact: bool = False) -> int:
@@ -256,7 +266,7 @@ def _collect_manifest_records(
         if exact.get("aggregate_sha256") != sha256(inventory_bytes).hexdigest() or not inventory(entries, exact=True):
             raise ManifestCoverageError(f"Unproven startup application inventory: {manifest_json}")
         root = Path(app_root)
-        if not _runtime_inventory_matches(root, entries):
+        if not _runtime_inventory_matches(root, entries, directory_targets):
             raise ManifestCoverageError(f"Startup inventory differs from the application root: {manifest_json}")
         runtime_paths.update(str(root / entry["path"]) for entry in entries)
 
@@ -265,19 +275,26 @@ def _collect_manifest_records(
             inventory(data[field])
 
 
-def _load_inventory(manifest_json: Path) -> tuple[list[dict[str, Any]], tuple[tuple[Path, str], ...], frozenset[str]]:
+def _load_inventory(
+    manifest_json: Path,
+) -> tuple[list[dict[str, Any]], tuple[tuple[Path, str], ...], frozenset[str], frozenset[str]]:
     dedup_map: dict[tuple[str, str, str], dict[str, Any]] = {}
     fingerprints: dict[Path, str] = {}
     runtime_paths: set[str] = set()
+    directory_targets: set[str] = set()
     _collect_manifest_records(
         manifest_json, dedup_map=dedup_map, fingerprints=fingerprints, runtime_paths=runtime_paths,
+        directory_targets=directory_targets,
     )
-    return list(dedup_map.values()), tuple(sorted(fingerprints.items())), frozenset(runtime_paths)
+    return (
+        list(dedup_map.values()), tuple(sorted(fingerprints.items())),
+        frozenset(runtime_paths), frozenset(directory_targets),
+    )
 
 
 def load_manifest_records(manifest_json: Path) -> list[dict[str, Any]]:
     """Return deduplicated role-attributed file records preserving (role, app_root, path, sha256)."""
-    records, _, _ = _load_inventory(Path(manifest_json))
+    records, _, _, _ = _load_inventory(Path(manifest_json))
     return records
 
 
@@ -287,6 +304,7 @@ class _VerifiedManifestPaths(AbstractSet[str]):
     paths: frozenset[str]
     fingerprints: tuple[tuple[Path, str], ...]
     runtime_paths: frozenset[str]
+    directory_targets: frozenset[str]
 
     def __contains__(self, path: object) -> bool:
         return path in self.paths
@@ -307,15 +325,19 @@ class _VerifiedManifestPaths(AbstractSet[str]):
             observed = load_manifest_paths(self.manifest)
         except ManifestCoverageError:
             return False
-        return (self.fingerprints == observed.fingerprints and self.paths == observed.paths
-                and self.runtime_paths == observed.runtime_paths)
+        return (
+            self.fingerprints == observed.fingerprints and self.paths == observed.paths
+            and self.runtime_paths == observed.runtime_paths and self.directory_targets == observed.directory_targets
+        )
 
 
 def load_manifest_paths(manifest_json: Path) -> _VerifiedManifestPaths:
     """Read an immutable, decision-time-verifiable group -> release -> startup inventory."""
     manifest = Path(manifest_json).absolute()
-    records, fingerprints, runtime_paths = _load_inventory(manifest)
-    return _VerifiedManifestPaths(manifest, frozenset(record["path"] for record in records), fingerprints, runtime_paths)
+    records, fingerprints, runtime_paths, directory_targets = _load_inventory(manifest)
+    return _VerifiedManifestPaths(
+        manifest, frozenset(record["path"] for record in records), fingerprints, runtime_paths, directory_targets,
+    )
 
 
 def filter_safe_archive_paths(
@@ -382,21 +404,28 @@ def filter_safe_archive_paths(
                 unresolved = True
         return lexical, canonical, unresolved
 
+    active_directories = frozenset()
     if isinstance(active_manifest_paths, _VerifiedManifestPaths):
         verified = active_manifest_paths.still_verified()
-        active_inputs = active_manifest_paths.paths | active_manifest_paths.runtime_paths
+        manifest_files = {str(path) for path, _ in active_manifest_paths.fingerprints}
+        active_inputs = active_manifest_paths.paths | active_manifest_paths.runtime_paths | manifest_files
+        active_directories = frozenset(path.casefold() for path in active_manifest_paths.directory_targets)
     else:
         verified = False
         active_inputs = active_manifest_paths or set()
     active, active_real, active_unresolved = identities(active_inputs)
     dirty, dirty_real, dirty_unresolved = identities(dirty_git_paths or set())
+
+    def active_subtree(path: str) -> bool:
+        return any(_beneath(path.casefold(), directory) for directory in active_directories)
+
     unresolved_guard = not verified or not active or unresolved_protection or active_unresolved or dirty_unresolved
     tracked = {absolute(_normalize_rel_path(p)) for p in git_tracked_paths}
     safe, skipped_active, skipped_missing, skipped_dirty, skipped_evidence = [], [], [], [], []
     for p in candidate_paths:
         np = _normalize_rel_path(p)
         base = absolute(np)
-        if base.casefold() in active:
+        if base.casefold() in active or active_subtree(base):
             skipped_active.append(p)
         elif base.casefold() in dirty:
             skipped_dirty.append(p)
@@ -405,7 +434,7 @@ def filter_safe_archive_paths(
             skipped_evidence.append(p)
         else:
             target = real(np)
-            if target and (target.casefold() in active_real or target.casefold() in active):
+            if target and (target.casefold() in active_real or target.casefold() in active or active_subtree(target)):
                 skipped_active.append(p)
             elif target and (target.casefold() in dirty_real or target.casefold() in dirty):
                 skipped_dirty.append(p)

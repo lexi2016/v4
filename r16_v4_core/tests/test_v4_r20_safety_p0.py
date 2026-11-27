@@ -144,6 +144,30 @@ def test_stage_partial_outside_first_page_and_unverified_payload_cannot_promote(
     assert row["readback_provenance"]["stored_execution_ref"] == ref
 
 
+def test_opening_observation_aggregates_only_requested_rows_like_stage_workbench(tmp_path):
+    app = create_app(V4Config.from_env(tmp_path))
+    common = {"trade_date": "2026-11-26", "stage": "STAGE_0930_0935", "market": "A"}
+    app.state.store.upsert_stage_selections([
+        {**common, "symbol": "000001.SZ", "status": "PARTIAL", "payload": {"natural_verified": True}},
+    ])
+    endpoint = "/api/v4/research/opening-observation"
+    params = {"date": "20261126"}
+    with TestClient(app) as client:
+        workbench = client.get("/api/v4/workbench/stage", params=params).json()
+        single = client.get(endpoint, params={**params, "symbol": "000001.SZ"}).json()
+        app.state.store.upsert_stage_selections([{**common, "symbol": "000002.SZ", "status": "READY"}])
+        mixed = client.get(endpoint, params=params).json()
+        unverified = client.get(endpoint, params={**params, "symbol": "000002.SZ"}).json()
+        missing = client.get(endpoint, params={**params, "symbol": "000003.SZ"}).json()
+
+    assert single["status"] == workbench["status"] == single["rows"][0]["status"] == "PARTIAL"
+    assert single["rows"] == workbench["rows"] and len(single["rows"]) == 1
+    assert mixed["status"] == "PARTIAL" and len(mixed["rows"]) == 2
+    assert unverified["status"] == "OBSERVATION_UNVERIFIED"
+    assert missing["status"] == "CANNOT_CONFIRM" and missing["rows"] == []
+    assert all(body["natural_verified"] is False for body in (single, mixed, unverified, missing))
+
+
 def _complete_archive_group(tmp_path):
     roles = {}
     for role in ("api", "main", "stage"):
@@ -314,3 +338,44 @@ def test_archive_protects_verified_runtime_paths_and_respects_owned_cache_rule(t
     result = filter_safe_archive_paths(candidates, set(candidates), active, repo_root=tmp_path)
     assert result["safe_to_archive"] == ["candidate.py"]
     assert result["skipped_active_manifest"] == ["api-app/api-live.py"]
+
+
+def test_archive_protects_directory_symlink_target_and_descendants(tmp_path):
+    group = _complete_archive_group(tmp_path)
+    shared = tmp_path / "shared"
+    (shared / "nested").mkdir(parents=True)
+    (shared / "nested" / "module.py").write_text("in use through the active app")
+    (tmp_path / "api-app" / "lib").symlink_to("../shared", target_is_directory=True)
+    startup = tmp_path / "api-startup.json"
+    data = json.loads(startup.read_text())
+    inv = data["application_inventory"]
+    inv["entries"].append({"path": "lib", "kind": "symlink", "target": "../shared", "target_exists": True})
+    inv["entry_count"] = len(inv["entries"])
+    raw = json.dumps(inv["entries"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    inv["aggregate_sha256"] = sha256(raw).hexdigest()
+    startup.write_text(json.dumps(data))
+    sibling = tmp_path / "shared-other"
+    sibling.mkdir()
+    (sibling / "module.py").write_text("unrelated")
+    candidates = ["shared/nested/module.py", "api-app/lib/nested/module.py", "shared-other/module.py"]
+
+    result = filter_safe_archive_paths(candidates, set(candidates), load_manifest_paths(group), repo_root=tmp_path)
+
+    assert result["safe_to_archive"] == ["shared-other/module.py"]
+    assert result["skipped_active_manifest"] == candidates[:2]
+
+
+def test_archive_protects_real_files_of_verified_group_release_and_startup_manifests(tmp_path):
+    group = _complete_archive_group(tmp_path)
+    # Names bypass the generic "manifest" keyword and are outside every application root.
+    group_alias = tmp_path / "entry.json"
+    group_alias.symlink_to(group.name)
+    (tmp_path / "candidate.py").write_text("unrelated")
+    protected = [group.name, "api.json", "api-startup.json", "main.json", "main-startup.json",
+                 "stage.json", "stage-startup.json"]
+    candidates = [*protected, "candidate.py"]
+
+    result = filter_safe_archive_paths(candidates, set(candidates), load_manifest_paths(group_alias), repo_root=tmp_path)
+
+    assert result["safe_to_archive"] == ["candidate.py"]
+    assert result["skipped_active_manifest"] == protected

@@ -64,6 +64,12 @@ def _stage_readback_status(row: dict[str, Any]) -> tuple[str, str]:
     return status, "PARTIAL" if source_partial else "CANNOT_CONFIRM"
 
 
+def _stage_aggregate_status(row_count: int, has_partial: bool) -> str:
+    if has_partial:
+        return "PARTIAL"
+    return "OBSERVATION_UNVERIFIED" if row_count else "CANNOT_CONFIRM"
+
+
 def _enrich_stage_row(store: V4Store, trade_date: str, stage_id: str, row: dict[str, Any]) -> dict[str, Any]:
     raw_sym = str(row["symbol"])
     canon = normalize_symbol(raw_sym) or raw_sym
@@ -153,7 +159,7 @@ def _build_stage_payload(
         has_partial = lane in partial_lanes
         lane_total = totals[lane]
         mode = "OBSERVATION_UNVERIFIED" if lane_total else "CANNOT_CONFIRM"
-        state = "PARTIAL" if has_partial else mode
+        state = _stage_aggregate_status(lane_total, has_partial)
         summary = {
             "market": alias,
             "status": state,
@@ -180,9 +186,7 @@ def _build_stage_payload(
             "source_evidence": sorted({row["execution_ref"] for row in lane_rows if row["execution_ref"]}),
             "cannot_confirm": ["OWNER_SELECTION_MANIFEST_RECEIPT_UNVERIFIED"],
         }
-    overall_status = "OBSERVATION_UNVERIFIED" if rows else "CANNOT_CONFIRM"
-    if partial_lanes:
-        overall_status = "PARTIAL"
+    overall_status = _stage_aggregate_status(len(rows), bool(partial_lanes))
     return {
         "schema_version": "v4.stage_workbench.v1",
         "trade_date": trade_date,
@@ -490,7 +494,8 @@ def build_stage_router(store: V4Store) -> APIRouter:
             "date": target_date,
             "candidate_source_date": candidate_source_date,
             "symbol": normalize_symbol(symbol) if symbol else None,
-            "status": "READY" if enriched else "EMPTY",
+            "status": _stage_aggregate_status(len(enriched), any(row["status"] == "PARTIAL" for row in enriched)),
+            "natural_verified": False,
             "rows": enriched,
         }
 
