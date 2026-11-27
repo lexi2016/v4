@@ -1,0 +1,705 @@
+{
+  "schema": "V4.1_STRUCTURE_IDENTITY_STATE_MACHINE_CONTRACT_V1_0",
+  "action": "ACT-069A",
+  "frozen_at_utc": "2026-11-27T15:55:38+00:00",
+  "status": "FROZEN_BEFORE_EVALUATION",
+  "RESEARCH_ONLY": true,
+  "S_FIT": 0,
+  "B_FIT": 0,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "new_numeric_thresholds": [],
+  "cutoff": "Monotone stock sessions; an observed or known-at date after D is rejected. Facts are applied on their recorded known-at session, never retroactively. Formal D0 and earlier exports are immutable.",
+  "pinned_sources": {
+    "common_indicators_sha256": "4d886e42bb64990db759be8dc63425ddde8bf226d1bd16759b450e194c1499cb",
+    "historical_comparison_sha256": "fc9ef5ff02c4107d29ab0301255c87293e0f37d99ca575ae531a42ce1540e14b",
+    "historical_chart_index_sha256": "0bdd7b7316d40ea7952fa78ecfdd1dff6c303660aadf70dbba610f05fd161489",
+    "desk_case_identity_sha256": "64e1db8fda3cfccf7d67b22374dcb5fbf156026cbc9c42c4667ce8c337b2536d",
+    "cohort_scope": "002865.SZ original 344 signal dates; 2316 native stock sessions from listing through 2026-11-06"
+  },
+  "proof_gate": {
+    "kinds": [
+      "MOTHER_ATTACK_BUILDUP",
+      "MOTHER_FAILURE",
+      "B1_PULLBACK",
+      "B1_GENUINE_SUPPORT",
+      "B1_SUPPLY_DIGESTED",
+      "B1_CONFIRM",
+      "B2_BASE_CONFIRMED",
+      "B2_SUPPLY_DIGESTED",
+      "B2_D0",
+      "B2_BULLISH_LAUNCH",
+      "B2_ACTUAL_DEPARTURE",
+      "B2_DOWNTREND_REBOUND",
+      "B2_NEXT_SESSION_FALSE_BREAK",
+      "B2_RETEST_CONFIRMED",
+      "STRONG_CONTINUATION_CONFIRMED",
+      "STRONG_CONTINUATION_SUPPORT_FAILURE",
+      "M25_DAMAGE",
+      "M25_TEST",
+      "M25_CONFIRM_C",
+      "M25_ORIGINAL_ROOT_RECLAIMED",
+      "M25_PRIOR_STRUCTURE_RECLAIMED",
+      "M25_INDEPENDENT_RISK_CLEAR",
+      "M25_NEW_DAMAGE",
+      "M25_DRAWDOWN_REPORTING"
+    ],
+    "boolean_or_missing": [
+      "TRUE",
+      "FALSE",
+      "UNKNOWN"
+    ],
+    "new_historical_authoritative_proofs_bound": false,
+    "accepted_proof": "Explicit registered source_id and exact SHA-256, unique fact_id, target identity, observed date and immutable known date. Historical market/RAW/proxy/desk inputs do not have this authority. Synthetic sources in unit tests exercise transitions separately.",
+    "chronology": "All transitions use only ordered evidence observed by D. A later/superseding mother or repair cannot rewrite identity or revive a failed chain. Within one day establish prerequisite facts before evidence-specific event decisions; explicit invalidation precedes same-day formal promotion.",
+    "dispatch": "Evaluate all independent same-known-day candidate IDs before choosing representative fields. Aggregate every triggering method and identify each event/proof with observed date and decision/known date. An incumbent WATCH cannot hide another ID that triggers."
+  },
+  "distributions": {
+    "path_states": [
+      "FORMAL",
+      "WATCH",
+      "UNKNOWN",
+      "INVALIDATED"
+    ],
+    "formal_trigger_tri": [
+      "TRUE",
+      "FALSE",
+      "UNKNOWN"
+    ],
+    "status_semantics": {
+      "FORMAL": "all identity-specific causally sourced prerequisites and no terminal failure",
+      "WATCH": "source-confirmed chain plus explicitly incomplete or pending prerequisite",
+      "UNKNOWN": "source evidence insufficient; absence of proof is not affirmative evidence",
+      "INVALIDATED": "explicit sourced sticky chain failure, or sourced next-session B2 false break for future derivation only"
+    }
+  },
+  "raw": {
+    "b1_F02": "BBI>W AND W>Y AND J<=13",
+    "b2_oral": "UNKNOWN; original course proof not recovered",
+    "b2_1006": "PCT_D>=4 AND J_D<55",
+    "b2_151": "V_D>1.20*V_D_MINUS_1",
+    "b2_F03": "ANY(J<13 at D-2,D-1,D) AND V_D>1.25*MEAN(V_D_MINUS_4..V_D_MINUS_1) AND PCT_D>4 AND J_D<70 AND W_D>Y_D",
+    "b2_trend": "UNKNOWN_PLACEHOLDER",
+    "independence": "RAW predicates have no union; literal thresholds are inherited unchanged. F02 is B1 RAW and cannot substitute for a B2 track or parent."
+  },
+  "b1": {
+    "mother": "Explicit sourced jointly bullish attack and buildup on observed bullish C>O bar; immutable mother event ID, mother event date, support ID, fail level and originating source. S1_RAW, low J, non-bullish geometry and provisional ACT067D numeric proxies never create a mother.",
+    "formal": "Within the same living mother, independently confirmed post-parent pullback, genuine support and supply digestion, plus a separately sourced B1_CONFIRM on the observed D. Missing prerequisite is UNKNOWN; explicit false is WATCH or ineligible. No time expiry; a chain may persist beyond day 16.",
+    "terminal": "Explicit MOTHER_FAILURE sets the earliest known invalidation and source forever for that mother; later support/recovery on old ID stays invalidated. A new chain requires separately sourced fresh mother ID. Price comparison alone does not establish effective break."
+  },
+  "b2": {
+    "raw_tracks": [
+      "B2_ORAL_CORE",
+      "B2_1006_SCREEN",
+      "B2_151_PREV_VOL_X1_20",
+      "USER_FORMULA_B2_F03",
+      "B2_TREND_CONFIRMATION"
+    ],
+    "D0": "Independently sourced candidate ID bound to its own stable base ID. Independent pullback/base and supply-digestion observed strictly before D0, plus sourced true bullish launch and actual departure on D0 and actual C>O. No B1 Formal or attack/buildup mother prerequisite; a mother may be supplied as an optional lineage reference. A failed explicitly linked mother blocks promotion/derivation of that linked launch. Sourced downtrend rebound or observed C<=O fails. With no sourced candidate the day gets only a market shape observation and UNKNOWN or necessary-condition FALSE, never a D0 event.",
+    "sticky": "Original D0 state sealed at its first decision. A sourced false breakout on the very next observed stock session blocks derived retests only from its known date onward. Original D0 remains unchanged even when break sourced later. A retest needs its own proof, a sealed positive earlier D0, no failure of any explicitly linked mother and no then-known false break."
+  },
+  "continuation": {
+    "path": "STRONG_CONTINUATION distinct from B1/B2. Confirmed continuation binds a unique continuation ID to the source-bound context mother. Independently sourced continuation-support failure downgrades only that continuation and preserves separate routes. An invalidated mother cannot supply another formal continuation. Failing continuation never auto-becomes B1. B3 is HYPOTHESIS_ONLY; 5-day line is example only."
+  },
+  "m25": {
+    "repair": "Separate immutable repair ID, original mother/root once valid before the first documented damage in its lineage, original support/fail level, lost structure ID, damage D and optional prior repair ID. A fresh linked repair with distinct D/T/C can refer to the same historically valid original root, preserving the prior episode and original failure provenance even if no longer live. This does not reactivate any old chain. Source-bound damage preserves its own identity even when root evidence is unavailable; missing root cannot qualify.",
+    "order": "D_DAMAGE<T_YELLOW_TEST<C_REBUILD_CONFIRM strictly by observed stock dates. T and C target same repair ID. Distinct newer sourced D after T invalidates the old repair and is independently tracked. Before T, explicit invalidation or unproved outcomes do not overwrite identity.",
+    "C": "C requires recovery of original root AND prior lost structure using explicitly matching identities, plus independent risk-clearance proof. Known not-reclaimed is WATCH; unbound risk/root/price is UNKNOWN. If all are independently confirmed then eligible FORMAL, without resurrecting original B1 or any old repair.",
+    "drawdown": "REPORTING_ONLY. 15%–20% descriptive; no arm, filter, condition, or state transition depends on the reported drawdown.",
+    "late_completion": "A C historically lacking same-observation-day complete recovery and risk stays non-actionable even if the last proof arrives later. Record WATCH plus LATE_PROOF_NON_ACTIONABLE (without a formal trigger) when later complete. A distinct subsequently observed C on the same still-valid repair can trigger on that C only with complete known-at proof. A documented damage after observed T invalidates the repair once both proofs are known, with no backdated result."
+  },
+  "case_oracle": "case_binding.json binds 7 dates from earlier blind lock by hash. Conditional user case semantics are separate from historical observed/provisional context and from ACT-069A actual states. A03 has no frozen case assertion, A09 actual candle shape is bullish and downtrend rebound remains unbound. A12 prior recorded D proxy alone does not establish after-T damage.",
+  "chart_eligibility": "Only D on which at least one sourced method emits TRUE formal trigger after all known-at checks. No chart for RAW, observational, WATCH, UNKNOWN, invalidated or ineligible signals. If zero, ZIP root MANIFEST_SHA256.json only and PDF neutral zero selection page with no chart panels and zero post-D reads. If positive, blind left geometry is bound at D and right exact D+1..D+15 only in separate user atlas, pale gray, axes locked at <=D with exact phrase D后仅目视复盘区 / 严禁入引擎.",
+  "csv_schema": {
+    "ts_code": {
+      "type": "text",
+      "constant": "002865.SZ"
+    },
+    "date": {
+      "type": "iso_date"
+    },
+    "stock_session_index": {
+      "type": "integer"
+    },
+    "source_generation": {
+      "type": "sha256"
+    },
+    "common_indicator_sha256": {
+      "type": "sha256"
+    },
+    "historical_comparison_sha256": {
+      "type": "sha256"
+    },
+    "historical_case_binding_sha256": {
+      "type": "sha256"
+    },
+    "structure_contract_sha256": {
+      "type": "sha256"
+    },
+    "price_basis": {
+      "type": "enum",
+      "values": [
+        "QFQ_ASOF"
+      ]
+    },
+    "volume_basis": {
+      "type": "enum",
+      "values": [
+        "QFQ_EVENT_VOLUME"
+      ]
+    },
+    "historical_pit": {
+      "type": "enum",
+      "values": [
+        "CANNOT_CONFIRM"
+      ]
+    },
+    "open_D": {
+      "type": "number"
+    },
+    "high_D": {
+      "type": "number"
+    },
+    "low_D": {
+      "type": "number"
+    },
+    "close_D": {
+      "type": "number"
+    },
+    "volume_D": {
+      "type": "number"
+    },
+    "pct_D": {
+      "type": "number"
+    },
+    "W_D": {
+      "type": "number"
+    },
+    "Y_D": {
+      "type": "number"
+    },
+    "BBI_D": {
+      "type": "number"
+    },
+    "J_D": {
+      "type": "number"
+    },
+    "candle_shape_D": {
+      "type": "enum",
+      "values": [
+        "BULLISH",
+        "BEARISH",
+        "FLAT"
+      ]
+    },
+    "v40_frozen_date_present": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_b1_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_b1_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_b2_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_b2_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_m25_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_frozen_m25_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_b1_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_b1_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_b2_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_b2_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_m25_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "v40_replay_m25_qualified": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b1_f02_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_b2_1006_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_b2_151_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_b2_f03_raw": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_oral_raw": {
+      "type": "enum",
+      "values": [
+        "UNKNOWN"
+      ]
+    },
+    "b2_trend_raw": {
+      "type": "enum",
+      "values": [
+        "UNKNOWN_PLACEHOLDER"
+      ]
+    },
+    "b1_path": {
+      "type": "enum",
+      "values": [
+        "FORMAL",
+        "WATCH",
+        "UNKNOWN",
+        "INVALIDATED"
+      ]
+    },
+    "b2_path": {
+      "type": "enum",
+      "values": [
+        "FORMAL",
+        "WATCH",
+        "UNKNOWN",
+        "INVALIDATED"
+      ]
+    },
+    "strong_continuation_path": {
+      "type": "enum",
+      "values": [
+        "FORMAL",
+        "WATCH",
+        "UNKNOWN",
+        "INVALIDATED"
+      ]
+    },
+    "m25_path": {
+      "type": "enum",
+      "values": [
+        "FORMAL",
+        "WATCH",
+        "UNKNOWN",
+        "INVALIDATED"
+      ]
+    },
+    "b1_formal": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_formal_D0": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b2_formal_retest": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "strong_continuation_formal": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_formal": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "formal_chart_eligible": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b3_mapping": {
+      "type": "enum",
+      "values": [
+        "HYPOTHESIS_ONLY"
+      ]
+    },
+    "structure_proof_status": {
+      "type": "enum",
+      "values": [
+        "UNBOUND",
+        "SOURCE_BOUND"
+      ]
+    },
+    "b2_D0_observation": {
+      "type": "enum",
+      "values": [
+        "UNESTABLISHED",
+        "BULLISH_SHAPE_ONLY",
+        "NON_BULLISH",
+        "SOURCE_BOUND"
+      ]
+    },
+    "m25_history_preserved": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_damage_observed": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_test_observed": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_rebuild_observed": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_root_reclaimed": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_prior_structure_reclaimed": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "m25_independent_risk_clear": {
+      "type": "enum",
+      "values": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "desk_case_id": {
+      "type": "enum",
+      "values": [
+        "",
+        "A01",
+        "A03",
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "A12"
+      ]
+    },
+    "desk_case_transition_oracle": {
+      "type": "enum",
+      "values": [
+        "NOT_A_LOCKED_CASE",
+        "MISSING_OLD_ROOT_UNKNOWN",
+        "UNKNOWN_NOT_FROZEN_ASSERTION",
+        "FULL_RECOVERY_AND_RISK_PRECONDITIONS",
+        "WATCH_IF_RECOVERY_KNOWN_INCOMPLETE",
+        "FORMAL_FALSE_IF_DOWNTREND_REBOUND_PROVEN",
+        "INVALIDATED_IF_AFTER_TEST_DAMAGE_PROVEN"
+      ]
+    },
+    "legacy_m25_phase_context_only": {
+      "type": "enum",
+      "values": [
+        "",
+        "NO_DAMAGE",
+        "D_DAMAGE",
+        "WAIT_T",
+        "T_YELLOW_TEST",
+        "WAIT_C",
+        "C_REBUILD_CONFIRM",
+        "EXPIRED",
+        "UNKNOWN"
+      ]
+    },
+    "legacy_m25_rebuild_context_only": {
+      "type": "enum",
+      "values": [
+        "",
+        "TRUE",
+        "FALSE",
+        "UNKNOWN"
+      ]
+    },
+    "b1_mother_date": {
+      "type": "optional_iso_date"
+    },
+    "b1_failure_known_on": {
+      "type": "optional_iso_date"
+    },
+    "b2_D0_date": {
+      "type": "optional_iso_date"
+    },
+    "b2_false_break_known_on": {
+      "type": "optional_iso_date"
+    },
+    "strong_continuation_date": {
+      "type": "optional_iso_date"
+    },
+    "m25_D_date": {
+      "type": "optional_iso_date"
+    },
+    "m25_T_date": {
+      "type": "optional_iso_date"
+    },
+    "m25_C_date": {
+      "type": "optional_iso_date"
+    },
+    "legacy_m25_D_context_date": {
+      "type": "optional_iso_date"
+    },
+    "legacy_m25_T_context_date": {
+      "type": "optional_iso_date"
+    },
+    "legacy_m25_C_context_date": {
+      "type": "optional_iso_date"
+    },
+    "b1_mother_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "b1_support_id": {
+      "type": "identifier_or_empty"
+    },
+    "b1_invalidation_proof_id": {
+      "type": "identifier_or_empty"
+    },
+    "b2_D0_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "b2_mother_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "b2_retest_parent_D0_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "strong_continuation_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "strong_continuation_mother_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_chain_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_original_root_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_old_support_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_prior_lost_structure_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_previous_repair_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_invalidation_proof_id": {
+      "type": "identifier_or_empty"
+    },
+    "legacy_m25_id_context_only": {
+      "type": "identifier_or_empty"
+    },
+    "formal_chart_id": {
+      "type": "identifier_or_empty"
+    },
+    "b1_immutable_fail_level": {
+      "type": "optional_number"
+    },
+    "m25_immutable_old_fail_level": {
+      "type": "optional_number"
+    },
+    "m25_damage_drawdown_pct_reporting_only": {
+      "type": "optional_number"
+    },
+    "m25_drawdown_role": {
+      "type": "enum",
+      "values": [
+        "REPORTING_ONLY"
+      ]
+    },
+    "source_bound_proofs": {
+      "type": "proof_reference_array",
+      "item_schema": {
+        "fact_id": "identifier",
+        "kind": "proof_kind enum",
+        "known_on": "ISO date",
+        "observed_on": "ISO date",
+        "source_id": "identifier",
+        "source_sha256": "SHA-256",
+        "target_id": "identifier"
+      }
+    },
+    "formal_trigger_methods": {
+      "type": "enum_set",
+      "values": [
+        "B1",
+        "B2_D0",
+        "B2_RETEST",
+        "STRONG_CONTINUATION",
+        "M25"
+      ]
+    },
+    "b2_base_event_id": {
+      "type": "identifier_or_empty"
+    },
+    "strong_continuation_invalidation_proof_id": {
+      "type": "identifier_or_empty"
+    },
+    "strong_continuation_failure_known_on": {
+      "type": "optional_iso_date"
+    },
+    "m25_original_root_invalidation_proof_id": {
+      "type": "identifier_or_empty"
+    },
+    "m25_original_root_invalidation_known_on": {
+      "type": "optional_iso_date"
+    },
+    "m25_late_completion_status": {
+      "type": "enum",
+      "values": [
+        "NONE",
+        "LATE_PROOF_NON_ACTIONABLE"
+      ]
+    },
+    "formal_trigger_events": {
+      "type": "trigger_reference_array",
+      "item_schema": {
+        "method": "formal method enum",
+        "event_id": "identifier",
+        "proof_id": "identifier",
+        "observed_on": "ISO date",
+        "decision_on": "ISO date"
+      }
+    }
+  }
+}
