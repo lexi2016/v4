@@ -1,0 +1,242 @@
+{
+  "schema": "V4.1_SEMANTIC_SHADOW_CONTRACT_V1_1",
+  "action": "ACT-067D",
+  "frozen_date": "2026-11-27",
+  "purpose": "Research operationalization of public case semantics pending recovery of authentic course definitions",
+  "RESEARCH_ONLY": true,
+  "S_FIT": 0,
+  "B_FIT": 0,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "time_units": "stock trading-session index; all windows include only explicitly named offsets",
+  "prior_contract_sha256": "afa3e462c9a723c6f6b8badae8f5a349474b5926939eb03fc62bddb3e31b9648",
+  "source_scope": "ACT-067B verified common indicators, full same-market listing-origin OHLCV through 2026-11-06; original three-layer 344 dates; frozen native same-input V4.0 replay; archived 342-date overlap tracked separately",
+  "statuses": {
+    "tristate": [
+      "TRUE",
+      "FALSE",
+      "UNKNOWN"
+    ],
+    "b1_lifecycle": [
+      "NO_ACTIVE_ANCHOR",
+      "RAW_ONLY",
+      "WAIT_PULLBACK",
+      "IN_PULLBACK",
+      "SUPPORT_CONFIRMED",
+      "FORMAL_B1_SHADOW",
+      "INVALIDATED",
+      "UNKNOWN"
+    ],
+    "line_test": [
+      "NO_TOUCH",
+      "TOUCH_HOLD",
+      "PIERCE_RECOVER",
+      "CLOSE_BREAK",
+      "UNKNOWN"
+    ],
+    "b2_track_event": [
+      "D0_RAW",
+      "WAIT_RETEST",
+      "RETEST_SEEN",
+      "FORMAL_LOW_BUY_SHADOW",
+      "NO_EVENT",
+      "UNKNOWN_PLACEHOLDER",
+      "UNKNOWN"
+    ],
+    "m25_phase": [
+      "NO_DAMAGE",
+      "D_DAMAGE",
+      "WAIT_T",
+      "T_YELLOW_TEST",
+      "WAIT_C",
+      "C_REBUILD_CONFIRM",
+      "EXPIRED",
+      "UNKNOWN"
+    ],
+    "candle_shape": [
+      "BULL_EXPANSION",
+      "LOWER_WICK_RECOVERY",
+      "BEAR_DISTRIBUTION",
+      "BULL_OTHER",
+      "BEAR_OTHER",
+      "DOJI",
+      "FLAT"
+    ],
+    "official_coverage": [
+      "CANNOT_CONFIRM"
+    ],
+    "m25_onset_disposition": [
+      "NONE",
+      "ACTIVATED",
+      "NOT_ACTIVATED_PENDING_CHAIN"
+    ],
+    "m25_terminal_event": [
+      "NONE",
+      "C_REBUILD_CONFIRM",
+      "EXPIRED"
+    ],
+    "b1_anchor_type": [
+      "",
+      "USER_F02_RAW_B1",
+      "KEY_K_PROXY",
+      "BOTH"
+    ]
+  },
+  "key_k_proxy": {
+    "min_pct_change": 3.0,
+    "min_volume_vs_previous_ma5": 1.2,
+    "expression": "C>O and pct>=3.0 and V>=1.20*mean(V[D-5:D-1]) and C>W>Y",
+    "anchor_id": "KEY_K@ISO_DATE; key-K anchor floor is anchor L"
+  },
+  "method_19": {
+    "raw": "BBI > W AND W > Y AND J <= 13",
+    "anchor_types": [
+      "USER_F02_RAW_B1",
+      "KEY_K_PROXY"
+    ],
+    "anchor_window_td": [
+      1,
+      35
+    ],
+    "anchor_selection": "Latest preceding RAW or Key-K; if both share a date, label BOTH. Once selected, that date is the anchor for that D. No candidate formed on D can be its own anchor.",
+    "peak_trough_rule": "Find the highest H with earliest tie from anchor through D-1. Find the lowest L with earliest tie strictly after that peak through D. Pullback is real when the trough is below that peak and some post-peak close is below its prior close. Reject an observation if any post-anchor close through D is below the anchor floor.",
+    "drawdown_pct_range": [
+      1.0,
+      22.0
+    ],
+    "or_j_lte": 20.0,
+    "volume_ratio_max": 0.85,
+    "volume_rule": "V at trough divided by each of the five and ten completed sessions preceding the trough; both ratios <=0.85. Attack-peak denominator = V on price-peak session and ratio is reporting-only.",
+    "min_close_dist_y_pct": 0.0,
+    "min_close_dist_w_pct": -2.5,
+    "max_abs_pct_change": 3.5,
+    "support": "C/Y-1>=0, C/W-1>=-2.5%, abs(pct)<=3.5%; intraday line classification recorded separately, needle alternative remains UNKNOWN",
+    "output": "FORMAL_B1_SHADOW TRUE requires ordered anchored pullback/shrink, support, anchor floor valid and RISK_CLEAR_SHADOW TRUE. Certified RISK_CLEAR and FORMAL_B1 are UNKNOWN where official risk missing unless computed prerequisites independently fail.",
+    "support_evidence": "A raw W close-cross can satisfy the effective W tolerance only while close stays within -2.5% and Y is held; raw close-cross and effective support are distinct."
+  },
+  "method_20": {
+    "tracks": [
+      "B2_ORAL_CORE_SHADOW",
+      "B2_1006_SCREEN",
+      "B2_151_PREV_VOL_X1_20",
+      "USER_FORMULA_B2_F03",
+      "B2_TREND_CONFIRMATION"
+    ],
+    "authentic_oral_status": "UNKNOWN_ORIGINAL_TEXT_UNRECOVERED",
+    "preceding_base_td": 10,
+    "base_lookback_td": 5,
+    "base_max_j": 20.0,
+    "base_max_volume_vs_prior_ma5": 0.85,
+    "base_expression": "D0-10..D0-1 contains preceding TRUE Formal_B1_Shadow, or a session S with L at a five-session low including S, J<=20, V<=0.85*its preceding MA5, C>=Y and C<=W; all conditions evaluated on S",
+    "oral_min_body_pct_open": 3.0,
+    "oral_min_body_to_range": 0.5,
+    "oral_min_close_location": 0.7,
+    "oral_min_volume_vs_prev": 1.2,
+    "oral_min_volume_vs_ma5": 1.2,
+    "oral_core_shadow": "preceding base AND C>O, (C/O-1)*100>=3, (C-O)/(H-L)>=0.5, (C-L)/(H-L)>=0.7, V>=1.20*both preceding V and preceding MA5",
+    "b2_1006": "pct>=4 and J<55",
+    "b2_151": "V>1.20*V[D-1]",
+    "user_f03": "at least one J<13 within D-2..D; V>1.25*MA of D-4..D-1; pct>4; J<70; W>Y; no B1 prerequisite",
+    "trend_confirmation": "UNKNOWN_PLACEHOLDER",
+    "later_retest_td": [
+      1,
+      10
+    ],
+    "retest_volume_max": 0.85,
+    "retest_low_vs_d0_close_min_depth_pct": 1.0,
+    "later_retest": "Per track, latest preceding D0 within 1..10 sessions; D low at least 1% below its close, V<=0.85*previous MA5, C>=Y, C>=W*(1-0.025), abs(pct)<=3.5, RISK_CLEAR_SHADOW=true. D0 and retest disjoint for the same anchor, exact authentic formal thresholds remain UNKNOWN."
+  },
+  "method_25": {
+    "damage": "On first session of consecutive damage condition C<W and L<=Y. Freeze latest Key-K strictly before damage and last confirmed structural swing whose pivot center precedes D; if unavailable preserve UNKNOWN provenance.",
+    "swing_side_bars": 2,
+    "swing_high": "A pivot with H greater than all four H of two previous and two following sessions, available on second right-side session. When D opens a damage record, its as-of swing high and original anchor are immutable.",
+    "test_window_after_damage_td": [
+      1,
+      12
+    ],
+    "test_low_dist_y_pct": [
+      -2.0,
+      1.0
+    ],
+    "test_min_pct_change": -3.5,
+    "test_max_volume_ratio": 0.85,
+    "yellow_test": "First distinct S within 1..12 sessions after D with L/Y-1 in [-2%,1%], C>=Y, pct>=-3.5, V<=0.85*previous MA5. Preserve close relation and intraday pierce/recover.",
+    "confirm_window_after_test_td": [
+      1,
+      10
+    ],
+    "confirm_min_body_pct_open": 3.0,
+    "confirm_min_body_to_range": 0.5,
+    "confirm_min_close_location": 0.7,
+    "confirm_min_volume_vs_ma5": 1.2,
+    "confirm_min_volume_vs_test": 1.2,
+    "rebuild": "First distinct C within 1..10 sessions after T with O<C; body>=3% of O; body/range>=0.5, close-location>=0.7; V>=1.2*both preceding MA5 and T volume; C>W and C>T high. C requires a complete earlier D, T and preserved Key-K history for structural shadow qualification.",
+    "history": "Sequential immutable D records with root Key-K date, original floor and previous damage ID. T freezes damage-to-T low and close-break status against original floor. Later C keeps that historical breach even when a fresh close is above it. Pending chain expires if either window closes. A later distinct D may replace the pending chain, never the prior record.",
+    "drawdown": {
+      "operation": "100*(frozen pre-D pivot high minus lowest L from D_DAMAGE through T_YELLOW_TEST inclusive)/pivot high",
+      "purpose": "REPORTING_ONLY",
+      "qualification_threshold": null,
+      "oral_15_to_20_is_descriptive_only": true
+    },
+    "output": "REBUILD_SHADOW requires D<T<C, original Key-K history preserved, RISK_CLEAR_SHADOW and C close >= original frozen root floor. Certified risk remains UNKNOWN when official historical flags are missing and no specific blocker supplies a negative result.",
+    "old_root_risk": "OLD_ROOT_ANCHOR_STILL_INVALID: FALSE-clear if the current candidate close lies below the original immutable key-K low, TRUE-clear if at or above it, UNKNOWN if that floor is unavailable. At damaged/retest/confirm stages report each close relative to the old floor and retain all previous historical breaks independent of the current price. Price damage C<W and L<=Y is a research proxy.",
+    "onset_selection": "Every distinct observed onset is appended with original root/confirmed swing and prior onset ID. An unexpired active chain retains D/T precedence; a concurrent distinct onset remains auditable as NOT_ACTIVATED_PENDING_CHAIN. On C or expiry append immutable terminal record and release active chain. A first onset on the same session as incumbent expiry logs the expiry before activating the fresh onset."
+  },
+  "risk": {
+    "window_td_including_D": 5,
+    "deep_y_close_pct": -4.0,
+    "bearish_body_pct_open": 5.0,
+    "bearish_volume_vs_preceding_ma5": 1.5,
+    "suspected_st_body_range_pct": [
+      4.5,
+      5.5
+    ],
+    "suspected_st_cap_cluster_pct": [
+      4.85,
+      5.25
+    ],
+    "suspected_st_cluster_window_td": 20,
+    "suspected_st_cluster_count": 2,
+    "risk_clear_shadow": "FALSE if any last-five deep close versus Y, large bearish distribution (negative body >=5% of open and volume >=1.5*preceding MA5), or suspected ST proxy. ST proxy on ordinary 10% board after first five sessions: 5%-like one-word session or at least two last-20 5%-like close-at-extreme sessions including a current such cap. If no observed blocker but any required evidence unavailable, UNKNOWN; otherwise TRUE.",
+    "risk_clear_certified": "FALSE when a shadow blocker is observed; UNKNOWN otherwise because official historical ST/delisting coverage is unavailable.",
+    "missing_official_data": "CANNOT_CONFIRM"
+  },
+  "shape_proxy": {
+    "large_bull_body_pct_open": 3.0,
+    "large_bear_body_pct_open": 5.0,
+    "lower_wick_min_fraction": 0.5,
+    "recovery_close_min_fraction": 0.65,
+    "doji_max_body_pct_open": 0.2,
+    "priority": [
+      "FLAT",
+      "BULL_EXPANSION",
+      "BEAR_DISTRIBUTION",
+      "LOWER_WICK_RECOVERY",
+      "DOJI",
+      "BULL_OTHER",
+      "BEAR_OTHER"
+    ],
+    "evidence": "Deterministic D-only candle label, independent of all method decisions; no human visual endorsement."
+  },
+  "charts": {
+    "left_sessions": 35,
+    "blind_count": 12,
+    "x_axis_max_relative_td": 0,
+    "price_padding_fraction": 0.06,
+    "price_padding_min": 0.5,
+    "vol_axis_scale": 1.1,
+    "j_padding": 6.0,
+    "j_min_reference": 0,
+    "j_max_reference": 100,
+    "right_price_extra_d_slice_span_fraction": 0.35,
+    "right_volume_scale_from_d_slice": 2.0,
+    "right_background_rgb": [
+      240,
+      241,
+      242
+    ],
+    "forward_sessions": 15,
+    "meaning": "All left and right axes frozen by the normalized D-ending 35-session slice. D+1..D+15 may render off-scale markers; forward data never participates in geometry, signals or blind selection."
+  }
+}
