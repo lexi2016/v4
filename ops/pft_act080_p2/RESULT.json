@@ -1,0 +1,182 @@
+{
+  "40_stock_VAL": {
+    "frozen_A": {
+      "MAE5_mean": -0.052838020095230157,
+      "MAE5_median": -0.046288713990690344,
+      "T10_mean": -0.029832612668185446,
+      "T10_median": -0.03890946561444847,
+      "T10_win_rate": 0.1875,
+      "T2_mean": -0.010792535514599631,
+      "T2_median": -0.01392622752859429,
+      "T2_win_rate": 0.375,
+      "T5_mean": 0.0034057401619395507,
+      "T5_median": -0.01899121383329516,
+      "T5_win_rate": 0.375,
+      "episodes": 16,
+      "tail_aux_rate": 0.25,
+      "tail_std_rate": 0.375,
+      "triggers": 16
+    },
+    "selected": {
+      "MAE5_mean": -0.03921355194698188,
+      "MAE5_median": -0.032437229437229376,
+      "T10_mean": 0.03349177714342991,
+      "T10_median": -0.0038130081300814496,
+      "T10_win_rate": 0.45255474452554745,
+      "T2_mean": 0.004419296425496641,
+      "T2_median": -0.005087682672233804,
+      "T2_win_rate": 0.43795620437956206,
+      "T5_mean": 0.036881549393621586,
+      "T5_median": -0.005422774076317524,
+      "T5_win_rate": 0.45255474452554745,
+      "episodes": 137,
+      "tail_aux_rate": 0.1678832116788321,
+      "tail_std_rate": 0.15328467153284672,
+      "triggers": 137
+    }
+  },
+  "FIT": 8,
+  "FIT_BUDGET_MODE": "AS_NEEDED_WITH_FULL_LEDGER",
+  "FIT_failed": 0,
+  "Junda_case_direction": {
+    "P1B": 2,
+    "V21_exact_A_any_role_reference": 1,
+    "V21_same_FIRST_policy_basis": 3,
+    "total": 7
+  },
+  "Junda_dev_use_count": 0,
+  "OOT_OPEN_COUNT": 1,
+  "base_commit": "2f3aaeff5bbf0cc16c6d90ff446c96988918576a",
+  "clean_OOT": {
+    "frozen_A": {
+      "MAE5_mean": -0.03592676375607761,
+      "MAE5_median": -0.026497688751926037,
+      "T10_mean": 0.03219909986450534,
+      "T10_median": 0.00798901098901095,
+      "T10_win_rate": 0.5066666666666667,
+      "T2_mean": 0.01032644708075224,
+      "T2_median": -0.0014276729559748987,
+      "T2_win_rate": 0.48,
+      "T5_mean": 0.027262653926566446,
+      "T5_median": 0.004746478873239537,
+      "T5_win_rate": 0.56,
+      "episodes": 75,
+      "tail_aux_rate": 0.09333333333333334,
+      "tail_std_rate": 0.12,
+      "triggers": 75
+    },
+    "selected": {
+      "MAE5_mean": -0.03737711877348715,
+      "MAE5_median": -0.03210602910602911,
+      "T10_mean": 0.025459871465304908,
+      "T10_median": 0.0040928146566079375,
+      "T10_win_rate": 0.5115384615384615,
+      "T2_mean": 0.0014076525813136135,
+      "T2_median": -0.003,
+      "T2_win_rate": 0.4674329501915709,
+      "T5_mean": 0.00796262527219113,
+      "T5_median": -0.0014779299847792445,
+      "T5_win_rate": 0.48659003831417624,
+      "episodes": 261,
+      "tail_aux_rate": 0.09578544061302682,
+      "tail_std_rate": 0.11877394636015326,
+      "triggers": 261
+    }
+  },
+  "clean_OOT_exclusion": {
+    "Junda_FIRST_full_by_fold": {
+      "EXCLUDED": 1,
+      "OOT": 15,
+      "TRAIN": 78,
+      "VAL": 5
+    },
+    "Junda_removed_by_signed_72": 0,
+    "Junda_separated_after_72": 15,
+    "P1B_OOT_FIRST_original": 826,
+    "clean_non_Junda": 776,
+    "clean_non_Junda_sampled_stocks": 40,
+    "clean_overlap_proof_pairs_remaining": 0,
+    "eligible_non_Junda_roster": 40,
+    "excluded_by_signed_72_pair_witnesses": 37,
+    "excluded_by_signed_72_unique": 35,
+    "original_Junda_OOT_FIRST": 15,
+    "remaining_after_72": 791,
+    "signed_samples_mapped_observed_ordinal": 72
+  },
+  "fit_ledger_sha256": "6e98f41f1f1ecc66164e3eb5b66a2f48fe05433a63a0211b467bcf9ff4bf7557",
+  "frozen_model_lock_sha256": "a0eadceab25ce0c7352c765195297311fd9a7cea60019c01de01ca245ffcbcc2",
+  "governance": {
+    "FIT_ALLOWED": true,
+    "P5.15": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "decision": "NO_GO",
+    "historical_adjustment_pit": "CANNOT_CONFIRM",
+    "legacy_status": "LEGACY_UNVERIFIABLE_OPERATOR_READ_ONLY",
+    "orders_sent": 0,
+    "production_allowed": false
+  },
+  "independent_review": {
+    "effort": "high",
+    "external_red_team": "PENDING",
+    "fit_invoked": 8,
+    "issued_members_verified": 12,
+    "junda_score_checkpoint_rows_verified": 99,
+    "loso_rows_independently_recomputed": 120,
+    "model": "gpt-6.2-sol",
+    "normalizers_independently_recomputed": 8,
+    "oot_open_count": 1,
+    "pre_open_gate": "PASS",
+    "pre_open_model_lock_sha256": "a0eadceab25ce0c7352c765195297311fd9a7cea60019c01de01ca245ffcbcc2",
+    "release_seal_sha256": "0d0e4960b3c1f275f23aa7a48b0fb3334cc03b76e8e72ace660909176ded1c26",
+    "research_decision": "NOT_PROMOTED",
+    "role": "sol_high_reviewer",
+    "scope": "P2-01_TO_P2-07_EXECUTION_AND_ISSUED_OUTPUTS",
+    "status": "REVIEWED/PASS",
+    "synthetic_tests_independently_passed": 8,
+    "val_operating_points_independently_rebuilt": 32
+  },
+  "model": {
+    "family": "EXTRA_TREES",
+    "features": "FEAT_BASE_19",
+    "threshold": 0.7380165301949202
+  },
+  "prep_seal_sha256": "2fc844c6dcb6687cbf5bd5b46e6ee4f46903e49aca26eee5a7f33236cd2d948b",
+  "promotion": {
+    "NO_GO": true,
+    "all_observed_checks_met": false,
+    "criteria": {
+      "ex_top_three_T5_mean_not_negative": true,
+      "junda_seven_exact_D_no_degradation": false,
+      "selected_T5_mean_positive_and_higher": false,
+      "selected_T5_median_positive_and_higher": false,
+      "selected_primary_tail_lower": true
+    },
+    "status": "NOT_PROMOTED"
+  },
+  "runtime": {
+    "MPS_actual_fit_count": 2,
+    "PyTorch": "2.13.0",
+    "cpu_threads": 18,
+    "fit_by_family_seconds": {
+      "EXTRA_TREES": 0.31192325009033084,
+      "HGB": 2.7613023333251476,
+      "LOGISTIC": 0.032972000539302826,
+      "MLP_MPS": 4.309182750061154
+    },
+    "fit_parent_peak_rss_bytes": 413925376,
+    "fit_wall_seconds": 8.18,
+    "oot_wall_seconds": 1.25,
+    "pdf_wall_seconds": 7.82,
+    "prep_wall_seconds": 0.44,
+    "sklearn": "1.9.0"
+  },
+  "schema": "ACT080_P2_SOURCE_RESULT_V1",
+  "sealed_input_manifest_sha256": "ebbc69901e3c278f104527cc12af48ef0f4d61c1e57e57ee40c399a7f6a2e7e9",
+  "single_oot_release_seal_sha256": "0d0e4960b3c1f275f23aa7a48b0fb3334cc03b76e8e72ace660909176ded1c26"
+}

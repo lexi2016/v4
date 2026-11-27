@@ -1,0 +1,24 @@
+{
+  "seed": 20261127,
+  "cpu_threads": 18,
+  "quantiles": [0.0, 0.5, 0.6, 0.7],
+  "minimum_val_coverage": 0.3,
+  "minimum_val_selected_mature": 60,
+  "family_order": ["LOGISTIC", "HGB", "EXTRA_TREES", "MLP_MPS"],
+  "feature_order": ["FEAT_BASE_19", "FEAT_PLUS_ANCHOR_KB"],
+  "family_parameters": {
+    "LOGISTIC": {"C": 0.1, "solver": "lbfgs", "max_iter": 2000},
+    "HGB": {"max_iter": 200, "learning_rate": 0.05, "max_leaf_nodes": 15, "min_samples_leaf": 30, "l2_regularization": 2, "early_stopping": false},
+    "EXTRA_TREES": {"n_estimators": 256, "max_depth": 6, "min_samples_leaf": 20, "max_features": "sqrt", "n_jobs": 18},
+    "MLP_MPS": {"width": 32, "dropout": 0.15, "learning_rate": 0.001, "weight_decay": 0.01, "batch_size": 128, "max_epochs": 80, "patience": 8, "stop_date_fraction": 0.2}
+  },
+  "val_start": "2024-01-01",
+  "oot_start": "2025-01-01",
+  "holdout_stock": "002865.SZ",
+  "fee": 0.003,
+  "horizon_sessions": 10,
+  "window_sessions": 10,
+  "aligned_comparison_end": "2026-11-20",
+  "frozen_baseline_a_tier": "A级_多头知识库优选",
+  "governance": {"FIT_ALLOWED": true, "production_allowed": false, "RESEARCH_ONLY": true, "decision": "NO_GO", "buy_gate_updated": false, "orders_sent": 0, "P5.15": [0, 0, 0, 0], "historical_adjustment_pit": "CANNOT_CONFIRM", "legacy_status": "LEGACY_UNVERIFIABLE_OPERATOR_READ_ONLY"}
+}
