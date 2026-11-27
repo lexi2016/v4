@@ -1,0 +1,77 @@
+{
+  "attempts": {
+    "initial": "FAILED_BEFORE_METRICS_P2_LEGACY_ATTACH_DID_NOT_PROPAGATE_T20",
+    "png_bytes_unchanged": true,
+    "repair": "ACT081_ORDINAL_CHECKED_T20_ATTACHMENT_AND_REGRESSION",
+    "review_correction": "STRICT_PRIOR_BULL_BODY_AND_SIGNED_P1B_RUNTIME_VERIFICATION",
+    "selection_sha256_unchanged": "34996dabe69398673bbe38c0491d3aef22cd4df76dd8e49f46f2aec726c9dfb2",
+    "track_identities_and_cooldown_unchanged": true
+  },
+  "causality": {
+    "cell_differences": 0,
+    "cells_compared": 3146564,
+    "chains": 41,
+    "checks": 123,
+    "field_set_differences": 0,
+    "na_position_differences": 0,
+    "row_count_difference": 0
+  },
+  "clean_oot_first_counts": {
+    "TRACK_B1_KB_SUBSET": 168,
+    "TRACK_B1_QUIET_CONSENSUS": 239,
+    "V21_FROZEN_FIRST_A": 74
+  },
+  "governance": {
+    "FIT": 0,
+    "FIT_ALLOWED": false,
+    "P5.15": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "PIT": "CANNOT_CONFIRM",
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "decision": "NO_GO",
+    "evaluation_threshold_tuning": 0,
+    "legacy_status": "LEGACY_UNVERIFIABLE_OPERATOR_READ_ONLY",
+    "orders_sent": 0,
+    "production_allowed": false,
+    "training": 0
+  },
+  "junda_expected_direction_cases": {
+    "ACT080_P2_CHARTER_REFERENCE": 2,
+    "TRACK_B1_KB_SUBSET": 3,
+    "TRACK_B1_QUIET_CONSENSUS": 3,
+    "V21_FROZEN_FIRST_A": 3,
+    "cases": 7
+  },
+  "parent_commit": "b61d637544ed504310d038076cb78fe5d630eefa",
+  "png": {
+    "bars_each": 61,
+    "future_bars_rendered": 0,
+    "identity_bearing_metadata_items": 0,
+    "png_count": 27,
+    "prefix_rows_full_chain_numeric_differences": 0
+  },
+  "scope": "ACT081_P1_ZERO_FIT_RESEARCH",
+  "source_and_output": {
+    "derived_metrics_sha256": "480ea9f4b7b38c23b5a89098dfbfb2ba44e5652fd1ad77970a6b63a4900c19e2",
+    "legacy_read_only_zip_sha256": "2cda12c17c02abdfbff5555a53250510e28a8ef3de0e90f916d0adfc72f20d06",
+    "p1b_runtime_members_verified": 7,
+    "png_audit_sha256": "c979ca2471207184e577f66a14fe100cf7958a6cfa409457739d4a3badf39991",
+    "pre_evaluation_lock_sha256": "1d32092f21bc331befee4475b4739e919bb9d30bd956c10ed682cf4afd6def5e",
+    "signed_inputs": {
+      "ACT080_P1B_DETERMINISTIC_BASE_BUNDLE_20261127.zip": "c9f59877448d716a4bba44e45ef0226fe913bd0a6651ae92a69634696efc6701",
+      "ACT080_P2_72CASE_OOT_EXCLUSION_MANIFEST.csv": "512e28cbf1a1c04eb2893b225f9dcb1e873ed48da5d19af6920690249307e590",
+      "PFT_V4_ACT081_CHARTER_KB_ALIGNMENT_V1_0_20261127.md": "534ff06bbc318c4ba361c068d6f0566bd3b585076203bcfec5422e8be1858916"
+    },
+    "vol2_sha256": "56b9799e839e7846313543a9ade387c083a6b7dcfc9a155031d861157b278034"
+  },
+  "tests": {
+    "baseline_ports_retained": true,
+    "elapsed_seconds": 1.62,
+    "passed": 26
+  }
+}
