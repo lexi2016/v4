@@ -127,8 +127,23 @@ class ManagerHistory:
         ])
 
 
+def display_stock_name(row):
+    saved_name = row.get("name")
+    if not isinstance(saved_name, dict) or set(saved_name) != {"name", "name_source"}:
+        return row
+    label, source = saved_name["name"], saved_name["name_source"]
+    if not isinstance(label, str) or not label.strip() or not isinstance(source, dict):
+        return row
+    if "name_source" in row and row["name_source"] != source:
+        if "saved_name_source" in row and row["saved_name_source"] != source:
+            return row
+        return {**row, "name": label, "saved_name_source": source}
+    return {**row, "name": label, "name_source": source}
+
+
 def page(rows, offset, limit):
-    return {"stocks":rows[offset:offset+limit],"pagination":{"total":len(rows),"offset":offset,"limit":limit}}
+    return {"stocks":[display_stock_name(row) for row in rows[offset:offset+limit]],
+            "pagination":{"total":len(rows),"offset":offset,"limit":limit}}
 
 
 def empty_plan(versions, gaps, offset, limit):
@@ -217,7 +232,7 @@ def read_stock_detail(data, symbol, run_id, lane_order, lane=None, row_id=None):
         ids = item["evidence_ids"]
         refs = [ev for ev in value["evidence"] if ev["evidence_id"] in ids]
         details.append({"lane":name,"rows":rows,"evidence_refs":refs})
-    return envelope("READY", {"plan_run_id":run_id,"stock":item,"recommendation_lane":lane,
+    return envelope("READY", {"plan_run_id":run_id,"stock":display_stock_name(item),"recommendation_lane":lane,
                               "display_projection":{"display_only":True,"snapshot_hash_basis":"ORIGINAL_SAVED_SNAPSHOT"},
                               "lane_details":details})
 
