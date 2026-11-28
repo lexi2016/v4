@@ -1,0 +1,46 @@
+{
+  "scope": "isolated_18874",
+  "production": "NO_GO",
+  "baseline_manifest_sha256": "5dba835d0a422826d0a457602098ca039f364e1e93b22c8139a60259d12e44d0",
+  "active_manifest_sha256": "c61de18ec49dceae2f15a999a2556a7c0d770a658b846c28658cf8f4b0212632",
+  "frontend_sha256": "39917f4b3d8b2dca989a330fb320f9a0c2b13b52cca52b9783032df99077111c",
+  "protected": {
+    "status": "PASS",
+    "protected_processes_matching": true,
+    "matching_frontend_inventory_files": 807,
+    "matching_history_root_identities": 15,
+    "matching_plists": 9
+  },
+  "visual": {
+    "clicked": 10,
+    "full_pass": 9,
+    "partial": 1,
+    "stage7_blocked": "ORIGINAL_WINDOW_AUTHORITY_AND_TEMPORAL_EVIDENCE_MISSING",
+    "console_error_count": 0,
+    "click_to_visible_ms": {
+      "05a_hk_1610_close": 158,
+      "07_wechat_1124": 278,
+      "02_slot_0700": 532,
+      "05b_hk_1610_top20_rows": 267,
+      "04_next_day_715": 319,
+      "09_update_sop": 692,
+      "05c_stage7_observation": 400,
+      "06_top200_301059": 189,
+      "03_tag_13": 50,
+      "03_tag_7": 67,
+      "03_tag_3": 67,
+      "01a_overseas_1125": 121,
+      "01b_overseas_1127": 117,
+      "10_legacy_archive_1126": 59,
+      "08_manager_saved_plan": 273,
+      "10b_legacy_stock_002913": 16
+    }
+  },
+  "source_sha256": {
+    "candidate/content_projection/bounded_event_stream.py": "cd27afc5cd98b274f2ccbb40905806cb8d428d67722818cad8e2fedbb2901262",
+    "candidate/content_projection/manager_owner_reads.py": "46a4a237818bee8f0117ee54a6fb91274009fcf49d8c1f2b2ede9b0e815526db",
+    "patch_wechat_entry.py": "6bc1ad568118091441467c10699dbd0d80d5052b3d0b1d614e86accde921756b",
+    "test_bounded_event_stream.py": "6a722a6ecb134e19f02fe888810bb6224e08dd627f8c2b520521155dfd8b2098",
+    "test_manager_owner_reads.py": "3bb5b0579fd331996b37ec9a77f0ddb1cc5a8af775337c6cdb55d35616c74597"
+  }
+}

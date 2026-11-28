@@ -1,0 +1,15 @@
+--- a/run_readonly_trial.py
++++ b/run_readonly_trial.py
+@@ -130 +130,6 @@
+-    uvicorn.run(ReadOnlyTrack(F10ReferenceReads(AnnotatedWorkbenchReads(ContentProjection(app, data, dist), ROOT))), host=HOST, port=PORT, proxy_headers=False, access_log=False,
++    from content_projection.bounded_event_stream import BoundedIsolationEvents
++    from content_projection.manager_owner_reads import ManagerOwnerReads
++    reads = F10ReferenceReads(AnnotatedWorkbenchReads(ContentProjection(app, data, dist), ROOT))
++    reads = BoundedIsolationEvents(reads, app.state.event_bus)
++    reads = ManagerOwnerReads(reads)
++    uvicorn.run(ReadOnlyTrack(reads), host=HOST, port=PORT, proxy_headers=False, access_log=False,
+--- a/content_projection/formal_admission_reads.py
++++ b/content_projection/formal_admission_reads.py
+@@ -38,0 +39,2 @@
++    "content_projection/bounded_event_stream.py",
++    "content_projection/manager_owner_reads.py",
