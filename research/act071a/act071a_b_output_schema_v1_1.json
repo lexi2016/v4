@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:v4:act071a:b-output:v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "input_sha256",
+    "claims",
+    "abstain_codes"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ACT070A_B_OUTPUT_V1_1"
+    },
+    "case_id": {
+      "$ref": "#/$defs/case_id"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "abstain_codes": {
+      "$ref": "#/$defs/gap_codes"
+    }
+  },
+  "$defs": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,47}$"
+    },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "row_id",
+        "field"
+      ],
+      "properties": {
+        "row_id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,79}$"
+        },
+        "field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$"
+        }
+      }
+    },
+    "ref_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "gap_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "INSUFFICIENT_D_ONLY_EVIDENCE",
+          "SOURCE_UNBOUND",
+          "COUNTEREVIDENCE_PRESENT",
+          "OLD_ANCHOR_UNBOUND",
+          "BREAK_PROOF_UNBOUND",
+          "PIVOT_UNCONFIRMED_AT_D",
+          "OPEN_SPAN_AT_D",
+          "NO_COMPUTABLE_TIME_RULE",
+          "UNRESOLVED"
+        ]
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "status",
+        "span_refs",
+        "price_refs",
+        "anchor_links",
+        "evidence_refs",
+        "counterevidence_refs",
+        "kb_rule_ids",
+        "gap_codes",
+        "phase_label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^C[0-9]{1,4}$"
+        },
+        "type": {
+          "enum": [
+            "KEY_K",
+            "PIVOT",
+            "SUPPORT",
+            "OLD_ANCHOR_INVALIDATION",
+            "PHASE"
+          ]
+        },
+        "status": {
+          "const": "CANDIDATE"
+        },
+        "span_refs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "start",
+            "end"
+          ],
+          "properties": {
+            "start": {
+              "$ref": "#/$defs/nullable_span_ref"
+            },
+            "end": {
+              "$ref": "#/$defs/nullable_span_ref"
+            }
+          }
+        },
+        "price_refs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "low",
+            "high"
+          ],
+          "properties": {
+            "low": {
+              "$ref": "#/$defs/nullable_price_ref"
+            },
+            "high": {
+              "$ref": "#/$defs/nullable_price_ref"
+            }
+          }
+        },
+        "anchor_links": {
+          "$ref": "#/$defs/anchor_list"
+        },
+        "evidence_refs": {
+          "$ref": "#/$defs/ref_list"
+        },
+        "counterevidence_refs": {
+          "$ref": "#/$defs/ref_list"
+        },
+        "kb_rule_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "KB_KEY_K",
+              "KB_N_BREATHING",
+              "KB_SUPPORT_BREAK",
+              "KB_WASHOUT_DISTRIBUTION"
+            ]
+          }
+        },
+        "gap_codes": {
+          "$ref": "#/$defs/gap_codes"
+        },
+        "phase_label": {
+          "anyOf": [
+            {
+              "enum": [
+                "UP_LEG",
+                "DOWN_LEG",
+                "RANGE",
+                "MIXED",
+                "UNRESOLVED"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "PHASE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "phase_label": {
+                "enum": [
+                  "UP_LEG",
+                  "DOWN_LEG",
+                  "RANGE",
+                  "MIXED",
+                  "UNRESOLVED"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "phase_label": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "OLD_ANCHOR_INVALIDATION"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "anchor_links": {
+                "items": {
+                  "properties": {
+                    "relation": {
+                      "const": "REFERENCE"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "nullable_span_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ref",
+          "properties": {
+            "field": {
+              "const": "date"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_price_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ref",
+          "properties": {
+            "field": {
+              "enum": [
+                "open",
+                "high",
+                "low",
+                "close"
+              ]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "anchor_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relation",
+        "ref"
+      ],
+      "properties": {
+        "relation": {
+          "enum": [
+            "REFERENCE",
+            "INVALIDATES"
+          ]
+        },
+        "ref": {
+          "$ref": "#/$defs/ref"
+        }
+      }
+    },
+    "anchor_list": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/anchor_link"
+      }
+    }
+  }
+}
