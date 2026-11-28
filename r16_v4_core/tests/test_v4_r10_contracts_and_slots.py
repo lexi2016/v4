@@ -441,6 +441,7 @@ def test_daily_plist_exact_r16_calendar_and_source_gaps(tmp_path: Path):
     cfg = _cfg(tmp_path / "data_home")
     day = "2026-11-24"
     expected = {
+        "07:00": "preopen_research",
         "09:25": "main_preopen", "09:35": "main_stage", "09:40": "main_stage", "09:45": "main_stage",
         "10:30": "main_stage", "13:15": "main_stage", "15:00": "main_stage7", "15:40": "source_check",
         "15:55": "main_stage", "16:10": "a_daily", "17:20": "hk_ingest", "17:30": "hk_cache_write",
@@ -530,13 +531,89 @@ def test_daily_late_dispatch_keeps_scheduled_identity_and_reports_missed_windows
     assert result["scheduled_for"] == "2026-11-24T09:35:00+08:00"
     assert result["observed_at"] == at.isoformat() and result["window"] == "09:35"
     assert result["timing_status"] == "LATE_DISPATCH" and result["delay_seconds"] == 75
-    assert result["unobserved_earlier_windows"] == ["09:25"]
+    assert result["unobserved_earlier_windows"] == ["07:00", "09:25"]
     assert cli.run_scheduled_window(cfg, at)["schedule_status"] == "ALREADY_ATTEMPTED"
 
     # The previous calendar job that might coalesce on wake has no valid due binding.
     no_due = cli.run_scheduled_window(cfg, datetime(2026, 11, 24, 9, 43, tzinfo=cli.BEIJING))
     assert no_due["schedule_status"] == "NO_DUE_WORKLOADS"
     assert no_due["reason"] == "OUTSIDE_CONFIGURED_WINDOW_GRACE"
-    assert no_due["unobserved_earlier_windows"] == ["09:25", "09:40"]
+    assert no_due["unobserved_earlier_windows"] == ["07:00", "09:25", "09:40"]
     assert calls == [("2026-11-24", "slot_3_intraday_stage", "main_stage")]
     assert [p.name for p in (cfg.logs_dir / "daily_windows").iterdir()] == ["2026-11-24_0935.jsonl"]
+
+
+@pytest.mark.parametrize(("entry", "parent_pid", "sealed", "prior", "mode"), [
+    ("cli", 1, True, False, "NATURAL"),
+    ("cli", 1, True, True, "RECOVERY"),
+    ("cli", 1, False, False, "MANUAL_SCHEDULED"),
+    ("cli", 42, True, False, "MANUAL_SCHEDULED"),
+    ("direct", 1, True, False, "DRY_RUN"),
+    ("resume", 1, True, True, "RESUME"),
+])
+def test_native_0700_journal_and_receipt_provenance(tmp_path, monkeypatch, capsys, entry, parent_pid, sealed, prior, mode):
+    cfg = V4Config.from_env(tmp_path)
+    cfg.ensure_dirs()
+    day = "2026-11-30"
+    observed = datetime(2026, 11, 30, 7, 1, 1, 125000, tzinfo=cli.BEIJING)
+    commit, release = "a" * 40, "b" * 64
+    monkeypatch.setenv("V4_CANDIDATE_COMMIT_SHA", commit)
+    monkeypatch.setenv("V4_RELEASE_MANIFEST_SHA256", release)
+    monkeypatch.setenv("XPC_SERVICE_NAME", cli.NATURAL_SCHEDULER_LABEL)
+    if sealed:
+        monkeypatch.setenv("V4_NATURAL_SCHEDULER_LABEL", cli.NATURAL_SCHEDULER_LABEL)
+    else:
+        monkeypatch.delenv("V4_NATURAL_SCHEDULER_LABEL", raising=False)
+    monkeypatch.setattr(cli.os, "getppid", lambda: parent_pid)
+
+    class FixedClock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return observed.astimezone(tz)
+
+    monkeypatch.setattr(cli, "datetime", FixedClock)
+    store = V4Store(cfg.db_path)
+    if mode == "NATURAL":
+        store.upsert_research_materials([
+            {"record_id": "morning", "source_type": "morning_news", "trade_date": day},
+            {"record_id": "us", "source_type": "us_market", "trade_date": day},
+        ])
+        store.upsert_announcements([{"event_id": "announcement", "trade_date": day}])
+
+    journal = cfg.logs_dir / "daily_windows" / f"{day}_0700.jsonl"
+    if prior:
+        journal.parent.mkdir()
+        journal.write_text('{"schedule_status":"STALE_RUNNING_RECOVERED"}\n')
+
+    if entry == "direct":
+        result = cli.run_scheduled_window(cfg, observed)
+    else:
+        args = ["run-slot", "--scheduled", "--home", str(cfg.base_dir)]
+        if entry == "resume":
+            args.extend(("--resume-window", "07:00"))
+        assert cli.main(args) == 0
+        result = json.loads(capsys.readouterr().out)
+    assert (result["window"], result["phase"]) == ("07:00", "preopen_research")
+    assert result["schedule_status"] == ("DONE" if mode == "NATURAL" else "CANNOT_CONFIRM")
+    assert result["dated_inputs_sha256"] is None
+    assert result["delay_seconds"] == 61.125
+    assert result["timing_status"] == ("RESUME" if entry == "resume" else "LATE_DISPATCH")
+    running, terminal = [json.loads(line) for line in journal.read_text().splitlines()][-2:]
+    assert running["attempt_id"] == terminal["attempt_id"] == running["run_id"] == terminal["run_id"]
+    assert running["schedule_status"] == "RUNNING" and terminal == result
+    native, = store.get_slot_executions(day)
+    assert native["execution_ref"] == result["workload"]["execution_ref"]
+    assert native["run_id"] == result["workload"]["run_id"]
+    identity = {"candidate_commit_sha": commit, "release_manifest_sha256": release, "execution_mode": mode}
+    for row in (running, terminal, native["detail"]):
+        assert {key: row[key] for key in identity} == identity
+
+
+def test_0700_incomplete_sha_pair_rejected_without_receipts(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    monkeypatch.setenv("V4_CANDIDATE_COMMIT_SHA", "a" * 40)
+    monkeypatch.delenv("V4_RELEASE_MANIFEST_SHA256", raising=False)
+    observed = datetime(2026, 11, 30, 7, 0, 12, tzinfo=cli.BEIJING)
+    with pytest.raises(ValueError, match="INVALID_SCHEDULED_DEPLOYMENT_SHA_BINDING"):
+        cli.run_scheduled_window(cfg, observed)
+    assert not (cfg.logs_dir / "daily_windows").exists()

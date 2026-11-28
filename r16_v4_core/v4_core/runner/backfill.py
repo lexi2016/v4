@@ -26,6 +26,9 @@ from v4_core.runner.state import (WriterBusy, file_identity, heartbeat_record, j
 
 FLAGS = {**SAFETY_FLAGS, 'RESEARCH_ONLY': True, 'execution_mode': 'BACKFILL',
          'natural_window_evidence': False, 'pit_evidence': False}
+# 07:00 reads the natural day's live research store; historical replay has no bound equivalent.
+_BACKFILL_WINDOWS = {point: workload for point, workload in DAILY_WINDOWS.items()
+                     if workload[1] != 'preopen_research'}
 # Independent A/HK/stage lanes may still run when another market is missing. Never
 # admit a failed prerequisite to a dependent reader (including a standalone rerun).
 # The 21:15 owner reads the actual 16:10 A/HK publications, stage7 and fupan;
@@ -55,7 +58,7 @@ def _plan(cfg, day, slot):
     require(slot == 'all' or slot in SIX_SLOT_DEFS, 'UNKNOWN_SCHEDULED_SLOT')
     replay = _scope(cfg, day)
     windows = []
-    for (h, m), (bound, phase) in DAILY_WINDOWS.items():
+    for (h, m), (bound, phase) in _BACKFILL_WINDOWS.items():
         if slot not in ('all', bound):
             continue
         path = replay.logs_dir / 'daily_windows' / f'{day}_{h:02d}{m:02d}.jsonl'
@@ -130,7 +133,7 @@ def query(cfg, day, slot, *, mode='status'):
         inputs, gap = read_dispatch_inputs(_env('V4_R16_INPUT_DIR'), day)
         return _summary(day, slot, rows, status='DRY_RUN', dated_inputs_sha256=inputs.sha256 if inputs else None,
                         inputs_gap=gap, unscheduled_slots=[s for s in SIX_SLOT_DEFS if not any(
-                            v[0] == s for v in DAILY_WINDOWS.values()) and slot in ('all', s)])
+                            v[0] == s for v in _BACKFILL_WINDOWS.values()) and slot in ('all', s)])
     return _summary(day, slot, rows)
 
 

@@ -60,6 +60,7 @@ def dispatch_window(
     hk_bars_json: Path | None, run_a_pipeline: Callable[[dict[str, dict[str, float]]], dict],
     wait_for_observation: Callable[[dict], dict] | None = None,
     stage_owner_root: Path | None = None,
+    receipt_provenance: dict[str, str] | None = None,
 ) -> tuple[str, dict, dict]:
     day = start.date().isoformat()
     main = MAIN_STAGES.get((start.hour, start.minute))
@@ -113,6 +114,10 @@ def dispatch_window(
                 except EvidenceError as fallback:
                     formal = _gap(str(fallback))
         return formal["status"], formal, {}
+
+    if phase == "preopen_research":
+        workload = run_slot(cfg, day, slot, phase=phase, lease=lease, receipt_provenance=receipt_provenance)
+        return workload["status"], workload, {}
 
     if phase == "hk_ingest":
         workload = run_slot(cfg, day, slot, phase=phase, hk_bars_json=hk_bars_json, lease=lease)

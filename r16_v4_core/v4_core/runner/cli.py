@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import re
 import sys
 import time
 from typing import Callable
@@ -41,7 +42,9 @@ from v4_core.strategies.workbench_score import score_symbol_from_bars
 
 BEIJING = ZoneInfo("Asia/Shanghai")
 DAILY_WINDOW_GRACE_SECONDS = 120
+NATURAL_SCHEDULER_LABEL = "com.lexi.v4core.r21-d30-native-dispatch"
 DAILY_WINDOWS = dict(sorted({
+    (7, 0): ("slot_1_preopen_research", "preopen_research"),
     **{
         point: ("slot_3_intraday_stage", "main_stage")
         for point in MAIN_STAGES
@@ -214,6 +217,27 @@ def _has_receipt(path: Path) -> bool:
         return False
 
 
+def _scheduled_provenance(launchd_cli: bool, resume_window: str | None) -> dict[str, str]:
+    commit = os.environ.get("V4_CANDIDATE_COMMIT_SHA", "")
+    manifest = os.environ.get("V4_RELEASE_MANIFEST_SHA256", "")
+    if (commit or manifest) and not (
+        re.fullmatch(r"[0-9a-f]{40}", commit) and re.fullmatch(r"[0-9a-f]{64}", manifest)
+    ):
+        raise ValueError("INVALID_SCHEDULED_DEPLOYMENT_SHA_BINDING")
+
+    mode = "MANUAL_SCHEDULED" if launchd_cli else "DRY_RUN"
+    if resume_window is not None:
+        mode = "RESUME"
+    elif (launchd_cli and commit and os.getppid() == 1
+          and os.environ.get("XPC_SERVICE_NAME") == NATURAL_SCHEDULER_LABEL
+          and os.environ.get("V4_NATURAL_SCHEDULER_LABEL") == NATURAL_SCHEDULER_LABEL):
+        mode = "NATURAL"
+    provenance = {"execution_mode": mode}
+    if commit:
+        provenance.update(candidate_commit_sha=commit, release_manifest_sha256=manifest)
+    return provenance
+
+
 def run_scheduled_window(
     cfg: V4Config,
     observed_at: datetime,
@@ -233,6 +257,7 @@ def run_scheduled_window(
     wait_for_deadlines: bool = False,
     resume_window: str | None = None,
     poll_sleep: Callable[[float], None] = time.sleep,
+    _scheduled_cli: bool = False,
 ) -> dict:
     """Bind the current Beijing window and retain one receipt per scheduled instant."""
     if observed_at.utcoffset() is None:
@@ -266,9 +291,10 @@ def run_scheduled_window(
                     "reason": "NO_SAME_DATE_ATTEMPT_TO_RESUME"}
         start, slot, phase = requested
     delay = (local - start).total_seconds()
+    provenance = _scheduled_provenance(_scheduled_cli, resume_window)
     binding.update(window=start.strftime("%H:%M"), scheduled_for=start.isoformat(), delay_seconds=delay,
                    timing_status="RESUME" if resume_window else "ON_TIME" if delay < 60 else "LATE_DISPATCH",
-                   slot_id=slot, phase=phase)
+                   slot_id=slot, phase=phase, **provenance)
     root = evidence_dir or _environment_path("V4_R16_INPUT_DIR")
     stage_root = stage_owner_root or _environment_path("V4_STAGE_OWNER_ROOT")
     owner_root = v35_owner_root or _environment_path("V4_V35_OWNER_ROOT")
@@ -329,6 +355,8 @@ def run_scheduled_window(
             return {**binding, "schedule_status": "CANNOT_CONFIRM", "reason": "INVALID_SLOT_JOURNAL"}
         stale_reason = None
         if previous is not None:
+            if binding["execution_mode"] == "NATURAL":
+                provenance["execution_mode"] = binding["execution_mode"] = "RECOVERY"
             status = previous["schedule_status"]
             if status == "RUNNING":
                 stale_reason = stale_running_reason(previous, heartbeat_path, local)
@@ -363,7 +391,9 @@ def run_scheduled_window(
                     persist("STALE_RUNNING_RECOVERED", stale_reason=stale_reason, stale_pid=previous.get("pid"),
                             stale_attempt_id=previous.get("attempt_id"), stale_lease_token=previous.get("lease_token"),
                             **archive)
-                binding.update(pid=lease.owner["pid"], attempt_id=uuid.uuid4().hex, lease_token=lease.owner["token"])
+                attempt_id = uuid.uuid4().hex
+                binding.update(pid=lease.owner["pid"], attempt_id=attempt_id, run_id=attempt_id,
+                               lease_token=lease.owner["token"])
                 persist("RUNNING", **heartbeat_record(local))
                 try:
                     current = completion_clock or (lambda: local)
@@ -428,6 +458,7 @@ def run_scheduled_window(
                         cfg, start, completed_at, phase, slot, lease, inputs=inputs, inputs_gap=inputs_gap,
                         run_slot=run_slot, hk_bars_json=hk_bars_json, run_a_pipeline=run_a_pipeline,
                         wait_for_observation=wait_for_observation, stage_owner_root=stage_root,
+                        receipt_provenance=provenance,
                     )
                     retry_state = {}
                     if phase == "evening":
@@ -739,7 +770,7 @@ def main(argv: list[str] | None = None) -> int:
                 v35_owner_root=args.v35_owner_root, a_calendar=args.a_calendar,
                 a_calendar_sha256=args.a_calendar_sha256,
                 completion_clock=lambda: datetime.now(BEIJING),
-                wait_for_deadlines=True, resume_window=args.resume_window,
+                wait_for_deadlines=True, resume_window=args.resume_window, _scheduled_cli=True,
             )
             print(json.dumps(result, ensure_ascii=False))
             return 0

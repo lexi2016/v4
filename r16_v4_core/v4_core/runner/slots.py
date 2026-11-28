@@ -25,6 +25,7 @@ SIX_SLOT_DEFS: dict[str, tuple[str, str]] = {
 
 def run_slot_1_preopen_research(
     cfg: V4Config, trade_date: str, *, store: V4Store | None = None, scheduled: bool = False,
+    receipt_provenance: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Slot 1 (07:00): Summarize preopen research materials, US market digest & announcements."""
     cfg.ensure_dirs()
@@ -44,6 +45,8 @@ def run_slot_1_preopen_research(
     status = "CANNOT_CONFIRM" if scheduled and not (materials and announcements and us_items) else "DONE"
     if status == "CANNOT_CONFIRM":
         detail["reason"] = "PREOPEN_SOURCE_EVIDENCE_INCOMPLETE"
+    if receipt_provenance:
+        detail.update(receipt_provenance)
     return db.record_slot_execution(iso_date, "slot_1_preopen_research", name, sched, status, run_id, detail)
 
 
@@ -251,10 +254,13 @@ def _run_slot(
     stage: str = "STAGE_0930_0935",
     allow_unit_factors: bool = False,
     sse_notifier: Callable[[str, dict], bool] | None = None,
+    receipt_provenance: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Dispatch any of the 6 core execution slots by slot_id (or 'all')."""
     if slot_id == "slot_1_preopen_research":
-        return run_slot_1_preopen_research(cfg, trade_date, scheduled=phase is not None)
+        return run_slot_1_preopen_research(
+            cfg, trade_date, scheduled=phase is not None, receipt_provenance=receipt_provenance,
+        )
     if slot_id == "slot_2_preopen_pool_freeze":
         return run_slot_2_preopen_pool_freeze(cfg, trade_date, scheduled=phase is not None)
     if slot_id == "slot_3_intraday_stage":
