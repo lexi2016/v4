@@ -1,0 +1,67 @@
+{
+  "base_runtime_sha256": "c61de18ec49dceae2f15a999a2556a7c0d770a658b846c28658cf8f4b0212632",
+  "active_runtime_sha256": "1ea53df58cb80bf9498ff6e344e7db2679e6fff0f49d7fcbfb1746903f7f6036",
+  "production": "NO_GO",
+  "protected": {
+    "status": "PASS",
+    "protected_processes_matching": true,
+    "matching_frontend_inventory_files": 807,
+    "matching_history_root_identities": 15
+  },
+  "independent_review": "PASS",
+  "embedded_browser": {
+    "D30": {
+      "a_pool": 715,
+      "hk_pool": 100,
+      "visible_after_ms": 383,
+      "stage7_original_raw": 260,
+      "stage7_requested": 261,
+      "stage7_formal_eligible": 0,
+      "stage7_observation": 10,
+      "historical_overseas_source_date": "2026-11-27",
+      "300685": {
+        "score": "4/5",
+        "F10": "CANNOT_CONFIRM_7_ORIGINAL_PARSE_FAILURES"
+      }
+    },
+    "D25_same_date_isolation": "PASS",
+    "002913_D27_F10_reference": "PASS"
+  },
+  "source_files": [
+    {
+      "target": "content_projection/workbench_parity.py",
+      "old_sha256": "47026991f0652702eed2908d952fa362763b5e795a3c16c4f3dbf55b584fa414",
+      "new_sha256": "c9ca07a2745efcf7dcdaa11a390af2e7761f4b632bcd93b390a8eeb687513f60"
+    },
+    {
+      "target": "content_projection/followup_f10_reads.py",
+      "old_sha256": "356d7daa1e83071b0df22b44cd440e1900d6ddacfb7f02bf659355c71409713b",
+      "new_sha256": "145a8588233cefc888053da2c6a55f5b0aaa54bd809dce1da62f86f05ce494cd"
+    },
+    {
+      "target": "static/research-panel/workbench-host/dot/shell/formula-f10.mjs",
+      "old_sha256": "941863c1ac0181576a0d96e640208fbbb8e83c456c1e1f22252777ef188eba75",
+      "new_sha256": "55d7f963e409b8fe9c58ef6b4b45c91d2b4eee4f91b0b18be9890b90b9525dd2"
+    },
+    {
+      "target": "static/research-panel/workbench-host/archived-market-observations.mjs",
+      "old_sha256": "8911b380f0faed66325a8f6997b0699182ae34f7e94fb58b79f5bbe6ec7255a2",
+      "new_sha256": "06c1b3892f0887fa01366715ea25802ce27ab59208e91c4ca10066e3c157e233"
+    },
+    {
+      "target": "static/research-panel/workbench-host/dot/shell/workbench.local.mjs",
+      "old_sha256": "3c913f8c35446ccc20b23a16199736acada1911996c06f387f44cad434e93933",
+      "new_sha256": "af46971d574cd58ba8d6ee72077c22a3c158f53f45fbe26c6f63237a18b639b4"
+    },
+    {
+      "target": "static/research-panel/workbench-host/bootstrap.mjs",
+      "old_sha256": "e93e929c5840bbf923a8a1ce7fde61e6990df28fce75548987bd266c739ec8f5",
+      "new_sha256": "f0b4dcd229eec6782c1125b727bbf569c31526f7ff97389cabda4e1a7cab7201"
+    },
+    {
+      "target": "static/research-panel/workbench.html",
+      "old_sha256": "716e2bdb5315c245adc0f6f026e3e99bbfa1692e0c3f1860e95057587832826b",
+      "new_sha256": "17114dcf54171cb2b0dd7644ffe78cf3225e2e49d728aa78f4f2b1771b8e3ff8"
+    }
+  ]
+}

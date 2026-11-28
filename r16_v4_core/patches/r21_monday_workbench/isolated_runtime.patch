@@ -1,0 +1,385 @@
+--- a/content_projection/workbench_parity.py
++++ b/content_projection/workbench_parity.py
+@@ -2,0 +3 @@
++from http.client import HTTPConnection, HTTPException
+@@ -9,0 +11 @@
++from starlette.concurrency import run_in_threadpool
+@@ -26,0 +29,8 @@
++_SCORE_SCHEMA = "v4.workbench.daily_kb_research.v1"
++_SCORE_MISSING = "SYMBOL_NOT_MATERIALIZED_FOR_DATE"
++_SCORE_LIMIT = 64 * 1024
++_SHA = re.compile(r"[0-9a-f]{64}")
++_SCORE_OWNER = Path.home() / (
++    "Desktop/学习/因子工厂/research/a_daily_update_path_20261029_r1/"
++    "dashboard_completion_r1/today_full_r1/daily_products/a_share"
++)
+@@ -46,0 +57,71 @@
++def _owner_score(path, revision):
++    # Use a fixed loopback origin and exact native reader. No redirects or proxy.
++    connection = HTTPConnection("127.0.0.1", 8873, timeout=1.5)
++    try:
++        connection.request("GET", f"{path}?revision={revision}")
++        response = connection.getresponse()
++        if response.status != 200:
++            return None
++        data = response.read(_SCORE_LIMIT + 1)
++        return json.loads(data) if len(data) <= _SCORE_LIMIT else None
++    finally:
++        connection.close()
++
++
++def _legacy_score(item, identity, symbol, path):
++    """Reuse the owner score under an independently verified same-input binding."""
++    try:
++        source = _owner_score(path, identity["revision"])
++        if not isinstance(source, dict):
++            return None
++        if (source.get("schema") != _SCORE_SCHEMA or source.get("status") != "MATERIALIZED"
++                or source.get("symbol") != symbol or source.get("historical_PIT") is not False
++                or source.get("RESEARCH_ONLY") is not True or not _safe(source)
++                or any(source.get(key) != identity[key] for key in
++                       ("source_date", "observation_date", "generation", "input_sha256"))):
++            return None
++        day, generation = identity["source_date"].replace("-", ""), identity["generation"]
++        reference = source["numeric_manifest"]
++        manifest_path = Path(reference["path"])
++        owner_dir = _SCORE_OWNER / "versions" / day / generation
++        if manifest_path.name != "manifest.json" or manifest_path.parent.parent != owner_dir:
++            return None
++        manifest, manifest_sha = _read(manifest_path, _SCORE_LIMIT)
++        if (manifest_sha != reference["sha256"] or manifest.get("data_date") != day
++                or manifest.get("source_generation") != generation
++                or manifest.get("input_sha256") != identity["input_sha256"]
++                or manifest.get("RESEARCH_ONLY") is not True or not _safe(manifest)):
++            return None
++        row = source["row"]
++        if (not isinstance(row, dict) or row.get("symbol") != symbol or row.get("trade_date") != day
++                or row.get("RESEARCH_ONLY") is not True or row.get("historical_PIT") is not False
++                or not _safe(row) or not isinstance(row.get("hold_score"), dict)
++                or not isinstance(row.get("action"), dict)):
++            return None
++        cache_identity = row["cache_identity"]
++        rules = cache_identity["rules"]
++        price = cache_identity["price_basis"]
++        if (cache_identity.get("symbol") != symbol or cache_identity.get("trade_date") != day
++                or price != source["price_basis"] or price.get("price_basis") != "QFQ_ASOF"
++                or price.get("asof_date") != int(day)
++                or rules != source["rules"] or not _SHA.fullmatch(source["score_index_sha256"])
++                or rules.get("a_share_kb_action_v1.json") != source["action_contract_sha256"]
++                or rules.get("a_share_kb_hold_score_v1.json") != source["hold_score_contract_sha256"]
++                or not _SHA.fullmatch(source["action_contract_sha256"])
++                or not _SHA.fullmatch(source["hold_score_contract_sha256"])):
++            return None
++        encoded = (json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
++                              allow_nan=False) + "\n").encode("utf-8")
++        if sha256(encoded).hexdigest() != source["score_row_sha256"]:
++            return None
++        return {
++            **source,
++            "numeric_manifest": item["numeric_manifest"],
++            "score_source": {"kind": "OLD_V4_EXACT_DAY_READ_ONLY", "numeric_manifest": reference,
++                             "source_date": source["source_date"], "generation": generation,
++                             "input_sha256": source["input_sha256"]},
++        }
++    except (OSError, HTTPException, ValueError, KeyError, TypeError, AttributeError):
++        return None
++
++
+@@ -52,0 +134,2 @@
++        # Only successful exact-D27 joins for the frozen candidate roster are kept.
++        self.legacy_scores = {}
+@@ -128,0 +212,11 @@
++            if (day == "2026-11-27" and kind == "single-research" and item.get("status") == "UNKNOWN"
++                    and item.get("reason") == _SCORE_MISSING and item.get("row") is None
++                    and item.get("numeric_manifest") == identity["numeric_manifest"]
++                    and any(row.get("symbol") == symbol and row.get("eligible_candidate") is True
++                            for row in native["rows"])):
++                cached = self.legacy_scores.get(symbol)
++                if cached is None:
++                    verified = _legacy_score(item, identity, symbol, path)
++                    if verified is not None:
++                        cached = self.legacy_scores.setdefault(symbol, verified)
++                item = cached or item
+@@ -147 +241 @@
+-            response=self.resolve(scope["path"],args)
++            response=await run_in_threadpool(self.resolve,scope["path"],args)
+--- a/content_projection/followup_f10_reads.py
++++ b/content_projection/followup_f10_reads.py
+@@ -151 +151,20 @@
+-            return None
++            failure = (receipt.get("failures") or {}).get(symbol)
++            if not failure:
++                return None
++            failed_ref = failure["artifact"]
++            failed = reference_body(failed_ref, self.owner, (*run, "stocks", symbol), 512 * 1024)
++            if (failed.get("symbol") != symbol or failed.get("exchange") not in {None, symbol[-2:]}
++                    or failed.get("status") != "FAILED" or failed.get("historical_PIT") is not False
++                    or failure.get("status") != "FAILED" or not safe(failed)
++                    or failed.get("reason") != failure.get("reason")):
++                raise ValueError("F10_OWNER_FAILURE_CONFLICT")
++            captured_at = datetime.fromisoformat(failed["captured_at"])
++            if captured_at.tzinfo is None or captured_at > cutoff:
++                return None
++            reason = ("F10_PARSE_MISSING_NUMERIC"
++                      if failed.get("reason") == "ValueError: could not convert string to float: '-'" else
++                      "F10_SOURCE_CAPTURE_FAILED")
++            return captured_at, {"failure": {
++                "source_date": iso_date(day).isoformat(), "captured_at": failed["captured_at"],
++                "reason": reason, "receipt_sha256": reference["sha256"], "stock_sha256": failed_ref["sha256"],
++            }}
+@@ -180 +199 @@
+-        observations = []
++        observations, failures = [], []
+@@ -191 +210 @@
+-                observations.append(observation)
++                (failures if "failure" in observation[1] else observations).append(observation)
+@@ -193,2 +212,7 @@
+-            return {**payload, "status": "CANNOT_CONFIRM", "reason": "F10_OWNER_RECEIPT_GAP"
+-                    if conflicting else "F10_SAVED_SNAPSHOT_NOT_FOUND"}
++            recorded = {}
++            if failures:
++                _, latest = max(failures, key=lambda item: item[0])
++                recorded = {"verified_failed_attempts": len(failures), "latest_failure": latest["failure"]}
++            reason = ("F10_OWNER_RECEIPT_GAP" if conflicting else
++                      "F10_PRIOR_ATTEMPTS_FAILED" if recorded else "F10_SAVED_SNAPSHOT_NOT_FOUND")
++            return {**payload, **recorded, "status": "CANNOT_CONFIRM", "reason": reason}
+--- a/static/research-panel/workbench-host/dot/shell/formula-f10.mjs
++++ b/static/research-panel/workbench-host/dot/shell/formula-f10.mjs
+@@ -157 +157,14 @@
+-export function referenceF10CardContent(reference) {
++export function earlierF10ReadDate(reference, observationDate) {
++  if (reference.reason !== 'F10_ASOF_IN_FUTURE') return null;
++  const cutoff = reference.asof_cutoff;
++  if (typeof cutoff !== 'string' || !cutoff.endsWith('+08:00') || !Number.isFinite(Date.parse(cutoff))) {
++    throw Error('F10_REFERENCE_CUTOFF_CONFLICT');
++  }
++  const day = cutoff.slice(0, 10);
++  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day >= observationDate) {
++    throw Error('F10_REFERENCE_CUTOFF_CONFLICT');
++  }
++  return day;
++}
++
++export function referenceF10CardContent(reference, observationDate = reference.asof_date) {
+@@ -159 +172,3 @@
+-  content.company.unshift(`截至观察日 ${reference.asof_date} 的最新已核验 F10 快照`);
++  content.company.unshift(observationDate === reference.asof_date
++    ? `截至观察日 ${reference.asof_date} 的最新已核验 F10 快照`
++    : `观察日 ${observationDate} · 截至 ${reference.asof_date} 的最新已核验 F10 快照`);
+@@ -192 +207 @@
+-      const content = referenceF10CardContent(referenceValue);
++      const content = referenceF10CardContent(referenceValue, currentDay.observation_date);
+@@ -209 +224,10 @@
+-      paint(symbol, [`${symbol} · ${gap}`], [`${symbol} · F10 财务与股东资料待核`]);
++      const cutoffDay = referenceValue?.asof_date;
++      const sourceAttempt = referenceValue?.latest_failure;
++      const detail = cutoffDay && referenceValue.reason !== 'F10_ASOF_IN_FUTURE'
++        ? `观察日 ${currentDay.observation_date} · 截至 ${cutoffDay} 未找到已核验 F10 快照`
++        : `${symbol} · ${gap}`;
++      const company = [detail];
++      if (sourceAttempt?.reason === 'F10_PARSE_MISSING_NUMERIC') {
++        company.push(`原采集回执：数值缺位符“-”解析失败 · 最近来源日 ${sourceAttempt.source_date}`);
++      }
++      paint(symbol, company, [`${symbol} · F10 财务与股东资料待核`]);
+@@ -277,3 +301,3 @@
+-      const referenceUrl = referenceRoute + encodeURIComponent(symbol) + '?' +
+-        new URLSearchParams({asof:day.observation_date});
+-      const reference = await load(referenceUrl, controller.signal);
++      const referenceUrl = asof => referenceRoute + encodeURIComponent(symbol) + '?' +
++        new URLSearchParams({asof});
++      const reference = await load(referenceUrl(day.observation_date), controller.signal);
+@@ -282,0 +307,8 @@
++        const earlier = earlierF10ReadDate(referenceValue, day.observation_date);
++        if (earlier) {
++          const prior = await load(referenceUrl(earlier), controller.signal);
++          if (inFlight !== controller) return;
++          if (prior !== null) {
++            referenceValue = validateF10Reference(prior, {...day, observation_date: earlier}, symbol);
++          }
++        }
+--- a/static/research-panel/workbench-host/archived-market-observations.mjs
++++ b/static/research-panel/workbench-host/archived-market-observations.mjs
+@@ -82 +82,25 @@
+-export async function readArchivedMarketObservation(observationDate) {
++export function observationArchiveForDates(snapshot, observationDate, sourceDate = null) {
++  if (!datePattern.test(observationDate ?? '') || !shaPattern.test(snapshot?.receipt_sha256 ?? '')
++      || snapshot.production_allowed !== false || snapshot.buy_gate_updated !== false
++      || snapshot.orders_sent !== false || !Array.isArray(snapshot.samples)) {
++    return { observationDate, sourceDate: observationDate, samples: new Map(),
++      lateUsClose: null, carryForward: false, receiptSha: snapshot?.receipt_sha256 ?? null };
++  }
++  const samples = new Map(samplesForObservation(snapshot, observationDate).map(row => [row.key, row]));
++  const sameDayUsClose = lateUsCloseForObservation(snapshot, observationDate);
++  if (samples.size || sameDayUsClose || observationDate !== '2026-11-30'
++      || sourceDate !== '2026-11-27') {
++    return { observationDate, sourceDate: observationDate, samples, lateUsClose: sameDayUsClose,
++      carryForward: false, receiptSha: snapshot.receipt_sha256 };
++  }
++  const priorSamples = new Map(samplesForObservation(snapshot, sourceDate).map(row => [row.key, row]));
++  const priorUsClose = lateUsCloseForObservation(snapshot, sourceDate);
++  if (priorSamples.size !== 3 || !priorUsClose) {
++    return { observationDate, sourceDate: observationDate, samples, lateUsClose: null,
++      carryForward: false, receiptSha: snapshot.receipt_sha256 };
++  }
++  return { observationDate, sourceDate, samples: priorSamples, lateUsClose: priorUsClose,
++    carryForward: true, receiptSha: snapshot.receipt_sha256 };
++}
++
++export async function readArchivedMarketObservation(observationDate, sourceDate = null) {
+@@ -92,3 +116 @@
+-  const samples = new Map(samplesForObservation(snapshot, observationDate).map(row => [row.key, row]));
+-  return { observationDate, samples, lateUsClose: lateUsCloseForObservation(snapshot, observationDate),
+-    receiptSha: snapshot.receipt_sha256 };
++  return observationArchiveForDates(snapshot, observationDate, sourceDate);
+@@ -109,3 +131,5 @@
+-function addUsLaterClose(host, close, headingTag = 'strong') {
+-  host.dataset.source = 'DATED_US_SESSION_CLOSE_AFTER_OBSERVATION';
+-  host.dataset.observationDate = close.observation_date;
++function addUsLaterClose(host, close, headingTag = 'strong', carryForward = false, targetDate = null) {
++  const observationDate = targetDate ?? close.observation_date;
++  host.dataset.source = carryForward ? 'DATED_CLOSE_CARRY_FORWARD' : 'DATED_US_SESSION_CLOSE_AFTER_OBSERVATION';
++  host.dataset.observationDate = observationDate;
++  host.dataset.sourceDate = close.us_session_date;
+@@ -113,3 +137,8 @@
+-  host.append(make(headingTag, '美国 · 纽约 ' + close.us_session_date + ' 收盘'));
+-  host.append(make('p', '实际收盘 ' + close.session_close_at_cst.slice(0, 16).replace('T', ' ') +
+-    ' 北京时间 · 上海观察日 ' + close.observation_date + ' 结束后'));
++  host.append(make(headingTag, carryForward
++    ? '美国 · 已核验收盘来源日 ' + close.us_session_date
++    : '美国 · 纽约 ' + close.us_session_date + ' 收盘'));
++  host.append(make('p', carryForward
++    ? '实际收盘 ' + close.session_close_at_cst.slice(0, 16).replace('T', ' ') +
++      ' 北京时间 · 来源交易日 ' + close.us_session_date + ' · 为观察日 ' + observationDate + ' 备查，不代表该观察日已收盘'
++    : '实际收盘 ' + close.session_close_at_cst.slice(0, 16).replace('T', ' ') +
++      ' 北京时间 · 上海观察日 ' + close.observation_date + ' 结束后'));
+@@ -144 +173 @@
+-export function renderArchivedMarketCard(host, market, archive, identity) {
++export function renderArchivedMarketCard(host, market, archive, identity, allowCarryForward = true) {
+@@ -146,0 +176,3 @@
++  if (archive.carryForward && !allowCarryForward) return false;
++  if (archive.carryForward && (archive.observationDate !== '2026-11-30'
++      || archive.sourceDate !== '2026-11-27' || identity.source_date !== archive.sourceDate)) return false;
+@@ -148,0 +181,29 @@
++  if (archive.carryForward) {
++    card.dataset.source = 'DATED_CLOSE_CARRY_FORWARD';
++    card.dataset.observationDate = archive.observationDate;
++    card.dataset.sourceDate = archive.sourceDate;
++    if (market === 'US' && archive.lateUsClose) {
++      addUsLaterClose(card, archive.lateUsClose, 'strong', true, archive.observationDate);
++      host.append(card);
++      return true;
++    }
++    card.append(make('strong', marketNames[market] + ' · 来源交易日 ' + archive.sourceDate + ' 收盘'));
++    for (const [key, label] of series) {
++      const row = archive.samples.get(key);
++      card.append(make('p', label + ' · ' + (row
++        ? '收盘 ' + numberFormat.format(measuredNumber(row.close)) +
++          (measuredNumber(row.change_pct) === null ? ' · 涨跌幅待核' : ' · 涨跌幅 ' + numberFormat.format(measuredNumber(row.change_pct)) + '%')
++        : 'CANNOT_CONFIRM · 来源交易日无已核验收盘来源')));
++    }
++    const details = make('details');
++    details.append(make('summary', '来源、时点和观察日期'));
++    details.append(make('p', '观察日 ' + archive.observationDate + ' · 来源交易日 ' + archive.sourceDate +
++      ' · 仅供该观察日备查，不代表观察日收盘或 PIT 核验'));
++    for (const [key, label] of series) {
++      const row = archive.samples.get(key);
++      if (row) details.append(make('p', label + ' · 采集 ' + (row.observed_at_cst ?? 'CANNOT_CONFIRM')));
++    }
++    card.append(details);
++    host.append(card);
++    return true;
++  }
+@@ -164,2 +225,6 @@
+-  details.append(make('p', '观察日 ' + archive.observationDate + ' · 候选来源日 ' + identity.source_date));
+-  details.append(make('p', '同日收盘留档 · 原始来源和采集时间见下方 · 历史 PIT 待核'));
++  details.append(make('p', archive.carryForward
++    ? '观察日 ' + archive.observationDate + ' · 来源交易日 ' + archive.sourceDate + ' · 页面来源日 ' + identity.source_date
++    : '观察日 ' + archive.observationDate + ' · 候选来源日 ' + identity.source_date));
++  details.append(make('p', archive.carryForward
++    ? '已核验的前一来源日收盘，仅供观察备查 · 原始来源和采集时间见下方 · 历史 PIT 待核'
++    : '同日收盘留档 · 原始来源和采集时间见下方 · 历史 PIT 待核'));
+@@ -171 +236 @@
+-export async function showArchivedMarketObservations(currentCards, observationDate, onBound) {
++export async function showArchivedMarketObservations(currentCards, observationDate, onBound, sourceDate = null) {
+@@ -181 +246,2 @@
+-  livePanel.append(make('summary', '海外已核验收盘样本 · 观察日 ' + observationDate));
++  const title = make('summary', '正在读取所选观察日的已核验收盘来源');
++  livePanel.append(title);
+@@ -187 +253 @@
+-    archive = await readArchivedMarketObservation(observationDate);
++    archive = await readArchivedMarketObservation(observationDate, sourceDate);
+@@ -193 +259,6 @@
+-  note.textContent = '收盘与采集时点见各市场来源，历史 PIT 待核。';
++  title.textContent = archive.carryForward
++    ? '已核验收盘来源备查 · 观察日 ' + observationDate + ' · 来源交易日 ' + archive.sourceDate
++    : '海外已核验收盘样本 · 观察日 ' + observationDate;
++  note.textContent = archive.carryForward
++    ? '以下为截至来源交易日的最近已核验收盘，供所选观察日备查；不代表观察日当天收盘，历史 PIT 待核。'
++    : '收盘与采集时点见各市场来源，历史 PIT 待核。';
+@@ -197 +268,2 @@
+-      addUsLaterClose(section, archive.lateUsClose, 'h3');
++      addUsLaterClose(section, archive.lateUsClose, 'h3', archive.carryForward,
++        archive.carryForward ? archive.observationDate : null);
+@@ -201 +273,2 @@
+-    section.append(make('h3', marketNames[market]));
++    section.append(make('h3', archive.carryForward
++      ? marketNames[market] + ' · 来源交易日 ' + archive.sourceDate : marketNames[market]));
+@@ -209,2 +282,3 @@
+-      const item = make('li', label + ' · 交易日 ' + observationDate + ' · ' + formattedClose(row)
+-        + (row.observed_at_cst ? ' · 采集 ' + row.observed_at_cst : '') + ' · ');
++      const item = make('li', label + ' · 交易日 ' + (archive.carryForward ? archive.sourceDate : observationDate) +
++        (archive.carryForward ? ' · 供观察日 ' + observationDate + ' 备查 · ' : ' · ') +
++        formattedClose(row) + (row.observed_at_cst ? ' · 采集 ' + row.observed_at_cst : '') + ' · ');
+--- a/static/research-panel/workbench-host/dot/shell/workbench.local.mjs
++++ b/static/research-panel/workbench-host/dot/shell/workbench.local.mjs
+@@ -3 +3 @@
+-import {showArchivedMarketObservations} from '../../archived-market-observations.mjs?v=8911b380f0fa';
++import {showArchivedMarketObservations} from '../../archived-market-observations.mjs?v=06c1b3892f08';
+@@ -7 +7 @@
+-import {createFormulaF10Cards,isFormulaF10Completion} from './formula-f10.mjs?v=941863c1ac01';
++import {createFormulaF10Cards,isFormulaF10Completion} from './formula-f10.mjs?v=55d7f963e409';
+@@ -557 +557 @@
+-async function loadDay(onListBound){const routeSelection=requestedSelectionFromSearch(location.search);window.StockPanelHost.unbindDay();void showArchivedMarketObservations($('marketCards'),null);observationLoading=false;$('refreshObservations').disabled=false;const token=++loadToken;++stockToken;clearInteractive();++observationToken;observationSnapshot=null;visibleObservationSnapshot=null;observationCoverage=null;missingObservationSymbols=new Set;marketContextSnapshot=null;observationRows=new Map;projections=new Map;day=null;selected=null;chartSet=null;charts=new Map;names={};timeContract=null;renderContext(null,null);resetDateDependentView();$('macLegacyStockPage').href='legacy-daily.html?'+new URLSearchParams({date:selection().date});$('observationSummary').textContent='正在读取所选日期快照，不沿用旧日数据。';$('content').hidden=true;$('stockList').replaceChildren();$('loadingState').textContent='正在读取该日资料…';if(!entryBinding?.entry){$('loadingState').textContent=`${entryBinding?.status??'NOT_MATERIALIZED'} · CANNOT_CONFIRM；未采用其他日期。`;return;}try{const data=await loadJson(endpoint('day'));if(token!==loadToken)return;if(!data){$('loadingState').textContent=`${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。`;return}day=validateWorkbenchDay(data);const [,reference]=await Promise.all([refreshV192Group(false),loadClassificationReference(day)]);if(token!==loadToken)return;classificationReference=reference;configureDayGroups(day);if(day.source_date!==selection().date)throw Error('DATE');if(!day.formula_groups)try{const c=await loadJson(endpoint('charts'));if(token!==loadToken)return;if(c){chartSet=c;charts=new Map((c.rows??[]).map(r=>[r.symbol,r]));names=Object.fromEntries((c.name_overlay?.rows??[]).map(r=>[r.symbol,r.name]));}}catch{/* Chart failure cannot silently substitute other date. */}if(token!==loadToken)return;if(!day.formula_groups)try{const p=await loadJson(endpoint('projections'));if(token!==loadToken)return;projections=new Map((p?.rows??[]).map(r=>[r.symbol,r]));}catch{}if(token!==loadToken)return;try{timeContract=await loadJson(integrationBase+'/workflow-contract?source_date='+day.source_date)}catch{timeContract=null}if(token!==loadToken)return;renderContext(timeContract,null);group='all';page=0;$('scope').value='candidates';window.StockPanelHost.bindDay(day);void showArchivedMarketObservations($('marketCards'),day.observation_date,archive=>window.StockPanelHost.bindMarketArchive(archive));renderFilters();renderSecondary();const initial=renderList(true,routeSelection);if(day.formula_groups?.status==='CANNOT_CONFIRM_NOT_MATERIALIZED')$('loadingState').textContent='所选日期的两组选股待物化。';else if(initial&&['INVALID','NOT_FOUND'].includes(initial.status))$('loadingState').textContent=initial.status==='INVALID'?`链接指定股票代码无效 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`:`链接指定股票 ${initial.symbol} 不在 ${day.source_date} 当前候选中 · CANNOT_CONFIRM，保留链接证券。`;onListBound?.();await refreshObservationData();window.StockPanelHost.paintWorkflow(timeContract)}catch{if(token===loadToken){resetDateDependentView();$('content').hidden=true;$('loadingState').textContent='该日期读取失败，未用旧池替代。'}}}
++async function loadDay(onListBound){const routeSelection=requestedSelectionFromSearch(location.search);window.StockPanelHost.unbindDay();void showArchivedMarketObservations($('marketCards'),null);observationLoading=false;$('refreshObservations').disabled=false;const token=++loadToken;++stockToken;clearInteractive();++observationToken;observationSnapshot=null;visibleObservationSnapshot=null;observationCoverage=null;missingObservationSymbols=new Set;marketContextSnapshot=null;observationRows=new Map;projections=new Map;day=null;selected=null;chartSet=null;charts=new Map;names={};timeContract=null;renderContext(null,null);resetDateDependentView();$('macLegacyStockPage').href='legacy-daily.html?'+new URLSearchParams({date:selection().date});$('observationSummary').textContent='正在读取所选日期快照，不沿用旧日数据。';$('content').hidden=true;$('stockList').replaceChildren();$('loadingState').textContent='正在读取该日资料…';if(!entryBinding?.entry){$('loadingState').textContent=`${entryBinding?.status??'NOT_MATERIALIZED'} · CANNOT_CONFIRM；未采用其他日期。`;return;}try{const data=await loadJson(endpoint('day'));if(token!==loadToken)return;if(!data){$('loadingState').textContent=`${selection().date} 未物化 · CANNOT_CONFIRM；没有沿用其他日期。`;return}day=validateWorkbenchDay(data);const [,reference]=await Promise.all([refreshV192Group(false),loadClassificationReference(day)]);if(token!==loadToken)return;classificationReference=reference;configureDayGroups(day);if(day.source_date!==selection().date)throw Error('DATE');if(!day.formula_groups)try{const c=await loadJson(endpoint('charts'));if(token!==loadToken)return;if(c){chartSet=c;charts=new Map((c.rows??[]).map(r=>[r.symbol,r]));names=Object.fromEntries((c.name_overlay?.rows??[]).map(r=>[r.symbol,r.name]));}}catch{/* Chart failure cannot silently substitute other date. */}if(token!==loadToken)return;if(!day.formula_groups)try{const p=await loadJson(endpoint('projections'));if(token!==loadToken)return;projections=new Map((p?.rows??[]).map(r=>[r.symbol,r]));}catch{}if(token!==loadToken)return;try{timeContract=await loadJson(integrationBase+'/workflow-contract?source_date='+day.source_date)}catch{timeContract=null}if(token!==loadToken)return;renderContext(timeContract,null);group='all';page=0;$('scope').value='candidates';window.StockPanelHost.bindDay(day);void showArchivedMarketObservations($('marketCards'),day.observation_date,archive=>window.StockPanelHost.bindMarketArchive(archive),day.source_date);renderFilters();renderSecondary();const initial=renderList(true,routeSelection);if(day.formula_groups?.status==='CANNOT_CONFIRM_NOT_MATERIALIZED')$('loadingState').textContent='所选日期的两组选股待物化。';else if(initial&&['INVALID','NOT_FOUND'].includes(initial.status))$('loadingState').textContent=initial.status==='INVALID'?`链接指定股票代码无效 · CANNOT_CONFIRM；当前显示 ${selected?.symbol??'无候选'}。`:`链接指定股票 ${initial.symbol} 不在 ${day.source_date} 当前候选中 · CANNOT_CONFIRM，保留链接证券。`;onListBound?.();await refreshObservationData();window.StockPanelHost.paintWorkflow(timeContract)}catch{if(token===loadToken){resetDateDependentView();$('content').hidden=true;$('loadingState').textContent='该日期读取失败，未用旧池替代。'}}}
+--- a/static/research-panel/workbench-host/bootstrap.mjs
++++ b/static/research-panel/workbench-host/bootstrap.mjs
+@@ -8 +8 @@
+-import {renderArchivedMarketCard} from './archived-market-observations.mjs?v=8911b380f0fa';
++import {renderArchivedMarketCard} from './archived-market-observations.mjs?v=06c1b3892f08';
+@@ -97,0 +98,11 @@
++function hasExactKoreanObservation(value,identity){
++  if(!['DATED_INDEX_OBSERVATION','PARTIAL'].includes(value?.status)
++    ||typeof value.source?.path!=='string'||!value.source.path.startsWith('/')
++    ||! /^[a-f0-9]{64}$/.test(value.source.sha256??''))return false;
++  const match=/^\^KS11 (\d+(?:\.\d+)?) \(([+-]?\d+(?:\.\d+)?)%\) \/ \^KQ11 (\d+(?:\.\d+)?) \(([+-]?\d+(?:\.\d+)?)%\) · 后到留档$/.exec(value.summary??'');
++  const stamps=(value.source_asof??'').split(' / ');
++  if(!match||stamps.length!==2||!value.recorded_at)return false;
++  return [0,1].some(index=>Number.isFinite(Number(match[1+index*2]))&&Number(match[1+index*2])>0
++    &&stamps[index].startsWith(identity.observation_date+'T')&&stamps[index].endsWith('+09:00')
++    &&Number.isFinite(Date.parse(stamps[index]))&&Date.parse(stamps[index])<=Date.parse(value.recorded_at));
++}
+@@ -103 +114 @@
+-    if(renderArchivedMarketCard(host,market,marketArchive,identity))continue;
++    if(!marketArchive?.carryForward&&renderArchivedMarketCard(host,market,marketArchive,identity))continue;
+@@ -108,0 +120 @@
++        if(marketArchive?.carryForward&&renderArchivedMarketCard(host,market,marketArchive,identity))continue;
+@@ -131,0 +144,3 @@
++      if(marketArchive?.carryForward&&!(benchmarks&&eligibleUsClose(benchmarks,dates))
++        &&!(native&&eligibleUsNative(native,dates))
++        &&renderArchivedMarketCard(host,market,marketArchive,identity))continue;
+@@ -136,0 +152,7 @@
++    const hasSameDayIndex=market==='JP'
++      ? value.schema==='V4_WORKBENCH_JAPAN_V1'&&value.status==='DATED_INDEX_OBSERVATION'
++        &&value.observation_date===identity.observation_date&&value.source_asof?.startsWith(identity.observation_date+'T')
++        &&Number.isFinite(value.value)&&Number.isFinite(value.change_pct)&&typeof value.source_time_beijing==='string'
++      : market==='KR'&&hasExactKoreanObservation(value,identity);
++    if(market!=='US'&&marketArchive?.carryForward&&!hasSameDayIndex
++      &&renderArchivedMarketCard(host,market,marketArchive,identity))continue;
+@@ -306 +328 @@
+-await import('./dot/shell/workbench.local.mjs?v=3c913f8c3544');
++await import('./dot/shell/workbench.local.mjs?v=af46971d574c');
+--- a/static/research-panel/workbench.html
++++ b/static/research-panel/workbench.html
+@@ -5 +5 @@
+-<div class="layout"><aside class="sidebar"><div class="sidebar-title"><strong>冻结数值候选</strong><span class="subtle">四组数值候选 · 风险待核另列</span></div><section class="scope-options" aria-label="范围与研究分组"><strong class="scope-heading">范围 / 分组</strong><label for="scope">显示范围</label><select id="scope" aria-label="显示范围"><option value="candidates">数值候选 · 待绑定</option><option value="all">全范围 · 待绑定</option></select><div id="groupFilters" class="filter-row group-tabs" aria-label="研究分组"></div></section><label for="query" class="sr-only">查找股票</label><input id="query" type="search" placeholder="名称或代码" aria-label="查找股票"><div class="sort-row"><label for="stockSort" class="sr-only">股票栏排序（不改变四组数值候选 · 风险待核另列）</label><select id="stockSort" hidden aria-hidden="true" tabindex="-1"><option value="d2_asc">d2</option><option value="d2_desc">d2</option><option value="d5_asc">d5</option><option value="d5_desc">d5</option><option value="original_groups">原分组</option><option value="name_asc">名称 ↑</option><option value="name_desc">名称 ↓</option><option value="price_desc">股价 ↓</option><option value="price_asc">股价 ↑</option><option value="amount_desc">累计成交额 ↓</option><option value="amount_asc">累计成交额 ↑</option><option value="percent_change_desc">涨幅 ↓</option><option value="percent_change_asc">涨幅 ↑</option><option value="cumulative_volume_desc">累计量 ↓</option><option value="cumulative_volume_asc">累计量 ↑</option></select><button id="refreshObservations" title="只读取站内已保存快照，不发起行情采集">刷新已存</button></div><div id="observationMini" class="observation-mini">当日快照待接入</div><details class="classification-filter"><summary>行业 / 多标签筛选</summary><input id="classificationQuery" type="search" placeholder="主营 / 官方大类 / 题材 / 催化剂" aria-label="分类检索"><div><label><input type="checkbox" data-classification-label value="机器人">机器人</label><label><input type="checkbox" data-classification-label value="芯片">芯片</label><label><input type="checkbox" data-classification-label value="商业航天">商业航天</label></div><small>多选取并集，每股显示一次。</small><p id="classificationFilterStatus" class="field-note" aria-live="polite">所选日期分类待核</p></details><p id="listCount" class="counts" aria-live="polite"></p><div class="stock-grid-controls" aria-label="股票横向浏览"><button id="showStockNames" type="button" aria-controls="stockGridViewport">← 名称</button><span>横向查看</span><button id="showStockRates" type="button" aria-controls="stockGridViewport">D+2 / D+5 →</button></div><div id="stockGridViewport" tabindex="0" role="region" aria-label="股票六列，可横向滚动；表头与列表同步"><div id="stockGridTable"><div class="stock-grid-head" aria-label="股票六列排序"><button data-stock-sort="name">股票名称</button><button data-stock-sort="price">股价</button><button data-stock-sort="percent_change">涨幅</button><button data-stock-sort="amount">成交额</button><button data-stock-sort="d2">D+2</button><button data-stock-sort="d5">D+5</button></div><nav id="stockList" aria-label="股票列表"></nav></div></div><div class="list-pager"><button id="prevList">上一页</button><span id="listPage"></span><button id="nextList">下一页</button></div><details class="source-note"><summary>快照来源与量单位</summary><p id="observationSummary" aria-live="polite">当日观察待接入</p></details></aside><main><p id="loadingState" role="status" aria-live="polite">正在读取研究资料…</p><section id="kbSingleResearch" class="chart-card kb-single" hidden><div class="kb-single-head"><div><span class="eyebrow">11/2观察看板 · 指定单股研究</span><h2><span id="kbSingleName">钧达股份</span> <small id="kbSingleCode">002865.SZ</small></h2><span class="kb-single-meta">数据截至 2026-10-30 收盘 · 不改变原有候选名单</span></div><div><button id="kbSingleOpen" type="button">钧达股份</button> <button id="kbSingleGold" type="button">金鹰重工</button> <button id="kbSingleEdan" type="button">理邦仪器</button> <button id="kbSingleBack" type="button">返回候选列表</button></div></div><p id="kbSingleStatus" role="status" class="field-note">正在读取单股研究…</p><button id="kbSingleVersionLatest" type="button" hidden>查看最新版本</button><div id="kbSingleBody" hidden><section class="panel"><p id="kbSingleScore" class="kb-score"></p><div id="kbSingleActions" class="kb-actions" aria-live="polite"></div><p class="field-note">按有仓、无仓两种情境分别展示；研究参考，不代表实际持仓或交易指令。</p><details id="kbSingleExplain"><summary>信号与依据 · <span id="kbSingleSelected"></span></summary><div id="kbSingleActionReasons"></div><p>当日已确认命中</p><div id="kbSingleChips" class="kb-chip-row"></div><p id="kbSingleVolume" class="field-note"></p><div id="kbSingleSignalReasons"></div><div id="kbSingleScoreItems"></div><section id="kbSingleUnknown" hidden><h4 id="kbSingleUnknownSummary"></h4><div id="kbSingleUnknownItems"></div></section><p class="field-note">原式与KB按各自定义展示；滴滴·双阴阶梯为日K形态，14:55是另一个执行版本；评分和信号仅供研究。</p><h4>57 项 KB 字段及定义</h4><div id="kbSingleGroups" class="kb-group-grid"></div></details></section><div class="section-head"><h3>原式图与KB事件</h3><label>交易日 <input id="kbSingleDate" type="date" aria-label="单股交易日"></label><button id="kbSingleLatest" type="button">最新交易日</button></div><p id="kbSingleDateStatus" role="status" class="field-note"></p><div class="chart-toolbar"><button type="button" data-kb-window="60">近60根</button><button type="button" data-kb-window="120">近120根</button><button type="button" data-kb-window="all">全部历史</button></div><iframe id="kbSingleChart" class="kb-single-chart" title="钧达股份原式研究图"></iframe><p class="field-note">青色标记为KB当日事件，原式22项绘图保留；点击K线选择日期，悬停只查看。</p><section class="panel"><h3>历史同买点与相同位置研究</h3><div id="kbSingleHistory">正在核对同股资料…</div></section><div class="summary-grid"><section class="panel"><h3>主营与公司资料</h3><div id="kbSingleCompany">正在核对同股资料…</div></section><section class="panel"><h3>财务与股东线索</h3><div id="kbSingleFinancial">正在核对同股资料…</div></section></div><details class="evidence-panel" id="relatedReports" data-hide-empty="true" hidden><summary>V4已有相关研报</summary><p id="relatedReportsState"></p><button id="relatedReportsRefresh" type="button">继续读取</button><div id="relatedReportsOutput"></div></details><p class="field-note">原式显示、KB新计算和图形均为研究候选；历史PIT与图审尚未认证。</p></div></section><div id="content" hidden><div class="identity"><div><div id="selectedGroup" class="eyebrow"></div><h1><span id="stockName"></span><small id="stockCode"></small><span id="selectedPrice" class="selected-price">—</span></h1><div id="dates" class="meta-line"></div></div><div class="identity-quote"><span class="review-badge">原式待审 · 研究展示</span><span id="selectedAmount">累计成交额 —</span><small id="selectedQuoteTime">源时点待核</small></div></div><section class="chart-card" id="interactivePanel"><div class="section-head"><h2>原式图</h2><span id="projectionStatus">同源完整数据待读取</span></div><div id="interactiveChart" hidden><div class="chart-toolbar"><button data-full-window="60">近60根</button><button data-full-window="120">近120根</button><button data-full-window="all">全部缓存</button><button id="resetInteractive">复位至最近120根</button><label for="fullDateSelect">定位交易日</label><select id="fullDateSelect"></select></div><div class="interactive-scroll"><canvas id="fullPrice" height="360" aria-label="原式主图，可滚轮缩放和拖动"></canvas><canvas id="fullVolume" height="100" aria-label="源成交量"></canvas><canvas id="fullKdj" height="100" aria-label="原式KDJ"></canvas></div><p id="fullReadout" class="readout" aria-live="polite"></p><div class="chart-nav"><button id="fullPrev">← 更早</button><input id="fullPanRange" type="range" min="0" value="0" aria-label="移动图表日期窗口"><button id="fullNext">更近 →</button></div><p class="field-note">滚轮缩放 · 按住拖动横移 · 指针查看当日数值 · 复位返回最近120根。复用既有绘图函数和冻结51/22原值，不重算公式；图审仍待完成。</p><details><summary>完整原值及数据覆盖</summary><p id="fullCoverage"></p><pre id="exactValues"></pre></details></div></section><details class="evidence-panel" id="originalScreenshot"><summary>原始截图参考（静态PNG，不替代交互图）</summary><section class="chart-card"><div class="section-head"><div><span class="eyebrow">沿用已有原式绘图</span><h2>原式图 · 结构与量价</h2></div><span id="chartCoverage"></span></div><div class="chart-toolbar"><button id="prevStock">← 上一只</button><button id="nextStock">下一只 →</button><button id="focusChart">图表区域</button><button id="fitChart">完整原图</button><button id="nativeChart">原始尺寸</button><a id="openOriginal" class="button" target="_blank" rel="noopener" hidden>打开原图</a></div><p id="chartCaption" class="field-note"></p><div id="chartShell" class="chart-image-shell"><p id="chartEmpty" class="chart-empty">正在核对本股图源…</p><img id="originalChart" alt="" hidden></div><p class="field-note">静态原PNG，图内下拉菜单等控件不可操作；请用上方按钮切换显示方式。来源与审图边界见下方展开详情。</p></section></details><details class="evidence-panel"><summary>当日快照与研究边界</summary><p id="selectedObservation" class="selected-observation"></p><div id="groupChips" class="chips"></div><p class="scope-banner">数值命中 ≠ 图审通过 ≠ 监测激活 ≠ 买点确认。完整公式独审仍待完成；仅供研究，不下单。</p></details><details class="evidence-panel"><summary>主营行业 / 官方大类 / 交易题材 / 催化剂</summary><div id="classificationSummary"></div></details><div class="summary-grid"><section class="panel"><div class="section-head"><h2>主营与公司资料</h2><span class="status">解释层</span></div><div id="companySummary">点击股票后按需加载。</div></section><section class="panel"><div class="section-head"><h2>财务与股东线索</h2><span class="status">非评分</span></div><div id="companyMetrics"></div></section></div><details class="evidence-panel"><summary>分组核验、原始三态与来源</summary><p>以下是核验详情，不是新增买入或卖出指令。</p><div id="stateLabels"></div><pre id="numericDetails"></pre><pre id="chartDetails"></pre></details><details class="evidence-panel"><summary>公司原始声明、时间边界与隔离证据</summary><div id="companyEvidence"></div></details><details class="evidence-panel"><summary>工作进度、原件及备份</summary><div class="secondary-grid"><section><h3>工作节点</h3><ol id="workflow"></ol></section><section><h3>资料入口</h3><ul id="materials"></ul></section></div><pre id="sourceDetails"></pre></details><footer>同一固定入口，按日期追加资料并保留历史。图审待完成，不把原图展示或资料入库等同于研究通过。</footer></div></main><aside id="workflowDrawer" class="workflow-rail" aria-label="全天计划及反证"><div class="rail-tabs"><button id="showSchedule" class="active" aria-pressed="true">全天计划</button><button id="showEvidence" aria-pressed="false">关联与反证</button></div><section id="schedulePanel"><div class="rail-status"><span id="phaseNext">计划不等于执行</span><button id="openWorkflow" title="定位当前计划阶段">当前阶段</button></div><ol id="fullTimetable"></ol><div class="rail-foot">固定节点提前30分钟准备 / 提前10分钟查缺<br>计划不等于执行完成</div></section><section id="evidencePanel" hidden><p class="evidence-intro">海外资料仅解释环境与风险，不改四组数值候选 · 风险待核另列、评分或资格。原式数值命中 ≠ 图审通过 ≠ 买点。</p><section id="marketEvidence"></section><p id="scheduleContractRef"></p></section><button id="closeWorkflow" hidden>关闭</button></aside></div><div class="app-foot">源时间各市场当地口径 · 实际采集以原记录为准 · 研究展示，不执行交易</div><!-- External individual-stock renderer intentionally not bundled. --><script src="related-reports.js"></script><script type="module" src="workbench-host/bootstrap.mjs?v=e93e929c5840"></script></body></html>
++<div class="layout"><aside class="sidebar"><div class="sidebar-title"><strong>冻结数值候选</strong><span class="subtle">四组数值候选 · 风险待核另列</span></div><section class="scope-options" aria-label="范围与研究分组"><strong class="scope-heading">范围 / 分组</strong><label for="scope">显示范围</label><select id="scope" aria-label="显示范围"><option value="candidates">数值候选 · 待绑定</option><option value="all">全范围 · 待绑定</option></select><div id="groupFilters" class="filter-row group-tabs" aria-label="研究分组"></div></section><label for="query" class="sr-only">查找股票</label><input id="query" type="search" placeholder="名称或代码" aria-label="查找股票"><div class="sort-row"><label for="stockSort" class="sr-only">股票栏排序（不改变四组数值候选 · 风险待核另列）</label><select id="stockSort" hidden aria-hidden="true" tabindex="-1"><option value="d2_asc">d2</option><option value="d2_desc">d2</option><option value="d5_asc">d5</option><option value="d5_desc">d5</option><option value="original_groups">原分组</option><option value="name_asc">名称 ↑</option><option value="name_desc">名称 ↓</option><option value="price_desc">股价 ↓</option><option value="price_asc">股价 ↑</option><option value="amount_desc">累计成交额 ↓</option><option value="amount_asc">累计成交额 ↑</option><option value="percent_change_desc">涨幅 ↓</option><option value="percent_change_asc">涨幅 ↑</option><option value="cumulative_volume_desc">累计量 ↓</option><option value="cumulative_volume_asc">累计量 ↑</option></select><button id="refreshObservations" title="只读取站内已保存快照，不发起行情采集">刷新已存</button></div><div id="observationMini" class="observation-mini">当日快照待接入</div><details class="classification-filter"><summary>行业 / 多标签筛选</summary><input id="classificationQuery" type="search" placeholder="主营 / 官方大类 / 题材 / 催化剂" aria-label="分类检索"><div><label><input type="checkbox" data-classification-label value="机器人">机器人</label><label><input type="checkbox" data-classification-label value="芯片">芯片</label><label><input type="checkbox" data-classification-label value="商业航天">商业航天</label></div><small>多选取并集，每股显示一次。</small><p id="classificationFilterStatus" class="field-note" aria-live="polite">所选日期分类待核</p></details><p id="listCount" class="counts" aria-live="polite"></p><div class="stock-grid-controls" aria-label="股票横向浏览"><button id="showStockNames" type="button" aria-controls="stockGridViewport">← 名称</button><span>横向查看</span><button id="showStockRates" type="button" aria-controls="stockGridViewport">D+2 / D+5 →</button></div><div id="stockGridViewport" tabindex="0" role="region" aria-label="股票六列，可横向滚动；表头与列表同步"><div id="stockGridTable"><div class="stock-grid-head" aria-label="股票六列排序"><button data-stock-sort="name">股票名称</button><button data-stock-sort="price">股价</button><button data-stock-sort="percent_change">涨幅</button><button data-stock-sort="amount">成交额</button><button data-stock-sort="d2">D+2</button><button data-stock-sort="d5">D+5</button></div><nav id="stockList" aria-label="股票列表"></nav></div></div><div class="list-pager"><button id="prevList">上一页</button><span id="listPage"></span><button id="nextList">下一页</button></div><details class="source-note"><summary>快照来源与量单位</summary><p id="observationSummary" aria-live="polite">当日观察待接入</p></details></aside><main><p id="loadingState" role="status" aria-live="polite">正在读取研究资料…</p><section id="kbSingleResearch" class="chart-card kb-single" hidden><div class="kb-single-head"><div><span class="eyebrow">11/2观察看板 · 指定单股研究</span><h2><span id="kbSingleName">钧达股份</span> <small id="kbSingleCode">002865.SZ</small></h2><span class="kb-single-meta">数据截至 2026-10-30 收盘 · 不改变原有候选名单</span></div><div><button id="kbSingleOpen" type="button">钧达股份</button> <button id="kbSingleGold" type="button">金鹰重工</button> <button id="kbSingleEdan" type="button">理邦仪器</button> <button id="kbSingleBack" type="button">返回候选列表</button></div></div><p id="kbSingleStatus" role="status" class="field-note">正在读取单股研究…</p><button id="kbSingleVersionLatest" type="button" hidden>查看最新版本</button><div id="kbSingleBody" hidden><section class="panel"><p id="kbSingleScore" class="kb-score"></p><div id="kbSingleActions" class="kb-actions" aria-live="polite"></div><p class="field-note">按有仓、无仓两种情境分别展示；研究参考，不代表实际持仓或交易指令。</p><details id="kbSingleExplain"><summary>信号与依据 · <span id="kbSingleSelected"></span></summary><div id="kbSingleActionReasons"></div><p>当日已确认命中</p><div id="kbSingleChips" class="kb-chip-row"></div><p id="kbSingleVolume" class="field-note"></p><div id="kbSingleSignalReasons"></div><div id="kbSingleScoreItems"></div><section id="kbSingleUnknown" hidden><h4 id="kbSingleUnknownSummary"></h4><div id="kbSingleUnknownItems"></div></section><p class="field-note">原式与KB按各自定义展示；滴滴·双阴阶梯为日K形态，14:55是另一个执行版本；评分和信号仅供研究。</p><h4>57 项 KB 字段及定义</h4><div id="kbSingleGroups" class="kb-group-grid"></div></details></section><div class="section-head"><h3>原式图与KB事件</h3><label>交易日 <input id="kbSingleDate" type="date" aria-label="单股交易日"></label><button id="kbSingleLatest" type="button">最新交易日</button></div><p id="kbSingleDateStatus" role="status" class="field-note"></p><div class="chart-toolbar"><button type="button" data-kb-window="60">近60根</button><button type="button" data-kb-window="120">近120根</button><button type="button" data-kb-window="all">全部历史</button></div><iframe id="kbSingleChart" class="kb-single-chart" title="钧达股份原式研究图"></iframe><p class="field-note">青色标记为KB当日事件，原式22项绘图保留；点击K线选择日期，悬停只查看。</p><section class="panel"><h3>历史同买点与相同位置研究</h3><div id="kbSingleHistory">正在核对同股资料…</div></section><div class="summary-grid"><section class="panel"><h3>主营与公司资料</h3><div id="kbSingleCompany">正在核对同股资料…</div></section><section class="panel"><h3>财务与股东线索</h3><div id="kbSingleFinancial">正在核对同股资料…</div></section></div><details class="evidence-panel" id="relatedReports" data-hide-empty="true" hidden><summary>V4已有相关研报</summary><p id="relatedReportsState"></p><button id="relatedReportsRefresh" type="button">继续读取</button><div id="relatedReportsOutput"></div></details><p class="field-note">原式显示、KB新计算和图形均为研究候选；历史PIT与图审尚未认证。</p></div></section><div id="content" hidden><div class="identity"><div><div id="selectedGroup" class="eyebrow"></div><h1><span id="stockName"></span><small id="stockCode"></small><span id="selectedPrice" class="selected-price">—</span></h1><div id="dates" class="meta-line"></div></div><div class="identity-quote"><span class="review-badge">原式待审 · 研究展示</span><span id="selectedAmount">累计成交额 —</span><small id="selectedQuoteTime">源时点待核</small></div></div><section class="chart-card" id="interactivePanel"><div class="section-head"><h2>原式图</h2><span id="projectionStatus">同源完整数据待读取</span></div><div id="interactiveChart" hidden><div class="chart-toolbar"><button data-full-window="60">近60根</button><button data-full-window="120">近120根</button><button data-full-window="all">全部缓存</button><button id="resetInteractive">复位至最近120根</button><label for="fullDateSelect">定位交易日</label><select id="fullDateSelect"></select></div><div class="interactive-scroll"><canvas id="fullPrice" height="360" aria-label="原式主图，可滚轮缩放和拖动"></canvas><canvas id="fullVolume" height="100" aria-label="源成交量"></canvas><canvas id="fullKdj" height="100" aria-label="原式KDJ"></canvas></div><p id="fullReadout" class="readout" aria-live="polite"></p><div class="chart-nav"><button id="fullPrev">← 更早</button><input id="fullPanRange" type="range" min="0" value="0" aria-label="移动图表日期窗口"><button id="fullNext">更近 →</button></div><p class="field-note">滚轮缩放 · 按住拖动横移 · 指针查看当日数值 · 复位返回最近120根。复用既有绘图函数和冻结51/22原值，不重算公式；图审仍待完成。</p><details><summary>完整原值及数据覆盖</summary><p id="fullCoverage"></p><pre id="exactValues"></pre></details></div></section><details class="evidence-panel" id="originalScreenshot"><summary>原始截图参考（静态PNG，不替代交互图）</summary><section class="chart-card"><div class="section-head"><div><span class="eyebrow">沿用已有原式绘图</span><h2>原式图 · 结构与量价</h2></div><span id="chartCoverage"></span></div><div class="chart-toolbar"><button id="prevStock">← 上一只</button><button id="nextStock">下一只 →</button><button id="focusChart">图表区域</button><button id="fitChart">完整原图</button><button id="nativeChart">原始尺寸</button><a id="openOriginal" class="button" target="_blank" rel="noopener" hidden>打开原图</a></div><p id="chartCaption" class="field-note"></p><div id="chartShell" class="chart-image-shell"><p id="chartEmpty" class="chart-empty">正在核对本股图源…</p><img id="originalChart" alt="" hidden></div><p class="field-note">静态原PNG，图内下拉菜单等控件不可操作；请用上方按钮切换显示方式。来源与审图边界见下方展开详情。</p></section></details><details class="evidence-panel"><summary>当日快照与研究边界</summary><p id="selectedObservation" class="selected-observation"></p><div id="groupChips" class="chips"></div><p class="scope-banner">数值命中 ≠ 图审通过 ≠ 监测激活 ≠ 买点确认。完整公式独审仍待完成；仅供研究，不下单。</p></details><details class="evidence-panel"><summary>主营行业 / 官方大类 / 交易题材 / 催化剂</summary><div id="classificationSummary"></div></details><div class="summary-grid"><section class="panel"><div class="section-head"><h2>主营与公司资料</h2><span class="status">解释层</span></div><div id="companySummary">点击股票后按需加载。</div></section><section class="panel"><div class="section-head"><h2>财务与股东线索</h2><span class="status">非评分</span></div><div id="companyMetrics"></div></section></div><details class="evidence-panel"><summary>分组核验、原始三态与来源</summary><p>以下是核验详情，不是新增买入或卖出指令。</p><div id="stateLabels"></div><pre id="numericDetails"></pre><pre id="chartDetails"></pre></details><details class="evidence-panel"><summary>公司原始声明、时间边界与隔离证据</summary><div id="companyEvidence"></div></details><details class="evidence-panel"><summary>工作进度、原件及备份</summary><div class="secondary-grid"><section><h3>工作节点</h3><ol id="workflow"></ol></section><section><h3>资料入口</h3><ul id="materials"></ul></section></div><pre id="sourceDetails"></pre></details><footer>同一固定入口，按日期追加资料并保留历史。图审待完成，不把原图展示或资料入库等同于研究通过。</footer></div></main><aside id="workflowDrawer" class="workflow-rail" aria-label="全天计划及反证"><div class="rail-tabs"><button id="showSchedule" class="active" aria-pressed="true">全天计划</button><button id="showEvidence" aria-pressed="false">关联与反证</button></div><section id="schedulePanel"><div class="rail-status"><span id="phaseNext">计划不等于执行</span><button id="openWorkflow" title="定位当前计划阶段">当前阶段</button></div><ol id="fullTimetable"></ol><div class="rail-foot">固定节点提前30分钟准备 / 提前10分钟查缺<br>计划不等于执行完成</div></section><section id="evidencePanel" hidden><p class="evidence-intro">海外资料仅解释环境与风险，不改四组数值候选 · 风险待核另列、评分或资格。原式数值命中 ≠ 图审通过 ≠ 买点。</p><section id="marketEvidence"></section><p id="scheduleContractRef"></p></section><button id="closeWorkflow" hidden>关闭</button></aside></div><div class="app-foot">源时间各市场当地口径 · 实际采集以原记录为准 · 研究展示，不执行交易</div><!-- External individual-stock renderer intentionally not bundled. --><script src="related-reports.js"></script><script type="module" src="workbench-host/bootstrap.mjs?v=f0b4dcd229ee"></script></body></html>
