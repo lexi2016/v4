@@ -1,0 +1,36 @@
+{
+  "version": "ACT070A_KB_RULE_CARDS_V1",
+  "provenance": {
+    "basis": "User-reported recovery of 106 course pages and frozen V4.1 structure contract.",
+    "status": "PAGE_LEVEL_PROVENANCE_UNVERIFIED",
+    "full_original_review": false,
+    "use": "Forward-neutral research cues. Page-by-page provenance and full original review are unconfirmed."
+  },
+  "cards": [
+    {
+      "id": "KB_KEY_K",
+      "topic": "Key K location and volume",
+      "rule": "A key-candle candidate needs a chart location and contemporaneous price and volume evidence. One large candle or a volume change alone does not establish a structural event."
+    },
+    {
+      "id": "KB_N_BREATHING",
+      "topic": "N structure and breathing",
+      "rule": "Describe the ordered push, pullback and follow-through using only observed sessions. Keep incomplete legs and turning points provisional."
+    },
+    {
+      "id": "KB_SUPPORT_BREAK",
+      "topic": "Support and breaks",
+      "rule": "Tie any claimed break to the same previously identified anchor. Distinguish an intraday penetration, a close below the anchor, a reclaim and a subsequent loss. Missing anchor or break evidence stays unresolved."
+    },
+    {
+      "id": "KB_WASHOUT_DISTRIBUTION",
+      "topic": "Washout and distribution counterevidence",
+      "rule": "Consider both support recovery and continuing weakness in the observed sequence. Opposing price and volume evidence must remain visible. Price and volume alone do not identify traders or intent."
+    }
+  ],
+  "computable_time_rules": {
+    "SINGLE_BAR_KEY_K_V1": "The start and end reference the same plotted session and cited evidence includes that candle's volume and at least one OHLC field. Occurred is the plotted session. First knowable is the latest A-stamped referenced date. Dates describe the candidate observation only.",
+    "ANCHORED_BREAK_V1": "An observed old-anchor identity is explicitly linked to its observed ACTIVE_ANCHOR_CLOSE_BREAK record. The break identifies a plotted close below the bound anchor and follows the anchor's first-knowable session. Occurred is the break session. First knowable is the latest A-stamped referenced date.",
+    "UNRESOLVED": "No frozen timestamp computation applies. Both candidate dates stay UNRESOLVED."
+  }
+}
