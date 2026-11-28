@@ -1,0 +1,31 @@
+{
+  "status": "ISOLATED_REMEDIATIONS_VERIFIED_FORMAL_ADMISSION_BLOCKED",
+  "base_commit": "827ed12186307a9a191d098bd93a33d7a4e7fecf",
+  "candidate_sha256": "453f974f3911d0001d8497c574eeea74bd10a93a5ffbbdf6c4c84c2c63763340",
+  "activation_manifest_sha256": "acee0c3e080d4330fd47b8bdb447f6c05bbf7234c691c9d847565fcc94dd5e73",
+  "chrome": {
+    "version": "158.0.8127.89",
+    "stage_tests_passed": 4,
+    "business_clicks_verified": 3,
+    "capture_count": 8,
+    "previous_regressions_passed": 7
+  },
+  "physical_drill": "ISOLATED_PHYSICAL_SWITCH_ROLLBACK_RESTORE_PASS",
+  "independent_review": "REVIEWED/PASS",
+  "targeted_tests": {
+    "pytest": 11,
+    "compiled_timeline": 3
+  },
+  "formal_stage_ready": [
+    0,
+    0
+  ],
+  "scheduler": {
+    "historical_persisted_windows": 15,
+    "historical_slots_with_attempts": 5,
+    "natural_valid_slots": 0,
+    "slot_count": 6
+  },
+  "production_switch": "NO_GO",
+  "natural_verified": false
+}
