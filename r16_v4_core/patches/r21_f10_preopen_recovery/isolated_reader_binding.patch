@@ -1,0 +1,119 @@
+--- a/content_projection/read_overlay.py
++++ b/content_projection/read_overlay.py
+@@ -18,0 +19 @@
++from .preopen_source_reads import ARCHIVE_PATH, PreopenSourceReads
+@@ -89,0 +91 @@
++        self.preopen_source_reads = PreopenSourceReads(data.parent.parent)
+@@ -134,0 +137,2 @@
++        if key == "lane":
++            payload = self.preopen_source_reads.lane(payload, date)
+@@ -210,0 +215,2 @@
++        elif path == ARCHIVE_PATH:
++            response = self.preopen_source_reads.resolve(query)
+--- a/content_projection/followup_f10_reads.py
++++ b/content_projection/followup_f10_reads.py
+@@ -27,0 +28,3 @@
++RECOVERY_ROOT = Path(__file__).resolve().parents[1] / "f10_recovery_20261128" / "evidence"
++RECOVERY_INDEX_SHA256 = "8ec9e35c3a1ace94f2c739833fc4e0711a00aa7158781bdb122a63ff0f6193eb"
++
+@@ -118,0 +122,75 @@
++def captured_financial_period(stock, cutoff):
++    """Find the period printed on the same raw lines as revenue and net profit."""
++    finance = stock["financials"]
++    periods = set()
++    for field, label in (("revenue_text", "营业总收入(元)"), ("net_profit_text", "净利润(元)")):
++        if not finance.get(field):
++            continue
++        pattern = (r"(?m)^\s*｜\s*(\d{4}-\d{2}-\d{2})[^｜\r\n]*"
++                   + re.escape(label) + r"\s*[:：]\s*" + re.escape(finance[field]) + r"(?=[^\S\r\n]|｜|$)")
++        dates = {iso_date(match) for match in re.findall(pattern, stock["source_text"])}
++        if len(dates) != 1 or None in dates:
++            return None
++        periods.update(dates)
++    if len(periods) != 1:
++        return None
++    period = periods.pop()
++    if period > cutoff:
++        raise ValueError("F10_STATEMENT_PERIOD_AFTER_CUTOFF")
++    return period.isoformat()
++
++
++def bounded_recovery(root, symbol, cutoff):
++    index_path = root / "index.json"
++    index = checked_json(index_path, RECOVERY_INDEX_SHA256, 8192)
++    if index.get("schema") != "v4.r21.bounded_f10_index.v1" or not (day := iso_date(index.get("captured_on"))):
++        raise ValueError("F10_RECOVERY_INDEX_CONFLICT")
++    if day > cutoff.date():
++        return None
++
++    receipt_path = root / "capture_receipt.json"
++    checkpoint_path = root / "scope_checkpoint.json"
++    receipt = checked_json(receipt_path, index["receipt_sha256"], 16384)
++    checkpoint = checked_json(checkpoint_path, index["checkpoint_sha256"], 16384)
++    if (receipt.get("schema") != "v4.r21.bounded_f10_recovery.v1" or not safe(receipt)
++            or receipt.get("historical_PIT") is not False or receipt.get("captured_on") != index["captured_on"]
++            or receipt.get("authoring") != "EXPLICIT_OBSERVATIONS_ONLY"
++            or checkpoint.get("schema") != "v4.r21.bounded_f10_scope.v1"
++            or checkpoint.get("capture_receipt_sha256") != index["receipt_sha256"]
++            or any(checkpoint[key] != receipt[key] for key in
++                   ("source_manifest_sha256", "source_page_sha256", "target_preselection_date", "selection_signal_date"))):
++        raise ValueError("F10_RECOVERY_RECEIPT_CONFLICT")
++
++    item = receipt["items"].get(symbol)
++    if item is None or item.get("status") != "OBSERVED":
++        return None
++    captured_at = datetime.fromisoformat(item["captured_at"])
++    if captured_at.tzinfo is None or captured_at > cutoff:
++        return None
++    if (captured_at.astimezone(SHANGHAI).date() != day or item.get("captured_on") != index["captured_on"]
++            or checkpoint["members"].get(symbol) != item["preselection_membership"]):
++        raise ValueError("F10_RECOVERY_MEMBER_SCOPE_CONFLICT")
++    digest = item["sha256"]
++    relative = f"stocks/{symbol}/{digest}.json"
++    if not SHA.fullmatch(digest) or item["relative"] != relative:
++        raise ValueError("F10_RECOVERY_STOCK_PATH_CONFLICT")
++    stock_path = root / relative
++    stock = checked_json(stock_path, digest, 512 * 1024)
++    if (stock.get("symbol") != symbol or stock.get("exchange") != symbol[-2:] or stock.get("status") != "OBSERVED"
++            or stock.get("historical_PIT") is not False or not safe(stock) or stock.get("captured_at") != item["captured_at"]):
++        raise ValueError("F10_RECOVERY_STOCK_CONFLICT")
++    projected = snapshot_fields(stock, day)
++    # The latest numeric column can represent a separate indicator observation
++    # (e.g. 11/19), while turnover and profit explicitly describe 09/30.
++    projected["financials"]["indicator_reference_period"] = projected["financials"]["report_period"]
++    projected["financials"]["report_period"] = captured_financial_period(stock, day)
++    return captured_at, {
++        "receipt_source_date": day.isoformat(), "index_sha256": RECOVERY_INDEX_SHA256,
++        "receipt": {"path": str(receipt_path), "sha256": index["receipt_sha256"]},
++        "checkpoint": {"path": str(checkpoint_path), "sha256": index["checkpoint_sha256"]},
++        "stock_ref": {"path": str(stock_path), "sha256": digest},
++        "receipt_generation": index["checkpoint_sha256"], "f10": projected,
++        "receipt_source_kind": "ISOLATED_NATIVE_TDX_RECOVERY",
++    }
++
++
+@@ -120 +198 @@
+-    def __init__(self, app, owner=OWNER, *, clock=None):
++    def __init__(self, app, owner=OWNER, *, clock=None, recovery_root=RECOVERY_ROOT):
+@@ -122,0 +201 @@
++        self.recovery_root = Path(recovery_root)
+@@ -190,0 +270,6 @@
++        recovered = None
++        try:
++            recovered = bounded_recovery(self.recovery_root, symbol, cutoff)
++        except (OSError, ValueError, KeyError, TypeError, AttributeError):
++            # Keep existing verified owner data available if local evidence is missing or corrupt.
++            pass
+@@ -196,0 +282,2 @@
++            if recovered is not None:
++                return {**payload, **recovered[1], "status": "OBSERVED", "owner_receipt_search_status": "PARTIAL"}
+@@ -199,0 +287,2 @@
++        if recovered is not None:
++            observations.append(recovered)
+@@ -220 +309 @@
+-        return {**payload, **newest, "status": "OBSERVED", "index_sha256": sha256(raw).hexdigest(),
++        return {**payload, **newest, "status": "OBSERVED", "index_sha256": newest.get("index_sha256", sha256(raw).hexdigest()),
+--- a/content_projection/formal_admission_reads.py
++++ b/content_projection/formal_admission_reads.py
+@@ -42,0 +43 @@
++    "content_projection/preopen_source_reads.py",

@@ -1,0 +1,38 @@
+--- a/ops/research_panel_f10.py
++++ b/ops/research_panel_f10.py
+@@ -163,0 +164,7 @@
++_MISSING_F10_CELLS = frozenset({'', '-', '--', 'N/A'})
++
++
++def _is_missing_f10_cell(value):
++    return isinstance(value, str) and value.strip().upper() in _MISSING_F10_CELLS
++
++
+@@ -165,14 +172,5 @@
+-    """Treat the pinned collector's literal dash as a missing F10 number.
+-
+-    The pinned collector converts its regex capture directly with ``float``;
+-    a source field containing ``-`` therefore raises and discards the entire
+-    otherwise valid stock snapshot. Keep the adjustment narrow so malformed
+-    numeric text and unrelated collector errors remain failures.
+-    """
+-    try:
+-        return fetch.grab(text, label)
+-    except ValueError:
+-        match = re.search(re.escape(label) + r"[^｜]*｜\s*([^｜\s]+)", text)
+-        if match is not None and match.group(1) == '-':
+-            return None
+-        raise
++    """Remove source absence markers before the pinned parser sees the cell."""
++    cell = re.search(re.escape(label) + r"[^｜\r\n]*｜([^｜\r\n]*)", text)
++    if cell is not None and _is_missing_f10_cell(cell[1]):
++        return None
++    return fetch.grab(text, label)
+@@ -207,2 +205,2 @@
+-        income=re.search(r'营业总收入\(元\)\s*[:：]\s*([^\s｜]+)',text)
+-        net=re.search(r'净利润\(元\)\s*[:：]\s*([^\s｜]+)',text)
++        income=re.search(r'营业总收入\(元\)[^\S\r\n]*[:：][^\S\r\n]*([^\s｜]+)',text)
++        net=re.search(r'净利润\(元\)[^\S\r\n]*[:：][^\S\r\n]*([^\s｜]+)',text)
+@@ -224 +222 @@
+-                  'revenue_text':income.group(1) if income else None,'net_profit_text':net.group(1) if net else None},
++                  'revenue_text':income.group(1) if income and not _is_missing_f10_cell(income.group(1)) else None,'net_profit_text':net.group(1) if net and not _is_missing_f10_cell(net.group(1)) else None},
